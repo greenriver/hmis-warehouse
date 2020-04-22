@@ -129,7 +129,6 @@ module HMIS::Structure::ProjectCoc
         [:DateCreated],
         [:DateUpdated],
         [:ProjectCoCID],
-        [:ProjectType],
         [:ExportID],
         [:ProjectID, :CoCCode],
       ]

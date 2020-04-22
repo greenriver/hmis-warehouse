@@ -21,10 +21,10 @@ module HmisSqlServer
       'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
       'Services.csv' => HmisSqlServer::Service,
       'User.csv' => HmisSqlServer::User,
-      'CurrentLivingSituaion.csv' => HmisSqlServer::CurrentLivingSituaion,
+      'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
       'Assessment.csv' => HmisSqlServer::Assessment,
-      'AssessmentQuestion.csv' => HmisSqlServer::AssessmentQuestion,
-      'AssessmentResult.csv' => HmisSqlServer::AssessmentResult,
+      'AssessmentQuestions.csv' => HmisSqlServer::AssessmentQuestion,
+      'AssessmentResults.csv' => HmisSqlServer::AssessmentResult,
       'Event.csv' => HmisSqlServer::Event,
     }.freeze
   end
@@ -116,9 +116,9 @@ module HmisSqlServer
     self.table_name = :hmis_User
     include ::HMIS::Structure::User
   end
-  class CurrentLivingSituaion < LsaBase
-    self.table_name = :hmis_CurrentLivingSituaion
-    include ::HMIS::Structure::CurrentLivingSituaion
+  class CurrentLivingSituation < LsaBase
+    self.table_name = :hmis_CurrentLivingSituation
+    include ::HMIS::Structure::CurrentLivingSituation
   end
   class Assessment < LsaBase
     self.table_name = :hmis_Assessment

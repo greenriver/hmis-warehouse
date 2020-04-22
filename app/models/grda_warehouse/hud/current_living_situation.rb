@@ -7,7 +7,7 @@
 module GrdaWarehouse::Hud
   class CurrentLivingSituation < Base
     include HudSharedScopes
-    include ::HMIS::Structure::CurrentLivingSituaion
+    include ::HMIS::Structure::CurrentLivingSituation
 
     self.table_name = :CurrentLivingSituation
     self.hud_key = :CurrentLivingSitID

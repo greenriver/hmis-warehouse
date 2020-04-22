@@ -59,7 +59,7 @@ module ReportGenerators::Lsa::Fy2019
         log_and_ping("Starting report #{@report.report.name}")
         begin
           # error really early if we have issues with the sample code
-          validate_lsa_sample_code()
+          # validate_lsa_sample_code()
           @hmis_export = create_hmis_csv_export()
           update_report_progress percent: 15
           log_and_ping('HMIS Export complete')
@@ -72,10 +72,8 @@ module ReportGenerators::Lsa::Fy2019
           log_and_ping('HMIS Table Structure')
           setup_lsa_table_structure()
           log_and_ping('LSA Table Structure')
-          setup_lsa_reference_tables()
-          log_and_ping('LSA Reference Table Structure')
-          setup_lsa_table_indexes()
-          log_and_ping('LSA Indexes')
+          # setup_lsa_table_indexes()
+          # log_and_ping('LSA Indexes')
 
           update_report_progress percent: 22
           setup_lsa_report()
@@ -89,7 +87,7 @@ module ReportGenerators::Lsa::Fy2019
           update_report_progress percent: 90
           log_and_ping('LSA Queries complete')
           fetch_results()
-          fetch_summary_results()
+          # fetch_summary_results()
           zip_report_folder()
           attach_report_zip()
           remove_report_files()
@@ -129,11 +127,12 @@ module ReportGenerators::Lsa::Fy2019
           directive: 2,
           hash_status:1,
           include_deleted: false,
-        ).where("project_ids @> ?", @project_ids.to_json)
-        &.first
+        ).
+        where("project_ids @> ?", @project_ids.to_json).
+        where.not(file: nil)&.first
       return existing_export if existing_export.present?
 
-      Exporters::HmisSixOneOne::Base.new(
+      Exporters::HmisTwentyTwenty::Base.new(
         start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
         end_date: @report_end,
         projects: @project_ids,
@@ -254,24 +253,29 @@ module ReportGenerators::Lsa::Fy2019
         VendorEmail: 'elliot@greenriver.org',
         LSAScope: @lsa_scope
       )
-      # INSERT [dbo].[lsa_Report] ([ReportID]
-        # , [ReportDate], [ReportStart], [ReportEnd], [ReportCoC]
-        # , [SoftwareVendor], [SoftwareName], [VendorContact], [VendorEmail]
-        # , [LSAScope])
-      # VALUES (1009
-        # , CAST(N'2019-05-07T17:47:35.977' AS DateTime), CAST(N'2016-10-01' AS Date)
-          # , CAST(N'2017-09-30' AS Date), N'XX-500'
-        # , N'Tamale Inc.', N'Tamale Online', N'Molly', N'molly@squarepegdata.com'
-        # , 1)
     end
 
     def remove_temporary_rds
-      @rds&.terminate! if @destroy_rds && ENV['LSA_DB_HOST'].blank?
+      if @destroy_rds
+        # If we didn't specify a specific host, turn off RDS
+        # Otherwise, just drop the databse
+        if ENV['LSA_DB_HOST'].blank?
+          @rds&.terminate!
+        else
+          SqlServerBase.connection.execute (<<~SQL);
+            drop database #{@rds.database}
+          SQL
+        end
+      end
     end
 
     def setup_hmis_table_structure
       ::Rds.identifier = sql_server_identifier
-      load 'lib/rds_sql_server/lsa/fy2019/hmis_table_structure.rb'
+      load 'lib/rds_sql_server/lsa/fy2019/hmis_sql_server.rb'
+      HmisSqlServer.models_by_hud_filename.each do |_, klass|
+        klass.hmis_table_create!(version: '2020')
+        klass.hmis_table_create_indices!(version: '2020')
+      end
     end
 
     def setup_lsa_table_indexes
@@ -480,12 +484,6 @@ module ReportGenerators::Lsa::Fy2019
       SQL
     end
 
-
-    def setup_lsa_reference_tables
-      ::Rds.identifier = sql_server_identifier
-      load 'lib/rds_sql_server/lsa/fy2019/lsa_reference_table_structure.rb'
-    end
-
     def setup_lsa_table_structure
       ::Rds.identifier = sql_server_identifier
       load 'lib/rds_sql_server/lsa/fy2019/lsa_table_structure.rb'
@@ -504,16 +502,11 @@ module ReportGenerators::Lsa::Fy2019
       ::Rds.identifier = sql_server_identifier
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
-      if @lsa_scope == 1 # System wide
-        rep = LsaSqlServer::LSAQueries.new
-      else # Selected projects
-        rep = LsaSqlServer::LSAQueries.new
-        rep.project_ids = @project_ids
-      end
+      rep = LsaSqlServer::LSAQueries.new
+      rep.project_ids = @project_ids unless @lsa_scope == 1 # Non-System wide
 
       # some setup
-      rep.clear
-      rep.insert_projects
+      # rep.insert_projects
 
       # loop through the LSA queries
       report_steps = rep.steps
@@ -527,15 +520,15 @@ module ReportGenerators::Lsa::Fy2019
       end
     end
 
-    def fetch_summary_results
-      load 'lib/rds_sql_server/lsa/fy2019/lsa_report_summary.rb'
-      summary = LsaSqlServer::LSAReportSummary.new
-      summary_data = summary.fetch_results
-      people = {headers: summary_data.columns.first, data: summary_data.rows.first}
-      enrollments = {headers: summary_data.columns.second, data: summary_data.rows.second}
-      demographics = summary.fetch_demographics
-      @report.results = {summary: {people: people, enrollments: enrollments, demographics: demographics}}
-      @report.save
-    end
+    # def fetch_summary_results
+    #   load 'lib/rds_sql_server/lsa/fy2019/lsa_report_summary.rb'
+    #   summary = LsaSqlServer::LSAReportSummary.new
+    #   summary_data = summary.fetch_results
+    #   people = {headers: summary_data.columns.first, data: summary_data.rows.first}
+    #   enrollments = {headers: summary_data.columns.second, data: summary_data.rows.second}
+    #   demographics = summary.fetch_demographics
+    #   @report.results = {summary: {people: people, enrollments: enrollments, demographics: demographics}}
+    #   @report.save
+    # end
   end
 end

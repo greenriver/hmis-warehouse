@@ -21,7 +21,8 @@ module HMIS::Structure::Base
     def hmis_table_create_indices!(version: nil)
       hmis_indices(version: version).each do |columns|
         # enforce a short index name
-        name = columns.map { |c| c[0..7].downcase }.join('_')
+        cols = columns.map { |c| "#{c[0..5]&.downcase}#{c[-4..-1]&.downcase}" }
+        name = ([table_name] + cols).join('_')
         next if connection.index_exists?(table_name, columns, name: name)
 
         connection.add_index table_name, columns, name: name

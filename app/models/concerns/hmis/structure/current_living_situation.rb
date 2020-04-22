@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module HMIS::Structure::CurrentLivingSituaion
+module HMIS::Structure::CurrentLivingSituation
   extend ActiveSupport::Concern
   include ::HMIS::Structure::Base
 
