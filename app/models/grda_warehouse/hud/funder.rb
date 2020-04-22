@@ -13,54 +13,6 @@ module GrdaWarehouse::Hud
     self.hud_key = :FunderID
     acts_as_paranoid column: :DateDeleted
 
-    def self.hud_csv_headers(version: nil)
-      case version
-      when '5.1', '6.11', '6.12'
-        [
-          :FunderID,
-          :ProjectID,
-          :Funder,
-          :GrantID,
-          :StartDate,
-          :EndDate,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      when '2020'
-        [
-          :FunderID,
-          :ProjectID,
-          :Funder,
-          :OtherFunder,
-          :GrantID,
-          :StartDate,
-          :EndDate,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      else
-        [
-          :FunderID,
-          :ProjectID,
-          :Funder,
-          :GrantID,
-          :StartDate,
-          :EndDate,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      end
-    end
-
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :funders
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: :true
     belongs_to :data_source
