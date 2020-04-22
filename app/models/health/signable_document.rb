@@ -217,7 +217,7 @@ module Health
 
     def signed_on(email)
       signature = self.hs_last_response['signatures'].
-        find { |sig| opt_data(sig)['status_code'] == 'signed' && opt_data(sig)['signer_email_address'] == email }
+        find { |sig| opt_data(sig)['status_code'] == 'signed' && opt_data(sig)['signer_email_address']&.downcase == email.downcase }
 
       timestamp = opt_data(signature)['signed_at'] if signature.present?
 
@@ -248,7 +248,7 @@ module Health
     end
 
     def signed_by?(email)
-      signed_by.any? { |signer| signer == email }
+      signed_by.any? { |signer| signer.downcase == email.downcase }
     end
 
     def all_signed?
@@ -266,7 +266,7 @@ module Health
     def _signature_id_for(email)
       return nil if self.hs_initial_response.nil?
 
-      sig = Array.wrap(self.hs_initial_response['signatures']).find { |r| opt_data(r).dig('signer_email_address') == email }
+      sig = Array.wrap(self.hs_initial_response['signatures']).find { |r| opt_data(r).dig('signer_email_address')&.downcase == email.downcase }
       res = opt_data(sig)
 
       res.present? ? res['signature_id'] : 'error'
