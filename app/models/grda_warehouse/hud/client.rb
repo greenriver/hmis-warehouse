@@ -1985,15 +1985,17 @@ module GrdaWarehouse::Hud
     end
 
     def last_projects_served_by(include_confidential_names: false)
-      shs = service_history_services.
-        group_by(&:date).
-        max_by{|date, _| date }
+      shs = service_history_services.to_a.
+        select{|sh| sh.date == date_of_last_service}
       return [] unless shs.present?
 
-      shs.last.map do |sh|
-        project_id = sh.service_history_enrollment.project_id
-        data_source_id = sh.service_history_enrollment.data_source_id
-        project_name = sh.service_history_enrollment.project_name
+      shs.map do |sh|
+        en = sh.service_history_enrollment
+        next unless en
+
+        project_id = en.project_id
+        data_source_id = en.data_source_id
+        project_name = en.project_name
         confidential = project_confidential?(project_id: project_id, data_source_id: data_source_id)
         if ! confidential || include_confidential_names
           project_name
