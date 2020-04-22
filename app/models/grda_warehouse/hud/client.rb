@@ -1985,8 +1985,9 @@ module GrdaWarehouse::Hud
     end
 
     def last_projects_served_by(include_confidential_names: false)
-      shs = service_history_services.to_a.
-        select{|sh| sh.date == date_of_last_service}
+      shs = service_history_services.
+        where(date: date_of_last_service).
+        joins(:service_history_enrollment)
       return [] unless shs.present?
 
       shs.map do |sh|

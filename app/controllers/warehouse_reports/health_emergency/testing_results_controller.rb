@@ -15,8 +15,8 @@ module WarehouseReports::HealthEmergency
     def index
       @html = true
       @results = test_scope.tested_within_range(@filter.range).
-        joins(client: [:processed_service_history, service_history_services: :service_history_enrollment]).
-        preload(client: [:processed_service_history, service_history_services: :service_history_enrollment])
+        joins(client: [:processed_service_history, :service_history_enrollments]).
+        preload(client: [:processed_service_history, :service_history_enrollments])
 
       if @filter.effective_project_ids_from_projects.present?
         @results = @results.merge(
