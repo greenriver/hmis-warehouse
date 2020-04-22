@@ -10,6 +10,8 @@ log/*
 *.swo
 yarn-error.log
 .irb-history
+.pry_history
+.pryrc
 byebug_history
 .powrc
 .env.*
