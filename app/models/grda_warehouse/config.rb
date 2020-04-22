@@ -79,6 +79,10 @@ module GrdaWarehouse
       available_health_emergency_tracings.invert[get(:health_emergency_tracing).to_sym] || ''
     end
 
+    def self.current_health_emergency_title
+      available_health_emergencies.invert[get(:health_emergency)&.to_sym] || ''
+    end
+
     def self.cache_store
       @cache_store ||= begin
         store = ActiveSupport::Cache::MemoryStore.new
