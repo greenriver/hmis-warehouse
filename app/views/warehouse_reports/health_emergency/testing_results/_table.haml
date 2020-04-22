@@ -1,6 +1,11 @@
 - if @results
-  %p= page_entries_info @results, entry_name: 'result'
-  %p= paginate @results
+  .row
+    .col-sm-8
+      %p= page_entries_info @results, entry_name: 'result'
+      %p= paginate @results
+    .col-sm-4.text-right
+      = link_to({format: :xlsx}.merge({filter: filter_params}),{class: 'btn btn-secondary ml-auto mb-4'}) do
+        Download Excel
   %table.table.table-striped
     %thead
       %tr
