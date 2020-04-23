@@ -5,6 +5,7 @@ FactoryBot.define do
     birthdate { Date.current }
     sequence(:medicaid_id)
     enrollment_start_date { Date.current }
+    current { true }
   end
 
   factory :patient, class: 'Health::Patient' do
