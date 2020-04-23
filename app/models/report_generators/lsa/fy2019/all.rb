@@ -34,6 +34,7 @@ module ReportGenerators::Lsa::Fy2019
   class All < Base
     include TsqlImport
     include NotifierConfig
+    include ActionView::Helpers::DateHelper
     attr_accessor :send_notifications, :notifier_config
 
     def initialize options
@@ -515,8 +516,11 @@ module ReportGenerators::Lsa::Fy2019
       rep.steps.each_with_index do |step, i|
         percent = 30 + i * step_percent
         update_report_progress percent: percent.round(2)
+        start_time = Time.current
         rep.run_query(step)
-        log_and_ping("LSA Query #{step} complete")
+        end_time = Time.current
+        seconds = ((end_time - start_time)/1.minute).round * 60
+        log_and_ping("LSA Query #{step} complete in #{distance_of_time_in_words(seconds)}")
       end
     end
 

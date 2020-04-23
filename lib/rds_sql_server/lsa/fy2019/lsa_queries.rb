@@ -22,6 +22,9 @@ module LsaSqlServer
       SqlServerBase.connection.execute <<~SQL
         #{File.read(step)}
       SQL
+      GrdaWarehouseBase.connection.reconnect!
+      ApplicationRecord.connection.reconnect!
+      ReportingBase.connection.reconnect!
     end
 
     def insert_projects

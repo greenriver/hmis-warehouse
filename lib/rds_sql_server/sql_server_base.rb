@@ -6,6 +6,7 @@ class SqlServerBase < ActiveRecord::Base
     'host' => rds.host,
     'pool' => 5,
     'timeout' => Rds.timeout,
+    'idle_timeout' => 10_000,
     'port' => 1433,
     'username' => Rds::USERNAME,
     'password' => Rds::PASSWORD,

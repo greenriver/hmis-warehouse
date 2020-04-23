@@ -4,28 +4,28 @@ module HmisSqlServer
   module_function def models_by_hud_filename
     # use an explict whitelist as a security measure
     {
-      'Affiliation.csv' => HmisSqlServer::Affiliation,
-      'Client.csv' => HmisSqlServer::Client,
-      'Disabilities.csv' => HmisSqlServer::Disability,
-      'EmploymentEducation.csv' => HmisSqlServer::EmploymentEducation,
-      'Enrollment.csv' => HmisSqlServer::Enrollment,
-      'EnrollmentCoC.csv' => HmisSqlServer::EnrollmentCoc,
-      'Exit.csv' => HmisSqlServer::Exit,
-      'Export.csv' => HmisSqlServer::Export,
-      'Funder.csv' => HmisSqlServer::Funder,
-      'HealthAndDV.csv' => HmisSqlServer::HealthAndDv,
-      'IncomeBenefits.csv' => HmisSqlServer::IncomeBenefit,
-      'Inventory.csv' => HmisSqlServer::Inventory,
-      'Organization.csv' => HmisSqlServer::Organization,
-      'Project.csv' => HmisSqlServer::Project,
-      'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
-      'Services.csv' => HmisSqlServer::Service,
-      'User.csv' => HmisSqlServer::User,
-      'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
-      'Assessment.csv' => HmisSqlServer::Assessment,
-      'AssessmentQuestions.csv' => HmisSqlServer::AssessmentQuestion,
-      'AssessmentResults.csv' => HmisSqlServer::AssessmentResult,
-      'Event.csv' => HmisSqlServer::Event,
+      # 'Affiliation.csv' => HmisSqlServer::Affiliation,
+      # 'Client.csv' => HmisSqlServer::Client,
+      # 'Disabilities.csv' => HmisSqlServer::Disability,
+      # 'EmploymentEducation.csv' => HmisSqlServer::EmploymentEducation,
+      # 'Enrollment.csv' => HmisSqlServer::Enrollment,
+      # 'EnrollmentCoC.csv' => HmisSqlServer::EnrollmentCoc,
+      # 'Exit.csv' => HmisSqlServer::Exit,
+      # 'Export.csv' => HmisSqlServer::Export,
+      # 'Funder.csv' => HmisSqlServer::Funder,
+      # 'HealthAndDV.csv' => HmisSqlServer::HealthAndDv,
+      # 'IncomeBenefits.csv' => HmisSqlServer::IncomeBenefit,
+      # 'Inventory.csv' => HmisSqlServer::Inventory,
+      # 'Organization.csv' => HmisSqlServer::Organization,
+      # 'Project.csv' => HmisSqlServer::Project,
+      # 'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
+      # 'Services.csv' => HmisSqlServer::Service,
+      # 'User.csv' => HmisSqlServer::User,
+      # 'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
+      # 'Assessment.csv' => HmisSqlServer::Assessment,
+      # 'AssessmentQuestions.csv' => HmisSqlServer::AssessmentQuestion,
+      # 'AssessmentResults.csv' => HmisSqlServer::AssessmentResult,
+      # 'Event.csv' => HmisSqlServer::Event,
     }.freeze
   end
 
@@ -87,6 +87,24 @@ module HmisSqlServer
   class Inventory < LsaBase
     self.table_name = :hmis_Inventory
     include ::HMIS::Structure::Inventory
+
+    def clean_row_for_import(row:, headers:)
+      # Fixes for LSA idiosyncracies
+      [
+        'CHVetBedInventory',
+        'YouthVetBedInventory',
+        'VetBedInventory',
+        'CHYouthBedInventory',
+        'YouthBedInventory',
+        'CHBedInventory',
+        'OtherBedInventory',
+      ].each do |k|
+        field_index = headers.index(k)
+        row[field_index] = row[field_index].presence || 0
+      end
+
+      super(row: row, headers: headers)
+    end
   end
   class Organization < LsaBase
     self.table_name = :hmis_Organization
@@ -95,13 +113,6 @@ module HmisSqlServer
   class Project < LsaBase
     self.table_name = :hmis_Project
     include ::HMIS::Structure::Project
-
-    def clean_row_for_import(row:, headers:)
-      # Default to no for VictimServicesProvider
-      field_index = headers.index('VictimServicesProvider')
-      row[field_index] = row[field_index].presence || 0
-      super(row: row, headers: headers)
-    end
   end
   class ProjectCoc < LsaBase
     self.table_name = :hmis_ProjectCoC

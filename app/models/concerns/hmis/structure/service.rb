@@ -57,7 +57,6 @@ module HMIS::Structure::Service
           },
           ReferralOutcome: {
             type: :integer,
-            null: false,
           },
           DateCreated: {
             type: :datetime,

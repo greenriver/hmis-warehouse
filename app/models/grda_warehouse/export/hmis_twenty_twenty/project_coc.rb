@@ -31,6 +31,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       row[:Address2] = row[:Address2][0...100] if row[:Address2]
       row[:City] = row[:City][0...50] if row[:City]
       row[:ZIP] = row[:ZIP][0...5] if row[:ZIP]
+      row[:Geocode] = "0" * 6 if row[:Geocode].blank?
 
       return row
     end
