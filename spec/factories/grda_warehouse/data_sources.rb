@@ -54,4 +54,12 @@ FactoryBot.define do
     source_type { :sftp }
     visible_in_window { true }
   end
+
+  factory :health_data_source, class: 'GrdaWarehouse::DataSource' do
+    name { 'Health' }
+    short_name { 'Health' }
+    # association :client, factory: :grda_warehouse_hud_client
+    source_type { :sftp }
+    visible_in_window { true }
+  end
 end

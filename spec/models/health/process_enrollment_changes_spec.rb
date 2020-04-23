@@ -1,6 +1,9 @@
 require 'rails_helper'
 
 RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
+  let!(:health_data_source) { create :health_data_source }
+  let!(:destination_data_source) { create :destination_data_source }
+  let!(:referral_ds) { create :referral_ds }
   let!(:receiver) { create :receiver }
 
   it 'enrolls a new patient' do
