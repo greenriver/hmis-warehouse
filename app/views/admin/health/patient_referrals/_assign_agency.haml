@@ -8,7 +8,7 @@
   = simple_form_for pr, url: admin_health_patient_referral_assign_agency_path(pr), namespace: dropdown_id, method: :post, remote: true do |f|
     = f.input :agency_id, as: :hidden
   .dropdown
-    = link_to '#', id: dropdown_id, data: {toggle: 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'} do
+    = link_to '#', id: dropdown_id, data: {toggle: 'dropdown'}, aria: {haspopup: 'true', expanded: 'false'}, class: 'btn btn-secondary btn-sm' do
       = label
       %span.caret
     %ul.dropdown-menu{aria: {labelledby: dropdown_id}}

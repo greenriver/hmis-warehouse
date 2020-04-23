@@ -111,7 +111,12 @@ module Health
     end
 
     def disenroll_patient(transaction, referral)
-      referral.update(pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction))
+      code = Health::Enrollment.disenrollment_reason_code(transaction)
+
+      referral.update(
+        pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction),
+        stop_reason_description: disenrollment_reason_description(code),
+      )
     end
 
     def update_patient_referrals(patient, transaction)
@@ -135,6 +140,11 @@ module Health
       end
 
       Health::PatientReferral.create_referral(patient, updates)
+    end
+
+    def disenrollment_reason_description(code)
+      @disenrollment_reasons ||= Health::DisenrollmentReason.pluck(:reason_code, :reason_description).to_h
+      @disenrollment_reasons[code]
     end
   end
 end

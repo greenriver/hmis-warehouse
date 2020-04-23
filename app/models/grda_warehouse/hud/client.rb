@@ -1962,7 +1962,9 @@ module GrdaWarehouse::Hud
     end
 
     def confidential_project_ids
-      @confidential_project_ids ||= GrdaWarehouse::Hud::Project.confidential.pluck(:ProjectID, :data_source_id)
+      @confidential_project_ids ||= Rails.cache.fetch('confidential_project_ids', expires_in: 5.minutes) do
+        GrdaWarehouse::Hud::Project.confidential.pluck(:ProjectID, :data_source_id)
+      end
     end
 
     def project_confidential?(project_id:, data_source_id:)
@@ -1983,13 +1985,18 @@ module GrdaWarehouse::Hud
     end
 
     def last_projects_served_by(include_confidential_names: false)
-      sh = service_history_services.joins(:service_history_enrollment).
-        pluck(:date, Arel.sql(she_t[:project_name].to_sql), Arel.sql(she_t[:data_source_id].to_sql), :project_id).
-        group_by(&:first).
-        max_by(&:first)
-      return [] unless sh.present?
+      shs = service_history_services.
+        where(date: date_of_last_service).
+        joins(:service_history_enrollment)
+      return [] unless shs.present?
 
-      sh.last.map do |_,project_name, data_source_id, project_id|
+      shs.map do |sh|
+        en = sh.service_history_enrollment
+        next unless en
+
+        project_id = en.project_id
+        data_source_id = en.data_source_id
+        project_name = en.project_name
         confidential = project_confidential?(project_id: project_id, data_source_id: data_source_id)
         if ! confidential || include_confidential_names
           project_name
