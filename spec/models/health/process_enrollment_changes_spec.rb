@@ -4,20 +4,20 @@ RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
   let!(:receiver) { create :receiver }
 
   it 'enrolls a new patient' do
-    referrals = Health::PatientReferral.count
+    referrals = Health::PatientReferral.current.count
 
     process('enrollment.txt')
 
-    expect(Health::PatientReferral.count).to eq(referrals + 1)
+    expect(Health::PatientReferral.current.count).to eq(referrals + 1)
   end
 
   it 'does not duplicate enrollments' do
-    referrals = Health::PatientReferral.count
+    referrals = Health::PatientReferral.current.count
 
     process('enrollment.txt')
     process('enrollment.txt')
 
-    expect(Health::PatientReferral.count).to eq(referrals + 1)
+    expect(Health::PatientReferral.current.count).to eq(referrals + 1)
   end
 
   it 'ignores disenrollment of non-existent patient' do

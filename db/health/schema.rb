@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_17_132126) do
+ActiveRecord::Schema.define(version: 2020_04_22_143107) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -56,7 +56,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.datetime "appointment_time"
     t.string "id_in_source"
     t.string "patient_id"
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
   end
 
   create_table "backup_plans", force: :cascade do |t|
@@ -394,6 +394,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.integer "user_id"
     t.string "original_filename"
     t.datetime "deleted_at"
+    t.string "file"
     t.integer "num_errors"
   end
 
@@ -478,6 +479,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.integer "disenrolled_patients"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string "file"
     t.integer "updated_patients"
   end
 
@@ -574,7 +576,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.datetime "goal_created_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
     t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
@@ -610,7 +612,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.string "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean "pilot", default: false, null: false
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
     t.datetime "deleted_at"
     t.date "death_date"
   end
@@ -766,7 +768,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.datetime "updated_at", null: false
     t.string "id_in_source"
     t.string "patient_id"
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
   end
 
   create_table "member_status_report_patients", id: :serial, force: :cascade do |t|
@@ -861,6 +863,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.integer "rejected_reason", default: 0, null: false
     t.integer "patient_id"
     t.integer "accountable_care_organization_id"
+    t.datetime "effective_date", default: -> { "now()" }
     t.string "middle_initial"
     t.string "suffix"
     t.string "gender"
@@ -907,10 +910,11 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.date "record_updated_on"
     t.date "exported_on"
     t.boolean "removal_acknowledged", default: false, null: false
-    t.datetime "effective_date"
     t.date "disenrollment_date"
     t.string "stop_reason_description"
     t.date "pending_disenrollment_date"
+    t.boolean "current", default: false, null: false
+    t.boolean "contributing", default: false, null: false
   end
 
   create_table "patients", id: :serial, force: :cascade do |t|
@@ -936,10 +940,10 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.string "housing_status"
     t.datetime "housing_status_timestamp"
     t.boolean "pilot", default: false, null: false
-    t.integer "data_source_id", default: 6, null: false
+    t.datetime "deleted_at"
+    t.integer "data_source_id", default: 1, null: false
     t.date "engagement_date"
     t.integer "care_coordinator_id"
-    t.datetime "deleted_at"
     t.date "death_date"
     t.string "coverage_level"
     t.date "coverage_inquiry_date"
@@ -961,6 +965,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.jsonb "converted_content"
     t.datetime "started_at"
     t.datetime "completed_at"
+    t.string "file"
     t.index ["deleted_at"], name: "index_premium_payments_on_deleted_at"
   end
 
@@ -974,7 +979,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.datetime "updated_at", null: false
     t.string "id_in_source"
     t.string "patient_id"
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
   end
 
   create_table "qualifying_activities", id: :serial, force: :cascade do |t|
@@ -1171,8 +1176,8 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.string "hs_subject", default: "Signature Request", null: false
     t.string "hs_title", default: "Signature Request", null: false
     t.text "hs_message", default: "You've been asked to sign a document."
-    t.jsonb "signers", default: [], null: false
-    t.jsonb "signed_by", default: [], null: false
+    t.jsonb "signers", default: "[]", null: false
+    t.jsonb "signed_by", default: "[]", null: false
     t.datetime "created_at"
     t.datetime "updated_at"
     t.datetime "expires_at"
@@ -1371,6 +1376,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.string "file"
     t.index ["deleted_at"], name: "index_transaction_acknowledgements_on_deleted_at"
   end
 
@@ -1404,7 +1410,7 @@ ActiveRecord::Schema.define(version: 2020_04_17_132126) do
     t.datetime "updated_at", null: false
     t.string "patient_id"
     t.datetime "date_of_service"
-    t.integer "data_source_id", default: 6, null: false
+    t.integer "data_source_id", default: 1, null: false
   end
 
   add_foreign_key "comprehensive_health_assessments", "health_files"
