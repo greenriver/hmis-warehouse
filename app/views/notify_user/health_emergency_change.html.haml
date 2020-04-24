@@ -1,0 +1,9 @@
+- if @unsent_medical_restrictions.positive? && @medical_restriction_batch_id
+  %h2= "#{pluralize(@unsent_medical_restrictions, 'Medical restriction')} have been added."
+
+  %p= link_to "View report", @medical_restriction_report_url
+
+- if @unsent_test_results.positive? && @test_batch_id
+  %h2= "#{pluralize(@unsent_test_results, 'Test result')} have been added."
+
+  %p= link_to "View report", @test_report_url

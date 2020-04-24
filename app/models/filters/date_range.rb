@@ -9,6 +9,7 @@ module Filters
   class DateRange < ::ModelForm
     attribute :start, Date, lazy: true, default: -> (r,_) { r.default_start }
     attribute :end, Date, lazy: true, default: -> (r,_) { r.default_end }
+    attribute :sort
 
     validates_presence_of :start, :end
 

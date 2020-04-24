@@ -1,0 +1,9 @@
+- if @unsent_medical_restrictions.positive? && @medical_restriction_batch_id
+  #{pluralize(@unsent_medical_restrictions, 'Medical restriction')} have been added.
+
+  = @medical_restriction_report_url
+
+- if @unsent_test_results.positive? && @test_batch_id
+  #{pluralize(@unsent_test_results, 'Test result')} have been added.
+
+  = @test_report_url
