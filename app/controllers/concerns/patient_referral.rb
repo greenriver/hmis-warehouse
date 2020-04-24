@@ -136,10 +136,6 @@ module PatientReferral
     )
   end
 
-  def load_new_patient_referral
-    @new_patient_referral = Health::PatientReferral.new(effective_date: DateTime.current.at_beginning_of_month.next_month)
-  end
-
   def clean_patient_referral_params
     clean_params = patient_referral_params
     clean_params[:ssn] = clean_params[:ssn]&.gsub(/\D/, '')

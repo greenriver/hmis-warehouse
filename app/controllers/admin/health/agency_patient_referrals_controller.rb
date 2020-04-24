@@ -10,7 +10,6 @@ module Admin::Health
     before_action :require_can_review_patient_assignments!
     # before_action :load_agency_user, only: [:review, :reviewed, :add_patient_referral]
     before_action :load_agency_users, only: [:review, :reviewed, :add_patient_referral, :claim_buttons]
-    before_action :load_new_patient_referral, only: [:review, :reviewed]
 
     include PatientReferral
     helper_method :tab_path_params
