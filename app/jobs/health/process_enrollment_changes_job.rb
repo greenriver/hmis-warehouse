@@ -99,7 +99,7 @@ module Health
 
     def referral(transaction)
       medicaid_id = Health::Enrollment.subscriber_id(transaction)
-      Health::PatientReferral.find_by(medicaid_id: medicaid_id)
+      Health::PatientReferral.current.find_by(medicaid_id: medicaid_id)
     end
 
     def enroll_patient(transaction)

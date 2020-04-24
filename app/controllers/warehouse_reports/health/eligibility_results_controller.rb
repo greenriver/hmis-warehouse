@@ -49,7 +49,7 @@ module WarehouseReports::Health
     end
 
     def referral_scope
-      Health::PatientReferral
+      Health::PatientReferral.current
     end
   end
 end
