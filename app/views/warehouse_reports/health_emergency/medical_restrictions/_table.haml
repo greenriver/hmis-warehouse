@@ -1,7 +1,15 @@
 - if @restrictions
   - if @html
-    %p= page_entries_info @restrictions, entry_name: 'restrictions'
-    %p= paginate @restrictions
+    .row
+      .col-sm-8
+        %p= page_entries_info @restrictions, entry_name: 'restrictions'
+        %p= paginate @restrictions
+      .col-sm-4.d-flex
+        = link_to({action: :index, format: :pdf}.merge(filter: filter_params), {class: 'btn btn-secondary ml-auto mb-4'}) do
+          %i.icon-download2
+          Report as PDF
+    - if params[:batch_id]
+      %p.p-4.report-hightlight Hightlighed rows were indicate they were added in this batch.
   %table.table.table-striped
     %thead
       %tr
@@ -9,18 +17,16 @@
         %th Client ID
         %th Name
         %th Age
-        %th Restricted Added
+        %th Restriction Added
         %th Notes
     %tbody
       - @restrictions.each do |restriction|
         - client = restriction.client
+        - batch_class = if restriction.in_batch?(params[:batch_id]) then 'report-hightlight' else '' end
         %tr
-          %td
-            - if client.image
-              - if @html
-                .client__image{ style: "background-image: url(#{ image_client_path(client) })" }
-              - if false # @pdf
-                = image_tag("data:image/jpeg;base64,#{Base64.encode64(client.image)}", width: 200)
+          %td{class: batch_class}
+            - if @html && client.image
+              .client__image{ style: "background-image: url(#{ image_client_path(client) })" }
           %td= link_to_if @html, client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
           %td= link_to_if @html, client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
           %td= client.age

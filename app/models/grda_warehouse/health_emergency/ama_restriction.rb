@@ -25,8 +25,22 @@ module GrdaWarehouse::HealthEmergency
       where(created_at: range)
     end
 
+    scope :unsent, -> do
+      where(notification_at: nil)
+    end
+
     def visible_to?(user)
       user.can_see_health_emergency_medical_restriction?
+    end
+
+    def self.next_batch_id
+      current_batch = maximum(:notification_batch_id) || 0
+      current_batch + 1
+    end
+
+    def in_batch?(batch_id)
+      return false unless batch_id
+      notification_batch_id == batch_id&.to_i
     end
 
     def title

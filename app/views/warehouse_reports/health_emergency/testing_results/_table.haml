@@ -3,9 +3,11 @@
     .col-sm-8
       %p= page_entries_info @results, entry_name: 'result'
       %p= paginate @results
-    .col-sm-4.text-right
+    .col-sm-4.d-flex
       = link_to({format: :xlsx}.merge({filter: filter_params}),{class: 'btn btn-secondary ml-auto mb-4'}) do
         Download Excel
+  - if params[:batch_id]
+    %p.p-4.report-hightlight Hightlighed rows were indicate they were added in this batch.
   %table.table.table-striped
     %thead
       %tr
@@ -15,11 +17,13 @@
         %th Test Result
         %th Notes
         %th Last Seen
+        %th Added On
     %tbody
       - @results.each do |result|
         - client = result.client
+        - batch_class = if result.in_batch?(params[:batch_id]) then 'report-hightlight' else '' end
         %tr
-          %td= link_to client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
+          %td{class: batch_class}= link_to client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
           %td= link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
           %td= result.tested_on
           %td= result.result
@@ -30,5 +34,6 @@
             - if served_on
               on
               = served_on
+          %td= result.created_at.to_date
 
   %p= paginate @results
