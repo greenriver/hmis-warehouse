@@ -61,10 +61,10 @@ module HMIS::Structure::User
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:UserID],
-        [:ExportID],
-      ]
+      {
+        [:UserID] => nil,
+        [:ExportID] => nil,
+      }
     end
   end
 end

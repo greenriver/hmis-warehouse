@@ -29,7 +29,7 @@
     = f.error_notification
     .row.mb-2
       .col-sm-4
-        = f.input :project_id, collection: Reports::Lsa::Fy2019::Base.available_projects.viewable_by(current_user), required: false, input_html: {name: 'report_result[options][project_id][]', multiple: true, class: :select2}
+        = f.input :project_id, collection: Reports::Lsa::Fy2019::Base.available_projects(user: current_user), required: false, as: :grouped_select, group_method: :last, input_html: {name: 'report_result[options][project_id][]', multiple: true, class: :select2}
         = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), required: false, label: 'Project Groups', input_html: { name: 'report_result[options][project_group_ids][]', multiple: true, class: :select2 }
         = f.input :data_source_id, collection: Reports::Lsa::Fy2019::Base.available_data_sources.viewable_by(current_user), required: false, input_html: {name: 'report_result[options][data_source_id]', class: :select2}
       .col-sm-4

@@ -56,9 +56,9 @@ module HMIS::Structure::Affiliation
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:ExportID],
-      ]
+      {
+        [:ExportID] => nil,
+      }
     end
   end
 end

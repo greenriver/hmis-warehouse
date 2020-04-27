@@ -321,16 +321,16 @@ module HMIS::Structure::Exit
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:DateCreated],
-        [:DateDeleted],
-        [:DateUpdated],
-        [:EnrollmentID],
-        [:ExitDate],
-        [:PersonalID],
-        [:ExitID],
-        [:ExportID],
-      ]
+      {
+        [:DateCreated] => nil,
+        [:DateDeleted] => nil,
+        [:DateUpdated] => nil,
+        [:EnrollmentID] => nil,
+        [:ExitDate] => nil,
+        [:PersonalID] => nil,
+        [:ExitID] => nil,
+        [:ExportID] => nil,
+      }
     end
   end
 end

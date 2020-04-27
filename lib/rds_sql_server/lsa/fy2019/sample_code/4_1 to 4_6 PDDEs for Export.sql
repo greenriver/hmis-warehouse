@@ -12,36 +12,36 @@ Date:  4/2/2020
 		NOTE:   If used in production, must be modified to accept user-selected ProjectIDs as
 				parameters when LSAScope = 2.
 */
-	delete from lsa_Project
+	-- delete from lsa_Project
 
-	insert into lsa_Project
-		(ProjectID, OrganizationID, ProjectName
-		 , OperatingStartDate, OperatingEndDate
-		 , ContinuumProject, ProjectType, HousingType
-		 , TrackingMethod, HMISParticipatingProject
-		 , TargetPopulation
-		 , DateCreated, DateUpdated, ExportID)
-	select distinct
-		hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 50)
-		, format(hp.OperatingStartDate, 'yyyy-mm-dd')
-		, case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-mm-dd') else null end
-		, hp.ContinuumProject, hp.ProjectType, hp.HousingType
-		, hp.TrackingMethod, hp.HMISParticipatingProject
-		, hp.TargetPopulation
-		, format(hp.DateCreated, 'yyyy-mm-dd hh:mm:ss')
-		, format(hp.DateUpdated, 'yyyy-mm-dd hh:mm:ss')
-		, rpt.ReportID
-	from hmis_Project hp
-	inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd
-	inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC
-	where hp.DateDeleted is null
-		and hp.ContinuumProject = 1
-		and hp.ProjectType in (1,2,3,8,9,10,13)
-		and hp.OperatingStartDate <= rpt.ReportEnd
-		and (hp.OperatingEndDate is null
-			 or	(hp.OperatingEndDate >= rpt.ReportStart
-				 and hp.OperatingEndDate > hp.OperatingStartDate)
-			)
+	-- insert into lsa_Project
+	-- 	(ProjectID, OrganizationID, ProjectName
+	-- 	 , OperatingStartDate, OperatingEndDate
+	-- 	 , ContinuumProject, ProjectType, HousingType
+	-- 	 , TrackingMethod, HMISParticipatingProject
+	-- 	 , TargetPopulation
+	-- 	 , DateCreated, DateUpdated, ExportID)
+	-- select distinct
+	-- 	hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 50)
+	-- 	, format(hp.OperatingStartDate, 'yyyy-mm-dd')
+	-- 	, case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-mm-dd') else null end
+	-- 	, hp.ContinuumProject, hp.ProjectType, hp.HousingType
+	-- 	, hp.TrackingMethod, hp.HMISParticipatingProject
+	-- 	, hp.TargetPopulation
+	-- 	, format(hp.DateCreated, 'yyyy-mm-dd hh:mm:ss')
+	-- 	, format(hp.DateUpdated, 'yyyy-mm-dd hh:mm:ss')
+	-- 	, rpt.ReportID
+	-- from hmis_Project hp
+	-- inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd
+	-- inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC
+	-- where hp.DateDeleted is null
+	-- 	and hp.ContinuumProject = 1
+	-- 	and hp.ProjectType in (1,2,3,8,9,10,13)
+	-- 	and hp.OperatingStartDate <= rpt.ReportEnd
+	-- 	and (hp.OperatingEndDate is null
+	-- 		 or	(hp.OperatingEndDate >= rpt.ReportStart
+	-- 			 and hp.OperatingEndDate > hp.OperatingStartDate)
+	-- 		)
 
 /*
 	4.2 Get Organization Records for Export

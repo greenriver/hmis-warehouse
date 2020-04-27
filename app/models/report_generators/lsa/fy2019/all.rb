@@ -59,16 +59,12 @@ module ReportGenerators::Lsa::Fy2019
         @report_end ||= @report.options['report_end'].to_date
         log_and_ping("Starting report #{@report.report.name}")
         begin
-          # error really early if we have issues with the sample code
-          # validate_lsa_sample_code()
           @hmis_export = create_hmis_csv_export()
           update_report_progress percent: 15
           log_and_ping('HMIS Export complete')
-          # puts 'done exporting'
           setup_temporary_rds()
           update_report_progress percent: 20
           log_and_ping('RDS DB Setup')
-          # puts 'RDS setup done'
           setup_hmis_table_structure()
           log_and_ping('HMIS Table Structure')
           setup_lsa_table_structure()
@@ -141,7 +137,7 @@ module ReportGenerators::Lsa::Fy2019
         directive: 2,
         hash_status:1,
         include_deleted: false,
-        user_id: @report.user_id
+        user_id: @report.user_id,
       ).export!
     end
 
@@ -490,15 +486,6 @@ module ReportGenerators::Lsa::Fy2019
       load 'lib/rds_sql_server/lsa/fy2019/lsa_table_structure.rb'
     end
 
-    def validate_lsa_sample_code
-      unless ENV['NO_LSA_RDS'].present?
-        ::Rds.identifier = sql_server_identifier
-        ::Rds.timeout = 60_000_000
-      end
-      load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
-      LsaSqlServer::LSAQueries.new.validate_file
-    end
-
     def run_lsa_queries
       ::Rds.identifier = sql_server_identifier
       ::Rds.timeout = 60_000_000
@@ -507,7 +494,7 @@ module ReportGenerators::Lsa::Fy2019
       rep.project_ids = @project_ids unless @lsa_scope == 1 # Non-System wide
 
       # some setup
-      # rep.insert_projects
+      rep.insert_projects
 
       # loop through the LSA queries
       report_steps = rep.steps

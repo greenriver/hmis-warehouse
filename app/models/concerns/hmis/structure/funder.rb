@@ -124,12 +124,12 @@ module HMIS::Structure::Funder
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:DateCreated],
-        [:DateUpdated],
-        [:FunderID],
-        [:ExportID],
-      ]
+      {
+        [:DateCreated] => nil,
+        [:DateUpdated] => nil,
+        [:FunderID] => nil,
+        [:ExportID] => nil,
+      }
     end
   end
 end

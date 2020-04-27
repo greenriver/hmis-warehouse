@@ -89,14 +89,14 @@ module HMIS::Structure::CurrentLivingSituation
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:CurrentLivingSitID],
-        [:EnrollmentID],
-        [:PersonalID],
-        [:InformationDate],
-        [:CurrentLivingSituation],
-        [:ExportID],
-      ]
+      {
+        [:CurrentLivingSitID] => nil,
+        [:EnrollmentID] => nil,
+        [:PersonalID] => nil,
+        [:InformationDate] => nil,
+        [:CurrentLivingSituation] => nil,
+        [:ExportID] => nil,
+      }
     end
   end
 end

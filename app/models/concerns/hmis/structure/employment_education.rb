@@ -81,15 +81,14 @@ module HMIS::Structure::EmploymentEducation
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:DateCreated],
-        [:DateUpdated],
-        [:EnrollmentID],
-        [:ExportID],
-        [:PersonalID],
-        [:EmploymentEducationID],
-        [:ExportID],
-      ]
+      {
+        [:DateCreated] => nil,
+        [:DateUpdated] => nil,
+        [:EnrollmentID] => nil,
+        [:PersonalID] => nil,
+        [:EmploymentEducationID] => nil,
+        [:ExportID] => nil,
+      }
     end
   end
 end

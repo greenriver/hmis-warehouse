@@ -79,13 +79,13 @@ module HMIS::Structure::Assessment
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:AssessmentID],
-        [:EnrollmentID],
-        [:PersonalID],
-        [:AssessmentDate],
-        [:ExportID],
-      ]
+      {
+        [:AssessmentID] => nil,
+        [:EnrollmentID] => nil,
+        [:PersonalID] => nil,
+        [:AssessmentDate] => nil,
+        [:ExportID] => nil,
+      }
     end
   end
 end

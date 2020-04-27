@@ -665,11 +665,14 @@ module GrdaWarehouse::Hud
       )
     end
 
-    def self.options_for_select user:
+    def self.options_for_select user:, scope: nil
       # don't cache this, it's a class method
       @options = begin
         options = {}
-        self.viewable_by(user).
+        project_scope = viewable_by(user)
+        project_scope = project_scope.merge(scope) if scope.present?
+
+        project_scope.
           joins(:organization).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).
             pluck(o_t[:OrganizationName].as('org_name'), :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|

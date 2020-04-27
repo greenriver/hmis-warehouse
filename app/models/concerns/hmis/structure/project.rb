@@ -232,13 +232,13 @@ module HMIS::Structure::Project
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:DateCreated],
-        [:DateUpdated],
-        [:ProjectID],
-        [:ProjectType],
-        [:ExportID],
-      ]
+      {
+        [:DateCreated] => nil,
+        [:DateUpdated] => nil,
+        [:ProjectID] => nil,
+        [:ProjectType] => nil,
+        [:ExportID] => nil,
+      }
     end
   end
 end

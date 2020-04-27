@@ -181,13 +181,14 @@ module HMIS::Structure::Inventory
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:DateCreated],
-        [:DateUpdated],
-        [:ProjectID, :CoCCode],
-        [:InventoryID],
-        [:ExportID],
-      ]
+      {
+        [:DateCreated] => nil,
+        [:DateUpdated] => nil,
+        [:EnrollmentID] => nil,
+        [:PersonalID] => nil,
+        [:InventoryID] => nil,
+        [:ExportID] => nil,
+      }
     end
   end
 end

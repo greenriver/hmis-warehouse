@@ -82,13 +82,13 @@ module HMIS::Structure::Event
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:EventID],
-        [:EnrollmentID],
-        [:PersonalID],
-        [:EventDate],
-        [:ExportID],
-      ]
+      {
+        [:EventID] => nil,
+        [:EnrollmentID] => nil,
+        [:PersonalID] => nil,
+        [:EventDate] => nil,
+        [:ExportID] => nil,
+      }
     end
   end
 end

@@ -74,6 +74,9 @@ class Rds
     wait!
     create_database!
     wait_for_database!
+    GrdaWarehouseBase.connection.reconnect!
+    ApplicationRecord.connection.reconnect!
+    ReportingBase.connection.reconnect!
   end
 
   def create!

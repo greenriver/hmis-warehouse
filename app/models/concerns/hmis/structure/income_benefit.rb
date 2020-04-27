@@ -285,14 +285,14 @@ module HMIS::Structure::IncomeBenefit
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:DateCreated],
-        [:DateUpdated],
-        [:EnrollmentID],
-        [:PersonalID],
-        [:IncomeBenefitsID],
-        [:ExportID],
-      ]
+      {
+        [:DateCreated] => nil,
+        [:DateUpdated] => nil,
+        [:EnrollmentID] => nil,
+        [:PersonalID] => nil,
+        [:IncomeBenefitsID] => nil,
+        [:ExportID] => nil,
+      }
     end
   end
 end

@@ -489,23 +489,32 @@ module HMIS::Structure::Enrollment
     end
 
     def hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
-      [
-        [:DateCreated],
-        [:DateDeleted],
-        [:DateUpdated],
-        [:EnrollmentID],
-        [:EntryDate],
-        [:PersonalID],
-        [:ProjectID],
-        [:HouseholdID],
-        [:ExportID],
-        [:ProjectID, :HouseholdID],
-        [:EnrollmentID, :PersonalID],
-        [:EnrollmentID, :ProjectID, :EntryDate],
-        [:RelationshipToHoH],
-        [:LivingSituation],
-        [:PreviousStreetESSH, :LengthOfStay],
-      ]
+      {
+        [:DateCreated] => nil,
+        [:DateDeleted] => nil,
+        [:DateUpdated] => nil,
+        [:EnrollmentID] => nil,
+        [:EntryDate] => nil,
+        [:PersonalID] => nil,
+        [:ProjectID] => nil,
+        [:HouseholdID] => nil,
+        [:ExportID] => nil,
+        [:ProjectID, :HouseholdID] => nil,
+        [:EnrollmentID, :PersonalID] => nil,
+        [:EnrollmentID, :ProjectID, :EntryDate] => nil,
+        [:RelationshipToHoH] => nil,
+        [:ProjectID, :RelationshipToHoH] => {
+          include: [
+            :EnrollmentID,
+            :PersonalID,
+            :EntryDate,
+            :HouseholdID,
+            :MoveInDate,
+          ],
+        },
+        [:LivingSituation] => nil,
+        [:PreviousStreetESSH, :LengthOfStay] => nil,
+      }
     end
   end
 end
