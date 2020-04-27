@@ -10,10 +10,6 @@
       %tr
         %td= link_to "#{patient.first_name} #{patient.last_name}", window_client_health_patient_index_path(client_id: patient.client_id)
         %td= patient.birthdate
-        %td
-          - if aco_current?(patient)
-            %i.icon-checkmark.o-color--positive
-          - else
-            %i.icon-cross.o-color--danger
+        %td= checkmark_or_x(aco_current?(patient))
         %td= patient.aco_name
 
