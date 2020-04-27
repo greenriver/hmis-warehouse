@@ -1,40 +1,43 @@
 :ruby
   et = GrdaWarehouse::Hud::Enrollment.arel_table
-  ct = GrdaWarehouse::Hud::Client.arel_table
   a_t = GrdaWarehouse::Hud::Assessment.arel_table
   assessments = @client.
     source_assessments.
-    preload( enrollment: :client ).
-    select( ct[:id], et[:EntryDate], a_t[:data_source_id], et[:EnrollmentID], a_t[:PersonalID], a_t[:AssessmentDate], a_t[:AssessmentType], a_t[:AssessmentLevel], a_t[:PrioritizationStatus]).
-    order(et[:EntryDate].desc, a_t[:AssessmentDate].desc).
-    distinct
+    joins(:enrollment).
+    preload( enrollment: [:client, :project] ).
+    order(et[:EntryDate].desc, a_t[:AssessmentDate].desc)
 - if assessments.any?
-  %table.table
-    %colgroup
-      %col(style="width:0")
-      %col
-      %col
-      %col
-      %col
-      %col
-      %col
-    %thead
-      %tr
-        %th
-        %th Entry Date
-        %th Assessment Date
-        %th Assessment Level
-        %th Assessment Type
-        %th Prioritization Status
-    %tbody
-      - assessments.each do |assessment|
+  .table-responsive
+    %table.table
+      %thead
         %tr
-          %td.id-sqr{ 'data-id' => assessment.enrollment.client.id }
-          %td.date-cell= l assessment.enrollment.EntryDate
-          %td= assessment.AssessmentDate
-          %td= HUD.assessment_type assessment.AssessmentType
-          %td= HUD.assessment_level assessment.AssessmentLevel
-          %td= HUD.prioritization_status assessment.PrioritizationStatus
+          %th
+          %th Project
+          %th Entry Date
+          %th Assessment Date
+          %th Assessment Level
+          %th Assessment Type
+          %th Prioritization Status
+          %th
+      %tbody
+        - assessments.each do |assessment|
+          - project = assessment.enrollment.project
+          %tr
+            %td.id-sqr{ 'data-id' => assessment.enrollment.client.id }
+            %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
+            %td.date-cell= l assessment.enrollment.EntryDate
+            %td= assessment.AssessmentDate
+            %td= HUD.assessment_type assessment.AssessmentType
+            %td= HUD.assessment_level assessment.AssessmentLevel
+            %td= HUD.prioritization_status assessment.PrioritizationStatus
+            %td.text-right
+              - if @client.hmis_source_visible_by?(current_user)
+                = link_to 'HMIS', hmi_path(assessment, type: 'Assessment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+                .text-teeny.font-weight-light
+                  .text-nowrap
+                    Created: #{assessment.DateCreated}
+                  .text-nowrap
+                    Updated: #{assessment.DateUpdated}
 - else
   .no-data
     No Coordinated Entry Assessments on file

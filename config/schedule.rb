@@ -42,6 +42,7 @@ end
 
 every 1.hour do
   rake "jobs:check_queue"
+  rake "grda_warehouse:send_health_emergency_notifications"
 end
 
 every 5.minutes do

@@ -10,7 +10,7 @@
       %th Agency
       %th Role
   %tbody
-    - client.user_clients.non_confidential.each do |uc|
+    - client.non_confidential_user_clients.each do |uc|
       - user = uc.user
       %tr
         %td= mail_to user.email, user.name
