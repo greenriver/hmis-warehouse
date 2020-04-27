@@ -14,7 +14,7 @@
         %td= link_to "#{patient.first_name} #{patient.last_name}", window_client_health_patient_index_path(client_id: patient.client_id)
         %td= patient.birthdate
         %td
-          -if has_managed_care(patient)
+          -if managed_care?(patient)
             %i.icon-checkmark
         %td
           - if aco_changed
