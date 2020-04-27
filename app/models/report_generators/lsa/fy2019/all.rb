@@ -39,6 +39,15 @@ module ReportGenerators::Lsa::Fy2019
 
     def initialize options
       @user = User.find(options[:user_id].to_i)
+      selected_options = { options: options }
+
+      destroy_rds = options.delete(:destroy_rds)
+      selected_options.merge!(destroy_rds: destroy_rds) unless destroy_rds.nil?
+
+      hmis_export_id = options.delete(:hmis_export_id)
+      selected_options.merge!(hmis_export_id: hmis_export_id) if hmis_export_id
+
+      super(selected_options)
     end
 
     def run!
@@ -69,8 +78,8 @@ module ReportGenerators::Lsa::Fy2019
           log_and_ping('HMIS Table Structure')
           setup_lsa_table_structure()
           log_and_ping('LSA Table Structure')
-          # setup_lsa_table_indexes()
-          # log_and_ping('LSA Indexes')
+          setup_lsa_table_indexes()
+          log_and_ping('LSA Indexes Setup')
 
           update_report_progress percent: 22
           setup_lsa_report()
@@ -187,6 +196,8 @@ module ReportGenerators::Lsa::Fy2019
       extract_path = @hmis_export.unzip_to(unzip_path)
       read_rows = 50_000
       HmisSqlServer.models_by_hud_filename.each do |file_name, klass|
+        # Delete any existing data
+        klass.delete_all
         # Read the file in batches to avoid over RAM usage
         File.open(File.join(extract_path, file_name)) do |file|
           headers = file.first
@@ -204,6 +215,9 @@ module ReportGenerators::Lsa::Fy2019
         end
       end
       FileUtils.rm_rf(extract_path)
+      GrdaWarehouseBase.connection.reconnect!
+      ApplicationRecord.connection.reconnect!
+      ReportingBase.connection.reconnect!
     end
 
     def fetch_results
@@ -277,207 +291,174 @@ module ReportGenerators::Lsa::Fy2019
 
     def setup_lsa_table_indexes
       SqlServerBase.connection.execute (<<~SQL);
-        if not exists (select * from sys.indexes where name = 'ref_Populations_HHType_idx')
+        if not exists (select * from sys.indexes where name = 'IX_sys_Time_sysStatus')
         begin
-          create index ref_Populations_HHType_idx ON [ref_Populations] ([HHType]);
+          CREATE INDEX [IX_sys_Time_sysStatus] ON [sys_Time] ([sysStatus])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_HHAdultAge_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_HouseholdID')
         begin
-          create index ref_Populations_HHAdultAge_idx ON [ref_Populations] ([HHAdultAge]);
+          CREATE INDEX [IX_tlsa_Enrollment_HouseholdID] ON [tlsa_Enrollment] ([HouseholdID]) INCLUDE ([ActiveAge], [Exit1Age], [Exit2Age])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_HHVet_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_PersonalID_EntryDate_ExitDate')
         begin
-          create index ref_Populations_HHVet_idx ON [ref_Populations] ([HHVet]);
+          CREATE INDEX [IX_tlsa_Enrollment_PersonalID_EntryDate_ExitDate] ON [tlsa_Enrollment] ([PersonalID],[EntryDate], [ExitDate]) INCLUDE ([HouseholdID])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_HHDisability_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_HouseholdID_EntryDate_ExitDate')
         begin
-          create index ref_Populations_HHDisability_idx ON [ref_Populations] ([HHDisability]);
+          CREATE INDEX [IX_tlsa_Enrollment_HouseholdID_EntryDate_ExitDate] ON [tlsa_Enrollment] ([HouseholdID],[EntryDate], [ExitDate])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_HHChronic_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_HouseholdID_Active_ProjectType')
         begin
-          create index ref_Populations_HHChronic_idx ON [ref_Populations] ([HHChronic]);
+          CREATE INDEX [IX_tlsa_Enrollment_HouseholdID_Active_ProjectType] ON [tlsa_Enrollment] ([HouseholdID], [Active],[ProjectType]) INCLUDE ([PersonalID])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_HHFleeingDV_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_HouseholdID_EntryAge')
         begin
-          create index ref_Populations_HHFleeingDV_idx ON [ref_Populations] ([HHFleeingDV]);
+          CREATE INDEX [IX_tlsa_Enrollment_HouseholdID_EntryAge] ON [tlsa_Enrollment] ([HouseholdID],[EntryAge])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_HHParent_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_PersonalID_CH')
         begin
-          create index ref_Populations_HHParent_idx ON [ref_Populations] ([HHParent]);
+          CREATE INDEX [IX_tlsa_Enrollment_PersonalID_CH] ON [tlsa_Enrollment] ([PersonalID], [CH]) INCLUDE ([ProjectType])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_HHChild_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_EntryDate_ExitDate')
         begin
-          create index ref_Populations_HHChild_idx ON [ref_Populations] ([HHChild]);
+          CREATE INDEX [IX_tlsa_Enrollment_EntryDate_ExitDate] ON [tlsa_Enrollment] ([EntryDate], [ExitDate]) INCLUDE ([PersonalID], [EntryAge])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_Stat_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_ProjectID')
         begin
-          create index ref_Populations_Stat_idx ON [ref_Populations] ([Stat]);
+          CREATE INDEX [IX_tlsa_Enrollment_ProjectID] ON [tlsa_Enrollment] ([ProjectID])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_PSHMoveIn_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_CH_ProjectType')
         begin
-          create index ref_Populations_PSHMoveIn_idx ON [ref_Populations] ([PSHMoveIn]);
+          CREATE INDEX [IX_tlsa_Enrollment_CH_ProjectType] ON [tlsa_Enrollment] ([CH],[ProjectType]) INCLUDE ([PersonalID], [EntryDate], [MoveInDate], [ExitDate])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_HoHRace_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_CH')
         begin
-          create index ref_Populations_HoHRace_idx ON [ref_Populations] ([HoHRace]);
+          CREATE INDEX [IX_tlsa_Enrollment_CH] ON [tlsa_Enrollment] ([CH]) INCLUDE ([PersonalID], [ProjectType], [TrackingMethod], [EntryDate], [ExitDate])
         end
-        if not exists (select * from sys.indexes where name = 'ref_Populations_HoHEthnicity_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_HoHID_ActiveHHType_Active')
         begin
-          create index ref_Populations_HoHEthnicity_idx ON [ref_Populations] ([HoHEthnicity]);
+          CREATE INDEX [IX_tlsa_HHID_HoHID_ActiveHHType_Active] ON [tlsa_HHID] ([HoHID], [ActiveHHType], [Active]) INCLUDE ([EnrollmentID], [ExitDest])
         end
-
-        if not exists (select * from sys.indexes where name = 'active_Enrollment_PersonalID_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_Active_HHAdultAge')
         begin
-          create index active_Enrollment_PersonalID_idx ON [active_Enrollment] ([PersonalID]);
+          CREATE INDEX [IX_tlsa_HHID_Active_HHAdultAge] ON [tlsa_HHID] ([Active], [HHAdultAge]) INCLUDE ([HoHID], [ActiveHHType])
         end
-        if not exists (select * from sys.indexes where name = 'active_Enrollment_HouseholdID_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_HoHID_ProjectType_Exit2HHType_EntryDate_ExitDate')
         begin
-          create index active_Enrollment_HouseholdID_idx ON [active_Enrollment] ([HouseholdID]);
+          CREATE INDEX [IX_tlsa_HHID_HoHID_ProjectType_Exit2HHType_EntryDate_ExitDate] ON [tlsa_HHID] ([HoHID], [ProjectType], [Exit2HHType],[EntryDate], [ExitDate])
         end
-        if not exists (select * from sys.indexes where name = 'active_Enrollment_EntryDate_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_HoHID_ActiveHHType_ProjectType_EntryDate_ExitDate')
         begin
-          create index active_Enrollment_EntryDate_idx ON [active_Enrollment] ([EntryDate]);
+          CREATE INDEX [IX_tlsa_HHID_HoHID_ActiveHHType_ProjectType_EntryDate_ExitDate] ON [tlsa_HHID] ([HoHID], [ActiveHHType],[ProjectType], [EntryDate], [ExitDate])
         end
-        if not exists (select * from sys.indexes where name = 'active_Enrollment_ProjectType_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_HoHID_ExitDate')
         begin
-          create index active_Enrollment_ProjectType_idx ON [active_Enrollment] ([ProjectType]);
+          CREATE INDEX [IX_tlsa_HHID_HoHID_ExitDate] ON [tlsa_HHID] ([HoHID],[ExitDate]) INCLUDE ([ActiveHHType], [Exit1HHType], [Exit2HHType], [ExitDest])
         end
-        if not exists (select * from sys.indexes where name = 'active_Enrollment_ProjectID_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_HoHID_Exit1HHType_ProjectType_EntryDate_ExitDate')
         begin
-          create index active_Enrollment_ProjectID_idx ON [active_Enrollment] ([ProjectID]);
+          CREATE INDEX [IX_tlsa_HHID_HoHID_Exit1HHType_ProjectType_EntryDate_ExitDate] ON [tlsa_HHID] ([HoHID], [Exit1HHType],[ProjectType], [EntryDate], [ExitDate])
         end
-        if not exists (select * from sys.indexes where name = 'active_Enrollment_RelationshipToHoH_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_ProjectType')
         begin
-          create index active_Enrollment_RelationshipToHoH_idx ON [active_Enrollment] ([RelationshipToHoH]);
+          CREATE INDEX [IX_tlsa_HHID_ProjectType] ON [tlsa_HHID] ([ProjectType]) INCLUDE ([HoHID], [EntryDate], [ExitDate], [ActiveHHType], [Exit2HHType], [Exit1HHType], [MoveInDate])
         end
-
-        if not exists (select * from sys.indexes where name = 'active_Household_HouseholdID_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_HoHID_ProjectType_Exit1HHType_EntryDate_ExitDate')
         begin
-          create index active_Household_HouseholdID_idx ON [active_Household] ([HouseholdID]);
+          CREATE INDEX [IX_tlsa_HHID_HoHID_ProjectType_Exit1HHType_EntryDate_ExitDate] ON [tlsa_HHID] ([HoHID], [ProjectType], [Exit1HHType],[EntryDate], [ExitDate])
         end
-        if not exists (select * from sys.indexes where name = 'active_Household_HoHID_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_HoHID_Exit2HHType_ProjectType_EntryDate_ExitDate')
         begin
-          create index active_Household_HoHID_idx ON [active_Household] ([HoHID]);
+          CREATE INDEX [IX_tlsa_HHID_HoHID_Exit2HHType_ProjectType_EntryDate_ExitDate] ON [tlsa_HHID] ([HoHID], [Exit2HHType],[ProjectType], [EntryDate], [ExitDate])
         end
-        if not exists (select * from sys.indexes where name = 'active_Household_HHType_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_Active_EntryDate')
         begin
-          create index active_Household_HHType_idx ON [active_Household] ([HHType]);
+          CREATE INDEX [IX_tlsa_HHID_Active_EntryDate] ON [tlsa_HHID] ([Active],[EntryDate]) INCLUDE ([HoHID], [ActiveHHType], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HHParent])
         end
-
-        if not exists (select * from sys.indexes where name = 'tmp_Household_HoHID_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_HoHID_ExitCohort')
         begin
-          create index tmp_Household_HoHID_idx ON [tmp_Household] ([HoHID]);
+          CREATE INDEX [IX_tlsa_HHID_HoHID_ExitCohort] ON [tlsa_HHID] ([HoHID], [ExitCohort])
         end
-        if not exists (select * from sys.indexes where name = 'tmp_Household_HHType_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_Active_ProjectType')
         begin
-          create index tmp_Household_HHType_idx ON [tmp_Household] ([HHType]);
+          CREATE INDEX [IX_tlsa_HHID_Active_ProjectType] ON [tlsa_HHID] ([Active],[ProjectType]) INCLUDE ([HoHID], [EntryDate], [MoveInDate], [ExitDate], [ActiveHHType])
         end
-
-        if not exists (select * from sys.indexes where name = 'tmp_Person_CHStart_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_Active')
         begin
-          create index tmp_Person_CHStart_idx ON [tmp_Person] ([CHStart]);
+          CREATE INDEX [IX_tlsa_HHID_Active] ON [tlsa_HHID] ([Active]) INCLUDE ([HoHID], [EntryDate], [ActiveHHType], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HHParent])
         end
-        if not exists (select * from sys.indexes where name = 'tmp_Person_LastActive_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_ExitCohort')
         begin
-          create index tmp_Person_LastActive_idx ON [tmp_Person] ([LastActive]);
+          CREATE INDEX [IX_tlsa_HHID_ExitCohort] ON [tlsa_HHID] ([ExitCohort]) INCLUDE ([HoHID], [EnrollmentID], [ProjectType], [EntryDate], [MoveInDate], [ActiveHHType], [Exit1HHType], [Exit2HHType], [ExitDest])
         end
-        if not exists (select * from sys.indexes where name = 'tmp_Person_PersonalID_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_SystemDaysNotPSHHoused')
         begin
-          create index tmp_Person_PersonalID_idx ON [tmp_Person] ([PersonalID]);
+          CREATE INDEX [IX_tlsa_Household_SystemDaysNotPSHHoused] ON [tlsa_Household] ([SystemDaysNotPSHHoused]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-
-        if not exists (select * from sys.indexes where name = 'ch_Enrollment_PersonalID_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_SystemHomelessDays')
         begin
-          create index ch_Enrollment_PersonalID_idx ON [ch_Enrollment] ([PersonalID]);
+          CREATE INDEX [IX_tlsa_Household_SystemHomelessDays] ON [tlsa_Household] ([SystemHomelessDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-        if not exists (select * from sys.indexes where name = 'ch_Enrollment_EnrollmentID_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_ESDays')
         begin
-          create index ch_Enrollment_EnrollmentID_idx ON [ch_Enrollment] ([EnrollmentID]);
+          CREATE INDEX [IX_tlsa_Household_ESDays] ON [tlsa_Household] ([ESDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-        if not exists (select * from sys.indexes where name = 'ch_Enrollment_StartDate_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_ESTDays')
         begin
-          create index ch_Enrollment_StartDate_idx ON [ch_Enrollment] ([StartDate]);
+          CREATE INDEX [IX_tlsa_Household_ESTDays] ON [tlsa_Household] ([ESTDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-        if not exists (select * from sys.indexes where name = 'ch_Enrollment_StopDate_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_TotalHomelessDays')
         begin
-          create index ch_Enrollment_StopDate_idx ON [ch_Enrollment] ([StopDate]);
+          CREATE INDEX [IX_tlsa_Household_TotalHomelessDays] ON [tlsa_Household] ([TotalHomelessDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-        if not exists (select * from sys.indexes where name = 'ch_Enrollment_ProjectType_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_Other3917Days')
         begin
-          create index ch_Enrollment_ProjectType_idx ON [ch_Enrollment] ([ProjectType]);
+          CREATE INDEX [IX_tlsa_Household_Other3917Days] ON [tlsa_Household] ([Other3917Days]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-
-        if not exists (select * from sys.indexes where name = 'ch_Exclude_excludeDate_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_HHType_HHAdultAge')
         begin
-          create index ch_Exclude_excludeDate_idx ON [ch_Exclude] ([excludeDate]);
+          CREATE INDEX [IX_tlsa_Household_HHType_HHAdultAge] ON [tlsa_Household] ([HHType], [HHAdultAge])
         end
-
-        if not exists (select * from sys.indexes where name = 'ch_Episodes_PersonalID_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_HHAdultAge')
         begin
-          create index ch_Episodes_PersonalID_idx ON [ch_Episodes] ([PersonalID]);
+          CREATE INDEX [IX_tlsa_Household_HHAdultAge] ON [tlsa_Household] ([HHAdultAge])
         end
-
-        if not exists (select * from sys.indexes where name = 'tmp_CohortDates_CohortStart_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_LastInactive')
         begin
-          create index tmp_CohortDates_CohortStart_idx ON [tmp_CohortDates] ([CohortStart]);
+          CREATE INDEX [IX_tlsa_Household_LastInactive] ON [tlsa_Household] ([LastInactive])
         end
-        if not exists (select * from sys.indexes where name = 'tmp_CohortDates_CohortEnd_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_ESTStatus')
         begin
-          create index tmp_CohortDates_CohortEnd_idx ON [tmp_CohortDates] ([CohortEnd]);
+          CREATE INDEX [IX_tlsa_Household_ESTStatus] ON [tlsa_Household] ([ESTStatus])
         end
-
-        if not exists (select * from sys.indexes where name = 'ref_Calendar_theDate_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHMoveIn')
         begin
-          create index ref_Calendar_theDate_idx ON [ref_Calendar] ([theDate]);
+          CREATE INDEX [IX_tlsa_Household_RRHMoveIn] ON [tlsa_Household] ([RRHMoveIn]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [RRHStatus], [PSHMoveIn], [RRHHousedDays], [SystemPath], [ReportID])
         end
-
-        if not exists (select * from sys.indexes where name = 'ch_Time_chDate_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_PSHStatus_PSHMoveIn')
         begin
-          create index ch_Time_chDate_idx ON [ch_Time] ([chDate]);
+          CREATE INDEX [IX_tlsa_Household_PSHStatus_PSHMoveIn] ON [tlsa_Household] ([PSHStatus], [PSHMoveIn]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHHousedDays], [SystemPath], [ReportID])
         end
-        if not exists (select * from sys.indexes where name = 'ch_Time_PersonalID_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHHousedDays')
         begin
-          create index ch_Time_PersonalID_idx ON [ch_Time] ([PersonalID]);
+          CREATE INDEX [IX_tlsa_Household_RRHHousedDays] ON [tlsa_Household] ([RRHHousedDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-
-        if not exists (select * from sys.indexes where name = 'sys_Time_HoHID_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_THDays')
         begin
-          create index sys_Time_HoHID_idx ON [sys_Time] ([HoHID]);
+          CREATE INDEX [IX_tlsa_Household_THDays] ON [tlsa_Household] ([THDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-        if not exists (select * from sys.indexes where name = 'sys_Time_HHType_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHPSHPreMoveInDays')
         begin
-          create index sys_Time_HHType_idx ON [sys_Time] ([HHType]);
+          CREATE INDEX [IX_tlsa_Household_RRHPSHPreMoveInDays] ON [tlsa_Household] ([RRHPSHPreMoveInDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-        if not exists (select * from sys.indexes where name = 'sys_Time_sysDate_idx')
+          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHStatus')
         begin
-          create index sys_Time_sysDate_idx ON [sys_Time] ([sysDate]);
+          CREATE INDEX [IX_tlsa_Household_RRHStatus] ON [tlsa_Household] ([RRHStatus]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [RRHMoveIn], [RRHPreMoveInDays], [PSHMoveIn], [SystemPath], [ReportID])
         end
-        if not exists (select * from sys.indexes where name = 'sys_Time_sysStatus_idx')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Person_CHTime')
         begin
-          create index sys_Time_sysStatus_idx ON [sys_Time] ([sysStatus]);
+          CREATE INDEX [IX_tlsa_Person_CHTime] ON [tlsa_Person] ([CHTime]) INCLUDE ([LastActive])
         end
-
-        if not exists (select * from sys.indexes where name = 'sys_Enrollment_EnrollmentID_idx')
-        begin
-          create index sys_Enrollment_EnrollmentID_idx ON [sys_Enrollment] ([EnrollmentID]);
-        end
-        if not exists (select * from sys.indexes where name = 'sys_Enrollment_HoHID_idx')
-        begin
-          create index sys_Enrollment_HoHID_idx ON [sys_Enrollment] ([HoHID]);
-        end
-        if not exists (select * from sys.indexes where name = 'sys_Enrollment_HHType_idx')
-        begin
-          create index sys_Enrollment_HHType_idx ON [sys_Enrollment] ([HHType]);
-        end
-        if not exists (select * from sys.indexes where name = 'sys_Enrollment_EntryDate_idx')
-        begin
-          create index sys_Enrollment_EntryDate_idx ON [sys_Enrollment] ([EntryDate]);
-        end
-        if not exists (select * from sys.indexes where name = 'sys_Enrollment_ProjectType_idx')
-        begin
-          create index sys_Enrollment_ProjectType_idx ON [sys_Enrollment] ([ProjectType]);
-        end
-
       SQL
     end
 

@@ -502,7 +502,17 @@ module HMIS::Structure::Enrollment
         [:ProjectID, :HouseholdID] => nil,
         [:EnrollmentID, :PersonalID] => nil,
         [:EnrollmentID, :ProjectID, :EntryDate] => nil,
-        [:RelationshipToHoH] => nil,
+        [:RelationshipToHoH] => {
+          include: [
+            :EnrollmentID,
+            :PersonalID,
+            :ProjectID,
+            :EntryDate,
+            :HouseholdID,
+            :MoveInDate,
+            :DisablingCondition,
+          ],
+        },
         [:ProjectID, :RelationshipToHoH] => {
           include: [
             :EnrollmentID,
@@ -514,6 +524,7 @@ module HMIS::Structure::Enrollment
         },
         [:LivingSituation] => nil,
         [:PreviousStreetESSH, :LengthOfStay] => nil,
+        [:TimesHomelessPastThreeYears, :MonthsHomelessPastThreeYears] => nil,
       }
     end
   end

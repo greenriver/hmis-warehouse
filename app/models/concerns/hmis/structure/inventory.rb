@@ -184,8 +184,7 @@ module HMIS::Structure::Inventory
       {
         [:DateCreated] => nil,
         [:DateUpdated] => nil,
-        [:EnrollmentID] => nil,
-        [:PersonalID] => nil,
+        [:ProjectID, :CoCCode] => nil,
         [:InventoryID] => nil,
         [:ExportID] => nil,
       }
