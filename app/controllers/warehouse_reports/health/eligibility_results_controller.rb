@@ -15,25 +15,33 @@ module WarehouseReports::Health
       @ineligible = patient_scope.where(medicaid_id: @inquiry.ineligible_ids).
         preload(:health_agency, :care_coordinator)
       @aco_changes = patient_scope.where(medicaid_id: aco_changes).
-        preload(:health_agency, :care_coordinator)
+        preload(:patient_referral)
     end
-
-    def has_managed_care(patient) # rubocop:disable Naming/PredicateName
-      @inquiry.managed_care_ids.include? patient.medicaid_id
-    end
-    helper_method :has_managed_care
 
     def aco_changes
-      ids = []
-      referral_scope.where(medicaid_id: @inquiry.eligible_ids).each do |referral|
-        medicaid_id = referral.medicaid_id
-        edi_name = @inquiry.aco_names[medicaid_id]
-        next unless edi_name.present?
-
-        aco_id = Health::AccountableCareOrganization.active.find_by(edi_name: edi_name)&.id
-        ids << medicaid_id unless aco_id == referral.accountable_care_organization_id
+      patient_scope.where(medicaid_id: @inquiry.managed_care_ids).select do |patient|
+        (patient.previous_aco_name.present? && patient.previous_aco_name != patient.aco_name) ||
+          @inquiry.aco_names[patient.medicaid_id].blank?
       end
-      ids
+    end
+
+    def managed_care?(patient)
+      @inquiry.managed_care_ids.include? patient.medicaid_id
+    end
+    helper_method :managed_care?
+
+    def aco_current?(patient)
+      medicaid_id = patient.medicaid_id
+      edi_name = @inquiry.aco_names[medicaid_id]
+      return false unless edi_name.present?
+
+      aco_id = aco_ids[edi_name]
+      aco_id == patient.patient_referral.accountable_care_organization_id
+    end
+    helper_method :aco_current?
+
+    def aco_ids
+      @aco_ids ||= Health::AccountableCareOrganization.active.pluck(:edi_name, :id).to_h
     end
 
     def set_inquiry
