@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_21_121604) do
+ActiveRecord::Schema.define(version: 2020_04_24_202136) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1887,6 +1887,8 @@ ActiveRecord::Schema.define(version: 2020_04_21_121604) do
     t.datetime "deleted_at"
     t.text "notes"
     t.string "emergency_type"
+    t.datetime "notification_at"
+    t.integer "notification_batch_id"
     t.index ["agency_id"], name: "index_health_emergency_ama_restrictions_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_ama_restrictions_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_ama_restrictions_on_created_at"
@@ -1969,6 +1971,8 @@ ActiveRecord::Schema.define(version: 2020_04_21_121604) do
     t.datetime "deleted_at"
     t.text "notes"
     t.string "emergency_type"
+    t.datetime "notification_at"
+    t.integer "notification_batch_id"
     t.index ["agency_id"], name: "index_health_emergency_tests_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_tests_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_tests_on_created_at"

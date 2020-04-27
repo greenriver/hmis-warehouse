@@ -153,12 +153,22 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: 'Your Active Veterans report has finished')
   end
 
-  def health_emergency_medical_restriction_change(user_id)
+  def health_emergency_change(user_id, medical_restriction_batch_id: nil, unsent_medical_restrictions: 0, test_batch_id: nil,
+    unsent_test_results: 0)
     @user = User.find(user_id)
     return unless @user.active?
 
-    @report_url = warehouse_reports_health_emergency_medical_restrictions_url
-    mail(to: @user.email, subject: 'Medical Restriction Change')
+    params = { filter: { sort: :created_at } }
+
+    @medical_restriction_batch_id = medical_restriction_batch_id
+    @unsent_medical_restrictions = unsent_medical_restrictions
+    @medical_restriction_report_url = warehouse_reports_health_emergency_medical_restrictions_url(params.merge(batch_id: @medical_restriction_batch_id))
+
+    @test_batch_id = test_batch_id
+    @unsent_test_results = unsent_test_results
+    @test_report_url = warehouse_reports_health_emergency_testing_results_url(params.merge(batch_id: @test_batch_id))
+
+    mail(to: @user.email, subject: 'Medical Restrictions or Test Results Added')
   end
 
   def health_member_status_report_finished(user_id)
