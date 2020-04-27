@@ -33,7 +33,7 @@
   .o-page__main-content.mt-3
     .clients__list
       = render 'clients/new_client'
-      - @clients.preload(:source_clients).each do |client|
+      - @clients.each do |client|
         = render 'clients/client_card', client: client
 
     %p= paginate @clients, params: {sort: @column, direction: @direction}

@@ -39,19 +39,33 @@ class ClientsController < ApplicationController
     elsif current_user.can_use_strict_search?
       @clients = client_source.strict_search(strict_search_params, client_scope: client_search_scope)
     end
-    preloads = [:processed_service_history, :users, :user_clients, source_clients: :data_source]
+    preloads = [
+      :processed_service_history,
+      :vispdats,
+      source_clients: :data_source,
+      non_confidential_user_clients: :user,
+    ]
     if health_emergency?
-      preloads + [
+      preloads += [
+        :health_emergency_ama_restrictions,
         :health_emergency_triages,
-        :health_emergency_test,
+        :health_emergency_tests,
         :health_emergency_isolations,
         :health_emergency_quarantines,
       ]
     end
+    if healthcare_available?
+      preloads += [
+        :patient,
+      ]
+    end
+
     @clients = @clients.
       distinct.
-      preload(preloads).
-      page(params[:page]).per(20)
+      preload(preloads)
+
+    @clients = @clients.page(params[:page]).per(20)
+
     if current_user.can_access_window_search? || current_user.can_access_client_search?
       sort_filter_index
     elsif current_user.can_use_strict_search?
