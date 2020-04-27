@@ -14,8 +14,7 @@ module WarehouseReports::Health
         preload(:health_agency, :care_coordinator)
       @ineligible = patient_scope.where(medicaid_id: @inquiry.ineligible_ids).
         preload(:health_agency, :care_coordinator)
-      @aco_changes = patient_scope.where(medicaid_id: aco_changes).
-        preload(:patient_referral)
+      @aco_changes = aco_changes
     end
 
     def aco_changes
