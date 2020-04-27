@@ -1,36 +1,39 @@
 :ruby
   et = GrdaWarehouse::Hud::Enrollment.arel_table
-  ct = GrdaWarehouse::Hud::Client.arel_table
   clst = GrdaWarehouse::Hud::CurrentLivingSituation.arel_table
   current_living_situations = @client.
     source_current_living_situations.
-    preload( enrollment: :client ).
-    select( ct[:id], et[:EntryDate], clst[:data_source_id], clst[:PersonalID], et[:EnrollmentID], clst[:InformationDate], clst[:CurrentLivingSituation]).
-    order(et[:EntryDate].desc, clst[:InformationDate].desc).
-    distinct
+    joins(:enrollment).
+    preload( enrollment: [:client, :project] ).
+    order(et[:EntryDate].desc, clst[:InformationDate].desc)
 - if current_living_situations.any?
-  %table.table
-    %colgroup
-      %col(style="width:0")
-      %col
-      %col
-      %col
-      %col
-      %col
-      %col
-    %thead
-      %tr
-        %th
-        %th Entry Date
-        %th Information Date
-        %th Current Living Situation
-    %tbody
-      - current_living_situations.each do |situation|
+  .table-responsive
+    %table.table
+      %thead
         %tr
-          %td.id-sqr{ 'data-id' => situation.enrollment.client.id }
-          %td.date-cell= l situation.enrollment.EntryDate
-          %td= situation.InformationDate
-          %td= HUD.living_situation situation.CurrentLivingSituation
+          %th
+          %th Project
+          %th Entry Date
+          %th Information Date
+          %th Current Living Situation
+          %th
+      %tbody
+        - current_living_situations.each do |situation|
+          - project = situation.enrollment.project
+          %tr
+            %td.id-sqr{ 'data-id' => situation.enrollment.client.id }
+            %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
+            %td.date-cell= l situation.enrollment.EntryDate
+            %td= situation.InformationDate
+            %td= HUD.living_situation situation.CurrentLivingSituation
+            %td.text-right
+              - if @client.hmis_source_visible_by?(current_user)
+                = link_to 'HMIS', hmi_path(situation, type: 'CurrentLivingSituation'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+                .text-teeny.font-weight-light
+                  .text-nowrap
+                    Created: #{situation.DateCreated}
+                  .text-nowrap
+                    Updated: #{situation.DateUpdated}
 - else
   .no-data
     No Current Living Situations on file

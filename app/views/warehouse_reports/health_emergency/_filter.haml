@@ -8,6 +8,9 @@
           = f.input :end, as: :date_picker
         .col-sm-6
           = f.input :project_ids, label: 'Projects', collection: available_locations, input_html: { class: :select2, multiple: :multiple }, hint: 'Clients will be limited to those with service at chosen projects since the start date.'
+      .row
+        .col-sm-3
+          = f.input :sort, collection: sort_options.invert, include_blank: false, input_html: { class: :select2 }
     - content_for :filter_actions do
       = f.button :submit, value: 'Update View'
 

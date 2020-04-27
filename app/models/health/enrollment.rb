@@ -93,6 +93,15 @@ module Health
       end
     end
 
+    def self.disenrollment_reason_code(transaction)
+      transaction.select{|h| h.keys.include? :REF}.
+        map{|h| h[:REF]}.each do |ref|
+        if ref.detect{|h| h.keys.include? :E128}[:E128][:value][:raw] == 'ZZ'
+          return ref.detect{|h| h.keys.include? :E127}[:E127][:value][:raw].first(2) # Reason code is first 2 characters
+        end
+      end
+    end
+
     def self.aco_pid_sl(transaction)
       transaction.select{|h| h.keys.include? :REF}.
         map{|h| h[:REF]}.each do |ref|

@@ -17,14 +17,12 @@ module He
         emergency_type: health_emergency,
       }
       @restriction = GrdaWarehouse::HealthEmergency::AmaRestriction.create(restriction_params.merge(user_data))
-      notify_users
       redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
     end
 
     def destroy
       @restriction = GrdaWarehouse::HealthEmergency::AmaRestriction.find(params[:id].to_i)
       @restriction.destroy
-      notify_users
       flash[:notice] = 'Medical Restriction Activity Removed'
       redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
     end
@@ -35,13 +33,6 @@ module He
           :restricted,
           :note,
         )
-    end
-
-    private def notify_users
-      user_ids = User.receives_medical_restriction_notifications.distinct.pluck(:id)
-      user_ids.each do |id|
-        NotifyUser.health_emergency_medical_restriction_change(id).deliver_later
-      end
     end
   end
 end

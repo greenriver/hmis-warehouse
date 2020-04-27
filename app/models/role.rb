@@ -447,7 +447,7 @@ class Role < ApplicationRecord
         administrative: false,
       },
       receives_medical_restriction_notifications: {
-        description: 'Email notifications will be sent whenever a medical restriction is added or removed',
+        description: 'Email notifications will be sent whenever a medical restriction or test result is added',
         administrative: false,
       }
     }

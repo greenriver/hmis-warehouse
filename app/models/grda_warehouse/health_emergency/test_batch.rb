@@ -43,6 +43,10 @@ module GrdaWarehouse::HealthEmergency
       where(started_at: nil)
     end
 
+    scope :completed, -> do
+      where.not(completed_at: nil)
+    end
+
     def status
       if import_errors.present?
         import_errors
