@@ -331,4 +331,10 @@ namespace :grda_warehouse do
     GrdaWarehouse::ServiceHistoryServiceMaterialized.delay.rebuild!
   end
 
+  desc 'Send Health Emergency Notifications'
+  task :send_health_emergency_notifications, [] => [:environment, "log:info_to_stdout"] do |task, args|
+    return unless GrdaWarehouse::Config.get(:health_emergency)
+
+    WarehouseReports::HealthEmergencyBatchNotifierJob.perform_now
+  end
 end

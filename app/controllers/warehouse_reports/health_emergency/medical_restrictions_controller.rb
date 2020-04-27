@@ -13,34 +13,35 @@ module WarehouseReports::HealthEmergency
     before_action :require_can_see_health_emergency_clinical!
 
     def index
-      @restrictions = restriction_scope.added_within_range(@filter.range).
+      restrictions = restriction_scope.added_within_range(@filter.range).
         joins(client: [:processed_service_history, :service_history_enrollments])
       if @filter.effective_project_ids_from_projects.present?
-        @restrictions = @restrictions.merge(
+        restrictions = restrictions.merge(
           GrdaWarehouse::ServiceHistoryEnrollment.
             joins(:project).
             service_within_date_range(start_date: @filter.start, end_date: Date.current).
             merge(GrdaWarehouse::Hud::Project.where(id: project_ids)),
         )
       else
-        @restrictions = @restrictions.merge(
+        restrictions = restrictions.merge(
           GrdaWarehouse::ServiceHistoryEnrollment.
             joins(:project).
             merge(GrdaWarehouse::Hud::Project.where(id: project_ids)),
         )
       end
-      @restrictions = @restrictions.distinct
+      @restrictions = restriction_scope.where(id: restrictions.select(:id)).
+        joins(:client).
+        order(sort_order).
+        preload(client: [:processed_service_history, :service_history_enrollments])
       respond_to do |format|
         format.html do
           @pdf = false
           @html = true
-          @restrictions = @restrictions.page(params[:page]).
+          @restrictions = @restrictions.
+            page(params[:page]).
             per(25)
         end
         format.pdf do
-          @restrictions = @restrictions.to_a.sort_by do |a|
-            [a.client.LastName, a.client.FirstName]
-          end
           @pdf = true
           @html = false
           render_pdf!
@@ -78,8 +79,25 @@ module WarehouseReports::HealthEmergency
       Grover.new(html, grover_options).to_pdf
     end
 
+    private def sort_options
+      {
+        name: 'Name',
+        created_at: 'Date Added',
+      }
+    end
+    helper_method :sort_options
+
+    private def sort_order
+      case selected_sort
+      when :created_at
+        { created_at: :desc }
+      else
+        [c_t[:LastName].asc, c_t[:FirstName].asc]
+      end
+    end
+
     private def restriction_scope
-      GrdaWarehouse::HealthEmergency::AmaRestriction.active.visible_to(current_user).newest_first
+      GrdaWarehouse::HealthEmergency::AmaRestriction.active.visible_to(current_user)
     end
 
     def report_index

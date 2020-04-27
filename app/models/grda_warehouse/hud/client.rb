@@ -153,6 +153,10 @@ module GrdaWarehouse::Hud
 
     has_many :user_clients, class_name: 'GrdaWarehouse::UserClient'
     has_many :users, through: :user_clients, inverse_of: :clients
+    has_many :non_confidential_user_clients, -> do
+      merge(GrdaWarehouse::UserClient.non_confidential)
+    end, class_name: 'GrdaWarehouse::UserClient'
+    has_many :non_confidential_users, through: :non_confidential_user_clients
 
     has_many :cohort_clients, dependent: :destroy
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
@@ -636,12 +640,6 @@ module GrdaWarehouse::Hud
             or(project_query).
             or(window_query)
           )
-
-          where(
-            arel_table[:data_source_id].in(ds_ids).
-            or(project_query).
-            or(window_query)
-          )
         else
           where(
             arel_table[:id].eq(0). # no client should have a 0 id
@@ -882,14 +880,13 @@ module GrdaWarehouse::Hud
       names.join(',')
     end
 
-    def client_names user: nil, health: false
-      client_scope = source_clients.searchable_by(user)
-      names = client_scope.includes(:data_source).map do |m|
+    def client_names user:, health: false
+      names = source_clients.searchable_by(user).includes(:data_source).map do |m|
         {
           ds: m.data_source&.short_name,
           ds_id: m.data_source&.id,
           name: m.full_name,
-          health: m.data_source&.authoritative_type == 'health'
+          health: m.data_source&.authoritative_type == 'health',
         }
       end
       if health && patient.present? && names.detect { |name| name[:health] }.blank?
@@ -2460,78 +2457,38 @@ module GrdaWarehouse::Hud
     end
 
     def move_dependent_items previous_id, new_id
-      move_dependent_hmis_items previous_id, new_id
-      move_dependent_health_items previous_id, new_id
+      dependent_items.each do |klass|
+        klass.where(client_id: previous_id).
+          update_all(client_id: new_id)
+      end
     end
 
-    def move_dependent_hmis_items previous_id, new_id
-      # move any client notes
-      GrdaWarehouse::ClientNotes::Base.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any client files
-      GrdaWarehouse::ClientFile.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any patients
-      Health::Patient.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any health files (these should really be attached to patients)
-      Health::HealthFile.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any vi-spdats
-      GrdaWarehouse::Vispdat::Base.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any cohort_clients
-      GrdaWarehouse::CohortClient.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # Chronics
-      GrdaWarehouse::Chronic.where(client_id: previous_id).
-        update_all(client_id: new_id)
-      GrdaWarehouse::HudChronic.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # Relationships
-      GrdaWarehouse::UserClient.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # Enrollment Histories
-      GrdaWarehouse::EnrollmentChangeHistory.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # CAS activity
-      GrdaWarehouse::CasAvailability.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # Youth Intakes
-      GrdaWarehouse::YouthIntake::Base.where(client_id: previous_id).
-        update_all(client_id: new_id)
-      GrdaWarehouse::Youth::DirectFinancialAssistance.where(client_id: previous_id).
-        update_all(client_id: new_id)
-      GrdaWarehouse::Youth::YouthCaseManagement.where(client_id: previous_id).
-        update_all(client_id: new_id)
-      GrdaWarehouse::Youth::YouthReferral.where(client_id: previous_id).
-        update_all(client_id: new_id)
-      GrdaWarehouse::Youth::YouthFollowUp.where(client_id: previous_id).
-        update_all(client_id: new_id)
-    end
-
-    def move_dependent_health_items previous_id, new_id
-      # move any patients
-      Health::Patient.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any health files (these should really be attached to patients)
-      Health::HealthFile.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any contact tracings
-      Health::Tracing::Case.where(client_id: previous_id).
-        update_all(client_id: new_id)
+    private def dependent_items
+      [
+        GrdaWarehouse::ClientNotes::Base,
+        GrdaWarehouse::ClientFile,
+        GrdaWarehouse::Vispdat::Base,
+        GrdaWarehouse::CohortClient,
+        GrdaWarehouse::Chronic,
+        GrdaWarehouse::HudChronic,
+        GrdaWarehouse::UserClient,
+        GrdaWarehouse::EnrollmentChangeHistory,
+        GrdaWarehouse::CasAvailability,
+        GrdaWarehouse::YouthIntake::Base,
+        GrdaWarehouse::Youth::DirectFinancialAssistance,
+        GrdaWarehouse::Youth::YouthCaseManagement,
+        GrdaWarehouse::Youth::YouthReferral,
+        GrdaWarehouse::Youth::YouthFollowUp,
+        GrdaWarehouse::HealthEmergency::AmaRestriction,
+        GrdaWarehouse::HealthEmergency::Test,
+        GrdaWarehouse::HealthEmergency::ClinicalTriage,
+        GrdaWarehouse::HealthEmergency::Isolation,
+        GrdaWarehouse::HealthEmergency::Quarantine,
+        GrdaWarehouse::HealthEmergency::UploadedTest,
+        Health::Patient,
+        Health::HealthFile,
+        Health::Tracing::Case,
+      ]
     end
 
     def force_full_service_history_rebuild

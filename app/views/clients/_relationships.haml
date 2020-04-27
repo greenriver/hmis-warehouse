@@ -3,7 +3,7 @@
 
 -# Too much logic here (we may need to break this out into seperate
 -# partials for card/non-card instances)
-- if client.user_clients.non_confidential.any?
+- if client.non_confidential_user_clients.any?
   - if showing_in_card
     - content_for "client_card_relationships__#{client.id}" do
       = render 'relationship_table', client: client, show_relationship_link: show_relationship_link
