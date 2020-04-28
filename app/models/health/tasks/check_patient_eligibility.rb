@@ -19,6 +19,8 @@ module Health::Tasks
         inquiry.save!
 
         soap = Health::Soap::MassHealth.new(test: test)
+        return unless soap.configured?
+
         result = soap.realtime_eligibility_inquiry_request(edi_doc: edi_doc)
 
         if result.success?
