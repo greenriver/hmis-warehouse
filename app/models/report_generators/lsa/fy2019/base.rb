@@ -13,6 +13,7 @@ module ReportGenerators::Lsa::Fy2019
       @destroy_rds = destroy_rds
       @hmis_export_id = hmis_export_id
       @user = User.find(options[:user_id].to_i) if options[:user_id].present?
+      @test = options[:test].present?
     end
 
     def setup_filters
@@ -88,6 +89,10 @@ module ReportGenerators::Lsa::Fy2019
         2 => 'AC',
         3 => 'CO',
       }
+    end
+
+    def test?
+      @test
     end
   end
 end

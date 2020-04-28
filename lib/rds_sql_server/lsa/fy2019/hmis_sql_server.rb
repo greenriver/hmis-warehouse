@@ -6,10 +6,12 @@ module HmisSqlServer
     {
       'Affiliation.csv' => HmisSqlServer::Affiliation,
       'Client.csv' => HmisSqlServer::Client,
+      'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
       'Disabilities.csv' => HmisSqlServer::Disability,
       'EmploymentEducation.csv' => HmisSqlServer::EmploymentEducation,
       'Enrollment.csv' => HmisSqlServer::Enrollment,
       'EnrollmentCoC.csv' => HmisSqlServer::EnrollmentCoc,
+      'Event.csv' => HmisSqlServer::Event,
       'Exit.csv' => HmisSqlServer::Exit,
       'Export.csv' => HmisSqlServer::Export,
       'Funder.csv' => HmisSqlServer::Funder,
@@ -21,11 +23,10 @@ module HmisSqlServer
       'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
       'Services.csv' => HmisSqlServer::Service,
       'User.csv' => HmisSqlServer::User,
-      'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
       'Assessment.csv' => HmisSqlServer::Assessment,
       'AssessmentQuestions.csv' => HmisSqlServer::AssessmentQuestion,
       'AssessmentResults.csv' => HmisSqlServer::AssessmentResult,
-      'Event.csv' => HmisSqlServer::Event,
+
     }.freeze
   end
 

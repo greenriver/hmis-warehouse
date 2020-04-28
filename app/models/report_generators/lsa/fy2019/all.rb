@@ -69,35 +69,37 @@ module ReportGenerators::Lsa::Fy2019
         log_and_ping("Starting report #{@report.report.name}")
         begin
           @hmis_export = create_hmis_csv_export()
-          update_report_progress percent: 15
+          update_report_progress(percent: 15)
           log_and_ping('HMIS Export complete')
           setup_temporary_rds()
-          update_report_progress percent: 20
+          update_report_progress(percent: 20)
           log_and_ping('RDS DB Setup')
           setup_hmis_table_structure()
+          update_report_progress(percent: 22)
           log_and_ping('HMIS Table Structure')
           setup_lsa_table_structure()
+          update_report_progress(percent: 25)
           log_and_ping('LSA Table Structure')
+          update_report_progress(percent: 27)
           setup_lsa_table_indexes()
           log_and_ping('LSA Indexes Setup')
-
-          update_report_progress percent: 22
+          update_report_progress(percent: 29)
           setup_lsa_report()
           log_and_ping('LSA Report Setup')
 
           populate_hmis_tables()
-          update_report_progress percent: 30
+          update_report_progress(percent: 30)
           log_and_ping('HMIS tables populated')
 
           run_lsa_queries()
-          update_report_progress percent: 90
+          update_report_progress(percent: 90)
           log_and_ping('LSA Queries complete')
           fetch_results()
           # fetch_summary_results()
           zip_report_folder()
           attach_report_zip()
           remove_report_files()
-          update_report_progress percent: 100
+          update_report_progress(percent: 100)
           log_and_ping('LSA Complete')
         ensure
           remove_temporary_rds()
@@ -119,10 +121,8 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def create_hmis_csv_export
-      # debugging
-      if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
-        return GrdaWarehouse::HmisExport.find(@hmis_export_id)
-      end
+      return if test?
+      return GrdaWarehouse::HmisExport.find(@hmis_export_id) if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
 
       # All LSA reports should have the same HMIS export scope, so reuse the file if available from today
       existing_export = GrdaWarehouse::HmisExport.order(created_at: :desc).limit(1).
@@ -193,7 +193,13 @@ module ReportGenerators::Lsa::Fy2019
 
     def populate_hmis_tables
       load 'lib/rds_sql_server/lsa/fy2019/hmis_sql_server.rb' # provides thin wrappers to all HMIS tables
-      extract_path = @hmis_export.unzip_to(unzip_path)
+      extract_path = if test?
+        source = Rails.root.join('spec/fixtures/files/lsa/fy2019/sample_hmis_export')
+        FileUtils.cp_r(source, unzip_path)
+        unzip_path
+      else
+        @hmis_export.unzip_to(unzip_path)
+      end
       read_rows = 50_000
       HmisSqlServer.models_by_hud_filename.each do |file_name, klass|
         # Delete any existing data
@@ -225,6 +231,7 @@ module ReportGenerators::Lsa::Fy2019
       # Make note of completion time, LSA requirements are very specific that this should be the time the report was completed, not when it was initiated.
       # There will only ever be one of these.
       LsaSqlServer::LSAReport.update_all(ReportDate: Time.now)
+      FileUtils.mkdir(unzip_path)
       LsaSqlServer.models_by_filename.each do |filename, klass|
         path = File.join(unzip_path, filename)
         # for some reason the example files are quoted, except the LSA files, which are not
@@ -272,10 +279,17 @@ module ReportGenerators::Lsa::Fy2019
         # Otherwise, just drop the databse
         if ENV['LSA_DB_HOST'].blank?
           @rds&.terminate!
-        else
-          SqlServerBase.connection.execute (<<~SQL);
-            drop database #{@rds.database}
-          SQL
+        IX_tlsa_Enrollment_HouseholdID
+          begin
+            SqlServerBase.connection.execute (<<~SQL);
+              use master
+            SQL
+            SqlServerBase.connection.execute (<<~SQL);
+              drop database #{@rds.database}
+            SQL
+          rescue Exception => e
+            puts e.inspect
+          end
         end
       end
     end
@@ -483,7 +497,7 @@ module ReportGenerators::Lsa::Fy2019
       step_percent = 60.0 / rep.steps.count
       rep.steps.each_with_index do |step, i|
         percent = 30 + i * step_percent
-        update_report_progress percent: percent.round(2)
+        update_report_progress(percent: percent.round(2))
         start_time = Time.current
         rep.run_query(step)
         end_time = Time.current
