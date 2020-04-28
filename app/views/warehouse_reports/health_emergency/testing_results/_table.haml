@@ -13,6 +13,7 @@
       %tr
         %th Client ID
         %th Name
+        %th DOB
         %th Test Date
         %th Test Result
         %th Notes
@@ -25,6 +26,7 @@
         %tr
           %td{class: batch_class}= link_to client.id, polymorphic_path(['client_he', health_emergency], client_id: client)
           %td= link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
+          %td= client.DOB
           %td= result.tested_on
           %td= result.result
           %td= simple_format(result.notes)
