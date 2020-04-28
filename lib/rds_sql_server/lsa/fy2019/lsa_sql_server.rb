@@ -179,6 +179,8 @@ module LsaSqlServer
         :DVStatus,
         :ESTAgeMin,
         :ESTAgeMax,
+        :HHTypeEST,
+        :HoHEST,
         :AdultEST,
         :HHChronicEST,
         :HHVetEST,

@@ -23,13 +23,13 @@ Date:  4/2/2020
 	-- 	 , DateCreated, DateUpdated, ExportID)
 	-- select distinct
 	-- 	hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 50)
-	-- 	, format(hp.OperatingStartDate, 'yyyy-mm-dd')
-	-- 	, case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-mm-dd') else null end
+	-- 	, format(hp.OperatingStartDate, 'yyyy-MM-dd')
+	-- 	, case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end
 	-- 	, hp.ContinuumProject, hp.ProjectType, hp.HousingType
 	-- 	, hp.TrackingMethod, hp.HMISParticipatingProject
 	-- 	, hp.TargetPopulation
-	-- 	, format(hp.DateCreated, 'yyyy-mm-dd hh:mm:ss')
-	-- 	, format(hp.DateUpdated, 'yyyy-mm-dd hh:mm:ss')
+	-- 	, format(hp.DateCreated, 'yyyy-MM-dd hh:mm:ss')
+	-- 	, format(hp.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
 	-- 	, rpt.ReportID
 	-- from hmis_Project hp
 	-- inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd
@@ -59,8 +59,8 @@ Date:  4/2/2020
 	select distinct ho.OrganizationID
 		, left(ho.OrganizationName, 50)
 		, ho.VictimServicesProvider
-		, format(ho.DateCreated, 'yyyy-mm-dd hh:mm:ss')
-		, format(ho.DateUpdated, 'yyyy-mm-dd hh:mm:ss')
+		, format(ho.DateCreated, 'yyyy-MM-dd hh:mm:ss')
+		, format(ho.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
 		, lp.ExportID
 	from hmis_Organization ho
 	inner join lsa_Project lp on lp.OrganizationID = ho.OrganizationID
@@ -80,10 +80,10 @@ Date:  4/2/2020
 		, StartDate, EndDate
 		, DateCreated, DateUpdated, ExportID)
 	select distinct hf.FunderID, hf.ProjectID, hf.Funder
-		, format(hf.StartDate, 'yyyy-mm-dd')
-		, case when hf.EndDate is not null then format(hf.EndDate, 'yyyy-mm-dd') else null end
-		, format(hf.DateCreated, 'yyyy-mm-dd hh:mm:ss')
-		, format(hf.DateUpdated, 'yyyy-mm-dd hh:mm:ss')
+		, format(hf.StartDate, 'yyyy-MM-dd')
+		, case when hf.EndDate is not null then format(hf.EndDate, 'yyyy-MM-dd') else null end
+		, format(hf.DateCreated, 'yyyy-MM-dd hh:mm:ss')
+		, format(hf.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
 		, lp.ExportID
 	from hmis_Funder hf
 	inner join lsa_Project lp on lp.ProjectID = hf.ProjectID
@@ -112,8 +112,8 @@ Date:  4/2/2020
 		, hcoc.Geocode
 		, left(hcoc.Address1, 100), left(hcoc.Address2, 100), left(hcoc.City, 50), hcoc.State
 		, left(hcoc.ZIP, 5), hcoc.GeographyType
-		, format(hcoc.DateCreated, 'yyyy-mm-dd hh:mm:ss')
-		, format(hcoc.DateUpdated, 'yyyy-mm-dd hh:mm:ss')
+		, format(hcoc.DateCreated, 'yyyy-MM-dd hh:mm:ss')
+		, format(hcoc.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
 		, lp.ExportID
 	from hmis_ProjectCoC hcoc
 	inner join lsa_Project lp on lp.ProjectID = hcoc.ProjectID
@@ -150,8 +150,8 @@ Date:  4/2/2020
 		, hi.CHBedInventory, hi.OtherBedInventory
 		, case when lp.ProjectType = 1 then hi.ESBedType else null end
 		, hi.InventoryStartDate, hi.InventoryEndDate
-		, format(hi.DateCreated, 'yyyy-mm-dd hh:mm:ss')
-		, format(hi.DateUpdated, 'yyyy-mm-dd hh:mm:ss')
+		, format(hi.DateCreated, 'yyyy-MM-dd hh:mm:ss')
+		, format(hi.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
 		, lp.ExportID
 	from hmis_Inventory hi
 	inner join lsa_Project lp on lp.ProjectID = hi.ProjectID

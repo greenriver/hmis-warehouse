@@ -13,7 +13,7 @@ module GrdaWarehouse::Hud
 
     # an array (in order) of the expected columns for hud CSV data
     def self.hud_csv_headers(version: nil)
-      raise NotImplementedError, "#{self.name} needs to implement #hud_csv_headers"
+      hmis_structure(version: version).keys.freeze
     end
 
     # Override in sub-classes as necessary

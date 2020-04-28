@@ -42,13 +42,13 @@ module LsaSqlServer
           , DateCreated, DateUpdated, ExportID)
         select distinct
           hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 50)
-          , format(hp.OperatingStartDate, 'yyyy-mm-dd')
-          , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-mm-dd') else null end
+          , format(hp.OperatingStartDate, 'yyyy-MM-dd')
+          , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end
           , hp.ContinuumProject, hp.ProjectType, hp.HousingType
           , hp.TrackingMethod, hp.HMISParticipatingProject
           , hp.TargetPopulation
-          , format(hp.DateCreated, 'yyyy-mm-dd hh:mm:ss')
-          , format(hp.DateUpdated, 'yyyy-mm-dd hh:mm:ss')
+          , format(hp.DateCreated, 'yyyy-MM-dd hh:mm:ss')
+          , format(hp.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
           , rpt.ReportID
         from hmis_Project hp
         inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd
@@ -62,7 +62,7 @@ module LsaSqlServer
               and hp.OperatingEndDate > hp.OperatingStartDate)
             )
       SQL
-      query += "and hp.ProjectID in(#{project_ids.join(',')})" if project_ids.present?
+      query += "and hp.ProjectID in(#{project_ids.join(',')})" if project_ids.present? && ! test?
       SqlServerBase.connection.execute(query)
     end
   end

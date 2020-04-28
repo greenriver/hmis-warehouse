@@ -274,12 +274,12 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def remove_temporary_rds
-      if @destroy_rds
+      if destroy_rds?
         # If we didn't specify a specific host, turn off RDS
         # Otherwise, just drop the databse
         if ENV['LSA_DB_HOST'].blank?
           @rds&.terminate!
-        IX_tlsa_Enrollment_HouseholdID
+        else
           begin
             SqlServerBase.connection.execute (<<~SQL);
               use master

@@ -9,10 +9,6 @@ module HMIS::Structure::Project
   include ::HMIS::Structure::Base
 
   module ClassMethods
-    def hud_csv_headers(version: nil)
-      hmis_structure(version: version).keys.freeze
-    end
-
     def hmis_structure(version: nil)
       case version
       when '5.1'
