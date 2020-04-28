@@ -290,6 +290,7 @@ module Clients
     def file_scope
       scope = file_source.visible_by?(current_user).
         non_consent.
+        non_cache.
         where(client_id: @client.id)
       scope = scope.window unless can_manage_client_files?
       scope
