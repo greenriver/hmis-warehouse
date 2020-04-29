@@ -11,68 +11,6 @@ module HMIS::Structure::Project
   module ClassMethods
     def hmis_structure(version: nil)
       case version
-      when '5.1'
-        {
-          ProjectID: {
-            type: :string,
-            limit: 32,
-            null: false,
-          },
-          OrganizationID: {
-            type: :string,
-            limit: 32,
-            null: false,
-          },
-          ProjectName: {
-            type: :string,
-            limit: 50,
-            null: false,
-          },
-          ProjectCommonName: {
-            type: :string,
-            limit: 50,
-          },
-          ContinuumProject: {
-            type: :integer,
-            null: false,
-          },
-          ProjectType: {
-            type: :integer,
-          },
-          ResidentialAffiliation: {
-            type: :integer,
-          },
-          TrackingMethod: {
-            type: :integer,
-          },
-          TargetPopulation: {
-            type: :integer,
-          },
-          PITCount: {
-            type: :integer,
-          },
-          DateCreated: {
-            type: :datetime,
-            null: false,
-          },
-          DateUpdated: {
-            type: :datetime,
-            null: false,
-          },
-          UserID: {
-            type: :string,
-            limit: 32,
-            null: false,
-          },
-          DateDeleted: {
-            type: :datetime,
-          },
-          ExportID: {
-            type: :string,
-            limit: 32,
-            null: false,
-          },
-        }
       when '6.11', '6.12'
         {
           ProjectID: {

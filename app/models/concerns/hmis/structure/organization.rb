@@ -11,7 +11,7 @@ module HMIS::Structure::Organization
   module ClassMethods
     def hmis_structure(version: nil)
       case version
-      when '2020'
+      when '6.11', '6.12'
         {
           OrganizationID: {
             type: :string,
@@ -21,10 +21,6 @@ module HMIS::Structure::Organization
           OrganizationName: {
             type: :string,
             limit: 50,
-            null: false,
-          },
-          VictimServicesProvider: {
-            type: :integer,
             null: false,
           },
           OrganizationCommonName: {
@@ -53,7 +49,7 @@ module HMIS::Structure::Organization
             null: false,
           },
         }
-      else
+      when '2020', nil
         {
           OrganizationID: {
             type: :string,
@@ -63,6 +59,10 @@ module HMIS::Structure::Organization
           OrganizationName: {
             type: :string,
             limit: 50,
+            null: false,
+          },
+          VictimServicesProvider: {
+            type: :integer,
             null: false,
           },
           OrganizationCommonName: {
