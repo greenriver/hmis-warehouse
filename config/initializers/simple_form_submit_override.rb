@@ -1,3 +1,5 @@
+Rails.logger.info "Running initializer in #{__FILE__}"
+
 module DisableDoubleClickOnSimpleForms
   def submit(field, options = {})
     if field.is_a?(Hash)

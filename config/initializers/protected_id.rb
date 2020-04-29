@@ -1,3 +1,5 @@
+Rails.logger.info "Running initializer in #{__FILE__}"
+
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
