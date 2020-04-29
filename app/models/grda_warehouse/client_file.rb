@@ -109,6 +109,10 @@ module GrdaWarehouse
       self.where.not(id: consent_form_tagging_ids)
     end
 
+    scope :non_cache, -> do
+      where.not(name: 'Client Headshot Cache')
+    end
+
     scope :verified_homeless_history, -> do
       # NOTE: tagged_with does not work correctly in testing
       # tagged_with(GrdaWarehouse::AvailableFileTag.consent_forms.pluck(:name), any: true)
@@ -260,15 +264,16 @@ module GrdaWarehouse
     end
 
     def notify_users
-      if client.present?
-        # notify related users if the client has a full release and the file is visible in the window
-        if client.release_valid? && visible_in_window
-          NotifyUser.file_uploaded( self.id ).deliver_later
-        end
-        # Send out administrative notifications as appropriate
-        if GrdaWarehouse::AvailableFileTag.should_send_notifications?(tag_list)
-          FileNotificationMailer.notify(client.id).deliver_later
-        end
+      return if name == 'Client Headshot Cache'
+      return unless client.present?
+
+      # notify related users if the client has a full release and the file is visible in the window
+      if client.release_valid? && visible_in_window
+        NotifyUser.file_uploaded( self.id ).deliver_later
+      end
+      # Send out administrative notifications as appropriate
+      if GrdaWarehouse::AvailableFileTag.should_send_notifications?(tag_list)
+        FileNotificationMailer.notify(client.id).deliver_later
       end
     end
 
