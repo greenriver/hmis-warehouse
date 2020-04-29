@@ -6,6 +6,7 @@
         = k.humanize.downcase
       %label.label.label-primary.parameter-value
         %strong
+          - # FIXME: this logic should be moved into WarehouseReports::Export and duplicated into the youth export report
           - if k == 'user_id'
             - v = User.find_by(id: v)&.name
           - if k == 'sub_population'
