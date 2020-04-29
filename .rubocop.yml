@@ -32,6 +32,10 @@ AllCops:
     - 'bin/{rails,rake}'
     - 'app/assets/**/*'
 
+inherit_mode:
+  merge:
+    - AllowedNames
+
 # We don't care about method length, since we check method cyclomatic
 # complexity.
 Metrics/MethodLength:
@@ -98,6 +102,10 @@ Style/CommentedKeyword:
 
 Naming/VariableNumber:
   Enabled: false
+
+Naming/MethodParameterName:
+  AllowedNames:
+    - as
 
 Style/MixinUsage:
   Enabled: false

@@ -780,7 +780,7 @@ module HUD
     }
   end
 
-  def homeless_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def homeless_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
@@ -794,7 +794,7 @@ module HUD
     end
   end
 
-  def institutional_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def institutional_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
@@ -811,7 +811,7 @@ module HUD
     end
   end
 
-  def temporary_and_permanent_housing_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def temporary_and_permanent_housing_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
@@ -861,7 +861,7 @@ module HUD
     end
   end
 
-  def other_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def other_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
