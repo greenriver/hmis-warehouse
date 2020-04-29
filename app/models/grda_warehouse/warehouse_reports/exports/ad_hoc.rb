@@ -56,6 +56,7 @@ module GrdaWarehouse::WarehouseReports::Exports
         clients = clients_within_age_range
         clients = clients_with_ongoing_enrollments(clients)
         clients = heads_of_household(clients)
+        clients = filter_for_sub_population(clients)
         clients = clients.where(id: clients_within_projects.select(:id)) unless filter.all_projects?
         clients
       end

@@ -52,6 +52,11 @@ module WarehouseReports::Export # rubocop:disable Style/ClassAndModuleChildren
         merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households)
     end
 
+    private def filter_for_sub_population(clients)
+      clients.joins(:service_history_enrollments).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.public_send(filter.sub_population))
+    end
+
     def yes_no(bool)
       bool ? 'Yes' : 'No'
     end
