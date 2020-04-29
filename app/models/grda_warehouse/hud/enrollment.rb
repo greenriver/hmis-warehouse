@@ -672,7 +672,69 @@ module GrdaWarehouse::Hud
     end
 
     def chronically_homeless_at_start?
-      return false; # TODO
+      chronically_homeless_at_start == :yes
+    end
+
+    # Was the client chronically homeless at the start of this enrollment?
+    #
+    # @return [Symbol] :yes, :no, :dk_or_r, or :missing
+    def chronically_homeless_at_start
+      # Line 1
+      return :no if is_no?(self.DisablingCondition)
+      return dk_or_r_or_missing(self.DisablingCondition) if dk_or_r_or_missing(self.DisablingCondition)
+
+      # Line 3
+      if Project::CHRONIC_PROJECT_TYPES.include?(project.ProjectType)
+        # Lines 4 - 6
+        return homeless_duration_sufficient if homeless_duration_sufficient
+      end
+
+      # Line 9
+      if HUD.homeless_situations(as: :prior).include?(self.LivingSituation)
+        # Lines 10 - 12
+        return homeless_duration_sufficient if homeless_duration_sufficient
+      end
+
+      # Line 14
+      if HUD.institutional_situations(as: :prior).include?(self.LivingSituation)
+        # Line 15
+        return :no if is_no?(self.LOSUnderThreshold)
+        # Line 16
+        return :no if is_no?(self.PreviousStreetESSH)
+        # Lines 17 - 19
+        return homeless_duration_sufficient if homeless_duration_sufficient
+      end
+
+      # Line 21
+      if (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(LivingSituation)
+        # Line 22
+        return :no if is_no?(self.LOSUnderThreshold)
+        # Line 23
+        return :no if is_no?(self.PreviousStreetESSH)
+        # Lines 24 - 26
+        return homeless_duration_sufficient if homeless_duration_sufficient
+      end
+    end
+
+    def is_no?(value)
+      return :no if value == 0
+    end
+
+    def dk_or_r_or_missing(value)
+      return :dk_or_r if value == 8 || value == 9
+      return :missing if value == 99
+    end
+
+    def homeless_duration_sufficient
+      return :yes if self.DateToStreetESSH.present? && self.DateToStreetESSH <= self.EntryDate - 365.days
+
+      @three_or_fewer_times_homeless ||= [1, 2, 3].freeze
+      return :no if @three_or_fewer_times_homeless.include?(self.TimesHomelessPastThreeYears)
+      return dk_or_r_or_missing(self.TimesHomelessPastThreeYears) if dk_or_r_or_missing(self.TimesHomelessPastThreeYears)
+
+      @twelve_or_more_months_homeless ||= [112, 113].freeze  # 112 = 12 months, 113 = 13+ months
+      return :yes if @twelve_or_more_months.include?(self.MonthsHomelessPastThreeYears)
+      return dk_or_r_or_missing(self.MonthsHomelessPastThreeYears) if dk_or_r_or_missing(self.MonthsHomelessPastThreeYears)
     end
   end # End Enrollment
 end

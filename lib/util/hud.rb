@@ -780,106 +780,165 @@ module HUD
     }
   end
 
-  def homeless_situations
-    [
-      16,
-      1,
-      18,
-      27,
-    ]
+  def homeless_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+    case version
+    when '2020', nil
+      case as
+      when :prior, :current, :destination
+        [
+          16,
+          1,
+          18,
+        ]
+      end
+    end
   end
 
-  def institutional_situations
-    [
-      15,
-      6,
-      7,
-      24,
-      4,
-      5,
-    ]
+  def institutional_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+    case version
+    when '2020', nil
+      case as
+      when :prior, :current, :destination
+        [
+          15,
+          6,
+          7,
+          25,
+          4,
+          5,
+        ]
+      end
+    end
   end
 
-  def transitional_and_permanent_situations
-    [
-      14,
-      23,
-      21,
-      3,
-      22,
-      19,
-      25,
-      20,
-      26,
-      12,
-      13,
-      2,
-      8,
-      9,
-      99,
-    ]
+  def temporary_and_permanent_housing_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+    case version
+    when '2020', nil
+      case as
+      when :prior, :current
+        [
+          29,
+          14,
+          2,
+          32,
+          36,
+          35,
+          28,
+          19,
+          3,
+          31,
+          33,
+          34,
+          10,
+          20,
+          21,
+          11,
+        ]
+      when :destination
+        [
+          29,
+          14,
+          2,
+          32,
+          13,
+          12,
+          22,
+          23,
+          26,
+          27,
+          28,
+          19,
+          3,
+          31,
+          33,
+          34,
+          10,
+          20,
+          21,
+          11,
+        ]
+      end
+    end
   end
 
-  def permanent_destinations
-    # Permanent destinations
-    [
-      3,
-      10,
-      11,
-      19,
-      20,
-      21,
-      22,
-      23,
-      26,
-      28,
-      29,
-      31,
-      32,
-      33,
-      34,
-      35,
-      36,
-    ]
+  def other_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+    case version
+    when '2020', nil
+      case as
+      when :prior
+        [
+          8,
+          9,
+          99,
+        ]
+      when :current
+        [
+          17,
+          37,
+          8,
+          9,
+          99,
+        ]
+      when :destination
+        [
+          30,
+          17,
+          24,
+          8,
+          9,
+          99,
+        ]
+      end
+    end
   end
 
-  def temporary_destinations
-    # Temporary destinations
-    [
-      1,
-      2,
-      12,
-      13,
-      14,
-      16,
-      18,
-      27,
-    ]
+  def permanent_destinations(version: nil)
+    case version
+    when '2020', nil # From SPM 3.1 definition
+      [
+        26,
+        11,
+        21,
+        3,
+        10,
+        28,
+        20,
+        19,
+        22,
+        23,
+        31,
+        33,
+        34,
+      ]
+    end
   end
 
-  def institutional_destinations
-    # Institutional Destinations
-    [
-      4,
-      5,
-      6,
-      7,
-      15,
-      25,
-      29,
-    ]
+  def temporary_destinations(version: nil)
+    case version
+    when '2020', nil # From SPM 3.1 definition
+      [
+        1,
+        15,
+        14,
+        27,
+        4,
+        18,
+        12,
+        13,
+        5,
+        2,
+        25,
+        32,
+      ]
+    end
   end
 
-  def other_destinations
-    [
-      # Other Destinations
-      8,
-      9,
-      17,
-      24,
-      30,
-      99,
-    ]
+  def institutional_destinations(version: nil)
+    institutional_situations(as: :destination, version: version)
+  end
+
+  def other_destinations(version: nil)
+    other_situations(as: :destination, version: version)
   end
 
   # 3.15.1
