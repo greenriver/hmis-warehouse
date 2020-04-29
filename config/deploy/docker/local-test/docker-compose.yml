@@ -1,0 +1,76 @@
+# For testing the deployable image
+# This is NOT for development
+version: '3.7'
+
+services:
+  shell:
+    image: ${IMAGE:-open-path-warehouse:latest--base}
+    stdin_open: true
+    tty: true
+    command: /bin/sh
+    entrypoint: ''
+    env_file:
+      - pre-deploy.env
+
+  dj0: &dj
+    stdin_open: true
+    tty: true
+    image: open-path-warehouse:latest--dj
+    env_file:
+      - pre-deploy.env
+    depends_on:
+      - db
+      - redis
+
+  dj1:
+    <<: *dj
+    env_file:
+      - pre-deploy.env
+      - dj1.env
+
+  dj2:
+    <<: *dj
+    env_file:
+      - pre-deploy.env
+      - dj2.env
+
+  web:
+    stdin_open: true
+    tty: true
+    image: ${IMAGE:-open-path-warehouse:latest--web}
+    expose:
+      - '443'
+    ports:
+      - '9999:443'
+    environment:
+      VIRTUAL_HOST: ${FQDN:-deploy-warehouse.dev.test}
+      VIRTUAL_PORT: 443
+    env_file:
+      - pre-deploy.env
+    depends_on:
+      - db
+      - redis
+
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-db
+    ports:
+      - 5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379
+
+volumes:
+  dbdata:
+
+networks:
+  default:
+    external:
+      name: nginx-proxy

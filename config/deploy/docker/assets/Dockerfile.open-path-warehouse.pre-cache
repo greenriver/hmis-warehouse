@@ -1,0 +1,44 @@
+#####################################################
+## Multi-stage build to speed up subsequent builds ##
+#####################################################
+
+FROM ruby:2.6.5-alpine
+
+RUN apk add --no-cache \
+  nodejs yarn \
+  tzdata \
+  git \
+  bash \
+  freetds-dev \
+  icu icu-dev \
+  curl libcurl curl-dev \
+  libmagic file-dev file \
+  build-base libxml2-dev libxslt-dev postgresql-dev
+
+WORKDIR /app
+
+RUN gem install bundler --version=1.17.3 && \
+  mkdir -p app/assets tmp/pids lib/assets vendor/assets public
+
+COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
+COPY bin ./bin
+COPY public ./public
+COPY lib ./lib
+COPY config ./config
+#COPY spec ./spec
+#COPY db ./db
+COPY app ./app
+COPY vendor ./vendor
+COPY config/deploy/docker/assets/dotenv.temporary ./.env
+
+# https://github.com/sass/sassc-ruby/issues/146#issuecomment-542288556
+# core dumps during precompile on github when using the pre-cache image pulled
+# from ECR
+ENV BUNDLE_BUILD__SASSC=--disable-march-tune-native
+
+# If assets or gems don't change, those steps in the final build should be fast
+RUN bundle install --without=development && \
+    RAILS_ENV=production bundle exec rake assets:precompile && \
+    cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml && \
+    rm -rf tmp/* && \
+    mkdir tmp/pids

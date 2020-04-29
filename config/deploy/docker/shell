@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'byebug'
+require_relative 'lib/ecs_tools'
+
+if ENV['IMAGE'].nil?
+  raise "set IMAGE to a substring in the image you want that's deployed or failed to deploy. Hint: use the short git hash"
+end
+
+EcsTools.new.shell

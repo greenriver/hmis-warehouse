@@ -5,10 +5,10 @@
 ###
 
 class TestJob < BaseJob
-  def perform
+  def perform(length_in_seconds = 10)
     a = Time.now
 
-    while (Time.now - a) < 10.seconds
+    while (Time.now - a) < length_in_seconds
       Rails.logger.info "Simulating processing. In `#{STARTING_PATH}` directory."
       sleep 5
     end

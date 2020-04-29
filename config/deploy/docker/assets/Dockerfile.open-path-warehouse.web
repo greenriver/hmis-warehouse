@@ -1,0 +1,13 @@
+FROM open-path-warehouse:latest--base
+
+LABEL "role"=web
+
+HEALTHCHECK --start-period=15s --interval=5m --timeout=10s \
+  CMD curl -k -f https://localhost:443/system_status/operational || exit 1
+
+ENV NEEDS_PRECOMPILE=true
+
+EXPOSE 443
+
+# Start the main process.
+CMD [ "puma", "-b", "ssl://0.0.0.0:443?key=/app/config/key.pem&cert=/app/config/cert.pem&verify_mode=none" ]

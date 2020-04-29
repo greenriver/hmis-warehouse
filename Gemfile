@@ -127,7 +127,6 @@ gem 'exception_notification'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
-# Use Unicorn as the app server
 gem 'puma', '~> 3.12.3'
 
 # gem 'newrelic_rpm', require: false
@@ -137,9 +136,15 @@ gem 'dotenv-rails'
 gem 'net-sftp', require: false
 gem 'redis-rails'
 
-#AWS SDK
+# AWS SDK is needed for deployment and within the application
 gem 'aws-sdk-rails'
-gem 'aws-sdk', '~> 3'
+gem 'aws-sdk-cloudwatchevents', '~> 1'
+gem 'aws-sdk-ecs', '~> 1'
+gem 'aws-sdk-glacier', '~> 1'
+gem 'aws-sdk-rds', '~> 1'
+gem 'aws-sdk-s3', '~> 1'
+gem 'aws-sdk-secretsmanager', '~> 1'
+gem 'aws-sdk-ses', '~> 1'
 gem 'json'
 gem 'awesome_print'
 

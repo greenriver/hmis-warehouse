@@ -1,7 +1,7 @@
 # https://docs.aws.amazon.com/sdkforruby/api/index.html
 # https://docs.aws.amazon.com/sdkforruby/api/Aws/RDS.html
 
-require 'aws-sdk'
+require 'aws-sdk-glacier'
 
 class Rds
   attr_accessor :client, :identifier

@@ -66,6 +66,7 @@ services:
 
   web:
     <<: *backend
+    container_name: hmis-warehouse-web
     stdin_open: true
     tty: true
     command: bundle exec rails server -b 0.0.0.0
@@ -81,6 +82,7 @@ services:
       - mailhog
 
   db:
+    container_name: hmis-warehouse-db
     image: postgres:12-alpine
     environment:
       POSTGRES_PASSWORD: postgres
@@ -92,6 +94,7 @@ services:
       - 5432
 
   redis:
+    container_name: hmis-warehouse-redis
     image: redis:alpine
     volumes:
       - redis:/data

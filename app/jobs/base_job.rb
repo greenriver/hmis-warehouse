@@ -8,17 +8,19 @@ class BaseJob < ActiveJob::Base
   STARTING_PATH = File.realpath(FileUtils.pwd)
   include NotifierConfig
 
-  # When called through Active::Job, uses this hook
-  before_perform do |job|
-    unless running_in_correct_path?
+  if ENV['ECS'] != 'true'
+    # When called through Active::Job, uses this hook
+    before_perform do |job|
+      unless running_in_correct_path?
 
-      msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory. Active::Job"
-      notify_on_restart(msg)
+        msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory. Active::Job"
+        notify_on_restart(msg)
 
-      unlock_job!(job.job_id) if job.respond_to? :job_id
+        unlock_job!(job.job_id) if job.respond_to? :job_id
 
-      # Exit, ignoring signal handlers which would prevent the process from dying
-      exit!(0)
+        # Exit, ignoring signal handlers which would prevent the process from dying
+        exit!(0)
+      end
     end
   end
   # when queued with perform_later (active job, this gets used)
@@ -27,19 +29,21 @@ class BaseJob < ActiveJob::Base
     notify_on_exception(e)
   end
 
-  # When called through Delayed::Job, uses this hook
-  def before(job)
-    return if running_in_correct_path?
+  if ENV['ECS'] != 'true'
+    # When called through Delayed::Job, uses this hook
+    def before(job)
+      return if running_in_correct_path?
 
-    job = self unless job.respond_to? :locked_by
+      job = self unless job.respond_to? :locked_by
 
-    msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory. Delayed::Job"
-    notify_on_restart(msg)
+      msg = "Started dir is `#{STARTING_PATH}`\nCurrent dir is `#{expected_path}`\nExiting in order to let systemd restart me in the correct directory. Delayed::Job"
+      notify_on_restart(msg)
 
-    unlock_job!(job.id)
+      unlock_job!(job.id)
 
-    # Exit, ignoring signal handlers which would prevent the process from dying
-    exit!(0)
+      # Exit, ignoring signal handlers which would prevent the process from dying
+      exit!(0)
+    end
   end
 
   # when queued with Delayed::Job.enqueue TestJob.new (this gets used)

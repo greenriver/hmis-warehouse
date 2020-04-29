@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-require 'aws-sdk'
+require 'aws-sdk-glacier'
 
 module Glacier
   class AwsService
