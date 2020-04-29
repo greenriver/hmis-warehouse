@@ -288,7 +288,8 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         each do |client_id, *counts|
           # NOTE: "other clients" counts don't count this client
           sizes[client_id] = counts.sum + 1
-      end
+        end
+      sizes
     end
     @household_size_for[client.id]
   end
