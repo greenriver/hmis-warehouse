@@ -8,4 +8,6 @@
         %strong
           - if k == 'user_id'
             - v = User.find_by(id: v)&.name
+          - if k == 'sub_population'
+            - v = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[v.to_sym]
           = beautify_option(k, v)

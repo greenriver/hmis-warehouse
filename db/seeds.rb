@@ -105,12 +105,6 @@ def report_list
         limitable: false,
       },
       {
-        url: 'warehouse_reports/hmis_exports',
-        name: 'HUD HMIS Exports',
-        description: 'Export data in the HUD standard format.',
-        limitable: true,
-      },
-      {
         url: 'warehouse_reports/initiatives',
         name: 'Initiatives',
         description: 'Standard reporting for initiatives, RRH, Youth, Vets...',
@@ -129,28 +123,10 @@ def report_list
         limitable: false,
       },
       {
-        url: 'warehouse_reports/tableau_dashboard_export',
-        name: 'Tableau Dashboard Export',
-        description: 'Download dashboard data sets.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/hashed_only_hmis_exports',
-        name: 'HUD HMIS CSV Exports (Hashed Only)',
-        description: 'Export data in the HUD HMIS exchange format with PII hashed',
-        limitable: true,
-      },
-      {
         url: 'warehouse_reports/rrh',
         name: 'Rapid Rehousing Dashboard',
         description: '',
         limitable: true,
-      },
-      {
-        url: 'warehouse_reports/youth_export',
-        name: 'Youth Export',
-        description: 'Youth data for a given time frame.',
-        limitable: false,
       },
       {
         url: 'warehouse_reports/cohort_changes',
@@ -210,12 +186,6 @@ def report_list
         url: 'warehouse_reports/dv_victim_service',
         name: 'DV Victim Service Report',
         description: 'Clients fleeing domestic violence.',
-        limitable: true,
-      },
-      {
-        url: 'warehouse_reports/youth_export',
-        name: 'Youth Data Export',
-        description: 'Youth data for a given time frame.',
         limitable: true,
       },
     ],
@@ -509,6 +479,38 @@ def report_list
         name: 'Upload Test Results',
         description: 'Upload and batch add test results to clients.',
         limitable: false,
+      },
+    ],
+    'Exports' => [
+      {
+        url: 'warehouse_reports/hmis_exports',
+        name: 'HUD HMIS Exports',
+        description: 'Export data in the HUD standard format.',
+        limitable: true,
+      },
+      {
+        url: 'warehouse_reports/tableau_dashboard_export',
+        name: 'Tableau Dashboard Export',
+        description: 'Download dashboard data sets.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/hashed_only_hmis_exports',
+        name: 'HUD HMIS CSV Exports (Hashed Only)',
+        description: 'Export data in the HUD HMIS exchange format with PII hashed',
+        limitable: true,
+      },
+      {
+        url: 'warehouse_reports/youth_export',
+        name: 'Youth Export',
+        description: 'Youth data for a given time frame',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/ad_hoc_analysis',
+        name: 'Ad-Hoc Analysis Export',
+        description: 'Export data for offline analysis',
+        limitable: true,
       },
     ],
   }
