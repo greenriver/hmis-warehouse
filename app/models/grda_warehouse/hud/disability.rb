@@ -8,105 +8,10 @@ module GrdaWarehouse::Hud
   class Disability < Base
     include HudSharedScopes
     self.table_name = 'Disabilities'
+    include ::HMIS::Structure::Disability
+
     self.hud_key = :DisabilitiesID
     acts_as_paranoid column: :DateDeleted
-
-    def self.hud_csv_headers(version: nil)
-      case version
-      when '5.1'
-        [
-          :DisabilitiesID,
-          :ProjectEntryID,
-          :PersonalID,
-          :InformationDate,
-          :DisabilityType,
-          :DisabilityResponse,
-          :IndefiniteAndImpairs,
-          :DocumentationOnFile,
-          :ReceivingServices,
-          :PATHHowConfirmed,
-          :PATHSMIInformation,
-          :TCellCountAvailable,
-          :TCellCount,
-          :TCellSource,
-          :ViralLoadAvailable,
-          :ViralLoad,
-          :ViralLoadSource,
-          :DataCollectionStage,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID
-        ].freeze
-      when '6.11', '6.12'
-        [
-          :DisabilitiesID,
-          :EnrollmentID,
-          :PersonalID,
-          :InformationDate,
-          :DisabilityType,
-          :DisabilityResponse,
-          :IndefiniteAndImpairs,
-          :TCellCountAvailable,
-          :TCellCount,
-          :TCellSource,
-          :ViralLoadAvailable,
-          :ViralLoad,
-          :ViralLoadSource,
-          :DataCollectionStage,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      when '2020'
-        [
-          :DisabilitiesID,
-          :EnrollmentID,
-          :PersonalID,
-          :InformationDate,
-          :DisabilityType,
-          :DisabilityResponse,
-          :IndefiniteAndImpairs,
-          :TCellCountAvailable,
-          :TCellCount,
-          :TCellSource,
-          :ViralLoadAvailable,
-          :ViralLoad,
-          :ViralLoadSource,
-          :DataCollectionStage,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      else
-        [
-          :DisabilitiesID,
-          :EnrollmentID,
-          :PersonalID,
-          :InformationDate,
-          :DisabilityType,
-          :DisabilityResponse,
-          :IndefiniteAndImpairs,
-          :TCellCountAvailable,
-          :TCellCount,
-          :TCellSource,
-          :ViralLoadAvailable,
-          :ViralLoad,
-          :ViralLoadSource,
-          :DataCollectionStage,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      end
-    end
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities

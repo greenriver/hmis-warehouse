@@ -7,54 +7,11 @@
 module GrdaWarehouse::Hud
   class ProjectCoc < Base
     include HudSharedScopes
+    include ::HMIS::Structure::ProjectCoc
+
     self.table_name = 'ProjectCoC'
     self.hud_key = :ProjectCoCID
     acts_as_paranoid column: :DateDeleted
-
-    def self.hud_csv_headers(version: nil)
-      case version
-      when '5.1', '6.11', '6.12'
-        [
-          :ProjectCoCID,
-          :ProjectID,
-          :CoCCode,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      when '2020'
-        [
-          :ProjectCoCID,
-          :ProjectID,
-          :CoCCode,
-          :Geocode,
-          :Address1,
-          :Address2,
-          :City,
-          :State,
-          :Zip,
-          :GeographyType,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      else
-        [
-          :ProjectCoCID,
-          :ProjectID,
-          :CoCCode,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      end
-    end
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :project_cocs
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :project_cocs, optional: true

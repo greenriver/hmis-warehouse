@@ -7,34 +7,13 @@
 module GrdaWarehouse::Hud
   class Export < Base
     include HudSharedScopes
+    include ::HMIS::Structure::Export
+
     self.table_name = 'Export'
     self.hud_key = :ExportID
 
     def self.hud_paranoid_column
       nil
-    end
-
-    def self.hud_csv_headers(version: nil)
-      # Same for 5 & 6 at this time
-      [
-        :ExportID,
-        :SourceType,
-        :SourceID,
-        :SourceName,
-        :SourceContactFirst,
-        :SourceContactLast,
-        :SourceContactPhone,
-        :SourceContactExtension,
-        :SourceContactEmail,
-        :ExportDate,
-        :ExportStartDate,
-        :ExportEndDate,
-        :SoftwareName,
-        :SoftwareVersion,
-        :ExportPeriodType,
-        :ExportDirective,
-        :HashStatus
-      ].freeze
     end
 
     has_many :affiliations, **hud_assoc(:AffiliationID, 'Affiliation'), inverse_of: :export

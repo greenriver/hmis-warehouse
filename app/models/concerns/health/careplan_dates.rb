@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Health::CareplanDates # rubocop:disable Style/ClassAndModuleChildren
+module Health::CareplanDates
   extend ActiveSupport::Concern
   included do
     private def care_plan_patient_signed_date(patient_id)

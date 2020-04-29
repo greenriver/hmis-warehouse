@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Reporting::ProjectDataQualityReports::VersionFour::Support # rubocop:disable Style/ClassAndModuleChildren
+module Reporting::ProjectDataQualityReports::VersionFour::Support
   extend ActiveSupport::Concern
   include ActionView::Helpers
   include ActionView::Context
