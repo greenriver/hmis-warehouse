@@ -6,23 +6,24 @@
 
 module WarehouseReports
   class YouthExportController < ApplicationController
+    include WarehouseReportAuthorization
     before_action :set_filter, only: [:index, :create]
     before_action :set_report, only: [:show, :destroy]
 
     def index
       @reports = report_scope.order(created_at: :desc).
-        select(:id, :user_id, :options, :client_count, :started_at, :completed_at).
+        select(:id, :user_id, :options, :client_count, :started_at, :completed_at, :created_at).
         page(params[:page]).per(25)
     end
 
     def create
       @report = GrdaWarehouse::WarehouseReports::Youth::Export.create(options: filter_params, user_id: current_user.id)
-      ::WarehouseReports::GenericReportJob.perform_later(
+      GenericReportJob.perform_later(
         user_id: current_user.id,
         report_class: @report.class.name,
         report_id: @report.id,
       )
-      respond_with(@report, location: warehouse_reports_youth_export_index_path)
+      respond_with(@report, location: @report.url)
     end
 
     def show
@@ -36,7 +37,7 @@ module WarehouseReports
 
     def destroy
       @report.destroy
-      respond_with(@report, location: warehouse_reports_youth_export_index_path)
+      respond_with(@report, location: @report.url)
     end
 
     private def set_report

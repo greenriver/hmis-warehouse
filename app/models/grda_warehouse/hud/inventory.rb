@@ -14,87 +14,13 @@
 module GrdaWarehouse::Hud
   class Inventory < Base
     include HudSharedScopes
+    include ::HMIS::Structure::Inventory
+
     self.table_name = 'Inventory'
     self.hud_key = :InventoryID
     acts_as_paranoid column: :DateDeleted
     include ArelHelper
     require 'csv'
-
-    def self.hud_csv_headers(version: nil)
-      case version
-      when '5.1', '6.11', '6.12'
-        [
-          :InventoryID,
-          :ProjectID,
-          :CoCCode,
-          :InformationDate,
-          :HouseholdType,
-          :Availability,
-          :UnitInventory,
-          :BedInventory,
-          :CHBedInventory,
-          :VetBedInventory,
-          :YouthBedInventory,
-          :BedType,
-          :InventoryStartDate,
-          :InventoryEndDate,
-          :HMISParticipatingBeds,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      when '2020'
-        [
-          :InventoryID,
-          :ProjectID,
-          :CoCCode,
-          :HouseholdType,
-          :Availability,
-          :UnitInventory,
-          :BedInventory,
-          :CHVetBedInventory,
-          :YouthVetBedInventory,
-          :VetBedInventory,
-          :CHYouthBedInventory,
-          :YouthBedInventory,
-          :CHBedInventory,
-          :OtherBedInventory,
-          :ESBedType,
-          :InventoryStartDate,
-          :InventoryEndDate,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      else
-        [
-          :InventoryID,
-          :ProjectID,
-          :CoCCode,
-          :InformationDate,
-          :HouseholdType,
-          :Availability,
-          :UnitInventory,
-          :BedInventory,
-          :CHBedInventory,
-          :VetBedInventory,
-          :YouthBedInventory,
-          :BedType,
-          :InventoryStartDate,
-          :InventoryEndDate,
-          :HMISParticipatingBeds,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      end
-    end
 
     FAMILY_HOUSEHOLD_TYPE = 3
     INDIVIDUAL_HOUSEHOLD_TYPE = 1

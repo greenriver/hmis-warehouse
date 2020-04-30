@@ -63,7 +63,7 @@ module GrdaWarehouse
         end
       rescue StandardError => ex
         Rails.logger.error ex.message
-        raise "Unable to extract file: #{zip_path}"
+        raise "Unable to extract file: #{zip_path}: #{ex.message}"
       end
       # If the file was extracted successfully, delete the source file,
       ::File.delete(zip_path) if ::File.exist?(zip_path)

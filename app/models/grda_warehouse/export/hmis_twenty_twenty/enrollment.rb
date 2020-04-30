@@ -41,6 +41,8 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
         row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{(row[:HouseholdID])}")
       end
       row[:RelationshipToHoH] = 1 if row[:RelationshipToHoH].blank?
+      # Only use the first 5 of the zip
+      row[:LastPermanentZIP] = row[:LastPermanentZIP].to_s[0..4] if row[:LastPermanentZIP].present?
       # If the project has been overridden as PH, assume the MoveInDate
       # is the EntryDate if we don't have a MoveInDate.
       # Usually we won't have a MoveInDate because it isn't required

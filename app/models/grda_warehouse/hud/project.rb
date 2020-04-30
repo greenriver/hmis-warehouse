@@ -10,99 +10,12 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HudSharedScopes
     include ProjectReport
+    include ::HMIS::Structure::Project
+
     self.table_name = :Project
     self.hud_key = :ProjectID
     acts_as_paranoid column: :DateDeleted
     has_paper_trail
-
-    def self.hud_csv_headers(version: nil)
-      case version
-      when '5.1'
-        [
-          :ProjectID,
-          :OrganizationID,
-          :ProjectName,
-          :ProjectCommonName,
-          :ContinuumProject,
-          :ProjectType,
-          :ResidentialAffiliation,
-          :TrackingMethod,
-          :TargetPopulation,
-          :PITCount,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID
-        ].freeze
-      when '6.11', '6.12'
-        [
-          :ProjectID,
-          :OrganizationID,
-          :ProjectName,
-          :ProjectCommonName,
-          :OperatingStartDate,
-          :OperatingEndDate,
-          :ContinuumProject,
-          :ProjectType,
-          :ResidentialAffiliation,
-          :TrackingMethod,
-          :TargetPopulation,
-          :VictimServicesProvider,
-          :HousingType,
-          :PITCount,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      when '2020'
-        [
-          :ProjectID,
-          :OrganizationID,
-          :ProjectName,
-          :ProjectCommonName,
-          :OperatingStartDate,
-          :OperatingEndDate,
-          :ContinuumProject,
-          :ProjectType,
-          :HousingType,
-          :ResidentialAffiliation,
-          :TrackingMethod,
-          :HMISParticipatingProject,
-          :TargetPopulation,
-          :PITCount,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      else
-        [
-          :ProjectID,
-          :OrganizationID,
-          :ProjectName,
-          :ProjectCommonName,
-          :OperatingStartDate,
-          :OperatingEndDate,
-          :ContinuumProject,
-          :ProjectType,
-          :ResidentialAffiliation,
-          :TrackingMethod,
-          :TargetPopulation,
-          :VictimServicesProvider,
-          :HousingType,
-          :PITCount,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      end
-    end
 
    include Filterable
 
@@ -766,11 +679,14 @@ module GrdaWarehouse::Hud
       )
     end
 
-    def self.options_for_select user:
+    def self.options_for_select user:, scope: nil
       # don't cache this, it's a class method
       @options = begin
         options = {}
-        self.viewable_by(user).
+        project_scope = viewable_by(user)
+        project_scope = project_scope.merge(scope) if scope.present?
+
+        project_scope.
           joins(:organization).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).
             pluck(o_t[:OrganizationName].as('org_name'), :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|

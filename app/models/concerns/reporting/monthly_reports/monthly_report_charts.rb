@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Reporting::MonthlyReports::MonthlyReportCharts # rubocop:disable Style/ClassAndModuleChildren
+module Reporting::MonthlyReports::MonthlyReportCharts
   extend ActiveSupport::Concern
   included do
     attr_accessor :organization_ids
