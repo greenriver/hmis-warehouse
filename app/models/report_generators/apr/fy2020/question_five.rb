@@ -44,40 +44,40 @@ module ReportGenerators::Apr::Fy2020
         first_row: 1,
         last_row: 16,
       }
-      @report.answer(question: 'Q5').update(metadata: metadata)
+      @report.answer(question: 'Q5a').update(metadata: metadata)
 
       # Total clients
-      answer = @report.answer(question: 'Q5', cell: 'B1')
+      answer = @report.answer(question: 'Q5a', cell: 'B1')
       members = universe.universe_members
       answer.add_members(members)
       answer.update(summary: members.count)
 
       # Number of adults
-      answer = @report.answer(question: 'Q5', cell: 'B2')
+      answer = @report.answer(question: 'Q5a', cell: 'B2')
       members = universe.members.where(a_t[:age].gteq(18))
       answer.add_members(members)
       answer.update(summary: members.count)
 
       # Number of children
-      answer = @report.answer(question: 'Q5', cell: 'B3')
+      answer = @report.answer(question: 'Q5a', cell: 'B3')
       members = universe.members.where(a_t[:age].lt(18))
       answer.add_members(members)
       answer.update(summary: members.count)
 
       # Number of unknown ages
-      answer = @report.answer(question: 'Q5', cell: 'B4')
+      answer = @report.answer(question: 'Q5a', cell: 'B4')
       members = universe.members.where(a_t[:age].eq(nil))
       answer.add_members(members)
       answer.update(summary: members.count)
 
       # Number of leavers
-      answer = @report.answer(question: 'Q5', cell: 'B5')
+      answer = @report.answer(question: 'Q5a', cell: 'B5')
       members = universe.members.where(a_t[:last_date_in_program].lteq(@report.end_date))
       answer.add_members(members)
       answer.update(summary: members.count)
 
       # Number of adult leavers
-      answer = @report.answer(question: 'Q5', cell: 'B6')
+      answer = @report.answer(question: 'Q5a', cell: 'B6')
       members = universe.members.where(
         a_t[:last_date_in_program].lteq(@report.end_date).
           and(a_t[:age].gteq(18)),
@@ -85,7 +85,7 @@ module ReportGenerators::Apr::Fy2020
       answer.add_members(members)
 
       # Number of adult and HoH leavers
-      answer = @report.answer(question: 'Q5', cell: 'B7')
+      answer = @report.answer(question: 'Q5a', cell: 'B7')
       members = universe.members.where(
         a_t[:last_date_in_program].lteq(@report.end_date).
           and(a_t[:age].gteq(18)).
@@ -95,13 +95,13 @@ module ReportGenerators::Apr::Fy2020
       answer.update(summary: members.count)
 
       # Number of stayers
-      answer = @report.answer(question: 'Q5', cell: 'B8')
+      answer = @report.answer(question: 'Q5a', cell: 'B8')
       members = universe.members.where(a_t[:last_date_in_program].gt(@report.end_date))
       answer.add_members(members)
       answer.update(summary: members.count)
 
       # Number of adult stayers
-      answer = @report.answer(question: 'Q5', cell: 'B9')
+      answer = @report.answer(question: 'Q5a', cell: 'B9')
       members = universe.members.where(
         a_t[:last_date_in_program].gt(@report.end_date).
           and(a_t[:age].gteq(18)),
@@ -110,19 +110,19 @@ module ReportGenerators::Apr::Fy2020
       answer.update(summary: members.count)
 
       # Number of veterans
-      answer = @report.answer(question: 'Q5', cell: 'B10')
+      answer = @report.answer(question: 'Q5a', cell: 'B10')
       members = universe.members.where(a_t[:veteran].eq(true))
       answer.add_members(members)
       answer.update(summary: members.count)
 
       # Number of chronically homeless
-      answer = @report.answer(question: 'Q5', cell: 'B11')
+      answer = @report.answer(question: 'Q5a', cell: 'B11')
       members = universe.members.where(a_t[:chronically_homeless].eq(true))
       answer.add_members(members)
       answer.update(summary: members.count)
 
       # Number of youth under 25
-      answer = @report.answer(question: 'Q5', cell: 'B12')
+      answer = @report.answer(question: 'Q5a', cell: 'B12')
       members = universe.members.where(
         a_t[:age].lt(25).
         and(a_t[:age].gteq(12)),
@@ -131,7 +131,7 @@ module ReportGenerators::Apr::Fy2020
       answer.update(summary: members.count)
 
       # Number of parenting youth under 25 with children
-      answer = @report.answer(question: 'Q5', cell: 'B13')
+      answer = @report.answer(question: 'Q5a', cell: 'B13')
       members = universe.members.where(
         a_t[:age].lt(25).
         and(a_t[:age].gteq(12)).
@@ -141,7 +141,7 @@ module ReportGenerators::Apr::Fy2020
       answer.update(summary: members.count)
 
       # Number of adult HoH
-      answer = @report.answer(question: 'Q5', cell: 'B14')
+      answer = @report.answer(question: 'Q5a', cell: 'B14')
       members = universe.members.where(
         a_t[:age].gteq(18).
         and(a_t[:head_of_household].eq(true)),
@@ -150,7 +150,7 @@ module ReportGenerators::Apr::Fy2020
       answer.update(summary: members.count)
 
       # Number of child and unknown age HoH
-      answer = @report.answer(question: 'Q5', cell: 'B15')
+      answer = @report.answer(question: 'Q5a', cell: 'B15')
       members = universe.members.where(
         a_t[:age].lt(18).
         or(a_t[:age].eq(nil)).
@@ -160,7 +160,7 @@ module ReportGenerators::Apr::Fy2020
       answer.update(summary: members.count)
 
       # HoH and adult stayers in project 365 days or more
-      answer = @report.answer(question: 'Q5', cell: 'B16')
+      answer = @report.answer(question: 'Q5a', cell: 'B16')
       members = universe.members.where(
         a_t[:age].gteq(18).
         and(a_t[:head_of_household].eq(true)).
@@ -172,7 +172,7 @@ module ReportGenerators::Apr::Fy2020
 
     private def universe
       @universe ||= begin
-        universe_cell = @report.universe('Q5')
+        universe_cell = @report.universe('Q5a')
 
         @generator.client_scope.find_in_batches do |batch|
           pending_associations = {}
