@@ -5,19 +5,20 @@
 ###
 
 module WarehouseReports
-  class YouthExportController < ApplicationController
+  class AdHocAnalysisController < ApplicationController
     include WarehouseReportAuthorization
+    include ArelHelper
     before_action :set_filter, only: [:index, :create]
     before_action :set_report, only: [:show, :destroy]
 
     def index
       @reports = report_scope.order(created_at: :desc).
-        select(:id, :user_id, :options, :client_count, :started_at, :completed_at, :created_at).
+        select(*report_source.index_columns).
         page(params[:page]).per(25)
     end
 
     def create
-      @report = GrdaWarehouse::WarehouseReports::Youth::Export.create(options: filter_params, user_id: current_user.id)
+      @report = report_source.create(options: filter_params, user_id: current_user.id)
       GenericReportJob.perform_later(
         user_id: current_user.id,
         report_class: @report.class.name,
@@ -29,7 +30,7 @@ module WarehouseReports
     def show
       respond_to do |format|
         format.xlsx do
-          filename = "Youth Export #{Time.current.to_s.delete(',')}.xlsx"
+          filename = "Ad-Hoc Export #{Time.current.to_s.delete(',')}.xlsx"
           render(xlsx: 'show', filename: filename)
         end
       end
@@ -51,11 +52,17 @@ module WarehouseReports
     private def filter_params
       @filter_params = { user_id: current_user.id }
       @filter_params.merge!(report_params[:filter]) if report_params[:filter].present?
+      @filter_params[:start_age] = report_params.dig(:filter, :start_age) || 0
+      @filter_params[:end_age] = report_params.dig(:filter, :end_age) || 100
       @filter_params
     end
 
     private def report_scope
-      GrdaWarehouse::WarehouseReports::Youth::Export.where(user_id: current_user.id)
+      report_source.where(user_id: current_user.id)
+    end
+
+    private def report_source
+      GrdaWarehouse::WarehouseReports::Exports::AdHoc
     end
 
     private def report_params
@@ -65,16 +72,16 @@ module WarehouseReports
           :end,
           :start_age,
           :end_age,
+          :sub_population,
           project_ids: [],
           organization_ids: [],
           data_source_ids: [],
-          cohort_ids: [],
         ],
       )
     end
 
     def flash_interpolation_options
-      { resource_name: 'Youth Export' }
+      { resource_name: 'Ad-Hoc Export' }
     end
   end
 end
