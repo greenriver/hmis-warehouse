@@ -51,6 +51,13 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       )
     end
 
+    def apply_overrides row, data_source_id:
+      row[:Destination] = 99 if row[:Destination].blank?
+      row[:OtherDestination] = row[:OtherDestination][0..49] if row[:OtherDestination].present?
+
+      return row
+    end
+
     # Limit exits to one per enrollment (sometimes we get data with more) and only export
     # the most recently changed
     def ids_to_export export_scope:

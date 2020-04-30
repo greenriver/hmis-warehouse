@@ -73,6 +73,7 @@ Style/AndOr:
 
 Style/ClassAndModuleChildren:
   Exclude:
+    - 'app/models/concerns/**/*'
     - 'app/controllers/**/*'
     - 'app/jobs/**/*'
 
