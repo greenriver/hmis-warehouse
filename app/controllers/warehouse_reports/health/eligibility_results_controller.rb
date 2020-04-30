@@ -14,13 +14,16 @@ module WarehouseReports::Health
         preload(:health_agency, :care_coordinator)
       @ineligible = patient_scope.where(medicaid_id: @inquiry.ineligible_ids).
         preload(:health_agency, :care_coordinator)
-      @aco_changes = aco_changes
+      @patients_with_aco_changes = patients_with_aco_changes
+      @aco_changes = @inquiry.patient_aco_changes
     end
 
-    def aco_changes
-      patient_scope.where(medicaid_id: @inquiry.managed_care_ids).select do |patient|
-        (patient.previous_aco_name.present? && patient.previous_aco_name != patient.aco_name) ||
-          @inquiry.aco_names[patient.medicaid_id].blank?
+    def patients_with_aco_changes
+      changes = @inquiry.patient_aco_changes
+      if changes.present?
+        patient_scope.find(changes.keys)
+      else
+        patient_scope.none
       end
     end
 

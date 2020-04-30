@@ -3,13 +3,15 @@
     %tr
       %th Name
       %th DOB
-      %th ACO Current?
+      %th ACO Changed?
+      %th Previous ACO Name
       %th Reported ACO Name
   %tbody
-    - @aco_changes.each do |patient|
+    - @patients_with_aco_changes.each do |patient|
+      - changes = @aco_changes[patient.id]
       %tr
         %td= link_to "#{patient.first_name} #{patient.last_name}", window_client_health_patient_index_path(client_id: patient.client_id)
         %td= patient.birthdate
-        %td= checkmark_or_x(aco_current?(patient))
-        %td= patient.aco_name
-
+        %td= checkmark_or_x(changes['updated'])
+        %td= changes['previous_aco']
+        %td= @inquiry.aco_names[patient.medicaid_id]
