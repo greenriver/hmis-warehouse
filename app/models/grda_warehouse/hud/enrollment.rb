@@ -706,7 +706,7 @@ module GrdaWarehouse::Hud
       end
 
       # Line 21
-      if (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(LivingSituation)
+      if (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(self.LivingSituation)
         # Line 22
         return :no if is_no?(self.LOSUnderThreshold)
         # Line 23
@@ -714,6 +714,8 @@ module GrdaWarehouse::Hud
         # Lines 24 - 26
         return homeless_duration_sufficient if homeless_duration_sufficient
       end
+
+      return :no # Not included in flow -- added as fail safe
     end
 
     def is_no?(value)
@@ -733,7 +735,7 @@ module GrdaWarehouse::Hud
       return dk_or_r_or_missing(self.TimesHomelessPastThreeYears) if dk_or_r_or_missing(self.TimesHomelessPastThreeYears)
 
       @twelve_or_more_months_homeless ||= [112, 113].freeze  # 112 = 12 months, 113 = 13+ months
-      return :yes if @twelve_or_more_months.include?(self.MonthsHomelessPastThreeYears)
+      return :yes if @twelve_or_more_months_homeless.include?(self.MonthsHomelessPastThreeYears)
       return dk_or_r_or_missing(self.MonthsHomelessPastThreeYears) if dk_or_r_or_missing(self.MonthsHomelessPastThreeYears)
     end
   end # End Enrollment
