@@ -300,7 +300,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     return unless exit_enrollment
     return unless HUD.permanent_destinations.include?(exit_enrollment.Destination)
 
-    chronic_enrollments_for(client).
-      select{|e| exit_enrollment.last_date_in_program < e.first_date_in_program}.any?
+    chronic_enrollments_for(client)&.
+      select{|e| exit_enrollment.last_date_in_program < e.first_date_in_program}&.any?
   end
 end
