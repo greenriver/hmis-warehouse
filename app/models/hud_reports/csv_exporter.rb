@@ -14,15 +14,16 @@ module HudReports
       @metadata = report.answer(question: question).metadata
     end
 
-    def csv_table
-      CSV.generate(force_quotes: true) do |table|
-        array_table.each { |row| table << row }
+    def export(file_path)
+      file = "#{file_path}/#{csv_name}"
+      CSV.open(file, 'wb', force_quotes: true) do |table|
+        as_array.each { |row| table << row }
       end
     end
 
-    def array_table
+    def as_array
       @array_table ||= begin
-        table = [ header_row ]
+        table = answer_table
 
         row_names.each do |row_name|
           row = row_with_label(row_name)
@@ -40,8 +41,13 @@ module HudReports
       "#{@question}.csv"
     end
 
-    def header_row
-      @metadata['header_row']
+    def answer_table
+      row = @metadata['header_row']
+      if row.present?
+        [ row ]
+      else
+        []
+      end
     end
 
     def row_names

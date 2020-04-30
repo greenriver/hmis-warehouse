@@ -13,6 +13,9 @@ module ReportGenerators::AprShared::Fy2020
       @report = generator.report
     end
 
+    QUESTION_NUMBER = 'Q4'
+    QUESTION_TABLE_NUMBER = 'Q4a'
+
     TABLE_HEADER = [
       'Organization Name',
       'Organization ID',
@@ -33,7 +36,7 @@ module ReportGenerators::AprShared::Fy2020
     HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'.freeze
 
     def run!
-      @generator.update_state('Q4')
+      @generator.update_state(QUESTION_NUMBER)
 
       project_rows = []
 
@@ -61,7 +64,7 @@ module ReportGenerators::AprShared::Fy2020
       project_rows.each_with_index do |row, row_index|
         row.each_with_index do |value, column_index|
           cell_name = cell_columns[column_index] + (row_index + 2).to_s
-          @report.answer(question: 'Q4', cell: cell_name).update(summary: value)
+          @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell_name).update(summary: value)
         end
       end
 
@@ -73,7 +76,7 @@ module ReportGenerators::AprShared::Fy2020
         first_row: 2,
         last_row: project_rows.size + 1,
       }
-      @report.answer(question: 'Q4').update(metadata: metadata)
+      @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
     end
   end
 end

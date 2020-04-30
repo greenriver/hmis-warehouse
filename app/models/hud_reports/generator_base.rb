@@ -14,7 +14,7 @@ module HudReports
     STARTED = 'started'
     COMPLETED = 'completed'
 
-    def initialize(options, report_name)
+    def initialize(options, questions, report_name)
       @user = options[:user]
       @start_date = options[:start_date].to_date
       @end_date = options[:end_date].to_date
@@ -31,6 +31,7 @@ module HudReports
         state: 'pending',
         options: @options,
         report_name: report_name,
+        question_names: questions,
       )
     end
 
