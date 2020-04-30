@@ -3,6 +3,7 @@ require 'awesome_print'
 require 'yaml'
 require_relative 'ecs_tools'
 require 'aws-sdk-cloudwatchlogs'
+# require 'aws-sdk-ec2'
 
 class RollOut
   attr_accessor :aws_profile
@@ -19,11 +20,15 @@ class RollOut
   attr_accessor :execution_role
   attr_accessor :default_environment
 
-  # FIXME: ram limit as parameter
   # FIXME: cpu shares as parameter
   # FIXME: log level as parameter
 
+  DEFAULT_SOFT_WEB_RAM_MB = 900
+  DEFAULT_SOFT_DJ_RAM_MB = 2000
+  DEFAULT_SOFT_RAM_MB = 900
   RAM_OVERCOMMIT_MULTIPLIER = 1.6
+
+  DEFAULT_CPU_SHARES = 256
 
   def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:)
     self.aws_profile         = ENV.fetch('AWS_PROFILE')
@@ -57,20 +62,20 @@ class RollOut
   def run!
     run_migrations!
 
+    deploy_cron!
+
     deploy_web!
 
     dj_options.each do |dj_options|
       deploy_dj!(dj_options)
     end
-
-    deploy_cron!
   end
 
   def bootstrap_databases!
     name = target_group_name + '-bootstrap-dbs'
 
     _register_task!(
-      mem_limit_mb: 900,
+      soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
       image: image_base + '--web',
       name: name,
       command: ['bin/db_prep']
@@ -83,7 +88,7 @@ class RollOut
     name = target_group_name + '-migrate'
 
     _register_task!(
-      mem_limit_mb: 900,
+      soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
       image: image_base + '--dj',
       name: name,
       # FIXME: rename this to "rake_tasks.sh" or something like that.
@@ -96,8 +101,10 @@ class RollOut
   def deploy_web!
     name = target_group_name + '-web'
 
+    soft_mem_limit_mb = (web_options['soft_mem_limit_mb'] || DEFAULT_SOFT_WEB_RAM_MB).to_i
+
     _register_task!(
-      mem_limit_mb: 900,
+      soft_mem_limit_mb: soft_mem_limit_mb,
       image: image_base + '--web',
       ports: [{
         "container_port" => 443,
@@ -133,8 +140,10 @@ class RollOut
       environment << { "name" => key, "value" => value }
     end
 
+    soft_mem_limit_mb = (dj_options['soft_mem_limit_mb'] || DEFAULT_SOFT_DJ_RAM_MB).to_i
+
     _register_task!(
-      mem_limit_mb: 1000,
+      soft_mem_limit_mb: soft_mem_limit_mb,
       image: image_base + '--dj',
       name: name,
       environment: environment
@@ -154,7 +163,7 @@ class RollOut
     name  = target_group_name + "-cron-installer"
 
     _register_task!(
-      mem_limit_mb: 1000,
+      soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
       image: image_base + '--dj',
       name: name,
       command: ['bin/cron_installer.rb']
@@ -186,7 +195,7 @@ class RollOut
     @seen = true
   end
 
-  def _register_task!(name:, image:, cpu_shares: nil, mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30)
+  def _register_task!(name:, image:, cpu_shares: nil, soft_mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30)
     puts "[INFO] Registering #{name} task"
 
     environment ||= default_environment.dup
@@ -197,7 +206,7 @@ class RollOut
     # instance. Any unused get divided up at the same ratio as all the
     # containers running.
     # Increase this to limit number of containers on a box if there are cpu capacity issues.
-    cpu_shares ||= 512
+    cpu_shares ||= DEFAULT_CPU_SHARES
 
     log_prefix = name.split(/ecs/).last.sub(/^-/, '')
 
@@ -209,10 +218,10 @@ class RollOut
       cpu: cpu_shares,
 
       # Hard limit
-      memory: ( mem_limit_mb * RAM_OVERCOMMIT_MULTIPLIER ).to_i,
+      memory: ( soft_mem_limit_mb * RAM_OVERCOMMIT_MULTIPLIER ).to_i,
 
       # Soft limit
-      memory_reservation: mem_limit_mb,
+      memory_reservation: soft_mem_limit_mb,
 
       port_mappings: ports,
       essential: true,
@@ -267,14 +276,40 @@ class RollOut
 
     puts "[INFO] Running task: #{task_definition}"
 
-    results = ecs.run_task(
-      cluster: cluster,
-      task_definition: task_definition
-    )
+    incomplete = true
+
+    while (incomplete) do
+      results = ecs.run_task(
+        cluster: cluster,
+        task_definition: task_definition
+      )
+
+      if results.failures.length > 0
+        # FIXME: we can look up the ec2 instance name container instance -> ec2 instance -> tags -> name tag
+        # results = ecs.describe_container_instances( container_instances: results.failures.map(&:arn), cluster: cluster).container_instances
+        # ec2_instances ||= ec2.describe_instance.instances
+        # lookup = Hash[
+        #   results.map do |r|
+        #     ec2_instances.find { |i| i.
+        #     [r.container_instance_arn, r.ec2_instance_id]
+        #   end
+        # ]
+
+        results.failures.each do |failure|
+          puts "[FATAL] NOT ENOUGH #{failure.reason} on #{failure.arn}"
+        end
+        puts "[WARN] The last task did not run. Trying again..."
+        sleep 20
+        incomplete = true
+      else
+        incomplete = false
+      end
+    end
 
     task_arn = results.tasks.first&.task_arn
-    puts "Task arn: #{task_arn||'unknown'}"
-    puts "Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{task_arn}"
+
+    puts "[INFO] Task arn: #{task_arn||'unknown'}"
+    puts "[INFO] Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{task_arn}"
 
     # sleep 5
     # could loop on task being stopped or running
@@ -368,5 +403,6 @@ class RollOut
   end
 
   define_method(:ecs) { Aws::ECS::Client.new(profile: aws_profile) }
+  # define_method(:ec2) { Aws::EC2::Client.new(profile: aws_profile) }
   define_method(:cwl) { Aws::CloudWatchLogs::Client.new(profile: aws_profile) }
 end
