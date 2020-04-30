@@ -17,5 +17,12 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
 
 
+
+    def apply_overrides row, data_source_id:
+      # Required by HUD spec, not always provided 99 is not valid, but we can't really guess
+      row[:DataCollectionStage] = 99 if row[:DataCollectionStage].blank?
+      return row
+    end
+
   end
 end
