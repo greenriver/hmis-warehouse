@@ -19,7 +19,7 @@
           %td= yes_no(! @missing_data[:missing_operating_start_date].include?(project))
           %td= yes_no(! @missing_data[:missing_housing_type].include?(project))
           %td= yes_no(! @missing_data[:missing_geocode].include?(project))
-          %td= yes_no(! @missing_data[:missing_gepgraphy_type].include?(project))
+          %td= yes_no(! @missing_data[:missing_geography_type].include?(project))
           %td= yes_no(! @missing_data[:invalid_funders].include?(project))
 
 = simple_form_for :report_result do |f|
