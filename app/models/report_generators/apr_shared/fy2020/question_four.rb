@@ -18,7 +18,8 @@ module ReportGenerators::AprShared::Fy2020
       'Organization ID',
       'Project Name',
       'Project ID',
-      'HMIS Project Type	Method for Tracking ES',
+      'HMIS Project Type',
+      'Method for Tracking ES',
       'Affiliated with a residential project',
       'Project IDs of affiliations',
       'CoC Number',
@@ -29,7 +30,7 @@ module ReportGenerators::AprShared::Fy2020
       'Report End Date',
     ].freeze
 
-    HMIS_SOFTWARE_NAME = 'OpenPath'.freeze
+    HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'.freeze
 
     def run!
       @generator.update_state('Q4')
@@ -45,9 +46,9 @@ module ReportGenerators::AprShared::Fy2020
           project.ProjectType,
           (project.ProjectType == 1)? project.TrackingMethod : 0,
           (project.ProjectType == 6)? project.ResidentialAffiliation : 0,
-          (project.ProjectType == 6 && project.ResidentialAffiliation == 1)? project.residential_affiliations.map(&:ProjectID).join(' ') : '',
-          project.project_cocs.map(&:CoCCode).join(' '),
-          project.project_cocs.map(&:Geocode).join(' '),
+          (project.ProjectType == 6 && project.ResidentialAffiliation == 1)? project.residential_affiliations.map(&:ProjectID).join(', ') : '',
+          project.project_cocs.map(&:CoCCode).join(', '),
+          project.project_cocs.map(&:Geocode).join(', '),
           (project.VictimServicesProvider.present?)? project.VictimServicesProvider : 0,
           HMIS_SOFTWARE_NAME,
           @report.start_date,
@@ -63,6 +64,16 @@ module ReportGenerators::AprShared::Fy2020
           @report.answer(question: 'Q4', cell: cell_name).update(summary: value)
         end
       end
+
+      metadata = {
+        header_row: TABLE_HEADER,
+        row_labels: [],
+        first_column: 'A',
+        last_column: 'N',
+        first_row: 2,
+        last_row: project_rows.size + 1,
+      }
+      @report.answer(question: 'Q4').update(metadata: metadata)
     end
   end
 end
