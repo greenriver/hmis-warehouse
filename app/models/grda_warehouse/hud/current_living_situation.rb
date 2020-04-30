@@ -7,31 +7,11 @@
 module GrdaWarehouse::Hud
   class CurrentLivingSituation < Base
     include HudSharedScopes
+    include ::HMIS::Structure::CurrentLivingSituation
+
     self.table_name = :CurrentLivingSituation
     self.hud_key = :CurrentLivingSitID
     acts_as_paranoid column: :DateDeleted
-
-    def self.hud_csv_headers(version: nil)
-      [
-        :CurrentLivingSitID,
-        :EnrollmentID,
-        :PersonalID,
-        :InformationDate,
-        :CurrentLivingSituation,
-        :VerifiedBy,
-        :LeaveSituation14Days,
-        :SubsequentResidence,
-        :ResourcesToObtain,
-        :LeaseOwn60Day,
-        :MovedTwoOrMore,
-        :LocationDetails,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
-    end
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :current_living_situation, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs

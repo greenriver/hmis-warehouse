@@ -43,6 +43,7 @@ namespace :reports do
       'Reports::DataQuality::Fy2016::Q5',
       'Reports::DataQuality::Fy2016::Q6',
       'Reports::DataQuality::Fy2016::Q7',
+      'Reports::Lsa::Fy2018::All',
     ]
     # SPM 2018 should be removed after 10/1/2020 to allow for comparisons
     # If we've never run it, go ahead and remove it.
@@ -235,10 +236,14 @@ namespace :reports do
     r = Reports::DataQuality::Fy2017::Q7.where(name: 'HUD Data Quality Report FY 2017 - Q7').first_or_create
     r.update(weight: 7, report_results_summary: rs)
 
-    rs = ReportResultsSummaries::Lsa::Fy2018.where(name: 'LSA 2018').first_or_create
-    rs.update(weight: 0)
+    # rs = ReportResultsSummaries::Lsa::Fy2018.where(name: 'LSA 2018').first_or_create
+    # rs.update(weight: 0)
+    # r = Reports::Lsa::Fy2018::All.where(name: 'Longitudinal System Analysis FY 2018').first_or_create
+    # r.update(weight: 1, report_results_summary: rs)
 
-    r = Reports::Lsa::Fy2018::All.where(name: 'Longitudinal System Analysis FY 2018').first_or_create
+    rs = ReportResultsSummaries::Lsa::Fy2019.where(name: 'LSA 2019').first_or_create
+    rs.update(weight: 0)
+    r = Reports::Lsa::Fy2019::All.where(name: 'Longitudinal System Analysis FY 2019').first_or_create
     r.update(weight: 1, report_results_summary: rs)
 
   end

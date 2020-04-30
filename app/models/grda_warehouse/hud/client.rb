@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HealthCharts
     include ApplicationHelper
+    include ::HMIS::Structure::Client
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic
@@ -22,47 +23,6 @@ module GrdaWarehouse::Hud
     self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
-
-    def self.hud_csv_headers(version: nil)
-      [
-        :PersonalID,
-        :FirstName,
-        :MiddleName,
-        :LastName,
-        :NameSuffix,
-        :NameDataQuality,
-        :SSN,
-        :SSNDataQuality,
-        :DOB,
-        :DOBDataQuality,
-        :AmIndAKNative,
-        :Asian,
-        :BlackAfAmerican,
-        :NativeHIOtherPacific,
-        :White,
-        :RaceNone,
-        :Ethnicity,
-        :Gender,
-        :VeteranStatus,
-        :YearEnteredService,
-        :YearSeparated,
-        :WorldWarII,
-        :KoreanWar,
-        :VietnamWar,
-        :DesertStorm,
-        :AfghanistanOEF,
-        :IraqOIF,
-        :IraqOND,
-        :OtherTheater,
-        :MilitaryBranch,
-        :DischargeStatus,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID
-      ].freeze
-    end
 
     has_many :client_files
     has_many :health_files

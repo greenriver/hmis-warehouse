@@ -6,7 +6,7 @@
 
 require 'csv'
 require 'soundex'
-module Export::HmisTwentyTwenty::Shared # rubocop:disable Style/ClassAndModuleChildren
+module Export::HmisTwentyTwenty::Shared
   extend ActiveSupport::Concern
   included do
     include NotifierConfig
