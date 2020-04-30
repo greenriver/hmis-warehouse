@@ -19,7 +19,7 @@ module WarehouseReports
 
     def create
       @report = report_source.create(options: filter_params, user_id: current_user.id)
-      ::WarehouseReports::GenericReportJob.perform_later(
+      GenericReportJob.perform_later(
         user_id: current_user.id,
         report_class: @report.class.name,
         report_id: @report.id,

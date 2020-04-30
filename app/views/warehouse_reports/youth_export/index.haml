@@ -25,7 +25,7 @@
           %tr
             %td= report.status
             %th
-              = render 'parameters', options: report.options
+              = render 'parameters', options: report.options, report: report
             %td= report.client_count
             %td
               - if report.completed?

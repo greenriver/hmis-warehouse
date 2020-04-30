@@ -8,6 +8,41 @@ module WarehouseReports::Export # rubocop:disable Style/ClassAndModuleChildren
   extend ActiveSupport::Concern
   include ArelHelper
   included do
+    def key_for_display(key)
+      case key
+      when 'data_source_ids'
+        'data sources'
+      when 'project_ids'
+        'projects'
+      when 'organization_ids'
+        'organizations'
+      else
+        key.humanize.downcase
+      end
+    end
+
+    def value_for_display(key, value)
+      value = case key
+      when 'user_id'
+        User.find_by(id: value)&.name
+      when 'sub_population'
+        GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[value.to_sym]
+      when 'data_source_ids'
+        GrdaWarehouse::DataSource.where(id: value).map(&:short_name)
+      when 'project_ids'
+        GrdaWarehouse::Hud::Project.where(id: value).map(&:name_and_type)
+      when 'organization_ids'
+        GrdaWarehouse::Hud::Organization.where(id: value).map(&:OrganizationName)
+      else
+        value
+      end
+      return value unless value.is_a?(Array)
+
+      text = value[0...5].to_sentence(last_word_connector: ', ').to_s
+      text += ', ...' if value.count > 5
+      text
+    end
+
     def filter
       @filter ||= ::Filters::DateRangeAndSources.new(options)
     end

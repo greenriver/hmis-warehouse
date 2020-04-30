@@ -512,6 +512,12 @@ def report_list
         description: 'Export data for offline analysis',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/ad_hoc_anon_analysis',
+        name: 'Ad-Hoc Analysis Export (De-identified)',
+        description: 'Export data for offline analysis, client names and ids removed',
+        limitable: true,
+      },
     ],
   }
 end

@@ -306,6 +306,7 @@ Rails.application.routes.draw do
       end
     end
     resources :ad_hoc_analysis, only: [:index, :create, :destroy, :show]
+    resources :ad_hoc_anon_analysis, only: [:index, :create, :destroy, :show]
     namespace :project do
       resource :data_quality do
         get :download, on: :member

@@ -3,12 +3,7 @@
     - next if v.blank? || v == ['']
     .report-parameters__parameter
       %label.label.label-default.parameter-label
-        = k.humanize.downcase
+        = report.key_for_display(k)
       %label.label.label-primary.parameter-value
         %strong
-          - # FIXME: this logic should be moved into WarehouseReports::Export and duplicated into the youth export report
-          - if k == 'user_id'
-            - v = User.find_by(id: v)&.name
-          - if k == 'sub_population'
-            - v = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[v.to_sym]
-          = beautify_option(k, v)
+          = report.value_for_display(k, v)
