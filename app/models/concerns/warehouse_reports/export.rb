@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module WarehouseReports::Export # rubocop:disable Style/ClassAndModuleChildren
+module WarehouseReports::Export
   extend ActiveSupport::Concern
   include ArelHelper
   included do
@@ -72,7 +72,7 @@ module WarehouseReports::Export # rubocop:disable Style/ClassAndModuleChildren
 
     private def clients_within_projects
       @clients_within_projects ||= begin
-        GrdaWarehouse::Hud::Client.destination.joins(source_enrollments: :project).
+        GrdaWarehouse::Hud::Client.destination.joins(service_history_enrollments: :project).
           merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user).where(id: filter.effective_project_ids))
       end
     end

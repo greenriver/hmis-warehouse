@@ -19,7 +19,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     # Don't limit by user visibility, end results are de-identified
     private def clients_within_projects
       @clients_within_projects ||= begin
-        GrdaWarehouse::Hud::Client.destination.joins(source_enrollments: :project).
+        GrdaWarehouse::Hud::Client.destination.joins(service_history_enrollments: :project).
           merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
       end
     end
