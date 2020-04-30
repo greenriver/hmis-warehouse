@@ -55,14 +55,12 @@ class RollOut
   end
 
   def only_web!
-    # run_migrations!
+    # run_deploy_tasks!
     deploy_web!
   end
 
   def run!
-    run_migrations!
-
-    deploy_cron!
+    run_deploy_tasks!
 
     deploy_web!
 
@@ -84,15 +82,14 @@ class RollOut
     _run_task!
   end
 
-  def run_migrations!
-    name = target_group_name + '-migrate'
+  def run_deploy_tasks!
+    name = target_group_name + '-deploy-tasks'
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
       image: image_base + '--dj',
       name: name,
-      # FIXME: rename this to "rake_tasks.sh" or something like that.
-      command: ['bin/migrate.sh']
+      command: ['bin/deploy_tasks.sh'],
     )
 
     _run_task!
@@ -157,19 +154,6 @@ class RollOut
       maximum_percent: maximum,
       minimum_healthy_percent: minimum,
     )
-  end
-
-  def deploy_cron!
-    name  = target_group_name + "-cron-installer"
-
-    _register_task!(
-      soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--dj',
-      name: name,
-      command: ['bin/cron_installer.rb']
-    )
-
-    _run_task!
   end
 
   private

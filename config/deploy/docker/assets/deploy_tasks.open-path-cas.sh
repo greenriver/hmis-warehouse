@@ -22,3 +22,6 @@ bundle exec rake cas_seeds:ensure_all_match_prioritization_schemes_exist
 
 echo bundle exec rake cas_seeds:stalled_reasons
 bundle exec rake cas_seeds:stalled_reasons
+
+echo installing cron
+./bin/cron_installer.rb
