@@ -1,6 +1,7 @@
 # Must connect to "master" database to create the writable database we'll use
 class SqlServerBootstrapModel < ActiveRecord::Base
   rds = Rds.new
+  cert_path = ENV['RDS_CERT_PATH'].presence || '/etc/ssl/certs/rds-combined-ca-bundle.pem'
 
   conf = {
     'adapter' => 'sqlserver',
@@ -13,10 +14,10 @@ class SqlServerBootstrapModel < ActiveRecord::Base
     'database' => 'master',
     'login_timeout' => 2, # seconds
     'sslmode' => 'verify-full',
-    'sslcert' => 'config/cacert.pem',
+    'sslcert' => cert_path,
   }
 
-  establish_connection(conf)
+  establish_connection(conf) unless ENV['NO_LSA_RDS'].present?
 
   self.abstract_class = true
 end

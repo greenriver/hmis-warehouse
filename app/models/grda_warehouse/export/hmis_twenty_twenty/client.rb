@@ -32,6 +32,14 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       )
     end
 
+    def apply_overrides row, data_source_id:
+      row[:NameDataQuality] = 99 if row[:NameDataQuality].blank?
+      row[:SSNDataQuality] = 99 if row[:SSNDataQuality].blank?
+      row[:DOBDataQuality] = 99 if row[:DOBDataQuality].blank?
+
+      return row
+    end
+
     # There are situations where clients have multiple source clients,
     # we need to present only one record in the Client.csv file
     def post_process_export_file export_path
@@ -71,6 +79,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       end
       CSV.open(export_path, 'wb', {force_quotes: true}) do |csv|
         return unless clean_clients.any?
+
         csv << clean_clients.first.headers
         clean_clients.each{|row| csv << row}
       end

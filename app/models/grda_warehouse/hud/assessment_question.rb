@@ -7,27 +7,11 @@
 module GrdaWarehouse::Hud
   class AssessmentQuestion < Base
     include HudSharedScopes
+    include ::HMIS::Structure::AssessmentQuestion
+
     self.table_name = :AssessmentQuestions
     self.hud_key = :AssessmentQuestionID
     acts_as_paranoid column: :DateDeleted
-
-    def self.hud_csv_headers(version: nil)
-      [
-        :AssessmentQuestionID,
-        :AssessmentID,
-        :EnrollmentID,
-        :PersonalID,
-        :AssessmentQuestionGroup,
-        :AssessmentQuestionOrder,
-        :AssessmentQuestion,
-        :AssessmentAnswer,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
-    end
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_questions, optional: true
     belongs_to :assessment, **hud_assoc(:AssessmentID, 'Assessment')
