@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Import::HMISSixOneOne::Shared # rubocop:disable Style/ClassAndModuleChildren
+module Import::HMISSixOneOne::Shared
   extend ActiveSupport::Concern
   included do
     include NotifierConfig

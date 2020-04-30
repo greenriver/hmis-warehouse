@@ -22,6 +22,10 @@ module Health::Soap
       end
     end
 
+    def configured?
+      @config.user.present? && @config.pass.present? && @config.sender.present? && @config.receiver.present? && @url.present?
+    end
+
     def realtime_eligibility_inquiry_request(edi_doc:)
       result = request(action: 'RealTimeTransaction',
         xml: realtime_eligibility_inquiry_request_xml(edi_doc))

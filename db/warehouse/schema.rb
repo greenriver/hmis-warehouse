@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_24_202136) do
+ActiveRecord::Schema.define(version: 2020_04_30_124823) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1789,6 +1789,38 @@ ActiveRecord::Schema.define(version: 2020_04_24_202136) do
     t.integer "delayed_job_id"
     t.index ["deleted_at"], name: "index_exports_on_deleted_at"
     t.index ["export_id"], name: "index_exports_on_export_id"
+  end
+
+  create_table "exports_ad_hoc_anons", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.jsonb "options"
+    t.jsonb "headers"
+    t.jsonb "rows"
+    t.integer "client_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_exports_ad_hoc_anons_on_created_at"
+    t.index ["updated_at"], name: "index_exports_ad_hoc_anons_on_updated_at"
+    t.index ["user_id"], name: "index_exports_ad_hoc_anons_on_user_id"
+  end
+
+  create_table "exports_ad_hocs", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.jsonb "options"
+    t.jsonb "headers"
+    t.jsonb "rows"
+    t.integer "client_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_exports_ad_hocs_on_created_at"
+    t.index ["updated_at"], name: "index_exports_ad_hocs_on_updated_at"
+    t.index ["user_id"], name: "index_exports_ad_hocs_on_user_id"
   end
 
   create_table "fake_data", id: :serial, force: :cascade do |t|

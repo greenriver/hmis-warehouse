@@ -34,8 +34,8 @@ module GrdaWarehouse::Hud
       'Geography.csv' => GrdaWarehouse::Hud::Geography,
       'Assessment.csv' => GrdaWarehouse::Hud::Assessment,
       'CurrentLivingSituation.csv' => GrdaWarehouse::Hud::CurrentLivingSituation,
-      'AssessmentQuestion.csv' => GrdaWarehouse::Hud::AssessmentQuestion,
-      'AssessmentResult.csv' => GrdaWarehouse::Hud::AssessmentResult,
+      'AssessmentQuestions.csv' => GrdaWarehouse::Hud::AssessmentQuestion,
+      'AssessmentResults.csv' => GrdaWarehouse::Hud::AssessmentResult,
       'Event.csv' => GrdaWarehouse::Hud::Event,
       'User.csv' => GrdaWarehouse::Hud::User,
     }.freeze

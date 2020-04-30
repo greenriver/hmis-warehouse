@@ -7,24 +7,11 @@
 module GrdaWarehouse::Hud
   class User < Base
     include HudSharedScopes
+    include ::HMIS::Structure::User
+
     self.table_name = :User
     self.hud_key = :UserID
     acts_as_paranoid column: :DateDeleted
-
-    def self.hud_csv_headers(version: nil)
-      [
-        :UserID,
-        :UserFirstName,
-        :UserLastName,
-        :UserPhone,
-        :UserExtension,
-        :UserEmail,
-        :DateCreated,
-        :DateUpdated,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
-    end
 
     has_many :affiliations, **hud_assoc(:UserID, 'Affiliation')
     has_many :clients, **hud_assoc(:PersonalID, 'Client')

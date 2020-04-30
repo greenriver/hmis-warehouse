@@ -14,6 +14,7 @@ module Filters
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
+    attribute :sub_population, Symbol, default: :all_clients
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
 
@@ -28,6 +29,10 @@ module Filters
         @effective_project_ids = all_project_ids
       end
       return @effective_project_ids.uniq
+    end
+
+    def all_projects?
+      effective_project_ids.sort == all_project_ids.sort
     end
 
     def effective_project_ids_from_projects
