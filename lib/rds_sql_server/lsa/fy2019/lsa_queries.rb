@@ -7,8 +7,8 @@ module LsaSqlServer
 
     def steps
       @steps ||= [
-        'lib/rds_sql_server/lsa/fy2019/sample_code/3_1 to 3_6 Parameters Households and Enrollments.sql',
-        'lib/rds_sql_server/lsa/fy2019/sample_code/4_1 to 4_6 PDDEs for Export.sql',
+        'lib/rds_sql_server/lsa/fy2019/sample_code/3_2 to 3_6 HMIS Households and Enrollments.sql',
+        'lib/rds_sql_server/lsa/fy2019/sample_code/4_2 to 4_6 Other PDDEs for Export.sql',
         'lib/rds_sql_server/lsa/fy2019/sample_code/5_1 to 5_19 LSAPerson.sql',
         'lib/rds_sql_server/lsa/fy2019/sample_code/6_1 to 6_19 LSAHousehold.sql',
         'lib/rds_sql_server/lsa/fy2019/sample_code/7_1 to 7_8 LSAExit.sql',

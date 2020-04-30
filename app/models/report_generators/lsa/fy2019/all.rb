@@ -231,7 +231,7 @@ module ReportGenerators::Lsa::Fy2019
       # Make note of completion time, LSA requirements are very specific that this should be the time the report was completed, not when it was initiated.
       # There will only ever be one of these.
       LsaSqlServer::LSAReport.update_all(ReportDate: Time.now)
-      FileUtils.mkdir(unzip_path)
+      FileUtils.mkdir(unzip_path) unless Dir.exists?(unzip_path)
       LsaSqlServer.models_by_filename.each do |filename, klass|
         path = File.join(unzip_path, filename)
         # for some reason the example files are quoted, except the LSA files, which are not
