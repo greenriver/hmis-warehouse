@@ -1,4 +1,4 @@
-Rails.logger.info "Running initializer in #{__FILE__}"
+Rails.logger.debug "Running initializer in #{__FILE__}"
 
 if ENV['WKHTMLTOPDF_PATH'].present?
   WickedPdf.config = {

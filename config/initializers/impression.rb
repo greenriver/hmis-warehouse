@@ -1,4 +1,4 @@
-Rails.logger.info "Running initializer in #{__FILE__}"
+Rails.logger.debug "Running initializer in #{__FILE__}"
 
 # Use this hook to configure impressionist parameters
 #Impressionist.setup do |config|

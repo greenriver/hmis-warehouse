@@ -1,4 +1,4 @@
-Rails.logger.info "Running initializer in #{__FILE__}"
+Rails.logger.debug "Running initializer in #{__FILE__}"
 
 CarrierWave.configure do |config|
   tmp_bucket = ENV['S3_TMP_BUCKET']
