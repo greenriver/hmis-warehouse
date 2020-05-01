@@ -34,6 +34,8 @@ class ScheduledTask
       name_prefix: target_group_name,
     )
 
+    return if resp.rules.length == 0
+
     resp.each do |set|
       set.rules.each do |rule|
         target_ids =

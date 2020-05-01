@@ -44,7 +44,7 @@ class RollOut
 
     self.default_environment = [
       { "name" => "ECS", "value" => "true" },
-      { "name" => "LOG_LEVEL", "value" => "debug" },
+      { "name" => "LOG_LEVEL", "value" => "info" },
       { "name" => "TARGET_GROUP_NAME", "value" => target_group_name },
       { "name" => "DEPLOYED_AT", "value" => Date.today.to_s },
       { "name" => "DEPLOYED_BY", "value" => ENV['USER']||'unknown' },
@@ -302,9 +302,15 @@ class RollOut
     puts "[INFO] Task arn: #{task_arn||'unknown'}"
     puts "[INFO] Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{task_arn}"
 
-    puts '[INFO] Waiting on the task to complete'
-
-    ecs.wait_until(:tasks_stopped, {cluster: cluster, tasks: [task_arn]})
+    puts '[INFO] Waiting on the task to start and finish quickly to catch resource-related errors'
+    begin
+      ecs.wait_until(:tasks_running, {cluster: cluster, tasks: [task_arn]}, {max_attempts: 2, delay: 5})
+    rescue Aws::Waiters::Errors::TooManyAttemptsError
+    end
+    begin
+      ecs.wait_until(:tasks_stopped, {cluster: cluster, tasks: [task_arn]}, {max_attempts: 2, delay: 5})
+    rescue Aws::Waiters::Errors::TooManyAttemptsError
+    end
 
     results = ecs.describe_tasks(cluster: cluster, tasks: [task_arn])
 
@@ -320,22 +326,40 @@ class RollOut
       exit
     end
 
-    log_stream_name = cwl.describe_log_streams(
-      log_group_name: target_group_name,
-      order_by: 'LastEventTime',
-      log_stream_name_prefix: log_stream_prefix,
-      limit: 1,
-    ).log_streams.first.log_stream_name
+    # This is just reverse-engineering what ECS is doing.
+    # I'm not sure if there's a way to simplify the stream name
+    task_id = task_arn.split('/').last
+    log_stream_name = "#{log_stream_prefix}/#{target_group_name}-#{log_stream_prefix}/#{task_id}"
 
+    _tail_logs(log_stream_name, start_time)
+  end
+
+  # If you can construct or query for the log stream name, you can use this to
+  # tail any tasks, even those that are part of a service.
+  def _tail_logs(log_stream_name, start_time=Time.now)
     resp = cwl.get_log_events({
       log_group_name: target_group_name,
       log_stream_name: log_stream_name,
-      start_time: start_time,
-      end_time: Time.now,
+      start_time: start_time.utc.to_i,
       start_from_head: false,
     })
 
-    debugger
+    while ( resp.events.length > 0 || (Time.now.utc.to_i - start_time.utc.to_i) < 60 )
+      resp.events.each do |event|
+        puts "[TASK] #{event.message}"
+      end
+
+      next_token = resp.next_forward_token
+
+      sleep 10
+
+      resp = cwl.get_log_events({
+        log_group_name: target_group_name,
+        log_stream_name: log_stream_name,
+        next_token: next_token,
+        start_from_head: true,
+      })
+    end
   end
 
   def _start_service!(load_balancers: [], desired_count: 1, name:, maximum_percent: 100, minimum_healthy_percent: 0)
