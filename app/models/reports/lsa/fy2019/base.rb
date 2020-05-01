@@ -34,7 +34,7 @@ module Reports::Lsa::Fy2019
       'Limits'
     end
 
-    def self.available_projects(user: user)
+    def self.available_projects(user:)
       # Project types are integral to LSA business logic; only ES, SH, TH, RRH, and PSH projects should be available to select as parameters.
       project_scope = GrdaWarehouse::Hud::Project.coc_funded.with_hud_project_type([1, 2, 3, 8, 13])
       GrdaWarehouse::Hud::Project.options_for_select(user: user, scope: project_scope)

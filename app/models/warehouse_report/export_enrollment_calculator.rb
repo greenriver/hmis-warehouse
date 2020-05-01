@@ -23,6 +23,9 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @disabled_clients.include?(client.id)
   end
 
+  # Find the first exit to a permanent destination for this client that occured within the range.
+  # If no permanent destination just use the first exit
+  # used to determine if the client returned after exiting
   def exit_for_client(client)
     @exits ||= begin
       exits = {}
@@ -30,7 +33,15 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         merge(GrdaWarehouse::Hud::Enrollment.open_during_range(filter)).
         merge(GrdaWarehouse::Hud::Exit.where(ex_t[:ExitDate].lteq(filter.last))).
         find_each do |client_record|
-          exits[client_record.id] = client_record.source_exits.max_by(&:ExitDate)
+          first_exit = client_record.source_exits.min_by(&:ExitDate)
+          first_permanent_exit = client_record.source_exits.
+            select{|e| HUD.permanent_destinations.include?(e.Destination)}.
+            min_by(&:ExitDate)
+          exits[client_record.id] = if first_permanent_exit
+            first_permanent_exit
+          else
+            first_exit
+          end
         end
       exits
     end
@@ -299,8 +310,9 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     exit_enrollment = exit_for_client(client)
     return unless exit_enrollment
     return unless HUD.permanent_destinations.include?(exit_enrollment.Destination)
+    chronic_enrollments = chronic_enrollments_for(client)
+    return unless chronic_enrollments.present?
 
-    chronic_enrollments_for(client)&.
-      select{|e| exit_enrollment.ExitDate < e.first_date_in_program}&.any?
+    chronic_enrollments.select{|e| exit_enrollment.ExitDate < e.first_date_in_program}&.any?
   end
 end
