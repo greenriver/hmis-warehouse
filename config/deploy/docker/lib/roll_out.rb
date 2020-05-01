@@ -323,7 +323,7 @@ class RollOut
     log_stream_name = cwl.describe_log_streams(
       log_group_name: target_group_name,
       order_by: 'LastEventTime',
-      prefix: log_stream_prefix,
+      log_stream_name_prefix: log_stream_prefix,
       limit: 1,
     ).log_streams.first.log_stream_name
 

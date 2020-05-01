@@ -101,6 +101,9 @@ GEM
     aws-sdk-glacier (1.26.0)
       aws-sdk-core (~> 3, >= 3.71.0)
       aws-sigv4 (~> 1.1)
+    aws-sdk-iam (1.36.0)
+      aws-sdk-core (~> 3, >= 3.71.0)
+      aws-sigv4 (~> 1.1)
     aws-sdk-kms (1.27.0)
       aws-sdk-core (~> 3, >= 3.71.0)
       aws-sigv4 (~> 1.1)
@@ -721,6 +724,7 @@ DEPENDENCIES
   aws-sdk-cloudwatchevents (~> 1)
   aws-sdk-ecs (~> 1)
   aws-sdk-glacier (~> 1)
+  aws-sdk-iam (~> 1)
   aws-sdk-rails
   aws-sdk-rds (~> 1)
   aws-sdk-s3 (~> 1)
