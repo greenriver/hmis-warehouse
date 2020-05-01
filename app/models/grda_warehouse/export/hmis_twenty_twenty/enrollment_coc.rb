@@ -24,6 +24,8 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       else
         row[:HouseholdID] = "#{data_source_id}_#{(row[:HouseholdID])}"
       end
+      # Required by HUD spec, not always provided 99 is not valid, but we can't really guess
+      row[:DataCollectionStage] = 99 if row[:DataCollectionStage].blank?
 
       return row
     end
