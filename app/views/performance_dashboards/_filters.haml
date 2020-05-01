@@ -5,7 +5,7 @@
   .col-sm-4
     = f.input :end_date, as: :date_picker, input_html: { value: @filter[:end_date] }
   .col-sm-4
-    = f.input :comparison_pattern, collection: PerformanceDashboards::Overview.comparison_patterns, label: 'Compare with', include_blank: false, selected: @filter[:comparison_pattern], input_html: { class: :select2 }
+    = f.input :comparison_pattern, as: :boolean_button_group, collection: PerformanceDashboards::Overview.comparison_patterns, label: 'Compare with', include_blank: false, selected: @filter[:comparison_pattern], input_html: { class: :select2 }
 .row
   .col-sm-3
     = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: @filter[:coc_codes], required: false, input_html: { multiple: true, class: :select2 }
