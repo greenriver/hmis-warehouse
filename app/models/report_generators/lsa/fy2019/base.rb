@@ -38,7 +38,7 @@ module ReportGenerators::Lsa::Fy2019
         @project_ids = @project_ids & GrdaWarehouse::Hud::Project.viewable_by(@report.user).pluck(:id)
         @lsa_scope = 2
       else
-        # Confirmed with HUD only project types 1, 2, 3, 4, 8, 9, 10, 13 need to be included in hmis_ tables.
+        # Confirmed with HUD only project types 1, 2, 3, 8, 9, 10, 13 need to be included in hmis_ tables.
         @project_ids = system_wide_project_ids
         @lsa_scope = 1
       end
@@ -46,7 +46,7 @@ module ReportGenerators::Lsa::Fy2019
 
     def system_wide_project_ids
       @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(@user).in_coc(coc_code: @coc_code).
-        with_hud_project_type([1, 2, 3, 4, 8, 9, 10, 13]).
+        with_hud_project_type([1, 2, 3, 8, 9, 10, 13]).
         pluck(:id).sort
     end
 
