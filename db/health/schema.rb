@@ -919,8 +919,6 @@ ActiveRecord::Schema.define(version: 2020_04_30_201554) do
     t.date "disenrollment_date"
     t.string "stop_reason_description"
     t.date "pending_disenrollment_date"
-    t.boolean "current", default: false, null: false
-    t.boolean "contributing", default: false, null: false
   end
 
   create_table "patients", id: :serial, force: :cascade do |t|
