@@ -19,14 +19,15 @@ class RollOut
   attr_accessor :task_role
   attr_accessor :execution_role
   attr_accessor :default_environment
+  attr_accessor :log_prefix
+  attr_accessor :log_stream_name
 
   # FIXME: cpu shares as parameter
   # FIXME: log level as parameter
 
   DEFAULT_SOFT_WEB_RAM_MB = 1800
 
-  # TDB: times 3x for production for DJ
-  DEFAULT_SOFT_DJ_RAM_MB = 2000
+  DEFAULT_SOFT_DJ_RAM_MB = ->(target_group_name) { target_group_name.match?(/staging/) ? 2000 : 6000 }
 
   DEFAULT_SOFT_RAM_MB = 1800
 
@@ -83,7 +84,7 @@ class RollOut
       command: ['bin/db_prep']
     )
 
-    _run_task!(log_stream_prefix: 'bootstrap-dbs')
+    _run_task!
   end
 
   def run_deploy_tasks!
@@ -96,7 +97,7 @@ class RollOut
       command: ['bin/deploy_tasks.sh'],
     )
 
-    _run_task!(log_stream_prefix: 'deploy-tasks')
+    _run_task!
   end
 
   def deploy_web!
@@ -141,7 +142,9 @@ class RollOut
       environment << { "name" => key, "value" => value }
     end
 
-    soft_mem_limit_mb = (dj_options['soft_mem_limit_mb'] || DEFAULT_SOFT_DJ_RAM_MB).to_i
+    default_ram = DEFAULT_SOFT_DJ_RAM_MB.call(target_group_name)
+
+    soft_mem_limit_mb = (dj_options['soft_mem_limit_mb'] || default_ram).to_i
 
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
@@ -167,6 +170,8 @@ class RollOut
 
     if desired_count == 0
       return [0,0]
+    elsif desired_count == 1
+      [100, 200]
     else
       chunk_size = (100 / desired_count) + 1
 
@@ -196,7 +201,15 @@ class RollOut
     # Increase this to limit number of containers on a box if there are cpu capacity issues.
     cpu_shares ||= DEFAULT_CPU_SHARES
 
-    log_prefix = name.split(/ecs/).last.sub(/^-/, '')
+    self.log_prefix = name.split(/ecs/).last.sub(/^-/, '') +
+      '/' +
+      Time.now.strftime("%Y-%m-%d:%H-%M%Z").gsub(/:/, '_')
+
+    # This is just reverse-engineering what ECS is doing.
+    # I'm not sure if there's a way to simplify the stream name
+    # This won't be a complete and valid stream name until TASK_ID is
+    # substituted later on
+    self.log_stream_name = "#{log_prefix}/#{name}/TASK_ID"
 
     ten_minutes = 10 * 60
 
@@ -235,7 +248,6 @@ class RollOut
         options: {
           "awslogs-group" => target_group_name,
           "awslogs-region" => "us-east-1",
-          # TDB: include timestamp
           "awslogs-stream-prefix" => log_prefix,
         },
       },
@@ -260,7 +272,7 @@ class RollOut
     self.task_definition = results.to_h.dig(:task_definition, :task_definition_arn)
   end
 
-  def _run_task!(log_stream_prefix:)
+  def _run_task!
     _make_cloudwatch_group!
 
     start_time = Time.now
@@ -331,17 +343,15 @@ class RollOut
       exit
     end
 
-    # This is just reverse-engineering what ECS is doing.
-    # I'm not sure if there's a way to simplify the stream name
     task_id = task_arn.split('/').last
-    log_stream_name = "#{log_stream_prefix}/#{target_group_name}-#{log_stream_prefix}/#{task_id}"
+    log_stream_name.sub!(/TASK_ID/, task_id)
 
-    _tail_logs(log_stream_name, start_time)
+    _tail_logs(start_time)
   end
 
   # If you can construct or query for the log stream name, you can use this to
   # tail any tasks, even those that are part of a service.
-  def _tail_logs(log_stream_name, start_time=Time.now)
+  def _tail_logs(start_time=Time.now)
     begin
       resp = cwl.get_log_events({
         log_group_name: target_group_name,
