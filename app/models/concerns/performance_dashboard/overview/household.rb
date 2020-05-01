@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module PerformanceDashboard::Overview::Household # rubocop:disable Style/ClassAndModuleChildren
+module PerformanceDashboard::Overview::Household
   extend ActiveSupport::Concern
 
   private def household_buckets

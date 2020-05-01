@@ -9,7 +9,11 @@ class BooleanButtonGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
     if @builder.options[:wrapper] == :readonly
       label_method = detect_collection_methods.first
       value_method = detect_collection_methods.last
-      selected_value = object.send(attribute_name)
+      selected_value = if object.present?
+        input_options[:selected].presence || object&.send(attribute_name)
+      else
+        input_options[:selected].presence
+      end
       selected_object = collection.select { |m| m.send(value_method).to_s == selected_value.to_s }
       the_value = selected_object.map { |m| m.send(label_method) }.first
       existing_classes = label_html_options.try(:[], :class)
@@ -19,7 +23,12 @@ class BooleanButtonGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
     else
       merged_input_options = merge_wrapper_options(input_html_options, wrapper_options)
       button_group = template.content_tag(:div, class: 'o-boolean-button-group') do
-        current_value = object.send(attribute_name)
+        current_value = if object.present?
+          input_options[:selected].presence || object&.send(attribute_name)
+        else
+          input_options[:selected].presence
+        end
+
         collection.each_with_index do |(label, value, _attrs), _index|
           checked = value.to_s == current_value.to_s
           name = "#{object_name}[#{attribute_name}]"

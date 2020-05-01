@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module PerformanceDashboard::Overview::Gender # rubocop:disable Style/ClassAndModuleChildren
+module PerformanceDashboard::Overview::Gender
   extend ActiveSupport::Concern
 
   private def gender_buckets

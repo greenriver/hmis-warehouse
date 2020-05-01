@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module PerformanceDashboard::Overview::Exiting::Age # rubocop:disable Style/ClassAndModuleChildren
+module PerformanceDashboard::Overview::Exiting::Age
   extend ActiveSupport::Concern
 
   def exiting_by_age

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module PerformanceDashboard::Overview::Enrolled::Race # rubocop:disable Style/ClassAndModuleChildren
+module PerformanceDashboard::Overview::Enrolled::Race
   extend ActiveSupport::Concern
 
   # NOTE: always count the most-recently started enrollment within the range

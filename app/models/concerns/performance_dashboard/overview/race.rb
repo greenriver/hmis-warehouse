@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module PerformanceDashboard::Overview::Race # rubocop:disable Style/ClassAndModuleChildren
+module PerformanceDashboard::Overview::Race
   extend ActiveSupport::Concern
 
   private def race_buckets

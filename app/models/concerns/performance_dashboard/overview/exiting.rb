@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module PerformanceDashboard::Overview::Exiting # rubocop:disable Style/ClassAndModuleChildren
+module PerformanceDashboard::Overview::Exiting
   extend ActiveSupport::Concern
   include PerformanceDashboard::Overview::Exiting::Age
   include PerformanceDashboard::Overview::Exiting::Gender
