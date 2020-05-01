@@ -44,13 +44,14 @@ class ScheduledTask
           end
 
         if target_ids.length > 0
+          puts "[INFO] Deleting #{target_ids.join(', ')} in rule #{rule.name}"
           cloudwatchevents.remove_targets(
             rule: rule.name,
             ids: target_ids,
           )
         end
 
-        puts "[INFO] Deleting #{target_ids.join(', ')} in rule #{rule.name}"
+        puts "[INFO] Removing associated and now empty rule: #{rule.name}"
         cloudwatchevents.delete_rule(name: rule.name)
       end
     end

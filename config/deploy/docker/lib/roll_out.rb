@@ -74,12 +74,12 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--web',
+      image: image_base + '--dj',
       name: name,
       command: ['bin/db_prep']
     )
 
-    _run_task!
+    _run_task!(log_stream_prefix: 'bootstrap-dbs')
   end
 
   def run_deploy_tasks!
@@ -304,7 +304,7 @@ class RollOut
 
     puts '[INFO] Waiting on the task to start and finish quickly to catch resource-related errors'
     begin
-      ecs.wait_until(:tasks_running, {cluster: cluster, tasks: [task_arn]}, {max_attempts: 2, delay: 5})
+      ecs.wait_until(:tasks_running, {cluster: cluster, tasks: [task_arn]}, {max_attempts: 5, delay: 5})
     rescue Aws::Waiters::Errors::TooManyAttemptsError
     end
     begin
@@ -337,12 +337,17 @@ class RollOut
   # If you can construct or query for the log stream name, you can use this to
   # tail any tasks, even those that are part of a service.
   def _tail_logs(log_stream_name, start_time=Time.now)
-    resp = cwl.get_log_events({
-      log_group_name: target_group_name,
-      log_stream_name: log_stream_name,
-      start_time: start_time.utc.to_i,
-      start_from_head: false,
-    })
+    begin
+      resp = cwl.get_log_events({
+        log_group_name: target_group_name,
+        log_stream_name: log_stream_name,
+        start_time: start_time.utc.to_i,
+        start_from_head: false,
+      })
+    rescue Aws::CloudWatchLogs::Errors::ResourceNotFoundException
+      puts "[FATAL] The log stream #{log_stream_name} does not exist. At least not yet."
+      return
+    end
 
     while ( resp.events.length > 0 || (Time.now.utc.to_i - start_time.utc.to_i) < 60 )
       resp.events.each do |event|
