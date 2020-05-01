@@ -10,8 +10,8 @@
 
 .tab-content
   - @reports.each_with_index do |(category, years), index|
-    %div{role: :tabpanel, class: (index == 0 ? 'active tab-pane' : 'tab-pane'), id: category.parameterize.dasherize}
-      %table.table.table-hover.table-reports
+    .table-responsive{role: :tabpanel, class: (index == 0 ? 'active tab-pane' : 'tab-pane'), id: category.parameterize.dasherize}
+      %table.table.table-hover.table-striped
         - i = 0
         - years.each do |base,reports|
           - show_header = i == 0

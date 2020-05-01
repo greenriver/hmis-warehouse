@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HealthCharts
     include ApplicationHelper
+    include ::HMIS::Structure::Client
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic
@@ -22,47 +23,6 @@ module GrdaWarehouse::Hud
     self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
-
-    def self.hud_csv_headers(version: nil)
-      [
-        :PersonalID,
-        :FirstName,
-        :MiddleName,
-        :LastName,
-        :NameSuffix,
-        :NameDataQuality,
-        :SSN,
-        :SSNDataQuality,
-        :DOB,
-        :DOBDataQuality,
-        :AmIndAKNative,
-        :Asian,
-        :BlackAfAmerican,
-        :NativeHIOtherPacific,
-        :White,
-        :RaceNone,
-        :Ethnicity,
-        :Gender,
-        :VeteranStatus,
-        :YearEnteredService,
-        :YearSeparated,
-        :WorldWarII,
-        :KoreanWar,
-        :VietnamWar,
-        :DesertStorm,
-        :AfghanistanOEF,
-        :IraqOIF,
-        :IraqOND,
-        :OtherTheater,
-        :MilitaryBranch,
-        :DischargeStatus,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID
-      ].freeze
-    end
 
     has_many :client_files
     has_many :health_files
@@ -2826,22 +2786,63 @@ module GrdaWarehouse::Hud
         ).residential_history_for_client(client_id: id)
     end
 
-    def homeless_episodes_between start_date:, end_date:
-      enrollments = service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
-      return 0 unless enrollments.any?
-      chronic_enrollments = service_history_enrollments.entry.
+    # NOTE: if you are calculating these in batches, you should pass in arrays of enrollments and chronic enrollments
+    def homeless_episodes_between start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
+      residential_enrollments ||= service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      return 0 unless residential_enrollments.any?
+
+      chronic_enrollments ||= service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
         hud_homeless(chronic_types_only: true).
         order(first_date_in_program: :asc).to_a
       return 0 unless chronic_enrollments.any?
+
       # Need to add one to the count of new episodes if the first enrollment in
       # chronic_enrollments doesn't count as a new episode.
       # It is equivalent to always count that first enrollment
       # and then ignore it for the calculation
       episode_count = 1
       chronic_enrollments.drop(1).map do |enrollment|
-        new_episode?(enrollments: enrollments, enrollment: enrollment)
+        new_episode?(enrollments: residential_enrollments, enrollment: enrollment)
       end.count(true) + episode_count
+    end
+
+    def length_of_episodes start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
+      residential_enrollments ||= service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      return [] unless residential_enrollments.any?
+
+      chronic_enrollments ||= service_history_enrollments.entry.
+        open_between(start_date: start_date, end_date: end_date).
+        hud_homeless(chronic_types_only: true).
+        order(first_date_in_program: :asc, last_date_in_program: :asc).to_a
+      return [] unless chronic_enrollments.any?
+
+      episodes = []
+      initial_chronic_enrollment = chronic_enrollments.first
+      current_start = initial_chronic_enrollment.first_date_in_program
+      chronic_enrollments.drop(1).map do |enrollment|
+        if new_episode?(enrollments: residential_enrollments, enrollment: enrollment)
+          current_end = chronic_enrollments.
+            select{ |e| e.last_date_in_program.present? && e.last_date_in_program < enrollment.first_date_in_program }.
+            map(&:last_date_in_program).
+            max
+          current_end ||= end_date
+          episodes << {
+            start_date: current_start,
+            end_date: current_end,
+            length: (current_end - current_start).to_i,
+          }
+          current_start = enrollment.first_date_in_program
+        end
+      end
+      final_chronic_enrollment = chronic_enrollments.last;
+      current_end = [final_chronic_enrollment.last_date_in_program, end_date].compact.min
+      episodes << {
+        start_date: current_start,
+        end_date: current_end,
+        length: (current_end - current_start).to_i,
+      }
+      episodes
     end
 
     def self.service_types
