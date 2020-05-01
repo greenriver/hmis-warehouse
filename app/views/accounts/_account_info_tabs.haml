@@ -5,6 +5,8 @@
     = link_to 'Email', edit_account_email_path, class: 'nav-link'
   %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_password_path))}
     = link_to 'Change Password', edit_account_password_path, class: 'nav-link'
-  - if can_enable_2fa?
+  - if can_enable_2fa? || @user.two_factor_enabled?
     %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_two_factor_path))}
       = link_to 'Two-Factor Authentication', edit_account_two_factor_path, class: 'nav-link'
+  %li.nav-item{role: "presentation", class: ('active' if current_page?(locations_account_path))}
+    = link_to 'Login History', locations_account_path, class: 'nav-link'

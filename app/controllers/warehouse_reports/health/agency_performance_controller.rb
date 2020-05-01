@@ -37,8 +37,8 @@ module WarehouseReports::Health
       @start_date = Date.current.beginning_of_month.to_date
       @end_date = @start_date.end_of_month
 
-      @start_date = params[:filter].try(:[], :start_date).presence || @start_date
-      @end_date = params[:filter].try(:[], :end_date).presence || @end_date
+      @start_date = params[:filter].try(:[], :start_date).presence&.to_date || @start_date
+      @end_date = params[:filter].try(:[], :end_date).presence&.to_date || @end_date
 
       return unless @start_date.to_date > @end_date.to_date
 

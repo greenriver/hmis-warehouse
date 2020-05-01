@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Health::CareplanDates # rubocop:disable Style/ClassAndModuleChildren
+module Health::CareplanDates
   extend ActiveSupport::Concern
   included do
     private def care_plan_patient_signed_date(patient_id)
@@ -34,6 +34,28 @@ module Health::CareplanDates # rubocop:disable Style/ClassAndModuleChildren
         group(:patient_id).
         maximum(:provider_signed_on)
       @care_plan_provider_signed_dates[patient_id]&.to_date
+    end
+
+    private def qa_signature_dates
+      @qa_signature_dates ||= Health::QualifyingActivity.submittable.
+        after_enrollment_date.
+        where(patient_id: patient_ids).
+        where(activity: :pctp_signed).
+        group(:patient_id).minimum(:date_of_activity)
+    end
+
+    private def with_careplans_in_122_days?(patient, as: :boolean)
+      signature_date = qa_signature_dates[patient.id]
+      return nil unless signature_date
+      return nil unless patient.enrollment_start_date
+
+      boolean = (signature_date - patient.enrollment_start_date).to_i <= 122
+      case as
+      when :boolean
+        boolean
+      when :text
+        if boolean then 'Y' else 'N' end
+      end
     end
   end
 end

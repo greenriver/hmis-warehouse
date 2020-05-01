@@ -25,6 +25,7 @@ class AccountTwoFactorsController < ApplicationController
       @user.update(confirmed_2fa: @user.confirmed_2fa + 1)
       if @user.confirmed_2fa > 1
         flash[:notice] = "Nice work! Two-Factor Authentication has been enabled, you'll need to use it to login from now on."
+        flash[:new_2fa] = true
         @user.update(otp_required_for_login: true)
       end
     else
@@ -37,6 +38,16 @@ class AccountTwoFactorsController < ApplicationController
     @user.disable_2fa!
     redirect_to edit_account_two_factor_path
   end
+
+  def users_warehouse_path
+    @user.my_root_path
+  end
+  helper_method :users_warehouse_path
+
+  def new_2fa?
+    flash[:new_2fa] || false
+  end
+  helper_method :new_2fa?
 
   private def account_params
     params.require(:user).

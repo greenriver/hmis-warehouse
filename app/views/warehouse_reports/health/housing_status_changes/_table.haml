@@ -1,0 +1,17 @@
+- if @report.report_data.present?
+  %h3 Counts by ACO (starting / ending)
+  %table.table
+    %thead
+      %tr
+        %th ACO
+        - @report.housing_status_buckets.each do |status|
+          %th.text-center= status.to_s.humanize
+    %tbody
+      - @report.report_data.each do |aco_id, _|
+        %tr
+          %td= @report.aco_for_id(aco_id).name
+          - @report.housing_status_buckets.each do |status|
+            %td.text-center
+              - starting_count = @report.count_for_aco(group: :starting, housing_status: status, aco_id: aco_id)
+              - ending_count = @report.count_for_aco(group: :ending, housing_status: status, aco_id: aco_id)
+              = "#{starting_count} / #{ending_count}"

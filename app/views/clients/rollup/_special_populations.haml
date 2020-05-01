@@ -1,44 +1,45 @@
 :ruby
-  et = GrdaWarehouse::Hud::Enrollment.arel_table
-  ct = GrdaWarehouse::Hud::Client.arel_table
-  ht = GrdaWarehouse::Hud::HealthAndDv.arel_table
   special_populations = @client.
     source_enrollment_health_and_dvs.
-    preload( enrollment: :client ).
-    select( ct[:id], et[:EntryDate], ht[:data_source_id], et[:EnrollmentID], ct[:VeteranStatus], ht[:DomesticViolenceVictim], ht[:PregnancyStatus], ht[:DueDate], et[:DisablingCondition], ct[:PersonalID], ht[:CurrentlyFleeing] ).
-    order(et[:EntryDate].desc).
-    distinct
+    sort_by{ |b| b.enrollment.date }.reverse
 - if special_populations.any?
-  %table.table
-    %colgroup
-      %col(style="width:0")
-      %col
-      %col
-      %col
-      %col
-      %col
-      %col
-    %thead
-      %tr
-        %th
-        %th Entry Date
-        %th Veteran Status
-        %th Disabling Condition
-        %th Domestic Violence
-        %th Currently Fleeing?
-        %th Pregnancy Status
-        %th Due Date
-    %tbody
-      - special_populations.each do |h|
+  .table-responsive
+    %table.table
+      %thead
         %tr
-          %td.id-sqr{ 'data-id' => h.enrollment.client.id }
-          %td.date-cell= l h.enrollment.EntryDate
-          %td= hud_1_8 h.enrollment.client.VeteranStatus
-          %td= hud_1_8 h.enrollment.DisablingCondition
-          %td= hud_1_8 h.DomesticViolenceVictim
-          %td= hud_1_8 h.CurrentlyFleeing
-          %td= hud_1_8 h.PregnancyStatus
-          %td= hud_1_8 h.DueDate
+          %th
+          %th Project
+          %th Entry Date
+          %th Collection Date
+          %th Veteran Status
+          %th Disabling Condition
+          %th Domestic Violence
+          %th Currently Fleeing?
+          %th Pregnancy Status
+          %th Due Date
+          %th
+      %tbody
+        - special_populations.each do |h|
+          - project = h.project
+          %tr
+            %td.id-sqr{ 'data-id' => h.enrollment.client.id }
+            %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
+            %td.date-cell= l h.enrollment.EntryDate
+            %td= h.InformationDate
+            %td= hud_1_8 h.enrollment.client.VeteranStatus
+            %td= hud_1_8 h.enrollment.DisablingCondition
+            %td= hud_1_8 h.DomesticViolenceVictim
+            %td= hud_1_8 h.CurrentlyFleeing
+            %td= hud_1_8 h.PregnancyStatus
+            %td= hud_1_8 h.DueDate
+            %td.text-right
+              - if @client.hmis_source_visible_by?(current_user)
+                = link_to 'HMIS', hmi_path(h, type: 'HealthAndDV'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+                .text-teeny.font-weight-light
+                  .text-nowrap
+                    Created: #{h.DateCreated}
+                  .text-nowrap
+                    Updated: #{h.DateUpdated}
 - else
   .no-data
     No special populations on file

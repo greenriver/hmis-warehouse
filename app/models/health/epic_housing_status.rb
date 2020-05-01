@@ -17,5 +17,9 @@ module Health
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_housing_statuses
     has_many :patient, through: :epic_patient
 
+    scope :within_range, -> (range) do
+      where(collected_on: range)
+    end
+
   end
 end

@@ -1,117 +1,93 @@
 %h1= content_for :title
-
-- if can_assign_users_to_clients?
-  = simple_form_for @user, url: polymorphic_path(users_path_generator, client_id: @client) do |f|
-    %table.table.table-sm
-      %col{width: 200}
-      %col{width: 200}
-      %col{width: 200}
-      %col{width: 200}
-      %col{width: 100}
-      %col{width: 100}
-      %col{width: 200}
+.table-responsive
+  - if can_assign_users_to_clients?
+    = simple_form_for @user, url: polymorphic_path(users_path_generator, client_id: @client) do |f|
+      %table.table.table-striped
+        %thead
+          %tr
+            %th{style: 'min-width: 15em'}
+              Existing User
+            %th{style: 'min-width: 18em'}
+              Relationship
+            %th{style: 'min-width: 14em'}
+              Start Date
+            %th{style: 'min-width: 14em'}
+              End Date
+            %th{style: 'min-width: 10em'}
+              Receive Notifications?
+            %th{style: 'min-width: 10em'}
+              Confidential?
+            %th{style: 'min-width: 16em'}
+              &nbsp;
+        %tbody
+          %tr
+            %td
+              = f.input :user_id, collection: GrdaWarehouse::UserClient.available_users(current_user), label: false, label_method: :name_with_email,input_html: {class: 'select2', data: {placeholder: 'Available Users'}}
+            %td
+              = f.input :relationship, collection: GrdaWarehouse::UserClient.available_relationships, label: false, input_html: {class: 'select2', data: {placeholder: 'Available Relationships'}}
+            %td
+              = f.input :start_date, as: :date_picker, label: false, input_html: { value: Date.current }
+            %td
+              = f.input :end_date, as: :date_picker, label: false
+            %td.text-center
+              = f.input :client_notifications, label: false, input_html: { data: { toggle: 'tooltip' }, title: 'Check this box to have the user receive notifications when files or notes are added for this client.'}
+            %td.text-center
+              = f.input :confidential, label: false, input_html: {data: {toggle: :tooltip}, title: 'Confidential relationships will not be displayed in the search results.'}
+            %td
+              = f.submit value: 'Add Relationship', class: 'btn btn-primary'
+  - @user_clients.each do |user_client|
+    - user = user_client.user
+    %table.table.table-striped
       %thead
         %tr
-          %th
+          %th{style: 'min-width: 15em'}
             Existing User
-          %th
+          %th{style: 'min-width: 18em'}
             Relationship
-          %th
+          %th{style: 'min-width: 14em'}
             Start Date
-          %th
+          %th{style: 'min-width: 14em'}
             End Date
-          %th
+          %th{style: 'min-width: 10em'}
             Receive Notifications?
-          %th
+          %th{style: 'min-width: 10em'}
             Confidential?
-          %th
+          %th{style: 'min-width: 16em'}
             &nbsp;
       %tbody
-        %tr
+        %tr{ class: "user-client-#{user_client.id}" }
           %td
-            = f.input :user_id, collection: GrdaWarehouse::UserClient.available_users(current_user), label: false, label_method: :name_with_email,input_html: {class: 'select2', data: {placeholder: 'Available Users'}}
+            = user.name_with_email
           %td
-            = f.input :relationship, collection: GrdaWarehouse::UserClient.available_relationships, label: false, input_html: {class: 'select2', data: {placeholder: 'Available Relationships'}}
+            = user_client.relationship
           %td
-            = f.input :start_date, as: :date_picker, label: false, input_html: { value: Date.current }
+            - if can_assign_users_to_clients?
+              = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+                = f.input :start_date, as: :date_picker, label: false, input_html: { value: user_client.start_date, class: 'submit-on-change' }
+            - else
+              = user_client.start_date
           %td
-            = f.input :end_date, as: :date_picker, label: false
+            - if can_assign_users_to_clients?
+              = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+                = f.input :end_date, as: :date_picker, label: false, input_html: { value: user_client.end_date, class: 'submit-on-change' }
+            - else
+              = user_client.end_date
           %td.text-center
-            = f.input :client_notifications, label: false, input_html: { data: { toggle: 'tooltip' }, title: 'Check this box to have the user receive notifications when files or notes are added for this client.'}
+            - if can_assign_users_to_clients?
+              = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+                = f.input :client_notifications, label: false, input_html: { value: user_client.client_notifications, class: 'submit-on-change' }
+            - else
+              = checkmark_or_x user_client.client_notifications
           %td.text-center
-            = f.input :confidential, label: false, input_html: {data: {toggle: :tooltip}, title: 'Confidential relationships will not be displayed in the search results.'}
+            - if can_assign_users_to_clients?
+              = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
+                = f.input :confidential, label: false, input_html: { value: user_client.confidential, class: 'submit-on-change' }
+            - else
+              = checkmark_or_x user_client.confidential
           %td
-            = f.submit value: 'Add Relationship', class: 'btn btn-primary'
-- else
-  %table.table.table-sm
-    %col{width: 200}
-    %col{width: 200}
-    %col{width: 200}
-    %col{width: 200}
-    %col{width: 100}
-    %col{width: 100}
-    %col{width: 200}
-    %thead
-      %tr
-        %th
-          Existing User
-        %th
-          Relationship
-        %th
-          Start Date
-        %th
-          End Date
-        %th
-          Receive Notifications?
-        %th
-          Confidential?
-        %th
-          &nbsp;
-    %tbody
-- @user_clients.each do |user_client|
-  - user = user_client.user
-  %table.table.table-sm
-    %col{width: 200}
-    %col{width: 200}
-    %col{width: 200}
-    %col{width: 200}
-    %col{width: 100}
-    %col{width: 100}
-    %col{width: 200}
-    %tbody
-      %tr{ class: "user-client-#{user_client.id}" }
-        %td
-          = user.name_with_email
-        %td
-          = user_client.relationship
-        %td
-          - if can_assign_users_to_clients?
-            = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-              = f.input :start_date, as: :date_picker, label: false, input_html: { value: user_client.start_date, class: 'submit-on-change' }
-          - else
-            = user_client.start_date
-        %td
-          - if can_assign_users_to_clients?
-            = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-              = f.input :end_date, as: :date_picker, label: false, input_html: { value: user_client.end_date, class: 'submit-on-change' }
-          - else
-            = user_client.end_date
-        %td.text-center
-          - if can_assign_users_to_clients?
-            = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-              = f.input :client_notifications, label: false, input_html: { value: user_client.client_notifications, class: 'submit-on-change' }
-          - else
-            = checkmark_or_x user_client.client_notifications
-        %td.text-center
-          - if can_assign_users_to_clients?
-            = simple_form_for user_client, remote: true, url: polymorphic_path(user_path_generator, client_id: user_client.client, id: user_client.id) do |f|
-              = f.input :confidential, label: false, input_html: { value: user_client.confidential, class: 'submit-on-change' }
-          - else
-            = checkmark_or_x user_client.confidential
-        %td
-          - if can_assign_users_to_clients?
-            = link_to(polymorphic_path(user_path_generator, id: user_client.id), method: :delete, class: 'btn btn-danger btn-icon-only', data: {confirm: "Do you really want to delete the #{user_client.relationship} relationship?"}) do
-              %span.icon-cross
-- if @user_clients.blank?
-  %p.text-center
-    %em This client has no relationships
+            - if can_assign_users_to_clients?
+              = link_to(polymorphic_path(user_path_generator, id: user_client.id), method: :delete, class: 'btn btn-danger btn-icon-only', data: {confirm: "Do you really want to delete the #{user_client.relationship} relationship?"}) do
+                %span.icon-cross
+  - if @user_clients.blank?
+    %p.text-center
+      %em This client has no relationships

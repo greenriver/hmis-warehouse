@@ -194,7 +194,8 @@ module Clients
     end
 
     def download
-      send_data(@file.content, type: @file.content_type, filename: File.basename(@file.file.to_s))
+      filename = @file.file&.file&.filename&.to_s || 'client_file'
+      send_data(@file.content, type: @file.content_type, filename: filename)
     end
 
     def batch_download
@@ -289,6 +290,7 @@ module Clients
     def file_scope
       scope = file_source.visible_by?(current_user).
         non_consent.
+        non_cache.
         where(client_id: @client.id)
       scope = scope.window unless can_manage_client_files?
       scope

@@ -51,6 +51,7 @@ module Health
     has_many :epic_careplans, through: :epic_patients
     has_many :epic_chas, through: :epic_patients
     has_many :epic_ssms, through: :epic_patients
+    has_many :epic_housing_statuses, through: :epic_patients
 
     has_many :ed_nyu_severities, class_name: 'Health::Claims::EdNyuSeverity', primary_key: :medicaid_id, foreign_key: :medicaid_id
     has_many :ed_ip_visits, primary_key: :medicaid_id, foreign_key: :medicaid_id
@@ -303,6 +304,7 @@ module Health
     delegate :effective_date, to: :patient_referral
     delegate :enrollment_start_date, to: :patient_referral
     delegate :aco, to: :patient_referral
+    delegate :careplan_signed_in_122_days?, to: :patient_referral
 
     self.source_key = :PAT_ID
 
@@ -441,7 +443,6 @@ module Health
     private def expired_participation_form?
       @expired_participation_form ||= participation_forms.expired.after_enrollment_date.exists?
     end
-
 
     def release_status
       @release_status ||= if active_release? && ! expiring_release?

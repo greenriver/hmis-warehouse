@@ -32,8 +32,11 @@
         %header
           %h1.h3 Contact Information
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :services}}
-      %header
-        %h1.h3 Services &mdash; Aggregated Bed Register
+      %header.d-flex
+        %h1.h3
+          Services &mdash; Aggregated Bed Register
+        .ml-auto.text-small
+          = link_to 'details', enrollment_details_client_path(@client, anchor: 'full_services')
   .col-sm-6
     - if GrdaWarehouse::Config.get(:eto_api_available)
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'case_manager'}}

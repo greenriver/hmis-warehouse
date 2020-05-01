@@ -1,8 +1,8 @@
 - if GrdaWarehouse::Config.get(:cas_url).present?
   - if ( decisions = @client.cas_reports.where( current_step: true ).order(:updated_at) ).any?
-    %div.mb-6
+    .mb-6
       %h3.mt-0 Housing Matches
-      .c-card.c-card--padded.c-card--flush
+      .c-card.c-card--block.c-card--flush
         %table.table.table-sm
           %thead
             %tr

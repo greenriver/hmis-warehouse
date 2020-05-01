@@ -1,18 +1,20 @@
 source 'https://rubygems.org'
 
+gem "rails", '~>5.2.4'
+
 # bundle exec rake doc:rails generates the API under doc/api.
-gem 'sdoc', '~> 0.4.0', group: :doc
+gem 'sdoc', group: :doc
 
 gem 'nokogiri', '>= 1.7.1' # >= 1.7.1 due to CVE-2016-4658
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '~> 11'
+# gem 'composite_primary_keys', '~> 11'
+gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
 gem "pg"
 gem 'activerecord-sqlserver-adapter', '~> 5.0', require: false
 gem 'activerecord-import'
 gem 'charlock_holmes', require: false
-gem "rails", '5.2.3'
 gem "bootsnap"
 gem 'bcrypt'
 gem "haml-rails"
@@ -30,6 +32,7 @@ gem 'encryptor'
 # File processing
 gem 'carrierwave', '~> 1'
 gem 'carrierwave-i18n'
+gem 'carrierwave-aws'
 gem 'ruby-filemagic'
 gem 'mini_magick'
 gem 'acts-as-taggable-on', '~> 6.0'
@@ -83,6 +86,8 @@ gem 'linefit'
 gem 'jquery-minicolors-rails'
 gem 'htmlentities'
 # gem 'jquery-datatables-rails'
+# gem 'bootstrap4-datetime-picker-rails'
+gem 'bootstrap3-datetimepicker-rails', '~> 4.17.42'
 
 # ETO API related
 gem "rest-client", "~> 2.0"

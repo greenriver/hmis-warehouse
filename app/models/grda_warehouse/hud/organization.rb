@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
   class Organization < Base
     include ArelHelper
     include HudSharedScopes
+    include ::HMIS::Structure::Organization
+
     self.table_name = 'Organization'
     self.hud_key = :OrganizationID
     acts_as_paranoid column: :DateDeleted
@@ -186,34 +188,6 @@ module GrdaWarehouse::Hud
         )
 
       SQL
-    end
-
-    def self.hud_csv_headers(version: nil)
-      case version
-      when '2020'
-        [
-          :OrganizationID,
-          :OrganizationName,
-          :VictimServicesProvider,
-          :OrganizationCommonName,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      else
-        [
-          :OrganizationID,
-          :OrganizationName,
-          :OrganizationCommonName,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      end
     end
 
     # when we export, we always need to replace OrganizationID with the value of id

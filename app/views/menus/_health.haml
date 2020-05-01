@@ -1,10 +1,16 @@
-- if GrdaWarehouse::Config.get(:healthcare_available)
-  - if can_view_aggregate_health? || can_view_patients_for_own_agency?
-    %ul.o-menu__group.list-unstyled
-      - if can_view_patients_for_own_agency? && current_user.health_agencies.any?
-        %li.o-menu__item
-          = link_to health_patients_path, class: 'o-menu__link' do
-            = _("My Agency's Patients")
-        %li.o-menu__item
-          = link_to health_my_patients_path, class: 'o-menu__link' do
-            = _("My Patients")
+- can_see_health_emergency_contact_tracing = can_edit_health_emergency_contact_tracing? && GrdaWarehouse::Config.get(:health_emergency_tracing).present?
+- can_see_healthcare = healthcare_available? && (can_view_aggregate_health? || can_view_patients_for_own_agency?)
+- if can_see_healthcare || can_see_health_emergency_contact_tracing
+  %ul.o-menu__group.list-unstyled
+    - if can_see_health_emergency_contact_tracing
+      %li.o-menu__item
+        = link_to health_he_search_path, class: 'o-menu__link' do
+          = GrdaWarehouse::Config.currrent_health_emergency_tracing_title
+          = _('Contact Tracing')
+    - if can_view_patients_for_own_agency? && current_user.health_agencies.any?
+      %li.o-menu__item
+        = link_to health_patients_path, class: 'o-menu__link' do
+          = _('My Agency\'s Patients')
+      %li.o-menu__item
+        = link_to health_my_patients_path, class: 'o-menu__link' do
+          = _('My Patients')

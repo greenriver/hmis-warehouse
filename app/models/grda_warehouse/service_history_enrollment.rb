@@ -7,17 +7,17 @@
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include ArelHelper
 
-  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :service_history_enrollments, autosave: false
-  belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name, foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
-  belongs_to :organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
-  belongs_to :enrollment, class_name: GrdaWarehouse::Hud::Enrollment.name, foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
+  belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :service_history_enrollments, autosave: false
+  belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: [:data_source_id, :project_id, :organization_id], primary_key: [:data_source_id, :ProjectID, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
+  belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :service_history_enrollments, autosave: false
+  belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
   has_one :source_client, through: :enrollment, source: :client, autosave: false
   has_one :enrollment_coc_at_entry, through: :enrollment, autosave: false
-  has_one :head_of_household, class_name: GrdaWarehouse::Hud::Client.name, primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], autosave: false
+  has_one :head_of_household, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], autosave: false
   belongs_to :data_source, autosave: false
-  belongs_to :processed_client, -> { where(routine: 'service_history')}, class_name: GrdaWarehouse::WarehouseClientsProcessed.name, foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history_enrollments, autosave: false
+  belongs_to :processed_client, -> { where(routine: 'service_history')}, class_name: 'GrdaWarehouse::WarehouseClientsProcessed', foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history_enrollments, autosave: false
   has_many :service_history_services, inverse_of: :service_history_enrollment
-  has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], foreign_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
+  has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], foreign_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
 
   # make a scope for every project type and a type? method for instances
   GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k,v|
@@ -283,19 +283,58 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       veteran
     end
 
+    scope :family_parents, -> do
+      # Client is the head of household
+      family.where(she_t[:head_of_household].eq(true))
+    end
+
     scope :family, -> do
       if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
         where(presented_as_individual: false)
       else
+        a_t = arel_table
         where(
           # Client is in enrollment household with more than one member
-          arel_table[:presented_as_individual].eq(false).
-          # Client is an adult
-          and(arel_table[:age].gt(17)).
-          # Enrollment household contains at least one child
-          and(arel_table[:other_clients_under_18].gt(0)).
-          # Client is the head of household
-          and(arel_table[:head_of_household].eq(true))
+          a_t[:presented_as_individual].eq(false).
+          # client is adult, and there are kids
+          and(
+            a_t[:age].gt(17).and(a_t[:other_clients_under_18].gt(0))
+          ).
+          # client is a child and there are adults
+          or(
+            a_t[:age].lt(18).
+            and(a_t[:other_clients_between_18_and_25].gt(0).
+            or(a_t[:other_clients_over_25].gt(0)))
+          )
+        )
+      end
+    end
+    scope :youth_families, -> do
+      if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
+        where(
+          presented_as_individual: false,
+          age: 0..25,
+          other_clients_over_25: 0,
+        )
+      else
+        a_t = arel_table
+        where(
+          # Client is in enrollment household with more than one member
+          # At least one person 18-25 and one under 18
+          a_t[:presented_as_individual].eq(false).
+          # client is a youth (18-24), and there are kids
+          and(
+            a_t[:age].gt(17).
+            and(a_t[:age].lt(25)).
+            and(a_t[:other_clients_under_18].gt(0)).
+            and(a_t[:other_clients_over_25].eq(0))
+          ).
+          # client is a child and there are adults, but no one over 25
+          or(
+            a_t[:age].lt(18).
+            and(a_t[:other_clients_between_18_and_25].gt(0).
+            or(a_t[:other_clients_over_25].eq(0)))
+          )
         )
       end
     end
@@ -323,7 +362,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
 
     scope :parenting_youth, -> do
-      where(parenting_youth: true)
+      where(parenting_youth: true).
+      where(she_t[:head_of_household].eq(true))
     end
 
     scope :children_only, -> do
@@ -331,7 +371,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
 
     scope :parenting_juvenile, -> do
-      where(parenting_juvenile: true)
+      where(parenting_juvenile: true).
+      where(she_t[:head_of_household].eq(true))
     end
     scope :parenting_children, -> do
       parenting_juvenile
@@ -355,11 +396,13 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
         :veteran,
         :non_veteran,
         :family,
+        :youth_families,
         :individual,
         :youth,
         :children,
         :adult,
         :unaccompanied_youth,
+        :family_parents,
         :parenting_youth,
         :children_only,
         :parenting_juvenile,
@@ -413,5 +456,4 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       :project_type
     end
   end
-
 end

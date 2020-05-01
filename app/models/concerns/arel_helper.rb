@@ -58,7 +58,7 @@ module ArelHelper
       self.class.acase conditions, elsewise: elsewise
     end
 
-    def cast(exp, as) # rubocop:disable Naming/MethodParameterName
+    def cast(exp, as)
       self.class.cast exp, as
     end
 
@@ -216,6 +216,10 @@ module ArelHelper
     Health::SdhCaseManagementNote.arel_table
   end
 
+  def h_ehs_t
+    Health::EpicHousingStatus.arel_table
+  end
+
   def h_ecn_t
     Health::EpicCaseNote.arel_table
   end
@@ -238,6 +242,14 @@ module ArelHelper
 
   def yib_t
     GrdaWarehouse::YouthIntake::Base.arel_table
+  end
+
+  def htca_t
+    Health::Tracing::Case.arel_table
+  end
+
+  def htco_t
+    Health::Tracing::Contact.arel_table
   end
 
   # and to the class itself (so they can be used in scopes, for example)
@@ -362,7 +374,7 @@ module ArelHelper
     end
 
     # bonk out a type casting
-    def cast(exp, as) # rubocop:disable Naming/MethodParameterName
+    def cast(exp, as)
       exp = qt exp
       exp = lit exp.to_sql unless exp.respond_to?(:as)
       nf 'CAST', [exp.as(as)]
@@ -505,6 +517,10 @@ module ArelHelper
       Health::SdhCaseManagementNote.arel_table
     end
 
+    def h_ehs_t
+      Health::EpicHousingStatus.arel_table
+    end
+
     def h_ecn_t
       Health::EpicCaseNote.arel_table
     end
@@ -527,6 +543,14 @@ module ArelHelper
 
     def yib_t
       GrdaWarehouse::YouthIntake::Base.arel_table
+    end
+
+    def htca_t
+      Health::Tracing::Case.arel_table
+    end
+
+    def htco_t
+      Health::Tracing::Contact.arel_table
     end
   end
 end

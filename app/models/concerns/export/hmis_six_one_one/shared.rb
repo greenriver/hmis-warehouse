@@ -6,7 +6,7 @@
 
 require 'csv'
 require 'soundex'
-module Export::HMISSixOneOne::Shared # rubocop:disable Style/ClassAndModuleChildren
+module Export::HMISSixOneOne::Shared
   extend ActiveSupport::Concern
   included do
     include NotifierConfig

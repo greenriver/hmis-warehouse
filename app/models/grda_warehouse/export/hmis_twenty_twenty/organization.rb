@@ -33,5 +33,11 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
         and(p_t[:data_source_id].eq(self.class.arel_table[:data_source_id]))
       ).arel.exists
     end
+
+    def apply_overrides row, data_source_id:
+      row[:VictimServicesProvider] = 99 if row[:VictimServicesProvider].blank?
+
+      return row
+    end
   end
 end

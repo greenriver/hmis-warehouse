@@ -1,0 +1,18 @@
+.well
+  .mb-4
+    %p Use this form to upload test results files for #{GrdaWarehouse::Config.currrent_health_emergency_tracing_title}.  The file should be an Excel file with the following headers.
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th Last name
+          %th First name
+          %th Date of birth
+          %th Gender
+          %th Test date
+          %th Test location
+          %th Test result
+          %th SSN
+  %hr
+  = f.error_notification
+  .form-inputs
+    = f.input :file

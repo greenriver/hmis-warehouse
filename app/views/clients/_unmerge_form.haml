@@ -44,7 +44,7 @@
                     = radio_button_tag 'grda_warehouse_hud_client[hmis_receiver]', c.id, false, disabled: true
                   %td.text-center{data: {toggle: :tooltip, title: "If selected, dependent healthcare items will be associated with a newly created client for PersonalID #{c.uuid}"}}
                     = radio_button_tag 'grda_warehouse_hud_client[health_receiver]', c.id, false, disabled: true
-                %td= c.data_source.short_name
+                %td= c.data_source&.short_name
                 %td= c.uuid
                 %td= c.full_name
                 %td= c.DOB

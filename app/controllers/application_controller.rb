@@ -35,6 +35,7 @@ class ApplicationController < ActionController::Base
   before_action :set_gettext_locale
   before_action :enforce_2fa!
   before_action :require_training!
+  before_action :health_emergency?
 
   prepend_before_action :skip_timeout
 
@@ -202,6 +203,26 @@ class ApplicationController < ActionController::Base
 
     ApplicationRecord.setup_config
   end
+
+  def health_emergency?
+    health_emergency.present? && current_user&.can_see_health_emergency?
+  end
+  helper_method :health_emergency?
+
+  def health_emergency
+    @health_emergency ||= GrdaWarehouse::Config.get(:health_emergency)
+  end
+  helper_method :health_emergency
+
+  def health_emergency_test_status
+    @health_emergency_test_status ||= GrdaWarehouse::HealthEmergency::TestBatch.completed.maximum(:completed_at) if health_emergency? && current_user.can_see_health_emergency_clinical?
+  end
+  helper_method :health_emergency_test_status
+
+  def healthcare_available?
+    GrdaWarehouse::Config.get(:healthcare_available)
+  end
+  helper_method :healthcare_available?
 
   def pjax_request?
     false

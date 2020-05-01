@@ -10,6 +10,9 @@ RSpec.describe Health::FlagIneligiblePatientsJob, type: :model do
   let!(:patient_05) { create :patient, medicaid_id: 'ID05' } # not in fixture
   let!(:patient_06) { create :patient, medicaid_id: 'ID06' } # EB 1, EB MC, EB R MEDICARE A, in fixture
 
+  let!(:aco_1) { create :accountable_care_organization, edi_name: 'WRONG' }
+  let!(:aco_2) { create :accountable_care_organization, edi_name: 'ACO NAME' }
+
   let!(:inquiry) { create :eligibility_inquiry }
   let!(:response) { create :eligibility_response, eligibility_inquiry: inquiry, response: read_fixture }
 
@@ -64,6 +67,15 @@ RSpec.describe Health::FlagIneligiblePatientsJob, type: :model do
     patient_03.reload
 
     expect(patient_03.aco_name).to eq 'ACO NAME'
+  end
+
+  it 'sets the referral aco' do
+    Health::FlagIneligiblePatientsJob.new.perform(inquiry.id)
+
+    # Get patient data from DB
+    patient_03.reload
+
+    expect(patient_03.patient_referral.accountable_care_organization_id).to eq aco_2.id
   end
 
   def read_fixture

@@ -21,8 +21,7 @@
   = @start_date
   and
   = "#{@end_date}."
-  - if @sub_population == :family
-    = GrdaWarehouse::Hud::Client.report_family_warning
+  = render 'common/population_warnings'
 = render 'warehouse_reports/limited_by_project_note'
 
 - @buckets.each do |group, clients|

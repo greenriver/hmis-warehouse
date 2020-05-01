@@ -10,40 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_06_174448) do
+ActiveRecord::Schema.define(version: 2020_04_17_173338) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-
-  create_table "hud_apr_clients", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "hud_report_cells", force: :cascade do |t|
-    t.bigint "report_instance_id"
-    t.string "question"
-    t.string "cell_name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
-  end
-
-  create_table "hud_report_instances", force: :cascade do |t|
-    t.bigint "user_id"
-    t.string "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
-  end
-
-  create_table "hud_universe_members", force: :cascade do |t|
-    t.bigint "report_cell_id"
-    t.string "universe_membership_type"
-    t.bigint "universe_membership_id"
-    t.index ["report_cell_id"], name: "index_hud_universe_members_on_report_cell_id"
-    t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"
-  end
 
   create_table "warehouse_data_quality_report_enrollments", id: :serial, force: :cascade do |t|
     t.integer "report_id"
@@ -385,6 +355,39 @@ ActiveRecord::Schema.define(version: 2020_03_06_174448) do
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_family_p_type_hoh"
   end
 
+  create_table "warehouse_partitioned_monthly_reports_family_parents", id: false, force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('warehouse_partitioned_monthly_reports_id_seq'::regclass)" }, null: false
+    t.integer "month", null: false
+    t.integer "year", null: false
+    t.string "type"
+    t.integer "client_id", null: false
+    t.integer "head_of_household", default: 0, null: false
+    t.string "household_id"
+    t.integer "project_id", null: false
+    t.integer "organization_id", null: false
+    t.integer "destination_id"
+    t.boolean "first_enrollment", default: false, null: false
+    t.boolean "enrolled", default: false, null: false
+    t.boolean "active", default: false, null: false
+    t.boolean "entered", default: false, null: false
+    t.boolean "exited", default: false, null: false
+    t.integer "project_type", null: false
+    t.date "entry_date"
+    t.date "exit_date"
+    t.integer "days_since_last_exit"
+    t.integer "prior_exit_project_type"
+    t.integer "prior_exit_destination_id"
+    t.datetime "calculated_at", null: false
+    t.integer "enrollment_id"
+    t.date "mid_month"
+    t.index ["client_id"], name: "index_month_family_parents_client_id"
+    t.index ["id"], name: "index_month_family_parents_id", unique: true
+    t.index ["mid_month", "active", "entered"], name: "index_month_family_parents_act_enter"
+    t.index ["mid_month", "active", "exited"], name: "index_month_family_parents_act_exit"
+    t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_family_parents_dest_enr"
+    t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_family_parents_p_type_hoh"
+  end
+
   create_table "warehouse_partitioned_monthly_reports_individual_adults", id: false, force: :cascade do |t|
     t.bigint "id", default: -> { "nextval('warehouse_partitioned_monthly_reports_id_seq'::regclass)" }, null: false
     t.integer "month", null: false
@@ -647,6 +650,39 @@ ActiveRecord::Schema.define(version: 2020_03_06_174448) do
     t.index ["mid_month", "active", "exited"], name: "index_month_youth_act_exit"
     t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_youth_dest_enr"
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_youth_p_type_hoh"
+  end
+
+  create_table "warehouse_partitioned_monthly_reports_youth_families", id: false, force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('warehouse_partitioned_monthly_reports_id_seq'::regclass)" }, null: false
+    t.integer "month", null: false
+    t.integer "year", null: false
+    t.string "type"
+    t.integer "client_id", null: false
+    t.integer "head_of_household", default: 0, null: false
+    t.string "household_id"
+    t.integer "project_id", null: false
+    t.integer "organization_id", null: false
+    t.integer "destination_id"
+    t.boolean "first_enrollment", default: false, null: false
+    t.boolean "enrolled", default: false, null: false
+    t.boolean "active", default: false, null: false
+    t.boolean "entered", default: false, null: false
+    t.boolean "exited", default: false, null: false
+    t.integer "project_type", null: false
+    t.date "entry_date"
+    t.date "exit_date"
+    t.integer "days_since_last_exit"
+    t.integer "prior_exit_project_type"
+    t.integer "prior_exit_destination_id"
+    t.datetime "calculated_at", null: false
+    t.integer "enrollment_id"
+    t.date "mid_month"
+    t.index ["client_id"], name: "index_month_youth_families_client_id"
+    t.index ["id"], name: "index_month_youth_families_id", unique: true
+    t.index ["mid_month", "active", "entered"], name: "index_month_youth_families_act_enter"
+    t.index ["mid_month", "active", "exited"], name: "index_month_youth_families_act_exit"
+    t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_youth_families_dest_enr"
+    t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_youth_families_p_type_hoh"
   end
 
   create_table "warehouse_returns", id: :serial, force: :cascade do |t|

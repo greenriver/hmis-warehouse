@@ -1,0 +1,11 @@
+- title = "#{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} Medical Restrictions"
+- content_for :title, title
+.row
+  .col-sm-8
+    %h1= title
+
+%p Find clients with a medical restriction added within the date range.
+= render '/warehouse_reports/breadcrumbs', tab: 'health-emergency'
+= render 'warehouse_reports/health_emergency/filter'
+
+= render 'table'

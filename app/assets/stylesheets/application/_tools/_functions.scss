@@ -51,3 +51,19 @@
 @function font-weight($weight-string) {
   @return map-get($font-weights, $weight-string);
 }
+
+@function determine-color-for-best-contrast($color) {
+  @if (strip-unit(lightness( $color )) > 45) {
+    @return black;
+  }
+  @else {
+    @return white;
+  }
+}
+
+@mixin flex($grow: 1, $shrink: 1, $basis: auto) {
+  flex: $grow $shrink $basis;
+  flex-grow: $grow;
+  flex-shrink: $shrink;
+  flex-basis: $basis;
+}

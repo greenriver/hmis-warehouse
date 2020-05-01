@@ -54,6 +54,8 @@ module Admin
         :only_most_recent_import,
         :expose_coc_code,
         :auto_confirm_consent,
+        :health_emergency,
+        :health_emergency_tracing,
         client_details: [],
       )
     end

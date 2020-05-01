@@ -21,7 +21,8 @@ class NonHmisUploadsController < ApplicationController
 
   def show
     @upload = upload_source.find(params[:id].to_i)
-    send_data(@upload.content, type: @upload.content_type, filename: File.basename(@upload.file.to_s))
+    filename = @upload.file&.file&.filename&.to_s || 'upload'
+    send_data(@upload.content, type: @upload.content_type, filename: filename)
   end
 
   def create

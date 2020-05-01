@@ -11,6 +11,8 @@
     %a.nav-link.active{href: '#eligible-patients', aria: {controls: 'eligible-patients'}, data: {toggle: :tab}, role: :tab} Eligible Patients
   %li.nav-item{role: :presentation}
     %a.nav-link{href: '#ineligible-patients', aria: {controls: 'ineligible-patients'}, data: {toggle: :tab}, role: :tab} Ineligible Patients
+  %li.nav-item{role: :presentation}
+    %a.nav-link{href: '#aco-changed-patients', aria: {controls: 'aco-changed-patients'}, data: {toggle: :tab}, role: :tab} Patients with ACO Changes
 
 .tab-content
   #eligible-patients.tab-pane.active{role: :tabpanel}
@@ -18,6 +20,9 @@
 
   #ineligible-patients.tab-pane{role: :tabpanel}
     = render "table", patients: @ineligible
+
+  #aco-changed-patients.tab-pane{role: :tabpanel}
+    = render "aco_changes"
 
 = content_for :page_js do
   :javascript

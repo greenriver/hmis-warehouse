@@ -320,21 +320,21 @@ namespace :youth do
         stable_housing_zipcode: row[:stable_housing_zipcode],
         imported: true,
       }
-      intake[:youth_experiencing_homelessness_at_start] = row[:youth_experiencing_homelessness_at_start] if row[:youth_experiencing_homelessness_at_start].present?
-      intake[:unaccompanied] = row[:unaccompanied] if row[:unaccompanied].present?
-      intake[:street_outreach_contact] = row[:street_outreach_contact] if row[:street_outreach_contact].present?
-      intake[:other_agency_involvement] = row[:other_agency_involvement] if row[:other_agency_involvement].present?
-      intake[:owns_cell_phone] = row[:owns_cell_phone] if row[:owns_cell_phone].present?
-      intake[:secondary_education] = row[:secondary_education] if row[:secondary_education].present?
-      intake[:attending_college] = row[:attending_college] if row[:attending_college].present?
-      intake[:health_insurance] = row[:health_insurance] if row[:health_insurance].present?
-      intake[:client_lgbtq] = row[:client_lgbtq] if row[:client_lgbtq].present?
-      intake[:pregnant_or_parenting] = row[:pregnant_or_parenting] if row[:pregnant_or_parenting].present?
-      intake[:needs_shelter] = row[:needs_shelter] if row[:needs_shelter].present?
-      intake[:referred_to_shelter] = row[:referred_to_shelter] if row[:referred_to_shelter].present?
-      intake[:in_stable_housing] = row[:in_stable_housing] if row[:in_stable_housing].present?
-      intake[:staff_believes_youth_under_24] = row[:staff_believes_youth_under_24] if row[:staff_believes_youth_under_24].present?
-      intake[:requesting_financial_assistance] = row[:requesting_financial_assistance] if row[:requesting_financial_assistance].present?
+      intake[:youth_experiencing_homelessness_at_start] = row[:youth_experiencing_homelessness_at_start] if row[:youth_experiencing_homelessness_at_start].present? && intake[:youth_experiencing_homelessness_at_start].blank?
+      intake[:unaccompanied] = row[:unaccompanied] if row[:unaccompanied].present? && intake[:unaccompanied].blank?
+      intake[:street_outreach_contact] = row[:street_outreach_contact] if row[:street_outreach_contact].present? && intake[:street_outreach_contact].blank?
+      intake[:other_agency_involvement] = row[:other_agency_involvement] if row[:other_agency_involvement].present? && intake[:other_agency_involvement].blank?
+      intake[:owns_cell_phone] = row[:owns_cell_phone] if row[:owns_cell_phone].present? && intake[:owns_cell_phone].blank?
+      intake[:secondary_education] = row[:secondary_education] if row[:secondary_education].present? && intake[:secondary_education].blank?
+      intake[:attending_college] = row[:attending_college] if row[:attending_college].present? && intake[:attending_college].blank?
+      intake[:health_insurance] = row[:health_insurance] if row[:health_insurance].present? && intake[:health_insurance].blank?
+      intake[:client_lgbtq] = row[:client_lgbtq] if row[:client_lgbtq].present? && intake[:client_lgbtq].blank?
+      intake[:pregnant_or_parenting] = row[:pregnant_or_parenting] if row[:pregnant_or_parenting].present? && intake[:pregnant_or_parenting].blank?
+      intake[:needs_shelter] = row[:needs_shelter] if row[:needs_shelter].present? && intake[:needs_shelter].blank?
+      intake[:referred_to_shelter] = row[:referred_to_shelter] if row[:referred_to_shelter].present? && intake[:referred_to_shelter].blank?
+      intake[:in_stable_housing] = row[:in_stable_housing] if row[:in_stable_housing].present? && intake[:in_stable_housing].blank?
+      intake[:staff_believes_youth_under_24] = row[:staff_believes_youth_under_24] if row[:staff_believes_youth_under_24].present? && intake[:staff_believes_youth_under_24].blank?
+      intake[:requesting_financial_assistance] = row[:requesting_financial_assistance] if row[:requesting_financial_assistance].present? && intake[:requesting_financial_assistance].blank?
 
       clients[row[:PersonalID]][:intakes] << intake
     end

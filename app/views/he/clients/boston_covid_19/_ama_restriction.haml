@@ -1,0 +1,9 @@
+- if can_edit_health_emergency_medical_restriction? || can_see_health_emergency_medical_restriction?
+  - id = 'medical-restriction'
+  #medical-restriction-accordion.panel-group.panel-collapsible
+    - content_for :panel_collapse_content, flush: true do
+      = render "he/clients/#{health_emergency}/ama_restriction_form"
+    - if @client.health_emergency_ama_restriction_status.present?
+      - content_for "panel_collapse_heading_content_under_title_#{id}" do
+        = render "he/clients/#{health_emergency}/in_header_status", labels: ['Medical', @client.health_emergency_ama_restriction_status], wrapper_classes: ['badge-danger']
+    = render 'common/panel_collapse', id: id, title: @ama_restriction.title

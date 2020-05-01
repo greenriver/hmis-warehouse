@@ -6,6 +6,11 @@
   @media (max-width: $screen-sm-min) {
     margin-top: 40px;
   }
+  @include media-breakpoint-down(sm) {
+    &:empty {
+      min-height: 0px;
+    }
+  }
 }
 
 .crumbs a {

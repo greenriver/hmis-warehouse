@@ -414,6 +414,42 @@ class Role < ApplicationRecord
         description: 'Can delete data sources, organizations or projects. Deleting any of these will delete all associated inventory and enrollment information.',
         administrative: true,
       },
+      can_see_health_emergency: {
+        description: 'Ability to see any health emergency information when health emergencies are enabled.',
+        administrative: false,
+      },
+      can_edit_health_emergency_medical_restriction: {
+        description: 'Ability to edit medical restrictions during a health emergency.',
+        administrative: false,
+      },
+      can_edit_health_emergency_screening: {
+        description: 'Ability to edit and delete screening records during a health emergency.',
+        administrative: false,
+      },
+      can_edit_health_emergency_clinical: {
+        description: 'Ability to edit and delete clinical records during a health emergency.',
+        administrative: false,
+      },
+      can_see_health_emergency_history: {
+        description: 'Ability to see client emergency history during a health emergency.',
+        administrative: false,
+      },
+      can_see_health_emergency_medical_restriction: {
+        description: 'Ability to see medical restrictions during a health emergency.',
+        administrative: false,
+      },
+      can_see_health_emergency_screening: {
+        description: 'Ability to see and delete screening records during a health emergency.',
+        administrative: false,
+      },
+      can_see_health_emergency_clinical: {
+        description: 'Ability to see and delete clinical records during a health emergency.',
+        administrative: false,
+      },
+      receives_medical_restriction_notifications: {
+        description: 'Email notifications will be sent whenever a medical restriction or test result is added',
+        administrative: false,
+      }
     }
   end
 
@@ -510,6 +546,10 @@ class Role < ApplicationRecord
       can_unsubmit_submitted_claims: {
         description: 'Can this user blank out the submitted date on QA, allowing resubmission?',
         administrative: true,
+      },
+      can_edit_health_emergency_contact_tracing: {
+        description: 'Grants access to the contact tracing section when there is an active health emergency',
+        administrative: false,
       },
     }
   end

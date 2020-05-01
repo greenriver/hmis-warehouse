@@ -39,6 +39,7 @@ class NotifyUser < DatabaseMailer
     @file = GrdaWarehouse::ClientFile.find(file_id)
     @client = @file.client
     users_to_notify = @client.user_clients.includes(:user)
+
     users_to_notify.each do |user_client|
       next if user_client.expired?
       next unless user_client.client_notifications?
@@ -46,14 +47,10 @@ class NotifyUser < DatabaseMailer
       user = user_client&.user
       next unless user.active?
 
-      @url = if user.can_manage_client_files?
-        client_files_url(@client)
-      elsif user.can_manage_window_client_files?
-        window_client_files_url(@client)
-      end
-      next if @url.nil?
+      @url = client_files_url(@client)
+      next if @url.blank?
 
-      mail(to: user&.email, subject: 'A file was uploaded.')
+      mail(to: user.email, subject: 'A file was uploaded.') if user.email
     end
   end
 
@@ -75,7 +72,7 @@ class NotifyUser < DatabaseMailer
       end
       next if @url.nil?
 
-      mail(to: user&.email, subject: 'A note was added.')
+      mail(to: user.email, subject: 'A note was added.') if user.email
     end
   end
 
@@ -154,6 +151,24 @@ class NotifyUser < DatabaseMailer
     @report = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.find(report_id)
     @report_url = warehouse_reports_active_veteran_url(@report)
     mail(to: @user.email, subject: 'Your Active Veterans report has finished')
+  end
+
+  def health_emergency_change(user_id, medical_restriction_batch_id: nil, unsent_medical_restrictions: 0, test_batch_id: nil,
+    unsent_test_results: 0)
+    @user = User.find(user_id)
+    return unless @user.active?
+
+    params = { filter: { sort: :created_at } }
+
+    @medical_restriction_batch_id = medical_restriction_batch_id
+    @unsent_medical_restrictions = unsent_medical_restrictions
+    @medical_restriction_report_url = warehouse_reports_health_emergency_medical_restrictions_url(params.merge(batch_id: @medical_restriction_batch_id))
+
+    @test_batch_id = test_batch_id
+    @unsent_test_results = unsent_test_results
+    @test_report_url = warehouse_reports_health_emergency_testing_results_url(params.merge(batch_id: @test_batch_id))
+
+    mail(to: @user.email, subject: 'Medical Restrictions or Test Results Added')
   end
 
   def health_member_status_report_finished(user_id)

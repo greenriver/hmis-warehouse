@@ -248,7 +248,21 @@ textarea.form-control {
 {
   box-shadow: inset 0 0 0 0.2rem rgba(69, 118, 135, 0.25);
 }
+label.readonly-label
+{
+  font-weight: 600;
+}
+
 .readonly-value
 {
   font-weight: font-weight(normal);
+}
+.mini-login-form
+{
+  max-width: 20em;
+  .form-control
+  {
+    height: calc(1em + 1rem + 2px);
+    font-size: 0.8rem;
+  }
 }

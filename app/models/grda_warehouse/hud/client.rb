@@ -12,13 +12,17 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HealthCharts
     include ApplicationHelper
+    include ::HMIS::Structure::Client
     include HudSharedScopes
     include HudChronicDefinition
     include SiteChronic
+    include ClientHealthEmergency
+    has_paper_trail
 
     self.table_name = :Client
     self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
+    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
 
     has_many :client_files
     has_many :health_files
@@ -35,53 +39,6 @@ module GrdaWarehouse::Hud
 
     has_many :splits_to, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_from
     has_many :splits_from, class_name: GrdaWarehouse::ClientSplitHistory.name, foreign_key: :split_into
-
-    CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
-
-
-    def self.hud_csv_headers(version: nil)
-      [
-        :PersonalID,
-        :FirstName,
-        :MiddleName,
-        :LastName,
-        :NameSuffix,
-        :NameDataQuality,
-        :SSN,
-        :SSNDataQuality,
-        :DOB,
-        :DOBDataQuality,
-        :AmIndAKNative,
-        :Asian,
-        :BlackAfAmerican,
-        :NativeHIOtherPacific,
-        :White,
-        :RaceNone,
-        :Ethnicity,
-        :Gender,
-        :VeteranStatus,
-        :YearEnteredService,
-        :YearSeparated,
-        :WorldWarII,
-        :KoreanWar,
-        :VietnamWar,
-        :DesertStorm,
-        :AfghanistanOEF,
-        :IraqOIF,
-        :IraqOND,
-        :OtherTheater,
-        :MilitaryBranch,
-        :DischargeStatus,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID
-      ].freeze
-    end
-
-    has_paper_trail
-    include ArelHelper
 
     belongs_to :data_source, inverse_of: :clients
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :clients, optional: true
@@ -196,6 +153,10 @@ module GrdaWarehouse::Hud
 
     has_many :user_clients, class_name: 'GrdaWarehouse::UserClient'
     has_many :users, through: :user_clients, inverse_of: :clients
+    has_many :non_confidential_user_clients, -> do
+      merge(GrdaWarehouse::UserClient.non_confidential)
+    end, class_name: 'GrdaWarehouse::UserClient'
+    has_many :non_confidential_users, through: :non_confidential_user_clients
 
     has_many :cohort_clients, dependent: :destroy
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
@@ -262,6 +223,12 @@ module GrdaWarehouse::Hud
 
     def most_recent_pathways_assessment_collected_on
       most_recent_pathways_assessment&.collected_at
+    end
+
+    def homeless_service_in_last_n_days?(n=90)
+      return false unless date_of_last_homeless_service
+
+      date_of_last_homeless_service > n.to_i.days.ago
     end
 
     # Do we have any declines that make us ineligible
@@ -424,6 +391,26 @@ module GrdaWarehouse::Hud
           open_between(start_date: start_date, end_date: end_date).
           distinct.
           family.
+          select(:client_id)
+      )
+    end
+
+    scope :family_parents, -> (start_date: Date.current, end_date: Date.current) do
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          parents.
+          select(:client_id)
+      )
+    end
+
+    scope :youth_families, -> (start_date: Date.current, end_date: Date.current) do
+      where(
+        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          distinct.
+          youth_families.
           select(:client_id)
       )
     end
@@ -648,12 +635,6 @@ module GrdaWarehouse::Hud
         window_query = exists_with_inner_clients(visible_in_window_to(user))
 
         if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-          where(
-            arel_table[:data_source_id].in(ds_ids).
-            or(project_query).
-            or(window_query)
-          )
-
           where(
             arel_table[:data_source_id].in(ds_ids).
             or(project_query).
@@ -899,14 +880,13 @@ module GrdaWarehouse::Hud
       names.join(',')
     end
 
-    def client_names user: nil, health: false
-      client_scope = source_clients.searchable_by(user)
-      names = client_scope.includes(:data_source).map do |m|
+    def client_names user:, health: false
+      names = source_clients.searchable_by(user).includes(:data_source).map do |m|
         {
           ds: m.data_source&.short_name,
           ds_id: m.data_source&.id,
           name: m.full_name,
-          health: m.data_source&.authoritative_type == 'health'
+          health: m.data_source&.authoritative_type == 'health',
         }
       end
       if health && patient.present? && names.detect { |name| name[:health] }.blank?
@@ -1188,7 +1168,7 @@ module GrdaWarehouse::Hud
     def self.consent_validity_period
       if release_duration == 'One Year'
         1.years
-      elsif release_duration = 'Two Years'
+      elsif release_duration == 'Two Years'
         2.years
       elsif release_duration == 'Indefinite'
         100.years
@@ -1394,28 +1374,62 @@ module GrdaWarehouse::Hud
 
     def self.dashboard_family_warning
       if GrdaWarehouse::Config.get(:infer_family_from_household_id)
-        warning = 'Clients presenting as families enrolled in homeless projects (ES, SH, SO, TH).'
+        'Clients presenting as families enrolled in homeless projects (ES, SH, SO, TH). ' + family_composition_warning
       else # uses project serves families
-        warning = 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the enrollment is at a project with inventory for families.'
+        'Clients enrolled in homeless projects (ES, SH, SO, TH) where the enrollment is at a project with inventory for families. ' + family_composition_warning
       end
-      return warning if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
-
-      warning + ' ' + family_means_adult_child_warning
     end
 
     def self.report_family_warning
       if GrdaWarehouse::Config.get(:infer_family_from_household_id)
-        warning = 'Clients are limited to those presenting as families.'
+        'Clients are limited to those where the household includes at least two people.' + family_composition_warning
       else # uses project serves families
-        warning = 'Clients are limited to clients enrolled in a project with inventory for families.'
+        'Clients are limited to clients enrolled in a project with inventory for families.' + family_composition_warning
       end
-      return warning if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
-
-      warning + ' ' + family_means_adult_child_warning
     end
 
-    def self.family_means_adult_child_warning
-      'Clients are further limited to only Heads of Household who presented with children.'
+    def self.dashboard_parents_warning
+      dashboard_family_warning + family_hoh_warning
+    end
+
+    def self.report_parents_warning
+      report_family_warning + family_hoh_warning
+    end
+
+    def self.dashboard_youth_families_warning
+      if GrdaWarehouse::Config.get(:infer_family_from_household_id)
+        'Clients presenting as families with a head of household between the ages of 18 and 25 enrolled in homeless projects (ES, SH, SO, TH). ' + family_composition_warning
+      else # uses project serves families
+        'Clients enrolled in homeless projects (ES, SH, SO, TH) with a head of household between the ages of 18 and 25 where the enrollment is at a project with inventory for families. ' + family_composition_warning
+      end
+    end
+
+    def self.report_youth_families_warning
+      if GrdaWarehouse::Config.get(:infer_family_from_household_id)
+        'Clients are limited to those presenting as families with a head of household between the ages of 18 and 25. ' + family_composition_warning
+      else # uses project serves families
+        'Clients are limited to clients enrolled in a project with inventory for families with a head of household between the ages of 18 and 25. ' + family_composition_warning
+      end
+    end
+
+    def self.dashboard_youth_parents_warning
+      dashboard_youth_families_warning + family_hoh_warning
+    end
+
+    def self.report_youth_parents_warning
+      report_youth_families_warning + family_hoh_warning
+    end
+
+    def self.family_composition_warning
+      if GrdaWarehouse::Config.get(:family_calculation_method) == :adult_child
+        'Families are made up of at least two clients where the head of household is an adult (18+) who presented with a client under 18. '
+      else
+        'Families are made up of at least two clients regardless of age. '
+      end
+    end
+
+    def self.family_hoh_warning
+      'Clients are further limited to only Heads of Household. '
     end
 
     # after and before take dates, or something like 3.years.ago
@@ -1515,56 +1529,52 @@ module GrdaWarehouse::Hud
     # if none is found. returns that actual image bytes
     # FIXME: invalidate the cached image if any aspect of the client changes
     def image(cache_for=10.minutes)
-      ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch(self.cache_key, expires_in: cache_for) do
-        logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
-        image_data = nil
-        if Rails.env.production?
-          # Use the uploaded client image if available, otherwise use the API, if we have access
-          unless image_data = local_client_image_data()
-            return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-            api_configs = EtoApi::Base.api_configs
-            source_api_ids.detect do |api_id|
-              api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
-              return nil unless api_key.present?
-              api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect} rescue nil
-              image_data = api.client_image(
-                client_id: api_id.id_in_data_source,
-                site_id: api_id.site_id_in_data_source
-              ) rescue nil
-              (image_data && image_data.length > 0)
-            end
-          end
-        else
-          unless image_data = local_client_image_data()
-            return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-            image_data = fake_client_image_data
-          end
-        end
-        image_data
+      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+      # Use an uploaded headshot if available
+      faked_image_data = local_client_image_data() || fake_client_image_data
+      return faked_image_data unless Rails.env.production?
+
+      # Use the uploaded client image if available, otherwise use the API, if we have access
+      image_data = local_client_image_data()
+      return image_data if image_data
+      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+
+      api_configs = EtoApi::Base.api_configs
+      source_api_ids.detect do |api_id|
+        api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
+        return nil unless api_key.present?
+
+        api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect} rescue nil
+        image_data = api.client_image(
+          client_id: api_id.id_in_data_source,
+          site_id: api_id.site_id_in_data_source
+        ) rescue nil
+        (image_data && image_data.length > 0)
       end
+
+      set_local_client_image_cache(image_data)
+      image_data
     end
 
     def image_for_source_client(cache_for=10.minutes)
       return '' unless GrdaWarehouse::Config.get(:eto_api_available) && source?
-      ActiveSupport::Cache::FileStore.new(Rails.root.join('tmp/client_images')).fetch([self.cache_key, self.id], expires_in: cache_for) do
-        logger.debug "Client#image id:#{self.id} cache_for:#{cache_for} fetching via api"
-        image_data = nil
-        if Rails.env.production?
-          return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-          api_configs = EtoApi::Base.api_configs
-          api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
-          return nil unless api_key.present?
-          api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect}
-          image_data = api.client_image(
-            client_id: api_id.id_in_data_source,
-            site_id: api_id.site_id_in_data_source
-          ) rescue nil
-          return image_data
-        else
-          image_data = fake_client_image_data
-        end
-        image_data || self.class.no_image_on_file_image
-      end
+
+      image_data = nil
+      return fake_client_image_data || self.class.no_image_on_file_image unless Rails.env.production?
+      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
+
+      api_configs = EtoApi::Base.api_configs
+      api_key = api_configs.select{|k,v| v['data_source_id'] == api_id.data_source_id}&.keys&.first
+      return nil unless api_key.present?
+
+      api ||= EtoApi::Base.new(api_connection: api_key).tap{|api| api.connect}
+      image_data = api.client_image(
+        client_id: api_id.id_in_data_source,
+        site_id: api_id.site_id_in_data_source
+      ) rescue nil
+      set_local_client_image_cache(image_data)
+
+      image_data || self.class.no_image_on_file_image
     end
 
     def fake_client_image_data
@@ -1581,8 +1591,32 @@ module GrdaWarehouse::Hud
     # in the file-system, we'll only show those that would be available to people
     # with window access
     def local_client_image_data
-      headshot = client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first rescue nil
-      headshot.as_thumb if headshot
+      headshot = uploaded_local_image
+      return headshot.as_thumb if headshot
+
+      local_client_image_cache&.content
+    end
+
+    private def uploaded_local_image
+      client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first
+    end
+
+    private def local_client_image_cache
+      client_files.window.where(name: 'Client Headshot Cache').where(updated_at: 1.days.ago..DateTime.tomorrow).limit(1)&.first
+    end
+
+    def set_local_client_image_cache(image_data)
+      user = ::User.setup_system_user
+      self.class.transaction do
+        client_files.window.where(name: 'Client Headshot Cache')&.delete_all
+        GrdaWarehouse::ClientFile.create(
+          client_id: id,
+          user_id: user.id,
+          content: image_data,
+          name: 'Client Headshot Cache',
+          visible_in_window: true,
+        )
+      end
     end
 
     def accessible_via_api?
@@ -1613,32 +1647,39 @@ module GrdaWarehouse::Hud
       GrdaWarehouse::Config.get(:eto_api_available) && source_eto_client_lookups.exists?
     end
 
-    def fetch_updated_source_hmis_clients
+    def fetch_updated_source_hmis_clients(save: false)
       return nil unless accessible_via_qaaws?
       source_eto_client_lookups.map do |api_client|
         api_config = EtoApi::Base.api_configs.detect{|_, m| m['data_source_id'] == api_client.data_source_id}
         next unless api_config
         key = api_config.first
         api = EtoApi::Detail.new(api_connection: key)
-        EtoApi::Tasks::UpdateEtoData.new.fetch_demographics(
+        options = {
           api: api,
           client_id: api_client.client_id,
           participant_site_identifier: api_client.participant_site_identifier,
           site_id: api_client.site_id,
           subject_id: api_client.subject_id,
           data_source_id: api_client.data_source_id,
-        )
+        }
+        if save
+          EtoApi::Tasks::UpdateEtoData.new.save_demographics(options)
+        else
+          EtoApi::Tasks::UpdateEtoData.new.fetch_demographics(options)
+        end
       end.compact
     end
 
-    def fetch_updated_source_hmis_forms
+    # Note:
+    def fetch_updated_source_hmis_forms(save: false)
       return nil unless accessible_via_qaaws?
+
       source_eto_touch_point_lookups.map do |api_touch_point|
         api_config = EtoApi::Base.api_configs.detect{|_, m| m['data_source_id'] == api_touch_point.data_source_id}
         next unless api_config
         key = api_config.first
         api = EtoApi::Detail.new(api_connection: key)
-        EtoApi::Tasks::UpdateEtoData.new.fetch_touch_point(
+        options = {
           api: api,
           client_id: api_touch_point.client_id,
           touch_point_id: api_touch_point.assessment_id,
@@ -1646,7 +1687,12 @@ module GrdaWarehouse::Hud
           subject_id: api_touch_point.subject_id,
           response_id: api_touch_point.response_id,
           data_source_id: api_touch_point.data_source_id,
-        )
+        }
+        if save
+          EtoApi::Tasks::UpdateEtoData.new.save_touch_point(options)
+        else
+          EtoApi::Tasks::UpdateEtoData.new.fetch_touch_point(options)
+        end
       end.compact
     end
 
@@ -1873,7 +1919,9 @@ module GrdaWarehouse::Hud
     end
 
     def confidential_project_ids
-      @confidential_project_ids ||= GrdaWarehouse::Hud::Project.confidential.pluck(:ProjectID, :data_source_id)
+      @confidential_project_ids ||= Rails.cache.fetch('confidential_project_ids', expires_in: 5.minutes) do
+        GrdaWarehouse::Hud::Project.confidential.pluck(:ProjectID, :data_source_id)
+      end
     end
 
     def project_confidential?(project_id:, data_source_id:)
@@ -1894,12 +1942,18 @@ module GrdaWarehouse::Hud
     end
 
     def last_projects_served_by(include_confidential_names: false)
-      sh = service_history_services.joins(:service_history_enrollment).
-        pluck(:date, Arel.sql(she_t[:project_name].to_sql), Arel.sql(she_t[:data_source_id].to_sql), :project_id).
-        group_by(&:first).
-        max_by(&:first)
-      return [] unless sh.present?
-      sh.last.map do |_,project_name, data_source_id, project_id|
+      shs = service_history_services.
+        where(date: date_of_last_service).
+        joins(:service_history_enrollment)
+      return [] unless shs.present?
+
+      shs.map do |sh|
+        en = sh.service_history_enrollment
+        next unless en
+
+        project_id = en.project_id
+        data_source_id = en.data_source_id
+        project_name = en.project_name
         confidential = project_confidential?(project_id: project_id, data_source_id: data_source_id)
         if ! confidential || include_confidential_names
           project_name
@@ -2001,7 +2055,8 @@ module GrdaWarehouse::Hud
           joins(:warehouse_client_source).searchable.
           where(where).
           preload(:destination_client).
-          map{|m| m.destination_client.id}
+          map{|m| m.destination_client&.id}.
+          compact
       rescue RangeError => e
         return none
       end
@@ -2402,74 +2457,38 @@ module GrdaWarehouse::Hud
     end
 
     def move_dependent_items previous_id, new_id
-      move_dependent_hmis_items previous_id, new_id
-      move_dependent_health_items previous_id, new_id
+      dependent_items.each do |klass|
+        klass.where(client_id: previous_id).
+          update_all(client_id: new_id)
+      end
     end
 
-    def move_dependent_hmis_items previous_id, new_id
-      # move any client notes
-      GrdaWarehouse::ClientNotes::Base.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any client files
-      GrdaWarehouse::ClientFile.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any patients
-      Health::Patient.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any health files (these should really be attached to patients)
-      Health::HealthFile.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any vi-spdats
-      GrdaWarehouse::Vispdat::Base.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any cohort_clients
-      GrdaWarehouse::CohortClient.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # Chronics
-      GrdaWarehouse::Chronic.where(client_id: previous_id).
-        update_all(client_id: new_id)
-      GrdaWarehouse::HudChronic.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # Relationships
-      GrdaWarehouse::UserClient.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # Enrollment Histories
-      GrdaWarehouse::EnrollmentChangeHistory.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # CAS activity
-      GrdaWarehouse::CasAvailability.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # Youth Intakes
-      GrdaWarehouse::YouthIntake::Base.where(client_id: previous_id).
-        update_all(client_id: new_id)
-      GrdaWarehouse::Youth::DirectFinancialAssistance.where(client_id: previous_id).
-        update_all(client_id: new_id)
-      GrdaWarehouse::Youth::YouthCaseManagement.where(client_id: previous_id).
-        update_all(client_id: new_id)
-      GrdaWarehouse::Youth::YouthReferral.where(client_id: previous_id).
-        update_all(client_id: new_id)
-      GrdaWarehouse::Youth::YouthFollowUp.where(client_id: previous_id).
-        update_all(client_id: new_id)
-    end
-
-    def move_dependent_health_items previous_id, new_id
-      # move any patients
-      Health::Patient.where(client_id: previous_id).
-        update_all(client_id: new_id)
-
-      # move any health files (these should really be attached to patients)
-      Health::HealthFile.where(client_id: previous_id).
-        update_all(client_id: new_id)
+    private def dependent_items
+      [
+        GrdaWarehouse::ClientNotes::Base,
+        GrdaWarehouse::ClientFile,
+        GrdaWarehouse::Vispdat::Base,
+        GrdaWarehouse::CohortClient,
+        GrdaWarehouse::Chronic,
+        GrdaWarehouse::HudChronic,
+        GrdaWarehouse::UserClient,
+        GrdaWarehouse::EnrollmentChangeHistory,
+        GrdaWarehouse::CasAvailability,
+        GrdaWarehouse::YouthIntake::Base,
+        GrdaWarehouse::Youth::DirectFinancialAssistance,
+        GrdaWarehouse::Youth::YouthCaseManagement,
+        GrdaWarehouse::Youth::YouthReferral,
+        GrdaWarehouse::Youth::YouthFollowUp,
+        GrdaWarehouse::HealthEmergency::AmaRestriction,
+        GrdaWarehouse::HealthEmergency::Test,
+        GrdaWarehouse::HealthEmergency::ClinicalTriage,
+        GrdaWarehouse::HealthEmergency::Isolation,
+        GrdaWarehouse::HealthEmergency::Quarantine,
+        GrdaWarehouse::HealthEmergency::UploadedTest,
+        Health::Patient,
+        Health::HealthFile,
+        Health::Tracing::Case,
+      ]
     end
 
     def force_full_service_history_rebuild
@@ -2767,22 +2786,63 @@ module GrdaWarehouse::Hud
         ).residential_history_for_client(client_id: id)
     end
 
-    def homeless_episodes_between start_date:, end_date:
-      enrollments = service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
-      return 0 unless enrollments.any?
-      chronic_enrollments = service_history_enrollments.entry.
+    # NOTE: if you are calculating these in batches, you should pass in arrays of enrollments and chronic enrollments
+    def homeless_episodes_between start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
+      residential_enrollments ||= service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      return 0 unless residential_enrollments.any?
+
+      chronic_enrollments ||= service_history_enrollments.entry.
         open_between(start_date: start_date, end_date: end_date).
         hud_homeless(chronic_types_only: true).
         order(first_date_in_program: :asc).to_a
       return 0 unless chronic_enrollments.any?
+
       # Need to add one to the count of new episodes if the first enrollment in
       # chronic_enrollments doesn't count as a new episode.
       # It is equivalent to always count that first enrollment
       # and then ignore it for the calculation
       episode_count = 1
       chronic_enrollments.drop(1).map do |enrollment|
-        new_episode?(enrollments: enrollments, enrollment: enrollment)
+        new_episode?(enrollments: residential_enrollments, enrollment: enrollment)
       end.count(true) + episode_count
+    end
+
+    def length_of_episodes start_date:, end_date:, residential_enrollments: nil, chronic_enrollments: nil
+      residential_enrollments ||= service_history_enrollments.residential.entry.order(first_date_in_program: :asc)
+      return [] unless residential_enrollments.any?
+
+      chronic_enrollments ||= service_history_enrollments.entry.
+        open_between(start_date: start_date, end_date: end_date).
+        hud_homeless(chronic_types_only: true).
+        order(first_date_in_program: :asc, last_date_in_program: :asc).to_a
+      return [] unless chronic_enrollments.any?
+
+      episodes = []
+      initial_chronic_enrollment = chronic_enrollments.first
+      current_start = initial_chronic_enrollment.first_date_in_program
+      chronic_enrollments.drop(1).map do |enrollment|
+        if new_episode?(enrollments: residential_enrollments, enrollment: enrollment)
+          current_end = chronic_enrollments.
+            select{ |e| e.last_date_in_program.present? && e.last_date_in_program < enrollment.first_date_in_program }.
+            map(&:last_date_in_program).
+            max
+          current_end ||= end_date
+          episodes << {
+            start_date: current_start,
+            end_date: current_end,
+            length: (current_end - current_start).to_i,
+          }
+          current_start = enrollment.first_date_in_program
+        end
+      end
+      final_chronic_enrollment = chronic_enrollments.last;
+      current_end = [final_chronic_enrollment.last_date_in_program, end_date].compact.min
+      episodes << {
+        start_date: current_start,
+        end_date: current_end,
+        length: (current_end - current_start).to_i,
+      }
+      episodes
     end
 
     def self.service_types

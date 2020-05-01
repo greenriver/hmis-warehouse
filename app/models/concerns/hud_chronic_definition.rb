@@ -26,7 +26,7 @@ module HudChronicDefinition
     # Must be homeless 12 of the last 36 with 4 episodes
     def hud_chronic?(on_date: Date.current)
       @hud_chronic_data = {}
-      return unless disabled?(on_date: on_date)
+      return unless disabled?(on_date: on_date, client_id: id)
 
       if months_12_homeless?(on_date: on_date)
         @hud_chronic_data[:trigger] = 'All 12 of the last 12 months homeless'
@@ -116,14 +116,17 @@ module HudChronicDefinition
         order(first_date_in_program: :desc).first
       return false unless entry
 
-      entry.head_of_household&.destination_client&.chronically_disabled?
+      hoh_id = entry.head_of_household&.destination_client&.id
+      return false unless hoh_id
+
+      disabled?(on_date: on_date, client_id: hoh_id)
     end
 
-    # is the current client disabled?
-    # as of 4/8/2019 we are standardizing all disabled calculations
-    # on GrdaWarehouse::Hud::Client.disabled_client_scope
-    def disabled?(on_date:) # rubocop:disable Lint/UnusedMethodArgument
-      chronically_disabled?
+    def disabled?(on_date:, client_id: id)
+      @disabled_clients ||= Rails.cache.fetch('chronically_disabled_clients', expires_in: 8.hours) do
+        GrdaWarehouse::Hud::Client.chronically_disabled(on_date).pluck(:id)
+      end
+      @disabled_clients.include?(client_id)
     end
   end
 

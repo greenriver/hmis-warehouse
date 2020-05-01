@@ -93,12 +93,11 @@ module Health
     end
 
     def patient_referrals
-      @patient_referrals ||= Health::PatientReferral.assigned.
-        not_confirmed_rejected.
-        with_patient.
+      @patient_referrals ||= Health::PatientReferral.with_patient.
+        where.not(agency_id: nil).
+        active_within_range(start_date: @range.first, end_date: @range.last).
         joins(:patient).
         where(agency_id: agency_scope.select(:id)).
-        where(hpr_t[:enrollment_start_date].lt(@range.last)).
         pluck(:patient_id, :agency_id, hpr_t[:enrollment_start_date]).
         reduce({}) do |hash, (patient_id, agency_id, enrollment_start_date)|
           hash.update(patient_id => [agency_id, enrollment_start_date])
@@ -244,18 +243,24 @@ module Health
     end
 
     def qa_signature_dates
+      # Note: using minimum will ensure the first PCTP, subsequent don't matter
       @qa_signatures ||= Health::QualifyingActivity.submittable.
+        after_enrollment_date.
         where(patient_id: patient_referrals.keys). # limit to patients in scope
         where(date_of_activity: @range).
         where(activity: :pctp_signed).
-        group(:patient_id).maximum(:date_of_activity)
+        group(:patient_id).minimum(:date_of_activity)
     end
 
     private def with_careplans_in_122_days(patient_ids)
       patient_ids.select do |p_id|
         careplan_date = qa_signature_dates[p_id]&.to_date
-        enrollment_date = patient_referrals[p_id][1]
-        careplan_date.present? && careplan_date.between?(@range.first, @range.last) && (careplan_date - enrollment_date).to_i <= 122
+        enrollment_date = patient_referrals[p_id][1]&.to_date
+
+        careplan_date.present? &&
+          enrollment_date.present? &&
+          careplan_date.between?(@range.first, @range.last) &&
+          (careplan_date - enrollment_date).to_i <= 122
       end
     end
 

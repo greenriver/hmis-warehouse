@@ -58,6 +58,11 @@ module WarehouseReports::Health
       @transactions = Kaminari.paginate_array(@file.transactions).page(params[:page])
     end
 
+    def download
+      enrollment = Health::Enrollment.find(params[:id].to_i)
+      send_data(enrollment.content, filename: "Enrollments #{enrollment.created_at}.edi")
+    end
+
     def enrollment_params
       params.require(:health_enrollment).permit(:content)
     end

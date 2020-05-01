@@ -463,7 +463,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # client is a youth and presents with someone under 18, no other adults over 25 present
     def parenting_youth?
       @parenting_youth ||= begin
-        youth?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_under_18 > 0
+        youth?(client_age_at_entry) && head_of_household? && other_clients_over_25 == 0 && other_clients_under_18 > 0
       end
     end
 

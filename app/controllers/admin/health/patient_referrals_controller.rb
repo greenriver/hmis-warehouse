@@ -10,6 +10,7 @@ module Admin::Health
     before_action :require_can_review_patient_assignments!
     before_action :require_can_approve_patient_assignments!
     before_action :load_new_patient_referral, only: [:review, :assigned, :rejected, :disenrolled, :new]
+    before_action :set_sender
 
     include PatientReferral
     helper_method :tab_path_params
@@ -50,16 +51,23 @@ module Admin::Health
     def rejected
       @active_patient_referral_tab = 'rejected'
       @patient_referrals = Health::PatientReferral.rejected.
+        not_confirmed_rejected.
         includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
       load_index_vars
-      @sender = Health::Cp.sender.first
       render 'index'
     end
 
     def disenrolled
       @active_patient_referral_tab = 'disenrolled'
-      @patient_referrals = Health::PatientReferral.pending_disenrollment # TODO
+      @patient_referrals = Health::PatientReferral.pending_disenrollment.not_confirmed_rejected
+      load_index_vars
+      render 'index'
+    end
+
+    def disenrollment_accepted
+      @active_patient_referral_tab = 'disenrollment_accepted'
+      @patient_referrals = Health::PatientReferral.rejection_confirmed
       load_index_vars
       render 'index'
     end
@@ -70,18 +78,15 @@ module Admin::Health
         patient = Health::Patient.with_deleted.
           where(id: @patient_referral.patient_id).first
         if !@patient_referral.rejected_reason_none?
-          # Don't destroy the patient, we'll limit patients
-          # to patient_referrals.not_confirmed_rejected
-          # patient.destroy if patient.present?
-
-          # Removal accepts a pending disenrollment
+          # Rejecting a referral dis-enrolls the patient
+          @patient_referral.disenrollment_date ||= @patient_referral.pending_disenrollment_date || Date.current
           if @patient_referral.pending_disenrollment_date.present?
-            disenrollment_date = @patient_referral.pending_disenrollment_date
             @patient_referral.update(
-              disenrollment_date: disenrollment_date,
               pending_disenrollment_date: nil,
               removal_acknowledged: true,
             )
+          else
+            @patient_referral.save
           end
 
           flash[:notice] = 'Patient has been rejected.'
@@ -109,6 +114,7 @@ module Admin::Health
 
     def update
       @patient_referral = Health::PatientReferral.find(params[:id].to_i)
+      @patient_referral.disenrollment_date ||= @patient_referral.pending_disenrollment_date || Date.current if params[:removal_acknowledged] == '1'
       @patient_referral.update(patient_referral_params)
       respond_with(@patient_referral, location: review_admin_health_patient_referrals_path)
     end
@@ -162,6 +168,10 @@ module Admin::Health
       end
     end
 
+    private def set_sender
+      @sender = Health::Cp.sender.first
+    end
+
     private
 
     def load_tabs
@@ -170,6 +180,7 @@ module Admin::Health
         { id: 'assigned', tab_text: 'Agency Assigned', path: assigned_admin_health_patient_referrals_path(tab_path_params) },
         { id: 'rejected', tab_text: 'Refused Consent/Other Removals', path: rejected_admin_health_patient_referrals_path(tab_path_params) },
         { id: 'disenrolled', tab_text: 'Pending Removals', path: disenrolled_admin_health_patient_referrals_path(tab_path_params) },
+        { id: 'disenrollment_accepted', tab_text: 'Acknowledged Removals', path: disenrollment_accepted_admin_health_patient_referrals_path(tab_path_params) },
       ]
     end
 

@@ -16,7 +16,7 @@ class WarehouseReport::CasDeclines < OpenStruct
   end
 
   def reasons
-    (declines + cancels).map do|row|
+    @reasons ||= (declines + cancels).map do|row|
       reason = row.decline_reason || row.administrative_cancel_reason
       reason.squish.gsub(/Other.*/,'Other').strip
     end.each_with_object(Hash.new(0)) do |reason, counts|
@@ -57,14 +57,14 @@ class WarehouseReport::CasDeclines < OpenStruct
   end
 
   def all_steps
-    report_source.
+    @all_steps ||= report_source.
       where(match_id: declines.pluck(:match_id) + cancels.pluck(:match_id)).
       order(decision_order: :asc).
       group_by(&:match_id)
   end
 
   def clients
-    Cas::Client.distinct.
+    @clients ||= Cas::Client.distinct.
       where(id: declines.pluck(:cas_client_id) + cancels.pluck(:cas_client_id)).
       index_by(&:id)
   end

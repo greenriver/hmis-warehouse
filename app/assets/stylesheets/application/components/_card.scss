@@ -12,6 +12,11 @@
 
 .c-card__header {
   padding: space(3) space(3) 0 space(3);
+  flex: 1 1 auto;
+}
+
+.c-card__header--bordered {
+  border-bottom: $gray-015 1px solid;
 }
 
 .c-card__header--external {
@@ -36,6 +41,10 @@
   &.highlight {
     animation: highlight 2s;
   }
+}
+
+.c-card__content-container {
+  @include flex(1, 1, auto);
 }
 
 .c-card__content .form-control,
@@ -186,4 +195,78 @@
 .c-card__toggle {
   color: red;
   &.open { }
+}
+
+.c-card__detail-col {
+  display: flex;
+  margin-bottom: space(4);
+  flex: 1 1 100%;
+  &:first-child {
+    margin-top: space(4);
+  }
+  &:last-child {
+    margin-bottom: 0;
+  }
+  @include media-breakpoint-up(lg) {
+    &:first-child {
+      margin-top: 0;
+      max-width: 33%;
+      flex: 1 1 33%;
+    }
+    padding-top: space(4);
+    flex: 1 1 auto;
+  }
+}
+
+.c-card__detail-col--reversed-mobile {
+  flex-direction: column-reverse;
+  @include media-breakpoint-up(lg) {
+    flex-direction: column;
+  }
+}
+
+.c-card__content .c-card__detail-col {
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.c-card__footer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border-top: $gray-015 1px solid;
+  flex-wrap: wrap;
+  padding: 0 space(4);
+  .btn {
+    display: block;
+  }
+}
+
+.c-card__footer-content {
+  padding: space(3) 0;
+}
+
+.c-card__footer-content--left {
+  margin-right: space(4);
+}
+
+.c-card__footer-content--right {
+  margin-left: auto;
+}
+
+.c-card__content-block {
+  padding: space(4);
+  h3 {
+    font-size: 1.25rem;
+  }
+}
+
+.c-card__content-block--full-bleed {
+  padding: 0;
+}
+
+.c-card__content-block--danger {
+  background-color: lighten($brand-danger-l, 10%);
+  padding: space(4);
 }

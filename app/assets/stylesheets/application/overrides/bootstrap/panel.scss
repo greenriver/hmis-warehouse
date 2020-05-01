@@ -4,6 +4,17 @@
   border-top: 2px solid $gray-200;
 }
 
+.panel-heading {
+  min-height: 50px;
+  @include media-breakpoint-up(sm) {
+    min-height: auto;
+  }
+}
+
+.panel-heading[aria-expanded=true] {
+  background: lighten($tab-bg, 30%);
+}
+
 .panel-body--padded {
   padding: space(4);
 }

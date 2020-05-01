@@ -42,6 +42,7 @@ end
 
 every 1.hour do
   rake "jobs:check_queue"
+  rake "grda_warehouse:send_health_emergency_notifications"
 end
 
 every 5.minutes do
@@ -80,7 +81,7 @@ if ENV['HEALTH_SFTP_HOST'] != 'hostname' && environment == 'production'
   every 1.day, at: '11:00 am' do
     rake "health:daily"
   end
-  every :monday, at: '6am' do
+  every 1.day, at: '6am' do
     rake "health:queue_eligibility_determination"
   end
 end

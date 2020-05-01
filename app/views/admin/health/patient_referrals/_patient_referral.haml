@@ -29,4 +29,12 @@
         %div
           %strong Referral Date:
           = pr.enrollment_start_date
+        - if pr.pending_disenrollment_date.present?
+          %div
+            %strong Pending Disenrollment Date:
+            = pr.pending_disenrollment_date
+        - if pr.disenrollment_date.present?
+          %div
+            %strong Disenrollment Date:
+            = pr.disenrollment_date
       = render 'patient_referral_actions', pr: pr

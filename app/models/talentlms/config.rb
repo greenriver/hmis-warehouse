@@ -10,6 +10,11 @@ module Talentlms
   class Config < GrdaWarehouseBase
     self.table_name = :talentlms_configs
 
+    validates :subdomain, presence: true
+    validates :api_key, presence: true
+    validates :courseid, presence: true
+    validate :check_configuration_is_valid
+
     attr_encrypted :api_key, key: ENV['ENCRYPTION_KEY']
 
     # Submit a 'get' request to TalentLMS
@@ -50,6 +55,31 @@ module Talentlms
       raise error['message'] if error.present?
 
       json
+    end
+
+    # Validator to check this configuration is valid.
+    def check_configuration_is_valid
+      error = configuration_error_message
+      if error
+        error = ": #{error}"
+        errors.add(:subdomain, error) if error.include?('server')
+        errors.add(:api_key, error) if error.include?('API Key')
+        errors.add(:courseid, error) if error.include?('course')
+      end
+    end
+
+
+    # Get configuration error messages from TalentLMS
+    #
+    # @param course_id [Integer] the id of the course
+    # @return [String] validation error if the configuration is invalid
+    private def configuration_error_message
+      get('courses', {id: courseid})
+      nil
+    rescue JSON::ParserError => e
+      "Cannot contact server #{subdomain}.talentlms.com"
+    rescue RuntimeError => e
+      e.message
     end
 
     # Generate a TalentLMS URL for this configuration.

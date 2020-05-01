@@ -11,7 +11,11 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
 
     if @builder.options[:wrapper] == :readonly
       display_value = object.send(attribute_name)
-      template.content_tag(:p, display_value, label_html_options)
+      if display_value.present?
+        template.content_tag(:p, display_value, label_html_options)
+      else
+        template.content_tag(:em, 'Blank', label_html_options)
+      end
     else
       data = { provide: 'datepicker' }
       data = {} if input_html_options[:disabled]

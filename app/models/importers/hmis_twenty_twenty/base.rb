@@ -453,6 +453,7 @@ module Importers::HmisTwentyTwenty
           case klass.name
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::Client'
             row = klass.deidentify_client_name(row) if @deidentified
+            row['SSN'] = row['SSN'].to_s[0..8] # limit SSNs to 9 characters
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::Assessment'
             next unless row['AssessmentDate'].present? && row['AssessmentLocation'].present?
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation'

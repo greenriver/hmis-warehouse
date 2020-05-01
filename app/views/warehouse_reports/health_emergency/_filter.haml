@@ -1,0 +1,23 @@
+- if @html
+  = simple_form_for @filter, as: :filter, url: report_index, method: :get do |f|
+    - content_for :filters_col_full do
+      .row
+        .col-sm-3
+          = f.input :start, as: :date_picker
+        .col-sm-3
+          = f.input :end, as: :date_picker
+        .col-sm-6
+          = f.input :project_ids, label: 'Projects', collection: available_locations, input_html: { class: :select2, multiple: :multiple }, hint: 'Clients will be limited to those with service at chosen projects since the start date.'
+      .row
+        .col-sm-3
+          = f.input :sort, collection: sort_options.invert, include_blank: false, input_html: { class: :select2 }
+    - content_for :filter_actions do
+      = f.button :submit, value: 'Update View'
+
+    = render 'warehouse_reports/filters', f:f
+- if @pdf
+  .ho-container__summary.l-page__no-padding-b
+    .rrh__enrolled.chunk.l-page__w-50
+      %p Limited to #{@filter.start} to #{@filter.end}
+    .rrh__enrolled.chunk.l-page__w-50
+      %p Printed at: #{DateTime.current}

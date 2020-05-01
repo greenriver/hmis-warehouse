@@ -12,13 +12,20 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :notifier
 
-    def initialize(batch_time: 45.minutes, run_time: 5.hours, trace: false, one_off: false)
+    def initialize(
+      batch_time: 45.minutes,
+      run_time: 5.hours,
+      trace: false,
+      one_off: false,
+      client_ids: nil
+    )
       @trace = trace
       @batch_time = batch_time
       @restart = Time.now + @batch_time
       @run_time = run_time
       @stop_time = Time.now + run_time
       @one_off = one_off
+      @client_ids = client_ids
 
       setup_notifier('ETO API Importer -- QaaWS based')
     end
@@ -41,20 +48,24 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         api.connect
         existing_hmis_clients = GrdaWarehouse::HmisClient.joins(:client).
-          merge(GrdaWarehouse::Hud::Client.where(data_source_id: @data_source_id)).
-          pluck(
-            :client_id,
-            :subject_id,
-            :eto_last_updated,
-          ).
+          merge(GrdaWarehouse::Hud::Client.where(data_source_id: @data_source_id))
+        existing_hmis_clients = existing_hmis_clients.where(client_id: @client_ids) if @client_ids.present?
+        existing_hmis_clients = existing_hmis_clients.pluck(
+          :client_id,
+          :subject_id,
+          :eto_last_updated,
+        ).
           map do |client_id, subject_id, eto_last_updated|
-            [[client_id, subject_id], eto_last_updated]
-          end.to_h
+          [[client_id, subject_id], eto_last_updated]
+        end.to_h
 
-        eto_client_lookups = GrdaWarehouse::EtoQaaws::ClientLookup.where(data_source_id: @data_source_id).pluck(*eto_client_lookup_columns).
+        eto_client_lookups = GrdaWarehouse::EtoQaaws::ClientLookup.where(data_source_id: @data_source_id)
+        eto_client_lookups = eto_client_lookups.where(client_id: @client_ids) if @client_ids.present?
+        eto_client_lookups = eto_client_lookups.pluck(*eto_client_lookup_columns).
           map do |row|
-            Hash[eto_client_lookup_columns.zip(row)]
-          end
+          Hash[eto_client_lookup_columns.zip(row)]
+        end
+
         to_fetch = []
 
         eto_client_lookups.each do |row|
@@ -74,7 +85,10 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         new_count = (to_fetch.map { |m| [m[:client_id], m[:subject_id]] }.uniq - existing_hmis_clients.keys.uniq).count
         update_count = to_fetch.count - new_count
         msg = "Fetching #{to_fetch.count} #{'client'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates for data_source #{@data_source_id} via the ETO API"
-        @notifier.ping msg
+        # Give some space to the Slack API
+        sleep(2)
+        # NOTE: only send a slack message if we are pulling more than 10
+        @notifier.ping msg if to_fetch.count > 10
         # Rails.logger.info "Pre fetching demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         to_fetch.each do |row|
           # Rails.logger.info "Fetching demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
@@ -92,7 +106,10 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         # Rails.logger.info "All demo fetched demo: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         msg = "Fetched #{to_fetch.count} #{'client'.pluralize(to_fetch.count)} via the ETO API"
         Rails.logger.info msg
-        @notifier.ping msg
+        # Give some space to the Slack API
+        sleep(2)
+        # NOTE: only send a slack message if we are pulling more than 10
+        @notifier.ping msg if to_fetch.count > 10
       end
       # prevent returning the config
       true
@@ -116,26 +133,29 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
 
         api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         api.connect
-        existing_touch_points = GrdaWarehouse::HmisForm.where(data_source_id: @data_source_id).
-          pluck(
-            :client_id,
-            :site_id,
-            :assessment_id,
-            :subject_id,
-            :response_id,
-            :eto_last_updated,
-          ).map do |client_id, site_id, assessment_id, subject_id, response_id, eto_last_updated| # rubocop:disable Metrics/ParameterLists
-            [[client_id, site_id, assessment_id, subject_id, response_id], eto_last_updated]
-          end.to_h
+        existing_touch_points = GrdaWarehouse::HmisForm.where(data_source_id: @data_source_id)
+        existing_touch_points = existing_touch_points.where(client_id: @client_ids) if @client_ids.present?
+        existing_touch_points = existing_touch_points.pluck(
+          :client_id,
+          :site_id,
+          :assessment_id,
+          :subject_id,
+          :response_id,
+          :eto_last_updated,
+        ).map do |client_id, site_id, assessment_id, subject_id, response_id, eto_last_updated| # rubocop:disable Metrics/ParameterLists
+          [[client_id, site_id, assessment_id, subject_id, response_id], eto_last_updated]
+        end.to_h
 
         eto_touch_point_lookups = GrdaWarehouse::EtoQaaws::TouchPointLookup.
           joins(:hmis_assessment).
           merge(GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id)).
-          where(data_source_id: @data_source_id).
-          pluck(*eto_touch_point_lookup_columns).
+          where(data_source_id: @data_source_id)
+        eto_touch_point_lookups = eto_touch_point_lookups.where(client_id: @client_ids) if @client_ids.present?
+        eto_touch_point_lookups = eto_touch_point_lookups.pluck(*eto_touch_point_lookup_columns).
           map do |row|
-            Hash[eto_touch_point_lookup_columns.zip(row)]
-          end
+          Hash[eto_touch_point_lookup_columns.zip(row)]
+        end
+
         to_fetch = []
         # Rails.logger.info "Pre-load: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
         eto_touch_point_lookups.each do |row|
@@ -144,6 +164,8 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
           # timezones seem to get very confused, just check the date.
           next unless existing_updated.blank? || existing_updated.to_date < row[:last_updated].to_date
 
+          # @notifier.ping "#{row[:client_id]} existing_updated: #{existing_updated.to_date}; last_updated: #{row[:last_updated].to_date}"
+
           to_fetch << {
             client_id: row[:client_id],
             site_id: row[:site_id],
@@ -151,6 +173,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
             subject_id: row[:subject_id],
             response_id: row[:response_id],
             data_source_id: row[:data_source_id],
+            last_updated: row[:last_updated],
           }
         end
         # Rails.logger.info "Post-load: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- MEM DEBUG"
@@ -158,7 +181,10 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         update_count = to_fetch.count - new_count
         msg = "Fetching #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)}, #{new_count} new, #{update_count} updates for data_source #{@data_source_id} via the ETO API"
         Rails.logger.info msg
-        @notifier.ping msg
+        # Give some space to the Slack API
+        sleep(2)
+        # NOTE: only send a slack message if we are pulling more than 10
+        @notifier.ping msg if to_fetch.count > 10
 
         touch_points_saved = 0
         to_fetch.each do |row|
@@ -171,12 +197,16 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
             subject_id: row[:subject_id],
             response_id: row[:response_id],
             data_source_id: row[:data_source_id],
+            last_updated: row[:last_updated],
           )
           touch_points_saved += 1 if saved
         end
         msg = "Fetched #{touch_points_saved} of #{to_fetch.count} touch #{'point'.pluralize(to_fetch.count)} via the ETO API"
         Rails.logger.info msg
-        @notifier.ping msg
+        # Give some space to the Slack API
+        sleep(2)
+        # NOTE: only send a slack message if we are pulling more than 10
+        @notifier.ping msg if touch_points_saved > 10
       end
       # prevent returning the config
       true
@@ -283,7 +313,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       options[value]
     end
 
-    def fetch_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
+    def fetch_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated: nil) # rubocop:disable Metrics/ParameterLists
       @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: data_source_id)
 
       api_response = api.touch_point_response(
@@ -306,7 +336,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         subject_id: subject_id,
         response_id: response_id,
         assessment_id: touch_point_id,
-        data_source_id: @data_source_id,
+        data_source_id: data_source_id,
         site_id: site_id,
       ).first_or_initialize
       #   { assessment_title: 'Title',
@@ -400,12 +430,16 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       hmis_form.api_response = api_response
       hmis_form.answers = answers
       hmis_form.assessment_type = assessment_name unless hmis_form.assessment_type.present?
-      # Persist updated date from ETO
-      hmis_form.eto_last_updated = api.parse_date(api_response['AuditDate'])
+
+      # Persist updated date from ETO, sometimes the API returns an AuditDate that is
+      # earlier than the QaaWS last updated, use the most recent, so we don't fetch
+      # this over and over.
+      api_updated_at = api.parse_date(api_response['AuditDate'])
+      hmis_form.eto_last_updated = [last_updated, api_updated_at].compact.max
       hmis_form
     end
 
-    def save_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
+    def save_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated: nil) # rubocop:disable Metrics/ParameterLists
       hmis_form = fetch_touch_point(
         api: api,
         site_id: site_id,
@@ -414,6 +448,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         subject_id: subject_id,
         response_id: response_id,
         data_source_id: data_source_id,
+        last_updated: last_updated,
       )
       return unless hmis_form
 

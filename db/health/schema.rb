@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_13_143927) do
+ActiveRecord::Schema.define(version: 2020_04_30_201554) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -21,6 +21,7 @@ ActiveRecord::Schema.define(version: 2020_03_13_143927) do
     t.integer "mco_pid"
     t.string "mco_sl"
     t.boolean "active", default: true, null: false
+    t.string "edi_name"
   end
 
   create_table "agencies", id: :serial, force: :cascade do |t|
@@ -325,6 +326,13 @@ ActiveRecord::Schema.define(version: 2020_03_13_143927) do
     t.datetime "updated_at"
   end
 
+  create_table "disenrollment_reasons", force: :cascade do |t|
+    t.string "reason_code"
+    t.string "reason_description"
+    t.string "referral_reason_code"
+    t.index ["reason_code"], name: "index_disenrollment_reasons_on_reason_code"
+  end
+
   create_table "ed_ip_visit_files", id: :serial, force: :cascade do |t|
     t.string "type"
     t.string "file"
@@ -394,6 +402,7 @@ ActiveRecord::Schema.define(version: 2020_03_13_143927) do
     t.string "original_filename"
     t.datetime "deleted_at"
     t.integer "num_errors"
+    t.json "patient_aco_changes"
   end
 
   create_table "encounter_records", force: :cascade do |t|
@@ -530,7 +539,6 @@ ActiveRecord::Schema.define(version: 2020_03_13_143927) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -574,7 +582,6 @@ ActiveRecord::Schema.define(version: 2020_03_13_143927) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
@@ -905,11 +912,13 @@ ActiveRecord::Schema.define(version: 2020_03_13_143927) do
     t.string "record_status"
     t.date "record_updated_on"
     t.date "exported_on"
-    t.boolean "removal_acknowledged", default: false
+    t.boolean "removal_acknowledged", default: false, null: false
     t.datetime "effective_date"
     t.date "disenrollment_date"
     t.string "stop_reason_description"
     t.date "pending_disenrollment_date"
+    t.boolean "current", default: false, null: false
+    t.boolean "contributing", default: false, null: false
   end
 
   create_table "patients", id: :serial, force: :cascade do |t|
@@ -1252,6 +1261,115 @@ ActiveRecord::Schema.define(version: 2020_03_13_143927) do
     t.integer "user_id"
     t.integer "careplan_id"
     t.index ["careplan_id"], name: "index_teams_on_careplan_id"
+  end
+
+  create_table "tracing_cases", force: :cascade do |t|
+    t.integer "client_id"
+    t.string "health_emergency", null: false
+    t.string "investigator"
+    t.date "date_listed"
+    t.string "alert_in_epic"
+    t.string "complete"
+    t.date "date_interviewed"
+    t.date "infectious_start_date"
+    t.date "testing_date"
+    t.date "isolation_start_date"
+    t.string "first_name"
+    t.string "last_name"
+    t.string "aliases"
+    t.date "dob"
+    t.integer "gender"
+    t.jsonb "race"
+    t.integer "ethnicity"
+    t.string "preferred_language"
+    t.string "occupation"
+    t.string "recent_incarceration"
+    t.string "notes"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.date "day_two"
+    t.string "phone"
+    t.index ["aliases"], name: "index_tracing_cases_on_aliases"
+    t.index ["client_id"], name: "index_tracing_cases_on_client_id"
+    t.index ["first_name", "last_name"], name: "index_tracing_cases_on_first_name_and_last_name"
+  end
+
+  create_table "tracing_contacts", force: :cascade do |t|
+    t.bigint "case_id"
+    t.date "date_interviewed"
+    t.string "first_name"
+    t.string "last_name"
+    t.string "aliases"
+    t.string "phone_number"
+    t.string "address"
+    t.date "dob"
+    t.string "estimated_age"
+    t.integer "gender"
+    t.jsonb "race"
+    t.integer "ethnicity"
+    t.string "preferred_language"
+    t.string "relationship_to_index_case"
+    t.string "location_of_exposure"
+    t.string "nature_of_exposure"
+    t.string "location_of_contact"
+    t.string "sleeping_location"
+    t.string "symptomatic"
+    t.date "symptom_onset_date"
+    t.string "referred_for_testing"
+    t.string "test_result"
+    t.string "isolated"
+    t.string "isolation_location"
+    t.string "quarantine"
+    t.string "quarantine_location"
+    t.string "notes"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "investigator"
+    t.string "alert_in_epic"
+    t.string "notified"
+    t.index ["aliases"], name: "index_tracing_contacts_on_aliases"
+    t.index ["case_id"], name: "index_tracing_contacts_on_case_id"
+    t.index ["first_name", "last_name"], name: "index_tracing_contacts_on_first_name_and_last_name"
+  end
+
+  create_table "tracing_locations", force: :cascade do |t|
+    t.bigint "case_id"
+    t.string "location"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["case_id"], name: "index_tracing_locations_on_case_id"
+  end
+
+  create_table "tracing_site_leaders", force: :cascade do |t|
+    t.bigint "case_id"
+    t.string "site_name"
+    t.string "site_leader_name"
+    t.date "contacted_on"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["case_id"], name: "index_tracing_site_leaders_on_case_id"
+  end
+
+  create_table "tracing_staffs", force: :cascade do |t|
+    t.bigint "case_id"
+    t.date "date_interviewed"
+    t.string "first_name"
+    t.string "last_name"
+    t.string "site_name"
+    t.string "nature_of_exposure"
+    t.string "symptomatic"
+    t.string "referred_for_testing"
+    t.string "test_result"
+    t.string "notes"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "notified"
+    t.index ["case_id"], name: "index_tracing_staffs_on_case_id"
   end
 
   create_table "transaction_acknowledgements", id: :serial, force: :cascade do |t|

@@ -58,7 +58,7 @@ module Health::Tasks
             ensure_referral_active(patient_referral)
           end
           # attempt to find ACO ID
-          aco_id = Health::AccountableCareOrganization.find_by(mco_pid: row[:aco_mco_pid], mco_sl: row[:aco_mco_sl])&.id
+          aco_id = Health::AccountableCareOrganization.active.find_by(mco_pid: row[:aco_mco_pid], mco_sl: row[:aco_mco_sl])&.id
           patient_referral.accountable_care_organization_id = aco_id if aco_id.present?
           # if we have a new row or an update
           # save it

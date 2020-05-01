@@ -1,34 +1,38 @@
-= cache(['clients', 'income_benefits', @client, can_view_projects?, controller_path], expires_in: 4.hours) do
-  - incomes = @client.source_enrollment_income_benefits.any_benefits.preload( :enrollment, :client ).sort_by{ |b| b.enrollment.date }.reverse
+= cache(['clients', 'income_benefits', @client, can_view_projects?, controller_path], expires_in: 10.seconds) do
+  - incomes = @client.source_enrollment_income_benefits.preload( :enrollment, :project, :client ).sort_by{ |b| b.enrollment.date }.reverse
   - if incomes.any?
-    %table.table
-      %colgroup
-        %col(style="width:0")
-        %col
-        %col
-        %col
-        %col(style="width:5em;")
-      %thead
-        %tr
-          %th
-          %th Program Entry Date
-          %th Collection Date
-          %th Source
-          %th Amounts
-          %th Total
-          %th Collection Stage
-           
-      %tbody
-        - incomes.each do |benefit|
+    .table-responsive
+      %table.table
+        %thead
           %tr
-            %td.id-sqr{ 'data-id' => benefit.client.id }
-            %td= l benefit.enrollment.EntryDate
-            %td= benefit.InformationDate
-            %td= benefit.sources.join ', '
-            %td= benefit.amounts.map(&:to_f).map{ |v| format( '$%.2f', v.round(2)) }.join ', '
-            %td= format '$%.2f', benefit.amounts.compact.sum.round(2)
-            %td= HUD.data_collection_stage(benefit.DataCollectionStage)
-            
+            %th
+            %th Project
+            %th Program Entry Date
+            %th Collection Date
+            %th Collection Stage
+            %th Total Monthly Income
+            %th
+        %tbody
+          - incomes.each do |benefit|
+            - project = benefit.project
+            %tr
+              %td.id-sqr{ 'data-id' => benefit.client.id }
+              %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
+              %td= l benefit.enrollment.EntryDate
+              %td= benefit.InformationDate
+              %td= HUD.data_collection_stage(benefit.DataCollectionStage)
+              %td
+                - total = benefit.TotalMonthlyIncome&.round(2)
+                - if total
+                  = format('$%.2f', total)
+              %td.text-right
+                - if @client.hmis_source_visible_by?(current_user)
+                  = link_to 'HMIS', hmi_path(benefit, type: 'IncomeBenefits'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+                  .text-teeny.font-weight-light
+                    .text-nowrap
+                      Created: #{benefit.DateCreated}
+                    .text-nowrap
+                      Updated: #{benefit.DateUpdated}
   - else
     .no-data
       No income or benefits on file

@@ -7,22 +7,11 @@
 module GrdaWarehouse::Hud
   class Affiliation < Base
     include HudSharedScopes
+    include ::HMIS::Structure::Affiliation
+
     self.table_name = 'Affiliation'
     self.hud_key = :AffiliationID
     acts_as_paranoid column: :DateDeleted
-
-    def self.hud_csv_headers(version: nil)
-      [
-        :AffiliationID,
-        :ProjectID,
-        :ResProjectID,
-        :DateCreated,
-        :DateUpdated,
-        :UserID,
-        :DateDeleted,
-        :ExportID,
-      ].freeze
-    end
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :affiliations
     # NOTE: you can't use hud_assoc for residential project, the keys don't match

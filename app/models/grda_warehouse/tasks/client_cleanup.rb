@@ -24,6 +24,7 @@ module GrdaWarehouse::Tasks
       @show_progress = show_progress
     end
     def run!
+      remove_unused_source_clients()
       remove_unused_warehouse_clients_processed()
       GrdaWarehouseBase.transaction do
         @clients = find_unused_destination_clients
@@ -50,10 +51,39 @@ module GrdaWarehouse::Tasks
     end
 
     def rebuild_service_history_for_incorrect_clients
-      if ! @dry_run
-        adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true)
-        debug_log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
-        adder.run!
+      return if @dry_run
+
+      adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true)
+      debug_log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
+      adder.run!
+    end
+
+    # Find any clients at data sources that come from HMIS systems
+    # where the client has no enrollments.  These generally arise from
+    # clients being merged or deleted in the sending system.
+    def remove_unused_source_clients
+      ds_ids = GrdaWarehouse::DataSource.importable.source.pluck(:id)
+      with_enrollments = GrdaWarehouse::Hud::Client.source.
+        where(data_source_id: ds_ids).
+        joins(:enrollments).
+        distinct.
+        select(:id)
+      # without_enrollments = GrdaWarehouse::Hud::Client.source.
+      #   where(data_source_id: ds_ids).
+      #   where.not(id: with_enrollments).
+      #   distinct.
+      #   select(:id)
+      all_clients = GrdaWarehouse::Hud::Client.source.
+        where(data_source_id: ds_ids).
+        distinct.
+        select(:id)
+      without_enrollments = all_clients.pluck(:id) - with_enrollments.pluck(:id)
+      deleted_at = DateTime.current
+      debug_log "Setting DateDeleted for #{without_enrollments.count} clients"
+      return if @dry_run
+
+      without_enrollments.each_slice(500) do |batch|
+        GrdaWarehouse::Hud::Client.where(id: batch).update_all(DateDeleted: deleted_at)
       end
     end
 
@@ -98,10 +128,10 @@ module GrdaWarehouse::Tasks
         )
       count = query.count
       debug_log "Found #{count}"
-      if count.positive?
-        @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if @send_notifications
-        query.invalidate_processing! unless @dry_run
-      end
+      return unless count.positive?
+
+      @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if @send_notifications
+      query.invalidate_processing! unless @dry_run
     end
 
     private def invalidate_incorrect_family_when_infer_from_household_id
@@ -498,39 +528,39 @@ module GrdaWarehouse::Tasks
 
     private def clean_warehouse_clients_processed
       return unless @clients.any?
-      if ! @dry_run
-        GrdaWarehouse::WarehouseClientsProcessed.where(client_id: @clients).delete_all
-      end
+      return if @dry_run
+
+      GrdaWarehouse::WarehouseClientsProcessed.where(client_id: @clients).delete_all
     end
 
     def remove_unused_warehouse_clients_processed
       processed_ids = GrdaWarehouse::WarehouseClientsProcessed.pluck(:client_id)
       destination_client_ids = GrdaWarehouse::Hud::Client.destination.pluck(:id)
       to_remove = processed_ids - destination_client_ids
-      if to_remove.any? && ! @dry_run
-        GrdaWarehouse::WarehouseClientsProcessed.where(client_id: to_remove).delete_all
-      end
+      return if to_remove.none? || @dry_run
+
+      GrdaWarehouse::WarehouseClientsProcessed.where(client_id: to_remove).delete_all
     end
 
     private def clean_warehouse_clients
       return unless @clients.any?
-      if ! @dry_run
-        GrdaWarehouse::WarehouseClient.where(destination_id: @clients).update_all(deleted_at: @soft_delete_date)
-      end
+      return if @dry_run
+
+      GrdaWarehouse::WarehouseClient.where(destination_id: @clients).update_all(deleted_at: @soft_delete_date)
     end
 
     private def clean_hmis_clients
       return unless @clients.any?
-      if ! @dry_run
-        GrdaWarehouse::HmisClient.where(client_id: @clients).delete_all
-      end
+      return if @dry_run
+
+      GrdaWarehouse::HmisClient.where(client_id: @clients).delete_all
     end
 
     private def clean_destination_clients
       return unless @clients.any?
-      if ! @dry_run
-        GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: @soft_delete_date)
-      end
+      return if @dry_run
+
+      GrdaWarehouse::Hud::Client.where(id: @clients).update_all(DateDeleted: @soft_delete_date)
     end
 
     def fix_incorrect_ages_in_service_history
