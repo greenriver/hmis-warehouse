@@ -5,9 +5,6 @@ require 'aws-sdk-ecs'
 require 'awesome_print'
 
 class ScheduledTask
-  # Not a fetch: this runs using roles in a container
-  AWS_PROFILE = ENV['AWS_PROFILE']
-
   attr_accessor :cluster_name
   attr_accessor :command
   attr_accessor :description

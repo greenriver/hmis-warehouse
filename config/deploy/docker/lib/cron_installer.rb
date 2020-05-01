@@ -7,8 +7,6 @@ require 'aws-sdk-ecs'
 # Run from rails root
 
 class CronInstaller
-  AWS_PROFILE = ENV.fetch('AWS_PROFILE')
-
   def run!
     entry_number = 0
 
@@ -108,8 +106,8 @@ class CronInstaller
     command.split(' ')
   end
 
-  define_method(:iam) { Aws::IAM::Client.new(profile: AWS_PROFILE) }
-  define_method(:ecs) { Aws::ECS::Client.new(profile: AWS_PROFILE) }
+  define_method(:iam) { Aws::IAM::Client.new }
+  define_method(:ecs) { Aws::ECS::Client.new }
 end
 
 CronInstaller.new.run!

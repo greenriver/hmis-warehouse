@@ -315,7 +315,7 @@ class RollOut
 
     failure_reasons = results.tasks.flat_map { |x| x.containers.map { |c| c.reason } }.compact
 
-    if failure_reasons.lengthh > 0
+    if failure_reasons.length > 0
       puts "[FATAL] failures: #{failures_reasons}"
       exit
     end
