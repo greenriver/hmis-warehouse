@@ -5,7 +5,8 @@ require 'aws-sdk-ecs'
 require 'awesome_print'
 
 class ScheduledTask
-  AWS_PROFILE = ENV.fetch('AWS_PROFILE')
+  # Not a fetch: this runs using roles in a container
+  AWS_PROFILE = ENV['AWS_PROFILE']
 
   attr_accessor :cluster_name
   attr_accessor :command
@@ -119,7 +120,7 @@ class ScheduledTask
     ecs.list_clusters.cluster_arns.find { |x| x.match?(/#{cluster_name}/) }
   end
 
-  define_singleton_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new(profile: AWS_PROFILE) }
-  define_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new(profile: AWS_PROFILE) }
-  define_method(:ecs) { Aws::ECS::Client.new(profile: AWS_PROFILE) }
+  define_singleton_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
+  define_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
+  define_method(:ecs) { Aws::ECS::Client.new }
 end

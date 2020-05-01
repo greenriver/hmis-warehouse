@@ -92,7 +92,7 @@ class RollOut
       command: ['bin/deploy_tasks.sh'],
     )
 
-    _run_task!
+    _run_task!(log_stream_prefix: 'deploy-tasks')
   end
 
   def deploy_web!
@@ -255,8 +255,10 @@ class RollOut
     self.task_definition = results.to_h.dig(:task_definition, :task_definition_arn)
   end
 
-  def _run_task!
+  def _run_task!(log_stream_prefix:)
     _make_cloudwatch_group!
+
+    start_time = Time.now
 
     puts "[INFO] Running task: #{task_definition}"
 
@@ -282,7 +284,7 @@ class RollOut
         results.failures.each do |failure|
           puts "[FATAL] NOT ENOUGH #{failure.reason} on #{failure.arn}"
         end
-        puts "[WARN] The last task did not run. Trying again..."
+        puts "[WARN] The last task did not run. Trying again (hopefully more capacity will free up)..."
         sleep 20
         incomplete = true
       else
@@ -292,17 +294,48 @@ class RollOut
 
     task_arn = results.tasks.first&.task_arn
 
+    if task_arn.nil?
+      puts "[FATAL] Something went wrong with the task. exiting"
+      exit
+    end
+
     puts "[INFO] Task arn: #{task_arn||'unknown'}"
     puts "[INFO] Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{task_arn}"
 
-    # sleep 5
-    # could loop on task being stopped or running
-    # results = ecs.describe_tasks(
-    #   cluster: cluster,
-    #   tasks: [task_arn],
-    # )
-    # container_results = results.tasks.first.containers.first
-    # puts container_results.reason
+    puts '[INFO] Waiting on the task to complete'
+
+    ecs.wait_until(:tasks_stopped, {cluster: cluster, tasks: [task_arn]})
+
+    results = ecs.describe_tasks(cluster: cluster, tasks: [task_arn])
+
+    if results.failures.length > 0
+      puts "[FATAL] failures: #{results.failures}"
+      exit
+    end
+
+    failure_reasons = results.tasks.flat_map { |x| x.containers.map { |c| c.reason } }.compact
+
+    if failure_reasons.lengthh > 0
+      puts "[FATAL] failures: #{failures_reasons}"
+      exit
+    end
+
+    log_stream_name = cwl.describe_log_streams(
+      log_group_name: target_group_name,
+      order_by: 'LastEventTime',
+      prefix: log_stream_prefix,
+      limit: 1,
+    ).log_streams.first.log_stream_name
+
+    resp = cwl.get_log_events({
+      log_group_name: target_group_name,
+      log_stream_name: log_stream_name,
+      start_time: start_time,
+      end_time: Time.now,
+      start_from_head: false,
+    })
+
+    debugger
   end
 
   def _start_service!(load_balancers: [], desired_count: 1, name:, maximum_percent: 100, minimum_healthy_percent: 0)
