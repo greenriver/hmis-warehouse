@@ -24,8 +24,12 @@ class RollOut
   # FIXME: log level as parameter
 
   DEFAULT_SOFT_WEB_RAM_MB = 1800
+
+  # TDB: times 3x for production for DJ
   DEFAULT_SOFT_DJ_RAM_MB = 2000
+
   DEFAULT_SOFT_RAM_MB = 1800
+
   RAM_OVERCOMMIT_MULTIPLIER = 1.6
 
   DEFAULT_CPU_SHARES = 256
@@ -231,6 +235,7 @@ class RollOut
         options: {
           "awslogs-group" => target_group_name,
           "awslogs-region" => "us-east-1",
+          # TDB: include timestamp
           "awslogs-stream-prefix" => log_prefix,
         },
       },
