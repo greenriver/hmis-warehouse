@@ -34,8 +34,6 @@ class ScheduledTask
       name_prefix: target_group_name,
     )
 
-    return if resp.rules.length == 0
-
     resp.each do |set|
       set.rules.each do |rule|
         target_ids =
@@ -45,10 +43,12 @@ class ScheduledTask
             set.targets.map(&:id)
           end
 
-        cloudwatchevents.remove_targets(
-          rule: rule.name,
-          ids: target_ids,
-        )
+        if target_ids.length > 0
+          cloudwatchevents.remove_targets(
+            rule: rule.name,
+            ids: target_ids,
+          )
+        end
 
         puts "[INFO] Deleting #{target_ids.join(', ')} in rule #{rule.name}"
         cloudwatchevents.delete_rule(name: rule.name)
