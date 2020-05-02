@@ -1,5 +1,6 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'performance-dashboard'
-%h1 #{@report.chosen_project_types.to_sentence} Performance
+- title = GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES[@filter.project_type_codes.first&.to_sym]
+%h1 #{title} Performance
 - id = 'filter'
 #filter-accordion.panel-group.panel-collapsible
   - content_for :panel_collapse_content, flush: true do
