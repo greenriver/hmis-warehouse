@@ -21,6 +21,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     def apply_overrides row, data_source_id:
       # Required by HUD spec, not always provided 99 is not valid, but we can't really guess
       row[:DataCollectionStage] = 99 if row[:DataCollectionStage].blank?
+
       return row
     end
 

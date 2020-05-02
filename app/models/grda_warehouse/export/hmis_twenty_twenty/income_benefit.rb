@@ -19,6 +19,9 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
 
       # Technical limit of HMIS spec is 50 characters
       row[:OtherInsuranceIdentify] = row[:OtherInsuranceIdentify][0...50] if row[:OtherInsuranceIdentify]
+      # Required by HUD spec, not always provided 99 is not valid, but we can't really guess
+      row[:DataCollectionStage] = 99 if row[:DataCollectionStage].blank?
+
       return row
     end
   end
