@@ -481,6 +481,19 @@ module ReportGenerators::Lsa::Fy2019
         begin
           CREATE INDEX [IX_ch_Include_chDate] ON [ch_Include] ([chDate])
         end
+
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_TrackingMethod')
+        begin
+          CREATE INDEX [IX_tlsa_HHID_TrackingMethod] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([TrackingMethod]) INCLUDE ([HoHID], [EnrollmentID], [ExitDate], [ActiveHHType], [Active])
+        end
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_EnrollmentID')
+        begin
+          CREATE INDEX [IX_tlsa_HHID_EnrollmentID] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([EnrollmentID]) INCLUDE ([ExitDate], [ExitDest])
+        end
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_Active')
+        begin
+          CREATE INDEX [IX_tlsa_HHID_Active] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([Active]) INCLUDE ([HoHID], [EnrollmentID], [ActiveHHType], [ExitDest])
+        end
       SQL
     end
 
