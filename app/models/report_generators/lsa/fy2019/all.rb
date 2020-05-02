@@ -349,6 +349,10 @@ module ReportGenerators::Lsa::Fy2019
         begin
           CREATE INDEX [IX_tlsa_Enrollment_CH] ON [tlsa_Enrollment] ([CH]) INCLUDE ([PersonalID], [ProjectType], [TrackingMethod], [EntryDate], [ExitDate])
         end
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_Active')
+        begin
+          CREATE INDEX [IX_tlsa_Enrollment_Active] ON [tlsa_Enrollment] ([Active]) INCLUDE ([PersonalID], [HouseholdID], [EntryDate], [ExitDate])
+        end
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_HoHID_ActiveHHType_Active')
         begin
           CREATE INDEX [IX_tlsa_HHID_HoHID_ActiveHHType_Active] ON [tlsa_HHID] ([HoHID], [ActiveHHType], [Active]) INCLUDE ([EnrollmentID], [ExitDest])
@@ -472,6 +476,10 @@ module ReportGenerators::Lsa::Fy2019
         if not exists(select * from sys.indexes where name = 'IX_tlsa_Person_CHTime')
         begin
           CREATE INDEX [IX_tlsa_Person_CHTime] ON [tlsa_Person] ([CHTime]) INCLUDE ([LastActive])
+        end
+        if not exists(select * from sys.indexes where name = 'IX_ch_Include_chDate')
+        begin
+          CREATE INDEX [IX_ch_Include_chDate] ON [ch_Include] ([chDate])
         end
       SQL
     end
