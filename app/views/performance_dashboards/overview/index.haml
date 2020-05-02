@@ -9,7 +9,7 @@
 - id = 'active-filters'
 #active-filters-accordion.panel-group.panel-collapsible
   - content_for :panel_collapse_content, flush: true do
-    = render 'active_filters'
+    = render 'performance_dashboards/active_filters'
   = render 'common/panel_collapse', id: id, title: 'Summary of Selected Filters', default_open: active_filter_open
 
 .col-12

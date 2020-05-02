@@ -5,7 +5,7 @@
 ###
 
 module PerformanceDashboards
-  class OverviewController < BaseController
+  class ProjectTypeController < BaseController
     before_action :set_filter
     before_action :set_report
     before_action :set_key, only: [:details]
@@ -41,14 +41,34 @@ module PerformanceDashboards
       )
     end
 
-    private def multiple_project_types?
-      true
-    end
-    helper_method :multiple_project_types?
+    # def filter_params
+    #   params.permit(
+    #     filters: [
+    #       :end_date,
+    #       :start_date,
+    #       :household_type,
+    #       :hoh_only,
+    #       :sub_population,
+    #       :project_types,
+    #       coc_codes: [],
+    #       veteran_statuses: [],
+    #       age_ranges: [],
+    #       genders: [],
+    #       races: [],
+    #       ethnicities: [],
+    #     ],
+    #   )
+    # end
+    # helper_method :filter_params
 
     private def default_project_types
-      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
+      [:es]
     end
+
+    private def multiple_project_types?
+      false
+    end
+    helper_method :multiple_project_types?
 
     private def set_report
       @report = PerformanceDashboards::Overview.new(@filter)

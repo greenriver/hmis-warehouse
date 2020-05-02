@@ -569,6 +569,9 @@ Rails.application.routes.draw do
     resources :overview, only: [:index] do
       get :details, on: :collection
     end
+    resources :project_type, only: [:index] do
+      get :details, on: :collection
+    end
   end
 
   resources :cohort_column_options, except: [:destroy]

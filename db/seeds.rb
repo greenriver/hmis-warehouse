@@ -468,6 +468,12 @@ def report_list
         description: 'Overview of warehouse performance.',
         limitable: false,
       },
+      {
+        url: 'performance_dashboards/project_type',
+        name: 'Project Type Breakdowns',
+        description: 'Performance by project type.',
+        limitable: false,
+      },
     ],
     'Health Emergency' => [
       {

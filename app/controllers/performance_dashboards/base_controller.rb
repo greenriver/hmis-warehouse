@@ -18,7 +18,7 @@ class PerformanceDashboards::BaseController < ApplicationController
     @filter.coc_codes = params.dig(:filters, :coc_codes)&.select { |code| PerformanceDashboards::Overview.coc_codes.include?(code) } || defaults.coc_codes
     @filter.household_type = params.dig(:filters, :household_type)&.to_sym || defaults.household_type
     @filter.hoh_only = params.dig(:filters, :hoh_only) == '1' || defaults.hoh_only
-    @filter.project_type_codes = params.dig(:filters, :project_types)&.reject { |type| type.blank? } || defaults.project_type_codes
+    @filter.project_type_codes = Array.wrap(params.dig(:filters, :project_types))&.reject { |type| type.blank? }.presence || defaults.project_type_codes
     @filter.project_types = @filter.project_type_codes.map { |type| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[type.to_sym] }.flatten if @filter.project_type_codes.present?
     @filter.veteran_statuses = params.dig(:filters, :veteran_statuses)&.reject { |status| status.blank? }&.map { |status| status.to_i } || defaults.veteran_statuses
     @filter.age_ranges = params.dig(:filters, :age_ranges)&.reject { |range| range.blank? }&.map { |range| range.to_sym } || defaults.age_ranges
@@ -48,7 +48,7 @@ class PerformanceDashboards::BaseController < ApplicationController
       coc_codes: [],
       household_type: :all,
       hoh_only: nil,
-      project_type_codes: GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys,
+      project_type_codes: default_project_types,
       veteran_statuses: [],
       age_ranges: [],
       sub_population: :all_clients,

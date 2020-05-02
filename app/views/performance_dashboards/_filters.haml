@@ -27,7 +27,10 @@
       .col-sm-3
         = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: @filter[:coc_codes], required: false, input_html: { multiple: true, class: :select2 }
       .col-sm-6
-        = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, input_html: { multiple: true, class: :select2 }
+        - if multiple_project_types?
+          = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, input_html: { multiple: true, class: :select2 }
+        - else
+          = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, input_html: { class: :select2 }
       .col-sm-3
         = f.input :hoh_only, as: :boolean, label: 'Only Heads of Household', required: false, input_html: { checked: @filter[:hoh_only] }, wrapper_html: { class: 'mt-7'}
   #household.tab-pane{role: :tabpanel}
