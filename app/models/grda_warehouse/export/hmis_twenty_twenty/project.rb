@@ -43,6 +43,9 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
 
       row[:ProjectCommonName] = row[:ProjectName] if row[:ProjectCommonName].blank?
 
+      row[:HMISParticipatingProject] = 99 if row[:HMISParticipatingProject].blank?
+
+
       # TrackingMethod override is dependent on the original ProjectType, this must come before the ProjectType override
       override = tracking_method_override_for(project: row, data_source_id: data_source_id)
       row[:TrackingMethod] = override if override.present?
