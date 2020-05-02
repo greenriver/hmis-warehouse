@@ -157,6 +157,7 @@ module HMIS::Structure::Client
         [:FirstName] => nil,
         [:LastName] => nil,
         [:PersonalID] => nil,
+        [:VeteranStatus] => nil,
         [:DOB] => nil,
       }
     end
