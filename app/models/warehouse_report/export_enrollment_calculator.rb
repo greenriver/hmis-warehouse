@@ -35,6 +35,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @exits ||= begin
       exits = {}
       clients.joins(:source_exits).
+        includes(:source_exits).
         merge(enrollment_universe).
         merge(GrdaWarehouse::Hud::Exit.where(ex_t[:ExitDate].lteq(filter.last))).
         find_each do |client_record|
@@ -61,6 +62,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @enrollments ||= begin
       enrollments = {}
       clients.joins(source_enrollments: :project).
+        includes(source_enrollments: :project). # Needed to make client_record.source_enrollments work
         merge(enrollment_universe).
         find_each do |client_record|
           enrollments[client_record.id] = client_record.source_enrollments.max_by(&:EntryDate)
@@ -73,6 +75,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @incomes ||= begin
       incomes = {}
       clients.joins(:source_income_benefits).
+        includes(:source_income_benefits).
         merge(enrollment_universe).
         find_each do |client_record|
           incomes[client_record.id] = client_record.source_income_benefits.max_by(&:InformationDate)
@@ -86,6 +89,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @physical_disabilities ||= begin
       physical_disabilities = {}
       clients.joins(:source_disabilities).
+        includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
           physical_disabilities[client_record.id] = client_record.source_disabilities.
@@ -102,6 +106,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @developmental_disabilities ||= begin
       developmental_disabilities = {}
       clients.joins(:source_disabilities).
+        includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
           developmental_disabilities[client_record.id] = client_record.source_disabilities.
@@ -118,6 +123,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @chronic_disabilities ||= begin
       chronic_disabilities = {}
       clients.joins(:source_disabilities).
+        includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
           chronic_disabilities[client_record.id] = client_record.source_disabilities.
@@ -134,6 +140,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @hiv_disabilities ||= begin
       hiv_disabilities = {}
       clients.joins(:source_disabilities).
+        includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
           hiv_disabilities[client_record.id] = client_record.source_disabilities.
@@ -150,6 +157,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @mental_disabilities ||= begin
       mental_disabilities = {}
       clients.joins(:source_disabilities).
+        includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
           mental_disabilities[client_record.id] = client_record.source_disabilities.
@@ -166,6 +174,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @substance_disabilities ||= begin
       substance_disabilities = {}
       clients.joins(:source_disabilities).
+        includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
           substance_disabilities[client_record.id] = client_record.source_disabilities.
@@ -182,6 +191,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @healths ||= begin
       healths = {}
       clients.joins(:source_health_and_dvs).
+        includes(:source_health_and_dvs).
         merge(enrollment_universe).
         find_each do |client_record|
           healths[client_record.id] = client_record.source_health_and_dvs.max_by(&:InformationDate)
@@ -195,6 +205,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @educations ||= begin
       educations = {}
       clients.joins(:source_employment_educations).
+        includes(:source_employment_educations).
         merge(enrollment_universe).
         find_each do |client_record|
           educations[client_record.id] = client_record.source_employment_educations.max_by(&:InformationDate)
@@ -208,6 +219,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @vispdats ||= begin
       vispdats = {}
       clients.joins(:vispdats).
+        includes(:vispdats).
         merge(GrdaWarehouse::Vispdat::Base.completed.where(submitted_at: filter.range)).
         find_each do |client_record|
           vispdats[client_record.id] = client_record.vispdats.completed.max_by(&:submitted_at)
@@ -232,6 +244,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @health_and_dvs ||= begin
       health_and_dvs = {}
       clients.joins(:source_health_and_dvs).
+        includes(:source_health_and_dvs).
         merge(enrollment_universe).
         find_each do |client_record|
           health_and_dvs[client_record.id] = client_record.source_health_and_dvs.max_by(&:InformationDate)
@@ -313,10 +326,10 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   # Was this client's last exit to a Permanent Destination but followed by an entry into SO, ES, SH after more than 7 days?
   def returned?(client)
     exit_enrollment = exit_for_client(client)
-    return unless exit_enrollment
-    return unless HUD.permanent_destinations.include?(exit_enrollment.Destination)
+    return false unless exit_enrollment
+    return false unless HUD.permanent_destinations.include?(exit_enrollment.Destination)
     chronic_enrollments = chronic_enrollments_for(client)
-    return unless chronic_enrollments.present?
+    return false unless chronic_enrollments.present?
 
     return_date = exit_enrollment.ExitDate + 7.days
     chronic_enrollments.select{|e| return_date < e.first_date_in_program}&.any?
