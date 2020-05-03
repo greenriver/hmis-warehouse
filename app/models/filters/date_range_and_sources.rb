@@ -17,6 +17,7 @@ module Filters
     attribute :sub_population, Symbol, default: :all_clients
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
+    attribute :all_project_scope, Scope, lazy: true, default: -> () { GrdaWarehouse::Hud::Project.viewable_by(user) }
 
     validates_presence_of :start, :end
 
@@ -48,20 +49,20 @@ module Filters
 
     def effective_project_ids_from_organizations
       GrdaWarehouse::Hud::Organization.joins(:projects).
-          merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
+          merge(all_project_scope).
           where(id: organization_ids.reject(&:blank?).map(&:to_i)).
           pluck(p_t[:id].as('project_id').to_sql)
     end
 
     def effective_project_ids_from_data_sources
       GrdaWarehouse::DataSource.joins(:projects).
-          merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
+          merge(all_project_scope).
           where(id: data_source_ids.reject(&:blank?).map(&:to_i)).
           pluck(p_t[:id].as('project_id').to_sql)
     end
 
     def all_project_ids
-      GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+      all_project_scope.pluck(:id)
     end
 
     def clients_from_cohorts

@@ -10,7 +10,8 @@
 
     .row.mt-4
       .col-sm-6.mb-4
-        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
+        = debug @filter.all_project_scope.to_sql
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.residential.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
       .col-sm-6.mb-4
         = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
       .col-sm-6.mb-4

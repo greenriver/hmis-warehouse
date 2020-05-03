@@ -66,8 +66,14 @@ module WarehouseReports::Export
     end
 
     private def clients_within_age_range
-      @clients_within_age_range ||= GrdaWarehouse::Hud::Client.destination.
-        age_group_within_range(start_age: filter.start_age, end_age: filter.end_age, start_date: filter.start, end_date: filter.end)
+      @clients_within_age_range ||= GrdaWarehouse::Hud::Client.
+        destination.
+        age_group_within_range(
+          start_age: filter.start_age,
+          end_age: filter.end_age,
+          start_date: filter.start,
+          end_date: filter.end
+        )
     end
 
     private def clients_within_projects
@@ -89,7 +95,10 @@ module WarehouseReports::Export
 
     private def filter_for_sub_population(clients)
       clients.joins(:service_history_enrollments).
-        merge(GrdaWarehouse::ServiceHistoryEnrollment.public_send(filter.sub_population))
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.residential.
+            public_send(filter.sub_population)
+        )
     end
 
     def yes_no(bool)

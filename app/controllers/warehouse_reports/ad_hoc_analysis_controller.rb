@@ -54,6 +54,7 @@ module WarehouseReports
       @filter_params.merge!(report_params[:filter]) if report_params[:filter].present?
       @filter_params[:start_age] = report_params.dig(:filter, :start_age) || 0
       @filter_params[:end_age] = report_params.dig(:filter, :end_age) || 100
+
       @filter_params
     end
 
