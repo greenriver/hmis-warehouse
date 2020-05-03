@@ -310,7 +310,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @household_size_for[client.id]
   end
 
-  # Was this client's last exit to a Permanent Destination but followed by an entry into SO, ES, SH?
+  # Was this client's last exit to a Permanent Destination but followed by an entry into SO, ES, SH after more than 7 days?
   def returned?(client)
     exit_enrollment = exit_for_client(client)
     return unless exit_enrollment
@@ -318,6 +318,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     chronic_enrollments = chronic_enrollments_for(client)
     return unless chronic_enrollments.present?
 
-    chronic_enrollments.select{|e| exit_enrollment.ExitDate < e.first_date_in_program}&.any?
+    return_date = exit_enrollment.ExitDate + 7.days
+    chronic_enrollments.select{|e| return_date < e.first_date_in_program}&.any?
   end
 end

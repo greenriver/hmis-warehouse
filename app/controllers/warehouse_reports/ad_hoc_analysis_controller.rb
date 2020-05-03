@@ -46,7 +46,7 @@ module WarehouseReports
     end
 
     private def set_filter
-      @filter = ::Filters::DateRangeAndSources.new(filter_params)
+      @filter = ::Filters::DateRangeAndSourcesResidentialOnly.new(filter_params)
     end
 
     private def filter_params

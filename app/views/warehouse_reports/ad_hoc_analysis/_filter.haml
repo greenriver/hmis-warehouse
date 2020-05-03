@@ -10,12 +10,11 @@
 
     .row.mt-4
       .col-sm-6.mb-4
-        = debug @filter.all_project_scope.to_sql
-        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.residential.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
+        = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
       .col-sm-6.mb-4
-        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
+        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
       .col-sm-6.mb-4
-        = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).pluck(:name, :id), input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
+        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
       .col-sm-6.mb-4
         = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, input_html: { class: 'select2' }, label: 'Sub-population'
 

@@ -357,6 +357,20 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  def self.options_for_select user:
+    # don't cache this, it's a class method
+    viewable_by(user).
+      distinct.
+      order(name: :asc).
+      pluck(:name, :short_name, :id).
+      map do |name, short_name, id|
+        [
+          "#{name} (#{short_name})",
+          id,
+        ]
+      end
+  end
+
   def manual_import_path
     "/tmp/uploaded#{file_path}"
   end
