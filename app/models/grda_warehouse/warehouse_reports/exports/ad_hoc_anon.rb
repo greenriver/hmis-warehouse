@@ -27,7 +27,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     def rows_for_export
       @rows_for_export ||= begin
         rows = []
-        client_scope.in_batches do |batch|
+        client_scope.distinct.in_batches do |batch|
           report_calculator = WarehouseReport::ExportEnrollmentCalculator.new(batch_scope: batch, filter: filter)
           batch.find_each do |client|
             rows << [
