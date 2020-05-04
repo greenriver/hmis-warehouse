@@ -2,7 +2,6 @@
 
 require 'aws-sdk-cloudwatchevents'
 require 'aws-sdk-ecs'
-require 'awesome_print'
 
 class ScheduledTask
   attr_accessor :cluster_name
