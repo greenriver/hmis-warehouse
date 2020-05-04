@@ -18,7 +18,7 @@ class Report < ApplicationRecord
   end
 
   scope :inactive, -> do
-    where endabled: false
+    where enabled: false
   end
 
   def model_name
