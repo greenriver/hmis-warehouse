@@ -23,7 +23,9 @@ RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
 FROM open-path-cas:latest--pre-cache
 
 ENV RAILS_LOG_TO_STDOUT=true \
-  RAILS_SERVE_STATIC_FILES=true
+  RAILS_SERVE_STATIC_FILES=true \
+  LANG=en_US.UTF-8 \
+  LANGUAGE=en_US.UTF-8
 
 ARG BUILDER
 
