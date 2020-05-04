@@ -3062,7 +3062,10 @@ module GrdaWarehouse::Hud
       @residential_dates ||= enrollments.select do |e|
         @non_homeless_types.include?(e.computed_project_type)
       end.map do |e|
-        e.service_history_services.non_homeless.pluck(:date)
+        # Use select to allow for preloading
+        e.service_history_services.select do |s|
+          s.homeless == false
+        end.map(&:date)
      end.flatten.compact.uniq
     end
 
@@ -3070,9 +3073,11 @@ module GrdaWarehouse::Hud
       @homeless_dates ||= enrollments.select do |e|
         e.computed_project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
       end.map do |e|
-       e.service_history_services.select do |s|
-        s.record_type == :service && s.homeless == true
-       end.map(&:date)
+        # Use select to allow for preloading
+        e.service_history_services.select do |s|
+          # Exclude extrapolated dates
+          s.record_type == 'service' && s.homeless == true
+        end.map(&:date)
       end.flatten.compact.uniq
    end
 
