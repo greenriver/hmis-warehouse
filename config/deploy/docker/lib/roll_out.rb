@@ -171,7 +171,7 @@ class RollOut
     if desired_count == 0
       return [0,0]
     elsif desired_count == 1
-      [0, 200]
+      [100, 200]
     else
       chunk_size = (100 / desired_count) + 1
 
