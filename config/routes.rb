@@ -733,7 +733,7 @@ Rails.application.routes.draw do
         post :update, on: :collection
       end
       resources :accountable_care_organizations, only: [:index, :create, :edit, :update, :new]
-      resources :patient_referrals, only: [:new, :create, :edit, :update] do
+      resources :patient_referrals, only: [:edit, :update] do
         patch :reject
         collection do
           get :review

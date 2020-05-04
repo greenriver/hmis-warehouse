@@ -98,7 +98,10 @@ module Health
     has_many :equipments
     has_many :backup_plans
 
-    has_one :patient_referral, required: false
+    has_one :patient_referral, -> do
+      merge(PatientReferral.current)
+    end
+    has_many :patient_referrals
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
     belongs_to :care_coordinator, class_name: 'User'
     has_many :qualifying_activities
@@ -113,7 +116,7 @@ module Health
     end
 
     scope :active_on_date, -> (date) do
-      joins(:patient_referral).
+      joins(:patient_referrals).
       merge(Health::PatientReferral.where(
         hpr_t[:enrollment_start_date].lteq(date).
         and(hpr_t[:disenrollment_date].gt(date).
@@ -127,7 +130,7 @@ module Health
       d_1_end = end_date
       d_2_start = hpr_t[:enrollment_start_date]
       d_2_end = hpr_t[:disenrollment_date]
-      joins(:patient_referral).
+      joins(:patient_referrals).
         merge(Health::PatientReferral.where(
           d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end))
         ))
@@ -304,6 +307,7 @@ module Health
     delegate :effective_date, to: :patient_referral
     delegate :enrollment_start_date, to: :patient_referral
     delegate :aco, to: :patient_referral
+    # TODO: this needs to use sum of days in :patient_referrals
     delegate :careplan_signed_in_122_days?, to: :patient_referral
 
     self.source_key = :PAT_ID
@@ -413,7 +417,7 @@ module Health
       if pilot_patient?
         return true if consented? && (user.can_edit_client_health? || user.can_view_client_health?)
       else # hpc_patient?
-        return true if patient_referral.present? && user.has_some_patient_access?
+        return true if patient_referrals.exists? && user.has_some_patient_access?
       end
       return false
     end

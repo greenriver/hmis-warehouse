@@ -91,13 +91,22 @@ module Health
       Deceased: 7,
     }
 
-    scope :assigned, -> {where(rejected: false).where.not(agency_id: nil)}
-    scope :unassigned, -> {where(rejected: false).where(agency_id: nil)}
-    scope :rejected, -> {where(rejected: true)}
-    scope :not_rejected, -> {where(rejected: false)}
-    scope :with_patient, -> { where.not patient_id: nil }
-    scope :rejection_confirmed, -> { where(removal_acknowledged: true) }
-    scope :not_confirmed_rejected, -> { where(removal_acknowledged: false) }
+    # The current referral for a patient is their most recent
+    scope :current, -> { where(current: true) }
+
+    # The contributing referrals for a patient are the referrals to consider when counting enrollment days
+    scope :contributing, -> { where(contributing: true) }
+
+    # Scopes for the current referral
+    scope :assigned, -> { current.where(rejected: false).where.not(agency_id: nil) }
+    scope :unassigned, -> { current.where(rejected: false).where(agency_id: nil) }
+    scope :rejected, -> { current.where(rejected: true) }
+    scope :not_rejected, -> { current.where(rejected: false) }
+    scope :with_patient, -> { current.where.not patient_id: nil }
+    scope :rejection_confirmed, -> { current.where(removal_acknowledged: true) }
+    scope :not_confirmed_rejected, -> { current.where(removal_acknowledged: false) }
+    scope :pending_disenrollment, -> { current.where.not(pending_disenrollment_date: nil) }
+
     scope :active_within_range, -> (start_date:, end_date:) do
       at = arel_table
       # Excellent discussion of why this works:
@@ -112,8 +121,7 @@ module Health
     scope :referred_on, -> (date) do
       where(enrollment_start_date: date)
     end
-    # scope :pending_disenrollment, -> { where(hpr_t[:pending_disenrollment_date].lt(Date.current)) }
-    scope :pending_disenrollment, -> { where.not(pending_disenrollment_date: nil) }
+
     scope :at_acos, -> (aco_ids) do
       where(accountable_care_organization_id: aco_ids)
     end
@@ -131,6 +139,32 @@ module Health
     belongs_to :assigned_agency, class_name: 'Health::Agency', foreign_key: :agency_id
     belongs_to :patient, optional: true
     belongs_to :aco, class_name: 'Health::AccountableCareOrganization', foreign_key: :accountable_care_organization_id
+
+    def self.create_referral(patient, args)
+      referral_args = args.merge(current: true, contributing: true)
+      if patient.present?
+        # Re-enrollment
+        current_referral = patient.patient_referral
+        enrollment_start_date = referral_args[:enrollment_start_date]
+        last_enrollment_date = current_referral.disenrollment_date
+        if last_enrollment_date.nil?
+          # Last referral was not disenrolled. For record keeping, close the last enrollment, and immediately open a new one
+          current_referral.update(disenrollment_date: enrollment_start_date, current: false)
+        else
+          if (enrollment_start_date - last_enrollment_date).to_i > 90
+            # It has been more than 90 days, so this is a "reenrollment"
+            patient.patient_referrals.contributing.update_all(current: false, contributing: false)
+          else
+            # This is an "auto-reenrollment"
+            current_referral.update(current: false, contributing: true)
+          end
+        end
+      end
+      referral = create(referral_args)
+      referral.convert_to_patient
+
+      referral
+    end
 
     def client
       patient&.client

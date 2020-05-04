@@ -9,15 +9,11 @@ module Admin::Health
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
     before_action :require_can_approve_patient_assignments!
-    before_action :load_new_patient_referral, only: [:review, :assigned, :rejected, :disenrolled, :new]
     before_action :set_sender
 
     include PatientReferral
     helper_method :tab_path_params
     include PjaxModalController
-
-    def new
-    end
 
     def edit
       @patient_referral = Health::PatientReferral.find(params[:id].to_i)
@@ -101,15 +97,6 @@ module Admin::Health
         flash[:error] = @error
       end
       redirect_to rejected_admin_health_patient_referrals_path unless request.xhr?
-    end
-
-    def create
-      @new_patient_referral = Health::PatientReferral.new(clean_patient_referral_params)
-      @new_patient_referral.enrollment_start_date = @new_patient_referral.effective_date
-      if @new_patient_referral.save
-        @new_patient_referral.convert_to_patient if clean_patient_referral_params[:agency_id].present?
-      end
-      respond_with(@new_patient_referral, location: review_admin_health_patient_referrals_path)
     end
 
     def update
@@ -224,21 +211,5 @@ module Admin::Health
       action_name == 'review'
     end
     helper_method :can_bulk_assign?
-
-    def create_patient_referral_notice
-      if @new_patient_referral.assigned_agency.present?
-        "New patient added and assigned to #{@new_patient_referral.assigned_agency&.name}"
-      else
-        'New patient added.'
-      end
-    end
-
-    def create_patient_referral_success_path
-      if @new_patient_referral.assigned_agency.present?
-        assigned_admin_health_patient_referrals_path
-      else
-        review_admin_health_patient_referrals_path
-      end
-    end
   end
 end
