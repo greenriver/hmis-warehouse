@@ -97,7 +97,7 @@ class CronInstaller
         hour.split(',').map do |h|
           #Time.parse("#{h}:00").to_datetime.utc.hour
           #Time.parse("#{h}:00").to_datetime.utc.hour
-          (h.to_i + 4)%24.to_s
+          ((h.to_i + 4)%24).to_s
         end.join(',')
       else
         hour
