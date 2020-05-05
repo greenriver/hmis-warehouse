@@ -71,16 +71,16 @@ module PerformanceDashboards
     helper_method :multiple_project_types?
 
     private def set_report
-      @report = PerformanceDashboards::Overview.new(@filter)
+      @report = PerformanceDashboards::ProjectType.new(@filter)
       if @report.include_comparison?
-        @comparison = PerformanceDashboards::Overview.new(@comparison_filter)
+        @comparison = PerformanceDashboards::ProjectType.new(@comparison_filter)
       else
         @comparison = @report
       end
     end
 
     private def set_key
-      @key = PerformanceDashboards::Overview.detail_method(params.dig(:options, :key))
+      @key = PerformanceDashboards::ProjectType.detail_method(params.dig(:options, :key))
     end
   end
 end

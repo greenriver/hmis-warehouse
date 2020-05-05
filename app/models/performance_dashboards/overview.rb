@@ -15,11 +15,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Exiting
   include PerformanceDashboard::Overview::Enrolled
-
-  def self.detail_method(key)
-    available_keys[key.to_sym]
-  end
-
+  
   def self.available_keys
     {
       entering: :entering,

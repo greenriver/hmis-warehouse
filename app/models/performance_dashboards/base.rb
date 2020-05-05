@@ -39,6 +39,10 @@ class PerformanceDashboards::Base
   attr_reader :start_date, :end_date, :coc_codes
   attr_accessor :comparison_pattern, :project_type_codes
 
+  def self.detail_method(key)
+    available_keys[key.to_sym]
+  end
+
   def self.coc_codes
     GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode)
   end
