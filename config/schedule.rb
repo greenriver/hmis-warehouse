@@ -106,5 +106,5 @@ if ENV['GLACIER_NEEDS_BACKUP']=='true'
 end
 
 every 1.minute do
-  command "echo cron ran at `date`"
+  command "echo cron ran from schedule"
 end
