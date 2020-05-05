@@ -16,15 +16,15 @@ class Portainer
     system("tmux new-session -s portainer -d")
 
     system("tmux rename-window -t portainer:0 tunnel-0")
-    public_ips.each.with_index do |public_ip, i|
+    instances.each.with_index do |_, i|
       next if i == 0
       system("tmux new-window -t portainer:#{i} -n tunnel-#{i}")
     end
 
-    system("tmux new-window -t portainer:#{public_ips.length} -n run")
+    system("tmux new-window -t portainer:#{instances.length} -n run")
 
-    public_ips.each.with_index do |public_ip, i|
-      system("tmux send-keys -t portainer:#{i} \"ssh ec2-user@#{public_ip} -L0.0.0.0:2376#{i}:127.0.0.1:2376 -v\" C-m")
+    instances.each.with_index do |instances, i|
+      system("tmux send-keys -t portainer:#{i} \"ssh ec2-user@#{instances.public_ip_address} -L0.0.0.0:2376#{i}:127.0.0.1:2376 -v\" C-m")
     end
   end
 
@@ -44,10 +44,10 @@ class Portainer
       },
     ]
 
-    public_ips.each.with_index do |public_ip, i|
+    instances.each.with_index do |instance, i|
       # FIXME: Look at name tag and show that too
       config << {
-        "Name" => "tunnel #{i} - #{public_ip}",
+        "Name" => "tunnel #{i} - #{instance.public_ip_address} - #{instance.instance_id}",
         "URL"  => "tcp://#{local_ip}:2376#{i}",
         "TLS"  => false,
       }
@@ -78,16 +78,12 @@ class Portainer
 
     cmd = "docker run -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock --mount type=bind,src=/tmp/portainer.endpoints.json,dst=/tmp/portainer.endpoints.json #{image}:latest --external-endpoints /tmp/portainer.endpoints.json"
 
-    system("tmux send-keys -t portainer:#{public_ips.length} '#{cmd}' C-m")
+    system("tmux send-keys -t portainer:#{instances.length} '#{cmd}' C-m")
 
     system("#{OPEN_COMMAND} http://localhost:9000")
   end
 
   private
-
-  def public_ips
-    @public_ips ||= instances.map(&:public_ip_address).sort
-  end
 
   def instances
     return @instances unless @instances.nil?
@@ -105,7 +101,10 @@ class Portainer
       ]
     )
 
-    @instances = results.reservations.flat_map(&:instances)
+    @instances = results.
+      reservations.
+      flat_map(&:instances).
+      sort_by { |x| x.public_ip_address }
   end
 
   def ec2
