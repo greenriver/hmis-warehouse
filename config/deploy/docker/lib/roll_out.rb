@@ -111,7 +111,7 @@ class RollOut
       soft_mem_limit_mb: DEFAULT_SOFT_DJ_RAM_MB.call(target_group_name),
       image: image_base + '--dj',
       name: name,
-      command: ['echo', 'workerhere'],
+      #command: ['echo', 'workerhere'],
     )
   end
 

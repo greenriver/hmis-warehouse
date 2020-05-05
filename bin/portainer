@@ -45,6 +45,7 @@ class Portainer
     ]
 
     public_ips.each.with_index do |public_ip, i|
+      # FIXME: Look at name tag and show that too
       config << {
         "Name" => "tunnel #{i} - #{public_ip}",
         "URL"  => "tcp://#{local_ip}:2376#{i}",
