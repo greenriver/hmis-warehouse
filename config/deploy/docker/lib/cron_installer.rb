@@ -3,6 +3,7 @@
 require_relative 'scheduled_task'
 require 'aws-sdk-iam'
 require 'aws-sdk-ecs'
+require 'time'
 
 # Run from rails root
 
@@ -85,7 +86,18 @@ class CronInstaller
       day_of_week = '?'
     end
 
-    "cron(#{minute}, #{hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})"
+    # This isn't strictly correct, but hopefully good enough
+    utc_hour =
+      if !hour.include?('*')
+        ENV["TZ"] ||= "US/Eastern"
+        hour.split(',').map do |h|
+          Time.parse("#{h}:00").to_datetime.utc.hour
+        end.join(',')
+      else
+        hour
+      end
+
+    "cron(#{minute}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})"
   end
 
   def get_command(line)
