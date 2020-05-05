@@ -18,7 +18,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     acts_as_paranoid
 
     def filter
-      @filter ||= ::Filters::DateRangeAndSources.new(options)
+      @filter ||= ::Filters::DateRangeAndSourcesResidentialOnly.new(options)
     end
 
     def title
@@ -72,7 +72,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     def rows_for_export
       @rows_for_export ||= begin
         rows = []
-        client_scope.in_batches do |batch|
+        client_scope.distinct.in_batches do |batch|
           report_calculator = WarehouseReport::ExportEnrollmentCalculator.new(batch_scope: batch, filter: filter)
           batch.find_each do |client|
             rows << [
@@ -87,6 +87,7 @@ module GrdaWarehouse::WarehouseReports::Exports
               HUD.veteran_status(client.VeteranStatus),
               yes_no(report_calculator.disabled_and_imparing?(client)),
               report_calculator.episode_length_for(client),
+              report_calculator.average_episode_length_for(client),
               report_calculator.days_homeless(client),
               report_calculator.episode_counts_past_3_years_for(client),
               HUD.project_type(report_calculator.enrollment_for_client(client)&.project&.computed_project_type),
@@ -114,15 +115,16 @@ module GrdaWarehouse::WarehouseReports::Exports
         'Pregnancy Status',
         'Veteran Status',
         'Indefinite and Impairing Disabling Condition',
-        'Duration of Most Recent Episode',
-        'Total Days Homeless in Past 3 Years',
-        'Episodes in the Past 3 Years',
+        'Duration of Most Recent Episode (months)',
+        'Average Episode Duration (months)',
+        "Total Days Homeless in Past 3 Years as of #{Date.current}",
+        "Episodes in the Past 3 Years as of #{filter.last}",
         'Enrollment Type',
-        'Destination',
+        'Earliest Destination within Range',
         'Returned to Homelessness after Permanent Exit',
-        'Prior Living Situation',
+        'Most Recent Prior Living Situation',
         'VI-SPDAT Score',
-        'Household Members',
+        'Household Members from Most Recent Enrollment',
       ]
     end
   end
