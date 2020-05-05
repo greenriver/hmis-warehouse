@@ -349,6 +349,10 @@ module ReportGenerators::Lsa::Fy2019
         begin
           CREATE INDEX [IX_tlsa_Enrollment_CH] ON [tlsa_Enrollment] ([CH]) INCLUDE ([PersonalID], [ProjectType], [TrackingMethod], [EntryDate], [ExitDate])
         end
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Enrollment_Active')
+        begin
+          CREATE INDEX [IX_tlsa_Enrollment_Active] ON [tlsa_Enrollment] ([Active]) INCLUDE ([PersonalID], [HouseholdID], [EntryDate], [ExitDate])
+        end
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_HoHID_ActiveHHType_Active')
         begin
           CREATE INDEX [IX_tlsa_HHID_HoHID_ActiveHHType_Active] ON [tlsa_HHID] ([HoHID], [ActiveHHType], [Active]) INCLUDE ([EnrollmentID], [ExitDest])
@@ -405,73 +409,98 @@ module ReportGenerators::Lsa::Fy2019
         begin
           CREATE INDEX [IX_tlsa_HHID_ExitCohort] ON [tlsa_HHID] ([ExitCohort]) INCLUDE ([HoHID], [EnrollmentID], [ProjectType], [EntryDate], [MoveInDate], [ActiveHHType], [Exit1HHType], [Exit2HHType], [ExitDest])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_SystemDaysNotPSHHoused')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_SystemDaysNotPSHHoused')
         begin
           CREATE INDEX [IX_tlsa_Household_SystemDaysNotPSHHoused] ON [tlsa_Household] ([SystemDaysNotPSHHoused]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_SystemHomelessDays')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_SystemHomelessDays')
         begin
           CREATE INDEX [IX_tlsa_Household_SystemHomelessDays] ON [tlsa_Household] ([SystemHomelessDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_ESDays')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_ESDays')
         begin
           CREATE INDEX [IX_tlsa_Household_ESDays] ON [tlsa_Household] ([ESDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_ESTDays')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_ESTDays')
         begin
           CREATE INDEX [IX_tlsa_Household_ESTDays] ON [tlsa_Household] ([ESTDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_TotalHomelessDays')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_TotalHomelessDays')
         begin
           CREATE INDEX [IX_tlsa_Household_TotalHomelessDays] ON [tlsa_Household] ([TotalHomelessDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_Other3917Days')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_Other3917Days')
         begin
           CREATE INDEX [IX_tlsa_Household_Other3917Days] ON [tlsa_Household] ([Other3917Days]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_HHType_HHAdultAge')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_HHType_HHAdultAge')
         begin
           CREATE INDEX [IX_tlsa_Household_HHType_HHAdultAge] ON [tlsa_Household] ([HHType], [HHAdultAge])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_HHAdultAge')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_HHAdultAge')
         begin
           CREATE INDEX [IX_tlsa_Household_HHAdultAge] ON [tlsa_Household] ([HHAdultAge])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_LastInactive')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_LastInactive')
         begin
           CREATE INDEX [IX_tlsa_Household_LastInactive] ON [tlsa_Household] ([LastInactive])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_ESTStatus')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_ESTStatus')
         begin
           CREATE INDEX [IX_tlsa_Household_ESTStatus] ON [tlsa_Household] ([ESTStatus])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHMoveIn')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHMoveIn')
         begin
           CREATE INDEX [IX_tlsa_Household_RRHMoveIn] ON [tlsa_Household] ([RRHMoveIn]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [RRHStatus], [PSHMoveIn], [RRHHousedDays], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_PSHStatus_PSHMoveIn')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_PSHStatus_PSHMoveIn')
         begin
           CREATE INDEX [IX_tlsa_Household_PSHStatus_PSHMoveIn] ON [tlsa_Household] ([PSHStatus], [PSHMoveIn]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHHousedDays], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHHousedDays')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_HHType_PSHStatus')
+        begin
+          CREATE INDEX [IX_tlsa_Household_HHType_PSHStatus] ON [tlsa_Household] ([HHType], [PSHStatus])
+        end
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHHousedDays')
         begin
           CREATE INDEX [IX_tlsa_Household_RRHHousedDays] ON [tlsa_Household] ([RRHHousedDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_THDays')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_THDays')
         begin
           CREATE INDEX [IX_tlsa_Household_THDays] ON [tlsa_Household] ([THDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHPSHPreMoveInDays')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHPSHPreMoveInDays')
         begin
           CREATE INDEX [IX_tlsa_Household_RRHPSHPreMoveInDays] ON [tlsa_Household] ([RRHPSHPreMoveInDays]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [PSHMoveIn], [SystemPath], [ReportID])
         end
-          if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHStatus')
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_RRHStatus')
         begin
           CREATE INDEX [IX_tlsa_Household_RRHStatus] ON [tlsa_Household] ([RRHStatus]) INCLUDE ([Stat], [HHChronic], [HHVet], [HHDisability], [HHFleeingDV], [HoHRace], [HoHEthnicity], [HHChild], [HHAdultAge], [HHParent], [RRHMoveIn], [RRHPreMoveInDays], [PSHMoveIn], [SystemPath], [ReportID])
+        end
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_Household_HHType_RRHStatus')
+        begin
+          CREATE INDEX [IX_tlsa_Household_HHType_RRHStatus] ON [tlsa_Household] ([HHType], [RRHStatus])
         end
         if not exists(select * from sys.indexes where name = 'IX_tlsa_Person_CHTime')
         begin
           CREATE INDEX [IX_tlsa_Person_CHTime] ON [tlsa_Person] ([CHTime]) INCLUDE ([LastActive])
+        end
+        if not exists(select * from sys.indexes where name = 'IX_ch_Include_chDate')
+        begin
+          CREATE INDEX [IX_ch_Include_chDate] ON [ch_Include] ([chDate])
+        end
+
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_TrackingMethod')
+        begin
+          CREATE INDEX [IX_tlsa_HHID_TrackingMethod] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([TrackingMethod]) INCLUDE ([HoHID], [EnrollmentID], [ExitDate], [ActiveHHType], [Active])
+        end
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_EnrollmentID')
+        begin
+          CREATE INDEX [IX_tlsa_HHID_EnrollmentID] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([EnrollmentID]) INCLUDE ([ExitDate], [ExitDest])
+        end
+        if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_Active')
+        begin
+          CREATE INDEX [IX_tlsa_HHID_Active] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([Active]) INCLUDE ([HoHID], [EnrollmentID], [ActiveHHType], [ExitDest])
         end
       SQL
     end

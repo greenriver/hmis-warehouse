@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_21_141725) do
+ActiveRecord::Schema.define(version: 2020_04_30_201554) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -402,6 +402,7 @@ ActiveRecord::Schema.define(version: 2020_04_21_141725) do
     t.string "original_filename"
     t.datetime "deleted_at"
     t.integer "num_errors"
+    t.json "patient_aco_changes"
   end
 
   create_table "encounter_records", force: :cascade do |t|
