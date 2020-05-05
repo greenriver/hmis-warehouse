@@ -18,15 +18,13 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 RUN gem install bundler --version=1.17.3 && \
-  mkdir -p app/assets tmp/pids lib/assets vendor/assets public
+  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var
 
 COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
 COPY bin ./bin
 COPY public ./public
 COPY lib ./lib
 COPY config ./config
-#COPY spec ./spec
-#COPY db ./db
 COPY app ./app
 COPY vendor ./vendor
 COPY config/deploy/docker/assets/dotenv.temporary ./.env

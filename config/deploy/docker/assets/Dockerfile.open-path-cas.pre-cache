@@ -19,7 +19,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 RUN gem install bundler --version=1.17.3 && \
-  mkdir -p app/assets tmp/pids lib/assets vendor/assets public
+  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var
 
 COPY Gemfile Gemfile.lock Rakefile config.ru ./
 COPY bin ./bin

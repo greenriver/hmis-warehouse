@@ -22,6 +22,8 @@ RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
 
 FROM open-path-warehouse:latest--pre-cache
 
+# push up to pre-cache
+RUN mkdir -p locale var
 ENV RAILS_LOG_TO_STDOUT=true \
   RAILS_SERVE_STATIC_FILES=true \
   LANG=en_US.UTF-8 \
@@ -53,17 +55,12 @@ RUN bundle install --without=development
 # which is what the RUN true is for
 
 COPY lib ./lib
-#RUN true
 COPY config ./config
-#RUN true
 COPY spec ./spec
-#RUN true
 COPY db ./db
-#RUN true
 COPY app ./app
-#RUN true
 COPY vendor ./vendor
-#RUN true
+COPY locale ./locale
 
 RUN RAILS_ENV=production bundle exec rake assets:precompile && \
   cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml && \
