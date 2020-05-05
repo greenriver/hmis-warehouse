@@ -95,7 +95,9 @@ class CronInstaller
       if !hour.include?('*')
         ENV["TZ"] ||= "US/Eastern"
         hour.split(',').map do |h|
-          Time.parse("#{h}:00").to_datetime.utc.hour
+          #Time.parse("#{h}:00").to_datetime.utc.hour
+          #Time.parse("#{h}:00").to_datetime.utc.hour
+          h.to_i + 4
         end.join(',')
       else
         hour
