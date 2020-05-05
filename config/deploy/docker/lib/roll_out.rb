@@ -65,6 +65,8 @@ class RollOut
   end
 
   def run!
+    register_cron_job_worker!
+
     run_deploy_tasks!
 
     deploy_web!
@@ -98,6 +100,19 @@ class RollOut
     )
 
     _run_task!
+  end
+
+  def register_cron_job_worker!
+    _make_cloudwatch_group!
+
+    name = target_group_name + '-cron-worker'
+
+    _register_task!(
+      soft_mem_limit_mb: DEFAULT_SOFT_DJ_RAM_MB.call(target_group_name),
+      image: image_base + '--dj',
+      name: name,
+      command: ['echo', 'worker'],
+    )
   end
 
   def deploy_web!

@@ -49,7 +49,7 @@ class CronInstaller
 
     raise "No families found for #{target_group_name}" if families == []
 
-    family = families.find { |x| x.match(/dj/) }
+    family = families.find { |x| x.match(/cron-worker/) }
 
     raise "No family found for #{target_group_name} that looks like a worker" if family.nil?
 
