@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class PerformanceDashboards::Overview < PerformanceDashboards::Base
+class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   include PerformanceDashboard::Overview::Age
   include PerformanceDashboard::Overview::Gender
   include PerformanceDashboard::Overview::Household
@@ -15,7 +15,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Exiting
   include PerformanceDashboard::Overview::Enrolled
-  
+
   def self.available_keys
     {
       entering: :entering,

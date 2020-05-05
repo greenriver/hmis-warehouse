@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class PerformanceDashboards::Base
+class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   include ArelHelper
 
   # Initialize dashboard model.
@@ -121,7 +121,6 @@ class PerformanceDashboards::Base
     end
   end
 
-
   def self.comparison_patterns
     {
       prior_year: 'Same period, prior year',
@@ -135,11 +134,11 @@ class PerformanceDashboards::Base
   end
 
   def self.sub_populations
-    Reporting::MonthlyReports::Base.available_types.map{|k, klass| [klass.new.sub_population_title, k]}.to_h
+    Reporting::MonthlyReports::Base.available_types.map { |k, klass| [klass.new.sub_population_title, k] }.to_h
   end
 
   def valid_sub_population(population)
-    self.class.sub_populations.values.detect{|m| m == population&.to_sym} || :all_clients
+    self.class.sub_populations.values.detect { |m| m == population&.to_sym } || :all_clients
   end
 
   # @return filtered scope
@@ -196,7 +195,7 @@ class PerformanceDashboards::Base
     if @age_ranges.include?(:under_eighteen)
       age_scope = add_alternative(
         age_scope,
-        report_scope_source.where(she_t[:age].lt(18))
+        report_scope_source.where(she_t[:age].lt(18)),
       )
     end
 
@@ -206,7 +205,7 @@ class PerformanceDashboards::Base
         report_scope_source.where(
           she_t[:age].gteq(18).
           and(she_t[:age].lteq(24)),
-        )
+        ),
       )
     end
 
@@ -223,8 +222,8 @@ class PerformanceDashboards::Base
     if @age_ranges.include?(:over_sixty_one)
       age_scope = add_alternative(
         age_scope,
-        report_scope_source.where(she_t[:age].gt(61),
-      ))
+        report_scope_source.where(she_t[:age].gt(61)),
+      )
     end
 
     scope.merge(age_scope)
