@@ -85,10 +85,10 @@ class ScheduledTask
 
   def add_target!
     input = {
-      container_overrides: [
+      "containerOverrides" => [
         {
-          name: name,
-          command: command,
+          "name" => name,
+          "command" => command,
         },
       ]
     }.to_json
