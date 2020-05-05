@@ -93,17 +93,20 @@ class CronInstaller
     # This isn't strictly correct, but hopefully good enough
     utc_hour =
       if !hour.include?('*')
-        ENV["TZ"] ||= "US/Eastern"
+        #ENV["TZ"] ||= "US/Eastern"
         hour.split(',').map do |h|
           #Time.parse("#{h}:00").to_datetime.utc.hour
           #Time.parse("#{h}:00").to_datetime.utc.hour
-          h.to_i + 4
+          (h.to_i + 4).to_s
         end.join(',')
       else
         hour
       end
 
-    "cron(#{minute}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})"
+    "cron(#{minute}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})".tap do |expression|
+      puts "[INFO] cron expression is #{expression}"
+    end
+
   end
 
   def get_command(line)
