@@ -8,7 +8,7 @@ class Portainer
   OPEN_COMMAND = ENV.fetch('OPEN_COMMAND') { 'xdg-open' }
 
   def run!
-    #setup_tunnels
+    setup_tunnels
     boot
   end
 
@@ -33,7 +33,7 @@ class Portainer
       if ENV['USER'] == 'blackman'
         `ifconfig docker0 | grep 'inet addr:' | cut -d: -f2 | awk '{print $1}'`.chomp
       else
-        `ifconfig docker0 | grep 'inet addr:' | cut -d: -f2 | awk '{print $1}'`.chomp
+        'host.docker.internal'
       end
 
     config = [
@@ -44,9 +44,9 @@ class Portainer
       },
     ]
 
-    public_ips.each.with_index do |_, i|
+    public_ips.each.with_index do |public_ip, i|
       config << {
-        "Name" => "op-ecs#{i}",
+        "Name" => "tunnel #{i} - #{public_ip}",
         "URL"  => "tcp://#{local_ip}:2376#{i}",
         "TLS"  => false,
       }
