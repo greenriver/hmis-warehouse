@@ -49,9 +49,11 @@ class CronInstaller
 
     raise "No families found for #{target_group_name}" if families == []
 
-    family = families.find { |x| x.match(/migrate|worker|command|runner/) }
+    family = families.find { |x| x.match(/dj/) }
 
     raise "No family found for #{target_group_name} that looks like a worker" if family.nil?
+
+    puts "[INFO] Using #{family}"
 
     task_definition = ecs.list_task_definitions(
       status: 'ACTIVE',
@@ -61,6 +63,8 @@ class CronInstaller
     ).task_definition_arns.first
 
     raise "No task definition found" if task_definition.nil?
+
+    puts "[INFO] Using #{task_definition}"
 
     @task_definition_arn = task_definition
   end
