@@ -87,7 +87,9 @@ class ScheduledTask
     input = {
       "containerOverrides" => [
         {
-          "name" => name,
+          # This is the name of the container in the task definition.
+          # It needs to match or this doesn't work
+          "name" => "#{target_group_name}-cron-worker",
           "command" => command,
         },
       ]
