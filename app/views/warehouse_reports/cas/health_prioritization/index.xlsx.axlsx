@@ -1,0 +1,24 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Health Prioritization') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = [
+    'Warehouse ID',
+    'Client',
+    'Age',
+    'HMIS Physical Disability?',
+    'VI-SPDAT Physical Disability?',
+    'Prioritize in CAS?',
+  ]
+  sheet.add_row(row, style: title)
+  @clients.each do |client|
+    row = [
+      client.id,
+      client.name,
+      client.age,
+      yes_no(@disabilities.key?(client.id), include_icon: false),
+      yes_no(@vispdats.key?(client.id), include_icon: false),
+      client.health_prioritized,
+    ]
+    sheet.add_row(row)
+  end
+end

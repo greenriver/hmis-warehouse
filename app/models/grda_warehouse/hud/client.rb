@@ -1814,16 +1814,17 @@ module GrdaWarehouse::Hud
         requires_elevator_access: _('Requires ground floor unit or elevator access'),
         cas_match_override: _('Override CAS Match Date'),
         vash_eligible: _('VASH Eligible'),
+        health_prioritized: _('Health Priority'),
       }
     end
 
     def self.manual_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override, :health_prioritized).
         keys
     end
 
     def self.file_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override, :health_prioritized).
         keys
     end
 
@@ -1843,6 +1844,21 @@ module GrdaWarehouse::Hud
         :youth_rrh_desired,
         :neighborhood_interests => [],
       ]
+    end
+
+    def health_prioritization_options
+      {
+        'Yes' => 'Yes',
+        'No' => 'No',
+        'Unset' => '',
+      }
+    end
+
+    def health_prioritized_for_cas?
+      return false unless GrdaWarehouse::Config.get(:health_priority_age).present?
+      return true if age >= GrdaWarehouse::Config.get(:health_priority_age)
+
+      health_prioritized == 'Yes'
     end
 
     def invalidate_service_history
