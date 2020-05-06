@@ -60,7 +60,7 @@ class Portainer
     instances.each.with_index do |instance, i|
       # FIXME: Look at name tag and show that too
       config << {
-        "Name" => "tunnel #{i} - #{instance.public_ip_address} - #{instance.instance_id}",
+        "Name" => "tunnel #{i} - #{instance.public_ip_address} - #{instance.instance_id} - #{instance.instance_lifecycle||'non-spot'}",
         "URL"  => "tcp://#{local_ip}:2376#{i}",
         "TLS"  => false,
       }

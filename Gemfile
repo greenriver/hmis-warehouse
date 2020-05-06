@@ -114,7 +114,10 @@ gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soun
 
 # PDF Exports
 gem 'wicked_pdf'
-gem 'wkhtmltopdf-binary', groups: [:development]
+# I've added this package to the dev docker builds and the deployed
+# docker images. We can probably delete this. commenting out as the
+# first step:
+# gem 'wkhtmltopdf-binary', groups: [:development]
 gem 'combine_pdf'
 gem 'grover'
 
