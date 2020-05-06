@@ -22,7 +22,9 @@ RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
 
 FROM open-path-warehouse:latest--pre-cache
 
-# push up to pre-cache
+# FIXME: push up to pre-cache
+RUN apk add --no-cache \
+  wkhtmltopdf
 RUN mkdir -p locale var
 ENV RAILS_LOG_TO_STDOUT=true \
   RAILS_SERVE_STATIC_FILES=true \

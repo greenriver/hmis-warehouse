@@ -304,19 +304,10 @@ class RollOut
       environment: environment,
       start_timeout: ten_minutes,
       stop_timeout: stop_timeout,
-      #entry_point: ["String"],
-      #health_check: {
-      #  command: ["String"], # required
-      #  interval: 1,
-      #  timeout: 1,
-      #  retries: 1,
-      #  start_period: 1,
-      #},
+      # entry_point: ["String"],
+      # health_check: { },
       secrets: [
-      #  {
-      #    name: "SOME_PASSWORD",
-      #    value_from: some_passowrd_secrets_arn,
-      #  },
+        # { name: "SOME_PASSWORD", value_from: some_passowrd_secrets_arn, },
       ],
       log_configuration: {
         log_driver: "awslogs",
