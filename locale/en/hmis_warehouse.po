@@ -3479,6 +3479,9 @@ msgstr ""
 msgid "Consent form confirmed"
 msgstr ""
 
+msgid "Contact Tracing"
+msgstr ""
+
 msgid "Coordinated Entry Assessment"
 msgstr ""
 
@@ -3543,6 +3546,9 @@ msgid "HUD Reports"
 msgstr ""
 
 msgid "HUES Eligible"
+msgstr ""
+
+msgid "Health Priority"
 msgstr ""
 
 msgid "Homeless Service Provider Organization Name"
@@ -3680,6 +3686,9 @@ msgstr ""
 msgid "Part of a family"
 msgstr ""
 
+msgid "Pathways"
+msgstr ""
+
 msgid "Please attach each file as a separate document. Please do not upload a packet in which a number of documents are in one file."
 msgstr ""
 
@@ -3810,6 +3819,9 @@ msgid "You must attach a file in the form."
 msgstr ""
 
 msgid "client"
+msgstr ""
+
+msgid "clients"
 msgstr ""
 
 msgid "cohort enrollment"

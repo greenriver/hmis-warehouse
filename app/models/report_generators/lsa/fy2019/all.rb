@@ -258,19 +258,26 @@ module ReportGenerators::Lsa::Fy2019
 
     def setup_lsa_report
       load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
-      LsaSqlServer::LSAReport.delete_all
-      LsaSqlServer::LSAReport.create!(
-        ReportID: Time.now.to_i,
-        ReportDate: Date.current,
-        ReportStart: @report_start,
-        ReportEnd: @report_end,
-        ReportCoC: @coc_code,
-        SoftwareVendor: 'Green River Data Analysis',
-        SoftwareName: 'OpenPath HMIS Data Warehouse',
-        VendorContact: 'Elliot Anders',
-        VendorEmail: 'elliot@greenriver.org',
-        LSAScope: @lsa_scope
-      )
+      if test?
+        ::Rds.identifier = sql_server_identifier
+        ::Rds.timeout = 60_000_000
+        load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
+        LsaSqlServer::LSAQueries.new.setup_test_report
+      else
+        LsaSqlServer::LSAReport.delete_all
+        LsaSqlServer::LSAReport.create!(
+          ReportID: Time.now.to_i,
+          ReportDate: Date.current,
+          ReportStart: @report_start,
+          ReportEnd: @report_end,
+          ReportCoC: @coc_code,
+          SoftwareVendor: 'Green River Data Analysis',
+          SoftwareName: 'OpenPath HMIS Data Warehouse',
+          VendorContact: 'Elliot Anders',
+          VendorEmail: 'elliot@greenriver.org',
+          LSAScope: @lsa_scope
+        )
+      end
     end
 
     def remove_temporary_rds
@@ -492,15 +499,15 @@ module ReportGenerators::Lsa::Fy2019
 
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_TrackingMethod')
         begin
-          CREATE INDEX [IX_tlsa_HHID_TrackingMethod] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([TrackingMethod]) INCLUDE ([HoHID], [EnrollmentID], [ExitDate], [ActiveHHType], [Active])
+          CREATE INDEX [IX_tlsa_HHID_TrackingMethod] ON [tlsa_HHID] ([TrackingMethod]) INCLUDE ([HoHID], [EnrollmentID], [ExitDate], [ActiveHHType], [Active])
         end
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_EnrollmentID')
         begin
-          CREATE INDEX [IX_tlsa_HHID_EnrollmentID] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([EnrollmentID]) INCLUDE ([ExitDate], [ExitDest])
+          CREATE INDEX [IX_tlsa_HHID_EnrollmentID] ON [tlsa_HHID] ([EnrollmentID]) INCLUDE ([ExitDate], [ExitDest])
         end
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_Active')
         begin
-          CREATE INDEX [IX_tlsa_HHID_Active] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([Active]) INCLUDE ([HoHID], [EnrollmentID], [ActiveHHType], [ExitDest])
+          CREATE INDEX [IX_tlsa_HHID_Active] ON [tlsa_HHID] ([Active]) INCLUDE ([HoHID], [EnrollmentID], [ActiveHHType], [ExitDest])
         end
       SQL
     end
@@ -518,7 +525,11 @@ module ReportGenerators::Lsa::Fy2019
       rep.project_ids = @project_ids unless @lsa_scope == 1 # Non-System wide
 
       # some setup
-      rep.insert_projects
+      if test?
+        rep.setup_test_projects
+      else
+        rep.insert_projects
+      end
 
       # loop through the LSA queries
       report_steps = rep.steps

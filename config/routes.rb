@@ -335,6 +335,11 @@ Rails.application.routes.draw do
           patch :update
         end
       end
+      resources :health_prioritization, only: [:index] do
+        member do
+          patch :client
+        end
+      end
     end
     namespace :health do
       resources :overview, only: [:index]

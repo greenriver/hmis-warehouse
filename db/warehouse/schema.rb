@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_04_30_124823) do
+ActiveRecord::Schema.define(version: 2020_05_06_195939) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -200,6 +200,7 @@ ActiveRecord::Schema.define(version: 2020_04_30_124823) do
     t.boolean "pathways_disabled_housing", default: false, null: false
     t.boolean "evicted", default: false, null: false
     t.boolean "dv_rrh_desired", default: false
+    t.string "health_prioritized"
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -1630,6 +1631,7 @@ ActiveRecord::Schema.define(version: 2020_04_30_124823) do
     t.boolean "auto_confirm_consent", default: false, null: false
     t.string "health_emergency"
     t.string "health_emergency_tracing"
+    t.integer "health_priority_age"
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -2188,6 +2190,8 @@ ActiveRecord::Schema.define(version: 2020_04_30_124823) do
     t.string "client_day_shelters"
     t.string "client_night_shelters"
     t.boolean "ssvf_eligible", default: false
+    t.string "vispdat_physical_disability_answer"
+    t.datetime "vispdat_physical_disability_updated_at"
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"
