@@ -2,22 +2,11 @@ default: &default
   adapter: <%= ENV.fetch('DATABASE_ADAPTER') { 'postgresql' } %>
   pool: 5
   timeout: 5000
-  <% if ENV['DATABASE_PORT'] %>
-  port: <%= ENV['DATABASE_PORT'] %>
-  <% end %>
-  <% if ENV['DATABASE_USER'] %>
   username: <%= ENV['DATABASE_USER'] %>
-  <% end %>
-  <% if ENV['DATABASE_PASS'] %>
   password: <%= ENV['DATABASE_PASS'] %>
-  <% end %>
-  <% if ENV['DATABASE_HOST'] %>
   host: <%= ENV['DATABASE_HOST'] %>
-  <% end %>
-  <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
   sslmode: 'verify-full'
   sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
-  <% end %>
 
 <%= ENV.fetch('RAILS_ENV') { 'unknown' } %>:
   <<: *default

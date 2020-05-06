@@ -3,7 +3,7 @@ require 'awesome_print'
 require 'yaml'
 require_relative 'ecs_tools'
 require 'aws-sdk-cloudwatchlogs'
-# require 'aws-sdk-ec2'
+require 'aws-sdk-ec2'
 
 class RollOut
   attr_accessor :aws_profile
@@ -67,6 +67,8 @@ class RollOut
   def run!
     register_cron_job_worker!
 
+    mark_spot_instances!
+
     run_deploy_tasks!
 
     deploy_web!
@@ -113,6 +115,64 @@ class RollOut
       name: name,
       #command: ['echo', 'workerhere'],
     )
+  end
+
+  # * spot instance ECS instances need to have an attribute that tells us they
+  #   are backed by spot instances so placement contraints can work.
+  #
+  # * You can't add an attribute to an EC2 instance (just ECS instances).
+  #   Attributes are purely an ECS concept
+  #
+  # So we need this code to mark all the ECS instances as EC2-spot-instance backed.
+  #
+  def mark_spot_instances!
+    # Get all the ECS container instances
+    container_instance_arns = ecs.list_container_instances(
+      cluster: cluster,
+    ).container_instance_arns
+
+    # Get the details of them
+    container_instances =
+      ecs.describe_container_instances(
+        cluster: cluster,
+        container_instances: container_instance_arns
+      ).flat_map do |set|
+        set.container_instances
+      end
+
+    # for each EC2 instance...
+    ec2.describe_instances.each do |set|
+      set.reservations.each do |reservation|
+        reservation.instances.each do |instance|
+
+          # find its matching ECS container instance
+          container_instance = container_instances.find do |ci|
+            ci.ec2_instance_id == instance.instance_id
+          end
+
+          # skip EC2 instances not in this cluster
+          next unless container_instance
+
+          # non-spots have a nil, so this...
+          spotness = instance.instance_lifecycle || 'not-spot'
+
+          puts "[INFO] Making attribute for #{instance.instance_id} as instance_lifecycle=#{spotness}"
+
+          # Finally, upsert the attribute
+          resp = ecs.put_attributes({
+            cluster: cluster,
+            attributes: [
+              {
+                name: "instance-lifecycle",
+                value: spotness,
+                target_type: "container-instance",
+                target_id: container_instance.container_instance_arn
+              },
+            ],
+          })
+        end
+      end
+    end
   end
 
   def deploy_web!
@@ -272,6 +332,24 @@ class RollOut
       container_definition[:command] = command
     end
 
+    # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-constraints.html
+    placement_constraints = []
+
+    # distinct Instance is problematic if you have limited resources or a desired count of 1
+    # placement_contraints << { type: 'distinctInstance' },
+
+    # non-web containers should not be spot instances
+    if !name.match?(/web/)
+      puts "[INFO][CONST] Constraining #{name} to non-spot-instances"
+
+      placement_constraints << {
+        type: 'memberOf',
+        expression: "attribute:instance-lifecycle != spot",
+      }
+    else
+      puts "[INFO][CONST] Not constraining #{name}"
+    end
+
     results = ecs.register_task_definition({
       container_definitions: [ container_definition ],
 
@@ -282,6 +360,8 @@ class RollOut
 
       # This is the role that the ECS agent and Docker daemon can assume
       execution_role_arn: execution_role,
+
+      placement_constraints: placement_constraints,
     })
 
     self.task_definition = results.to_h.dig(:task_definition, :task_definition_arn)
@@ -410,6 +490,18 @@ class RollOut
 
     five_minutes = 5 * 60
 
+    # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement-strategies.html
+    placement_strategy = [
+      {
+        "field": "attribute:ecs.availability-zone",
+        "type": "spread"
+      },
+      {
+        "field": "instanceId",
+        "type": "spread"
+      },
+    ]
+
     if service_exists
       puts "[INFO] Updating #{name} to #{task_definition.split(/:/).last}: #{desired_count} containers"
       payload = {
@@ -417,6 +509,8 @@ class RollOut
         service: name,
         desired_count: desired_count,
         task_definition: task_definition,
+        #placement_constraints: placement_constraints,
+        placement_strategy: placement_strategy,
         deployment_configuration: {
           maximum_percent: maximum_percent,
           minimum_healthy_percent: minimum_healthy_percent,
@@ -440,22 +534,8 @@ class RollOut
           minimum_healthy_percent: minimum_healthy_percent,
         },
         launch_type: 'EC2',
-        #placement_constraints:  [
-        #  { type: 'distinctInstance' },
-        #],
-        placement_strategy: [
-          {
-            "field": "instanceId",
-            "type": "spread"
-          },
-          {
-            "field": "attribute:ecs.availability-zone",
-            "type": "spread"
-          },
-          {
-            "type": "random"
-          },
-        ],
+        #placement_constraints: placement_constraints,
+        placement_strategy: placement_strategy,
         load_balancers: load_balancers,
       }
 
@@ -479,6 +559,6 @@ class RollOut
   end
 
   define_method(:ecs) { Aws::ECS::Client.new(profile: aws_profile) }
-  # define_method(:ec2) { Aws::EC2::Client.new(profile: aws_profile) }
+  define_method(:ec2) { Aws::EC2::Client.new(profile: aws_profile) }
   define_method(:cwl) { Aws::CloudWatchLogs::Client.new(profile: aws_profile) }
 end

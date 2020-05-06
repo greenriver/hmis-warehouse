@@ -8,8 +8,21 @@ class Portainer
   OPEN_COMMAND = ENV.fetch('OPEN_COMMAND') { 'xdg-open' }
 
   def run!
+    ensure_profile_and_ip
     setup_tunnels
     boot
+  end
+
+  def ensure_profile_and_ip
+    my_ip = `dig +short myip.opendns.com @resolver1.opendns.com`.chomp
+
+    if !my_ip.match?(/^(54\.85|64.223)/)
+      raise "Wrong IP"
+    end
+
+    if ENV['AWS_PROFILE'].nil?
+      raise "set AWS_PROFILE"
+    end
   end
 
   def setup_tunnels
