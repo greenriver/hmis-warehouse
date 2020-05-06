@@ -117,7 +117,7 @@ gem 'wicked_pdf'
 # I've added this package to the dev docker builds and the deployed
 # docker images. We can probably delete this. commenting out as the
 # first step:
-# gem 'wkhtmltopdf-binary', groups: [:development]
+#gem 'wkhtmltopdf-binary', groups: [:development]
 gem 'combine_pdf'
 gem 'grover'
 
