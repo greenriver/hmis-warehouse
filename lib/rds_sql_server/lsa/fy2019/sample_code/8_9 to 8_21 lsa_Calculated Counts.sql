@@ -2,7 +2,7 @@
 LSA FY2019 Sample Code
 
 Name:  8_9 to 8_21 lsa_Calculated counts (File 9 of 10)
-Date:  4/15/2020   
+Date:  4/15/2020
 
 
 	8.9 Get Counts of People by Project ID and Household Characteristics
@@ -14,15 +14,16 @@ Date:  4/15/2020
 
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ProjectID, ReportID)
+		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
 	select count (distinct n.PersonalID)
 		, cd.Cohort, 10 as Universe
-		, coalesce(pop.HHType, 0) 
+		, coalesce(pop.HHType, 0)
 		, pop.PopID as PopID
 		, -1, 53
-		, n.ProjectID		
+		, n.ProjectID
 		, cd.ReportID
-	from tlsa_Enrollment n 
+		, 8.9
+	from tlsa_Enrollment n
 	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
 		and bn.RecordType = 200
 		and bn.DateDeleted is null
@@ -36,15 +37,15 @@ Date:  4/15/2020
 		and (hhid.HHParent = pop.HHParent or pop.HHParent is null)
 		and (hhid.HHChronic = pop.HHChronic or pop.HHChronic is null)
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
-		  and (cd.CohortStart < n.ExitDate 
+		  and (cd.CohortStart < n.ExitDate
 			or n.ExitDate is null
 			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
 	where n.Active = 1 and cd.Cohort between 1 and 13
-		and pop.PopID in (0,1,2,3,4,5,7,8,9,10) and pop.PopType = 1 
+		and pop.PopID in (0,1,2,3,4,5,7,8,9,10) and pop.PopType = 1
 		and pop.SystemPath is null
 		and (
 			 --for RRH and PSH, count only people who are housed in period
-			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd) 
+			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd)
 			--for night-by-night ES, count only people with bednights in period
 			or (n.TrackingMethod = 3 and n.ProjectType = 1
 				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
@@ -59,18 +60,19 @@ Date:  4/15/2020
 	--Unduplicated count of people in households for each project type
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct n.PersonalID)
-		, cd.Cohort, case n.ProjectType 
-			when 1 then 11 
-			when 8 then 12	
-			when 2 then 13	
-			when 13 then 14	
+		, cd.Cohort, case n.ProjectType
+			when 1 then 11
+			when 8 then 12
+			when 2 then 13
+			when 13 then 14
 			else 15 end
-		, coalesce(pop.HHType, 0) 
+		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 53
-		, cd.ReportID
-	from tlsa_Enrollment n 
+		, cd.ReportID,
+		, 8.10
+	from tlsa_Enrollment n
 	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
 		and bn.RecordType = 200
 		and bn.DateDeleted is null
@@ -84,7 +86,7 @@ Date:  4/15/2020
 		and (hhid.HHParent = pop.HHParent or pop.HHParent is null)
 		and (hhid.HHChronic = pop.HHChronic or pop.HHChronic is null)
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
-		  and (cd.CohortStart < n.ExitDate 
+		  and (cd.CohortStart < n.ExitDate
 			or n.ExitDate is null
 			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
 	where n.Active = 1 and cd.Cohort between 1 and 13
@@ -92,15 +94,15 @@ Date:  4/15/2020
 		and pop.SystemPath is null
 		and (
 			 --for RRH and PSH, count only people who are housed in period
-			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd) 
+			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd)
 			--for night-by-night ES, count only people with bednights in period
 			or (n.TrackingMethod = 3 and n.ProjectType = 1
 				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
 			or (n.TrackingMethod = 0 and n.ProjectType = 1)
 			or (n.ProjectType in (2,8))
 			)
-	group by cd.Cohort, pop.PopID 
-			, n.ProjectType 
+	group by cd.Cohort, pop.PopID
+			, n.ProjectType
 			, cd.ReportID
 			, pop.HHType
 
@@ -110,10 +112,10 @@ Date:  4/15/2020
 		, Population, SystemPath, ReportRow, ReportID)
 	select count (distinct n.PersonalID)
 		, cd.Cohort, 16 as Universe
-		, coalesce(pop.HHType, 0) 
+		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 53
 		, cd.ReportID
-	from tlsa_Enrollment n 
+	from tlsa_Enrollment n
 	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
 		and bn.RecordType = 200
 		and bn.DateDeleted is null
@@ -127,7 +129,7 @@ Date:  4/15/2020
 		and (hhid.HHParent = pop.HHParent or pop.HHParent is null)
 		and (hhid.HHChronic = pop.HHChronic or pop.HHChronic is null)
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
-		  and (cd.CohortStart < n.ExitDate 
+		  and (cd.CohortStart < n.ExitDate
 			or n.ExitDate is null
 			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
 	where n.Active = 1 and cd.Cohort between 1 and 13
@@ -139,23 +141,23 @@ Date:  4/15/2020
 			or (n.TrackingMethod = 0 and n.ProjectType = 1)
 			or (n.ProjectType in (2,8))
 			)
-	group by cd.Cohort, pop.PopID 
+	group by cd.Cohort, pop.PopID
 			, cd.ReportID
 			, pop.HHType
 
 /*
-	8.11 Get Counts of Households by Project ID 
+	8.11 Get Counts of Households by Project ID
 */
 	--Count households
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ProjectID, ReportID)
 	select count (distinct cast(hhid.HoHID as nvarchar) + cast(hhid.ActiveHHType as nvarchar))
-		, cd.Cohort, 10 
+		, cd.Cohort, 10
 		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 54
 		, hhid.ProjectID, cd.ReportID
-	from tlsa_HHID hhid 
+	from tlsa_HHID hhid
 	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
 		and bn.DateDeleted is null
@@ -168,7 +170,7 @@ Date:  4/15/2020
 		and (hhid.HHParent = pop.HHParent or pop.HHParent is null)
 		and (hhid.HHChronic = pop.HHChronic or pop.HHChronic is null)
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= hhid.EntryDate
-		  and (cd.CohortStart < hhid.ExitDate 
+		  and (cd.CohortStart < hhid.ExitDate
 			or hhid.ExitDate is null
 			or (hhid.ExitDate = cd.CohortStart and hhid.MoveInDate = cd.CohortStart))
 	where hhid.Active = 1 and cd.Cohort between 1 and 13
@@ -176,7 +178,7 @@ Date:  4/15/2020
 		and pop.SystemPath is null
 		and (
 			 --for RRH and PSH, count only people who are housed in period
-			(hhid.ProjectType in (3,13) and hhid.MoveInDate <= cd.CohortEnd) 
+			(hhid.ProjectType in (3,13) and hhid.MoveInDate <= cd.CohortEnd)
 			--for night-by-night ES, count only people with bednights in period
 			or (hhid.TrackingMethod = 3 and hhid.ProjectType = 1
 				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
@@ -188,23 +190,23 @@ Date:  4/15/2020
 
 
 /*
-	8.12 Get Counts of Households by Project Type 
+	8.12 Get Counts of Households by Project Type
 */
 --Unduplicated count households for each project type
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ReportID)
 	select count (distinct cast(hhid.HoHID as nvarchar) + cast(hhid.ActiveHHType as nvarchar))
-		, cd.Cohort, case hhid.ProjectType 
-			when 1 then 11 
-			when 8 then 12	
-			when 2 then 13	
-			when 13 then 14	
+		, cd.Cohort, case hhid.ProjectType
+			when 1 then 11
+			when 8 then 12
+			when 2 then 13
+			when 13 then 14
 			else 15 end as Universe
 		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID, -1, 54
 		, cd.ReportID
-	from tlsa_HHID hhid 
+	from tlsa_HHID hhid
 	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
 		and bn.DateDeleted is null
@@ -217,28 +219,28 @@ Date:  4/15/2020
 		and (hhid.HHParent = pop.HHParent or pop.HHParent is null)
 		and (hhid.HHChronic = pop.HHChronic or pop.HHChronic is null)
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= hhid.EntryDate
-		  and (cd.CohortStart < hhid.ExitDate 
+		  and (cd.CohortStart < hhid.ExitDate
 			or hhid.ExitDate is null
 			or (hhid.ExitDate = cd.CohortStart and hhid.MoveInDate = cd.CohortStart))
 	where hhid.Active = 1 and cd.Cohort between 1 and 13
-		and pop.PopID between 0 and 10 and pop.PopType = 1 
+		and pop.PopID between 0 and 10 and pop.PopType = 1
 		and pop.SystemPath is null
 		and (
 			 --for RRH and PSH, count only people who are housed in period
-			(hhid.ProjectType in (3,13) and hhid.MoveInDate <= cd.CohortEnd) 
+			(hhid.ProjectType in (3,13) and hhid.MoveInDate <= cd.CohortEnd)
 			--for night-by-night ES, count only people with bednights in period
 			or (hhid.TrackingMethod = 3 and hhid.ProjectType = 1
 				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
 			or (hhid.TrackingMethod = 0 and hhid.ProjectType = 1)
 			or (hhid.ProjectType in (2,8))
 			)
-	group by cd.Cohort, pop.PopID, case hhid.ProjectType 
-			when 1 then 11 
-			when 8 then 12	
-			when 2 then 13	
-			when 13 then 14	
+	group by cd.Cohort, pop.PopID, case hhid.ProjectType
+			when 1 then 11
+			when 8 then 12
+			when 2 then 13
+			when 13 then 14
 			else 15 end, cd.ReportID
-		, pop.HHType 
+		, pop.HHType
 
 	--Unduplicated count of households for ES/SH/TH combined
 	insert into lsa_Calculated
@@ -249,7 +251,7 @@ Date:  4/15/2020
 		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID, -1, 54
 		, cd.ReportID
-	from tlsa_HHID hhid 
+	from tlsa_HHID hhid
 	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
 		and bn.DateDeleted is null
@@ -262,7 +264,7 @@ Date:  4/15/2020
 		and (hhid.HHParent = pop.HHParent or pop.HHParent is null)
 		and (hhid.HHChronic = pop.HHChronic or pop.HHChronic is null)
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= hhid.EntryDate
-		  and (cd.CohortStart < hhid.ExitDate 
+		  and (cd.CohortStart < hhid.ExitDate
 			or hhid.ExitDate is null
 			or (hhid.ExitDate = cd.CohortStart and hhid.MoveInDate = cd.CohortStart))
 	where hhid.Active = 1 and cd.Cohort between 1 and 13
@@ -275,7 +277,7 @@ Date:  4/15/2020
 			or (hhid.ProjectType in (2,8))
 			)
 	group by cd.Cohort, pop.PopID, cd.ReportID
-		, pop.HHType 
+		, pop.HHType
 
 /*
 	8.13 Get Counts of People by ProjectID and Personal Characteristics
@@ -285,7 +287,7 @@ Date:  4/15/2020
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ProjectID, ReportID)
 	select count (distinct lp.PersonalID)
-		, cd.Cohort, 10 
+		, cd.Cohort, 10
 		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID, -1, 55
 		, n.ProjectID, cd.ReportID
@@ -311,7 +313,7 @@ Date:  4/15/2020
 		) latest on latest.PersonalID = n.PersonalID and latest.ActiveHHType = hhid.ActiveHHType
 			and latest.ProjectID = hhid.ProjectID and latest.Age = n.ActiveAge
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
-		  and (cd.CohortStart < n.ExitDate 
+		  and (cd.CohortStart < n.ExitDate
 			or n.ExitDate is null
 			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
 	where n.Active = 1 and cd.Cohort between 1 and 13
@@ -320,7 +322,7 @@ Date:  4/15/2020
 		and pop.ProjectLevelCount = 1
 		and (
 			 --for RRH and PSH, count only people who are housed in period
-			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd) 
+			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd)
 			--for night-by-night ES, count only people with bednights in period
 			or (n.TrackingMethod = 3 and n.ProjectType = 1
 				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
@@ -343,12 +345,12 @@ Date:  4/15/2020
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ReportID)
 	select count (distinct lp.PersonalID)
-		, cd.Cohort, case n.ProjectType 
-			when 1 then 11 
-			when 8 then 12	
-			when 2 then 13	
-			when 13 then 14	
-			else 15 end 
+		, cd.Cohort, case n.ProjectType
+			when 1 then 11
+			when 8 then 12
+			when 2 then 13
+			when 13 then 14
+			else 15 end
 		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID, -1, 55
 		, cd.ReportID
@@ -378,14 +380,14 @@ Date:  4/15/2020
 		) latest on latest.PersonalID = n.PersonalID and latest.HHType = hhid.ActiveHHType
 			and latest.ProjectType = hhid.ProjectType and latest.Age = n.ActiveAge
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
-		  and (cd.CohortStart < n.ExitDate 
+		  and (cd.CohortStart < n.ExitDate
 			or n.ExitDate is null
 			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
 	where n.Active = 1 and cd.Cohort between 1 and 13
-		and pop.PopType = 3 
+		and pop.PopType = 3
 		and (
 			 --for RRH and PSH, count only people who are housed in period
-			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd) 
+			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd)
 			--for night-by-night ES, count only people with bednights in period
 			or (n.TrackingMethod = 3 and n.ProjectType = 1
 				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
@@ -405,7 +407,7 @@ Date:  4/15/2020
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ReportID)
 	select count (distinct lp.PersonalID)
-		, cd.Cohort, 16 
+		, cd.Cohort, 16
 		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID, -1, 55
 		, cd.ReportID
@@ -436,11 +438,11 @@ Date:  4/15/2020
 		) latest on latest.PersonalID = n.PersonalID and latest.HHType = hhid.ActiveHHType
 			and latest.ProjectType = hhid.ProjectType and latest.Age = n.ActiveAge
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
-		  and (cd.CohortStart < n.ExitDate 
+		  and (cd.CohortStart < n.ExitDate
 			or n.ExitDate is null
 			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
 	where n.Active = 1 and cd.Cohort between 1 and 13
-		and pop.PopType = 3 
+		and pop.PopType = 3
 		and (
 			--for night-by-night ES, count only people with bednights in period
 			(n.TrackingMethod = 3 and n.ProjectType = 1
@@ -469,7 +471,7 @@ Date:  4/15/2020
 		, pop.PopID, -1, 56
 		, n.ProjectID
 		, rpt.ReportID
-	from tlsa_Enrollment n 
+	from tlsa_Enrollment n
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
@@ -502,16 +504,16 @@ Date:  4/15/2020
 	select count (distinct n.PersonalID + cast(est.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(rrhpsh.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(bnd.theDate as nvarchar))
-		, 1, case n.ProjectType 
-			when 1 then 11 
-			when 8 then 12	
-			when 2 then 13	
-			when 13 then 14	
-			else 15 end 
+		, 1, case n.ProjectType
+			when 1 then 11
+			when 8 then 12
+			when 2 then 13
+			when 13 then 14
+			else 15 end
 		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 56
 		, rpt.ReportID
-	from tlsa_Enrollment n 
+	from tlsa_Enrollment n
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
@@ -544,7 +546,7 @@ Date:  4/15/2020
 		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 56
 		, rpt.ReportID
-	from tlsa_Enrollment n 
+	from tlsa_Enrollment n
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
@@ -578,7 +580,7 @@ Date:  4/15/2020
 		, pop.PopID, -1, 57
 		, n.ProjectID
 		, rpt.ReportID
-	from tlsa_Enrollment n 
+	from tlsa_Enrollment n
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 	inner join ref_Populations pop on
@@ -615,16 +617,16 @@ Date:  4/15/2020
 	select count (distinct n.PersonalID + cast(est.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(rrhpsh.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(bnd.theDate as nvarchar))
-		, 1, case n.ProjectType 
-			when 1 then 11 
-			when 8 then 12	
-			when 2 then 13	
-			when 13 then 14	
-			else 15 end 
+		, 1, case n.ProjectType
+			when 1 then 11
+			when 8 then 12
+			when 2 then 13
+			when 13 then 14
+			else 15 end
 		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 57
 		, rpt.ReportID
-	from tlsa_Enrollment n 
+	from tlsa_Enrollment n
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 	inner join ref_Populations pop on
@@ -662,7 +664,7 @@ Date:  4/15/2020
 		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 57
 		, rpt.ReportID
-	from tlsa_Enrollment n 
+	from tlsa_Enrollment n
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 	inner join ref_Populations pop on
@@ -695,16 +697,16 @@ Date:  4/15/2020
 		, Population, SystemPath, ReportRow, ProjectID, ReportID)
 	select count (distinct n.EnrollmentID), 20, 10, 0, 0, -1
 		, case when hx.ExitDate is null then 58
-			else 59 end 
+			else 59 end
 		, p.ProjectID, cd.ReportID
 	from tlsa_Enrollment n
-	left outer join hmis_Exit hx on hx.EnrollmentID = n.EnrollmentID 
-	inner join hmis_Project p on p.ProjectID = n.ProjectID 
+	left outer join hmis_Exit hx on hx.EnrollmentID = n.EnrollmentID
+	inner join hmis_Project p on p.ProjectID = n.ProjectID
 	inner join tlsa_CohortDates cd on cd.Cohort = 20 and p.OperatingEndDate between cd.CohortStart and cd.CohortEnd
 	where (hx.ExitDate is null or hx.ExitDate > p.OperatingEndDate)
 		and p.ProjectType in (1,2,3,8,13)
 	group by case when hx.ExitDate is null then 58
-			else 59 end 
+			else 59 end
 		, p.ProjectID, cd.ReportID
 
 /*
@@ -715,21 +717,21 @@ Date:  4/15/2020
 		, Population, SystemPath, ReportRow, ProjectID, ReportID)
 	select count (distinct hn.EnrollmentID), 20, 10, 0, 0, -1
 		, case when hx.ExitDate is null then 60
-			else 61 end 
+			else 61 end
 		, p.ProjectID, cd.ReportID
 	from tlsa_Enrollment n
 	inner join tlsa_CohortDates cd on cd.Cohort = 20
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
-	inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID 
-	left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
+	inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
+	left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
 	inner join hmis_Project p on p.ProjectID = hn.ProjectID and p.ProjectType = 1 and p.TrackingMethod = 3 and p.ContinuumProject = 1
 	left outer join (select distinct svc.EnrollmentID, max(svc.DateProvided) as LastBednight
 		from hmis_Services svc
 		inner join hmis_Enrollment nbn on nbn.EnrollmentID = svc.EnrollmentID
-		inner join hmis_Project p on p.ProjectID = nbn.ProjectID 
-			and p.ProjectType = 1 and p.TrackingMethod = 3 
+		inner join hmis_Project p on p.ProjectID = nbn.ProjectID
+			and p.ProjectType = 1 and p.TrackingMethod = 3
 			and (p.OperatingEndDate is null or p.OperatingEndDate >= DateProvided)
-		inner join tlsa_CohortDates cd on cd.Cohort = 20 
+		inner join tlsa_CohortDates cd on cd.Cohort = 20
 			and svc.DateProvided between cd.CohortStart and cd.CohortEnd
 		where svc.RecordType = 200 and svc.DateDeleted is null
 		group by svc.EnrollmentID
@@ -737,7 +739,7 @@ Date:  4/15/2020
 	where (hx.ExitDate is null and bn.LastBednight < dateadd(dd, -90, cd.CohortEnd))
 		or (hx.ExitDate <> dateadd(dd, 1, bn.LastBednight))
 	group by case when hx.ExitDate is null then 60
-			else 61 end 
+			else 61 end
 		, p.ProjectID, cd.ReportID
 
 /*
@@ -751,11 +753,11 @@ Date:  4/15/2020
 	inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
 	inner join hmis_Project p on p.ProjectID = hn.ProjectID and p.ContinuumProject = 1 and p.ProjectType in (1,2,3,8,13)
 	inner join hmis_ProjectCoC pcoc on pcoc.ProjectID = p.ProjectID and pcoc.CoCCode = rpt.ReportCoC
-	left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
+	left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID
 		and hx.ExitDate >= rpt.ReportStart
-	left outer join hmis_Enrollment hoh on hoh.HouseholdID = hn.HouseholdID 
-		and hoh.RelationshipToHoH = 1 
-	left outer join hmis_EnrollmentCoC coc on coc.EnrollmentID = hoh.EnrollmentID 
+	left outer join hmis_Enrollment hoh on hoh.HouseholdID = hn.HouseholdID
+		and hoh.RelationshipToHoH = 1
+	left outer join hmis_EnrollmentCoC coc on coc.EnrollmentID = hoh.EnrollmentID
 		and coc.InformationDate <= rpt.ReportEnd
 	where coc.CoCCode is null
 	group by p.ProjectID, rpt.ReportID
