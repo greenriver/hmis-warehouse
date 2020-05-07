@@ -88,7 +88,7 @@ module WarehouseReports::Cas
     private def client_ids_with_vispdats(client_scope)
       GrdaWarehouse::Hud::Client.where(id: client_scope.select(:id)).
         joins(:source_hmis_forms).
-        merge(GrdaWarehouse::HmisForm.vispdat).
+        merge(GrdaWarehouse::HmisForm.vispdat.where(vispdat_physical_disability_answer: 'Yes')).
         order(collected_at: :asc).
         pluck(c_t[:id], hmis_form_t[:vispdat_physical_disability_answer]).
         index_by(&:first) # order clause ensures most-recent response when indexed
