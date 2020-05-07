@@ -22,7 +22,7 @@ module WarehouseReports::Cas
         )
       @disabilities = client_ids_with_disability_types(@clients)
       @vispdats = client_ids_with_vispdats(@clients)
-      @clients = @clients.order(DOB: :asc)
+      @clients = @clients.order(DOB: :asc, LastName: :asc, FirstName: :asc)
       respond_to do |format|
         format.html do
           @clients = @clients.page(params[:page]).per(25)
