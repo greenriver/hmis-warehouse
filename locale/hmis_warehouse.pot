@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-13 17:29+0000\n"
-"PO-Revision-Date: 2020-02-13 17:29+0000\n"
+"POT-Creation-Date: 2020-05-06 20:05+0000\n"
+"PO-Revision-Date: 2020-05-06 20:05+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3480,6 +3480,9 @@ msgstr ""
 msgid "Consent form confirmed"
 msgstr ""
 
+msgid "Contact Tracing"
+msgstr ""
+
 msgid "Coordinated Entry Assessment"
 msgstr ""
 
@@ -3544,6 +3547,9 @@ msgid "HUD Reports"
 msgstr ""
 
 msgid "HUES Eligible"
+msgstr ""
+
+msgid "Health Priority"
 msgstr ""
 
 msgid "Homeless Service Provider Organization Name"
@@ -3681,6 +3687,9 @@ msgstr ""
 msgid "Part of a family"
 msgstr ""
 
+msgid "Pathways"
+msgstr ""
+
 msgid "Please attach each file as a separate document. Please do not upload a packet in which a number of documents are in one file."
 msgstr ""
 
@@ -3811,6 +3820,9 @@ msgid "You must attach a file in the form."
 msgstr ""
 
 msgid "client"
+msgstr ""
+
+msgid "clients"
 msgstr ""
 
 msgid "cohort enrollment"

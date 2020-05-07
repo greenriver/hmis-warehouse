@@ -62,5 +62,6 @@
           = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?', input_html: {class: :select2}
           = f.input :rrh_cas_readiness, label: 'Include RRH section in CAS Readiness?'
           = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', input_html: { multiple: true, class: 'select2' }
+          = f.input :health_priority_age, label: 'Age above which should be automatically flagged as health prioritized'
 
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'
