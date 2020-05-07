@@ -17,20 +17,17 @@ module WarehouseReports::Cas
           GrdaWarehouse::ServiceHistoryEnrollment.
             service_within_date_range(start_date: @filter.start, end_date: @filter.end),
         ).merge(
-          GrdaWarehouse::Hud::Project.where(id: @filter.effective_project_ids),
+          GrdaWarehouse::Hud::Project.viewable_by(current_user).
+            where(id: @filter.effective_project_ids),
         )
+      @disabilities = client_ids_with_disability_types(@clients)
+      @vispdats = client_ids_with_vispdats(@clients)
+      @clients = @clients.order(DOB: :asc)
       respond_to do |format|
         format.html do
-          @clients = @clients.page(params[:page]).
-            per(25)
-          @disabilities = client_ids_with_disability_types(@clients)
-          @vispdats = client_ids_with_vispdats(@clients)
-          @clients = @clients.order(DOB: :asc)
+          @clients = @clients.page(params[:page]).per(25)
         end
         format.xlsx do
-          @disabilities = client_ids_with_disability_types(@clients)
-          @vispdats = client_ids_with_vispdats(@clients)
-          @clients = @clients.order(DOB: :asc)
         end
       end
     end
@@ -64,7 +61,7 @@ module WarehouseReports::Cas
     helper_method :filter_params
 
     private def es_project_ids
-      GrdaWarehouse::Hud::Project.es.pluck(:id)
+      GrdaWarehouse::Hud::Project.viewable_by(current_user).es.pluck(:id)
     end
 
     private def filter_set?
