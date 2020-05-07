@@ -29,6 +29,7 @@ jobs:
             libcurl4-openssl-dev \
             freetds-dev \
             freetds-bin \
+            wkhtmltopdf \
             build-essential \
             libc6-dev
           sudo -upostgres createuser --echo --superuser $USER #give the runner
