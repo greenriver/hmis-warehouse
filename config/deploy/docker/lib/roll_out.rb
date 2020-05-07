@@ -35,6 +35,8 @@ class RollOut
 
   DEFAULT_CPU_SHARES = 256
 
+  NOT_SPOT = 'not-spot'
+
   def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:)
     self.aws_profile         = ENV.fetch('AWS_PROFILE')
     self.cluster             = ENV.fetch('AWS_CLUSTER') { self.aws_profile }
@@ -154,7 +156,7 @@ class RollOut
           next unless container_instance
 
           # non-spots have a nil, so this...
-          spotness = instance.instance_lifecycle || 'not-spot'
+          spotness = instance.instance_lifecycle || NOT_SPOT
 
           puts "[INFO] Making attribute for #{instance.instance_id} as instance_lifecycle=#{spotness}"
 
@@ -335,7 +337,7 @@ class RollOut
 
       placement_constraints << {
         type: 'memberOf',
-        expression: "attribute:instance-lifecycle != spot",
+        expression: "attribute:instance-lifecycle == #{NOT_SPOT}",
       }
     else
       puts "[INFO][CONST] Not constraining #{name}"
