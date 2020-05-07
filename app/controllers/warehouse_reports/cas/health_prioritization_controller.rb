@@ -48,7 +48,7 @@ module WarehouseReports::Cas
     end
 
     def filter_params
-      return {} unless filter_set?
+      return { project_ids: es_project_ids } unless filter_set?
 
       allowed = params.require(:filter).
         permit(
@@ -58,10 +58,14 @@ module WarehouseReports::Cas
         )
       allowed[:project_ids].reject!(&:blank?)
       # Prevent triggering "all" projects
-      allowed[:project_ids] = [0] if allowed[:project_ids].empty?
+      allowed[:project_ids] = es_project_ids if allowed[:project_ids].empty?
       allowed
     end
     helper_method :filter_params
+
+    private def es_project_ids
+      GrdaWarehouse::Hud::Project.es.pluck(:id)
+    end
 
     private def filter_set?
       params[:filter].present?
