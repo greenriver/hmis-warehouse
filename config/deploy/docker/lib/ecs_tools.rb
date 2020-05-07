@@ -138,9 +138,9 @@ class EcsTools
 
   # Rebuild the slow parts we hope to not have to build frequently like
   # installing packages, gems, and precompiling assets.
-  def clear_cache!(repo_name, repo_url)
+  def clear_cache!(repo_name)
     _run("docker image rm #{repo_name}:latest--pre-cache")
-    _run("docker image rm #{repo_url}:latest--pre-cache")
+    #_run("docker image rm #{repo_url}:latest--pre-cache")
 
     result = ecr.batch_delete_image({
       image_ids: [
