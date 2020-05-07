@@ -189,6 +189,7 @@ module Health
       agency_id.present?
     end
 
+    # The engagement date is the date by which a patient must be engaged
     def engagement_date
       return nil unless enrollment_start_date.present?
 

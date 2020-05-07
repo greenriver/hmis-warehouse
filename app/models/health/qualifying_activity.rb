@@ -32,22 +32,29 @@ module Health
     phi_attr :duplicate_id, Phi::OtherIdentifier
     phi_attr :epic_source_id, Phi::OtherIdentifier
 
-
     MODE_OF_CONTACT_OTHER = 'other'
     REACHED_CLIENT_OTHER = 'collateral'
 
-    scope :submitted, -> {where.not(claim_submitted_on: nil)}
-    scope :unsubmitted, -> {where(claim_submitted_on: nil)}
+    scope :submitted, -> do
+      where.not(claim_submitted_on: nil)
+    end
+
+    scope :unsubmitted, -> do
+      where(claim_submitted_on: nil)
+    end
+
     scope :submittable, -> do
       where.not(
         mode_of_contact: nil,
         reached_client: nil,
         activity: nil,
-        follow_up: nil
+        follow_up: nil,
       )
     end
 
-    scope :in_range, -> (range) { where(date_of_activity: range)}
+    scope :in_range, ->(range) do
+      where(date_of_activity: range)
+    end
 
     scope :direct_contact, -> do
       where(reached_client: :yes)
@@ -58,11 +65,15 @@ module Health
     end
 
     scope :payable, -> do
-      where(hqa_t[:naturally_payable].eq(true).or(hqa_t[:force_payable].eq(true)))
+      where(naturally_payable: true).
+        or(where(force_payable: true))
     end
 
     scope :unpayable, -> do
-      where(naturally_payable: false, force_payable: false)
+      where(
+        naturally_payable: false,
+        force_payable: false,
+      )
     end
 
     scope :duplicate, -> do
@@ -76,18 +87,20 @@ module Health
     # Flag these for possibly ignoring in the future
     # NOTE: this needs to stay in-sync with the method valid_unpayable?
     scope :valid_unpayable, -> do
+      # FIXME: Update to new restrictions
       joins(patient: :patient_referral).
-      where(
-        hqa_t[:reached_client].eq(:no).
-        and(
-          hqa_t[:mode_of_contact].in([:phone_call, :video_call])
-        ).or(
-          hqa_t[:date_of_activity].gt(Arel.sql("#{hpr_t[:enrollment_start_date].to_sql} + INTERVAL '3 months'")).
-          and(
-            hqa_t[:activity].in(in_first_three_months_activities)
+        # Case 2:
+        where(
+          reached_client: :no,
+          mode_of_contact: [:phone_call, :video_call],
+        )
+        .or(
+          # Case 5:
+          where(
+            date_of_activity: (enrollment_start_date..(enrollment_start_date + 3.months)),
+            activity: in_first_three_months_activities,
           )
         )
-      )
     end
 
     scope :not_valid_unpayable, -> do
@@ -222,6 +235,13 @@ module Health
           weight: 100,
         },
       }.sort_by{|_, m| m[:weight]}.to_h
+    end
+
+    def self.care_plan_related_activities
+      @care_plan_related_activities ||= [
+        'care_planning',
+        'pctp_signed',
+      ]
     end
 
     def self.date_search(start_date, end_date)
@@ -385,6 +405,14 @@ module Health
       self.class.activities[activity&.to_sym].try(:[], :code)&.split(' ').try(:[], 0)
     end
 
+    def outreach?
+      activity == 'outreach'
+    end
+
+    def care_plan_related?
+      self.class.care_plan_related_activities.include? activity
+    end
+
     def modifiers
       modifiers = []
       # attach modifiers from activity
@@ -400,8 +428,8 @@ module Health
       modifiers = self.modifiers
       reached_client = self.reached_client
       # Some special cases
-      return false if modifiers.include?('U2') && modifiers.include?('U3')
-      return false if modifiers.include?('U1') && modifiers.include?('HQ')
+      return false if modifiers.include?('U2') && modifiers.include?('U3') # Marked as both f2f and indirect
+      return false if modifiers.include?('U1') && modifiers.include?('HQ') # Marked as both individual and group
       if procedure_code.to_s == 'T2024' && modifiers.include?('U4') || procedure_code.to_s == 'T2024>U4'
         procedure_code = 'T2024>U4'
         modifiers = modifiers.uniq - ['U4']
@@ -419,7 +447,9 @@ module Health
       if reached_client.to_s == 'no'
         return false if modifiers.uniq.count == 1 && modifiers.include?('U2') && procedure_code.to_s != 'G9011'
       end
+
       return false if procedure_code.blank?
+      return false unless in_validity_window?
       return true if modifiers.empty?
 
       # Check that all of the modifiers we have occur in the acceptable modifiers
@@ -429,9 +459,11 @@ module Health
     # Check for date restrictions (some QA must be completed within a set date range)
     def meets_date_restrictions?
       return true unless restricted_procedure_codes.include? procedure_code
+
       if in_first_three_months_procedure_codes.include? procedure_code
-        return occurred_within_three_months_of_enrollment
+        return occurred_within_three_months_of_enrollment?
       end
+
       return true
     end
 
@@ -445,7 +477,29 @@ module Health
     end
 
     def first_of_type_for_day_for_patient?
+      # Assumes ids are strictly increasing, so the lowest id will
+      # be the id of the first QA on the day
       same_of_type_for_day_for_patient.minimum(:id) == self.id
+    end
+
+    # Find the id of the first_of_type_for_day_for_patient if is
+    # different from this one.
+    def first_of_type_for_day_for_patient_not_self
+      min_id = same_of_type_for_day_for_patient.minimum(:id)
+      return nil if min_id == id
+      return min_id
+    end
+
+    def first_non_care_plan_of_month_for_patient?
+      non_care_plan_for_month_for_patient.minimum(:id) == self.id
+    end
+
+    def number_of_outreach_activities
+      self.class.where(
+        activity: 'outreach',
+        patient_id: patient_id,
+        date_of_activity: patient.current_enrollment_ranges,
+      )
     end
 
     def same_of_type_for_day_for_patient
@@ -456,17 +510,22 @@ module Health
       )
     end
 
-    def first_of_type_for_day_for_patient_not_self
-      min_id = same_of_type_for_day_for_patient.minimum(:id)
-      return nil if min_id == id
-      return min_id
+    def non_care_plan_for_month_for_patient
+      self.class.
+        where(
+          patient_id: patient_id,
+          date_of_activity: (date_of_activity.beginning_of_month..date_of_activity.end_of_month),
+        ).
+        where.not(
+          activity: self.class.care_plan_related_activities
+        )
     end
 
     def calculate_payability!
       # Meets general restrictions
       # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
       # will still be submitted
-      self.naturally_payable = procedure_valid? && occurred_after_enrollment?
+      self.naturally_payable = procedure_valid? && occurred_during_any_enrollment?
       if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code)
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
         self.duplicate_id = first_of_type_for_day_for_patient_not_self
@@ -479,13 +538,26 @@ module Health
     # NOTE: this needs to stay in-sync with the scope valid_unpayable
     # for speed reasons we re-implement the logic here
     def valid_unpayable?
+      # Case 1: Only valid procedures
       return false unless procedure_valid?
-      # Only valid procedures
-      # Unpayable if this was a phone/video call where the client wasn't reached
+
+      # Case 2: Unpayable if this was a phone/video call where the client wasn't reached
       if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
         return true
       end
-      # unpayable if it doesn't meet the date restrictions
+
+      # Case 3: May be unpayable if there is no valid care plan
+      if ! patient_has_valid_care_plan? && in_care_plan_development_period?
+        # Only one non-careplan item per month (also limits to 5)
+        return ! first_non_care_plan_of_month_for_patient? unless care_plan_related?
+      end
+
+      # Case 4: Unpayable if there are too many outreach actions
+      if outreach?
+        return true if number_of_outreach_activities > 3
+      end
+
+      # Case 5: npayable if it doesn't meet the date restrictions
       if ! meets_date_restrictions?
         return true
       end
@@ -510,21 +582,50 @@ module Health
       same_of_type_for_day_for_patient.submitted.exists?
     end
 
-    def occurred_after_enrollment?
-      date_of_activity.present? && patient&.patient_referral.present? && date_of_activity >= patient.patient_referral.enrollment_start_date
+    def occurred_during_any_enrollment?
+      date_of_activity.present? && patient.patient_referrals.active_within_range(start_date: date_of_activity, end_date: date_of_activity).exists?
     end
 
-    def occurred_within_three_months_of_enrollment
-      date_of_activity.present? && patient&.patient_referral.present? && patient&.enrollment_start_date.present? && date_of_activity <= (patient.outreach_cutoff_date)
+    def occurred_during_enrollment?
+      date_of_activity.present? && patient.patient_referrals.contributing.active_within_range(start_date: date_of_activity, end_date: date_of_activity).exists?
+    end
+
+    def occurred_within_three_months_of_enrollment?
+      date_of_activity.present? && patient.current_days_enrolled <= 90
+    end
+
+    def patient_has_valid_care_plan?
+      return false unless patient.care_plan_renewal_date.present?
+      return false unless date_of_activity.present?
+
+      date_of_activity >= patient.care_plan_provider_signed_date && date_of_activity < patient.care_plan_renewal_date
+    end
+
+    def in_care_plan_development_period?
+      date_of_activity.present? && patient.current_days_enrolled <= 150
+    end
+
+    def in_validity_window?
+      return false unless date_of_activity.present?
+
+      if outreach?
+        return false unless occurred_within_three_months_of_enrollment?
+      end
+
+      if ! care_plan_related?
+        return false unless patient_has_valid_care_plan? || in_care_plan_development_period?
+      end
+
+      return true
     end
 
     def once_per_day_procedure_codes
       [
-        'G0506',
-        'T2024',
-        'T2024>U4',
-        'T1023',
-        'T1023>U6',
+        'G0506', # cha
+        'T2024', # care planning
+        'T2024>U4', # completed care planning
+        'T1023', # screening completed
+        'T1023>U6', # referral to ACO
       ]
     end
 
@@ -534,7 +635,7 @@ module Health
 
     def self.in_first_three_months_procedure_codes
       [
-        'G9011',
+        'G9011', # outreach
       ]
     end
 

@@ -328,6 +328,20 @@ module Health
       end
     end
 
+    def current_days_enrolled
+      patient_referrals.contributing.reduce(0) do |sum, referral|
+        end_date = referral.disenrollment_date || Date.current
+        sum + (end_date - referral.enrollment_start_date).to_i
+      end
+    end
+
+    def current_enrollment_ranges
+      patient_referrals.contributing.map do |referral|
+        end_date = referral.disenrollment_date || Date.current
+        (referral.enrollment_start_date..end_date)
+      end
+    end
+
     # Priority:
     # Authoritative: Epic (epic_patient)
     # Updates from MassHealth (patient_referral)
