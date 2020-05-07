@@ -56,6 +56,7 @@ module Admin
         :auto_confirm_consent,
         :health_emergency,
         :health_emergency_tracing,
+        :health_priority_age,
         client_details: [],
       )
     end

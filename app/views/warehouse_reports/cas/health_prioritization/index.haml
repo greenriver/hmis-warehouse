@@ -1,0 +1,45 @@
+- title = 'Health Prioritization'
+- content_for :title, title
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'cas'
+= simple_form_for :filter, url: warehouse_reports_cas_health_prioritization_index_path, html: { method: :get } do |f|
+  = render 'filter', f: f
+
+.d-flex.mb-4
+  = link_to warehouse_reports_cas_health_prioritization_index_path(filter: filter_params, format: :xlsx), class: 'btn btn-sm btn-secondary ml-auto' do
+    %i.icon.icon-download2
+    Download
+.row
+  .col-md-4
+    %p= page_entries_info @clients, entry_name: _('client')
+  .col-md-8.d-flex
+    %p.ml-auto= paginate @clients
+.table-responsive
+  %table.table.table-condensed.jClientTable
+    %thead
+      %tr
+        %th Client
+        %th Age
+        %th{data: {toggle: :tooltip, title: 'Physical Disability or HIV/AIDS indefinite and impairing reported'}}
+          HMIS Physical Disability?
+          %i.icon-info
+        %th{data: {toggle: :tooltip, title: 'Client reported liver, kidneys, stomach, lungs or heart '}}
+          VI-SPDAT
+          %i.icon-info
+        %th Prioritize in CAS?
+    %tbody
+      - @clients.each do |client|
+        %tr
+          %td= link_to(client.name, client_path(client))
+          %td= client.age
+          %td= checkmark_or_x(@disabilities.key?(client.id))
+          %td= checkmark_or_x(@vispdats.key?(client.id))
+          %td= render 'form', client: client
+%p= paginate @clients
+= content_for :page_js do
+  :javascript
+    $('.jClientTable input[type=submit]').hide();
+    $('.jClientTable').on('change', '.jClientForm input', function(e){
+      var form = $(e.target).closest('form');
+      form.trigger('submit');
+    });

@@ -173,6 +173,7 @@ module GrdaWarehouse::Tasks
         sro_ok: :sro_ok,
         evicted: :evicted,
         dv_rrh_desired: :dv_rrh_desired,
+        health_prioritized: :health_prioritized_for_cas?,
       }
     end
   end

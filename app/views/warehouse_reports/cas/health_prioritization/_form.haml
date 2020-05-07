@@ -1,0 +1,10 @@
+- if client.auto_health_prioritized_for_cas?
+  .d-flex
+    .mr-2= checkmark(true)
+    Auto Prioritized
+- else
+  .jClientForm{id: "client_form_#{client.id}"}
+    = simple_form_for client, as: :client, url: client_warehouse_reports_cas_health_prioritization_path(client, filter: filter_params), method: :patch, remote: true do |f|
+      .d-flex
+        = f.input :health_prioritized, collection: client.health_prioritization_options, label: 'Prioritized because of health', include_blank: true, as: :boolean_button_group, input_html: { id: "health_prioritized_#{client.id}" }
+        = f.submit 'Update', class: 'btn btn-sm btn-secondary ml-auto mt-auto'
