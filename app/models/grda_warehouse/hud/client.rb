@@ -1861,6 +1861,11 @@ module GrdaWarehouse::Hud
       health_prioritized == 'Yes'
     end
 
+    def auto_health_prioritized_for_cas?
+      return false unless GrdaWarehouse::Config.get(:health_priority_age).present?
+      age >= GrdaWarehouse::Config.get(:health_priority_age)
+    end
+
     def invalidate_service_history
       if processed_service_history.present?
         processed_service_history.destroy
