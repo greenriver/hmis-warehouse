@@ -26,7 +26,16 @@
             - if GrdaWarehouse::Config.get(:client_details).include?('cas_match_override')
               = f.input :cas_match_override, as: :date_picker, label: "Override Date Matched In CAS"
             - if GrdaWarehouse::Config.get(:client_details).include?('health_prioritized')
-              = f.input :health_prioritized, label: 'Prioritized because of health', collection: @client.health_prioritization_options, include_blank: true, as: :boolean_button_group
+              - if @client.auto_health_prioritized_for_cas?
+                .client__health-prioritized
+                  %dl
+                    %dt Prioritized because of health
+                    %dd
+                      .d-flex
+                        .mr-2= checkmark(true)
+                        Auto Prioritized
+              - else
+                = f.input :health_prioritized, label: 'Prioritized because of health', collection: @client.health_prioritization_options, include_blank: true, as: :boolean_button_group
           .form-group.col-md-4
             = f.input :chronically_homeless_for_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:chronically_homeless_for_cas], wrapper_html: check_wrapper_class
   .row
