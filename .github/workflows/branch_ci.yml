@@ -108,5 +108,6 @@ jobs:
           PORT: 80
           CLIENT: test
           ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+          WKHTMLTOPDF_PATH: /usr/local/bin/wkhtmltopdf
         run: |
           bundle exec rspec --color --format documentation
