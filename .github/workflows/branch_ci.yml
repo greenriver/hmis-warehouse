@@ -32,7 +32,6 @@ jobs:
             libcurl4-openssl-dev \
             freetds-dev \
             freetds-bin \
-            wkhtmltopdf \
             build-essential \
             libc6-dev
           sudo -upostgres createuser --echo --superuser $USER #give the runner
@@ -44,6 +43,9 @@ jobs:
           createdb $REPORTING_DATABASE_DB_TEST
           gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
           gem install bundler -v '< 2'
+          wget https://downloads.wkhtmltopdf.org/0.12/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
+          sudo apt-get install fontconfig libxrender1 xfonts-75dpi xfonts-base
+          sudo dpkg -i wkhtmltox_0.12.5-1.bionic_amd64.deb
       - name: 'Install gems'
         run: |
           bundle install --jobs 4 --retry 3 --without production staging development
