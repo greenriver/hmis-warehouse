@@ -31,7 +31,8 @@ ENV GROVER_NO_SANDBOX=true \
     CHROMIUM_PATH=/usr/bin/chromium-browser
 RUN apk add --no-cache \
   wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
-  chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont
+  chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+  lftp
 
 LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=2.6.5
