@@ -16,34 +16,23 @@ RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
     -keyout key.pem -out cert.pem
 
 
-#################
-## wkhtmltopdf ##
-#################
-
-FROM opencomp/wkhtmltopdf:0.12.5-alpine3.10 AS wkhtmltopdf
-
 ##################
 ## Actual Build ##
 ##################
 
 FROM open-path-warehouse:latest--pre-cache
 
-
-# FIXME: push up to pre-cache
-# https://beuke.org/docker-alpine-wkhtmltopdf/
-RUN apk add --update --no-cache \
-  wkhtmltopdf \
-  libgcc libstdc++ libx11 glib libxrender libxext libintl \
-  ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family
-# FIXME: push up to pre-cache
-RUN mkdir -p locale var
-# FIXME: push up to pre-cache
-ENV RAILS_LOG_TO_STDOUT=true \
-  RAILS_SERVE_STATIC_FILES=true \
-  LANG=en_US.UTF-8 \
-  LANGUAGE=en_US.UTF-8
-
 ARG BUILDER
+
+# FIXME: delete after next pre-cache build
+ENV GROVER_NO_SANDBOX=true \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    CHROMIUM_PATH=/usr/bin/chromium-browser
+RUN apk add --no-cache \
+  wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+  chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+  lftp
 
 LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=2.6.5

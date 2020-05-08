@@ -4,6 +4,13 @@
 
 FROM ruby:2.6.5-alpine
 
+# wkhtmltopdf line
+# https://beuke.org/docker-alpine-wkhtmltopdf/
+#
+# puppetteer line starts with chromium
+# Installs latest Chromium package.
+#
+# lftp for tarrant county only at the moment
 RUN apk add --no-cache \
   nodejs yarn \
   tzdata \
@@ -13,12 +20,19 @@ RUN apk add --no-cache \
   icu icu-dev \
   curl libcurl curl-dev \
   libmagic file-dev file \
-  build-base libxml2-dev libxslt-dev postgresql-dev
+  build-base libxml2-dev libxslt-dev postgresql-dev \
+  wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+  chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+  lftp
+
+# Puppeteer v1.19.0 works with Chromium 77.
+# package.json in the app I think covers this:
+#RUN yarn add puppeteer@1.19.0
 
 WORKDIR /app
 
 RUN gem install bundler --version=1.17.3 && \
-  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var
+  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var locale
 
 COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
 COPY bin ./bin
@@ -32,7 +46,16 @@ COPY config/deploy/docker/assets/dotenv.temporary ./.env
 # https://github.com/sass/sassc-ruby/issues/146#issuecomment-542288556
 # core dumps during precompile on github when using the pre-cache image pulled
 # from ECR
-ENV BUNDLE_BUILD__SASSC=--disable-march-tune-native
+ENV BUNDLE_BUILD__SASSC=--disable-march-tune-native \
+    RAILS_LOG_TO_STDOUT=true \
+    RAILS_SERVE_STATIC_FILES=true \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8 \
+    # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    GROVER_NO_SANDBOX=true \
+    CHROMIUM_PATH=/usr/bin/chromium-browser
 
 # If assets or gems don't change, those steps in the final build should be fast
 RUN bundle install --without=development && \
