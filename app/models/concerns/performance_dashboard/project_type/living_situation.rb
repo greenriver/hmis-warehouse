@@ -41,8 +41,8 @@ module PerformanceDashboard::ProjectType::LivingSituation
   def prior_living_situations_data_for_chart
     @prior_living_situations_data_for_chart ||= begin
       columns = [(@start_date..@end_date).to_s]
-      columns += prior_living_situations.values.map(&:count)
-      categories = prior_living_situations.keys.map do |k|
+      columns += prior_living_situations.values.map(&:count).reverse
+      categories = prior_living_situations.keys.reverse.map do |k|
         if k == :other
           'All others'
         else
