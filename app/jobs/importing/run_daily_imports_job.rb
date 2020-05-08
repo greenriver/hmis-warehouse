@@ -221,6 +221,8 @@ module Importing
         @notifier.ping('Updated Family Status based on ETO TouchPoints') if @send_notifications
         GrdaWarehouse::HmisForm.set_missing_housing_status
         @notifier.ping('Set Housing Status based on ETO TouchPoints') if @send_notifications
+        GrdaWarehouse::HmisForm.set_missing_physical_disabilities
+        @notifier.ping('Set Physical Disabilities based on ETO TouchPoints') if @send_notifications
       end
 
       # Maintain ETO based CAS flags

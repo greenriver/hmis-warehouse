@@ -2,7 +2,7 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'exports'
-%p Client selection will be limited to those with open enrollments in any chosen projects, organizations, or data sources within the date range.  Only projects in ES, SO, SH, TH, and PH are included. Calculations of time homeless, episodes, etc. are not limited by the chosen filter options.
+%p Client selection will be limited to those with open enrollments in any chosen projects, organizations, or data sources within the date range.  Only projects in ES, SO, SH, and TH are included. Calculations of time homeless, episodes, etc. are not limited by the chosen filter options.
 = render 'filter'
 
 .warehouse-reports__ad_hoc-export

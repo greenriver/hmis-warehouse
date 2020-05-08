@@ -53,6 +53,24 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     end
     @exits[client.id]
   end
+  
+  def most_recent_exit_with_destination_for_client(client)
+    @most_recent_exit_with_destination_for_client ||= begin
+      exits = {}
+      clients.joins(:source_exits).
+        includes(:source_exits).
+        merge(enrollment_universe).
+        merge(
+          GrdaWarehouse::Hud::Exit.where(ex_t[:ExitDate].lteq(filter.last)).
+            where.not(Destination: nil)
+        ).
+        find_each do |client_record|
+          exits[client_record.id] = client_record.source_exits.max_by(&:ExitDate)
+        end
+      exits
+    end
+    @most_recent_exit_with_destination_for_client[client.id]
+  end
 
   def enrollment_for_client(client)
     enrollments[client.id]

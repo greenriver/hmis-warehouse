@@ -27,6 +27,16 @@ module LsaSqlServer
       ReportingBase.connection.reconnect!
     end
 
+    def setup_test_report
+      step = 'lib/rds_sql_server/lsa/fy2019/sample_code/3_1 LSAReport Parameters and Vendor Info Hardcoded Sample Data.sql'
+      run_query(step)
+    end
+
+    def setup_test_projects
+      step = 'lib/rds_sql_server/lsa/fy2019/sample_code/4_1 Get Project Records for Export.sql'
+      run_query(step)
+    end
+
     def insert_projects
       # Limit the projects that are reported to those selected
       query = <<~SQL

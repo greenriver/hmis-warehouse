@@ -348,6 +348,12 @@ def report_list
         description: _('Find clients who need a Coordinated Entry re-assessment.'),
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/cas/health_prioritization',
+        name: 'Health Prioritization',
+        description: _('Bulk set Health Prioritization for CAS.'),
+        limitable: true,
+      },
     ],
     'Audit Reports' => [
       {

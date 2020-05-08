@@ -95,7 +95,7 @@ module WarehouseReports::Export
 
     private def filter_for_sub_population(clients)
       clients.joins(:service_history_enrollments).
-        merge(GrdaWarehouse::ServiceHistoryEnrollment.residential.public_send(filter.sub_population))
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.homeless.public_send(filter.sub_population))
     end
 
     def yes_no(bool)
