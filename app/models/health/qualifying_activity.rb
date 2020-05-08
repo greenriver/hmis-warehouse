@@ -89,16 +89,17 @@ module Health
     scope :valid_unpayable, -> do
       # FIXME: Update to new restrictions
       joins(patient: :patient_referral).
-        # Case 2:
         where(
-          reached_client: :no,
-          mode_of_contact: [:phone_call, :video_call],
-        )
-        .or(
-          # Case 5:
-          where(
-            date_of_activity: (enrollment_start_date..(enrollment_start_date + 3.months)),
-            activity: in_first_three_months_activities,
+          # Case 2:
+          hqa_t[:reached_client].eq(:no).
+            and(
+              hqa_t[:mode_of_contact].in([:phone_call, :video_call])
+            ).or(
+            # Case 5:
+            hqa_t[:date_of_activity].gt(Arel.sql("#{hpr_t[:enrollment_start_date].to_sql} + INTERVAL '3 months'")).
+              and(
+                hqa_t[:activity].in(in_first_three_months_activities)
+              )
           )
         )
     end
@@ -499,7 +500,7 @@ module Health
         activity: 'outreach',
         patient_id: patient_id,
         date_of_activity: patient.current_enrollment_ranges,
-      )
+      ).count
     end
 
     def same_of_type_for_day_for_patient
@@ -557,7 +558,7 @@ module Health
         return true if number_of_outreach_activities > 3
       end
 
-      # Case 5: npayable if it doesn't meet the date restrictions
+      # Case 5: Unpayable if it doesn't meet the date restrictions
       if ! meets_date_restrictions?
         return true
       end
