@@ -141,7 +141,7 @@ class Deployer
   def _check_that_you_pushed_to_remote!
     branch = `git rev-parse --abbrev-ref HEAD`.chomp
     remote = `git ls-remote origin | grep #{branch}`.chomp
-    our_commit = `git rev-parse ecs-deploy`.chomp
+    our_commit = `git rev-parse #{branch}`.chomp
 
     if ! remote.start_with?(our_commit)
       raise "Push or pull your branch first!"
