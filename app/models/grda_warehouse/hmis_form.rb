@@ -495,15 +495,16 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def vispdat_physical_disability
-    relevant_section = answers[:sections].select do |section|
-      section[:section_title].downcase.include?('k: wellness') && section[:questions].present?
-    end&.first
-    return nil unless relevant_section.present?
-
-    relevant_question = relevant_section[:questions].select do |question|
-      question[:question].downcase.starts_with?('k-2. 17. do you have any chronic health issues with your liver')
-    end&.first.try(:[], :answer)
-    relevant_question
+    health_sections = answers[:sections].select do |section|
+      section[:section_title].downcase.include?(': wellness') && section[:questions].present?
+    end.compact
+    return nil unless health_sections.present?
+    
+    health_sections.map do |relevant_section|
+      relevant_section[:questions].select do |question|
+        question[:question].downcase.include?('issues with your liver')
+      end&.first.try(:[], :answer)      
+    end.compact.detect(&:presence)
   end
 
   def vispdat_days_homeless
