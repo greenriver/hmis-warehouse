@@ -80,7 +80,7 @@ module PerformanceDashboard::ProjectType::Detail
     }
     # Add any additional columns
     columns['Living Situation'] = e_t[:LivingSituation] if options[:living_situation]
-    columns['Destination'] = c_t[:Destination] if options[:destination]
+    columns['Destination'] = she_t[:destination] if options[:destination]
     columns
   end
 end
