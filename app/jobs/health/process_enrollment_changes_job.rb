@@ -92,6 +92,8 @@ module Health
           updated_patients: updated_patients,
           status: 'complete',
         )
+
+        Health::Tasks::CalculateValidUnpayableQas.new.run!
       rescue Exception => e
         enrollment.update(status: e)
       end

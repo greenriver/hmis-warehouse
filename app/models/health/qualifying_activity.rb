@@ -84,28 +84,14 @@ module Health
     # but obviously un-payable
     # For example: U3 (phone call) with client_reached "did not reach"
     # or the outreach was outside of the allowable window
-    # Flag these for possibly ignoring in the future
-    # NOTE: this needs to stay in-sync with the method valid_unpayable?
+    #
+    # NOTE: this is computed daily and depends on both the QA import and the referrals
     scope :valid_unpayable, -> do
-      # FIXME: Update to new restrictions
-      joins(patient: :patient_referral).
-        where(
-          # Case 2:
-          hqa_t[:reached_client].eq(:no).
-            and(
-              hqa_t[:mode_of_contact].in([:phone_call, :video_call])
-            ).or(
-            # Case 5:
-            hqa_t[:date_of_activity].gt(Arel.sql("#{hpr_t[:enrollment_start_date].to_sql} + INTERVAL '3 months'")).
-              and(
-                hqa_t[:activity].in(in_first_three_months_activities)
-              )
-          )
-        )
+      where(valid_unpayable: true)
     end
 
     scope :not_valid_unpayable, -> do
-      where.not(id: valid_unpayable.select(:id))
+      where(valid_unpayable: false)
     end
 
     scope :after_enrollment_date, -> do
