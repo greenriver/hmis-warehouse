@@ -85,9 +85,8 @@ module Health
     scope :completed_within_range, -> (range) do
       where(completed_at: range)
     end
-    scope :after_enrollment_date, -> do
-      joins(patient: :patient_referral).
-      where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date]))
+    scope :during_current_enrollment, -> do
+      where(completed_at: patient.current_enrollment_ranges)
     end
 
     attr_accessor :file

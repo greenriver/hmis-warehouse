@@ -141,9 +141,8 @@ module Health
     scope :recently_signed, -> do
       active.where(arel_table[:provider_signed_on].gteq(1.months.ago))
     end
-    scope :after_enrollment_date, -> do
-      joins(patient: :patient_referral).
-      where(arel_table[:provider_signed_on].gteq(hpr_t[:enrollment_start_date]))
+    scope :during_current_enrollment, -> do
+      where(provider_signed_on: patient.current_enrollment_ranges)
     end
 
     # End Scopes

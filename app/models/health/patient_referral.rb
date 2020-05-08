@@ -205,7 +205,7 @@ module Health
       return false unless enrollment_start_date
 
       careplan_date = patient&.qualifying_activities&.
-        after_enrollment_date&.
+        during_current_enrollment&.
         submittable&.
         where(activity: :pctp_signed)&.
         minimum(:date_of_activity)

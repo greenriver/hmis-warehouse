@@ -46,6 +46,7 @@ module Health
     scope :unsigned, -> do
       where(signature_on: nil)
     end
+
     scope :signed, -> do
       where.not(signature_on: nil)
     end
@@ -61,9 +62,8 @@ module Health
     scope :recently_signed, -> do
       active.where(arel_table[:signature_on].gteq(1.months.ago))
     end
-    scope :after_enrollment_date, -> do
-      joins(patient: :patient_referral).
-      where(arel_table[:signature_on].gteq(hpr_t[:enrollment_start_date]))
+    scope :during_current_enrollment, -> do
+      where(signature_on: patient.current_enrollment_ranges)
     end
 
     attr_accessor :reviewed_by_supervisor, :file

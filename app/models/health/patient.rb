@@ -207,35 +207,35 @@ module Health
 
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.distinct.
         completed.
-        after_enrollment_date.
+        during_current_enrollment.
         select(:patient_id)
 
       epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
-        after_enrollment_date.
+        during_current_enrollment.
         select(hp_t[:id].to_sql)
 
       participation_form_patient_id_scope = Health::ParticipationForm.distinct.
         valid.
-        after_enrollment_date.
+        during_current_enrollment.
         select(:patient_id)
 
       release_form_patient_id_scope = Health::ReleaseForm.distinct.
         valid.
-        after_enrollment_date.
+        during_current_enrollment.
         select(:patient_id)
 
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.distinct.
         reviewed.
-        after_enrollment_date.
+        during_current_enrollment.
         select(:patient_id)
 
       epic_cha_patient_id_scope = Health::EpicCha.distinct.
-        after_enrollment_date.
+        during_current_enrollment.
         select(hp_t[:id].to_sql)
 
       pctp_signed_patient_id_scope = Health::Careplan.distinct.
         locked.
-        after_enrollment_date.
+        during_current_enrollment.
         select(:patient_id)
       # epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 
@@ -444,110 +444,110 @@ module Health
       @participation_form_status ||= if active_participation_form? && ! expiring_participation_form?
         # Valid
       elsif expiring_participation_form?
-        "Participation form expires #{participation_forms.recent.expiring_soon.after_enrollment_date.last.expires_on}"
+        "Participation form expires #{participation_forms.recent.expiring_soon.during_current_enrollment.last.expires_on}"
       elsif expired_participation_form?
-        "Participation expired on #{participation_forms.recent.expired.after_enrollment_date.last.expires_on}"
+        "Participation expired on #{participation_forms.recent.expired.during_current_enrollment.last.expires_on}"
       end
     end
 
     private def active_participation_form?
-      @active_participation_form ||= participation_forms.active.after_enrollment_date.exists?
+      @active_participation_form ||= participation_forms.active.during_current_enrollment.exists?
     end
 
     private def expiring_participation_form?
-      @expiring_participation_form ||= participation_forms.expiring_soon.after_enrollment_date.exists?
+      @expiring_participation_form ||= participation_forms.expiring_soon.during_current_enrollment.exists?
     end
 
     private def expired_participation_form?
-      @expired_participation_form ||= participation_forms.expired.after_enrollment_date.exists?
+      @expired_participation_form ||= participation_forms.expired.during_current_enrollment.exists?
     end
 
     def release_status
       @release_status ||= if active_release? && ! expiring_release?
         # Valid
       elsif expiring_release?
-        "Release of information expires #{release_forms.recent.expiring_soon.after_enrollment_date.last.expires_on}"
+        "Release of information expires #{release_forms.recent.expiring_soon.during_current_enrollment.last.expires_on}"
       elsif expired_release?
-        "Release of information expired on #{release_forms.recent.expired.after_enrollment_date.last.expires_on}"
+        "Release of information expired on #{release_forms.recent.expired.during_current_enrollment.last.expires_on}"
       end
     end
 
     private def active_release?
-      @active_release ||= release_forms.active.after_enrollment_date.exists?
+      @active_release ||= release_forms.active.during_current_enrollment.exists?
     end
 
     private def expiring_release?
-      @expiring_release ||= release_forms.expiring_soon.after_enrollment_date.exists?
+      @expiring_release ||= release_forms.expiring_soon.during_current_enrollment.exists?
     end
 
     private def expired_release?
-      @expired_release ||= release_forms.expired.after_enrollment_date.exists?
+      @expired_release ||= release_forms.expired.during_current_enrollment.exists?
     end
 
     def cha_status
       @cha_status ||= if active_cha? && ! expiring_cha?
         # Valid
       elsif expiring_cha?
-        "Comprehensive Health Assessment expires #{comprehensive_health_assessments.recent.expiring_soon.after_enrollment_date.last.expires_on}"
+        "Comprehensive Health Assessment expires #{comprehensive_health_assessments.recent.expiring_soon.during_current_enrollment.last.expires_on}"
       elsif expired_cha?
-        "Comprehensive Health Assessment expired on #{comprehensive_health_assessments.recent.expired.after_enrollment_date.last.expires_on}"
+        "Comprehensive Health Assessment expired on #{comprehensive_health_assessments.recent.expired.during_current_enrollment.last.expires_on}"
       end
     end
 
     private def active_cha?
-      @active_cha ||= comprehensive_health_assessments.active.after_enrollment_date.exists?
+      @active_cha ||= comprehensive_health_assessments.active.during_current_enrollment.exists?
     end
 
     private def expiring_cha?
-      @expiring_cha ||= comprehensive_health_assessments.recent.expiring_soon.after_enrollment_date.exists?
+      @expiring_cha ||= comprehensive_health_assessments.recent.expiring_soon.during_current_enrollment.exists?
     end
 
     private def expired_cha?
-      @expired_cha ||= comprehensive_health_assessments.recent.expired.after_enrollment_date.exists?
+      @expired_cha ||= comprehensive_health_assessments.recent.expired.during_current_enrollment.exists?
     end
 
     def ssm_status
       @ssm_status ||= if active_ssm? && ! expiring_ssm?
         # Valid
       elsif expiring_ssm?
-        "Self-Sufficiency Matrix Form expires #{self_sufficiency_matrix_forms.completed.after_enrollment_date.last.expires_on}"
+        "Self-Sufficiency Matrix Form expires #{self_sufficiency_matrix_forms.completed.during_current_enrollment.last.expires_on}"
       elsif expired_ssm?
-        "Self-Sufficiency Matrix Form expired on #{self_sufficiency_matrix_forms.completed.after_enrollment_date.last.expires_on}"
+        "Self-Sufficiency Matrix Form expired on #{self_sufficiency_matrix_forms.completed.during_current_enrollment.last.expires_on}"
       end
     end
 
     private def active_ssm?
-      @active_ssm ||= self_sufficiency_matrix_forms.completed.active.after_enrollment_date.exists?
+      @active_ssm ||= self_sufficiency_matrix_forms.completed.active.during_current_enrollment.exists?
     end
 
     private def expiring_ssm?
-      @expiring_ssm ||= self_sufficiency_matrix_forms.completed.expiring_soon.after_enrollment_date.exists?
+      @expiring_ssm ||= self_sufficiency_matrix_forms.completed.expiring_soon.during_current_enrollment.exists?
     end
 
     private def expired_ssm?
-      @expired_ssm ||= self_sufficiency_matrix_forms.completed.expired.after_enrollment_date.exists?
+      @expired_ssm ||= self_sufficiency_matrix_forms.completed.expired.during_current_enrollment.exists?
     end
 
     def careplan_status
       @careplan_status ||= if active_careplan? && ! expiring_careplan?
         # Valid
       elsif expiring_careplan?
-        "Care plan expires #{careplans.fully_signed.recent.after_enrollment_date.last.expires_on}"
+        "Care plan expires #{careplans.fully_signed.recent.during_current_enrollment.last.expires_on}"
       elsif expired_careplan?
-        "Care plan expired on #{careplans.fully_signed.recent.after_enrollment_date.last.expires_on}"
+        "Care plan expired on #{careplans.fully_signed.recent.during_current_enrollment.last.expires_on}"
       end
     end
 
     private def active_careplan?
-      @active_careplan ||= careplans.active.after_enrollment_date.exists?
+      @active_careplan ||= careplans.active.during_current_enrollment.exists?
     end
 
     private def expiring_careplan?
-      @expiring_careplan ||= careplans.fully_signed.recent.expiring_soon.after_enrollment_date.exists?
+      @expiring_careplan ||= careplans.fully_signed.recent.expiring_soon.during_current_enrollment.exists?
     end
 
     private def expired_careplan?
-      @expired_careplan ||= careplans.fully_signed.recent.expired.after_enrollment_date.exists?
+      @expired_careplan ||= careplans.fully_signed.recent.expired.during_current_enrollment.exists?
     end
 
 

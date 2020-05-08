@@ -94,9 +94,8 @@ module Health
       where(valid_unpayable: false)
     end
 
-    scope :after_enrollment_date, -> do
-      joins(patient: :patient_referral).
-      where(arel_table[:date_of_activity].gteq(hpr_t[:enrollment_start_date]))
+    scope :during_current_enrollment, -> do
+      where(date_of_activity: patient.current_enrollment_ranges)
     end
 
     belongs_to :source, polymorphic: true
