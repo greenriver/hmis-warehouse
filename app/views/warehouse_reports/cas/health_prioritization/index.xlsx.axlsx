@@ -15,12 +15,12 @@ wb.add_worksheet(name: 'Health Prioritization') do |sheet|
     disability = if disability.present? 
       yes_no(disability, include_icon: false)
     else
-      'NULL'
+      ''
     end
     
-    vispdat = @vispdats.key?(client.id)
+    vispdat = @vispdats[client.id]
     vispdat = if vispdat.present? 
-      yes_no(vispdat, include_icon: false)
+      yes_no(vispdat.last == 'Yes', include_icon: false)
     else
       'NULL'
     end

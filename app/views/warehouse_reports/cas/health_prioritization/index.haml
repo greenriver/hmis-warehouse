@@ -35,11 +35,11 @@
           %td
             - disability = @disabilities.key?(client.id)
             - if disability.present?
-              = checkmark_or_x(@disabilities.key?(client.id))
+              = checkmark_or_x(disability)
           %td
-            - vispdat = @vispdats.key?(client.id)
+            - vispdat = @vispdats[client.id]
             - if vispdat.present?
-              = checkmark_or_x(@vispdats.key?(client.id))
+              = checkmark_or_x(vispdat.last == 'Yes')
           %td= render 'form', client: client
 %p= paginate @clients
 = content_for :page_js do
