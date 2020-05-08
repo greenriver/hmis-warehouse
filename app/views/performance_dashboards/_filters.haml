@@ -30,13 +30,14 @@
         - if multiple_project_types?
           = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, input_html: { multiple: true, class: :select2 }
         - else
-          = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, input_html: { class: :select2 }
-      .col-sm-3
-        = f.input :hoh_only, as: :boolean, label: 'Only Heads of Household', required: false, input_html: { checked: @filter[:hoh_only] }, wrapper_html: { class: 'mt-7'}
+          = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, label: 'Project Type', input_html: { class: :select2 }
   #household.tab-pane{role: :tabpanel}
     .row
-      .col-sm-3
+      .col-sm-4
         = f.input :household_type, collection: @report.household_types, include_blank: false, selected: @filter[:household_type], required: false, input_html: { class: :select2 }
+      .col-sm-4
+        = f.input :hoh_only, as: :boolean, label: 'Only Heads of Household', required: false, input_html: { checked: @filter[:hoh_only] }, wrapper_html: { class: 'mt-7'}
+    .row
       .col-sm-3
         = f.input :age_ranges, collection: @report.age_ranges, selected: @filter[:age_ranges], required: false, input_html: { multiple: true, class: :select2 }
       .col-sm-3

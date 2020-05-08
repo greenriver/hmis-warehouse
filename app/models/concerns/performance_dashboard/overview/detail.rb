@@ -50,10 +50,6 @@ module PerformanceDashboard::Overview::Detail
     end
   end
 
-  def yn(boolean)
-    boolean ? 'Yes' : 'No'
-  end
-
   def support_title(options)
     key = options[:key].to_s
     sub_key = options[:sub_key]

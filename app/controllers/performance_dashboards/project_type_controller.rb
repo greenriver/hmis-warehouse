@@ -29,13 +29,10 @@ module PerformanceDashboards
         options: [
           :key,
           :sub_key,
-          :age,
-          :gender,
-          :household,
-          :veteran,
-          :sub_population,
-          :race,
-          :ethnicity,
+          :living_situation,
+          :destination,
+          :length_of_time,
+          :returns,
           :breakdown,
         ],
       )
