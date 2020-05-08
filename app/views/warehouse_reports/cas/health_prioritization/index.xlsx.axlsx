@@ -11,12 +11,26 @@ wb.add_worksheet(name: 'Health Prioritization') do |sheet|
   ]
   sheet.add_row(row, style: title)
   @clients.each do |client|
+    disability = @disabilities.key?(client.id)
+    disability = if disability.present? 
+      yes_no(disability, include_icon: false)
+    else
+      'NULL'
+    end
+    
+    vispdat = @vispdats.key?(client.id)
+    vispdat = if vispdat.present? 
+      yes_no(vispdat, include_icon: false)
+    else
+      'NULL'
+    end
+    
     row = [
       client.id,
       client.name,
       client.age,
-      yes_no(@disabilities.key?(client.id), include_icon: false),
-      yes_no(@vispdats.key?(client.id), include_icon: false),
+      disability,
+      vispdat,
       client.health_prioritized,
     ]
     sheet.add_row(row)
