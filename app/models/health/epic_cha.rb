@@ -72,7 +72,9 @@ module Health
     end
 
     scope :during_current_enrollment, -> do
-      where(cha_updated_at: patient.current_enrollment_ranges)
+      joins(patient: :patient_referrals).
+        merge(Health::PatientReferral.contributing).
+        distinct
     end
 
     def text

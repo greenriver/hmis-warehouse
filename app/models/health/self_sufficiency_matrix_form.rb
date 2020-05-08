@@ -86,7 +86,9 @@ module Health
       where(completed_at: range)
     end
     scope :during_current_enrollment, -> do
-      where(completed_at: patient.current_enrollment_ranges)
+      joins(patient: :patient_referrals).
+        merge(Health::PatientReferral.contributing).
+        distinct
     end
 
     attr_accessor :file

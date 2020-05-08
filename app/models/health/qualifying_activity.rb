@@ -95,7 +95,9 @@ module Health
     end
 
     scope :during_current_enrollment, -> do
-      where(date_of_activity: patient.current_enrollment_ranges)
+      joins(patient: :patient_referrals).
+        merge(Health::PatientReferral.contributing).
+        distinct
     end
 
     belongs_to :source, polymorphic: true
