@@ -531,6 +531,8 @@ module Health
     def careplan_status
       @careplan_status ||= if active_careplan? && ! expiring_careplan?
         # Valid
+      elsif missing_careplan?
+        'Care plan not completed by required date'
       elsif expiring_careplan?
         "Care plan expires #{careplans.fully_signed.recent.during_current_enrollment.last.expires_on}"
       elsif expired_careplan?
@@ -540,6 +542,10 @@ module Health
 
     private def active_careplan?
       @active_careplan ||= careplans.active.during_current_enrollment.exists?
+    end
+
+    private def missing_careplan?
+      @missing_careplan ||= current_days_enrolled > 150 && ! careplans.during_current_enrollment.fully_signed.exists?
     end
 
     private def expiring_careplan?
