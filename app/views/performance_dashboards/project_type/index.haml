@@ -1,5 +1,5 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'performance-dashboard'
-- title = GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES[@filter.project_type_codes.first&.to_sym]
+- title = @report.project_type_title
 %h1 #{title} Performance
 - id = 'filter'
 #filter-accordion.panel-group.panel-collapsible
@@ -16,3 +16,4 @@
 = render 'living_situations'
 = render 'destinations'
 = render 'lengths_of_time'
+= render 'returns'

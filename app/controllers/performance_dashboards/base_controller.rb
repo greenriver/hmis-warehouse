@@ -78,17 +78,6 @@ class PerformanceDashboards::BaseController < ApplicationController
   end
   helper_method :breakdown
 
-  private def available_breakdowns
-    {
-      age: 'By Age',
-      gender: 'By Gender',
-      household: 'By Household Type',
-      veteran: 'By Veteran Status',
-      race: 'By Race',
-      ethnicity: 'By Ethnicity',
-    }
-  end
-
   private def ensure_dates_work
     @filter[:end_date] = @filter[:start_date] + 1.years if @filter[:end_date] - @filter[:start_date] > 365
     return if @filter[:end_date] > @filter[:start_date]

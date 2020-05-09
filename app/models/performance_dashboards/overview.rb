@@ -62,4 +62,15 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
     exits.where.not(move_in_date: nil).
       or(exits.where(housing_status_at_exit: 4)) # Stably housed
   end
+
+  def available_breakdowns
+    {
+      age: 'By Age',
+      gender: 'By Gender',
+      household: 'By Household Type',
+      veteran: 'By Veteran Status',
+      race: 'By Race',
+      ethnicity: 'By Ethnicity',
+    }
+  end
 end

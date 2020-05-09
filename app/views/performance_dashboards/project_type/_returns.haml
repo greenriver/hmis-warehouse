@@ -1,13 +1,13 @@
-- key = :length_of_time
-- detail_params = filter_params.merge(options: {key: key, length_of_time: true})
-%h2 Length of Time in #{@report.project_type_title}
+- key = :returns
+- detail_params = filter_params.merge(options: {key: key, returns: true})
+%h2 Returns to Homelessness
 
-.jChart.length_of_time-chart
+.jChart.return-chart
 
-- columns = [@report.lengths_of_time_data_for_chart[:columns]]
+- columns = [@report.returns_data_for_chart[:columns]]
 - if @report.include_comparison?
-  - columns << @comparison.lengths_of_time_data_for_chart[:columns]
-- categories = @report.lengths_of_time_data_for_chart[:categories]
+  - columns << @comparison.returns_data_for_chart[:columns]
+- categories = @report.returns_data_for_chart[:categories]
 
 = content_for :page_js do
   :javascript
@@ -18,7 +18,7 @@
         follow_link: '#{show_client_details?}',
         link_base: 'project_type/details',
         key: '#{key}',
-        sub_keys: #{@report.time_bucket_titles.invert.to_json.html_safe},
+        sub_keys: #{@report.return_bucket_titles.invert.to_json.html_safe},
         params: #{detail_params.to_json.html_safe},
         date_ranges: {
           report: {
@@ -31,5 +31,5 @@
           }
         }
       };
-      var length_of_time_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.length_of_time-chart', columns, categories, options);
+      var return_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.return-chart', columns, categories, options);
     })(jQuery);

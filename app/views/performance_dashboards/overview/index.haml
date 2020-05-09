@@ -15,31 +15,12 @@
 .col-12
   = render 'overall'
 %ul.mb-2.nav.nav-tabs{role: :tablist}
-  - class_name = if breakdown == :age then 'active' else '' end
-  %li.nav-item{role: :presentation}
-    = link_to(filter_params.merge(breakdown: :age), class: ['nav-link', class_name]) do
-      By Age
-  - class_name = if breakdown == :gender then 'active' else '' end
-  %li.nav-item{role: :presentation}
-    = link_to(filter_params.merge(breakdown: :gender), class: ['nav-link', class_name]) do
-      By Gender
-  - class_name = if breakdown == :household then 'active' else '' end
-  %li.nav-item{role: :presentation}
-    = link_to(filter_params.merge(breakdown: :household), class: ['nav-link', class_name]) do
-      By Household Type
-  - class_name = if breakdown == :veteran then 'active' else '' end
-  %li.nav-item{role: :presentation}
-    = link_to(filter_params.merge(breakdown: :veteran), class: ['nav-link', class_name]) do
-      By Veteran Status
-  - class_name = if breakdown == :race then 'active' else '' end
-  %li.nav-item{role: :presentation}
-    = link_to(filter_params.merge(breakdown: :race), class: ['nav-link', class_name]) do
-      By Race
-  - class_name = if breakdown == :ethnicity then 'active' else '' end
-  %li.nav-item{role: :presentation}
-    = link_to(filter_params.merge(breakdown: :ethnicity), class: ['nav-link', class_name]) do
-      By Ethnicity
-
+  - @report.available_breakdowns.each do |k, title|
+    - class_name = if breakdown == k then 'active' else '' end
+    %li.nav-item{role: :presentation}
+      = link_to(filter_params.merge(breakdown: k), class: ['nav-link', class_name]) do
+        = title
+  
 = render "by_#{breakdown}"
 
 

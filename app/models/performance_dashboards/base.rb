@@ -21,6 +21,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   # @param veteran_statuses [Array<Integer] uses HUD options, when blank, default to any status
   # @param project_types [Array<Integer>] uses HUD options, when blank, defaults to [ES, SO, TH, SH]
   def initialize(filter)
+    @filter = filter
     @start_date = filter.start_date
     @end_date = filter.end_date
     @coc_codes = filter.coc_codes
@@ -36,7 +37,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     @sub_population = valid_sub_population(filter.sub_population)
   end
 
-  attr_reader :start_date, :end_date, :coc_codes
+  attr_reader :start_date, :end_date, :coc_codes, :project_types, :filter
   attr_accessor :comparison_pattern, :project_type_codes
 
   def self.detail_method(key)
