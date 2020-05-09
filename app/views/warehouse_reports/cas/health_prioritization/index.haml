@@ -24,16 +24,24 @@
           HMIS Physical Disability?
           %i.icon-info
         %th{data: {toggle: :tooltip, title: 'Client reported liver, kidneys, stomach, lungs or heart '}}
-          VI-SPDAT
+          VI-SPDAT Disability
           %i.icon-info
+        %th Has a VI-SPDAT
         %th Prioritize in CAS?
     %tbody
       - @clients.each do |client|
         %tr
           %td= link_to(client.name, client_path(client))
           %td= client.age
-          %td= checkmark_or_x(@disabilities.key?(client.id))
-          %td= checkmark_or_x(@vispdats.key?(client.id))
+          %td
+            - disability = @disabilities.key?(client.id)
+            - if disability.present?
+              = checkmark_or_x(disability)
+          %td
+            - vispdat_disability = @vispdat_disabilities[client.id]
+            - if vispdat_disability.present?
+              = checkmark_or_x(vispdat_disability.last == 'Yes')
+          %td= checkmark_or_x(@vispdats.include?(client.id))
           %td= render 'form', client: client
 %p= paginate @clients
 = content_for :page_js do

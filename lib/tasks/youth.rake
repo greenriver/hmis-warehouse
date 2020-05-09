@@ -284,7 +284,7 @@ namespace :youth do
         end
       end
 
-      if row[:financial_assistance_provided] == 'Yes' || row[:financial_assistance_type_provided].present?
+      if row[:financial_assistance_type_provided].present?
         types = row[:financial_assistance_type_provided].split(', ')
         types.each do |type|
           clean_type = financial_assistances[type]
