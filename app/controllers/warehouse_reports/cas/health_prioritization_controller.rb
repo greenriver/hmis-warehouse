@@ -21,6 +21,7 @@ module WarehouseReports::Cas
             where(id: @filter.effective_project_ids),
         )
       @disabilities = client_ids_with_disability_types(@clients)
+      @vispdat_disabilities = client_ids_with_vispdat_disability(@clients)
       @vispdats = client_ids_with_vispdats(@clients)
       @clients = @clients.order(DOB: :asc, LastName: :asc, FirstName: :asc)
       respond_to do |format|
@@ -85,13 +86,21 @@ module WarehouseReports::Cas
         group_by(&:first)
     end
 
-    private def client_ids_with_vispdats(client_scope)
+    private def client_ids_with_vispdat_disability(client_scope)
       GrdaWarehouse::Hud::Client.where(id: client_scope.select(:id)).
         joins(:source_hmis_forms).
         merge(GrdaWarehouse::HmisForm.vispdat.where(vispdat_physical_disability_answer: ['Yes', 'No'])).
         order(collected_at: :asc).
         pluck(c_t[:id], hmis_form_t[:vispdat_physical_disability_answer]).
         index_by(&:first) # order clause ensures most-recent response when indexed
+    end
+
+    private def client_ids_with_vispdats(client_scope)
+      GrdaWarehouse::Hud::Client.where(id: client_scope.select(:id)).
+        distinct.
+        joins(:source_hmis_forms).
+        merge(GrdaWarehouse::HmisForm.vispdat).
+        pluck(c_t[:id])
     end
   end
 end

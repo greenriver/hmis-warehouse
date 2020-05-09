@@ -7,6 +7,7 @@ wb.add_worksheet(name: 'Health Prioritization') do |sheet|
     'Age',
     'HMIS Physical Disability?',
     'VI-SPDAT Physical Disability?',
+    'Has a VI-SPDAT',
     'Prioritize in CAS?',
   ]
   sheet.add_row(row, style: title)
@@ -18,9 +19,9 @@ wb.add_worksheet(name: 'Health Prioritization') do |sheet|
       ''
     end
     
-    vispdat = @vispdats[client.id]
-    vispdat = if vispdat.present? 
-      yes_no(vispdat.last == 'Yes', include_icon: false)
+    vispdat_disability = @vispdat_disabilities[client.id]
+    vispdat_disability = if vispdat_disability.present? 
+      yes_no(vispdat_disability.last == 'Yes', include_icon: false)
     else
       'NULL'
     end
@@ -30,7 +31,8 @@ wb.add_worksheet(name: 'Health Prioritization') do |sheet|
       client.name,
       client.age,
       disability,
-      vispdat,
+      vispdat_disability,
+      yes_no(@vispdats.include?(client.id), include_icon: false),
       client.health_prioritized,
     ]
     sheet.add_row(row)
