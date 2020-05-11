@@ -280,6 +280,12 @@ def report_list
         description: 'Identify clients whose source record attributes differ between data sources.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/hud/missing_coc_codes',
+        name: 'Missing CoC Codes',
+        description: 'Identify clients with missing EnrollmentCoC entries.',
+        limitable: true,
+      },
     ],
     'CAS' => [
       {
