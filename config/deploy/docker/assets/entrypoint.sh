@@ -7,7 +7,7 @@
 set -a
 
 echo Getting Role Info
-curl 169.254.170.2$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI > role.info.log
+curl --silent 169.254.170.2$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI > role.info.log
 
 cd /app
 
