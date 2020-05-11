@@ -18,7 +18,7 @@
         follow_link: '#{show_client_details?}',
         link_base: 'project_type/details',
         key: '#{key}',
-        sub_keys: #{@report.return_bucket_titles.invert.to_json.html_safe},
+        sub_keys: #{@report.returns_bucket_titles.invert.to_json.html_safe},
         params: #{detail_params.to_json.html_safe},
         date_ranges: {
           report: {
