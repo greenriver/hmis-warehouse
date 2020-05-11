@@ -20,7 +20,7 @@ class SerializedAsset
 
     IMAGES.each do |key|
       content_key = key + '_CONTENT'
-      content_ext = key + '_EXT'
+      content_ext = key + '_CONTENT_EXT'
       extension = ENV.fetch(content_ext) { 'svg' }
 
       next unless ENV[key].present? && ENV[content_key].present?
