@@ -1,0 +1,58 @@
+= hidden_field_tag :breakdown, breakdown
+%ul.nav.nav-tabs.w-75.ml-0.pl-0{role: :tablist}
+  %li.nav-item{role: :presentation}
+    %a{href: '#dates', role: :tab, data: {toggle: :tab}, aria: {controls: 'dates'}, class: 'nav-link active'}
+      Dates
+  %li.nav-item{role: :presentation}
+    %a{href: '#projects', role: :tab, data: {toggle: :tab}, aria: {controls: 'projects'}, class: 'nav-link'}
+      Projects
+  %li.nav-item{role: :presentation}
+    %a{href: '#household', role: :tab, data: {toggle: :tab}, aria: {controls: 'household'}, class: 'nav-link'}
+      Household
+  %li.nav-item{role: :presentation}
+    %a{href: '#demographics', role: :tab, data: {toggle: :tab}, aria: {controls: 'demographics'}, class: 'nav-link'}
+      Demographics
+.tab-content#reports-tab-content
+  #dates.tab-pane.active{role: :tabpanel}
+    .row
+      .col-sm-3
+        = f.input :start_date, as: :date_picker, input_html: { value: @filter[:start_date] }, label: 'Start date of period'
+      .col-sm-3
+        = f.input :end_date, as: :date_picker, input_html: { value: @filter[:end_date] }, label: 'End date of period'
+    .row
+      .col-sm-8
+        = f.input :comparison_pattern, as: :boolean_button_group, collection: PerformanceDashboards::Overview.comparison_patterns, label: 'Compare with', include_blank: false, selected: @filter[:comparison_pattern]
+  #projects.tab-pane{role: :tabpanel}
+    .row
+      .col-sm-3
+        = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: @filter[:coc_codes], required: false, input_html: { multiple: true, class: :select2 }
+      .col-sm-6
+        - if multiple_project_types?
+          = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, input_html: { multiple: true, class: :select2 }
+        - else
+          = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, label: 'Project Type', input_html: { class: :select2 }
+  #household.tab-pane{role: :tabpanel}
+    .row
+      .col-sm-4
+        = f.input :household_type, collection: @report.household_types, include_blank: false, selected: @filter[:household_type], required: false, input_html: { class: :select2 }
+      .col-sm-4
+        = f.input :hoh_only, as: :boolean, label: 'Only Heads of Household', required: false, input_html: { checked: @filter[:hoh_only] }, wrapper_html: { class: 'mt-7'}
+    .row
+      .col-sm-3
+        = f.input :age_ranges, collection: @report.age_ranges, selected: @filter[:age_ranges], required: false, input_html: { multiple: true, class: :select2 }
+      .col-sm-3
+        = f.input :genders, collection: HUD.genders.invert, selected: @filter[:genders], required: false, input_html: { multiple: true, class: :select2 }
+      .col-sm-3
+        = f.input :veteran_statuses, collection: HUD.no_yes_reasons_for_missing_data_options.invert, selected: @filter[:veteran_statuses], required: false, input_html: { multiple: true, class: :select2 }
+  #demographics.tab-pane{role: :tabpanel}
+    .row
+      .col-sm-4
+        = f.input :sub_population, collection: PerformanceDashboards::Overview.sub_populations, label: 'Sub-Population', include_blank: false, selected: @filter[:sub_population], input_html: { class: :select2 }
+      .col-sm-4
+        = f.input :races, collection: HUD.races.invert, selected: @filter[:races].keys, required: false, input_html: { multiple: true, class: :select2 }
+      .col-sm-4
+        = f.input :ethnicities, collection: HUD.ethnicities.invert, selected: @filter[:ethnicities], required: false, input_html: { multiple: true, class: :select2 }
+%hr
+.mt-4
+  = f.submit 'Update View'
+

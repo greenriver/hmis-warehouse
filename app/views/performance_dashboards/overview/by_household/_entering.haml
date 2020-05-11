@@ -1,0 +1,38 @@
+- key = :entering
+- detail_params = filter_params.merge(options: {key: key, household: true, breakdown: breakdown})
+%h2 Entering
+%p.description Clients entering a project matching the filters above who has not been seen in any project matching the filters above for the past 24 months.
+= link_to_if show_client_details?, "Total #{pluralize(@report.entering_total_count, 'Unique Client')}", details_performance_dashboards_overview_index_path(detail_params), data: {loads_in_pjax_modal: true}
+
+.jChart.entering-by-household-chart
+
+- columns = [@report.entering_by_household_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.entering_by_household_data_for_chart[:columns]
+- categories = @report.entering_by_household_data_for_chart[:categories]
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var columns = #{columns.to_json.html_safe};
+      var categories = #{categories.to_json.html_safe};
+      var options = {
+        follow_link: '#{show_client_details?}',
+        link_base: 'overview/details',
+        key: '#{key}',
+        breakdown: '#{breakdown}',
+        sub_keys: #{@report.household_bucket_titles.invert.to_json.html_safe},
+        params: #{detail_params.to_json.html_safe},
+        date_ranges: {
+          report: {
+            start_date: '#{@report.start_date}',
+            end_date: '#{@report.end_date}'
+          },
+          comparison: {
+            start_date: '#{@comparison.start_date}',
+            end_date: '#{@comparison.end_date}'
+          }
+        }
+      };
+      var entering_by_household_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.entering-by-household-chart', columns, categories, options);
+    })(jQuery);

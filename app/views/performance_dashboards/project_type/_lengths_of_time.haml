@@ -1,0 +1,35 @@
+- key = :length_of_time
+- detail_params = filter_params.merge(options: {key: key, length_of_time: true})
+%h2 Length of Time in #{@report.project_type_title}
+
+.jChart.length_of_time-chart
+
+- columns = [@report.lengths_of_time_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.lengths_of_time_data_for_chart[:columns]
+- categories = @report.lengths_of_time_data_for_chart[:categories]
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var columns = #{columns.to_json.html_safe};
+      var categories = #{categories.to_json.html_safe};
+      var options = {
+        follow_link: '#{show_client_details?}',
+        link_base: 'project_type/details',
+        key: '#{key}',
+        sub_keys: #{@report.time_bucket_titles.invert.to_json.html_safe},
+        params: #{detail_params.to_json.html_safe},
+        date_ranges: {
+          report: {
+            start_date: '#{@report.start_date}',
+            end_date: '#{@report.end_date}'
+          },
+          comparison: {
+            start_date: '#{@comparison.start_date}',
+            end_date: '#{@comparison.end_date}'
+          }
+        }
+      };
+      var length_of_time_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.length_of_time-chart', columns, categories, options);
+    })(jQuery);

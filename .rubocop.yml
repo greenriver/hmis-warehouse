@@ -20,6 +20,7 @@ AllCops:
     - 'app/models/concerns/**/*.rb'
     - 'app/models/eto_api/**/*.rb'
     - 'app/models/health_emergency/**/*.rb'
+    - 'app/models/performance_dashboards/**/*.rb'
 
     - 'app/models/weather/**/*.rb'
     - 'app/renderers/**/*.rb'

@@ -1,0 +1,19 @@
+= render '/warehouse_reports/breadcrumbs', tab: 'performance-dashboard'
+- title = @report.project_type_title
+%h1 #{title} Performance
+- id = 'filter'
+#filter-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    = simple_form_for :filters, method: :get do |f|
+      = render 'performance_dashboards/filters', f: f
+  = render 'common/panel_collapse', id: id, title: 'Universe', default_open: filter_open
+- id = 'active-filters'
+#active-filters-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    = render 'performance_dashboards/active_filters'
+  = render 'common/panel_collapse', id: id, title: 'Summary of Selected Filters', default_open: active_filter_open
+
+= render 'living_situations'
+= render 'destinations'
+= render 'lengths_of_time'
+= render 'returns'

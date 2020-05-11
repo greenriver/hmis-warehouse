@@ -1,0 +1,21 @@
+- title = "Support for #{@detail.support_title(@options)}"
+= content_for :modal_title, title
+%p= @detail.date_range_words
+- rows = @detail.detail_for(@options)
+- if rows.any?
+  - headers = @detail.header_for(@options)
+  %p Showing #{pluralize(rows.count, 'client')}.
+  %table.table.table-striped
+    %thead
+      %tr
+        - headers.each do |header|
+          %th= header
+    %tbody
+      - rows.values.each do |row|
+        %tr
+          - row.each_with_index do |col, i|
+            %td
+              - if i == 0
+                = link_to col, client_path(id: col)
+              - else
+                = @report.detail_column_display(header: headers[i], column: col)

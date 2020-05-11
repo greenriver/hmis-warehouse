@@ -1,0 +1,38 @@
+- key = :exiting
+- detail_params = filter_params.merge(options: {key: key, ethnicity: true, breakdown: breakdown})
+%h2 Exiting
+%p.description Clients exiting a project matching the filters above who has not been seen in any project matching the filters above since.
+= link_to_if show_client_details?, "Total #{pluralize(@report.exiting_total_count, 'Unique Client')}", details_performance_dashboards_overview_index_path(detail_params), data: {loads_in_pjax_modal: true}
+
+.jChart.exiting-by-ethnicity-chart
+
+- columns = [@report.exiting_by_ethnicity_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.exiting_by_ethnicity_data_for_chart[:columns]
+- categories = @report.exiting_by_ethnicity_data_for_chart[:categories]
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var columns = #{columns.to_json.html_safe};
+      var categories = #{categories.to_json.html_safe};
+      var options = {
+        follow_link: '#{show_client_details?}',
+        link_base: 'overview/details',
+        key: '#{key}',
+        breakdown: '#{breakdown}',
+        sub_keys: #{@report.ethnicity_bucket_titles.invert.to_json.html_safe},
+        params: #{detail_params.to_json.html_safe},
+        date_ranges: {
+          report: {
+            start_date: '#{@report.start_date}',
+            end_date: '#{@report.end_date}'
+          },
+          comparison: {
+            start_date: '#{@comparison.start_date}',
+            end_date: '#{@comparison.end_date}'
+          }
+        }
+      };
+      var exiting_by_ethnicity_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.exiting-by-ethnicity-chart', columns, categories, options);
+    })(jQuery);
