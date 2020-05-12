@@ -17,6 +17,10 @@ echo Getting secrets for the environment
 echo Sourcing environment
 . .env
 
+echo Setting Timezone
+cp /usr/share/zoneinfo/$TIMEZONE /etc/localtime
+echo $TIMEZONE > /etc/timezone
+
 echo Syncing the assets from s3
 ./bin/sync_app_assets.rb
 
