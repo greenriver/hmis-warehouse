@@ -26,8 +26,8 @@
 # This if-statement prevents the lack of the vars from killing the app.
 
 if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
-  load 'lib/rds_sql_server/rds.rb'
-  load 'lib/rds_sql_server/sql_server_base.rb'
+  # load 'lib/rds_sql_server/rds.rb'
+  # load 'lib/rds_sql_server/sql_server_base.rb'
 end
 
 module ReportGenerators::Lsa::Fy2018

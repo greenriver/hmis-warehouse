@@ -496,14 +496,14 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   def vispdat_physical_disability
     health_sections = answers[:sections].select do |section|
-      section[:section_title].downcase.include?(': wellness') && section[:questions].present?
+      section[:section_title].downcase.include?('wellness') && section[:questions].present?
     end.compact
     return nil unless health_sections.present?
-    
+
     health_sections.map do |relevant_section|
       relevant_section[:questions].select do |question|
         question[:question].downcase.include?('issues with your liver')
-      end&.first.try(:[], :answer)      
+      end&.first.try(:[], :answer)
     end.compact.detect(&:presence)
   end
 
