@@ -9,7 +9,7 @@
         = f.input :coc_codes, label: 'CoC Codes', collection: @filter.coc_code_options_for_select(user: current_user), input_html: {class: :select2, multiple: true}, include_blank: false
 
   - content_for :filter_actions do
-    %p.w-100 Report will find any enrollment open at a project in a given CoC where there is no Enrollment CoC record and HMIS requires the Enrollment CoC.  These records are required for Heads of Household in project types #{required_for_project_types.to_sentence}.
+    %p.w-100 Report will find any enrollment open at a project in a given CoC where there is no Enrollment CoC record and HMIS requires the Enrollment CoC.  These records are required for Heads of Household in project types #{project_types_requiring_enrollment_coc.to_sentence}.
     .row
       .col-sm-2
         = f.button :submit, value: 'Update View'

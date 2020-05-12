@@ -22,7 +22,7 @@ module WarehouseReports::Hud
           GrdaWarehouse::Hud::Project.
           viewable_by(current_user).
           coc_funded.
-          with_hud_project_type(required_for_project_types).
+          with_hud_project_type(project_types_requiring_enrollment_coc).
           where(id: @filter.effective_project_ids),
         ).
         merge(GrdaWarehouse::Hud::ProjectCoc.with_coc).
@@ -30,6 +30,7 @@ module WarehouseReports::Hud
           ex_t[:ExitDate].gteq(@filter.start - 3.years).
           or(ex_t[:ExitDate].eq(nil)),
         ).
+        where(ec_t[:CoCCode].eq(nil)).
         order(EntryDate: :desc).
         page(params[:page]).per(50)
 
@@ -51,17 +52,22 @@ module WarehouseReports::Hud
       #   and coc.DateDeleted is null)
     end
 
-    private def required_for_project_types
+    private def project_types_requiring_enrollment_coc
       [1, 2, 3, 8, 13]
     end
-    helper_method :required_for_project_types
+    helper_method :project_types_requiring_enrollment_coc
 
     def set_filter
       @filter = ::Filters::DateRangeAndSources.new(filter_params.merge(user_id: current_user.id))
     end
 
     def filter_params
-      return {} unless params[:filter].present?
+      unless params[:filter].present?
+        return {
+          start: ::HUD.fiscal_year_start,
+          end: ::HUD.fiscal_year_end,
+        }
+      end
 
       params.require(:filter).permit(
         :start,
