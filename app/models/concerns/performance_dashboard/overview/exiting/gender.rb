@@ -40,7 +40,7 @@ module PerformanceDashboard::Overview::Exiting::Gender
     else
       exiting_by_gender.values.flatten
     end
-    details = entries_current_period.joins(:client).
+    details = exiting.joins(:client).
       where(client_id: ids).
       order(she_t[:first_date_in_program].desc)
     details = details.where(gender_query(sub_key)) if sub_key

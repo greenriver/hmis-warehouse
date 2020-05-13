@@ -42,7 +42,7 @@ module PerformanceDashboard::Overview::Enrolled::Veteran
     else
       enrolled_by_veteran.values.flatten
     end
-    details = entries_current_period.joins(:client).
+    details = enrolled.joins(:client).
       where(client_id: ids).
       order(she_t[:first_date_in_program].desc)
     details = details.where(veteran_query(sub_key)) if sub_key

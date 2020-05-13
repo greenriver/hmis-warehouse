@@ -4,8 +4,8 @@
 - comparison_params[:filters] ||= {}
 - comparison_params[:filters].merge!({ start_date: @comparison.start_date, end_date: @comparison.end_date })
 - chart_class = "#{key}-#{breakdown.parameterize}-chart"
+%h2 Entering
 .well
-  %h2 Entering
   %p.description Clients entering a project matching the filters above who has not been seen in any project matching the filters above for the past 24 months.
   .d-flex
     .report-period

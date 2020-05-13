@@ -1,8 +1,9 @@
 - key = :returns
 - detail_params = filter_params.merge(options: {key: key, returns: true})
 %h2 Returns to Homelessness
-
-.jChart.return-chart
+.well
+  %p.description Lenth of time between a client's first exit during the period to a permanent destination and the next entry into ES, SH, or SO that occurred at least 7 days after the exit. Re-entry looks forward to the current date regardless of chosen periods.
+  .jChart.return-chart
 
 - columns = [@report.returns_data_for_chart[:columns]]
 - if @report.include_comparison?

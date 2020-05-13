@@ -1,8 +1,9 @@
 - key = :living_situation
 - detail_params = filter_params.merge(options: {key: key, living_situation: true})
 %h2 Prior Living Situation
-
-.jChart.prior-living-situation-chart
+.well
+  %p.description Prior living situation provided at entry for the most-recently started enrollment for each client.
+  .jChart.prior-living-situation-chart
 
 - columns = [@report.prior_living_situations_data_for_chart[:columns]]
 - if @report.include_comparison?

@@ -21,7 +21,7 @@ module PerformanceDashboard::ProjectType::Destination
         counted << c_id
       end
 
-      # expose top 5 plus other
+      # expose top 10 plus other
       top_destinations = buckets.
         # Ignore blank, 8, 9, 99
         reject { |k, _| k.in?([nil, 8, 9, 99]) }.
@@ -65,7 +65,7 @@ module PerformanceDashboard::ProjectType::Destination
     end
 
     ids = destinations[sub_key]
-    details = enrolled.joins(:client, :enrollment).
+    details = exits_current_period.joins(:client, :enrollment).
       where(id: ids).
       order(last_date_in_program: :desc)
     details.pluck(*detail_columns(options).values).
