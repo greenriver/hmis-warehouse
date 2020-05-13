@@ -464,6 +464,9 @@ module Health
     end
 
     def self.build_derived_referrals(enrollment_changes)
+      # Start dates were always the start of the month prior to 834s
+      date_period_cutoff = Date.parse('2020-04-01')
+
       enrollments = []
       enrollment_changes.each_with_index do |(change, referral), index|
         current = referral
@@ -488,9 +491,11 @@ module Health
         end
 
         if change == :disenrollment
-          current.enrollment_start_date = older_referral.updated_at.to_date.beginning_of_month if older_referral.present?
+          current.enrollment_start_date = older_referral.updated_at.to_date if older_referral.present?
+          current.enrollment_start_date = current.enrollment_start_date.beginning_of_month if current.enrollment_start_date < date_period_cutoff
         else # change == :enrollment
-          current.enrollment_start_date = referral.updated_at.to_date.beginning_of_month
+          current.enrollment_start_date = referral.updated_at.to_date
+          current.enrollment_start_date = current.enrollment_start_date.beginning_of_month if current.enrollment_start_date < date_period_cutoff
           current.disenrollment_date = more_recent_referral.enrollment_start_date if more_recent_referral.present?
         end
 

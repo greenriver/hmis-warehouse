@@ -6,6 +6,7 @@ FactoryBot.define do
     sequence(:medicaid_id)
     enrollment_start_date { Date.current }
     current { true }
+    contributing { true }
   end
 
   factory :prior_referral, class: 'Health::PatientReferral' do
