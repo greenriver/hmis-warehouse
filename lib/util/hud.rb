@@ -21,6 +21,20 @@ module HUD
     true
   end
 
+  def fiscal_year_start
+    Date.new(fiscal_year - 1, 10, 1)
+  end
+
+  def fiscal_year_end
+    Date.new(fiscal_year, 9, 30)
+  end
+
+  def fiscal_year
+    return Date.current.year if Date.current.month >= 10
+
+    Date.current.year - 1
+  end
+
   def describe_valid_social_rules
     [
       'Cannot contain a non-numeric character.',

@@ -285,6 +285,9 @@ Rails.application.routes.draw do
         get :running
       end
     end
+    namespace :hud do
+      resources :missing_coc_codes, only: [:index]
+    end
     namespace :client_details do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
