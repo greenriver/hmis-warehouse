@@ -1,4 +1,9 @@
+@import './_settings/*';
+@import './_tools/functions';
+@import './_tools/mixins/_index';
+@import 'bootstrap/variables';
 <%
+  # NOTE: This needs to come last as it overrides existing variables.
   sheet = Rails.root.join('app', 'assets', 'stylesheets', 'application', '_custom', "#{ENV['CLIENT']}.scss")
   if ENV['CLIENT'].present? && File.exists?(sheet)
 %>
@@ -10,7 +15,3 @@
 %>
 @import "./_custom/env/<%=ENV['RAILS_ENV']%>";
 <% end %>
-@import './_settings/*';
-@import './_tools/functions';
-@import './_tools/mixins/_index';
-@import 'bootstrap/variables';
