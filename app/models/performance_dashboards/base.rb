@@ -308,7 +308,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def entries_current_period
-    report_scope.entry
+    report_scope.entry_within_date_range(start_date: @start_date, end_date: @end_date)
   end
 
   # An exit is an enrollment where the exit date is within the report range, and there are no enrollments in the
@@ -322,7 +322,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def exits_current_period
-    report_scope.exit
+    report_scope.exit_within_date_range(start_date: @start_date, end_date: @end_date)
   end
 
   def open_enrollments

@@ -60,7 +60,7 @@ module PerformanceDashboard::ProjectType::Detail
       elsif options[:destination].present?
         title += " #{destination_bucket_titles[sub_key.to_i]}"
       elsif options[:length_of_time].present?
-        title += " #{length_of_time_bucket_titles[sub_key.to_i]}"
+        title += " #{time_bucket_titles[sub_key.to_i]}"
       elsif options[:returns].present?
         title += " #{returns_bucket_titles[sub_key.to_i]}"
       end
