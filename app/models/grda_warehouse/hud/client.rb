@@ -1814,16 +1814,17 @@ module GrdaWarehouse::Hud
         requires_elevator_access: _('Requires ground floor unit or elevator access'),
         cas_match_override: _('Override CAS Match Date'),
         vash_eligible: _('VASH Eligible'),
+        health_prioritized: _('Health Priority'),
       }
     end
 
     def self.manual_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override, :health_prioritized).
         keys
     end
 
     def self.file_cas_columns
-      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override).
+      cas_columns.except(:hiv_positive, :dmh_eligible, :chronically_homeless_for_cas, :full_housing_release, :limited_cas_release, :housing_release_status, :sync_with_cas, :hues_eligible, :disability_verified_on, :ha_eligible, :required_number_of_bedrooms, :required_minimum_occupancy, :cas_match_override, :health_prioritized).
         keys
     end
 
@@ -1843,6 +1844,26 @@ module GrdaWarehouse::Hud
         :youth_rrh_desired,
         :neighborhood_interests => [],
       ]
+    end
+
+    def health_prioritization_options
+      {
+        'Yes' => 'Yes',
+        'No' => 'No',
+        'Unset' => '',
+      }
+    end
+
+    def health_prioritized_for_cas?
+      return false unless GrdaWarehouse::Config.get(:health_priority_age).present?
+      return true if age.present? && age >= GrdaWarehouse::Config.get(:health_priority_age)
+
+      health_prioritized == 'Yes'
+    end
+
+    def auto_health_prioritized_for_cas?
+      return false unless GrdaWarehouse::Config.get(:health_priority_age).present?
+      age >= GrdaWarehouse::Config.get(:health_priority_age)
     end
 
     def invalidate_service_history
@@ -2822,25 +2843,38 @@ module GrdaWarehouse::Hud
       current_start = initial_chronic_enrollment.first_date_in_program
       chronic_enrollments.drop(1).map do |enrollment|
         if new_episode?(enrollments: residential_enrollments, enrollment: enrollment)
-          current_end = chronic_enrollments.
-            select{ |e| e.last_date_in_program.present? && e.last_date_in_program < enrollment.first_date_in_program }.
-            map(&:last_date_in_program).
-            max
-          current_end ||= end_date
+          days_served = chronic_enrollments.
+            select do |e|
+              e.last_date_in_program.blank? ||
+              e.last_date_in_program < enrollment.first_date_in_program
+            end.map do |e|
+              e.service_history_services.map(&:date)
+            end.flatten.compact
+          current_end = days_served.max
+          # current_end = chronic_enrollments.
+          #   select do |e|
+          #     e.last_date_in_program.present? && e.last_date_in_program < enrollment.first_date_in_program
+          #   end.
+          #   map(&:last_date_in_program).
+          #   max
+          current_end = [current_end, end_date].compact.min
           episodes << {
             start_date: current_start,
             end_date: current_end,
-            length: (current_end - current_start).to_i,
+            days: days_served.count,
+            months: (current_start..current_end).map(&:month).uniq.count,
           }
           current_start = enrollment.first_date_in_program
         end
       end
-      final_chronic_enrollment = chronic_enrollments.last;
-      current_end = [final_chronic_enrollment.last_date_in_program, end_date].compact.min
+      final_chronic_enrollment = chronic_enrollments.last
+      days_served = final_chronic_enrollment.service_history_services.map(&:date)
+      current_end = [days_served.max, end_date].compact.min
       episodes << {
         start_date: current_start,
         end_date: current_end,
-        length: (current_end - current_start).to_i,
+        days: days_served.count,
+        months: (current_start..current_end).map(&:month).uniq.count,
       }
       episodes
     end
@@ -3049,15 +3083,22 @@ module GrdaWarehouse::Hud
       @residential_dates ||= enrollments.select do |e|
         @non_homeless_types.include?(e.computed_project_type)
       end.map do |e|
-        e.service_history_services.non_homeless.map(&:date)
+        # Use select to allow for preloading
+        e.service_history_services.select do |s|
+          s.homeless == false
+        end.map(&:date)
      end.flatten.compact.uniq
     end
 
     private def homeless_dates enrollments:
       @homeless_dates ||= enrollments.select do |e|
-        e.computed_project_type.in? GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS
+        e.computed_project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
       end.map do |e|
-       e.service_history_services.homeless.where(record_type: :service).map(&:date)
+        # Use select to allow for preloading
+        e.service_history_services.select do |s|
+          # Exclude extrapolated dates
+          s.record_type == 'service' && s.homeless == true
+        end.map(&:date)
       end.flatten.compact.uniq
    end
 

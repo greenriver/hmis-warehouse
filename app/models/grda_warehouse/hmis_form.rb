@@ -200,6 +200,31 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     end
   end
 
+  def self.set_missing_physical_disabilities
+    # Process in batches, but ensure the batches occur such that the most recently completed are last
+    # Fetch the ids, in order of unprocessed vispdat records
+    ids = vispdat.oldest_first.
+      where(
+        arel_table[:vispdat_physical_disability_answer].eq(nil).
+          or(arel_table[:collected_at].gt(arel_table[:vispdat_physical_disability_updated_at]))
+      ).pluck(:id)
+
+    # loop over those records in batches of 100
+    ids.each_slice(100) do |batch|
+      # fetch the batch, in order
+      vispdat.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
+        next unless hmis_form.destination_client.present?
+
+        hmis_form.vispdat_physical_disability_answer = hmis_form.vispdat_physical_disability
+        hmis_form.vispdat_physical_disability_updated_at = Time.now
+
+        if hmis_form.changed?
+          hmis_form.save
+        end
+      end
+    end
+  end
+
   def self.set_missing_housing_status
     ids = case_management_notes.where(
       arel_table[:housing_status].eq(nil).
@@ -467,6 +492,19 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
       question[:question].downcase.starts_with?('20. for female respondents only: are you currently pregnant?')
     end&.first.try(:[], :answer)
     relevant_question
+  end
+
+  def vispdat_physical_disability
+    health_sections = answers[:sections].select do |section|
+      section[:section_title].downcase.include?('wellness') && section[:questions].present?
+    end.compact
+    return nil unless health_sections.present?
+
+    health_sections.map do |relevant_section|
+      relevant_section[:questions].select do |question|
+        question[:question].downcase.include?('issues with your liver')
+      end&.first.try(:[], :answer)
+    end.compact.detect(&:presence)
   end
 
   def vispdat_days_homeless

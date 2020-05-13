@@ -2,7 +2,7 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'exports'
-%p Client selection will be limited to those with open enrollments within the date range. Only projects in ES, SO, SH, TH, and PH are included.
+%p Client selection will be limited to those with open enrollments within the date range. Only projects in ES, SO, SH, and TH are included.
 = render 'filter'
 
 .warehouse-reports__ad_hoc-export
@@ -10,28 +10,31 @@
     .row
       .col-8
         %p= page_entries_info @reports, entry_name: _('report')
-    %table.table.table-sm.table-hover
-      %thead
-        %tr
-          %th Status
-          %th Options
-          %th Client Count
-          %th Download
-          %th
-      %tbody.report-listing.warehouse-reports__completed
-        - @reports.each do |report|
+    .table-responsive
+      %table.table.table-sm.table-hover
+        %thead
           %tr
-            %td= report.status
+            %th Status
+            %th Options
+            %th Client Count
+            %th Run At
+            %th Download
             %th
-              = render 'parameters', options: report.options, report: report
-            %td= report.client_count
-            %td
-              - if report.completed?
-                = link_to warehouse_reports_ad_hoc_anon_analysis_path(report, format: :xlsx), class: 'btn btn-sm btn-secondary' do
-                  Download
-            %td
-              = link_to warehouse_reports_ad_hoc_anon_analysis_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
-                %i.icon-cross
+        %tbody.report-listing.warehouse-reports__completed
+          - @reports.each do |report|
+            %tr
+              %td= report.status
+              %th
+                = render 'parameters', options: report.options, report: report
+              %td= report.client_count
+              %td.text-nowrap= report.created_at
+              %td
+                - if report.completed?
+                  = link_to warehouse_reports_ad_hoc_anon_analysis_path(report, format: :xlsx), class: 'btn btn-sm btn-secondary' do
+                    Download
+              %td
+                = link_to warehouse_reports_ad_hoc_anon_analysis_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: {confirm: "Are you sure you want to delete this report?"} do
+                  %i.icon-cross
 
   - else
     %p.text-center.well

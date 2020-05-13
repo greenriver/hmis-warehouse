@@ -53,12 +53,30 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     end
     @exits[client.id]
   end
-
-  def enrollment_for_client(client)
-    enrollments(clients)[client.id]
+  
+  def most_recent_exit_with_destination_for_client(client)
+    @most_recent_exit_with_destination_for_client ||= begin
+      exits = {}
+      clients.joins(:source_exits).
+        includes(:source_exits).
+        merge(enrollment_universe).
+        merge(
+          GrdaWarehouse::Hud::Exit.where(ex_t[:ExitDate].lteq(filter.last)).
+            where.not(Destination: nil)
+        ).
+        find_each do |client_record|
+          exits[client_record.id] = client_record.source_exits.max_by(&:ExitDate)
+        end
+      exits
+    end
+    @most_recent_exit_with_destination_for_client[client.id]
   end
 
-  def enrollments(clients)
+  def enrollment_for_client(client)
+    enrollments[client.id]
+  end
+
+  def enrollments
     @enrollments ||= begin
       enrollments = {}
       clients.joins(source_enrollments: :project).
@@ -279,19 +297,36 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     )
     return unless episodes.present?
 
-    episodes.last[:length]
+    episodes.last[:months]
+  end
+
+  def average_episode_length_for(client)
+    episodes = client.length_of_episodes(
+      start_date: filter.end - 3.years,
+      end_date: filter.end,
+      residential_enrollments: residential_enrollments_for(client),
+      chronic_enrollments: chronic_enrollments_for(client),
+    )
+    return 0 unless episodes.present?
+    return 0 if episodes.count.zero?
+
+    total_months = episodes.map{|e| e[:months]}&.sum
+    return 0 unless total_months
+
+    total_months / episodes.count
   end
 
   def residential_enrollments_for(client)
-    @residential_enrolments_for ||= begin
+    @residential_enrollments_for ||= begin
       GrdaWarehouse::ServiceHistoryEnrollment.residential.
       entry.
+      preload(:service_history_services).
       open_between(start_date: filter.start, end_date: filter.end).
       where(client_id: clients.select(:id)).
       order(first_date_in_program: :asc).
       group_by(&:client_id)
     end
-    @residential_enrolments_for[client.id]
+    @residential_enrollments_for[client.id]
   end
 
   def chronic_enrollments_for(client)
@@ -299,6 +334,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
       GrdaWarehouse::ServiceHistoryEnrollment.
       hud_homeless(chronic_types_only: true).
       entry.
+      preload(:service_history_services).
       open_between(start_date: filter.start, end_date: filter.end).
       where(client_id: clients.select(:id)).
       order(first_date_in_program: :asc).
@@ -310,7 +346,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   def household_size_for(client)
     @household_size_for ||= begin
       sizes = {}
-      enrollment_ids = enrollments(clients).values.map(&:id)
+      enrollment_ids = enrollments.values.map(&:id)
       GrdaWarehouse::ServiceHistoryEnrollment.joins(:enrollment).
         merge(GrdaWarehouse::Hud::Enrollment.where(id: enrollment_ids)).
         pluck(:client_id, :other_clients_over_25, :other_clients_under_18, :other_clients_between_18_and_25).

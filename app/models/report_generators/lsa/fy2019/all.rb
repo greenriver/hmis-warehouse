@@ -4,23 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-# Some testing code:
-# Most recent LSA needs these options: Report Start: Oct 1, 2016; Report End: Sep 30, 2017; CoC-Code: XX-500
-#
-# reload!; report_id = Reports::Lsa::Fy2019::All.last.id; ReportResult.where(report_id: report_id).last.update(percent_complete: 0); rg = ReportGenerators::Lsa::Fy2019::All.new(destroy_rds: false); rg.run!
-#
-# Conversion notes:
-# 1. Break table creation sections into their own methods
-# 2. Move lSA reference tables from the end to before the lsa queries method
-# 3. Take note of any queries in lsa_queries with a comment of CHANGED, these will need to be
-#    looked at, and potentially updated, prior to replacing
-# 4. Break up the queries (submitting after each) to prevent timeouts (maybe increase timeout?)
-#    Replace "/*"" with
-#    "SQL
-#     SqlServerBase.connection.execute (<<~SQL);
-#     /*"
-# 5. Remove insert statement for lsa_Report that starts with "INSERT [dbo].[lsa_Report]"
-
+# Testing:
+# Testing is done manually against the sample data set since it requires spooling up an RDS installation.
+# You can run: (This will re-use the most-recent result set, if you want to keep that, you should create a new one with the appropriate dates)
+# @report = ReportResult.where(
+#   report: Reports::Lsa::Fy2019::All.first,
+# ).last;
+# @report.update(percent_complete: 0, job_status: nil)
+# r = ReportGenerators::Lsa::Fy2019::All.new(@report.options.merge(user_id: @report.user_id, test: true, destroy_rds: false))
+# r.run!
 
 # This check is a proxy for all the vars you really need in the rds.rb file
 # This if-statement prevents the lack of the vars from killing the app.
@@ -68,7 +60,7 @@ module ReportGenerators::Lsa::Fy2019
         @report_end ||= @report.options['report_end'].to_date
         log_and_ping("Starting report #{@report.report.name}")
         begin
-          @hmis_export = create_hmis_csv_export()
+          create_hmis_csv_export()
           update_report_progress(percent: 15)
           log_and_ping('HMIS Export complete')
           setup_temporary_rds()
@@ -138,7 +130,7 @@ module ReportGenerators::Lsa::Fy2019
         where.not(file: nil)&.first
       return existing_export if existing_export.present?
 
-      Exporters::HmisTwentyTwenty::Base.new(
+      @hmis_export = Exporters::HmisTwentyTwenty::Base.new(
         start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
         end_date: @report_end,
         projects: @project_ids,
@@ -158,7 +150,9 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def unzip_path
-      File.join('var', 'lsa', @report.id.to_s)
+      path = File.join('tmp', 'lsa', @report.id.to_s)
+      FileUtils.mkdir_p(path) unless Dir.exists?(path)
+      path
     end
 
     def zip_path
@@ -194,7 +188,7 @@ module ReportGenerators::Lsa::Fy2019
     def populate_hmis_tables
       load 'lib/rds_sql_server/lsa/fy2019/hmis_sql_server.rb' # provides thin wrappers to all HMIS tables
       extract_path = if test?
-        source = Rails.root.join('spec/fixtures/files/lsa/fy2019/sample_hmis_export')
+        source = Rails.root.join('spec/fixtures/files/lsa/fy2019/sample_hmis_export/.')
         FileUtils.cp_r(source, unzip_path)
         unzip_path
       else
@@ -231,7 +225,6 @@ module ReportGenerators::Lsa::Fy2019
       # Make note of completion time, LSA requirements are very specific that this should be the time the report was completed, not when it was initiated.
       # There will only ever be one of these.
       LsaSqlServer::LSAReport.update_all(ReportDate: Time.now)
-      FileUtils.mkdir(unzip_path) unless Dir.exists?(unzip_path)
       LsaSqlServer.models_by_filename.each do |filename, klass|
         path = File.join(unzip_path, filename)
         # for some reason the example files are quoted, except the LSA files, which are not
@@ -258,19 +251,26 @@ module ReportGenerators::Lsa::Fy2019
 
     def setup_lsa_report
       load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
-      LsaSqlServer::LSAReport.delete_all
-      LsaSqlServer::LSAReport.create!(
-        ReportID: Time.now.to_i,
-        ReportDate: Date.current,
-        ReportStart: @report_start,
-        ReportEnd: @report_end,
-        ReportCoC: @coc_code,
-        SoftwareVendor: 'Green River Data Analysis',
-        SoftwareName: 'OpenPath HMIS Data Warehouse',
-        VendorContact: 'Elliot Anders',
-        VendorEmail: 'elliot@greenriver.org',
-        LSAScope: @lsa_scope
-      )
+      if test?
+        ::Rds.identifier = sql_server_identifier
+        ::Rds.timeout = 60_000_000
+        load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
+        LsaSqlServer::LSAQueries.new.setup_test_report
+      else
+        LsaSqlServer::LSAReport.delete_all
+        LsaSqlServer::LSAReport.create!(
+          ReportID: Time.now.to_i,
+          ReportDate: Date.current,
+          ReportStart: @report_start,
+          ReportEnd: @report_end,
+          ReportCoC: @coc_code,
+          SoftwareVendor: 'Green River Data Analysis',
+          SoftwareName: 'OpenPath HMIS Data Warehouse',
+          VendorContact: 'Elliot Anders',
+          VendorEmail: 'elliot@greenriver.org',
+          LSAScope: @lsa_scope
+        )
+      end
     end
 
     def remove_temporary_rds
@@ -492,15 +492,15 @@ module ReportGenerators::Lsa::Fy2019
 
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_TrackingMethod')
         begin
-          CREATE INDEX [IX_tlsa_HHID_TrackingMethod] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([TrackingMethod]) INCLUDE ([HoHID], [EnrollmentID], [ExitDate], [ActiveHHType], [Active])
+          CREATE INDEX [IX_tlsa_HHID_TrackingMethod] ON [tlsa_HHID] ([TrackingMethod]) INCLUDE ([HoHID], [EnrollmentID], [ExitDate], [ActiveHHType], [Active])
         end
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_EnrollmentID')
         begin
-          CREATE INDEX [IX_tlsa_HHID_EnrollmentID] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([EnrollmentID]) INCLUDE ([ExitDate], [ExitDest])
+          CREATE INDEX [IX_tlsa_HHID_EnrollmentID] ON [tlsa_HHID] ([EnrollmentID]) INCLUDE ([ExitDate], [ExitDest])
         end
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_Active')
         begin
-          CREATE INDEX [IX_tlsa_HHID_Active] ON [springfield_production_lsa_1137].[dbo].[tlsa_HHID] ([Active]) INCLUDE ([HoHID], [EnrollmentID], [ActiveHHType], [ExitDest])
+          CREATE INDEX [IX_tlsa_HHID_Active] ON [tlsa_HHID] ([Active]) INCLUDE ([HoHID], [EnrollmentID], [ActiveHHType], [ExitDest])
         end
       SQL
     end
@@ -518,7 +518,11 @@ module ReportGenerators::Lsa::Fy2019
       rep.project_ids = @project_ids unless @lsa_scope == 1 # Non-System wide
 
       # some setup
-      rep.insert_projects
+      if test?
+        rep.setup_test_projects
+      else
+        rep.insert_projects
+      end
 
       # loop through the LSA queries
       report_steps = rep.steps

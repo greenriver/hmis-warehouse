@@ -23,7 +23,7 @@ class BooleanButtonGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
         collection.each_with_index do |(label, value, _attrs), _index|
           checked = value.to_s == current_value.to_s
           name = "#{object_name}[#{attribute_name}]"
-          id = name.to_s.parameterize + '_' + value.to_s
+          id = (input_html_options[:id] || name.to_s.parameterize) + '_' + value.to_s
           template.concat(
             template.content_tag(:div, class: 'c-boolean-button c-boolean-button--round mb-1') do
               template.radio_button_tag(name, value, checked, merged_input_options.merge(id: id)) +
