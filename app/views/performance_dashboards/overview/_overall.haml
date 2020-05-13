@@ -1,21 +1,38 @@
 %h2 Overall
 
-.row
-  .col-12
-    = "Homeless #{@report.homeless.count}"
-
-.row
-  .col-12
-    = "Newly Homeless #{@report.newly_homeless.count}"
-
-.row
-  .col-12
-    = "Literally Homeless #{@report.literally_homeless.count}"
-
-.row
-  .col-12
-    = "Newly Literally Homeless #{@report.newly_literally_homeless.count}"
-
-.row
-  .col-12
-    = "Housed #{@report.housed.count}"
+.table-responsive
+  %table.table
+    %thead
+      %tr
+        %th
+        %th
+          Homeless
+          %i.icon-info{data: {toggle: :tooltip, title: 'Clients meeting the above criteria who were enrolled in ES, SH, SO, or TH during the period.'}}
+        %th
+          Literally Homeless
+          %i.icon-info{data: {toggle: :tooltip, title: 'Clients meeting the above criteria who were enrolled in ES, SH, or SO during the period.'}}
+        %th
+          Newly Homeless
+          %i.icon-info{data: {toggle: :tooltip, title: 'Clients meeting the above criteria who were enrolled in ES, SH, SO, or TH during the period and had not been enrolled in any of those project types in the prior 24 months.'}}
+        %th
+          Newly Literally Homeless
+          %i.icon-info{data: {toggle: :tooltip, title: 'Clients meeting the above criteria who were enrolled in ES, SH, or SO during the period and had not been enrolled in any of those project types in the prior 24 months.'}}
+        %th
+          Housed
+          %i.icon-info{data: {toggle: :tooltip, title: 'Clients meeting the above criteria who had a move-in-date within the period or exited with a Housing Assessment of 4 (stably housed).'}}
+    %tbody
+      %tr
+        %th Reporting Period
+        %td= number_with_delimiter(@report.homeless_count)
+        %td= number_with_delimiter(@report.literally_homeless_count)
+        %td= number_with_delimiter(@report.newly_homeless_count)
+        %td= number_with_delimiter(@report.newly_literally_homeless_count)
+        %td= number_with_delimiter(@report.housed_count)
+      - if @report.include_comparison?
+        %tr
+          %th Comparison Period
+          %td= number_with_delimiter(@comparison.homeless_count)
+          %td= number_with_delimiter(@comparison.literally_homeless_count)
+          %td= number_with_delimiter(@comparison.newly_homeless_count)
+          %td= number_with_delimiter(@comparison.newly_literally_homeless_count)
+          %td= number_with_delimiter(@comparison.housed_count)

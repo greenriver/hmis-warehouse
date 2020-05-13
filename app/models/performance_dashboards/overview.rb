@@ -36,6 +36,10 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
     report_scope(all_project_types: true).homeless
   end
 
+  def homeless_count
+    homeless.distinct.select(:client_id).count
+  end
+
   def newly_homeless
     previous_period = report_scope_source.
       entry_within_date_range(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
@@ -45,8 +49,16 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
       where.not(client_id: previous_period.select(:client_id))
   end
 
+  def newly_homeless_count
+    newly_homeless.distinct.select(:client_id).count
+  end
+
   def literally_homeless
     report_scope(all_project_types: true).homeless(chronic_types_only: true)
+  end
+
+  def literally_homeless_count
+    literally_homeless.distinct.select(:client_id).count
   end
 
   def newly_literally_homeless
@@ -58,9 +70,17 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
       where.not(client_id: previous_period.select(:client_id))
   end
 
+  def newly_literally_homeless_count
+    newly_literally_homeless.distinct.select(:client_id).count
+  end
+
   def housed
-    exits.where.not(move_in_date: nil).
+    report_scope.where.not(move_in_date: filter.range).
       or(exits.where(housing_status_at_exit: 4)) # Stably housed
+  end
+
+  def housed_count
+    housed.distinct.select(:client_id).count
   end
 
   def available_breakdowns

@@ -1,0 +1,45 @@
+- key = :enrolled
+- detail_params = filter_params.merge(options: {key: key,breakdown: breakdown}.merge(options))
+- comparison_params = detail_params.dup.to_h
+- comparison_params[:filters] ||= {}
+- comparison_params[:filters].merge!({ start_date: @comparison.start_date, end_date: @comparison.end_date })
+- chart_class = "#{key}-#{breakdown.parameterize}-chart"
+.well
+  %h2 Enrolled
+  %p.description Clients with an ongoing enrollment in a project matching the filters above during the period.
+  .d-flex
+    .report-period
+      %h4 Report Period
+      = link_to_if show_client_details?, "Total #{pluralize(@report.enrolled_total_count, 'Unique Client')}", details_performance_dashboards_overview_index_path(detail_params), data: {loads_in_pjax_modal: true}
+    - if @report.include_comparison?
+      .comparison-period.ml-auto
+        %h4.text-right Comparison Period
+        = link_to_if show_client_details?, "Total #{pluralize(@comparison.enrolled_total_count, 'Unique Client')}", details_performance_dashboards_overview_index_path(comparison_params), data: {loads_in_pjax_modal: true}
+
+  .jChart{class: chart_class}
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var columns = #{columns.to_json.html_safe};
+      var categories = #{categories.to_json.html_safe};
+      var options = {
+        follow_link: '#{show_client_details?}',
+        link_base: 'overview/details',
+        key: '#{key}',
+        breakdown: '#{breakdown}',
+        sub_keys: #{sub_keys},
+        params: #{detail_params.to_json.html_safe},
+        date_ranges: {
+          report: {
+            start_date: '#{@report.start_date}',
+            end_date: '#{@report.end_date}'
+          },
+          comparison: {
+            start_date: '#{@comparison.start_date}',
+            end_date: '#{@comparison.end_date}'
+          }
+        }
+      };
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.#{chart_class}', columns, categories, options);
+    })(jQuery);
