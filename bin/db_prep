@@ -30,6 +30,8 @@ Dir.chdir APP_ROOT do
   system 'bundle exec rake reporting:db:create'
   system 'bundle exec rake reporting:db:schema:conditional_load'
   system 'bundle exec rake reporting:db:migrate'
+  # Force a rebuild of this table
+  GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
 
   puts "\n== Seeding Database =="
   system 'bundle exec rake db:seed'
