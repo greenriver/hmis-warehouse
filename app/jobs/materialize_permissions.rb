@@ -13,7 +13,7 @@ class MaterializePermissions < BaseJob
   # WIP:
   def perform
     bar = ProgressBar.create(starting_at: 0, total: nil, format: '%c - %R')
-    insert_batch_size = 1000
+    insert_batch_size = 20_000
     reduce_logging do
       wh_db_exec("TRUNCATE TABLE #{GrdaWarehouse::UserClientPermission.quoted_table_name}")
       batch = []
@@ -22,12 +22,13 @@ class MaterializePermissions < BaseJob
           GrdaWarehouse::Hud::Client.viewable_by(user).pluck(:id).map do |client_id|
             bar.increment
             batch << [user.id, client_id, true] # see COLS
+            if batch.size >= insert_batch_size
+              process_batch(batch)
+              batch.clear
+            end
           end
         end
-        if batch.size >= insert_batch_size
-          process_batch(batch)
-          batch.clear
-        end
+        process_batch(batch)
       end
       wh_db_exec("ANALYZE VERBOSE #{GrdaWarehouse::UserClientPermission.quoted_table_name}")
       puts "Benchmark.measure: #{bm}"
