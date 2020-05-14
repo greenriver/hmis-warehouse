@@ -19,7 +19,8 @@ class MaterializePermissions < BaseJob
       batch = []
       bm = Benchmark.measure do
         User.find_each do |user|
-          GrdaWarehouse::Hud::Client.searchable_by(user).pluck(:id).map do |client_id|
+          GrdaWarehouse::Hud::Client.viewable_by(user).pluck(:id).map do |client_id|
+            bar.increment
             batch << [user.id, client_id, true] # see COLS
           end
         end
@@ -29,8 +30,11 @@ class MaterializePermissions < BaseJob
         end
       end
       wh_db_exec("ANALYZE VERBOSE #{GrdaWarehouse::UserClientPermission.quoted_table_name}")
-      pp bar.to_h.slice('elapsed_time_in_seconds', 'progress')
-      pp bm.to_s
+      puts "Benchmark.measure: #{bm}"
+      pp(
+        elapsed_time_in_seconds: bar.to_h['elapsed_time_in_seconds'],
+        rows_processed: bar.to_h['progress'],
+      )
     end
     nil
   end
@@ -44,7 +48,7 @@ class MaterializePermissions < BaseJob
   end
 
   private def wh_db_exec(sql)
-    puts wh_db.execute(sql).inspect
+    wh_db.execute(sql)
   end
 
   private def reduce_logging
