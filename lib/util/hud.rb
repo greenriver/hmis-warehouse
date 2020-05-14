@@ -21,6 +21,20 @@ module HUD
     true
   end
 
+  def fiscal_year_start
+    Date.new(fiscal_year - 1, 10, 1)
+  end
+
+  def fiscal_year_end
+    Date.new(fiscal_year, 9, 30)
+  end
+
+  def fiscal_year
+    return Date.current.year if Date.current.month >= 10
+
+    Date.current.year - 1
+  end
+
   def describe_valid_social_rules
     [
       'Cannot contain a non-numeric character.',
@@ -43,13 +57,19 @@ module HUD
 
   # for fuzzy translation from strings back to their controlled vocabulary key
   def forgiving_regex(str)
+    return str if str.is_a?(Integer)
+
     Regexp.new '^' + str.strip.gsub(/\W+/, '\W+') + '$', 'i'
   end
 
   def _translate(map, id, reverse)
     if reverse
       rx = forgiving_regex id
-      map.detect { |_, v| v.match?(rx) }.try(&:first)
+      if rx.is_a?(Regexp)
+        map.detect { |_, v| v.match?(rx) }.try(&:first)
+      else
+        map.detect { |_, v| v == rx }.try(&:first)
+      end
     else
       map[id] || id
     end
@@ -67,7 +87,7 @@ module HUD
       'BlackAfAmerican' => 'Black or African American',
       'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander',
       'White' => 'White',
-      'RaceNone' => 'none',
+      'RaceNone' => 'None',
     }
   end
 

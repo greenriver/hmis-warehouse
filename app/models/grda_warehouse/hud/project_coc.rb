@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
   class ProjectCoc < Base
     include HudSharedScopes
     include ::HMIS::Structure::ProjectCoc
+    include ArelHelper
 
     self.table_name = 'ProjectCoC'
     self.hud_key = :ProjectCoCID
@@ -22,11 +23,14 @@ module GrdaWarehouse::Hud
     scope :in_coc, -> (coc_code:) do
       # hud_coc_code overrides CoCCode
       coc_code = Array(coc_code)
-      pc_t = arel_table
       where(
         pc_t[:CoCCode].in(coc_code).and(pc_t[:hud_coc_code].eq(nil).or(pc_t[:hud_coc_code].eq(''))).
         or(pc_t[:hud_coc_code].in(coc_code))
       )
+    end
+
+    scope :with_coc, -> do
+      where.not(CoCCode: nil).or(where.not(hud_coc_code: nil))
     end
 
     scope :viewable_by, -> (user) do
@@ -39,6 +43,12 @@ module GrdaWarehouse::Hud
       end
     end
 
+    def effective_coc_code
+      return hud_coc_code if hud_coc_code.present?
+
+      self.CoCCode
+    end
+
     def self.related_item_keys
       [:ProjectID]
     end
@@ -47,5 +57,18 @@ module GrdaWarehouse::Hud
       distinct.order(:CoCCode).pluck(:CoCCode)
     end
 
+    def self.options_for_select user:
+      # don't cache this, it's a class method
+      viewable_by(user).
+        distinct.
+        order(CoCCode: :asc).
+        pluck(:CoCCode).
+        map do |coc_code|
+          [
+            coc_code,
+            coc_code,
+          ]
+        end
+    end
   end
 end
