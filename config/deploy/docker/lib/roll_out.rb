@@ -27,11 +27,11 @@ class RollOut
 
   DEFAULT_SOFT_WEB_RAM_MB = 1800
 
-  DEFAULT_SOFT_DJ_RAM_MB = ->(target_group_name) { target_group_name.match?(/staging/) ? 2000 : 6000 }
+  DEFAULT_SOFT_DJ_RAM_MB = ->(target_group_name) { target_group_name.match?(/staging/) ? 4000 : 8000 }
 
   DEFAULT_SOFT_RAM_MB = 1800
 
-  RAM_OVERCOMMIT_MULTIPLIER = 1.6
+  RAM_OVERCOMMIT_MULTIPLIER = 1.4
 
   DEFAULT_CPU_SHARES = 256
 
