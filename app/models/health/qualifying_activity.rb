@@ -486,7 +486,7 @@ module Health
       self.class.where(
         activity: 'outreach',
         patient_id: patient_id,
-        date_of_activity: patient.current_enrollment_ranges,
+        date_of_activity: patient.contributed_enrollment_ranges,
       ).count
     end
 
@@ -583,7 +583,7 @@ module Health
     end
 
     def occurred_within_three_months_of_enrollment?
-      date_of_activity.present? && patient.current_days_enrolled <= 90
+      date_of_activity.present? && patient.contributed_days_enrolled <= 90
     end
 
     def patient_has_valid_care_plan?

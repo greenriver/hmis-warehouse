@@ -327,13 +327,23 @@ module Health
     end
 
     def current_days_enrolled
+      end_date = patient_referral.disenrollment_date || Date.current
+      (end_date - patient_referral.enrollment_start_date).to_i
+    end
+
+    def contributed_days_enrolled
       patient_referrals.contributing.reduce(0) do |sum, referral|
         end_date = referral.disenrollment_date || Date.current
         sum + (end_date - referral.enrollment_start_date).to_i
       end
     end
 
-    def current_enrollment_ranges
+    def current_enrollment_range
+      end_date = patient_referral.disenrollment_date || Date.current
+      (patient_referral.enrollment_start_date..end_date)
+    end
+
+    def contributed_enrollment_ranges
       patient_referrals.contributing.map do |referral|
         end_date = referral.disenrollment_date || Date.current
         (referral.enrollment_start_date..end_date)
@@ -341,7 +351,7 @@ module Health
     end
 
     def careplan_signed_in_122_days?
-      care_plan_signed? && current_days_enrolled <= 122
+      care_plan_signed? && contributed_days_enrolled <= 122
     end
 
     # Priority:
