@@ -285,6 +285,9 @@ Rails.application.routes.draw do
         get :running
       end
     end
+    namespace :hud do
+      resources :missing_coc_codes, only: [:index]
+    end
     namespace :client_details do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
@@ -570,6 +573,14 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :performance_dashboards do
+    resources :overview, only: [:index] do
+      get :details, on: :collection
+    end
+    resources :project_type, only: [:index] do
+      get :details, on: :collection
+    end
+  end
 
   resources :cohort_column_options, except: [:destroy]
 

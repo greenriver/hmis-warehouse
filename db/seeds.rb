@@ -280,6 +280,12 @@ def report_list
         description: 'Identify clients whose source record attributes differ between data sources.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/hud/missing_coc_codes',
+        name: 'Missing CoC Codes',
+        description: 'Identify clients with missing EnrollmentCoC entries.',
+        limitable: true,
+      },
     ],
     'CAS' => [
       {
@@ -464,6 +470,20 @@ def report_list
         url: 'warehouse_reports/health/contact_tracing',
         name: 'Contact Tracing',
         description: 'Review and download contact tracing records.',
+        limitable: false,
+      },
+    ],
+    'Performance Dashboard' => [
+      {
+        url: 'performance_dashboards/overview',
+        name: 'Performance Overview',
+        description: 'Overview of warehouse performance.',
+        limitable: false,
+      },
+      {
+        url: 'performance_dashboards/project_type',
+        name: 'Project Type Breakdowns',
+        description: 'Performance by project type.',
         limitable: false,
       },
     ],
