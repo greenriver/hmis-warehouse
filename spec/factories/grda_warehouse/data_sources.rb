@@ -59,7 +59,7 @@ FactoryBot.define do
     name { 'Health' }
     short_name { 'Health' }
     # association :client, factory: :grda_warehouse_hud_client
-    source_type { :nil }
+    source_type { nil }
     visible_in_window { true }
   end
 end
