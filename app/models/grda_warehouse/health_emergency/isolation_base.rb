@@ -19,5 +19,9 @@ module GrdaWarehouse::HealthEmergency
         order(:location).
         pluck(:location)
     end
+
+    def sort_date
+      isolation_requested_at || updated_at
+    end
   end
 end

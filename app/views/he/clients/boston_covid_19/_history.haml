@@ -11,7 +11,7 @@
     - @history.each do |item|
       - if item.visible_to?(current_user)
         %tr.table__detail-row-rollup.j-toggle-row-content
-          %td= item.created_at.to_date
+          %td= item.sort_date.to_date
           %td= item.title
           %td
             - if item.show_pill_in_history?

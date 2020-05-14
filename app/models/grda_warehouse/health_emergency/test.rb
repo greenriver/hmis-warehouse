@@ -31,6 +31,17 @@ module GrdaWarehouse::HealthEmergency
       current_batch + 1
     end
 
+    def sort_date
+      tested_on || updated_at
+    end
+
+    def location_options
+      self.class.distinct.
+        where.not(location: [nil, '']).
+        order(:location).
+        pluck(:location)
+    end
+
     def in_batch?(batch_id)
       return false unless batch_id
       notification_batch_id == batch_id&.to_i
