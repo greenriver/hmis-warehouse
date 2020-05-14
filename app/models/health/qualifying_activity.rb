@@ -523,6 +523,10 @@ module Health
       self.save(validate: false) if self.changed?
     end
 
+    def maintain_valid_unpayable
+      self.update(valid_unpayable: valid_unpayable?)
+    end
+
     # NOTE: this needs to stay in-sync with the scope valid_unpayable
     # for speed reasons we re-implement the logic here
     def valid_unpayable?
@@ -583,7 +587,7 @@ module Health
     end
 
     def patient_has_valid_care_plan?
-      return false unless patient.care_plan_renewal_date.present?
+      return false if patient.care_plan_renewal_date.blank?
       return false unless date_of_activity.present?
 
       date_of_activity >= patient.care_plan_provider_signed_date && date_of_activity < patient.care_plan_renewal_date
@@ -596,13 +600,9 @@ module Health
     def in_validity_window?
       return false unless date_of_activity.present?
 
-      if outreach?
-        return false unless occurred_within_three_months_of_enrollment?
-      end
+      return false if outreach? && ! occurred_within_three_months_of_enrollment?
 
-      if ! care_plan_related?
-        return false unless patient_has_valid_care_plan? || in_care_plan_development_period?
-      end
+      return false if ! care_plan_related? && ! (patient_has_valid_care_plan? || in_care_plan_development_period?)
 
       return true
     end

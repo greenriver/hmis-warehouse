@@ -307,8 +307,6 @@ module Health
     delegate :effective_date, to: :patient_referral
     delegate :enrollment_start_date, to: :patient_referral
     delegate :aco, to: :patient_referral
-    # TODO: this needs to use sum of days in :patient_referrals
-    delegate :careplan_signed_in_122_days?, to: :patient_referral
 
     self.source_key = :PAT_ID
 
@@ -340,6 +338,10 @@ module Health
         end_date = referral.disenrollment_date || Date.current
         (referral.enrollment_start_date..end_date)
       end
+    end
+
+    def careplan_signed_in_122_days?
+      care_plan_signed? && current_days_enrolled <= 122
     end
 
     # Priority:
@@ -940,6 +942,10 @@ module Health
       if care_plan_provider_signed_date.present?
         care_plan_provider_signed_date + 1.years
       end
+    end
+
+    def care_plan_signed?
+      care_plan_patient_signed_date.present? && care_plan_provider_signed_date.present?
     end
 
     def most_recent_face_to_face_qa_date

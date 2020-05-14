@@ -201,18 +201,6 @@ module Health
       end
     end
 
-    def careplan_signed_in_122_days?
-      return false unless enrollment_start_date
-
-      careplan_date = patient&.qualifying_activities&.
-        during_current_enrollment&.
-        submittable&.
-        where(activity: :pctp_signed)&.
-        minimum(:date_of_activity)
-
-      (careplan_date - enrollment_start_date).to_i <= 122
-    end
-
     def name
       "#{first_name} #{last_name}"
     end
