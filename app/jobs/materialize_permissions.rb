@@ -10,8 +10,13 @@ require 'benchmark'
 class MaterializePermissions < BaseJob
   COLS = ['user_id', 'client_id', 'viewable'].freeze
 
-  # WIP:
   def perform
+    # WIP:
+    # TODO: figure out how to handle other Client scopes...
+    # TODO: what about (soft) deletes of both users and clients
+    # TODO: do we add FK to the UserClientPermission model (which will slow things down a lot)
+    # TODO: do we keep "deleted_at" records to provide audit history?
+
     bar = ProgressBar.create(starting_at: 0, total: nil, format: '%c - %R')
     insert_batch_size = 20_000
     reduce_logging do
@@ -41,6 +46,7 @@ class MaterializePermissions < BaseJob
   end
 
   private def process_batch(rows)
+    # TODO: check for failed rows...
     GrdaWarehouse::UserClientPermission.import(COLS, rows, validate: false)
   end
 
