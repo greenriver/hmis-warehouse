@@ -779,7 +779,7 @@ def ensure_db_triggers_and_functions
 end
 
 ensure_db_triggers_and_functions()
-setup_fake_user()
+setup_fake_user() if Rails.env.development?
 maintain_data_sources()
 maintain_report_definitions()
 maintain_health_seeds()
