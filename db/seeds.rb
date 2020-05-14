@@ -473,6 +473,20 @@ def report_list
         limitable: false,
       },
     ],
+    'Performance Dashboard' => [
+      {
+        url: 'performance_dashboards/overview',
+        name: 'Performance Overview',
+        description: 'Overview of warehouse performance.',
+        limitable: false,
+      },
+      {
+        url: 'performance_dashboards/project_type',
+        name: 'Project Type Breakdowns',
+        description: 'Performance by project type.',
+        limitable: false,
+      },
+    ],
     'Health Emergency' => [
       {
         url: 'warehouse_reports/health_emergency/testing_results',
