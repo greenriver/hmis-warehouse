@@ -58,6 +58,9 @@ class RollOut
       { "name" => "AWS_REGION", "value" => ENV.fetch('AWS_REGION') { 'us-east-1' } },
       { "name" => "SECRET_ARN", "value" => secrets_arn },
       { "name" => "CLUSTER_NAME", "value" => self.cluster },
+      # { "name" => "RAILS_MAX_THREADS", "value" => '5' },
+      # { "name" => "WEB_CONCURRENCY", "value" =>  '2' },
+      # { "name" => "PUMA_PERSISTENT_TIMEOUT", "value" =>  '70' },
     ]
   end
 
