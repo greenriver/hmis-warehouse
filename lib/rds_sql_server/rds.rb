@@ -7,7 +7,7 @@ class Rds
   attr_accessor :client, :identifier
 
   REGION             = 'us-east-1'.freeze
-  AVAILABILITY_ZONE  = 'us-east-1e'.freeze
+  AVAILABILITY_ZONE  = 'us-east-1a'.freeze
   ACCESS_KEY_ID      = ENV.fetch('RDS_AWS_ACCESS_KEY_ID')
   SECRET_ACCESS_KEY  = ENV.fetch('RDS_AWS_SECRET_ACCESS_KEY')
   USERNAME           = ENV.fetch('RDS_USERNAME')
