@@ -28,9 +28,9 @@ module Health
     end
 
     scope :during_current_enrollment, -> do
+      where(arel_table[:ssm_updated_at].gteq(hpr_t[:enrollment_start_date])).
       joins(patient: :patient_referrals).
-        merge(Health::PatientReferral.contributing).
-        distinct
+        merge(Health::PatientReferral.contributing)
     end
 
     self.source_key = :NOTE_ID

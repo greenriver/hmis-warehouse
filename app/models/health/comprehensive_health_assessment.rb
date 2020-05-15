@@ -904,6 +904,7 @@ module Health
       active.where(arel_table[:completed_at].gteq(1.months.ago))
     end
     scope :during_current_enrollment, -> do
+      where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date])).
       joins(patient: :patient_referrals).
         merge(Health::PatientReferral.contributing)
     end
