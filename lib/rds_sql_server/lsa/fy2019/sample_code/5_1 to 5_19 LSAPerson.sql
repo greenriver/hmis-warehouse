@@ -3,6 +3,7 @@ LSA FY2019 Sample Code
 
 Name:  5_1 to 5_19 LSAPerson.sql  
 Date:  4/7/2020   
+	   5/14/2020 - Section 5.10 - removed extraneous update statements 	
 
 
 	5.1 Get Active HMIS HouseholdIDs
@@ -354,31 +355,6 @@ Date:  4/7/2020
 
 	--Anyone who doesn't meet CH time criteria and is missing data in 3.917 
 	--for an active enrollment should be identified as missing data.
-	update lp 
-	set lp.CHTimeStatus = 99
-	from tlsa_Person lp
-		inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
-		inner join hmis_Enrollment hn on hn.EnrollmentID = chn.EnrollmentID
-	where lp.CHTime in (0,270) or lp.CHTimeStatus = 3
-		and (
-				(hn.DateToStreetESSH > hn.EntryDate)
-				or (hn.LivingSituation in (8,9,99) or hn.LivingSituation is null)
-				or (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null)
-			)
-
-	update lp 
-	set lp.CHTimeStatus = 99
-	from tlsa_Person lp
-		inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
-		inner join hmis_Enrollment hn on hn.EnrollmentID = chn.EnrollmentID
-	where lp.CHTime in (0,270) or lp.CHTimeStatus = 3
-		and chn.ProjectType not in (1,8)
-		and (
-			(hn.LivingSituation in (4,5,6,7,15,25) 
-				and hn.LengthOfStay in (2,3))
-			or hn.LengthOfStay in (10,11) 
-			)
-		and hn.PreviousStreetESSH in (8,9,99) or hn.PreviousStreetESSH is null
 		
 	update lp 
 	set lp.CHTimeStatus = 99
