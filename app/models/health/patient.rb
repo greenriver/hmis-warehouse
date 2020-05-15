@@ -332,10 +332,7 @@ module Health
     end
 
     def contributed_days_enrolled
-      patient_referrals.contributing.reduce(0) do |sum, referral|
-        end_date = referral.disenrollment_date || Date.current
-        sum + (end_date - referral.enrollment_start_date).to_i
-      end
+      contributed_enrollment_ranges.map(&:to_a).flatten.uniq.count
     end
 
     def current_enrollment_range
