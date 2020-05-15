@@ -55,7 +55,7 @@ Rails.application.configure do
     # Don't care if the mailer can't send.
     config.action_mailer.raise_delivery_errors = false
 
-    config.action_mailer.delivery_method = ENV.fetch("DEV_MAILER") { :letter_opener }.to_sym
+    config.action_mailer.delivery_method = ENV.fetch("DEV_MAILER") { :file }.to_sym
   end
 
   config.action_mailer.perform_caching = false
