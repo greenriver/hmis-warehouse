@@ -127,9 +127,9 @@ namespace :health do
     Health::PatientReferral.where(derived_referral: false).find_each do |referral|
       pending_referrals << referral.build_derived_referrals
     end
-      Health::PatientReferral.transaction do
-        # Not using import to ensure that PaperTrail gets run
-        pending_referrals.flatten.each { |referral| referral.save! }
+    Health::PatientReferral.transaction do
+      # Not using import to ensure that PaperTrail gets run
+      pending_referrals.flatten.each(&:save!)
     end
   end
 
