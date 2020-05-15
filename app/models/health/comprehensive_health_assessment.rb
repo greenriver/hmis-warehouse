@@ -905,8 +905,7 @@ module Health
     end
     scope :during_current_enrollment, -> do
       joins(patient: :patient_referrals).
-        merge(Health::PatientReferral.contributing).
-        distinct
+        merge(Health::PatientReferral.contributing)
     end
 
     attr_accessor :reviewed_by_supervisor, :completed, :file

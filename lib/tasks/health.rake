@@ -130,7 +130,7 @@ namespace :health do
     end
       Health::PatientReferral.transaction do
         # Not using import to ensure that PaperTrail gets run
-        pending_referrals.each { |referral| referral.save! }
+        pending_referrals.flatten.each { |referral| referral.save! }
     end
   end
 
