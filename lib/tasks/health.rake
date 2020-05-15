@@ -128,9 +128,9 @@ namespace :health do
       enrollment_changes = referral.compute_enrollment_changes
       pending_referrals << Health::PatientReferral.build_derived_referrals(enrollment_changes)
     end
-      Health::PatientReferral.transaction do
-        # Not using import to ensure that PaperTrail gets run
-        pending_referrals.flatten.each { |referral| referral.save! }
+    Health::PatientReferral.transaction do
+      # Not using import to ensure that PaperTrail gets run
+      pending_referrals.flatten.each { |referral| referral.save! }
     end
   end
 

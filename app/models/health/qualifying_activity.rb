@@ -95,9 +95,18 @@ module Health
     end
 
     scope :during_current_enrollment, -> do
+      where(
+        arel_table[:date_of_activity].
+        gteq(hpr_t[:enrollment_start_date]).
+        and(
+          hpr_t[:disenrollment_date].eq(nil).
+          or(
+            arel_table[:date_of_activity].lteq(hpr_t[:disenrollment_date])
+          )
+        )
+      ).
       joins(patient: :patient_referrals).
-        merge(Health::PatientReferral.contributing).
-        distinct
+        merge(Health::PatientReferral.contributing)
     end
 
     belongs_to :source, polymorphic: true
