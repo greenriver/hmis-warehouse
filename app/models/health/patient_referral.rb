@@ -427,7 +427,7 @@ module Health
         if current.disenrollment_date.present? && previous.disenrollment_date.blank?
           last_event = :disenrollment
           disenrollments << current.dup
-        elsif current.pending_disenrollment_date.present? && previous.pending_disenrollment_date.blank?
+        elsif current.pending_disenrollment_date.present? && previous.pending_disenrollment_date.blank? && current.disenrollment_date.blank?
           # found a pending disenrollment
           unless last_event == :disenrollment
             # Unless we already saw a disenrollment that confirmed this...
