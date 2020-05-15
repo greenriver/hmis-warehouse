@@ -4,8 +4,9 @@ LSA FY2019 Sample Code
 
 Name:  7_1 to 7_8 LSAExit.sql  (File 7 of 10)
 Date:  4/20/2020   
-
-
+	   5/14/2020 - section 7.1 - remove extraneous join to hmis_Exit
+			     - section 7.6 - correct "DateDeleted = 0" to "DateDeleted is null"
+	   		 
 	7.1 Identify Qualifying Exits in Exit Cohort Periods
 */
 
@@ -13,7 +14,6 @@ Date:  4/20/2020
 	set hhid.ExitCohort = cd.Cohort
 	from tlsa_HHID hhid
 	inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
-	left outer join hmis_Exit hx on hx.EnrollmentID = hhid.EnrollmentID
 	inner join tlsa_CohortDates cd on hhid.ExitDate between cd.CohortStart and cd.CohortEnd
 		and cd.Cohort between -2 and 0
 	left outer join lsa_Project p on p.ProjectID = hhid.ProjectID 
@@ -111,7 +111,7 @@ Date:  4/20/2020
 */
 
 	update ex
-	set HHVet = case when vet.PersonalID is not null then 1 else 0 end
+	set select  HHVet = case when vet.PersonalID is not null then 1 else 0 end
 		, HHDisability = case when disability.PersonalID is not null then 1 else 0 end
 		, HHFleeingDV = case when dv.PersonalID is not null then 1 else 0 end
 		, HoHRace =  case 
@@ -273,7 +273,8 @@ from tlsa_Exit ex
 			and possible.ExitDate <= hhid.ExitDate
 	inner join hmis_Services bn on bn.EnrollmentID = possible.EnrollmentID 
 		and bn.DateProvided <= cd.CohortEnd
-		and bn.RecordType = 200 and bn.DateDeleted = 0
+		-- 5/14/2020 correct "DateDeleted = 0" to "DateDeleted is null"
+		and bn.RecordType = 200 and bn.DateDeleted is null
 	where ex.LastInactive is null 
 		and possible.TrackingMethod = 3
 		

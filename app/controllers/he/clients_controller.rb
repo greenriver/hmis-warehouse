@@ -24,7 +24,7 @@ module He
       @quarantines = @client.health_emergency_quarantines.newest_first.to_a
       @ama_restrictions = @client.health_emergency_ama_restrictions.newest_first.to_a
 
-      @history = (@triages + @clinical_triages + @tests + @isolations + @quarantines + @ama_restrictions)&.sort_by(&:created_at)&.reverse
+      @history = (@triages + @clinical_triages + @tests + @isolations + @quarantines + @ama_restrictions)&.sort_by(&:sort_date)&.reverse
 
       @isolation_newer = calculate_isolations_status
       @last_clinical_triage = @clinical_triages.first

@@ -16,6 +16,10 @@ module GrdaWarehouse::HealthEmergency
       'Clinical Screening'
     end
 
+    def sort_date
+      updated_at
+    end
+
     def show_pill_in_history?
       false
     end
