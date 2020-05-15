@@ -6,7 +6,7 @@ RSpec.describe Health::PatientReferral, type: :model do
       open_referral = create :patient_referral
       expect(Health::PatientReferral.count).to eq(1)
 
-      Health::PatientReferral.build_derived_referrals(open_referral.compute_enrollment_changes).map(&:save!)
+      open_referral.build_derived_referrals.map(&:save!)
       expect(Health::PatientReferral.count).to eq(1)
     end
 
@@ -18,7 +18,7 @@ RSpec.describe Health::PatientReferral, type: :model do
         expect(closed_referral.versions.count).to eq(2)
         expect(Health::PatientReferral.count).to eq(1)
 
-        Health::PatientReferral.build_derived_referrals(closed_referral.compute_enrollment_changes).map(&:save!)
+        closed_referral.build_derived_referrals.map(&:save!)
         expect(Health::PatientReferral.count).to eq(1)
       end
     end
@@ -33,7 +33,7 @@ RSpec.describe Health::PatientReferral, type: :model do
         expect(closed_referral.versions.count).to eq(3)
         expect(Health::PatientReferral.count).to eq(1)
 
-        Health::PatientReferral.build_derived_referrals(closed_referral.compute_enrollment_changes).map(&:save!)
+        closed_referral.build_derived_referrals.map(&:save!)
         expect(Health::PatientReferral.count).to eq(2)
         expect(Health::PatientReferral.contributing.count).to eq(2)
         expect(Health::PatientReferral.current.count).to eq(1)
@@ -50,7 +50,7 @@ RSpec.describe Health::PatientReferral, type: :model do
         expect(closed_referral.versions.count).to eq(3)
         expect(Health::PatientReferral.count).to eq(1)
 
-        Health::PatientReferral.build_derived_referrals(closed_referral.compute_enrollment_changes).map(&:save!)
+        closed_referral.build_derived_referrals.map(&:save!)
         expect(Health::PatientReferral.count).to eq(2)
         expect(Health::PatientReferral.contributing.count).to eq(1)
         expect(Health::PatientReferral.current.count).to eq(1)
