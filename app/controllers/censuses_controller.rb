@@ -85,8 +85,10 @@ class CensusesController < ApplicationController
   private def census_types
     {
       'ES Bed-night only shelters': 'Censuses::CensusBedNightProgram',
+      'Emergency Shelters': 'Censuses::CensusAllEs',
+      'Street Outreach': 'Censuses::CensusAllSo',
       'By Project Type': 'Censuses::CensusByProjectType',
-      'By Program': 'Censuses::CensusByProgram',
+      'By Project': 'Censuses::CensusByProgram',
       'Veteran': 'Censuses::CensusVeteran',
     }
   end
