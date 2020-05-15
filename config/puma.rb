@@ -35,8 +35,8 @@ if ENV['PUMA_PIDFILE']
 end
 
 # 20 is the default
-# We think this needs to be higher than the idle timeout on the load
-# balancer
+# Needs to be higher than the idle timeout on the load balancer, which defaults
+# to 60 seconds.
 persistent_timeout ENV.fetch('PUMA_PERSISTENT_TIMEOUT') { 70 }.to_i
 
 # Allow puma to be restarted by `rails restart` command.
