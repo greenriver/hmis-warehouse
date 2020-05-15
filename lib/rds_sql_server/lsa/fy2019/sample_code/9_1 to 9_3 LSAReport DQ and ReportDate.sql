@@ -3,6 +3,8 @@ LSA FY2019 Sample Code
 
 Name: 9_1 to 9_3 LSAReport dq and ReportDate (File 10 of 10)
 Date:  4/7/2020   
+	   5/14/2020 - section 9.1 - change check of leftmost character in SSN from ">= '9'" to "= '9'"
+							   - add parentheses to WHERE clause 
 
 	9.1 Get Relevant Enrollments for Data Quality Checks
 */
@@ -43,7 +45,8 @@ select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
 				or c.SSN is null
 				or c.SSN = ''
 				or c.SSN like '%[^0-9]%'
-				or left(c.SSN,1) >= '9'
+				--5/14/2020 changed below from ">= '9'"  to "= '9'")
+				or left(c.SSN,1) = '9'
 				or c.SSN in ('123456789','111111111','222222222','333333333','444444444'
 						,'555555555','777777777','888888888')
 			then 0 else 1 end 
@@ -68,17 +71,21 @@ left outer join (select distinct hh.HouseholdID, min(hh.MoveInDate) as MoveInDat
 		and p.ContinuumProject = 1
 	group by hh.HouseholdID
 	) hhinfo on hhinfo.HouseholdID = n.HouseholdID
-where x.ExitDate is null or x.ExitDate >= cd3.CohortStart
+--5/14/2020 add parentheses to WHERE clause 
+where (x.ExitDate is null or x.ExitDate >= cd3.CohortStart)
 	and n.DateDeleted is null 
 
 /*
 	9.2 Set LSAReport Data Quality Values 
+
+	NOTE:  In practice, there is no need to check for non-NULL values in Status3 as there 
+			are no non-NULL values in dq_Enrollment.
 */
 update rpt 
 	set	UnduplicatedClient1 = (select count(distinct n.PersonalID)
 			from dq_Enrollment n
 			where n.Status1 is not null)
-	, UnduplicatedClient3 = (select count(distinct n.PersonalID)
+	,	UnduplicatedClient3 = (select count(distinct n.PersonalID)
 			from dq_Enrollment n)
 	,	UnduplicatedAdult1 = (select count(distinct n.PersonalID)
 			from dq_Enrollment n 
@@ -216,7 +223,9 @@ update rpt
 			from dq_Enrollment n
 			inner join lsa_Report rpt on rpt.ReportStart >= n.ExitDate or n.ExitDate is null
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
-			where (hn.DisablingCondition not in (0,1) or hn.DisablingCondition is null))
+			--5/14/2020 - add check for Status1 not null
+			where n.Status1 is not null 
+				and (hn.DisablingCondition not in (0,1) or hn.DisablingCondition is null))
 	,	DisablingCond3 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
@@ -381,14 +390,13 @@ update rpt
 			from dq_Enrollment n
 			inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 				and x.DateDeleted is null 
-			inner join lsa_Report rpt on x.ExitDate between rpt.ReportStart and rpt.ReportEnd
+			inner join lsa_Report rpt on x.ExitDate > rpt.ReportStart
 			where (x.Destination in (8,9,17,30,99) or x.Destination is null))
 	,	Destination3 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
 			inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 				and x.DateDeleted is null 
-			inner join lsa_Report rpt on x.ExitDate <= rpt.ReportEnd
-			where (x.Destination in (8,9,17,30,99) or x.Destination is null))
+			where n.ExitDate is not null and (x.Destination in (8,9,17,30,99) or x.Destination is null))
 	,	NotOneHoH1 = (select count(distinct n.HouseholdID)
 			from dq_Enrollment n
 			inner join lsa_Report rpt on rpt.ReportEnd >= n.ExitDate or n.ExitDate is null

@@ -50,10 +50,18 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
     self.consent_active.preload(:destination_client).find_each do |hmis_client|
       d_client = hmis_client.destination_client
       next unless d_client
-      next if d_client&.consent_form_signed_on&.present? && hmis_client.consent_confirmed_on < d_client.consent_form_signed_on
 
-      d_client.consent_form_signed_on = hmis_client.consent_confirmed_on
-      d_client.consent_expires_on = hmis_client.consent_expires_on
+      expiration_present = hmis_client.consent_expires_on.present? && d_client.consent_expires_on.present?
+      expiration_newer = expiration_present && hmis_client.consent_expires_on > d_client.consent_expires_on
+      signature_present = hmis_client.consent_confirmed_on.present? && d_client.consent_form_signed_on.present?
+      signature_newer = signature_present && hmis_client.consent_confirmed_on > d_client.consent_form_signed_on
+      missing_a_date = d_client.consent_form_signed_on.blank? || d_client.consent_expires_on.blank?
+
+      # Fill in missing dates, or update newer dates
+      next unless missing_a_date || expiration_present && expiration_newer || signature_present && signature_newer
+
+      d_client.consent_form_signed_on = hmis_client.consent_confirmed_on if signature_newer || d_client.consent_form_signed_on.blank?
+      d_client.consent_expires_on = hmis_client.consent_expires_on if expiration_newer || d_client.consent_expires_on.blank?
       d_client.housing_release_status = d_client.class.full_release_string
       d_client.save if d_client.changed?
     end

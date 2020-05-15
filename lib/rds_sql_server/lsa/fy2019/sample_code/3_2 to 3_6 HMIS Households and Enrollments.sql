@@ -7,7 +7,8 @@ Date:	4/16/2020 -- original
 		4/30/2020 -- create two separate scripts from original file (3_1 to 3_6 households and enrollments.sql):
 					 - 3_1 LSAReport Parameters and Vendor Info Hardcoded Sample Data.sql
 				     - 3_2 to 3_6 HMIS Households and Enrollments.sql
-
+		5/14/2020 -- 3.3 - HoH enrollment EntryDate must be prior to project OperatingEndDate
+					     - Exit destination must be 99 when effective exit date differs from HMIS
 	3.2 Cohort Dates 
 */
 	delete from tlsa_CohortDates
@@ -117,7 +118,9 @@ left outer join (select distinct svc.EnrollmentID, max(svc.DateProvided) as Last
 where hoh.RelationshipToHoH = 1
 	and hohCheck.EnrollmentID is null 
 	and p.ContinuumProject = 1 
-	and (p.OperatingEndDate is null or p.OperatingEndDate >= '10/1/2012')
+	and (p.OperatingEndDate is null 
+		-- 5/14/2020 EntryDate must be prior to OperatingEndDate
+		or (hoh.EntryDate < p.OperatingEndDate and p.OperatingEndDate >= '10/1/2012'))
 	and	(hx.ExitDate is null or 
 			(hx.ExitDate >= '10/1/2012' and hx.ExitDate > hoh.EntryDate) 
 		)
@@ -128,6 +131,8 @@ where hoh.RelationshipToHoH = 1
 
 		update hhid
 		set hhid.ExitDest = case	
+			-- 5/14/2020 exit destination must be 99 when the effective exit date differs from HMIS
+			when hx.ExitDate is null or hx.ExitDate <> hhid.ExitDate then 99
 			when hx.Destination = 3 then 1 --PSH
 			when hx.Destination = 31 then 2	--PH - rent/temp subsidy
 			when hx.Destination in (19,20,21,26,28,33,34) then 3	--PH - rent/own with subsidy

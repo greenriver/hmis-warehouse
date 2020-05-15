@@ -31,5 +31,12 @@ module GrdaWarehouse::Census
       joins(:project).merge(GrdaWarehouse::Hud::Project.night_by_night)
     end
 
+    scope :es, -> do
+      joins(:project).merge(GrdaWarehouse::Hud::Project.es)
+    end
+
+    scope :so, -> do
+      joins(:project).merge(GrdaWarehouse::Hud::Project.so)
+    end
   end
 end

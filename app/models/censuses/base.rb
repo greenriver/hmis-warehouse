@@ -9,6 +9,8 @@ module Censuses
     def self.available_census_types
       [
         Censuses::CensusBedNightProgram,
+        Censuses::CensusAllEs,
+        Censuses::CensusAllSo,
         Censuses::CensusByProgram,
         Censuses::CensusByProjectType,
         Censuses::CensusVeteran,

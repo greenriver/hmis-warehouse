@@ -2,26 +2,29 @@
 LSA FY2019 Sample Code
 
 Name:  2_1 to 2_10 create output tables.sql (File 2 of 10)
-Date:  4/7/2020
+Date:  4/7/2020  
+	   5/14/2020 - lsa_Report - allow NULL value in ReportDate because it isn't set until the end
+				 - lsa_ProjectCoC - allow NULL values for GeographyType and ZIP in the table -- they are still required 
+						by the HDX 
 
-There are some deliberate differences from data typing and nullability as defined by
-the HMIS CSV/LSA specs and the CREATE statements here.
+There are some deliberate differences from data typing and nullability as defined by 
+the HMIS CSV/LSA specs and the CREATE statements here. 
 
 	Columns which may be NULL in the HMIS CSV under some circumstances that do not
-	apply to the LSA upload are created as NOT NULL here.  For example, ProjectType
+	apply to the LSA upload are created as NOT NULL here.  For example, ProjectType 
 	may be NULL in HMIS if ContinuumProject = 0, but may not be NULL in the LSA
 	because all projects included in the upload must have ContinuumProject = 1.
-
+	
 	Columns which may not be NULL in HMIS but are not relevant to the LSA are
-	created as NULL here.  For example, UserID values are not imported to the HDX
-	and may be NULL in the LSA upload.
-
-	Date columns are created with data type nvarchar to enable date formatting as
+	created as NULL here.  For example, UserID values are not imported to the HDX 
+	and may be NULL in the LSA upload. 
+	
+	Date columns are created with data type nvarchar to enable date formatting as 
 	required by HMIS/LSA CSV specs in the INSERT statements.  The only exception is
 	DateDeleted columns -- they must be NULL for all records and formatting is not
 	relevant.
 
-	ExportID columns have a string(32) data type for HMIS purposes, but the values
+	ExportID columns have a string(32) data type for HMIS purposes, but the values 
 	must match the LSA ReportID, which is an int column; they are created here as int
 	to ensure that the data type, at least, is consistent with LSA requirements.
 
@@ -53,7 +56,7 @@ create table lsa_Project(
 	UserID nvarchar(32),						--HMIS: not NULL
 	DateDeleted datetime,
 	ExportID int not NULL,						--HMIS: string(32)
-	CONSTRAINT pk_lsa_Project PRIMARY KEY CLUSTERED (ProjectID)
+	CONSTRAINT pk_lsa_Project PRIMARY KEY CLUSTERED (ProjectID) 
 	)
 
 /*
@@ -108,13 +111,13 @@ create table lsa_ProjectCoC(
 	ProjectCoCID nvarchar(32) not NULL,
 	ProjectID nvarchar(32) not NULL,
 	CoCCode nvarchar(6) not NULL,
-	Geocode nvarchar(6) not NULL,
+	Geocode nvarchar(6) not NULL,				
 	Address1 nvarchar(100),
-	Address2 nvarchar(100),
+	Address2 nvarchar(100),	
 	City nvarchar(50),
 	[State] nvarchar(2),
-	ZIP nvarchar(5) not NULL,					--HMIS: may be NULL
-	GeographyType int not NULL,					--HMIS: may be NULL
+	ZIP nvarchar(5),					
+	GeographyType int,					
 	DateCreated nvarchar(19) not NULL,			--HMIS: datetime
 	DateUpdated nvarchar(19) not NULL,			--HMIS: datetime
 	UserID nvarchar(32),						--HMIS: not NULL
@@ -133,19 +136,19 @@ if object_id ('lsa_Inventory') is not NULL drop table lsa_Inventory
 create table lsa_Inventory(
 	InventoryID nvarchar(32) not NULL,
 	ProjectID nvarchar(32) not NULL,
-	CoCCode nvarchar(6)  not NULL,
-	HouseholdType int not NULL,
-	[Availability] int,
-	UnitInventory int not NULL,
-	BedInventory int not NULL,
-	CHVetBedInventory int not NULL,				--HMIS: may be NULL
-	YouthVetBedInventory int not NULL,			--HMIS: may be NULL
-	VetBedInventory int not NULL,				--HMIS: may be NULL
+	CoCCode nvarchar(6)  not NULL, 
+	HouseholdType int not NULL, 
+	[Availability] int, 
+	UnitInventory int not NULL, 
+	BedInventory int not NULL,  
+	CHVetBedInventory int not NULL,				--HMIS: may be NULL 
+	YouthVetBedInventory int not NULL,			--HMIS: may be NULL 
+	VetBedInventory int not NULL,				--HMIS: may be NULL 
 	CHYouthBedInventory int not NULL,			--HMIS: may be NULL
 	YouthBedInventory int not NULL,				--HMIS: may be NULL
 	CHBedInventory int not NULL,				--HMIS: may be NULL
 	OtherBedInventory int not NULL,				--HMIS: may be NULL
-	ESBedType int,
+	ESBedType int,  
 	InventoryStartDate nvarchar(10) not NULL,	--HMIS: date
 	InventoryEndDate nvarchar(10),				--HMIS: date
 	DateCreated nvarchar(19) not NULL,			--HMIS: datetime
@@ -163,11 +166,11 @@ if object_id ('lsa_Report') is not NULL drop table lsa_Report
 
 --	The NULL/NOT NULL requirements for this table as it is created here
 --	differ from those for the LSAReport.csv file because the values are not
---	populated in a single step. All of the data quality columns
+--	populated in a single step. All of the data quality columns 
 --	(UnduplicatedClient1 through MoveInDate3) must be non-NULL in the upload.
 create table lsa_Report(
 	ReportID int not NULL,
-	ReportDate datetime not NULL,
+	ReportDate datetime,
 	ReportStart date not NULL,
 	ReportEnd date not NULL,
 	ReportCoC nvarchar(6) not NULL,
@@ -227,7 +230,7 @@ create table lsa_Report(
 	NotOneHoH3 int,
 	MoveInDate1 int,
 	MoveInDate3 int
-	)
+	) 
 
 /*
 	2.7 LSAPerson.csv / lsa_Person
@@ -371,7 +374,7 @@ create table lsa_Household(
 	2.9 LSAExit.csv / lsa_Exit
 */
 if object_id ('lsa_Exit') is not NULL drop table lsa_Exit
-
+ 
 create table lsa_Exit(
 	RowTotal int not NULL,
 	Cohort int not NULL,
@@ -398,7 +401,7 @@ create table lsa_Exit(
 	2.10 LSACalculated.csv / lsa_Calculated
 */
 
-if object_id ('lsa_Calculated') is not NULL drop table lsa_Calculated
+if object_id ('lsa_Calculated') is not NULL drop table lsa_Calculated 
 
 create table lsa_Calculated(
 	Value int not NULL,
@@ -409,7 +412,6 @@ create table lsa_Calculated(
 	SystemPath int not NULL,
 	ProjectID nvarchar(32),
 	ReportRow int not NULL,
-	ReportID int not NULL,
-	Step nvarchar(32)
+	ReportID int not NULL
 	)
 
