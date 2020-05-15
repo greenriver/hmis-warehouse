@@ -16,6 +16,10 @@ module GrdaWarehouse::HealthEmergency
       'Screening'
     end
 
+    def sort_date
+      referred_on || updated_at
+    end
+
     def exposure_options
       {
         'Unknown' => '',

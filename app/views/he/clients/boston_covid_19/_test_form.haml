@@ -4,6 +4,7 @@
       .col-md-8
         = f.input :tested_on,  as: :date_picker, label: 'Test date'
         = f.input :result, collection: @test.result_options, include_blank: true, as: :boolean_button_group
+        = f.input :location, label: 'Test location', collection: @test.location_options, input_html: { class: 'select2', data: {tags: true} }
         = f.input :notes, as: :text
         = f.submit "Add #{@test.title}"
       - if can_see_health_emergency_clinical?

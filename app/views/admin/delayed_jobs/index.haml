@@ -4,6 +4,7 @@
 = render partial: 'menus/admin_tabs'
 
 - if @jobs.any?
+  %p Showing #{pluralize(@jobs.count, 'job')}
   %table.table.table-hover.table-responsive
     %thead
       %th Job
@@ -17,7 +18,7 @@
       %th
     %tbody
       - @jobs.each do |job|
-        - handler = YAML::load(job.handler)
+        - handler = YAML::load(job.handler) rescue ''
         - class_name = handler.job_data['job_class'] rescue handler.class.name
         %tr
           %td= class_name

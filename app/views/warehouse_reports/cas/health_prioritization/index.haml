@@ -27,6 +27,8 @@
           VI-SPDAT Disability
           %i.icon-info
         %th Has a VI-SPDAT
+        %th Race
+        %th Ethnicity
         %th Prioritize in CAS?
     %tbody
       - @clients.each do |client|
@@ -42,6 +44,8 @@
             - if vispdat_disability.present?
               = checkmark_or_x(vispdat_disability.last == 'Yes')
           %td= checkmark_or_x(@vispdats.include?(client.id))
+          %td= client.race_description
+          %td= HUD.ethnicity(client.Ethnicity)
           %td= render 'form', client: client
 %p= paginate @clients
 = content_for :page_js do
