@@ -125,8 +125,7 @@ namespace :health do
   task compute_derived_patient_referrals: [:environment, 'log:info_to_stdout'] do
     pending_referrals = []
     Health::PatientReferral.where(derived_referral: false).find_each do |referral|
-      enrollment_changes = referral.compute_enrollment_changes
-      pending_referrals << Health::PatientReferral.build_derived_referrals(enrollment_changes)
+      pending_referrals << referral.build_derived_referrals
     end
     Health::PatientReferral.transaction do
       # Not using import to ensure that PaperTrail gets run

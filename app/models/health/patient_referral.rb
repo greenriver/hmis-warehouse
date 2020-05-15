@@ -421,76 +421,48 @@ module Health
       current = self
       previous = current.paper_trail.previous_version
       last_event = nil
-      enrollment_changes = []
+      disenrollments = []
 
       while previous.present?
         if current.disenrollment_date.present? && previous.disenrollment_date.blank?
           last_event = :disenrollment
-          enrollment_changes << [ :disenrollment, current]
+          disenrollments << current.dup
         elsif current.pending_disenrollment_date.present? && previous.pending_disenrollment_date.blank?
           # found a pending disenrollment
           unless last_event == :disenrollment
             # Unless we already saw a disenrollment that confirmed this...
-            enrollment_changes << [:disenrollment, current]
+            disenrollments << current.dup
+            last_event = :pending_disenrollment
           end
-          last_event = :pending_disenrollment
-        elsif current.disenrollment_date.blank? && previous.disenrollment_date.present?
-          # found a re-enrollment from disenrollment
-          last_event = :re_enrollment
-          enrollment_changes << [:enrollment, current]
-        elsif current.pending_disenrollment_date.blank? && previous.pending_disenrollment_date.present?
-          # found a re-enrollment from pending disenrollment
-          enrollment_changes << [:enrollment, current]
-          last_event = :re_enrollment
         end
 
         current = previous
         previous = current.paper_trail.previous_version
       end
 
-      enrollment_changes
+      disenrollments
     end
 
-    def self.build_derived_referrals(enrollment_changes)
-      # Start dates were always the start of the month prior to 834s
-      date_period_cutoff = Date.parse('2020-04-01')
+    def build_derived_referrals
+      disenrollments = compute_enrollment_changes
+      return [] unless disenrollments.present?
+      return [] if disenrollments.size == 1 && disenrolled?
 
-      enrollments = []
-      enrollment_changes.each_with_index do |(change, referral), index|
-        current = referral
+      disenrollments.reverse.each_with_index.map do |older_referral, index|
+        newer_referral = disenrollments[index + 1] || self
+        enrolled_on = newer_referral.enrollment_start_date
+        disenrolled_on = older_referral.disenrollment_date || older_referral.pending_disenrollment_date
+        within_90_days = (enrolled_on - disenrolled_on).to_i <= 90
+        older_referral.assign_attributes(current: false, contributing: within_90_days, derived_referral: true)
 
-        more_recent_referral = enrollment_changes[index - 1].last if index.positive?
-        older_referral = enrollment_changes.dig(index + 1, 1)
-
-        unless index.zero?
-          current = referral.dup # To get a non-persistent version of the referral
-          more_recent_date = [
-            more_recent_referral&.enrollment_start_date,
-            more_recent_referral&.pending_disenrollment_date,
-            more_recent_referral&.disenrollment_date,
-          ].compact.max
-          current_date = [
-            current.enrollment_start_date,
-            current.pending_disenrollment_date,
-            current.disenrollment_date,
-          ].compact.max
-          within_90_days = (more_recent_date - current_date).to_i <= 90
-          current.assign_attributes(current: false, contributing: within_90_days, derived_referral: true)
-        end
-
-        if change == :disenrollment
-          current.enrollment_start_date = older_referral.updated_at.to_date if older_referral.present?
-          current.enrollment_start_date = current.enrollment_start_date.beginning_of_month if current.enrollment_start_date < date_period_cutoff
-        else # change == :enrollment
-          current.enrollment_start_date = referral.updated_at.to_date
-          current.enrollment_start_date = current.enrollment_start_date.beginning_of_month if current.enrollment_start_date < date_period_cutoff
-          current.disenrollment_date = more_recent_referral.enrollment_start_date if more_recent_referral.present?
-        end
-
-        enrollments << current unless current.enrollment_start_date == current.disenrollment_date # Ignore placeholder enrollments
+        older_referral
       end
 
-      enrollments
+      disenrollments
+    end
+
+    def disenrolled?
+      pending_disenrollment_date.present? || disenrollment_date.present?
     end
   end
 end
