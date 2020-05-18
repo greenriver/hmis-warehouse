@@ -8,9 +8,9 @@ module GrdaWarehouse::HMIS
   class Assessment < Base
     dub 'assessments'
 
-    belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name, foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key
 
-    has_many :hmis_forms, class_name: GrdaWarehouse::HmisForm.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
+    has_many :hmis_forms, class_name: 'GrdaWarehouse::HmisForm', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
 
     scope :confidential, -> do
       where(confidential: true)
@@ -148,7 +148,7 @@ module GrdaWarehouse::HMIS
     def self.fetch_touch_points
       touch_points = {}
       EtoApi::Eto.site_identifiers.each do |identifier, data_source_id|
-        bo = Bo::ClientIdLookup.new(api_site_identifier: identifier)
+        bo = Bo::ClientIdLookup.new(data_source_id: data_source_id)
         response = bo.fetch_site_touch_point_map
         break unless response.present?
         response.each do |row|

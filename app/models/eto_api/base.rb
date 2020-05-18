@@ -47,6 +47,11 @@ module EtoApi
       YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]&.select { |_k, conf| conf['data_source_id'].present? && conf['data_source_id'] != 'unknown' } # rubocop:disable Security/YAMLLoad
     end
 
+    # Returns [identifier, config]
+    def self.api_config_for_data_source_id(data_source_id)
+      api_configs.detect { |_, conf| conf['data_source_id'].to_s == data_source_id.to_s }
+    end
+
     def endpoint(service)
       @endpoints[service]
     end

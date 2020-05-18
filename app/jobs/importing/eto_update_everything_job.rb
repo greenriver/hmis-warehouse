@@ -8,24 +8,23 @@ module Importing
   class EtoUpdateEverythingJob < BaseJob
     queue_as :low_priority
 
-    def perform(start_date: 4.years.ago)
+    def perform(start_date: 4.years.ago, data_source_id:)
       # Ensure we know about all the available touch points
       GrdaWarehouse::HMIS::Assessment.update_touch_points
 
-      # Fetch via QaaWS all the available
-      EtoApi::Eto.site_identifiers.each do |identifier, _|
-        Bo::ClientIdLookup.new(
-          api_site_identifier: identifier,
-          start_time: start_date.to_date,
-        ).update_all!
-      end
+      Bo::ClientIdLookup.new(
+        data_source_id: data_source_id,
+        start_time: start_date.to_date,
+      ).update_all!
 
       # Break items remaining to fetch into 500 item chunks in delayed jobs
       GrdaWarehouse::EtoQaaws::ClientLookup.distinct.
+        where(data_source_id: data_source_id).
         pluck(:client_id).each_slice(500) do |client_ids|
           Importing::EtoDemographicsJob.perform_later(client_ids: client_ids)
         end
       GrdaWarehouse::EtoQaaws::TouchPointLookup.distinct.
+        where(data_source_id: data_source_id).
         pluck(:client_id).each_slice(500) do |client_ids|
           Importing::EtoTouchPointsJob.perform_later(client_ids: client_ids)
         end

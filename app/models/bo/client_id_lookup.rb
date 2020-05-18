@@ -8,16 +8,17 @@ module Bo
   class ClientIdLookup
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :notifier
+    attr_reader :data_source_id
 
     # api_site_identifier is the numeral that represents the same connection
     # on the API side
-    def initialize(api_site_identifier:, debug: true, start_time: 6.months.ago, force_disability_verification: false)
-      @api_site_identifier = api_site_identifier
+    def initialize(data_source_id:, debug: true, start_time: 6.months.ago, force_disability_verification: false)
+      @data_source_id = data_source_id
       @start_time = start_time
       @debug = debug
       @force_disability_verification = force_disability_verification
-      @api_config = api_config_from_site_identifier @api_site_identifier
-      @data_source_id = @api_config['data_source_id']
+      (@api_site_identifier, @api_config) = api_config_from_data_source_id(@data_source_id)
+
       @config = Bo::Config.find_by(data_source_id: @data_source_id)
       setup_notifier('ETO QaaWS Importer')
       api_connect
@@ -45,15 +46,18 @@ module Bo
       end
     end
 
-    def api_config_from_site_identifier(site_identifier)
-      key = ENV.fetch("ETO_API_SITE#{site_identifier}")
-      EtoApi::Base.api_configs[key]
+    # def api_config_from_site_identifier(site_identifier)
+    #   key = ENV.fetch("ETO_API_SITE#{site_identifier}")
+    #   EtoApi::Base.api_configs[key]
+    # end
+
+    def api_config_from_data_source_id(data_source_id)
+      EtoApi::Base.api_config_for_data_source_id(data_source_id)
     end
 
     def api_connect
-      key = ENV.fetch("ETO_API_SITE#{@api_site_identifier}")
       @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: @data_source_id)
-      @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
+      @api = EtoApi::Detail.new(trace: @trace, api_connection: @api_site_identifier)
       @api.connect
     end
 
