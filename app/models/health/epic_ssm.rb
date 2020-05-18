@@ -26,9 +26,11 @@ module Health
     scope :updated_within_range, -> (range) do
       where(ssm_updated_at: range)
     end
-    scope :after_enrollment_date, -> do
-      joins(patient: :patient_referral).
-      where(arel_table[:ssm_updated_at].gteq(hpr_t[:enrollment_start_date]))
+
+    scope :during_current_enrollment, -> do
+      where(arel_table[:ssm_updated_at].gteq(hpr_t[:enrollment_start_date])).
+      joins(patient: :patient_referrals).
+        merge(Health::PatientReferral.contributing)
     end
 
     self.source_key = :NOTE_ID
