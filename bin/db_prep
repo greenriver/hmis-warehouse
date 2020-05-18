@@ -19,7 +19,6 @@ Dir.chdir APP_ROOT do
   system 'bundle exec rake warehouse:db:create'
   system 'bundle exec rake warehouse:db:schema:conditional_load'
   system 'bundle exec rake warehouse:db:migrate'
-  system 'bundle exec rake grda_warehouse:seed_data_sources'
 
   puts "\n== Preparing Health Database =="
   system 'bundle exec rake health:db:create'
