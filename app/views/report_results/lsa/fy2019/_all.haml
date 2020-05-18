@@ -1,0 +1,7 @@
+- people = people = @result.results.dig('summary', 'people')
+- if people
+  %h3.mt-4 Client Summary
+  %dl.w-25
+    - people.each do |header, value|
+      %dt= header
+      %dd= value
