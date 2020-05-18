@@ -27,11 +27,11 @@ class RollOut
 
   DEFAULT_SOFT_WEB_RAM_MB = 1800
 
-  DEFAULT_SOFT_DJ_RAM_MB = ->(target_group_name) { target_group_name.match?(/staging/) ? 4000 : 8000 }
+  DEFAULT_SOFT_DJ_RAM_MB = ->(target_group_name) { target_group_name.match?(/staging/) ? 2000 : 6000 }
 
   DEFAULT_SOFT_RAM_MB = 1800
 
-  RAM_OVERCOMMIT_MULTIPLIER = 1.4
+  RAM_OVERCOMMIT_MULTIPLIER = ->(target_group_name) { target_group_name.match?(/staging/) ? 4 : 2 }
 
   DEFAULT_CPU_SHARES = 256
 
@@ -281,6 +281,8 @@ class RollOut
     # Increase this to limit number of containers on a box if there are cpu capacity issues.
     cpu_shares ||= DEFAULT_CPU_SHARES
 
+    memory_multiplier = RAM_OVERCOMMIT_MULTIPLIER.call(target_group_name)
+
     self.log_prefix = name.split(/ecs/).last.sub(/^-/, '') +
       '/' +
       Time.now.strftime("%Y-%m-%d:%H-%M%Z").gsub(/:/, '_')
@@ -299,7 +301,7 @@ class RollOut
       cpu: cpu_shares,
 
       # Hard limit
-      memory: ( soft_mem_limit_mb * RAM_OVERCOMMIT_MULTIPLIER ).to_i,
+      memory: ( soft_mem_limit_mb * memory_multiplier ).to_i,
 
       # Soft limit
       memory_reservation: soft_mem_limit_mb,

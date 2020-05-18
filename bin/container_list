@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+
+require 'json'
+require 'aws-sdk-ec2'
+require 'byebug'
+
+class ContainerList
+
+  def run!
+    ensure_profile_and_ip
+    instances.each.with_index do |instance, i|
+      puts "Listing containers on: #{instance.public_ip_address}\n"
+      system("ssh ec2-user@#{instance.public_ip_address} docker container ps")
+      puts "\n\n"
+    end
+  end
+
+  def ensure_profile_and_ip
+    my_ip = `dig +short myip.opendns.com @resolver1.opendns.com`.chomp
+
+    if !my_ip.match?(/^(54\.85|64.223)/)
+      raise "Wrong IP"
+    end
+
+    if ENV['AWS_PROFILE'].nil?
+      raise "set AWS_PROFILE"
+    end
+  end
+
+  private
+
+  def instances
+    return @instances unless @instances.nil?
+
+    results = ec2.describe_instances(
+      filters: [
+        {
+          name: 'tag:Cluster',
+          values: [ 'openpath' ]
+        },
+        {
+          name: 'instance-state-name',
+          values: [ 'running' ],
+        }
+      ]
+    )
+
+    @instances = results.
+      reservations.
+      flat_map(&:instances).
+      sort_by { |x| x.public_ip_address }
+  end
+
+  def ec2
+    @ec2 ||= Aws::EC2::Client.new
+  end
+end
+
+ContainerList.new.run!
