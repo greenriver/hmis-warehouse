@@ -1,15 +1,13 @@
 FactoryBot.define do
-  factory :patient_referral, class: 'Health::PatientReferral' do
-    first_name { 'First' }
-    last_name { 'Last' }
-    birthdate { Date.current }
-    sequence(:medicaid_id)
-    enrollment_start_date { Date.current }
-  end
-
   factory :patient, class: 'Health::Patient' do
     sequence(:id_in_source)
     patient_referral
-    sequence(:client_id)
+    association :client, factory: :hud_client
+  end
+
+  factory :patient_a, class: 'Health::Patient' do
+    sequence(:id_in_source)
+    patient_referrals { [create(:prior_referral), create(:contributing_referral), create(:current_referral)] }
+    association :client, factory: :hud_client
   end
 end

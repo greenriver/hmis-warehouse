@@ -14,6 +14,7 @@ gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_prim
 gem "pg"
 gem 'activerecord-sqlserver-adapter', '~> 5.0', require: false
 gem 'activerecord-import'
+# gem 'active_record_distinct_on'
 gem 'charlock_holmes', require: false
 gem "bootsnap"
 gem 'bcrypt'
