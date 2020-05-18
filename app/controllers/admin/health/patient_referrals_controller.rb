@@ -89,7 +89,11 @@ module Admin::Health
         else
           patient.restore if patient.present?
           # Clean up any removal acknowledgement with the patient
-          @patient_referral.update(removal_acknowledged: false)
+          @patient_referral.update(
+            removal_acknowledged: false,
+            pending_disenrollment_date: nil,
+            disenrollment_date: nil,
+          )
           flash[:notice] = 'Patient rejection removed.'
         end
       else
