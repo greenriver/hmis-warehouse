@@ -2,7 +2,10 @@
 LSA FY2019 Sample Code
 
 Name:  6_1 to 6_19 LSAHousehold.sql  (File 6 of 10)
-Date:  4/20/2020   
+Date:  4/20/2020
+	   5/14/2022 -  section 6.12 - correct "DateDeleted = 0" to "DateDeleted is null"
+	   				section 6.14 - correct 24 (deceased) to 25 (LTC/nursing home) 
+								   in list of institutional living situations
 
 	6.1 Get Unique Households and Population Identifiers for tlsa_Household
 */
@@ -639,7 +642,8 @@ Date:  4/20/2020
 		and hhid.Active = 1 or hhid.ExitDate < rpt.ReportStart 
 	inner join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID 
 		and bn.DateProvided <= rpt.ReportEnd
-		and bn.RecordType = 200 and bn.DateDeleted = 0
+		-- 5/14/2020 correct "DateDeleted = 0" to "DateDeleted is null"
+		and bn.RecordType = 200 and bn.DateDeleted is null
 	where hh.LastInactive is null 
 		and hh.PSHMoveIn <> 2
 		and hhid.TrackingMethod = 3
@@ -739,7 +743,8 @@ Date:  4/20/2020
 				and (hhid.ProjectType in (1,8)
 					or hn.LivingSituation in (1,18,16)
 					or (hn.LengthOfStay in (10,11) and hn.PreviousStreetESSH = 1)
-					or (hn.LivingSituation in (4,5,6,7,15,24) 
+					--5/14/2020 - correct 24 (deceased) to 25 (LTC/nursing home) 
+					or (hn.LivingSituation in (4,5,6,7,15,25) 
 						and hn.LengthOfStay in (2,3) and hn.PreviousStreetESSH = 1))
 			order by hn.DateToStreetESSH asc)
 		, hh.LastInactive)) + 1

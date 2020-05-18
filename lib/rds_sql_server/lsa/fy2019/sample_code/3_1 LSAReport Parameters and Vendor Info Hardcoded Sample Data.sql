@@ -7,6 +7,7 @@ Date:	4/16/2020 -- original
 		4/30/2020 -- create two separate scripts from original file (3_1 to 3_6 households and enrollments.sql):
 					 - 3_1 LSAReport Parameters and Vendor Info Hardcoded Sample Data.sql
 				     - 3_2 to 3_6 HMIS Households and Enrollments.sql
+		5/14/2020 -- do not set ReportDate -- it is set in 9.3
 
 	3.1 Report Parameters and Metadata 
 
@@ -17,7 +18,6 @@ delete from lsa_Report
 
 insert into lsa_Report (
 		  ReportID			--system-generated unique identifier for report process
-		, ReportDate		--system-generated date/time the report process was initiated
 		, ReportStart		--user-entered start of report period
 		, ReportEnd			--user-entered end of report period 
 		, ReportCoC			--user-selected HUD Continuum of Care Code
@@ -29,7 +29,6 @@ insert into lsa_Report (
 		)
 	select
 		  12345
-		, getdate()
 		, '10/1/2018'
 		, '9/30/2019'
 		, 'XX-500'
