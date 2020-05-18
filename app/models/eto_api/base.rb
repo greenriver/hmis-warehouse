@@ -44,7 +44,8 @@ module EtoApi
     end
 
     def self.api_configs
-      YAML.load(ERB.new(File.read("#{Rails.root}/config/eto_api.yml")).result)[Rails.env]&.select { |_k, conf| conf['data_source_id'].present? && conf['data_source_id'] != 'unknown' } # rubocop:disable Security/YAMLLoad
+      # Backwards compatibility
+      GrdaWarehouse::EtoApiConfig.all.map { |conf| [conf.identifier, conf.attributes] }.to_h
     end
 
     # Returns [identifier, config]

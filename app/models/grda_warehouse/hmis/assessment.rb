@@ -147,7 +147,8 @@ module GrdaWarehouse::HMIS
 
     def self.fetch_touch_points
       touch_points = {}
-      EtoApi::Eto.site_identifiers.each do |identifier, data_source_id|
+      EtoApiConfig.find_each do |config|
+        data_source_id = config.data_source_id
         bo = Bo::ClientIdLookup.new(data_source_id: data_source_id)
         response = bo.fetch_site_touch_point_map
         break unless response.present?

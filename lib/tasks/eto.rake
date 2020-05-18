@@ -53,8 +53,8 @@ namespace :eto do
       # start_date = args.start_date&.to_date || 6.months.ago
       start_date = args.start_date&.to_date || 4.years.ago.to_date
       # Fetch via QaaWS all the available
-      EtoApi::Eto.site_identifiers.each do |_, config|
-        data_source_id = config['data_source_id']
+      EtoApiConfig.find_each do |config|
+        data_source_id = config.data_source_id
         Importing::EtoUpdateEverythingJob.perform_later(
           start_date: start_date.to_s,
           data_source_id: data_source_id,
