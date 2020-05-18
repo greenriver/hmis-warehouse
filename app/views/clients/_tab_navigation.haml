@@ -110,6 +110,10 @@
        title: 'Files',
        permission: show_health_hpc,
       },
+      client_health_patient_referrals_path(client_id: @client) => {
+        title: 'Enrollment History',
+        permission: show_health_hpc,
+      },
       # Pilot Pages
       polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client) => {
        title: 'Health Dashboard',

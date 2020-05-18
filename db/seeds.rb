@@ -217,7 +217,7 @@ def report_list
       {
         url: 'warehouse_reports/dob_entry_same',
         name: 'DOB = Entry date',
-        description: "List clients who''s first entry date is on their birthdate.",
+        description: "List clients who's first entry date is on their birthdate.",
         limitable: true,
       },
       {
@@ -241,7 +241,7 @@ def report_list
       {
         url: 'warehouse_reports/non_alpha_names',
         name: 'Client with odd characters in their names',
-        description: "List clients who''s first or last name starts with a non-alphabetic character.",
+        description: "List clients who's first or last name starts with a non-alphabetic character.",
         limitable: false,
       },
       {
@@ -297,7 +297,7 @@ def report_list
       {
         url: 'warehouse_reports/cas/chronic_reconciliation',
         name: 'Chronic Reconcilliation',
-        description: "See who is available in CAS but not on the chronic list, and who''s not available in CAS, but is on the chronic list.",
+        description: "See who is available in CAS but not on the chronic list, and who's not available in CAS, but is on the chronic list.",
         limitable: false,
       },
       {

@@ -8,9 +8,7 @@ module Admin::Health
   class AgencyPatientReferralsController < HealthController
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_review_patient_assignments!
-    # before_action :load_agency_user, only: [:review, :reviewed, :add_patient_referral]
     before_action :load_agency_users, only: [:review, :reviewed, :add_patient_referral, :claim_buttons]
-    before_action :load_new_patient_referral, only: [:review, :reviewed]
 
     include PatientReferral
     helper_method :tab_path_params
@@ -138,14 +136,6 @@ module Admin::Health
       )
     end
 
-    # def load_agency_user
-    #   @agency_user = current_user.agency_user
-    #   @agency = @agency_user&.agency
-    #   if !@agency
-    #     @no_agency_user_warning = "You are not assigned to an agency at this time.  Please request assignment to an agency."
-    #   end
-    # end
-
     def load_agency_users
       @agency_users = current_user.agency_users
       @user_agencies = current_user.health_agencies
@@ -175,18 +165,5 @@ module Admin::Health
       false
     end
     helper_method :show_filters?
-
-    # def add_patient_referral_path
-    #   add_admin_health_agency_patient_referrals_path
-    # end
-    # helper_method :add_patient_referral_path
-
-    # def create_patient_referral_notice
-    #   "New patient added and claimed by #{@agency.name}"
-    # end
-
-    # def create_patient_referral_success_path
-    #   reviewed_admin_health_agency_patient_referrals_path(group: 'our patient')
-    # end
   end
 end

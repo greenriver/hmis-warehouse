@@ -33,9 +33,9 @@ module Health
       patient_referrals.each do |pr|
         patient = pr.patient
 
-        most_recent_qualifying_activity = patient&.qualifying_activities&.after_enrollment_date&.direct_contact&.order(date_of_activity: :desc)&.limit(1)&.first
+        most_recent_qualifying_activity = patient&.qualifying_activities&.during_current_enrollment&.direct_contact&.order(date_of_activity: :desc)&.limit(1)&.first
         # Any qa before the end of the report range?
-        qa_activity_dates = patient&.qualifying_activities&.after_enrollment_date&.where(hqa_t[:date_of_activity].lteq(report_range.end))&.pluck(:date_of_activity)&.uniq || []
+        qa_activity_dates = patient&.qualifying_activities&.during_current_enrollment&.where(hqa_t[:date_of_activity].lteq(report_range.end))&.pluck(:date_of_activity)&.uniq || []
 
         # only include patients referred before the report end date
         next unless patient_enrolled_during_report?(pr.enrollment_start_date)
@@ -64,7 +64,7 @@ module Health
           cp_last_contact_date: most_recent_qualifying_activity&.date_of_activity,
           cp_last_contact_face: client_recent_face_to_face(most_recent_qualifying_activity),
           cp_contact_face: any_face_to_face_for_patient_in_range(patient, report_range),
-          cp_participation_form_date: patient&.participation_forms&.after_enrollment_date&.maximum(:signature_on),
+          cp_participation_form_date: patient&.participation_forms&.during_current_enrollment&.maximum(:signature_on),
           cp_care_plan_sent_pcp_date: care_plan_sent_to_provider_date(patient&.id),
           cp_care_plan_returned_pcp_date: care_plan_provider_signed_date(patient&.id),
           key_contact_name_first: sender_cp.key_contact_first_name,

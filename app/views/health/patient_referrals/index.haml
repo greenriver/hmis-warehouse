@@ -1,0 +1,20 @@
+= render 'health/breadcrumbs'
+- content_for(:title, "Enrollment History for #{@patient.name}")
+.o-page
+  .o-page__header
+    %h1= content_for :title
+
+
+  .table-responsive
+    %table.table.table-sm
+      %thead
+        %tr
+          %th Enrollment Start Date
+          %th Pending Disenrollment Date
+          %th Disenrollment Date
+      %tbody
+        - @patient_referrals.each do |pr|
+          %tr
+            %td= pr.enrollment_start_date
+            %td= pr.pending_disenrollment_date
+            %td= pr.disenrollment_date
