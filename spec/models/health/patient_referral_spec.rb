@@ -41,20 +41,17 @@ RSpec.describe Health::PatientReferral, type: :model do
     end
 
     it 'creates two separate referrals (one current), for re-opened referrals in 90 days' do
-      Timecop.freeze(Date.current - 101.days) do
-        closed_referral = create :patient_referral
-        Timecop.travel(Date.current + 10.days)
-        closed_referral.update(disenrollment_date: Date.current)
-        Timecop.travel(Date.current + 91.days)
-        closed_referral.update(disenrollment_date: nil)
-        expect(closed_referral.versions.count).to eq(3)
-        expect(Health::PatientReferral.count).to eq(1)
+      closed_referral = create :patient_referral, enrollment_start_date: Date.current - 101.days
+      closed_referral.update(disenrollment_date: Date.current - 91.days)
+      closed_referral.update(disenrollment_date: nil)
+      closed_referral.update(enrollment_start_date: Date.current)
+      expect(closed_referral.versions.count).to eq(4)
+      expect(Health::PatientReferral.count).to eq(1)
 
-        closed_referral.build_derived_referrals.map(&:save!)
-        expect(Health::PatientReferral.count).to eq(2)
-        expect(Health::PatientReferral.contributing.count).to eq(1)
-        expect(Health::PatientReferral.current.count).to eq(1)
-      end
+      closed_referral.build_derived_referrals.map(&:save!)
+      expect(Health::PatientReferral.count).to eq(2)
+      expect(Health::PatientReferral.contributing.count).to eq(1)
+      expect(Health::PatientReferral.current.count).to eq(1)
     end
   end
 end
