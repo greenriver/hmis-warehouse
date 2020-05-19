@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_14_185800) do
+ActiveRecord::Schema.define(version: 2020_05_19_175104) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1736,6 +1736,12 @@ ActiveRecord::Schema.define(version: 2020_05_14_185800) do
     t.jsonb "additional_fields"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string "identifier"
+    t.string "email"
+    t.string "encrypted_password"
+    t.string "encrypted_encrypted_password_iv"
+    t.string "enterprise"
+    t.string "hud_touch_point_id"
     t.index ["data_source_id"], name: "index_eto_api_configs_on_data_source_id"
   end
 
@@ -2196,6 +2202,21 @@ ActiveRecord::Schema.define(version: 2020_05_14_185800) do
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"
     t.index ["name"], name: "index_hmis_forms_on_name"
+  end
+
+  create_table "hmis_import_configs", force: :cascade do |t|
+    t.bigint "data_source_id", null: false
+    t.string "s3_access_key_id", null: false
+    t.string "s3_secret_access_key", null: false
+    t.string "encrypted_s3_secret_access_key_iv"
+    t.string "s3_region"
+    t.string "s3_bucket_name"
+    t.string "s3_path"
+    t.string "zip_file_password"
+    t.string "encrypted_zip_file_password_iv"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["data_source_id"], name: "index_hmis_import_configs_on_data_source_id"
   end
 
   create_table "hmis_staff", id: :serial, force: :cascade do |t|
