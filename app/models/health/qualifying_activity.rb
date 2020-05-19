@@ -595,7 +595,7 @@ module Health
     end
 
     def occurred_within_three_months_of_enrollment?
-      date_of_activity.present? && patient.contributed_days_enrolled <= 90
+      date_of_activity.present? && patient.first_n_contributed_days_of_enrollment(90).include?(date_of_activity.present?)
     end
 
     def patient_has_valid_care_plan?

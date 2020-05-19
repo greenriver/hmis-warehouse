@@ -17,9 +17,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
       where(processed_as: nil)
     end
 
-    def self.batch_process_unprocessed!
+    def self.batch_process_unprocessed!(max_wait_seconds: 21600)
       queue_batch_process_unprocessed!
-      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing
+      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing(max_wait_seconds: max_wait_seconds)
     end
 
     def self.queue_batch_process_unprocessed!

@@ -103,7 +103,7 @@ module Importers::HmisTwentyTwenty
           remove_import_files() if @remove_files
         end
       end # end with_advisory_lock
-      project_cleanup() # FIXME, this should only attempt to cleanup projects within this data source
+      project_cleanup()
     end
 
     def export_file_valid?
