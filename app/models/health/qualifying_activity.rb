@@ -548,7 +548,10 @@ module Health
       end
 
       # Case 3: May be unpayable if there is no valid care plan
-      if ! patient_has_valid_care_plan? && in_care_plan_development_period?
+      # Note, Mass Health guidance, that contradicts the original guidance
+      # allows for payment of QA given any existing signed care plan.
+      # previously, this used patient_has_valid_care_plan?
+      if ! patient_has_signed_careplan? && in_care_plan_development_period?
         # Only one non-careplan item per month (also limits to 5)
         return ! first_non_care_plan_of_month_for_patient? unless care_plan_related?
       end
