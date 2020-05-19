@@ -542,7 +542,7 @@ module ReportGenerators::Lsa::Fy2019
     def fetch_summary_results
       load 'lib/rds_sql_server/lsa/fy2019/lsa_report_summary.rb'
       summary = LsaSqlServer::LSAReportSummary.new
-      @report.results = {summary: {people: summary.fetch_people}}
+      @report.results = { summary: summary.fetch_summary }
       @report.save
     end
   end

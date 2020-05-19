@@ -1,7 +1,8 @@
-- people = people = @result.results.dig('summary', 'people')
-- if people
+- summary = @result.results.dig('summary')
+- if summary
   %h3.mt-4 Client Summary
-  %dl.w-25
-    - people.each do |header, value|
-      %dt= header
-      %dd= value
+  %table.table.table-striped
+    - summary.each do |header, value|
+      %tr
+        %th= header
+        %td= value
