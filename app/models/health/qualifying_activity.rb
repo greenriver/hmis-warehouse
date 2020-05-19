@@ -602,6 +602,10 @@ module Health
       date_of_activity >= patient.care_plan_provider_signed_date && date_of_activity < patient.care_plan_renewal_date
     end
 
+    def patient_has_signed_careplan?
+      patient.careplans.fully_signed.exists?
+    end
+
     def in_care_plan_development_period?
       date_of_activity.present? && patient.current_days_enrolled <= 150
     end
@@ -611,7 +615,7 @@ module Health
 
       return false if outreach? && ! occurred_within_three_months_of_enrollment?
 
-      return false if ! care_plan_related? && ! (patient_has_valid_care_plan? || in_care_plan_development_period?)
+      return false if ! care_plan_related? && ! (patient_has_signed_careplan? || in_care_plan_development_period?)
 
       return true
     end
