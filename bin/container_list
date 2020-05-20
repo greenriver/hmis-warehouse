@@ -3,8 +3,42 @@
 require 'json'
 require 'aws-sdk-ec2'
 require 'byebug'
+require 'shellwords'
 
 class ContainerList
+  def ssh!
+    ensure_profile_and_ip
+
+    template = "%16s %12s %-80s"
+
+    puts format(template, 'IP', 'ID', 'Task/connection command')
+
+    instances.each.with_index do |instance, i|
+      ip = instance.public_ip_address
+
+      # List running containers
+      # TODO: improve to allow connecting to stopped containers as well
+      remote_cmd = "bash -l -c \"docker container ls --format='#{ip}|{{print .ID}}|{{print .Names}}|{{print .RunningFor}}|{{println .Image}}'\""
+
+      full_cmd = "ssh ec2-user@#{ip} #{Shellwords.escape remote_cmd}"
+
+      # Pull out results from remote system
+      lines = `#{full_cmd}`.split(/\n/).reject { |l| l.match?(/^\s*$/) }
+
+      lines.each do |line|
+        ( _, container_id, task ) = line.split(/\|/)
+
+        # Skip the ECS agent
+        next if task.match?(/ecs-agent/)
+
+        puts format(template, ip, container_id, task)
+
+        # Tell user the command to use to connect
+        connection_cmd = "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh'"
+        puts format(template, '', '', connection_cmd)
+      end
+    end
+  end
 
   def run!
     ensure_profile_and_ip
@@ -14,6 +48,8 @@ class ContainerList
       puts "\n\n"
     end
   end
+
+  private
 
   def ensure_profile_and_ip
     my_ip = `dig +short myip.opendns.com @resolver1.opendns.com`.chomp
@@ -26,8 +62,6 @@ class ContainerList
       raise "set AWS_PROFILE"
     end
   end
-
-  private
 
   def instances
     return @instances unless @instances.nil?
@@ -56,4 +90,10 @@ class ContainerList
   end
 end
 
-ContainerList.new.run!
+if __FILE__.include?('container_list')
+  ContainerList.new.run!
+elsif __FILE__.include?('container_ssh')
+  ContainerList.new.ssh!
+else
+  puts __FILE__
+end
