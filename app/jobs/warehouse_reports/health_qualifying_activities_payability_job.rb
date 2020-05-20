@@ -19,6 +19,7 @@ module WarehouseReports
 
     def perform
       @report = report_source.find(report_id)
+      Health::Tasks::CalculateValidUnpayableQas.new.run!
       @report.pre_calculate_qualifying_activity_payability!
       NotifyUser.health_qa_pre_calculation_finished(@current_user_id).deliver_later
     end

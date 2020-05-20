@@ -11,6 +11,7 @@ module Health::Tasks
       # to avoid very old QAs
       date_range = (Date.current - 180.days..Date.current)
       Health::QualifyingActivity.unsubmitted.in_range(date_range).find_each(&:maintain_valid_unpayable)
+      Health::QualifyingActivity.unsubmitted.in_range(date_range).find_each(&:maintain_procedure_valid)
     end
   end
 end
