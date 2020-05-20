@@ -196,8 +196,10 @@ module Health
       next_month = enrollment_start_date.at_beginning_of_month.next_month
       if enrollment_start_date < '2018-09-01'.to_date
         (next_month + 120.days).to_date
-      else
+      elsif enrollment_start_date < '2020-04-01'.to_date
         (next_month + 90.days).to_date
+      else
+        (next_month + 150.days).to_date
       end
     end
 

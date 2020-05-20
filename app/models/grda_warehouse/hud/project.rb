@@ -43,7 +43,7 @@ module GrdaWarehouse::Hud
     HOMELESS_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :so, :sh, :th).flatten
     HOMELESS_SHELTERED_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :sh, :th).flatten
     HOMELESS_UNSHELTERED_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten
-    
+
     PROJECT_GROUP_TITLES = {
       ph: 'Permanent Housing (PH, PSH, & RRH)',
       es: 'Emergency Shelter (ES)',
@@ -481,7 +481,7 @@ module GrdaWarehouse::Hud
     end
 
     def organization_and_name(include_confidential_names: false)
-      if include_confidential_names
+      text = if include_confidential_names
         "#{organization&.OrganizationName} / #{self.ProjectName}"
       else
         project_name = self.class.confidentialize(name: self.ProjectName)
@@ -491,6 +491,7 @@ module GrdaWarehouse::Hud
           "#{organization&.OrganizationName} / #{self.ProjectName}"
         end
       end
+      text += " (#{HUD.project_type_brief(computed_project_type)})"
     end
 
     def name_and_type(include_confidential_names: false)
