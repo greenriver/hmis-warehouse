@@ -55,8 +55,7 @@ module GrdaWarehouse::Tasks
           debug_log("done updating name for #{project.ProjectName}")
         end
       end
-      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
-      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!(max_wait_seconds: 1_800)
     end
 
     def load_projects

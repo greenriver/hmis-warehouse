@@ -548,7 +548,10 @@ module Health
       end
 
       # Case 3: May be unpayable if there is no valid care plan
-      if ! patient_has_valid_care_plan? && in_care_plan_development_period?
+      # Note, Mass Health guidance, that contradicts the original guidance
+      # allows for payment of QA given any existing signed care plan.
+      # previously, this used patient_has_valid_care_plan?
+      if ! patient_has_signed_careplan? && in_care_plan_development_period?
         # Only one non-careplan item per month (also limits to 5)
         return ! first_non_care_plan_of_month_for_patient? unless care_plan_related?
       end
@@ -592,7 +595,7 @@ module Health
     end
 
     def occurred_within_three_months_of_enrollment?
-      date_of_activity.present? && patient.contributed_days_enrolled <= 90
+      date_of_activity.present? && patient.first_n_contributed_days_of_enrollment(90).include?(date_of_activity)
     end
 
     def patient_has_valid_care_plan?
@@ -600,6 +603,10 @@ module Health
       return false unless date_of_activity.present?
 
       date_of_activity >= patient.care_plan_provider_signed_date && date_of_activity < patient.care_plan_renewal_date
+    end
+
+    def patient_has_signed_careplan?
+      patient.careplans.fully_signed.exists?
     end
 
     def in_care_plan_development_period?
@@ -611,7 +618,7 @@ module Health
 
       return false if outreach? && ! occurred_within_three_months_of_enrollment?
 
-      return false if ! care_plan_related? && ! (patient_has_valid_care_plan? || in_care_plan_development_period?)
+      return false if ! care_plan_related? && ! (patient_has_signed_careplan? || in_care_plan_development_period?)
 
       return true
     end

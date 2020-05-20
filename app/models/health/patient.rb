@@ -332,7 +332,15 @@ module Health
     end
 
     def contributed_days_enrolled
-      contributed_enrollment_ranges.map(&:to_a).flatten.uniq.count
+      contributed_dates.count
+    end
+
+    private def contributed_dates
+      contributed_enrollment_ranges.map(&:to_a).flatten.uniq
+    end
+
+    def first_n_contributed_days_of_enrollment(day_count)
+      contributed_dates.first(day_count)
     end
 
     def current_enrollment_range
