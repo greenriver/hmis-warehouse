@@ -30,6 +30,7 @@ ENV GROVER_NO_SANDBOX=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
     CHROMIUM_PATH=/usr/bin/chromium-browser
 RUN apk add --no-cache \
+  imagemagick \
   wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
   chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
   lftp
