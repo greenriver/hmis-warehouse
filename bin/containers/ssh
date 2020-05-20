@@ -11,7 +11,7 @@ class ContainerList
 
     template = "%16s %12s %-80s"
 
-    puts format(template, 'IP', 'ID', 'Task/connection command')
+    # puts format(template, 'IP', 'ID', 'Task/connection command')
 
     instances.each.with_index do |instance, i|
       ip = instance.public_ip_address
@@ -31,11 +31,14 @@ class ContainerList
         # Skip the ECS agent
         next if task.match?(/ecs-agent/)
 
-        puts format(template, ip, container_id, task)
+        # Disabling for now in favor of trailing container name
+        # puts format(template, ip, container_id, task)
 
         # Tell user the command to use to connect
-        connection_cmd = "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh'"
-        puts format(template, '', '', connection_cmd)
+        connection_cmd = "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
+        # Disabling for now in favor of trailing container name
+        # puts format(template, '', '', connection_cmd)
+        puts connection_cmd
       end
     end
   end
@@ -90,9 +93,9 @@ class ContainerList
   end
 end
 
-if __FILE__.include?('container_list')
+if __FILE__.include?('list')
   ContainerList.new.run!
-elsif __FILE__.include?('container_ssh')
+elsif __FILE__.include?('ssh')
   ContainerList.new.ssh!
 else
   puts __FILE__
