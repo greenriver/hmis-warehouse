@@ -163,6 +163,9 @@ module Health
       referral = create(referral_args)
       referral.convert_to_patient
 
+      # Update the patients engagement date unless they already have a careplan
+      referral.patient.update(engagement_date: referral.engagement_date) unless referral.patient.care_plan_signed?
+
       referral
     end
 
@@ -199,7 +202,7 @@ module Health
       elsif enrollment_start_date < '2020-04-01'.to_date
         (next_month + 90.days).to_date
       else
-        (next_month + 150.days).to_date
+        (enrollment_start_date + 150.days).to_date
       end
     end
 
@@ -383,7 +386,7 @@ module Health
         client_id: destination_client.id,
         medicaid_id: medicaid_id,
         pilot: false,
-        engagement_date: engagement_date,
+        # engagement_date: engagement_date,
         data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
       )
       patient.save!
