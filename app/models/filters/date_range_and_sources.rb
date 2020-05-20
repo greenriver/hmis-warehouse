@@ -100,6 +100,11 @@ module Filters
         merge(all_project_scope)
     end
 
+    def all_project_group_scope
+      GrdaWarehouse::ProjectGroup.joins(:projects).
+        merge(all_project_scope)
+    end
+
     def project_options_for_select(user: )
       all_project_scope.options_for_select(user: user)
     end
@@ -114,6 +119,10 @@ module Filters
 
     def coc_code_options_for_select(user: )
       all_coc_code_scope.options_for_select(user: user)
+    end
+
+    def project_groups_options_for_select(user: )
+      all_project_group_scope.options_for_select(user: user)
     end
 
     def clients_from_cohorts

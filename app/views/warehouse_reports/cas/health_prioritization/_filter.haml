@@ -1,10 +1,12 @@
 - content_for :filters_col_full do
   %p Show clients who have been seen during the date range at the specified projects.
   .row
-    .col
+    .col-sm-6
       = render 'warehouse_reports/date_range_filters', f: f
-    .col
-      = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select, group_method: :last, selected: @filter.effective_project_ids, label: 'Project', input_html: {multiple: true, class: 'select2'}
+    .col-sm-3
+      = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select, group_method: :last, selected: @filter.project_ids, label: 'Project', input_html: {multiple: true, class: :select2}
+    .col-sm-3
+      = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), selected: @filter.project_group_ids, label: 'Project Group', input_html: {class: :select2}, include_blank: 'None'
 
 - content_for :filter_actions do
   = f.submit 'Update', class: 'btn btn-primary mt-no-label'

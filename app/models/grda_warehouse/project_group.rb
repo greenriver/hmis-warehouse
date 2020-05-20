@@ -39,16 +39,19 @@ module GrdaWarehouse
       viewable_by(user)
     end
 
-    def self.available_projects user
+    def self.available_projects(user)
       GrdaWarehouse::Hud::Project.viewable_by(user).
         joins(:organization).
-        pluck(:ProjectName, o_t[:OrganizationName].as('organization_name').to_sql, :id).
-        map do |project_name, organization_name, id|
+        map do |project|
           [
-            "#{project_name} < #{organization_name}",
-            id
+            project.organization_and_name,
+            project.id,
           ]
         end
+    end
+
+    def self.options_for_select(user:)
+      viewable_by(user).pluck(:name, :id)
     end
   end
 end
