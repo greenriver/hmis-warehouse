@@ -533,12 +533,12 @@ module Health
     end
 
     def maintain_valid_unpayable
-      self.update(valid_unpayable: valid_unpayable?)
+      self.update(valid_unpayable: compute_valid_unpayable?)
     end
 
     # NOTE: this needs to stay in-sync with the scope valid_unpayable
     # for speed reasons we re-implement the logic here
-    def valid_unpayable?
+    def compute_valid_unpayable?
       # Case 1: Only valid procedures
       return false unless procedure_valid?
 
