@@ -419,7 +419,7 @@ module Health
       return modifiers.reject(&:blank?).compact
     end
 
-    def procedure_valid?
+    def compute_procedure_valid?
       return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && reached_client.present?
       procedure_code = self.procedure_code
       modifiers = self.modifiers
@@ -522,7 +522,7 @@ module Health
       # Meets general restrictions
       # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
       # will still be submitted
-      self.naturally_payable = procedure_valid? && occurred_during_any_enrollment?
+      self.naturally_payable = compute_procedure_valid? && occurred_during_any_enrollment?
       if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code)
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
         self.duplicate_id = first_of_type_for_day_for_patient_not_self
@@ -533,14 +533,18 @@ module Health
     end
 
     def maintain_valid_unpayable
-      self.update(valid_unpayable: valid_unpayable?)
+      self.update(valid_unpayable: compute_valid_unpayable?)
+    end
+
+    def maintain_procedure_valid
+      self.update(procedure_valid: compute_procedure_valid?)
     end
 
     # NOTE: this needs to stay in-sync with the scope valid_unpayable
     # for speed reasons we re-implement the logic here
-    def valid_unpayable?
+    def compute_valid_unpayable?
       # Case 1: Only valid procedures
-      return false unless procedure_valid?
+      return false unless compute_procedure_valid?
 
       # Case 2: Unpayable if this was a phone/video call where the client wasn't reached
       if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
