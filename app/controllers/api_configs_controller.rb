@@ -18,14 +18,15 @@ class ApiConfigsController < ApplicationController
   end
 
   def update
-    respond_with @config.update(config_params)
+    cleaned_params = handle_json_fields(config_params)
+    @config.update(cleaned_params)
+    respond_with(@config, location: edit_data_source_api_config_path)
   end
 
   def create
-    respond_with config_scope.create(config_params)
-  end
-
-  def destroy
+    cleaned_params = handle_json_fields(config_params)
+    @config = config_scope.create(cleaned_params)
+    respond_with(@config, location: edit_data_source_api_config_path)
   end
 
   private def config_exists?
@@ -37,7 +38,7 @@ class ApiConfigsController < ApplicationController
   end
 
   private def set_config
-    @config = config_scope.find(params[:id].to_i)
+    @config = config_scope.find_by(data_source_id: params[:data_source_id].to_i)
   end
 
   private def config_scope
@@ -45,7 +46,7 @@ class ApiConfigsController < ApplicationController
   end
 
   private def config_params
-    require(:config).permit(
+    params.require(:config).permit(
       :touchpoint_fields,
       :demographic_fields,
       :demographic_fields_with_attributes,
@@ -56,5 +57,23 @@ class ApiConfigsController < ApplicationController
       :enterprise,
       :hud_touch_point_id,
     )
+  end
+
+  private def handle_json_fields(config)
+    [
+      :touchpoint_fields,
+      :demographic_fields,
+      :demographic_fields_with_attributes,
+      :additional_fields,
+    ].each do |field|
+      config[field] = JSON.parse(config[field])
+    rescue JSON::ParserError
+      config[field] = "FAILED to parse: #{config[field]}"
+    end
+    config
+  end
+
+  def flash_interpolation_options
+    { resource_name: 'ETO Configuration' }
   end
 end

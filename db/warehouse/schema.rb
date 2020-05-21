@@ -1739,9 +1739,10 @@ ActiveRecord::Schema.define(version: 2020_05_19_175104) do
     t.string "identifier"
     t.string "email"
     t.string "encrypted_password"
-    t.string "encrypted_encrypted_password_iv"
+    t.string "encrypted_password_iv"
     t.string "enterprise"
     t.string "hud_touch_point_id"
+    t.boolean "active", default: true
     t.index ["data_source_id"], name: "index_eto_api_configs_on_data_source_id"
   end
 
@@ -2206,13 +2207,14 @@ ActiveRecord::Schema.define(version: 2020_05_19_175104) do
 
   create_table "hmis_import_configs", force: :cascade do |t|
     t.bigint "data_source_id", null: false
+    t.boolean "active", default: true
     t.string "s3_access_key_id", null: false
-    t.string "s3_secret_access_key", null: false
+    t.string "encrypted_s3_secret_access_key", null: false
     t.string "encrypted_s3_secret_access_key_iv"
     t.string "s3_region"
     t.string "s3_bucket_name"
     t.string "s3_path"
-    t.string "zip_file_password"
+    t.string "encrypted_zip_file_password"
     t.string "encrypted_zip_file_password_iv"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

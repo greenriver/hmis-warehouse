@@ -7,7 +7,7 @@
 class HmisImportConfigsController < ApplicationController
   before_action :require_can_edit_data_sources_or_everything!
   before_action :set_data_source
-  before_action :set_config, only: [:edit, :update, :create, :destroy]
+  before_action :set_config, only: [:edit, :update, :destroy]
 
   def new
     redirect_to action: :edit if config_exists?
@@ -18,12 +18,13 @@ class HmisImportConfigsController < ApplicationController
   end
 
   def update
+    @config.update(config_params)
+    respond_with(@config, location: edit_data_source_hmis_import_config_path)
   end
 
   def create
-  end
-
-  def destroy
+    @config = config_scope.create(config_params)
+    respond_with(@config, location: edit_data_source_hmis_import_config_path)
   end
 
   private def config_exists?
@@ -35,7 +36,7 @@ class HmisImportConfigsController < ApplicationController
   end
 
   private def set_config
-    @config = config_scope.find(params[:id].to_i)
+    @config = config_scope.find_by(data_source_id: params[:data_source_id].to_i)
   end
 
   private def config_scope
@@ -43,7 +44,7 @@ class HmisImportConfigsController < ApplicationController
   end
 
   private def config_params
-    require(:config).permit(
+    params.require(:config).permit(
       :s3_access_key_id,
       :s3_secret_access_key,
       :s3_region,
@@ -51,5 +52,9 @@ class HmisImportConfigsController < ApplicationController
       :s3_path,
       :zip_file_password,
     )
+  end
+
+  def flash_interpolation_options
+    { resource_name: 'HMIS CSV Config' }
   end
 end
