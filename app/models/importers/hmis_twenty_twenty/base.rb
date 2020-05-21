@@ -392,6 +392,7 @@ module Importers::HmisTwentyTwenty
       importable_files.each do |file_name, klass|
         source_file_path = "#{@file_path}/#{@data_source.id}/#{file_name}"
         next unless File.file?(source_file_path)
+
         destination_file_path = "#{source_file_path}_updating"
         file = open_csv_file(source_file_path)
         clean_source_file(destination_path: destination_file_path, read_from: file, klass: klass)
@@ -417,7 +418,7 @@ module Importers::HmisTwentyTwenty
     end
 
     def clean_source_file destination_path:, read_from:, klass:
-      csv = CSV.new(read_from, headers: true)
+      csv = CSV.new(read_from, headers: true, liberal_parsing: true)
       # read the first row so we can set the headers
       row = csv.shift
       headers = csv.headers
@@ -443,6 +444,8 @@ module Importers::HmisTwentyTwenty
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
+      # note date columns for cleanup
+      date_columns = date_columns_for_class(klass)
       # Reopen the file with corrected headers
       csv = CSV.new(read_from, headers: header)
       # since we're providing headers, skip the header row
@@ -459,6 +462,11 @@ module Importers::HmisTwentyTwenty
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation'
             next unless row['CurrentLivingSituation'].present? && row['InformationDate'].present? && row['UserID'].present? && row['DateUpdated'].present? && row['DateCreated'].present? && row['EnrollmentID'].present?
           end
+          date_columns.each do |col|
+            next if row[col].blank? || correct_date_format?(row[col])
+
+            row[col] = fix_date_format(row[col])
+          end
           if row.count == header.count
             row = set_useful_export_id(row: row, export_id: export_id_addition)
             track_max_updated(row)
@@ -473,6 +481,39 @@ module Importers::HmisTwentyTwenty
         end
       end
       write_to.close
+    end
+
+    # We sometimes see very odd dates, this will attempt to make them sane.
+    # Since most dates should be not too far in the future, we'll check for anything less
+    # Than a year out
+    private def fix_date_format(string)
+      return unless string
+
+      d = Date.parse(string)
+      @future_check_date ||= Date.current + 1.years
+      return d.strftime('%Y-%m-%d') if d <= @future_check_date
+
+      # Move the date back 100 years if it ended up in the future
+      # This is more efficient than d.prev_year(100)
+      date = d << 1200
+      date.strftime('%Y-%m-%d')
+    end
+
+    private def correct_date_format?(string)
+      accepted_date_pattern.match?(string)
+    end
+
+    private def accepted_date_pattern
+      @accepted_date_pattern ||= /\d\d-\d\d-\d\d\d\d/.freeze
+    end
+
+    private def date_columns_for_class(klass)
+      hmis_columns = klass.hmis_structure(version: '2020').keys
+      klass.content_columns.select do |c|
+        c.type == :date && c.name.to_sym.in?(hmis_columns)
+      end.map do |c|
+        c.name.to_s
+      end
     end
 
     def header_valid?(line, klass)
@@ -571,21 +612,21 @@ module Importers::HmisTwentyTwenty
 
     def self.importable_files
       {
-        'Affiliation.csv' => affiliation_source,
+        'Export.csv' => export_source,
+        'Organization.csv' => organization_source,
+        'Project.csv' => project_source,
         'Client.csv' => client_source,
         'Disabilities.csv' => disability_source,
         'EmploymentEducation.csv' => employment_education_source,
         'Enrollment.csv' => enrollment_source,
         'EnrollmentCoC.csv' => enrollment_coc_source,
         'Exit.csv' => exit_source,
-        'Export.csv' => export_source,
         'Funder.csv' => funder_source,
         'HealthAndDV.csv' => health_and_dv_source,
         'IncomeBenefits.csv' => income_benefits_source,
         'Inventory.csv' => inventory_source,
-        'Organization.csv' => organization_source,
-        'Project.csv' => project_source,
         'ProjectCoC.csv' => project_coc_source,
+        'Affiliation.csv' => affiliation_source,
         'Services.csv' => service_source,
         'CurrentLivingSituation.csv' => current_living_situation_source,
         'Assessment.csv' => assessment_source,
