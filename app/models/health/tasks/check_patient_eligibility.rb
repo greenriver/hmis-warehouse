@@ -6,6 +6,12 @@
 
 module Health::Tasks
   class CheckPatientEligibility
+    include NotifierConfig
+
+    def initialize
+      setup_notifier('Health Eligibility')
+    end
+
     def check(eligibility_date, batch_size:, owner_id:, user: nil, test: false)
       patients = Health::EligibilityInquiry.patients.order(:id)
       offset = 0
@@ -21,7 +27,13 @@ module Health::Tasks
         soap = Health::Soap::MassHealth.new(test: test)
         return unless soap.configured?
 
-        result = soap.realtime_eligibility_inquiry_request(edi_doc: edi_doc)
+        begin
+          result = soap.realtime_eligibility_inquiry_request(edi_doc: edi_doc)
+        rescue StandardError => e
+          msg = "Error communicating with MassHealth: %{e}"
+          Rails.logger.error msg
+          @notifier.ping msg if @send_notifications
+        end
 
         if result.success?
           Health::EligibilityResponse.create(
