@@ -52,11 +52,12 @@ module WarehouseReports::Cas
         permit(
           :start,
           :end,
+          :project_group_ids,
           project_ids: [],
         )
       allowed[:project_ids].reject!(&:blank?)
       # Prevent triggering "all" projects
-      allowed[:project_ids] = es_project_ids if allowed[:project_ids].empty?
+      allowed[:project_ids] = [0] if allowed[:project_ids].empty?
       allowed
     end
     helper_method :filter_params
