@@ -447,7 +447,7 @@ module Importers::HmisTwentyTwenty
       # note date columns for cleanup
       date_columns = date_columns_for_class(klass)
       # Reopen the file with corrected headers
-      csv = CSV.new(read_from, headers: header)
+      csv = CSV.new(read_from, headers: header, liberal_parsing: true)
       # since we're providing headers, skip the header row
       csv.drop(1).each do |row|
         begin
@@ -489,6 +489,11 @@ module Importers::HmisTwentyTwenty
     private def fix_date_format(string)
       return unless string
 
+      # Sometimes dates come in mm-dd-yyyy and Ruby Date really doesn't like that.
+      if /\d\d-\d\d-\d\d\d\d/.match?(string)
+        month, day, year = string.split('-')
+        return "#{year}-#{month}-#{day}"
+      end
       d = Date.parse(string)
       @future_check_date ||= Date.current + 1.years
       return d.strftime('%Y-%m-%d') if d <= @future_check_date
@@ -504,7 +509,7 @@ module Importers::HmisTwentyTwenty
     end
 
     private def accepted_date_pattern
-      @accepted_date_pattern ||= /\d\d-\d\d-\d\d\d\d/.freeze
+      @accepted_date_pattern ||= /\d\d\d\d-\d\d-\d\d/.freeze
     end
 
     private def date_columns_for_class(klass)
