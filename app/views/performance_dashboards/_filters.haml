@@ -1,5 +1,5 @@
 = hidden_field_tag :breakdown, breakdown
-%ul.nav.nav-tabs.w-75.ml-0.pl-0{role: :tablist}
+%ul.nav.nav-tabs.nav-tabs--in-card{role: :tablist}
   %li.nav-item{role: :presentation}
     %a{href: '#dates', role: :tab, data: {toggle: :tab}, aria: {controls: 'dates'}, class: 'nav-link active'}
       Dates
@@ -55,4 +55,3 @@
 %hr
 .mt-4
   = f.submit 'Update View'
-

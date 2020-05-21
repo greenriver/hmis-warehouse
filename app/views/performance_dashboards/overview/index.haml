@@ -1,5 +1,5 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'performance-dashboard'
-%h1 Overview
+%h1 Performance Overview
 - id = 'filter'
 #filter-accordion.panel-group.panel-collapsible
   - content_for :panel_collapse_content, flush: true do
@@ -20,7 +20,5 @@
     %li.nav-item{role: :presentation}
       = link_to(filter_params.merge(breakdown: k), class: ['nav-link', class_name]) do
         = title
-  
+
 = render "by_#{breakdown}"
-
-
