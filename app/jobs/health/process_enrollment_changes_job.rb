@@ -141,7 +141,12 @@ module Health
         updates[:aco] = aco if aco.present?
       end
 
-      Health::PatientReferral.create_referral(patient, updates)
+      current_referral = patient.patient_referral
+      if update[:enrollment_start_date] != current_referral.enrollment_start_date
+        Health::PatientReferral.create_referral(patient, updates)
+      else
+        current_referral.update(updates)
+      end
     end
 
     def disenrollment_reason_description(code)
