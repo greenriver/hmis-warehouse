@@ -647,6 +647,23 @@ module Importers::HmisTwentyTwenty
       }.freeze
     end
 
+    private def correct_file_names
+      @correct_file_names ||= importable_files.keys.map{|m| [m.downcase, m]}
+    end
+
+    private def ensure_file_naming
+      file_path = "#{@file_path}/#{@data_source.id}"
+      Dir.each_child(file_path) do |filename|
+        correct_file_name = correct_file_names.detect{|f, _| f == filename.downcase}&.last
+        if correct_file_name.present? && correct_file_name != filename
+          # Ruby complains if the files only differ by case, so we'll move it twice
+          tmp_name = "tmp_#{filename}"
+          FileUtils.mv(File.join(file_path, filename), File.join(file_path, tmp_name))
+          FileUtils.mv(File.join(file_path, tmp_name), File.join(file_path, correct_file_name))
+        end
+      end
+    end
+
     def self.affiliation_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Affiliation
     end
