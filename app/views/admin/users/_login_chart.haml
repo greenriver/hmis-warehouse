@@ -1,0 +1,38 @@
+#jUserActivityChart
+
+= content_for :page_js do
+  :javascript
+    var user_activity = bb.generate({
+      size: {
+        height: 100
+      },
+      legend: {
+        hide: true
+      },
+      data: {
+        x: 'x',
+        xFormat: '%Y-%m-%d %H:%M',
+        columns: #{raw ActivityLog.for_chart()}
+      },
+      axis: {
+        x: {
+          type: 'timeseries',
+          tick: {
+            format: '%Y-%m-%d %H:%M',
+            show: false,
+            text: {
+              show: false
+            }
+          }
+        },
+        y: {
+          tick: {
+            show: false,
+            text: {
+              show: false
+            }
+          }
+        }
+      },
+      bindto: '#jUserActivityChart'
+    });
