@@ -151,12 +151,9 @@ module Health
 
       return unless current_referral.changed?
 
-      if current_referral.enrollment_start_date_changed? || current_referral.aco_changed?
-        updates[:agency_id] = current_referral.agency_id
-        Health::PatientReferral.create_referral(patient, updates)
-      else
-        current_referral.save
-      end
+      updates[:agency_id] = current_referral.agency_id unless current_referral.should_clear_assignment?
+
+      Health::PatientReferral.create_referral(patient, updates)
     end
 
     def disenrollment_reason_description(code)
