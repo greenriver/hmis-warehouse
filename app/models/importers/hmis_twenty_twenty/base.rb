@@ -488,9 +488,11 @@ module Importers::HmisTwentyTwenty
     # Than a year out
     private def fix_date_format(string)
       return unless string
+      # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
+      return string if /\d{4}-\d{1,2}-\d{1,2}/.match?(string)
 
       # Sometimes dates come in mm-dd-yyyy and Ruby Date really doesn't like that.
-      if /\d\d-\d\d-\d\d\d\d/.match?(string)
+      if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
         month, day, year = string.split('-')
         return "#{year}-#{month}-#{day}"
       end
@@ -514,7 +516,7 @@ module Importers::HmisTwentyTwenty
     end
 
     private def accepted_date_pattern
-      @accepted_date_pattern ||= /\d\d\d\d-\d\d-\d\d/.freeze
+      @accepted_date_pattern ||= /\d{4}-\d{2}-\d{2}/.freeze
     end
 
     private def date_columns_for_class(klass)
