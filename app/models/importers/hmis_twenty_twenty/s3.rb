@@ -61,6 +61,7 @@ module Importers::HmisTwentyTwenty
         upload(file_path: file_path)
       end
       expand(file_path: file_path)
+      ensure_file_naming
       super()
       mark_upload_complete()
     end

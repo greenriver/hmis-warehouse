@@ -166,6 +166,10 @@ module Health
       referral
     end
 
+    def should_clear_assignment?
+      enrollment_start_date_changed? || accountable_care_organization_id_changed?
+    end
+
     def client
       patient&.client
     end
