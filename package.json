@@ -9,6 +9,7 @@
     "test": "test"
   },
   "dependencies": {
+    "billboard.js": "^1.12.9",
     "minimist": ">=1.2.2",
     "puppeteer": "^2.1.1"
   },

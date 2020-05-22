@@ -38,7 +38,7 @@
 //= require topojson.min.js
 //= require inputmask/jquery.inputmask.bundle.min
 //= require inputmask/inputmask/bindings/inputmask.binding.min
-//= require billboard/billboard.min
+//= require billboard.js/dist/billboard.min
 //= require moment.min.js
 //= require bootstrap-datetimepicker
 
