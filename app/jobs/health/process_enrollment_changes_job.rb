@@ -146,7 +146,7 @@ module Health
         current_referral.assign_attributes(updates)
         return unless current_referral.changed?
 
-        if update[:enrollment_start_date] != current_referral.enrollment_start_date
+        if current_referral.enrollment_start_date_changed? || current_referral.aco_changed?
           updates[:agency_id] = current_referral.agency_id
           Health::PatientReferral.create_referral(patient, updates)
         else
