@@ -104,25 +104,8 @@ module Health
       Health::PatientReferral.current.find_by(medicaid_id: medicaid_id)
     end
 
-    def enroll_patient(transaction)
-      update_patient_referrals(nil, transaction)
-    end
-
-    def re_enroll_patient(patient, transaction)
-      update_patient_referrals(patient, transaction)
-    end
-
-    def disenroll_patient(transaction, referral)
-      code = Health::Enrollment.disenrollment_reason_code(transaction)
-
-      referral.update(
-        pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction),
-        stop_reason_description: disenrollment_reason_description(code),
-      )
-    end
-
-    def update_patient_referrals(patient, transaction)
-      updates = {
+    def referral_data(transaction)
+      data = {
         first_name: Health::Enrollment.first_name(transaction),
         last_name: Health::Enrollment.last_name(transaction),
         birthdate: Health::Enrollment.DOB(transaction),
@@ -138,22 +121,41 @@ module Health
           mco_pid: pid_sl[:pid],
           mco_sl: pid_sl[:sl],
         )
-        updates[:aco] = aco if aco.present?
+        data[:aco] = aco if aco.present?
       end
 
-      if patient.present?
-        current_referral = patient.patient_referral
-        current_referral.assign_attributes(updates)
-        return unless current_referral.changed?
+      data
+    end
 
-        if current_referral.enrollment_start_date_changed? || current_referral.aco_changed?
-          updates[:agency_id] = current_referral.agency_id
-          Health::PatientReferral.create_referral(patient, updates)
-        else
-          current_referral.save
-        end
-      else
+    def enroll_patient(transaction)
+      Health::PatientReferral.create_referral(nil, referral_data(transaction))
+    end
+
+    def re_enroll_patient(patient, transaction)
+      Health::PatientReferral.create_referral(patient, referral_data(transaction))
+    end
+
+    def disenroll_patient(transaction, referral)
+      code = Health::Enrollment.disenrollment_reason_code(transaction)
+
+      referral.update(
+        pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction),
+        stop_reason_description: disenrollment_reason_description(code),
+      )
+    end
+
+    def update_patient_referrals(patient, transaction)
+      updates = referral_data(transaction)
+      current_referral = patient.patient_referral
+      current_referral.assign_attributes(updates)
+
+      return unless current_referral.changed?
+
+      if current_referral.enrollment_start_date_changed? || current_referral.aco_changed?
+        updates[:agency_id] = current_referral.agency_id
         Health::PatientReferral.create_referral(patient, updates)
+      else
+        current_referral.save
       end
     end
 
