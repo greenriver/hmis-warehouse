@@ -48,6 +48,37 @@ RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
     expect(Health::PatientReferral.pending_disenrollment.count).to eq(pending - 1)
   end
 
+  it 'updates a patient' do
+    process('enrollment.txt')
+    process('update_name.txt')
+
+    expect(Health::PatientReferral.where(medicaid_id: '100000000999').count).to eq(2)
+    expect(Health::PatientReferral.where(medicaid_id: '100000000999', current: true).count).to eq(1)
+    expect(Health::PatientReferral.find_by(medicaid_id: '100000000999', current: true).first_name).to eq('ARIEL')
+  end
+
+  it 'updates a patient, preserving agency' do
+    process('enrollment.txt')
+    Health::PatientReferral.find_by(medicaid_id: '100000000999', current: true).update(agency_id: 123)
+
+    process('update_name.txt')
+
+    expect(Health::PatientReferral.where(medicaid_id: '100000000999').count).to eq(2)
+    expect(Health::PatientReferral.where(medicaid_id: '100000000999', current: true).count).to eq(1)
+    expect(Health::PatientReferral.find_by(medicaid_id: '100000000999', current: true).agency_id).to eq(123)
+  end
+
+  it 'updates a patient, clearing agency' do
+    process('enrollment.txt')
+    Health::PatientReferral.find_by(medicaid_id: '100000000999', current: true).update(agency_id: 123)
+
+    process('update_enrollment_start_date.txt')
+
+    expect(Health::PatientReferral.where(medicaid_id: '100000000999').count).to eq(2)
+    expect(Health::PatientReferral.where(medicaid_id: '100000000999', current: true).count).to eq(1)
+    expect(Health::PatientReferral.find_by(medicaid_id: '100000000999', current: true).agency_id).to eq(nil)
+  end
+
   def process(fixture)
     file = Health::Enrollment.create(
       content: File.read("spec/fixtures/files/health/eight_thirty_four/#{fixture}"),
