@@ -51,7 +51,7 @@ module GrdaWarehouse
     end
 
     def self.options_for_select(user:)
-      viewable_by(user).pluck(:name, :id)
+      viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
     end
   end
 end

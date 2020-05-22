@@ -48,6 +48,7 @@ module Importers::HmisTwentyTwenty
       return unless @upload.present?
       file_path = reconstitute_upload()
       expand(file_path: file_path)
+      ensure_file_naming
       super()
       mark_upload_complete()
     end
