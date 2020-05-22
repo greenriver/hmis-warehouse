@@ -263,6 +263,7 @@ module ClientController
         '/clients/rollup/chronic_notes',
         '/clients/rollup/cohorts',
         '/clients/rollup/ce_assessments',
+        '/clients/rollup/enrollment_cocs',
         '/clients/rollup/current_living_situations',
         '/clients/rollup/ce_events',
         '/clients/rollup/employment_education',
