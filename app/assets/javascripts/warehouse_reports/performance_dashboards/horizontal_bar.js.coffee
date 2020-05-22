@@ -18,13 +18,14 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
     @chart = bb.generate({
       data: data,
       bindto: @chart_selector,
-      axis: {
+      axis:
         rotated: true,
-        x: {
+        x:
           type: 'category',
           categories: @categories,
-        }
-      }
+      grid:
+        x:
+          show: true
     })
 
   _colors: (c, d) =>
