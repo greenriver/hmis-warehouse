@@ -6,6 +6,6 @@ class CreateEtoApis < ActiveRecord::Migration[5.2]
      add_column :eto_api_configs, :encrypted_password_iv, :string
      add_column :eto_api_configs, :enterprise, :string
      add_column :eto_api_configs, :hud_touch_point_id, :string
-     add_column :eto_api_configs, :active, :boolean, default: true
+     add_column :eto_api_configs, :active, :boolean, default: false
    end
  end

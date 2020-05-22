@@ -47,6 +47,7 @@ class ApiConfigsController < ApplicationController
 
   private def config_params
     params.require(:config).permit(
+      :active,
       :touchpoint_fields,
       :demographic_fields,
       :demographic_fields_with_attributes,

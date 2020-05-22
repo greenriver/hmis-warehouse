@@ -45,6 +45,7 @@ class HmisImportConfigsController < ApplicationController
 
   private def config_params
     params.require(:config).permit(
+      :active,
       :s3_access_key_id,
       :s3_secret_access_key,
       :s3_region,
