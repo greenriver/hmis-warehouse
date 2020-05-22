@@ -25,13 +25,19 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
         rotated: true,
         y:
           outer: false
+          tick:
+            rotate: -35
+            autorotate: true
         x:
+          height: 100
           type: 'category',
           categories: @categories,
           outer: false
           tick:
             rotate: -35
             autorotate: true
+            fit: true
+            culling: false
       grid:
         y:
           show: true
@@ -40,7 +46,7 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
       padding:
         left: @padding.left || 150
         top: 0
-        bottom: 20
+        bottom: 40
     })
 
   _colors: (c, d) =>
