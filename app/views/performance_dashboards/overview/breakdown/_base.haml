@@ -1,0 +1,45 @@
+.d-flex.flex-wrap.justify-content-between.align-items-end.mb-2
+  %header.mb-2.mr-4{style: 'flex: 1; min-width: 300px'}
+    %h2= key.to_s.titleize
+    %p.description.mb-0= desc
+  .d-flex.mb-2
+    .report-period.mr-6
+      %h4.m-0 Report Period
+      %p.mb-0 #{@report.start_date} - #{@report.end_date}
+      - count = @report.enrolled_total_count
+      = link_to_if show_client_details?, "Total Unique #{'Client'.pluralize(count)}: #{count}", details_performance_dashboards_overview_index_path(detail_params), data: {loads_in_pjax_modal: true}
+    - if @report.include_comparison?
+      .comparison-period
+        %h4.m-0 Comparison Period
+        %p.mb-0 #{@comparison.start_date} - #{@comparison.end_date}
+        - count = @comparison.enrolled_total_count
+        = link_to_if show_client_details?, "Total Unique #{'Client'.pluralize(count)}: #{count}", details_performance_dashboards_overview_index_path(comparison_params), data: {loads_in_pjax_modal: true}
+
+.well.mb-6.pt-0
+  .jChart.c-chart.c-chart--horizontal-bar{class: chart_class}
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var columns = #{columns.to_json.html_safe};
+      var categories = #{categories.to_json.html_safe};
+      var options = {
+        follow_link: '#{show_client_details?}',
+        link_base: 'overview/details',
+        key: '#{key}',
+        breakdown: '#{breakdown}',
+        sub_keys: #{sub_keys},
+        params: #{detail_params.to_json.html_safe},
+        date_ranges: {
+          report: {
+            start_date: '#{@report.start_date}',
+            end_date: '#{@report.end_date}'
+          },
+          comparison: {
+            start_date: '#{@comparison.start_date}',
+            end_date: '#{@comparison.end_date}'
+          }
+        }
+      };
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.#{chart_class}', columns, categories, options);
+    })(jQuery);

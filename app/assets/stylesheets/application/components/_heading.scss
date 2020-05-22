@@ -1,0 +1,11 @@
+@import '../helpers';
+
+.c-heading {
+  padding: space(2);
+  // background: darken($tab-bg, 10%);
+  margin: 0;
+}
+
+.c-heading--full-bleed {
+  @include full-bleed;
+}
