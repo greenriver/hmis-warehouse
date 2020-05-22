@@ -141,11 +141,19 @@ module Health
         updates[:aco] = aco if aco.present?
       end
 
-      current_referral = patient.patient_referral
-      if update[:enrollment_start_date] != current_referral.enrollment_start_date
-        Health::PatientReferral.create_referral(patient, updates)
+      if patient.present?
+        current_referral = patient.patient_referral
+        current_referral.assign_attributes(updates)
+        return unless current_referral.changed?
+
+        if update[:enrollment_start_date] != current_referral.enrollment_start_date
+          updates[:agency_id] = current_referral.agency_id
+          Health::PatientReferral.create_referral(patient, updates)
+        else
+          current_referral.save
+        end
       else
-        current_referral.update(updates)
+        Health::PatientReferral.create_referral(patient, updates)
       end
     end
 
