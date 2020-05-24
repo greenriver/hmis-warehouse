@@ -2,7 +2,7 @@
 - detail_params = filter_params.merge(options: {key: key, length_of_time: true})
 %h2 Length of Time in #{@report.project_type_title}
 .well
-  %p.description Count of days served in enrollments meeting the filter criteria within 3 years of the end date for each client.
+  %p.description Count of days served in enrollments occurring in the selected universe within 3 years of the end date for each client.
   .jChart.length_of_time-chart
 
 - columns = [@report.lengths_of_time_data_for_chart[:columns]]

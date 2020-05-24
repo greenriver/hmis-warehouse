@@ -5,13 +5,13 @@
   .d-flex.mb-2
     .report-period.mr-6
       %h4.m-0 Report Period
-      %p.mb-0 #{@report.start_date} - #{@report.end_date}
+      %p.mb-0 #{@report.date_range_words}
       - count = @report.enrolled_total_count
       = link_to_if show_client_details?, "Total Unique #{'Client'.pluralize(count)}: #{count}", details_performance_dashboards_overview_index_path(detail_params), data: {loads_in_pjax_modal: true}
     - if @report.include_comparison?
       .comparison-period
         %h4.m-0 Comparison Period
-        %p.mb-0 #{@comparison.start_date} - #{@comparison.end_date}
+        %p.mb-0 #{@comparison.date_range_words}
         - count = @comparison.enrolled_total_count
         = link_to_if show_client_details?, "Total Unique #{'Client'.pluralize(count)}: #{count}", details_performance_dashboards_overview_index_path(comparison_params), data: {loads_in_pjax_modal: true}
 

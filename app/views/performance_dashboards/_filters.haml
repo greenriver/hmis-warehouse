@@ -21,7 +21,7 @@
       .col-sm-3
         = f.input :end_date, as: :date_picker, input_html: { value: @filter[:end_date] }, label: 'End date of period'
     .row
-      .col-sm-8
+      .col-sm-12
         = f.input :comparison_pattern, as: :boolean_button_group, collection: PerformanceDashboards::Overview.comparison_patterns, label: 'Compare with', include_blank: false, selected: @filter[:comparison_pattern], wrapper_html: last_group_html
   #projects.tab-pane{role: :tabpanel}
     .row
