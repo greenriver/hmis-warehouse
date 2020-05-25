@@ -300,11 +300,12 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   # An entry is an enrollment where the entry date is within the report range, and there are no entries in the
   # specified project types for the prior 24 months.
   def entries
-    previous_period = report_scope_source.
+    previous_period = report_scope_source.entry.
       open_between(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
       where(project_type: @project_types)
+    # To make this performant, we'll manipulate these a bit
 
-    entries_current_period.where.not(client_id: previous_period.select(:client_id))
+    entries_current_period.where.not(period_exists_sql(previous_period))
   end
 
   def entries_current_period
@@ -314,11 +315,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   # An exit is an enrollment where the exit date is within the report range, and there are no enrollments in the
   # specified project types that were open after the reporting period.
   def exits
-    next_period = report_scope_source.
+    next_period = report_scope_source.exit.
       open_between(start_date: @end_date + 1.day, end_date: Date.current).
       where(project_type: @project_types)
 
-    exits_current_period.where.not(client_id: next_period.select(:client_id))
+    exits_current_period.where.not(period_exists_sql(next_period))
   end
 
   def exits_current_period
@@ -327,5 +328,12 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
   def open_enrollments
     report_scope.open_between(start_date: @start_date, end_date: @end_date)
+  end
+
+  private def period_exists_sql(period)
+    period_sql = period.select(:client_id).to_sql.
+      gsub('"service_history_enrollments".', '"she_2".'). # alias all columns
+      gsub('"service_history_enrollments"', '"service_history_enrollments" as "she_2"') # alias table
+    Arel.sql("EXISTS (#{period_sql} and \"service_history_enrollments\".\"client_id\" = \"she_2\".\"client_id\") ")
   end
 end
