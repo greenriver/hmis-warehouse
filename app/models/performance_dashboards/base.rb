@@ -331,9 +331,6 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   private def period_exists_sql(period)
-    period_sql = period.select(:client_id).to_sql.
-      gsub('"service_history_enrollments".', '"she_2".'). # alias all columns
-      gsub('"service_history_enrollments"', '"service_history_enrollments" as "she_2"') # alias table
-    Arel.sql("EXISTS (#{period_sql} and \"service_history_enrollments\".\"client_id\" = \"she_2\".\"client_id\") ")
+    exists_sql(period, quoted_table_name: report_scope_source.quoted_table_name, alias_name: 'she_2', column_name: 'client_id')
   end
 end
