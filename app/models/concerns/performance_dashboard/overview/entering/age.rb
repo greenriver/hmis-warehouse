@@ -9,14 +9,16 @@ module PerformanceDashboard::Overview::Entering::Age
 
   # NOTE: always count the most-recently started enrollment within the range
   def entering_by_age
-    buckets = age_buckets.map { |b| [b, []] }.to_h
-    counted = Set.new
-    entering.order(first_date_in_program: :desc).
-      pluck(:client_id, :age, :first_date_in_program).each do |id, age, _|
-      buckets[age_bucket(age)] << id unless counted.include?(id)
-      counted << id
+    @entering_by_age ||= begin
+      buckets = age_buckets.map { |b| [b, []] }.to_h
+      counted = Set.new
+      entering.order(first_date_in_program: :desc).
+        pluck(:client_id, :age, :first_date_in_program).each do |id, age, _|
+        buckets[age_bucket(age)] << id unless counted.include?(id)
+        counted << id
+      end
+      buckets
     end
-    buckets
   end
 
   def entering_by_age_data_for_chart

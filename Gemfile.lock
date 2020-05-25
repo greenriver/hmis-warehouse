@@ -805,7 +805,7 @@ DEPENDENCIES
   pg
   pretender
   pry-rails
-  puma (~> 3.12.4)
+  puma (~> 3.12.6)
   rack-attack
   rack-mini-profiler
   rails (~> 5.2.4)
