@@ -1,0 +1,8 @@
+= render 'breadcrumbs'
+- content_for :title,  _('Set ETO API Configuration')
+.row
+  .col-sm-8
+    %h1= content_for :title
+= simple_form_for @config, as: :config, url: data_source_api_config_path do |f|
+  = render 'form', f: f
+  = f.button :submit, class: 'btn btn-primary', value: 'Save Config'

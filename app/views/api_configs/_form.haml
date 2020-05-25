@@ -1,0 +1,13 @@
+%p The following configuration will be used to attempt connections to the ETO API and to transform returned client demographic and Touch Point information into usable data in the warehouse.
+.row
+  .col-sm-8.well
+    = f.input :active
+    = f.input :touchpoint_fields, input_html: { value: @config.touchpoint_fields_for_input }, hint: 'Must be valid JSON, eg. {"a": 1}'
+    = f.input :demographic_fields, input_html: { value: @config.demographic_fields_for_input }, hint: 'Must be valid JSON, eg. {"a": 1}'
+    = f.input :demographic_fields_with_attributes, input_html: { value: @config.demographic_fields_with_attributes_for_input }, hint: 'Must be valid JSON, eg. {"a": 1}'
+    = f.input :additional_fields, input_html: { value: @config.additional_fields_for_input }, hint: 'Must be valid JSON, eg. {"a": 1}'
+    = f.input :identifier
+    = f.input :email
+    = f.input :password, as: :string
+    = f.input :enterprise
+    = f.input :hud_touch_point_id

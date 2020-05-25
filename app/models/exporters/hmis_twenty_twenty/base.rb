@@ -319,7 +319,7 @@ module Exporters::HmisTwentyTwenty
         if @export.include_deleted
           e_scope = enrollment_source.with_deleted
         else
-          e_scope = enrollment_source
+          e_scope = enrollment_source.joins(:client)
         end
         e_scope = e_scope.where(project_exists_for_enrollment)
         case @export.period_type

@@ -1,76 +1,21 @@
-- wrapper = if @readonly then :readonly else SimpleForm.default_wrapper end
+
 = render 'breadcrumbs'
 .row
   .col-sm-6
     %h1= @data_source.name
   .col-sm-6.text-right
-    - if can_upload_dashboard_extras?
-      = link_to new_data_source_non_hmis_upload_path(@data_source), class: 'btn btn-sm btn-secondary mr-4' do
-        %span.icon-upload2
-        Upload Dashboard Extras
-    - if ! @data_source.authoritative? && can_upload_hud_zips?
-      = link_to new_data_source_upload_path(@data_source), class: 'btn btn-sm btn-secondary' do
-        %span.icon-upload2
-        Upload HUD HMIS ZIP
-= simple_form_for(@data_source, url: data_source_path(@data_source), wrapper: wrapper) do |f|
-  .row
-    .col-sm-8
-      %table.table.table-sm
-        %tr
-          %th Last Import Run
-          %td= @data_source.last_imported_at
-        %tr
-          %th Date Span
-          %td
-            - if data_span = @data_source.data_span
-              = "#{data_span[:start_date]}-#{data_span[:end_date]}"
-        -if ! @data_source.authoritative? && @data_source.uploads.any? && can_view_imports?
-          %tr
-            %th Uploads
-            %td
-              = link_to data_source_uploads_path(@data_source) do
-                View
-        - if @data_source.non_hmis_uploads.any? && current_user.can_upload_dashboard_extras?
-          %tr
-            %th Dashboard Extras Uploads
-            %td
-              = link_to 'View', data_source_non_hmis_uploads_path(@data_source)
-        - if can_edit_data_sources?
-          %tr
-            %th
-              HMIS Export SourceID
-            %td
-              = f.input :source_id, label: false
-          %tr
-            %th
-              Visible in the Window into the Warehouse?
-            %td
-              = f.input :visible_in_window, label: false
-          %tr
-            %th
-              Import Paused?
-            %td
-              = f.input :import_paused, label: false
-          - if @data_source.authoritative?
-            %tr
-              %th After Create Path
-              %td= @data_source.after_create_path
-            %tr
-              %th Authoritative Type
-              %td= GrdaWarehouse::DataSource.authoritative_types.invert[@data_source.authoritative_type&.to_sym] || 'blank'
-        %tr
-          %th Viewable by the following users, regardless of visibility in window
-          %td= @data_source.users.joins(:roles).where(roles: {can_see_clients_in_window_for_assigned_data_sources: true}).distinct.map(&:name).join(', ')
-      .text-right
-        - if can_edit_data_sources?
-          = f.button :submit, value: 'Save Data Source', class: 'btn btn-primary'
-  - if @data_source.has_data?
-    .row.table-utilities
-      .col-sm-12
-        %h2
-          = _('Organizations')
-          &amp;
-          = _('Projects')
-        .table-responsive
-          - @organizations.each do |org|
-            = render 'organization', org: org
+.row
+  .col-sm-8
+    = render 'edit_form'
+  .col-sm-4
+    = render 'buttons'
+- if @data_source.has_data?
+  .row.table-utilities
+    .col-sm-12
+      %h2
+        = _('Organizations')
+        &amp;
+        = _('Projects')
+      .table-responsive
+        - @organizations.each do |org|
+          = render 'organization', org: org
