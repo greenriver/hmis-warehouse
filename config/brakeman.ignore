@@ -544,26 +544,6 @@
       "note": ""
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "c1e4ce33f3e6bf18e8f25b53071d6dda99015cf133468737a588d7b4bdcf2dd6",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/concerns/arel_helper.rb",
-      "line": 32,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"EXISTS (#{ar_query.select(:client_id).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")} and #{quoted_table_name}.\\\"client_id\\\" = \\\"#{alias_name}\\\".\\\"#{column_name}\\\") \")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ArelHelper",
-        "method": "exists_sql"
-      },
-      "user_input": "ar_query.select(:client_id).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "c6d2416929705fe07d75e0cba96b643e0d9361ef1329ece172ff0fcd797deb31",
@@ -671,6 +651,26 @@
       },
       "user_input": "params[:id]",
       "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "da39fb8039f5b68140dfa336e0625a7716d2814dbf61573a9111aa9415a7a526",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/concerns/arel_helper.rb",
+      "line": 32,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"EXISTS (#{ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")} and #{quoted_table_name}.\\\"#{column_name}\\\" = \\\"#{alias_name}\\\".\\\"#{column_name}\\\") \")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ArelHelper",
+        "method": "exists_sql"
+      },
+      "user_input": "ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")",
+      "confidence": "Medium",
       "note": ""
     },
     {
@@ -793,6 +793,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-05-25 18:15:49 -0400",
+  "updated": "2020-05-26 13:46:00 -0400",
   "brakeman_version": "4.8.2"
 }
