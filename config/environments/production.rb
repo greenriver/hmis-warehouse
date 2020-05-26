@@ -1,6 +1,6 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
-  deliver_method = ENV['MAIL_DELIVERY_METHOD'].to_sym
+  deliver_method = ENV.fetch('MAIL_DELIVERY_METHOD') { 'smtp' }.to_sym
   slack_config = Rails.application.config_for(:exception_notifier)['slack']
 
   # Code is not reloaded between requests.
@@ -51,7 +51,7 @@ Rails.application.configure do
 
   # Use the lowest log level to ensure availability of diagnostic information
   # when problems arise.
-  config.log_level = :info
+  config.log_level = ENV.fetch('LOG_LEVEL') { 'info' }.to_sym
 
   # Prepend all log lines with the following tags.
   config.log_tags = [ :request_id ]

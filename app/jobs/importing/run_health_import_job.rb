@@ -30,6 +30,7 @@ module Importing
           user: user,
         ).deliver_later
       end
+      Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
     end
   end
 end

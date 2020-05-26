@@ -1,0 +1,17 @@
+default: &default
+  adapter: <%= ENV.fetch('DATABASE_ADAPTER') { 'postgresql' } %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i %>
+  timeout: 5000
+  username: <%= ENV['DATABASE_USER'] %>
+  password: <%= ENV['DATABASE_PASS'] %>
+  host: <%= ENV['DATABASE_HOST'] %>
+  sslmode: 'verify-full'
+  sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
+
+<%= ENV.fetch('RAILS_ENV') { 'unknown' } %>:
+  <<: *default
+  database: <%= ENV['DATABASE_APP_DB'] %>
+
+<%= ENV.fetch('RAILS_ENV') { 'unknown' } %>_warehouse:
+  <<: *default
+  database: <%= ENV['DATABASE_WAREHOUSE_DB'] %>

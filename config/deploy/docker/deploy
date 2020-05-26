@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require_relative 'lib/command_args'
+require_relative 'lib/deployer'
+
+args = CommandArgs.new
+
+args.deployments.each do |deployment|
+  puts "Deploying #{deployment[:target_group_name]}..."
+  Deployer.new(**deployment).run!
+end
+
+EcsTools.new.poll_state_until_stable!(CommandArgs.cluster)

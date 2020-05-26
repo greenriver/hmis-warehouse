@@ -1,0 +1,17 @@
+# allow ssl conncections to the testing db container
+
+FROM postgres:11-alpine
+
+WORKDIR /var/lib/postgresql
+
+RUN apk add --no-cache \
+  openssl
+
+WORKDIR /var/lib/postgresql
+
+RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
+    -subj "/C=US/ST=Vermont/L=Brattleboro/O=greenriver/CN=localhost" \
+    -keyout server.key -out server.crt && \
+    chown postgres:postgres server.key server.crt
+
+CMD [ "-c", "ssl=on", "-c", "ssl_cert_file=/var/lib/postgresql/server.crt", "-c", "ssl_key_file=/var/lib/postgresql/server.key" ]

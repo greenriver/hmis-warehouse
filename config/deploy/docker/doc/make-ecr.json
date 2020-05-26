@@ -1,0 +1,13 @@
+{
+    "repositoryName": "open-path-warehouse",
+    "tags": [
+        {
+            "Key": "Client",
+            "Value": "openpath"
+        }
+    ],
+    "imageTagMutability": "IMMUTABLE",
+    "imageScanningConfiguration": {
+        "scanOnPush": true
+    }
+}

@@ -1,3 +1,5 @@
+Rails.logger.debug "Running initializer in #{__FILE__}"
+
 # frozen_string_literal: true
 
 # Please do not make direct changes to this file!

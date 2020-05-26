@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require_relative 'lib/ecs_tools'
+
+if ENV['AWS_PROFILE'].nil?
+  puts "Set your AWS_PROFILE variable first"
+  exit
+end
+
+EcsTools.new.logs(ARGV[0])
+
+# docker logs on ec2 instance
+# journalctl -u docker.service -f
+# also
+# /var/log/ecs/ecs-agent.log

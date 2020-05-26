@@ -17,6 +17,9 @@
 /tmp
 /var
 
+config/deploy/docker/assets/REVISION
+config/deploy/docker/assets/secret.deploy.values.yml
+
 # Ignore all local config files, except some ruby/rails ones
 /.*
 !/.ruby-version
@@ -54,6 +57,12 @@ node_modules
 TAGS
 yarn.lock
 
+# docker deployment
+docker/deploy/REVISION
+docker/deploy/**/*.env
+docker/deploy/secrets.yml
+docker/deploy/.version
+
 # Environment normalization:
 /vendor/bundle
 # these should all be checked in to normalize the environment:
@@ -78,6 +87,7 @@ app/assets/stylesheets/theme/styles
 app/assets/images/theme/logo
 app/assets/images/theme/icons
 app/views/root/_homepage_content.haml
+public/theme/logo
 
 # CHA translations
 config/cha_translations.yml

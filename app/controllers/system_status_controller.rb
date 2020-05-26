@@ -13,7 +13,7 @@ class SystemStatusController < ApplicationController
     user_count = User.all.count
     data_source_count = GrdaWarehouse::DataSource.count
     patient_count = Health::Patient.count
-    if user_count.positive? && data_source_count.present? && patient_count.present?
+    if user_count.present? && data_source_count.present? && patient_count.present?
       render plain: 'OK'
     else
       render status: 500, plain: 'FAIL'
@@ -30,5 +30,28 @@ class SystemStatusController < ApplicationController
     else
       render status: 500, plain: 'FAIL'
     end
+  end
+
+  def details
+    set_value = SecureRandom.hex(10)
+    Rails.cache.write('cache-test', set_value)
+    pulled_value = Rails.cache.read('cache-test')
+
+    revision = \
+      begin
+        File.read(Rails.root.join('REVISION'))
+      rescue Errno::ENOENT
+        'unknown'
+      end
+
+    payload = {
+      user_count_positive: User.all.any?,
+      data_source_count_positive: GrdaWarehouse::DataSource.any?,
+      patient_count_positive: Health::Patient.any?,
+      revision: revision,
+      cache: (set_value == pulled_value ? 'OK' : 'FAILED'),
+    }
+
+    render json: payload
   end
 end

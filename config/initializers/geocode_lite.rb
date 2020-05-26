@@ -1,3 +1,5 @@
+Rails.logger.debug "Running initializer in #{__FILE__}"
+
 Geocoder.configure(
   ip_lookup: :geoip2,
   geoip2: {

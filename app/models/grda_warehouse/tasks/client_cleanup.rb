@@ -13,7 +13,7 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
-    def initialize(max_allowed=200, bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false, show_progress: false)
+    def initialize(max_allowed=1_000, bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false, show_progress: false)
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger

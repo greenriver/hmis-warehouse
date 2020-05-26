@@ -6,6 +6,7 @@
 
 class ApiConfigsController < ApplicationController
   before_action :require_can_edit_data_sources_or_everything!
+  before_action :require_can_manage_config!
   before_action :set_data_source
   before_action :set_config, only: [:edit, :update, :create, :destroy]
 
