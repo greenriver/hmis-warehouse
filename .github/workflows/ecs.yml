@@ -30,8 +30,10 @@ on:
       - master
       - '*ecs*'
       - pre-release
-    pull_request:
-     - '**/*'
+  pull_request:
+    branches:
+      - master
+      - pre-release
 
 name: Build and Upload Container Image to ECR
 
