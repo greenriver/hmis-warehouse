@@ -12,6 +12,20 @@ module HudReports
     belongs_to :user
     has_many :report_cells
 
+    # Mark a question as started
+    #
+    # @param question [String] the question name (e.g., 'Q1')
+    def start(question)
+      answer(question: question).update(status: 'Started')
+    end
+
+    # Mark a question as completed
+    #
+    # @param question [String] the question name (e.g., 'Q1')
+    def complete(question)
+      answer(question: question).update(status: 'Completed')
+    end
+
     # An answer cell in a question
     #
     # @param question [String] the question name (e.g., 'Q1')
@@ -20,7 +34,7 @@ module HudReports
     def answer(question:, cell: nil)
       report_cells.
         where(question: question, cell_name: cell, universe: false).
-        first_or_create
+        first_or_initialize
     end
 
     # The universe of clients for a question

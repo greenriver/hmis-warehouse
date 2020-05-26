@@ -1,0 +1,18 @@
+- default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
+= simple_form_for :filter, method: :patch, url: hud_reports_apr_path(@generator_id) do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-4
+        = f.input :start_date, as: :date_picker, label: 'Start Date', required: true
+      .col-sm-4
+        = f.input :end_date, as: :date_picker, label: 'End Date', required: true
+      .col-sm-4
+        = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: default_coc_code, input_html: {class: 'select2'}, label: 'CoC Code', hint: default_coc_code, required: true
+    .row
+      .col-sm-12
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @project_ids, label: 'Projects', required: true
+
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Queue Report'
+
+  = render 'warehouse_reports/filters', f: f

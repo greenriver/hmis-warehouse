@@ -178,6 +178,9 @@ Rails.application.routes.draw do
         get :support
       end
     end
+    resources :aprs, only: [:index, :show, :edit, :update] do
+      resources :questions, only: [:show]
+    end
   end
   resources :report_results_summary, only: [:show]
   resources :warehouse_reports, only: [:index] do

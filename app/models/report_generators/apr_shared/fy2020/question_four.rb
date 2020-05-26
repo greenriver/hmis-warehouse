@@ -5,7 +5,7 @@
 ###
 
 module ReportGenerators::AprShared::Fy2020
-  class QuestionFour
+  class QuestionFour < HudReports::QuestionBase
     attr_accessor :report
 
     def initialize(generator)
@@ -35,8 +35,12 @@ module ReportGenerators::AprShared::Fy2020
 
     HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'.freeze
 
+    def self.question_number
+      QUESTION_NUMBER
+    end
+
     def run!
-      @generator.update_state(QUESTION_NUMBER)
+      @report.start(QUESTION_NUMBER)
 
       project_rows = []
 
@@ -77,6 +81,8 @@ module ReportGenerators::AprShared::Fy2020
         last_row: project_rows.size + 1,
       }
       @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
+
+      @report.complete(QUESTION_NUMBER)
     end
   end
 end

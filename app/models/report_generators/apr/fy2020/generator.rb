@@ -7,19 +7,18 @@
 module ReportGenerators::Apr::Fy2020
   class Generator < HudReports::GeneratorBase
     def initialize(options)
-      super(options, questions, 'APR - 2020')
+      super(options)
     end
 
-    def run!
-      ReportGenerators::AprShared::Fy2020::QuestionFour.new(self).run!
-      ReportGenerators::Apr::Fy2020::QuestionFive.new(self).run!
+    def self.title
+      'Annual Performance Report - FY 2020'
     end
 
-    def questions
-      [
-        'Q4a',  # Project Identifiers in HMIS
-        'Q5a', # Report Validations Table
-      ].freeze
+    def self.questions
+      {
+        'Q4' => ReportGenerators::AprShared::Fy2020::QuestionFour,  # Project Identifiers in HMIS
+        'Q5' => ReportGenerators::Apr::Fy2020::QuestionFive, # Report Validations Table
+      }.freeze
     end
   end
 end

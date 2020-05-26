@@ -1,0 +1,29 @@
+- content_for :title, _("HUD Reports")
+%header.mb-3
+  %h1= content_for :title
+
+= render "hud_reports/shared/tabs", tab_name: 'Annual Performance Report'
+
+%table.table.table-hover.table-striped
+  - show_header = true
+  - @generators.each_with_index do |generator, index|
+    %thead
+      %th
+        = link_to generator.title, hud_reports_apr_path(index)
+      %th
+        - if show_header
+          = 'Last Run'
+      %th
+        - if show_header
+          = 'Status'
+      %th
+        - if show_header
+          = 'Completed In'
+      - show_header = false
+    %tbody
+      - generator.questions.each do |name, clazz|
+        %tr
+          %td= link_to name, hud_reports_apr_question_path(index, name)
+          %td= clazz.last_run(generator, current_user)
+          %td= clazz.status(generator, current_user)
+          %td= clazz.completed_in(generator, current_user)

@@ -13,6 +13,7 @@ class ReportsController < ApplicationController
   def index
     @reports = report_scope.order(weight: :asc, type: :desc)
     @reports = group_reports(@reports)
+    @report_urls = report_urls
   end
 
   # GET /services/new
@@ -93,5 +94,11 @@ class ReportsController < ApplicationController
     end
 
     grouped_reports
+  end
+
+  def report_urls
+    [
+      ['Annual Performance Report', hud_reports_aprs_path],
+    ]
   end
 end

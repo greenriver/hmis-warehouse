@@ -1,0 +1,25 @@
+= render 'breadcrumbs'
+- content_for :title, @generator.title
+%header.mb-3
+  %h1= content_for :title
+
+.row
+  .col-12
+    - if @contents
+      .text-right
+        = link_to 'Regenerate Report', edit_hud_reports_apr_path(@generator_id), class: 'btn btn-secondary'
+        = link_to({format: :zip},{class: 'btn btn-primary'}) do
+          %span.icon-download2
+          Download Zip File
+    - else
+      .text-right
+        = link_to 'Generate Report', edit_hud_reports_apr_path(@generator_id), class: 'btn btn-secondary'
+.row
+  .col-12
+    - if @contents
+      Results included in this download will include the following:
+      %ul
+        - @contents.each do |item|
+          %li= item
+    - else
+      No generated report.

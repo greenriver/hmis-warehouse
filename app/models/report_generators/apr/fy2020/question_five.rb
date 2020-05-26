@@ -5,7 +5,7 @@
 ###
 
 module ReportGenerators::Apr::Fy2020
-  class QuestionFive
+  class QuestionFive < HudReports::QuestionBase
     include ArelHelper
 
     QUESTION_NUMBER = 'Q5'
@@ -36,9 +36,16 @@ module ReportGenerators::Apr::Fy2020
       @report = generator.report
     end
 
+
+    def self.question_number
+      QUESTION_NUMBER
+    end
+
     def run!
+      @report.start(QUESTION_NUMBER)
+
       a_t = report_client_universe.arel_table
-      @generator.update_state(QUESTION_NUMBER)
+
       metadata = {
         header_row: TABLE_HEADER,
         row_labels: ROW_LABELS,
@@ -172,11 +179,13 @@ module ReportGenerators::Apr::Fy2020
       )
       answer.add_members(members)
       answer.update(summary: members.count)
+
+      @report.complete(QUESTION_NUMBER)
     end
 
     private def universe
       @universe ||= begin
-        universe_cell = @report.universe(QUESTION_TABLE_NUMBER)
+        universe_cell = @report.universe(QUESTION_NUMBER)
 
         @generator.client_scope.find_in_batches do |batch|
           pending_associations = {}

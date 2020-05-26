@@ -8,31 +8,36 @@ module HudReports
   class GeneratorBase
     include ArelHelper
 
-    attr_reader :report
-
     PENDING = 'pending'
     STARTED = 'started'
     COMPLETED = 'completed'
 
-    def initialize(options, questions, report_name)
-      @user = options[:user]
+    def initialize(options)
+      @user_id = options[:user_id]
       @start_date = options[:start_date].to_date
       @end_date = options[:end_date].to_date
       @coc_code = options[:coc_code]
       @project_ids = options[:project_ids]
-      @options = options
+      @options = options.to_h
+    end
 
-      @report = HudReports::ReportInstance.create(
-        user: @user,
+    def report
+      @report ||= HudReports::ReportInstance.create(
+        user_id: @user_id,
         coc_code: @coc_code,
         start_date: @start_date,
         end_date: @end_date,
         project_ids: @project_ids,
         state: 'pending',
         options: @options,
-        report_name: report_name,
-        question_names: questions,
+        report_name: self.class.title,
+        question_names: self.class.questions.keys,
       )
+    end
+
+    def run!
+      # TODO: Parallel or sequential?
+      Reporting::RunHudReportJob.perform_later(self.class.name, @options)
     end
 
     def update_state(state)
@@ -45,7 +50,7 @@ module HudReports
         joins(:service_history_enrollments).
         merge(GrdaWarehouse::ServiceHistoryEnrollment.open_between(start_date: @start_date, end_date: @end_date))
 
-      scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_coc(@coc_code)) if @coc_code
+      scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_coc(coc_code: @coc_code)) if @coc_code
       scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_project(@project_ids)) if @project_ids.present?
 
       scope

@@ -7,6 +7,8 @@
 # A HUD report cell, identified by a question and cell name (e.g., question: 'Q1', cell_name: 'b2')
 module HudReports
   class ReportCell < GrdaWarehouseBase
+    include ActionView::Helpers::DateHelper
+
     self.table_name = 'hud_report_cells'
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
@@ -33,6 +35,13 @@ module HudReports
       UniverseMember.import(
         members.keys.map { |client| new_member(warehouse_client: client, universe_client: members[client]) },
       )
+    end
+
+    def completed_in
+      if status == 'Completed'
+        seconds = ((updated_at - created_at)/1.minute).round * 60
+        distance_of_time_in_words(seconds)
+      end
     end
 
     private def new_member(warehouse_client:, universe_client:)
