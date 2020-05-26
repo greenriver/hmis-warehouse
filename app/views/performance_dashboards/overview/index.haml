@@ -25,4 +25,5 @@
         = link_to(filter_params.merge(breakdown: k), class: ['nav-link', class_name]) do
           = title
 
-  = render "by_#{breakdown}"
+  %article.mb-6
+    = render "by_#{breakdown}"

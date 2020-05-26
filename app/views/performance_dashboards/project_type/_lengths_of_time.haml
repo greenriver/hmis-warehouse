@@ -1,36 +1,19 @@
-- key = :length_of_time
-- detail_params = filter_params.merge(options: {key: key, length_of_time: true})
-%h2 Length of Time in #{@report.project_type_title}
-.well
-  %p.description Count of days served in enrollments occurring in the selected universe within 3 years of the end date for each client.
-  .jChart.length_of_time-chart
+:ruby
+  key = :length_of_time
+  detail_params = filter_params.merge(options: {key: key, length_of_time: true})
+  columns = [@report.lengths_of_time_data_for_chart[:columns]]
+  if @report.include_comparison?
+    columns << @comparison.lengths_of_time_data_for_chart[:columns]
+  end
+  categories = @report.lengths_of_time_data_for_chart[:categories]
 
-- columns = [@report.lengths_of_time_data_for_chart[:columns]]
-- if @report.include_comparison?
-  - columns << @comparison.lengths_of_time_data_for_chart[:columns]
-- categories = @report.lengths_of_time_data_for_chart[:categories]
 
-= content_for :page_js do
-  :javascript
-    (function($) {
-      var columns = #{columns.to_json.html_safe};
-      var categories = #{categories.to_json.html_safe};
-      var options = {
-        follow_link: '#{show_client_details?}',
-        link_base: 'project_type/details',
-        key: '#{key}',
-        sub_keys: #{@report.time_bucket_titles.invert.to_json.html_safe},
-        params: #{detail_params.to_json.html_safe},
-        date_ranges: {
-          report: {
-            start_date: '#{@report.start_date}',
-            end_date: '#{@report.end_date}'
-          },
-          comparison: {
-            start_date: '#{@comparison.start_date}',
-            end_date: '#{@comparison.end_date}'
-          }
-        }
-      };
-      var length_of_time_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.length_of_time-chart', columns, categories, options);
-    })(jQuery);
+= render 'performance_dashboards/project_type/base',
+  title: "Length of Time in #{@report.project_type_title}",
+  key: key,
+  chart_height: 800,
+  desc: 'Count of days served in enrollments occurring in the selected universe within 3 years of the end date for each client.',
+  detail_params: detail_params,
+  comparison_params: nil,
+  columns: columns,
+  categories: categories

@@ -6,6 +6,7 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
     @color_map = {}
     @next_color = 0
     @padding = @options.padding || {}
+    @height = @options.height || 800
     @_build_chart()
 
   _build_chart: () =>
@@ -20,7 +21,7 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
       data: data,
       bindto: @chart_selector,
       size:
-        height: 800
+        height: @height
       axis:
         rotated: true,
         y:
