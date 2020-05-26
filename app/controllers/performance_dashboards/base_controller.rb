@@ -5,7 +5,7 @@
 ###
 
 class PerformanceDashboards::BaseController < ApplicationController
-  # include WarehouseReportAuthorization
+  include WarehouseReportAuthorization
   include PjaxModalController
 
   def set_filter
