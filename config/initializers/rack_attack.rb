@@ -1,6 +1,18 @@
+Rails.logger.debug "Running initializer in #{__FILE__}"
+
 class Rack::Attack
+  PRIVATE_IP = /(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)|(^127\.0\.0\.1)/
+
   def self.tracking_enabled?(request)
+    return false if internal_lb_checks?(request)
+
     !Rails.env.test? || /t|1/.match?(request.params['rack_attack_enabled'].to_s)
+  end
+
+  def self.internal_lb_checks?(request)
+    return false unless request.env['HTTP_USER_AGENT'] == 'ELB-HealthChecker/2.0'
+    return false unless request.path.include?('status')
+    return true if request.ip.match?(PRIVATE_IP)
   end
 
   def self.sign_in_path(request)
@@ -26,7 +38,6 @@ class Rack::Attack
   def self.warden_user_present?(request)
     request.env['warden'].user.present?
   end
-
 
   # track any remote ip that exceeds our basic request rate limits
   # tracker = if Rails.env.test? then :throttle else :track end

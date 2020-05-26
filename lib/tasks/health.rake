@@ -9,6 +9,7 @@ namespace :health do
   task daily: [:environment, "log:info_to_stdout"] do
     Importing::RunHealthImportJob.new.perform
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
+    Health::Tasks::CalculateValidUnpayableQas.new.run!
   end
 
   desc "Create Healthcare for the Homeless Data Source"
@@ -116,6 +117,22 @@ namespace :health do
     )
   end
 
+  desc "Remove Derived Patient Referrals"
+  task remove_derived_patient_referrals: [:environment, 'log:info_to_stdout'] do
+    Health::PatientReferral.where(derived_referral: true).destroy_all
+  end
+
+  task "Compute derived patient referrals"
+  task compute_derived_patient_referrals: [:environment, 'log:info_to_stdout'] do
+    pending_referrals = []
+    Health::PatientReferral.where(derived_referral: false).find_each do |referral|
+      pending_referrals << referral.build_derived_referrals
+    end
+    Health::PatientReferral.transaction do
+      # Not using import to ensure that PaperTrail gets run
+      pending_referrals.flatten.each(&:save!)
+    end
+  end
 
   # DB related, provides health:db:migrate etc.
   namespace :db do |ns|

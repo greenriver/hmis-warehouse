@@ -14,6 +14,7 @@ module Importing
 
     def initialize
       setup_notifier('DailyImporter')
+      super
     end
 
     def advisory_lock_key
@@ -227,6 +228,9 @@ module Importing
 
       # Maintain ETO based CAS flags
       GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new.run!
+
+      GrdaWarehouse::HmisClient.maintain_client_consent
+      @notifier.ping('Set client consent if appropriate') if @send_notifications
     end
 
     def sync_with_cas

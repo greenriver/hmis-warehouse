@@ -62,17 +62,19 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
-    def self.wait_for_processing interval: 30
+    def self.wait_for_processing(interval: 30, max_wait_seconds: 21_600) # 6 hours
       # you must manually process these in the test environment since there are no workers
       if Rails.env.test?
         Delayed::Worker.new.work_off(2)
       else
-        started = Time.now
+        started = Time.current
         # Limit the scope of the check to only rebuilding service history jobs
         dj_t = Delayed::Job.arel_table
-        while Delayed::Job.where(queue: :low_priority, failed_at: nil).
-            where(dj_t[:handler].matches('%ServiceHistory::RebuildEnrollments%')).count > 0 do
-          break if ((Time.now - started) / 1.hours) > 12
+        dj_scope = Delayed::Job.where(queue: :low_priority, failed_at: nil).
+            where(dj_t[:handler].matches('%ServiceHistory::RebuildEnrollments%'))
+        while dj_scope.count > 0 do
+          break if (Time.current - started) > max_wait_seconds
+
           sleep(interval)
         end
       end

@@ -103,7 +103,7 @@ module Importers::HmisTwentyTwenty
           remove_import_files() if @remove_files
         end
       end # end with_advisory_lock
-      project_cleanup() # FIXME, this should only attempt to cleanup projects within this data source
+      project_cleanup()
     end
 
     def export_file_valid?
@@ -392,6 +392,7 @@ module Importers::HmisTwentyTwenty
       importable_files.each do |file_name, klass|
         source_file_path = "#{@file_path}/#{@data_source.id}/#{file_name}"
         next unless File.file?(source_file_path)
+
         destination_file_path = "#{source_file_path}_updating"
         file = open_csv_file(source_file_path)
         clean_source_file(destination_path: destination_file_path, read_from: file, klass: klass)
@@ -417,7 +418,7 @@ module Importers::HmisTwentyTwenty
     end
 
     def clean_source_file destination_path:, read_from:, klass:
-      csv = CSV.new(read_from, headers: true)
+      csv = CSV.new(read_from, headers: true, liberal_parsing: true)
       # read the first row so we can set the headers
       row = csv.shift
       headers = csv.headers
@@ -443,8 +444,10 @@ module Importers::HmisTwentyTwenty
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
+      # note date columns for cleanup
+      date_columns = date_columns_for_class(klass)
       # Reopen the file with corrected headers
-      csv = CSV.new(read_from, headers: header)
+      csv = CSV.new(read_from, headers: header, liberal_parsing: true)
       # since we're providing headers, skip the header row
       csv.drop(1).each do |row|
         begin
@@ -458,6 +461,11 @@ module Importers::HmisTwentyTwenty
             next unless row['AssessmentDate'].present? && row['AssessmentLocation'].present?
           when 'GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation'
             next unless row['CurrentLivingSituation'].present? && row['InformationDate'].present? && row['UserID'].present? && row['DateUpdated'].present? && row['DateCreated'].present? && row['EnrollmentID'].present?
+          end
+          date_columns.each do |col|
+            next if row[col].blank? || correct_date_format?(row[col])
+
+            row[col] = fix_date_format(row[col])
           end
           if row.count == header.count
             row = set_useful_export_id(row: row, export_id: export_id_addition)
@@ -473,6 +481,51 @@ module Importers::HmisTwentyTwenty
         end
       end
       write_to.close
+    end
+
+    # We sometimes see very odd dates, this will attempt to make them sane.
+    # Since most dates should be not too far in the future, we'll check for anything less
+    # Than a year out
+    private def fix_date_format(string)
+      return unless string
+      # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
+      return string if /\d{4}-\d{1,2}-\d{1,2}/.match?(string)
+
+      # Sometimes dates come in mm-dd-yyyy and Ruby Date really doesn't like that.
+      if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
+        month, day, year = string.split('-')
+        return "#{year}-#{month}-#{day}"
+      end
+      # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
+      # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
+      # Since we're almost always dealing with dates that are in the past
+      # If the year is between 00 and next year, we'll add 2000,
+      # otherwise, we'll add 1900
+      @next_year ||= Date.current.next_year.strftime('%y').to_i
+      d = Date.parse(string, false) # false to not guess at century
+      if d.year <= @next_year
+        d = d.next_year(2000)
+      else
+        d = d.next_year(1900)
+      end
+      d.strftime('%Y-%m-%d')
+    end
+
+    private def correct_date_format?(string)
+      accepted_date_pattern.match?(string)
+    end
+
+    private def accepted_date_pattern
+      @accepted_date_pattern ||= /\d{4}-\d{2}-\d{2}/.freeze
+    end
+
+    private def date_columns_for_class(klass)
+      hmis_columns = klass.hmis_structure(version: '2020').keys
+      klass.content_columns.select do |c|
+        c.type == :date && c.name.to_sym.in?(hmis_columns)
+      end.map do |c|
+        c.name.to_s
+      end
     end
 
     def header_valid?(line, klass)
@@ -571,21 +624,21 @@ module Importers::HmisTwentyTwenty
 
     def self.importable_files
       {
-        'Affiliation.csv' => affiliation_source,
+        'Export.csv' => export_source,
+        'Organization.csv' => organization_source,
+        'Project.csv' => project_source,
         'Client.csv' => client_source,
         'Disabilities.csv' => disability_source,
         'EmploymentEducation.csv' => employment_education_source,
         'Enrollment.csv' => enrollment_source,
         'EnrollmentCoC.csv' => enrollment_coc_source,
         'Exit.csv' => exit_source,
-        'Export.csv' => export_source,
         'Funder.csv' => funder_source,
         'HealthAndDV.csv' => health_and_dv_source,
         'IncomeBenefits.csv' => income_benefits_source,
         'Inventory.csv' => inventory_source,
-        'Organization.csv' => organization_source,
-        'Project.csv' => project_source,
         'ProjectCoC.csv' => project_coc_source,
+        'Affiliation.csv' => affiliation_source,
         'Services.csv' => service_source,
         'CurrentLivingSituation.csv' => current_living_situation_source,
         'Assessment.csv' => assessment_source,
@@ -594,6 +647,23 @@ module Importers::HmisTwentyTwenty
         'Event.csv' => event_source,
         'User.csv' => user_source,
       }.freeze
+    end
+
+    private def correct_file_names
+      @correct_file_names ||= importable_files.keys.map{|m| [m.downcase, m]}
+    end
+
+    private def ensure_file_naming
+      file_path = "#{@file_path}/#{@data_source.id}"
+      Dir.each_child(file_path) do |filename|
+        correct_file_name = correct_file_names.detect{|f, _| f == filename.downcase}&.last
+        if correct_file_name.present? && correct_file_name != filename
+          # Ruby complains if the files only differ by case, so we'll move it twice
+          tmp_name = "tmp_#{filename}"
+          FileUtils.mv(File.join(file_path, filename), File.join(file_path, tmp_name))
+          FileUtils.mv(File.join(file_path, tmp_name), File.join(file_path, correct_file_name))
+        end
+      end
     end
 
     def self.affiliation_source

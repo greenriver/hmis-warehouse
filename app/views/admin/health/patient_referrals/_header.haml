@@ -11,13 +11,14 @@
       %div
         %h3 Add and Review Patient Assignments
         %p
-          Please indicate patients who you have an existing care relationship with. BHCHP will use this information to assign patients to agencies.
+          Please indicate patients who you have an existing care relationship with.
+          BHCHP will use this information to assign patients to agencies.
         %p
-          Note: Choosing 'Not Our Patient' is optional. It is offered as a way to clear your review list. Once BHCHP assigns patients to agencies, those patients will also no longer appear in your review list.
-      - if current_user.can_administer_health?
-        = link_to new_admin_health_patient_referral_path(), class: ['btn', 'btn-secondary'] do
-          Add Patient
-      - if @active_patient_referral_tab == 'review' &&  current_user.has_patient_referral_review_access?
-        = link_to 'Download Excel', tab_path_params.merge(format: :xlsx), class: 'btn btn-secondary ml-2'
+          Note: Choosing 'Not Our Patient' is optional. It is offered as a way to clear your review list.
+          Once BHCHP assigns patients to agencies, those patients will also no longer appear in your review list.
+        - if @active_patient_referral_tab == 'review' &&  current_user.has_patient_referral_review_access?
+          %p
+            If a patient is assigned to an agency, and subsequently, the ACO or referral date is changed,
+            the patient will be returned to the set of patients to be reviewed.
     .mb-6
       = render 'admin/health/patient_referrals/filter'

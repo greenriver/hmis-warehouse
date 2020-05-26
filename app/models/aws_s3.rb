@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-require 'aws-sdk'
+require 'aws-sdk-s3'
 class AwsS3
   attr_accessor :region, :bucket_name, :access_key_id, :secret_access_key
   def initialize(

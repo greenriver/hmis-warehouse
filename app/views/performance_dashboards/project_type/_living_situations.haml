@@ -1,0 +1,36 @@
+- key = :living_situation
+- detail_params = filter_params.merge(options: {key: key, living_situation: true})
+%h2 Prior Living Situation
+.well
+  %p.description Prior living situation provided at entry for the most-recently started enrollment for each client.
+  .jChart.prior-living-situation-chart
+
+- columns = [@report.prior_living_situations_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.prior_living_situations_data_for_chart[:columns]
+- categories = @report.prior_living_situations_data_for_chart[:categories]
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var columns = #{columns.to_json.html_safe};
+      var categories = #{categories.to_json.html_safe};
+      var options = {
+        follow_link: '#{show_client_details?}',
+        link_base: 'project_type/details',
+        key: '#{key}',
+        sub_keys: #{@report.living_situation_bucket_titles.invert.to_json.html_safe},
+        params: #{detail_params.to_json.html_safe},
+        date_ranges: {
+          report: {
+            start_date: '#{@report.start_date}',
+            end_date: '#{@report.end_date}'
+          },
+          comparison: {
+            start_date: '#{@comparison.start_date}',
+            end_date: '#{@comparison.end_date}'
+          }
+        }
+      };
+      var living_situation_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.prior-living-situation-chart', columns, categories, options);
+    })(jQuery);

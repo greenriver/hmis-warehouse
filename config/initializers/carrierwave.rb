@@ -1,3 +1,5 @@
+Rails.logger.debug "Running initializer in #{__FILE__}"
+
 CarrierWave.configure do |config|
   tmp_bucket = ENV['S3_TMP_BUCKET']
   tmp_access_key = ENV['S3_TMP_ACCESS_KEY_ID']

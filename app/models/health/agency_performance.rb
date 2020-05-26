@@ -245,7 +245,7 @@ module Health
     def qa_signature_dates
       # Note: using minimum will ensure the first PCTP, subsequent don't matter
       @qa_signatures ||= Health::QualifyingActivity.submittable.
-        after_enrollment_date.
+        during_current_enrollment.
         where(patient_id: patient_referrals.keys). # limit to patients in scope
         where(date_of_activity: @range).
         where(activity: :pctp_signed).

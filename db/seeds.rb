@@ -217,7 +217,7 @@ def report_list
       {
         url: 'warehouse_reports/dob_entry_same',
         name: 'DOB = Entry date',
-        description: "List clients who''s first entry date is on their birthdate.",
+        description: "List clients who's first entry date is on their birthdate.",
         limitable: true,
       },
       {
@@ -241,7 +241,7 @@ def report_list
       {
         url: 'warehouse_reports/non_alpha_names',
         name: 'Client with odd characters in their names',
-        description: "List clients who''s first or last name starts with a non-alphabetic character.",
+        description: "List clients who's first or last name starts with a non-alphabetic character.",
         limitable: false,
       },
       {
@@ -297,7 +297,7 @@ def report_list
       {
         url: 'warehouse_reports/cas/chronic_reconciliation',
         name: 'Chronic Reconcilliation',
-        description: "See who is available in CAS but not on the chronic list, and who''s not available in CAS, but is on the chronic list.",
+        description: "See who is available in CAS but not on the chronic list, and who's not available in CAS, but is on the chronic list.",
         limitable: false,
       },
       {
@@ -470,6 +470,20 @@ def report_list
         url: 'warehouse_reports/health/contact_tracing',
         name: 'Contact Tracing',
         description: 'Review and download contact tracing records.',
+        limitable: false,
+      },
+    ],
+    'Performance Dashboard' => [
+      {
+        url: 'performance_dashboards/overview',
+        name: 'Performance Overview',
+        description: 'Overview of warehouse performance.',
+        limitable: false,
+      },
+      {
+        url: 'performance_dashboards/project_type',
+        name: 'Project Type Breakdowns',
+        description: 'Performance by project type.',
         limitable: false,
       },
     ],
@@ -765,7 +779,7 @@ def ensure_db_triggers_and_functions
 end
 
 ensure_db_triggers_and_functions()
-setup_fake_user()
+setup_fake_user() if Rails.env.development?
 maintain_data_sources()
 maintain_report_definitions()
 maintain_health_seeds()

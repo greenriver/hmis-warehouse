@@ -1,9 +1,14 @@
 <% if ENV['EXCEPTION_WEBHOOK_URL'].present? && ENV['EXCEPTION_WEBHOOK_CHANNEL'].present? %>
-<%= ENV['RAILS_ENV'] %>:
+<%= ENV.fetch('RAILS_ENV') { 'unknown' } %>:
   slack:
     webhook_url: <%= ENV['EXCEPTION_WEBHOOK_URL'] %>
     channel: '<%= '#' + ENV['EXCEPTION_WEBHOOK_CHANNEL'] %>'
     additional_parameters:
       mrkdwn: true
       icon_url: <%= ENV.fetch('EXCEPTION_WEBHOOK_ICON') %>
+<% else %>
+unknown:
+  slack:
+    webhook_url: www.unknown.com
+    channel: '#unknown'
 <% end %>

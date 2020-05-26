@@ -87,7 +87,7 @@ module ReportGenerators::Lsa::Fy2019
           update_report_progress(percent: 90)
           log_and_ping('LSA Queries complete')
           fetch_results()
-          # fetch_summary_results()
+          fetch_summary_results()
           zip_report_folder()
           attach_report_zip()
           remove_report_files()
@@ -539,15 +539,11 @@ module ReportGenerators::Lsa::Fy2019
       end
     end
 
-    # def fetch_summary_results
-    #   load 'lib/rds_sql_server/lsa/fy2019/lsa_report_summary.rb'
-    #   summary = LsaSqlServer::LSAReportSummary.new
-    #   summary_data = summary.fetch_results
-    #   people = {headers: summary_data.columns.first, data: summary_data.rows.first}
-    #   enrollments = {headers: summary_data.columns.second, data: summary_data.rows.second}
-    #   demographics = summary.fetch_demographics
-    #   @report.results = {summary: {people: people, enrollments: enrollments, demographics: demographics}}
-    #   @report.save
-    # end
+    def fetch_summary_results
+      load 'lib/rds_sql_server/lsa/fy2019/lsa_report_summary.rb'
+      summary = LsaSqlServer::LSAReportSummary.new
+      @report.results = { summary: summary.fetch_summary }
+      @report.save
+    end
   end
 end

@@ -1,0 +1,79 @@
+# Move less frequently changing things higher in this file.
+
+###############################################################
+## Multi-stage build for the self-signed certificate we need ##
+###############################################################
+
+FROM alpine:latest AS builder
+
+RUN apk add --no-cache \
+  openssl
+
+WORKDIR /
+
+RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
+    -subj "/C=US/ST=Vermont/L=Brattleboro/O=greenriver/CN=www.example.com" \
+    -keyout key.pem -out cert.pem
+
+
+##################
+## Actual Build ##
+##################
+
+FROM open-path-warehouse:latest--pre-cache
+
+ARG BUILDER
+
+# FIXME: delete after next pre-cache build
+ENV GROVER_NO_SANDBOX=true \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    CHROMIUM_PATH=/usr/bin/chromium-browser
+RUN apk add --no-cache \
+  imagemagick \
+  wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+  chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+  lftp
+
+LABEL "app"=open-path-warehouse
+LABEL "ruby-version"=2.6.5
+
+# Get self-signed cert
+COPY --from=builder /key.pem /cert.pem /app/config/
+
+# allow tls connection to database with verification
+COPY config/deploy/docker/assets/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
+
+COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
+COPY bin ./bin
+COPY public ./public
+COPY config/deploy/docker/assets/download_secrets.rb ./bin
+COPY config/deploy/docker/assets/sync_app_assets.rb ./bin
+COPY config/deploy/docker/lib/cron_installer.rb ./bin
+COPY config/deploy/docker/lib/scheduled_task.rb ./bin
+COPY config/deploy/docker/assets/deploy_tasks.open-path-warehouse.sh ./bin/deploy_tasks.sh
+
+RUN bundle install --without=development
+
+# some weird build issue on github: https://github.com/moby/moby/issues/37965
+# which is what the RUN true is for
+
+COPY lib ./lib
+COPY config ./config
+COPY spec ./spec
+COPY db ./db
+COPY app ./app
+COPY vendor ./vendor
+COPY locale ./locale
+
+RUN RAILS_ENV=production bundle exec rake assets:precompile && \
+  cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml && \
+  rm -rf tmp/* && \
+  rm .env && \
+  mkdir tmp/pids
+
+COPY config/deploy/docker/assets/REVISION ./
+
+COPY config/deploy/docker/assets/entrypoint.sh /usr/bin/
+RUN chmod +x /usr/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]

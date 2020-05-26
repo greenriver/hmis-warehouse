@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require_relative 'lib/bootstrap'
+
+if ENV['AWS_PROFILE'].nil?
+  puts "Set your AWS_PROFILE variable first"
+  exit
+end
+
+raise "Set host as first arg" if ARGV[0].nil?
+raise "Set target group name as second arg" if ARGV[1].nil?
+
+Bootstrap.new(host: ARGV[0], name: ARGV[1]).run!

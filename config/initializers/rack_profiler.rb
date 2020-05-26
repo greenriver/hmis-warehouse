@@ -1,3 +1,5 @@
+Rails.logger.debug "Running initializer in #{__FILE__}"
+
 # frozen_string_literal: true
 
 if Rails.env.development?
