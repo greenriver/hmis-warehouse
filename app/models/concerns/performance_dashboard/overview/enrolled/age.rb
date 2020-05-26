@@ -23,7 +23,7 @@ module PerformanceDashboard::Overview::Enrolled::Age
 
   def enrolled_by_age_data_for_chart
     @enrolled_by_age_data_for_chart ||= begin
-      columns = [(@start_date..@end_date).to_s]
+      columns = [date_range_words]
       columns += enrolled_by_age.values.map(&:count)
       categories = enrolled_by_age.keys.map(&:to_s).map(&:humanize)
       {
