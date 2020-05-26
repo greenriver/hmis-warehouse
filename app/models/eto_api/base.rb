@@ -45,7 +45,7 @@ module EtoApi
 
     def self.api_configs
       # Backwards compatibility
-      GrdaWarehouse::EtoApiConfig.all.map { |conf| [conf.identifier, conf.attributes] }.to_h
+      GrdaWarehouse::EtoApiConfig.active.all.map { |conf| [conf.identifier, conf.attributes] }.to_h
     end
 
     # Returns [identifier, config]

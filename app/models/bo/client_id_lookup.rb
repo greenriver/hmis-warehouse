@@ -56,7 +56,7 @@ module Bo
     end
 
     def api_connect
-      @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: @data_source_id)
+      @custom_config = GrdaWarehouse::EtoApiConfig.active.find_by(data_source_id: @data_source_id)
       @api = EtoApi::Detail.new(trace: @trace, api_connection: @api_site_identifier)
       @api.connect
     end

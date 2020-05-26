@@ -11,4 +11,8 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
+  scope :active, -> do
+    where(active: true)
+  end
+
 end
