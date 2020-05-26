@@ -24,7 +24,7 @@ Dotenv.load('.env', '.env.local')
 # All installs get these
 daily_schedule = ENV['DAILY_SCHEDULE'] || '3:10 am'
 every 1.day, at: daily_schedule do
-  # Defers to delayed jobs
+  # Long-running
   rake "grda_warehouse:daily"
 end
 shifted_time = Time.parse(daily_schedule) - 2.hours
@@ -103,8 +103,4 @@ if ENV['GLACIER_NEEDS_BACKUP']=='true'
   every :month, at: database_backup_time-1.hour do
     rake "glacier:backup:files"
   end
-end
-
-every 1.minute do
-  command "echo cron ran from schedule"
 end
