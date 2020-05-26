@@ -115,7 +115,10 @@ gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soun
 
 # PDF Exports
 gem 'wicked_pdf'
-gem 'wkhtmltopdf-binary'
+# I've added this package to the dev docker builds and the deployed
+# docker images. We can probably delete this. commenting out as the
+# first step:
+#gem 'wkhtmltopdf-binary', groups: [:development]
 gem 'combine_pdf'
 gem 'grover'
 
@@ -129,7 +132,7 @@ gem 'exception_notification'
 # gem 'bcrypt', '~> 3.1.7'
 
 # Use Unicorn as the app server
-gem 'puma', '~> 3.12.3'
+gem 'puma', '~> 3.12.6'
 
 # gem 'newrelic_rpm', require: false
 # gem "temping", require: false
@@ -138,9 +141,16 @@ gem 'dotenv-rails'
 gem 'net-sftp', require: false
 gem 'redis-rails'
 
-#AWS SDK
+# AWS SDK is needed for deployment and within the application
 gem 'aws-sdk-rails'
-gem 'aws-sdk', '~> 3'
+gem 'aws-sdk-cloudwatchevents', '~> 1'
+gem 'aws-sdk-ecs', '~> 1'
+gem 'aws-sdk-glacier', '~> 1'
+gem 'aws-sdk-rds', '~> 1'
+gem 'aws-sdk-s3', '~> 1'
+gem 'aws-sdk-secretsmanager', '~> 1'
+gem 'aws-sdk-ses', '~> 1'
+gem 'aws-sdk-iam', '~> 1'
 gem 'json'
 gem 'awesome_print'
 

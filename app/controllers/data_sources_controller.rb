@@ -57,7 +57,14 @@ class DataSourcesController < ApplicationController
         visible_in_window = data_source_params[:visible_in_window] || false
         import_paused = data_source_params[:import_paused] || false
         source_id = data_source_params[:source_id]
-        @data_source.update!(visible_in_window: visible_in_window, import_paused: import_paused, source_id: source_id)
+        munged_personal_id = data_source_params[:munged_personal_id] || false
+        changes = {
+          visible_in_window: visible_in_window,
+          import_paused: import_paused,
+          source_id: source_id,
+          munged_personal_id: munged_personal_id,
+        }
+        @data_source.update!(changes)
       end
     rescue StandardError => e
       error = true
@@ -85,6 +92,7 @@ class DataSourcesController < ApplicationController
         :visible_in_window,
         :import_paused,
         :source_id,
+        :munged_personal_id,
         projects_attributes:
         [
           :id,

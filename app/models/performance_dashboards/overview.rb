@@ -46,7 +46,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
       homeless
 
     homeless.
-      where.not(client_id: previous_period.select(:client_id))
+      where.not(period_exists_sql(previous_period))
   end
 
   def newly_homeless_count
@@ -67,7 +67,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
       homeless(chronic_types_only: true)
 
     literally_homeless.
-      where.not(client_id: previous_period.select(:client_id))
+      where.not(period_exists_sql(previous_period))
   end
 
   def newly_literally_homeless_count

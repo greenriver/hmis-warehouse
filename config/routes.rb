@@ -602,8 +602,6 @@ Rails.application.routes.draw do
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
   end
 
-
-
   resources :imports do
     get :download, on: :member
   end
@@ -613,6 +611,8 @@ Rails.application.routes.draw do
   resources :data_sources do
     resources :uploads, except: [:update, :destroy, :edit]
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
+    resource :api_config
+    resource :hmis_import_config
   end
   resources :ad_hoc_data_sources do
     resources :uploads, except: [:update, :edit], controller: 'ad_hoc_data_sources/uploads' do
@@ -826,6 +826,7 @@ Rails.application.routes.draw do
   namespace :system_status do
     get :operational
     get :cache_status
+    get :details
   end
   root 'root#index'
 end

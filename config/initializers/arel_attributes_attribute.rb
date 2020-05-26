@@ -1,3 +1,5 @@
+Rails.logger.debug "Running initializer in #{__FILE__}"
+
 module ArelExtensions
   module Attribute
     def to_sql

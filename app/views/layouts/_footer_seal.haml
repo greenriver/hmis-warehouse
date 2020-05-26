@@ -1,3 +1,7 @@
-- if ENV['LOGO'].present?
+- logo = ENV['LOGO']
+- if logo.present?
   %span.seal-image
-    = image_tag "theme/logo/#{ENV['LOGO']}", class: :seal
+    - if SerializedAsset.exists?(logo)
+      %img.seal{src: SerializedAsset.get_src(logo)}
+    - else
+      = image_tag "theme/logo/#{logo}", class: :seal

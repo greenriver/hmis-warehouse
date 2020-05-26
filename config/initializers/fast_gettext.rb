@@ -1,7 +1,9 @@
+Rails.logger.debug "Running initializer in #{__FILE__}"
+
 # db access is cached <-> only first lookup hits the db
 def database_exists?
   ActiveRecord::Base.connection
-rescue ActiveRecord::NoDatabaseError
+rescue ActiveRecord::NoDatabaseError, PG::ConnectionBad
   false
 else
   true

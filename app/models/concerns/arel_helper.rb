@@ -24,6 +24,14 @@ module ArelHelper
       "#{table_name}.#{column_name}"
     end
 
+    # NOTE: quoted_table_name must be quoted, use something like User.quoted_table_name
+    def exists_sql(ar_query, quoted_table_name:, alias_name:, column_name:)
+      sql = ar_query.select(:client_id).to_sql.
+        gsub("#{quoted_table_name}.", "\"#{alias_name}\"."). # alias all columns
+        gsub(quoted_table_name, "#{quoted_table_name} as \"#{alias_name}\"") # alias table
+      Arel.sql("EXISTS (#{sql} and #{quoted_table_name}.\"client_id\" = \"#{alias_name}\".\"#{column_name}\") ")
+    end
+
     def qt(value)
       self.class.qt value
     end

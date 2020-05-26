@@ -8,14 +8,16 @@ module PerformanceDashboard::Overview::Exiting::Age
   extend ActiveSupport::Concern
 
   def exiting_by_age
-    buckets = age_buckets.map { |b| [b, []] }.to_h
-    counted = Set.new
-    exiting.order(first_date_in_program: :desc).
-      pluck(:client_id, :age, :first_date_in_program).each do |id, age, _|
-      buckets[age_bucket(age)] << id unless counted.include?(id)
-      counted << id
+    @exiting_by_age ||= begin
+      buckets = age_buckets.map { |b| [b, []] }.to_h
+      counted = Set.new
+      exiting.order(first_date_in_program: :desc).
+        pluck(:client_id, :age, :first_date_in_program).each do |id, age, _|
+        buckets[age_bucket(age)] << id unless counted.include?(id)
+        counted << id
+      end
+      buckets
     end
-    buckets
   end
 
   def exiting_by_age_data_for_chart

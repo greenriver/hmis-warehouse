@@ -1,6 +1,7 @@
 - content_for :title, t('.title')
 %h1= content_for :title
 = render partial: 'menus/admin_tabs'
+= render 'login_chart'
 .o-page
   .o-page__header
     - @prompt = t '.search_prompt'

@@ -9,8 +9,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class Base < GrdaWarehouseBase
     include ApplicationHelper
     include ArelHelper
+    include NotifierConfig
     extend Memoist
     self.table_name = :project_data_quality
+
     belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
     belongs_to :project_group, class_name: GrdaWarehouse::ProjectGroup.name
     has_many :project_contacts, through: :project, source: :contacts
@@ -27,6 +29,26 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     scope :incomplete, -> do
       where(completed_at: nil, processing_errors: nil)
+    end
+
+    def self.process!
+      advisory_lock_key = "project_data_quality_reports"
+      if self.advisory_lock_exists?(advisory_lock_key)
+        Rails.logger.info 'Exiting, project data quality reports already running'
+        exit
+      end
+      @notifier = self.new
+      @notifier.setup_notifier('Project Data Quality Report Runner')
+      self.with_advisory_lock(advisory_lock_key) do
+        self.where(completed_at: nil).each do |r|
+          begin
+            r.run!
+          rescue Exception => e
+            Rails.logger.error e.message
+            @notifier.ping(e) if @notifier.instance_variable_get(:@send_notifications)
+          end
+        end
+      end
     end
 
     def display
