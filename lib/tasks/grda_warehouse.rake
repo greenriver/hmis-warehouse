@@ -148,28 +148,28 @@ namespace :grda_warehouse do
 
     case hmis_version
     when 'hmis_611'
-      Importers::HMISSixOneOne::S3.available_connections.each do |key, conf|
+      Importers::HMISSixOneOne::S3.available_connections.each do |conf|
         options = {
-          data_source_id: conf['data_source_id'],
-          region: conf['region'],
-          access_key_id: conf['access_key_id'],
-          secret_access_key: conf['secret_access_key'],
-          bucket_name: conf['bucket_name'],
-          path: conf['path'],
-          file_password: conf['file_password']
+          data_source_id: conf.data_source_id,
+          region: conf.s3_region,
+          access_key_id: conf.s3_access_key_id,
+          secret_access_key: conf.s3_secret_access_key,
+          bucket_name: conf.s3_bucket_name,
+          path: conf.s3_path,
+          file_password: conf.zip_file_password
         }
         Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HMISSixOneOne::S3', options: options)
       end
     when 'hmis_2020'
-      Importers::HmisTwentyTwenty::S3.available_connections.each do |key, conf|
+      Importers::HmisTwentyTwenty::S3.available_connections.each do |conf|
         options = {
-          data_source_id: conf['data_source_id'],
-          region: conf['region'],
-          access_key_id: conf['access_key_id'],
-          secret_access_key: conf['secret_access_key'],
-          bucket_name: conf['bucket_name'],
-          path: conf['path'],
-          file_password: conf['file_password']
+          data_source_id: conf.data_source_id,
+          region: conf.s3_region,
+          access_key_id: conf.s3_access_key_id,
+          secret_access_key: conf.s3_secret_access_key,
+          bucket_name: conf.s3_bucket_name,
+          path: conf.s3_path,
+          file_password: conf.zip_file_password
         }
         Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisTwentyTwenty::S3', options: options)
       end

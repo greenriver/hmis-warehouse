@@ -14,5 +14,4 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
   scope :active, -> do
     where(active: true)
   end
-
 end
