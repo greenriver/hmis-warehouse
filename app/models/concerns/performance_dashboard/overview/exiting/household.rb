@@ -23,7 +23,7 @@ module PerformanceDashboard::Overview::Exiting::Household
 
   def exiting_by_household_data_for_chart
     @exiting_by_household_data_for_chart ||= begin
-      columns = [(@start_date..@end_date).to_s]
+      columns = [date_range_words]
       columns += exiting_by_household.values.map(&:count).drop(1) # ignore :all
       categories = exiting_by_household.keys.map do |type|
         household_type(type)
