@@ -27,9 +27,7 @@
 on:
   push:
     branches:
-      - master
-      - '*ecs*'
-      - pre-release
+      - '*'
   pull_request:
     branches:
       - master
