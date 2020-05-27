@@ -181,6 +181,8 @@ class RollOut
   end
 
   def deploy_web!
+    _make_cloudwatch_group!
+
     name = target_group_name + '-web'
 
     soft_mem_limit_mb = (web_options['soft_mem_limit_mb'] || DEFAULT_SOFT_WEB_RAM_MB).to_i

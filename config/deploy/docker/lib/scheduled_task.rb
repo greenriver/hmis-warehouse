@@ -78,6 +78,8 @@ class ScheduledTask
       ],
     }
 
+    puts "[INFO] Attempting to make rule for #{schedule_expression}: #{description}"
+
     cloudwatchevents.put_rule(payload)
 
     # puts "[INFO] Made rule #{name}"
