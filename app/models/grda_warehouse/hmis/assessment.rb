@@ -147,7 +147,7 @@ module GrdaWarehouse::HMIS
 
     def self.fetch_touch_points
       touch_points = {}
-      EtoApiConfig.active.find_each do |config|
+      GrdaWarehouse::EtoApiConfig.active.find_each do |config|
         data_source_id = config.data_source_id
         bo = Bo::ClientIdLookup.new(data_source_id: data_source_id)
         response = bo.fetch_site_touch_point_map
