@@ -335,7 +335,7 @@ module Health
     end
 
     def contributed_days_enrolled
-      contributed_dates.count
+      contributed_dates.count - 1 # Don't count today
     end
 
     private def contributed_dates
@@ -415,12 +415,12 @@ module Health
     end
 
     def self.outreach_cutoff_span
-      3.months
+      90.days
     end
 
     def outreach_cutoff_date
       if enrollment_start_date.present?
-        (enrollment_start_date + self.class.outreach_cutoff_span).to_date
+        (enrollment_start_date + self.class.outreach_cutoff_span - contributed_days_enrolled.days).to_date
       else
         (Date.current + self.class.outreach_cutoff_span).to_date
       end
