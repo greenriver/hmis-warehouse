@@ -163,8 +163,7 @@ module Health
       referral = create(referral_args)
       referral.convert_to_patient
 
-      # Update the patients engagement date unless they already have a careplan
-      referral.patient.update(engagement_date: referral.engagement_date) unless referral.patient.care_plan_signed?
+      referral.patient.update(engagement_date: referral.engagement_date) unless referral.keep_engagement_date?
 
       referral
     end
@@ -196,18 +195,19 @@ module Health
       agency_id.present?
     end
 
+    def keep_engagement_date?
+      patient.care_plan_signed? && Date.current <= patient.engagement_date
+    end
+
     # The engagement date is the date by which a patient must be engaged
     def engagement_date
       return nil unless enrollment_start_date.present?
 
-      next_month = enrollment_start_date.at_beginning_of_month.next_month
-      if enrollment_start_date < '2018-09-01'.to_date
-        (next_month + 120.days).to_date
-      elsif enrollment_start_date < '2020-04-01'.to_date
-        (next_month + 90.days).to_date
-      else
-        (enrollment_start_date + 150.days).to_date
-      end
+      # Historical calculations...
+      # Before 2018-09-01, engagement was 120 days following the start of the month following enrollment
+      # Until 2020-04-01, engagement was 90 days following the start of the month following enrollment
+
+      (enrollment_start_date + 150.days).to_date
     end
 
     def name

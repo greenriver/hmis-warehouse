@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'faker'
 
 RSpec.describe Health::Patient, type: :model do
   describe 'uniqueness constraints' do
@@ -30,11 +31,18 @@ RSpec.describe Health::Patient, type: :model do
     let!(:data_source) { create :health_data_source }
     let!(:referral_ds) { create :referral_ds }
 
-    let(:referral) { create :patient_referral }
-
     before(:each) do
       Timecop.travel(Date.current - 2.years) # Enrollment durations depend on time if there is no disenrollment date
-      referral.convert_to_patient
+      referral_args = {
+        first_name: 'First',
+        last_name: 'Last',
+        birthdate: Date.current,
+        medicaid_id: Faker::Number.number(digits: 10),
+        enrollment_start_date: Date.current,
+      }
+      @referral = Health::PatientReferral.create_referral(nil, referral_args)
+      @referral.convert_to_patient
+      @patient = @referral.patient
     end
 
     after(:each) do
@@ -42,83 +50,79 @@ RSpec.describe Health::Patient, type: :model do
     end
 
     it 'sets the default outreach cut-off and engagement dates after referral' do
-      patient = referral.patient
-      enrollment_start_date = referral.enrollment_start_date
+      enrollment_start_date = @referral.enrollment_start_date
 
       aggregate_failures do
-        expect(patient.outreach_cutoff_date).to eq(enrollment_start_date + 90.days)
-        # expect(patient.engagement_date).to eq(enrollment_start_date + 150.days)
+        expect(@patient.outreach_cutoff_date).to eq(enrollment_start_date + 90.days)
+        expect(@patient.engagement_date).to eq(enrollment_start_date + 150.days)
       end
     end
 
     it 'adjusts the outreach cut-off and engagement dates after auto re-enrollment' do
-      patient = referral.patient
-      enrollment_start_date = referral.enrollment_start_date
-      patient.patient_referral.update(disenrollment_date: enrollment_start_date + 60.days)
+      enrollment_start_date = @referral.enrollment_start_date
+      @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 60.days)
       re_enrollment_date = enrollment_start_date + 90.days
       referral_args = {
-        first_name: referral.first_name,
-        last_name: referral.last_name,
-        birthdate: referral.birthdate,
-        medicaid_id: referral.medicaid_id,
+        first_name: @referral.first_name,
+        last_name: @referral.last_name,
+        birthdate: @referral.birthdate,
+        medicaid_id: @referral.medicaid_id,
         enrollment_start_date: re_enrollment_date,
       }
-      Health::PatientReferral.create_referral(patient, referral_args)
-      patient.reload
+      Health::PatientReferral.create_referral(@patient, referral_args)
+      @patient.reload
 
-      expect(patient.patient_referrals.count).to eq(2)
+      expect(@patient.patient_referrals.count).to eq(2)
       aggregate_failures do
         # Days disenrolled days don't count against outreach for auto re-enrollment
-        expect(patient.outreach_cutoff_date).to eq(enrollment_start_date + 30.days + 90.days)
-        # expect(patient.engagement_date).to eq(re_enrollment_date + 150.days)
+        expect(@patient.outreach_cutoff_date).to eq(enrollment_start_date + 30.days + 90.days)
+        expect(@patient.engagement_date).to eq(re_enrollment_date + 150.days)
       end
     end
 
     it 'does not adjust the engagement date after auto re-enrollment if there is a valid care plan' do
-      patient = referral.patient
-      enrollment_start_date = referral.enrollment_start_date
-      # careplan = create :careplan, patient: patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
-      patient.patient_referral.update(disenrollment_date: enrollment_start_date + 60.days)
+      enrollment_start_date = @referral.enrollment_start_date
+      create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 60.days)
       re_enrollment_date = enrollment_start_date + 90.days
       referral_args = {
-        first_name: referral.first_name,
-        last_name: referral.last_name,
-        birthdate: referral.birthdate,
-        medicaid_id: referral.medicaid_id,
+        first_name: @referral.first_name,
+        last_name: @referral.last_name,
+        birthdate: @referral.birthdate,
+        medicaid_id: @referral.medicaid_id,
         enrollment_start_date: re_enrollment_date,
       }
-      Health::PatientReferral.create_referral(patient, referral_args)
-      patient.reload
+      Health::PatientReferral.create_referral(@patient, referral_args)
+      @patient.reload
 
-      expect(patient.patient_referrals.count).to eq(2)
+      expect(@patient.patient_referrals.count).to eq(2)
       aggregate_failures do
         # Days disenrolled days don't count against outreach for auto re-enrollment
-        expect(patient.outreach_cutoff_date).to eq(enrollment_start_date + 30.days + 90.days)
-        # expect(patient.engagement_date).to eq(enrollment_start_date + 150.days)
+        expect(@patient.outreach_cutoff_date).to eq(enrollment_start_date + 30.days + 90.days)
+        expect(@patient.engagement_date).to eq(enrollment_start_date + 150.days)
       end
     end
 
     it 'it resets the outreach and engagement dates for a re-enrollment after expiration' do
-      patient = referral.patient
-      enrollment_start_date = referral.enrollment_start_date
-      careplan = create :careplan, patient: patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
-      patient.patient_referral.update(disenrollment_date: enrollment_start_date + 60.days)
+      enrollment_start_date = @referral.enrollment_start_date
+      careplan = create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 60.days)
       new_enrollment_date = careplan.expires_on + 1.day
       Timecop.travel(new_enrollment_date)
       referral_args = {
-        first_name: referral.first_name,
-        last_name: referral.last_name,
-        birthdate: referral.birthdate,
-        medicaid_id: referral.medicaid_id,
+        first_name: @referral.first_name,
+        last_name: @referral.last_name,
+        birthdate: @referral.birthdate,
+        medicaid_id: @referral.medicaid_id,
         enrollment_start_date: new_enrollment_date,
       }
-      Health::PatientReferral.create_referral(patient, referral_args)
-      patient.reload
+      Health::PatientReferral.create_referral(@patient, referral_args)
+      @patient.reload
 
-      expect(patient.patient_referrals.count).to eq(2)
+      expect(@patient.patient_referrals.count).to eq(2)
       aggregate_failures do
-        expect(patient.outreach_cutoff_date).to eq(new_enrollment_date + 90.days)
-        # expect(patient.engagement_date).to eq(new_enrollment_date + 150.days)
+        expect(@patient.outreach_cutoff_date).to eq(new_enrollment_date + 90.days)
+        expect(@patient.engagement_date).to eq(new_enrollment_date + 150.days)
       end
     end
   end
