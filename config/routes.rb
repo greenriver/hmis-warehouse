@@ -288,6 +288,7 @@ Rails.application.routes.draw do
     end
     namespace :hud do
       resources :missing_coc_codes, only: [:index]
+      resources :not_one_hohs, only: [:index]
     end
     namespace :client_details do
       resources :exits, only: [:index]

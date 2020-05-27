@@ -16,21 +16,18 @@ class Portainer
   def ensure_profile_and_ip
     my_ip = `dig +short myip.opendns.com @resolver1.opendns.com`.chomp
 
-    if !my_ip.match?(/^(54\.85|64.223)/)
-      raise "Wrong IP"
-    end
+    raise 'Wrong IP' unless my_ip.match?(/^(54\.85|64.223)/)
 
-    if ENV['AWS_PROFILE'].nil?
-      raise "set AWS_PROFILE"
-    end
+    raise 'set AWS_PROFILE' if ENV['AWS_PROFILE'].nil?
   end
 
   def setup_tunnels
-    system("tmux new-session -s portainer -d")
+    system('tmux new-session -s portainer -d')
 
-    system("tmux rename-window -t portainer:0 tunnel-0")
+    system('tmux rename-window -t portainer:0 tunnel-0')
     instances.each.with_index do |_, i|
       next if i == 0
+
       system("tmux new-window -t portainer:#{i} -n tunnel-#{i}")
     end
 
@@ -51,18 +48,18 @@ class Portainer
 
     config = [
       {
-        "Name" => "localhost",
-        "URL"  => "unix:///var/run/docker.sock",
-        "TLS"  => false,
+        'Name' => 'localhost',
+        'URL' => 'unix:///var/run/docker.sock',
+        'TLS' => false,
       },
     ]
 
     instances.each.with_index do |instance, i|
       # FIXME: Look at name tag and show that too
       config << {
-        "Name" => "tunnel #{i} - #{instance.public_ip_address} - #{instance.instance_id} - #{instance.instance_lifecycle||'non-spot'}",
-        "URL"  => "tcp://#{local_ip}:2376#{i}",
-        "TLS"  => false,
+        'Name' => "tunnel #{i} - #{instance.public_ip_address} - #{instance.instance_id} - #{instance.instance_lifecycle || 'non-spot'}",
+        'URL' => "tcp://#{local_ip}:2376#{i}",
+        'TLS' => false,
       }
     end
 
@@ -77,15 +74,15 @@ class Portainer
     # ID=the one you want to save
     # docker commit $ID my-portainer:latest
 
-    #exec("ssh -t #{HOST} 'docker run --rm -ti shell /bin/sh'")
+    # exec("ssh -t #{HOST} 'docker run --rm -ti shell /bin/sh'")
 
-    #['my-portainer', 'portainer/portainer'].each do |image|
+    # ['my-portainer', 'portainer/portainer'].each do |image|
 
     image = 'portainer/portainer'
 
     id = `docker image ls -q #{image}:latest`.chomp
 
-    raise "nothing found" if id.nil?
+    raise 'nothing found' if id.nil?
 
     puts "found #{id} for #{image}"
 
@@ -105,19 +102,19 @@ class Portainer
       filters: [
         {
           name: 'tag:Cluster',
-          values: [ 'openpath' ]
+          values: ['openpath'],
         },
         {
           name: 'instance-state-name',
-          values: [ 'running' ],
-        }
-      ]
+          values: ['running'],
+        },
+      ],
     )
 
     @instances = results.
       reservations.
       flat_map(&:instances).
-      sort_by { |x| x.public_ip_address }
+      sort_by(&:public_ip_address)
   end
 
   def ec2

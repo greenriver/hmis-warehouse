@@ -286,6 +286,12 @@ def report_list
         description: 'Identify clients with missing EnrollmentCoC entries.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/hud/not_one_hohs',
+        name: 'Incorrect Head of Household Counts',
+        description: 'Identify households with zero or more than one Head of Household.',
+        limitable: true,
+      },
     ],
     'CAS' => [
       {

@@ -26,6 +26,7 @@
 %p The LSA reports on data quality issues, the following reports should assist in tracking down the details.
 %ul
   %li= link_to 'Missing CoC Codes', warehouse_reports_hud_missing_coc_codes_path
+  %li= link_to 'Incorrect Head of Household Counts', warehouse_reports_hud_not_one_hohs_path
 %h3 Queue Report
 = simple_form_for :report_result do |f|
   - year = if Date.current.month >= 10 then Date.current.year else Date.current.year - 1 end

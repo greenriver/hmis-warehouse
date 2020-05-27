@@ -35,12 +35,16 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     # HouseholdID and RelationshipToHoH are required, but often not provided, send some sane defaults
     # Also unique the HouseholdID to a data source
     def apply_overrides row, data_source_id:
+      # NOTE: RelationshipToHoH changes must come before HouseholdID
+      row[:RelationshipToHoH] = 1 if row[:RelationshipToHoH].blank? && row[:HouseholdID].blank?
+      row[:RelationshipToHoH] = 99 if row[:RelationshipToHoH].blank?
+
       if row[:HouseholdID].blank?
         row[:HouseholdID] = Digest::MD5.hexdigest("e_#{data_source_id}_#{row[:ProjectID]}_#{row[:EnrollmentID]}")
       else
         row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{(row[:HouseholdID])}")
       end
-      row[:RelationshipToHoH] = 1 if row[:RelationshipToHoH].blank?
+
       # Only use the first 5 of the zip
       row[:LastPermanentZIP] = row[:LastPermanentZIP].to_s[0..4] if row[:LastPermanentZIP].present?
       # If the project has been overridden as PH, assume the MoveInDate
