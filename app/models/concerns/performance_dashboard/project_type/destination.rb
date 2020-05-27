@@ -37,7 +37,7 @@ module PerformanceDashboard::ProjectType::Destination
 
   def destinations_data_for_chart
     @destinations_data_for_chart ||= begin
-      columns = [(@start_date..@end_date).to_s]
+      columns = [date_range_words]
       columns += destinations.values.map(&:count).reverse
       categories = destinations.keys.reverse.map do |k|
         if k == :other

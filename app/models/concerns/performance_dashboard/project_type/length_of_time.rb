@@ -82,7 +82,7 @@ module PerformanceDashboard::ProjectType::LengthOfTime
 
   def lengths_of_time_data_for_chart
     @lengths_of_time_data_for_chart ||= begin
-      columns = [(@start_date..@end_date).to_s]
+      columns = [date_range_words]
       columns += lengths_of_time.values.map(&:count)
       categories = lengths_of_time.keys.map do |k|
         time_bucket_titles[k]

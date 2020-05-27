@@ -1,36 +1,19 @@
-- key = :returns
-- detail_params = filter_params.merge(options: {key: key, returns: true})
-%h2 Returns to Homelessness
-.well
-  %p.description Lenth of time between a client's first exit during the period to a permanent destination and the next entry into ES, SH, or SO that occurred at least 7 days after the exit. Re-entry looks forward to the current date regardless of chosen periods.
-  .jChart.return-chart
+:ruby
+  key = :returns
+  detail_params = filter_params.merge(options: {key: key, returns: true})
+  columns = [@report.returns_data_for_chart[:columns]]
+  if @report.include_comparison?
+    columns << @comparison.returns_data_for_chart[:columns]
+  end
+  categories = @report.returns_data_for_chart[:categories]
 
-- columns = [@report.returns_data_for_chart[:columns]]
-- if @report.include_comparison?
-  - columns << @comparison.returns_data_for_chart[:columns]
-- categories = @report.returns_data_for_chart[:categories]
 
-= content_for :page_js do
-  :javascript
-    (function($) {
-      var columns = #{columns.to_json.html_safe};
-      var categories = #{categories.to_json.html_safe};
-      var options = {
-        follow_link: '#{show_client_details?}',
-        link_base: 'project_type/details',
-        key: '#{key}',
-        sub_keys: #{@report.returns_bucket_titles.invert.to_json.html_safe},
-        params: #{detail_params.to_json.html_safe},
-        date_ranges: {
-          report: {
-            start_date: '#{@report.start_date}',
-            end_date: '#{@report.end_date}'
-          },
-          comparison: {
-            start_date: '#{@comparison.start_date}',
-            end_date: '#{@comparison.end_date}'
-          }
-        }
-      };
-      var return_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.return-chart', columns, categories, options);
-    })(jQuery);
+= render 'performance_dashboards/project_type/base',
+  title: "Returns to Homelessness",
+  key: key,
+  chart_height: 600,
+  desc: "Lenth of time between a client's first exit during the period to a permanent destination and the next entry into ES, SH, or SO that occurred at least 7 days after the exit. Re-entry looks forward to the current date regardless of chosen periods.",
+  detail_params: detail_params,
+  comparison_params: nil,
+  columns: columns,
+  categories: categories

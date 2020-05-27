@@ -23,7 +23,7 @@ module PerformanceDashboard::Overview::Enrolled::Veteran
 
   def enrolled_by_veteran_data_for_chart
     @enrolled_by_veteran_data_for_chart ||= begin
-      columns = [(@start_date..@end_date).to_s]
+      columns = [date_range_words]
       columns += enrolled_by_veteran.values.map(&:count)
       categories = enrolled_by_veteran.keys.map do |type|
         HUD.veteran_status(type)

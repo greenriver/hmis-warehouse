@@ -1,0 +1,26 @@
+@import '../helpers';
+
+// .c-chart
+.c-chart--horizontal-bar {
+  .bb-chart-text .bb-text {
+    font-weight: bold;
+    font-size: 18px;
+    fill: black !important;
+    font-family: $font-body;
+  }
+  .bb-ygrid {
+    stroke-dasharray: 0 0;
+  }
+  .bb-ygrid,
+  .tick line,
+  .domain {
+    stroke: darken(#E1E1E1, 1%);
+  }
+  .tick tspan {
+    font-weight: 400;
+    font-family: $font-body;
+    font-size: 12px;
+    line-height: 18px;
+    margin-bottom: 4px;
+  }
+}
