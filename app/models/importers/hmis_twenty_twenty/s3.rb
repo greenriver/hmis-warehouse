@@ -48,7 +48,7 @@ module Importers::HmisTwentyTwenty
 
     def self.available_connections
       GrdaWarehouse::HmisImportConfig.all.select do |conn|
-        conn.s3_access_key_id.present? && data_source.import_paused == false
+        conn.s3_access_key_id.present? && conn.data_source.import_paused == false
       end
     end
 
