@@ -28,6 +28,8 @@ class CronInstaller
       scheduled_task = ScheduledTask.new(params)
       scheduled_task.run!
 
+      puts "[INFO] -----------------------"
+
       entry_number += 1
     end
   end
