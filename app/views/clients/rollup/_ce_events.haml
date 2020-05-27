@@ -26,7 +26,7 @@
           %tr
             %td.id-sqr{ 'data-id' => event.enrollment.client.id }
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
-            %td.date-cell= l event.enrollment.EntryDate
+            %td.date-cell= event.enrollment.EntryDate
             %td= event.EventDate
             %td= HUD.no_yes_missing event.ProbSolDivRRResult
             %td= HUD.no_yes_missing event.ReferralCaseManageAfter

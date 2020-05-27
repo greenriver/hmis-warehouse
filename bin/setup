@@ -28,7 +28,7 @@ Dir.chdir APP_ROOT do
     FileUtils.cp 'sample.env', '.env.local'
   end
 
-  system "bin/db_prep"
+  system 'bin/db_prep'
 
   puts "\n== Setting up test databases"
   system 'RAILS_ENV=test bundle exec rake db:setup_test'

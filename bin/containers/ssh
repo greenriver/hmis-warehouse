@@ -9,11 +9,11 @@ class ContainerList
   def ssh!
     ensure_profile_and_ip
 
-    template = "%16s %12s %-80s"
+    template = '%16s %12s %-80s'
 
     # puts format(template, 'IP', 'ID', 'Task/connection command')
 
-    instances.each.with_index do |instance, i|
+    instances.each.with_index do |instance, _i|
       ip = instance.public_ip_address
 
       # List running containers
@@ -26,7 +26,7 @@ class ContainerList
       lines = `#{full_cmd}`.split(/\n/).reject { |l| l.match?(/^\s*$/) }
 
       lines.each do |line|
-        ( _, container_id, task ) = line.split(/\|/)
+        (_, container_id, task) = line.split(/\|/)
 
         # Skip the ECS agent
         next if task.match?(/ecs-agent/)
@@ -45,7 +45,7 @@ class ContainerList
 
   def run!
     ensure_profile_and_ip
-    instances.each.with_index do |instance, i|
+    instances.each.with_index do |instance, _i|
       puts "Listing containers on: #{instance.public_ip_address}\n"
       system("ssh ec2-user@#{instance.public_ip_address} docker container ps")
       puts "\n\n"
@@ -57,13 +57,9 @@ class ContainerList
   def ensure_profile_and_ip
     my_ip = `dig +short myip.opendns.com @resolver1.opendns.com`.chomp
 
-    if !my_ip.match?(/^(54\.85|64.223)/)
-      raise "Wrong IP"
-    end
+    raise 'Wrong IP' unless my_ip.match?(/^(54\.85|64.223)/)
 
-    if ENV['AWS_PROFILE'].nil?
-      raise "set AWS_PROFILE"
-    end
+    raise 'set AWS_PROFILE' if ENV['AWS_PROFILE'].nil?
   end
 
   def instances
@@ -73,19 +69,19 @@ class ContainerList
       filters: [
         {
           name: 'tag:Cluster',
-          values: [ 'openpath' ]
+          values: ['openpath'],
         },
         {
           name: 'instance-state-name',
-          values: [ 'running' ],
-        }
-      ]
+          values: ['running'],
+        },
+      ],
     )
 
     @instances = results.
       reservations.
       flat_map(&:instances).
-      sort_by { |x| x.public_ip_address }
+      sort_by(&:public_ip_address)
   end
 
   def ec2
