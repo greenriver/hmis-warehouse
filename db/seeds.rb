@@ -292,6 +292,12 @@ def report_list
         description: 'Identify households with zero or more than one Head of Household.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/hud/incorrect_move_in_dates',
+        name: 'Incorrect Move-in Dates',
+        description: 'Enrollments with move-in dates outside of the enrollment, or missing.',
+        limitable: true,
+      },
     ],
     'CAS' => [
       {
