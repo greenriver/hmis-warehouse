@@ -7,7 +7,7 @@
 module GrdaWarehouse
   class EtoApiConfig < GrdaWarehouseBase
     has_paper_trail
-    attr_encrypted :password, key: ENV['ENCRYPTION_KEY']
+    attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
 
     belongs_to :data_source
 
