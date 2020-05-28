@@ -29,23 +29,29 @@ module Health::Tasks
 
         begin
           result = soap.realtime_eligibility_inquiry_request(edi_doc: edi_doc)
+
+          if result.success?
+            Health::EligibilityResponse.create(
+              eligibility_inquiry: inquiry,
+              response: result.response,
+              user: user,
+            )
+            Health::FlagIneligiblePatientsJob.perform_later(inquiry.id)
+          else
+            Health::EligibilityResponse.create(
+              eligibility_inquiry: inquiry,
+              response: result.error_message,
+              user: user,
+            )
+          end
         rescue StandardError => e
-          msg = "Error communicating with MassHealth: %{e}"
+          msg = "Error communicating with MassHealth: #{e}"
           Rails.logger.error msg
           @notifier.ping msg if @send_notifications
-        end
 
-        if result.success?
           Health::EligibilityResponse.create(
             eligibility_inquiry: inquiry,
-            response: result.response,
-            user: user,
-          )
-          Health::FlagIneligiblePatientsJob.perform_later(inquiry.id)
-        else
-          Health::EligibilityResponse.create(
-            eligibility_inquiry: inquiry,
-            response: result.error_message,
+            response: msg,
             user: user,
           )
         end
