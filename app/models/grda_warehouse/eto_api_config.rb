@@ -11,6 +11,10 @@ module GrdaWarehouse
 
     belongs_to :data_source
 
+    scope :active, -> do
+      where(active: true)
+    end
+
     def touchpoint_fields_for_input
       touchpoint_fields.to_json if touchpoint_fields
     end
