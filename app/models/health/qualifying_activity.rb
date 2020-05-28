@@ -234,13 +234,6 @@ module Health
       }.sort_by{|_, m| m[:weight]}.to_h
     end
 
-    def self.care_plan_related_activities
-      @care_plan_related_activities ||= [
-        'care_planning',
-        'pctp_signed',
-      ]
-    end
-
     def self.date_search(start_date, end_date)
       if start_date.present? && end_date.present?
         self.where("date_of_activity >= ? AND date_of_activity <= ?", start_date, end_date)
@@ -406,10 +399,6 @@ module Health
       activity == 'outreach'
     end
 
-    def care_plan_related?
-      self.class.care_plan_related_activities.include? activity
-    end
-
     def modifiers
       modifiers = []
       # attach modifiers from activity
@@ -420,7 +409,7 @@ module Health
     end
 
     def compute_procedure_valid?
-      return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && reached_client.present?
+      return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && self.reached_client.present?
       procedure_code = self.procedure_code
       modifiers = self.modifiers
       reached_client = self.reached_client
@@ -446,31 +435,10 @@ module Health
       end
 
       return false if procedure_code.blank?
-      return false unless in_validity_window?
       return true if modifiers.empty?
 
       # Check that all of the modifiers we have occur in the acceptable modifiers
       (modifiers - valid_options[procedure_code]).empty?
-    end
-
-    # Check for date restrictions (some QA must be completed within a set date range)
-    def meets_date_restrictions?
-      return true unless restricted_procedure_codes.include? procedure_code
-
-      if in_first_three_months_procedure_codes.include? procedure_code
-        return occurred_within_three_months_of_enrollment?
-      end
-
-      return true
-    end
-
-    # Check duplicate rules (only first of some types per day is payable)
-    def meets_repeat_restrictions?
-      if once_per_day_procedure_codes.include? procedure_code
-        return first_of_type_for_day_for_patient?
-      end
-
-      return true
     end
 
     def first_of_type_for_day_for_patient?
@@ -487,8 +455,8 @@ module Health
       return min_id
     end
 
-    def first_non_care_plan_of_month_for_patient?
-      non_care_plan_for_month_for_patient.minimum(:id) == self.id
+    def first_non_outreach_of_month_for_patient?
+      non_outreach_of_month_for_patient.minimum(:id) == self.id
     end
 
     def number_of_outreach_activities
@@ -507,15 +475,15 @@ module Health
       )
     end
 
-    def non_care_plan_for_month_for_patient
+    def non_outreach_of_month_for_patient
       self.class.
         where(
           patient_id: patient_id,
           date_of_activity: (date_of_activity.beginning_of_month..date_of_activity.end_of_month),
         ).
         where.not(
-          activity: self.class.care_plan_related_activities
-        )
+        activity: :outreach
+      )
     end
 
     def calculate_payability!
@@ -540,8 +508,6 @@ module Health
       self.update(procedure_valid: compute_procedure_valid?)
     end
 
-    # NOTE: this needs to stay in-sync with the scope valid_unpayable
-    # for speed reasons we re-implement the logic here
     def compute_valid_unpayable?
       # Case 1: Only valid procedures
       return false unless compute_procedure_valid?
@@ -551,25 +517,19 @@ module Health
         return true
       end
 
-      # Case 3: May be unpayable if there is no valid care plan
-      # Note, Mass Health guidance, that contradicts the original guidance
-      # allows for payment of QA given any existing signed care plan.
-      # previously, this used patient_has_valid_care_plan?
-      if ! patient_has_signed_careplan? && in_care_plan_development_period?
-        # Only one non-careplan item per month (also limits to 5)
-        return ! first_non_care_plan_of_month_for_patient? unless care_plan_related?
-      end
-
-      # Case 4: Unpayable if there are too many outreach actions
+      # Case 2: Outreach is limited by the outreach cut-off date, and enrollment ranges
       if outreach?
-        return true if number_of_outreach_activities > 3
+        return true if date_of_activity > patient.outreach_cutoff_date
+        return true unless patient.contributed_dates.include?(date_of_activity)
+      else
+        # Case 3: Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
+        unless patient_has_signed_careplan?
+          return true unless first_non_outreach_of_month_for_patient?
+          return true if date_of_activity > patient.engagement_date
+        end
       end
 
-      # Case 5: Unpayable if it doesn't meet the date restrictions
-      if ! meets_date_restrictions?
-        return true
-      end
-      return false
+      return false;
     end
 
     def validity_class
@@ -611,20 +571,6 @@ module Health
 
     def patient_has_signed_careplan?
       patient.careplans.fully_signed.exists?
-    end
-
-    def in_care_plan_development_period?
-      date_of_activity.present? && patient.current_days_enrolled <= 150
-    end
-
-    def in_validity_window?
-      return false unless date_of_activity.present?
-
-      return false if outreach? && ! occurred_within_three_months_of_enrollment?
-
-      return false if ! care_plan_related? && ! (patient_has_signed_careplan? || in_care_plan_development_period?)
-
-      return true
     end
 
     def once_per_day_procedure_codes

@@ -94,6 +94,8 @@ module Health
     # The current referral for a patient is their most recent
     scope :current, -> { where(current: true) }
 
+    scope :prior, -> { where(current: false) }
+
     # The contributing referrals for a patient are the referrals to consider when counting enrollment days
     scope :contributing, -> { where(contributing: true) }
 

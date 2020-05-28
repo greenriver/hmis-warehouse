@@ -338,7 +338,15 @@ module Health
       contributed_dates.count - 1 # Don't count today
     end
 
-    private def contributed_dates
+    def prior_contributed_days_enrolled
+      prior_contributed_dates.count
+    end
+
+    def prior_contributed_dates
+      prior_contributed_enrollment_ranges.map(&:to_a).flatten.uniq
+    end
+
+    def contributed_dates
       contributed_enrollment_ranges.map(&:to_a).flatten.uniq
     end
 
@@ -349,6 +357,12 @@ module Health
     def current_enrollment_range
       end_date = patient_referral.disenrollment_date || Date.current
       (patient_referral.enrollment_start_date..end_date)
+    end
+
+    def prior_contributed_enrollment_ranges
+      patient_referrals.contributing.prior.map do |referral|
+        (referral.enrollment_start_date..referral.disenrollment_date)
+      end
     end
 
     def contributed_enrollment_ranges
@@ -420,7 +434,7 @@ module Health
 
     def outreach_cutoff_date
       if enrollment_start_date.present?
-        (enrollment_start_date + self.class.outreach_cutoff_span - contributed_days_enrolled.days).to_date
+        (enrollment_start_date + self.class.outreach_cutoff_span - prior_contributed_days_enrolled).to_date
       else
         (Date.current + self.class.outreach_cutoff_span).to_date
       end
