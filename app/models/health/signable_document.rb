@@ -257,7 +257,7 @@ module Health
     end
 
     def all_signed?
-      return false if signers.nil? || signers.length == 0
+      return false if signers.length.zero?
 
       signers.all? { |signer| signed_by?(signer.email) }
     end
@@ -279,8 +279,6 @@ module Health
 
     # HelloSign will fail if given bad emails
     def signers_have_reasonable_emails
-      return if signers.nil?
-
       self.signers.each do |signer|
         if !signer['email'].to_s.match(EMAIL_REGEX)
           errors[:signers] << "contain at least one bad email address (#{signer['email']})."
@@ -293,7 +291,7 @@ module Health
     end
 
     def sane_number_signed
-      return if signed_by.nil? || signers.nil?
+      return if signed_by.nil?
       return if signed_by.length <= signers.length
 
       errors[:signed_by] << "Cannot be longer than potential number of signers"
