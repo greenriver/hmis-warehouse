@@ -15,7 +15,7 @@ module Talentlms
     validates :courseid, presence: true
     validate :check_configuration_is_valid
 
-    attr_encrypted :api_key, key: ENV['ENCRYPTION_KEY']
+    attr_encrypted :api_key, key: ENV['ENCRYPTION_KEY'][0..31]
 
     # Submit a 'get' request to TalentLMS
     #

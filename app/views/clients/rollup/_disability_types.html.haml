@@ -38,9 +38,9 @@
 
             %tr
               %td.id-sqr{ 'data-id' => enrollment.client.id }
-              %td.date-cell= l enrollment.EntryDate
+              %td.date-cell= enrollment.EntryDate
               %td= HUD.data_collection_stage(disabilities.first.DataCollectionStage)
-              %td.date-cell= l information_date
+              %td.date-cell= information_date
               - aggregated.each do |symptom, result|
                 %td
                   = lighten_no(yes_no(result.response) || result.response)

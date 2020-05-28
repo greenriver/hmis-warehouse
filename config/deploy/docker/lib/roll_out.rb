@@ -338,16 +338,19 @@ class RollOut
     # distinct Instance is problematic if you have limited resources or a desired count of 1
     # placement_contraints << { type: 'distinctInstance' },
 
-    # non-web containers should not be spot instances
-    if !name.match?(/web/)
+    # only web and staging containers can live on spot instances
+    # all others are flagged as non-spot
+    if name.match?(/web/)
+      puts "[INFO][CONST] Not constraining #{name}"
+    elsif name.match?(/staging/)
+      puts "[INFO][CONST] Not constraining #{name}"
+    else
       puts "[INFO][CONST] Constraining #{name} to non-spot-instances"
 
       placement_constraints << {
         type: 'memberOf',
         expression: "attribute:instance-lifecycle == #{NOT_SPOT}",
       }
-    else
-      puts "[INFO][CONST] Not constraining #{name}"
     end
 
     results = ecs.register_task_definition({

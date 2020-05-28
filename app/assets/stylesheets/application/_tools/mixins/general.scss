@@ -10,7 +10,7 @@
 
 @mixin card-content {
   @include card;
-  padding: space(4);
+  padding: $card-padding;
   width: 100%;
   &.open {
     border-bottom-left-radius: 0;

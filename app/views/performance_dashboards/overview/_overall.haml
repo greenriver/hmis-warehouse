@@ -1,38 +1,49 @@
-%h2 Overall
-.well
+%h2.c-heading.c-heading--full-bleed Overall Summary
+.o-container--full-bleed.o-container--featured
+
   .table-responsive
     %table.table
       %thead
         %tr
-          %th
-          %th
-            Homeless
-            %i.icon-info{data: {toggle: :tooltip, title: 'Clients meeting the above criteria who were enrolled in ES, SH, SO, or TH during the period.'}}
-          %th
-            Literally Homeless
-            %i.icon-info{data: {toggle: :tooltip, title: 'Clients meeting the above criteria who were enrolled in ES, SH, or SO during the period.'}}
-          %th
-            Newly Homeless
-            %i.icon-info{data: {toggle: :tooltip, title: 'Clients meeting the above criteria who were enrolled in ES, SH, SO, or TH during the period and had not been enrolled in any of those project types in the prior 24 months.'}}
-          %th
-            Newly Literally Homeless
-            %i.icon-info{data: {toggle: :tooltip, title: 'Clients meeting the above criteria who were enrolled in ES, SH, or SO during the period and had not been enrolled in any of those project types in the prior 24 months.'}}
-          %th
-            Housed
-            %i.icon-info{data: {toggle: :tooltip, title: 'Clients meeting the above criteria who had a move-in-date within the period or exited with a Housing Assessment of 4 (stably housed).'}}
+          %th.border-top-0
+          %th.border-top-0
+            %span.font-weight-bold Homeless
+            %i.icon-info{data: {toggle: :tooltip, title: 'Clients in the universe who were enrolled in ES, SH, SO, or TH during the period. This ignores Project Types as selected in the universe.'}}
+          %th.border-top-0
+            %span.font-weight-bold Literally Homeless
+            %i.icon-info{data: {toggle: :tooltip, title: 'Clients in the universe who were enrolled in ES, SH, or SO during the period. This ignores Project Types as selected in the universe.'}}
+          %th.border-top-0
+            %span.font-weight-bold Newly Homeless
+            %i.icon-info{data: {toggle: :tooltip, title: 'Clients in the universewho were enrolled in ES, SH, SO, or TH during the period and had not been enrolled in any of those project types in the prior 24 months. This ignores Project Types as selected in the universe.'}}
+          %th.border-top-0
+            %span.font-weight-bold Newly Literally Homeless
+            %i.icon-info{data: {toggle: :tooltip, title: 'Clients in the universe who were enrolled in ES, SH, or SO during the period and had not been enrolled in any of those project types in the prior 24 months. This ignores Project Types as selected in the universe.'}}
+          %th.border-top-0
+            %span.font-weight-bold Housed
+            %i.icon-info{data: {toggle: :tooltip, title: 'Clients in the universe who had a move-in-date within the period or exited with a Housing Assessment of 4 (stably housed).'}}
       %tbody
         %tr
-          %th Reporting Period
-          %td= number_with_delimiter(@report.homeless_count)
-          %td= number_with_delimiter(@report.literally_homeless_count)
-          %td= number_with_delimiter(@report.newly_homeless_count)
-          %td= number_with_delimiter(@report.newly_literally_homeless_count)
-          %td= number_with_delimiter(@report.housed_count)
+          %th.pl-0.align-middle Reporting Period
+          %td
+            %span.c-metric= number_with_delimiter(@report.homeless_count)
+          %td
+            %span.c-metric= number_with_delimiter(@report.literally_homeless_count)
+          %td
+            %span.c-metric= number_with_delimiter(@report.newly_homeless_count)
+          %td
+            %span.c-metric= number_with_delimiter(@report.newly_literally_homeless_count)
+          %td
+            %span.c-metric= number_with_delimiter(@report.housed_count)
         - if @report.include_comparison?
           %tr
-            %th Comparison Period
-            %td= number_with_delimiter(@comparison.homeless_count)
-            %td= number_with_delimiter(@comparison.literally_homeless_count)
-            %td= number_with_delimiter(@comparison.newly_homeless_count)
-            %td= number_with_delimiter(@comparison.newly_literally_homeless_count)
-            %td= number_with_delimiter(@comparison.housed_count)
+            %th.pl-0.align-middle Comparison Period
+            %td
+              %span.c-metric= number_with_delimiter(@comparison.homeless_count)
+            %td
+              %span.c-metric= number_with_delimiter(@comparison.literally_homeless_count)
+            %td
+              %span.c-metric= number_with_delimiter(@comparison.newly_homeless_count)
+            %td
+              %span.c-metric= number_with_delimiter(@comparison.newly_literally_homeless_count)
+            %td
+              %span.c-metric= number_with_delimiter(@comparison.housed_count)

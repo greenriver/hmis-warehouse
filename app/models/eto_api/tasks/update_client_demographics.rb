@@ -78,7 +78,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       api_config = EtoApi::Base.api_configs
       api_config.to_a.reverse.to_h.each do |key, conf|
         @data_source_id = conf['data_source_id']
-        @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: @data_source_id)
+        @custom_config = GrdaWarehouse::EtoApiConfig.active.find_by(data_source_id: @data_source_id)
 
         @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         @api.connect

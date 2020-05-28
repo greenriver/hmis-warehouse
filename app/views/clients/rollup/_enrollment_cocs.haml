@@ -24,7 +24,7 @@
           %tr
             %td.id-sqr{ 'data-id' => enrollment_coc.enrollment.client.id }
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
-            %td.date-cell= l enrollment_coc.enrollment.EntryDate
+            %td.date-cell= enrollment_coc.enrollment.EntryDate
             %td= enrollment_coc.InformationDate
             %td= enrollment_coc.CoCCode
             %td= HUD.data_collection_stage enrollment_coc.DataCollectionStage

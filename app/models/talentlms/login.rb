@@ -8,7 +8,7 @@ module Talentlms
   class Login < GrdaWarehouseBase
     self.table_name = :talentlms_logins
 
-    attr_encrypted :password, key: ENV['ENCRYPTION_KEY']
+    attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
     belongs_to :user
   end
 end

@@ -23,7 +23,7 @@ module PerformanceDashboard::Overview::Enrolled::Race
 
   def enrolled_by_race_data_for_chart
     @enrolled_by_race_data_for_chart ||= begin
-      columns = [(@start_date..@end_date).to_s]
+      columns = [date_range_words]
       columns += enrolled_by_race.values.map(&:count)
       categories = enrolled_by_race.keys.map do |type|
         HUD.race(type)

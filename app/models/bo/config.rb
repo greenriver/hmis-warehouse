@@ -8,7 +8,7 @@ module Bo
   class Config < GrdaWarehouseBase
     self.table_name = :bo_configs
 
-    attr_encrypted :pass, key: ENV['ENCRYPTION_KEY']
+    attr_encrypted :pass, key: ENV['ENCRYPTION_KEY'][0..31]
 
     belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name
   end
