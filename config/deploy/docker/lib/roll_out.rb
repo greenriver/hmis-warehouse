@@ -180,6 +180,18 @@ class RollOut
     end
   end
 
+  def self.mark_spot_instances!
+    new(
+      image_base: nil,
+      target_group_name: nil,
+      target_group_arn: nil,
+      secrets_arn: nil,
+      execution_role: nil,
+      task_role: nil,
+      web_options: {},
+    ).mark_spot_instances!
+  end
+
   def deploy_web!
     _make_cloudwatch_group!
 
