@@ -7,12 +7,12 @@ namespace :reporting do
 
   desc "Run Project Data Quality Reports"
   task run_project_data_quality_reports: [:environment] do
-    GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.delay.process!
+    GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.process!
   end
 
   desc "Run Ad-Hoc Upload processing"
   task run_ad_hoc_processing: [:environment] do
-    GrdaWarehouse::AdHocBatch.delay.process!
+    GrdaWarehouse::AdHocBatch.process!
   end
 
   # DB related, provides reporting:db:migrate etc.

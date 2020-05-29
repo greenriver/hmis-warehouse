@@ -13,7 +13,7 @@ module Importing
 
       EtoApi::Tasks::UpdateClientDemographics.new(
         client_ids: client_ids,
-        run_time: 15.minutes,
+        run_time: 5.minutes,
         one_off: true,
       ).run!
     end
