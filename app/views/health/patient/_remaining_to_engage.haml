@@ -5,7 +5,7 @@
 %ul.list-unstyled
   %li
     - # Participation forms are valid if the signature is within 1 year prior to enrollment start date
-    - participation = patient.participation_forms.recent.during_contributing_enrollments.first
+    - participation = patient.participation_forms.recent.first
     - if participation.present? && participation.signature_on > valid_after
       = if_link_to(link, edit_client_health_participation_form_path(client_id: client.id, id: participation.id), data: { loads_in_pjax_modal: true }) do
         - if patient.participation_forms.signed.exists?
@@ -27,7 +27,7 @@
   %li
     - # Release forms are valid if the signature is within 1 year prior to enrollment start date and are valid
     - # for two years from the signature date
-    - release = patient.release_forms.active.recent.during_contributing_enrollments.first
+    - release = patient.release_forms.active.recent.first
     - if release.present? && release.signature_on > valid_after
       = if_link_to link, polymorphic_path([:edit] + release_form_path_generator, client_id: client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
         %span.icon-checkmark.o-color--positive.mr-1
@@ -45,7 +45,7 @@
   %li
     - # SSMs are valid if the signature is within 1 year prior to enrollment start date, and are valid for
     - # one year from the signature date
-    - ssm = patient.self_sufficiency_matrix_forms.active.recent.during_contributing_enrollments.first
+    - ssm = patient.self_sufficiency_matrix_forms.active.recent.first
     - if ssm.present? && ssm.completed_at > valid_after
       = if_link_to link, polymorphic_path(self_sufficiency_matrix_form_path_generator, id: ssm.id, client_id: client.id), data: { loads_in_pjax_modal: true } do
         %span.icon-checkmark.o-color--positive.mr-1
@@ -63,7 +63,7 @@
   %li
     - # CHAs are valid if the signature is within 1 year prior to enrollment start date, and are valid for
     - # one year from the signature date
-    - cha = patient.comprehensive_health_assessments.active.recent.during_contributing_enrollments.first
+    - cha = patient.comprehensive_health_assessments.active.recent.first
     - if cha.present? && cha.completed_at > valid_after
       = if_link_to link, polymorphic_path(cha_path_generator, client_id: client.id, id: cha&.id), data: { loads_in_pjax_modal: true } do
         %span.icon-checkmark.o-color--positive.mr-1
