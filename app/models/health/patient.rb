@@ -327,7 +327,7 @@ module Health
     end
 
     def contributing_enrollment_start_date
-      patient_referrals.contributing.pluck(:enrollment_start_date).minimum
+      patient_referrals.contributing.minimum(:enrollment_start_date)
     end
 
     def current_days_enrolled

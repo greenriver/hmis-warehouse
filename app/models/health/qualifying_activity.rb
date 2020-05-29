@@ -463,7 +463,7 @@ module Health
       non_outreaches_of_month_for_patient.minimum(:id) == self.id
     end
 
-    def number_of_outreach_activities
+    def number_of_outreach_activity_months
       outreaches_by_month = self.class.where(
         activity: :outreach,
         patient_id: patient_id,
@@ -476,7 +476,7 @@ module Health
       outreaches_by_month.reject{|k, v| v.zero?}.keys.count
     end
 
-    def number_of_non_outreach_activities
+    def number_of_non_outreach_activity_months
       non_outreaches_by_month = self.class.where(
         patient_id: patient_id,
         date_of_activity: patient.contributed_enrollment_ranges,
@@ -552,13 +552,13 @@ module Health
         return true if date_of_activity > patient.outreach_cutoff_date
         return true unless patient.contributed_dates.include?(date_of_activity)
         return true unless first_outreach_of_month_for_patient?
-        return true if number_of_outreach_activities > 3
+        return true if number_of_outreach_activity_months > 3
       else
         # Case 3: Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
         unless patient_has_signed_careplan?
           return true unless first_non_outreach_of_month_for_patient?
           return true if date_of_activity > patient.engagement_date
-          return true if number_of_non_outreach_activities > 5
+          return true if number_of_non_outreach_activity_months > 5
         end
       end
 
