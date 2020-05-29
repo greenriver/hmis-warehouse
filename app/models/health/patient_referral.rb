@@ -146,6 +146,7 @@ module Health
       referral_args = args.merge(current: true, contributing: true)
       if patient.present?
         # Re-enrollment
+        referral_args.merge!(patient: patient)
         current_referral = patient.patient_referral
         enrollment_start_date = referral_args[:enrollment_start_date]
         last_enrollment_date = current_referral.disenrollment_date
@@ -156,14 +157,18 @@ module Health
           if (enrollment_start_date - last_enrollment_date).to_i > 90
             # It has been more than 90 days, so this is a "reenrollment"
             patient.patient_referrals.contributing.update_all(current: false, contributing: false)
+            referral = create(referral_args)
+            patient.reenroll!(referral)
           else
             # This is an "auto-reenrollment"
             current_referral.update(current: false, contributing: true)
+            referral = create(referral_args)
           end
         end
+      else
+        referral = create(referral_args)
+        referral.convert_to_patient
       end
-      referral = create(referral_args)
-      referral.convert_to_patient
 
       referral.patient.update(engagement_date: referral.engagement_date) unless referral.keep_engagement_date?
 

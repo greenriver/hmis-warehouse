@@ -132,6 +132,30 @@ RSpec.describe Health::QualifyingActivity, type: :model do
         expect(payable_qa.compute_valid_unpayable?).to be false
       end
     end
+
+    it 'adds a PCTP-signed QA on a re-enrollment' do
+      enrollment_start_date = @referral.enrollment_start_date
+      careplan = create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
+      new_enrollment_date = careplan.expires_on - 1.month
+      Timecop.travel(new_enrollment_date)
+      referral_args = {
+        first_name: @referral.first_name,
+        last_name: @referral.last_name,
+        birthdate: @referral.birthdate,
+        medicaid_id: @referral.medicaid_id,
+        enrollment_start_date: new_enrollment_date,
+      }
+      Health::PatientReferral.create_referral(@patient, referral_args)
+      @patient.reload
+
+      aggregate_failures do
+        expect(@patient.qualifying_activities.count).to eq(1)
+
+        qa = @patient.qualifying_activities.first
+        expect(qa.activity).to eq 'pctp_signed'
+      end
+    end
   end
 
   describe 'repetition scenarios' do
