@@ -23,7 +23,7 @@ module PerformanceDashboard::Overview::Entering::Ethnicity
 
   def entering_by_ethnicity_data_for_chart
     @entering_by_ethnicity_data_for_chart ||= begin
-      columns = [(@start_date..@end_date).to_s]
+      columns = [date_range_words]
       columns += entering_by_ethnicity.values.map(&:count)
       categories = entering_by_ethnicity.keys.map do |type|
         HUD.ethnicity(type)

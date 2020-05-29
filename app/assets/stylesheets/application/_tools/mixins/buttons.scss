@@ -6,6 +6,7 @@
   user-select: none;
   background-color: transparent;
   border: $btn-border-width solid transparent;
+  min-height: 50px;
 
   // Custom styles
   @include custom-button-styles;

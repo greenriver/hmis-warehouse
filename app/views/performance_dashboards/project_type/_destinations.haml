@@ -1,36 +1,19 @@
-- key = :destination
-- detail_params = filter_params.merge(options: {key: key, destination: true})
-%h2 Destination
-.well
-  %p.description Destination provided at exit for the most-recent exit occuring within the period for each client.
-  .jChart.destination-chart
+:ruby
+  key = :destination
+  detail_params = filter_params.merge(options: {key: key, destination: true})
+  columns = [@report.destinations_data_for_chart[:columns]]
+  if @report.include_comparison?
+    columns << @comparison.destinations_data_for_chart[:columns]
+  end
+  categories = @report.destinations_data_for_chart[:categories]
+  chart_class = "#{key}-chart"
 
-- columns = [@report.destinations_data_for_chart[:columns]]
-- if @report.include_comparison?
-  - columns << @comparison.destinations_data_for_chart[:columns]
-- categories = @report.destinations_data_for_chart[:categories]
-
-= content_for :page_js do
-  :javascript
-    (function($) {
-      var columns = #{columns.to_json.html_safe};
-      var categories = #{categories.to_json.html_safe};
-      var options = {
-        follow_link: '#{show_client_details?}',
-        link_base: 'project_type/details',
-        key: '#{key}',
-        sub_keys: #{@report.destination_bucket_titles.invert.to_json.html_safe},
-        params: #{detail_params.to_json.html_safe},
-        date_ranges: {
-          report: {
-            start_date: '#{@report.start_date}',
-            end_date: '#{@report.end_date}'
-          },
-          comparison: {
-            start_date: '#{@comparison.start_date}',
-            end_date: '#{@comparison.end_date}'
-          }
-        }
-      };
-      var destination_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.destination-chart', columns, categories, options);
-    })(jQuery);
+= render 'performance_dashboards/project_type/base',
+  key: key,
+  title: 'Destinations',
+  chart_height: 1400,
+  desc: 'Destination provided at exit for the most-recent exit occuring within the period for each client.',
+  detail_params: detail_params,
+  comparison_params: nil,
+  columns: columns,
+  categories: categories

@@ -5,8 +5,9 @@
 - panel_body_padded ||= 'y'
 - content ||= ''
 - default_open ||= 'no'
+- wrapper_class ||= ''
 
-.c-card.mb-4.panel-group.panel-collapsible
+.c-card.panel-group.panel-collapsible{class: (wrapper_class if wrapper_class.present?)}
   .panel.panel-default.c-card__content.c-card__content--flush
     %a.panel-heading.py-0.px-4.d-block{**heading_attrs}
       - if content_for?(:panel_collapse_heading)

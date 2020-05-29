@@ -23,7 +23,7 @@ module PerformanceDashboard::Overview::Entering::Gender
 
   def entering_by_gender_data_for_chart
     @entering_by_gender_data_for_chart ||= begin
-      columns = [(@start_date..@end_date).to_s]
+      columns = [date_range_words]
       columns += entering_by_gender.values.map(&:count)
       categories = entering_by_gender.keys.map { |g| HUD.gender(g) }
       {

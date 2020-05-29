@@ -7,9 +7,13 @@
 module GrdaWarehouse
   class EtoApiConfig < GrdaWarehouseBase
     has_paper_trail
-    attr_encrypted :password, key: ENV['ENCRYPTION_KEY']
+    attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
 
     belongs_to :data_source
+
+    scope :active, -> do
+      where(active: true)
+    end
 
     def touchpoint_fields_for_input
       touchpoint_fields.to_json if touchpoint_fields

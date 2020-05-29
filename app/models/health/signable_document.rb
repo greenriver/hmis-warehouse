@@ -189,7 +189,10 @@ module Health
     end
 
     def signers
-      read_attribute(:signers).map do |s|
+      raw_signers = read_attribute(:signers)
+      return [] if raw_signers.nil?
+
+      raw_signers.map do |s|
         OpenStruct.new(s)
       end
     end
@@ -248,11 +251,13 @@ module Health
     end
 
     def signed_by?(email)
+      return false if signed_by.nil?
+
       signed_by.any? { |signer| signer.downcase == email.downcase }
     end
 
     def all_signed?
-      return false if signers.length == 0
+      return false if signers.length.zero?
 
       signers.all? { |signer| signed_by?(signer.email) }
     end
@@ -286,6 +291,7 @@ module Health
     end
 
     def sane_number_signed
+      return if signed_by.nil?
       return if signed_by.length <= signers.length
 
       errors[:signed_by] << "Cannot be longer than potential number of signers"

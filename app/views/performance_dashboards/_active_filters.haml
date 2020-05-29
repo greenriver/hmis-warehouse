@@ -1,5 +1,6 @@
-.row
-  .col-sm-6
+.row.flex-wrap
+  .col-md-6.col-lg-3
+    %h4.mt-0 Dates
     %dl.mr-4
       %dt Dates of Period
       %dd= @report.date_range_words
@@ -7,64 +8,63 @@
       %dl.mr-4
         %dt Dates of Comparison Period
         %dd= @comparison.date_range_words
+
+  .col-md-6.col-lg-3
+    %h4.mt-0 Projects
+    - if @filter.coc_codes != defaults.coc_codes
+      %dl.mr-4
+        %dt CoC Codes
+        %dd= @report.chosen_coc_codes
     - if @filter.project_type_codes != defaults.project_type_codes
       %dl.mr-4
         %dt Project Types
         %dd
           - @report.chosen_project_types.each do |type|
             .project-type= type
-  .col-sm-6
+
+  .col-md-6.col-lg-3
+    %h4.mt-0 Household
     .row
       - if @filter.hoh_only
-        .col-sm-6
-          %dl.mr-4
-            %dt Clients Limited
-            %dd Counting only Heads of Households
+        %dl.mr-4
+          %dt Clients Limited
+          %dd Counting only Heads of Households
       - if @filter.household_type != defaults.household_type
-        .col-sm-6
-          %dl.mr-4
-            %dt Household Type
-            %dd= @report.chosen_household_type
+        %dl.mr-4
+          %dt Household Type
+          %dd= @report.chosen_household_type
       - if @filter.age_ranges != defaults.age_ranges
-        .col-sm-6
-          %dl.mr-4
-            %dt Ages
-            %dd= @report.chosen_age_ranges
-      - if @filter.coc_codes != defaults.coc_codes
-        .col-sm-6
-          %dl.mr-4
-            %dt CoC Codes
-            %dd= @report.chosen_coc_codes
+        %dl.mr-4
+          %dt Ages
+          %dd= @report.chosen_age_ranges
       - if @filter.veteran_statuses != defaults.veteran_statuses
-        .col-sm-6
-          %dl.mr-4
-            %dt Veteran Statuses
-            %dd
-              - @report.chosen_veteran_statuses.each do |status|
-                .status= status
+        %dl.mr-4
+          %dt Veteran Statuses
+          %dd
+            - @report.chosen_veteran_statuses.each do |status|
+              .status= status
       - if @filter.genders != defaults.genders
-        .col-sm-6
-          %dl.mr-4
-          %dt Genders
-          %dd
-            - @report.chosen_genders.each do |gender|
-              .gender= gender
-      - if @filter.sub_population != defaults.sub_population
-        .col-sm-6
-          %dl.mr-4
-          %dt Sub-Population
-          %dd= @report.chosen_sub_population
-      - if @filter.races.present? && @filter.races != defaults.races
-        .col-sm-6
-          %dl.mr-4
-          %dt Races
-          %dd
-            - @report.chosen_races.each do |race|
-              .race= race
-      - if @filter.ethnicities != defaults.ethnicities
-        .col-sm-6
-          %dl.mr-4
-          %dt Ethnicities
-          %dd
-            - @report.chosen_ethnicities.each do |ethnicity|
-              .ethnicity= ethnicity
+        %dl.mr-4
+        %dt Genders
+        %dd
+          - @report.chosen_genders.each do |gender|
+            .gender= gender
+
+  .col-md-6.col-lg-3
+    %h4.mt-0 Demographics
+    - if @filter.sub_population != defaults.sub_population
+      %dl.mr-4
+      %dt Sub-Population
+      %dd= @report.chosen_sub_population
+    - if @filter.races.present? && @filter.races != defaults.races
+      %dl.mr-4
+      %dt Races
+      %dd
+        - @report.chosen_races.each do |race|
+          .race= race
+    - if @filter.ethnicities != defaults.ethnicities
+      %dl.mr-4
+      %dt Ethnicities
+      %dd
+        - @report.chosen_ethnicities.each do |ethnicity|
+          .ethnicity= ethnicity

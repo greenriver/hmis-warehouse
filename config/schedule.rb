@@ -82,7 +82,7 @@ if ENV['BOSTON_ETO_S3_REGION'] != nil && ENV['BOSTON_ETO_S3_REGION'] != ''
   end
 end
 
-if ENV['HEALTH_SFTP_HOST'] != 'hostname' && environment == 'production'
+if ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
   every 1.day, at: '11:00 am' do
     # Defers to delayed jobs
     rake "health:daily"

@@ -24,7 +24,7 @@
           %tr
             %td.id-sqr{ 'data-id' => h.enrollment.client.id }
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
-            %td.date-cell= l h.enrollment.EntryDate
+            %td.date-cell= h.enrollment.EntryDate
             %td= h.InformationDate
             %td= hud_1_8 h.enrollment.client.VeteranStatus
             %td= hud_1_8 h.enrollment.DisablingCondition

@@ -27,11 +27,11 @@
 on:
   push:
     branches:
+      - '*'
+  pull_request:
+    branches:
       - master
-      - '*ecs*'
       - pre-release
-    pull_request:
-     - '**/*'
 
 name: Build and Upload Container Image to ECR
 
