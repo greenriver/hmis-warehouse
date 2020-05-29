@@ -10,11 +10,13 @@
       %thead
         %tr
           %th Enrollment Start Date
+          %th Contributing?
           %th Pending Disenrollment Date
           %th Disenrollment Date
       %tbody
         - @patient_referrals.each do |pr|
           %tr
             %td= pr.enrollment_start_date
+            %th= checkmark pr.contributing
             %td= pr.pending_disenrollment_date
             %td= pr.disenrollment_date
