@@ -51,7 +51,7 @@ every 1.hour do
 end
 
 every 5.minutes do
-  # Defers to delayed jobs
+  # Long-running, but infrequent
   rake 'reporting:run_project_data_quality_reports'
   rake 'reporting:run_ad_hoc_processing'
 end
