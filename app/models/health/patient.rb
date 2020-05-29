@@ -326,6 +326,10 @@ module Health
       end
     end
 
+    def contributing_enrollment_start_date
+      patient_referrals.contributing.pluck(:enrollment_start_date).minimum
+    end
+
     def current_days_enrolled
       end_date = patient_referral.disenrollment_date || Date.current
       # This only happens with demo data
