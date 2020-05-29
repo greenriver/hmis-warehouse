@@ -133,4 +133,106 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       end
     end
   end
+
+  describe 'repetition scenarios' do
+    let!(:data_source) { create :health_data_source }
+    let!(:referral_ds) { create :referral_ds }
+
+    before(:each) do
+      Timecop.travel(Date.parse('2018-01-01')) # Enrollment durations depend on time if there is no disenrollment date
+      referral_args = {
+        first_name: 'First',
+        last_name: 'Last',
+        birthdate: Date.current,
+        medicaid_id: Faker::Number.number(digits: 10),
+        enrollment_start_date: Date.parse('2018-01-10'),
+      }
+      @referral = Health::PatientReferral.create_referral(nil, referral_args)
+      @referral.convert_to_patient
+      @patient = @referral.patient
+    end
+
+    after(:each) do
+      Timecop.return
+    end
+
+    it 'allows 3 outreach QAs before the cut-off, and not more than 1 per month' do
+      outreach_qa1 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-15')
+      outreach_qa2 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-20')
+      outreach_qa3 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-02-15')
+      outreach_qa4 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-03-15')
+      outreach_qa5 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-04-05')
+      outreach_qa6 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-04-20')
+
+      Timecop.return
+      aggregate_failures do
+        expect(outreach_qa1.compute_valid_unpayable?).to be false
+        expect(outreach_qa2.compute_valid_unpayable?).to be true
+        expect(outreach_qa3.compute_valid_unpayable?).to be false
+        expect(outreach_qa4.compute_valid_unpayable?).to be false
+        expect(outreach_qa5.compute_valid_unpayable?).to be true
+        expect(outreach_qa6.compute_valid_unpayable?).to be true
+      end
+    end
+
+    it 'allows 5 non-outreach QAs before the engagement date, and not more than 1 per month' do
+      other_qa1 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-01-15')
+      other_qa2 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-02-05')
+      other_qa3 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-02-10')
+      other_qa4 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-03-15')
+      other_qa5 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-04-15')
+      other_qa6 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-05-15')
+      other_qa7 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-06-05')
+      other_qa8 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-06-25')
+
+      Timecop.return
+      aggregate_failures do
+        expect(other_qa1.compute_valid_unpayable?).to be false
+        expect(other_qa2.compute_valid_unpayable?).to be false
+        expect(other_qa3.compute_valid_unpayable?).to be true
+        expect(other_qa4.compute_valid_unpayable?).to be false
+        expect(other_qa5.compute_valid_unpayable?).to be false
+        expect(other_qa6.compute_valid_unpayable?).to be false
+        expect(other_qa7.compute_valid_unpayable?).to be true
+        expect(other_qa8.compute_valid_unpayable?).to be true
+      end
+    end
+
+    it 'outreach and non-outreach QAs don\'t interact' do
+      outreach_qa1 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-15')
+      outreach_qa2 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-20')
+      outreach_qa3 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-02-15')
+      outreach_qa4 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-03-15')
+      outreach_qa5 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-04-05')
+      outreach_qa6 = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-04-20')
+
+      other_qa1 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-01-15')
+      other_qa2 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-02-05')
+      other_qa3 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-02-10')
+      other_qa4 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-03-15')
+      other_qa5 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-04-15')
+      other_qa6 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-05-15')
+      other_qa7 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-06-05')
+      other_qa8 = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: Date.parse('2018-06-25')
+
+      Timecop.return
+      aggregate_failures do
+        expect(outreach_qa1.compute_valid_unpayable?).to be false
+        expect(outreach_qa2.compute_valid_unpayable?).to be true
+        expect(outreach_qa3.compute_valid_unpayable?).to be false
+        expect(outreach_qa4.compute_valid_unpayable?).to be false
+        expect(outreach_qa5.compute_valid_unpayable?).to be true
+        expect(outreach_qa6.compute_valid_unpayable?).to be true
+
+        expect(other_qa1.compute_valid_unpayable?).to be false
+        expect(other_qa2.compute_valid_unpayable?).to be false
+        expect(other_qa3.compute_valid_unpayable?).to be true
+        expect(other_qa4.compute_valid_unpayable?).to be false
+        expect(other_qa5.compute_valid_unpayable?).to be false
+        expect(other_qa6.compute_valid_unpayable?).to be false
+        expect(other_qa7.compute_valid_unpayable?).to be true
+        expect(other_qa8.compute_valid_unpayable?).to be true
+      end
+    end
+  end
 end

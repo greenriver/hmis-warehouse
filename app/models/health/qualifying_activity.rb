@@ -455,16 +455,39 @@ module Health
       return min_id
     end
 
+    def first_outreach_of_month_for_patient?
+      outreaches_of_month_for_patient.minimum(:id) == self.id
+    end
+
     def first_non_outreach_of_month_for_patient?
-      non_outreach_of_month_for_patient.minimum(:id) == self.id
+      non_outreaches_of_month_for_patient.minimum(:id) == self.id
     end
 
     def number_of_outreach_activities
-      self.class.where(
-        activity: 'outreach',
+      outreaches_by_month = self.class.where(
+        activity: :outreach,
         patient_id: patient_id,
         date_of_activity: patient.contributed_enrollment_ranges,
+      ).where(
+        hqa_t[:date_of_activity].lteq(date_of_activity),
+      ).group(
+        Arel.sql("DATE_TRUNC('month', date_of_activity)")
       ).count
+      outreaches_by_month.reject{|k, v| v.zero?}.keys.count
+    end
+
+    def number_of_non_outreach_activities
+      non_outreaches_by_month = self.class.where(
+        patient_id: patient_id,
+        date_of_activity: patient.contributed_enrollment_ranges,
+      ).where.not(
+        activity: :outreach,
+      ).where(
+        hqa_t[:date_of_activity].lteq(date_of_activity),
+      ).group(
+        Arel.sql("DATE_TRUNC('month', date_of_activity)")
+      ).count
+      non_outreaches_by_month.reject{|k, v| v.zero?}.keys.count
     end
 
     def same_of_type_for_day_for_patient
@@ -475,13 +498,20 @@ module Health
       )
     end
 
-    def non_outreach_of_month_for_patient
-      self.class.
-        where(
-          patient_id: patient_id,
-          date_of_activity: (date_of_activity.beginning_of_month..date_of_activity.end_of_month),
-        ).
-        where.not(
+    def outreaches_of_month_for_patient
+      self.class.where(
+        patient_id: patient_id,
+        date_of_activity: (date_of_activity.beginning_of_month..date_of_activity.end_of_month),
+      ).where(
+        activity: :outreach
+      )
+    end
+
+    def non_outreaches_of_month_for_patient
+      self.class.where(
+        patient_id: patient_id,
+        date_of_activity: (date_of_activity.beginning_of_month..date_of_activity.end_of_month),
+      ).where.not(
         activity: :outreach
       )
     end
@@ -517,15 +547,18 @@ module Health
         return true
       end
 
-      # Case 2: Outreach is limited by the outreach cut-off date, and enrollment ranges
+      # Case 2: Outreach is limited by the outreach cut-off date, enrollment ranges, and frequency
       if outreach?
         return true if date_of_activity > patient.outreach_cutoff_date
         return true unless patient.contributed_dates.include?(date_of_activity)
+        return true unless first_outreach_of_month_for_patient?
+        return true if number_of_outreach_activities > 3
       else
         # Case 3: Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
         unless patient_has_signed_careplan?
           return true unless first_non_outreach_of_month_for_patient?
           return true if date_of_activity > patient.engagement_date
+          return true if number_of_non_outreach_activities > 5
         end
       end
 
