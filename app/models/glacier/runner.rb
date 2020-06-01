@@ -25,7 +25,8 @@ module Glacier
       host_to_use = provided_db_host || db_host
 
       if ENV['ADDED_EXTENSIONS'].present?
-        processing_cmd = "gpg -d | gunzip | psql -d #{database_name} --username=#{db_user} --no-password --host=#{host_to_use}"
+        # processing_cmd = "gpg -d | gunzip | psql -d #{database_name} --username=#{db_user} --no-password --host=#{host_to_use}"
+        processing_cmd = "gunzip | psql -d #{database_name} --username=#{db_user} --no-password --host=#{host_to_use}"
 
         Restore.new({
           archive_id: archive_id,
@@ -71,9 +72,11 @@ module Glacier
 
         databases.each do |database_name|
           Backup.new({
-            cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9 | gpg -e -r #{recipient}",
-            archive_name: "#{client}-#{Rails.env}-#{database_name}-#{Time.now.to_s(:iso8601)}",
-            notes: "Database backup of #{database_name}. Compressed with gzip and encrypted for #{recipient}. Ensure your .pgpass file has the needed password. Restore command will be of the form `gpg -d | gunzip | psql --host= --username= --no-password -d <database>`"
+            # cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9 | gpg -e -r #{recipient}",
+            cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9",
+            archive_name: "#{client}-#{Rails.env}-#{database_name}-no-gpg-#{Time.now.to_s(:iso8601)}",
+            # notes: "Database backup of #{database_name}. Compressed with gzip and encrypted for #{recipient}. Ensure your .pgpass file has the needed password. Restore command will be of the form `gpg -d | gunzip | psql --host= --username= --no-password -d <database>`"
+            notes: "Database backup of #{database_name}. Compressed with gzip. Not encrypted. Ensure your .pgpass file has the needed password. Restore command will be of the form `gunzip | psql --host= --username= --no-password -d <database>`"
           }).run!
         end
       end
@@ -81,13 +84,15 @@ module Glacier
 
     def files!(path)
       _safely do
-        cmd = "sudo tar -zcf - #{path} | gpg -e -r #{recipient}"
+        # cmd = "sudo tar -zcf - #{path} | gpg -e -r #{recipient}"
+        cmd = "sudo tar -zcf - #{path}"
         norm_path = path.gsub(/[^\d\w]/, '_')
 
         Backup.new({
           cmd: cmd,
           archive_name: "#{client}-#{Rails.env}-#{norm_path}-#{Time.now.to_s(:iso8601)}",
-          notes: "File system backup. Path: [#{path}]. Compressed with gzip and encrypted for #{recipient}. Restore command will be of the form `gpg -d | tar -zxf - -C ./place_to_restore",
+          # notes: "File system backup. Path: [#{path}]. Compressed with gzip and encrypted for #{recipient}. Restore command will be of the form `gpg -d | tar -zxf - -C ./place_to_restore",
+          notes: "File system backup. Path: [#{path}]. Compressed with gzip and encrypted for #{recipient}. Restore command will be of the form `tar -zxf - -C ./place_to_restore",
         }).run!
       end
     end
