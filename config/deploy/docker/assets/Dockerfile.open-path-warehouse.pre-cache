@@ -24,7 +24,7 @@ RUN apk add --no-cache \
   build-base libxml2-dev libxslt-dev postgresql-dev \
   wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
   chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-  lftp
+  lftp postgresql
 
 # Puppeteer v1.19.0 works with Chromium 77.
 # package.json in the app I think covers this:
