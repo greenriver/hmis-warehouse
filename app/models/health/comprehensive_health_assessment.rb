@@ -905,7 +905,11 @@ module Health
     end
     scope :during_current_enrollment, -> do
       where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date])).
-      joins(patient: :patient_referrals).
+      joins(patient: :patient_referral)
+    end
+    scope :during_contributing_enrollments, -> do
+      where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date])).
+        joins(patient: :patient_referrals).
         merge(Health::PatientReferral.contributing)
     end
 

@@ -10,7 +10,7 @@ module Health
 
     attr_accessor :range
     def initialize range:, agency_scope: nil
-      @range = range
+      @range = (range.first.to_date..range.last.to_date)
       @agency_scope = agency_scope
     end
 
