@@ -104,7 +104,9 @@ if ENV['GLACIER_NEEDS_BACKUP']=='true'
     rake "glacier:backup:database"
   end
 
-  every :month, at: database_backup_time-1.hour do
-    rake "glacier:backup:files"
+  if ENV['ECS'] != 'true' # Files are for the logs, these end up in CloudWatch for ECS deployments
+    every :month, at: database_backup_time-1.hour do
+      rake "glacier:backup:files"
+    end
   end
 end
