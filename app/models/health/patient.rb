@@ -331,11 +331,12 @@ module Health
     end
 
     def current_days_enrolled
-      end_date = patient_referral.disenrollment_date || Date.current
+      referral = patient_referral
+      end_date = referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
       # This only happens with demo data
-      return 0 unless patient_referral.enrollment_start_date
+      return 0 unless referral.enrollment_start_date
 
-      (end_date - patient_referral.enrollment_start_date).to_i
+      (end_date - referral.enrollment_start_date).to_i
     end
 
     def contributed_days_enrolled
@@ -378,7 +379,7 @@ module Health
     end
 
     def careplan_signed_in_122_days?
-      care_plan_signed? && current_days_enrolled <= 122
+      care_plan_signed? && (care_plan_provider_signed_date - patient_referral.enrollment_start_date).to_i <= 122
     end
 
     def reenroll!(referral)
