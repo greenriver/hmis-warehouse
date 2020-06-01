@@ -359,19 +359,20 @@ module Health
     end
 
     def current_enrollment_range
-      end_date = patient_referral.disenrollment_date || Date.current
+      end_date = patient_referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
       (patient_referral.enrollment_start_date..end_date)
     end
 
     def prior_contributed_enrollment_ranges
       patient_referrals.contributing.prior.map do |referral|
-        (referral.enrollment_start_date..referral.disenrollment_date)
+        end_date = referral.disenrollment_date || referral.pending_disenrollment_date
+        (referral.enrollment_start_date..end_date)
       end
     end
 
     def contributed_enrollment_ranges
       patient_referrals.contributing.map do |referral|
-        end_date = referral.disenrollment_date || Date.current
+        end_date = referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
         (referral.enrollment_start_date..end_date)
       end
     end
