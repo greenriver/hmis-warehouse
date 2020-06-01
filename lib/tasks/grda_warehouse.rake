@@ -176,6 +176,11 @@ namespace :grda_warehouse do
     end
   end
 
+  desc "Sync from FTPS -> S3"
+  task ftps_s3_sync: [:environment, "log:info_to_stdout"] do
+     GrdaWarehouse::LftpS3Sync.find_each(&:fetch_and_push)
+  end
+
   desc "Identify duplicates"
   task identify_duplicates: [:environment, "log:info_to_stdout"] do
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!

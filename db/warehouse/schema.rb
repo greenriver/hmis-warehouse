@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_19_175104) do
+ActiveRecord::Schema.define(version: 2020_05_30_134853) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -2353,6 +2353,21 @@ ActiveRecord::Schema.define(version: 2020_05_19_175104) do
     t.index ["created_at"], name: "index_import_logs_on_created_at"
     t.index ["data_source_id"], name: "index_import_logs_on_data_source_id"
     t.index ["updated_at"], name: "index_import_logs_on_updated_at"
+  end
+
+  create_table "lftp_s3_syncs", force: :cascade do |t|
+    t.bigint "data_source_id", null: false
+    t.string "ftp_host", null: false
+    t.string "ftp_user", null: false
+    t.string "encrypted_ftp_pass", null: false
+    t.string "encrypted_ftp_pass_iv", null: false
+    t.string "ftp_path", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_lftp_s3_syncs_on_created_at"
+    t.index ["data_source_id"], name: "index_lftp_s3_syncs_on_data_source_id"
+    t.index ["updated_at"], name: "index_lftp_s3_syncs_on_updated_at"
   end
 
   create_table "new_service_history", id: :serial, force: :cascade do |t|

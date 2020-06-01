@@ -3,6 +3,26 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
+      "fingerprint": "0fc8bda3aa0534d15b8341980b3cd903e10cf9bf203e38eb3abbc26ff6b5c0c2",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/lftp_s3_sync.rb",
+      "line": 55,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"echo #{lftp_bookmark} > #{lftp_bookmark_location}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::LftpS3Sync",
+        "method": "set_lftp_bookmark"
+      },
+      "user_input": "lftp_bookmark",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
       "fingerprint": "183d6735294c38b8c0b0611b9ad3b005663982697937cb37c89c72f00df84e1f",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -17,6 +37,26 @@
         "method": "force_standard_zip"
       },
       "user_input": "@local_path",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "18a6f39c30bf1ec1d965f076562af5578472b944d2e7324025e393523c8f03e2",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/lftp_s3_sync.rb",
+      "line": 66,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"echo 'set mirror:exclude-regex ^[.b]+' >> #{lftp_config_location}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::LftpS3Sync",
+        "method": "set_lftp_confg"
+      },
+      "user_input": "lftp_config_location",
       "confidence": "Medium",
       "note": ""
     },
@@ -37,6 +77,66 @@
         "method": "GrdaWarehouse::ServiceHistoryService.trigger_exists?"
       },
       "user_input": "trigger_name",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "2d5a0735c8eef436174e943c26f2f3107fdbe465dd46e480ad60ed6b43b29b5b",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/lftp_s3_sync.rb",
+      "line": 70,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"rm -rf #{lftp_bookmark_path}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::LftpS3Sync",
+        "method": "remove_lftp_bookmark"
+      },
+      "user_input": "lftp_bookmark_path",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "2d9e2650f0d201448eb48c3fe30e82042060f478c362cd5c9addce551f8707f2",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/lftp_s3_sync.rb",
+      "line": 42,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"mkdir -p #{tmp_destination}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::LftpS3Sync",
+        "method": "ensure_tmp_destination"
+      },
+      "user_input": "tmp_destination",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "34fd658393a9fb9bf9452d6dafc2a7dea87444ddd212196aef05e44065feeeb8",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/lftp_s3_sync.rb",
+      "line": 47,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"rm -rf #{tmp_destination}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::LftpS3Sync",
+        "method": "remove_tmp_destination"
+      },
+      "user_input": "tmp_destination",
       "confidence": "Medium",
       "note": ""
     },
@@ -108,6 +208,26 @@
         "method": "GrdaWarehouse::Hud::Client.exists_with_inner_clients"
       },
       "user_input": "inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "3ea612cf8f87c4df2fb19b416feb0917b443306a55319ddf1d6978b79dedeaea",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/lftp_s3_sync.rb",
+      "line": 87,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"lftp -c \\\"open #{slug}; lcd #{tmp_destination}; mirror --verbose --exclude tmp\\\"\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::LftpS3Sync",
+        "method": "fetch"
+      },
+      "user_input": "slug",
       "confidence": "Medium",
       "note": ""
     },
@@ -251,6 +371,26 @@
       },
       "user_input": "key",
       "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "850068cbcbd30e554efc5cc597f03ad14dfbd68240142d37a64e9f7a6c53a1a7",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/lftp_s3_sync.rb",
+      "line": 63,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"mkdir -p #{lftp_bookmark_path}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::LftpS3Sync",
+        "method": "set_lftp_confg"
+      },
+      "user_input": "lftp_bookmark_path",
+      "confidence": "Medium",
       "note": ""
     },
     {
@@ -454,6 +594,46 @@
       "note": ""
     },
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "a5ae0e19f1c215e30af6286dee8a557c5215860d59a3a4c4ca3a914e2aadb58e",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/lftp_s3_sync.rb",
+      "line": 54,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"mkdir -p #{lftp_bookmark_path}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::LftpS3Sync",
+        "method": "set_lftp_bookmark"
+      },
+      "user_input": "lftp_bookmark_path",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "ad042c2ba6d2afb23c6787f70e5955d726e07932c58a8508bb0834a99e207050",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/lftp_s3_sync.rb",
+      "line": 64,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"echo 'set ssl:verify-certificate no' > #{lftp_config_location}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::LftpS3Sync",
+        "method": "set_lftp_confg"
+      },
+      "user_input": "lftp_config_location",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "ad643b5cc0525dc24944b965b530e1b65e3c3d7524efb0526565ec3f3f0df4a3",
@@ -541,6 +721,26 @@
       },
       "user_input": "params[:partial]",
       "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "c001b77515db71c33c42f71ebb9f55b97fc3fa1dc0f7c8bc3c6255abcf416607",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/grda_warehouse/lftp_s3_sync.rb",
+      "line": 65,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"echo 'set ftp:ssl-protect-data true' >> #{lftp_config_location}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::LftpS3Sync",
+        "method": "set_lftp_confg"
+      },
+      "user_input": "lftp_config_location",
+      "confidence": "Medium",
       "note": ""
     },
     {
@@ -793,6 +993,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-05-26 13:46:00 -0400",
+  "updated": "2020-05-30 13:33:32 -0400",
   "brakeman_version": "4.8.2"
 }
