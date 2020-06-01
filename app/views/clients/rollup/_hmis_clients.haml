@@ -4,8 +4,8 @@
     order(eto_last_updated: :desc).
     pluck(:eto_last_updated, :updated_at, :subject_id, :processed_fields)
 - if hmis_clients.any?
-  - hmis_clients.each do |eto_last_updated, updated_at, subject_id, processed_fields|
-    .row
+  .row
+    - hmis_clients.each do |eto_last_updated, updated_at, subject_id, processed_fields|
       .col-sm-4.m-4
         .card
           .card-body
