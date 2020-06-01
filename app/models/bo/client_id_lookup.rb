@@ -144,13 +144,13 @@ module Bo
     def fetch_batches_of_touch_point_dates
       rows = []
       total_batches = week_ranges.count * touch_point_ids.count
-      msg = "Fetching #{total_batches} #{'batch'.pluralize(week_ranges.count)} of touch points. From #{week_ranges.first.first} to #{week_ranges.last.last}"
+      msg = "Fetching #{total_batches} #{'batch'.pluralize(week_ranges.count)} of touch points. From #{week_ranges.first.first} to #{week_ranges.last.last} for data source #{@data_source_id}"
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
       week_ranges.each_with_index do |(start_time, end_time), index|
         # fetch responses for one touch point at a time to avoid timeouts
         touch_point_ids.each_with_index do |tp_id, tp_index|
-          Rails.logger.info "Fetching batch #{(index * week_ranges.count) + (tp_index + 1)} (TP: #{tp_id}) -- #{start_time} to #{end_time}" if @debug
+          Rails.logger.info "Fetching batch #{(index * week_ranges.count) + (tp_index + 1)} (TP: #{tp_id}) -- #{start_time} to #{end_time} for data source #{@data_source_id}" if @debug
           begin
             response = fetch_touch_point_modification_dates(
               start_time: start_time,
@@ -158,7 +158,7 @@ module Bo
               tp_id: tp_id,
             )
           rescue Bo::Soap::RequestFailed => e
-            msg = "FAILED to fetch batch #{start_time} .. #{end_time} for TP: #{tp_id} \n #{e.message}"
+            msg = "FAILED to fetch batch #{start_time} .. #{end_time} for TP: #{tp_id} \n #{e.message} for data source #{@data_source_id}"
             Rails.logger.info msg
             @notifier.ping msg if send_notifications && msg.present?
 
@@ -167,7 +167,7 @@ module Bo
           rows += response if response.present?
         end
       end
-      msg = "Fetched batches of touch points. Found #{rows.count} touch point responses"
+      msg = "Fetched batches of touch points. Found #{rows.count} touch point responses for data source #{@data_source_id}"
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
       rows
