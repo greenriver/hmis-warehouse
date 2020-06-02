@@ -4,9 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module WarehouseReports
-  class HealthClaimsJob < BaseJob
-    queue_as :high_priority
+module Health
+  class QualifyingActivitiesPayabilityJob < BaseJob
+    queue_as :long_running
 
     attr_accessor :params, :max_date, :report_id, :current_user_id, :test_file
 
@@ -19,11 +19,12 @@ module WarehouseReports
 
     def perform
       @report = report_source.find(report_id)
-      @report.run!
-      NotifyUser.health_claims_finished(@current_user_id).deliver_later
+      ::Health::Tasks::CalculateValidUnpayableQas.new.run!
+      @report.pre_calculate_qualifying_activity_payability!
+      NotifyUser.health_qa_pre_calculation_finished(@current_user_id).deliver_later
     end
 
-    def enqueue(job, queue: :low_priority)
+    def enqueue(job, queue: :long_running)
     end
 
     def max_attempts

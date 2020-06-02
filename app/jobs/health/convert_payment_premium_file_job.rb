@@ -5,8 +5,8 @@
 ###
 
 module Health
-  class ConvertPaymentPremiumFileJob < ApplicationJob
-    queue_as :low_priority
+  class ConvertPaymentPremiumFileJob < BaseJob
+    queue_as :long_running
 
     def perform
       Health::PremiumPayment.with_advisory_lock('health_premium_processing') do

@@ -5,8 +5,8 @@
 ###
 
 module Health
-  class UpdateHealthFileFromHelloSignJob < ApplicationJob
-    queue_as :low_priority
+  class UpdateHealthFileFromHelloSignJob < BaseJob
+    queue_as :short_running
 
     def perform(signable_document_id)
       doc = Health::SignableDocument.un_fetched_document.where(id: signable_document_id)&.first

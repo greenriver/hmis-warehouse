@@ -6,7 +6,7 @@
 
 module Importing
   class RunEtoApiUpdateForClientJob < BaseJob
-    queue_as :high_priority
+    queue_as :short_running
 
     def perform(destination_id:, client_ids:)
       return unless requires_api_update?(destination_id)

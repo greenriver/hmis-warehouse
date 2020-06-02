@@ -121,13 +121,13 @@ module WarehouseReports::Health
       begin
         @report.save if @report.valid?
         job = Delayed::Job.enqueue(
-          ::WarehouseReports::HealthQualifyingActivitiesPayabilityJob.new(
+          ::Health::QualifyingActivitiesPayabilityJob.new(
             report_id: @report.id,
             current_user_id: current_user.id,
             max_date: @report.max_date,
             test_file: @report.test_file,
           ),
-          queue: :low_priority,
+          queue: :long_running,
         )
         @report.update(job_id: job.id)
         redirect_to action: :index
@@ -153,13 +153,13 @@ module WarehouseReports::Health
 
     def generate_claims_file
       job = Delayed::Job.enqueue(
-        ::WarehouseReports::HealthClaimsJob.new(
+        ::Health::ClaimsJob.new(
           report_id: @report.id,
           current_user_id: current_user.id,
           max_date: @report.max_date,
           test_file: @report.test_file,
         ),
-        queue: :low_priority,
+        queue: :long_running,
       )
       @report.update(job_id: job.id, started_at: Time.now)
       respond_with @report, location: warehouse_reports_health_claims_path

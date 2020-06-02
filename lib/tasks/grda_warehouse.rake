@@ -303,7 +303,7 @@ namespace :grda_warehouse do
       job = Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
         client_id: client.id,
         years: 3,
-      ), queue: :default_priority
+      ), queue: :short_running
     end
   end
 

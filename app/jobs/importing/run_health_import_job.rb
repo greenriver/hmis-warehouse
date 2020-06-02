@@ -6,7 +6,7 @@
 
 module Importing
   class RunHealthImportJob < BaseJob
-    queue_as :low_priority
+    queue_as :long_running
 
     def perform
       change_counts = Health::Tasks::ImportEpic.new.run!

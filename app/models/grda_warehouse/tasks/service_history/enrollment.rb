@@ -29,7 +29,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
             ::ServiceHistory::RebuildEnrollmentsByBatchJob.new(
               enrollment_ids: batch
             ),
-            queue: :low_priority
+            queue: :long_running
           )
       end
     end
@@ -38,7 +38,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       open_during_range(date_range).
         joins(:project, :destination_client).
         pluck_in_batches(:id, batch_size: 250) do |batch|
-        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :long_running)
       end
     end
 

@@ -6,7 +6,7 @@
 
 module Importing::HudZip
   class SixOneOneJob < BaseJob
-    queue_as :low_priority
+    queue_as :long_running
 
     def initialize(upload_id:, data_source_id:, deidentified: false, project_whitelist: false)
       @upload_id = upload_id
@@ -30,7 +30,7 @@ module Importing::HudZip
           upload_id: @upload_id,
           deidentified: @deidentified,
           project_whitelist: @project_whitelist,
-        ), queue: :default_priority
+        ), queue: :long_running
         # Cleanup un-finished import
         importer.remove_import!
       else

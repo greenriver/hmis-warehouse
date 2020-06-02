@@ -5,7 +5,8 @@
 ###
 
 module Health
-  class CheckPatientEligibilityJob < ActiveJob::Base
+  class CheckPatientEligibilityJob < BaseJob
+    queue_as :long_running
     def perform(eligibility_date:, owner_id:, user_id:)
       date = Date.parse(eligibility_date)
       task = Health::Tasks::CheckPatientEligibility.new
