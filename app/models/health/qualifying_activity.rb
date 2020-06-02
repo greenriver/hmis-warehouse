@@ -438,7 +438,7 @@ module Health
       return true if modifiers.empty?
 
       # Check that all of the modifiers we have occur in the acceptable modifiers
-      (modifiers - valid_options[procedure_code]).empty?
+      (modifiers - Array.wrap(valid_options[procedure_code])).empty?
     end
 
     def first_of_type_for_day_for_patient?
@@ -520,7 +520,7 @@ module Health
       # Meets general restrictions
       # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
       # will still be submitted
-      self.naturally_payable = compute_procedure_valid? && occurred_during_any_enrollment?
+      self.naturally_payable = compute_procedure_valid?
       if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code)
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
         self.duplicate_id = first_of_type_for_day_for_patient_not_self
@@ -541,6 +541,9 @@ module Health
     def compute_valid_unpayable?
       # Case 1: Only valid procedures
       return false unless compute_procedure_valid?
+
+      # Valid procedure, didn't occur during the enrollment
+      return true if compute_procedure_valid? && ! occurred_during_any_enrollment?
 
       # Case 2: Unpayable if this was a phone/video call where the client wasn't reached
       if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
