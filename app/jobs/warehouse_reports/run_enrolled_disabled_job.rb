@@ -6,7 +6,7 @@
 
 module WarehouseReports
   class RunEnrolledDisabledJob < BaseJob
-    queue_as :enrolled_disabled_report
+    queue_as :long_running
 
     def perform(params)
       report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.new

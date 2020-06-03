@@ -56,7 +56,7 @@ module WarehouseReports
     end
 
     def set_jobs
-      @jobs = Delayed::Job.where(queue: 'enrolled_disabled_report').order(run_at: :desc)
+      @jobs = Delayed::Job.jobs_for_class('RunEnrolledDisabledJob').order(run_at: :desc)
     end
 
     def set_report

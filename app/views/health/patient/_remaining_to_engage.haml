@@ -1,11 +1,12 @@
 - link = link.presence || false
 - client = patient.client
+- valid_after = patient.contributing_enrollment_start_date - 1.year
 
 %ul.list-unstyled
   %li
-    - # Participation forms are valid as long as they occur after the enrollment date
-    - participation = patient.participation_forms.recent.during_current_enrollment.first
-    - if participation
+    - # Participation forms are valid if the signature is within 1 year prior to enrollment start date
+    - participation = patient.participation_forms.recent.first
+    - if participation.present? && participation.signature_on > valid_after
       = if_link_to(link, edit_client_health_participation_form_path(client_id: client.id, id: participation.id), data: { loads_in_pjax_modal: true }) do
         - if patient.participation_forms.signed.exists?
           %span.icon-checkmark.o-color--positive.mr-1
@@ -14,7 +15,7 @@
         Participation Form
     - else
       - participation = patient.participation_forms.unsigned.last
-      - if participation
+      - if participation.present?
         = if_link_to(link, edit_client_health_participation_form_path(client_id: client.id, id: participation.id), data: { loads_in_pjax_modal: true }) do
           %span.icon-checkmark.mr-1.o-color--gray-l
           Participation Form
@@ -24,15 +25,16 @@
           Participation Form
 
   %li
-    - # Release forms are valid for two years (if they occur after the enrollment date)
-    - release = patient.release_forms.active.recent.during_current_enrollment.first
-    - if release
+    - # Release forms are valid if the signature is within 1 year prior to enrollment start date and are valid
+    - # for two years from the signature date
+    - release = patient.release_forms.active.recent.first
+    - if release.present? && release.signature_on > valid_after
       = if_link_to link, polymorphic_path([:edit] + release_form_path_generator, client_id: client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
         %span.icon-checkmark.o-color--positive.mr-1
         Release of Information form
     - else
       - release = patient.release_forms.unsigned.last
-      - if release
+      - if release.present?
         = if_link_to link, polymorphic_path([:edit] + release_form_path_generator, client_id: client.id, id: release&.id), data: { loads_in_pjax_modal: true } do
           %span.icon-checkmark.mr-1.o-color--gray-l
           Release of Information form
@@ -41,9 +43,10 @@
           %span.icon-checkmark.mr-1.o-color--gray-l
           Release of Information form
   %li
-    - # SSMs are valid for one year (if they occur after the enrollment date)
-    - ssm = patient.self_sufficiency_matrix_forms.active.recent.during_current_enrollment.first
-    - if ssm
+    - # SSMs are valid if the signature is within 1 year prior to enrollment start date, and are valid for
+    - # one year from the signature date
+    - ssm = patient.self_sufficiency_matrix_forms.active.recent.first
+    - if ssm.present? && ssm.completed_at > valid_after
       = if_link_to link, polymorphic_path(self_sufficiency_matrix_form_path_generator, id: ssm.id, client_id: client.id), data: { loads_in_pjax_modal: true } do
         %span.icon-checkmark.o-color--positive.mr-1
         Self-Sufficiency Matrix
@@ -58,15 +61,16 @@
           %span.icon-checkmark.mr-1.o-color--gray-l
           Self-Sufficiency Matrix
   %li
-    - # CHAs are valid for one year (if they occur after the enrollment date)
-    - cha = patient.comprehensive_health_assessments.active.recent.during_current_enrollment.first
-    - if cha
+    - # CHAs are valid if the signature is within 1 year prior to enrollment start date, and are valid for
+    - # one year from the signature date
+    - cha = patient.comprehensive_health_assessments.active.recent.first
+    - if cha.present? && cha.completed_at > valid_after
       = if_link_to link, polymorphic_path(cha_path_generator, client_id: client.id, id: cha&.id), data: { loads_in_pjax_modal: true } do
         %span.icon-checkmark.o-color--positive.mr-1
         Comprehensive Health Assessment
     - else
       - cha = patient.comprehensive_health_assessments.incomplete.last
-      - if cha
+      - if cha.present?
         = if_link_to link, polymorphic_path(cha_path_generator, client_id: client.id, id: cha&.id), data: { loads_in_pjax_modal: true } do
           %span.icon-checkmark.mr-1.o-color--gray-l
           Comprehensive Health Assessment
@@ -75,15 +79,15 @@
           %span.icon-checkmark.mr-1.o-color--gray-l
           Comprehensive Health Assessment
   %li
-    - # Care plans are valid for one year (if they occur after the enrollment date)
-    - careplan = patient.careplans.active.recent.during_current_enrollment.first
-    - if careplan
+    - # Care plans are valid for one year from their signature date
+    - careplan = patient.careplans.active.recent.first
+    - if careplan.present?
       = if_link_to link, window_client_health_careplan_path(client_id: client.id, id: careplan.id) do
         %span.icon-checkmark.o-color--positive.mr-1
         PCTP Signed
     - else
       - careplan = patient.careplans.active.editable.last
-      - if careplan
+      - if careplan.present?
         = if_link_to link, window_client_health_careplan_path(client_id: client.id, id: careplan.id) do
           %span.icon-checkmark.mr-1.o-color--gray-l
           PCTP Signed

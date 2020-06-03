@@ -94,6 +94,8 @@ module Health
     # The current referral for a patient is their most recent
     scope :current, -> { where(current: true) }
 
+    scope :prior, -> { where(current: false) }
+
     # The contributing referrals for a patient are the referrals to consider when counting enrollment days
     scope :contributing, -> { where(contributing: true) }
 
@@ -144,24 +146,32 @@ module Health
       referral_args = args.merge(current: true, contributing: true)
       if patient.present?
         # Re-enrollment
+        referral_args.merge!(patient: patient)
         current_referral = patient.patient_referral
         enrollment_start_date = referral_args[:enrollment_start_date]
         last_enrollment_date = current_referral.disenrollment_date
         if last_enrollment_date.nil?
           # Last referral was not disenrolled. For record keeping, close the last enrollment, and immediately open a new one
           current_referral.update(disenrollment_date: enrollment_start_date, current: false)
+          referral = create(referral_args)
         else
           if (enrollment_start_date - last_enrollment_date).to_i > 90
             # It has been more than 90 days, so this is a "reenrollment"
             patient.patient_referrals.contributing.update_all(current: false, contributing: false)
+            referral = create(referral_args)
+            patient.reenroll!(referral)
           else
             # This is an "auto-reenrollment"
             current_referral.update(current: false, contributing: true)
+            referral = create(referral_args)
           end
         end
+      else
+        referral = create(referral_args)
+        referral.convert_to_patient
       end
-      referral = create(referral_args)
-      referral.convert_to_patient
+
+      referral.patient.update(engagement_date: referral.engagement_date) unless referral.keep_engagement_date?
 
       referral
     end
@@ -193,18 +203,19 @@ module Health
       agency_id.present?
     end
 
+    def keep_engagement_date?
+      patient.care_plan_signed? && Date.current <= patient.engagement_date
+    end
+
     # The engagement date is the date by which a patient must be engaged
     def engagement_date
       return nil unless enrollment_start_date.present?
 
-      next_month = enrollment_start_date.at_beginning_of_month.next_month
-      if enrollment_start_date < '2018-09-01'.to_date
-        (next_month + 120.days).to_date
-      elsif enrollment_start_date < '2020-04-01'.to_date
-        (next_month + 90.days).to_date
-      else
-        (next_month + 150.days).to_date
-      end
+      # Historical calculations...
+      # Before 2018-09-01, engagement was 120 days following the start of the month following enrollment
+      # Until 2020-04-01, engagement was 90 days following the start of the month following enrollment
+
+      (enrollment_start_date + 150.days).to_date
     end
 
     def name
@@ -387,7 +398,7 @@ module Health
         client_id: destination_client.id,
         medicaid_id: medicaid_id,
         pilot: false,
-        engagement_date: engagement_date,
+        # engagement_date: engagement_date,
         data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
       )
       patient.save!

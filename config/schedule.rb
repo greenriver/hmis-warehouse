@@ -51,7 +51,7 @@ every 1.hour do
 end
 
 every 5.minutes do
-  # Defers to delayed jobs
+  # Long-running, but infrequent
   rake 'reporting:run_project_data_quality_reports'
   rake 'reporting:run_ad_hoc_processing'
 end
@@ -74,13 +74,17 @@ if ENV['ETO_API_SITE1'] != 'unknown'
   end
 end
 
-if ENV['BOSTON_ETO_S3_REGION'] != nil && ENV['BOSTON_ETO_S3_REGION'] != ''
-  import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
-  every 1.day, at: import_schedule do
-    # Defers to delayed jobs
-    rake "grda_warehouse:import_data_sources_s3[hmis_611]"
-  end
+
+import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
+every 1.day, at: import_schedule do
+  # Defers to delayed jobs
+  rake "grda_warehouse:import_data_sources_s3[hmis_611]"
 end
+shifted_time = Time.parse(import_schedule) - 4.hours
+every 1.day, at: shifted_time.strftime('%H:%M %P') do
+  rake "grda_warehouse:ftps_s3_sync"
+end
+
 
 if ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
   every 1.day, at: '11:00 am' do
@@ -100,7 +104,9 @@ if ENV['GLACIER_NEEDS_BACKUP']=='true'
     rake "glacier:backup:database"
   end
 
-  every :month, at: database_backup_time-1.hour do
-    rake "glacier:backup:files"
+  if ENV['ECS'] != 'true' # Files are for the logs, these end up in CloudWatch for ECS deployments
+    every :month, at: database_backup_time-1.hour do
+      rake "glacier:backup:files"
+    end
   end
 end

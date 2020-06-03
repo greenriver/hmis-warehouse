@@ -5,7 +5,9 @@
 ###
 
 module Health
-  class FlagIneligiblePatientsJob < ApplicationJob
+  class FlagIneligiblePatientsJob < BaseJob
+    queue_as :long_running
+
     def perform(inquiry_id)
       inquiry = Health::EligibilityInquiry.find(inquiry_id)
       response = inquiry.eligibility_response

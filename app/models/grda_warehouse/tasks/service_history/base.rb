@@ -44,7 +44,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           if @force_sequential_processing
             ::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id).perform_now
           else
-            job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id), queue: :low_priority)
+            job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id), queue: :long_running)
 
           end
         end
@@ -70,8 +70,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         started = Time.current
         # Limit the scope of the check to only rebuilding service history jobs
         dj_t = Delayed::Job.arel_table
-        dj_scope = Delayed::Job.where(queue: :low_priority, failed_at: nil).
-            where(dj_t[:handler].matches('%ServiceHistory::RebuildEnrollments%'))
+        dj_scope = Delayed::Job.where(queue: :long_running, failed_at: nil).
+          jobs_for_class('ServiceHistory::RebuildEnrollments')
         while dj_scope.count > 0 do
           break if (Time.current - started) > max_wait_seconds
 

@@ -6,7 +6,7 @@
 
 module Importing
   class RunAddServiceHistoryJob < BaseJob
-    queue_as :low_priority
+    queue_as :long_running
 
     def perform
       client_ids = GrdaWarehouse::Hud::Client.destination.without_service_history.pluck(:id)

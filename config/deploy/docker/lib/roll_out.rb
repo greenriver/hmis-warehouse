@@ -8,30 +8,31 @@ require 'aws-sdk-ec2'
 class RollOut
   attr_accessor :aws_profile
   attr_accessor :cluster
+  attr_accessor :default_environment
   attr_accessor :dj_options
-  attr_accessor :web_options
+  attr_accessor :execution_role
   attr_accessor :image_base
+  attr_accessor :log_prefix
+  attr_accessor :log_stream_name
+  attr_accessor :rails_env
   attr_accessor :secrets_arn
   attr_accessor :service_exists
   attr_accessor :target_group_arn
   attr_accessor :target_group_name
   attr_accessor :task_definition
   attr_accessor :task_role
-  attr_accessor :execution_role
-  attr_accessor :default_environment
-  attr_accessor :log_prefix
-  attr_accessor :log_stream_name
+  attr_accessor :web_options
 
   # FIXME: cpu shares as parameter
   # FIXME: log level as parameter
 
   DEFAULT_SOFT_WEB_RAM_MB = 1800
 
-  DEFAULT_SOFT_DJ_RAM_MB = ->(target_group_name) { target_group_name.match?(/staging/) ? 2000 : 6000 }
+  DEFAULT_SOFT_DJ_RAM_MB = ->(target_group_name) { target_group_name.match?(/staging/) ? 1500 : 4000 }
 
   DEFAULT_SOFT_RAM_MB = 1800
 
-  RAM_OVERCOMMIT_MULTIPLIER = ->(target_group_name) { target_group_name.match?(/staging/) ? 4 : 2 }
+  RAM_OVERCOMMIT_MULTIPLIER = ->(target_group_name) { target_group_name.match?(/staging/) ? 5 : 3 }
 
   DEFAULT_CPU_SHARES = 256
 
@@ -49,6 +50,14 @@ class RollOut
     self.dj_options          = dj_options
     self.web_options         = web_options
 
+    if target_group_name.match?(/production/)
+      self.rails_env = 'production'
+    elsif target_group_name.match?(/staging/)
+      self.rails_env = 'staging'
+    else
+      raise "Cannot figure out environment from target_group_name!"
+    end
+
     self.default_environment = [
       { "name" => "ECS", "value" => "true" },
       { "name" => "LOG_LEVEL", "value" => "info" },
@@ -58,6 +67,7 @@ class RollOut
       { "name" => "AWS_REGION", "value" => ENV.fetch('AWS_REGION') { 'us-east-1' } },
       { "name" => "SECRET_ARN", "value" => secrets_arn },
       { "name" => "CLUSTER_NAME", "value" => self.cluster },
+      { "name" => "RAILS_ENV", "value" => rails_env },
       # { "name" => "RAILS_MAX_THREADS", "value" => '5' },
       # { "name" => "WEB_CONCURRENCY", "value" =>  '2' },
       # { "name" => "PUMA_PERSISTENT_TIMEOUT", "value" =>  '70' },
@@ -178,6 +188,18 @@ class RollOut
         end
       end
     end
+  end
+
+  def self.mark_spot_instances!
+    new(
+      image_base: nil,
+      target_group_name: nil,
+      target_group_arn: nil,
+      secrets_arn: nil,
+      execution_role: nil,
+      task_role: nil,
+      web_options: {},
+    ).mark_spot_instances!
   end
 
   def deploy_web!
@@ -503,6 +525,10 @@ class RollOut
         "field": "instanceId",
         "type": "spread"
       },
+      {
+        "type": "random"
+      },
+
     ]
 
     if service_exists

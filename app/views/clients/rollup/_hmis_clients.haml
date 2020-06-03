@@ -1,0 +1,24 @@
+:ruby
+  hmis_clients = @client.
+    source_hmis_clients.
+    order(eto_last_updated: :desc).
+    pluck(:eto_last_updated, :updated_at, :subject_id, :processed_fields)
+- if hmis_clients.any?
+  .row
+    - hmis_clients.each do |eto_last_updated, updated_at, subject_id, processed_fields|
+      .col-sm-4.pt-4
+        .card.ml-4
+          .card-body
+            %dl
+              %dt Last Updated in ETO
+              %dd= eto_last_updated.to_date
+              %dt ETO Subject ID
+              %dd= subject_id
+              %dt Last Successfully Fetched from ETO
+              %dd= updated_at.to_date
+              - processed_fields.select{|k,v| v.present?}.each do |k,v|
+                %dt= k.titleize
+                %dd= v
+- else
+  .no-data
+    No HMIS Clients on file

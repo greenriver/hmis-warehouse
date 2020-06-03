@@ -8,7 +8,7 @@ module ServiceHistory
   class ChronicVerificationJob < BaseJob
     include ArelHelper
     include Rails.application.routes.url_helpers
-    queue_as :high_priority
+    queue_as :short_running
 
     def initialize(client_id:, years:)
       @client_id = client_id
@@ -27,7 +27,7 @@ module ServiceHistory
       app.get(pdf_window_client_history_url(options))
     end
 
-    def enqueue(job, queue: :high_priority)
+    def enqueue(job, queue: :short_running)
     end
 
     def max_attempts

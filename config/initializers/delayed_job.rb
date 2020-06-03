@@ -13,9 +13,9 @@ end
 Delayed::Worker.default_queue_name = 'default_priority'
 Delayed::Worker.read_ahead = 2
 Delayed::Worker.queue_attributes = {
-  high_priority: { priority: -5 },
+  short_running: { priority: -5 },
   default_priority: { priority: 0 },
-  low_priority: { priority: 5 },
+  long_running: { priority: 5 },
 }
 
 # Monkey patch so Delayed::Worker knows where it started
@@ -30,6 +30,16 @@ module Delayed
           Dir.glob(File.join(File.dirname(File.realpath(FileUtils.pwd)), '*')).max_by{|f| File.mtime(f)}
         end
       end
+    end
+  end
+  class Job
+    def self.jobs_for_class(handlers)
+      handlers = Array.wrap(handlers)
+      sql = arel_table[:id].eq(0) # This will never happen
+      handlers.each do |handler|
+        sql = sql.or(arel_table[:handler].matches("%#{handler}%"))
+      end
+      where(sql)
     end
   end
 end

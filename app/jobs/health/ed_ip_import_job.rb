@@ -5,8 +5,8 @@
 ###
 
 module Health
-  class EdIpImportJob < ActiveJob::Base
-    queue_as :low_priority
+  class EdIpImportJob < BaseJob
+    queue_as :long_running
 
     def perform(id)
       Health::EdIpVisitFile.find(id.to_i).create_visits!

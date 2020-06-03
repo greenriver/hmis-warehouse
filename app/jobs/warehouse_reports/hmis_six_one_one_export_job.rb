@@ -8,7 +8,7 @@ module WarehouseReports
   class HmisSixOneOneExportJob < BaseJob
     include ArelHelper
 
-    queue_as :hmis_six_one_one_export
+    queue_as :long_running
 
     def perform(options, report_url: warehouse_reports_hmis_exports_url)
       options = options.with_indifferent_access

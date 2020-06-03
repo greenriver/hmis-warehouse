@@ -9,7 +9,7 @@ module Reporting
     attr_accessor :result_id
     attr_accessor :report
 
-    queue_as :high_priority
+    queue_as :long_running
 
     def initialize(report:, result_id:, options:)
       @report = report

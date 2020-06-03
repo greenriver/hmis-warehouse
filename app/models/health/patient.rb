@@ -326,19 +326,32 @@ module Health
       end
     end
 
-    def current_days_enrolled
-      end_date = patient_referral.disenrollment_date || Date.current
-      # This only happens with demo data
-      return 0 unless patient_referral.enrollment_start_date
+    def contributing_enrollment_start_date
+      patient_referrals.contributing.minimum(:enrollment_start_date)
+    end
 
-      (end_date - patient_referral.enrollment_start_date).to_i
+    def current_days_enrolled
+      referral = patient_referral
+      end_date = referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
+      # This only happens with demo data
+      return 0 unless referral.enrollment_start_date
+
+      (end_date - referral.enrollment_start_date).to_i
     end
 
     def contributed_days_enrolled
-      contributed_dates.count
+      contributed_dates.count - 1 # Don't count today
     end
 
-    private def contributed_dates
+    def prior_contributed_days_enrolled
+      prior_contributed_dates.count
+    end
+
+    def prior_contributed_dates
+      prior_contributed_enrollment_ranges.map(&:to_a).flatten.uniq
+    end
+
+    def contributed_dates
       contributed_enrollment_ranges.map(&:to_a).flatten.uniq
     end
 
@@ -347,19 +360,45 @@ module Health
     end
 
     def current_enrollment_range
-      end_date = patient_referral.disenrollment_date || Date.current
+      end_date = patient_referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
       (patient_referral.enrollment_start_date..end_date)
+    end
+
+    def prior_contributed_enrollment_ranges
+      patient_referrals.contributing.prior.map do |referral|
+        end_date = referral.disenrollment_date || referral.pending_disenrollment_date
+        (referral.enrollment_start_date..end_date)
+      end
     end
 
     def contributed_enrollment_ranges
       patient_referrals.contributing.map do |referral|
-        end_date = referral.disenrollment_date || Date.current
+        end_date = referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
         (referral.enrollment_start_date..end_date)
       end
     end
 
     def careplan_signed_in_122_days?
-      care_plan_signed? && contributed_days_enrolled <= 122
+      care_plan_signed? && (care_plan_provider_signed_date - patient_referral.enrollment_start_date).to_i <= 122
+    end
+
+    def reenroll!(referral)
+      # Create a "Care Plan Complete QA" if the patient has an unexpired care plan as of the enrollment start date
+      if careplans.fully_signed.where(h_cp_t[:provider_signed_on].gteq(referral.enrollment_start_date - 1.year)).exists?
+        user = User.setup_system_user
+        qualifying_activities.create(
+          activity: :pctp_signed,
+          date_of_activity: enrollment_start_date,
+
+          user_id: user.id,
+          user_full_name: user.name,
+          source: referral,
+          follow_up: 'None',
+          mode_of_contact: :other,
+          mode_of_contact_other: 'MassHealth re-enrollment',
+          reached_client: :yes,
+        )
+      end
     end
 
     # Priority:
@@ -415,12 +454,12 @@ module Health
     end
 
     def self.outreach_cutoff_span
-      3.months
+      90.days
     end
 
     def outreach_cutoff_date
       if enrollment_start_date.present?
-        (enrollment_start_date + self.class.outreach_cutoff_span).to_date
+        (enrollment_start_date + self.class.outreach_cutoff_span - prior_contributed_days_enrolled).to_date
       else
         (Date.current + self.class.outreach_cutoff_span).to_date
       end

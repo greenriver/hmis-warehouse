@@ -6,14 +6,14 @@
 
 module Importing
   class RunEtoApiUpdateForClientJob < BaseJob
-    queue_as :high_priority
+    queue_as :short_running
 
     def perform(destination_id:, client_ids:)
       return unless requires_api_update?(destination_id)
 
       EtoApi::Tasks::UpdateClientDemographics.new(
         client_ids: client_ids,
-        run_time: 15.minutes,
+        run_time: 5.minutes,
         one_off: true,
       ).run!
     end

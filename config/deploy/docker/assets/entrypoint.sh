@@ -24,6 +24,10 @@ echo $TIMEZONE > /etc/timezone
 echo Syncing the assets from s3
 ./bin/sync_app_assets.rb
 
+echo Setting PGPass
+echo "$DATABASE_HOST:*:*:$DATABASE_USER:$DATABASE_PASS" > /root/.pgpass
+chmod 600 /root/.pgpass
+
 if [ "$NEEDS_PRECOMPILE" = "true" ]
 then
   echo Precompiling

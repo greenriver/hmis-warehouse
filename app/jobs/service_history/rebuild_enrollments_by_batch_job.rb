@@ -7,7 +7,7 @@
 module ServiceHistory
   class RebuildEnrollmentsByBatchJob < BaseJob
     include ArelHelper
-    queue_as :low_priority
+    queue_as :long_running
 
     def initialize(enrollment_ids:)
       @enrollment_ids = enrollment_ids
@@ -26,7 +26,7 @@ module ServiceHistory
       end
     end
 
-    def enqueue(job, queue: :low_priority)
+    def enqueue(job, queue: :long_running)
     end
 
     def max_attempts

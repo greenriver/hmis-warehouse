@@ -176,6 +176,11 @@ namespace :grda_warehouse do
     end
   end
 
+  desc "Sync from FTPS -> S3"
+  task ftps_s3_sync: [:environment, "log:info_to_stdout"] do
+     GrdaWarehouse::LftpS3Sync.find_each(&:fetch_and_push)
+  end
+
   desc "Identify duplicates"
   task identify_duplicates: [:environment, "log:info_to_stdout"] do
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
@@ -298,7 +303,7 @@ namespace :grda_warehouse do
       job = Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
         client_id: client.id,
         years: 3,
-      ), queue: :default_priority
+      ), queue: :short_running
     end
   end
 
@@ -331,14 +336,14 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
-      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :long_running)
     end
     GrdaWarehouse::ServiceHistoryServiceMaterialized.delay.rebuild!
   end
 
   desc 'Send Health Emergency Notifications'
   task :send_health_emergency_notifications, [] => [:environment, "log:info_to_stdout"] do |task, args|
-    return unless GrdaWarehouse::Config.get(:health_emergency)
+    exit unless GrdaWarehouse::Config.get(:health_emergency)
 
     WarehouseReports::HealthEmergencyBatchNotifierJob.perform_now
   end
