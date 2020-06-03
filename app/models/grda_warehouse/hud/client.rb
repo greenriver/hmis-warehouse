@@ -2902,7 +2902,7 @@ module GrdaWarehouse::Hud
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}", expires_in: CACHE_EXPIRY) do
 
         enrollments = en_scope.joins(:project).
-          includes(:service_history_services, :project, :organization, :source_client, enrollment: :enrollment_cocs).
+          includes(:service_history_services, :project, :organization, :source_client, enrollment: [:enrollment_cocs, :exit]).
           order(first_date_in_program: :desc)
         enrollments.
         map do |entry|
@@ -2954,6 +2954,7 @@ module GrdaWarehouse::Hud
             created_at: entry.enrollment.DateCreated,
             updated_at: entry.enrollment.DateUpdated,
             hmis_id: entry.enrollment.id,
+            hmis_exit_id: entry.enrollment&.exit&.id,
             # support: dates_served,
           }
         end

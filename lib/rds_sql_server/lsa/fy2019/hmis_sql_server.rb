@@ -114,6 +114,18 @@ module HmisSqlServer
   class Project < LsaBase
     self.table_name = :hmis_Project
     include ::HMIS::Structure::Project
+
+    def clean_row_for_import(row:, headers:)
+      # Fixes for LSA idiosyncracies
+      [
+        'HousingType',
+      ].each do |k|
+        field_index = headers.index(k)
+        row[field_index] = row[field_index].presence || 99
+      end
+
+      super(row: row, headers: headers)
+    end
   end
   class ProjectCoc < LsaBase
     self.table_name = :hmis_ProjectCoC

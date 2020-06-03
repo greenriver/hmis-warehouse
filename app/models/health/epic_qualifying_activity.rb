@@ -67,6 +67,7 @@ module Health
         activity: care_hub_activity_key,
         follow_up: 'See Epic',
         source_type: self.class.name,
+        source_id: self.id,
         epic_source_id: id_in_source,
         user_id: user.id
       )
