@@ -12,26 +12,78 @@ module Health::Exporter
     CONFIGURATION = {
       patients: {
         file_name: 'patients.csv',
-        columns: [:id, :id_in_source, :first_name, :last_name, :medicaid_id],
+        columns: [:id, :id_in_source, :first_name, :last_name, :birthdate, :ssn, :created_at, :updated_at, :medicaid_id,
+          :engagement_date, :coverage_level, :coverage_inquiry_date, :aco_name, :previous_aco_name, :invalid_id],
         ids: {
           id: :patient_id,
         },
+        model_class: Health::Patient,
+        association_id: :id,
       },
       patient_referrals: {
         file_name: 'patient_referrals.csv',
-        columns: [:id, :first_name, :last_name, :birthdate, :medicaid_id],
+        columns: [:id, :first_name, :last_name, :birthdate, :medicaid_id, :created_at, :updated_at, :rejected,
+          :rejected_reason, :patient_id, :enrollment_start_date, :disenrollment_date, :stop_reason_description,
+          :pending_disenrollment_date, :contributing, :current],
         ids: {
           id: :patient_referral_id,
+          patient_id: :patient_id,
         },
+        model_class: Health::PatientReferral,
+        association_id: :patient_id,
       },
       ssms: {
         file_name: 'self_sufficiency_matrix_forms.csv',
-        columns: [:id, :patient_id, :completed_at],
+        columns: [:id, :patient_id, :completed_at, :created_at, :updated_at],
         ids: {
           id: :ssm_id,
           patient_id: :patient_id,
         },
-      }
+        model_class: Health::SelfSufficiencyMatrixForm,
+        association_id: :patient_id,
+      },
+      participation_forms: {
+        file_name: 'participation_forms.csv',
+        columns: [:id, :patient_id, :signature_on, :location, :reviewed_at, :reviewer],
+        ids: {
+          id: :participation_id,
+          patient_id: :patient_id,
+        },
+        model_class: Health::ParticipationForm,
+        association_id: :patient_id,
+      },
+      chas: {
+        file_name: 'comprehensive_health_assessments.csv',
+        columns: [:id, :patient_id, :status, :created_at, :reviewed_at, :completed_at, :reviewed_at, :reviewer],
+        ids: {
+          id: :cha_id,
+          patient_id: :patient_id,
+        },
+        model_class: Health::ComprehensiveHealthAssessment,
+        association_id: :patient_id,
+      },
+      careplans: {
+        file_name: 'careplans.csv',
+        columns: [:id, :patient_id, :created_at, :updated_at, :patient_signed_on, :provider_signed_on, :status],
+        ids: {
+          id: :careplan_id,
+          patient_id: :patient_id,
+        },
+        model_class: Health::Careplan,
+        association_id: :patient_id,
+      },
+      qas: {
+        file_name: 'qualifying_activities.csv',
+        columns: [:id, :mode_of_contact, :mode_of_contact_other, :reached_client, :reached_client_collateral_contact,
+          :activity, :date_of_activity, :patient_id, :created_at, :updated_at, :naturally_payable, :duplicate_id,
+          :valid_unpayable, :procedure_valid],
+        ids: {
+          id: :qa_id,
+          patient_id: :patient_id,
+        },
+        model_class: Health::QualifyingActivity,
+        association_id: :patient_id,
+      },
     }
 
     FAKERS = {
@@ -41,6 +93,40 @@ module Health::Exporter
       medicaid_id: [ Faker::Number, :number, {digits: 12} ],
       birthdate: [ Faker::Date, :birthday ],
       completed_at: :keep,
+      ssn: [Faker::IDNumber, :valid],
+      created_at: :keep,
+      updated_at: :keep,
+      engagement_date: :keep,
+      coverage_level: :keep,
+      coverage_inquiry_date: :keep,
+      aco_name: [ Faker::Company, :name ],
+      previous_aco_name: [ Faker::Company, :name ],
+      invalid_id: :keep,
+      enrollment_start_date: :keep,
+      disenrollment_date: :keep,
+      stop_reason_description: :keep,
+      pending_disenrollment_date: :keep,
+      contributing: :keep,
+      current: :keep,
+      rejected: :keep,
+      rejected_reason: :keep,
+      mode_of_contact: :keep,
+      mode_of_contact_other: :keep,
+      reached_client: :keep,
+      reached_client_collateral_contact: :keep,
+      activity: :keep,
+      date_of_activity: :keep,
+      naturally_payable: :keep,
+      duplicate_id: :keep,
+      valid_unpayable: :keep,
+      procedure_valid: :keep,
+      signature_on: :keep,
+      location: [ Faker::House, :furniture],
+      reviewed_at: :keep,
+      reviewer: [ Faker::Name, :name ],
+      status: :keep,
+      patient_signed_on: :keep,
+      provider_signed_on: :keep,
     }
 
     def initialize(file_path: 'var/health_export', patients_scope:)
@@ -54,9 +140,9 @@ module Health::Exporter
     def export!
       create_export_directory()
       begin
-        export_table!(:patients, @patients_scope)
-        export_table!(:patient_referrals, Health::PatientReferral.where(medicaid_id: @patients_scope.select(:medicaid_id)))
-        export_table!(:ssms, Health::SelfSufficiencyMatrixForm.where(patient_id: @patients_scope.select(:id)))
+        CONFIGURATION.keys.each do |conf_key|
+          export_table!(conf_key)
+        end
 
         zip_archive
       ensure
@@ -72,8 +158,9 @@ module Health::Exporter
       FileUtils.mkdir_p(@file_path)
     end
 
-    def export_table!(conf_key, export_scope)
+    def export_table!(conf_key)
       conf = CONFIGURATION[conf_key]
+      export_scope = conf[:model_class].where(conf[:association_id] => @patients_scope.select(:id))
       file = File.join(@file_path, conf[:file_name])
       CSV.open(file, 'wb', headers: conf[:columns], write_headers: true) do |csv|
         export_scope.find_each do |instance|
