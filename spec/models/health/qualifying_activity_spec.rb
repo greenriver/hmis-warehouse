@@ -10,7 +10,8 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       pre_enrollment_activity.calculate_payability!
       qualifying_activity.calculate_payability!
 
-      expect(pre_enrollment_activity.naturally_payable).to be false
+      expect(pre_enrollment_activity.naturally_payable).to be true
+      expect(pre_enrollment_activity.compute_valid_unpayable?).to be true
       expect(qualifying_activity.naturally_payable).to be true
     end
   end
@@ -23,7 +24,8 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       pre_enrollment_activity.calculate_payability!
       qualifying_activity.calculate_payability!
 
-      expect(pre_enrollment_activity.naturally_payable).to be false
+      expect(pre_enrollment_activity.naturally_payable).to be true
+      expect(pre_enrollment_activity.compute_valid_unpayable?).to be true
       expect(qualifying_activity.naturally_payable).to be true
     end
   end

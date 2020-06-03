@@ -9,7 +9,7 @@ module WarehouseReports
     include ArelHelper
     include Chronic
 
-    queue_as :chronic_report
+    queue_as :long_running
 
     attr_accessor :params
 

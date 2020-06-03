@@ -6,7 +6,7 @@
 
 module WarehouseReports
   class RunActiveVeteransJob < BaseJob
-    queue_as :active_veterans_report
+    queue_as :long_running
 
     def perform(params)
       report = GrdaWarehouse::WarehouseReports::ActiveVeteransReport.new

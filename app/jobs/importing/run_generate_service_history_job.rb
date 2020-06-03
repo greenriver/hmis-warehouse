@@ -6,7 +6,7 @@
 
 module Importing
   class RunGenerateServiceHistoryJob < BaseJob
-    queue_as :low_priority
+    queue_as :long_running
 
     def perform
       GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new.run!

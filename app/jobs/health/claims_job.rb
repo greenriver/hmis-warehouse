@@ -4,26 +4,26 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module WarehouseReports
-  class HealthMemberStatusReportJob < BaseJob
-    queue_as :high_priority
+module Health
+  class ClaimsJob < BaseJob
+    queue_as :long_running
 
-    attr_accessor :params, :report_start_date, :report_end_date, :report_id, :current_user_id
+    attr_accessor :params, :max_date, :report_id, :current_user_id, :test_file
 
     def initialize(params)
-      @report_start_date = params[:report_start_date]
-      @report_end_date = params[:report_end_date]
+      @max_date = params[:max_date]
       @report_id = params[:report_id]
       @current_user_id = params[:current_user_id]
+      @test_file = params[:test_file]
     end
 
     def perform
       @report = report_source.find(report_id)
       @report.run!
-      NotifyUser.health_member_status_report_finished(@current_user_id).deliver_later
+      NotifyUser.health_claims_finished(@current_user_id).deliver_later
     end
 
-    def enqueue(job, queue: :low_priority)
+    def enqueue(job, queue: :long_running)
     end
 
     def max_attempts
@@ -37,7 +37,7 @@ module WarehouseReports
     end
 
     def report_source
-      ::Health::MemberStatusReport
+      ::Health::Claim
     end
   end
 end

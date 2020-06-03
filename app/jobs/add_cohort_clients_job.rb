@@ -5,7 +5,7 @@
 ###
 
 class AddCohortClientsJob < BaseJob
-  queue_as :low_priority
+  queue_as :long_running
 
   def perform(cohort_id, client_ids, user_id)
     client_ids = client_ids.split(',').map(&:strip).compact.map(&:to_i)

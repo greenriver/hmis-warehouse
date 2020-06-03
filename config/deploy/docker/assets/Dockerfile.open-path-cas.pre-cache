@@ -14,7 +14,7 @@ RUN apk add --no-cache \
   icu icu-dev \
   curl libcurl curl-dev \
   libmagic file-dev file \
-  build-base libxml2-dev libxslt-dev postgresql-dev
+  build-base libxml2-dev libxslt-dev postgresql-dev tmux
 
 WORKDIR /app
 

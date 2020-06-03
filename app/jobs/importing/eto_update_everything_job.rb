@@ -6,7 +6,7 @@
 
 module Importing
   class EtoUpdateEverythingJob < BaseJob
-    queue_as :low_priority
+    queue_as :long_running
 
     def perform(start_date: 4.years.ago, data_source_id:)
       # Ensure we know about all the available touch points

@@ -6,7 +6,7 @@
 
 module Confidence
   class AddEnrollmentChangeHistoryJob < BaseJob
-    queue_as :low_priority
+    queue_as :long_running
 
     def perform(client_ids:, date:)
       @client_ids = client_ids

@@ -5,7 +5,9 @@
 ###
 
 module Health
-  class ProcessEnrollmentChangesJob < ApplicationJob
+  class ProcessEnrollmentChangesJob < BaseJob
+    queue_as :long_running
+
     def perform(enrollment_id)
       enrollment = Health::Enrollment.find(enrollment_id)
 

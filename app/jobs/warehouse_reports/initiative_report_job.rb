@@ -8,7 +8,7 @@ module WarehouseReports
   class InitiativeReportJob < BaseJob
     include ArelHelper
 
-    queue_as :initiative_reports
+    queue_as :long_running
 
     def perform(options)
       options = options.with_indifferent_access

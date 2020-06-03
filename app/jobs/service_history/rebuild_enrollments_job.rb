@@ -7,7 +7,7 @@
 module ServiceHistory
   class RebuildEnrollmentsJob < BaseJob
     include ArelHelper
-    queue_as :low_priority
+    queue_as :long_running
 
     def initialize(client_ids:, log_id:)
       @client_ids = client_ids
@@ -62,7 +62,7 @@ module ServiceHistory
       log.update(counts)
     end
 
-    def enqueue(job, queue: :low_priority)
+    def enqueue(job, queue: :long_running)
     end
 
     def max_attempts

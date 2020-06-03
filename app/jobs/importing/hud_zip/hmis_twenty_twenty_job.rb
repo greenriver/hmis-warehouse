@@ -6,7 +6,7 @@
 
 module Importing::HudZip
   class HmisTwentyTwentyJob < BaseJob
-    queue_as :low_priority
+    queue_as :long_running
 
     def initialize(upload_id:, data_source_id:, deidentified: false, project_whitelist: false)
       @upload_id = upload_id

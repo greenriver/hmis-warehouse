@@ -10,7 +10,7 @@ module Importing
     include NotifierConfig
     include ArelHelper
     attr_accessor :send_notifications, :notifier_config
-    queue_as :low_priority
+    queue_as :long_running
 
     def initialize
       setup_notifier('DailyImporter')

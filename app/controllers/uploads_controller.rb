@@ -54,11 +54,11 @@ class UploadsController < ApplicationController
 
     case params[:grda_warehouse_upload][:import_type]
     when 'hmis_51'
-      job = Delayed::Job.enqueue Importing::HudZip::FiveOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id), queue: :default_priority
+      job = Delayed::Job.enqueue Importing::HudZip::FiveOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id), queue: :long_running
     when 'hmis_611'
-      job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
+      job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :long_running
     when 'hmis_2020'
-      job = Delayed::Job.enqueue Importing::HudZip::HmisTwentyTwentyJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :default_priority
+      job = Delayed::Job.enqueue Importing::HudZip::HmisTwentyTwentyJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :long_running
     end
     @upload.update(delayed_job_id: job.id)
   end
