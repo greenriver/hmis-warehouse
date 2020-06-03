@@ -562,6 +562,7 @@ module Health
         # Case 3: Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
         unless patient_has_signed_careplan?
           return true unless first_non_outreach_of_month_for_patient?
+          return true if patient.engagement_date.blank?
           return true if date_of_activity > patient.engagement_date
           return true if number_of_non_outreach_activity_months > 5
         end
