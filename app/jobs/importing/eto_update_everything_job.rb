@@ -8,7 +8,7 @@ module Importing
   class EtoUpdateEverythingJob < BaseJob
     queue_as :long_running
 
-    def perform(start_date: 4.years.ago, data_source_id:)
+    def perform(start_date: 2.years.ago, data_source_id:)
       # Ensure we know about all the available touch points
       GrdaWarehouse::HMIS::Assessment.update_touch_points
 
