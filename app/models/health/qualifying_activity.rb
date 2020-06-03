@@ -531,11 +531,13 @@ module Health
     end
 
     def maintain_valid_unpayable
-      self.update(valid_unpayable: compute_valid_unpayable?)
+      self.valid_unpayable = compute_valid_unpayable?
+      self.save(validate: false)
     end
 
     def maintain_procedure_valid
-      self.update(procedure_valid: compute_procedure_valid?)
+      self.procedure_valid = compute_procedure_valid?
+      self.save(validate: false)
     end
 
     def compute_valid_unpayable?
