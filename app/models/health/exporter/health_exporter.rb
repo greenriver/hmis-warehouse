@@ -9,6 +9,14 @@ require 'faker'
 require 'csv'
 module Health::Exporter
   class HealthExporter
+    def initialize(file_path: 'tmp/health_export', patients_scope:)
+      @zip_file = "#{file_path}/health_export.zip"
+      @file_path = "#{file_path}/#{Time.current.to_f}"
+      @patients_scope = patients_scope
+      @id_cache = {}
+      @faker_cache = {}
+    end
+
     def configuration
       @configuration ||= {
         patients: {
@@ -131,14 +139,6 @@ module Health::Exporter
         patient_signed_on: :keep,
         provider_signed_on: :keep,
       }.freeze
-    end
-
-    def initialize(file_path: 'tmp/health_export', patients_scope:)
-      @zip_file = "#{file_path}/health_export.zip"
-      @file_path = "#{file_path}/#{Time.current.to_f}"
-      @patients_scope = patients_scope
-      @id_cache = {}
-      @faker_cache = {}
     end
 
     def export!
