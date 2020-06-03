@@ -32,7 +32,7 @@ module Clients
       Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
         client_id: @client.id,
         years: @years,
-      ), queue: :default_priority
+      ), queue: :short_running
       flash[:notice] = 'Homeless Verification PDF queued for generation.  The PDF will be available for download under the Files tab within a few minutes.'
       redirect_to action: :show
     end

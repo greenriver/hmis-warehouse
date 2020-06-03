@@ -9,7 +9,7 @@ module WarehouseReports
     include ArelHelper
     include HudChronic
 
-    queue_as :hud_chronic_report
+    queue_as :long_running
 
     attr_accessor :params
 

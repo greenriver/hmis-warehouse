@@ -303,7 +303,7 @@ namespace :grda_warehouse do
       job = Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
         client_id: client.id,
         years: 3,
-      ), queue: :default_priority
+      ), queue: :short_running
     end
   end
 
@@ -336,7 +336,7 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
-      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :long_running)
     end
     GrdaWarehouse::ServiceHistoryServiceMaterialized.delay.rebuild!
   end

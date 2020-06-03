@@ -6,6 +6,7 @@
 
 module Confidence
   class DaysHomelessJob < BaseJob
+    queue_as :long_running
     include ArelHelper
 
     def initialize(client_ids:)
@@ -18,7 +19,7 @@ module Confidence
       end
     end
 
-    def enqueue(job, queue: :low_priority)
+    def enqueue(job, queue: :long_running)
     end
 
     def max_attempts

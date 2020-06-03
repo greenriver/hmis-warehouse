@@ -7,6 +7,7 @@
 module WarehouseReports
   class DashboardReportJob < BaseJob
     include ArelHelper
+    queue_as :long_running
 
     queue_as :dashboard_active_report
 

@@ -8,7 +8,7 @@ module Reporting
   class PopulationDashboardPopulateJob < BaseJob
     include ActionView::Helpers::DateHelper
 
-    queue_as :low_priority
+    queue_as :long_running
 
     def max_attempts
       1

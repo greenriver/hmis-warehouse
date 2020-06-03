@@ -6,6 +6,8 @@
 
 module Cas
   class SyncToCasJob < BaseJob
+    queue_as :long_running
+
     def perform
       GrdaWarehouse::Tasks::PushClientsToCas.new.sync!
     end

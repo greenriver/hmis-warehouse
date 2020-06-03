@@ -6,7 +6,7 @@
 
 module Reporting::Hud::Ahar::Fy2017
   class RunReportJob < BaseJob
-    queue_as :high_priority
+    queue_as :long_running
 
     def initialize(report_id:, result_id:, options:)
       @report_id = report_id

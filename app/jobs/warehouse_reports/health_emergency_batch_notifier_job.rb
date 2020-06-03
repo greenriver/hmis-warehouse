@@ -6,6 +6,8 @@
 
 module WarehouseReports
   class HealthEmergencyBatchNotifierJob < BaseJob
+    queue_as :short_running
+
     def perform
       advisory_lock_name = 'he_batch_notifications'
       return if GrdaWarehouse::HealthEmergency::AmaRestriction.advisory_lock_exists?(advisory_lock_name)
