@@ -21,6 +21,10 @@ module HudReports
       @options = options.to_h
     end
 
+    def self.find_report(user)
+      HudReports::ReportInstance.where(user_id: user.id, report_name: title).last
+    end
+
     def report
       @report ||= HudReports::ReportInstance.create(
         user_id: @user_id,
@@ -28,7 +32,7 @@ module HudReports
         start_date: @start_date,
         end_date: @end_date,
         project_ids: @project_ids,
-        state: 'pending',
+        state: 'Running',
         options: @options,
         report_name: self.class.title,
         question_names: self.class.questions.keys,
@@ -36,8 +40,12 @@ module HudReports
     end
 
     def run!
-      # TODO: Parallel or sequential?
+      # TODO: Rework to parallelize questions?
       Reporting::RunHudReportJob.perform_later(self.class.name, @options)
+    end
+
+    def finish
+      @report.update(state: 'Completed')
     end
 
     def update_state(state)

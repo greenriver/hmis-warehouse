@@ -15,8 +15,9 @@ module HudReports
     # Mark a question as started
     #
     # @param question [String] the question name (e.g., 'Q1')
-    def start(question)
-      answer(question: question).update(status: 'Started')
+    # @param tables [Array<String>] the names of the tables in a question
+    def start(question, tables)
+      answer(question: question).update(status: 'Started', metadata: {tables: tables})
     end
 
     # Mark a question as completed
@@ -24,6 +25,10 @@ module HudReports
     # @param question [String] the question name (e.g., 'Q1')
     def complete(question)
       answer(question: question).update(status: 'Completed')
+    end
+
+    def completed_questions
+      report_cells.where(status: 'Completed').pluck(:question)
     end
 
     # An answer cell in a question

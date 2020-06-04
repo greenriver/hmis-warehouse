@@ -15,9 +15,13 @@ module HudReports
 
     def show
       respond_to do |format|
-        format.html {}
+        format.html do
+          @report =  @generator.find_report(current_user)
+          @questions = @generator.questions.keys
+          @contents = @report&.completed_questions
+        end
         format.zip do
-          report = nil # TODO
+          report = @generator.find_report(current_user)
           exporter = HudReports::ZipExporter.new(report)
           date = Date.current.strftime('%Y-%m-%d')
           send_data exporter.export!, filename: "apr-#{date}.zip"
@@ -26,6 +30,8 @@ module HudReports
     end
 
     def edit
+      titles = generators.map(&:title)
+      @reports = HudReports::ReportInstance.where(report_name: titles).order(created_at: :desc)
     end
 
     def update

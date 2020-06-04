@@ -17,9 +17,14 @@
 .row
   .col-12
     - if @contents
-      Results included in this download will include the following:
-      %ul
-        - @contents.each do |item|
-          %li= item
+      %h3 Report Details
+      = render 'parameters', report: @report
+      %p
+        Results included in this download will include the following:
+      %ul.list-unstyled.ml-4
+        - @questions.each do |item|
+          %li
+            = checkmark_or_x @contents.include?(item)
+            = item
     - else
       No generated report.

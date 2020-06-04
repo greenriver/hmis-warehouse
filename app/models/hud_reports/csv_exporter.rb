@@ -8,10 +8,10 @@ require 'csv'
 
 module HudReports
   class CsvExporter
-    def initialize(report, question)
+    def initialize(report, table)
       @report = report
-      @question = question
-      @metadata = report.answer(question: question).metadata
+      @table = table
+      @metadata = report.answer(question: table).metadata
     end
 
     def export(file_path)
@@ -28,7 +28,7 @@ module HudReports
         row_names.each do |row_name|
           row = row_with_label(row_name)
           column_names.each do |column_name|
-            row << @report.answer(question: @question, cell: "#{column_name}#{row_name}").summary || ''
+            row << @report.answer(question: @table, cell: "#{column_name}#{row_name}").summary || ''
           end
           table << row
         end
@@ -38,7 +38,7 @@ module HudReports
     end
 
     def csv_name
-      "#{@question}.csv"
+      "#{@table}.csv"
     end
 
     def answer_table

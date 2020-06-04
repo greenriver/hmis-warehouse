@@ -40,7 +40,7 @@ module ReportGenerators::AprShared::Fy2020
     end
 
     def run!
-      @report.start(QUESTION_NUMBER)
+      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
 
       project_rows = []
 

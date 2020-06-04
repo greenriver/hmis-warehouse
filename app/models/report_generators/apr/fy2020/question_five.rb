@@ -42,7 +42,7 @@ module ReportGenerators::Apr::Fy2020
     end
 
     def run!
-      @report.start(QUESTION_NUMBER)
+      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
 
       a_t = report_client_universe.arel_table
 

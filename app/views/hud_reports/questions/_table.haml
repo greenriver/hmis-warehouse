@@ -1,0 +1,12 @@
+%table.table.table-bordered
+  %thead.thead-dark
+    %tr
+      %th
+      - columns.each do |label|
+        %th= label
+  %tbody.thead-dark
+    - rows.each_with_index do |row, index|
+      %tr
+        %th= index + 1
+        - row.each do |value|
+          %td= value

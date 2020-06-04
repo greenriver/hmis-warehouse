@@ -1,0 +1,11 @@
+.mb-2
+  - [:start_date, :end_date, :coc_code, :project_ids].each do |param|
+    - value = report.public_send(param)
+    - next if value.blank?
+    %label.label.label-default.parameter-label
+      = param.to_s.humanize
+    %label.label.label-primary.parameter-value
+      %strong
+        - value = value.compact.delete_if(&:blank?).join(', ') if value.is_a?(Array)
+        = value
+    &nbsp;

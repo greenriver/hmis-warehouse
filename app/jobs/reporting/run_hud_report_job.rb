@@ -11,6 +11,7 @@ module Reporting
       @generator.class.questions.values.each do |clazz|
         clazz.new(@generator).run!
       end
+      @generator.finish
     end
   end
 end

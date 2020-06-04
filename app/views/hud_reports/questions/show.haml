@@ -1,0 +1,13 @@
+= content_for :crumbs do
+  = link_to hud_reports_aprs_path do
+    = "« APR Reports"
+- content_for :title do
+  = "APR Question #{@question}"
+
+%h1= content_for :title
+
+- metadata = @report.answer(question: @question).metadata
+- metadata['tables'].each do |table|
+  %h2= table
+  - exporter = HudReports::CsvExporter.new(@report, table)
+  = render 'table', columns: exporter.column_names, rows: exporter.as_array
