@@ -913,6 +913,16 @@ module Health
         merge(Health::PatientReferral.contributing)
     end
 
+    scope :allowed_for_engagement, -> do
+      joins(patient: :patient_referrals).
+        merge(
+          Health::PatientReferral.contributing.
+            where(
+              hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:completed_at].to_sql} + INTERVAL '1 year'"))
+            )
+        )
+    end
+
     attr_accessor :reviewed_by_supervisor, :completed, :file
 
     attr_accessor *QUESTION_ANSWER_OPTIONS.keys

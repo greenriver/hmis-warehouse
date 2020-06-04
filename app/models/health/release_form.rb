@@ -71,6 +71,17 @@ module Health
         joins(patient: :patient_referrals).
         merge(Health::PatientReferral.contributing)
     end
+
+    scope :allowed_for_engagement, -> do
+      joins(patient: :patient_referrals).
+        merge(
+          Health::PatientReferral.contributing.
+            where(
+              hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:signature_on].to_sql} + INTERVAL '1 year'"))
+            )
+        )
+    end
+
     attr_accessor :reviewed_by_supervisor, :file
 
     def expires_on

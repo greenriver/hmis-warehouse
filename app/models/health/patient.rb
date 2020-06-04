@@ -207,35 +207,34 @@ module Health
 
       ssm_patient_id_scope = Health::SelfSufficiencyMatrixForm.distinct.
         completed.
-        during_current_enrollment.
+        allowed_for_engagement.
         select(:patient_id)
 
       epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
-        during_current_enrollment.
+        allowed_for_engagement.
         select(hp_t[:id].to_sql)
 
       participation_form_patient_id_scope = Health::ParticipationForm.distinct.
         valid.
-        during_current_enrollment.
+        allowed_for_engagement.
         select(:patient_id)
 
       release_form_patient_id_scope = Health::ReleaseForm.distinct.
         valid.
-        during_current_enrollment.
+        allowed_for_engagement.
         select(:patient_id)
 
       cha_patient_id_scope = Health::ComprehensiveHealthAssessment.distinct.
         reviewed.
-        during_current_enrollment.
+        allowed_for_engagement.
         select(:patient_id)
 
       epic_cha_patient_id_scope = Health::EpicCha.distinct.
-        during_current_enrollment.
+        allowed_for_engagement.
         select(hp_t[:id].to_sql)
 
       pctp_signed_patient_id_scope = Health::Careplan.distinct.
         locked.
-        during_current_enrollment.
         select(:patient_id)
       # epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 

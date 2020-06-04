@@ -33,6 +33,16 @@ module Health
         merge(Health::PatientReferral.contributing)
     end
 
+    scope :allowed_for_engagement, -> do
+      joins(patient: :patient_referrals).
+        merge(
+          Health::PatientReferral.contributing.
+            where(
+              hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:ssm_updated_at].to_sql} + INTERVAL '1 year'"))
+            )
+        )
+    end
+
     self.source_key = :NOTE_ID
 
     def self.csv_map(version: nil)
