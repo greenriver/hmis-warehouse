@@ -309,7 +309,7 @@ namespace :grda_warehouse do
 
   desc "Warm Cohort Cache"
   task :warm_cohort_cache, [] => [:environment, "log:info_to_stdout"] do |task, args|
-    GrdaWarehouse::Cohort.delay.prepare_active_cohorts
+    GrdaWarehouse::Cohort.delay(queue: :short_running).prepare_active_cohorts
   end
 
   desc "Process Recurring HMIS Exports"
@@ -338,7 +338,7 @@ namespace :grda_warehouse do
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
       Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :long_running)
     end
-    GrdaWarehouse::ServiceHistoryServiceMaterialized.delay.rebuild!
+    GrdaWarehouse::ServiceHistoryServiceMaterialized.delay(queue: :long_running).rebuild!
   end
 
   desc 'Send Health Emergency Notifications'
