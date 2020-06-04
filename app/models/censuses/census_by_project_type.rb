@@ -56,7 +56,7 @@ module Censuses
           yesterday = GrdaWarehouse::Census::ByProjectType.new
         end
 
-        GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do |project_type|
+        GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.each_key do |project_type|
           clients[project_type] ||= []
           clients[project_type] << { x: census_record.date, y: census_record["#{project_type}_all_clients"], yesterday: yesterday["#{project_type}_all_clients"] }
           inventory[project_type] ||= []
@@ -67,7 +67,7 @@ module Censuses
       end
 
       # Only include dimensions that contain data
-      GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do |project_type|
+      GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.each_key do |project_type|
         add_dimension(project_type, clients[project_type], inventory[project_type], (GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]).to_s) if clients[project_type].present? && !clients[project_type].empty?
       end
 
@@ -114,7 +114,7 @@ module Censuses
       project_scope.each do |census_record|
         next unless include_date?(census_record.date)
 
-        GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.each do |project_type|
+        GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.each_key do |project_type|
           clients[project_type] ||= []
           clients[project_type] << { x: census_record.date, y: census_record["#{project_type}_all_clients"] }
           total[census_record.date] ||= 0
@@ -122,7 +122,7 @@ module Censuses
         end
       end
 
-      GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.keys.each do |project_type|
+      GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.each_key do |project_type|
         next unless clients[project_type].present? && !clients[project_type].empty?
 
         add_combined_dimension(

@@ -922,9 +922,9 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
 
     def re_key_on_project_name(data)
       # To prevent duplicate names from being counted oddly, we key on id then replace for display
-      data.map do |id, values|
-        [report_projects.where(id: id).first.project_name, values]
-      end.to_h
+      data.transform_keys do |id|
+        report_projects.where(id: id).first.project_name
+      end
     end
 
     def enrolled_length_of_stay

@@ -55,8 +55,8 @@ module Bo
         return [] if table.blank?
 
         table['row'].map do |row|
-          row.map do |k, v|
-            [k.downcase.underscore.to_sym, v]
+          row.transform_keys do |k|
+            k.downcase.underscore.to_sym
           end.to_h
         end
       rescue StandardError

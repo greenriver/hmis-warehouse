@@ -356,7 +356,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         begin
           hmis_form.save
           hmis_form.create_qualifying_activity!
-        rescue Exception # rubocop:disable Lint/SuppressedException
+        rescue Exception
           # msg = "Failed to save, probably dirty: #{e.message}"
           # notifier.ping msg if send_notifications
         end

@@ -10,6 +10,7 @@ module Importing
     include NotifierConfig
     include ArelHelper
     attr_accessor :send_notifications, :notifier_config
+
     queue_as :long_running
 
     def initialize

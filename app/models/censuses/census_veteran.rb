@@ -57,7 +57,7 @@ module Censuses
           yesterday = GrdaWarehouse::Census::ByProjectType.new
         end
 
-        GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do |project_type|
+        GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.each_key do |project_type|
           veterans[project_type] ||= []
           non_veterans[project_type] ||= []
 
@@ -69,7 +69,7 @@ module Censuses
       end
 
       # Only include dimensions that contain data
-      GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.keys.each do |project_type|
+      GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.each_key do |project_type|
         add_dimension(project_type, veterans[project_type], non_veterans[project_type], (GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type]).to_s) if veterans[project_type].present? && !veterans[project_type].empty?
       end
       @shape
