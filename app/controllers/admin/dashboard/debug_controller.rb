@@ -27,7 +27,7 @@ module Admin::Dashboard
       {}.tap do |m|
         data_source_scope.each do |ds|
           m[ds.name] ||= {}
-          GrdaWarehouse::Hud.models_by_hud_filename.values.each do |klass|
+          GrdaWarehouse::Hud.models_by_hud_filename.each_value do |klass|
             errors = klass.where(data_source_id: ds.id).
               group(klass.hud_primary_key).
               having(nf('COUNT', [klass.arel_table[klass.hud_primary_key.to_sym]]).gt(1)). # .having("count(#{klass.hud_primary_key}) > 1")

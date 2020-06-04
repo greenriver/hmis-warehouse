@@ -9,7 +9,7 @@ class ContainerList
   def ssh!
     ensure_profile_and_ip
 
-    template = '%16s %12s %-80s'
+    # template = '%16s %12s %-80s'
 
     # puts format(template, 'IP', 'ID', 'Task/connection command')
 

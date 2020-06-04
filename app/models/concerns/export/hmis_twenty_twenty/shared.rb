@@ -101,7 +101,7 @@ module Export::HmisTwentyTwenty::Shared
     end
 
     if export.faked_pii
-      export.fake_data.fake_patterns.keys.each do |k|
+      export.fake_data.fake_patterns.each_key do |k|
         row[k] = export.fake_data.fetch(field_name: k, real_value: row[k]) if row[k].present?
       end
       row # rubocop:disable Style/IdenticalConditionalBranches

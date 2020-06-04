@@ -26,7 +26,7 @@ class Portainer
 
     system('tmux rename-window -t portainer:0 tunnel-0')
     instances.each.with_index do |_, i|
-      next if i == 0
+      next if i.zero?
 
       system("tmux new-window -t portainer:#{i} -n tunnel-#{i}")
     end

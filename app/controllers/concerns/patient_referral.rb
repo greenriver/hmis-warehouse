@@ -15,7 +15,7 @@ module PatientReferral
     :agency_id,
     :assigned_agency_id,
     :acknowledged_by_mass_health,
-    :sort_by,
+    :sort_by, # rubocop:disable Lint/StructNewOverride
   )
 
   private

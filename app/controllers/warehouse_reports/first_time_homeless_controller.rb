@@ -90,7 +90,7 @@ module WarehouseReports
         in_project_type(@project_types).
         order(date: :asc).pluck(:date, :client_id).
         group_by { |date, _client_id| date }.
-        map { |date, clients| [date, clients.count] }.to_h
+        transform_values(&:count)
       render json: @counts
     end
 

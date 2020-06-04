@@ -39,7 +39,7 @@ module Cohorts
             # The above is > 50% faster then
             # render json: data_for_table
           else
-            render json: @cohort.cohort_clients.pluck(:id, :updated_at).map { |k, v| [k, v.to_i] }.to_h
+            render json: @cohort.cohort_clients.pluck(:id, :updated_at).transform_values(&:to_i)
           end
         end
         format.html do
