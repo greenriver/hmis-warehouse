@@ -1,0 +1,9 @@
+- content_for :title, title_for_show
+= render 'clients/breadcrumbs'
+
+= render 'clients/aliases'
+= render 'clients/tab_navigation', current: client_hud_lots_path(@client)
+
+.row
+  .col-sm-8
+    %h1= content_for :title
