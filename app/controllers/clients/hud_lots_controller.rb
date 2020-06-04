@@ -26,7 +26,7 @@ class Clients::HudLotsController < ApplicationController
   end
 
   private def set_report
-    @report = GrdaWarehouse::WarehouseReports::HudLot.new(filter: @filter)
+    @report = GrdaWarehouse::WarehouseReports::HudLot.new(client: @client, filter: @filter)
   end
 
   private def title_for_show

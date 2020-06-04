@@ -8,15 +8,18 @@
 
 module GrdaWarehouse::WarehouseReports
   class HudLot
-    attr_accessor :filter
+    attr_accessor :filter, :client
 
-    def initialize(filter)
+    def initialize(client:, filter: )
+      @client = client
       @filter = filter
     end
 
-    private def locations_by_date
-      dates.merge!(ph_dates)
-      dates.merge!(th_dates)
+    def locations_by_date
+      dates
+      # dates.merge!(ph_dates)
+      # dates.merge!(th_dates)
+      # dates.merge!(literally_homeless_dates)
     end
 
     private def dates
@@ -29,7 +32,7 @@ module GrdaWarehouse::WarehouseReports
           d,
           'Permanent Housing'
         ]
-      end
+      end.to_h
     end
 
     private def th_dates
@@ -38,7 +41,7 @@ module GrdaWarehouse::WarehouseReports
           d,
           'Transitional housing'
         ]
-      end
+      end.to_h
     end
 
     private def literally_homeless_dates
@@ -47,12 +50,12 @@ module GrdaWarehouse::WarehouseReports
           d,
           'Documented street/shelter'
         ]
-      end
+      end.to_h
     end
 
     private def services
-      GrdaWarehouse::ServiceHistoryService.
-        service_within_date_range(start_date: filter.start, end_date: filter.end).
+     client.service_history_services.
+        service_within_date_range(start_date: filter.start, end_date: filter.end)
     end
 
     private def ph_services
