@@ -10,6 +10,7 @@ class PerformanceDashboards::BaseController < ApplicationController
 
   def set_filter
     @filter = OpenStruct.new
+    @filter.user = current_user
     @filter.end_date = params.dig(:filters, :end_date)&.to_date || defaults.end_date
     @filter.start_date = params.dig(:filters, :start_date)&.to_date || defaults.start_date
     ensure_dates_work
@@ -20,13 +21,16 @@ class PerformanceDashboards::BaseController < ApplicationController
     @filter.hoh_only = params.dig(:filters, :hoh_only) == '1' || defaults.hoh_only
     @filter.project_type_codes = Array.wrap(params.dig(:filters, :project_types))&.reject { |type| type.blank? }.presence || defaults.project_type_codes
     @filter.project_types = @filter.project_type_codes.map { |type| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[type.to_sym] }.flatten if @filter.project_type_codes.present?
-    @filter.veteran_statuses = params.dig(:filters, :veteran_statuses)&.reject { |status| status.blank? }&.map { |status| status.to_i } || defaults.veteran_statuses
-    @filter.age_ranges = params.dig(:filters, :age_ranges)&.reject { |range| range.blank? }&.map { |range| range.to_sym } || defaults.age_ranges
-    @filter.genders = params.dig(:filters, :genders)&.reject { |gender| gender.blank? }&.map { |gender| gender.to_i } || defaults.genders
+    @filter.data_source_ids = params.dig(:filters, :data_source_ids)&.reject(&:blank?)&.map(&:to_i) || defaults.data_source_ids
+    @filter.organization_ids = params.dig(:filters, :organization_ids)&.reject(&:blank?)&.map(&:to_i) || defaults.organization_ids
+    @filter.project_ids = params.dig(:filters, :project_ids)&.reject(&:blank?)&.map(&:to_i) || defaults.project_ids
+    @filter.veteran_statuses = params.dig(:filters, :veteran_statuses)&.reject(&:blank?)&.map(&:to_i) || defaults.veteran_statuses
+    @filter.age_ranges = params.dig(:filters, :age_ranges)&.reject(&:blank?)&.map { |range| range.to_sym } || defaults.age_ranges
+    @filter.genders = params.dig(:filters, :genders)&.reject(&:blank?)&.map { |gender| gender.to_i } || defaults.genders
     @filter.sub_population = params.dig(:filters, :sub_population)&.to_sym || defaults.sub_population
     races = params.dig(:filters, :races)&.select { |race| HUD.races.keys.include?(race) } || defaults.races
     @filter.races = races.map { |race| [race, 1] }.to_h
-    @filter.ethnicities = params.dig(:filters, :ethnicities)&.reject { |ethnicity| ethnicity.blank? }&.map { |ethnicity| ethnicity.to_i } || defaults.ethnicities
+    @filter.ethnicities = params.dig(:filters, :ethnicities)&.reject(&:blank?)&.map { |ethnicity| ethnicity.to_i } || defaults.ethnicities
 
     @comparison_filter = @filter.deep_dup
     return if @filter.comparison_pattern == :no_comparison_period
@@ -55,6 +59,9 @@ class PerformanceDashboards::BaseController < ApplicationController
       genders: [],
       races: [],
       ethnicities: [],
+      data_source_ids: [],
+      organization_ids: [],
+      project_ids: [],
     )
   end
   helper_method :defaults
@@ -118,6 +125,9 @@ class PerformanceDashboards::BaseController < ApplicationController
         genders: [],
         races: [],
         ethnicities: [],
+        data_source_ids: [],
+        organization_ids: [],
+        project_ids: [],
       ],
     )
   end

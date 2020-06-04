@@ -74,6 +74,30 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     }.invert.freeze
   end
 
+  def available_data_sources_for_select
+    GrdaWarehouse::DataSource.viewable_by(@filter.user).options_for_select(user: @filter.user)
+  end
+
+  def data_source_names
+    available_data_sources_for_select.select { |_, id| @filter.data_source_ids.include?(id) }&.map(&:first)
+  end
+
+  def available_organizations_for_select
+    GrdaWarehouse::Hud::Organization.viewable_by(@filter.user).options_for_select(user: @filter.user)
+  end
+
+  def organization_names
+    available_organizations_for_select.values.flatten(1).select { |_, id| @filter.organization_ids.include?(id) }&.map(&:first)
+  end
+
+  def available_projects_for_select
+    GrdaWarehouse::Hud::Project.viewable_by(@filter.user).options_for_select(user: @filter.user)
+  end
+
+  def project_names
+    available_projects_for_select.values.flatten(1).select { |_, id| @filter.project_ids.include?(id) }&.map(&:first)
+  end
+
   def chosen_age_ranges
     @age_ranges.map do |range|
       age_ranges.invert[range]
@@ -156,11 +180,15 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     scope = filter_for_ethnicity(scope)
     scope = filter_for_veteran_status(scope)
     scope = filter_for_project_type(scope, all_project_types: all_project_types)
+    scope = filter_for_data_sources(scope)
+    scope = filter_for_organizations(scope)
+    scope = filter_for_projects(scope)
     scope
   end
 
   private def filter_for_range(scope)
-    scope.open_between(start_date: @start_date, end_date: @end_date)
+    scope.open_between(start_date: @start_date, end_date: @end_date).
+      with_service_between(start_date: @start_date, end_date: @end_date)
   end
 
   private def filter_for_cocs(scope)
@@ -267,6 +295,24 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     return scope if all_project_types
 
     scope.in_project_type(@project_types)
+  end
+
+  private def filter_for_projects(scope)
+    return scope if @filter.project_ids.blank?
+
+    scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+  end
+
+  private def filter_for_data_sources(scope)
+    return scope if @filter.data_source_ids.blank?
+
+    scope.in_data_source(@filter.data_source_ids).joins(:data_source).merge(GrdaWarehouse::DataSource.viewable_by(@filter.user))
+  end
+
+  private def filter_for_organizations(scope)
+    return scope if @filter.organization_ids.blank?
+
+    scope.in_organization(@filter.organization_ids).merge(GrdaWarehouse::Hud::Organization.viewable_by(@filter.user))
   end
 
   private def filter_for_sub_population(scope)
