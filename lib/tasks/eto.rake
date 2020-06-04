@@ -51,7 +51,7 @@ namespace :eto do
     desc "Fetch ETO data via QaaWS and API"
     task :demographics_and_touch_points, [:start_date] => [:environment, "log:info_to_stdout"] do |t, args|
       # start_date = args.start_date&.to_date || 6.months.ago
-      start_date = args.start_date&.to_date || 4.years.ago.to_date
+      start_date = args.start_date&.to_date || 2.years.ago.to_date
       # Fetch via QaaWS all the available
       GrdaWarehouse::EtoApiConfig.active.find_each do |config|
         data_source_id = config.data_source_id
