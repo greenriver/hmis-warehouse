@@ -109,7 +109,9 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
     end
 
     protected def client_id_from_personal_id(personal_id)
-      @client_ids ||= client_source.pluck(:PersonalID, :id).transform_keys(&:upcase)
+      @client_ids ||= client_source.pluck(:PersonalID, :id).map do |p_id, id| # rubocop:disable Style/HashTransformKeys
+        [p_id.upcase, id]
+      end.to_h
       @client_ids[personal_id.upcase]
     end
   end

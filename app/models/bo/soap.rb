@@ -55,8 +55,8 @@ module Bo
         return [] if table.blank?
 
         table['row'].map do |row|
-          row.transform_keys do |k|
-            k.downcase.underscore.to_sym
+          row.map do |k, v| # rubocop:disable Style/HashTransformKeys
+            [k.downcase.underscore.to_sym, v]
           end.to_h
         end
       rescue StandardError
