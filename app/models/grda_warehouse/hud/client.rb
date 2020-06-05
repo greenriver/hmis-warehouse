@@ -1863,6 +1863,8 @@ module GrdaWarehouse::Hud
 
     def auto_health_prioritized_for_cas?
       return false unless GrdaWarehouse::Config.get(:health_priority_age).present?
+      return false unless age.present?
+
       age >= GrdaWarehouse::Config.get(:health_priority_age)
     end
 

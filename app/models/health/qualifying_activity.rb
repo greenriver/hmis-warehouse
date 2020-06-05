@@ -410,6 +410,7 @@ module Health
 
     def compute_procedure_valid?
       return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && self.reached_client.present?
+
       procedure_code = self.procedure_code
       modifiers = self.modifiers
       reached_client = self.reached_client
@@ -530,6 +531,11 @@ module Health
       self.save(validate: false) if self.changed?
     end
 
+    def maintain_cached_values
+      maintain_procedure_valid
+      maintain_valid_unpayable
+    end
+
     def maintain_valid_unpayable
       self.valid_unpayable = compute_valid_unpayable?
       self.save(validate: false)
@@ -541,16 +547,21 @@ module Health
     end
 
     def compute_valid_unpayable?
+      computed_procedure_valid = compute_procedure_valid?
+
       # Case 1: Only valid procedures
-      return false unless compute_procedure_valid?
+      return false unless computed_procedure_valid
 
       # Valid procedure, didn't occur during the enrollment
-      return true if compute_procedure_valid? && ! occurred_during_any_enrollment?
+      return true if computed_procedure_valid && ! occurred_during_any_enrollment?
 
       # Case 2: Unpayable if this was a phone/video call where the client wasn't reached
       if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
         return true
       end
+
+      # FIXME: Do we need a special case for PCTP signed is always payable?
+      # return false if activity == 'pctp_signed'
 
       # Case 2: Outreach is limited by the outreach cut-off date, enrollment ranges, and frequency
       if outreach?
@@ -560,7 +571,7 @@ module Health
         return true if number_of_outreach_activity_months > 3
       else
         # Case 3: Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
-        unless patient_has_signed_careplan?
+        if ! patient_has_signed_careplan?
           return true unless first_non_outreach_of_month_for_patient?
           return true if patient.engagement_date.blank?
           return true if date_of_activity > patient.engagement_date
@@ -610,6 +621,10 @@ module Health
 
     def patient_has_signed_careplan?
       patient.careplans.fully_signed.exists?
+    end
+
+    def no_signed_careplan?
+      ! patient_has_signed_careplan?
     end
 
     def once_per_day_procedure_codes
