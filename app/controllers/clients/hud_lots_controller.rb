@@ -35,7 +35,7 @@ class Clients::HudLotsController < ApplicationController
   helper_method :title_for_show
 
   private def set_filter
-    @filter = ::Filters::DateRange.new(start: @end_date, end: @start_date)
+    @filter = ::Filters::DateRange.new(start: @start_date, end: @end_date)
   end
 
   private def set_dates

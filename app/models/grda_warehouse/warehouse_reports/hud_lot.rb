@@ -16,10 +16,9 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def locations_by_date
-      dates
-      # dates.merge!(ph_dates)
-      # dates.merge!(th_dates)
-      # dates.merge!(literally_homeless_dates)
+      dates.merge!(ph_dates)
+      dates.merge!(th_dates)
+      dates.merge!(literally_homeless_dates)
     end
 
     private def dates
@@ -45,12 +44,27 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def literally_homeless_dates
-      @literally_homeless_dates ||= literally_homeless_services.distinct.pluck(:date).map do |d|
-        [
-          d,
-          'Documented street/shelter'
-        ]
-      end.to_h
+      @literally_homeless_dates ||= begin
+        lit_dates = literally_homeless_services.distinct.order(date: :asc).pluck(:date).map do |d|
+          [
+            d,
+            'Documented street/shelter'
+          ]
+        end
+        extra_days = {}
+        # Fill in any gaps of < 7 days
+        lit_dates.select{|_, v| v.present?}.each_with_index do |(date, _), i|
+          next_i = i + 1
+          next if lit_dates.count == next_i
+          next_date = lit_dates[next_i].first
+          if next_date < date + 7.days
+            (date..next_date).each do |d|
+              extra_days[d] = 'Documented street/shelter'
+            end
+          end
+        end
+        lit_dates.to_h.merge(extra_days)
+      end
     end
 
     private def services
