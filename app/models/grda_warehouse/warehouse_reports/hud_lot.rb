@@ -6,6 +6,8 @@
 
 # Logic from https://www.hudexchange.info/resource/5689/client-level-system-use-and-length-of-time-homeless-report/
 
+# NOTE: https://hmis-warehouse.dev.test/clients/99293/hud_lots
+
 module GrdaWarehouse::WarehouseReports
   class HudLot
     attr_accessor :filter, :client
@@ -16,9 +18,14 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def locations_by_date
-      dates.merge!(ph_dates)
-      dates.merge!(th_dates)
-      dates.merge!(literally_homeless_dates)
+      @locations_by_date ||= begin
+        l_dates = dates.dup
+        l_dates.merge!(ph_dates)
+        l_dates.merge!(th_dates)
+        l_dates.merge!(literally_homeless_dates)
+        l_dates.merge!(breaks(l_dates))
+        l_dates
+      end
     end
 
     private def dates
@@ -29,7 +36,7 @@ module GrdaWarehouse::WarehouseReports
       @ph_dates ||= ph_services.distinct.pluck(:date).map do |d|
         [
           d,
-          'Permanent Housing'
+          ph_stay,
         ]
       end.to_h
     end
@@ -38,7 +45,7 @@ module GrdaWarehouse::WarehouseReports
       @th_dates ||= th_services.distinct.pluck(:date).map do |d|
         [
           d,
-          'Transitional housing'
+          th_stay,
         ]
       end.to_h
     end
@@ -48,7 +55,7 @@ module GrdaWarehouse::WarehouseReports
         lit_dates = literally_homeless_services.distinct.order(date: :asc).pluck(:date).map do |d|
           [
             d,
-            'Documented street/shelter'
+            shelter_stay,
           ]
         end
         extra_days = {}
@@ -59,12 +66,56 @@ module GrdaWarehouse::WarehouseReports
           next_date = lit_dates[next_i].first
           if next_date < date + 7.days
             (date..next_date).each do |d|
-              extra_days[d] = 'Documented street/shelter'
+              extra_days[d] = shelter_stay
             end
           end
         end
         lit_dates.to_h.merge(extra_days)
       end
+    end
+
+    # A break is added any time a PH/TH stay is started between two street stays
+    # and lasts more than 7 days
+    private def breaks(un_processed_dates)
+      breaks = {}
+      a_dates = un_processed_dates.to_a
+      present_dates = a_dates.select{|_, v| v.present?}
+      present_dates.each_with_index do |(date, type), i|
+        next if shelter_stay?(type)
+        previous_i = i - 1
+        next unless shelter_stay?(present_dates[previous_i].last)
+        break unless present_dates.map(&:last)[i..].include?(shelter_stay)
+        next if next_7_days_includes_shelter?(date, un_processed_dates)
+
+        breaks[date] = break_marker
+      end
+      breaks
+    end
+
+    private def next_7_days_includes_shelter?(date, check_dates)
+      (date..date + 7.days).map do |d|
+        check_dates[d]
+      end.include?(shelter_stay)
+    end
+
+    private def break_marker
+      'Documented break entering TH/PH'
+    end
+
+    private def shelter_stay
+      'Documented street/shelter'
+    end
+
+    private def shelter_stay?(type)
+      type == shelter_stay
+    end
+
+    private def th_stay
+      'Transitional housing'
+    end
+
+    private def ph_stay
+      'Permanent Housing'
     end
 
     private def services
@@ -77,7 +128,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def th_services
-      @th_services ||= services.transitional_housing.non_homeless
+      @th_services ||= services.transitional_housing
     end
 
     private def literally_homeless_services
