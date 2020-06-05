@@ -15,10 +15,7 @@ module Health::Tasks
         # to avoid very old QAs
         date_range = (Date.current - 180.days..Date.current)
         qa_scope = Health::QualifyingActivity.joins(:patient).unsubmitted.in_range(date_range)
-        qa_scope.find_each do |qa|
-          qa.maintain_valid_unpayable
-          qa.maintain_procedure_valid
-        end
+        qa_scope.find_each(&:maintain_cached_values)
       end
     end
   end
