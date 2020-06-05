@@ -3,28 +3,29 @@
 %header.mb-3
   %h1= content_for :title
 
+- if @contents
+  .well
+    .row
+      .col-12
+        - if @contents
+          .text-right
+            = link_to 'Regenerate Report', edit_hud_reports_apr_path(@report, generator: @generator_id), class: 'btn btn-secondary'
+            = link_to({format: :zip},{class: 'btn btn-primary'}) do
+              %span.icon-download2
+              Download Zip File
+    .row
+      .col-12
+        = render 'parameters', report: @report
+        %p
+          Results included in this download will include the following:
+        %ul.list-unstyled.ml-4
+          - @questions.each do |item|
+            %li
+              = checkmark_or_x @contents.include?(item)
+              = item
+- else
+  = render 'form'
+
 .row
   .col-12
-    - if @contents
-      .text-right
-        = link_to 'Regenerate Report', edit_hud_reports_apr_path(@generator_id), class: 'btn btn-secondary'
-        = link_to({format: :zip},{class: 'btn btn-primary'}) do
-          %span.icon-download2
-          Download Zip File
-    - else
-      .text-right
-        = link_to 'Generate Report', edit_hud_reports_apr_path(@generator_id), class: 'btn btn-secondary'
-.row
-  .col-12
-    - if @contents
-      %h3 Report Details
-      = render 'parameters', report: @report
-      %p
-        Results included in this download will include the following:
-      %ul.list-unstyled.ml-4
-        - @questions.each do |item|
-          %li
-            = checkmark_or_x @contents.include?(item)
-            = item
-    - else
-      No generated report.
+    = render 'reports'

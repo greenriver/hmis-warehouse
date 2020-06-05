@@ -66,5 +66,9 @@ module HudReports
     def column_names
       (@metadata['first_column']..@metadata['last_column'])
     end
+
+    def display_column_names
+      ('A'..@metadata['last_column'])
+    end
   end
 end

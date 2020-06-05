@@ -1,5 +1,5 @@
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
-= simple_form_for :filter, method: :patch, url: hud_reports_apr_path(@generator_id) do |f|
+= simple_form_for :filter, method: :patch, url: hud_reports_apr_path(generator: @generator_id) do |f|
   - content_for :filters_col_full do
     .row
       .col-sm-4

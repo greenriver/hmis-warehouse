@@ -7,6 +7,9 @@
 module HudReports
   class AprsController < ApplicationController
     before_action :set_generator, except: [:index]
+    before_action :set_reports, except: [:index]
+    before_action :set_report, only: [:show]
+
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq
       @report_urls = report_urls
@@ -16,13 +19,11 @@ module HudReports
     def show
       respond_to do |format|
         format.html do
-          @report =  @generator.find_report(current_user)
           @questions = @generator.questions.keys
           @contents = @report&.completed_questions
         end
         format.zip do
-          report = @generator.find_report(current_user)
-          exporter = HudReports::ZipExporter.new(report)
+          exporter = HudReports::ZipExporter.new(@report)
           date = Date.current.strftime('%Y-%m-%d')
           send_data exporter.export!, filename: "apr-#{date}.zip"
         end
@@ -30,8 +31,6 @@ module HudReports
     end
 
     def edit
-      titles = generators.map(&:title)
-      @reports = HudReports::ReportInstance.where(report_name: titles).order(created_at: :desc)
     end
 
     def update
@@ -54,8 +53,22 @@ module HudReports
     end
 
     def set_generator
-      @generator_id = params[:id].to_i
+      @generator_id = params[:generator].to_i
       @generator = generators[@generator_id]
+    end
+
+    def set_report
+      report_id = params[:id].to_i
+      if report_id.zero?
+        @report = @generator.find_report(current_user)
+      else
+        @report = report_source.find(report_id)
+      end
+    end
+
+    def set_reports
+      titles = generators.map(&:title)
+      @reports = report_source.where(report_name: titles).order(created_at: :desc)
     end
 
     def generators
@@ -68,6 +81,10 @@ module HudReports
       [
         ['Annual Performance Report', hud_reports_aprs_path],
       ]
+    end
+
+    def report_source
+      HudReports::ReportInstance
     end
   end
 end

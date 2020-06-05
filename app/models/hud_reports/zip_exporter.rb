@@ -15,8 +15,11 @@ module HudReports
     def export!
       create_export_directory
       begin
-        @report.question_names.each do |question|
-          metadata = @report.answer(question: question).metadata
+        @report.question_names.each do |question_name|
+          question = @report.answer(question: question_name)
+          next unless question.status == 'Completed'
+
+          metadata = question.metadata
           metadata['tables'].each do |table|
             exporter = CsvExporter.new(@report, table)
             exporter.export(@file_path)

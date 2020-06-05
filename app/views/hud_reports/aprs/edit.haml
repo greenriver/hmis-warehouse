@@ -1,21 +1,4 @@
 = render 'breadcrumbs'
 = render 'form'
 
-%table.table
-  %thead
-    %tr
-      %th Status
-      %th Started
-      %th Limits
-      %th Run by
-      %th Completed in
-      %th Delete
-  %tbody
-    - @reports.each do |report|
-      %tr
-        %td= report.state
-        %td= report.started_at
-        %td= render 'parameters', report: report
-        %td= report.user.name
-        %td= report.completed_at
-        %td
+= render 'reports'

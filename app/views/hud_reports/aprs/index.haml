@@ -9,7 +9,7 @@
   - @generators.each_with_index do |generator, index|
     %thead
       %th
-        = link_to generator.title, hud_reports_apr_path(index)
+        = link_to generator.title, hud_reports_apr_path(0, generator: index) # 0 is a special id meaning current
       %th
         - if show_header
           = 'Last Run'

@@ -10,4 +10,4 @@
 - metadata['tables'].each do |table|
   %h2= table
   - exporter = HudReports::CsvExporter.new(@report, table)
-  = render 'table', columns: exporter.column_names, rows: exporter.as_array
+  = render 'table', columns: exporter.display_column_names, rows: exporter.as_array
