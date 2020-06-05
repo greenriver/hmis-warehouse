@@ -14,8 +14,8 @@
     %p= page_entries_info @clients, entry_name: _('client')
   .col-md-8.d-flex
     %p.ml-auto= paginate @clients
-.table-responsive
-  %table.table.table-condensed.jClientTable
+.overflow-x-scroll{style: "height: 800px"}
+  %table.table.table-fixed.table-striped.jClientTable
     %thead
       %tr
         %th Client
@@ -35,15 +35,15 @@
         %tr
           %td= link_to(client.name, client_path(client))
           %td= client.age
-          %td
+          %td.text-center
             - disability = @disabilities.key?(client.id)
             - if disability.present?
               = checkmark_or_x(disability)
-          %td
+          %td.text-center
             - vispdat_disability = @vispdat_disabilities[client.id]
             - if vispdat_disability.present?
               = checkmark_or_x(vispdat_disability.last == 'Yes')
-          %td= checkmark_or_x(@vispdats.include?(client.id))
+          %td.text-center= checkmark_or_x(@vispdats.include?(client.id))
           %td= client.race_description
           %td= HUD.ethnicity(client.Ethnicity)
           %td= render 'form', client: client

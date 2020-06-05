@@ -88,6 +88,16 @@ module WarehouseReports::Cas
     end
 
     private def client_ids_with_vispdat_disability(client_scope)
+      vispdat_disability = client_ids_with_vispdat_disability_from_touch_point(client_scope)
+      vispdat_disability.merge(client_ids_with_vispdat_disability_from_warehouse(client_scope))
+    end
+
+    private def client_ids_with_vispdats(client_scope)
+      vispdat = client_ids_with_vispdat_from_touch_point(client_scope)
+      vispdat + client_ids_with_vispdat_from_warehouse(client_scope)
+    end
+
+    private def client_ids_with_vispdat_disability_from_touch_point(client_scope)
       GrdaWarehouse::Hud::Client.where(id: client_scope.select(:id)).
         joins(:source_hmis_forms).
         merge(GrdaWarehouse::HmisForm.vispdat.where(vispdat_physical_disability_answer: ['Yes', 'No'])).
@@ -96,11 +106,37 @@ module WarehouseReports::Cas
         index_by(&:first) # order clause ensures most-recent response when indexed
     end
 
-    private def client_ids_with_vispdats(client_scope)
+    private def client_ids_with_vispdat_from_touch_point(client_scope)
       GrdaWarehouse::Hud::Client.where(id: client_scope.select(:id)).
         distinct.
         joins(:source_hmis_forms).
         merge(GrdaWarehouse::HmisForm.vispdat).
+        pluck(c_t[:id])
+    end
+
+    private def client_ids_with_vispdat_disability_from_warehouse(client_scope)
+      GrdaWarehouse::Hud::Client.where(id: client_scope.select(:id)).
+        joins(:vispdats).
+        merge(GrdaWarehouse::Vispdat::Base.completed.where(chronic_answer: [0, 1])).
+        order(submitted_at: :asc).
+        pluck(c_t[:id], vispdat_t[:chronic_answer]).
+        index_by(&:first). # order clause ensures most-recent response when indexed
+        transform_values do |row|
+          v = row.last
+          v = if v.zero?
+            'No'
+          elsif v.positive?
+            'Yes'
+          end
+          [row.first, v]
+        end
+    end
+
+    private def client_ids_with_vispdat_from_warehouse(client_scope)
+      GrdaWarehouse::Hud::Client.where(id: client_scope.select(:id)).
+        distinct.
+        joins(:vispdats).
+        merge(GrdaWarehouse::Vispdat::Base.completed).
         pluck(c_t[:id])
     end
   end

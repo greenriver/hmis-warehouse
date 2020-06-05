@@ -188,6 +188,14 @@ module ArelHelper
     GrdaWarehouse::CohortClient.arel_table
   end
 
+  def yib_t
+    GrdaWarehouse::YouthIntake::Base.arel_table
+  end
+
+  def vispdat_t
+    GrdaWarehouse::Vispdat::Base.arel_table
+  end
+
   def hp_t
     Health::Patient.arel_table
   end
@@ -246,10 +254,6 @@ module ArelHelper
 
   def h_cp_t
     Health::Careplan.arel_table
-  end
-
-  def yib_t
-    GrdaWarehouse::YouthIntake::Base.arel_table
   end
 
   def htca_t
@@ -487,6 +491,14 @@ module ArelHelper
 
     def c_client_t
       GrdaWarehouse::CohortClient.arel_table
+    end
+
+    def yib_t
+      GrdaWarehouse::YouthIntake::Base.arel_table
+    end
+
+    def vispdat_t
+      GrdaWarehouse::Vispdat::Base.arel_table
     end
 
     def hp_t
