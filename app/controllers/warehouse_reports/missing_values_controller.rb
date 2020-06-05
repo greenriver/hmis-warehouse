@@ -301,7 +301,7 @@ module WarehouseReports
 
       def normalize_hash(h) # rubocop:disable Naming/MethodParameterName
         h = h.to_hash.first
-        h.map { |k, v| [k.tr('_', ' '), v] }.to_h.with_indifferent_access
+        h.transform_keys { |k| k.tr('_', ' ') }.with_indifferent_access
       end
 
       def client_counts
@@ -316,7 +316,7 @@ module WarehouseReports
             end
             if cols.many?
               first_q = cols.first.eq nil
-              union = cols[1..-1].reduce(first_q) { |c1, c2| c1.and(c2.eq nil) }
+              union = cols[1..].reduce(first_q) { |c1, c2| c1.and(c2.eq nil) }
               s = s.select make_count(union, all_missing_clients_field_key.tr(' ', '_'))
             end
             s = s.select(*cols.map { |c| make_count(c.eq(nil), c.name.to_s) })
@@ -335,7 +335,7 @@ module WarehouseReports
             s = scope
             if cols.many?
               first_q = cols.first.eq nil
-              union = cols[1..-1].reduce(first_q) { |c1, c2| c1.and(c2.eq nil) }
+              union = cols[1..].reduce(first_q) { |c1, c2| c1.and(c2.eq nil) }
               s = s.select make_count(union, all_missing_enrollments_field_key.tr(' ', '_'))
             end
             s = s.select(*cols.map { |c| make_count(c.eq(nil), c.name.to_s) })

@@ -1,0 +1,6 @@
+@mixin full-bleed {
+  margin-left: - $container-padding;
+  margin-right: - $container-padding;
+  padding-left: $container-padding;
+  padding-right: $container-padding;
+}

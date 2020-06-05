@@ -85,9 +85,25 @@ module Health
     scope :completed_within_range, -> (range) do
       where(completed_at: range)
     end
-    scope :after_enrollment_date, -> do
-      joins(patient: :patient_referral).
-      where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date]))
+    scope :during_current_enrollment, -> do
+      where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date])).
+      joins(patient: :patient_referral)
+    end
+
+    scope :during_contributing_enrollments, -> do
+      where(arel_table[:completed_at].gteq(hpr_t[:enrollment_start_date])).
+        joins(patient: :patient_referrals).
+        merge(Health::PatientReferral.contributing)
+    end
+
+    scope :allowed_for_engagement, -> do
+      joins(patient: :patient_referrals).
+        merge(
+          Health::PatientReferral.contributing.
+            where(
+              hpr_t[:enrollment_start_date].lt(Arel.sql("#{arel_table[:completed_at].to_sql} + INTERVAL '1 year'"))
+            )
+        )
     end
 
     attr_accessor :file

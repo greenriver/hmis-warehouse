@@ -87,7 +87,7 @@ module Health
       if last_cha.present?
         # To enable translations, the answers column is populated by before_save
         # from attributes
-        Health::ComprehensiveHealthAssessment::QUESTION_ANSWER_OPTIONS.keys.each do |section_question|
+        Health::ComprehensiveHealthAssessment::QUESTION_ANSWER_OPTIONS.each_key do |section_question|
           cha.assign_attributes(section_question => last_cha.answer(section_question))
         end
       end

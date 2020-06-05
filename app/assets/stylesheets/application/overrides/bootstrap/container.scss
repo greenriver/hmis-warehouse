@@ -2,7 +2,7 @@
 
 .container-fluid {
   @include media-breakpoint-up(md) {
-    padding-right: 30px;
-    padding-left: 30px;
+    padding-right: $container-padding;
+    padding-left: $container-padding;
   }
 }

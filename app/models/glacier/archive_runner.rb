@@ -34,9 +34,11 @@ module Glacier
 
         databases.each do |database_name|
           Backup.new({
-            cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9 | gpg -e -r #{recipient}",
-            archive_name: "#{client}-#{Rails.env}-#{database_name}-#{@snapshot_date}",
-            notes: "Database backup of #{database_name}. Compressed with gzip and encrypted for #{recipient}. Ensure your .pgpass file has the needed password. Restore command will be of the form `gpg -d | gunzip | psql --host= --username= --no-password -d <database>`"
+            # cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9 | gpg -e -r #{recipient}",
+            cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9",
+            archive_name: "#{client}-#{Rails.env}-#{database_name}-no-gpg-#{@snapshot_date}",
+            # notes: "Database backup of #{database_name}. Compressed with gzip and encrypted for #{recipient}. Ensure your .pgpass file has the needed password. Restore command will be of the form `gpg -d | gunzip | psql --host= --username= --no-password -d <database>`"
+            notes: "Database backup of #{database_name}. Compressed with gzip. Not encrypted. Ensure your .pgpass file has the needed password. Restore command will be of the form `gunzip | psql --host= --username= --no-password -d <database>`"
           }).run!
         end
       end

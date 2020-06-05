@@ -9,7 +9,7 @@ module Reporting
     attr_accessor :coc_code
     attr_accessor :report_id
 
-    queue_as :high_priority
+    queue_as :long_running
 
     def initialize(coc_code:, report_id:, current_user_id:)
       GrdaWarehouse::DashboardExportReport.find(report_id).update(started_at: Time.now)

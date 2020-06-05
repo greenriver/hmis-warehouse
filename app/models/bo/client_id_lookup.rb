@@ -8,16 +8,17 @@ module Bo
   class ClientIdLookup
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :notifier
+    attr_reader :data_source_id
 
     # api_site_identifier is the numeral that represents the same connection
     # on the API side
-    def initialize(api_site_identifier:, debug: true, start_time: 6.months.ago, force_disability_verification: false)
-      @api_site_identifier = api_site_identifier
+    def initialize(data_source_id:, debug: true, start_time: 6.months.ago, force_disability_verification: false)
+      @data_source_id = data_source_id
       @start_time = start_time
       @debug = debug
       @force_disability_verification = force_disability_verification
-      @api_config = api_config_from_site_identifier @api_site_identifier
-      @data_source_id = @api_config['data_source_id']
+      (@api_site_identifier, @api_config) = api_config_from_data_source_id(@data_source_id)
+
       @config = Bo::Config.find_by(data_source_id: @data_source_id)
       setup_notifier('ETO QaaWS Importer')
       api_connect
@@ -45,15 +46,18 @@ module Bo
       end
     end
 
-    def api_config_from_site_identifier(site_identifier)
-      key = ENV.fetch("ETO_API_SITE#{site_identifier}")
-      EtoApi::Base.api_configs[key]
+    # def api_config_from_site_identifier(site_identifier)
+    #   key = ENV.fetch("ETO_API_SITE#{site_identifier}")
+    #   EtoApi::Base.api_configs[key]
+    # end
+
+    def api_config_from_data_source_id(data_source_id)
+      EtoApi::Base.api_config_for_data_source_id(data_source_id)
     end
 
     def api_connect
-      key = ENV.fetch("ETO_API_SITE#{@api_site_identifier}")
-      @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: @data_source_id)
-      @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
+      @custom_config = GrdaWarehouse::EtoApiConfig.active.find_by(data_source_id: @data_source_id)
+      @api = EtoApi::Detail.new(trace: @trace, api_connection: @api_site_identifier)
       @api.connect
     end
 
@@ -140,13 +144,13 @@ module Bo
     def fetch_batches_of_touch_point_dates
       rows = []
       total_batches = week_ranges.count * touch_point_ids.count
-      msg = "Fetching #{total_batches} #{'batch'.pluralize(week_ranges.count)} of touch points. From #{week_ranges.first.first} to #{week_ranges.last.last}"
+      msg = "Fetching #{total_batches} #{'batch'.pluralize(week_ranges.count)} of touch points. From #{week_ranges.first.first} to #{week_ranges.last.last} for data source #{@data_source_id}"
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
       week_ranges.each_with_index do |(start_time, end_time), index|
         # fetch responses for one touch point at a time to avoid timeouts
         touch_point_ids.each_with_index do |tp_id, tp_index|
-          Rails.logger.info "Fetching batch #{(index * week_ranges.count) + (tp_index + 1)} (TP: #{tp_id}) -- #{start_time} to #{end_time}" if @debug
+          Rails.logger.info "Fetching batch #{(index * week_ranges.count) + (tp_index + 1)} (TP: #{tp_id}) -- #{start_time} to #{end_time} for data source #{@data_source_id}" if @debug
           begin
             response = fetch_touch_point_modification_dates(
               start_time: start_time,
@@ -154,7 +158,7 @@ module Bo
               tp_id: tp_id,
             )
           rescue Bo::Soap::RequestFailed => e
-            msg = "FAILED to fetch batch #{start_time} .. #{end_time} for TP: #{tp_id} \n #{e.message}"
+            msg = "FAILED to fetch batch #{start_time} .. #{end_time} for TP: #{tp_id} \n #{e.message} for data source #{@data_source_id}"
             Rails.logger.info msg
             @notifier.ping msg if send_notifications && msg.present?
 
@@ -163,7 +167,7 @@ module Bo
           rows += response if response.present?
         end
       end
-      msg = "Fetched batches of touch points. Found #{rows.count} touch point responses"
+      msg = "Fetched batches of touch points. Found #{rows.count} touch point responses for data source #{@data_source_id}"
       Rails.logger.info msg
       @notifier.ping msg if send_notifications && msg.present?
       rows

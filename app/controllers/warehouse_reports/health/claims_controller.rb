@@ -26,25 +26,6 @@ module WarehouseReports::Health
         @unpayable = {}
         @duplicate = {}
         @valid_unpayable = {}
-        # @report.qualifying_activities.joins(:patient).
-        #   preload(:patient).
-        #   order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
-        #   each do |qa|
-        #   # Bucket results
-        #   if qa.duplicate? && qa.naturally_payable?
-        #     @duplicate[qa.patient_id] ||= []
-        #     @duplicate[qa.patient_id] << qa
-        #   elsif qa.naturally_payable? && qa.valid_unpayable?
-        #     @valid_unpayable[qa.patient_id] ||= []
-        #     @valid_unpayable[qa.patient_id] << qa
-        #   elsif ! qa.naturally_payable?
-        #     @unpayable[qa.patient_id] ||= []
-        #     @unpayable[qa.patient_id] << qa
-        #   else
-        #     @payable[qa.patient_id] ||= []
-        #     @payable[qa.patient_id] << qa
-        #   end
-        # end
       elsif Health::Claim.incomplete.exists?
         @state = :running
         @report = Health::Claim.incomplete.last || Health::Claim.queued.last
@@ -97,7 +78,7 @@ module WarehouseReports::Health
       @report.qualifying_activities.joins(:patient).
         preload(patient: :patient_referral).
         order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
-        each do |qa|
+        find_each do |qa|
         # Bucket results
         if qa.duplicate? && qa.naturally_payable?
           @duplicate[qa.patient_id] ||= []
@@ -140,13 +121,13 @@ module WarehouseReports::Health
       begin
         @report.save if @report.valid?
         job = Delayed::Job.enqueue(
-          ::WarehouseReports::HealthQualifyingActivitiesPayabilityJob.new(
+          ::Health::QualifyingActivitiesPayabilityJob.new(
             report_id: @report.id,
             current_user_id: current_user.id,
             max_date: @report.max_date,
             test_file: @report.test_file,
           ),
-          queue: :low_priority,
+          queue: :long_running,
         )
         @report.update(job_id: job.id)
         redirect_to action: :index
@@ -154,37 +135,6 @@ module WarehouseReports::Health
         respond_with @report, location: warehouse_reports_health_claims_path
       end
     end
-
-    # def qualifying_activities_for_patients
-    #   patient_ids = params[:patient_ids].split(',').compact.map(&:to_i)
-    #   qualifying_activities = Health::QualifyingActivity.unsubmitted.
-    #     where(patient_id: patient_ids).
-    #     order(date_of_activity: :asc, id: :asc).
-    #     preload(patient: :client)
-    #   @payable = {}
-    #   @unpayable = {}
-    #   @duplicate = {}
-    #   @valid_unpayable = {}
-    #   qualifying_activities.each do |qa|
-    #     # force re-calculation
-    #     qa.calculate_payability!
-    #     # Bucket results
-    #     if qa.duplicate? && qa.naturally_payable?
-    #       @duplicate[qa.patient_id] ||= []
-    #       @duplicate[qa.patient_id] << qa
-    #     elsif qa.naturally_payable? && qa.valid_unpayable?
-    #         @valid_unpayable[qa.patient_id] ||= []
-    #         @valid_unpayable[qa.patient_id] << qa
-    #     elsif ! qa.naturally_payable?
-    #       @unpayable[qa.patient_id] ||= []
-    #       @unpayable[qa.patient_id] << qa
-    #     else
-    #       @payable[qa.patient_id] ||= []
-    #       @payable[qa.patient_id] << qa
-    #     end
-    #   end
-    #   render layout: false
-    # end
 
     def show
       respond_to do |format|
@@ -203,13 +153,13 @@ module WarehouseReports::Health
 
     def generate_claims_file
       job = Delayed::Job.enqueue(
-        ::WarehouseReports::HealthClaimsJob.new(
+        ::Health::ClaimsJob.new(
           report_id: @report.id,
           current_user_id: current_user.id,
           max_date: @report.max_date,
           test_file: @report.test_file,
         ),
-        queue: :low_priority,
+        queue: :long_running,
       )
       @report.update(job_id: job.id, started_at: Time.now)
       respond_with @report, location: warehouse_reports_health_claims_path

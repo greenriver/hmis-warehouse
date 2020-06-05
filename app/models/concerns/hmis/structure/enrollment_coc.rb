@@ -80,6 +80,7 @@ module HMIS::Structure::EnrollmentCoC
       {
         [:DateCreated] => nil,
         [:DateUpdated] => nil,
+        [:DateDeleted] => nil,
         [:EnrollmentID] => nil,
         [:PersonalID] => nil,
         [:EnrollmentCoCID] => nil,

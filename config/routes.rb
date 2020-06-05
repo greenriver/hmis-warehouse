@@ -59,6 +59,7 @@ Rails.application.routes.draw do
       resources :services, controller: '/health/services'
       resources :backup_plans, controller: '/health/backup_plans'
       resources :qualifying_activities, only: [:index, :destroy], controller: '/health/qualifying_activities'
+      resources :patient_referrals, only: [:index], controller: '/health/patient_referrals'
       resources :durable_equipments, except: [:index], controller: '/health/durable_equipments'
       resources :files, only: [:index, :show], controller: '/health/files'
       resources :team_members, controller: '/health/patient_team_members'
@@ -288,6 +289,11 @@ Rails.application.routes.draw do
         get :running
       end
     end
+    namespace :hud do
+      resources :missing_coc_codes, only: [:index]
+      resources :not_one_hohs, only: [:index]
+      resources :incorrect_move_in_dates, only: [:index]
+    end
     namespace :client_details do
       resources :exits, only: [:index]
       resources :entries, only: [:index]
@@ -336,6 +342,11 @@ Rails.application.routes.draw do
       resources :chronic_reconciliation, only: [:index] do
         collection do
           patch :update
+        end
+      end
+      resources :health_prioritization, only: [:index] do
+        member do
+          patch :client
         end
       end
     end
@@ -568,6 +579,14 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :performance_dashboards do
+    resources :overview, only: [:index] do
+      get :details, on: :collection
+    end
+    resources :project_type, only: [:index] do
+      get :details, on: :collection
+    end
+  end
 
   resources :cohort_column_options, except: [:destroy]
 
@@ -588,8 +607,6 @@ Rails.application.routes.draw do
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
   end
 
-
-
   resources :imports do
     get :download, on: :member
   end
@@ -599,6 +616,8 @@ Rails.application.routes.draw do
   resources :data_sources do
     resources :uploads, except: [:update, :destroy, :edit]
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
+    resource :api_config
+    resource :hmis_import_config
   end
   resources :ad_hoc_data_sources do
     resources :uploads, except: [:update, :edit], controller: 'ad_hoc_data_sources/uploads' do
@@ -736,7 +755,7 @@ Rails.application.routes.draw do
         post :update, on: :collection
       end
       resources :accountable_care_organizations, only: [:index, :create, :edit, :update, :new]
-      resources :patient_referrals, only: [:new, :create, :edit, :update] do
+      resources :patient_referrals, only: [:edit, :update] do
         patch :reject
         collection do
           get :review
@@ -812,6 +831,7 @@ Rails.application.routes.draw do
   namespace :system_status do
     get :operational
     get :cache_status
+    get :details
   end
   root 'root#index'
 end

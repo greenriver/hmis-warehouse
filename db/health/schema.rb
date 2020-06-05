@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_12_143130) do
+ActiveRecord::Schema.define(version: 2020_05_20_192050) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1009,6 +1009,7 @@ ActiveRecord::Schema.define(version: 2020_05_12_143130) do
     t.integer "duplicate_id"
     t.string "epic_source_id"
     t.boolean "valid_unpayable", default: false, null: false
+    t.boolean "procedure_valid", default: false, null: false
     t.index ["claim_id"], name: "index_qualifying_activities_on_claim_id"
     t.index ["date_of_activity"], name: "index_qualifying_activities_on_date_of_activity"
     t.index ["patient_id"], name: "index_qualifying_activities_on_patient_id"

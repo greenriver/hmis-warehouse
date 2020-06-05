@@ -237,7 +237,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
     end
 
     def fetch_demographics(api:, client_id:, participant_site_identifier:, site_id:, subject_id:, data_source_id:) # rubocop:disable Metrics/ParameterLists
-      @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: data_source_id)
+      @custom_config = GrdaWarehouse::EtoApiConfig.active.find_by(data_source_id: data_source_id)
 
       hmis_client = nil
       # puts "requesting client #{client_id} (#{participant_site_identifier}), from #{site_id}"
@@ -314,7 +314,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
     end
 
     def fetch_touch_point(api:, site_id:, touch_point_id:, client_id:, subject_id:, response_id:, data_source_id:, last_updated: nil) # rubocop:disable Metrics/ParameterLists
-      @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: data_source_id)
+      @custom_config = GrdaWarehouse::EtoApiConfig.active.find_by(data_source_id: data_source_id)
 
       api_response = api.touch_point_response(
         site_id: site_id,

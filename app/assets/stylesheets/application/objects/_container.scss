@@ -4,6 +4,15 @@
   max-width: $container-max-width;
 }
 
+.o-container--featured {
+  background: $gray-200;
+  border-top: 1px solid $gray-300;
+}
+
+.o-container--full-bleed {
+  @include full-bleed;
+}
+
 .o-container--constrained {
   max-width: rem(1000px);
 }

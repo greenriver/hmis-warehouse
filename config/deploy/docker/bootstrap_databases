@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+# This triggers a task that sets up all the schemas in all the databases along
+# with seeding.
+
+require_relative 'lib/command_args'
+require_relative 'lib/deployer'
+
+args = CommandArgs.new
+
+args.deployments.each do |deployment|
+  puts "Bootstrapping #{deployment[:target_group_name]}..."
+  Deployer.new(**deployment).bootstrap_databases!
+end

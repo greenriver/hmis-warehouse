@@ -6,7 +6,7 @@
 
 module Importing
   class NonHmisJob < BaseJob
-    queue_as :low_priority
+    queue_as :long_running
 
     def initialize(upload:, data_source_id:)
       @upload = upload

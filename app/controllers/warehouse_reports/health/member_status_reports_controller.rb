@@ -46,12 +46,12 @@ module WarehouseReports::Health
     def create
       @report = Health::MemberStatusReport.create(report_params.merge(user_id: current_user.id))
       job = Delayed::Job.enqueue(
-        ::WarehouseReports::HealthMemberStatusReportJob.new(
+        ::Health::MemberStatusReportJob.new(
           report_params.merge(
             report_id: @report.id, current_user_id: current_user.id,
           ),
         ),
-        queue: :low_priority,
+        queue: :long_running,
       )
       @report.update(job_id: job.id)
       respond_with @report, location: warehouse_reports_health_member_status_reports_path

@@ -1,3 +1,5 @@
+Rails.logger.debug "Running initializer in #{__FILE__}"
+
 module ActiveRecord
   module ConnectionAdapters
     if const_defined?(:PostgreSQLAdapter)

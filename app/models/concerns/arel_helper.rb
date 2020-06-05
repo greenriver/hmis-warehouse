@@ -24,6 +24,14 @@ module ArelHelper
       "#{table_name}.#{column_name}"
     end
 
+    # NOTE: quoted_table_name must be quoted, use something like User.quoted_table_name
+    def exists_sql(ar_query, quoted_table_name:, alias_name:, column_name:)
+      sql = ar_query.select(column_name).to_sql.
+        gsub("#{quoted_table_name}.", "\"#{alias_name}\"."). # alias all columns
+        gsub(quoted_table_name, "#{quoted_table_name} as \"#{alias_name}\"") # alias table
+      Arel.sql("EXISTS (#{sql} and #{quoted_table_name}.\"#{column_name}\" = \"#{alias_name}\".\"#{column_name}\") ")
+    end
+
     def qt(value)
       self.class.qt value
     end
@@ -180,6 +188,14 @@ module ArelHelper
     GrdaWarehouse::CohortClient.arel_table
   end
 
+  def yib_t
+    GrdaWarehouse::YouthIntake::Base.arel_table
+  end
+
+  def vispdat_t
+    GrdaWarehouse::Vispdat::Base.arel_table
+  end
+
   def hp_t
     Health::Patient.arel_table
   end
@@ -238,10 +254,6 @@ module ArelHelper
 
   def h_cp_t
     Health::Careplan.arel_table
-  end
-
-  def yib_t
-    GrdaWarehouse::YouthIntake::Base.arel_table
   end
 
   def htca_t
@@ -479,6 +491,14 @@ module ArelHelper
 
     def c_client_t
       GrdaWarehouse::CohortClient.arel_table
+    end
+
+    def yib_t
+      GrdaWarehouse::YouthIntake::Base.arel_table
+    end
+
+    def vispdat_t
+      GrdaWarehouse::Vispdat::Base.arel_table
     end
 
     def hp_t

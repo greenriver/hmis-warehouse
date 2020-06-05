@@ -19,7 +19,7 @@ module WarehouseReports
         # Comment to prevent rubocop trailing if
         WarehouseReports::RunHudChronicJob.perform_later(filter_params.merge(current_user_id: current_user.id))
       end
-      @jobs = Delayed::Job.where(queue: 'hud_chronic_report').order(run_at: :desc)
+      @jobs = Delayed::Job.jobs_for_class('RunHudChronicJob').order(run_at: :desc)
       @reports = report_source.ordered.limit(50)
     end
 
@@ -45,7 +45,7 @@ module WarehouseReports
     end
 
     def running
-      @jobs = Delayed::Job.where(queue: 'hud_chronic_report').order(run_at: :desc)
+      @jobs = Delayed::Job.jobs_for_class('RunHudChronicJob').order(run_at: :desc)
       @reports = report_source.ordered.limit(50)
     end
 

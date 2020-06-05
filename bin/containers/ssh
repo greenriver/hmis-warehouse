@@ -1,0 +1,98 @@
+#!/usr/bin/env ruby
+
+require 'json'
+require 'aws-sdk-ec2'
+require 'byebug'
+require 'shellwords'
+
+class ContainerList
+  def ssh!
+    ensure_profile_and_ip
+
+    # template = '%16s %12s %-80s'
+
+    # puts format(template, 'IP', 'ID', 'Task/connection command')
+
+    instances.each.with_index do |instance, _i|
+      ip = instance.public_ip_address
+
+      # List running containers
+      # TODO: improve to allow connecting to stopped containers as well
+      remote_cmd = "bash -l -c \"docker container ls --format='#{ip}|{{print .ID}}|{{print .Names}}|{{print .RunningFor}}|{{println .Image}}'\""
+
+      full_cmd = "ssh ec2-user@#{ip} #{Shellwords.escape remote_cmd}"
+
+      # Pull out results from remote system
+      lines = `#{full_cmd}`.split(/\n/).reject { |l| l.match?(/^\s*$/) }
+
+      lines.each do |line|
+        (_, container_id, task) = line.split(/\|/)
+
+        # Skip the ECS agent
+        next if task.match?(/ecs-agent/)
+
+        # Disabling for now in favor of trailing container name
+        # puts format(template, ip, container_id, task)
+
+        # Tell user the command to use to connect
+        connection_cmd = "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
+        # Disabling for now in favor of trailing container name
+        # puts format(template, '', '', connection_cmd)
+        puts connection_cmd
+      end
+    end
+  end
+
+  def run!
+    ensure_profile_and_ip
+    instances.each.with_index do |instance, _i|
+      puts "Listing containers on: #{instance.public_ip_address}\n"
+      system("ssh ec2-user@#{instance.public_ip_address} docker container ps")
+      puts "\n\n"
+    end
+  end
+
+  private
+
+  def ensure_profile_and_ip
+    my_ip = `dig +short myip.opendns.com @resolver1.opendns.com`.chomp
+
+    raise 'Wrong IP' unless my_ip.match?(/^(54\.85|64.223)/)
+
+    raise 'set AWS_PROFILE' if ENV['AWS_PROFILE'].nil?
+  end
+
+  def instances
+    return @instances unless @instances.nil?
+
+    results = ec2.describe_instances(
+      filters: [
+        {
+          name: 'tag:Cluster',
+          values: ['openpath'],
+        },
+        {
+          name: 'instance-state-name',
+          values: ['running'],
+        },
+      ],
+    )
+
+    @instances = results.
+      reservations.
+      flat_map(&:instances).
+      sort_by(&:public_ip_address)
+  end
+
+  def ec2
+    @ec2 ||= Aws::EC2::Client.new
+  end
+end
+
+if __FILE__.include?('list')
+  ContainerList.new.run!
+elsif __FILE__.include?('ssh')
+  ContainerList.new.ssh!
+else
+  puts __FILE__
+end

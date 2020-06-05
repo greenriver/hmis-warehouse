@@ -32,7 +32,7 @@ module Clients
       Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
         client_id: @client.id,
         years: @years,
-      ), queue: :default_priority
+      ), queue: :short_running
       flash[:notice] = 'Homeless Verification PDF queued for generation.  The PDF will be available for download under the Files tab within a few minutes.'
       redirect_to action: :show
     end
@@ -50,14 +50,11 @@ module Clients
       show
 
       # Limit to Residential Homeless programs
-      @dates = @dates.map do |date, data|
-        [
-          date,
-          data.select { |en| GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(en[:project_type]) },
-        ]
-      end.to_h
-      @organization_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:organization_name] }.map { |org, ens| [org, ens.count] }.to_h
-      @project_type_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:project_type] }.map { |project_type, ens| [project_type, ens.count] }.to_h
+      @dates = @dates.transform_values do |data|
+        data.select { |en| GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS.include?(en[:project_type]) }
+      end
+      @organization_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:organization_name] }.transform_values(&:count)
+      @project_type_counts = @dates.values.flatten.group_by { |en| HUD.project_type en[:project_type] }.transform_values(&:count)
       file_name = 'service_history.pdf'
 
       # DEBUGGING

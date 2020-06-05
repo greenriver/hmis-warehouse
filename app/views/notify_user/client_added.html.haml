@@ -2,6 +2,6 @@
 
 %p
   The following Client was recently added by
-  = "#{@user.name}." 
+  = "#{@user&.name}."
 %p
   = link_to "Client ##{@client.id}", client_url(@client)

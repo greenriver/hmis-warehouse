@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require_relative 'lib/domains'
+
+if ENV['AWS_PROFILE'].nil?
+  puts "Set your AWS_PROFILE variable first"
+  exit
+end
+
+Domains.new.list!

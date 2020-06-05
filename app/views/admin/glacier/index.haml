@@ -1,7 +1,7 @@
 - title = 'Glacier Archives'
 - content_for :title, title
 %h1= content_for(:title)
-= render :partial => 'menus/admin_tabs'
+= render partial: 'menus/admin_tabs'
 
 .row
   .col-sm-12
@@ -80,7 +80,7 @@
         removing databases first from the newly restored snapshot.
 
 
-      %li 
+      %li
         Following adding these extensions, rerun the original rake task but flag that you've added the extensions:
         e.g.
         %tt export ADDED_EXTENSIONS=true

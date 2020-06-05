@@ -62,7 +62,7 @@ module WarehouseReports
     private
 
     def set_jobs
-      @jobs = Delayed::Job.where(queue: 'active_veterans_report').order(run_at: :desc)
+      @jobs = Delayed::Job.jobs_for_class('RunActiveVeteransJob').order(run_at: :desc)
     end
 
     def set_report

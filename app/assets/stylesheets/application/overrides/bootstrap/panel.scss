@@ -13,6 +13,9 @@
 
 .panel-heading[aria-expanded=true] {
   background: lighten($tab-bg, 30%);
+  .panel-title {
+    color: $black;
+  }
 }
 
 .panel-body--padded {
@@ -28,7 +31,16 @@
   margin: 0 (-#{space(4)}) (-#{space(4)}) (-#{space(4)});
 }
 
-.panel-group
-{
+.panel-group {
   width: 100%;
+  margin-bottom: space(4);
+}
+
+.panel-sibling--below .panel {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.panel-sibling--above .panel {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }

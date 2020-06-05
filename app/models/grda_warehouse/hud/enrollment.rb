@@ -408,6 +408,7 @@ module GrdaWarehouse::Hud
 
       @twelve_or_more_months_homeless ||= [112, 113].freeze  # 112 = 12 months, 113 = 13+ months
       return :yes if @twelve_or_more_months_homeless.include?(self.MonthsHomelessPastThreeYears)
+
       return dk_or_r_or_missing(self.MonthsHomelessPastThreeYears) if dk_or_r_or_missing(self.MonthsHomelessPastThreeYears)
     end
   end # End Enrollment

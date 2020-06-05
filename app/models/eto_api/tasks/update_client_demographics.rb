@@ -45,6 +45,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       @run_time = run_time
       @stop_time = Time.now + run_time
       @one_off = one_off
+      @start_time = Time.now
 
       setup_notifier('ETO API Importer')
 
@@ -78,7 +79,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       api_config = EtoApi::Base.api_configs
       api_config.to_a.reverse.to_h.each do |key, conf|
         @data_source_id = conf['data_source_id']
-        @custom_config = GrdaWarehouse::EtoApiConfig.find_by(data_source_id: @data_source_id)
+        @custom_config = GrdaWarehouse::EtoApiConfig.active.find_by(data_source_id: @data_source_id)
 
         @api = EtoApi::Detail.new(trace: @trace, api_connection: key)
         @api.connect
@@ -119,13 +120,13 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
               if Time.now > @stop_time
                 current_hmis_clients = GrdaWarehouse::HmisClient.count
                 current_hmis_forms = GrdaWarehouse::HmisForm.count
-                msg = "Stopping #{self.class.name} after #{time_ago_in_words(@run_time.from_now)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms"
+                msg = "Stopping #{self.class.name} after #{time_ago_in_words(@start_time)}.  There are currently #{current_hmis_clients} HMIS Clients and #{current_hmis_forms} HMIS Forms; current source client: #{client.client_id}; processing source clients: #{clients.map(&:client_id)}"
                 Rails.logger.info msg
                 notifier.ping msg if send_notifications
                 return # rubocop:disable Lint/NonLocalExitFromIterator
               end
             rescue Exception => e
-              notifier.ping "ERROR #{e.message} for client #{client.id} in data source #{@data_source_id}"
+              notifier.ping "ERROR #{e.message} for api client #{client.id}, source_client: #{client.client_id} in data source #{@data_source_id}"
             end
           end
         end
@@ -141,7 +142,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
 
       # See /admin/eto_api/assessments for details
       # HUD assessments don't show up in the API list, ids are hard coded in ENV['ETO_API_HUD_TOUCH_POINT_ID1']
-      assessment_ids = GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id).pluck(:assessment_id)
+      assessment_ids = GrdaWarehouse::HMIS::Assessment.fetch_for_data_source(@data_source_id).distinct.pluck(:assessment_id)
 
       assessment_ids.each do |tp_id|
         responses = @api.list_touch_point_responses(site_id: site_id, subject_id: subject_id, touch_point_id: tp_id)
@@ -355,7 +356,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
         begin
           hmis_form.save
           hmis_form.create_qualifying_activity!
-        rescue Exception # rubocop:disable Lint/SuppressedException
+        rescue Exception
           # msg = "Failed to save, probably dirty: #{e.message}"
           # notifier.ping msg if send_notifications
         end

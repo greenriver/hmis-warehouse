@@ -1,5 +1,5 @@
 %ul.nav.nav-tabs
-  %li.nav-item.active
+  %li.nav-item
     %a.nav-link.active{href: '#unpayable', role: "presentation", data: {toggle: :tab}}
       Invalid QA
   %li.nav-item
@@ -38,7 +38,7 @@
       = render 'payable', qa_group: @duplicate
   .tab-pane#valid-unpayable
     %p
-      The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name} even though it is fairly certain the claim will be denied. 
+      The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name} even though it is fairly certain the claim will be denied.
     .payable-wrapper.overflow-scroll
       %p Found #{pluralize(@valid_unpayable.count, 'client')} with #{pluralize(@valid_unpayable.values.flatten.count, 'valid, unpayable qualifying activity')}.
       = render 'payable', qa_group: @valid_unpayable

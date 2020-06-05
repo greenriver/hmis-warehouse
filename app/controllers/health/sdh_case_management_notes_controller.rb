@@ -118,7 +118,7 @@ module Health
       # remove health_file on ajax
       permitted_params.delete(:health_file_attributes) if params[:commit] != 'Save Case Note'
       if params[:commit] != 'Save Case Note' && params[:commit] != 'Remove Activity'
-        (permitted_params[:activities_attributes] || {}).keys.each do |key|
+        (permitted_params[:activities_attributes] || {}).keys.each do |key| # rubocop:disable  Style/HashEachMethods
           (permitted_params[:activities_attributes] || {})[key].reject! { |k, _v| k == '_destroy' }
         end
       end
@@ -130,7 +130,7 @@ module Health
     end
 
     private def add_calculated_params_to_activities!(permitted_params)
-      (permitted_params[:activities_attributes] || {}).keys.each do |key|
+      (permitted_params[:activities_attributes] || {}).keys.each do |key| # rubocop:disable  Style/HashEachMethods
         permitted_params[:activities_attributes][key].merge!(
           user_id: current_user.id,
           user_full_name: current_user.name,

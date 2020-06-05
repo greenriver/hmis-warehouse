@@ -17,9 +17,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
       where(processed_as: nil)
     end
 
-    def self.batch_process_unprocessed!
+    def self.batch_process_unprocessed!(max_wait_seconds: 21600)
       queue_batch_process_unprocessed!
-      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing
+      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing(max_wait_seconds: max_wait_seconds)
     end
 
     def self.queue_batch_process_unprocessed!
@@ -29,7 +29,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
             ::ServiceHistory::RebuildEnrollmentsByBatchJob.new(
               enrollment_ids: batch
             ),
-            queue: :low_priority
+            queue: :long_running
           )
       end
     end
@@ -38,7 +38,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       open_during_range(date_range).
         joins(:project, :destination_client).
         pluck_in_batches(:id, batch_size: 250) do |batch|
-        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :low_priority)
+        Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :long_running)
       end
     end
 

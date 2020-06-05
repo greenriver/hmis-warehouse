@@ -15,7 +15,7 @@ module PatientReferral
     :agency_id,
     :assigned_agency_id,
     :acknowledged_by_mass_health,
-    :sort_by,
+    :sort_by, # rubocop:disable Lint/StructNewOverride
   )
 
   private
@@ -24,12 +24,11 @@ module PatientReferral
     @agencies ||= Health::Agency.all
     if @patient_referrals&.exists?
       load_filters
-      @patient_referrals = @patient_referrals.
-        page(params[:page].to_i).per(20)
     else
-      @patient_referrals = Health::PatientReferral.where(id: nil).
-        page(params[:page].to_i).per(20)
+      @patient_referrals = Health::PatientReferral.none
     end
+    @patient_referrals = @patient_referrals.
+      page(params[:page].to_i).per(20)
     load_tabs
   end
 
@@ -135,10 +134,6 @@ module PatientReferral
           :created_at,
         ],
     )
-  end
-
-  def load_new_patient_referral
-    @new_patient_referral = Health::PatientReferral.new(effective_date: DateTime.current.at_beginning_of_month.next_month)
   end
 
   def clean_patient_referral_params

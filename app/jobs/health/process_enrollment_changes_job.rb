@@ -5,7 +5,9 @@
 ###
 
 module Health
-  class ProcessEnrollmentChangesJob < ApplicationJob
+  class ProcessEnrollmentChangesJob < BaseJob
+    queue_as :long_running
+
     def perform(enrollment_id)
       enrollment = Health::Enrollment.find(enrollment_id)
 
@@ -27,12 +29,12 @@ module Health
           referral = referral(transaction)
           if referral.present?
             if referral.disenrolled?
-              re_enroll_patient(transaction, referral)
+              re_enroll_patient(referral.patient, transaction)
               returning_patients += 1
             else
               updated_patients += 1
             end
-            update_patient(transaction, referral)
+            update_patient_referrals(referral.patient, transaction)
           else
             enroll_patient(transaction)
             new_patients += 1
@@ -50,7 +52,7 @@ module Health
         enrollment.changes.each do |transaction|
           referral = referral(transaction)
           if referral.present?
-            update_patient(transaction, referral)
+            update_patient_referrals(referral.patient, transaction)
             updated_patients += 1
           end
         end
@@ -70,12 +72,12 @@ module Health
               end
             else
               if referral.disenrollment_date.present? || referral.pending_disenrollment_date.present?
-                re_enroll_patient(transaction, referral)
+                re_enroll_patient(referral.patient, transaction)
                 returning_patients += 1
               else
                 updated_patients += 1
               end
-              update_patient(transaction, referral)
+              update_patient_referrals(referral.patient, transaction)
             end
           else
             unless is_disenrollment
@@ -92,6 +94,8 @@ module Health
           updated_patients: updated_patients,
           status: 'complete',
         )
+
+        Health::Tasks::CalculateValidUnpayableQas.new.run!
       rescue Exception => e
         enrollment.update(status: e)
       end
@@ -99,38 +103,11 @@ module Health
 
     def referral(transaction)
       medicaid_id = Health::Enrollment.subscriber_id(transaction)
-      Health::PatientReferral.find_by(medicaid_id: medicaid_id)
+      Health::PatientReferral.current.find_by(medicaid_id: medicaid_id)
     end
 
-    def enroll_patient(transaction)
-      referral = Health::PatientReferral.new
-      update_patient(transaction, referral)
-    end
-
-    def re_enroll_patient(_transaction, referral)
-      # Remove disenrollment flags, and return patient to "to be assigned"
-      referral.update(
-        disenrollment_date: nil,
-        pending_disenrollment_date: nil,
-        removal_acknowledged: false,
-        rejected: false,
-        rejected_reason: :Remove_Removal,
-        agency_id: nil,
-        stop_reason_description: nil,
-      )
-    end
-
-    def disenroll_patient(transaction, referral)
-      code = Health::Enrollment.disenrollment_reason_code(transaction)
-
-      referral.update(
-        pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction),
-        stop_reason_description: disenrollment_reason_description(code),
-      )
-    end
-
-    def update_patient(transaction, referral)
-      updates = {
+    def referral_data(transaction)
+      data = {
         first_name: Health::Enrollment.first_name(transaction),
         last_name: Health::Enrollment.last_name(transaction),
         birthdate: Health::Enrollment.DOB(transaction),
@@ -146,10 +123,39 @@ module Health
           mco_pid: pid_sl[:pid],
           mco_sl: pid_sl[:sl],
         )
-        updates[:aco] = aco if aco.present?
+        data[:aco] = aco if aco.present?
       end
 
-      referral.update(updates)
+      data
+    end
+
+    def enroll_patient(transaction)
+      Health::PatientReferral.create_referral(nil, referral_data(transaction))
+    end
+
+    def re_enroll_patient(patient, transaction)
+      Health::PatientReferral.create_referral(patient, referral_data(transaction))
+    end
+
+    def disenroll_patient(transaction, referral)
+      code = Health::Enrollment.disenrollment_reason_code(transaction)
+
+      referral.update(
+        pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction),
+        stop_reason_description: disenrollment_reason_description(code),
+      )
+    end
+
+    def update_patient_referrals(patient, transaction)
+      updates = referral_data(transaction)
+      current_referral = patient.patient_referral
+      current_referral.assign_attributes(updates)
+
+      return unless current_referral.changed?
+
+      updates[:agency_id] = current_referral.agency_id unless current_referral.should_clear_assignment?
+
+      Health::PatientReferral.create_referral(patient, updates)
     end
 
     def disenrollment_reason_description(code)

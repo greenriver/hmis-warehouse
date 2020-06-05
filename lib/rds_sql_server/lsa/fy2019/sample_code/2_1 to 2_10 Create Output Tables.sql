@@ -2,7 +2,10 @@
 LSA FY2019 Sample Code
 
 Name:  2_1 to 2_10 create output tables.sql (File 2 of 10)
-Date:  4/7/2020   
+Date:  4/7/2020  
+	   5/14/2020 - lsa_Report - allow NULL value in ReportDate because it isn't set until the end
+				 - lsa_ProjectCoC - allow NULL values for GeographyType and ZIP in the table -- they are still required 
+						by the HDX 
 
 There are some deliberate differences from data typing and nullability as defined by 
 the HMIS CSV/LSA specs and the CREATE statements here. 
@@ -113,8 +116,8 @@ create table lsa_ProjectCoC(
 	Address2 nvarchar(100),	
 	City nvarchar(50),
 	[State] nvarchar(2),
-	ZIP nvarchar(5) not NULL,					--HMIS: may be NULL
-	GeographyType int not NULL,					--HMIS: may be NULL
+	ZIP nvarchar(5),					
+	GeographyType int,					
 	DateCreated nvarchar(19) not NULL,			--HMIS: datetime
 	DateUpdated nvarchar(19) not NULL,			--HMIS: datetime
 	UserID nvarchar(32),						--HMIS: not NULL
@@ -167,7 +170,7 @@ if object_id ('lsa_Report') is not NULL drop table lsa_Report
 --	(UnduplicatedClient1 through MoveInDate3) must be non-NULL in the upload.
 create table lsa_Report(
 	ReportID int not NULL,
-	ReportDate datetime not NULL,
+	ReportDate datetime,
 	ReportStart date not NULL,
 	ReportEnd date not NULL,
 	ReportCoC nvarchar(6) not NULL,

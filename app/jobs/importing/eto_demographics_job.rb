@@ -6,7 +6,7 @@
 
 module Importing
   class EtoDemographicsJob < BaseJob
-    queue_as :low_priority
+    queue_as :long_running
 
     def perform(client_ids:)
       EtoApi::Tasks::UpdateEtoData.new(client_ids: client_ids).update_demographics!

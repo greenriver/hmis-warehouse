@@ -15,7 +15,6 @@ Dir.chdir APP_ROOT do
 
   ymls = [
     'secrets.yml',
-    'letsencrypt_plugin.yml',
   ]
   ymls.each do |file|
     file = File.join('config', file)
@@ -29,30 +28,7 @@ Dir.chdir APP_ROOT do
     FileUtils.cp 'sample.env', '.env.local'
   end
 
-  puts "\n== Preparing Database =="
-  system 'bundle exec rake db:create'
-  system 'bundle exec rake db:schema:conditional_load'
-  system 'bundle exec rake db:migrate'
-
-  puts "\n== Preparing Warehouse =="
-  system 'bundle exec rake warehouse:db:create'
-  system 'bundle exec rake warehouse:db:schema:conditional_load'
-  system 'bundle exec rake warehouse:db:migrate'
-  system 'bundle exec rake grda_warehouse:seed_data_sources'
-
-  puts "\n== Preparing Health Database =="
-  system 'bundle exec rake health:db:create'
-  system 'bundle exec rake health:db:schema:conditional_load'
-  system 'bundle exec rake health:db:migrate'
-
-  puts "\n== Preparing Reporting Database =="
-  system 'bundle exec rake reporting:db:create'
-  system 'bundle exec rake reporting:db:schema:conditional_load'
-  system 'bundle exec rake reporting:db:migrate'
-
-  puts "\n== Seeding Database =="
-  system 'bundle exec rake db:seed'
-  system 'bundle exec rake grda_warehouse:seed_grades'
+  system 'bin/db_prep'
 
   puts "\n== Setting up test databases"
   system 'RAILS_ENV=test bundle exec rake db:setup_test'

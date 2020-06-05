@@ -1,0 +1,29 @@
+= render '/warehouse_reports/breadcrumbs', tab: 'performance-dashboard'
+- id = 'filter'
+%h1 Performance Overview
+
+%section
+  #filter-accordion.panel-group.panel-collapsible.mb-0.panel-sibling--below
+    - content_for :panel_collapse_content, flush: true do
+      = simple_form_for :filters, method: :get do |f|
+        = render 'performance_dashboards/filters', f: f
+    = render 'common/panel_collapse',id: id, title: 'Universe Selection', default_open: filter_open, wrapper_class: 'mb-0'
+  - id = 'active-filters'
+  #active-filters-accordion.panel-group.panel-collapsible.panel-sibling--above
+    - content_for :panel_collapse_content, flush: true do
+      = render 'performance_dashboards/active_filters'
+    = render 'common/panel_collapse', id: id, title: 'Summary of Selected Universe', default_open: active_filter_open
+
+%section.mb-0= render 'overall'
+
+%section
+  -# %h2.c-heading.c-heading--full-bleed Demographics Summary
+  %ul.mb-2.nav.nav-tabs.mt-0.mb-4{role: :tablist}
+    - @report.available_breakdowns.each do |k, title|
+      - class_name = if breakdown == k then 'active' else '' end
+      %li.nav-item{role: :presentation}
+        = link_to(filter_params.merge(breakdown: k), class: ['nav-link', class_name]) do
+          = title
+
+  %article.mb-6
+    = render "by_#{breakdown}"

@@ -25,7 +25,7 @@
           %tr
             %td.id-sqr{ 'data-id' => assessment.enrollment.client.id }
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
-            %td.date-cell= l assessment.enrollment.EntryDate
+            %td.date-cell= assessment.enrollment.EntryDate
             %td= assessment.AssessmentDate
             %td= HUD.assessment_type assessment.AssessmentType
             %td= HUD.assessment_level assessment.AssessmentLevel

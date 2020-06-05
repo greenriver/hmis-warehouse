@@ -10,7 +10,7 @@ module Health
 
     attr_accessor :range
     def initialize range:, agency_scope: nil
-      @range = range
+      @range = (range.first.to_date..range.last.to_date)
       @agency_scope = agency_scope
     end
 
@@ -245,7 +245,7 @@ module Health
     def qa_signature_dates
       # Note: using minimum will ensure the first PCTP, subsequent don't matter
       @qa_signatures ||= Health::QualifyingActivity.submittable.
-        after_enrollment_date.
+        during_current_enrollment.
         where(patient_id: patient_referrals.keys). # limit to patients in scope
         where(date_of_activity: @range).
         where(activity: :pctp_signed).

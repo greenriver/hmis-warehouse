@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+# When we have new instances, they aren't known to ECS correctly
+# until we run this. It happens on deployments, so deploying one
+# environment will address this problem too.
+
+require_relative 'lib/roll_out'
+
+RollOut.mark_spot_instances!

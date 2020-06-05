@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_06_195939) do
+ActiveRecord::Schema.define(version: 2020_05_30_134853) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1730,6 +1730,13 @@ ActiveRecord::Schema.define(version: 2020_05_06_195939) do
     t.jsonb "additional_fields"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string "identifier"
+    t.string "email"
+    t.string "encrypted_password"
+    t.string "encrypted_password_iv"
+    t.string "enterprise"
+    t.string "hud_touch_point_id"
+    t.boolean "active", default: false
     t.index ["data_source_id"], name: "index_eto_api_configs_on_data_source_id"
   end
 
@@ -2192,6 +2199,22 @@ ActiveRecord::Schema.define(version: 2020_05_06_195939) do
     t.index ["name"], name: "index_hmis_forms_on_name"
   end
 
+  create_table "hmis_import_configs", force: :cascade do |t|
+    t.bigint "data_source_id", null: false
+    t.boolean "active", default: false
+    t.string "s3_access_key_id", null: false
+    t.string "encrypted_s3_secret_access_key", null: false
+    t.string "encrypted_s3_secret_access_key_iv"
+    t.string "s3_region"
+    t.string "s3_bucket_name"
+    t.string "s3_path"
+    t.string "encrypted_zip_file_password"
+    t.string "encrypted_zip_file_password_iv"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["data_source_id"], name: "index_hmis_import_configs_on_data_source_id"
+  end
+
   create_table "hmis_staff", id: :serial, force: :cascade do |t|
     t.integer "site_id"
     t.string "first_name"
@@ -2330,6 +2353,21 @@ ActiveRecord::Schema.define(version: 2020_05_06_195939) do
     t.index ["created_at"], name: "index_import_logs_on_created_at"
     t.index ["data_source_id"], name: "index_import_logs_on_data_source_id"
     t.index ["updated_at"], name: "index_import_logs_on_updated_at"
+  end
+
+  create_table "lftp_s3_syncs", force: :cascade do |t|
+    t.bigint "data_source_id", null: false
+    t.string "ftp_host", null: false
+    t.string "ftp_user", null: false
+    t.string "encrypted_ftp_pass", null: false
+    t.string "encrypted_ftp_pass_iv", null: false
+    t.string "ftp_path", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_lftp_s3_syncs_on_created_at"
+    t.index ["data_source_id"], name: "index_lftp_s3_syncs_on_data_source_id"
+    t.index ["updated_at"], name: "index_lftp_s3_syncs_on_updated_at"
   end
 
   create_table "new_service_history", id: :serial, force: :cascade do |t|
@@ -3974,6 +4012,16 @@ ActiveRecord::Schema.define(version: 2020_05_06_195939) do
     t.boolean "deidentified", default: false
     t.boolean "project_whitelist", default: false
     t.index ["deleted_at"], name: "index_uploads_on_deleted_at"
+  end
+
+  create_table "user_client_permissions", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.boolean "viewable", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_user_client_permissions_on_client_id"
+    t.index ["user_id"], name: "index_user_client_permissions_on_user_id"
   end
 
   create_table "user_clients", id: :serial, force: :cascade do |t|

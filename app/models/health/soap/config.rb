@@ -8,6 +8,6 @@ module Health::Soap
   class Config < HealthBase
     self.table_name = :soap_configs
 
-    attr_encrypted :pass, key: ENV['ENCRYPTION_KEY']
+    attr_encrypted :pass, key: ENV['ENCRYPTION_KEY'][0..31]
   end
 end

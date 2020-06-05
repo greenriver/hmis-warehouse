@@ -14,6 +14,7 @@ module Filters
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
+    attribute :coc_codes, Array, default: []
     attribute :sub_population, Symbol, default: :all_clients
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
@@ -25,6 +26,7 @@ module Filters
       @effective_project_ids += effective_project_ids_from_project_groups
       @effective_project_ids += effective_project_ids_from_organizations
       @effective_project_ids += effective_project_ids_from_data_sources
+      @effective_project_ids += effective_project_ids_from_coc_codes
       if @effective_project_ids.empty?
         @effective_project_ids = all_project_ids
       end
@@ -40,28 +42,87 @@ module Filters
     end
 
     def effective_project_ids_from_project_groups
+      projects = project_group_ids.reject(&:blank?).map(&:to_i)
+      return [] if projects.empty?
+
       GrdaWarehouse::ProjectGroup.joins(:projects).
         merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
-          where(id: project_group_ids.reject(&:blank?).map(&:to_i)).
-          pluck(p_t[:id].as('project_id').to_sql)
+          where(id: projects).
+          pluck(p_t[:id].as('project_id'))
     end
 
     def effective_project_ids_from_organizations
-      GrdaWarehouse::Hud::Organization.joins(:projects).
-          merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
-          where(id: organization_ids.reject(&:blank?).map(&:to_i)).
-          pluck(p_t[:id].as('project_id').to_sql)
+      orgs = organization_ids.reject(&:blank?).map(&:to_i)
+      return [] if orgs.empty?
+
+      all_organizations_scope.
+        where(id: orgs).
+        pluck(p_t[:id].as('project_id'))
     end
 
     def effective_project_ids_from_data_sources
-      GrdaWarehouse::DataSource.joins(:projects).
-          merge(GrdaWarehouse::Hud::Project.viewable_by(user)).
-          where(id: data_source_ids.reject(&:blank?).map(&:to_i)).
-          pluck(p_t[:id].as('project_id').to_sql)
+      sources = data_source_ids.reject(&:blank?).map(&:to_i)
+      return [] if sources.empty?
+
+      all_data_sources_scope.
+        where(id: sources).
+        pluck(p_t[:id].as('project_id'))
+    end
+
+    def effective_project_ids_from_coc_codes
+      codes = coc_codes.reject(&:blank?)
+      return [] if codes.empty?
+
+      all_coc_code_scope.in_coc(coc_code: codes).
+        pluck(p_t[:id].as('project_id'))
     end
 
     def all_project_ids
-      GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
+      all_project_scope.pluck(:id)
+    end
+
+    def all_project_scope
+      GrdaWarehouse::Hud::Project.viewable_by(user)
+    end
+
+    def all_organizations_scope
+      GrdaWarehouse::Hud::Organization.joins(:projects).
+        merge(all_project_scope)
+    end
+
+    def all_data_sources_scope
+      GrdaWarehouse::DataSource.joins(:projects).
+        merge(all_project_scope)
+    end
+
+    def all_coc_code_scope
+      GrdaWarehouse::Hud::ProjectCoc.joins(:project).
+        merge(all_project_scope)
+    end
+
+    def all_project_group_scope
+      GrdaWarehouse::ProjectGroup.joins(:projects).
+        merge(all_project_scope)
+    end
+
+    def project_options_for_select(user: )
+      all_project_scope.options_for_select(user: user)
+    end
+
+    def organization_options_for_select(user: )
+      all_organizations_scope.options_for_select(user: user)
+    end
+
+    def data_source_options_for_select(user: )
+      all_data_sources_scope.options_for_select(user: user)
+    end
+
+    def coc_code_options_for_select(user: )
+      all_coc_code_scope.options_for_select(user: user)
+    end
+
+    def project_groups_options_for_select(user: )
+      all_project_group_scope.options_for_select(user: user)
     end
 
     def clients_from_cohorts

@@ -51,11 +51,11 @@ module Censuses
           for_project_id(start_date, end_date, project.data_source_id, project.id, user: user)
         end
 
-        @shape.keys.each do |ds_id|
+        @shape.each_key do |ds_id|
           # only include data source summary if the source contains more than one organization
           for_data_source_id(start_date, end_date, ds_id, user: user) if @shape[ds_id].count > 1
 
-          @shape[ds_id].keys.each do |organization_id|
+          @shape[ds_id].each_key do |organization_id|
             if @shape[ds_id][organization_id].count > 1
               # only include the organization summary if the organization contains more than one project
               for_organization_id(start_date, end_date, ds_id, organization_id, user: user)

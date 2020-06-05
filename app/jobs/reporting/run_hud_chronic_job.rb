@@ -6,7 +6,7 @@
 
 module Reporting
   class RunHudChronicJob < BaseJob
-    queue_as :low_priority
+    queue_as :long_running
 
     def perform(client_ids, date)
       # ActiveJob can't serialize a date, so passing string

@@ -55,3 +55,44 @@
   border: 0;
   height: 100%;
 }
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Variant for tabs in cards
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.nav-tabs--in-card {
+  margin-left: - $card-padding;
+  margin-right: - $card-padding;
+  margin-top: - $card-padding;
+  margin-bottom: space(4);
+  padding: 0;
+  width: calc(100% + #{$card-padding*2});
+  border-bottom: 2px $gray-200 solid;
+}
+
+.nav-tabs--in-card .nav-item { }
+
+.nav-tabs--in-card > li > a {
+  padding-top: space(2);
+  padding-bottom: space(2);
+  padding-left: space(4);
+  padding-right: space(4);
+  min-height: space(4);
+  border-top: 0;
+  font-weight: bold;
+}
+
+.nav-tabs--in-card > li > a:hover,
+.nav-tabs--in-card > li > a:focus {
+  box-shadow: inset 0px -2px 0px 0px $link-blue;
+}
+
+.nav-tabs--in-card > li.nav-item.active > a,
+.nav-tabs--in-card > li.nav-item.active > a:hover,
+.nav-tabs--in-card > li.nav-item.active > a:focus,
+.nav-tabs--in-card > li.nav-item > a.active,
+.nav-tabs--in-card > li.nav-item > a.active:hover,
+.nav-tabs--in-card > li.nav-item > a.active:focus {
+  box-shadow: inset 0px -2px 0px 0px $link-blue;
+  border-top: 0;
+}

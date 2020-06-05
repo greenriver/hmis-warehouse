@@ -1,13 +1,13 @@
 # https://docs.aws.amazon.com/sdkforruby/api/index.html
 # https://docs.aws.amazon.com/sdkforruby/api/Aws/RDS.html
 
-require 'aws-sdk'
+require 'aws-sdk-glacier'
 
 class Rds
   attr_accessor :client, :identifier
 
   REGION             = 'us-east-1'.freeze
-  AVAILABILITY_ZONE  = 'us-east-1e'.freeze
+  AVAILABILITY_ZONE  = 'us-east-1a'.freeze
   ACCESS_KEY_ID      = ENV.fetch('RDS_AWS_ACCESS_KEY_ID')
   SECRET_ACCESS_KEY  = ENV.fetch('RDS_AWS_SECRET_ACCESS_KEY')
   USERNAME           = ENV.fetch('RDS_USERNAME')
@@ -18,6 +18,7 @@ class Rds
   DEFAULT_IDENTIFIER = ENV.fetch('RDS_IDENTIFIER') { 'testing' }
   RDS_KMS_KEY_ID     = ENV.fetch('RDS_KMS_KEY_ID')
   DB_NAME            = 'sql_server_openpath'.freeze
+  DB_SUBNET_GROUP    = ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
   MAX_WAIT_TIME      = 1.hour
 
   class << self
@@ -108,7 +109,7 @@ class Rds
       preferred_maintenance_window: 'fri:08:13-fri:08:43',
       publicly_accessible: true,
       vpc_security_group_ids: SECURITY_GROUP_IDS,
-      db_subnet_group_name: 'db_subnet_group',
+      db_subnet_group_name: DB_SUBNET_GROUP,
       db_parameter_group_name: 'sqlserver-web-14-tls',
       option_group_name: 'default:sqlserver-web-14-00',
       port: 1433,

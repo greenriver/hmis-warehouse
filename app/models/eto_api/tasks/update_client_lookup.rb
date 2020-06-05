@@ -18,6 +18,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
   class UpdateClientLookup
     include TsqlImport
     attr_accessor :logger
+
     def initialize
       # map data source to subject line
       @data_sources = [[1, '[Client GUID Table DND]'], [3, '[Client GUID Table BPHC]']]
@@ -108,7 +109,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
     end
 
     protected def client_id_from_personal_id(personal_id)
-      @client_ids ||= client_source.pluck(:PersonalID, :id).map do |p_id, id|
+      @client_ids ||= client_source.pluck(:PersonalID, :id).map do |p_id, id| # rubocop:disable Style/HashTransformKeys
         [p_id.upcase, id]
       end.to_h
       @client_ids[personal_id.upcase]

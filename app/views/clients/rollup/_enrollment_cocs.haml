@@ -1,0 +1,41 @@
+:ruby
+  et = GrdaWarehouse::Hud::Enrollment.arel_table
+  ec_t = GrdaWarehouse::Hud::EnrollmentCoc.arel_table
+  enrollment_cocs = @client.
+    source_enrollment_cocs.
+    joins(:enrollment).
+    preload( enrollment: [:client, :project] ).
+    order(et[:EntryDate].desc, ec_t[:InformationDate].desc)
+- if enrollment_cocs.any?
+  .table-responsive
+    %table.table
+      %thead
+        %tr
+          %th
+          %th Project
+          %th Entry Date
+          %th Information Date
+          %th CoC Code
+          %th Collection Stage
+          %th
+      %tbody
+        - enrollment_cocs.each do |enrollment_coc|
+          - project = enrollment_coc.enrollment.project
+          %tr
+            %td.id-sqr{ 'data-id' => enrollment_coc.enrollment.client.id }
+            %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
+            %td.date-cell= enrollment_coc.enrollment.EntryDate
+            %td= enrollment_coc.InformationDate
+            %td= enrollment_coc.CoCCode
+            %td= HUD.data_collection_stage enrollment_coc.DataCollectionStage
+            %td.text-right
+              - if @client.hmis_source_visible_by?(current_user)
+                = link_to 'HMIS', hmi_path(enrollment_coc, type: 'EnrollmentCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+                .text-teeny.font-weight-light
+                  .text-nowrap
+                    Created: #{enrollment_coc.DateCreated}
+                  .text-nowrap
+                    Updated: #{enrollment_coc.DateUpdated}
+- else
+  .no-data
+    No Enrollment CoCs on file

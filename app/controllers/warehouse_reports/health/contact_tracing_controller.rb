@@ -38,7 +38,7 @@ module WarehouseReports::Health
 
     def case_info_sheet(index_case)
       info = {}
-      columns.keys.each { |name| info[name] = [] }
+      columns.each_key { |name| info[name] = [] }
       # Index Case info
       info[:name] << index_case.name
       info[:dob] << index_case.dob&.strftime('%m/%d/%Y')
@@ -70,7 +70,7 @@ module WarehouseReports::Health
         end
         # Fill columns
         rows = columns.keys.map { |column| info[column].size }.max
-        columns.keys.each do |column|
+        columns.each_key do |column|
           info[column] = info[column] + Array.new(rows - info[column].size)
         end
       end

@@ -232,8 +232,16 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   # uses actual Projects.id not ProjectID (which is stored in the table and requires data_source_id)
   # also accepts an array of ids if you want a multi-project query
-  scope :in_project, -> (project_id) do
-    joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: project_id))
+  scope :in_project, -> (ids) do
+    joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: ids))
+  end
+
+  scope :in_organization, -> (ids) do
+    joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: ids))
+  end
+
+  scope :in_data_source, -> (ids) do
+    where(data_source_id: ids)
   end
 
   scope :with_service_between, -> (start_date:, end_date:, service_scope: :current_scope) do

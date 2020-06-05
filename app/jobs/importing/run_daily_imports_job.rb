@@ -10,10 +10,12 @@ module Importing
     include NotifierConfig
     include ArelHelper
     attr_accessor :send_notifications, :notifier_config
-    queue_as :low_priority
+
+    queue_as :long_running
 
     def initialize
       setup_notifier('DailyImporter')
+      super
     end
 
     def advisory_lock_key
@@ -221,10 +223,15 @@ module Importing
         @notifier.ping('Updated Family Status based on ETO TouchPoints') if @send_notifications
         GrdaWarehouse::HmisForm.set_missing_housing_status
         @notifier.ping('Set Housing Status based on ETO TouchPoints') if @send_notifications
+        GrdaWarehouse::HmisForm.set_missing_physical_disabilities
+        @notifier.ping('Set Physical Disabilities based on ETO TouchPoints') if @send_notifications
       end
 
       # Maintain ETO based CAS flags
       GrdaWarehouse::Tasks::UpdateClientsFromHmisForms.new.run!
+
+      GrdaWarehouse::HmisClient.maintain_client_consent
+      @notifier.ping('Set client consent if appropriate') if @send_notifications
     end
 
     def sync_with_cas

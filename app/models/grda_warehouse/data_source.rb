@@ -14,14 +14,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
 
   has_many :import_logs
-  has_many :services, class_name: GrdaWarehouse::Hud::Service.name, inverse_of: :data_source
-  has_many :enrollments, class_name: GrdaWarehouse::Hud::Enrollment.name, inverse_of: :data_source
-  has_many :exits, class_name: GrdaWarehouse::Hud::Exit.name, inverse_of: :data_source
-  has_many :clients, class_name: GrdaWarehouse::Hud::Client.name, inverse_of: :data_source
-  has_many :organizations, class_name: GrdaWarehouse::Hud::Organization.name, inverse_of: :data_source
-  has_many :projects, class_name: GrdaWarehouse::Hud::Project.name, inverse_of: :data_source
-  has_many :exports, class_name: GrdaWarehouse::Hud::Export.name, inverse_of: :data_source
-  has_many :group_viewable_entities, :class_name => 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
+  has_many :services, class_name: 'GrdaWarehouse::Hud::Service', inverse_of: :data_source
+  has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', inverse_of: :data_source
+  has_many :exits, class_name: 'GrdaWarehouse::Hud::Exit', inverse_of: :data_source
+  has_many :clients, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :data_source
+  has_many :organizations, class_name: 'GrdaWarehouse::Hud::Organization', inverse_of: :data_source
+  has_many :projects, class_name: 'GrdaWarehouse::Hud::Project', inverse_of: :data_source
+  has_many :exports, class_name: 'GrdaWarehouse::Hud::Export', inverse_of: :data_source
+  has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
   has_many :uploads
   has_many :non_hmis_uploads
@@ -355,6 +355,20 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
       stalled
     end
+  end
+
+  def self.options_for_select user:
+    # don't cache this, it's a class method
+    viewable_by(user).
+      distinct.
+      order(name: :asc).
+      pluck(:name, :short_name, :id).
+      map do |name, short_name, id|
+        [
+          "#{name} (#{short_name})",
+          id,
+        ]
+      end
   end
 
   def manual_import_path

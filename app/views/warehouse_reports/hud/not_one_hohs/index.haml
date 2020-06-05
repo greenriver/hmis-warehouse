@@ -1,0 +1,32 @@
+- title = 'Not One Head of Household'
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
+= render 'filter'
+- if @enrollments.exists?
+  %p= page_entries_info @enrollments, entry_name: _('enrollment')
+  .d-flex
+    %p.ml-auto= paginate @enrollments
+  .table-responsive
+    %table.table.table-sm.table-hover
+      %thead
+        %tr
+          %th Client
+          %th Project
+          %th Entry Date
+          %th Exit Date
+          %th Household ID
+          %th Relationship to HoH
+      %tbody
+        - @enrollments.each do |en|
+          - client = en.client.destination_client
+          - project = en.project
+          %tr
+            %td= link_to client.name, client_path(client)
+            %td= project.name
+            %td= en.EntryDate
+            %td= en.exit&.ExitDate
+            %td= en.HouseholdID
+            %td= en.RelationshipToHoH
+  .d-flex
+    %p.ml-auto= paginate @enrollments
