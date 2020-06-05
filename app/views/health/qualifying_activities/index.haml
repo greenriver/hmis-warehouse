@@ -3,6 +3,7 @@
 .o-page
   .o-page__header
     %h1= content_for :title
+  = render 'clients/tab_navigation', current: client_health_qualifying_activities_path(client_id: @client)
   .row
     .col-sm-8
       = render 'filter', data: {placement: 'bottom'}

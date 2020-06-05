@@ -1,9 +1,10 @@
 = render 'health/breadcrumbs'
 - content_for(:title, "Enrollment History for #{@patient.name}")
+
 .o-page
   .o-page__header
     %h1= content_for :title
-
+  = render 'clients/tab_navigation', current: client_health_patient_referrals_path(client_id: @client)
 
   .table-responsive
     %table.table.table-sm
