@@ -552,6 +552,9 @@ module Health
         return true
       end
 
+      # FIXME: Do we need a special case for PCTP signed is always payable?
+      # return false if activity == 'pctp_signed'
+
       # Case 2: Outreach is limited by the outreach cut-off date, enrollment ranges, and frequency
       if outreach?
         return true if date_of_activity > patient.outreach_cutoff_date

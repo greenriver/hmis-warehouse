@@ -25,6 +25,11 @@
           %strong
             Outreach cut-off date:
           = @patient.outreach_cutoff_date
+        - if @patient.current_disenrollment_date
+          .w-100.text-small.text-right
+            %strong
+              Dis-enrollment date:
+            = @patient.current_disenrollment_date&.to_date
         .w-100.text-small.text-right
           %strong
             Days remaining to engage patient:

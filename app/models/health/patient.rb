@@ -347,7 +347,8 @@ module Health
     end
 
     def prior_contributed_dates
-      prior_contributed_enrollment_ranges.map(&:to_a).flatten.uniq
+      # Prior enrollments, but remove current to prevent overlap
+      prior_contributed_enrollment_ranges.map(&:to_a).flatten.uniq - current_enrollment_range.to_a
     end
 
     def contributed_dates
@@ -358,8 +359,12 @@ module Health
       contributed_dates.first(day_count)
     end
 
+    def current_disenrollment_date
+      patient_referral.disenrollment_date || patient_referral.pending_disenrollment_date
+    end
+
     def current_enrollment_range
-      end_date = patient_referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
+      end_date = current_disenrollment_date || Date.current
       (patient_referral.enrollment_start_date..end_date)
     end
 
