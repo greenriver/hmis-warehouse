@@ -39,7 +39,7 @@ class Clients::HudLotsController < ApplicationController
   end
 
   private def set_dates
-    @end_date = params[:end_date]&.to_date || Date.current
+    @end_date = params.dig(:filter, :end)&.to_date || Date.current
     @start_date = @end_date - 3.years + 1.days
   end
 end

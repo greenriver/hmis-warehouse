@@ -52,7 +52,11 @@ module GrdaWarehouse::WarehouseReports
           next_location = locations_by_date[next_date]
           # we've reached the end
           if next_location.blank?
-            end_date = date
+            details << {
+              start_date: start_date,
+              end_date: date,
+              type: current_location,
+            }
           else
             next if type == current_location
 
@@ -149,8 +153,9 @@ module GrdaWarehouse::WarehouseReports
     private def self_reported_breaks(un_processed_dates)
       self_reported_breaks = {}
       entries.find_each do |en|
+        project = en.project
         date_prior_to_entry = en.first_date_in_program - 1.days
-        next unless en.project.coc_funded?
+        next unless project.coc_funded?
         # next unless institutional_stay_longer_than_90_days?(en) || transitional_or_permanent_longer_than_7_days?(en)
         next unless un_processed_dates[date_prior_to_entry]&.include?('street/shelter')
 
@@ -176,42 +181,44 @@ module GrdaWarehouse::WarehouseReports
     private def self_reported_homelessness(un_processed_dates)
       self_report_dates = {}
       entries.find_each do |en|
+        enrollment = en.enrollment
+        project = en.project
         # If we didn't claim to have pre-enrtry homelessness ignore it
-        next unless en.enrollment.DateToStreetESSH.present?
+        next unless enrollment.DateToStreetESSH.present?
         # Or if the dates don't work
-        next unless en.enrollment.DateToStreetESSH < en.first_date_in_program
+        next unless enrollment.DateToStreetESSH < en.first_date_in_program
 
         if en.ph?
           # Homeless Situation
-          if HUD.homeless_situations.include?(en.enrollment&.LivingSituation)
+          if HUD.homeless_situations.include?(enrollment&.LivingSituation)
 
             # Add any dates between DateToStreetESSH and the MoveInDate
             count_until = [en.MoveInDate, en.exit&.ExitDate, filter.end].compact.min
-            (en.enrollment.DateToStreetESSH..count_until).each do |d|
+            (enrollment.DateToStreetESSH..count_until).each do |d|
               self_report_dates[d] = self_reported_shelter
             end
             # Institutional Situations
-          elsif HUD.institutional_situations(as: :prior).include?(en.enrollment&.LivingSituation)
-            next unless en.enrollment.LOSUnderThreshold == 1 && en.enrollment.PreviousStreetESSH == 1
+          elsif HUD.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
+            next unless enrollment.LOSUnderThreshold == 1 && enrollment.PreviousStreetESSH == 1
 
             # Add any dates between DateToStreetESSH and the MoveInDate
-            count_until = [en.enrollment.MoveInDate, en.exit&.ExitDate, filter.end].compact.min
-            (en.enrollment.DateToStreetESSH..count_until).each do |d|
+            count_until = [enrollment.MoveInDate, en.exit&.ExitDate, filter.end].compact.min
+            (enrollment.DateToStreetESSH..count_until).each do |d|
               self_report_dates[d] = self_reported_shelter
             end
           end
         else
-          next unless en.project.ContinuumProject == 1
+          next unless project.ContinuumProject == 1
           next unless en.computed_project_type.in?([1, 2, 4, 8, 11, 12, 14])
           # Homeless enrollment, or institutional stay
-          if en.es? || en.sh? || en.so? || HUD.institutional_situations(as: :prior).include?(en.enrollment&.LivingSituation)
-            (en.enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|
+          if en.es? || en.sh? || en.so? || HUD.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
+            (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|
               self_report_dates[d] = self_reported_shelter
             end
           else
-            next unless en.enrollment.LOSUnderThreshold == 1 && en.enrollment.PreviousStreetESSH == 1
+            next unless enrollment.LOSUnderThreshold == 1 && enrollment.PreviousStreetESSH == 1
 
-            (en.enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|
+            (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|
               self_report_dates[d] = self_reported_shelter
             end
           end
@@ -294,7 +301,8 @@ module GrdaWarehouse::WarehouseReports
         started_between(start_date: filter.start, end_date: filter.end).
         order(first_date_in_program: :asc).
         joins(:enrollment, :project).
-        preload(enrollment: :exit)
+        left_outer_joins(enrollment: :exit).
+        eager_load(:project, enrollment: [:exit, :project])
     end
 
     private def services
