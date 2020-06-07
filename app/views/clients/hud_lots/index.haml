@@ -7,6 +7,35 @@
 .row
   .col-sm-8
     %h1= content_for :title
-- console
-= debug @report.filter
-= debug @report.locations_by_date
+
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Month & Year
+        %th.text-center= @report.shelter_stay
+        %th.text-center= @report.self_reported_shelter
+        %th.text-center= @report.break_marker
+        %th.text-center= @report.self_reported_break
+    %tbody
+      - @report.summary_by_month.each do |(year, month), set|
+        %tr
+          %td= "#{month}/#{year}"
+          %td.text-center= checkmark(set.include?(@report.shelter_stay))
+          %td.text-center= checkmark(set.include?(@report.self_reported_shelter))
+          %td.text-center= checkmark(set.include?(@report.break_marker))
+          %td.text-center= checkmark(set.include?(@report.self_reported_break))
+
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th First Night of Status
+        %th Last Night of Status
+        %th Situation Detail
+    %tbody
+      - @report.details_by_range.each do |row|
+        %tr
+          %td= row[:start_date]
+          %td= row[:end_date]
+          %td= row[:type]
