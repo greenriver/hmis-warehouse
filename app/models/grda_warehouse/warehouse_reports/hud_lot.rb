@@ -102,20 +102,21 @@ module GrdaWarehouse::WarehouseReports
             d,
             shelter_stay,
           ]
-        end
+        end.to_h
         extra_days = {}
         # Fill in any gaps of < 7 days
-        lit_dates.select{|_, v| v.present?}.each_with_index do |(date, _), i|
-          next_i = i + 1
-          next if lit_dates.count == next_i
-          next_date = lit_dates[next_i].first
+        lit_dates.to_a.each_with_index do |(date, _), i|
+          (next_date, _) = lit_dates.to_a[i + 1]
+          next if next_date.blank? || next_date > filter.end
+
           if next_date < date + 7.days
             (date..next_date).each do |d|
-              extra_days[d] = shelter_stay
+              extra_days[d] = shelter_stay unless lit_dates.key?(d)
             end
           end
         end
-        lit_dates.to_h.merge(extra_days)
+
+        lit_dates.merge(extra_days).sort_by{|k,_| k}.to_h
       end
     end
 
