@@ -6,9 +6,6 @@
 
 # Logic from https://www.hudexchange.info/resource/5689/client-level-system-use-and-length-of-time-homeless-report/
 
-# NOTE: https://hmis-warehouse.dev.test/clients/99293/hud_lots
-# https://hmis-warehouse.dev.test/clients/158983/hud_lots
-
 module GrdaWarehouse::WarehouseReports
   class HudLot
     attr_accessor :filter, :client
@@ -18,6 +15,7 @@ module GrdaWarehouse::WarehouseReports
       @filter = filter
     end
 
+    # NOTE: locations by date should remain sorted by date asc as other actions depend on that.
     def locations_by_date
       @locations_by_date ||= begin
         l_dates = dates.dup
@@ -131,6 +129,7 @@ module GrdaWarehouse::WarehouseReports
       a_dates = un_processed_dates.to_a
       dates_present = a_dates.select{|_, v| v.present?}
       dates_present.each_with_index do |(date, type), i|
+        next if i.zero?
         next if shelter_stay?(type)
         previous_i = i - 1
         next unless shelter_stay?(dates_present[previous_i].last)
@@ -158,7 +157,7 @@ module GrdaWarehouse::WarehouseReports
         date_prior_to_entry = en.first_date_in_program - 1.days
         next unless project.coc_funded?
         # next unless institutional_stay_longer_than_90_days?(en) || transitional_or_permanent_longer_than_7_days?(en)
-        next unless un_processed_dates[date_prior_to_entry]&.include?('street/shelter')
+        next unless un_processed_dates[date_prior_to_entry]&.include?(any_shelter_stay)
 
         # Going backward, find the maximum blank date
         # From there, find the maximum 'street/shelter' and TH/PH
@@ -168,7 +167,7 @@ module GrdaWarehouse::WarehouseReports
         next unless max_unknown_date.present?
 
         max_th_ph_date = un_processed_dates.select{|d, type| d < max_unknown_date && type&.in?([th_stay, ph_stay])}.keys.max
-        max_es_date = un_processed_dates.select{|d, type| d < max_unknown_date && type&.include?('street/shelter')}.keys.max
+        max_es_date = un_processed_dates.select{|d, type| d < max_unknown_date && type&.include?(any_shelter_stay)}.keys.max
         # Must fall between two street/shelter
         next unless max_es_date.present?
         # If we have a PH/TH date, we the street date must be newer
@@ -271,6 +270,10 @@ module GrdaWarehouse::WarehouseReports
 
     def shelter_stay?(type)
       type == shelter_stay
+    end
+
+    def any_shelter_stay
+      'street/shelter'
     end
 
     def th_stay
