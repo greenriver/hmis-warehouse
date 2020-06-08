@@ -28,6 +28,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::HudLot, type: :model do
     client = GrdaWarehouse::Hud::Client.destination.joins(:source_enrollments).first
     report = GrdaWarehouse::WarehouseReports::HudLot.new(filter: filter, client: client)
     expect(report.locations_by_date.select { |_, v| v.present? }.count).to be > 0
+    expect(report.locations_by_date['2017-12-10'.to_date]).to eq(report.shelter_stay)
     expect(report.locations_by_date['2017-12-11'.to_date]).to eq(report.shelter_stay)
     expect(report.locations_by_date['2018-05-10'.to_date]).to eq(report.self_reported_shelter)
     expect(report.locations_by_date['2018-05-11'.to_date]).to eq(report.self_reported_break)
