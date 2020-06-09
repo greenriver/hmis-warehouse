@@ -73,3 +73,15 @@ RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include FactoryBot::Syntax::Methods
 end
+
+# Drivers
+Dir[Rails.root.join('drivers/*/spec/support/*.rb')].sort.each { |f| require f }
+
+RSpec.configure do |config|
+  FactoryBot.definition_file_paths += Dir['drivers/*/spec/factories']
+  FactoryBot.reload
+
+  Dir[Rails.root.join('drivers/*/spec')].each { |x| config.project_source_dirs << x }
+  Dir[Rails.root.join('drivers/*/lib')].each { |x| config.project_source_dirs << x }
+  Dir[Rails.root.join('drivers/*/app')].each { |x| config.project_source_dirs << x }
+end
