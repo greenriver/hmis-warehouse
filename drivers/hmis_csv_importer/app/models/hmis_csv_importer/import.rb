@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-
 # Assumptions:
 # The import is authoritative for the date range specified in the Export.csv file
 # The import is authoritative for the projects specified in the Project.csv file
@@ -12,7 +11,6 @@
 # All tables that hang off a client also hang off enrollments
 module HmisCsvImporter
   class Import
-
     def set_date_range
       Filters::DateRange.new(start: @export.ExportStartDate.to_date, end: @export.ExportEndDate.to_date)
     end
@@ -27,10 +25,8 @@ module HmisCsvImporter
 
     def already_running_for_data_source?
       running = GrdaWarehouse::DataSource.advisory_lock_exists?("hud_import_#{@data_source.id}")
-      if running
-        logger.warn "Import of Data Source: #{@data_source.short_name} already running...exiting"
-      end
-      return running
+      logger.warn "Import of Data Source: #{@data_source.short_name} already running...exiting" if running
+      running
     end
 
     def self.pre_calculate_source_hashes!
@@ -52,11 +48,12 @@ module HmisCsvImporter
       begin
         file = importable_files.key(klass)
         return unless @import.summary[file].present?
+
         stats = klass.import_related!(
           data_source_id: @data_source.id,
           file_path: @file_path,
           stats: @import.summary[file],
-          soft_delete_time: @soft_delete_time
+          soft_delete_time: @soft_delete_time,
         )
         errors = stats.delete(:errors)
         setup_summary(klass.file_name)
@@ -66,8 +63,8 @@ module HmisCsvImporter
             add_error(file_path: klass.file_name, message: error[:message], line: error[:line])
           end
         end
-      rescue ActiveRecord::ActiveRecordError => exception
-        message = "Unable to import #{klass.name}: #{exception.message}"
+      rescue ActiveRecord::ActiveRecordError => e
+        message = "Unable to import #{klass.name}: #{e.message}"
         add_error(file_path: klass.file_name, message: message, line: '')
       end
     end

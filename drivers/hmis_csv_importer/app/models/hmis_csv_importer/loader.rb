@@ -22,9 +22,9 @@ module HmisCsvImporter
       begin
         @export ||= export_source.load_from_csv(
           file_path: @file_path,
-          data_source_id: @data_source.id
+          data_source_id: @data_source.id,
         )
-      rescue Errno::ENOENT => exception
+      rescue Errno::ENOENT
         log('No valid Export.csv file found')
       end
       return unless @export&.valid?
@@ -39,11 +39,15 @@ module HmisCsvImporter
     end
 
     def short_line?(line, comma_count)
-      CSV.parse_line(line).count < comma_count rescue line.count(',') < comma_count
+      CSV.parse_line(line).count < comma_count
+    rescue StandardError
+      line.count(',') < comma_count
     end
 
     def long_line?(line, comma_count)
-      CSV.parse_line(line).count > (comma_count + 1) rescue line.count(',') > comma_count
+      CSV.parse_line(line).count > (comma_count + 1)
+    rescue StandardError
+      line.count(',') > comma_count
     end
 
     def export_id_addition
@@ -75,7 +79,7 @@ module HmisCsvImporter
       File.open(file_path, "r:#{file_encoding}:utf-8")
     end
 
-    def expand file_path:
+    def expand(file_path:)
       Rails.logger.info "Expanding #{file_path}"
       Zip::File.open(file_path) do |zipped_file|
         zipped_file.each do |entry|
@@ -95,12 +99,12 @@ module HmisCsvImporter
         file = open_csv_file(source_file_path)
         clean_source_file(destination_path: destination_file_path, read_from: file, klass: klass)
         @import.files << [klass.name, file_name]
-        if File.exists?(destination_file_path)
+        if File.exist?(destination_file_path)
           FileUtils.mv(destination_file_path, source_file_path)
-        else
+        elsif File.exist?(source_file_path)
           # We failed at cleaning the import file, delete the source
           # So we don't accidentally import an unclean file
-          File.delete(source_file_path) if File.exists?(source_file_path)
+          File.delete(source_file_path)
         end
       end
     end
@@ -108,7 +112,6 @@ module HmisCsvImporter
     def clean_source_file(destination_path:, read_from:, klass:)
       csv = CSV.new(read_from, headers: true, liberal_parsing: true)
       # read the first row so we can set the headers
-      row = csv.shift
       headers = csv.headers
       csv.rewind # go back to the start for processing
 
@@ -125,10 +128,10 @@ module HmisCsvImporter
           'wb',
           headers: header,
           write_headers: true,
-          force_quotes: true
-          )
+          force_quotes: true,
+        )
       else
-        msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{headers.to_s}; expected a subset of: #{klass.hud_csv_headers}"
+        msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{headers}; expected a subset of: #{klass.hud_csv_headers}"
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
@@ -138,27 +141,25 @@ module HmisCsvImporter
       csv = CSV.new(read_from, headers: header, liberal_parsing: true)
       # since we're providing headers, skip the header row
       csv.drop(1).each do |row|
-        begin
-          # remove any internal newlines
-          row.each{ |k,v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
-          row = klass.clean_row_for_import(row, deidentified: @deidentified)
+        # remove any internal newlines
+        row.each { |k, v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
+        row = klass.clean_row_for_import(row, deidentified: @deidentified)
 
-          date_columns.each do |col|
-            next if row[col].blank? || correct_date_format?(row[col])
+        date_columns.each do |col|
+          next if row[col].blank? || correct_date_format?(row[col])
 
-            row[col] = fix_date_format(row[col])
-          end
-          if row.count == header.count
-            row = set_useful_export_id(row: row, export_id: export_id_addition)
-            write_to << row
-          else
-            msg = "Line length is incorrect, unable to import:"
-            add_error(file_path: read_from.path, message: msg, line: row.to_s)
-          end
-        rescue Exception => exception
-          message = "Failed while processing #{read_from.path}, #{exception.message}:"
-          add_error(file_path: read_from.path, message: message, line: row.to_s)
+          row[col] = fix_date_format(row[col])
         end
+        if row.count == header.count
+          row = set_useful_export_id(row: row, export_id: export_id_addition)
+          write_to << row
+        else
+          msg = 'Line length is incorrect, unable to import:'
+          add_error(file_path: read_from.path, message: msg, line: row.to_s)
+        end
+      rescue Exception => e
+        message = "Failed while processing #{read_from.path}, #{e.message}:"
+        add_error(file_path: read_from.path, message: message, line: row.to_s)
       end
       write_to.close
     end
@@ -219,7 +220,7 @@ module HmisCsvImporter
 
     def export_file_valid?
       if @export.blank?
-        log("Exiting, failed to find a valid export file")
+        log('Exiting, failed to find a valid export file')
         return false
       end
       if @data_source.source_id.present?
@@ -234,17 +235,17 @@ module HmisCsvImporter
           # Populate @import for error reporting
           @import.files << 'Export.csv'
           @import.summary['Export.csv'][:total_lines] = 1
-          complete_load()
+          complete_load
           return false
         end
       end
-      return true
+      true
     end
 
     def remove_import_files
       import_file_path = File.join(@file_path, @data_source.id.to_s)
       Rails.logger.info "Removing #{import_file_path}"
-      FileUtils.rm_rf(import_file_path) if File.exists?(import_file_path)
+      FileUtils.rm_rf(import_file_path) if File.exist?(import_file_path)
     end
 
     def complete_load

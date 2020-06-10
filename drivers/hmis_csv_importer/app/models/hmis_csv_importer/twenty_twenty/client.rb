@@ -10,7 +10,7 @@ module HmisCsvImporter::TwentyTwenty
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_importer_twenty_twenty_clients'
 
-    def self.clean_row_for_import(row, deidentified: )
+    def self.clean_row_for_import(row, deidentified:)
       row = klass.deidentify_client_name(row) if deidentified
       row['SSN'] = row['SSN'].to_s[0..8] # limit SSNs to 9 characters
       row

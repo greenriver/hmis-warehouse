@@ -17,9 +17,9 @@ module HmisCsvImporter::TwentyTwenty::Importer
 
     attr_accessor :logger, :notifier_config, :import, :range
 
-    def initialize(
+    def initialize( # rubocop:disable Metrics/ParameterLists
       file_path: File.join('tmp', 'hmis_import'),
-      data_source_id: ,
+      data_source_id:,
       logger: Rails.logger,
       debug: true,
       remove_files: true,
@@ -36,8 +36,8 @@ module HmisCsvImporter::TwentyTwenty::Importer
       @deidentified = deidentified
       @project_whitelist = project_whitelist
       setup_import(data_source: @data_source)
-      log("De-identifying clients") if @deidentified
-      log("Limiting to white-listed projects") if @project_whitelist
+      log('De-identifying clients') if @deidentified
+      log('Limiting to white-listed projects') if @project_whitelist
     end
   end
 end

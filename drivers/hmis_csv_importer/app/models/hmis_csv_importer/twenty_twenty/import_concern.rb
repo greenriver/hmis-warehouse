@@ -3,8 +3,8 @@ module HmisCsvImporter::TwentyTwenty
     extend ActiveSupport::Concern
 
     included do
-      def self.clean_row_for_import(row, deidentified: )
-        return row
+      def self.clean_row_for_import(row, deidentified:) # rubocop:disable  Lint/UnusedMethodArgument
+        row
       end
 
       def self.date_columns
@@ -17,9 +17,7 @@ module HmisCsvImporter::TwentyTwenty
       end
 
       def self.load_from_csv
-
       end
-
     end
   end
 end
