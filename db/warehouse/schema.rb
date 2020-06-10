@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_08_183800) do
+ActiveRecord::Schema.define(version: 2020_06_10_125103) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -2146,7 +2146,11 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_affiliations-o9xY"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_affiliations-6NUV"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_assessment_questions", force: :cascade do |t|
@@ -2163,8 +2167,12 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["AssessmentID"], name: "hmis_csv_importer_twenty_twenty_assessment_questions-ofy2"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_assessment_questions-FABP"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["AssessmentID"], name: "hmis_csv_importer_twenty_twenty_assessment_questions-lDTB"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_assessment_questions-yJar"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_assessment_results", force: :cascade do |t|
@@ -2179,8 +2187,12 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["AssessmentID"], name: "hmis_csv_importer_twenty_twenty_assessment_results-wQR3"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_assessment_results-wort"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["AssessmentID"], name: "hmis_csv_importer_twenty_twenty_assessment_results-twa5"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_assessment_results-JFuw"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_assessments", force: :cascade do |t|
@@ -2197,11 +2209,15 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["AssessmentDate"], name: "hmis_csv_importer_twenty_twenty_assessments-i5gf"
-    t.index ["AssessmentID"], name: "hmis_csv_importer_twenty_twenty_assessments-JhRv"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_assessments-Qo8J"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_assessments-f2Np"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_assessments-iL3m"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["AssessmentDate"], name: "hmis_csv_importer_twenty_twenty_assessments-eePv"
+    t.index ["AssessmentID"], name: "hmis_csv_importer_twenty_twenty_assessments-X8TD"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_assessments-ezBj"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_assessments-WEpE"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_assessments-ZPiD"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_clients", force: :cascade do |t|
@@ -2241,14 +2257,18 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DOB"], name: "hmis_csv_importer_twenty_twenty_clients-GtmZ"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_clients-BJJA"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_clients-P9FW"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_clients-4fGl"
-    t.index ["FirstName"], name: "hmis_csv_importer_twenty_twenty_clients-RQl9"
-    t.index ["LastName"], name: "hmis_csv_importer_twenty_twenty_clients-3JIS"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_clients-XCeX"
-    t.index ["VeteranStatus"], name: "hmis_csv_importer_twenty_twenty_clients-ypfB"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DOB"], name: "hmis_csv_importer_twenty_twenty_clients-U8pK"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_clients-DG1B"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_clients-cS1b"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_clients-sWtd"
+    t.index ["FirstName"], name: "hmis_csv_importer_twenty_twenty_clients-v2Ra"
+    t.index ["LastName"], name: "hmis_csv_importer_twenty_twenty_clients-B95f"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_clients-0Wy8"
+    t.index ["VeteranStatus"], name: "hmis_csv_importer_twenty_twenty_clients-Dcjh"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_current_living_situations", force: :cascade do |t|
@@ -2269,12 +2289,16 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["CurrentLivingSitID"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-wFjM"
-    t.index ["CurrentLivingSituation"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-RsqU"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-G3Nd"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-5fVC"
-    t.index ["InformationDate"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-Lbvr"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-hbrP"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["CurrentLivingSitID"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-f4NQ"
+    t.index ["CurrentLivingSituation"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-FpoT"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-jB5P"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-it80"
+    t.index ["InformationDate"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-gRNg"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_current_living_situations-gwGC"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_disabilities", force: :cascade do |t|
@@ -2297,12 +2321,16 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_disabilities-k8GH"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_disabilities-iR4X"
-    t.index ["DisabilitiesID"], name: "hmis_csv_importer_twenty_twenty_disabilities-lWA1"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_disabilities-0V6s"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_disabilities-o9t0"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_disabilities-WeOq"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_disabilities-rz1N"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_disabilities-SCc7"
+    t.index ["DisabilitiesID"], name: "hmis_csv_importer_twenty_twenty_disabilities-xIck"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_disabilities-TSx9"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_disabilities-BjMp"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_disabilities-Y4xA"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_employment_educations", force: :cascade do |t|
@@ -2321,12 +2349,16 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_employment_educations-7ZMG"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_employment_educations-DW9v"
-    t.index ["EmploymentEducationID"], name: "hmis_csv_importer_twenty_twenty_employment_educations-tuJb"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_employment_educations-3iNq"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_employment_educations-6a5M"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_employment_educations-fRm3"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_employment_educations-IIss"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_employment_educations-G7tp"
+    t.index ["EmploymentEducationID"], name: "hmis_csv_importer_twenty_twenty_employment_educations-dpJp"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_employment_educations-lYc1"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_employment_educations-INE0"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_employment_educations-0pIc"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_enrollment_cocs", force: :cascade do |t|
@@ -2343,14 +2375,18 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["CoCCode"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-wVzb"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-Vl2B"
-    t.index ["DateDeleted"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-3YG5"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-igF2"
-    t.index ["EnrollmentCoCID"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-Q3GS"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-Lr7i"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-4pQc"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-3TzQ"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["CoCCode"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-KV1S"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-bMfa"
+    t.index ["DateDeleted"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-HR0m"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-CDwu"
+    t.index ["EnrollmentCoCID"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-EFCq"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-aMrE"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-3XRM"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_enrollment_cocs-1sxy"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_enrollments", force: :cascade do |t|
@@ -2425,23 +2461,27 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_enrollments-UqU4"
-    t.index ["DateDeleted"], name: "hmis_csv_importer_twenty_twenty_enrollments-j2ap"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_enrollments-DEqp"
-    t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_importer_twenty_twenty_enrollments-C6UM"
-    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_csv_importer_twenty_twenty_enrollments-T5Y9"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_enrollments-Oy1Y"
-    t.index ["EntryDate"], name: "hmis_csv_importer_twenty_twenty_enrollments-yjMb"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_enrollments-O8zM"
-    t.index ["HouseholdID"], name: "hmis_csv_importer_twenty_twenty_enrollments-SM5j"
-    t.index ["LivingSituation"], name: "hmis_csv_importer_twenty_twenty_enrollments-ZDMA"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_enrollments-rgkw"
-    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_csv_importer_twenty_twenty_enrollments-CTls"
-    t.index ["ProjectID", "HouseholdID"], name: "hmis_csv_importer_twenty_twenty_enrollments-UTvN"
-    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_csv_importer_twenty_twenty_enrollments-8Hwj"
-    t.index ["ProjectID"], name: "hmis_csv_importer_twenty_twenty_enrollments-CRbM"
-    t.index ["RelationshipToHoH"], name: "hmis_csv_importer_twenty_twenty_enrollments-V73y"
-    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_csv_importer_twenty_twenty_enrollments-QjTT"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_enrollments-3o6I"
+    t.index ["DateDeleted"], name: "hmis_csv_importer_twenty_twenty_enrollments-mL49"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_enrollments-HdF9"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_importer_twenty_twenty_enrollments-uIu9"
+    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_csv_importer_twenty_twenty_enrollments-W9ul"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_enrollments-19uo"
+    t.index ["EntryDate"], name: "hmis_csv_importer_twenty_twenty_enrollments-iniV"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_enrollments-Nq52"
+    t.index ["HouseholdID"], name: "hmis_csv_importer_twenty_twenty_enrollments-yKeC"
+    t.index ["LivingSituation"], name: "hmis_csv_importer_twenty_twenty_enrollments-M8XK"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_enrollments-6Sap"
+    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_csv_importer_twenty_twenty_enrollments-Fsyq"
+    t.index ["ProjectID", "HouseholdID"], name: "hmis_csv_importer_twenty_twenty_enrollments-X5p0"
+    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_csv_importer_twenty_twenty_enrollments-oM5d"
+    t.index ["ProjectID"], name: "hmis_csv_importer_twenty_twenty_enrollments-bko3"
+    t.index ["RelationshipToHoH"], name: "hmis_csv_importer_twenty_twenty_enrollments-qb1n"
+    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_csv_importer_twenty_twenty_enrollments-ADEX"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_events", force: :cascade do |t|
@@ -2460,11 +2500,15 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_events-KWYk"
-    t.index ["EventDate"], name: "hmis_csv_importer_twenty_twenty_events-zHqN"
-    t.index ["EventID"], name: "hmis_csv_importer_twenty_twenty_events-HFyi"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_events-QkjJ"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_events-2gdS"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_events-1Wls"
+    t.index ["EventDate"], name: "hmis_csv_importer_twenty_twenty_events-T1jE"
+    t.index ["EventID"], name: "hmis_csv_importer_twenty_twenty_events-PihD"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_events-5EJ0"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_events-lY6n"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_exits", force: :cascade do |t|
@@ -2511,14 +2555,18 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_exits-qLmU"
-    t.index ["DateDeleted"], name: "hmis_csv_importer_twenty_twenty_exits-cpkD"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_exits-AG4T"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_exits-dkuV"
-    t.index ["ExitDate"], name: "hmis_csv_importer_twenty_twenty_exits-R9rD"
-    t.index ["ExitID"], name: "hmis_csv_importer_twenty_twenty_exits-2tfF"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_exits-U0a8"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_exits-9PsL"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_exits-L62T"
+    t.index ["DateDeleted"], name: "hmis_csv_importer_twenty_twenty_exits-WcOx"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_exits-MRGq"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_exits-o4zM"
+    t.index ["ExitDate"], name: "hmis_csv_importer_twenty_twenty_exits-glGs"
+    t.index ["ExitID"], name: "hmis_csv_importer_twenty_twenty_exits-kzdy"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_exits-2jIS"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_exits-SXTb"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_exports", force: :cascade do |t|
@@ -2539,7 +2587,11 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.integer "ExportPeriodType"
     t.integer "ExportDirective"
     t.integer "HashStatus"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_exports-kgEP"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_exports-e1Vr"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_funders", force: :cascade do |t|
@@ -2555,10 +2607,14 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_funders-MI9G"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_funders-wcfc"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_funders-9xOL"
-    t.index ["FunderID"], name: "hmis_csv_importer_twenty_twenty_funders-WUki"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_funders-bmgB"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_funders-n5Vn"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_funders-CL7P"
+    t.index ["FunderID"], name: "hmis_csv_importer_twenty_twenty_funders-Fv2A"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_health_and_dvs", force: :cascade do |t|
@@ -2580,12 +2636,16 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-52I0"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-AM0j"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-TOqi"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-q9fZ"
-    t.index ["HealthAndDVID"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-4csA"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-fVaN"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-QDsK"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-Zhpb"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-nDE2"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-hNLQ"
+    t.index ["HealthAndDVID"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-uzvF"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_health_and_dvs-vRrm"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_income_benefits", force: :cascade do |t|
@@ -2666,12 +2726,16 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_income_benefits-TWIS"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_income_benefits-JMr7"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_income_benefits-2LIv"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_income_benefits-HqQz"
-    t.index ["IncomeBenefitsID"], name: "hmis_csv_importer_twenty_twenty_income_benefits-BGjf"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_income_benefits-f5h1"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_income_benefits-34Ur"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_income_benefits-9j8g"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_income_benefits-uNvv"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_income_benefits-67cU"
+    t.index ["IncomeBenefitsID"], name: "hmis_csv_importer_twenty_twenty_income_benefits-cGCX"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_income_benefits-POIn"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_inventories", force: :cascade do |t|
@@ -2697,11 +2761,15 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_inventories-6bRK"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_inventories-Lcv3"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_inventories-QvVD"
-    t.index ["InventoryID"], name: "hmis_csv_importer_twenty_twenty_inventories-ShaA"
-    t.index ["ProjectID", "CoCCode"], name: "hmis_csv_importer_twenty_twenty_inventories-fZ2F"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_inventories-xCjy"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_inventories-OBsu"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_inventories-BF3t"
+    t.index ["InventoryID"], name: "hmis_csv_importer_twenty_twenty_inventories-RdW7"
+    t.index ["ProjectID", "CoCCode"], name: "hmis_csv_importer_twenty_twenty_inventories-FD65"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_organizations", force: :cascade do |t|
@@ -2714,8 +2782,12 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_organizations-rzc3"
-    t.index ["OrganizationID"], name: "hmis_csv_importer_twenty_twenty_organizations-H0Iv"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_organizations-WLAF"
+    t.index ["OrganizationID"], name: "hmis_csv_importer_twenty_twenty_organizations-Lg3y"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_project_cocs", force: :cascade do |t|
@@ -2734,11 +2806,15 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_project_cocs-2EVp"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_project_cocs-hrZl"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_project_cocs-EKw3"
-    t.index ["ProjectCoCID"], name: "hmis_csv_importer_twenty_twenty_project_cocs-BXt2"
-    t.index ["ProjectID", "CoCCode"], name: "hmis_csv_importer_twenty_twenty_project_cocs-dfCJ"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_project_cocs-FGFc"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_project_cocs-yh3f"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_project_cocs-lvcP"
+    t.index ["ProjectCoCID"], name: "hmis_csv_importer_twenty_twenty_project_cocs-J2lR"
+    t.index ["ProjectID", "CoCCode"], name: "hmis_csv_importer_twenty_twenty_project_cocs-ONYC"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_projects", force: :cascade do |t|
@@ -2761,11 +2837,15 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_projects-9h3f"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_projects-Qcpj"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_projects-SDgk"
-    t.index ["ProjectID"], name: "hmis_csv_importer_twenty_twenty_projects-Ql01"
-    t.index ["ProjectType"], name: "hmis_csv_importer_twenty_twenty_projects-3yxU"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_projects-xvjO"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_projects-eU9b"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_projects-gawG"
+    t.index ["ProjectID"], name: "hmis_csv_importer_twenty_twenty_projects-lySD"
+    t.index ["ProjectType"], name: "hmis_csv_importer_twenty_twenty_projects-MzsJ"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_services", force: :cascade do |t|
@@ -2784,20 +2864,24 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.string "UserID"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_services-nFpg"
-    t.index ["DateDeleted"], name: "hmis_csv_importer_twenty_twenty_services-15XN"
-    t.index ["DateProvided"], name: "hmis_csv_importer_twenty_twenty_services-8WBD"
-    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_services-PHia"
-    t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_importer_twenty_twenty_services-mKa4"
-    t.index ["EnrollmentID", "RecordType", "DateDeleted", "DateProvided"], name: "hmis_csv_importer_twenty_twenty_services-FXW5"
-    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_services-ed20"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_services-0BZY"
-    t.index ["PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "hmis_csv_importer_twenty_twenty_services-v3Xs"
-    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_services-wDub"
-    t.index ["RecordType", "DateDeleted"], name: "hmis_csv_importer_twenty_twenty_services-JTql"
-    t.index ["RecordType", "DateProvided"], name: "hmis_csv_importer_twenty_twenty_services-SGeD"
-    t.index ["RecordType"], name: "hmis_csv_importer_twenty_twenty_services-9nCT"
-    t.index ["ServicesID"], name: "hmis_csv_importer_twenty_twenty_services-HzxH"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["DateCreated"], name: "hmis_csv_importer_twenty_twenty_services-jCWP"
+    t.index ["DateDeleted"], name: "hmis_csv_importer_twenty_twenty_services-1Hip"
+    t.index ["DateProvided"], name: "hmis_csv_importer_twenty_twenty_services-ikCn"
+    t.index ["DateUpdated"], name: "hmis_csv_importer_twenty_twenty_services-e5Jr"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_importer_twenty_twenty_services-4XT6"
+    t.index ["EnrollmentID", "RecordType", "DateDeleted", "DateProvided"], name: "hmis_csv_importer_twenty_twenty_services-VIKe"
+    t.index ["EnrollmentID"], name: "hmis_csv_importer_twenty_twenty_services-DHon"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_services-Qbnd"
+    t.index ["PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "hmis_csv_importer_twenty_twenty_services-9ftx"
+    t.index ["PersonalID"], name: "hmis_csv_importer_twenty_twenty_services-RjsK"
+    t.index ["RecordType", "DateDeleted"], name: "hmis_csv_importer_twenty_twenty_services-nGfe"
+    t.index ["RecordType", "DateProvided"], name: "hmis_csv_importer_twenty_twenty_services-rXI9"
+    t.index ["RecordType"], name: "hmis_csv_importer_twenty_twenty_services-C5ls"
+    t.index ["ServicesID"], name: "hmis_csv_importer_twenty_twenty_services-ZtEw"
   end
 
   create_table "hmis_csv_importer_twenty_twenty_users", force: :cascade do |t|
@@ -2811,8 +2895,12 @@ ActiveRecord::Schema.define(version: 2020_06_08_183800) do
     t.datetime "DateUpdated"
     t.datetime "DateDeleted"
     t.string "ExportID"
-    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_users-TI0T"
-    t.index ["UserID"], name: "hmis_csv_importer_twenty_twenty_users-WA46"
+    t.integer "imported_by", null: false
+    t.integer "data_source_id", null: false
+    t.datetime "imported_at", null: false
+    t.string "processed_as"
+    t.index ["ExportID"], name: "hmis_csv_importer_twenty_twenty_users-zDfI"
+    t.index ["UserID"], name: "hmis_csv_importer_twenty_twenty_users-7iBu"
   end
 
   create_table "hmis_forms", id: :serial, force: :cascade do |t|
