@@ -75,6 +75,15 @@ namespace :warehouse do
       task :dump do
         Rake::Task["db:structure:dump"].invoke
       end
+
+      desc "Conditionally load the database structure"
+      task :conditional_load, [] => [:environment] do |t, args|
+        if GrdaWarehouseBase.connection.tables.length == 0
+          GrdaWarehouseBase.connection.execute(File.read('db/warehouse/structure.sql'))
+        else
+          puts "Refusing to load the warehouse database structure since there are tables present. This is not an error."
+        end
+      end
     end
 
     namespace :test do
