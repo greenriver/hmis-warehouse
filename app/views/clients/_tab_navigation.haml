@@ -39,6 +39,10 @@
         title: 'Chronic',
         permission: can_edit_clients?
       },
+      client_hud_lots_path(@client) => {
+        title: 'HUD LOT',
+        permission: show_demographic
+      },
       polymorphic_path(client_notes_path_generator, client_id: @client) => {
         title: 'Notes',
         permission: show_notes

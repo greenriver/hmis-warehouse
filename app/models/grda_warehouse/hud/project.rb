@@ -190,6 +190,11 @@ module GrdaWarehouse::Hud
       )
     end
 
+    def coc_funded?
+      return self.ContinuumProject == 1 if hud_continuum_funded.nil?
+      hud_continuum_funded
+    end
+
     # NOTE: Careful, this returns duplicates as it joins inventories.
     # You may want to tack on a distinct, depending on what you need.
     scope :serves_families, -> do

@@ -379,8 +379,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       return true if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
       return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
         (self.MoveInDate.present? && date > self.MoveInDate)
-      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th].include?(project.computed_project_type) &&
-        (self.MoveInDate.present? && date > self.MoveInDate)
+      return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th].include?(project.computed_project_type)
       return nil
     end
 
@@ -774,10 +773,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
     #   }
     # end
 
-
     def self.service_history_enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment
     end
+
     def service_history_enrollment_source
       self.class.service_history_enrollment_source
     end
@@ -785,6 +784,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def self.service_history_service_source
       GrdaWarehouse::ServiceHistoryService
     end
+
     def service_history_service_source
       self.class.service_history_service_source
     end
@@ -792,5 +792,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def force_validity_calculation
       @calculate_hash = nil
     end
+
   end # end Enrollment class
 end
