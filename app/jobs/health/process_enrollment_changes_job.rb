@@ -29,7 +29,7 @@ module Health
           referral = referral(transaction)
           if referral.present?
             if referral.disenrolled?
-              re_enroll_patient(referral.patient, transaction)
+              re_enroll_patient(referral, transaction)
               returning_patients += 1
             else
               updated_patients += 1
@@ -77,7 +77,7 @@ module Health
           elsif referral.disenrolled?
             # This is a missed re-enrollment
 
-            re_enroll_patient(referral.patient, transaction)
+            re_enroll_patient(referral, transaction)
             update_patient_referrals(referral.patient, transaction)
             returning_patients += 1
           else
@@ -135,8 +135,11 @@ module Health
       Health::PatientReferral.create_referral(nil, referral_data(transaction))
     end
 
-    def re_enroll_patient(patient, transaction)
-      Health::PatientReferral.create_referral(patient, referral_data(transaction))
+    def re_enroll_patient(referral, transaction)
+      patient = referral.patient
+      referral_data = referral_data(transaction)
+      referral_data[:agency_id] = referral.agency_id unless referral.enrollment_start_date != referral_data[:enrollment_start_date]
+      Health::PatientReferral.create_referral(patient, referral_data)
     end
 
     def disenroll_patient(transaction, referral)
