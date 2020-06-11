@@ -620,7 +620,10 @@ module Health
     end
 
     def patient_has_signed_careplan?
-      patient.careplans.fully_signed.exists?
+      self.class.where(
+        activity: 'pctp_signed',
+        patient_id: patient_id,
+      ).exists?
     end
 
     def no_signed_careplan?
