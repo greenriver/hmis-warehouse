@@ -802,12 +802,12 @@ module Health
     end
 
     def qualified_activities_since date: 1.months.ago
-      qualifying_activities.not_valid_unpayable.in_range(date..Date.tomorrow)
+      qualifying_activities.in_range(date..Date.tomorrow)
     end
 
     # This does not return a scope
     def valid_qualified_activities_since date: 1.months.ago
-      qualified_activities_since(date: date).to_a.select{|qa| qa.procedure_valid? && ! qa.valid_unpayable? }
+      qualified_activities_since(date: date).to_a.select{|qa| qa.procedure_valid? }
     end
 
     def import_epic_team_members
