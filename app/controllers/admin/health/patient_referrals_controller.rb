@@ -21,7 +21,7 @@ module Admin::Health
 
     def review
       @active_patient_referral_tab = 'review'
-      @patient_referrals = Health::PatientReferral.unassigned.
+      @patient_referrals = Health::PatientReferral.unassigned.not_disenrolled.
         includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_unclaimed, patient: :client)
       respond_to do |format|
@@ -37,7 +37,7 @@ module Admin::Health
 
     def assigned
       @active_patient_referral_tab = 'assigned'
-      @patient_referrals = Health::PatientReferral.assigned.
+      @patient_referrals = Health::PatientReferral.assigned.not_disenrolled.
         includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
       load_index_vars
@@ -75,7 +75,8 @@ module Admin::Health
           where(id: @patient_referral.patient_id).first
         if !@patient_referral.rejected_reason_none?
           # Rejecting a referral dis-enrolls the patient
-          @patient_referral.disenrollment_date ||= @patient_referral.pending_disenrollment_date || Date.current
+          # Uses the date from the 834, if available, otherwise the end of the month
+          @patient_referral.disenrollment_date ||= @patient_referral.pending_disenrollment_date || Date.current.end_of_month
           if @patient_referral.pending_disenrollment_date.present?
             @patient_referral.update(
               pending_disenrollment_date: nil,

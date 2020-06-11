@@ -108,6 +108,7 @@ module Health
     scope :rejection_confirmed, -> { current.where(removal_acknowledged: true) }
     scope :not_confirmed_rejected, -> { current.where(removal_acknowledged: false) }
     scope :pending_disenrollment, -> { current.where.not(pending_disenrollment_date: nil) }
+    scope :not_disenrolled, -> { current.where(pending_disenrollment_date: nil, disenrollment_date: nil)}
 
     scope :active_within_range, -> (start_date:, end_date:) do
       at = arel_table
@@ -388,7 +389,7 @@ module Health
     end
 
     def create_patient destination_client
-      patient = Health::Patient.where(medicaid_id: medicaid_id).first_or_initialize
+      patient = Health::Patient.with_deleted.where(medicaid_id: medicaid_id).first_or_initialize
       patient.assign_attributes(
         id_in_source: id,
         first_name: first_name,
@@ -399,14 +400,11 @@ module Health
         medicaid_id: medicaid_id,
         pilot: false,
         # engagement_date: engagement_date,
-        data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
+        data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first,
+        deleted_at: nil,
       )
       patient.save!
       patient.import_epic_team_members
-      if rejected?
-        # soft delete
-        patient.destroy
-      end
       update(patient_id: patient.id)
     end
 

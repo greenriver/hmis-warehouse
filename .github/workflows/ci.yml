@@ -1,6 +1,15 @@
 name: Audit and Test
 
-on: pull_request
+on:
+  push:
+    branches:
+      - '*'
+      - '**/*'
+  # NOTE: you don't need to build all PRs if you are also building all branches
+  # pull_request:
+  #   branches:
+  #     - '*'
+  #     - '**/*'
 jobs:
   build:
     name: rails
@@ -20,8 +29,11 @@ jobs:
           REPORTING_DATABASE_DB_TEST: test_boston_reporting
         run: |
           sudo apt-get update
+
+          sudo apt-get remove postgresql-10 postgresql-12
+
           sudo apt-get install \
-            postgresql postgresql-contrib \
+            postgresql-11 postgresql-contrib \
             redis-server \
             libmagic-dev \
             libpq-dev \
@@ -31,6 +43,13 @@ jobs:
             freetds-bin \
             build-essential \
             libc6-dev
+
+          echo Updating the postgresql port which is needed if multiple versions installed
+          sudo sed -i.bak -e 's/5433/5432/' /etc/postgresql/11/main/postgresql.conf
+
+          echo Restarting postgres
+          sudo systemctl restart postgresql
+
           sudo -upostgres createuser --echo --superuser $USER #give the runner
           createdb --echo
           createdb $DATABASE_APP_DB_TEST
@@ -38,6 +57,7 @@ jobs:
           createdb $HEALTH_DATABASE_DB_TEST
           createdb $DATABASE_DB_TEST
           createdb $REPORTING_DATABASE_DB_TEST
+
           gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
           gem install bundler -v '< 2'
           wget https://downloads.wkhtmltopdf.org/0.12/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
