@@ -549,28 +549,28 @@ module Health
     def compute_valid_unpayable?
       computed_procedure_valid = compute_procedure_valid?
 
-      # Case 1: Only valid procedures
+      # Only valid procedures
       return false unless computed_procedure_valid
 
-      # Valid procedure, didn't occur during the enrollment
+      # Unpayable if it is a valid procedure, but it didn't occur during an enrollment
       return true if computed_procedure_valid && ! occurred_during_any_enrollment?
 
-      # Case 2: Unpayable if this was a phone/video call where the client wasn't reached
+      # Unpayable if this was a phone/video call where the client wasn't reached
       if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
         return true
       end
 
-      # FIXME: Do we need a special case for PCTP signed is always payable?
-      # return false if activity == 'pctp_signed'
+      # Signing a care plan is payable regardless of engagement status
+      return false if activity == 'pctp_signed'
 
-      # Case 2: Outreach is limited by the outreach cut-off date, enrollment ranges, and frequency
+      # Outreach is limited by the outreach cut-off date, enrollment ranges, and frequency
       if outreach?
         return true if date_of_activity > patient.outreach_cutoff_date
         return true unless patient.contributed_dates.include?(date_of_activity)
         return true unless first_outreach_of_month_for_patient?
         return true if number_of_outreach_activity_months > 3
       else
-        # Case 3: Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
+        # Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
         if ! patient_has_signed_careplan?
           return true unless first_non_outreach_of_month_for_patient?
           return true if patient.engagement_date.blank?
