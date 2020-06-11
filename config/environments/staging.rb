@@ -92,7 +92,7 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-  config.sandbox_email_mode = false
+  config.sandbox_email_mode = true
   config.action_mailer.delivery_method = deliver_method
   config.action_mailer.default_url_options = { host: ENV['FQDN'], protocol: 'https'}
   if deliver_method == :smtp
