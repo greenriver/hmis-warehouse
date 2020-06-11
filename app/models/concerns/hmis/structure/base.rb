@@ -8,15 +8,20 @@ module HMIS::Structure::Base
   extend ActiveSupport::Concern
 
   module ClassMethods
-    def hmis_table_create!(version: nil, constraints: true)
+    def hmis_table_create!(version: nil, constraints: true, types: true)
       return if connection.table_exists?(table_name)
 
       connection.create_table table_name do |t|
         hmis_structure(version: version).each do |column, options|
-          if constraints
-            t.send(options[:type], column, options.except(:type))
+          type = if types
+            options[:type]
           else
-            t.send(options[:type], column)
+            :string
+          end
+          if constraints
+            t.send(type, column, options.except(:type))
+          else
+            t.send(type, column)
           end
         end
       end
