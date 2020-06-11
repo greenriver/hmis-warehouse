@@ -4,6 +4,7 @@ class AddFieldsToDataLake < ActiveRecord::Migration[5.2]
       add_column klass.table_name, :data_source_id, :integer, null: false, index: true
       add_column klass.table_name, :imported_at, :datetime, null: false
       add_column klass.table_name, :processed_as, :string
+      add_column klass.table_name, :loader_id, :integer, null: false, index: true
     end
   end
 end

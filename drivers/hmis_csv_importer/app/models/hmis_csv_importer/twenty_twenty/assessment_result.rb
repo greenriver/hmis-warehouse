@@ -8,6 +8,6 @@ module HmisCsvImporter::TwentyTwenty
   class AssessmentResult < GrdaWarehouse::Hud::AssessmentResult
     include ImportConcern
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
-    self.table_name = 'hmis_csv_importer_twenty_twenty_assessment_results'
+    self.table_name = 'hmis_csv_2020_twenty_twenty_assessment_results'
   end
 end

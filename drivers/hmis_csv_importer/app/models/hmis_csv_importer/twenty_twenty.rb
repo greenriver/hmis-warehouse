@@ -8,7 +8,7 @@ module HmisCsvImporter
   module TwentyTwenty
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     # def self.table_name_prefix
-    #   'hmis_csv_importer_twenty_twenty_'
+    #   'hmis_csv_2020_twenty_twenty_'
     # end
 
     def self.models_by_hud_filename
