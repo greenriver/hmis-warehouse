@@ -21,7 +21,7 @@ module Admin::Health
 
     def review
       @active_patient_referral_tab = 'review'
-      @patient_referrals = Health::PatientReferral.unassigned.
+      @patient_referrals = Health::PatientReferral.unassigned.not_disenrolled.
         includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_unclaimed, patient: :client)
       respond_to do |format|
@@ -37,7 +37,7 @@ module Admin::Health
 
     def assigned
       @active_patient_referral_tab = 'assigned'
-      @patient_referrals = Health::PatientReferral.assigned.
+      @patient_referrals = Health::PatientReferral.assigned.not_disenrolled.
         includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
       load_index_vars

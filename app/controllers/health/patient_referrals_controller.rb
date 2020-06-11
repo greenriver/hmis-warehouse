@@ -11,6 +11,7 @@ module Health
 
     before_action :require_some_patient_access!
     before_action :set_hpc_patient
+    before_action :set_client
 
     def index
       @patient_referrals = @patient.patient_referrals.
