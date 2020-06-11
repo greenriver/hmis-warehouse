@@ -17,7 +17,8 @@ Dir.chdir APP_ROOT do
 
   puts "\n== Preparing Warehouse =="
   system 'bundle exec rake warehouse:db:create'
-  system 'bundle exec rake warehouse:db:schema:conditional_load'
+  # DB has objects that can't be tracked with schema.rb: types, materialized views, and triggers
+  system 'bundle exec rake warehouse:db:structure:conditional_load'
   system 'bundle exec rake warehouse:db:migrate'
 
   puts "\n== Preparing Health Database =="
@@ -30,7 +31,7 @@ Dir.chdir APP_ROOT do
   system 'bundle exec rake reporting:db:schema:conditional_load'
   system 'bundle exec rake reporting:db:migrate'
   # Force a rebuild of this table
-  GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
+  system 'bundle exec rails runner "GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!"'
 
   puts "\n== Seeding Database =="
   system 'bundle exec rake db:seed'
