@@ -43,7 +43,8 @@
         %i.icon-users
         Add Clients
 
-  %li.nav-item
-    = link_to({format: :xlsx}.merge(link_params),{class: 'nav-link'}) do
-      %i.icon-download2
-      Download
+  - if current_user.can_download_cohorts
+    %li.nav-item
+      = link_to({format: :xlsx}.merge(link_params),{class: 'nav-link'}) do
+        %i.icon-download2
+        Download
