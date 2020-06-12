@@ -47,7 +47,8 @@ module Health
     def patient_scope
       patient_source.joins(:health_agency, :patient_referral).
         where(agencies: { id: @active_agency.id }).
-        merge(Health::PatientReferral.not_confirmed_rejected)
+        merge(Health::PatientReferral.not_confirmed_rejected).
+        distinct
     end
 
     def set_patients

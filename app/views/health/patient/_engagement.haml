@@ -8,4 +8,5 @@
       = "#{pluralize(patient.days_to_engage, 'day')} remaining to obtain PCTP signatures"
   .patient__engagement-engaged
     = link_to_if patient.client.present?, "#{pluralize(patient.valid_payable_qualified_activities_since(date: Date.current.beginning_of_month).count, 'Payable Qualifying Activities')} in #{Date.current.strftime('%B')}", url
+  .patient__engagement-engaged
     = link_to_if patient.client.present?, "#{pluralize(patient.valid_unpayable_qualified_activities_since(date: Date.current.beginning_of_month).count, 'Unpayable Qualifying Activities')} in #{Date.current.strftime('%B')}", url
