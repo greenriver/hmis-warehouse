@@ -14,6 +14,7 @@ module Health
     before_action :set_qualifying_activities, only: [:index]
     before_action :require_can_unsubmit_submitted_claims!, only: [:destroy]
     before_action :set_qualifying_activity, only: [:destroy]
+    before_action :set_client
 
     def index
       @start_date = params[:start_date]

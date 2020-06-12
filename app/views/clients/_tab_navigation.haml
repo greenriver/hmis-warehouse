@@ -39,6 +39,10 @@
         title: 'Chronic',
         permission: can_edit_clients?
       },
+      client_hud_lots_path(@client) => {
+        title: 'HUD LOT',
+        permission: show_demographic
+      },
       polymorphic_path(client_notes_path_generator, client_id: @client) => {
         title: 'Notes',
         permission: show_notes
@@ -114,6 +118,11 @@
         title: 'Enrollment History',
         permission: show_health_hpc,
       },
+      client_health_qualifying_activities_path(client_id: @client) => {
+        title: 'Qualifying Activities',
+        permission: has_some_patient_access?,
+      },
+
       # Pilot Pages
       polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client) => {
        title: 'Health Dashboard',
