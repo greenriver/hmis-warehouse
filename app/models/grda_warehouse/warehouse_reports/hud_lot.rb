@@ -193,7 +193,7 @@ module GrdaWarehouse::WarehouseReports
           if HUD.homeless_situations(as: :prior).include?(enrollment&.LivingSituation)
 
             # Add any dates between DateToStreetESSH and the MoveInDate
-            count_until = [en.MoveInDate, en.exit&.ExitDate, filter.end].compact.min
+            count_until = [enrollment.MoveInDate, en.exit&.ExitDate, filter.end].compact.min
             (enrollment.DateToStreetESSH..count_until).each do |d|
               self_report_dates[d] = self_reported_shelter
             end
