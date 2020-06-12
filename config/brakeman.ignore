@@ -67,7 +67,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/service_history_service.rb",
-      "line": 121,
+      "line": 125,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'\")",
       "render_path": null,
@@ -340,7 +340,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/models/glacier/runner.rb",
-      "line": 36,
+      "line": 37,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"psql -d postgres --username=#{db_user} --no-password --host=#{(provided_db_host or db_host)} -c 'create database #{database_name}'\")",
       "render_path": null,
@@ -536,6 +536,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "925523f71ada7a1abc12b8cb2c1195c5176794d72afd3c632fd4fc17280a4b0c",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/hud/client.rb",
+      "line": 715,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"#{quoted_table_name}.consented_coc_codes ?| array[#{(Array.wrap(coc_codes) + [\"All CoCs\"]).map do\n connection.quote(s)\n end.join(\",\")}]\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Client",
+        "method": null
+      },
+      "user_input": "(Array.wrap(coc_codes) + [\"All CoCs\"]).map do\n connection.quote(s)\n end.join(\",\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "94f0e64c5acc071a901163d39ebce6861e109a286a0157b979408b31ce9c6a17",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -560,7 +580,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 290,
+      "line": 295,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -934,26 +954,6 @@
       "note": ""
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "f9e19524fd29723dc3b92ad269438baaefbc7754633219a2aed9d61fb271e4c8",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 717,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql((\"consented_coc_codes='[]'::jsonb OR \" + \"#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map do\n connection.quote(s)\n end.join(\",\")}]\"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Client",
-        "method": null
-      },
-      "user_input": "coc_codes.map do\n connection.quote(s)\n end.join(\",\")",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
       "warning_type": "Dynamic Render Path",
       "warning_code": 15,
       "fingerprint": "fde02e1709a167801d237e080ec6ee9c281c0a4aaaef4e81a09c70c01613e32d",
@@ -979,7 +979,7 @@
       "check_name": "FileAccess",
       "message": "Model attribute used in file name",
       "file": "app/controllers/clients/history_controller.rb",
-      "line": 72,
+      "line": 69,
       "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
       "code": "File.open(Rails.root.join(\"tmp\", \"service_history_pdf_#{GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i).id}.pdf\"), \"wb\")",
       "render_path": null,
@@ -993,6 +993,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-05-30 13:33:32 -0400",
+  "updated": "2020-06-12 14:33:08 -0400",
   "brakeman_version": "4.8.2"
 }
