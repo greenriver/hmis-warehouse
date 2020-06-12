@@ -37,6 +37,9 @@ module HmisCsvTwentyTwenty::Loader
       @debug = debug
       @remove_files = remove_files
       @loader_log = loader_log(data_source: @data_source)
+      importable_files.each_key do |file_name|
+        setup_summary(file_name)
+      end
     end
 
     def self.module_scope
@@ -57,21 +60,32 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     private def load_csvs!
+      @loader_log.update(status: :loading)
       importable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, @data_source.id.to_s, file_name)
-        # binding.pry
         batch = []
-        # FIXME: need to load headers, then load without headers
-        # FIXME: need to add data_source_id, loader_id, loaded_at
-        CSV.foreach(source_file_path, headers: true) do |row|
-          batch << row
+        headers = CSV.foreach(source_file_path, headers: false) do |row|
+          break row
+        end
+        headers += ['data_source_id', 'loader_id', 'loaded_at']
+        CSV.foreach(source_file_path, headers: false).with_index do |row, i|
+          next if i.zero?
+
+          batch << row + [@data_source.id, @loader_log.id, @loaded_at]
           if batch.count == 2_000
-            klass.import(batch)
+            klass.import(headers, batch)
+            loaded_lines(file_name, batch.count)
             batch = []
           end
         end
-        klass.import(batch) # ensure we get the last batch
-        # klass.copy_from source_file_path
+        begin
+          if batch.present?
+            klass.import(headers, batch) # ensure we get the last batch
+            loaded_lines(file_name, batch.count)
+          end
+        rescue ActiveModel::MissingAttributeError
+          # FIXME
+        end
       end
     end
 
@@ -130,8 +144,7 @@ module HmisCsvTwentyTwenty::Loader
         detect(file).
         try(:[], :encoding)
       file_lines = IO.readlines(file_path).size - 1
-      setup_summary(File.basename(file_path))
-      @loader_log.summary[File.basename(file_path)][:total_lines] = file_lines
+      @loader_log.summary[File.basename(file_path)]['total_lines'] = file_lines
       log("Processing #{file_lines} lines in: #{file_path}")
       File.open(file_path, "r:#{file_encoding}:utf-8")
     end
@@ -148,6 +161,7 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     def clean_source_files
+      @loader_log.update(status: :cleaning)
       importable_files.each do |file_name, klass|
         source_file_path = File.join(@file_path, @data_source.id.to_s, file_name)
         next unless File.file?(source_file_path)
@@ -163,6 +177,7 @@ module HmisCsvTwentyTwenty::Loader
           File.delete(source_file_path)
         end
       end
+      @loader_log.update(status: :cleaned)
     end
 
     def clean_source_file(destination_path:, read_from:, klass:)
@@ -311,7 +326,7 @@ module HmisCsvTwentyTwenty::Loader
 
           add_error(file_path: file_path, message: msg, line: '')
 
-          @loader_log.summary['Export.csv'][:total_lines] = 1
+          @loader_log.summary['Export.csv']['total_lines'] = 1
           complete_load(status: :failed)
           return false
         end
@@ -340,16 +355,16 @@ module HmisCsvTwentyTwenty::Loader
       @loader_log.update(completed_at: Time.current, status: status)
     end
 
+    def loaded_lines(file, count)
+      @loader_log.summary[file]['lines_loaded'] += count
+    end
+
     def setup_summary(file)
       @loader_log.summary ||= {}
       @loader_log.summary[file] ||= {
-        total_lines: -1,
-        lines_processed: 0,
-        lines_added: 0,
-        lines_updated: 0,
-        lines_restored: 0,
-        lines_skipped: 0,
-        total_errors: 0,
+        'total_lines' => -1,
+        'lines_loaded' => 0,
+        'total_errors' => 0,
       }
     end
 
@@ -374,7 +389,7 @@ module HmisCsvTwentyTwenty::Loader
         message: message,
         line: line,
       }
-      @loader_log.summary[file][:total_errors] += 1
+      @loader_log.summary[file]['total_errors'] += 1
       log(message)
     end
   end

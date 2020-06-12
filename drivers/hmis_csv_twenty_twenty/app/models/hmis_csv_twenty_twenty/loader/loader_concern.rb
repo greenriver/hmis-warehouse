@@ -3,7 +3,7 @@ module HmisCsvTwentyTwenty::Loader
     extend ActiveSupport::Concern
 
     included do
-      acts_as_copy_target
+      # acts_as_copy_target
       # def self.clean_row_for_import(row, deidentified:) # Lint/UnusedMethodArgument
       #   row
       # end
