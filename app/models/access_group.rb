@@ -44,6 +44,13 @@ class AccessGroup < ApplicationRecord
     )
   end
 
+  def contains?(entity)
+    group_viewable_entities.where(
+      entity_type: entity.class.sti_name,
+      entity_id: entity.id,
+    ).exists?
+  end
+
   def name
     if user_id.blank?
       super
