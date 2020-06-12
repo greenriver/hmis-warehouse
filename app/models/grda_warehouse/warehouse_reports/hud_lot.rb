@@ -190,7 +190,7 @@ module GrdaWarehouse::WarehouseReports
 
         if en.ph?
           # Homeless Situation
-          if HUD.homeless_situations.include?(enrollment&.LivingSituation)
+          if HUD.homeless_situations(as: :prior).include?(enrollment&.LivingSituation)
 
             # Add any dates between DateToStreetESSH and the MoveInDate
             count_until = [en.MoveInDate, en.exit&.ExitDate, filter.end].compact.min
