@@ -26,6 +26,10 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
     in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
   end
 
+  scope :transitional_housing, -> do
+    in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th])
+  end
+
   scope :homeless_sheltered, -> do
     in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_SHELTERED_PROJECT_TYPES)
   end

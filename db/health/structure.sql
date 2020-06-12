@@ -2,8 +2,10 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.15
--- Dumped by pg_dump version 10.5
+-- Dumped from database version 11.7
+-- Dumped by pg_dump version 12.2
+
+-- Started on 2020-06-10 18:00:30 UTC
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -12,26 +14,11 @@ SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
+SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
---
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-
-
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
-
 SET default_tablespace = '';
-
-SET default_with_oids = false;
 
 --
 -- Name: accountable_care_organizations; Type: TABLE; Schema: public; Owner: -
@@ -52,6 +39,7 @@ CREATE TABLE public.accountable_care_organizations (
 --
 
 CREATE SEQUENCE public.accountable_care_organizations_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -85,6 +73,7 @@ CREATE TABLE public.agencies (
 --
 
 CREATE SEQUENCE public.agencies_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -118,6 +107,7 @@ CREATE TABLE public.agency_patient_referrals (
 --
 
 CREATE SEQUENCE public.agency_patient_referrals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -148,6 +138,7 @@ CREATE TABLE public.agency_users (
 --
 
 CREATE SEQUENCE public.agency_users_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -187,6 +178,7 @@ CREATE TABLE public.appointments (
 --
 
 CREATE SEQUENCE public.appointments_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -199,6 +191,18 @@ CREATE SEQUENCE public.appointments_id_seq
 --
 
 ALTER SEQUENCE public.appointments_id_seq OWNED BY public.appointments.id;
+
+
+--
+-- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ar_internal_metadata (
+    key character varying NOT NULL,
+    value character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
 
 
 --
@@ -217,6 +221,7 @@ CREATE TABLE public.careplan_equipment (
 --
 
 CREATE SEQUENCE public.careplan_equipment_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -247,6 +252,7 @@ CREATE TABLE public.careplan_services (
 --
 
 CREATE SEQUENCE public.careplan_services_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -308,6 +314,7 @@ CREATE TABLE public.careplans (
 --
 
 CREATE SEQUENCE public.careplans_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -374,6 +381,7 @@ CREATE TABLE public.claims_amount_paid_location_month (
 --
 
 CREATE SEQUENCE public.claims_amount_paid_location_month_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -414,6 +422,7 @@ CREATE TABLE public.claims_claim_volume_location_month (
 --
 
 CREATE SEQUENCE public.claims_claim_volume_location_month_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -448,6 +457,7 @@ CREATE TABLE public.claims_ed_nyu_severity (
 --
 
 CREATE SEQUENCE public.claims_ed_nyu_severity_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -467,6 +477,7 @@ ALTER SEQUENCE public.claims_ed_nyu_severity_id_seq OWNED BY public.claims_ed_ny
 --
 
 CREATE SEQUENCE public.claims_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -524,6 +535,7 @@ CREATE TABLE public.claims_roster (
 --
 
 CREATE SEQUENCE public.claims_roster_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -559,6 +571,7 @@ CREATE TABLE public.claims_top_conditions (
 --
 
 CREATE SEQUENCE public.claims_top_conditions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -594,6 +607,7 @@ CREATE TABLE public.claims_top_ip_conditions (
 --
 
 CREATE SEQUENCE public.claims_top_ip_conditions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -629,6 +643,7 @@ CREATE TABLE public.claims_top_providers (
 --
 
 CREATE SEQUENCE public.claims_top_providers_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -668,6 +683,7 @@ CREATE TABLE public.comprehensive_health_assessments (
 --
 
 CREATE SEQUENCE public.comprehensive_health_assessments_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -680,6 +696,42 @@ CREATE SEQUENCE public.comprehensive_health_assessments_id_seq
 --
 
 ALTER SEQUENCE public.comprehensive_health_assessments_id_seq OWNED BY public.comprehensive_health_assessments.id;
+
+
+--
+-- Name: cp_member_files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cp_member_files (
+    id integer NOT NULL,
+    type character varying,
+    file character varying,
+    content character varying,
+    user_id integer,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: cp_member_files_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cp_member_files_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cp_member_files_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cp_member_files_id_seq OWNED BY public.cp_member_files.id;
 
 
 --
@@ -719,6 +771,7 @@ CREATE TABLE public.cps (
 --
 
 CREATE SEQUENCE public.cps_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -751,6 +804,7 @@ CREATE TABLE public.data_sources (
 --
 
 CREATE SEQUENCE public.data_sources_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -766,6 +820,92 @@ ALTER SEQUENCE public.data_sources_id_seq OWNED BY public.data_sources.id;
 
 
 --
+-- Name: ed_ip_visit_files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ed_ip_visit_files (
+    id integer NOT NULL,
+    type character varying,
+    file character varying,
+    content character varying,
+    user_id integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    failed_at timestamp without time zone
+);
+
+
+--
+-- Name: ed_ip_visit_files_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ed_ip_visit_files_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ed_ip_visit_files_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ed_ip_visit_files_id_seq OWNED BY public.ed_ip_visit_files.id;
+
+
+--
+-- Name: ed_ip_visits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ed_ip_visits (
+    id integer NOT NULL,
+    ed_ip_visit_file_id integer NOT NULL,
+    medicaid_id character varying,
+    last_name character varying,
+    first_name character varying,
+    gender character varying,
+    dob date,
+    admit_date date,
+    discharge_date date,
+    discharge_disposition character varying,
+    encounter_major_class character varying,
+    visit_type character varying,
+    encounter_facility character varying,
+    chief_complaint character varying,
+    diagnosis character varying,
+    attending_physician character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ed_ip_visits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ed_ip_visits_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ed_ip_visits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ed_ip_visits_id_seq OWNED BY public.ed_ip_visits.id;
+
+
+--
 -- Name: eligibility_inquiries; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -778,7 +918,10 @@ CREATE TABLE public.eligibility_inquiries (
     group_control_number integer NOT NULL,
     transaction_control_number integer NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    internal boolean DEFAULT false,
+    batch_id integer,
+    has_batch boolean DEFAULT false
 );
 
 
@@ -787,6 +930,7 @@ CREATE TABLE public.eligibility_inquiries (
 --
 
 CREATE SEQUENCE public.eligibility_inquiries_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -824,6 +968,7 @@ CREATE TABLE public.eligibility_responses (
 --
 
 CREATE SEQUENCE public.eligibility_responses_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -836,6 +981,110 @@ CREATE SEQUENCE public.eligibility_responses_id_seq
 --
 
 ALTER SEQUENCE public.eligibility_responses_id_seq OWNED BY public.eligibility_responses.id;
+
+
+--
+-- Name: enrollment_rosters; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.enrollment_rosters (
+    id integer NOT NULL,
+    roster_file_id integer,
+    member_id character varying,
+    performance_year character varying,
+    region character varying,
+    service_area character varying,
+    aco_pidsl character varying,
+    aco_name character varying,
+    pcc_pidsl character varying,
+    pcc_name character varying,
+    pcc_npi character varying,
+    pcc_taxid character varying,
+    mco_pidsl character varying,
+    mco_name character varying,
+    enrolled_flag character varying,
+    enroll_type character varying,
+    enroll_stop_reason character varying,
+    rating_category_char_cd character varying,
+    ind_dds character varying,
+    ind_dmh character varying,
+    ind_dta character varying,
+    ind_dss character varying,
+    cde_hcb_waiver character varying,
+    cde_waiver_category character varying,
+    span_start_date date,
+    span_end_date date,
+    span_mem_days integer,
+    cp_prov_type character varying,
+    cp_plan_type character varying,
+    cp_pidsl character varying,
+    cp_prov_name character varying,
+    cp_enroll_dt date,
+    cp_disenroll_dt date,
+    cp_start_rsn character varying,
+    cp_stop_rsn character varying,
+    ind_medicare_a character varying,
+    ind_medicare_b character varying,
+    tpl_coverage_cat character varying
+);
+
+
+--
+-- Name: enrollment_rosters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.enrollment_rosters_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: enrollment_rosters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.enrollment_rosters_id_seq OWNED BY public.enrollment_rosters.id;
+
+
+--
+-- Name: enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.enrollments (
+    id integer NOT NULL,
+    user_id integer,
+    content character varying,
+    original_filename character varying,
+    status character varying,
+    new_patients integer,
+    returning_patients integer,
+    disenrolled_patients integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.enrollments_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.enrollments_id_seq OWNED BY public.enrollments.id;
 
 
 --
@@ -864,6 +1113,7 @@ CREATE TABLE public.epic_careplans (
 --
 
 CREATE SEQUENCE public.epic_careplans_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -904,6 +1154,7 @@ CREATE TABLE public.epic_case_note_qualifying_activities (
 --
 
 CREATE SEQUENCE public.epic_case_note_qualifying_activities_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -951,6 +1202,7 @@ CREATE TABLE public.epic_case_notes (
 --
 
 CREATE SEQUENCE public.epic_case_notes_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1006,6 +1258,7 @@ CREATE TABLE public.epic_chas (
 --
 
 CREATE SEQUENCE public.epic_chas_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1044,6 +1297,7 @@ CREATE TABLE public.epic_goals (
 --
 
 CREATE SEQUENCE public.epic_goals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1096,6 +1350,7 @@ CREATE TABLE public.epic_patients (
 --
 
 CREATE SEQUENCE public.epic_patients_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1136,6 +1391,7 @@ CREATE TABLE public.epic_qualifying_activities (
 --
 
 CREATE SEQUENCE public.epic_qualifying_activities_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1176,6 +1432,7 @@ CREATE TABLE public.epic_ssms (
 --
 
 CREATE SEQUENCE public.epic_ssms_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1215,6 +1472,7 @@ CREATE TABLE public.epic_team_members (
 --
 
 CREATE SEQUENCE public.epic_team_members_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1253,6 +1511,7 @@ CREATE TABLE public.equipment (
 --
 
 CREATE SEQUENCE public.equipment_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1294,6 +1553,7 @@ CREATE TABLE public.health_files (
 --
 
 CREATE SEQUENCE public.health_files_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1364,6 +1624,7 @@ CREATE TABLE public.health_goals (
 --
 
 CREATE SEQUENCE public.health_goals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1401,6 +1662,7 @@ CREATE TABLE public.medications (
 --
 
 CREATE SEQUENCE public.medications_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1464,6 +1726,7 @@ CREATE TABLE public.member_status_report_patients (
 --
 
 CREATE SEQUENCE public.member_status_report_patients_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1507,6 +1770,7 @@ CREATE TABLE public.member_status_reports (
 --
 
 CREATE SEQUENCE public.member_status_reports_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1543,6 +1807,7 @@ CREATE TABLE public.participation_forms (
 --
 
 CREATE SEQUENCE public.participation_forms_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1574,6 +1839,7 @@ CREATE TABLE public.patient_referral_imports (
 --
 
 CREATE SEQUENCE public.patient_referral_imports_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1649,12 +1915,13 @@ CREATE TABLE public.patient_referrals (
     snf_discharge character varying,
     identification character varying,
     record_status character varying,
-    updated_on date,
+    record_updated_on date,
     exported_on date,
     removal_acknowledged boolean DEFAULT false,
     effective_date timestamp without time zone,
     disenrollment_date date,
-    stop_reason_description character varying
+    stop_reason_description character varying,
+    pending_disenrollment_date date
 );
 
 
@@ -1663,6 +1930,7 @@ CREATE TABLE public.patient_referrals (
 --
 
 CREATE SEQUENCE public.patient_referrals_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1723,6 +1991,7 @@ CREATE TABLE public.patients (
 --
 
 CREATE SEQUENCE public.patients_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1760,6 +2029,7 @@ CREATE TABLE public.premium_payments (
 --
 
 CREATE SEQUENCE public.premium_payments_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1798,6 +2068,7 @@ CREATE TABLE public.problems (
 --
 
 CREATE SEQUENCE public.problems_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1847,6 +2118,7 @@ CREATE TABLE public.qualifying_activities (
 --
 
 CREATE SEQUENCE public.qualifying_activities_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1883,6 +2155,7 @@ CREATE TABLE public.release_forms (
 --
 
 CREATE SEQUENCE public.release_forms_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1895,6 +2168,80 @@ CREATE SEQUENCE public.release_forms_id_seq
 --
 
 ALTER SEQUENCE public.release_forms_id_seq OWNED BY public.release_forms.id;
+
+
+--
+-- Name: rosters; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.rosters (
+    id integer NOT NULL,
+    roster_file_id integer,
+    member_id character varying,
+    nam_first character varying,
+    nam_last character varying,
+    cp_pidsl character varying,
+    cp_name character varying,
+    aco_pidsl character varying,
+    aco_name character varying,
+    mco_pidsl character varying,
+    mco_name character varying,
+    sex character varying,
+    date_of_birth date,
+    mailing_address_1 character varying,
+    mailing_address_2 character varying,
+    mailing_city character varying,
+    mailing_state character varying,
+    mailing_zip character varying,
+    residential_address_1 character varying,
+    residential_address_2 character varying,
+    residential_city character varying,
+    residential_state character varying,
+    residential_zip character varying,
+    race character varying,
+    phone_number character varying,
+    primary_language_s character varying,
+    primary_language_w character varying,
+    sdh_nss7_score character varying,
+    sdh_homelessness character varying,
+    sdh_addresses_flag character varying,
+    sdh_other_disabled character varying,
+    sdh_spmi character varying,
+    raw_risk_score character varying,
+    normalized_risk_score character varying,
+    raw_dxcg_risk_score character varying,
+    last_office_visit date,
+    last_ed_visit date,
+    last_ip_visit date,
+    enrolled_flag character varying,
+    enrollment_status character varying,
+    cp_claim_dt date,
+    qualifying_hcpcs character varying,
+    qualifying_hcpcs_nm character varying,
+    qualifying_dsc character varying,
+    email character varying,
+    head_of_household character varying
+);
+
+
+--
+-- Name: rosters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.rosters_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: rosters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.rosters_id_seq OWNED BY public.rosters.id;
 
 
 --
@@ -1939,6 +2286,7 @@ CREATE TABLE public.sdh_case_management_notes (
 --
 
 CREATE SEQUENCE public.sdh_case_management_notes_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2015,6 +2363,7 @@ CREATE TABLE public.self_sufficiency_matrix_forms (
 --
 
 CREATE SEQUENCE public.self_sufficiency_matrix_forms_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2055,6 +2404,7 @@ CREATE TABLE public.services (
 --
 
 CREATE SEQUENCE public.services_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2101,6 +2451,7 @@ CREATE TABLE public.signable_documents (
 --
 
 CREATE SEQUENCE public.signable_documents_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2143,6 +2494,7 @@ CREATE TABLE public.signature_requests (
 --
 
 CREATE SEQUENCE public.signature_requests_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2155,6 +2507,81 @@ CREATE SEQUENCE public.signature_requests_id_seq
 --
 
 ALTER SEQUENCE public.signature_requests_id_seq OWNED BY public.signature_requests.id;
+
+
+--
+-- Name: soap_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.soap_configs (
+    id integer NOT NULL,
+    name character varying,
+    "user" character varying,
+    encrypted_pass character varying,
+    encrypted_pass_iv character varying,
+    sender character varying,
+    receiver character varying,
+    test_url character varying,
+    production_url character varying
+);
+
+
+--
+-- Name: soap_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.soap_configs_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: soap_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.soap_configs_id_seq OWNED BY public.soap_configs.id;
+
+
+--
+-- Name: ssm_exports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ssm_exports (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    options jsonb,
+    headers jsonb,
+    rows jsonb,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: ssm_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ssm_exports_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ssm_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ssm_exports_id_seq OWNED BY public.ssm_exports.id;
 
 
 --
@@ -2184,6 +2611,7 @@ CREATE TABLE public.team_members (
 --
 
 CREATE SEQUENCE public.team_members_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2218,6 +2646,7 @@ CREATE TABLE public.teams (
 --
 
 CREATE SEQUENCE public.teams_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2252,6 +2681,7 @@ CREATE TABLE public.transaction_acknowledgements (
 --
 
 CREATE SEQUENCE public.transaction_acknowledgements_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2285,6 +2715,7 @@ CREATE TABLE public.user_care_coordinators (
 --
 
 CREATE SEQUENCE public.user_care_coordinators_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2322,6 +2753,7 @@ CREATE TABLE public.versions (
 --
 
 CREATE SEQUENCE public.versions_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2359,6 +2791,7 @@ CREATE TABLE public.visits (
 --
 
 CREATE SEQUENCE public.visits_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -2493,6 +2926,13 @@ ALTER TABLE ONLY public.comprehensive_health_assessments ALTER COLUMN id SET DEF
 
 
 --
+-- Name: cp_member_files id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cp_member_files ALTER COLUMN id SET DEFAULT nextval('public.cp_member_files_id_seq'::regclass);
+
+
+--
 -- Name: cps id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2507,6 +2947,20 @@ ALTER TABLE ONLY public.data_sources ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: ed_ip_visit_files id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ed_ip_visit_files ALTER COLUMN id SET DEFAULT nextval('public.ed_ip_visit_files_id_seq'::regclass);
+
+
+--
+-- Name: ed_ip_visits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ed_ip_visits ALTER COLUMN id SET DEFAULT nextval('public.ed_ip_visits_id_seq'::regclass);
+
+
+--
 -- Name: eligibility_inquiries id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2518,6 +2972,20 @@ ALTER TABLE ONLY public.eligibility_inquiries ALTER COLUMN id SET DEFAULT nextva
 --
 
 ALTER TABLE ONLY public.eligibility_responses ALTER COLUMN id SET DEFAULT nextval('public.eligibility_responses_id_seq'::regclass);
+
+
+--
+-- Name: enrollment_rosters id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.enrollment_rosters ALTER COLUMN id SET DEFAULT nextval('public.enrollment_rosters_id_seq'::regclass);
+
+
+--
+-- Name: enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.enrollments ALTER COLUMN id SET DEFAULT nextval('public.enrollments_id_seq'::regclass);
 
 
 --
@@ -2682,6 +3150,13 @@ ALTER TABLE ONLY public.release_forms ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: rosters id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rosters ALTER COLUMN id SET DEFAULT nextval('public.rosters_id_seq'::regclass);
+
+
+--
 -- Name: sdh_case_management_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2714,6 +3189,20 @@ ALTER TABLE ONLY public.signable_documents ALTER COLUMN id SET DEFAULT nextval('
 --
 
 ALTER TABLE ONLY public.signature_requests ALTER COLUMN id SET DEFAULT nextval('public.signature_requests_id_seq'::regclass);
+
+
+--
+-- Name: soap_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.soap_configs ALTER COLUMN id SET DEFAULT nextval('public.soap_configs_id_seq'::regclass);
+
+
+--
+-- Name: ssm_exports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ssm_exports ALTER COLUMN id SET DEFAULT nextval('public.ssm_exports_id_seq'::regclass);
 
 
 --
@@ -2796,6 +3285,14 @@ ALTER TABLE ONLY public.agency_users
 
 ALTER TABLE ONLY public.appointments
     ADD CONSTRAINT appointments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ar_internal_metadata
+    ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
 
 
 --
@@ -2895,6 +3392,14 @@ ALTER TABLE ONLY public.comprehensive_health_assessments
 
 
 --
+-- Name: cp_member_files cp_member_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cp_member_files
+    ADD CONSTRAINT cp_member_files_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: cps cps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2911,6 +3416,22 @@ ALTER TABLE ONLY public.data_sources
 
 
 --
+-- Name: ed_ip_visit_files ed_ip_visit_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ed_ip_visit_files
+    ADD CONSTRAINT ed_ip_visit_files_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ed_ip_visits ed_ip_visits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ed_ip_visits
+    ADD CONSTRAINT ed_ip_visits_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: eligibility_inquiries eligibility_inquiries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2924,6 +3445,22 @@ ALTER TABLE ONLY public.eligibility_inquiries
 
 ALTER TABLE ONLY public.eligibility_responses
     ADD CONSTRAINT eligibility_responses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: enrollment_rosters enrollment_rosters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.enrollment_rosters
+    ADD CONSTRAINT enrollment_rosters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: enrollments enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.enrollments
+    ADD CONSTRAINT enrollments_pkey PRIMARY KEY (id);
 
 
 --
@@ -3111,6 +3648,22 @@ ALTER TABLE ONLY public.release_forms
 
 
 --
+-- Name: rosters rosters_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rosters
+    ADD CONSTRAINT rosters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
 -- Name: sdh_case_management_notes sdh_case_management_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3148,6 +3701,22 @@ ALTER TABLE ONLY public.signable_documents
 
 ALTER TABLE ONLY public.signature_requests
     ADD CONSTRAINT signature_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: soap_configs soap_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.soap_configs
+    ADD CONSTRAINT soap_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ssm_exports ssm_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ssm_exports
+    ADD CONSTRAINT ssm_exports_pkey PRIMARY KEY (id);
 
 
 --
@@ -3294,6 +3863,76 @@ CREATE INDEX index_comprehensive_health_assessments_on_reviewed_by_id ON public.
 --
 
 CREATE INDEX index_comprehensive_health_assessments_on_user_id ON public.comprehensive_health_assessments USING btree (user_id);
+
+
+--
+-- Name: index_ed_ip_visit_files_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ed_ip_visit_files_on_created_at ON public.ed_ip_visit_files USING btree (created_at);
+
+
+--
+-- Name: index_ed_ip_visit_files_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ed_ip_visit_files_on_deleted_at ON public.ed_ip_visit_files USING btree (deleted_at);
+
+
+--
+-- Name: index_ed_ip_visit_files_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ed_ip_visit_files_on_updated_at ON public.ed_ip_visit_files USING btree (updated_at);
+
+
+--
+-- Name: index_ed_ip_visit_files_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ed_ip_visit_files_on_user_id ON public.ed_ip_visit_files USING btree (user_id);
+
+
+--
+-- Name: index_ed_ip_visits_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ed_ip_visits_on_created_at ON public.ed_ip_visits USING btree (created_at);
+
+
+--
+-- Name: index_ed_ip_visits_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ed_ip_visits_on_deleted_at ON public.ed_ip_visits USING btree (deleted_at);
+
+
+--
+-- Name: index_ed_ip_visits_on_ed_ip_visit_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ed_ip_visits_on_ed_ip_visit_file_id ON public.ed_ip_visits USING btree (ed_ip_visit_file_id);
+
+
+--
+-- Name: index_ed_ip_visits_on_medicaid_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ed_ip_visits_on_medicaid_id ON public.ed_ip_visits USING btree (medicaid_id);
+
+
+--
+-- Name: index_ed_ip_visits_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ed_ip_visits_on_updated_at ON public.ed_ip_visits USING btree (updated_at);
+
+
+--
+-- Name: index_eligibility_inquiries_on_batch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_eligibility_inquiries_on_batch_id ON public.eligibility_inquiries USING btree (batch_id);
 
 
 --
@@ -3493,6 +4132,27 @@ CREATE INDEX index_signature_requests_on_type ON public.signature_requests USING
 
 
 --
+-- Name: index_ssm_exports_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ssm_exports_on_created_at ON public.ssm_exports USING btree (created_at);
+
+
+--
+-- Name: index_ssm_exports_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ssm_exports_on_updated_at ON public.ssm_exports USING btree (updated_at);
+
+
+--
+-- Name: index_ssm_exports_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_ssm_exports_on_user_id ON public.ssm_exports USING btree (user_id);
+
+
+--
 -- Name: index_team_members_on_patient_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3528,10 +4188,10 @@ CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING bt
 
 
 --
--- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+-- Name: patients_client_id_constraint; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
+CREATE UNIQUE INDEX patients_client_id_constraint ON public.patients USING btree (client_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -3590,305 +4250,9 @@ ALTER TABLE ONLY public.team_members
     ADD CONSTRAINT fk_rails_ecf5238646 FOREIGN KEY (patient_id) REFERENCES public.patients(id);
 
 
+-- Completed on 2020-06-10 18:03:26 UTC
+
 --
 -- PostgreSQL database dump complete
 --
-
-SET search_path TO "$user", public;
-
-INSERT INTO schema_migrations (version) VALUES ('20170512154839');
-
-INSERT INTO schema_migrations (version) VALUES ('20170512172314');
-
-INSERT INTO schema_migrations (version) VALUES ('20170512172320');
-
-INSERT INTO schema_migrations (version) VALUES ('20170512172327');
-
-INSERT INTO schema_migrations (version) VALUES ('20170512172333');
-
-INSERT INTO schema_migrations (version) VALUES ('20170516185409');
-
-INSERT INTO schema_migrations (version) VALUES ('20170516190400');
-
-INSERT INTO schema_migrations (version) VALUES ('20170516195310');
-
-INSERT INTO schema_migrations (version) VALUES ('20170517125108');
-
-INSERT INTO schema_migrations (version) VALUES ('20170523175542');
-
-INSERT INTO schema_migrations (version) VALUES ('20170523181235');
-
-INSERT INTO schema_migrations (version) VALUES ('20170529174730');
-
-INSERT INTO schema_migrations (version) VALUES ('20170529182835');
-
-INSERT INTO schema_migrations (version) VALUES ('20170529203247');
-
-INSERT INTO schema_migrations (version) VALUES ('20170601172245');
-
-INSERT INTO schema_migrations (version) VALUES ('20170602013551');
-
-INSERT INTO schema_migrations (version) VALUES ('20170606143003');
-
-INSERT INTO schema_migrations (version) VALUES ('20170613150635');
-
-INSERT INTO schema_migrations (version) VALUES ('20170713184156');
-
-INSERT INTO schema_migrations (version) VALUES ('20170831233204');
-
-INSERT INTO schema_migrations (version) VALUES ('20170901195912');
-
-INSERT INTO schema_migrations (version) VALUES ('20171028010225');
-
-INSERT INTO schema_migrations (version) VALUES ('20171106180121');
-
-INSERT INTO schema_migrations (version) VALUES ('20171107000152');
-
-INSERT INTO schema_migrations (version) VALUES ('20180220193729');
-
-INSERT INTO schema_migrations (version) VALUES ('20180301200541');
-
-INSERT INTO schema_migrations (version) VALUES ('20180405154902');
-
-INSERT INTO schema_migrations (version) VALUES ('20180411184612');
-
-INSERT INTO schema_migrations (version) VALUES ('20180412201311');
-
-INSERT INTO schema_migrations (version) VALUES ('20180412214425');
-
-INSERT INTO schema_migrations (version) VALUES ('20180413045706');
-
-INSERT INTO schema_migrations (version) VALUES ('20180413220534');
-
-INSERT INTO schema_migrations (version) VALUES ('20180415191849');
-
-INSERT INTO schema_migrations (version) VALUES ('20180508205550');
-
-INSERT INTO schema_migrations (version) VALUES ('20180509194250');
-
-INSERT INTO schema_migrations (version) VALUES ('20180515174347');
-
-INSERT INTO schema_migrations (version) VALUES ('20180515184556');
-
-INSERT INTO schema_migrations (version) VALUES ('20180516020528');
-
-INSERT INTO schema_migrations (version) VALUES ('20180516032040');
-
-INSERT INTO schema_migrations (version) VALUES ('20180516151527');
-
-INSERT INTO schema_migrations (version) VALUES ('20180516184628');
-
-INSERT INTO schema_migrations (version) VALUES ('20180516192022');
-
-INSERT INTO schema_migrations (version) VALUES ('20180516223016');
-
-INSERT INTO schema_migrations (version) VALUES ('20180517150308');
-
-INSERT INTO schema_migrations (version) VALUES ('20180517151557');
-
-INSERT INTO schema_migrations (version) VALUES ('20180517151558');
-
-INSERT INTO schema_migrations (version) VALUES ('20180517170436');
-
-INSERT INTO schema_migrations (version) VALUES ('20180517171655');
-
-INSERT INTO schema_migrations (version) VALUES ('20180518133256');
-
-INSERT INTO schema_migrations (version) VALUES ('20180518185643');
-
-INSERT INTO schema_migrations (version) VALUES ('20180521132959');
-
-INSERT INTO schema_migrations (version) VALUES ('20180521133817');
-
-INSERT INTO schema_migrations (version) VALUES ('20180522203840');
-
-INSERT INTO schema_migrations (version) VALUES ('20180522233624');
-
-INSERT INTO schema_migrations (version) VALUES ('20180523121947');
-
-INSERT INTO schema_migrations (version) VALUES ('20180523125514');
-
-INSERT INTO schema_migrations (version) VALUES ('20180523203004');
-
-INSERT INTO schema_migrations (version) VALUES ('20180524021249');
-
-INSERT INTO schema_migrations (version) VALUES ('20180524121555');
-
-INSERT INTO schema_migrations (version) VALUES ('20180524124135');
-
-INSERT INTO schema_migrations (version) VALUES ('20180524132457');
-
-INSERT INTO schema_migrations (version) VALUES ('20180524145220');
-
-INSERT INTO schema_migrations (version) VALUES ('20180524175356');
-
-INSERT INTO schema_migrations (version) VALUES ('20180525155355');
-
-INSERT INTO schema_migrations (version) VALUES ('20180525195857');
-
-INSERT INTO schema_migrations (version) VALUES ('20180526183114');
-
-INSERT INTO schema_migrations (version) VALUES ('20180527115601');
-
-INSERT INTO schema_migrations (version) VALUES ('20180527173419');
-
-INSERT INTO schema_migrations (version) VALUES ('20180528002944');
-
-INSERT INTO schema_migrations (version) VALUES ('20180528140032');
-
-INSERT INTO schema_migrations (version) VALUES ('20180528144412');
-
-INSERT INTO schema_migrations (version) VALUES ('20180530202908');
-
-INSERT INTO schema_migrations (version) VALUES ('20180601010922');
-
-INSERT INTO schema_migrations (version) VALUES ('20180601124144');
-
-INSERT INTO schema_migrations (version) VALUES ('20180601152640');
-
-INSERT INTO schema_migrations (version) VALUES ('20180601154501');
-
-INSERT INTO schema_migrations (version) VALUES ('20180601185402');
-
-INSERT INTO schema_migrations (version) VALUES ('20180607134202');
-
-INSERT INTO schema_migrations (version) VALUES ('20180607140425');
-
-INSERT INTO schema_migrations (version) VALUES ('20180607151108');
-
-INSERT INTO schema_migrations (version) VALUES ('20180607180418');
-
-INSERT INTO schema_migrations (version) VALUES ('20180611144138');
-
-INSERT INTO schema_migrations (version) VALUES ('20180611145132');
-
-INSERT INTO schema_migrations (version) VALUES ('20180611145227');
-
-INSERT INTO schema_migrations (version) VALUES ('20180611203248');
-
-INSERT INTO schema_migrations (version) VALUES ('20180611204954');
-
-INSERT INTO schema_migrations (version) VALUES ('20180612171146');
-
-INSERT INTO schema_migrations (version) VALUES ('20180612181410');
-
-INSERT INTO schema_migrations (version) VALUES ('20180612200528');
-
-INSERT INTO schema_migrations (version) VALUES ('20180613134407');
-
-INSERT INTO schema_migrations (version) VALUES ('20180614133715');
-
-INSERT INTO schema_migrations (version) VALUES ('20180614213248');
-
-INSERT INTO schema_migrations (version) VALUES ('20180619184604');
-
-INSERT INTO schema_migrations (version) VALUES ('20180621204422');
-
-INSERT INTO schema_migrations (version) VALUES ('20180621211650');
-
-INSERT INTO schema_migrations (version) VALUES ('20180627182220');
-
-INSERT INTO schema_migrations (version) VALUES ('20180628175013');
-
-INSERT INTO schema_migrations (version) VALUES ('20180629181555');
-
-INSERT INTO schema_migrations (version) VALUES ('20180629203110');
-
-INSERT INTO schema_migrations (version) VALUES ('20180630171549');
-
-INSERT INTO schema_migrations (version) VALUES ('20180630225902');
-
-INSERT INTO schema_migrations (version) VALUES ('20180701013424');
-
-INSERT INTO schema_migrations (version) VALUES ('20180703200409');
-
-INSERT INTO schema_migrations (version) VALUES ('20180707134347');
-
-INSERT INTO schema_migrations (version) VALUES ('20180709184426');
-
-INSERT INTO schema_migrations (version) VALUES ('20180710000126');
-
-INSERT INTO schema_migrations (version) VALUES ('20180710163416');
-
-INSERT INTO schema_migrations (version) VALUES ('20180711170320');
-
-INSERT INTO schema_migrations (version) VALUES ('20180711174711');
-
-INSERT INTO schema_migrations (version) VALUES ('20180713142425');
-
-INSERT INTO schema_migrations (version) VALUES ('20180713162722');
-
-INSERT INTO schema_migrations (version) VALUES ('20180713183124');
-
-INSERT INTO schema_migrations (version) VALUES ('20180714180117');
-
-INSERT INTO schema_migrations (version) VALUES ('20180714180735');
-
-INSERT INTO schema_migrations (version) VALUES ('20180716125419');
-
-INSERT INTO schema_migrations (version) VALUES ('20180716151309');
-
-INSERT INTO schema_migrations (version) VALUES ('20180716202012');
-
-INSERT INTO schema_migrations (version) VALUES ('20180717174942');
-
-INSERT INTO schema_migrations (version) VALUES ('20180803195603');
-
-INSERT INTO schema_migrations (version) VALUES ('20180807130101');
-
-INSERT INTO schema_migrations (version) VALUES ('20180807161932');
-
-INSERT INTO schema_migrations (version) VALUES ('20180807182636');
-
-INSERT INTO schema_migrations (version) VALUES ('20180808174627');
-
-INSERT INTO schema_migrations (version) VALUES ('20180808190244');
-
-INSERT INTO schema_migrations (version) VALUES ('20180809175415');
-
-INSERT INTO schema_migrations (version) VALUES ('20180810153634');
-
-INSERT INTO schema_migrations (version) VALUES ('20180827173717');
-
-INSERT INTO schema_migrations (version) VALUES ('20180827181354');
-
-INSERT INTO schema_migrations (version) VALUES ('20180828173902');
-
-INSERT INTO schema_migrations (version) VALUES ('20180831190828');
-
-INSERT INTO schema_migrations (version) VALUES ('20180907122443');
-
-INSERT INTO schema_migrations (version) VALUES ('20181026155224');
-
-INSERT INTO schema_migrations (version) VALUES ('20190114174045');
-
-INSERT INTO schema_migrations (version) VALUES ('20190117150120');
-
-INSERT INTO schema_migrations (version) VALUES ('20190206194409');
-
-INSERT INTO schema_migrations (version) VALUES ('20190328192902');
-
-INSERT INTO schema_migrations (version) VALUES ('20190402142851');
-
-INSERT INTO schema_migrations (version) VALUES ('20190404153621');
-
-INSERT INTO schema_migrations (version) VALUES ('20190416180547');
-
-INSERT INTO schema_migrations (version) VALUES ('20190416182618');
-
-INSERT INTO schema_migrations (version) VALUES ('20190417171605');
-
-INSERT INTO schema_migrations (version) VALUES ('20190418144540');
-
-INSERT INTO schema_migrations (version) VALUES ('20190418152152');
-
-INSERT INTO schema_migrations (version) VALUES ('20190419122444');
-
-INSERT INTO schema_migrations (version) VALUES ('20190419150901');
-
-INSERT INTO schema_migrations (version) VALUES ('20190422201024');
-
-INSERT INTO schema_migrations (version) VALUES ('20190509155939');
-
-INSERT INTO schema_migrations (version) VALUES ('20190513173709');
 

@@ -2,8 +2,10 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.15
--- Dumped by pg_dump version 10.5
+-- Dumped from database version 11.7
+-- Dumped by pg_dump version 12.2
+
+-- Started on 2020-06-10 17:57:54 UTC
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -12,54 +14,74 @@ SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
+SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
---
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-
-
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
-
---
--- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS fuzzystrmatch WITH SCHEMA public;
-
-
---
--- Name: EXTENSION fuzzystrmatch; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION fuzzystrmatch IS 'determine similarities and distance between strings';
-
-
---
--- Name: hstore; Type: EXTENSION; Schema: -; Owner: -
---
-
-CREATE EXTENSION IF NOT EXISTS hstore WITH SCHEMA public;
-
-
---
--- Name: EXTENSION hstore; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION hstore IS 'data type for storing sets of (key, value) pairs';
-
-
 SET default_tablespace = '';
 
-SET default_with_oids = false;
+--
+-- Name: access_group_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.access_group_members (
+    id integer NOT NULL,
+    access_group_id integer,
+    user_id integer,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: access_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.access_group_members_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: access_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.access_group_members_id_seq OWNED BY public.access_group_members.id;
+
+
+--
+-- Name: access_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.access_groups (
+    id integer NOT NULL,
+    name character varying,
+    user_id integer,
+    coc_codes character varying[] DEFAULT '{}'::character varying[],
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: access_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.access_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: access_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.access_groups_id_seq OWNED BY public.access_groups.id;
+
 
 --
 -- Name: activity_logs; Type: TABLE; Schema: public; Owner: -
@@ -78,7 +100,6 @@ CREATE TABLE public.activity_logs (
     ip_address character varying NOT NULL,
     session_hash character varying,
     referrer text,
-    params text,
     created_at timestamp without time zone,
     updated_at timestamp without time zone
 );
@@ -104,51 +125,33 @@ ALTER SEQUENCE public.activity_logs_id_seq OWNED BY public.activity_logs.id;
 
 
 --
--- Name: client_service_history; Type: TABLE; Schema: public; Owner: -
+-- Name: agencies; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.client_service_history (
-    unduplicated_client_id integer,
-    date date,
-    first_date_in_program date,
-    last_date_in_program date,
-    program_group_id character varying,
-    program_type integer,
-    program_id integer,
-    age integer,
-    income numeric,
-    income_type integer,
-    income_source_code integer,
-    destination integer,
-    head_of_household_id character varying,
-    household_id character varying,
-    database_id character varying,
-    program_name character varying,
-    program_tracking_method integer,
-    record_type character varying,
-    dc_id integer,
-    housing_status_at_entry integer,
-    housing_status_at_exit integer
-);
-
-
---
--- Name: clients_unduplicated; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.clients_unduplicated (
+CREATE TABLE public.agencies (
     id integer NOT NULL,
-    client_unique_id character varying NOT NULL,
-    unduplicated_client_id integer NOT NULL,
-    dc_id integer
+    name character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    expose_publically boolean DEFAULT false NOT NULL
 );
 
 
 --
--- Name: clients_unduplicated_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: agencies_consent_limits; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.clients_unduplicated_id_seq
+CREATE TABLE public.agencies_consent_limits (
+    consent_limit_id bigint NOT NULL,
+    agency_id bigint NOT NULL
+);
+
+
+--
+-- Name: agencies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.agencies_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -157,10 +160,91 @@ CREATE SEQUENCE public.clients_unduplicated_id_seq
 
 
 --
--- Name: clients_unduplicated_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: agencies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.clients_unduplicated_id_seq OWNED BY public.clients_unduplicated.id;
+ALTER SEQUENCE public.agencies_id_seq OWNED BY public.agencies.id;
+
+
+--
+-- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ar_internal_metadata (
+    key character varying NOT NULL,
+    value character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: consent_limits; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.consent_limits (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    description text,
+    color character varying,
+    deleted_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: consent_limits_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.consent_limits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: consent_limits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.consent_limits_id_seq OWNED BY public.consent_limits.id;
+
+
+--
+-- Name: data_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_sources (
+    id integer NOT NULL,
+    name character varying,
+    file_path character varying,
+    last_imported_at timestamp without time zone,
+    newest_updated_at date,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    source_type character varying
+);
+
+
+--
+-- Name: data_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_sources_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_sources_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_sources_id_seq OWNED BY public.data_sources.id;
 
 
 --
@@ -379,6 +463,49 @@ ALTER SEQUENCE public.letsencrypt_plugin_settings_id_seq OWNED BY public.letsenc
 
 
 --
+-- Name: login_activities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.login_activities (
+    id integer NOT NULL,
+    scope character varying,
+    strategy character varying,
+    identity character varying,
+    success boolean,
+    failure_reason character varying,
+    user_id integer,
+    user_type character varying,
+    context character varying,
+    ip character varying,
+    user_agent text,
+    referrer text,
+    city character varying,
+    region character varying,
+    country character varying,
+    created_at timestamp without time zone
+);
+
+
+--
+-- Name: login_activities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.login_activities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: login_activities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.login_activities_id_seq OWNED BY public.login_activities.id;
+
+
+--
 -- Name: messages; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -443,6 +570,39 @@ CREATE SEQUENCE public.nicknames_id_seq
 --
 
 ALTER SEQUENCE public.nicknames_id_seq OWNED BY public.nicknames.id;
+
+
+--
+-- Name: old_passwords; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.old_passwords (
+    id integer NOT NULL,
+    encrypted_password character varying NOT NULL,
+    password_archivable_type character varying NOT NULL,
+    password_archivable_id integer NOT NULL,
+    password_salt character varying,
+    created_at timestamp without time zone
+);
+
+
+--
+-- Name: old_passwords_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.old_passwords_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: old_passwords_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.old_passwords_id_seq OWNED BY public.old_passwords.id;
 
 
 --
@@ -533,7 +693,8 @@ CREATE TABLE public.reports (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     weight integer DEFAULT 0 NOT NULL,
-    report_results_summary_id integer
+    report_results_summary_id integer,
+    enabled boolean DEFAULT true NOT NULL
 );
 
 
@@ -568,30 +729,30 @@ CREATE TABLE public.roles (
     updated_at timestamp without time zone NOT NULL,
     can_view_clients boolean DEFAULT false,
     can_edit_clients boolean DEFAULT false,
-    can_view_censuses boolean DEFAULT false,
-    can_view_census_details boolean DEFAULT false,
     can_edit_users boolean DEFAULT false,
     can_view_full_ssn boolean DEFAULT false,
     can_view_full_dob boolean DEFAULT false,
-    can_view_hiv_status boolean DEFAULT false,
-    can_view_dmh_status boolean DEFAULT false,
     can_view_imports boolean DEFAULT false,
     can_edit_roles boolean DEFAULT false,
+    can_view_censuses boolean DEFAULT false,
+    can_view_census_details boolean DEFAULT false,
     can_view_projects boolean DEFAULT false,
-    can_edit_projects boolean DEFAULT false,
-    can_edit_project_groups boolean DEFAULT false,
     can_view_organizations boolean DEFAULT false,
-    can_edit_organizations boolean DEFAULT false,
-    can_edit_data_sources boolean DEFAULT false,
     can_view_client_window boolean DEFAULT false,
     can_upload_hud_zips boolean DEFAULT false,
-    can_edit_translations boolean DEFAULT false,
-    can_manage_assessments boolean DEFAULT false,
-    can_edit_anything_super_user boolean DEFAULT false,
+    can_view_hiv_status boolean DEFAULT false,
+    can_view_dmh_status boolean DEFAULT false,
     can_administer_health boolean DEFAULT false,
     can_edit_client_health boolean DEFAULT false,
     can_view_client_health boolean DEFAULT false,
     health_role boolean DEFAULT false NOT NULL,
+    can_edit_project_groups boolean DEFAULT false,
+    can_edit_projects boolean DEFAULT false,
+    can_edit_organizations boolean DEFAULT false,
+    can_edit_data_sources boolean DEFAULT false,
+    can_edit_anything_super_user boolean DEFAULT false,
+    can_manage_assessments boolean DEFAULT false,
+    can_edit_translations boolean DEFAULT false,
     can_manage_config boolean DEFAULT false,
     can_manage_client_files boolean DEFAULT false,
     can_manage_window_client_files boolean DEFAULT false,
@@ -606,10 +767,10 @@ CREATE TABLE public.roles (
     can_export_hmis_data boolean DEFAULT false,
     can_search_window boolean DEFAULT false,
     can_see_own_file_uploads boolean DEFAULT false,
-    can_confirm_housing_release boolean DEFAULT false,
     can_submit_vspdat boolean DEFAULT false,
     can_edit_client_notes boolean DEFAULT false,
     can_edit_window_client_notes boolean DEFAULT false,
+    can_confirm_housing_release boolean DEFAULT false,
     can_see_own_window_client_notes boolean DEFAULT false,
     can_track_anomalies boolean DEFAULT false,
     can_view_all_reports boolean DEFAULT false,
@@ -624,9 +785,6 @@ CREATE TABLE public.roles (
     can_view_project_data_quality_client_details boolean DEFAULT false,
     can_see_clients_in_window_for_assigned_data_sources boolean DEFAULT false,
     can_manage_health_agency boolean DEFAULT false NOT NULL,
-    can_upload_deidentified_hud_hmis_files boolean DEFAULT false,
-    can_upload_whitelisted_hud_hmis_files boolean DEFAULT false,
-    can_edit_warehouse_alerts boolean DEFAULT false,
     can_approve_patient_assignments boolean DEFAULT false,
     can_manage_claims boolean DEFAULT false,
     can_manage_all_patients boolean DEFAULT false,
@@ -643,17 +801,53 @@ CREATE TABLE public.roles (
     can_view_patients_for_own_agency boolean DEFAULT false,
     can_add_case_management_notes boolean DEFAULT false,
     can_manage_accountable_care_organizations boolean DEFAULT false,
+    can_edit_warehouse_alerts boolean DEFAULT false,
     can_view_member_health_reports boolean DEFAULT false,
+    can_upload_deidentified_hud_hmis_files boolean DEFAULT false,
+    can_upload_whitelisted_hud_hmis_files boolean DEFAULT false,
     can_upload_dashboard_extras boolean DEFAULT false,
     can_view_all_user_client_assignments boolean DEFAULT false,
-    can_audit_clients boolean DEFAULT false,
     can_audit_users boolean DEFAULT false,
+    can_audit_clients boolean DEFAULT false,
+    can_export_anonymous_hmis_data boolean DEFAULT false,
     can_view_youth_intake boolean DEFAULT false,
     can_edit_youth_intake boolean DEFAULT false,
-    can_export_anonymous_hmis_data boolean DEFAULT false,
     can_view_all_secure_uploads boolean DEFAULT false,
+    can_unsubmit_submitted_claims boolean DEFAULT false,
     can_view_assigned_secure_uploads boolean DEFAULT false,
-    can_unsubmit_submitted_claims boolean DEFAULT false
+    can_manage_agency boolean DEFAULT false,
+    can_manage_all_agencies boolean DEFAULT false,
+    can_view_own_agency_youth_intake boolean DEFAULT false,
+    can_edit_own_agency_youth_intake boolean DEFAULT false,
+    can_view_clients_with_roi_in_own_coc boolean DEFAULT false,
+    can_enable_2fa boolean DEFAULT false,
+    can_view_ce_assessment boolean DEFAULT false,
+    can_edit_ce_assessment boolean DEFAULT false,
+    can_submit_ce_assessment boolean DEFAULT false,
+    can_edit_help boolean DEFAULT false,
+    enforced_2fa boolean DEFAULT false,
+    can_view_all_hud_reports boolean DEFAULT false,
+    can_view_own_hud_reports boolean DEFAULT false,
+    can_edit_access_groups boolean DEFAULT false,
+    can_view_confidential_enrollment_details boolean DEFAULT false,
+    can_impersonate_users boolean DEFAULT false,
+    can_manage_ad_hoc_data_sources boolean DEFAULT false,
+    can_view_client_ad_hoc_data_sources boolean DEFAULT false,
+    training_required boolean DEFAULT false,
+    can_use_strict_search boolean DEFAULT false,
+    can_use_separated_consent boolean DEFAULT false,
+    can_delete_projects boolean DEFAULT false,
+    can_delete_data_sources boolean DEFAULT false,
+    can_see_health_emergency boolean DEFAULT false,
+    can_edit_health_emergency_screening boolean DEFAULT false,
+    can_edit_health_emergency_clinical boolean DEFAULT false,
+    can_see_health_emergency_history boolean DEFAULT false,
+    can_edit_health_emergency_medical_restriction boolean DEFAULT false,
+    can_see_health_emergency_medical_restriction boolean DEFAULT false,
+    can_see_health_emergency_screening boolean DEFAULT false,
+    can_see_health_emergency_clinical boolean DEFAULT false,
+    can_edit_health_emergency_contact_tracing boolean DEFAULT false,
+    receives_medical_restriction_notifications boolean DEFAULT false
 );
 
 
@@ -719,6 +913,129 @@ CREATE SEQUENCE public.similarity_metrics_id_seq
 --
 
 ALTER SEQUENCE public.similarity_metrics_id_seq OWNED BY public.similarity_metrics.id;
+
+
+--
+-- Name: taggings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.taggings (
+    id integer NOT NULL,
+    tag_id integer,
+    taggable_type character varying,
+    taggable_id integer,
+    tagger_type character varying,
+    tagger_id integer,
+    context character varying(128),
+    created_at timestamp without time zone
+);
+
+
+--
+-- Name: taggings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.taggings_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: taggings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.taggings_id_seq OWNED BY public.taggings.id;
+
+
+--
+-- Name: tags; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tags (
+    id integer NOT NULL,
+    name character varying,
+    taggings_count integer DEFAULT 0
+);
+
+
+--
+-- Name: tags_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tags_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
+
+
+--
+-- Name: todd_stats; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.todd_stats AS
+ SELECT pg_stat_all_tables.relname,
+    round((
+        CASE
+            WHEN ((pg_stat_all_tables.n_live_tup + pg_stat_all_tables.n_dead_tup) = 0) THEN (0)::double precision
+            ELSE ((pg_stat_all_tables.n_dead_tup)::double precision / ((pg_stat_all_tables.n_dead_tup + pg_stat_all_tables.n_live_tup))::double precision)
+        END * (100.0)::double precision)) AS "Frag %",
+    pg_stat_all_tables.n_live_tup AS "Live rows",
+    pg_stat_all_tables.n_dead_tup AS "Dead rows",
+    pg_stat_all_tables.n_mod_since_analyze AS "Rows modified since analyze",
+        CASE
+            WHEN (COALESCE(pg_stat_all_tables.last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_vacuum
+            ELSE COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+        END AS last_vacuum,
+        CASE
+            WHEN (COALESCE(pg_stat_all_tables.last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_analyze
+            ELSE COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+        END AS last_analyze,
+    (pg_stat_all_tables.vacuum_count + pg_stat_all_tables.autovacuum_count) AS vacuum_count,
+    (pg_stat_all_tables.analyze_count + pg_stat_all_tables.autoanalyze_count) AS analyze_count
+   FROM pg_stat_all_tables
+  WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
+
+
+--
+-- Name: toddstats; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.toddstats AS
+ SELECT pg_stat_all_tables.relname,
+    round((
+        CASE
+            WHEN ((pg_stat_all_tables.n_live_tup + pg_stat_all_tables.n_dead_tup) = 0) THEN (0)::double precision
+            ELSE ((pg_stat_all_tables.n_dead_tup)::double precision / ((pg_stat_all_tables.n_dead_tup + pg_stat_all_tables.n_live_tup))::double precision)
+        END * (100.0)::double precision)) AS "Frag %",
+    pg_stat_all_tables.n_live_tup AS "Live rows",
+    pg_stat_all_tables.n_dead_tup AS "Dead rows",
+    pg_stat_all_tables.n_mod_since_analyze AS "Rows modified since analyze",
+        CASE
+            WHEN (COALESCE(pg_stat_all_tables.last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_vacuum
+            ELSE COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+        END AS last_vacuum,
+        CASE
+            WHEN (COALESCE(pg_stat_all_tables.last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_analyze
+            ELSE COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+        END AS last_analyze,
+    (pg_stat_all_tables.vacuum_count + pg_stat_all_tables.autovacuum_count) AS vacuum_count,
+    (pg_stat_all_tables.analyze_count + pg_stat_all_tables.autoanalyze_count) AS analyze_count
+   FROM pg_stat_all_tables
+  WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
 
 
 --
@@ -960,13 +1277,27 @@ CREATE TABLE public.users (
     invitations_count integer DEFAULT 0,
     receive_file_upload_notifications boolean DEFAULT false,
     phone character varying,
-    agency character varying,
+    deprecated_agency character varying,
     notify_on_vispdat_completed boolean DEFAULT false,
     notify_on_client_added boolean DEFAULT false,
     notify_on_anomaly_identified boolean DEFAULT false NOT NULL,
     coc_codes character varying[] DEFAULT '{}'::character varying[],
     email_schedule character varying DEFAULT 'immediate'::character varying NOT NULL,
-    active boolean DEFAULT true NOT NULL
+    active boolean DEFAULT true NOT NULL,
+    agency_id integer,
+    encrypted_otp_secret character varying,
+    encrypted_otp_secret_iv character varying,
+    encrypted_otp_secret_salt character varying,
+    consumed_timestep integer,
+    otp_required_for_login boolean DEFAULT false NOT NULL,
+    unique_session_id character varying,
+    last_activity_at timestamp without time zone,
+    expired_at timestamp without time zone,
+    confirmed_2fa integer DEFAULT 0 NOT NULL,
+    otp_backup_codes character varying[],
+    password_changed_at timestamp without time zone,
+    training_completed boolean DEFAULT false,
+    last_training_completed date
 );
 
 
@@ -1063,6 +1394,20 @@ ALTER SEQUENCE public.warehouse_alerts_id_seq OWNED BY public.warehouse_alerts.i
 
 
 --
+-- Name: access_group_members id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.access_group_members ALTER COLUMN id SET DEFAULT nextval('public.access_group_members_id_seq'::regclass);
+
+
+--
+-- Name: access_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.access_groups ALTER COLUMN id SET DEFAULT nextval('public.access_groups_id_seq'::regclass);
+
+
+--
 -- Name: activity_logs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1070,10 +1415,24 @@ ALTER TABLE ONLY public.activity_logs ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- Name: clients_unduplicated id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: agencies id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.clients_unduplicated ALTER COLUMN id SET DEFAULT nextval('public.clients_unduplicated_id_seq'::regclass);
+ALTER TABLE ONLY public.agencies ALTER COLUMN id SET DEFAULT nextval('public.agencies_id_seq'::regclass);
+
+
+--
+-- Name: consent_limits id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.consent_limits ALTER COLUMN id SET DEFAULT nextval('public.consent_limits_id_seq'::regclass);
+
+
+--
+-- Name: data_sources id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_sources ALTER COLUMN id SET DEFAULT nextval('public.data_sources_id_seq'::regclass);
 
 
 --
@@ -1119,6 +1478,13 @@ ALTER TABLE ONLY public.letsencrypt_plugin_settings ALTER COLUMN id SET DEFAULT 
 
 
 --
+-- Name: login_activities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.login_activities ALTER COLUMN id SET DEFAULT nextval('public.login_activities_id_seq'::regclass);
+
+
+--
 -- Name: messages id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1130,6 +1496,13 @@ ALTER TABLE ONLY public.messages ALTER COLUMN id SET DEFAULT nextval('public.mes
 --
 
 ALTER TABLE ONLY public.nicknames ALTER COLUMN id SET DEFAULT nextval('public.nicknames_id_seq'::regclass);
+
+
+--
+-- Name: old_passwords id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.old_passwords ALTER COLUMN id SET DEFAULT nextval('public.old_passwords_id_seq'::regclass);
 
 
 --
@@ -1165,6 +1538,20 @@ ALTER TABLE ONLY public.roles ALTER COLUMN id SET DEFAULT nextval('public.roles_
 --
 
 ALTER TABLE ONLY public.similarity_metrics ALTER COLUMN id SET DEFAULT nextval('public.similarity_metrics_id_seq'::regclass);
+
+
+--
+-- Name: taggings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.taggings ALTER COLUMN id SET DEFAULT nextval('public.taggings_id_seq'::regclass);
+
+
+--
+-- Name: tags id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id_seq'::regclass);
 
 
 --
@@ -1231,6 +1618,22 @@ ALTER TABLE ONLY public.warehouse_alerts ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: access_group_members access_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.access_group_members
+    ADD CONSTRAINT access_group_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: access_groups access_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.access_groups
+    ADD CONSTRAINT access_groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: activity_logs activity_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1239,11 +1642,35 @@ ALTER TABLE ONLY public.activity_logs
 
 
 --
--- Name: clients_unduplicated clients_unduplicated_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: agencies agencies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.clients_unduplicated
-    ADD CONSTRAINT clients_unduplicated_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.agencies
+    ADD CONSTRAINT agencies_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ar_internal_metadata
+    ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: consent_limits consent_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.consent_limits
+    ADD CONSTRAINT consent_limits_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: data_sources data_sources_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_sources
+    ADD CONSTRAINT data_sources_pkey PRIMARY KEY (id);
 
 
 --
@@ -1295,6 +1722,14 @@ ALTER TABLE ONLY public.letsencrypt_plugin_settings
 
 
 --
+-- Name: login_activities login_activities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.login_activities
+    ADD CONSTRAINT login_activities_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1308,6 +1743,14 @@ ALTER TABLE ONLY public.messages
 
 ALTER TABLE ONLY public.nicknames
     ADD CONSTRAINT nicknames_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: old_passwords old_passwords_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.old_passwords
+    ADD CONSTRAINT old_passwords_pkey PRIMARY KEY (id);
 
 
 --
@@ -1348,6 +1791,22 @@ ALTER TABLE ONLY public.roles
 
 ALTER TABLE ONLY public.similarity_metrics
     ADD CONSTRAINT similarity_metrics_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: taggings taggings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.taggings
+    ADD CONSTRAINT taggings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tags tags_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tags
+    ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
 
 
 --
@@ -1423,6 +1882,13 @@ ALTER TABLE ONLY public.warehouse_alerts
 
 
 --
+-- Name: created_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX created_at_idx ON public.activity_logs USING brin (created_at);
+
+
+--
 -- Name: delayed_jobs_priority; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1437,6 +1903,13 @@ CREATE INDEX index_activity_logs_on_controller_name ON public.activity_logs USIN
 
 
 --
+-- Name: index_activity_logs_on_created_at_and_item_model_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_logs_on_created_at_and_item_model_and_user_id ON public.activity_logs USING btree (created_at, item_model, user_id);
+
+
+--
 -- Name: index_activity_logs_on_item_model; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1444,10 +1917,52 @@ CREATE INDEX index_activity_logs_on_item_model ON public.activity_logs USING btr
 
 
 --
+-- Name: index_activity_logs_on_item_model_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_logs_on_item_model_and_user_id ON public.activity_logs USING btree (item_model, user_id);
+
+
+--
+-- Name: index_activity_logs_on_item_model_and_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_logs_on_item_model_and_user_id_and_created_at ON public.activity_logs USING btree (item_model, user_id, created_at);
+
+
+--
 -- Name: index_activity_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_activity_logs_on_user_id ON public.activity_logs USING btree (user_id);
+
+
+--
+-- Name: index_activity_logs_on_user_id_and_item_model_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_logs_on_user_id_and_item_model_and_created_at ON public.activity_logs USING btree (user_id, item_model, created_at);
+
+
+--
+-- Name: index_agencies_consent_limits_on_agency_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_agencies_consent_limits_on_agency_id ON public.agencies_consent_limits USING btree (agency_id);
+
+
+--
+-- Name: index_agencies_consent_limits_on_consent_limit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_agencies_consent_limits_on_consent_limit_id ON public.agencies_consent_limits USING btree (consent_limit_id);
+
+
+--
+-- Name: index_consent_limits_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_consent_limits_on_name ON public.consent_limits USING btree (name);
 
 
 --
@@ -1476,6 +1991,27 @@ CREATE UNIQUE INDEX index_glacier_vaults_on_name ON public.glacier_vaults USING 
 --
 
 CREATE INDEX index_imports_on_deleted_at ON public.imports USING btree (deleted_at);
+
+
+--
+-- Name: index_login_activities_on_identity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_login_activities_on_identity ON public.login_activities USING btree (identity);
+
+
+--
+-- Name: index_login_activities_on_ip; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_login_activities_on_ip ON public.login_activities USING btree (ip);
+
+
+--
+-- Name: index_password_archivable; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_password_archivable ON public.old_passwords USING btree (password_archivable_type, password_archivable_id);
 
 
 --
@@ -1511,6 +2047,62 @@ CREATE INDEX index_roles_on_name ON public.roles USING btree (name);
 --
 
 CREATE UNIQUE INDEX index_similarity_metrics_on_type ON public.similarity_metrics USING btree (type);
+
+
+--
+-- Name: index_taggings_on_context; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_taggings_on_context ON public.taggings USING btree (context);
+
+
+--
+-- Name: index_taggings_on_tag_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_taggings_on_tag_id ON public.taggings USING btree (tag_id);
+
+
+--
+-- Name: index_taggings_on_taggable_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_taggings_on_taggable_id ON public.taggings USING btree (taggable_id);
+
+
+--
+-- Name: index_taggings_on_taggable_id_and_taggable_type_and_context; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_taggings_on_taggable_id_and_taggable_type_and_context ON public.taggings USING btree (taggable_id, taggable_type, context);
+
+
+--
+-- Name: index_taggings_on_taggable_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_taggings_on_taggable_type ON public.taggings USING btree (taggable_type);
+
+
+--
+-- Name: index_taggings_on_tagger_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_taggings_on_tagger_id ON public.taggings USING btree (tagger_id);
+
+
+--
+-- Name: index_taggings_on_tagger_id_and_tagger_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_taggings_on_tagger_id_and_tagger_type ON public.taggings USING btree (tagger_id, tagger_type);
+
+
+--
+-- Name: index_tags_on_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_tags_on_name ON public.tags USING btree (name);
 
 
 --
@@ -1640,10 +2232,17 @@ CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING bt
 
 
 --
--- Name: unduplicated_clients_unduplicated_client_id; Type: INDEX; Schema: public; Owner: -
+-- Name: taggings_idx; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX unduplicated_clients_unduplicated_client_id ON public.clients_unduplicated USING btree (unduplicated_client_id);
+CREATE UNIQUE INDEX taggings_idx ON public.taggings USING btree (tag_id, taggable_id, taggable_type, context, tagger_id, tagger_type);
+
+
+--
+-- Name: taggings_idy; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX taggings_idy ON public.taggings USING btree (taggable_id, taggable_type, tagger_id, context);
 
 
 --
@@ -1693,245 +2292,9 @@ ALTER TABLE ONLY public.report_results
     ADD CONSTRAINT fk_rails_cd0d43bf48 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
+-- Completed on 2020-06-10 17:59:02 UTC
+
 --
 -- PostgreSQL database dump complete
 --
-
-SET search_path TO "$user", public;
-
-INSERT INTO schema_migrations (version) VALUES ('20160615125048');
-
-INSERT INTO schema_migrations (version) VALUES ('20160616140826');
-
-INSERT INTO schema_migrations (version) VALUES ('20160628182622');
-
-INSERT INTO schema_migrations (version) VALUES ('20160701172807');
-
-INSERT INTO schema_migrations (version) VALUES ('20160705145733');
-
-INSERT INTO schema_migrations (version) VALUES ('20160708134220');
-
-INSERT INTO schema_migrations (version) VALUES ('20160708140847');
-
-INSERT INTO schema_migrations (version) VALUES ('20160708172039');
-
-INSERT INTO schema_migrations (version) VALUES ('20160708174624');
-
-INSERT INTO schema_migrations (version) VALUES ('20160708180500');
-
-INSERT INTO schema_migrations (version) VALUES ('20160711124428');
-
-INSERT INTO schema_migrations (version) VALUES ('20160711132731');
-
-INSERT INTO schema_migrations (version) VALUES ('20160711143807');
-
-INSERT INTO schema_migrations (version) VALUES ('20160711144914');
-
-INSERT INTO schema_migrations (version) VALUES ('20160722162801');
-
-INSERT INTO schema_migrations (version) VALUES ('20160725151439');
-
-INSERT INTO schema_migrations (version) VALUES ('20160726210214');
-
-INSERT INTO schema_migrations (version) VALUES ('20160829142445');
-
-INSERT INTO schema_migrations (version) VALUES ('20160829155417');
-
-INSERT INTO schema_migrations (version) VALUES ('20160906154014');
-
-INSERT INTO schema_migrations (version) VALUES ('20160907123023');
-
-INSERT INTO schema_migrations (version) VALUES ('20160907185535');
-
-INSERT INTO schema_migrations (version) VALUES ('20160921165937');
-
-INSERT INTO schema_migrations (version) VALUES ('20161005204310');
-
-INSERT INTO schema_migrations (version) VALUES ('20161006160330');
-
-INSERT INTO schema_migrations (version) VALUES ('20161012152230');
-
-INSERT INTO schema_migrations (version) VALUES ('20161012161240');
-
-INSERT INTO schema_migrations (version) VALUES ('20161103123424');
-
-INSERT INTO schema_migrations (version) VALUES ('20161107160154');
-
-INSERT INTO schema_migrations (version) VALUES ('20161111151851');
-
-INSERT INTO schema_migrations (version) VALUES ('20161111181757');
-
-INSERT INTO schema_migrations (version) VALUES ('20161111205317');
-
-INSERT INTO schema_migrations (version) VALUES ('20161119003439');
-
-INSERT INTO schema_migrations (version) VALUES ('20161213140009');
-
-INSERT INTO schema_migrations (version) VALUES ('20161214144658');
-
-INSERT INTO schema_migrations (version) VALUES ('20161215163027');
-
-INSERT INTO schema_migrations (version) VALUES ('20161216003217');
-
-INSERT INTO schema_migrations (version) VALUES ('20161219184752');
-
-INSERT INTO schema_migrations (version) VALUES ('20170505132237');
-
-INSERT INTO schema_migrations (version) VALUES ('20170517200539');
-
-INSERT INTO schema_migrations (version) VALUES ('20170619210146');
-
-INSERT INTO schema_migrations (version) VALUES ('20170619235354');
-
-INSERT INTO schema_migrations (version) VALUES ('20170627154145');
-
-INSERT INTO schema_migrations (version) VALUES ('20170627182531');
-
-INSERT INTO schema_migrations (version) VALUES ('20170703125950');
-
-INSERT INTO schema_migrations (version) VALUES ('20170705123919');
-
-INSERT INTO schema_migrations (version) VALUES ('20170721143408');
-
-INSERT INTO schema_migrations (version) VALUES ('20170721143409');
-
-INSERT INTO schema_migrations (version) VALUES ('20170726141503');
-
-INSERT INTO schema_migrations (version) VALUES ('20170731202132');
-
-INSERT INTO schema_migrations (version) VALUES ('20170801194526');
-
-INSERT INTO schema_migrations (version) VALUES ('20170815161947');
-
-INSERT INTO schema_migrations (version) VALUES ('20170830180506');
-
-INSERT INTO schema_migrations (version) VALUES ('20170830223244');
-
-INSERT INTO schema_migrations (version) VALUES ('20170901153110');
-
-INSERT INTO schema_migrations (version) VALUES ('20170922130841');
-
-INSERT INTO schema_migrations (version) VALUES ('20170922183847');
-
-INSERT INTO schema_migrations (version) VALUES ('20170927131448');
-
-INSERT INTO schema_migrations (version) VALUES ('20170928194909');
-
-INSERT INTO schema_migrations (version) VALUES ('20171004172953');
-
-INSERT INTO schema_migrations (version) VALUES ('20171023174425');
-
-INSERT INTO schema_migrations (version) VALUES ('20171024183915');
-
-INSERT INTO schema_migrations (version) VALUES ('20171025122843');
-
-INSERT INTO schema_migrations (version) VALUES ('20171026201120');
-
-INSERT INTO schema_migrations (version) VALUES ('20171026203139');
-
-INSERT INTO schema_migrations (version) VALUES ('20171027124054');
-
-INSERT INTO schema_migrations (version) VALUES ('20171027192753');
-
-INSERT INTO schema_migrations (version) VALUES ('20171102123227');
-
-INSERT INTO schema_migrations (version) VALUES ('20171108145620');
-
-INSERT INTO schema_migrations (version) VALUES ('20171108184341');
-
-INSERT INTO schema_migrations (version) VALUES ('20171115185203');
-
-INSERT INTO schema_migrations (version) VALUES ('20171121011445');
-
-INSERT INTO schema_migrations (version) VALUES ('20171204133242');
-
-INSERT INTO schema_migrations (version) VALUES ('20171204164243');
-
-INSERT INTO schema_migrations (version) VALUES ('20180203234329');
-
-INSERT INTO schema_migrations (version) VALUES ('20180211172808');
-
-INSERT INTO schema_migrations (version) VALUES ('20180226145540');
-
-INSERT INTO schema_migrations (version) VALUES ('20180301214751');
-
-INSERT INTO schema_migrations (version) VALUES ('20180403182327');
-
-INSERT INTO schema_migrations (version) VALUES ('20180410152130');
-
-INSERT INTO schema_migrations (version) VALUES ('20180413221626');
-
-INSERT INTO schema_migrations (version) VALUES ('20180416160927');
-
-INSERT INTO schema_migrations (version) VALUES ('20180416213522');
-
-INSERT INTO schema_migrations (version) VALUES ('20180419165841');
-
-INSERT INTO schema_migrations (version) VALUES ('20180504140026');
-
-INSERT INTO schema_migrations (version) VALUES ('20180511004923');
-
-INSERT INTO schema_migrations (version) VALUES ('20180521172429');
-
-INSERT INTO schema_migrations (version) VALUES ('20180521190108');
-
-INSERT INTO schema_migrations (version) VALUES ('20180530200118');
-
-INSERT INTO schema_migrations (version) VALUES ('20180601185917');
-
-INSERT INTO schema_migrations (version) VALUES ('20180612175806');
-
-INSERT INTO schema_migrations (version) VALUES ('20180613133940');
-
-INSERT INTO schema_migrations (version) VALUES ('20180627165639');
-
-INSERT INTO schema_migrations (version) VALUES ('20180629134948');
-
-INSERT INTO schema_migrations (version) VALUES ('20180629135738');
-
-INSERT INTO schema_migrations (version) VALUES ('20180629145712');
-
-INSERT INTO schema_migrations (version) VALUES ('20180710174713');
-
-INSERT INTO schema_migrations (version) VALUES ('20180716141934');
-
-INSERT INTO schema_migrations (version) VALUES ('20180716181011');
-
-INSERT INTO schema_migrations (version) VALUES ('20180722112728');
-
-INSERT INTO schema_migrations (version) VALUES ('20180801164521');
-
-INSERT INTO schema_migrations (version) VALUES ('20180810210623');
-
-INSERT INTO schema_migrations (version) VALUES ('20181001172617');
-
-INSERT INTO schema_migrations (version) VALUES ('20181012132645');
-
-INSERT INTO schema_migrations (version) VALUES ('20181024200910');
-
-INSERT INTO schema_migrations (version) VALUES ('20181024231159');
-
-INSERT INTO schema_migrations (version) VALUES ('20181025123951');
-
-INSERT INTO schema_migrations (version) VALUES ('20181025135153');
-
-INSERT INTO schema_migrations (version) VALUES ('20181030144345');
-
-INSERT INTO schema_migrations (version) VALUES ('20181030203357');
-
-INSERT INTO schema_migrations (version) VALUES ('20181031172440');
-
-INSERT INTO schema_migrations (version) VALUES ('20181105154441');
-
-INSERT INTO schema_migrations (version) VALUES ('20181128180134');
-
-INSERT INTO schema_migrations (version) VALUES ('20181211174411');
-
-INSERT INTO schema_migrations (version) VALUES ('20190129210815');
-
-INSERT INTO schema_migrations (version) VALUES ('20190327174142');
-
-INSERT INTO schema_migrations (version) VALUES ('20190327192234');
-
-INSERT INTO schema_migrations (version) VALUES ('20190417142558');
 

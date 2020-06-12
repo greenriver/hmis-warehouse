@@ -20,6 +20,17 @@ namespace :db do
     end
   end
 
+  namespace :structure do
+    desc "Conditionally load the database structure"
+    task :conditional_load, [] => [:environment] do |t, args|
+      if ApplicationRecord.connection.tables.length == 0
+        ApplicationRecord.connection.execute(File.read('db/structure.sql'))
+      else
+        puts "Refusing to load the database structure since there are tables present. This is not an error."
+      end
+    end
+  end
+
   desc "Setup all test DB"
   task :setup_test do
     raise 'MUST be run in the test environment' unless Rails.env.test?

@@ -32,7 +32,7 @@ module BostonHmis
 
     config.action_controller.include_all_helpers = false
 
-    config.active_record.schema_format = :ruby
+    config.active_record.schema_format = ENV.fetch('SCHEMA_FORMAT') { 'ruby' }.to_sym
 
     config.active_job.queue_adapter = :delayed_job
 

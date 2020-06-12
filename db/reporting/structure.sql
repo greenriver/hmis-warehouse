@@ -2,8 +2,10 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.15
--- Dumped by pg_dump version 10.5
+-- Dumped from database version 11.7
+-- Dumped by pg_dump version 12.2
+
+-- Started on 2020-06-10 17:51:48 UTC
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -12,26 +14,64 @@ SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
+SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
+-- Name: monthly_reports_insert_trigger(); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+CREATE FUNCTION public.monthly_reports_insert_trigger() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+      BEGIN
+      IF  ( NEW.type = 'Reporting::MonthlyReports::AllClients' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_all_clients VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Veteran' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_veteran VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Youth' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_youth VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Parents' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_family_parents VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::ParentingYouth' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_parenting_youth VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::ParentingChildren' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_parenting_children VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::UnaccompaniedMinors' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_unaccompanied_minors VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::IndividualAdults' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_individual_adults VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::NonVeteran' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_non_veteran VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Family' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_family VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::YouthFamilies' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_youth_families VALUES (NEW.*);
+         ELSIF  ( NEW.type = 'Reporting::MonthlyReports::Children' ) THEN
+            INSERT INTO warehouse_partitioned_monthly_reports_children VALUES (NEW.*);
 
-
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+      ELSE
+        INSERT INTO warehouse_partitioned_monthly_reports_unknown VALUES (NEW.*);
+        END IF;
+        RETURN NULL;
+    END;
+    $$;
 
 
 SET default_tablespace = '';
 
-SET default_with_oids = false;
+--
+-- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ar_internal_metadata (
+    key character varying NOT NULL,
+    value character varying,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
 
 --
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
@@ -40,6 +80,249 @@ SET default_with_oids = false;
 CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
 );
+
+
+--
+-- Name: warehouse_data_quality_report_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_data_quality_report_enrollments (
+    id integer NOT NULL,
+    report_id integer,
+    client_id integer,
+    project_id integer,
+    project_name character varying,
+    project_type integer,
+    enrollment_id integer,
+    enrolled boolean,
+    active boolean,
+    entered boolean,
+    exited boolean,
+    adult boolean,
+    head_of_household boolean,
+    household_id character varying,
+    household_type character varying,
+    age integer,
+    dob date,
+    entry_date date,
+    exit_date date,
+    days_to_add_entry_date integer,
+    days_to_add_exit_date integer,
+    dob_after_entry_date boolean,
+    most_recent_service_within_range date,
+    service_within_last_30_days boolean,
+    service_after_exit boolean,
+    days_of_service integer,
+    destination_id integer,
+    name_complete boolean DEFAULT false,
+    name_missing boolean DEFAULT false,
+    name_refused boolean DEFAULT false,
+    name_not_collected boolean DEFAULT false,
+    name_partial boolean DEFAULT false,
+    ssn_complete boolean DEFAULT false,
+    ssn_missing boolean DEFAULT false,
+    ssn_refused boolean DEFAULT false,
+    ssn_not_collected boolean DEFAULT false,
+    ssn_partial boolean DEFAULT false,
+    gender_complete boolean DEFAULT false,
+    gender_missing boolean DEFAULT false,
+    gender_refused boolean DEFAULT false,
+    gender_not_collected boolean DEFAULT false,
+    gender_partial boolean DEFAULT false,
+    dob_complete boolean DEFAULT false,
+    dob_missing boolean DEFAULT false,
+    dob_refused boolean DEFAULT false,
+    dob_not_collected boolean DEFAULT false,
+    dob_partial boolean DEFAULT false,
+    veteran_complete boolean DEFAULT false,
+    veteran_missing boolean DEFAULT false,
+    veteran_refused boolean DEFAULT false,
+    veteran_not_collected boolean DEFAULT false,
+    veteran_partial boolean DEFAULT false,
+    ethnicity_complete boolean DEFAULT false,
+    ethnicity_missing boolean DEFAULT false,
+    ethnicity_refused boolean DEFAULT false,
+    ethnicity_not_collected boolean DEFAULT false,
+    ethnicity_partial boolean DEFAULT false,
+    race_complete boolean DEFAULT false,
+    race_missing boolean DEFAULT false,
+    race_refused boolean DEFAULT false,
+    race_not_collected boolean DEFAULT false,
+    race_partial boolean DEFAULT false,
+    disabling_condition_complete boolean DEFAULT false,
+    disabling_condition_missing boolean DEFAULT false,
+    disabling_condition_refused boolean DEFAULT false,
+    disabling_condition_not_collected boolean DEFAULT false,
+    disabling_condition_partial boolean DEFAULT false,
+    destination_complete boolean DEFAULT false,
+    destination_missing boolean DEFAULT false,
+    destination_refused boolean DEFAULT false,
+    destination_not_collected boolean DEFAULT false,
+    destination_partial boolean DEFAULT false,
+    prior_living_situation_complete boolean DEFAULT false,
+    prior_living_situation_missing boolean DEFAULT false,
+    prior_living_situation_refused boolean DEFAULT false,
+    prior_living_situation_not_collected boolean DEFAULT false,
+    prior_living_situation_partial boolean DEFAULT false,
+    income_at_entry_complete boolean DEFAULT false,
+    income_at_entry_missing boolean DEFAULT false,
+    income_at_entry_refused boolean DEFAULT false,
+    income_at_entry_not_collected boolean DEFAULT false,
+    income_at_entry_partial boolean DEFAULT false,
+    income_at_exit_complete boolean DEFAULT false,
+    income_at_exit_missing boolean DEFAULT false,
+    income_at_exit_refused boolean DEFAULT false,
+    income_at_exit_not_collected boolean DEFAULT false,
+    income_at_exit_partial boolean DEFAULT false,
+    income_at_annual_assessment_complete boolean DEFAULT false,
+    income_at_annual_assessment_missing boolean DEFAULT false,
+    income_at_annual_assessment_refused boolean DEFAULT false,
+    income_at_annual_assessment_not_collected boolean DEFAULT false,
+    income_at_annual_assessment_partial boolean DEFAULT false,
+    should_have_income_annual_assessment boolean DEFAULT false,
+    include_in_income_change_calculation boolean,
+    income_at_entry_earned integer,
+    income_at_entry_non_employment_cash integer,
+    income_at_entry_overall integer,
+    income_at_entry_response integer,
+    income_at_annual_earned integer,
+    income_at_annual_non_employment_cash integer,
+    income_at_annual_overall integer,
+    income_at_later_date_response integer,
+    income_at_later_date_earned integer,
+    income_at_later_date_non_employment_cash integer,
+    income_at_later_date_overall integer,
+    income_at_annual_response integer,
+    days_to_move_in_date integer,
+    days_ph_before_move_in_date integer,
+    incorrect_household_type boolean DEFAULT false,
+    first_name character varying,
+    last_name character varying,
+    ssn character varying,
+    gender integer,
+    name_data_quality integer,
+    ssn_data_quality integer,
+    dob_data_quality integer,
+    veteran_status integer,
+    disabling_condition integer,
+    prior_living_situation integer,
+    ethnicity integer,
+    race character varying,
+    enrollment_date_created date,
+    exit_date_created date,
+    move_in_date date,
+    calculated_at timestamp without time zone NOT NULL,
+    income_at_penultimate_earned integer,
+    income_at_penultimate_non_employment_cash integer,
+    income_at_penultimate_overall integer,
+    income_at_penultimate_response integer
+);
+
+
+--
+-- Name: warehouse_data_quality_report_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.warehouse_data_quality_report_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: warehouse_data_quality_report_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.warehouse_data_quality_report_enrollments_id_seq OWNED BY public.warehouse_data_quality_report_enrollments.id;
+
+
+--
+-- Name: warehouse_data_quality_report_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_data_quality_report_project_groups (
+    id integer NOT NULL,
+    report_id integer,
+    unit_inventory integer,
+    bed_inventory integer,
+    average_nightly_clients integer,
+    average_nightly_households integer,
+    average_bed_utilization integer,
+    average_unit_utilization integer,
+    nightly_client_census jsonb,
+    nightly_household_census jsonb,
+    calculated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: warehouse_data_quality_report_project_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.warehouse_data_quality_report_project_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: warehouse_data_quality_report_project_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.warehouse_data_quality_report_project_groups_id_seq OWNED BY public.warehouse_data_quality_report_project_groups.id;
+
+
+--
+-- Name: warehouse_data_quality_report_projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_data_quality_report_projects (
+    id integer NOT NULL,
+    report_id integer,
+    project_id integer,
+    project_name character varying,
+    organization_name character varying,
+    project_type integer,
+    operating_start_date date,
+    coc_code character varying,
+    funder character varying,
+    inventory_information_dates character varying,
+    geocode character varying,
+    geography_type character varying,
+    unit_inventory integer,
+    bed_inventory integer,
+    housing_type integer,
+    average_nightly_clients integer,
+    average_nightly_households integer,
+    average_bed_utilization integer,
+    average_unit_utilization integer,
+    nightly_client_census jsonb,
+    nightly_household_census jsonb,
+    calculated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: warehouse_data_quality_report_projects_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.warehouse_data_quality_report_projects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: warehouse_data_quality_report_projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.warehouse_data_quality_report_projects_id_seq OWNED BY public.warehouse_data_quality_report_projects.id;
 
 
 --
@@ -68,7 +351,12 @@ CREATE TABLE public.warehouse_houseds (
     project_id integer,
     presented_as_individual boolean DEFAULT false,
     children_only boolean DEFAULT false,
-    individual_adult boolean DEFAULT false
+    individual_adult boolean DEFAULT false,
+    age_at_search_start integer,
+    age_at_search_end integer,
+    age_at_housed_date integer,
+    age_at_housing_exit integer,
+    head_of_household boolean DEFAULT false
 );
 
 
@@ -92,11 +380,41 @@ ALTER SEQUENCE public.warehouse_houseds_id_seq OWNED BY public.warehouse_houseds
 
 
 --
--- Name: warehouse_monthly_reports; Type: TABLE; Schema: public; Owner: -
+-- Name: warehouse_monthly_client_ids; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.warehouse_monthly_reports (
+CREATE TABLE public.warehouse_monthly_client_ids (
     id integer NOT NULL,
+    report_type character varying NOT NULL,
+    client_id integer NOT NULL
+);
+
+
+--
+-- Name: warehouse_monthly_client_ids_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.warehouse_monthly_client_ids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: warehouse_monthly_client_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.warehouse_monthly_client_ids_id_seq OWNED BY public.warehouse_monthly_client_ids.id;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports (
+    id bigint NOT NULL,
     month integer NOT NULL,
     year integer NOT NULL,
     type character varying,
@@ -118,15 +436,56 @@ CREATE TABLE public.warehouse_monthly_reports (
     prior_exit_project_type integer,
     prior_exit_destination_id integer,
     calculated_at timestamp without time zone NOT NULL,
-    enrollment_id integer NOT NULL
+    enrollment_id integer,
+    mid_month date
 );
 
 
 --
--- Name: warehouse_monthly_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: warehouse_partitioned_monthly_reports_all_clients; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.warehouse_monthly_reports_id_seq
+CREATE TABLE public.warehouse_partitioned_monthly_reports_all_clients (
+    CONSTRAINT warehouse_partitioned_monthly_reports_all_clients_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::AllClients'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_children; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_children (
+    CONSTRAINT warehouse_partitioned_monthly_reports_children_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::Children'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_family (
+    CONSTRAINT warehouse_partitioned_monthly_reports_family_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::Family'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family_parents; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_family_parents (
+    CONSTRAINT warehouse_partitioned_monthly_reports_family_parents_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::Parents'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.warehouse_partitioned_monthly_reports_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -135,10 +494,100 @@ CREATE SEQUENCE public.warehouse_monthly_reports_id_seq
 
 
 --
--- Name: warehouse_monthly_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: warehouse_partitioned_monthly_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.warehouse_monthly_reports_id_seq OWNED BY public.warehouse_monthly_reports.id;
+ALTER SEQUENCE public.warehouse_partitioned_monthly_reports_id_seq OWNED BY public.warehouse_partitioned_monthly_reports.id;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_individual_adults; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_individual_adults (
+    CONSTRAINT warehouse_partitioned_monthly_reports_individual_adu_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::IndividualAdults'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_non_veteran; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_non_veteran (
+    CONSTRAINT warehouse_partitioned_monthly_reports_non_veteran_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::NonVeteran'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_children; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_parenting_children (
+    CONSTRAINT warehouse_partitioned_monthly_reports_parenting_chil_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::ParentingChildren'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_youth; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_parenting_youth (
+    CONSTRAINT warehouse_partitioned_monthly_reports_parenting_yout_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::ParentingYouth'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unaccompanied_minors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_unaccompanied_minors (
+    CONSTRAINT warehouse_partitioned_monthly_reports_unaccompanied__type_check CHECK (((type)::text = 'Reporting::MonthlyReports::UnaccompaniedMinors'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unknown; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_unknown (
+    CONSTRAINT warehouse_partitioned_monthly_reports_unknown_type_check CHECK (((type)::text <> ALL ((ARRAY['all_clients'::character varying, 'veteran'::character varying, 'youth'::character varying, 'family_parents'::character varying, 'parenting_youth'::character varying, 'parenting_children'::character varying, 'unaccompanied_minors'::character varying, 'individual_adults'::character varying, 'non_veteran'::character varying, 'family'::character varying, 'youth_families'::character varying, 'children'::character varying])::text[])))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_veteran; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_veteran (
+    CONSTRAINT warehouse_partitioned_monthly_reports_veteran_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::Veteran'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_youth (
+    CONSTRAINT warehouse_partitioned_monthly_reports_youth_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::Youth'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth_families; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_partitioned_monthly_reports_youth_families (
+    CONSTRAINT warehouse_partitioned_monthly_reports_youth_families_type_check CHECK (((type)::text = 'Reporting::MonthlyReports::YouthFamilies'::text))
+)
+INHERITS (public.warehouse_partitioned_monthly_reports);
 
 
 --
@@ -187,6 +636,27 @@ ALTER SEQUENCE public.warehouse_returns_id_seq OWNED BY public.warehouse_returns
 
 
 --
+-- Name: warehouse_data_quality_report_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_data_quality_report_enrollments ALTER COLUMN id SET DEFAULT nextval('public.warehouse_data_quality_report_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_data_quality_report_project_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_data_quality_report_project_groups ALTER COLUMN id SET DEFAULT nextval('public.warehouse_data_quality_report_project_groups_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_data_quality_report_projects id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_data_quality_report_projects ALTER COLUMN id SET DEFAULT nextval('public.warehouse_data_quality_report_projects_id_seq'::regclass);
+
+
+--
 -- Name: warehouse_houseds id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -194,10 +664,654 @@ ALTER TABLE ONLY public.warehouse_houseds ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
--- Name: warehouse_monthly_reports id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: warehouse_monthly_client_ids id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.warehouse_monthly_reports ALTER COLUMN id SET DEFAULT nextval('public.warehouse_monthly_reports_id_seq'::regclass);
+ALTER TABLE ONLY public.warehouse_monthly_client_ids ALTER COLUMN id SET DEFAULT nextval('public.warehouse_monthly_client_ids_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_all_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_all_clients ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_all_clients head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_all_clients ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_all_clients first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_all_clients ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_all_clients enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_all_clients ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_all_clients active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_all_clients ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_all_clients entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_all_clients ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_all_clients exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_all_clients ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_children id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_children ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_children head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_children ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_children first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_children ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_children enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_children ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_children active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_children ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_children entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_children ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_children exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_children ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family_parents id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family_parents ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family_parents head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family_parents ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family_parents first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family_parents ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family_parents enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family_parents ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family_parents active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family_parents ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family_parents entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family_parents ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_family_parents exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_family_parents ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_individual_adults id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_individual_adults ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_individual_adults head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_individual_adults ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_individual_adults first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_individual_adults ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_individual_adults enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_individual_adults ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_individual_adults active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_individual_adults ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_individual_adults entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_individual_adults ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_individual_adults exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_individual_adults ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_non_veteran id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_non_veteran ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_non_veteran head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_non_veteran ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_non_veteran first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_non_veteran ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_non_veteran enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_non_veteran ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_non_veteran active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_non_veteran ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_non_veteran entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_non_veteran ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_non_veteran exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_non_veteran ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_children id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_children ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_children head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_children ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_children first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_children ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_children enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_children ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_children active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_children ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_children entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_children ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_children exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_children ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_youth id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_youth ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_youth head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_youth ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_youth first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_youth ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_youth enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_youth ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_youth active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_youth ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_youth entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_youth ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_parenting_youth exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_parenting_youth ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unaccompanied_minors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unaccompanied_minors ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unaccompanied_minors head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unaccompanied_minors ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unaccompanied_minors first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unaccompanied_minors ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unaccompanied_minors enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unaccompanied_minors ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unaccompanied_minors active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unaccompanied_minors ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unaccompanied_minors entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unaccompanied_minors ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unaccompanied_minors exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unaccompanied_minors ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unknown id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unknown ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unknown head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unknown ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unknown first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unknown ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unknown enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unknown ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unknown active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unknown ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unknown entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unknown ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_unknown exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_unknown ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_veteran id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_veteran ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_veteran head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_veteran ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_veteran first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_veteran ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_veteran enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_veteran ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_veteran active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_veteran ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_veteran entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_veteran ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_veteran exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_veteran ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth ALTER COLUMN exited SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth_families id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth_families ALTER COLUMN id SET DEFAULT nextval('public.warehouse_partitioned_monthly_reports_id_seq'::regclass);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth_families head_of_household; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth_families ALTER COLUMN head_of_household SET DEFAULT 0;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth_families first_enrollment; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth_families ALTER COLUMN first_enrollment SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth_families enrolled; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth_families ALTER COLUMN enrolled SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth_families active; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth_families ALTER COLUMN active SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth_families entered; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth_families ALTER COLUMN entered SET DEFAULT false;
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports_youth_families exited; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports_youth_families ALTER COLUMN exited SET DEFAULT false;
 
 
 --
@@ -205,6 +1319,38 @@ ALTER TABLE ONLY public.warehouse_monthly_reports ALTER COLUMN id SET DEFAULT ne
 --
 
 ALTER TABLE ONLY public.warehouse_returns ALTER COLUMN id SET DEFAULT nextval('public.warehouse_returns_id_seq'::regclass);
+
+
+--
+-- Name: ar_internal_metadata ar_internal_metadata_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ar_internal_metadata
+    ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: warehouse_data_quality_report_enrollments warehouse_data_quality_report_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_data_quality_report_enrollments
+    ADD CONSTRAINT warehouse_data_quality_report_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: warehouse_data_quality_report_project_groups warehouse_data_quality_report_project_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_data_quality_report_project_groups
+    ADD CONSTRAINT warehouse_data_quality_report_project_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: warehouse_data_quality_report_projects warehouse_data_quality_report_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_data_quality_report_projects
+    ADD CONSTRAINT warehouse_data_quality_report_projects_pkey PRIMARY KEY (id);
 
 
 --
@@ -216,11 +1362,19 @@ ALTER TABLE ONLY public.warehouse_houseds
 
 
 --
--- Name: warehouse_monthly_reports warehouse_monthly_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: warehouse_monthly_client_ids warehouse_monthly_client_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.warehouse_monthly_reports
-    ADD CONSTRAINT warehouse_monthly_reports_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.warehouse_monthly_client_ids
+    ADD CONSTRAINT warehouse_monthly_client_ids_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: warehouse_partitioned_monthly_reports warehouse_partitioned_monthly_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.warehouse_partitioned_monthly_reports
+    ADD CONSTRAINT warehouse_partitioned_monthly_reports_pkey PRIMARY KEY (id);
 
 
 --
@@ -229,6 +1383,573 @@ ALTER TABLE ONLY public.warehouse_monthly_reports
 
 ALTER TABLE ONLY public.warehouse_returns
     ADD CONSTRAINT warehouse_returns_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: housed_p_type_h_dates_p_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX housed_p_type_h_dates_p_id ON public.warehouse_houseds USING btree (project_type, housed_date, housing_exit, project_id);
+
+
+--
+-- Name: housed_p_type_s_dates_h_dates_p_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX housed_p_type_s_dates_h_dates_p_id ON public.warehouse_houseds USING btree (project_type, search_start, search_end, service_project, housed_date, housing_exit, project_id);
+
+
+--
+-- Name: housed_p_type_s_dates_p_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX housed_p_type_s_dates_p_id ON public.warehouse_houseds USING btree (project_type, search_start, search_end, service_project, project_id);
+
+
+--
+-- Name: index_month_all_clients_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_all_clients_act_enter ON public.warehouse_partitioned_monthly_reports_all_clients USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_all_clients_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_all_clients_act_exit ON public.warehouse_partitioned_monthly_reports_all_clients USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_all_clients_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_all_clients_client_id ON public.warehouse_partitioned_monthly_reports_all_clients USING btree (client_id);
+
+
+--
+-- Name: index_month_all_clients_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_all_clients_dest_enr ON public.warehouse_partitioned_monthly_reports_all_clients USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_all_clients_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_all_clients_id ON public.warehouse_partitioned_monthly_reports_all_clients USING btree (id);
+
+
+--
+-- Name: index_month_all_clients_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_all_clients_p_type_hoh ON public.warehouse_partitioned_monthly_reports_all_clients USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_children_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_children_act_enter ON public.warehouse_partitioned_monthly_reports_children USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_children_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_children_act_exit ON public.warehouse_partitioned_monthly_reports_children USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_children_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_children_client_id ON public.warehouse_partitioned_monthly_reports_children USING btree (client_id);
+
+
+--
+-- Name: index_month_children_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_children_dest_enr ON public.warehouse_partitioned_monthly_reports_children USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_children_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_children_id ON public.warehouse_partitioned_monthly_reports_children USING btree (id);
+
+
+--
+-- Name: index_month_children_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_children_p_type_hoh ON public.warehouse_partitioned_monthly_reports_children USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_family_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_family_act_enter ON public.warehouse_partitioned_monthly_reports_family USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_family_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_family_act_exit ON public.warehouse_partitioned_monthly_reports_family USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_family_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_family_client_id ON public.warehouse_partitioned_monthly_reports_family USING btree (client_id);
+
+
+--
+-- Name: index_month_family_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_family_dest_enr ON public.warehouse_partitioned_monthly_reports_family USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_family_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_family_id ON public.warehouse_partitioned_monthly_reports_family USING btree (id);
+
+
+--
+-- Name: index_month_family_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_family_p_type_hoh ON public.warehouse_partitioned_monthly_reports_family USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_family_parents_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_family_parents_act_enter ON public.warehouse_partitioned_monthly_reports_family_parents USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_family_parents_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_family_parents_act_exit ON public.warehouse_partitioned_monthly_reports_family_parents USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_family_parents_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_family_parents_client_id ON public.warehouse_partitioned_monthly_reports_family_parents USING btree (client_id);
+
+
+--
+-- Name: index_month_family_parents_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_family_parents_dest_enr ON public.warehouse_partitioned_monthly_reports_family_parents USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_family_parents_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_family_parents_id ON public.warehouse_partitioned_monthly_reports_family_parents USING btree (id);
+
+
+--
+-- Name: index_month_family_parents_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_family_parents_p_type_hoh ON public.warehouse_partitioned_monthly_reports_family_parents USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_individual_adults_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_individual_adults_act_enter ON public.warehouse_partitioned_monthly_reports_individual_adults USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_individual_adults_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_individual_adults_act_exit ON public.warehouse_partitioned_monthly_reports_individual_adults USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_individual_adults_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_individual_adults_client_id ON public.warehouse_partitioned_monthly_reports_individual_adults USING btree (client_id);
+
+
+--
+-- Name: index_month_individual_adults_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_individual_adults_dest_enr ON public.warehouse_partitioned_monthly_reports_individual_adults USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_individual_adults_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_individual_adults_id ON public.warehouse_partitioned_monthly_reports_individual_adults USING btree (id);
+
+
+--
+-- Name: index_month_individual_adults_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_individual_adults_p_type_hoh ON public.warehouse_partitioned_monthly_reports_individual_adults USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_non_veteran_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_non_veteran_act_enter ON public.warehouse_partitioned_monthly_reports_non_veteran USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_non_veteran_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_non_veteran_act_exit ON public.warehouse_partitioned_monthly_reports_non_veteran USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_non_veteran_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_non_veteran_client_id ON public.warehouse_partitioned_monthly_reports_non_veteran USING btree (client_id);
+
+
+--
+-- Name: index_month_non_veteran_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_non_veteran_dest_enr ON public.warehouse_partitioned_monthly_reports_non_veteran USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_non_veteran_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_non_veteran_id ON public.warehouse_partitioned_monthly_reports_non_veteran USING btree (id);
+
+
+--
+-- Name: index_month_non_veteran_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_non_veteran_p_type_hoh ON public.warehouse_partitioned_monthly_reports_non_veteran USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_parenting_children_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_parenting_children_act_enter ON public.warehouse_partitioned_monthly_reports_parenting_children USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_parenting_children_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_parenting_children_act_exit ON public.warehouse_partitioned_monthly_reports_parenting_children USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_parenting_children_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_parenting_children_client_id ON public.warehouse_partitioned_monthly_reports_parenting_children USING btree (client_id);
+
+
+--
+-- Name: index_month_parenting_children_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_parenting_children_dest_enr ON public.warehouse_partitioned_monthly_reports_parenting_children USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_parenting_children_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_parenting_children_id ON public.warehouse_partitioned_monthly_reports_parenting_children USING btree (id);
+
+
+--
+-- Name: index_month_parenting_children_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_parenting_children_p_type_hoh ON public.warehouse_partitioned_monthly_reports_parenting_children USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_parenting_youth_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_parenting_youth_act_enter ON public.warehouse_partitioned_monthly_reports_parenting_youth USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_parenting_youth_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_parenting_youth_act_exit ON public.warehouse_partitioned_monthly_reports_parenting_youth USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_parenting_youth_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_parenting_youth_client_id ON public.warehouse_partitioned_monthly_reports_parenting_youth USING btree (client_id);
+
+
+--
+-- Name: index_month_parenting_youth_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_parenting_youth_dest_enr ON public.warehouse_partitioned_monthly_reports_parenting_youth USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_parenting_youth_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_parenting_youth_id ON public.warehouse_partitioned_monthly_reports_parenting_youth USING btree (id);
+
+
+--
+-- Name: index_month_parenting_youth_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_parenting_youth_p_type_hoh ON public.warehouse_partitioned_monthly_reports_parenting_youth USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_remainder_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_remainder_act_enter ON public.warehouse_partitioned_monthly_reports_unknown USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_remainder_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_remainder_act_exit ON public.warehouse_partitioned_monthly_reports_unknown USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_remainder_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_remainder_client_id ON public.warehouse_partitioned_monthly_reports_unknown USING btree (client_id);
+
+
+--
+-- Name: index_month_remainder_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_remainder_dest_enr ON public.warehouse_partitioned_monthly_reports_unknown USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_remainder_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_remainder_id ON public.warehouse_partitioned_monthly_reports_unknown USING btree (id);
+
+
+--
+-- Name: index_month_remainder_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_remainder_p_type_hoh ON public.warehouse_partitioned_monthly_reports_unknown USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_unaccompanied_minors_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_unaccompanied_minors_act_enter ON public.warehouse_partitioned_monthly_reports_unaccompanied_minors USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_unaccompanied_minors_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_unaccompanied_minors_act_exit ON public.warehouse_partitioned_monthly_reports_unaccompanied_minors USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_unaccompanied_minors_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_unaccompanied_minors_client_id ON public.warehouse_partitioned_monthly_reports_unaccompanied_minors USING btree (client_id);
+
+
+--
+-- Name: index_month_unaccompanied_minors_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_unaccompanied_minors_dest_enr ON public.warehouse_partitioned_monthly_reports_unaccompanied_minors USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_unaccompanied_minors_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_unaccompanied_minors_id ON public.warehouse_partitioned_monthly_reports_unaccompanied_minors USING btree (id);
+
+
+--
+-- Name: index_month_unaccompanied_minors_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_unaccompanied_minors_p_type_hoh ON public.warehouse_partitioned_monthly_reports_unaccompanied_minors USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_veteran_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_veteran_act_enter ON public.warehouse_partitioned_monthly_reports_veteran USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_veteran_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_veteran_act_exit ON public.warehouse_partitioned_monthly_reports_veteran USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_veteran_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_veteran_client_id ON public.warehouse_partitioned_monthly_reports_veteran USING btree (client_id);
+
+
+--
+-- Name: index_month_veteran_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_veteran_dest_enr ON public.warehouse_partitioned_monthly_reports_veteran USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_veteran_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_veteran_id ON public.warehouse_partitioned_monthly_reports_veteran USING btree (id);
+
+
+--
+-- Name: index_month_veteran_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_veteran_p_type_hoh ON public.warehouse_partitioned_monthly_reports_veteran USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_youth_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_youth_act_enter ON public.warehouse_partitioned_monthly_reports_youth USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_youth_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_youth_act_exit ON public.warehouse_partitioned_monthly_reports_youth USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_youth_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_youth_client_id ON public.warehouse_partitioned_monthly_reports_youth USING btree (client_id);
+
+
+--
+-- Name: index_month_youth_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_youth_dest_enr ON public.warehouse_partitioned_monthly_reports_youth USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_youth_families_act_enter; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_youth_families_act_enter ON public.warehouse_partitioned_monthly_reports_youth_families USING btree (mid_month, active, entered);
+
+
+--
+-- Name: index_month_youth_families_act_exit; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_youth_families_act_exit ON public.warehouse_partitioned_monthly_reports_youth_families USING btree (mid_month, active, exited);
+
+
+--
+-- Name: index_month_youth_families_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_youth_families_client_id ON public.warehouse_partitioned_monthly_reports_youth_families USING btree (client_id);
+
+
+--
+-- Name: index_month_youth_families_dest_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_youth_families_dest_enr ON public.warehouse_partitioned_monthly_reports_youth_families USING btree (mid_month, destination_id, enrolled);
+
+
+--
+-- Name: index_month_youth_families_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_youth_families_id ON public.warehouse_partitioned_monthly_reports_youth_families USING btree (id);
+
+
+--
+-- Name: index_month_youth_families_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_youth_families_p_type_hoh ON public.warehouse_partitioned_monthly_reports_youth_families USING btree (mid_month, project_type, head_of_household);
+
+
+--
+-- Name: index_month_youth_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_month_youth_id ON public.warehouse_partitioned_monthly_reports_youth USING btree (id);
+
+
+--
+-- Name: index_month_youth_p_type_hoh; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_month_youth_p_type_hoh ON public.warehouse_partitioned_monthly_reports_youth USING btree (mid_month, project_type, head_of_household);
 
 
 --
@@ -267,80 +1988,10 @@ CREATE INDEX index_warehouse_houseds_on_search_start ON public.warehouse_houseds
 
 
 --
--- Name: index_warehouse_monthly_reports_on_active; Type: INDEX; Schema: public; Owner: -
+-- Name: index_warehouse_monthly_client_ids_on_report_type_and_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_warehouse_monthly_reports_on_active ON public.warehouse_monthly_reports USING btree (active);
-
-
---
--- Name: index_warehouse_monthly_reports_on_enrolled; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_warehouse_monthly_reports_on_enrolled ON public.warehouse_monthly_reports USING btree (enrolled);
-
-
---
--- Name: index_warehouse_monthly_reports_on_entered; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_warehouse_monthly_reports_on_entered ON public.warehouse_monthly_reports USING btree (entered);
-
-
---
--- Name: index_warehouse_monthly_reports_on_exited; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_warehouse_monthly_reports_on_exited ON public.warehouse_monthly_reports USING btree (exited);
-
-
---
--- Name: index_warehouse_monthly_reports_on_head_of_household; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_warehouse_monthly_reports_on_head_of_household ON public.warehouse_monthly_reports USING btree (head_of_household);
-
-
---
--- Name: index_warehouse_monthly_reports_on_household_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_warehouse_monthly_reports_on_household_id ON public.warehouse_monthly_reports USING btree (household_id);
-
-
---
--- Name: index_warehouse_monthly_reports_on_month; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_warehouse_monthly_reports_on_month ON public.warehouse_monthly_reports USING btree (month);
-
-
---
--- Name: index_warehouse_monthly_reports_on_organization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_warehouse_monthly_reports_on_organization_id ON public.warehouse_monthly_reports USING btree (organization_id);
-
-
---
--- Name: index_warehouse_monthly_reports_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_warehouse_monthly_reports_on_project_id ON public.warehouse_monthly_reports USING btree (project_id);
-
-
---
--- Name: index_warehouse_monthly_reports_on_type; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_warehouse_monthly_reports_on_type ON public.warehouse_monthly_reports USING btree (type);
-
-
---
--- Name: index_warehouse_monthly_reports_on_year; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_warehouse_monthly_reports_on_year ON public.warehouse_monthly_reports USING btree (year);
+CREATE INDEX index_warehouse_monthly_client_ids_on_report_type_and_client_id ON public.warehouse_monthly_client_ids USING btree (report_type, client_id);
 
 
 --
@@ -386,6 +2037,34 @@ CREATE INDEX index_warehouse_returns_on_service_type ON public.warehouse_returns
 
 
 --
+-- Name: pdq_p_groups_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX pdq_p_groups_report_id ON public.warehouse_data_quality_report_project_groups USING btree (report_id);
+
+
+--
+-- Name: pdq_projects_report_id_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX pdq_projects_report_id_project_id ON public.warehouse_data_quality_report_projects USING btree (report_id, project_id);
+
+
+--
+-- Name: pdq_rep_act_ent_head_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX pdq_rep_act_ent_head_enr ON public.warehouse_data_quality_report_enrollments USING btree (report_id, active, entered, head_of_household, enrolled);
+
+
+--
+-- Name: pdq_rep_act_ext_head_enr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX pdq_rep_act_ext_head_enr ON public.warehouse_data_quality_report_enrollments USING btree (report_id, active, exited, head_of_household, enrolled);
+
+
+--
 -- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -393,22 +2072,15 @@ CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING b
 
 
 --
--- PostgreSQL database dump complete
+-- Name: warehouse_partitioned_monthly_reports monthly_reports_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
-SET search_path TO "$user", public;
+CREATE TRIGGER monthly_reports_insert_trigger BEFORE INSERT ON public.warehouse_partitioned_monthly_reports FOR EACH ROW EXECUTE PROCEDURE public.monthly_reports_insert_trigger();
 
-INSERT INTO schema_migrations (version) VALUES ('20180911173239');
 
-INSERT INTO schema_migrations (version) VALUES ('20180911173649');
+-- Completed on 2020-06-10 17:52:44 UTC
 
-INSERT INTO schema_migrations (version) VALUES ('20180917194028');
-
-INSERT INTO schema_migrations (version) VALUES ('20180925175825');
-
-INSERT INTO schema_migrations (version) VALUES ('20181204193329');
-
-INSERT INTO schema_migrations (version) VALUES ('20190503193707');
-
-INSERT INTO schema_migrations (version) VALUES ('20190509162439');
+--
+-- PostgreSQL database dump complete
+--
 

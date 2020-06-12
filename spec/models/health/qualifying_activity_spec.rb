@@ -76,10 +76,11 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       end
     end
 
-    it 'keeps non-outreach QAs payable after the engagement date with a signed care plan' do
+    it 'keeps non-outreach QAs payable after the engagement date with a pctp_signed QA' do
       enrollment_start_date = @referral.enrollment_start_date
       now_payable_qa = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: enrollment_start_date + 180.days
       create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      create :qualifying_activity, patient: @patient, activity: :pctp_signed, date_of_activity: enrollment_start_date + 30.days
 
       Timecop.travel(enrollment_start_date + 240.days)
       expect(now_payable_qa.compute_valid_unpayable?).to be false
@@ -112,6 +113,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     it 'ignores non-contributing referrals' do
       enrollment_start_date = @referral.enrollment_start_date
       careplan = create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      create :qualifying_activity, patient: @patient, activity: :pctp_signed, date_of_activity: enrollment_start_date + 30.days
       @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
       new_enrollment_date = careplan.expires_on + 1.day
       Timecop.travel(new_enrollment_date)
@@ -138,6 +140,7 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     it 'adds a PCTP-signed QA on a re-enrollment' do
       enrollment_start_date = @referral.enrollment_start_date
       careplan = create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      create :qualifying_activity, patient: @patient, activity: :pctp_signed, date_of_activity: enrollment_start_date + 30.days
       @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
       new_enrollment_date = careplan.expires_on - 1.month
       Timecop.travel(new_enrollment_date)
@@ -152,10 +155,11 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       @patient.reload
 
       aggregate_failures do
-        expect(@patient.qualifying_activities.count).to eq(1)
+        expect(@patient.qualifying_activities.count).to eq(2)
 
-        qa = @patient.qualifying_activities.first
-        expect(qa.activity).to eq 'pctp_signed'
+        @patient.qualifying_activities.each do |qa|
+          expect(qa.activity).to eq 'pctp_signed'
+        end
       end
     end
   end

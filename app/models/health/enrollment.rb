@@ -88,7 +88,13 @@ module Health
       transaction.select{|h| h.keys.include? :DTP}.
         map{|h| h[:DTP]}.each do |dtp|
         if dtp.detect{|h| h.keys.include? :E374}[:E374][:value][:raw] == '357'
-          return Date.parse(dtp.detect{|h| h.keys.include? :E1251}[:E1251][:value][:raw])
+          date = Date.parse(dtp.detect{|h| h.keys.include? :E1251}[:E1251][:value][:raw])
+          # MassHealth will send a date far in the future if there is no disenrollment date
+          if date < Date.current + 1.year
+            return date
+          else
+            return nil
+          end
         end
       end
     end
