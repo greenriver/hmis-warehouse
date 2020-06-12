@@ -709,16 +709,11 @@ module GrdaWarehouse::Hud
       end
     end
 
-
     scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
-      if coc_codes.present?
-        consent_form_valid.where(
-          Arel.sql("consented_coc_codes='[]'::jsonb OR " +
-          "#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]")
-        )
-      else
-        consent_form_valid.where("consented_coc_codes='[]'::jsonb")
-      end
+      coc_codes = Array.wrap(coc_codes) + ['All CoCs']
+      where(
+        Arel.sql("#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]")
+      )
     end
 
     scope :consent_form_valid, -> do
@@ -1182,13 +1177,19 @@ module GrdaWarehouse::Hud
         clients_with_consent = self.where.not(consent_form_signed_on: nil)
         clients_with_consent.each do |client|
           if client.consent_form_signed_on < consent_validity_period.ago
-            client.update_columns(housing_release_status: nil)
+            client.update_columns(
+              housing_release_status: nil,
+              consented_coc_codes: [],
+            )
           end
         end
       elsif release_duration == 'Use Expiration Date'
         self.destination.where(
           arel_table[:consent_expires_on].lt(Date.current)
-        ).update_all(housing_release_status: nil)
+        ).update_all(
+          housing_release_status: nil,
+          consented_coc_codes: [],
+        )
       end
     end
 
