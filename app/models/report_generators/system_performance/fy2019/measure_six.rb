@@ -569,11 +569,11 @@ module ReportGenerators::SystemPerformance::Fy2019
             select(:client_id)
 
         child_candidates = add_filters(scope: child_candidates_scope).
-            pluck(:client_id, c_t[:DOB], e_t[:EntryDate], :age, :head_of_household_id)
+            pluck(:client_id, c_t[:DOB], e_t[:EntryDate], :age, :head_of_household_id, :household_id)
 
 
         child_id_to_destination = {}
-        child_candidates.each do |(client_id, dob, entry_date, age, hoh_id)|
+        child_candidates.each do |(client_id, dob, entry_date, age, hoh_id, household_id)|
           age = age_for_report dob: dob, entry_date: entry_date, age: age
           if age.present? && age <= 17
             child_id_to_destination[[client_id, household_id]] = hoh_destination_for(project_types, hoh_id, household_id)
