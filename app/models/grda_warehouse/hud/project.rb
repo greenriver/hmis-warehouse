@@ -89,6 +89,17 @@ module GrdaWarehouse::Hud
       class_name: GrdaWarehouse::ProjectGroup.name,
       join_table: :project_project_groups
 
+
+    has_many :group_viewable_entities,
+      class_name: 'GrdaWarehouse::GroupViewableEntity', as: :entity
+
+    scope :visible_via_agids, -> (ids) do
+      distinct.joins(:group_viewable_entities).where(
+        group_viewable_entities: {access_group_id: ids}
+      ).joins(:organization).merge(GrdaWarehouse::Hud::Organization.visible_via_agids(ids)
+      ).joins(:data_source).merge(GrdaWarehouse::DataSource.visible_via_agids(ids))
+    end
+
     has_many :service_history_enrollments, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
 
     has_many :project_cocs, **hud_assoc(:ProjectID, 'ProjectCoc'), inverse_of: :project

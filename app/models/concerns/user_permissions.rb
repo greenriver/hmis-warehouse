@@ -51,6 +51,14 @@ module UserPermissions
       ].freeze
     end
 
+    scope :has_permission, ->(permission) {
+      permission = permission.to_sym
+      known_permissions = Role.permissions_with_descriptions.keys
+      raise ArgumentError, "Unknown permissions: #{permission}" unless permission.in?(known_permissions)
+
+      joins(:roles).merge(Role.where(permission => true))
+    }
+
     def self.can_receive_secure_files?
       can_view_assigned_secure_uploads || can_view_all_secure_uploads
     end

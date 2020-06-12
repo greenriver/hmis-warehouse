@@ -68,6 +68,15 @@ module GrdaWarehouse::Hud
     }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
 
     has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
+    scope :visible_via_agids, -> (ids) do
+      distinct.
+        joins(:enrollments).merge(GrdaWarehouse::Hud::Enrollment.visible_via_agids(ids)).
+        joins(:data_source).merge(GrdaWarehouse::DataSource.visible_via_agids(ids))
+    end
+
+    has_many :projects, through: :enrollments
+    has_many :organization, through: :enrollments
+
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
     has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
     has_many :services, through: :enrollments, source: :services, inverse_of: :client

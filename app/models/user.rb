@@ -107,12 +107,10 @@ class User < ApplicationRecord
       self.send(permission)
     end
 
+
     # Provide a scope for each permission to get any user who qualifies
     # e.g. User.can_administer_health
-    scope permission, -> do
-      joins(:roles).
-      where(roles: {permission => true})
-    end
+    scope permission, -> { has_permission(permission) }
   end
 
   def active_for_authentication?

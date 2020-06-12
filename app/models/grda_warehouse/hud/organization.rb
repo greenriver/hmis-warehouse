@@ -20,6 +20,14 @@ module GrdaWarehouse::Hud
 
     has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', foreign_key: [:data_source_id, :organization_id], primary_key: [:data_source_id, :OrganizationID], inverse_of: :organization
     has_many :contacts, class_name: 'GrdaWarehouse::Contact::Organization', foreign_key: :entity_id
+    has_many :group_viewable_entities,
+      class_name: 'GrdaWarehouse::GroupViewableEntity', as: :entity
+
+    scope :visible_via_agids, -> (ids) do
+      distinct.joins(:group_viewable_entities).where(
+        group_viewable_entities: {access_group_id: ids}
+      ).joins(:data_source).merge(GrdaWarehouse::DataSource.visible_via_agids(ids))
+    end
 
     accepts_nested_attributes_for :projects
 
