@@ -94,6 +94,20 @@ module GrdaWarehouse::Report
     end
 
     def self.update_recent_report_enrollments_table
+      self.connection.execute <<-SQL
+        DROP TABLE IF EXISTS recent_report_enrollments;
+      SQL
+      self.connection.execute(recent_enrollments_query)
+      self.connection.execute('create unique index id_ret_index on recent_report_enrollments (id)')
+      [
+        :EntryDate,
+        :client_id,
+      ].each do |column|
+        self.connection.execute("create index #{column}_ret_index on recent_report_enrollments (\"#{column}\")")
+      end
+    end
+
+    def self.recent_enrollments_query
       range = ::Filters::DateRange.new(start: 13.months.ago.beginning_of_month.to_date, end: Date.current.end_of_month.to_date)
 
       d_1_start = range.start
@@ -113,7 +127,8 @@ module GrdaWarehouse::Report
         ).join(destination_client_table).on(
           destination_client_table[:id].eq(client_join_table[:destination_id]).
           and( destination_client_table[:DateDeleted].eq nil )
-        ).project(
+        ).distinct.
+        project(
           *GrdaWarehouse::Hud::Enrollment.column_names.map(&:to_sym).map{ |c| e_t[c] },  # all the enrollment columns
           source_client_table[:id].as('demographic_id'),                                         # the source client id
           destination_client_table[:id].as('client_id')                                          # the destination client id
@@ -126,18 +141,7 @@ module GrdaWarehouse::Report
           and(e_t[:data_source_id].eq(ex_t[:data_source_id])))).
         where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end))).to_sql
       # Turn this into a table
-      sql = query.gsub('FROM', 'INTO recent_report_enrollments FROM')
-      self.connection.execute <<-SQL
-        DROP TABLE IF EXISTS recent_report_enrollments;
-      SQL
-      self.connection.execute(sql)
-      self.connection.execute('create unique index id_ret_index on recent_report_enrollments (id)')
-      [
-        :EntryDate,
-        :client_id,
-      ].each do |column|
-        self.connection.execute("create index #{column}_ret_index on recent_report_enrollments (\"#{column}\")")
-      end
+      query.gsub('FROM', 'INTO recent_report_enrollments FROM')
     end
 
     def self.sh_columns
