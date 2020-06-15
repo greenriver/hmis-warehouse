@@ -1021,6 +1021,10 @@ def install_shapes
   end
 end
 
+def maintain_standard_groups
+  AccessGroup.all_users
+end
+
 # These tables are partitioned and need to have triggers and functions that
 # schema loading doesn't include.  This will ensure that they exist on each deploy
 def ensure_db_triggers_and_functions
@@ -1030,6 +1034,7 @@ end
 
 ensure_db_triggers_and_functions()
 setup_fake_user() if Rails.env.development?
+maintain_standard_groups()
 maintain_data_sources()
 maintain_report_definitions()
 maintain_health_seeds()

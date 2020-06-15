@@ -22,6 +22,13 @@ class AccessGroup < ApplicationRecord
 
   validates_presence_of :name, unless: :user_id
 
+  def self.all_users
+    general.where(name: 'All Users').first_or_create do |g|
+      g.system = true
+      g.required = true
+    end
+  end
+
   scope :general, -> do
     where(user_id: nil)
   end

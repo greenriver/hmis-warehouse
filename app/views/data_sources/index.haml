@@ -44,7 +44,7 @@
               .ds{class: "ds-color-#{data_source.id}"}= data_source.short_name
             %td= number_with_delimiter(@client_counts[data_source.id])
             %td= number_with_delimiter(@project_counts[data_source.id])
-            %td.text-center= checkmark(data_source.visible_in_window)
+            %td.text-center= checkmark(data_source.visible_to_all_users?)
             %td.text-center= checkmark(data_source.authoritative)
             %td= most_recently_completed
             %td

@@ -317,6 +317,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  def visible_to_all_users?
+    AccessGroup.all_users.contains?(self)
+  end
+
   def users
     User.where(id: AccessGroup.contains(self).map(&:users).flatten.map(&:id))
   end

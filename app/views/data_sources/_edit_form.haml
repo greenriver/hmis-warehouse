@@ -31,7 +31,7 @@
           %th.pl-2
             Visible in the Window into the Warehouse?
           %td
-            = f.input :visible_in_window, label: false
+            = checkmark(@data_source.visible_to_all_users?)
         %tr
           %th.pl-2
             Does the Personal ID column contain a UUID?

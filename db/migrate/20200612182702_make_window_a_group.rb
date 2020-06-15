@@ -1,6 +1,6 @@
 class MakeWindowAGroup < ActiveRecord::Migration[5.2]
   def up
-    group = AccessGroup.general.where(name: 'Window').first_or_create
+    group = AccessGroup.all_users
 
     GrdaWarehouse::DataSource.where(visible_in_window: true).find_each do |ds|
       group.add_viewable(ds)

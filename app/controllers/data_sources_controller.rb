@@ -43,7 +43,6 @@ class DataSourcesController < ApplicationController
     @data_source.source_type = :authoritative if new_data_source_params[:authoritative]
     if @data_source.save
       current_user.add_viewable @data_source
-      add_to_window_access_group if @data_source.visible_in_window?
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else
@@ -69,7 +68,6 @@ class DataSourcesController < ApplicationController
           service_scannable: service_scannable,
         }
         @data_source.update!(changes)
-        update_window_access_group
       end
     rescue StandardError => e
       error = true
@@ -84,33 +82,15 @@ class DataSourcesController < ApplicationController
   def destroy
     name = @data_source.name
     @data_source.destroy_dependents!
-    remove_from_window_access_group if @data_source.visible_in_window?
     @data_source.destroy
     flash[:notice] = "Data Source: #{name} was successfully removed."
 
     redirect_to action: :index
   end
 
-  private def update_window_access_group
-    if @data_source.visible_in_window?
-      add_to_window_access_group
-    else
-      remove_from_window_access_group
-    end
-  end
-
-  private def add_to_window_access_group
-    window_access_group.add_viewable(@data_source)
-  end
-
-  private def remove_from_window_access_group
-    window_access_group.remove_viewable(@data_source)
-  end
-
   private def data_source_params
     params.require(:grda_warehouse_data_source).
       permit(
-        :visible_in_window,
         :import_paused,
         :source_id,
         :munged_personal_id,
@@ -139,7 +119,6 @@ class DataSourcesController < ApplicationController
         :short_name,
         :munged_personal_id,
         :source_type,
-        :visible_in_window,
         :authoritative,
         :authoritative_type,
         :after_create_path,
@@ -159,10 +138,5 @@ class DataSourcesController < ApplicationController
 
   private def set_data_source
     @data_source = data_source_source.find(params[:id].to_i)
-    @data_source.visible_in_window = window_access_group.contains?(@data_source)
-  end
-
-  private def window_access_group
-    @window_access_group ||= AccessGroup.general.where(name: 'Window').first_or_create
   end
 end
