@@ -13,6 +13,9 @@ require 'charlock_holmes'
 # The import is authoritative for the projects specified in the Project.csv file
 # There's no reason to have client records with no enrollments
 # All tables that hang off a client also hang off enrollments
+
+# reload!; HmisCsvTwentyTwenty::Loader::Loader.new(data_source_id: 90, debug: true, remove_files: false).load!
+
 module HmisCsvTwentyTwenty::Loader
   class Loader
     include TsqlImport
@@ -21,7 +24,7 @@ module HmisCsvTwentyTwenty::Loader
     # The HMIS spec limits the field to 50 characters
     EXPORT_ID_FIELD_WIDTH = 50
 
-    attr_accessor :logger, :notifier_config, :import, :range
+    attr_accessor :logger, :notifier_config, :import, :range, :data_source
 
     def initialize(
       file_path: File.join('tmp', 'hmis_import'),
@@ -36,7 +39,7 @@ module HmisCsvTwentyTwenty::Loader
       @logger = logger
       @debug = debug
       @remove_files = remove_files
-      @loader_log = loader_log(data_source: @data_source)
+      @loader_log = loader_log(data_source: data_source)
       importable_files.each_key do |file_name|
         setup_summary(file_name)
       end
@@ -49,8 +52,11 @@ module HmisCsvTwentyTwenty::Loader
     def load!
       @loaded_at = Time.current
       begin
-        clean_source_files
-        load_csvs!
+        ensure_file_naming
+        @export = load_export_file
+        return unless export_file_valid?
+
+        load_source_files!
         complete_load(status: :loaded)
       # rescue StandardError
       #   complete_load(status: :failed)
@@ -59,41 +65,11 @@ module HmisCsvTwentyTwenty::Loader
       end
     end
 
-    private def load_csvs!
-      @loader_log.update(status: :loading)
-      importable_files.each do |file_name, klass|
-        source_file_path = File.join(@file_path, @data_source.id.to_s, file_name)
-        batch = []
-        headers = CSV.foreach(source_file_path, headers: false) do |row|
-          break row
-        end
-        headers += ['data_source_id', 'loader_id', 'loaded_at']
-        CSV.foreach(source_file_path, headers: false).with_index do |row, i|
-          next if i.zero?
-
-          batch << row + [@data_source.id, @loader_log.id, @loaded_at]
-          if batch.count == 2_000
-            klass.import(headers, batch)
-            loaded_lines(file_name, batch.count)
-            batch = []
-          end
-        end
-        begin
-          if batch.present?
-            klass.import(headers, batch) # ensure we get the last batch
-            loaded_lines(file_name, batch.count)
-          end
-        rescue ActiveModel::MissingAttributeError
-          # FIXME
-        end
-      end
-    end
-
     def load_export_file
       begin
         @export ||= export_source.load_from_csv(
           file_path: @file_path,
-          data_source_id: @data_source.id,
+          data_source_id: data_source.id,
         )
       rescue Errno::ENOENT
         log('No valid Export.csv file found')
@@ -104,21 +80,18 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     def header_valid?(line, klass)
-      incoming_headers = line&.map(&:downcase)&.map(&:to_sym)
+      return false unless line.present?
+
+      incoming_headers = line&.map(&:to_s)
+      return false unless incoming_headers.count(&:blank?).zero?
+
+      incoming_headers = line&.map(&:to_s)&.map(&:downcase)&.map(&:to_sym)
       hud_headers = klass.hud_csv_headers.map(&:downcase)
       (hud_headers & incoming_headers).count == hud_headers.count
     end
 
-    def short_line?(line, comma_count)
-      CSV.parse_line(line).count < comma_count
-    rescue StandardError
-      line.count(',') < comma_count
-    end
-
-    def long_line?(line, comma_count)
-      CSV.parse_line(line).count > (comma_count + 1)
-    rescue StandardError
-      line.count(',') > comma_count
+    def header_invalid?(headers, klass)
+      ! header_valid?(headers, klass)
     end
 
     def export_id_addition
@@ -160,69 +133,71 @@ module HmisCsvTwentyTwenty::Loader
       FileUtils.rm(file_path)
     end
 
-    def clean_source_files
-      @loader_log.update(status: :cleaning)
+    def load_source_files!
+      @loader_log.update(status: :loading)
       importable_files.each do |file_name, klass|
-        source_file_path = File.join(@file_path, @data_source.id.to_s, file_name)
+        source_file_path = File.join(@file_path, data_source.id.to_s, file_name)
         next unless File.file?(source_file_path)
 
-        destination_file_path = "#{source_file_path}_updating"
         file = open_csv_file(source_file_path)
-        clean_source_file(destination_path: destination_file_path, read_from: file, klass: klass)
-        if File.exist?(destination_file_path)
-          FileUtils.mv(destination_file_path, source_file_path)
-        elsif File.exist?(source_file_path)
-          # We failed at cleaning the import file, delete the source
-          # So we don't accidentally import an unclean file
-          File.delete(source_file_path)
-        end
+        load_source_file(read_from: file, klass: klass)
       end
-      @loader_log.update(status: :cleaned)
     end
 
-    def clean_source_file(destination_path:, read_from:, klass:)
+    def load_source_file(read_from:, klass:)
+      file_name = File.basename(read_from.path)
       csv = CSV.new(read_from, headers: false, liberal_parsing: true)
       # read the first row so we can set the headers
       headers = csv.first
       csv.rewind
 
       if headers.blank?
-        msg = "Unable to import #{File.basename(read_from.path)}, no data"
-        add_error(file_path: read_from.path, message: msg, line: '')
-        return
-      elsif header_valid?(headers, klass)
-        # we need to accept different cased headers, but we need our
-        # case for import, so we'll fix that up here and use ours going forward
-        header = clean_header_row(headers, klass)
-        write_to = CSV.open(
-          destination_path,
-          'wb',
-          headers: header,
-          write_headers: true,
-          force_quotes: true,
-        )
-      else
-        msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{headers}; expected a subset of: #{klass.hud_csv_headers}"
+        msg = "Unable to import #{file_name}, no data"
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
 
+      if header_invalid?(headers, klass)
+        msg = "Unable to import #{file_name}, header invalid: \n#{headers}; \nexpected a subset of: \n#{klass.hud_csv_headers.map(&:to_s)}"
+        add_error(file_path: read_from.path, message: msg, line: '')
+        return
+      end
+
+      # we need to accept different cased headers, but we need our
+      # case for import, so we'll fix that up here and use ours going forward
+      csv_headers = clean_header_row(headers, klass)
+
       # Strip internal newlines
       # add data_source_id
       # add loader_id
-      csv = CSV.new(read_from, headers: header, liberal_parsing: true)
-      csv.drop(1).each do |row|
-        row.each { |k, v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
-        if row.count == header.count
-          # row[:data_source_id] = @data_source.id
-          # row[:loader_id] = @loader_log.id
-          # row[:loaded_at] = @loaded_at
-          write_to << row
-        else
-          msg = 'Line length is incorrect, unable to import:'
-          add_error(file_path: read_from.path, message: msg, line: row.to_s)
+      csv = CSV.new(read_from, headers: csv_headers, liberal_parsing: true)
+
+      headers = csv_headers + ['data_source_id', 'loader_id', 'loaded_at']
+      batch = []
+      begin
+        csv.drop(1).each do |row|
+          row.each { |k, v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
+          if row.count == csv_headers.count
+            batch << row.fields + [data_source.id, @loader_log.id, @loaded_at]
+            if batch.count == 2_000
+              klass.import(headers, batch)
+              loaded_lines(file_name, batch.count)
+              batch = []
+            end
+          else
+            msg = 'Line length is incorrect, unable to import:'
+            add_error(file_path: read_from.path, message: msg, line: row.to_s)
+          end
         end
+        if batch.present?
+          klass.import(headers, batch) # ensure we get the last batch
+          loaded_lines(file_name, batch.count)
+        end
+      rescue ActiveModel::MissingAttributeError
+      rescue Errno::ENOENT
+        # FIXME
       end
+
       # NOTE: move to importing
       # # note date columns for cleanup
       # date_columns = klass.date_columns
@@ -250,7 +225,6 @@ module HmisCsvTwentyTwenty::Loader
       #   message = "Failed while processing #{read_from.path}, #{e.message}:"
       #   add_error(file_path: read_from.path, message: message, line: row.to_s)
       # end
-      write_to.close
     end
 
     # NOTE: move to processing
@@ -296,7 +270,7 @@ module HmisCsvTwentyTwenty::Loader
         [k.to_s.downcase, k]
       end.to_h
       source_headers.map do |k|
-        indexed_headers[k.downcase].to_s
+        indexed_headers[k&.downcase].to_s
       end
     end
 
@@ -312,35 +286,13 @@ module HmisCsvTwentyTwenty::Loader
       self.class.export_source
     end
 
-    def export_file_valid?
-      if @export.blank?
-        log('Exiting, failed to find a valid export file')
-        return false
-      end
-      if @data_source.source_id.present?
-        source_id = @export[:SourceID]
-        if @data_source.source_id.casecmp(source_id) != 0
-          # Construct a valid file_path for add_error
-          file_path = File.join(@file_path, @data_source.id.to_s, 'Export.csv')
-          msg = "SourceID '#{source_id}' from Export.csv does not match '#{@data_source.source_id}' specified in the data source"
-
-          add_error(file_path: file_path, message: msg, line: '')
-
-          @loader_log.summary['Export.csv']['total_lines'] = 1
-          complete_load(status: :failed)
-          return false
-        end
-      end
-      true
-    end
-
     def remove_import_files
       Rails.logger.info "Removing #{import_file_path}"
       FileUtils.rm_rf(import_file_path) if File.exist?(import_file_path)
     end
 
     def import_file_path
-      @import_file_path ||= File.join(@file_path, @data_source.id.to_s)
+      @import_file_path ||= File.join(@file_path, data_source.id.to_s)
     end
 
     def loader_log(data_source:)
@@ -349,6 +301,42 @@ module HmisCsvTwentyTwenty::Loader
         started_at: Time.current,
         status: :started,
       )
+    end
+
+    def export_file_valid?
+      if @export.blank?
+        log('Exiting, failed to find a valid Export record')
+        return false
+      end
+      source_id = @export[:SourceID]
+      return true if data_source.source_id.blank? || data_source.source_id.casecmp(source_id).zero?
+
+      # Construct a valid file_path for add_error
+      file_path = File.join(@file_path, data_source.id.to_s, 'Export.csv')
+      msg = "SourceID '#{source_id}' from Export.csv does not match '#{data_source.source_id}' specified in the data source"
+
+      add_error(file_path: file_path, message: msg, line: '')
+
+      @loader_log.summary['Export.csv']['total_lines'] = 1
+      complete_load(status: :failed)
+      false
+    end
+
+    private def correct_file_names
+      @correct_file_names ||= importable_files.keys.map { |m| [m.downcase, m] }
+    end
+
+    private def ensure_file_naming
+      file_path = "#{@file_path}/#{data_source.id}"
+      Dir.each_child(file_path) do |filename|
+        correct_file_name = correct_file_names.detect { |f, _| f == filename.downcase }&.last
+        next unless correct_file_name.present? && correct_file_name != filename
+
+        # Ruby complains if the files only differ by case, so we'll move it twice
+        tmp_name = "tmp_#{filename}"
+        FileUtils.mv(File.join(file_path, filename), File.join(file_path, tmp_name))
+        FileUtils.mv(File.join(file_path, tmp_name), File.join(file_path, correct_file_name))
+      end
     end
 
     def complete_load(status:)
@@ -382,13 +370,12 @@ module HmisCsvTwentyTwenty::Loader
 
     def add_error(file_path:, message:, line:)
       file = File.basename(file_path)
-      @loader_log.load_errors ||= {}
-      @loader_log.load_errors[file] ||= []
-      @loader_log.load_errors[file] << {
-        text: "Error in #{file}",
-        message: message,
-        line: line,
-      }
+      @loader_log.load_errors.create(
+        file_name: file,
+        message: "Error in #{file}",
+        details: message,
+        source: line,
+      )
       @loader_log.summary[file]['total_errors'] += 1
       log(message)
     end

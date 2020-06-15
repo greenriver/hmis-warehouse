@@ -5,8 +5,8 @@
 ###
 
 module HmisCsvTwentyTwenty::Loader
-  class LoaderLog < GrdaWarehouseBase
-    self.table_name = 'hmis_csv_loader_logs'
-    has_many :load_errors
+  class LoadError < GrdaWarehouseBase
+    self.table_name = 'hmis_csv_load_errors'
+    belongs_to :loader_log
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_10_235058) do
+ActiveRecord::Schema.define(version: 2020_06_15_175538) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -2092,6 +2092,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["ExportID"], name: "hmis_2020_affiliations-tsBP"
     t.index ["source_type", "source_id"], name: "hmis_2020_affiliations-D6uB"
   end
@@ -2115,6 +2118,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["AssessmentID"], name: "hmis_2020_assessment_questions-WaJt"
     t.index ["ExportID"], name: "hmis_2020_assessment_questions-oYCj"
     t.index ["source_type", "source_id"], name: "hmis_2020_assessment_questions-zJx8"
@@ -2137,6 +2143,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["AssessmentID"], name: "hmis_2020_assessment_results-W9Em"
     t.index ["ExportID"], name: "hmis_2020_assessment_results-PSpj"
     t.index ["source_type", "source_id"], name: "hmis_2020_assessment_results-8wSv"
@@ -2161,6 +2170,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["AssessmentDate"], name: "hmis_2020_assessments-Pywu"
     t.index ["AssessmentID"], name: "hmis_2020_assessments-ctTJ"
     t.index ["EnrollmentID"], name: "hmis_2020_assessments-bkUZ"
@@ -2211,6 +2223,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DOB"], name: "hmis_2020_clients-6YAs"
     t.index ["DateCreated"], name: "hmis_2020_clients-Wt4L"
     t.index ["DateUpdated"], name: "hmis_2020_clients-dsGg"
@@ -2245,6 +2260,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["CurrentLivingSitID"], name: "hmis_2020_current_living_situations-Cu0E"
     t.index ["CurrentLivingSituation"], name: "hmis_2020_current_living_situations-zixi"
     t.index ["EnrollmentID"], name: "hmis_2020_current_living_situations-OFxn"
@@ -2279,6 +2297,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_disabilities-mvAG"
     t.index ["DateUpdated"], name: "hmis_2020_disabilities-X4rh"
     t.index ["DisabilitiesID"], name: "hmis_2020_disabilities-K0ux"
@@ -2309,6 +2330,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_employment_educations-1RrP"
     t.index ["DateUpdated"], name: "hmis_2020_employment_educations-NwPn"
     t.index ["EmploymentEducationID"], name: "hmis_2020_employment_educations-BMt0"
@@ -2337,6 +2361,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["CoCCode"], name: "hmis_2020_enrollment_cocs-h8Tz"
     t.index ["DateCreated"], name: "hmis_2020_enrollment_cocs-OBee"
     t.index ["DateDeleted"], name: "hmis_2020_enrollment_cocs-rdgE"
@@ -2425,6 +2452,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_enrollments-GUZp"
     t.index ["DateDeleted"], name: "hmis_2020_enrollments-y8k8"
     t.index ["DateUpdated"], name: "hmis_2020_enrollments-mKqT"
@@ -2466,6 +2496,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["EnrollmentID"], name: "hmis_2020_events-fHDF"
     t.index ["EventDate"], name: "hmis_2020_events-r6MI"
     t.index ["EventID"], name: "hmis_2020_events-JEcY"
@@ -2523,6 +2556,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_exits-0ndT"
     t.index ["DateDeleted"], name: "hmis_2020_exits-oHJR"
     t.index ["DateUpdated"], name: "hmis_2020_exits-ZWGs"
@@ -2557,6 +2593,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["ExportID"], name: "hmis_2020_exports-aSP8"
     t.index ["source_type", "source_id"], name: "hmis_2020_exports-WnoR"
   end
@@ -2579,6 +2618,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_funders-HTg0"
     t.index ["DateUpdated"], name: "hmis_2020_funders-M2jp"
     t.index ["ExportID"], name: "hmis_2020_funders-6TYj"
@@ -2610,6 +2652,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_health_and_dvs-nHM1"
     t.index ["DateUpdated"], name: "hmis_2020_health_and_dvs-271Z"
     t.index ["EnrollmentID"], name: "hmis_2020_health_and_dvs-cn42"
@@ -2702,6 +2747,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_income_benefits-Hxe0"
     t.index ["DateUpdated"], name: "hmis_2020_income_benefits-Z9ad"
     t.index ["EnrollmentID"], name: "hmis_2020_income_benefits-8Eav"
@@ -2739,6 +2787,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_inventories-NHjX"
     t.index ["DateUpdated"], name: "hmis_2020_inventories-nbQX"
     t.index ["ExportID"], name: "hmis_2020_inventories-Hryn"
@@ -2762,6 +2813,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["ExportID"], name: "hmis_2020_organizations-6gvm"
     t.index ["OrganizationID"], name: "hmis_2020_organizations-a1jJ"
     t.index ["source_type", "source_id"], name: "hmis_2020_organizations-z4ut"
@@ -2788,6 +2842,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_project_cocs-J7pS"
     t.index ["DateUpdated"], name: "hmis_2020_project_cocs-BMmz"
     t.index ["ExportID"], name: "hmis_2020_project_cocs-UkPE"
@@ -2821,6 +2878,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_projects-UjJu"
     t.index ["DateUpdated"], name: "hmis_2020_projects-EL4P"
     t.index ["ExportID"], name: "hmis_2020_projects-4rLO"
@@ -2850,6 +2910,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_services-0LmN"
     t.index ["DateDeleted"], name: "hmis_2020_services-AiqM"
     t.index ["DateProvided"], name: "hmis_2020_services-ut2O"
@@ -2883,6 +2946,9 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.string "processed_as"
     t.integer "source_id", null: false
     t.integer "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.integer "importer_log_id", null: false
     t.index ["ExportID"], name: "hmis_2020_users-jsrH"
     t.index ["UserID"], name: "hmis_2020_users-amfr"
     t.index ["source_type", "source_id"], name: "hmis_2020_users-DpJ1"
@@ -3691,32 +3757,63 @@ ActiveRecord::Schema.define(version: 2020_06_10_235058) do
     t.index ["UserID"], name: "hmis_csv_2020_users-2ltH"
   end
 
-  create_table "hmis_csv_loader_logs", force: :cascade do |t|
+  create_table "hmis_csv_import_errors", force: :cascade do |t|
+    t.integer "importer_log_id", null: false
+    t.string "message"
+    t.string "details"
+    t.string "source_type", null: false
+    t.string "source_id", null: false
+    t.index ["importer_log_id"], name: "index_hmis_csv_import_errors_on_importer_log_id"
+    t.index ["source_type", "source_id"], name: "hmis_csv_import_errors-Jxw6"
+  end
+
+  create_table "hmis_csv_import_validations", force: :cascade do |t|
+    t.integer "importer_log_id", null: false
+    t.string "type", null: false
+    t.string "source_id", null: false
+    t.string "source_type", null: false
+    t.string "status"
+    t.index ["importer_log_id"], name: "index_hmis_csv_import_validations_on_importer_log_id"
+    t.index ["source_type", "source_id"], name: "hmis_csv_validations-D2q4"
+    t.index ["type"], name: "index_hmis_csv_import_validations_on_type"
+  end
+
+  create_table "hmis_csv_importer_logs", force: :cascade do |t|
     t.integer "data_source_id", null: false
     t.jsonb "summary"
-    t.jsonb "load_errors"
     t.string "status"
     t.datetime "started_at"
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "upload_id"
+    t.index ["created_at"], name: "index_hmis_csv_importer_logs_on_created_at"
+    t.index ["data_source_id"], name: "index_hmis_csv_importer_logs_on_data_source_id"
+    t.index ["updated_at"], name: "index_hmis_csv_importer_logs_on_updated_at"
+  end
+
+  create_table "hmis_csv_load_errors", force: :cascade do |t|
+    t.integer "loader_log_id", null: false
+    t.string "file_name", null: false
+    t.string "message"
+    t.string "details"
+    t.string "source"
+    t.index ["loader_log_id"], name: "index_hmis_csv_load_errors_on_loader_log_id"
+  end
+
+  create_table "hmis_csv_loader_logs", force: :cascade do |t|
+    t.integer "data_source_id", null: false
+    t.jsonb "summary"
+    t.string "status"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "upload_id"
+    t.integer "importer_log_id"
     t.index ["created_at"], name: "index_hmis_csv_loader_logs_on_created_at"
     t.index ["data_source_id"], name: "index_hmis_csv_loader_logs_on_data_source_id"
     t.index ["updated_at"], name: "index_hmis_csv_loader_logs_on_updated_at"
-  end
-
-  create_table "hmis_csv_validations", force: :cascade do |t|
-    t.integer "data_source_id", null: false
-    t.integer "hmis_csv_loader_log_id", null: false
-    t.string "type", null: false
-    t.string "source_id", null: false
-    t.string "source_type", null: false
-    t.string "status"
-    t.index ["data_source_id"], name: "index_hmis_csv_validations_on_data_source_id"
-    t.index ["hmis_csv_loader_log_id"], name: "index_hmis_csv_validations_on_hmis_csv_loader_log_id"
-    t.index ["source_type", "source_id"], name: "hmis_csv_validations-wTLe"
-    t.index ["type"], name: "index_hmis_csv_validations_on_type"
   end
 
   create_table "hmis_forms", id: :serial, force: :cascade do |t|
