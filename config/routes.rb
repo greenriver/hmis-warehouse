@@ -479,6 +479,7 @@ Rails.application.routes.draw do
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
     resources :audits, only: [:index], controller: 'clients/audits'
+    resources :hud_lots, only: [:index], controller: 'clients/hud_lots'
     healthcare_routes(window: false)
     namespace :he do
       get :boston_covid_19

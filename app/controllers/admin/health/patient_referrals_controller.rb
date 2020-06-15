@@ -75,7 +75,8 @@ module Admin::Health
           where(id: @patient_referral.patient_id).first
         if !@patient_referral.rejected_reason_none?
           # Rejecting a referral dis-enrolls the patient
-          @patient_referral.disenrollment_date ||= @patient_referral.pending_disenrollment_date || Date.current
+          # Uses the date from the 834, if available, otherwise the end of the month
+          @patient_referral.disenrollment_date ||= @patient_referral.pending_disenrollment_date || Date.current.end_of_month
           if @patient_referral.pending_disenrollment_date.present?
             @patient_referral.update(
               pending_disenrollment_date: nil,
