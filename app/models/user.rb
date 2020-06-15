@@ -39,6 +39,9 @@ class User < ApplicationRecord
   # Ensure that users have a user-specific access group
   after_save :create_access_group
 
+  #Ensure that users are members of required groups
+  after_save :join_required_groups
+
   validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: {maximum: 250}, on: :update
   validate :password_cannot_be_sequential, on: :update
   validates :last_name, presence: true, length: {maximum: 40}
@@ -334,6 +337,12 @@ class User < ApplicationRecord
   private def create_access_group
     group = AccessGroup.for_user(self).first_or_create
     group.access_group_members.where(user_id: id).first_or_create
+  end
+
+  private def join_required_groups
+    AccessGroup.required.each do |group|
+      group.add(self)
+    end
   end
 
   def access_group

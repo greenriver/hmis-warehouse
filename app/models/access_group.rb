@@ -42,6 +42,10 @@ class AccessGroup < ApplicationRecord
     where(user_id: user.id)
   end
 
+  scope :required, -> do
+    where(required: true)
+  end
+
   scope :contains, -> (entity) do
     where(
       id: GrdaWarehouse::GroupViewableEntity.where(
