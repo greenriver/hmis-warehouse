@@ -5,8 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Importer
-  class Inventory < GrdaWarehouse::Hud::Inventory
+  class Inventory < GrdaWarehouse::Hud::Base
     include ImportConcern
+    include ::HMIS::Structure::Inventory
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_2020_inventories'
   end

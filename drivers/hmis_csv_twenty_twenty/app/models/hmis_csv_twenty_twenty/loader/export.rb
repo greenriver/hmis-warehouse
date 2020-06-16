@@ -5,8 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Loader
-  class Export < GrdaWarehouse::Hud::Export
+  class Export < GrdaWarehouse::Hud::Base
     include LoaderConcern
+    include ::HMIS::Structure::Export
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_2020_exports'
 

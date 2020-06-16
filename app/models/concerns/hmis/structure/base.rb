@@ -38,5 +38,13 @@ module HMIS::Structure::Base
         connection.add_index table_name, columns, name: name
       end
     end
+
+    def hmis_structure(version: nil)
+      hmis_configuration(version: version).transform_values { |v| v.select { |k| k.in?(hmis_structure_keys) } }
+    end
+
+    def hmis_structure_keys
+      [:type, :limit, :null]
+    end
   end
 end

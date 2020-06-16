@@ -9,7 +9,7 @@ module HMIS::Structure::ProjectCoc
   include ::HMIS::Structure::Base
 
   module ClassMethods
-    def hmis_structure(version: nil)
+    def hmis_configuration(version: nil)
       case version
       when '5.1', '6.11', '6.12'
         {

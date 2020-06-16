@@ -4,12 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module HMIS::Structure::EnrollmentCoC
+module HMIS::Structure::EnrollmentCoc
   extend ActiveSupport::Concern
   include ::HMIS::Structure::Base
 
   module ClassMethods
-    def hmis_structure(version: nil)
+    def hmis_configuration(version: nil)
       case version
       when '6.11', '6.12', '2020', nil
         {

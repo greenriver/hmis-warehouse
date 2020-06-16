@@ -9,5 +9,6 @@ module HmisCsvTwentyTwenty::Importer
     self.table_name = 'hmis_csv_importer_logs'
     has_many :import_errors
     has_many :import_validations
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   end
 end

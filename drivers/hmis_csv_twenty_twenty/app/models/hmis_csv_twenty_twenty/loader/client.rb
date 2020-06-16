@@ -5,8 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Loader
-  class Client < GrdaWarehouse::Hud::Client
+  class Client < GrdaWarehouse::Hud::Base
     include LoaderConcern
+    include ::HMIS::Structure::Client
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_2020_clients'
 

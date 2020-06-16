@@ -9,7 +9,7 @@ module HMIS::Structure::AssessmentResult
   include ::HMIS::Structure::Base
 
   module ClassMethods
-    def hmis_structure(version: nil)
+    def hmis_configuration(version: nil)
       case version
       when '2020', nil
         {

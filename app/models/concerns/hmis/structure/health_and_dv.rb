@@ -9,7 +9,7 @@ module HMIS::Structure::HealthAndDv
   include ::HMIS::Structure::Base
 
   module ClassMethods
-    def hmis_structure(version: nil)
+    def hmis_configuration(version: nil)
       case version
       when '6.11', '6.12', '2020', nil
         {

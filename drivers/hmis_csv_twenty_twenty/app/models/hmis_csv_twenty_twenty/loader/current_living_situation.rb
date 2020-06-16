@@ -5,8 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Loader
-  class CurrentLivingSituation < GrdaWarehouse::Hud::CurrentLivingSituation
+  class CurrentLivingSituation < GrdaWarehouse::Hud::Base
     include LoaderConcern
+    include ::HMIS::Structure::CurrentLivingSituation
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_2020_current_living_situations'
   end

@@ -551,28 +551,32 @@ module HUD
 
   # 3.1.5
   def name_data_quality(id, reverse = false)
-    map = {
+    _translate(name_data_quality_options, id, reverse)
+  end
+
+  def name_data_quality_options
+    {
       1 => 'Full name reported',
       2 => 'Partial, street name, or code name reported',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.2.2
   def ssn_data_quality(id, reverse = false)
-    map = {
+    _translate(ssn_data_quality_options, id, reverse)
+  end
+
+  def ssn_data_quality_options
+    {
       1 => 'Full SSN reported',
       2 => 'Approximate or partial SSN reported',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.3.2

@@ -5,8 +5,9 @@
 ###
 
 module HmisCsvTwentyTwenty::Importer
-  class Funder < GrdaWarehouse::Hud::Funder
+  class Funder < GrdaWarehouse::Hud::Base
     include ImportConcern
+    include ::HMIS::Structure::Funder
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_2020_funders'
   end

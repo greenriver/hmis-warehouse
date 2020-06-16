@@ -7,7 +7,7 @@
 module GrdaWarehouse::Hud
   class EnrollmentCoc < Base
     include HudSharedScopes
-    include ::HMIS::Structure::EnrollmentCoC
+    include ::HMIS::Structure::EnrollmentCoc
 
     self.table_name = 'EnrollmentCoC'
     self.hud_key = :EnrollmentCoCID
