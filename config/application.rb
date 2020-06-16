@@ -75,5 +75,9 @@ module BostonHmis
 
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false
+
+    # Extension points
+    config.sub_populations = {}
+    config.census = {}
   end
 end

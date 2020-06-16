@@ -5,6 +5,7 @@
 ###
 
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
+  include RailsDrivers::Extensions
   include ArelHelper
 
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :service_history_enrollments, autosave: false

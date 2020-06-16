@@ -9,7 +9,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     include ArelHelper
 
     def self.sub_populations_by_type
-      {
+      Rails.application.config.sub_populations[:by_type] || {
         active: {
           veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::ActiveClients,
           all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::ActiveClients,
@@ -55,8 +55,65 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       }
     end
 
+    def self.tabs
+      Rails.application.config.sub_populations[:tabs] || {
+        'census' => {
+          title: 'Census',
+          path: 'censuses_path',
+        },
+        'clients' => {
+          title: 'Client',
+          path: 'dashboards_clients_path',
+        },
+        'individual_adults'  => {
+          title: 'Adults',
+          path: 'dashboards_individual_adults_path',
+        },
+        'veteran'  => {
+          title: 'Veteran',
+          path: 'dashboards_veterans_path',
+        },
+        'non_veteran'  => {
+          title: 'Non-Veteran',
+          path: 'dashboards_non_veterans_path',
+        },
+        'family'  => {
+          title: 'Family',
+          path: 'dashboards_families_path',
+        },
+        'youth_families'  => {
+          title: 'Youth Families',
+          path: 'dashboards_youth_families_path',
+        },
+        'youths'  => {
+          title: 'Youth',
+          path: 'dashboards_youths_path',
+        },
+        'family_parents' => {
+          title: 'Parents',
+          path: 'dashboards_family_parents_path',
+        },
+        'parenting_youth'  => {
+          title: 'Youth Parents',
+          path: 'dashboards_parenting_youths_path',
+        },
+        'children_only'  => {
+          title: 'Children',
+          path: 'dashboards_childrens_path',
+        },
+        'parenting_children'  => {
+          title: 'Juvenile Parents',
+          path: 'dashboards_parenting_childrens_path',
+        },
+        'unaccompanied_minors'  => {
+          title: 'Unaccompanied Minors',
+          path: 'dashboards_unaccompanied_minors_path',
+        },
+      }
+    end
+
     def self.available_sub_populations
-      {
+      Rails.application.config.sub_populations[:available] || {
         'All Clients' => :all_clients,
         'Veterans' => :veteran,
         'Youth' => :youth,
@@ -69,7 +126,25 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         'Unaccompanied Minors' => :unaccompanied_minors,
         'Individual Adults' => :individual_adults,
         'Non-Veterans' => :non_veteran,
-      }.sort.to_h.freeze
+      }.sort.to_h
+    end
+
+    def self.add_sub_population(name, symbol, package)
+      sub_populations = available_sub_populations
+      sub_populations[name] = symbol
+      Rails.application.config.sub_populations[:available] = sub_populations.sort.to_h
+
+      tab_hash = tabs
+      tab_hash[symbol.to_s] = {
+        title: name,
+        path: "dashboards_#{symbol.to_s}_path",
+      }
+      Rails.application.config.sub_populations[:tabs] = tab_hash
+
+      types = sub_populations_by_type
+      types[:active][symbol] = "#{package}::ActiveClients".constantize
+      types[:entered][symbol] = "#{package}::EnteredClients".constantize
+      types[:housed][symbol] = "#{package}::HousedClients".constantize
     end
 
     def service_history_source
