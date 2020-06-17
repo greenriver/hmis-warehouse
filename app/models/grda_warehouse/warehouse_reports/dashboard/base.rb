@@ -59,55 +59,55 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       Rails.application.config.sub_populations[:tabs] || {
         'census' => {
           title: 'Census',
-          path: 'censuses_path',
+          path: ['censuses'],
         },
         'clients' => {
           title: 'Client',
-          path: 'dashboards_clients_path',
+          path: ['dashboards_clients'],
         },
         'individual_adults'  => {
           title: 'Adults',
-          path: 'dashboards_individual_adults_path',
+          path: ['dashboards_individual_adults'],
         },
         'veteran'  => {
           title: 'Veteran',
-          path: 'dashboards_veterans_path',
+          path: ['dashboards_veterans'],
         },
         'non_veteran'  => {
           title: 'Non-Veteran',
-          path: 'dashboards_non_veterans_path',
+          path: ['dashboards_non_veterans'],
         },
         'family'  => {
           title: 'Family',
-          path: 'dashboards_families_path',
+          path: ['dashboards_families'],
         },
         'youth_families'  => {
           title: 'Youth Families',
-          path: 'dashboards_youth_families_path',
+          path: ['dashboards_youth_families'],
         },
         'youths'  => {
           title: 'Youth',
-          path: 'dashboards_youths_path',
+          path: ['dashboards_youths'],
         },
         'family_parents' => {
           title: 'Parents',
-          path: 'dashboards_family_parents_path',
+          path: ['dashboards_family_parents'],
         },
         'parenting_youth'  => {
           title: 'Youth Parents',
-          path: 'dashboards_parenting_youths_path',
+          path: ['dashboards_parenting_youths'],
         },
         'children_only'  => {
           title: 'Children',
-          path: 'dashboards_childrens_path',
+          path: ['dashboards_childrens'],
         },
         'parenting_children'  => {
           title: 'Juvenile Parents',
-          path: 'dashboards_parenting_childrens_path',
+          path: ['dashboards_parenting_childrens'],
         },
         'unaccompanied_minors'  => {
           title: 'Unaccompanied Minors',
-          path: 'dashboards_unaccompanied_minors_path',
+          path: ['dashboards_unaccompanied_minors'],
         },
       }
     end
@@ -137,7 +137,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       tab_hash = tabs
       tab_hash[symbol.to_s] = {
         title: name,
-        path: "dashboards_#{symbol.to_s}_path",
+        path: ['dashboards', symbol],
       }
       Rails.application.config.sub_populations[:tabs] = tab_hash
 

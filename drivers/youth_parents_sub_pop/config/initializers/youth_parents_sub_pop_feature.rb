@@ -1,7 +1,7 @@
 # The core app (or other drivers) can check the presence of the
 # YouthParentsSubPop driver with the following code snippet
 #
-#   do_something if RailsDrivers.loaded.include(:sub_pop_youth_parents)
+#   do_something if RailsDrivers.loaded.include(:youth_parents_sub_pop)
 #
 # use with caution!
 RailsDrivers.loaded << :youth_parents_sub_pop
