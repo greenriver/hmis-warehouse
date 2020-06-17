@@ -71,6 +71,12 @@ module Health
       )
     end
 
+    def self.gender(transaction)
+      member(transaction).
+        detect{|h| h.keys.include? :DMG}[:DMG].
+        detect{|h| h.keys.include? :E1068}[:E1068][:value][:raw]
+    end
+
     def self.SSN(transaction)
       NM1(transaction).detect{|h| h.keys.include? :E67}[:E67][:value][:raw]
     end
