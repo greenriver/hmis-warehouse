@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_16_201412) do
+ActiveRecord::Schema.define(version: 2020_06_17_134354) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1334,6 +1334,8 @@ ActiveRecord::Schema.define(version: 2020_06_16_201412) do
     t.string "investigator"
     t.string "alert_in_epic"
     t.string "notified"
+    t.jsonb "symptoms"
+    t.string "other_symptoms"
     t.index ["aliases"], name: "index_tracing_contacts_on_aliases"
     t.index ["case_id"], name: "index_tracing_contacts_on_case_id"
     t.index ["first_name", "last_name"], name: "index_tracing_contacts_on_first_name_and_last_name"
@@ -1346,6 +1348,19 @@ ActiveRecord::Schema.define(version: 2020_06_16_201412) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["case_id"], name: "index_tracing_locations_on_case_id"
+  end
+
+  create_table "tracing_results", force: :cascade do |t|
+    t.bigint "contact_id"
+    t.string "test_result"
+    t.string "isolated"
+    t.string "isolation_location"
+    t.string "quarantine"
+    t.string "quarantine_location"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contact_id"], name: "index_tracing_results_on_contact_id"
   end
 
   create_table "tracing_site_leaders", force: :cascade do |t|

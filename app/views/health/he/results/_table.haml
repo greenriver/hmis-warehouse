@@ -1,0 +1,62 @@
+- hide_results = if defined?(hide_results) then hide_results else false end
+- unless hide_results
+  .form-group
+    - readonly_class = if readonly then 'readonly-label' else '' end
+    %label.result{class: readonly_class}
+      Test Results
+    .controls
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th Test
+            %th Result
+            %th Isolated?
+            %th Location
+            %th Quarantined?
+            %th Location
+            %th
+        %tbody
+        - @contact.results.each_with_index do |result, index|
+          %tr
+            %td
+              - label = "# #{index + 1}"
+              - if readonly
+                .result= label
+              - else
+                .result= link_to label, edit_health_he_case_contact_result_path(@case, @contact, result), data: { loads_in_pjax_modal: true }
+            %td
+              - if readonly
+                .result= result.test_result
+              - else
+                .result= link_to result.test_result, edit_health_he_case_contact_result_path(@case, @contact, result), data: { loads_in_pjax_modal: true }
+            %td
+              - if readonly
+                .result= result.isolated
+              - else
+                .result= link_to result.isolated, edit_health_he_case_contact_result_path(@case, @contact, result), data: { loads_in_pjax_modal: true }
+            %td
+              - if readonly
+                .result= result.isolation_location
+              - else
+                .result= link_to result.isolation_location, edit_health_he_case_contact_result_path(@case, @contact, result), data: { loads_in_pjax_modal: true }
+            %td
+              - if readonly
+                .result= result.quarantine
+              - else
+                .result= link_to result.quarantine, edit_health_he_case_contact_result_path(@case, @contact, result), data: { loads_in_pjax_modal: true }
+            %td
+              - if readonly
+                .result= result.quarantine_location
+              - else
+                .result= link_to result.quarantine_location, edit_health_he_case_contact_result_path(@case, @contact, result), data: { loads_in_pjax_modal: true }
+            - unless readonly
+              %td
+                = link_to health_he_case_contact_result_path(@case, @contact, result), method: :delete, remote: true, class: 'btn btn-sm btn-danger ml-auto', data: {confirm: 'Are you sure you want to delete this result?'} do
+                  %i.icon-cross
+                  Delete
+
+    - unless readonly
+      .d-flex
+        = link_to new_health_he_case_contact_result_path(@case, @contact), class: 'btn btn-secondary ml-auto', data: { loads_in_pjax_modal: true } do
+          %span.icon-plus
+          Add Test Result

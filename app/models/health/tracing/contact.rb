@@ -14,6 +14,7 @@ module Health::Tracing
 
     belongs_to :case
     has_many :locations
+    has_many :results
 
     def alert_options
       {
