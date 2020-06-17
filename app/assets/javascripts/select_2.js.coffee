@@ -4,7 +4,11 @@ App.select2 ||= {}
 App.select2.init = () =>
   $('.select2').each () ->
     $select = $(this)
-    $select.select2()
+    placeholder = $select.attr('placeholder')
+    options = {}
+    if placeholder
+      options.placeholder = placeholder
+    $select.select2(options)
     # Add select all functionality if has `multiple` attribute
     if this.hasAttribute('multiple')
       App.select2.initToggleSelectAll($select)
@@ -72,6 +76,3 @@ App.select2.initToggleSelectAll = ($select) =>
     updateSelectAllState()
   # initial state
   updateSelectAllState()
-
-
-

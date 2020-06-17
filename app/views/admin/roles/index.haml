@@ -24,6 +24,11 @@
                 Add a role
       %tr.c-table__header.c-table__header--secondary
         %th.c-table__cell--border-r-primary{colspan:1}
+          .mb-2
+            %select.form-control.j-search-permissions.w-100.select2{multiple: true, placeholder: 'Select permission categories'}
+              -# %option.disabled{disabled: true} Select cateories
+              - Role.permission_categories.each do |cat|
+                %option{value: cat}= cat
           %input.form-control.j-search-permissions.w-100{placeholder: 'Search permissions'}
         - @roles.each do |role|
           %th.c-table__cell--border-r-secondary.c-table__header-title.text-center
@@ -31,12 +36,16 @@
 
     %tbody
       - Role.permissions(exclude_health: true).each do |permission|
-        %tr.j-permission-row{'data-title' => permission.to_s.humanize}
+        - categories = Role.category_for permission: permission
+        %tr.j-permission-row{'data-title' => permission.to_s.humanize, 'data-categories' => categories.to_s.html_safe}
           %td.c-table__cell--border-r-primary{colspan:1}
-            .c-table__cell-title.d-flex.align-items-start
+            .c-table__cell-title.d-flex.align-items-center
               = permission.to_s.humanize
               - if Role.administrative?(permission: permission)
                 %i.icon-lock.ml-2{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+              .ml-1
+                - categories.each do |cat|
+                  %span.badge.badge-primary.ml-1=cat
             .c-table__cell-description
               = Role.description_for permission: permission
           - @roles.each do |role|

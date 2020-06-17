@@ -51,6 +51,10 @@ class Role < ApplicationRecord
     return perms
   end
 
+  def self.permission_categories
+    permissions_with_descriptions.map{|perm_key, perm| perm[:categories]}.flatten.uniq
+  end
+
   def self.health_permissions
     health_permissions_with_descriptions.keys
   end
@@ -59,9 +63,14 @@ class Role < ApplicationRecord
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:description] rescue ''
   end
 
+  def self.category_for permission:
+    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:categories] rescue []
+  end
+
   def self.administrative? permission:
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true
   end
+
 
   def self.permissions_with_descriptions
     {
