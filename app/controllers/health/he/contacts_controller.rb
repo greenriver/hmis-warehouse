@@ -60,15 +60,12 @@ module Health::He
         :sleeping_location,
         :notified,
         :symptomatic,
+        :other_symptoms,
         :symptom_onset_date,
         :referred_for_testing,
-        :test_result,
-        :isolated,
-        :isolation_location,
-        :quarantine,
-        :quarantine_location,
         :notes,
         race: [],
+        symptoms: [],
       )
     end
   end

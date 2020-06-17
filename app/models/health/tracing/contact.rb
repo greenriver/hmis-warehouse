@@ -31,18 +31,18 @@ module Health::Tracing
       }
     end
 
+    def symptom_options
+      {
+        'Coughing' => 'Coughing',
+        'Fever' => 'Fever',
+        'Shortness of breath' => 'Shortness of breath'
+      }
+    end
+
     def referred_options
       {
         'No' => '',
         'Yes' => 'Yes',
-      }
-    end
-
-    def test_result_options
-      {
-        'Unknown' => '',
-        'Negative' => 'Negative',
-        'Positive' => 'Positive',
       }
     end
 
