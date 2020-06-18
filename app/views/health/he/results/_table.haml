@@ -55,6 +55,9 @@
                   %i.icon-cross
                   Delete
 
+    - unless @contact.results.blank?
+      %small.text-muted
+        (if negative, continue testing every 3-4  days until 14 days have elapsed)
     - unless readonly
       .d-flex
         = link_to new_health_he_case_contact_result_path(@case, @contact), class: 'btn btn-secondary ml-auto', data: { loads_in_pjax_modal: true } do
