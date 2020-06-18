@@ -4,8 +4,8 @@ module YouthParentsSubPop::GrdaWarehouse
 
     included do
       scope :youth_parents, -> do
-        # TODO
-        all
+        where(parenting_youth: true).
+          where(she_t[:head_of_household].eq(true))
       end
     end
   end

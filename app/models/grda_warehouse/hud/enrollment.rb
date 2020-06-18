@@ -6,6 +6,7 @@
 
 module GrdaWarehouse::Hud
   class Enrollment < Base
+    include RailsDrivers::Extensions
     include ArelHelper
     include HudSharedScopes
     include TsqlImport
