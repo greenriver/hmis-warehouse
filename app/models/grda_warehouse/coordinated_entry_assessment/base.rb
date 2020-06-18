@@ -64,6 +64,7 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     ####################
     before_save :calculate_scores, :calculate_priority_score
     after_update :notify_users
+    after_update :add_to_cohorts
 
     ####################
     # Access
@@ -96,8 +97,8 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     end
 
     def ce_assessment_completed?
-      if changes.any?
-        before, after = changes[:submitted_at]
+      if saved_change_to_attribute?(:submitted_at)
+        before, after = saved_change_to_attribute(:submitted_at)
         return before.nil? && after.present?
       else
         return false
