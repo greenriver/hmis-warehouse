@@ -33,7 +33,7 @@
         = f.input :sleeping_location
         = f.input :symptomatic, as: :boolean_button_group, collection: @contact.symptomatic_options, include_blank: true, label: @contact.label_for(:symptomatic)
         = f.input :symptoms, as: :check_boxes, collection: @contact.symptom_options, wrapper: radio_wrapper_class
-        = f.input :other_symptoms, label: @case.label_for(:other_symptoms)
+        = f.input :other_symptoms, label: @contact.label_for(:other_symptoms)
         = f.input :symptom_onset_date, as: :date_picker
         = f.input :referred_for_testing, as: :boolean_button_group, collection: @contact.referred_options, include_blank: true, label: @contact.label_for(:referred_for_testing)
         .jResults
