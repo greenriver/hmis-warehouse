@@ -53,8 +53,18 @@ module GrdaWarehouse::Tasks::ServiceHistory
       source_data_changed?
     end
 
+    def already_processed?
+      return false if processed_as.blank?
+      return false if history_generated_on.blank?
+      return false if exit&.ExitDate.blank?
+      return false unless entry_exit_tracking?
+
+      exit.ExitDate > history_generated_on
+    end
+
     def should_patch?
       return true if entry_exit_tracking? && exit.blank?
+      
       build_for_dates.keys.sort != service_dates_from_service_history_for_enrollment().sort
     end
 
@@ -64,11 +74,15 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def rebuild_service_history!
       action = false
       return false if destination_client.blank? || project.blank?
-      if should_rebuild?
-        action = :update if create_service_history!
+      return false if already_processed?
+
+      self.history_generated_on = Date.current
+      action = if should_rebuild?
+        create_service_history!
       elsif should_patch?
-        action = :patch if patch_service_history!
+        patch_service_history!
       end
+
       return action
     end
 
@@ -80,11 +94,12 @@ module GrdaWarehouse::Tasks::ServiceHistory
       ).each do |date, type_provided|
         days << service_record(date, type_provided)
       end
-      if days.any?
-        insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false)
-        update(processed_as: calculate_hash)
-      end
-      return true
+      return false unless days.any?
+
+      insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false)
+      update(processed_as: calculate_hash)
+
+      :patch
     end
 
     def create_service_history! force=false
@@ -125,7 +140,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         end
       end
       update(processed_as: calculate_hash)
-      return true
+
+      :update
     end
 
     def entry_record_id

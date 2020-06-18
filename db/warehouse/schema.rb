@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_15_175538) do
+ActiveRecord::Schema.define(version: 2020_06_17_131515) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -201,6 +201,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.boolean "evicted", default: false, null: false
     t.boolean "dv_rrh_desired", default: false
     t.string "health_prioritized"
+    t.boolean "demographic_dirty", default: true
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -2095,6 +2096,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.integer "importer_log_id", null: false
+    t.index ["AffiliationID", "data_source_id"], name: "hmis_2020_affiliations-1fHV"
+    t.index ["AffiliationID", "data_source_id"], name: "hmis_2020_affiliations-Hxb6"
     t.index ["ExportID"], name: "hmis_2020_affiliations-tsBP"
     t.index ["source_type", "source_id"], name: "hmis_2020_affiliations-D6uB"
   end
@@ -2122,6 +2125,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "clean_at"
     t.integer "importer_log_id", null: false
     t.index ["AssessmentID"], name: "hmis_2020_assessment_questions-WaJt"
+    t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_2020_assessment_questions-4WGl"
+    t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_2020_assessment_questions-hu48"
     t.index ["ExportID"], name: "hmis_2020_assessment_questions-oYCj"
     t.index ["source_type", "source_id"], name: "hmis_2020_assessment_questions-zJx8"
   end
@@ -2147,6 +2152,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "clean_at"
     t.integer "importer_log_id", null: false
     t.index ["AssessmentID"], name: "hmis_2020_assessment_results-W9Em"
+    t.index ["AssessmentResultID", "data_source_id"], name: "hmis_2020_assessment_results-iNxa"
+    t.index ["AssessmentResultID", "data_source_id"], name: "hmis_2020_assessment_results-svjy"
     t.index ["ExportID"], name: "hmis_2020_assessment_results-PSpj"
     t.index ["source_type", "source_id"], name: "hmis_2020_assessment_results-8wSv"
   end
@@ -2174,6 +2181,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "clean_at"
     t.integer "importer_log_id", null: false
     t.index ["AssessmentDate"], name: "hmis_2020_assessments-Pywu"
+    t.index ["AssessmentID", "data_source_id"], name: "hmis_2020_assessments-3FPf"
+    t.index ["AssessmentID", "data_source_id"], name: "hmis_2020_assessments-3IFL"
     t.index ["AssessmentID"], name: "hmis_2020_assessments-ctTJ"
     t.index ["EnrollmentID"], name: "hmis_2020_assessments-bkUZ"
     t.index ["ExportID"], name: "hmis_2020_assessments-s1Lj"
@@ -2232,6 +2241,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["ExportID"], name: "hmis_2020_clients-OMrD"
     t.index ["FirstName"], name: "hmis_2020_clients-9Ojg"
     t.index ["LastName"], name: "hmis_2020_clients-Qx8I"
+    t.index ["PersonalID", "data_source_id"], name: "hmis_2020_clients-In01"
+    t.index ["PersonalID", "data_source_id"], name: "hmis_2020_clients-qys6"
     t.index ["PersonalID"], name: "hmis_2020_clients-ieah"
     t.index ["VeteranStatus"], name: "hmis_2020_clients-3VEg"
     t.index ["source_type", "source_id"], name: "hmis_2020_clients-oZ1v"
@@ -2263,6 +2274,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.integer "importer_log_id", null: false
+    t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_2020_current_living_situations-KDir"
+    t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_2020_current_living_situations-z7gr"
     t.index ["CurrentLivingSitID"], name: "hmis_2020_current_living_situations-Cu0E"
     t.index ["CurrentLivingSituation"], name: "hmis_2020_current_living_situations-zixi"
     t.index ["EnrollmentID"], name: "hmis_2020_current_living_situations-OFxn"
@@ -2302,6 +2315,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_disabilities-mvAG"
     t.index ["DateUpdated"], name: "hmis_2020_disabilities-X4rh"
+    t.index ["DisabilitiesID", "data_source_id"], name: "hmis_2020_disabilities-qW77"
+    t.index ["DisabilitiesID", "data_source_id"], name: "hmis_2020_disabilities-sgsf"
     t.index ["DisabilitiesID"], name: "hmis_2020_disabilities-K0ux"
     t.index ["EnrollmentID"], name: "hmis_2020_disabilities-vfGH"
     t.index ["ExportID"], name: "hmis_2020_disabilities-EuU5"
@@ -2335,6 +2350,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.integer "importer_log_id", null: false
     t.index ["DateCreated"], name: "hmis_2020_employment_educations-1RrP"
     t.index ["DateUpdated"], name: "hmis_2020_employment_educations-NwPn"
+    t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_2020_employment_educations-UNUc"
+    t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_2020_employment_educations-ZzhB"
     t.index ["EmploymentEducationID"], name: "hmis_2020_employment_educations-BMt0"
     t.index ["EnrollmentID"], name: "hmis_2020_employment_educations-fX4k"
     t.index ["ExportID"], name: "hmis_2020_employment_educations-RNUZ"
@@ -2368,6 +2385,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateCreated"], name: "hmis_2020_enrollment_cocs-OBee"
     t.index ["DateDeleted"], name: "hmis_2020_enrollment_cocs-rdgE"
     t.index ["DateUpdated"], name: "hmis_2020_enrollment_cocs-dBaT"
+    t.index ["EnrollmentCoCID", "data_source_id"], name: "hmis_2020_enrollment_cocs-CA1K"
+    t.index ["EnrollmentCoCID", "data_source_id"], name: "hmis_2020_enrollment_cocs-bCcE"
     t.index ["EnrollmentCoCID"], name: "hmis_2020_enrollment_cocs-eHJf"
     t.index ["EnrollmentID"], name: "hmis_2020_enrollment_cocs-33T6"
     t.index ["ExportID"], name: "hmis_2020_enrollment_cocs-rOn0"
@@ -2460,6 +2479,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateUpdated"], name: "hmis_2020_enrollments-mKqT"
     t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_enrollments-Ed6C"
     t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_enrollments-Fiba"
+    t.index ["EnrollmentID", "data_source_id"], name: "hmis_2020_enrollments-fa3X"
+    t.index ["EnrollmentID", "data_source_id"], name: "hmis_2020_enrollments-gEtj"
     t.index ["EnrollmentID"], name: "hmis_2020_enrollments-7M0u"
     t.index ["EntryDate"], name: "hmis_2020_enrollments-nNb3"
     t.index ["ExportID"], name: "hmis_2020_enrollments-vloE"
@@ -2501,6 +2522,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.integer "importer_log_id", null: false
     t.index ["EnrollmentID"], name: "hmis_2020_events-fHDF"
     t.index ["EventDate"], name: "hmis_2020_events-r6MI"
+    t.index ["EventID", "data_source_id"], name: "hmis_2020_events-9nAG"
+    t.index ["EventID", "data_source_id"], name: "hmis_2020_events-xNbT"
     t.index ["EventID"], name: "hmis_2020_events-JEcY"
     t.index ["ExportID"], name: "hmis_2020_events-ER2J"
     t.index ["PersonalID"], name: "hmis_2020_events-0wj6"
@@ -2564,6 +2587,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateUpdated"], name: "hmis_2020_exits-ZWGs"
     t.index ["EnrollmentID"], name: "hmis_2020_exits-lpfh"
     t.index ["ExitDate"], name: "hmis_2020_exits-rnFg"
+    t.index ["ExitID", "data_source_id"], name: "hmis_2020_exits-t4A8"
+    t.index ["ExitID", "data_source_id"], name: "hmis_2020_exits-wXYs"
     t.index ["ExitID"], name: "hmis_2020_exits-Zpbg"
     t.index ["ExportID"], name: "hmis_2020_exits-W2PN"
     t.index ["PersonalID"], name: "hmis_2020_exits-ITeI"
@@ -2596,6 +2621,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.integer "importer_log_id", null: false
+    t.index ["ExportID", "data_source_id"], name: "hmis_2020_exports-blFX"
+    t.index ["ExportID", "data_source_id"], name: "hmis_2020_exports-v4pm"
     t.index ["ExportID"], name: "hmis_2020_exports-aSP8"
     t.index ["source_type", "source_id"], name: "hmis_2020_exports-WnoR"
   end
@@ -2624,6 +2651,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateCreated"], name: "hmis_2020_funders-HTg0"
     t.index ["DateUpdated"], name: "hmis_2020_funders-M2jp"
     t.index ["ExportID"], name: "hmis_2020_funders-6TYj"
+    t.index ["FunderID", "data_source_id"], name: "hmis_2020_funders-KKqu"
+    t.index ["FunderID", "data_source_id"], name: "hmis_2020_funders-j9Bi"
     t.index ["FunderID"], name: "hmis_2020_funders-2XQ5"
     t.index ["source_type", "source_id"], name: "hmis_2020_funders-19Kh"
   end
@@ -2659,6 +2688,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateUpdated"], name: "hmis_2020_health_and_dvs-271Z"
     t.index ["EnrollmentID"], name: "hmis_2020_health_and_dvs-cn42"
     t.index ["ExportID"], name: "hmis_2020_health_and_dvs-Pwy0"
+    t.index ["HealthAndDVID", "data_source_id"], name: "hmis_2020_health_and_dvs-Ms6T"
+    t.index ["HealthAndDVID", "data_source_id"], name: "hmis_2020_health_and_dvs-SuaA"
     t.index ["HealthAndDVID"], name: "hmis_2020_health_and_dvs-qVX7"
     t.index ["PersonalID"], name: "hmis_2020_health_and_dvs-Ecdc"
     t.index ["source_type", "source_id"], name: "hmis_2020_health_and_dvs-hrU8"
@@ -2754,6 +2785,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateUpdated"], name: "hmis_2020_income_benefits-Z9ad"
     t.index ["EnrollmentID"], name: "hmis_2020_income_benefits-8Eav"
     t.index ["ExportID"], name: "hmis_2020_income_benefits-71WA"
+    t.index ["IncomeBenefitsID", "data_source_id"], name: "hmis_2020_income_benefits-5wio"
+    t.index ["IncomeBenefitsID", "data_source_id"], name: "hmis_2020_income_benefits-ve1i"
     t.index ["IncomeBenefitsID"], name: "hmis_2020_income_benefits-gHnY"
     t.index ["PersonalID"], name: "hmis_2020_income_benefits-KLiM"
     t.index ["source_type", "source_id"], name: "hmis_2020_income_benefits-M4xg"
@@ -2793,6 +2826,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateCreated"], name: "hmis_2020_inventories-NHjX"
     t.index ["DateUpdated"], name: "hmis_2020_inventories-nbQX"
     t.index ["ExportID"], name: "hmis_2020_inventories-Hryn"
+    t.index ["InventoryID", "data_source_id"], name: "hmis_2020_inventories-fDHL"
+    t.index ["InventoryID", "data_source_id"], name: "hmis_2020_inventories-jElL"
     t.index ["InventoryID"], name: "hmis_2020_inventories-paK0"
     t.index ["ProjectID", "CoCCode"], name: "hmis_2020_inventories-twea"
     t.index ["source_type", "source_id"], name: "hmis_2020_inventories-jJgK"
@@ -2816,8 +2851,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.integer "importer_log_id", null: false
-    t.index ["ExportID"], name: "hmis_2020_organizations-6gvm"
-    t.index ["OrganizationID"], name: "hmis_2020_organizations-a1jJ"
+    t.index ["OrganizationID", "data_source_id"], name: "hmis_2020_organizations-v0lw"
     t.index ["source_type", "source_id"], name: "hmis_2020_organizations-z4ut"
   end
 
@@ -2848,6 +2882,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateCreated"], name: "hmis_2020_project_cocs-J7pS"
     t.index ["DateUpdated"], name: "hmis_2020_project_cocs-BMmz"
     t.index ["ExportID"], name: "hmis_2020_project_cocs-UkPE"
+    t.index ["ProjectCoCID", "data_source_id"], name: "hmis_2020_project_cocs-UPpA"
+    t.index ["ProjectCoCID", "data_source_id"], name: "hmis_2020_project_cocs-a4Fn"
     t.index ["ProjectCoCID"], name: "hmis_2020_project_cocs-zagr"
     t.index ["ProjectID", "CoCCode"], name: "hmis_2020_project_cocs-1iIU"
     t.index ["source_type", "source_id"], name: "hmis_2020_project_cocs-FHe9"
@@ -2884,6 +2920,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateCreated"], name: "hmis_2020_projects-UjJu"
     t.index ["DateUpdated"], name: "hmis_2020_projects-EL4P"
     t.index ["ExportID"], name: "hmis_2020_projects-4rLO"
+    t.index ["ProjectID", "data_source_id"], name: "hmis_2020_projects-44W0"
+    t.index ["ProjectID", "data_source_id"], name: "hmis_2020_projects-twzK"
     t.index ["ProjectID"], name: "hmis_2020_projects-8V4i"
     t.index ["ProjectType"], name: "hmis_2020_projects-hlnn"
     t.index ["source_type", "source_id"], name: "hmis_2020_projects-oTdu"
@@ -2926,6 +2964,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["RecordType", "DateDeleted"], name: "hmis_2020_services-gBUB"
     t.index ["RecordType", "DateProvided"], name: "hmis_2020_services-T7Nk"
     t.index ["RecordType"], name: "hmis_2020_services-ibPr"
+    t.index ["ServicesID", "data_source_id"], name: "hmis_2020_services-SlPu"
+    t.index ["ServicesID", "data_source_id"], name: "hmis_2020_services-dNS4"
     t.index ["ServicesID"], name: "hmis_2020_services-WjzP"
     t.index ["source_type", "source_id"], name: "hmis_2020_services-AuMu"
   end
@@ -2950,6 +2990,8 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "clean_at"
     t.integer "importer_log_id", null: false
     t.index ["ExportID"], name: "hmis_2020_users-jsrH"
+    t.index ["UserID", "data_source_id"], name: "hmis_2020_users-ioGs"
+    t.index ["UserID", "data_source_id"], name: "hmis_2020_users-txAl"
     t.index ["UserID"], name: "hmis_2020_users-amfr"
     t.index ["source_type", "source_id"], name: "hmis_2020_users-DpJ1"
   end
@@ -3025,6 +3067,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
+    t.index ["AffiliationID", "data_source_id"], name: "hmis_csv_2020_affiliations-sHLz"
     t.index ["ExportID"], name: "hmis_csv_2020_affiliations-iSQr"
   end
 
@@ -3046,6 +3089,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
     t.index ["AssessmentID"], name: "hmis_csv_2020_assessment_questions-E45J"
+    t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_csv_2020_assessment_questions-PobN"
     t.index ["ExportID"], name: "hmis_csv_2020_assessment_questions-5phQ"
   end
 
@@ -3065,6 +3109,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
     t.index ["AssessmentID"], name: "hmis_csv_2020_assessment_results-EfAI"
+    t.index ["AssessmentResultID", "data_source_id"], name: "hmis_csv_2020_assessment_results-grZ2"
     t.index ["ExportID"], name: "hmis_csv_2020_assessment_results-Csp5"
   end
 
@@ -3086,6 +3131,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
     t.index ["AssessmentDate"], name: "hmis_csv_2020_assessments-Kr3O"
+    t.index ["AssessmentID", "data_source_id"], name: "hmis_csv_2020_assessments-YzvJ"
     t.index ["AssessmentID"], name: "hmis_csv_2020_assessments-9Vy2"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_assessments-l8lq"
     t.index ["ExportID"], name: "hmis_csv_2020_assessments-EPAh"
@@ -3138,6 +3184,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["ExportID"], name: "hmis_csv_2020_clients-B2pm"
     t.index ["FirstName"], name: "hmis_csv_2020_clients-NngF"
     t.index ["LastName"], name: "hmis_csv_2020_clients-uTO2"
+    t.index ["PersonalID", "data_source_id"], name: "hmis_csv_2020_clients-whJy"
     t.index ["PersonalID"], name: "hmis_csv_2020_clients-2sCe"
     t.index ["VeteranStatus"], name: "hmis_csv_2020_clients-eAYl"
   end
@@ -3163,6 +3210,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
+    t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_csv_2020_current_living_situations-Wwhn"
     t.index ["CurrentLivingSitID"], name: "hmis_csv_2020_current_living_situations-ysIY"
     t.index ["CurrentLivingSituation"], name: "hmis_csv_2020_current_living_situations-iuwj"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_current_living_situations-ZnUx"
@@ -3196,6 +3244,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.integer "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_disabilities-IMgw"
     t.index ["DateUpdated"], name: "hmis_csv_2020_disabilities-Vv5f"
+    t.index ["DisabilitiesID", "data_source_id"], name: "hmis_csv_2020_disabilities-s6RO"
     t.index ["DisabilitiesID"], name: "hmis_csv_2020_disabilities-PQL9"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_disabilities-Urto"
     t.index ["ExportID"], name: "hmis_csv_2020_disabilities-qOp4"
@@ -3223,6 +3272,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.integer "loader_id", null: false
     t.index ["DateCreated"], name: "hmis_csv_2020_employment_educations-81fF"
     t.index ["DateUpdated"], name: "hmis_csv_2020_employment_educations-Zg8T"
+    t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_csv_2020_employment_educations-IB8v"
     t.index ["EmploymentEducationID"], name: "hmis_csv_2020_employment_educations-Kxwi"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_employment_educations-MVAR"
     t.index ["ExportID"], name: "hmis_csv_2020_employment_educations-3S6j"
@@ -3250,6 +3300,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateCreated"], name: "hmis_csv_2020_enrollment_cocs-LktJ"
     t.index ["DateDeleted"], name: "hmis_csv_2020_enrollment_cocs-reN2"
     t.index ["DateUpdated"], name: "hmis_csv_2020_enrollment_cocs-RuAj"
+    t.index ["EnrollmentCoCID", "data_source_id"], name: "hmis_csv_2020_enrollment_cocs-XIBP"
     t.index ["EnrollmentCoCID"], name: "hmis_csv_2020_enrollment_cocs-3rNh"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_enrollment_cocs-ILhq"
     t.index ["ExportID"], name: "hmis_csv_2020_enrollment_cocs-UEPL"
@@ -3336,6 +3387,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateUpdated"], name: "hmis_csv_2020_enrollments-7jTE"
     t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_2020_enrollments-lSLr"
     t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_csv_2020_enrollments-eUQp"
+    t.index ["EnrollmentID", "data_source_id"], name: "hmis_csv_2020_enrollments-Sh7D"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_enrollments-M8pJ"
     t.index ["EntryDate"], name: "hmis_csv_2020_enrollments-6W39"
     t.index ["ExportID"], name: "hmis_csv_2020_enrollments-xkAy"
@@ -3371,6 +3423,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.integer "loader_id", null: false
     t.index ["EnrollmentID"], name: "hmis_csv_2020_events-9snb"
     t.index ["EventDate"], name: "hmis_csv_2020_events-yFme"
+    t.index ["EventID", "data_source_id"], name: "hmis_csv_2020_events-bKSd"
     t.index ["EventID"], name: "hmis_csv_2020_events-dnbo"
     t.index ["ExportID"], name: "hmis_csv_2020_events-v4yS"
     t.index ["PersonalID"], name: "hmis_csv_2020_events-pVKN"
@@ -3428,6 +3481,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateUpdated"], name: "hmis_csv_2020_exits-UknO"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_exits-070q"
     t.index ["ExitDate"], name: "hmis_csv_2020_exits-tHbY"
+    t.index ["ExitID", "data_source_id"], name: "hmis_csv_2020_exits-Oyp8"
     t.index ["ExitID"], name: "hmis_csv_2020_exits-KdgC"
     t.index ["ExportID"], name: "hmis_csv_2020_exits-0Uz8"
     t.index ["PersonalID"], name: "hmis_csv_2020_exits-2U8N"
@@ -3454,6 +3508,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
+    t.index ["ExportID", "data_source_id"], name: "hmis_csv_2020_exports-fEtW"
     t.index ["ExportID"], name: "hmis_csv_2020_exports-5nT9"
   end
 
@@ -3476,6 +3531,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateCreated"], name: "hmis_csv_2020_funders-aFmn"
     t.index ["DateUpdated"], name: "hmis_csv_2020_funders-9vc3"
     t.index ["ExportID"], name: "hmis_csv_2020_funders-7Izv"
+    t.index ["FunderID", "data_source_id"], name: "hmis_csv_2020_funders-bDyp"
     t.index ["FunderID"], name: "hmis_csv_2020_funders-chzQ"
   end
 
@@ -3505,6 +3561,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateUpdated"], name: "hmis_csv_2020_health_and_dvs-JDag"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_health_and_dvs-QRvj"
     t.index ["ExportID"], name: "hmis_csv_2020_health_and_dvs-rXZ5"
+    t.index ["HealthAndDVID", "data_source_id"], name: "hmis_csv_2020_health_and_dvs-UOQI"
     t.index ["HealthAndDVID"], name: "hmis_csv_2020_health_and_dvs-LTil"
     t.index ["PersonalID"], name: "hmis_csv_2020_health_and_dvs-LCbk"
   end
@@ -3594,6 +3651,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateUpdated"], name: "hmis_csv_2020_income_benefits-Roan"
     t.index ["EnrollmentID"], name: "hmis_csv_2020_income_benefits-Ehw0"
     t.index ["ExportID"], name: "hmis_csv_2020_income_benefits-xMiK"
+    t.index ["IncomeBenefitsID", "data_source_id"], name: "hmis_csv_2020_income_benefits-1y17"
     t.index ["IncomeBenefitsID"], name: "hmis_csv_2020_income_benefits-TAI9"
     t.index ["PersonalID"], name: "hmis_csv_2020_income_benefits-D9U7"
   end
@@ -3627,6 +3685,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateCreated"], name: "hmis_csv_2020_inventories-9F9y"
     t.index ["DateUpdated"], name: "hmis_csv_2020_inventories-AFjg"
     t.index ["ExportID"], name: "hmis_csv_2020_inventories-q9vn"
+    t.index ["InventoryID", "data_source_id"], name: "hmis_csv_2020_inventories-9X1K"
     t.index ["InventoryID"], name: "hmis_csv_2020_inventories-ENP7"
     t.index ["ProjectID", "CoCCode"], name: "hmis_csv_2020_inventories-4rsm"
   end
@@ -3645,6 +3704,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
     t.index ["ExportID"], name: "hmis_csv_2020_organizations-qFk0"
+    t.index ["OrganizationID", "data_source_id"], name: "hmis_csv_2020_organizations-jzFC"
     t.index ["OrganizationID"], name: "hmis_csv_2020_organizations-28HX"
   end
 
@@ -3670,6 +3730,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateCreated"], name: "hmis_csv_2020_project_cocs-I8Kg"
     t.index ["DateUpdated"], name: "hmis_csv_2020_project_cocs-c8pC"
     t.index ["ExportID"], name: "hmis_csv_2020_project_cocs-Mtai"
+    t.index ["ProjectCoCID", "data_source_id"], name: "hmis_csv_2020_project_cocs-ajjy"
     t.index ["ProjectCoCID"], name: "hmis_csv_2020_project_cocs-CjhB"
     t.index ["ProjectID", "CoCCode"], name: "hmis_csv_2020_project_cocs-pLv2"
   end
@@ -3700,6 +3761,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["DateCreated"], name: "hmis_csv_2020_projects-sJyj"
     t.index ["DateUpdated"], name: "hmis_csv_2020_projects-Vr1w"
     t.index ["ExportID"], name: "hmis_csv_2020_projects-j5LJ"
+    t.index ["ProjectID", "data_source_id"], name: "hmis_csv_2020_projects-KxZD"
     t.index ["ProjectID"], name: "hmis_csv_2020_projects-hs2m"
     t.index ["ProjectType"], name: "hmis_csv_2020_projects-xnN2"
   end
@@ -3736,6 +3798,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.index ["RecordType", "DateDeleted"], name: "hmis_csv_2020_services-fKf3"
     t.index ["RecordType", "DateProvided"], name: "hmis_csv_2020_services-agV2"
     t.index ["RecordType"], name: "hmis_csv_2020_services-BOxT"
+    t.index ["ServicesID", "data_source_id"], name: "hmis_csv_2020_services-Mtac"
     t.index ["ServicesID"], name: "hmis_csv_2020_services-T9Hl"
   end
 
@@ -3754,6 +3817,7 @@ ActiveRecord::Schema.define(version: 2020_06_15_175538) do
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
     t.index ["ExportID"], name: "hmis_csv_2020_users-0ulF"
+    t.index ["UserID", "data_source_id"], name: "hmis_csv_2020_users-uGat"
     t.index ["UserID"], name: "hmis_csv_2020_users-2ltH"
   end
 

@@ -10,8 +10,6 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::EnrollmentCoc
 
     self.table_name = 'EnrollmentCoC'
-    self.hud_key = :EnrollmentCoCID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :enrollment_cocs
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_enrollment_cocs

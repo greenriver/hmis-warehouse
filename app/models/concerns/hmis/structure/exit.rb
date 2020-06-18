@@ -8,6 +8,11 @@ module HMIS::Structure::Exit
   extend ActiveSupport::Concern
   include ::HMIS::Structure::Base
 
+  included do
+    self.hud_key = :ExitID
+    acts_as_paranoid(column: :DateDeleted)
+  end
+
   module ClassMethods
     def hmis_configuration(version: nil)
       case version

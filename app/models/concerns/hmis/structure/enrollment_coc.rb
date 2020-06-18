@@ -8,6 +8,11 @@ module HMIS::Structure::EnrollmentCoc
   extend ActiveSupport::Concern
   include ::HMIS::Structure::Base
 
+  included do
+    self.hud_key = :EnrollmentCoCID
+    acts_as_paranoid(column: :DateDeleted)
+  end
+
   module ClassMethods
     def hmis_configuration(version: nil)
       case version

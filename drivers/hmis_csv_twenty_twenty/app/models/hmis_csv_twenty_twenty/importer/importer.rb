@@ -20,13 +20,15 @@ module HmisCsvTwentyTwenty::Importer
 
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :importer_log
 
-    def initialize( # rubocop:disable Metrics/ParameterLists
+    SELECT_BATCH_SIZE = 10_000
+    INSERT_BATCH_SIZE = 2_000
+
+    def initialize(
       loader_id:,
       data_source_id:,
       logger: Rails.logger,
       debug: true,
-      deidentified: false,
-      project_whitelist: false
+      deidentified: false
     )
       setup_notifier('HMIS CSV Importer 2020')
       @loader_log = HmisCsvTwentyTwenty::Loader::LoaderLog.find(loader_id.to_i)
@@ -35,7 +37,6 @@ module HmisCsvTwentyTwenty::Importer
       @debug = debug
 
       @deidentified = deidentified
-      @project_whitelist = project_whitelist
       @importer_log = setup_import
       importable_files.each_key do |file_name|
         setup_summary(file_name)
@@ -54,6 +55,39 @@ module HmisCsvTwentyTwenty::Importer
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
         start_import
         pre_process!
+
+        # Mark everything that exists in the warehouse, that would be covered by this import
+        # as pending deletion.  We'll remove the pending where appropriate
+        mark_tree_as_dead(Date.current)
+
+        # Add any records we don't have
+        add_new_data
+
+        # Determine which records have changed and are newer
+
+        # we know organizations (never delete here)
+        # we know projects (never delete here)
+        # we know involved projects (funder, affiliation, etc.)
+        # we know involved projects and date ranges (for inventory)
+        # we know involved projects and date ranges (for enrollments)
+        # Pass 0, Walk the tree starting from projects and mark all as dead (in date range where appropriate)
+        # Pass 1, create any where hud-key isn't in warehouse in same data source and involved projects
+        # Pass 2, pluck previous hash and DateUpdated from warehouse, joining on involved scope
+        # If hash is the same, mark as live
+        # If hash differs
+        # if the incoming DateUpdated is older, mark warehouse as live
+        # If the incoming DateUpdated is the same or newer, update warehouse from lake,
+        # mark warehouse live
+        # mark client demographics dirty
+        # mark enrollment dirty
+        # if exit record changes also mark associated enrollment dirty
+        # Delete all marked as dead for data source
+        # For any enrollments where history_generated_on is blank? || history_generated_on < Exit.ExitDate run equivalent of:
+        # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
+        # In here, add history_generated_on date to enrollment record
+
+        # For each project involved:
+        # 1. Find related project items from warehouse and mark anything we
       end
     end
 
@@ -64,7 +98,7 @@ module HmisCsvTwentyTwenty::Importer
       # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
         batch = []
-        source_data_scope_for(file_name).find_each(batch_size: 10_000) do |source|
+        source_data_scope_for(file_name).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
           destination = klass.new_from(source, deidentified: @deidentified)
           destination.importer_log_id = importer_log.id
           destination.pre_processed_at = Time.current
@@ -72,7 +106,7 @@ module HmisCsvTwentyTwenty::Importer
           destination.run_row_validations
 
           batch << destination
-          if batch.count == 2_000
+          if batch.count == INSERT_BATCH_SIZE
             save_batch(klass, batch, file_name)
             batch = []
           end
@@ -83,8 +117,35 @@ module HmisCsvTwentyTwenty::Importer
       end
     end
 
+    def involved_project_ids
+      @involved_project_ids = HmisCsvTwentyTwenty::Importer::Project.pluck(:ProjectID)
+    end
+
+    def mark_tree_as_dead(pending_date_deleted)
+      importable_files.each_value do |klass|
+        klass.mark_tree_as_dead(
+          data_source_id: data_source.id,
+          project_ids: involved_project_ids,
+          date_range: date_range,
+          pending_date_deleted: pending_date_deleted,
+        )
+      end
+    end
+
+    def add_new_data
+      importable_files.each_value do |klass|
+        log("Adding new #{klass.names}")
+        klass.add_new_data(
+          data_source_id: data_source.id,
+          project_ids: involved_project_ids,
+          date_range: date_range,
+          importer_log_id: importer_log.id,
+        )
+      end
+    end
+
     private def save_batch(klass, batch, file_name)
-      if batch.count == 2_000
+      if batch.count == INSERT_BATCH_SIZE
         klass.import(batch)
         lines_processed(file_name, batch.count)
       end
@@ -101,8 +162,15 @@ module HmisCsvTwentyTwenty::Importer
       @loaded_files[file_name].where(loader_id: @loader_log.id)
     end
 
-    def set_date_range
-      Filters::DateRange.new(start: @export.ExportStartDate.to_date, end: @export.ExportEndDate.to_date)
+    def date_range
+      @date_range ||= Filters::DateRange.new(
+        start: export_record.ExportStartDate.to_date,
+        end: export_record.ExportEndDate.to_date,
+      )
+    end
+
+    private def export_record
+      @export_record ||= HmisCsvTwentyTwenty::Importer::Export.find_by(importer_log_id: importer_log.id)
     end
 
     def set_involved_projects
@@ -117,12 +185,6 @@ module HmisCsvTwentyTwenty::Importer
       running = GrdaWarehouse::DataSource.advisory_lock_exists?("hud_import_#{data_source.id}")
       logger.warn "Import of Data Source: #{data_source.short_name} already running...exiting" if running
       running
-    end
-
-    def self.pre_calculate_source_hashes!
-      importable_files.each do |_, klass|
-        klass.pre_calculate_source_hashes!
-      end
     end
 
     def complete_import
@@ -214,7 +276,7 @@ module HmisCsvTwentyTwenty::Importer
 
           complete_import
           log('Import complete')
-        ensure # rubocop:disable Lint/EmptyEnsure
+          # ensure
           # FIXME
         end
       end # end with_advisory_lock

@@ -11,8 +11,6 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::HealthAndDv
 
     self.table_name = 'HealthAndDV'
-    self.hud_key = :HealthAndDVID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :health_and_dvs
     has_one :client, through: :enrollment, inverse_of: :health_and_dvs

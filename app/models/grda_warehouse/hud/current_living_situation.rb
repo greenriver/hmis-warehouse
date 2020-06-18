@@ -10,8 +10,6 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::CurrentLivingSituation
 
     self.table_name = :CurrentLivingSituation
-    self.hud_key = :CurrentLivingSitID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :current_living_situation, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs

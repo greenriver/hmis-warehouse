@@ -10,8 +10,6 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::Affiliation
 
     self.table_name = 'Affiliation'
-    self.hud_key = :AffiliationID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :affiliations
     # NOTE: you can't use hud_assoc for residential project, the keys don't match

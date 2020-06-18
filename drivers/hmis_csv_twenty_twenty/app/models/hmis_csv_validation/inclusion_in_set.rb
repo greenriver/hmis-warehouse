@@ -12,7 +12,7 @@ class HmisCsvValidation::InclusionInSet < HmisCsvValidation::Validation
     create(
       importer_log_id: item.importer_log_id,
       source: item,
-      status: "Expected #{value} to be included in #{valid_options}",
+      status: "Expected #{value} to be included in #{valid_options} for #{column}",
     )
   end
 end

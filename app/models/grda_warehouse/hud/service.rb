@@ -10,8 +10,6 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::Service
 
     self.table_name = 'Services'
-    self.hud_key = :ServicesID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :data_source, inverse_of: :services
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_services

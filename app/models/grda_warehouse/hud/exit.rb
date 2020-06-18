@@ -10,8 +10,6 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::Exit
 
     self.table_name = 'Exit'
-    self.hud_key = :ExitID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :exit
     belongs_to :data_source, inverse_of: :exits

@@ -10,8 +10,6 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::EmploymentEducation
 
     self.table_name = 'EmploymentEducation'
-    self.hud_key = :EmploymentEducationID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :employment_educations
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_employment_educations

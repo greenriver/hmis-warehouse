@@ -12,8 +12,7 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::Organization
 
     self.table_name = 'Organization'
-    self.hud_key = :OrganizationID
-    acts_as_paranoid column: :DateDeleted
+
     has_many :projects, **hud_assoc(:OrganizationID, 'Project'), inverse_of: :organization
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :organizations, optional: true
     belongs_to :data_source, inverse_of: :organizations

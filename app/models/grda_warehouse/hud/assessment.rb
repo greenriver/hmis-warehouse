@@ -10,8 +10,6 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::Assessment
 
     self.table_name = :Assessment
-    self.hud_key = :AssessmentID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessments, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs

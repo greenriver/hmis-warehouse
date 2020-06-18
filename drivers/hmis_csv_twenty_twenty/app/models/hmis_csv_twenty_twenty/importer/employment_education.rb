@@ -10,5 +10,13 @@ module HmisCsvTwentyTwenty::Importer
     include ::HMIS::Structure::EmploymentEducation
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_2020_employment_educations'
+
+    has_one :destination_record, **hud_assoc(:EmploymentEductaionID, 'EmploymentEductaion')
+
+    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
+      GrdaWarehouse::Hud::EmploymentEductaion.joins(enrollment: :project).
+        merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
+        merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range))
+    end
   end
 end

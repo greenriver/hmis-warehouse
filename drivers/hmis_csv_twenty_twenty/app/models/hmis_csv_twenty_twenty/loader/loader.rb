@@ -118,7 +118,7 @@ module HmisCsvTwentyTwenty::Loader
         try(:[], :encoding)
       file_lines = IO.readlines(file_path).size - 1
       @loader_log.summary[File.basename(file_path)]['total_lines'] = file_lines
-      log("Processing #{file_lines} lines in: #{file_path}")
+      log("Loading #{file_lines} lines in: #{file_path}")
       File.open(file_path, "r:#{file_encoding}:utf-8")
     end
 

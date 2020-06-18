@@ -10,5 +10,12 @@ module HmisCsvTwentyTwenty::Importer
     include ::HMIS::Structure::ProjectCoc
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_2020_project_cocs'
+
+    has_one :destination_record, **hud_assoc(:ProjectCoCID, 'ProjectCoc')
+
+    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable  Lint/UnusedMethodArgument
+      GrdaWarehouse::Hud::ProjectCoc.joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids))
+    end
   end
 end
