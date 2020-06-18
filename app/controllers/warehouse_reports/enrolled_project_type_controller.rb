@@ -8,6 +8,7 @@ module WarehouseReports
   class EnrolledProjectTypeController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
+    include SubpopulationHistoryScope
 
     before_action :set_date_range
     before_action :set_project_type
@@ -87,24 +88,6 @@ module WarehouseReports
       sh_scope = sh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
 
       history_scope(sh_scope, @sub_population)
-    end
-
-    def history_scope(scope, sub_population)
-      scope_hash = {
-        all_clients: scope,
-        veteran: scope.veteran,
-        youth: scope.unaccompanied_youth,
-        parenting_youth: scope.parenting_youth,
-        parenting_children: scope.parenting_juvenile,
-        unaccompanied_minors: scope.unaccompanied_minors,
-        individual_adults: scope.individual_adult,
-        non_veteran: scope.non_veteran,
-        family: scope.family,
-        youth_families: scope.youth_families,
-        family_parents: scope.family_parents,
-        children: scope.children_only,
-      }
-      scope_hash[sub_population.to_sym]
     end
   end
 end

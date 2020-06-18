@@ -17,3 +17,5 @@ GrdaWarehouse::Census.add_population(
   scope: GrdaWarehouse::ServiceHistoryEnrollment.youth_parents,
   factory: YouthParentsSubPop::GrdaWarehouse::Census::YouthParentsFactory,
 )
+
+SubpopulationHistoryScope.add_sub_population(:youth_parents, :youth_parents)

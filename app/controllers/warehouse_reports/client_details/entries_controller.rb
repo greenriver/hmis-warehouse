@@ -9,6 +9,7 @@ module WarehouseReports::ClientDetails
     include ArelHelper
     include ApplicationHelper
     include WarehouseReportAuthorization
+    include SubpopulationHistoryScope
     before_action :set_limited, only: [:index]
     before_action :set_projects
     before_action :set_organizations
@@ -69,24 +70,6 @@ module WarehouseReports::ClientDetails
         Hash[entered_columns.keys.zip(row)]
       end.
         group_by { |row| row[:client_id] }
-    end
-
-    def history_scope(scope, sub_population)
-      scope_hash = {
-        all_clients: scope,
-        veteran: scope.veteran,
-        youth: scope.unaccompanied_youth,
-        parenting_youth: scope.parenting_youth,
-        parenting_children: scope.parenting_juvenile,
-        unaccompanied_minors: scope.unaccompanied_minors,
-        individual_adults: scope.individual_adult,
-        non_veteran: scope.non_veteran,
-        family: scope.family,
-        youth_families: scope.youth_families,
-        family_parents: scope.family_parents,
-        children: scope.children_only,
-      }
-      scope_hash[sub_population.to_sym]
     end
 
     def service_history_source

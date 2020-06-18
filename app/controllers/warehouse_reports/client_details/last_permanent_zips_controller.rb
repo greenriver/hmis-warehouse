@@ -8,6 +8,7 @@ module WarehouseReports::ClientDetails
   class LastPermanentZipsController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
+    include SubpopulationHistoryScope
     before_action :set_limited, only: [:index]
 
     def index
@@ -64,21 +65,6 @@ module WarehouseReports::ClientDetails
         project_name: p_t[:ProjectName].to_sql,
         head_of_household: she_t[:head_of_household].to_sql,
       }
-    end
-
-    def history_scope(scope, sub_population)
-      scope_hash = {
-        all_clients: scope,
-        veteran: scope.veteran,
-        youth: scope.unaccompanied_youth,
-        parenting_youth: scope.parenting_youth,
-        parenting_children: scope.parenting_juvenile,
-        individual_adults: scope.individual_adult,
-        non_veteran: scope.non_veteran,
-        family: scope.family,
-        children: scope.children_only,
-      }
-      scope_hash[sub_population.to_sym]
     end
 
     def service_history_source
