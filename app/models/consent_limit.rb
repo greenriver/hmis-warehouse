@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class ConsentLimit < ActiveRecord::Base
+class ConsentLimit < ApplicationRecord
   has_paper_trail
   acts_as_paranoid
 
