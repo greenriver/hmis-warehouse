@@ -12,12 +12,12 @@ on:
   #     - '**/*'
 jobs:
  # Label of the container job
- test-job:
+ rails:
    # Containers must run in Linux based operating systems
    runs-on: ubuntu-18.04
 
    # Docker Hub image that the job executes in
-   container: ruby:2.6.3-slim-buster
+   container: ruby:2.6.5-slim-buster
 
    # Service containers to run with job
    services:
@@ -53,18 +53,20 @@ jobs:
          apt-get install -y \
            build-essential \
            curl \
-           git \
            freetds-bin \
            freetds-dev \
+           git \
            icu-devtools \
-           libicu-dev \
+           imagemagick \
            libc6-dev \
            libcurl4-openssl-dev \
+           libicu-dev \
            libmagic-dev \
            libpq-dev \
            postgresql-client \
            python \
-           unzip
+           unzip \
+           wkhtmltopdf
 
          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
          chmod 600 ~/.pgpass
@@ -139,6 +141,15 @@ jobs:
          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
        run: |
          bin/db_prep
+
+         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+         chmod 600 ~/.pgpass
+
+         #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f db/make_repair_sequences_script.sql > repair.sql
+         #echo repair.sql
+         #echo repairing sequences
+         #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f repair.sql
+
          npm install
 
      - name: Run tests
@@ -173,6 +184,6 @@ jobs:
          REPORTING_DATABASE_DB_TEST: test_boston_reporting
          WAREHOUSE_DATABASE_ADAPTER: postgresql
          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-         WKHTMLTOPDF_PATH: /usr/local/bin/wkhtmltopdf
+         WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
        run: |
          bundle exec rspec --color --format documentation
