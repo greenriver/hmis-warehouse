@@ -20,8 +20,8 @@ module Health::He
     end
 
     def create
-      @case.contacts.create(contact_params)
-      redirect_to action: :index
+      contact = @case.contacts.create(contact_params)
+      redirect_to edit_health_he_case_contact_path(@case, contact)
     end
 
     def destroy
