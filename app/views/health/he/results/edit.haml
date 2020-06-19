@@ -1,6 +1,6 @@
 - content_for :modal_title, 'Edit Test Result'
 
-= simple_form_for @result, url: health_he_case_contact_result_path(@case, @result), remote: request.xhr?, class: 'result-form' do |f|
+= simple_form_for @result, url: health_he_case_contact_result_path(@case, @contact, @result), remote: request.xhr?, class: 'result-form' do |f|
   = render 'form', f: f
 
   = f.submit "Update Result"

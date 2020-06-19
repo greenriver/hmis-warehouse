@@ -26,6 +26,7 @@ module Health::Tracing
       {
         'No' => '',
         'Yes' => 'Yes',
+        'Declined' => 'Declined',
       }
     end
 

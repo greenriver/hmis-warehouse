@@ -71,7 +71,7 @@ module Health::Tracing
         race: 'Race',
         ethnicity: 'Ethnicity',
         preferred_language: 'Preferred language',
-        occupation: 'Occupation/Where do they work',
+        occupation: 'Occupation (if applicable)/Where do they work',
         recent_incarceration: 'Recent incarceration',
         notes: 'Notes',
       }
