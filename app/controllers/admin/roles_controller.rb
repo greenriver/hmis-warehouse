@@ -29,7 +29,12 @@ module Admin
 
     def update
       @role.update role_params
-      respond_with(@role, location: admin_roles_path)
+      respond_to do |format|
+        format.html do
+          respond_with(@role, location: admin_roles_path)
+        end
+        format.js { render status: 204 }
+      end
     end
 
     def create

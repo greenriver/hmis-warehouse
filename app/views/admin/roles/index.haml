@@ -1,8 +1,49 @@
 - content_for(:title, t('.title'))
 %h1= t '.title'
 = render partial: 'menus/admin_tabs'
-.table-responsive
-  %table.table.c-table.c-table--striped.j-table
+:scss
+  .j-table__loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(white, .5);
+    z-index: 1000;
+    pointer-events: none;
+    span {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      font-size: 100px;
+    }
+  }
+  .j-table__submit-container {
+    overflow: hidden;
+    max-height: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    background: rgba(orange, .5);
+    z-index: 1;
+    transition: .25s ease-in-out;
+  }
+  .j-table__submit-container.show {
+    max-height: 100px;
+  }
+  .j-table__submit-changes {
+    margin: 15px;
+  }
+
+.table-responsive.j-table
+  .j-table__submit-container
+    = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
+    %button.j-table__submit-changes.btn.btn-primary{type: 'button'} Save changes
+  %table.table.c-table.c-table--striped.j-table__table
     %thead
       %tr.c-table__header.c-table__header--primary
         %th.c-table__cell--border-r-primary.v-align-middle{colspan:1, style: 'min-width: 400px'}
@@ -25,13 +66,13 @@
       %tr.c-table__header.c-table__header--secondary
         %th.c-table__cell--border-r-primary{colspan:1}
           .mb-2
-            %select.form-control.j-search-permissions.w-100.select2{multiple: true, placeholder: 'Select permission categories'}
+            %select.j-table__search.form-control.w-100.select2{multiple: true, placeholder: 'Select permission categories'}
               -# %option.disabled{disabled: true} Select cateories
               - Role.permission_categories.each do |cat|
                 %option{value: cat}= cat
-          %input.form-control.j-search-permissions.w-100{placeholder: 'Search permissions'}
+          %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
         - @roles.each do |role|
-          %th.c-table__cell--border-r-secondary.c-table__header-title.text-center
+          %th.c-table__cell--border-r-secondary.c-table__header-title.text-center.j-table__object{data:{role: role.id}}
             = link_to role.name, action: :edit, id: role
 
     %tbody
@@ -50,29 +91,18 @@
               = Role.description_for permission: permission
           - @roles.each do |role|
             - permitted = role.send(permission)
-            %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon{class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
-              - if permitted
-                %i.icon-check-circle
-              - else
-                %i.icon-times-circle-o
+            %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon.j-role-permission{data:{role: role.id}, class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
+              .form-check
+                - id = permission.to_s
+                - name = "role[#{id}]"
+                %input{name: name, type: 'hidden', value: 0}
+                %input.form-check-input.boolean.optional{id: id, name:name, type: 'checkbox', value: 1, checked: permitted}
 
+              -# - if permitted
+              -#   %i.icon-check-circle
+              -# - else
+              -#   %i.icon-times-circle-o
 
 - content_for :page_js do
   :javascript
-    $('.j-table').DataTable({
-      // scrollY: '55vh',
-      scrollCollapse: true,
-      scrollX: true,
-      searching: false,
-      ordering: false,
-      paging: false,
-      bInfo: false,
-      fixedColumns: {
-        leftColumns: 1
-      }
-    });
-
-    new App.TableSearch({
-      inputClass: '.j-search-permissions',
-      rowClass: '.j-permission-row',
-    })
+    new App.RoleTable()

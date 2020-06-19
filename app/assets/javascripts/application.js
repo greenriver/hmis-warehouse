@@ -55,7 +55,6 @@
 //= require cha
 //= require vispdats
 //= require files
-//= require table_search
 //= require selectable_list
 //= require viewable_entities
 //= require select_2
@@ -82,6 +81,8 @@
 //= require_directory ./cohorts/editors
 //= require_directory ./data_quality_reports
 //= require affix
+//= require table_search
 //= require TableWithToggleRows
+//= require role_table
 
 //= require init
