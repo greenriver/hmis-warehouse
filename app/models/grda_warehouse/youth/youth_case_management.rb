@@ -48,10 +48,12 @@ module GrdaWarehouse::Youth
 
     def self.youth_housing_status_options
       [
-          "This youth is currently in stable housing",
-          "This youth is not currently in stable housing",
-          "Unknown",
-          "Other:",
+          'This youth is currently in stable housing',
+          'This youth is currently experiencing homeless',
+          'This youth is currently at risk',
+          'This youth is not currently in stable housing',
+          'Unknown',
+          'Other:',
       ]
     end
 

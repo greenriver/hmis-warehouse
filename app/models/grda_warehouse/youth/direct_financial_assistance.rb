@@ -54,6 +54,8 @@ module GrdaWarehouse::Youth
         'Rent',
         'Rent arrears',
         'Utilities',
+        'Emergency Shelter Night Owl Stay',
+        'Emergency Shelter Hotel',
         'Transportation-related costs',
         'Education-related costs',
         'Legal costs',
