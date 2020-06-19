@@ -1,5 +1,5 @@
 %ul.mb-2.nav.nav-tabs{role: :tablist}
-  - GrdaWarehouse::WarehouseReports::Dashboard::Base.tabs.each do |key, sub_population|
+  - AvailableSubPopulations.tabs.each do |key, sub_population|
     - active_class = ''
     - if active == key
       - active_class = 'active'

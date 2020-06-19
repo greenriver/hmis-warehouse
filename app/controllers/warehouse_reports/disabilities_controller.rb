@@ -93,11 +93,12 @@ module WarehouseReports
     end
 
     def available_sub_populations
-      {
-        'All Clients' => :all_clients,
-        'Youth' => :youth,
-        'Veterans' => :veteran,
-      }
+      AvailableSubPopulations.available_sub_populations
+      # {
+      #   'All Clients' => :all_clients,
+      #   'Youth' => :youth,
+      #   'Veterans' => :veteran,
+      # }
     end
     helper_method :available_sub_populations
 

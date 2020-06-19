@@ -6,7 +6,7 @@
 # use with caution!
 RailsDrivers.loaded << :youth_parents_sub_pop
 
-GrdaWarehouse::WarehouseReports::Dashboard::Base.add_sub_population(
+AvailableSubPopulations.add_sub_population(
   'Youth Parents',
   :youth_parents,
   'YouthParentsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::YouthParents',
