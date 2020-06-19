@@ -48,7 +48,7 @@ class CohortsController < ApplicationController
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
-        @visible_columns << CohortColumns::Delete.new if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+        @visible_columns << CohortColumns::Delete.new if can_manage_cohorts? || can_edit_cohort_clients?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
           header = {
             headerName: col.title,
@@ -86,7 +86,7 @@ class CohortsController < ApplicationController
         end
       end
       format.xlsx do
-        not_authorized! unless current_user.can_download_cohorts
+        not_authorized! unless can_download_cohorts?
 
         headers['Content-Disposition'] = "attachment; filename=#{@cohort.sanitized_name}.xlsx"
       end

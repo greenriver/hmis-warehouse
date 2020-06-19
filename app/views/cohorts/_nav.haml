@@ -1,5 +1,5 @@
 %ul.nav.nav-tabs.sub-nav-tabs
-  - if current_user.can_manage_cohorts?
+  - if can_manage_cohorts?
     %li.nav-item
       = link_to edit_cohort_path(@cohort), data: {loads_in_pjax_modal: true}, title: 'Edit Cohort', class: 'nav-link' do
         %i.icon-pencil
@@ -43,7 +43,7 @@
         %i.icon-users
         Add Clients
 
-  - if current_user.can_download_cohorts
+  - if can_download_cohorts?
     %li.nav-item
       = link_to({format: :xlsx}.merge(link_params),{class: 'nav-link'}) do
         %i.icon-download2
