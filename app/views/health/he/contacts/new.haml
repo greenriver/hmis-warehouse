@@ -24,7 +24,7 @@
           = f.input :last_name
           = f.input :aliases
           = f.input :phone_number
-          = f.input :address
+          = f.input :address, label: @contact.label_for(:address)
           = f.input :notified, as: :boolean_button_group, collection: @contact.yes_no_options, include_blank: true, label: @contact.label_for(:notified)
 
   = f.submit "Add New Contact"

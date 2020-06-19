@@ -18,10 +18,10 @@
         = f.input :last_name
         = f.input :aliases
         = f.input :phone_number
-        = f.input :address
+        = f.input :address, label: @contact.label_for(:address)
         = f.input :notified, as: :boolean_button_group, collection: @contact.yes_no_options, include_blank: true, label: @contact.label_for(:notified)
         = f.input :dob, as: :date_picker
-        = f.input :estimated_age
+        = f.input :estimated_age, hint: 'Estimated age if reported by index case'
         = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.genders.invert), wrapper: radio_wrapper_class
         = f.input :race, as: :check_boxes, collection: HUD.races.invert.except('none'), wrapper: radio_wrapper_class
         = f.input :ethnicity, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.ethnicities.invert), wrapper: radio_wrapper_class
@@ -29,7 +29,7 @@
         = f.input :relationship_to_index_case
         = f.input :location_of_exposure
         = f.input :nature_of_exposure, hint: 'Frequency, duration, timing'
-        = f.input :location_of_contact, label: 'Location where contact may be found'
+        = f.input :location_of_contact, label: @contact.label_for(:location_of_contact)
         = f.input :sleeping_location
         = f.input :symptomatic, as: :boolean_button_group, collection: @contact.symptomatic_options, include_blank: true, label: @contact.label_for(:symptomatic)
         = f.input :symptoms, as: :check_boxes, collection: @contact.symptom_options, wrapper: radio_wrapper_class
