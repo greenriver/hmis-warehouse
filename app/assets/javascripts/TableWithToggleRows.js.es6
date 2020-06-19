@@ -6,11 +6,15 @@ window.App.TableWithToggleRows = class TableWithToggleRows {
 
   initEvents() {
     document.querySelectorAll(this.rowDomSelector).forEach((row) => {
-      row.addEventListener('click', this.toggleContent.bind(this, row))
+      const self = this
+      row.addEventListener('click', function(event) {
+          self.toggleContent(row, event)
+      })
     })
   }
 
-  toggleContent(row) {
+  toggleContent(row, event) {
+      if (event.target.href !== undefined) return
     if (row && row.nextElementSibling) {
       console.log(row, row.nextElementSibling)
       const content = row.nextElementSibling

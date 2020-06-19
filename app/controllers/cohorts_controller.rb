@@ -14,6 +14,7 @@ class CohortsController < ApplicationController
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
   before_action :set_groups, only: [:edit, :update, :destroy, :show]
   before_action :set_thresholds, only: [:show]
+  before_action :set_assessment_types, only: [:edit]
 
   def index
     scope = cohort_scope
@@ -48,7 +49,7 @@ class CohortsController < ApplicationController
       format.html do
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
-        @visible_columns << CohortColumns::Delete.new if current_user.can_manage_cohorts? || current_user.can_edit_cohort_clients?
+        @visible_columns << CohortColumns::Delete.new if can_manage_cohorts? || can_edit_cohort_clients?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
           header = {
             headerName: col.title,
@@ -86,17 +87,14 @@ class CohortsController < ApplicationController
         end
       end
       format.xlsx do
+        not_authorized! unless can_download_cohorts?
+
         headers['Content-Disposition'] = "attachment; filename=#{@cohort.sanitized_name}.xlsx"
       end
     end
   end
 
   def edit
-    @assessment_types = [
-      ['Youth VI-SPDAT', GrdaWarehouse::Vispdat::Youth],
-      ['Individual VI-SPDAT', GrdaWarehouse::Vispdat::Individual],
-      ['Family VI-SPDAT', GrdaWarehouse::Vispdat::Family],
-    ]
   end
 
   def destroy
@@ -138,6 +136,22 @@ class CohortsController < ApplicationController
       user_ids: [],
     ] + GrdaWarehouse::Cohort.threshold_keys
     params.require(:grda_warehouse_cohort).permit(opts)
+  end
+
+  def set_assessment_types
+    @assessment_types ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
+      types = []
+      if can_view_vspdat?
+        types += [
+          ['Youth VI-SPDAT', GrdaWarehouse::Vispdat::Youth],
+          ['Individual VI-SPDAT', GrdaWarehouse::Vispdat::Individual],
+          ['Family VI-SPDAT', GrdaWarehouse::Vispdat::Family],
+        ]
+      end
+      types << ['Individual CE Assessment', GrdaWarehouse::CoordinatedEntryAssessment::Individual] if can_view_ce_assessment?
+
+      types
+    end
   end
 
   # @thresholds is an array of objects
