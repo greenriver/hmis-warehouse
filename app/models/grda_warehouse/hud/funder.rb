@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Funder
 
+    attr_accessor :source_id
+
     self.table_name = 'Funder'
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :funders
@@ -31,10 +33,10 @@ module GrdaWarehouse::Hud
 
     scope :within_range, -> (range) do
       where(
-        i_t[:EndDate].gteq(range.first).
-        or(i_t[:EndDate].eq(nil)).
-        and(i_t[:StartDate].lteq(range.last).
-          or(i_t[:StartDate].eq(nil))
+        f_t[:EndDate].gteq(range.first).
+        or(f_t[:EndDate].eq(nil)).
+        and(f_t[:StartDate].lteq(range.last).
+          or(f_t[:StartDate].eq(nil))
         )
       )
     end

@@ -18,6 +18,8 @@ module GrdaWarehouse::Hud
     include ArelHelper
     require 'csv'
 
+    attr_accessor :source_id
+
     self.table_name = 'Inventory'
 
     FAMILY_HOUSEHOLD_TYPE = 3

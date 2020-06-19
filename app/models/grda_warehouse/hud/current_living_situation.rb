@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::CurrentLivingSituation
 
+    attr_accessor :source_id
+
     self.table_name = :CurrentLivingSituation
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :current_living_situation, optional: true

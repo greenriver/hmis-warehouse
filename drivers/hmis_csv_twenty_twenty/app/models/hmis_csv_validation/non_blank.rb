@@ -7,9 +7,9 @@
 class HmisCsvValidation::NonBlank < HmisCsvValidation::Error
   def self.check_validity!(item, column, _args)
     value = item[column]
-    return true if value.present?
+    return if value.present?
 
-    create(
+    new(
       importer_log_id: item.importer_log_id,
       source: item,
       status: "A value is required for #{column}",

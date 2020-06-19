@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Export
 
+    attr_accessor :source_id
+
     self.table_name = 'Export'
 
     has_many :affiliations, **hud_assoc(:AffiliationID, 'Affiliation'), inverse_of: :export

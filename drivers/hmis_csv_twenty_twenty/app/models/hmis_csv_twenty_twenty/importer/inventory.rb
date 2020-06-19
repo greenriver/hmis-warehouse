@@ -14,6 +14,8 @@ module HmisCsvTwentyTwenty::Importer
     has_one :destination_record, **hud_assoc(:InventoryID, 'Inventory')
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
+      return none unless project_ids.present?
+
       GrdaWarehouse::Hud::Inventory.joins(:project).
         merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
         within_range(date_range.range)

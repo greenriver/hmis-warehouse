@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::IncomeBenefit
 
+    attr_accessor :source_id
+
     self.table_name = 'IncomeBenefits'
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :income_benefits

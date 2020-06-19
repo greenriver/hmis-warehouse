@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::EnrollmentCoc
 
+    attr_accessor :source_id
+
     self.table_name = 'EnrollmentCoC'
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :enrollment_cocs

@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::EmploymentEducation
 
+    attr_accessor :source_id
+
     self.table_name = 'EmploymentEducation'
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :employment_educations

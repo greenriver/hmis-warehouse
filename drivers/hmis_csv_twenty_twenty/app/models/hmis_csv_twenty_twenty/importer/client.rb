@@ -11,7 +11,7 @@ module HmisCsvTwentyTwenty::Importer
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_2020_clients'
 
-    has_one :destination_record, **hud_assoc(:ClientID, 'Client')
+    has_one :destination_record, **hud_assoc(:PersonalID, 'Client')
 
     def self.clean_row_for_import(row, deidentified:)
       row = deidentify_client_name(row) if deidentified
@@ -30,19 +30,21 @@ module HmisCsvTwentyTwenty::Importer
         NameDataQuality: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.name_data_quality_options.keys },
+            arguments: { valid_options: HUD.name_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
         SSNDataQuality: [
           {
             class: HmisCsvValidation::InclusionInSet,
-            arguments: { valid_options: HUD.ssn_data_quality_options.keys },
+            arguments: { valid_options: HUD.ssn_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
       }
     end
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable  Lint/UnusedMethodArgument
+      return none unless project_ids.present?
+
       GrdaWarehouse::Hud::Client.where(data_source_id: data_source_id)
     end
 

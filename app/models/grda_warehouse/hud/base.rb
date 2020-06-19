@@ -11,6 +11,10 @@ module GrdaWarehouse::Hud
       :DateDeleted
     end
 
+    scope :delete_pending, -> do
+      where.not(pending_date_deleted: nil)
+    end
+
     # an array (in order) of the expected columns for hud CSV data
     def self.hud_csv_headers(version: nil)
       hmis_structure(version: version).keys.freeze

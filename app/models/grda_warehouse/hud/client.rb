@@ -19,6 +19,8 @@ module GrdaWarehouse::Hud
     include ClientHealthEmergency
     has_paper_trail
 
+    attr_accessor :source_id
+
     self.table_name = :Client
 
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end

@@ -12,6 +12,8 @@ module GrdaWarehouse::Hud
     include ProjectReport
     include ::HMIS::Structure::Project
 
+    attr_accessor :source_id
+
     self.table_name = :Project
 
     has_paper_trail

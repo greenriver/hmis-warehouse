@@ -10,6 +10,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::HealthAndDv
 
+    attr_accessor :source_id
+
     self.table_name = 'HealthAndDV'
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :health_and_dvs

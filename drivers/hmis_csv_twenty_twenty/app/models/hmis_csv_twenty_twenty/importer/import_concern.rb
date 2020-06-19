@@ -6,12 +6,11 @@
 
 module HmisCsvTwentyTwenty::Importer::ImportConcern
   extend ActiveSupport::Concern
+  SELECT_BATCH_SIZE = 10_000
+  INSERT_BATCH_SIZE = 2_000
 
   included do
     belongs_to :importer_log
-
-    SELECT_BATCH_SIZE = 10_000
-    INSERT_BATCH_SIZE = 2_000
 
     # Override as necessary
     def self.clean_row_for_import(row, deidentified:) # rubocop:disable  Lint/UnusedMethodArgument
@@ -28,12 +27,11 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
     # memoize :date_columns
 
-    def self.new_from(loaded, deidentified:)
+    def self.new_from(loaded, deidentified: false)
       # we need to attempt a fix of date columns before ruby auto converts them
       csv_data = loaded.hmis_data
       csv_data = fix_date_columns(csv_data)
       csv_data = clean_row_for_import(csv_data, deidentified: deidentified)
-
       new(csv_data.merge(source_type: loaded.class.name, source_id: loaded.id, data_source_id: loaded.data_source_id))
     end
 
@@ -46,52 +44,37 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       ).update_all(pending_date_deleted: pending_date_deleted)
     end
 
-    # FIXME: we may want to move the saving of this back into importer and just provide batches from here
-    # As is, there's no easy way to set the summary information or add errors
-    def self.add_new_data(data_source_id:, project_ids:, date_range:, importer_log_id:)
-      batch = []
+    def self.new_data(data_source_id:, project_ids:, date_range:, importer_log_id:)
       existing_keys = involved_warehouse_scope(
         data_source_id: data_source_id,
         project_ids: project_ids,
         date_range: date_range,
       ).select(hud_key)
-      where(importer_log_id: importer_log_id).where.not(hud_key => existing_keys).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
-        batch << row.as_destination_record(importer_log_id)
-        if batch.count == INSERT_BATCH_SIZE
-          klass = batch.first.class
-          save_batch(klass, batch)
-          batch = []
-        end
-      end
-      return unless batch.present?
-
-      save_batch(klass, batch) # ensure we get the last batch
+      where(importer_log_id: importer_log_id).where.not(hud_key => existing_keys)
     end
 
-    def self.save_batch(klass, batch)
-      if batch.count == INSERT_BATCH_SIZE
-        klass.import(batch)
-        lines_processed(klass, batch.count)
-      end
-    rescue StandardError
-      begin
-        batch.each(&:save!)
-      rescue StandardError
-        # FIXME
-        # add_error(klass: klass, source_id: destination.source_id, message: e.messages)
-      end
+    def self.existing_destination_data(data_source_id:, project_ids:, date_range:)
+      involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      ).delete_pending
     end
 
     def as_destination_record
-      record = destination_record.build(
-        attributes.slice(create_columns),
+      # For some odd reason calling build_destination_record sometimes does a find and update
+      # using new seems safer
+      klass = self.class.reflect_on_association(:destination_record).klass
+      record = klass.new(
+        attributes.slice(*self.class.create_columns),
       )
-      record.source_hash = processed_as
+      record.source_hash = source_hash
+      record.source_id = id # Note which record we're sending this from for error checking
       record
     end
 
     def self.create_columns
-      (self.class.hmis_structure(version: '2020').keys + [:data_source_id]).map(&:to_s).freeze
+      (hmis_structure(version: '2020').keys + [:data_source_id]).map(&:to_s).freeze
     end
 
     def self.fix_date_columns(row)
@@ -147,7 +130,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       []
     end
 
-    def calculate_processed_as
+    def calculate_source_hash
       keys = self.class.hmis_structure(version: '2020').keys - [:ExportID]
       Digest::SHA256.hexdigest(slice(keys).to_s)
     end
@@ -158,19 +141,21 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     #   "UPDATE #{quoted_table_name} SET source_hash = encode(digest(concat_ws(':', #{columns}), 'sha256'), 'hex')"
     # end
 
-    def set_processed_as
-      self.processed_as = calculate_processed_as
+    def set_source_hash
+      self.source_hash = calculate_source_hash
     end
 
     def run_row_validations
+      failures = []
       self.class.hmis_validations.each do |column, checks|
         next unless checks.present?
 
         checks.each do |check|
           arguments = check.dig(:arguments)
-          check[:class].check_validity!(self, column, arguments)
+          failures << check[:class].check_validity!(self, column, arguments)
         end
       end
+      failures.compact
     end
   end
 end

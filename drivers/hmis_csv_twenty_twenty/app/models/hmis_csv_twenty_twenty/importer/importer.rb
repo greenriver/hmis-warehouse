@@ -10,13 +10,14 @@
 # There's no reason to have client records with no enrollments
 # All tables that hang off a client also hang off enrollments
 
-# reload!; HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: 81, data_source_id: 90, debug: true).import!
+# reload!; importer = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: 7, data_source_id: 90, debug: true); importer.import!
 
 module HmisCsvTwentyTwenty::Importer
   class Importer
     include TsqlImport
     include NotifierConfig
     include HmisTwentyTwenty
+    include ActionView::Helpers::DateHelper
 
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :importer_log
 
@@ -49,6 +50,22 @@ module HmisCsvTwentyTwenty::Importer
       'HmisCsvTwentyTwenty::Importer'
     end
 
+    # Pass 0, Walk the tree starting from projects and mark all as dead (in date range where appropriate)
+    # Pass 1, create any where hud-key isn't in warehouse in same data source and involved projects
+    # Pass 2, pluck previous hash and DateUpdated from warehouse, joining on involved scope
+    #   If hash is the same, mark as live
+    #   If hash differs
+    #     if the incoming DateUpdated is older, mark warehouse as live
+    #     If the incoming DateUpdated is the same or newer, update warehouse from lake,
+    #       mark client demographics dirty
+    #       mark enrollment dirty
+    #       if exit record changes also mark associated enrollment dirty
+    #       mark warehouse live
+    # Delete all marked as dead for data source
+    # For any enrollments where history_generated_on is blank? || history_generated_on < Exit.ExitDate run equivalent of:
+    # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
+    # In here, add history_generated_on date to enrollment record
+
     def import!
       return if already_running_for_data_source?
 
@@ -63,32 +80,130 @@ module HmisCsvTwentyTwenty::Importer
         # Add any records we don't have
         add_new_data
 
-        # Determine which records have changed and are newer
+        # Process existing records,
+        # determine which records have changed and are newer
+        process_existing
 
-        # we know organizations (never delete here)
-        # we know projects (never delete here)
-        # we know involved projects (funder, affiliation, etc.)
-        # we know involved projects and date ranges (for inventory)
-        # we know involved projects and date ranges (for enrollments)
-        # Pass 0, Walk the tree starting from projects and mark all as dead (in date range where appropriate)
-        # Pass 1, create any where hud-key isn't in warehouse in same data source and involved projects
-        # Pass 2, pluck previous hash and DateUpdated from warehouse, joining on involved scope
-        # If hash is the same, mark as live
-        # If hash differs
-        # if the incoming DateUpdated is older, mark warehouse as live
-        # If the incoming DateUpdated is the same or newer, update warehouse from lake,
-        # mark warehouse live
-        # mark client demographics dirty
-        # mark enrollment dirty
-        # if exit record changes also mark associated enrollment dirty
-        # Delete all marked as dead for data source
-        # For any enrollments where history_generated_on is blank? || history_generated_on < Exit.ExitDate run equivalent of:
-        # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
-        # In here, add history_generated_on date to enrollment record
+        # Sweep all remaining items in a pending delete state
+        remove_pending_deletes
 
-        # For each project involved:
-        # 1. Find related project items from warehouse and mark anything we
+        complete_import
       end
+    end
+
+    def remove_pending_deletes
+      importable_files.each do |file_name, klass|
+        # Never delete Exports, Projects, or Organizations
+        next if klass.hud_key.in?([:ExportID, :ProjectID, :OrganizationID])
+
+        delete_count = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, DateDeleted: Time.current)
+        note_processed(file_name, delete_count, 'removed')
+      end
+    end
+
+    def process_existing
+      # TODO: This could be parallelized
+      importable_files.each do |file_name, klass|
+        mark_unchanged(klass, file_name)
+        mark_incoming_older(klass, file_name)
+        apply_updates(klass, file_name)
+      end
+    end
+
+    # At this point,
+    #   * All new data has been added
+    #   * All extraneous data has been deleted
+    #   * All unchanged data has been marked as live
+    #   * All existing data currently marked as delete pending, should be updated from the incoming data
+    # apply updates will:
+    #   Mark client demographics dirty
+    #   Mark enrollment dirty, for Enrollment and Exit tables
+    #   Mark warehouse live
+    private def apply_updates(klass, file_name)
+      # Exports are always inserts, never updates
+      return if klass.hud_key == :ExportID
+
+      log("Updating #{klass.name}")
+      # NOTE, we may need to incorporate with_deleted if we run into duplicate key problems
+      existing = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).pluck(klass.hud_key)
+      destination_class = klass.reflect_on_association(:destination_record).klass
+      batch = []
+      existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
+        klass.where(importer_log_id: @importer_log.id, klass.hud_key => hud_keys).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+          destination = source.as_destination_record
+          destination.pending_date_deleted = nil
+          case klass.hud_key
+          when :PersonalID
+            destination.demographic_dirty = true
+          when :EnrollmentID
+            destination.processed_as = nil
+          when :ExitID
+            # These are tracked separately so we can bulk update them at the end
+            track_dirty_enrollment(destination.EnrollmentID)
+          else
+            batch << destination
+            if batch.count == INSERT_BATCH_SIZE
+              destination_class.import(batch, on_duplicate_key_update: [destination_class.hud_key])
+              note_processed(file_name, batch.count, 'updated')
+              batch = []
+            end
+          end
+        end
+      end
+      if batch.present? # ensure we get the last batch
+        destination_class.import(batch, on_duplicate_key_update: [destination_class.hud_key])
+        note_processed(file_name, batch.count, 'updated')
+      end
+
+      # If we tracked any dirty enrollments, we can mark them all dirty now
+      if klass.hud_key == :ExitID
+        GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
+          update_all(processed_as: nil)
+      end
+      log("Updated #{summary_for(file_name, 'updated')} new #{klass.name}")
+    end
+
+    private def mark_unchanged(klass, file_name)
+      # We always bring over Exports
+      return if klass.hud_key == :ExportID
+
+      existing = klass.existing_destination_data(
+        data_source_id: data_source.id,
+        project_ids: involved_project_ids,
+        date_range: date_range,
+      ).
+        where.not(DateUpdated: nil). # A bad import can sometimes cause this
+        pluck(klass.hud_key, :source_hash)
+      incoming = klass.where(importer_log_id: @importer_log.id).pluck(klass.hud_key, :source_hash)
+      unchanged = (existing & incoming).map(&:first)
+      unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
+        klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).where(klass.hud_key => batch).update_all(pending_date_deleted: nil)
+        note_processed(file_name, batch.count, 'unchanged')
+      end
+    end
+
+    private def mark_incoming_older(klass, file_name)
+      # Doesn't apply to Exports
+      return if klass.hud_key == :ExportID
+
+      existing = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).pluck(klass.hud_key, :DateUpdated).to_h
+      incoming = klass.where(importer_log_id: @importer_log.id).pluck(klass.hud_key, :DateUpdated).to_h
+      # if the incoming DateUpdated is strictly less than the existing one
+      # trust the warehouse is correct
+      unchanged = existing.select { |k, v| v.present? incoming[k] < v }.keys
+      unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
+        klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).where(klass.hud_key => batch).update_all(pending_date_deleted: nil)
+        note_processed(file_name, batch.count, 'unchanged')
+      end
+    end
+
+    private def track_dirty_enrollment(enrollment_id)
+      @track_dirty_enrollment ||= Set.new
+      @track_dirty_enrollment << enrollment_id
+    end
+
+    private def dirty_enrollment_ids
+      @track_dirty_enrollment
     end
 
     # Move all data from the data lake
@@ -97,28 +212,36 @@ module HmisCsvTwentyTwenty::Importer
 
       # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
+        log("Pre-processing #{klass.name}")
         batch = []
+        failures = []
         source_data_scope_for(file_name).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
           destination = klass.new_from(source, deidentified: @deidentified)
           destination.importer_log_id = importer_log.id
           destination.pre_processed_at = Time.current
-          destination.set_processed_as
-          destination.run_row_validations
-
+          destination.set_source_hash
+          failures += destination.run_row_validations
           batch << destination
+
           if batch.count == INSERT_BATCH_SIZE
-            save_batch(klass, batch, file_name)
+            process_batch!(klass, batch, file_name, type: 'pre_processed')
             batch = []
           end
+          if failures.count == INSERT_BATCH_SIZE
+            HmisCsvValidation::Base.import(failures.compact)
+            failures = []
+          end
         end
-        if batch.present?
-          save_batch(klass, batch, file_name) # ensure we get the last batch
-        end
+
+        process_batch!(klass, batch, file_name, type: 'pre_processed') if batch.present? # ensure we get the last batch
+        HmisCsvValidation::Base.import(failures.compact) if failures.present?
       end
     end
 
     def involved_project_ids
-      @involved_project_ids = HmisCsvTwentyTwenty::Importer::Project.pluck(:ProjectID)
+      @involved_project_ids ||= HmisCsvTwentyTwenty::Importer::Project.
+        where(importer_log_id: importer_log.id).
+        pluck(:ProjectID)
     end
 
     def mark_tree_as_dead(pending_date_deleted)
@@ -133,27 +256,49 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def add_new_data
-      importable_files.each_value do |klass|
-        log("Adding new #{klass.names}")
-        klass.add_new_data(
+      importable_files.each do |file_name, klass|
+        log("Adding new #{klass.name}")
+        destination_class = klass.reflect_on_association(:destination_record).klass
+        batch = []
+        klass.new_data(
           data_source_id: data_source.id,
           project_ids: involved_project_ids,
           date_range: date_range,
           importer_log_id: importer_log.id,
-        )
+        ).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+          batch << row.as_destination_record
+          if batch.count == INSERT_BATCH_SIZE
+            process_batch!(destination_class, batch, file_name, type: 'added')
+            batch = []
+          end
+        end
+
+        process_batch!(destination_class, batch, file_name, type: 'added') if batch.present? # ensure we get the last batch
+        log("Added #{summary_for(file_name, 'added')} new #{klass.name}")
       end
     end
 
-    private def save_batch(klass, batch, file_name)
-      if batch.count == INSERT_BATCH_SIZE
-        klass.import(batch)
-        lines_processed(file_name, batch.count)
-      end
-    rescue StandardError
-      begin
-        batch.each(&:save!)
+    private def process_batch!(klass, batch, file_name, type:)
+      klass.import(batch)
+      note_processed(file_name, batch.count, type)
+    rescue StandardError => e
+      batch.each do |row|
+        row.save!
+        note_processed(file_name, 1, type)
       rescue StandardError => e
-        add_error(klass: klass, source_id: destination.source_id, message: e.messages)
+        add_error(klass: klass, source_id: row.source_id, message: e.messages)
+      end
+    end
+
+    private def bulk_update!(klass, batch, file_name, type:)
+      klass.import(batch, on_duplicate_key_update: [klass.hud_key])
+      note_processed(file_name, batch.count, type)
+    rescue StandardError
+      batch.each do |row|
+        klass.import([row], on_duplicate_key_update: [klass.hud_key])
+        note_processed(file_name, 1, type)
+      rescue StandardError => e
+        add_error(klass: klass, source_id: row.source_id, message: e.messages)
       end
     end
 
@@ -173,14 +318,6 @@ module HmisCsvTwentyTwenty::Importer
       @export_record ||= HmisCsvTwentyTwenty::Importer::Export.find_by(importer_log_id: importer_log.id)
     end
 
-    def set_involved_projects
-      # FIXME
-      # project_source.load_from_csv(
-      #   file_path: @file_path,
-      #   data_source_id: data_source.id
-      # )
-    end
-
     def already_running_for_data_source?
       running = GrdaWarehouse::DataSource.advisory_lock_exists?("hud_import_#{data_source.id}")
       logger.warn "Import of Data Source: #{data_source.short_name} already running...exiting" if running
@@ -192,437 +329,32 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.completed_at = Time.zone.now
       importer_log.upload_id = @upload.id if @upload.present?
       importer_log.save
+      elapsed = Time.current - @started_at
+      log("Import Completed in #{distance_of_time_in_words(elapsed)}")
     end
 
-    def import_class(klass)
-      # FIXME
-      log("Importing #{klass.name}")
-      begin
-        file = importable_files.key(klass)
-        return unless importer_log.summary[file].present?
-
-        stats = klass.import_related!(
-          data_source_id: data_source.id,
-          file_path: @file_path,
-          stats: importer_log.summary[file],
-          soft_delete_time: @soft_delete_time,
-        )
-        errors = stats.delete(:errors)
-
-        importer_log.summary[klass.file_name].merge!(stats)
-        if errors.present?
-          errors.each do |error|
-            add_error(klass: klass, source_id: source_id, message: error[:message])
-          end
-        end
-      rescue ActiveRecord::ActiveRecordError => e
-        message = "Unable to import #{klass.name}: #{e.message}"
-        add_error(file_path: klass.file_name, message: message, line: '')
-      end
+    def note_processed(file, line_count, type)
+      importer_log.summary[file][type] += line_count
     end
 
-    # def mark_upload_complete
-    #   @upload.update(percent_complete: 100, completed_at: importer_log.completed_at)
-    # end
-
-    def import_old!
-      # return if already_running_for_data_source?
-      # Provide Application locking so we can be sure we aren't already importing this data source
-      GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
-        @export = HmisCsvTwentyTwenty::Loader::Export.find_by(loader_id: importer_log.id)
-        return unless export_file_valid?
-
-        begin
-          @range = set_date_range
-          clean_source_files
-          # reload the export file with new export id
-          @export = nil
-          @export = load_export_file
-          @export.effective_export_end_date = @effective_export_end_date
-          @export.import!
-          @projects = set_involved_projects
-          @projects.each(&:import!)
-          # Import data that's not directly related to enrollments
-          remove_project_related_data
-          import_organizations
-          import_inventories
-          import_project_cocs
-          import_funders
-          import_affiliations
-          import_users
-          importer_log.save
-
-          # Clients
-          import_clients
-          importer_log.save
-
-          # Enrollment related
-          remove_enrollment_related_data
-          import_enrollments
-          import_enrollment_cocs
-          import_disabilities
-          import_employment_educations
-          import_exits
-          import_health_and_dvs
-          import_income_benefits
-          importer_log.save
-          import_services
-          importer_log.save
-          import_current_living_situations
-          import_assessments
-          import_assessment_questions
-          import_assessment_results
-          import_events
-
-          complete_import
-          log('Import complete')
-          # ensure
-          # FIXME
-        end
-      end # end with_advisory_lock
-    end
-
-    def import_enrollments
-      import_class(enrollment_source)
-    end
-
-    def import_exits
-      import_class(exit_source)
-    end
-
-    def import_services
-      import_class(service_source)
-    end
-
-    def import_enrollment_cocs
-      import_class(enrollment_coc_source)
-    end
-
-    def import_disabilities
-      import_class(disability_source)
-    end
-
-    def import_employment_educations
-      import_class(employment_education_source)
-    end
-
-    def import_health_and_dvs
-      import_class(health_and_dv_source)
-    end
-
-    def import_income_benefits
-      import_class(income_benefits_source)
-    end
-
-    def import_users
-      import_class(user_source)
-    end
-
-    def import_current_living_situations
-      import_class(current_living_situation_source)
-    end
-
-    def import_assessments
-      import_class(assessment_source)
-    end
-
-    def import_assessment_questions
-      import_class(assessment_question_source)
-    end
-
-    def import_assessment_results
-      import_class(assessment_result_source)
-    end
-
-    def import_events
-      import_class(event_source)
-    end
-
-    # This dump should be authoritative for any enrollment that was open during the
-    # specified date range at any of the involved projects
-    # Models this needs to handle
-    # Enrollment
-    # EnrollmentCoc
-    # Disability
-    # EmploymentEducation
-    # Exit
-    # HealthAndDv
-    # IncomeBenefit
-    # Services
-    def remove_enrollment_related_data
-      [
-        enrollment_coc_source,
-        disability_source,
-        employment_education_source,
-        health_and_dv_source,
-        income_benefits_source,
-        service_source,
-        current_living_situation_source,
-        assessment_source,
-        assessment_question_source,
-        assessment_result_source,
-        event_source,
-      ].each do |klass|
-        next unless importer_log.summary[klass.file_name].present?
-
-        importer_log.summary[klass.file_name][:lines_restored] -= klass.public_send(
-          :delete_involved,
-          {
-            projects: @projects,
-            range: @range,
-            data_source_id: data_source.id,
-            deleted_at: @soft_delete_time,
-          },
-        )
-      end
-
-      # Exit and Enrollment are used in the calculation, so this has to be two steps.
-      involved_exit_ids = exit_source.involved_exits(projects: @projects, range: @range, data_source_id: data_source.id)
-      involved_exit_ids.each_slice(1000) do |ids|
-        exit_source.where(id: ids).update_all(pending_date_deleted: @soft_delete_time)
-      end
-      importer_log.summary['Exit.csv'][:lines_restored] -= involved_exit_ids.size
-      involved_enrollment_ids = enrollment_source.involved_enrollments(projects: @projects, range: @range, data_source_id: data_source.id)
-      involved_enrollment_ids.each_slice(1000) do |ids|
-        enrollment_source.where(id: ids).update_all(pending_date_deleted: @soft_delete_time)
-      end
-      importer_log.summary['Enrollment.csv'][:lines_restored] -= involved_enrollment_ids.size
-    end
-
-    # This dump should be authoritative for any inventory and ProjectCoC
-    # that is connected to an included project
-    def remove_project_related_data
-      [
-        inventory_source,
-        project_coc_source,
-        funder_source,
-        affiliation_source,
-      ].each do |klass|
-        next unless importer_log.summary[klass.file_name].present?
-
-        importer_log.summary[klass.file_name][:lines_restored] -= klass.public_send(
-          :delete_involved,
-          {
-            projects: @projects,
-            range: @range,
-            data_source_id: data_source.id,
-            deleted_at: @soft_delete_time,
-          },
-        )
-      end
-    end
-
-    def import_clients
-      import_class(client_source)
-    end
-
-    def import_organizations
-      import_class(organization_source)
-    end
-
-    def import_inventories
-      import_class(inventory_source)
-    end
-
-    def import_project_cocs
-      import_class(project_coc_source)
-    end
-
-    def import_funders
-      import_class(funder_source)
-    end
-
-    def import_affiliations
-      import_class(affiliation_source)
-    end
-
-    def lines_processed(file, line_count)
-      importer_log.summary[file]['lines_processed'] += line_count
+    def summary_for(file, type)
+      importer_log.summary[file][type]
     end
 
     def setup_summary(file)
       importer_log.summary ||= {}
       importer_log.summary[file] ||= {
-        'total_lines' => 0,
-        'lines_processed' => 0,
-        'lines_added' => 0,
-        'lines_updated' => 0,
-        'lines_restored' => 0,
-        'lines_skipped' => 0,
+        'pre_processed' => 0,
+        'added' => 0,
+        'updated' => 0,
+        'unchanged' => 0,
+        'removed' => 0,
         'total_errors' => 0,
       }
     end
 
     def importable_files
       self.class.importable_files
-    end
-
-    def self.affiliation_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Affiliation
-    end
-
-    def affiliation_source
-      self.class.affiliation_source
-    end
-
-    def self.client_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Client
-    end
-
-    def client_source
-      self.class.client_source
-    end
-
-    def self.disability_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Disability
-    end
-
-    def disability_source
-      self.class.disability_source
-    end
-
-    def self.employment_education_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::EmploymentEducation
-    end
-
-    def employment_education_source
-      self.class.employment_education_source
-    end
-
-    def self.enrollment_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Enrollment
-    end
-
-    def enrollment_source
-      self.class.enrollment_source
-    end
-
-    def self.enrollment_coc_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::EnrollmentCoc
-    end
-
-    def enrollment_coc_source
-      self.class.enrollment_coc_source
-    end
-
-    def self.exit_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Exit
-    end
-
-    def exit_source
-      self.class.exit_source
-    end
-
-    def self.funder_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Funder
-    end
-
-    def funder_source
-      self.class.funder_source
-    end
-
-    def self.health_and_dv_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::HealthAndDv
-    end
-
-    def health_and_dv_source
-      self.class.health_and_dv_source
-    end
-
-    def self.income_benefits_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::IncomeBenefit
-    end
-
-    def income_benefits_source
-      self.class.income_benefits_source
-    end
-
-    def self.inventory_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Inventory
-    end
-
-    def inventory_source
-      self.class.inventory_source
-    end
-
-    def self.organization_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Organization
-    end
-
-    def organization_source
-      self.class.organization_source
-    end
-
-    def self.project_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Project
-    end
-
-    def project_source
-      self.class.project_source
-    end
-
-    def self.project_coc_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::ProjectCoc
-    end
-
-    def project_coc_source
-      self.class.project_coc_source
-    end
-
-    def self.service_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Service
-    end
-
-    def service_source
-      self.class.service_source
-    end
-
-    def self.current_living_situation_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation
-    end
-
-    def current_living_situation_source
-      self.class.current_living_situation_source
-    end
-
-    def self.assessment_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Assessment
-    end
-
-    def assessment_source
-      self.class.assessment_source
-    end
-
-    def self.assessment_question_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::AssessmentQuestion
-    end
-
-    def assessment_question_source
-      self.class.assessment_question_source
-    end
-
-    def self.assessment_result_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::AssessmentResult
-    end
-
-    def assessment_result_source
-      self.class.assessment_result_source
-    end
-
-    def self.event_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::Event
-    end
-
-    def event_source
-      self.class.event_source
-    end
-
-    def self.user_source
-      GrdaWarehouse::Import::HmisTwentyTwenty::User
-    end
-
-    def user_source
-      self.class.user_source
     end
 
     def setup_import
@@ -637,6 +369,7 @@ module HmisCsvTwentyTwenty::Importer
     def start_import
       importer_log.update(status: :started)
       @loader_log.update(importer_log_id: importer_log.id)
+      @started_at = Time.current
     end
 
     def log(message)
@@ -652,7 +385,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def add_error(klass:, source_id:, message:)
-      importer_log.import_errors.create(
+      importer_log.import_errors.create!(
         source_type: klass,
         source_id: source_id,
         message: "Error importing #{klass}",

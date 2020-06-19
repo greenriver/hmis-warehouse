@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::User
 
+    attr_accessor :source_id
+
     self.table_name = :User
 
     has_many :affiliations, **hud_assoc(:UserID, 'Affiliation')

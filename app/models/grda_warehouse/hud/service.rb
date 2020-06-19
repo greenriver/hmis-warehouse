@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Service
 
+    attr_accessor :source_id
+
     self.table_name = 'Services'
 
     belongs_to :data_source, inverse_of: :services

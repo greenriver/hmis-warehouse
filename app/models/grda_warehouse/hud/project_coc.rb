@@ -10,6 +10,8 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::ProjectCoc
     include ArelHelper
 
+    attr_accessor :source_id
+
     self.table_name = 'ProjectCoC'
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :project_cocs

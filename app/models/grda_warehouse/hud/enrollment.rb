@@ -12,6 +12,8 @@ module GrdaWarehouse::Hud
     include NotifierConfig
     include ::HMIS::Structure::Enrollment
 
+    attr_accessor :source_id
+
     self.table_name = 'Enrollment'
 
     alias_attribute :date, :EntryDate

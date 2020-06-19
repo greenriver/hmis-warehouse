@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Affiliation
 
+    attr_accessor :source_id
+
     self.table_name = 'Affiliation'
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :affiliations

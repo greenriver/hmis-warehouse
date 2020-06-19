@@ -7,11 +7,12 @@
 class HmisCsvValidation::InclusionInSet < HmisCsvValidation::Validation
   def self.check_validity!(item, column, valid_options: nil)
     value = item[column]
-    return true if value.blank? || value.in?(valid_options)
+    return if value.blank? || value.to_s.in?(valid_options)
 
-    create(
+    new(
       importer_log_id: item.importer_log_id,
-      source: item,
+      source_id: item.source_id,
+      source_type: item.source_type,
       status: "Expected #{value} to be included in #{valid_options} for #{column}",
     )
   end

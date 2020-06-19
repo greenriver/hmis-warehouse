@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class HmisCsvValidation::Validation < GrdaWarehouseBase
+class HmisCsvValidation::Validation < HmisCsvValidation::Base
   def self.type_name
     'Validation'
   end

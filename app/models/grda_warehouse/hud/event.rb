@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Event
 
+    attr_accessor :source_id
+
     self.table_name = :Event
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :events, optional: true

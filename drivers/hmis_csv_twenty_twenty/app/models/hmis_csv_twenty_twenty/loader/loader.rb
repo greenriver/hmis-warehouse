@@ -21,6 +21,7 @@ module HmisCsvTwentyTwenty::Loader
     include TsqlImport
     include NotifierConfig
     include HmisTwentyTwenty
+    include ActionView::Helpers::DateHelper
     # The HMIS spec limits the field to 50 characters
     EXPORT_ID_FIELD_WIDTH = 50
 
@@ -50,7 +51,7 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     def load!
-      @loaded_at = Time.current
+      start_load
       begin
         ensure_file_naming
         @export = load_export_file
@@ -63,6 +64,13 @@ module HmisCsvTwentyTwenty::Loader
       ensure
         remove_import_files if @remove_files
       end
+    end
+
+    def import!
+      HmisCsvTwentyTwenty::Importer::Importer.new(
+        loader_id: @loader_log.id,
+        data_source_id: data_source.id, debug: @debug
+      ).import!
     end
 
     def load_export_file
@@ -309,7 +317,7 @@ module HmisCsvTwentyTwenty::Loader
         return false
       end
       source_id = @export[:SourceID]
-      return true if data_source.source_id.blank? || data_source.source_id.casecmp(source_id).zero?
+      return true if data_source.source_id.blank? || data_source.source_id.casecmp(source_id)&.zero?
 
       # Construct a valid file_path for add_error
       file_path = File.join(@file_path, data_source.id.to_s, 'Export.csv')
@@ -339,8 +347,15 @@ module HmisCsvTwentyTwenty::Loader
       end
     end
 
+    def start_load
+      @loaded_at = Time.current
+      log("Starting HMIS CSV Data Load for data source: #{data_source.id}")
+    end
+
     def complete_load(status:)
+      elapsed = Time.current - @loaded_at
       @loader_log.update(completed_at: Time.current, status: status)
+      log("Completed HMIS CSV Data Load for data source: #{data_source.id} in #{distance_of_time_in_words(elapsed)}")
     end
 
     def loaded_lines(file, count)

@@ -14,6 +14,8 @@ module HmisCsvTwentyTwenty::Importer
     has_one :destination_record, **hud_assoc(:HealthAndDVID, 'HealthAndDv')
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
+      return none unless project_ids.present?
+
       GrdaWarehouse::Hud::HealthAndDv.joins(enrollment: :project).
         merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
         merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range))

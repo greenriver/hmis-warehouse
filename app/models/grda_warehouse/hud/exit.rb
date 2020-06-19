@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Exit
 
+    attr_accessor :source_id
+
     self.table_name = 'Exit'
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :exit

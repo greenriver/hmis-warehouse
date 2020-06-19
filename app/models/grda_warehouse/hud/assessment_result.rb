@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::AssessmentResult
 
+    attr_accessor :source_id
+
     self.table_name = :AssessmentResults
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_results, optional: true
