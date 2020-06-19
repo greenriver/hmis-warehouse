@@ -49,6 +49,12 @@ module Health::He
         :referred_for_testing,
         :test_result,
         :notes,
+        :phone_number,
+        :address,
+        :dob,
+        :estimated_age,
+        :gender,
+        symptoms: [],
       )
     end
 

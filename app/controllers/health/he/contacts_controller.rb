@@ -20,8 +20,8 @@ module Health::He
     end
 
     def create
-      @case.contacts.create(contact_params)
-      redirect_to action: :index
+      contact = @case.contacts.create(contact_params)
+      redirect_to edit_health_he_case_contact_path(@case, contact)
     end
 
     def destroy
@@ -60,15 +60,12 @@ module Health::He
         :sleeping_location,
         :notified,
         :symptomatic,
+        :other_symptoms,
         :symptom_onset_date,
         :referred_for_testing,
-        :test_result,
-        :isolated,
-        :isolation_location,
-        :quarantine,
-        :quarantine_location,
         :notes,
         race: [],
+        symptoms: [],
       )
     end
   end

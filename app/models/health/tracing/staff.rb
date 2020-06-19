@@ -22,6 +22,14 @@ module Health::Tracing
       }
     end
 
+    def symptom_options
+      {
+        'Coughing' => 'Coughing',
+        'Fever' => 'Fever',
+        'Shortness of breath' => 'Shortness of breath'
+      }
+    end
+
     def referred_options
       yes_no_options
     end
@@ -45,10 +53,17 @@ module Health::Tracing
       @label_for ||= {
         first_name: 'First name',
         last_name: 'Last name',
+        phone: 'Phone number',
+        address: 'Address (if known)',
+        dob: 'DOB',
+        estimated_age: 'Estimated age',
+        gender: 'Gender',
         site_name: 'Site name',
         notified: 'Notified?',
         nature_of_exposure: 'Nature of exposure',
         symptomatic: 'Symptomatic?',
+        symptoms: 'Symptoms',
+        other_symptoms: 'Other Symptoms',
         referred_for_testing: 'Referred for testing?',
         test_result: 'Test result',
         notes: '',

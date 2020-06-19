@@ -684,7 +684,9 @@ Rails.application.routes.draw do
       get :search
       resources :cases do
         resources :locations, except: [:index]
-        resources :contacts
+        resources :contacts do
+          resources :results
+        end
         resources :site_managers
         resources :staff
       end

@@ -6,9 +6,9 @@
 
 class GrdaWarehouseBase < ActiveRecord::Base
   include ArelHelper
+  include  Efind
   establish_connection DB_WAREHOUSE
   self.abstract_class = true
-  include ArelHelper
 
   def self.sql_server?
     connection.adapter_name == 'SQLServer'

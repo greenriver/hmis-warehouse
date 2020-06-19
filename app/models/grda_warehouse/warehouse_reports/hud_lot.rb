@@ -190,10 +190,10 @@ module GrdaWarehouse::WarehouseReports
 
         if en.ph?
           # Homeless Situation
-          if HUD.homeless_situations.include?(enrollment&.LivingSituation)
+          if HUD.homeless_situations(as: :prior).include?(enrollment&.LivingSituation)
 
             # Add any dates between DateToStreetESSH and the MoveInDate
-            count_until = [en.MoveInDate, en.exit&.ExitDate, filter.end].compact.min
+            count_until = [enrollment.MoveInDate, en.last_date_in_program, filter.end].compact.min
             (enrollment.DateToStreetESSH..count_until).each do |d|
               self_report_dates[d] = self_reported_shelter
             end
@@ -202,7 +202,7 @@ module GrdaWarehouse::WarehouseReports
             next unless enrollment.LOSUnderThreshold == 1 && enrollment.PreviousStreetESSH == 1
 
             # Add any dates between DateToStreetESSH and the MoveInDate
-            count_until = [enrollment.MoveInDate, en.exit&.ExitDate, filter.end].compact.min
+            count_until = [enrollment.MoveInDate, en.last_date_in_program, filter.end].compact.min
             (enrollment.DateToStreetESSH..count_until).each do |d|
               self_report_dates[d] = self_reported_shelter
             end

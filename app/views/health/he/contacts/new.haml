@@ -5,6 +5,26 @@
 %h1= content_for :title
 
 = simple_form_for @contact, url: health_he_case_contacts_path do |f|
-  = render 'form', f: f
+  .row
+    .col-md-8
+      .c-card.mb-4
+        .c-card__header.c-card__header--external
+          %h3 Investigation Information
+        .c-card__content
+          = f.input :investigator, label: @contact.label_for(:investigator)
+          = f.input :date_interviewed, as: :date_picker
+          = f.input :alert_in_epic, as: :boolean_button_group, collection: @contact.alert_options, label: @contact.label_for(:alert_in_epic)
+  .row
+    .col-md-8
+      .c-card.mb-4
+        .c-card__header.c-card__header--external
+          %h3 Contact Information
+        .c-card__content
+          = f.input :first_name
+          = f.input :last_name
+          = f.input :aliases
+          = f.input :phone_number
+          = f.input :address, label: @contact.label_for(:address)
+          = f.input :notified, as: :boolean_button_group, collection: @contact.yes_no_options, include_blank: true, label: @contact.label_for(:notified)
 
   = f.submit "Add New Contact"

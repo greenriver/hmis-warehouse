@@ -70,6 +70,7 @@ module Health::He
         :date_interviewed,
         :infectious_start_date,
         :day_two,
+        :other_symptoms,
         :testing_date,
         :isolation_start_date,
         :first_name,
@@ -84,6 +85,7 @@ module Health::He
         :recent_incarceration,
         :notes,
         race: [],
+        symptoms: [],
       )
     end
 

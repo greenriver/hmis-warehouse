@@ -14,6 +14,7 @@ module Health::Tracing
 
     belongs_to :case
     has_many :locations
+    has_many :results
 
     def alert_options
       {
@@ -30,18 +31,18 @@ module Health::Tracing
       }
     end
 
+    def symptom_options
+      {
+        'Coughing' => 'Coughing',
+        'Fever' => 'Fever',
+        'Shortness of breath' => 'Shortness of breath'
+      }
+    end
+
     def referred_options
       {
         'No' => '',
         'Yes' => 'Yes',
-      }
-    end
-
-    def test_result_options
-      {
-        'Unknown' => '',
-        'Negative' => 'Negative',
-        'Positive' => 'Positive',
       }
     end
 
@@ -60,8 +61,8 @@ module Health::Tracing
         first_name: 'First name',
         last_name: 'Last name',
         aliases: 'Aliases',
-        phone_number: 'Phone',
-        address: 'Address',
+        phone_number: 'Phone Number',
+        address: 'Address (if known)',
         notified: 'Contact notified?',
         dob: 'DOB',
         estimated_age: 'Estimated age',
@@ -72,7 +73,7 @@ module Health::Tracing
         relationship_to_index_case: 'Relationship to index case',
         location_of_exposure: 'Location of exposure',
         nature_of_exposure: 'Nature of exposure',
-        location_of_contact: 'Location of contact',
+        location_of_contact: 'Location where contact may be found',
         sleeping_location: 'Sleeping Location',
         symptomatic: 'Symptomatic?',
         symptom_onset_date: 'Sympton onset date',

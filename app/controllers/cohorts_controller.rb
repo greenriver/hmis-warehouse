@@ -14,6 +14,7 @@ class CohortsController < ApplicationController
   before_action :set_cohort, only: [:edit, :update, :destroy, :show]
   before_action :set_groups, only: [:edit, :update, :destroy, :show]
   before_action :set_thresholds, only: [:show]
+  before_action :set_assessment_types, only: [:edit]
 
   def index
     scope = cohort_scope
@@ -94,11 +95,6 @@ class CohortsController < ApplicationController
   end
 
   def edit
-    @assessment_types = [
-      ['Youth VI-SPDAT', GrdaWarehouse::Vispdat::Youth],
-      ['Individual VI-SPDAT', GrdaWarehouse::Vispdat::Individual],
-      ['Family VI-SPDAT', GrdaWarehouse::Vispdat::Family],
-    ]
   end
 
   def destroy
@@ -140,6 +136,22 @@ class CohortsController < ApplicationController
       user_ids: [],
     ] + GrdaWarehouse::Cohort.threshold_keys
     params.require(:grda_warehouse_cohort).permit(opts)
+  end
+
+  def set_assessment_types
+    @assessment_types ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
+      types = []
+      if can_view_vspdat?
+        types += [
+          ['Youth VI-SPDAT', GrdaWarehouse::Vispdat::Youth],
+          ['Individual VI-SPDAT', GrdaWarehouse::Vispdat::Individual],
+          ['Family VI-SPDAT', GrdaWarehouse::Vispdat::Family],
+        ]
+      end
+      types << ['Individual CE Assessment', GrdaWarehouse::CoordinatedEntryAssessment::Individual] if can_view_ce_assessment?
+
+      types
+    end
   end
 
   # @thresholds is an array of objects

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class AccessGroup < ActiveRecord::Base
+class AccessGroup < ApplicationRecord
   acts_as_paranoid
 
   has_many :access_group_members
