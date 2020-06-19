@@ -66,5 +66,9 @@ module GrdaWarehouse::Youth
         'Food / Groceries (including our drop-in food pantries)',
       ].sort + ['Other']
     end
+
+    def self.report_columns
+      column_names - [:user_id, :deleted_at]
+    end
   end
 end

@@ -68,5 +68,9 @@ module GrdaWarehouse::Youth
         'Referred to other services / activities not listed above',
       ].sort.freeze + ['Other']
     end
+
+    def self.report_columns
+      column_names - [:user_id, :deleted_at]
+    end
   end
 end

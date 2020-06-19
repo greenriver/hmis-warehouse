@@ -63,5 +63,9 @@ module GrdaWarehouse::Youth
         'Re-Housing',
       ]
     end
+
+    def self.report_columns
+      column_names - [:user_id, :deleted_at]
+    end
   end
 end

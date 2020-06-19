@@ -232,5 +232,9 @@ module GrdaWarehouse::YouthIntake
       return nil
     end
 
+    def self.report_columns
+      column_names - [:user_id, :deleted_at]
+    end
+
   end
 end
