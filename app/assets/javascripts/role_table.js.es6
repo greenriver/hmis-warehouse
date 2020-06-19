@@ -1,6 +1,6 @@
 window.App.RoleTable = class TableSearch {
   constructor(props) {
-    this.dirty = false
+    this.isDirty = false
     this.props = Object.assign({
       tableContainerSelector: '.j-table',
       submitContainerSelector: '.j-table__submit-container',
@@ -40,9 +40,16 @@ window.App.RoleTable = class TableSearch {
       rowClass: tableRowSelector
     })
 
-    // Register event for submitting changes
+    // Register events
     $(submitActionSelector).click(this.submitChanges.bind(this))
     $(`${tableSelector} input`).on('change', this.changeDirtyState.bind(this, true))
+    window.onbeforeunload = () => {
+      if (!this.isDirty) {
+        return false
+      } else {
+        return 'Looks like there are unsaved changes. Those changes will be lost if you navigate away'
+      }
+    }
   }
 
   submitChanges() {
@@ -73,7 +80,7 @@ window.App.RoleTable = class TableSearch {
   }
 
   changeDirtyState(isDirty=true) {
-    this.dirty = !isDirty
+    this.isDirty = !isDirty
     const $submitContainer = $(this.props.submitContainerSelector)
     if ($submitContainer.length) {
       if (isDirty) {
@@ -102,6 +109,6 @@ window.App.RoleTable = class TableSearch {
     }, 1000)
     // Remove loading elements
     setTimeout(() => { $loading.fadeOut() }, 1000)
-    this.dirty = false
+    this.isDirty = false
   }
 }
