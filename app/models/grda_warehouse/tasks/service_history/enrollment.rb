@@ -392,7 +392,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
             data_source_id: self.data_source_id
           ).where.not(
             PersonalID: self.PersonalID
-          ).pluck(Arel.sql(c_t[:DOB].as('dob').to_sql))
+          ).pluck(Arel.sql(c_t[:DOB].as('dob')))
       end
     end
 

@@ -79,5 +79,6 @@ module BostonHmis
     # Extension points
     config.sub_populations = {}
     config.census = {}
+    config.monthly_reports = {}
   end
 end

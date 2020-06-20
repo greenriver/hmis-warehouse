@@ -20,7 +20,7 @@ module Reporting::MonthlyReports
     attr_accessor :date_range
 
     def self.available_types
-      {
+      Rails.application.config.monthly_reports[:available_types] || {
         all_clients: Reporting::MonthlyReports::AllClients,
         veteran: Reporting::MonthlyReports::Veteran,
         youth: Reporting::MonthlyReports::Youth,
@@ -34,6 +34,12 @@ module Reporting::MonthlyReports
         youth_families: Reporting::MonthlyReports::YouthFamilies,
         children: Reporting::MonthlyReports::Children,
       }
+    end
+
+    def self.add_available_type(key, klass)
+      available_types = Reporting::MonthlyReports::Base.available_types
+      available_types[key] = klass
+      Rails.application.config.monthly_reports[:available_types] = available_types
     end
 
     def self.class_for sub_population
