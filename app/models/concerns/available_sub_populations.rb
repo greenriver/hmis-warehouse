@@ -20,46 +20,46 @@ module AvailableSubPopulations
   def self.sub_populations_by_type
     Rails.application.config.sub_populations[:by_type] || {
       active: {
-        veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::ActiveClients,
-        all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::ActiveClients,
-        youth: GrdaWarehouse::WarehouseReports::Dashboard::Youth::ActiveClients,
-        non_veteran: GrdaWarehouse::WarehouseReports::Dashboard::NonVeteran::ActiveClients,
-        individual_adults: GrdaWarehouse::WarehouseReports::Dashboard::IndividualAdult::ActiveClients,
-        parenting_children: GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::ActiveClients,
-        parenting_youth: GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::ActiveClients,
-        family_parents: GrdaWarehouse::WarehouseReports::Dashboard::Parents::ActiveClients,
-        children: GrdaWarehouse::WarehouseReports::Dashboard::Children::ActiveClients,
-        unaccompanied_minors: GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::ActiveClients,
-        family: GrdaWarehouse::WarehouseReports::Dashboard::Families::ActiveClients,
-        youth_families: GrdaWarehouse::WarehouseReports::Dashboard::YouthFamilies::ActiveClients,
+        veteran: 'GrdaWarehouse::WarehouseReports::Dashboard::Veteran::ActiveClients',
+        all_clients: 'GrdaWarehouse::WarehouseReports::Dashboard::AllClients::ActiveClients',
+        youth: 'GrdaWarehouse::WarehouseReports::Dashboard::Youth::ActiveClients',
+        non_veteran: 'GrdaWarehouse::WarehouseReports::Dashboard::NonVeteran::ActiveClients',
+        individual_adults: 'GrdaWarehouse::WarehouseReports::Dashboard::IndividualAdult::ActiveClients',
+        parenting_children: 'GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::ActiveClients',
+        parenting_youth: 'GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::ActiveClients',
+        family_parents: 'GrdaWarehouse::WarehouseReports::Dashboard::Parents::ActiveClients',
+        children: 'GrdaWarehouse::WarehouseReports::Dashboard::Children::ActiveClients',
+        unaccompanied_minors: 'GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::ActiveClients',
+        family: 'GrdaWarehouse::WarehouseReports::Dashboard::Families::ActiveClients',
+        youth_families: 'GrdaWarehouse::WarehouseReports::Dashboard::YouthFamilies::ActiveClients',
       },
       entered: {
-        veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::EnteredClients,
-        all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::EnteredClients,
-        youth: GrdaWarehouse::WarehouseReports::Dashboard::Youth::EnteredClients,
-        non_veteran: GrdaWarehouse::WarehouseReports::Dashboard::NonVeteran::EnteredClients,
-        individual_adults: GrdaWarehouse::WarehouseReports::Dashboard::IndividualAdult::EnteredClients,
-        parenting_children: GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::EnteredClients,
-        parenting_youth: GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::EnteredClients,
-        family_parents: GrdaWarehouse::WarehouseReports::Dashboard::Parents::EnteredClients,
-        children: GrdaWarehouse::WarehouseReports::Dashboard::Children::EnteredClients,
-        unaccompanied_minors: GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::EnteredClients,
-        family: GrdaWarehouse::WarehouseReports::Dashboard::Families::EnteredClients,
-        youth_families: GrdaWarehouse::WarehouseReports::Dashboard::YouthFamilies::EnteredClients,
+        veteran: 'GrdaWarehouse::WarehouseReports::Dashboard::Veteran::EnteredClients',
+        all_clients: 'GrdaWarehouse::WarehouseReports::Dashboard::AllClients::EnteredClients',
+        youth: 'GrdaWarehouse::WarehouseReports::Dashboard::Youth::EnteredClients',
+        non_veteran: 'GrdaWarehouse::WarehouseReports::Dashboard::NonVeteran::EnteredClients',
+        individual_adults: 'GrdaWarehouse::WarehouseReports::Dashboard::IndividualAdult::EnteredClients',
+        parenting_children: 'GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::EnteredClients',
+        parenting_youth: 'GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::EnteredClients',
+        family_parents: 'GrdaWarehouse::WarehouseReports::Dashboard::Parents::EnteredClients',
+        children: 'GrdaWarehouse::WarehouseReports::Dashboard::Children::EnteredClients',
+        unaccompanied_minors: 'GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::EnteredClients',
+        family: 'GrdaWarehouse::WarehouseReports::Dashboard::Families::EnteredClients',
+        youth_families: 'GrdaWarehouse::WarehouseReports::Dashboard::YouthFamilies::EnteredClients',
       },
       housed: {
-        veteran: GrdaWarehouse::WarehouseReports::Dashboard::Veteran::HousedClients,
-        all_clients: GrdaWarehouse::WarehouseReports::Dashboard::AllClients::HousedClients,
-        youth: GrdaWarehouse::WarehouseReports::Dashboard::Youth::HousedClients,
-        non_veteran: GrdaWarehouse::WarehouseReports::Dashboard::NonVeteran::HousedClients,
-        individual_adults: GrdaWarehouse::WarehouseReports::Dashboard::IndividualAdult::HousedClients,
-        parenting_children: GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::HousedClients,
-        parenting_youth: GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::HousedClients,
-        family_parents: GrdaWarehouse::WarehouseReports::Dashboard::Parents::HousedClients,
-        children: GrdaWarehouse::WarehouseReports::Dashboard::Children::HousedClients,
-        unaccompanied_minors: GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::HousedClients,
-        family: GrdaWarehouse::WarehouseReports::Dashboard::Families::HousedClients,
-        youth_families: GrdaWarehouse::WarehouseReports::Dashboard::YouthFamilies::HousedClients,
+        veteran: 'GrdaWarehouse::WarehouseReports::Dashboard::Veteran::HousedClients',
+        all_clients: 'GrdaWarehouse::WarehouseReports::Dashboard::AllClients::HousedClients',
+        youth: 'GrdaWarehouse::WarehouseReports::Dashboard::Youth::HousedClients',
+        non_veteran: 'GrdaWarehouse::WarehouseReports::Dashboard::NonVeteran::HousedClients',
+        individual_adults: 'GrdaWarehouse::WarehouseReports::Dashboard::IndividualAdult::HousedClients',
+        parenting_children: 'GrdaWarehouse::WarehouseReports::Dashboard::ParentingChildren::HousedClients',
+        parenting_youth: 'GrdaWarehouse::WarehouseReports::Dashboard::ParentingYouth::HousedClients',
+        family_parents: 'GrdaWarehouse::WarehouseReports::Dashboard::Parents::HousedClients',
+        children: 'GrdaWarehouse::WarehouseReports::Dashboard::Children::HousedClients',
+        unaccompanied_minors: 'GrdaWarehouse::WarehouseReports::Dashboard::UnaccompaniedMinors::HousedClients',
+        family: 'GrdaWarehouse::WarehouseReports::Dashboard::Families::HousedClients',
+        youth_families: 'GrdaWarehouse::WarehouseReports::Dashboard::YouthFamilies::HousedClients',
       },
     }
   end
@@ -151,8 +151,8 @@ module AvailableSubPopulations
     Rails.application.config.sub_populations[:tabs] = tab_hash
 
     types = sub_populations_by_type
-    types[:active][symbol] = "#{package}::ActiveClients".constantize
-    types[:entered][symbol] = "#{package}::EnteredClients".constantize
-    types[:housed][symbol] = "#{package}::HousedClients".constantize
+    types[:active][symbol] = "#{package}::ActiveClients"
+    types[:entered][symbol] = "#{package}::EnteredClients"
+    types[:housed][symbol] = "#{package}::HousedClients"
   end
 end

@@ -1,0 +1,7 @@
+- content_for :title, 'Child only Households Dashboard'
+- @show_census = false
+%h1= content_for :title
+- if @html
+  = render 'dashboards/tabs', active: 'child_only_households'
+%p.text-muted
+  Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (18+) and no children (< 18).
