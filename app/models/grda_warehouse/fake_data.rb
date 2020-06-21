@@ -69,6 +69,8 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       OtherIncomeSourceIdentify: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
       OtherBenefitsSourceIdentify: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
       OtherTypeProvided: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
+      Address1: -> (value) { if value.present? then Faker::Address.street_address else nil end },
+      Address2: -> (value) { if value.present? then Faker::Address.street_address else nil end },
     }
   end
 

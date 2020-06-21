@@ -5,6 +5,7 @@
 ###
 #
 class ApplicationRecord < ActiveRecord::Base
+  include Efind
   self.abstract_class = true
 
   def self.original_config

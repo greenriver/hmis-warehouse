@@ -48,10 +48,12 @@ module GrdaWarehouse::Youth
 
     def self.youth_housing_status_options
       [
-          "This youth is currently in stable housing",
-          "This youth is not currently in stable housing",
-          "Unknown",
-          "Other:",
+          'This youth is currently in stable housing',
+          'This youth is currently experiencing homeless',
+          'This youth is currently at risk',
+          'This youth is not currently in stable housing',
+          'Unknown',
+          'Other:',
       ]
     end
 
@@ -60,6 +62,10 @@ module GrdaWarehouse::Youth
         'Prevention ',
         'Re-Housing',
       ]
+    end
+
+    def self.report_columns
+      column_names - [:user_id, :deleted_at]
     end
   end
 end

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class AgenciesConsentLimit < ActiveRecord::Base
+class AgenciesConsentLimit < ApplicationRecord
   belongs_to :agency
   belongs_to :consent_limit
 end

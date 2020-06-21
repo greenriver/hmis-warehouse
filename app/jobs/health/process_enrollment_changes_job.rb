@@ -114,6 +114,7 @@ module Health
         last_name: Health::Enrollment.last_name(transaction),
         birthdate: Health::Enrollment.DOB(transaction),
         ssn: Health::Enrollment.SSN(transaction),
+        gender: Health::Enrollment.gender(transaction),
         medicaid_id: Health::Enrollment.subscriber_id(transaction),
         enrollment_start_date: Health::Enrollment.enrollment_date(transaction),
       }
