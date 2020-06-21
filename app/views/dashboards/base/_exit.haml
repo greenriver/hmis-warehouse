@@ -8,7 +8,7 @@
       %h4.title
         #{@report.sub_population_title.pluralize} Housed to Date
       .metric
-        = link_to_if can_see_client_details?, pluralize(@report.all_housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(range: {start: Reporting::MonthlyReports::Veteran::LOOKBACK_START.to_date, end: Date.current, sub_population: @report.sub_population}, ph: 'true'), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(@report.all_housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(range: {start: Reporting::MonthlyReports::Base::LOOKBACK_START.to_date, end: Date.current, sub_population: @report.sub_population}, ph: 'true'), target: :_blank
       .description
         total #{@report.sub_population_title.pluralize.downcase} housed to date
     .rrh__enrolled.chunk

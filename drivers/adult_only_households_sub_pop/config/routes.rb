@@ -1,11 +1,12 @@
 Rails.application.routes.draw do
+  sub_population = :adult_only_households
   namespace :dashboards do
-    resources :adult_only_households, only: :index, controller:  '/adult_only_households_sub_pop/dashboards/adult_only_households' do
+    resources sub_population, only: :index, controller:  "/#{sub_population}_sub_pop/dashboards/#{sub_population}" do
       collection do
         get :active
         get :housed
         get :entered
-        get 'section/:partial', to: '/adult_only_households_sub_pop/dashboards/adult_only_households#section', as: :section
+        get 'section/:partial', to: "/#{sub_population}_sub_pop/dashboards/#{sub_population}#section", as: :section
       end
     end
   end

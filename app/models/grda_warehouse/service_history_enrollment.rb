@@ -400,26 +400,27 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
 
     def self.know_standard_cohorts
-      [
-        :all_clients,
-        :veteran,
-        :non_veteran,
-        :family,
-        :youth_families,
-        :individual,
-        :youth,
-        :children,
-        :adult,
-        :unaccompanied_youth,
-        :family_parents,
-        :parenting_youth,
-        :children_only,
-        :parenting_juvenile,
-        :parenting_children,
-        :unaccompanied_minors,
-        :individual_adult,
-        :individual_adults,
-      ]
+      AvailableSubPopulations.available_sub_populations.values
+      # [
+      #   :all_clients,
+      #   :veteran,
+      #   :non_veteran,
+      #   :family,
+      #   :youth_families,
+      #   :individual,
+      #   :youth,
+      #   :children,
+      #   :adult,
+      #   :unaccompanied_youth,
+      #   :family_parents,
+      #   :parenting_youth,
+      #   :children_only,
+      #   :parenting_juvenile,
+      #   :parenting_children,
+      #   :unaccompanied_minors,
+      #   :individual_adult,
+      #   :individual_adults,
+      # ]
     end
 
 

@@ -21,18 +21,18 @@ module Reporting::MonthlyReports
 
     def self.available_types
       Rails.application.config.monthly_reports[:available_types] || {
-        all_clients: 'Reporting::MonthlyReports::AllClients',
-        veteran: 'Reporting::MonthlyReports::Veteran',
-        youth: 'Reporting::MonthlyReports::Youth',
-        family_parents: 'Reporting::MonthlyReports::Parents',
-        parenting_youth: 'Reporting::MonthlyReports::ParentingYouth',
-        parenting_children: 'Reporting::MonthlyReports::ParentingChildren',
-        unaccompanied_minors: 'Reporting::MonthlyReports::UnaccompaniedMinors',
-        individual_adults: 'Reporting::MonthlyReports::IndividualAdults',
-        non_veteran: 'Reporting::MonthlyReports::NonVeteran',
-        family: 'Reporting::MonthlyReports::Family',
-        youth_families: 'Reporting::MonthlyReports::YouthFamilies',
-        children: 'Reporting::MonthlyReports::Children',
+        # all_clients: 'Reporting::MonthlyReports::AllClients',
+        # veteran: 'Reporting::MonthlyReports::Veteran',
+        # youth: 'Reporting::MonthlyReports::Youth',
+        # family_parents: 'Reporting::MonthlyReports::Parents',
+        # parenting_youth: 'Reporting::MonthlyReports::ParentingYouth',
+        # parenting_children: 'Reporting::MonthlyReports::ParentingChildren',
+        # unaccompanied_minors: 'Reporting::MonthlyReports::UnaccompaniedMinors',
+        # individual_adults: 'Reporting::MonthlyReports::IndividualAdults',
+        # non_veteran: 'Reporting::MonthlyReports::NonVeteran',
+        # family: 'Reporting::MonthlyReports::Family',
+        # youth_families: 'Reporting::MonthlyReports::YouthFamilies',
+        # children: 'Reporting::MonthlyReports::Children',
       }
     end
 
@@ -331,7 +331,6 @@ module Reporting::MonthlyReports
 
     def self.available_age_ranges
       {
-        nil => 'Any age',
         under_eighteen: '< 18',
         eighteen_to_twenty_four: '18 - 24',
         twenty_five_to_sixty_one: '25 - 61',

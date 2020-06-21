@@ -129,26 +129,6 @@ Rails.application.routes.draw do
     end
   end
 
-  def sub_populations
-    [
-      :all_clients,
-      :clients,
-      :childrens,
-      :children,
-      :families,
-      :youth_families,
-      :individual_adults,
-      :non_veterans,
-      :family_parents,
-      :parenting_childrens,
-      :parenting_children,
-      :parenting_youths,
-      :unaccompanied_minors,
-      :veterans,
-      :youths,
-    ].freeze
-  end
-
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
@@ -567,18 +547,6 @@ Rails.application.routes.draw do
     end
   end
   resources :dashboards, only: [:index]
-  namespace :dashboards do
-    sub_populations.each do |sub_population|
-      resources(sub_population, only: [:index]) do
-        collection do
-          get :active
-          get :housed
-          get :entered
-          get 'section/:partial', to: "#{sub_population}#section", as: :section
-        end
-      end
-    end
-  end
 
   namespace :performance_dashboards do
     resources :overview, only: [:index] do
