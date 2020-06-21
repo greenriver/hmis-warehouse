@@ -235,6 +235,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -262,6 +263,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -281,6 +283,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_adult_only_households_age"
     t.index ["client_id"], name: "index_month_adult_only_households_client_id"
     t.index ["id"], name: "index_month_adult_only_households_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_adult_only_households_act_enter"
@@ -295,6 +298,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -314,6 +318,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_adults_with_children_age"
     t.index ["client_id"], name: "index_month_adults_with_children_client_id"
     t.index ["id"], name: "index_month_adults_with_children_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_adults_with_children_act_enter"
@@ -328,6 +333,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -347,6 +353,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_all_clients_age"
     t.index ["client_id"], name: "index_month_all_clients_client_id"
     t.index ["id"], name: "index_month_all_clients_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_all_clients_act_enter"
@@ -361,6 +368,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -380,6 +388,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_child_only_households_age"
     t.index ["client_id"], name: "index_month_child_only_households_client_id"
     t.index ["id"], name: "index_month_child_only_households_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_child_only_households_act_enter"
@@ -394,6 +403,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -413,6 +423,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_children_age"
     t.index ["client_id"], name: "index_month_children_client_id"
     t.index ["id"], name: "index_month_children_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_children_act_enter"
@@ -427,6 +438,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -446,6 +458,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_family_age"
     t.index ["client_id"], name: "index_month_family_client_id"
     t.index ["id"], name: "index_month_family_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_family_act_enter"
@@ -460,6 +473,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -479,6 +493,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_family_parents_age"
     t.index ["client_id"], name: "index_month_family_parents_client_id"
     t.index ["id"], name: "index_month_family_parents_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_family_parents_act_enter"
@@ -493,6 +508,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -512,6 +528,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_individual_adults_age"
     t.index ["client_id"], name: "index_month_individual_adults_client_id"
     t.index ["id"], name: "index_month_individual_adults_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_individual_adults_act_enter"
@@ -526,6 +543,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -545,6 +563,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_non_veteran_age"
     t.index ["client_id"], name: "index_month_non_veteran_client_id"
     t.index ["id"], name: "index_month_non_veteran_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_non_veteran_act_enter"
@@ -559,6 +578,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -578,6 +598,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_parenting_children_age"
     t.index ["client_id"], name: "index_month_parenting_children_client_id"
     t.index ["id"], name: "index_month_parenting_children_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_parenting_children_act_enter"
@@ -592,6 +613,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -611,6 +633,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_parenting_youth_age"
     t.index ["client_id"], name: "index_month_parenting_youth_client_id"
     t.index ["id"], name: "index_month_parenting_youth_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_parenting_youth_act_enter"
@@ -625,6 +648,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -644,6 +668,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_unaccompanied_minors_age"
     t.index ["client_id"], name: "index_month_unaccompanied_minors_client_id"
     t.index ["id"], name: "index_month_unaccompanied_minors_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_unaccompanied_minors_act_enter"
@@ -658,6 +683,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -677,6 +703,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_remainder_age"
     t.index ["client_id"], name: "index_month_remainder_client_id"
     t.index ["id"], name: "index_month_remainder_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_remainder_act_enter"
@@ -691,6 +718,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -710,6 +738,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_veteran_age"
     t.index ["client_id"], name: "index_month_veteran_client_id"
     t.index ["id"], name: "index_month_veteran_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_veteran_act_enter"
@@ -724,6 +753,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -743,6 +773,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_youth_age"
     t.index ["client_id"], name: "index_month_youth_client_id"
     t.index ["id"], name: "index_month_youth_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_youth_act_enter"
@@ -757,6 +788,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.integer "year", null: false
     t.string "type"
     t.integer "client_id", null: false
+    t.integer "age_at_entry"
     t.integer "head_of_household", default: 0, null: false
     t.string "household_id"
     t.integer "project_id", null: false
@@ -776,6 +808,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.datetime "calculated_at", null: false
     t.integer "enrollment_id"
     t.date "mid_month"
+    t.index ["age_at_entry"], name: "index_month_youth_families_age"
     t.index ["client_id"], name: "index_month_youth_families_client_id"
     t.index ["id"], name: "index_month_youth_families_id", unique: true
     t.index ["mid_month", "active", "entered"], name: "index_month_youth_families_act_enter"

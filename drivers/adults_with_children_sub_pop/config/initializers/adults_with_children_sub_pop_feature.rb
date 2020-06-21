@@ -25,5 +25,5 @@ SubpopulationHistoryScope.add_sub_population(
 
 Reporting::MonthlyReports::Base.add_available_type(
   :adults_with_children,
-  AdultsWithChildrenSubPop::Reporting::MonthlyReports::AdultsWithChildren,
+  'AdultsWithChildrenSubPop::Reporting::MonthlyReports::AdultsWithChildren',
 )

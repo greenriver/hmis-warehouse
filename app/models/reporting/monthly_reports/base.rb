@@ -140,6 +140,7 @@ module Reporting::MonthlyReports
             month: month,
             year: year,
             client_id: client_id,
+            age_at_entry: enrollment[:age],
             enrollment_id: enrollment.id,
             head_of_household: enrollment[:head_of_household],
             household_id: enrollment.household_id.presence || "c_#{client_id}",
@@ -171,6 +172,7 @@ module Reporting::MonthlyReports
       @enrollment_columns ||= [
         :id,
         :client_id,
+        :age,
         :first_date_in_program,
         :last_date_in_program,
         :project_id,
@@ -327,6 +329,16 @@ module Reporting::MonthlyReports
       GrdaWarehouse::ServiceHistoryEnrollment.homeless
     end
 
+    def self.available_age_ranges
+      {
+        nil => 'Any age',
+        under_eighteen: '< 18',
+        eighteen_to_twenty_four: '18 - 24',
+        twenty_five_to_sixty_one: '25 - 61',
+        over_sixty_one: '62+',
+      }.invert.freeze
+    end
+
     def self.sub_tables
       available_types.map do |name, klass|
         [
@@ -363,6 +375,7 @@ module Reporting::MonthlyReports
         t.integer "year", null: false
         t.string "type"
         t.integer "client_id", null: false
+        t.integer "age_at_entry"
         t.integer "head_of_household", default: 0, null: false
         t.string "household_id"
         t.integer "project_id", null: false
@@ -392,6 +405,7 @@ module Reporting::MonthlyReports
 
         connection.add_index table_name, :id, unique: true, name: "index_month_#{name}_id"
         connection.add_index table_name, :client_id, name: "index_month_#{name}_client_id"
+        connection.add_index table_name, :age_at_entry, name: "index_month_#{name}_age"
         connection.add_index table_name, [:mid_month, :destination_id, :enrolled], name: "index_month_#{name}_dest_enr"
         connection.add_index table_name, [:mid_month, :active, :entered], name: "index_month_#{name}_act_enter"
         connection.add_index table_name, [:mid_month, :active, :exited], name: "index_month_#{name}_act_exit"
@@ -406,6 +420,7 @@ module Reporting::MonthlyReports
       connection.execute(sql)
       connection.add_index table_name, :id, unique: true, name: "index_month_#{name}_id"
       connection.add_index table_name, :client_id, name: "index_month_#{name}_client_id"
+      connection.add_index table_name, :age_at_entry, name: "index_month_#{name}_age"
       connection.add_index table_name, [:mid_month, :destination_id, :enrolled], name: "index_month_#{name}_dest_enr"
       connection.add_index table_name, [:mid_month, :active, :entered], name: "index_month_#{name}_act_enter"
       connection.add_index table_name, [:mid_month, :active, :exited], name: "index_month_#{name}_act_exit"
