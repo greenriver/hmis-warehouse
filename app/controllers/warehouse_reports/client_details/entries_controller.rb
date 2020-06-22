@@ -17,7 +17,7 @@ module WarehouseReports::ClientDetails
     CACHE_EXPIRY = Rails.env.production? ? 8.hours : 20.seconds
 
     def index
-      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
+      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :clients).to_sym
       date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
       @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
       @project_type_codes = params.try(:[], :range).try(:[], :project_type)&.map(&:presence)&.compact&.map(&:to_sym) || [:es]

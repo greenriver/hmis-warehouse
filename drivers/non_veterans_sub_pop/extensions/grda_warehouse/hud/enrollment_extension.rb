@@ -4,8 +4,11 @@ module NonVeteransSubPop::GrdaWarehouse::Hud
 
     included do
       scope :non_veterans, ->  do
-        joins(:service_history_enrollment).
-          merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.non_veterans)
+        joins(:client).merge(GrdaWarehouse::Hud::Client.non_veterans)
+      end
+
+      scope :non_veteran, -> do
+        non_veterans
       end
     end
   end

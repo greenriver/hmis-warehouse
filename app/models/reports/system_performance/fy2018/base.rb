@@ -58,17 +58,17 @@ module Reports::SystemPerformance::Fy2018
     end
 
     def self.available_sub_populations
-      [
-        ['All Clients', :all_clients],
-        ['Veteran', :veteran],
-        ['Youth', :youth],
-        ['Parenting Youth', :parenting_youth],
-        ['Parenting Children', :parenting_children],
-        ['Individual Adults', :individual_adults],
-        ['Non Veteran', :non_veteran],
-        ['Family', :family],
-        ['Children', :children],
-      ]
+      # [
+      #   ['All Clients', :all_clients],
+      #   ['Veteran', :veteran],
+      #   ['Youth', :youth],
+      #   ['Parenting Youth', :parenting_youth],
+      #   ['Parenting Children', :parenting_children],
+      #   ['Individual Adults', :individual_adults],
+      #   ['Non Veteran', :non_veteran],
+      #   ['Family', :family],
+      #   ['Children', :children],
+      # ]
     end
 
     def value_for_options options

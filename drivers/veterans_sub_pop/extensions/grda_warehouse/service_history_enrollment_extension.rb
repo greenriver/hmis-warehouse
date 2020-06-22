@@ -4,7 +4,11 @@ module VeteransSubPop::GrdaWarehouse
 
     included do
       scope :veterans, -> do
-        joins(:client).merge(GrdaWarehouse::Hud::Client.veteran)
+        joins(:client).merge(GrdaWarehouse::Hud::Client.veterans)
+      end
+
+      scope :veteran, -> do
+        veterans
       end
     end
   end

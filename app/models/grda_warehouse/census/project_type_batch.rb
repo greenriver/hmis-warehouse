@@ -78,6 +78,29 @@ module GrdaWarehouse::Census
       end
     end
 
+    def get_client_counts(project_type, join, client_scope)
+      ids = {}
+      GrdaWarehouse::ServiceHistoryService.joins(join).
+        service_within_date_range(start_date: @start_date, end_date: @end_date).
+          merge(client_scope).
+          where(project_type: project_type).
+          distinct.
+          group(:date).
+          count(:client_id)
+    end
+
+    def get_aggregate_client_counts(joins:, client_scope:, second_scope: nil)
+      ids = {}
+      query = GrdaWarehouse::ServiceHistoryService.joins(*joins).
+        where(date: (@start_date..@end_date)).
+        merge(client_scope)
+      unless second_scope.nil?
+        query = query.merge(second_scope)
+      end
+
+      query.distinct.group(:date).count(:client_id)
+    end
+
     # # Veteran
 
     # class VeteransFactory
@@ -482,28 +505,5 @@ module GrdaWarehouse::Census
     # end
 
     #
-
-    def get_client_counts(project_type, join, client_scope)
-      ids = {}
-      GrdaWarehouse::ServiceHistoryService.joins(join).
-        service_within_date_range(start_date: @start_date, end_date: @end_date).
-          merge(client_scope).
-          where(project_type: project_type).
-          distinct.
-          group(:date).
-          count(:client_id)
-    end
-
-    def get_aggregate_client_counts(joins:, client_scope:, second_scope: nil)
-      ids = {}
-      query = GrdaWarehouse::ServiceHistoryService.joins(*joins).
-        where(date: (@start_date..@end_date)).
-        merge(client_scope)
-      unless second_scope.nil?
-        query = query.merge(second_scope)
-      end
-
-      query.distinct.group(:date).count(:client_id)
-    end
   end
 end

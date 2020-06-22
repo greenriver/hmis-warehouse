@@ -10,6 +10,14 @@ module AdultOnlyHouseholdsSubPop::GrdaWarehouse::Hud
           where(she_t[:client_id].eq(c_t[:id])).arel.exists
         )
       end
+
+      scope :youth, -> (on: Date.current) do
+        where(DOB: (on - 24.years .. on - 18.years))
+      end
+
+      scope :adult, -> (on: Date.current) do
+        where(c_t[:DOB].lteq(on - 18.years))
+      end
     end
   end
 end

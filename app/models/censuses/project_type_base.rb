@@ -13,10 +13,8 @@ module Censuses
     end
 
     def clients_for_date(date, project_type, population = 'all_clients')
-      known_sub_populations = GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts
-      # Additional aliased scopes
-      known_sub_populations << :veterans
-      known_sub_populations << :non_veterans
+      known_sub_populations = GrdaWarehouse::ServiceHistoryEnrollment.known_standard_cohorts
+
       raise "Population #{population} not defined" unless known_sub_populations.include?(population.to_sym)
 
       columns = {

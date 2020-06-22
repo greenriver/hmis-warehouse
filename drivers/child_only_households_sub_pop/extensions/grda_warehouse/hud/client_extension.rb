@@ -10,6 +10,10 @@ module ChildOnlyHouseholdsSubPop::GrdaWarehouse::Hud
           where(she_t[:client_id].eq(c_t[:id])).arel.exists
         )
       end
+
+      scope :child, -> (on: Date.current) do
+        where(c_t[:DOB].gt(on - 18.years))
+      end
     end
   end
 end

@@ -15,7 +15,7 @@ module Filters
     attribute :data_source_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
     attribute :coc_codes, Array, default: []
-    attribute :sub_population, Symbol, default: :all_clients
+    attribute :sub_population, Symbol, default: :clients
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
 

@@ -10,11 +10,11 @@
 
     .row
       .col-md-4
-        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, include_blank: false, input_html: {class: 'select2'}, wrapper_html: {class: 'mb-0 mr-4 w-100'}
+        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, selected: @sub_population, include_blank: false, input_html: { class: :select2 }, wrapper_html: {class: 'mb-0 mr-4 w-100'}
       .col-md-4
-        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @organization_ids, label: 'Organizations', required: false
+        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: :select2 }, selected: @organization_ids, label: 'Organizations', required: false
       .col-md-4
-        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @project_ids, label: 'Projects', required: false
+        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: :select2 }, selected: @project_ids, label: 'Projects', required: false
 
   - content_for :form_js do
     = 'warehouse_reports/new_range_js'

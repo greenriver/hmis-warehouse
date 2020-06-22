@@ -35,7 +35,7 @@ module WarehouseReports
           open_between(start_date: start_date, end_date: end_date).
           in_project_type(filter_params[:project_types])
 
-        population = service_history_enrollment_source.know_standard_cohorts.detect { |m| m.to_s == filter_params[:sub_population] }
+        population = service_history_enrollment_source.known_standard_cohorts.detect { |m| m.to_s == filter_params[:sub_population] }
         enrollment_scope = enrollment_scope.send(population) if population.present?
 
         clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_history_enrollment).

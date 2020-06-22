@@ -8,7 +8,7 @@
 module Filters
   class Initiative < DateRange
     include ArelHelper
-    attribute :sub_population, Symbol, default: :all_clients
+    attribute :sub_population, Symbol, default: :clients
     attribute :comparison_start, Date, lazy: true, default: -> (r,_) { r.default_comparison_start }
     attribute :comparison_end, Date, lazy: true, default: -> (r,_) { r.default_comparison_end }
     attribute :initiative_name, String, default: nil

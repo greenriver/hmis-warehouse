@@ -7,6 +7,10 @@ module ClientsSubPop::GrdaWarehouse::Hud
       scope :clients, -> do
         current_scope
       end
+
+      scope :all_clients, -> do
+        current_scope
+      end
     end
   end
 end

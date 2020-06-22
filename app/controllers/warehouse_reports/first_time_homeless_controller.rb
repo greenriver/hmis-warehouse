@@ -16,7 +16,7 @@ module WarehouseReports
     def index
       date_range_options = params.require(:first_time_homeless).permit(:start, :end) if params[:first_time_homeless].present?
       @range = ::Filters::DateRange.new(date_range_options)
-      @sub_population = (params.try(:[], :first_time_homeless).try(:[], :sub_population) || :all_clients).to_sym
+      @sub_population = (params.try(:[], :first_time_homeless).try(:[], :sub_population) || :clients).to_sym
 
       if @range.valid?
         @first_time_client_ids = Set.new
@@ -78,7 +78,7 @@ module WarehouseReports
       @project_types = JSON.parse(params[:project_types])
       @project_types.map!(&:to_i)
       @project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS if @project_types.empty?
-      @sub_population = (params.try(:[], :sub_population) || :all_clients).to_sym
+      @sub_population = (params.try(:[], :sub_population) || :clients).to_sym
 
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
 

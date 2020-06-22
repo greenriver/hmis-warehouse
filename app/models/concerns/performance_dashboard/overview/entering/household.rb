@@ -14,9 +14,10 @@ module PerformanceDashboard::Overview::Entering::Household
     entering.
       joins(:client).
       order(first_date_in_program: :desc).
-      pluck(:client_id, :individual_adult, :age, :other_clients_under_18, :children_only, :first_date_in_program).each do |id, individual_adult, age, other_clients_under_18, children_only, _| # rubocop:disable Metrics/ParameterLists
-      buckets[household_bucket(individual_adult, age, other_clients_under_18, children_only)] << id unless counted.include?(id)
-      counted << id
+      select(:client_id, :age, :other_clients_under_18, :other_clients_between_18_and_25, :other_clients_over_25, :first_date_in_program).
+      each do |row|
+      buckets[household_bucket(row)] << row.client_id unless counted.include?(row.client_id)
+      counted << row.client_id
     end
     buckets
   end

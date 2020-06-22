@@ -13,18 +13,18 @@ module SubpopulationHistoryScope
 
   def self.sub_populations
     Rails.application.config.sub_populations[:history_scopes] || {
-      all_clients: :all_clients,
-      veteran: :veteran,
-      youth: :unaccompanied_youth,
-      parenting_youth: :parenting_youth,
-      parenting_children: :parenting_juvenile,
-      unaccompanied_minors: :unaccompanied_minors,
-      individual_adults: :individual_adult,
-      non_veteran: :non_veteran,
-      family: :family,
-      youth_families: :youth_families,
-      family_parents: :family_parents,
-      children: :children_only,
+      # all_clients: :all_clients,
+      # veteran: :veteran,
+      # youth: :unaccompanied_youth,
+      # parenting_youth: :parenting_youth,
+      # parenting_children: :parenting_juvenile,
+      # unaccompanied_minors: :unaccompanied_minors,
+      # individual_adults: :individual_adult,
+      # non_veteran: :non_veteran,
+      # family: :family,
+      # youth_families: :youth_families,
+      # family_parents: :family_parents,
+      # children: :children_only,
     }
   end
 

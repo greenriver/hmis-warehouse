@@ -14,7 +14,7 @@ module WarehouseReports::ClientDetails
     before_action :set_organizations
 
     def index
-      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
+      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :clients).to_sym
       date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
       # Also handle month based requests from javascript
       if params[:month].present?

@@ -5,10 +5,11 @@ module NonVeteransSubPop::GrdaWarehouse::Hud
 
     included do
       scope :non_veterans, -> do
-        where(
-         GrdaWarehouse::ServiceHistoryEnrollment.entry.non_veterans.
-          where(she_t[:client_id].eq(c_t[:id])).arel.exists
-        )
+        where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
+      end
+
+      scope :non_veteran, -> do
+        non_veterans
       end
     end
   end

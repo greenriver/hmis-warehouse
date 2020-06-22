@@ -55,7 +55,7 @@ class PerformanceDashboards::BaseController < ApplicationController
       project_type_codes: default_project_types,
       veteran_statuses: [],
       age_ranges: [],
-      sub_population: :all_clients,
+      sub_population: :clients,
       genders: [],
       races: [],
       ethnicities: [],

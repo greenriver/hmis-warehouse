@@ -7,6 +7,9 @@ module VeteransSubPop::GrdaWarehouse::Hud
       scope :veterans, -> do
         where(VeteranStatus: 1)
       end
+      scope :veteran, -> do
+        veterans
+      end
     end
   end
 end

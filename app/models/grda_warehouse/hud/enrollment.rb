@@ -167,26 +167,6 @@ module GrdaWarehouse::Hud
       where condition
     }
 
-    #################################
-    # Standard Demographic Scopes
-    scope :veteran, -> do
-      joins(:destination_client).merge(GrdaWarehouse::Hud::Client.veteran)
-    end
-
-    scope :non_veteran, -> do
-      joins(:destination_client).merge(GrdaWarehouse::Hud::Client.non_veteran)
-    end
-
-    scope :family, -> do
-      joins(:project).merge(GrdaWarehouse::Hud::Project.family)
-    end
-
-    scope :individual, -> do
-      joins(:project).merge(GrdaWarehouse::Hud::Project.individual)
-    end
-
-    # End Standard Demographic Scopes
-    #################################
 
     def self.related_item_keys
       [

@@ -167,118 +167,7 @@ module GrdaWarehouse::Hud
     has_many :verification_sources, class_name: 'GrdaWarehouse::VerificationSource'
     has_many :disability_verification_sources, class_name: 'GrdaWarehouse::VerificationSource::Disability'
 
-    # do not include ineligible clients for Sync with CAS
-    def active_cohorts
-      cohort_clients.select do |cc|
-        # meta.inactive is related to days of inactivity in HMIS
-        meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
-        cc.active? && cc.cohort&.active? && (cc.housed_date.blank? || cc.destination.blank?) && ! meta.inactive && ! cc.ineligible?
-      end.map(&:cohort).compact.uniq
-    end
-
-    # do not include ineligible clients for Sync with CAS
-    def active_cohort_ids
-      active_cohorts.map(&:id)
-    end
-
-    # This prevents leaking involvement in confidential cohorts
-    def cohort_ids_for_cas
-      GrdaWarehouse::Cohort.visible_in_cas.where(id: active_cohort_ids).pluck(:id)
-    end
-
-    def neighborhood_ids_for_cas
-      neighborhood_interests.map(&:to_i)
-    end
-
-    # Should be in the format {tag_id: min_rank}
-    # and returns the lowest rank for an individual for each tag
-    def cas_tags
-      @cas_tags = {}
-      cohort_clients.joins(:cohort).
-        merge(GrdaWarehouse::Cohort.where(id: cohort_ids_for_cas)).
-        each do |cc|
-          tag_id = cc.cohort.tag_id
-          if tag_id.present?
-            @cas_tags[tag_id] ||= cc.rank
-            @cas_tags[tag_id] = cc.rank if cc.rank.present? && (cc.rank < @cas_tags[tag_id])
-          end
-        end
-      # Are any tags that should be added based on HmisForms
-      Cas::Tag.where(rrh_assessment_trigger: true).each do |tag|
-        @cas_tags[tag.id] = assessment_score_for_cas
-      end
-      @cas_tags
-    end
-
-    def default_shelter_agency_contacts
-      (source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email) + source_hmis_forms.pathways.pluck(:staff_email)).compact
-    end
-
-    def pathways_assessments
-      source_hmis_forms.pathways
-    end
-
-    def most_recent_pathways_assessment
-      pathways_assessments.newest_first.first
-    end
-
-    def most_recent_pathways_assessment_collected_on
-      most_recent_pathways_assessment&.collected_at
-    end
-
-    def homeless_service_in_last_n_days?(n=90)
-      return false unless date_of_last_homeless_service
-
-      date_of_last_homeless_service > n.to_i.days.ago
-    end
-
-    # Do we have any declines that make us ineligible
-    # that occurred more recently than our most-recent pathways
-    # assessment?
-    def pathways_ineligible?
-      most_recent_pathways_ineligible_cas_response.present?
-    end
-
-    def most_recent_pathways_ineligible_cas_response
-      @most_recent_pathways_ineligible_cas_response ||= cas_reports.ineligible_in_warehouse.
-        declined.
-        match_closed.
-        match_failed.
-        where(updated_at: most_recent_pathways_assessment_collected_on..Time.current).
-        order(updated_at: :desc)&.first
-    end
-
-    def pathways_ineligible_on
-      return false unless pathways_ineligible?
-
-      most_recent_pathways_ineligible_cas_response.updated_at&.to_date
-    end
-
-    # do include ineligible clients for client dashboard, but don't include cohorts excluded from
-    # client dashboard
-    def cohorts_for_dashboard
-      cohort_clients.select do |cc|
-        meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
-        cc.active? && cc.cohort&.active? && cc.cohort.show_on_client_dashboard? && ! meta.inactive
-      end.map(&:cohort).compact.uniq
-    end
-
-    def last_exit_destination
-      last_exit = source_exits.order(ExitDate: :desc).first
-      if last_exit
-        destination_code = last_exit.Destination || 99
-        if destination_code == 17
-          destination_string = last_exit.OtherDestination
-        else
-          destination_string = HUD.destination(destination_code)
-        end
-        return "#{destination_string} (#{last_exit.ExitDate})"
-      else
-        return "None"
-      end
-    end
-
-    has_one :active_consent_form, class_name: GrdaWarehouse::ClientFile.name, primary_key: :consent_form_id, foreign_key: :id
+    has_one :active_consent_form, class_name: 'GrdaWarehouse::ClientFile', primary_key: :consent_form_id, foreign_key: :id
 
     # Delegations
     delegate :first_homeless_date, to: :processed_service_history, allow_nil: true
@@ -305,139 +194,10 @@ module GrdaWarehouse::Hud
     # end
     #
 
-    scope :child, -> (on: Date.current) do
-      where(c_t[:DOB].gt(on - 18.years))
-    end
-
-    scope :youth, -> (on: Date.current) do
-      where(DOB: (on - 24.years .. on - 18.years))
-    end
-
-    scope :adult, -> (on: Date.current) do
-      where(c_t[:DOB].lteq(on - 18.years))
-    end
-
-    #################################
-    # Standard Cohort Scopes
-
-    scope :individual_adult, -> (start_date: Date.current, end_date: Date.current) do
-      adult(on: start_date).
-      where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          open_between(start_date: start_date, end_date: end_date).
-          distinct.
-          individual_adult.
-          select(:client_id)
-      )
-    end
-
-    scope :unaccompanied_youth, -> (start_date: Date.current, end_date: Date.current) do
-      youth(on: start_date).
-      where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          open_between(start_date: start_date, end_date: end_date).
-          distinct.
-          unaccompanied_youth.
-          select(:client_id)
-      )
-    end
-
-    scope :children_only, -> (start_date: Date.current, end_date: Date.current) do
-      child(on: start_date).
-      where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          open_between(start_date: start_date, end_date: end_date).
-          distinct.
-          children_only.
-          select(:client_id)
-      )
-    end
-
-    scope :parenting_youth, -> (start_date: Date.current, end_date: Date.current) do
-      youth(on: start_date).
-      where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          open_between(start_date: start_date, end_date: end_date).
-          distinct.
-          parenting_youth.
-          select(:client_id)
-      )
-    end
-
-    scope :parenting_juvenile, -> (start_date: Date.current, end_date: Date.current) do
-      youth(on: start_date).
-      where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          open_between(start_date: start_date, end_date: end_date).
-          distinct.
-          parenting_juvenile.
-          select(:client_id)
-      )
-    end
-
-    scope :unaccompanied_minors, -> (start_date: Date.current, end_date: Date.current) do
-      youth(on: start_date).
-      where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          open_between(start_date: start_date, end_date: end_date).
-          distinct.
-          unaccompanied_minors.
-          select(:client_id)
-      )
-    end
-
-    scope :family, -> (start_date: Date.current, end_date: Date.current) do
-      where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          open_between(start_date: start_date, end_date: end_date).
-          distinct.
-          family.
-          select(:client_id)
-      )
-    end
-
-    scope :family_parents, -> (start_date: Date.current, end_date: Date.current) do
-      where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          open_between(start_date: start_date, end_date: end_date).
-          distinct.
-          parents.
-          select(:client_id)
-      )
-    end
-
-    scope :youth_families, -> (start_date: Date.current, end_date: Date.current) do
-      where(
-        id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          open_between(start_date: start_date, end_date: end_date).
-          distinct.
-          youth_families.
-          select(:client_id)
-      )
-    end
-
-    scope :veteran, -> do
-      where(VeteranStatus: 1)
-    end
-
-    scope :non_veteran, -> do
-      where(c_t[:VeteranStatus].not_eq(1).or(c_t[:VeteranStatus].eq(nil)))
-    end
-
     scope :verified_non_veteran, -> do
       where verified_veteran_status: :non_veteran
     end
 
-    # Some aliases for our inconsistencies
-    class << self
-      alias_method :individual_adults, :individual_adult
-      alias_method :all_clients, :all
-      alias_method :children, :children_only
-      alias_method :parenting_children, :parenting_juvenile
-    end
-
-    # End Standard Cohorts
-    #################################
     scope :individual, -> (on_date: Date.current) do
       where(
         id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -835,6 +595,117 @@ module GrdaWarehouse::Hud
     ####################
     after_create :notify_users
     attr_accessor :send_notifications
+
+    # do not include ineligible clients for Sync with CAS
+    def active_cohorts
+      cohort_clients.select do |cc|
+        # meta.inactive is related to days of inactivity in HMIS
+        meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
+        cc.active? && cc.cohort&.active? && (cc.housed_date.blank? || cc.destination.blank?) && ! meta.inactive && ! cc.ineligible?
+      end.map(&:cohort).compact.uniq
+    end
+
+    # do not include ineligible clients for Sync with CAS
+    def active_cohort_ids
+      active_cohorts.map(&:id)
+    end
+
+    # This prevents leaking involvement in confidential cohorts
+    def cohort_ids_for_cas
+      GrdaWarehouse::Cohort.visible_in_cas.where(id: active_cohort_ids).pluck(:id)
+    end
+
+    def neighborhood_ids_for_cas
+      neighborhood_interests.map(&:to_i)
+    end
+
+    # Should be in the format {tag_id: min_rank}
+    # and returns the lowest rank for an individual for each tag
+    def cas_tags
+      @cas_tags = {}
+      cohort_clients.joins(:cohort).
+        merge(GrdaWarehouse::Cohort.where(id: cohort_ids_for_cas)).
+        each do |cc|
+          tag_id = cc.cohort.tag_id
+          if tag_id.present?
+            @cas_tags[tag_id] ||= cc.rank
+            @cas_tags[tag_id] = cc.rank if cc.rank.present? && (cc.rank < @cas_tags[tag_id])
+          end
+        end
+      # Are any tags that should be added based on HmisForms
+      Cas::Tag.where(rrh_assessment_trigger: true).each do |tag|
+        @cas_tags[tag.id] = assessment_score_for_cas
+      end
+      @cas_tags
+    end
+
+    def default_shelter_agency_contacts
+      (source_hmis_forms.rrh_assessment.with_staff_contact.pluck(:staff_email) + source_hmis_forms.pathways.pluck(:staff_email)).compact
+    end
+
+    def pathways_assessments
+      source_hmis_forms.pathways
+    end
+
+    def most_recent_pathways_assessment
+      pathways_assessments.newest_first.first
+    end
+
+    def most_recent_pathways_assessment_collected_on
+      most_recent_pathways_assessment&.collected_at
+    end
+
+    def homeless_service_in_last_n_days?(n=90)
+      return false unless date_of_last_homeless_service
+
+      date_of_last_homeless_service > n.to_i.days.ago
+    end
+
+    # Do we have any declines that make us ineligible
+    # that occurred more recently than our most-recent pathways
+    # assessment?
+    def pathways_ineligible?
+      most_recent_pathways_ineligible_cas_response.present?
+    end
+
+    def most_recent_pathways_ineligible_cas_response
+      @most_recent_pathways_ineligible_cas_response ||= cas_reports.ineligible_in_warehouse.
+        declined.
+        match_closed.
+        match_failed.
+        where(updated_at: most_recent_pathways_assessment_collected_on..Time.current).
+        order(updated_at: :desc)&.first
+    end
+
+    def pathways_ineligible_on
+      return false unless pathways_ineligible?
+
+      most_recent_pathways_ineligible_cas_response.updated_at&.to_date
+    end
+
+    # do include ineligible clients for client dashboard, but don't include cohorts excluded from
+    # client dashboard
+    def cohorts_for_dashboard
+      cohort_clients.select do |cc|
+        meta = CohortColumns::Meta.new(cohort: cc.cohort, cohort_client: cc)
+        cc.active? && cc.cohort&.active? && cc.cohort.show_on_client_dashboard? && ! meta.inactive
+      end.map(&:cohort).compact.uniq
+    end
+
+    def last_exit_destination
+      last_exit = source_exits.order(ExitDate: :desc).first
+      if last_exit
+        destination_code = last_exit.Destination || 99
+        if destination_code == 17
+          destination_string = last_exit.OtherDestination
+        else
+          destination_string = HUD.destination(destination_code)
+        end
+        return "#{destination_string} (#{last_exit.ExitDate})"
+      else
+        return "None"
+      end
+    end
 
     def notify_users
       NotifyUser.client_added( id ).deliver_later if send_notifications

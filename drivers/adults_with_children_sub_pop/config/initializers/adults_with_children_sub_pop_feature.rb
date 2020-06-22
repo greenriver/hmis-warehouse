@@ -12,11 +12,11 @@ AvailableSubPopulations.add_sub_population(
   'AdultsWithChildrenSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultsWithChildren',
 )
 
-GrdaWarehouse::Census.add_population(
-  population: :adults_with_children,
-  scope: GrdaWarehouse::ServiceHistoryEnrollment.adults_with_children,
-  factory: AdultsWithChildrenSubPop::GrdaWarehouse::Census::AdultsWithChildrenFactory,
-)
+# GrdaWarehouse::Census.add_population(
+#   population: :adults_with_children,
+#   scope: GrdaWarehouse::ServiceHistoryEnrollment.adults_with_children,
+#   factory: AdultsWithChildrenSubPop::GrdaWarehouse::Census::AdultsWithChildrenFactory,
+# )
 
 SubpopulationHistoryScope.add_sub_population(
   :adults_with_children,

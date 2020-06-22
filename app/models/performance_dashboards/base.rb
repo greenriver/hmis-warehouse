@@ -131,7 +131,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def chosen_sub_population
-    Reporting::MonthlyReports::Base.available_types[@sub_population]&.new&.sub_population_title
+    Reporting::MonthlyReports::Base.available_types[@sub_population]&.constantize&.new&.sub_population_title
   end
 
   def chosen_races
@@ -159,7 +159,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def self.sub_populations
-    Reporting::MonthlyReports::Base.available_types.map { |k, klass| [klass.new.sub_population_title, k] }.to_h
+    Reporting::MonthlyReports::Base.available_types.map { |k, klass| [klass.constantize.new.sub_population_title, k] }.to_h
   end
 
   def valid_sub_population(population)
@@ -203,11 +203,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
     case @household_type
     when :without_children
-      scope.where(other_clients_under_18: 0)
+      scope.adult_only_households
     when :with_children
-      scope.where(other_clients_under_18: 1)
+      scope.adults_with_children
     when :only_children
-      scope.where(children_only: true)
+      scope.child_only_households
     end
   end
 

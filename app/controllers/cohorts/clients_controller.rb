@@ -108,7 +108,7 @@ module Cohorts
       @populations = begin
         populations = populations_params[:population]&.map(&:to_sym)
         if populations
-          populations.select { |e| GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts.include? e }
+          populations.select { |e| GrdaWarehouse::ServiceHistoryEnrollment.known_standard_cohorts.include? e }
         elsif populations_params.key?('population')
           [:all_clients]
         else

@@ -12,11 +12,11 @@ AvailableSubPopulations.add_sub_population(
   'AdultOnlyHouseholdsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultOnlyHouseholds',
 )
 
-GrdaWarehouse::Census.add_population(
-  population: :adult_only_households,
-  scope: GrdaWarehouse::ServiceHistoryEnrollment.adult_only_households,
-  factory: AdultOnlyHouseholdsSubPop::GrdaWarehouse::Census::AdultOnlyHouseholdsFactory,
-)
+# GrdaWarehouse::Census.add_population(
+#   population: :adult_only_households,
+#   scope: GrdaWarehouse::ServiceHistoryEnrollment.adult_only_households,
+#   factory: AdultOnlyHouseholdsSubPop::GrdaWarehouse::Census::AdultOnlyHouseholdsFactory,
+# )
 
 SubpopulationHistoryScope.add_sub_population(
   :adult_only_households,

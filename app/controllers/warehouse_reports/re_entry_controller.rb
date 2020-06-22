@@ -80,7 +80,7 @@ module WarehouseReports
     end
 
     def set_sub_population
-      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
+      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :clients).to_sym
     end
 
     def set_project_types

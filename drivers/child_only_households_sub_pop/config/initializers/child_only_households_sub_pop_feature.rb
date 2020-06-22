@@ -12,11 +12,11 @@ AvailableSubPopulations.add_sub_population(
   'ChildOnlyHouseholdsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::ChildOnlyHouseholds',
 )
 
-GrdaWarehouse::Census.add_population(
-  population: :child_only_households,
-  scope: GrdaWarehouse::ServiceHistoryEnrollment.child_only_households,
-  factory: ChildOnlyHouseholdsSubPop::GrdaWarehouse::Census::ChildOnlyHouseholdsFactory,
-)
+# GrdaWarehouse::Census.add_population(
+#   population: :child_only_households,
+#   scope: GrdaWarehouse::ServiceHistoryEnrollment.child_only_households,
+#   factory: ChildOnlyHouseholdsSubPop::GrdaWarehouse::Census::ChildOnlyHouseholdsFactory,
+# )
 
 SubpopulationHistoryScope.add_sub_population(
   :child_only_households,
