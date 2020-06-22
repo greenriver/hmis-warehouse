@@ -545,6 +545,12 @@ def report_list
         limitable: false,
       },
       {
+        url: 'warehouse_reports/youth_intake_export',
+        name: 'Youth Intake Export',
+        description: 'Export youth intake and associated data for a given time frame',
+        limitable: false,
+      },
+      {
         url: 'warehouse_reports/ad_hoc_analysis',
         name: 'Ad-Hoc Analysis Export',
         description: 'Export data for offline analysis',

@@ -1,0 +1,53 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Youth Intakes') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = ["Youth Intakes and associated data between #{@filter.start} and #{@filter.end}"]
+  sheet.add_row(row, :style => title)
+  sheet.merge_cells "A1:H1"
+  row = GrdaWarehouse::YouthIntake::Base.report_columns.map(&:humanize)
+  sheet.add_row(row, :style => title)
+  @intakes.pluck(*GrdaWarehouse::YouthIntake::Base.report_columns).each do |row|
+    sheet.add_row(row)
+  end
+end
+
+wb.add_worksheet(name: 'Referrals') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = GrdaWarehouse::Youth::YouthReferral.report_columns.map(&:humanize)
+  sheet.add_row(row, :style => title)
+  @referrals.pluck(*GrdaWarehouse::Youth::YouthReferral.report_columns).each do |row|
+    sheet.add_row(row)
+  end
+end
+
+wb.add_worksheet(name: 'Case Management') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = GrdaWarehouse::Youth::YouthCaseManagement.report_columns.map(&:humanize)
+  sheet.add_row(row, :style => title)
+  @case_managements.pluck(*GrdaWarehouse::Youth::YouthCaseManagement.report_columns).each do |row|
+    sheet.add_row(row)
+  end
+end
+
+wb.add_worksheet(name: 'Direct Financial Assistance') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = GrdaWarehouse::Youth::DirectFinancialAssistance.report_columns.map(&:humanize)
+  sheet.add_row(row, :style => title)
+  @dfas.pluck(*GrdaWarehouse::Youth::DirectFinancialAssistance.report_columns).each do |row|
+    sheet.add_row(row)
+  end
+end
+
+wb.add_worksheet(name: '3-Month Follow-ups') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = GrdaWarehouse::Youth::YouthFollowUp.report_columns.map(&:humanize)
+  sheet.add_row(row, :style => title)
+  @follow_ups.pluck(*GrdaWarehouse::Youth::YouthFollowUp.report_columns).each do |row|
+    sheet.add_row(row)
+  end
+end
+
+
+
+
+

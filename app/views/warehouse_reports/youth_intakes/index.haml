@@ -32,8 +32,13 @@
         %th c. Referral sources (number of YYA, if available)
         %td
           %ul.list-unstyled
+            %li
+              All referrals (
+              = data_link(:two_c)
+              )
             - @report.two_c.each do |label, count|
               %li= "#{label} (#{count.count})"
+
 
       %tr
         %th{rowspan: 3} 3. Assessment/ Case Management/ Case Coordination - Prevention
@@ -109,6 +114,10 @@
         %th o. Number of YYA who received assistance with Other costs
         %td
           %ul.list-unstyled
+            %li
+              All assistance (
+              = data_link(:five_o)
+              )
             - @report.five_o.each do |label, count|
               %li= "#{label} (#{count.count})"
 
@@ -165,6 +174,10 @@
         %th q. Number of YYA who were referred to Other services or activities
         %td
           %ul.list-unstyled
+            %li
+              All referrals (
+              = data_link(:six_q)
+              )
             - @report.six_q.each do |label, count|
               %li= "#{label} (#{count.count})"
 
@@ -328,5 +341,9 @@
         %th d. Number of YYA who are in each type of Stable Housing placement (RRH, market rate, transitional, family) 3 mos.
         %td
           %ul.list-unstyled
+            %li
+              All housed (
+              = data_link(:follow_up_two_d)
+              )
             - @report.follow_up_two_d.each do |label, count|
               %li= "#{label} (#{count.count})"

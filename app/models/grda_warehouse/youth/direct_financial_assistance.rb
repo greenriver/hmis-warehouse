@@ -54,6 +54,8 @@ module GrdaWarehouse::Youth
         'Rent',
         'Rent arrears',
         'Utilities',
+        'Emergency Shelter Night Owl Stay',
+        'Emergency Shelter Hotel',
         'Transportation-related costs',
         'Education-related costs',
         'Legal costs',
@@ -63,6 +65,10 @@ module GrdaWarehouse::Youth
         'Cell phone costs',
         'Food / Groceries (including our drop-in food pantries)',
       ].sort + ['Other']
+    end
+
+    def self.report_columns
+      column_names - [:user_id, :deleted_at]
     end
   end
 end

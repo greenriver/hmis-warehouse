@@ -198,6 +198,7 @@ Rails.application.routes.draw do
     end
     resources :youth_follow_ups, only: [:index]
     resources :youth_export, only: [:index, :show, :create, :destroy]
+    resources :youth_intake_export, only: [:index, :create]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]

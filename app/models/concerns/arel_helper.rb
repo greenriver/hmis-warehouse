@@ -188,6 +188,10 @@ module ArelHelper
     GrdaWarehouse::CohortClient.arel_table
   end
 
+  def c_c_change_t
+    GrdaWarehouse::CohortClientChange.arel_table
+  end
+
   def yib_t
     GrdaWarehouse::YouthIntake::Base.arel_table
   end
@@ -491,6 +495,10 @@ module ArelHelper
 
     def c_client_t
       GrdaWarehouse::CohortClient.arel_table
+    end
+
+    def c_c_change_t
+      GrdaWarehouse::CohortClientChange.arel_table
     end
 
     def yib_t
