@@ -79,8 +79,14 @@ window.App.RoleTable = class TableSearch {
       })
   }
 
-  changeDirtyState(isDirty=true) {
-    this.isDirty = !isDirty
+  changeDirtyState(isDirty=true, event) {
+    this.isDirty = isDirty
+    if (event) {
+      event.target.classList.add('dirty')
+    }
+    else if (!isDirty) {
+      this.$tableContainer.find('input.dirty').removeClass('dirty')
+    }
     const $submitContainer = $(this.props.submitContainerSelector)
     if ($submitContainer.length) {
       if (isDirty) {
