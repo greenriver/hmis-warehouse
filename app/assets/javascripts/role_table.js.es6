@@ -93,7 +93,7 @@ window.App.RoleTable = class TableSearch {
   }
 
   saving() {
-    this.$tableContainer.prepend('<div class="j-table__loading"><span>Saving</span></div>')
+    this.$tableContainer.prepend('<div class="c-loading j-table__loading"><span>Saving</span></div>')
   }
 
   confirmSaved() {

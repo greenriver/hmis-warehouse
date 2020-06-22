@@ -78,7 +78,7 @@
     %tbody
       - Role.permissions(exclude_health: true).each do |permission|
         - categories = Role.category_for permission: permission
-        %tr.j-permission-row{'data-title' => permission.to_s.humanize, 'data-categories' => categories.to_s.html_safe}
+        %tr.j-table__row{'data-title' => permission.to_s.humanize, 'data-categories' => categories.to_s.html_safe}
           %td.c-table__cell--border-r-primary{colspan:1}
             .c-table__cell-title.d-flex.align-items-center
               = permission.to_s.humanize
