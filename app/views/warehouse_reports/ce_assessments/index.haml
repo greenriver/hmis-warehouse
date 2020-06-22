@@ -1,0 +1,26 @@
+%h1 Coordinated Entry Assessment Details
+
+.d-flex
+  = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
+    Download Excel
+
+- if @clients
+  %p= paginate @clients
+  %table.table
+    %thead
+      %tr
+        %th Name
+        %th DOB
+        %th Current Location
+        %th Assessment Score
+        %th Vulnerability Score
+    %tbody
+      - @clients.each do |client|
+        %tr
+          %td= link_to client.name, client_path(client)
+          %td= client.DOB
+          %td= client.ce_assessment.location
+          %td= client.ce_assessment.score
+          %td= client.ce_assessment.vulnerability_score
+- else
+  No assessments available.
