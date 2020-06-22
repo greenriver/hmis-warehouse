@@ -39,6 +39,10 @@
     margin: 15px;
   }
 
+  .c-checkbox {
+    font-size: 18px;
+  }
+
 .table-responsive.j-table
   .j-table__submit-container
     = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
@@ -91,12 +95,15 @@
               = Role.description_for permission: permission
           - @roles.each do |role|
             - permitted = role.send(permission)
-            %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon.j-role-permission{data:{role: role.id}, class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
+            %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon.j-table__input.text-center{data:{role: role.id}, class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
               .form-check
                 - id = permission.to_s
                 - name = "role[#{id}]"
+                - id += "_#{role.id}"
                 %input{name: name, type: 'hidden', value: 0}
-                %input.form-check-input.boolean.optional{id: id, name:name, type: 'checkbox', value: 1, checked: permitted}
+                .c-checkbox
+                  %input{id: id, name:name, type: 'checkbox', value: 1, checked: permitted}
+                  %label{for: id}
 
               -# - if permitted
               -#   %i.icon-check-circle

@@ -29,6 +29,7 @@ window.App.RoleTable = class TableSearch {
       ordering: false,
       paging: false,
       bInfo: false,
+      // fixedHeader: true,
       fixedColumns: {
         leftColumns: 1
       }
@@ -44,9 +45,7 @@ window.App.RoleTable = class TableSearch {
     $(submitActionSelector).click(this.submitChanges.bind(this))
     $(`${tableSelector} input`).on('change', this.changeDirtyState.bind(this, true))
     window.onbeforeunload = () => {
-      if (!this.isDirty) {
-        return false
-      } else {
+      if (this.isDirty) {
         return 'Looks like there are unsaved changes. Those changes will be lost if you navigate away'
       }
     }
@@ -54,11 +53,15 @@ window.App.RoleTable = class TableSearch {
 
   submitChanges() {
     this.saving()
-    var rolePromises = $(this.props.tableObjectHeadingSelector)
+    const {
+      tableObjectHeadingSelector,
+      tableInputSelector,
+    } = this.props
+    var rolePromises = $(tableObjectHeadingSelector)
     .toArray()
     .map( (el) => $(el).data('role') )
     .map((id) => {
-      var inputData = $(`input[name=authenticity_token], .j-role-permission[data-role=${id}] input`).serialize()
+      var inputData = $(`input[name=authenticity_token], ${tableInputSelector}[data-role=${id}] input`).serialize()
       return $.ajax({
         url: `/admin/roles/${id}`,
         type: 'PATCH',
@@ -71,10 +74,7 @@ window.App.RoleTable = class TableSearch {
         console.log('All Saved')
         this.confirmSaved()
       }).catch((error) => {
-        setTimeout(() => {
-          this.confirmSaved()
-          console.log('finished')
-        }, 1000)
+        this.confirmSaved()
         console.error('Save failed', error)
       })
   }
@@ -106,9 +106,9 @@ window.App.RoleTable = class TableSearch {
       $loading.html(`
         <span style='font-size: 100px'> ✓ </span>
       `)
-    }, 1000)
+    }, 500)
     // Remove loading elements
-    setTimeout(() => { $loading.fadeOut() }, 1000)
+    setTimeout(() => { $loading.fadeOut() }, 500)
     this.isDirty = false
   }
 }
