@@ -32,6 +32,8 @@ module WarehouseReports
         'Client Name' => [:client, :name],
         'DOB' => [:client, :DOB],
 
+        'Started At' => [:assessment, :created_at],
+        'Submitted At' => [:assessment, :submitted_at],
         'Assessment Score' => [:assessment, :score],
         'Vulnerability Score' => [:assessment, :vulnerability_score],
         'Priority Score' => [:assessment, :priority_score],

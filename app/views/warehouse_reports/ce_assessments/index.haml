@@ -14,6 +14,8 @@
         %th Current Location
         %th Assessment Score
         %th Vulnerability Score
+        %th Started
+        %th Submitted?
     %tbody
       - @clients.each do |client|
         %tr
@@ -22,5 +24,7 @@
           %td= client.ce_assessment.location
           %td= client.ce_assessment.score
           %td= client.ce_assessment.vulnerability_score
+          %td= client.ce_assessment.created_at&.to_date
+          %td= checkmark(client.ce_assessment.submitted_at.present?)
 - else
   No assessments available.
