@@ -9,19 +9,13 @@ module WarehouseReports::ClientDetails
     include ArelHelper
     include WarehouseReportAuthorization
     include SubpopulationHistoryScope
+    include ClientDetailReports
+
     before_action :set_limited, only: [:index]
-    before_action :set_projects
-    before_action :set_organizations
+    before_action :set_filter
 
     def index
-      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :clients).to_sym
-      date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
-      @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
-
-      @start_date = @range.start
-      @end_date = @range.end
-
-      @enrollments = active_client_service_history(range: @range)
+      @enrollments = active_client_service_history
       @clients = GrdaWarehouse::Hud::Client.where(id: @enrollments.keys).preload(:source_clients).index_by(&:id)
 
       respond_to do |format|
@@ -32,61 +26,63 @@ module WarehouseReports::ClientDetails
       end
     end
 
+    private def filter_params
+      return {} unless params[:filter].present?
+
+      params.require(:filter).permit(
+        :start,
+        :end,
+        :sub_population,
+        :heads_of_household,
+        :ph,
+        age_ranges: [],
+        organization_ids: [],
+        project_ids: [],
+        project_type_codes: [],
+      )
+    end
+
     def service_history_columns
       {
-        client_id: she_t[:client_id].to_sql,
-        project_id: she_t[:project_id].to_sql,
-        first_date_in_program: she_t[:first_date_in_program].to_sql,
-        last_date_in_program: she_t[:last_date_in_program].to_sql,
-        project_name: she_t[:project_name].to_sql,
-        project_type: she_t[service_history_source.project_type_column].to_sql,
-        organization_id: she_t[:organization_id].to_sql,
-        first_name: c_t[:FirstName].to_sql,
-        last_name: c_t[:LastName].to_sql,
-        enrollment_group_id: she_t[:enrollment_group_id].to_sql,
-        destination: she_t[:destination].to_sql,
-        living_situation: e_t[:LivingSituation].to_sql,
+        client_id: she_t[:client_id],
+        project_id: she_t[:project_id],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        project_name: she_t[:project_name],
+        project_type: she_t[service_history_source.project_type_column],
+        organization_id: she_t[:organization_id],
+        first_name: c_t[:FirstName],
+        last_name: c_t[:LastName],
+        enrollment_group_id: she_t[:enrollment_group_id],
+        destination: she_t[:destination],
+        living_situation: e_t[:LivingSituation],
       }
     end
 
-    def active_client_service_history(range:)
-      homeless_service_history_source.joins(:client, :enrollment).
-        with_service_between(start_date: range.start, end_date: range.end).
-        open_between(start_date: range.start, end_date: range.end).
-        distinct.
-        order(first_date_in_program: :asc).
-        pluck(*service_history_columns.values).
+    def active_client_service_history
+      enrollment_scope.pluck(*service_history_columns.values).
         map do |row|
-          Hash[service_history_columns.keys.zip(row)]
-        end.
+        Hash[service_history_columns.keys.zip(row)]
+      end.
         group_by { |m| m[:client_id] }
     end
 
-    def service_history_source
-      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
+    private def enrollment_scope
+      residential_service_history_source.joins(:client, :enrollment).
+        with_service_between(start_date: @filter.start, end_date: @filter.end).
+        open_between(start_date: @filter.start, end_date: @filter.end).
+        distinct.
+        order(first_date_in_program: :asc)
     end
 
-    def homeless_service_history_source
-      hsh_scope = history_scope(service_history_source.homeless, @sub_population)
-      hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
-      hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)) if @project_ids.any?
-      hsh_scope
-    end
-
-    def set_organizations
-      @organization_ids = begin
-                            params[:range][:organization_ids].map(&:presence).compact.map(&:to_i)
-                          rescue StandardError
-                            []
-                          end
-    end
-
-    def set_projects
-      @project_ids = begin
-                       params[:range][:project_ids].map(&:presence).compact.map(&:to_i)
-                     rescue StandardError
-                       []
-                     end
+    def residential_service_history_source
+      res_scope = history_scope(service_history_source.residential, @filter.sub_population)
+      res_scope = filter_for_project_types(res_scope)
+      res_scope = filter_for_organizations(res_scope)
+      res_scope = filter_for_projects(res_scope)
+      res_scope = filter_for_age_ranges(res_scope)
+      res_scope = filter_for_hoh(res_scope)
+      res_scope
     end
   end
 end

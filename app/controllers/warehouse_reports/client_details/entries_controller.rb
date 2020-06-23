@@ -10,30 +10,19 @@ module WarehouseReports::ClientDetails
     include ApplicationHelper
     include WarehouseReportAuthorization
     include SubpopulationHistoryScope
+    include ClientDetailReports
+
     before_action :set_limited, only: [:index]
-    before_action :set_projects
-    before_action :set_organizations
+    before_action :set_filter
 
     CACHE_EXPIRY = Rails.env.production? ? 8.hours : 20.seconds
 
     def index
-      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :clients).to_sym
-      date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
-      @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
-      @project_type_codes = params.try(:[], :range).try(:[], :project_type)&.map(&:presence)&.compact&.map(&:to_sym) || [:es]
-      @project_type = []
-      @project_type_codes.each do |code|
-        @project_type += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
-      end
-
-      @start_date = @range.start
-      @end_date = @range.end
-
-      @enrollments = enrollments_by_client(@project_type)
+      @enrollments = enrollments_by_client
       # put clients in buckets
       @buckets = bucket_clients(@enrollments)
 
-      @data = setup_data_structure(start_date: @start_date)
+      @data = setup_data_structure
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -44,17 +33,17 @@ module WarehouseReports::ClientDetails
 
     def service_scope(project_type)
       homeless_service_history_source.
-        with_service_between(start_date: @range.start, end_date: @range.end).
+        with_service_between(start_date: @filter.start, end_date: @filter.end).
         in_project_type(project_type)
     end
 
-    def enrollments_by_client(project_type)
+    def enrollments_by_client
       # limit to clients with an entry within the range and service within the range in the type
       involved_client_ids = homeless_service_history_source.
         entry.
-        started_between(start_date: @range.start, end_date: @range.end).
-        in_project_type(project_type).
-        with_service_between(start_date: @range.start, end_date: @range.end).
+        started_between(start_date: @filter.start, end_date: @filter.end).
+        in_project_type(@filter.project_type_ids).
+        with_service_between(start_date: @filter.start, end_date: @filter.end).
         distinct.
         select(:client_id)
       # get all of their entry records regardless of date range
@@ -62,8 +51,8 @@ module WarehouseReports::ClientDetails
         entry.
         joins(:client, :organization).
         where(client_id: involved_client_ids).
-        where(she_t[:first_date_in_program].lteq(@range.end)).
-        in_project_type(project_type).
+        where(she_t[:first_date_in_program].lteq(@filter.end)).
+        in_project_type(@filter.project_type_ids).
         order(first_date_in_program: :desc).
         pluck(*entered_columns.values).
         map do |row|
@@ -73,33 +62,34 @@ module WarehouseReports::ClientDetails
     end
 
     def service_history_source
-      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
+      GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
     end
 
     def homeless_service_history_source
-      scope = service_history_source.
-        in_project_type(@project_type)
-      hsh_scope = history_scope(scope, @sub_population)
-      hsh_scope = hsh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
-      hsh_scope = hsh_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)) if @project_ids.any?
-      hsh_scope
+      scope = history_scope(service_history_source.in_project_type(@filter.project_type_ids), @filter.sub_population)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_projects(scope)
+      scope = filter_for_age_ranges(scope)
+      scope = filter_for_hoh(scope)
+      scope
     end
 
     def entered_columns
       {
-        project_type: she_t[service_history_source.project_type_column].as('project_type').to_sql,
-        first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program').to_sql,
-        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program').to_sql,
-        client_id: she_t[:client_id].as('client_id').to_sql,
-        project_name: she_t[:project_name].as('project_name').to_sql,
-        first_name: c_t[:FirstName].as('first_name').to_sql,
-        last_name: c_t[:LastName].as('last_name').to_sql,
-        organization_name: o_t[:OrganizationName].as('organization_name').to_sql,
+        project_type: she_t[service_history_source.project_type_column].as('project_type'),
+        first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program'),
+        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program'),
+        client_id: she_t[:client_id].as('client_id'),
+        project_name: she_t[:project_name].as('project_name'),
+        first_name: c_t[:FirstName].as('first_name'),
+        last_name: c_t[:LastName].as('last_name'),
+        organization_name: o_t[:OrganizationName].as('organization_name'),
       }
     end
 
-    def setup_data_structure(start_date:)
-      month_name = start_date.to_time.strftime('%B')
+    def setup_data_structure
+      month_name = @filter.start.to_time.strftime('%B')
       {
         first_time: {
           label: 'First time clients in the project type',
@@ -153,20 +143,19 @@ module WarehouseReports::ClientDetails
       enrollments.first(2).map { |m| m[:first_date_in_program] }.reduce(:-).abs
     end
 
-    def set_organizations
-      @organization_ids = begin
-                            params[:range][:organization_ids].map(&:presence).compact.map(&:to_i)
-                          rescue StandardError
-                            []
-                          end
-    end
+    private def filter_params
+      return {} unless params[:filter].present?
 
-    def set_projects
-      @project_ids = begin
-                       params[:range][:project_ids].map(&:presence).compact.map(&:to_i)
-                     rescue StandardError
-                       []
-                     end
+      params.require(:filter).permit(
+        :start,
+        :end,
+        :sub_population,
+        :heads_of_household,
+        age_ranges: [],
+        organization_ids: [],
+        project_ids: [],
+        project_type_codes: [],
+      )
     end
   end
 end

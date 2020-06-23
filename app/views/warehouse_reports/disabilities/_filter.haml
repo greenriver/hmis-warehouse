@@ -13,9 +13,8 @@
         = f.input :sub_population, collection: available_sub_populations, include_blank: false, input_html: { class: :select2 }
       .col-sm-4
         = f.input :age_ranges, collection: @filter.available_age_ranges, include_blank: false, input_html: { multiple: true, class: :select2 }
-      .col-sm-4
-        .mt-6
-          = f.input :heads_of_household, as: :boolean, label: 'Limit to Heads of Household?'
+      .col-sm-4.d-flex.align-items-center.pt-no-label
+        = f.input :heads_of_household, as: :boolean, label: 'Limit to Heads of Household?'
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Run Report', data: { disable_with: 'running...' }

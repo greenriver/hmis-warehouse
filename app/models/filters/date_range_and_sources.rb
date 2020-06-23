@@ -18,6 +18,8 @@ module Filters
     attribute :sub_population, Symbol, default: :clients
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
+    attribute :ph, Boolean, default: false
+    attribute :project_type_codes, Array, default: []
 
     validates_presence_of :start, :end
 
@@ -129,6 +131,24 @@ module Filters
       GrdaWarehouse::Hud::Client.joins(:cohort_clients).
         merge(GrdaWarehouse::CohortClient.active.where(cohort_id: cohort_ids)).
         distinct
+    end
+
+    def available_residential_project_types
+      GrdaWarehouse::Hud::Project::RESIDENTIAL_TYPE_TITLES.invert
+    end
+
+    def available_homeless_project_types
+      GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert
+    end
+
+    def project_type_ids
+      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
+        *project_type_codes.reject(&:blank?).map(&:to_sym)
+      ).flatten
+    end
+
+    def selected_project_type_names
+      GrdaWarehouse::Hud::Project::RESIDENTIAL_TYPE_TITLES.values_at(*project_type_codes.reject(&:blank?).map(&:to_sym))
     end
 
     def user

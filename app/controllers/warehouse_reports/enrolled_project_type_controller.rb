@@ -9,16 +9,13 @@ module WarehouseReports
     include WarehouseReportAuthorization
     include ArelHelper
     include SubpopulationHistoryScope
+    include ClientDetailReports
 
-    before_action :set_date_range
-    before_action :set_project_type
-    before_action :set_projects
-    before_action :set_organizations
-    before_action :set_sub_population
+    before_action :set_filter
 
     def index
       @enrollments = service_history_scope.entry.
-        open_between(start_date: @start, end_date: @end).
+        open_between(start_date: @filter.start, end_date: @filter.end).
         joins(:client).
         preload(:client).
         distinct.
@@ -36,58 +33,41 @@ module WarehouseReports
       end
     end
 
-    def set_date_range
-      @start = (params.try(:[], :range).try(:[], :start) || 1.month.ago.beginning_of_month).to_date
-      @end   = (params.try(:[], :range).try(:[], :end) || 1.month.ago.end_of_month).to_date
-    end
+    # def set_project_type
+    #   @project_type_codes = params.try(:[], :range).try(:[], :project_type)&.map(&:presence)&.compact&.map(&:to_sym) || [:es, :sh, :so, :th]
+    #   @project_types = []
+    #   @project_type_codes.each do |code|
+    #     @project_types += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
+    #   end
+    # end
 
-    def set_project_type
-      @project_type_codes = params.try(:[], :range).try(:[], :project_type)&.map(&:presence)&.compact&.map(&:to_sym) || [:es, :sh, :so, :th]
-      @project_types = []
-      @project_type_codes.each do |code|
-        @project_types += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
-      end
-    end
+    private def filter_params
+      return {} unless params[:filter].present?
 
-    def set_organizations
-      @organization_ids = begin
-                            params[:range][:organization_ids].map(&:presence).compact.map(&:to_i)
-                          rescue StandardError
-                            []
-                          end
-    end
-
-    def set_projects
-      @project_ids = begin
-                       params[:range][:project_ids].map(&:presence).compact.map(&:to_i)
-                     rescue StandardError
-                       []
-                     end
-    end
-
-    def set_sub_population
-      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :clients).to_sym
+      params.require(:filter).permit(
+        :start,
+        :end,
+        :sub_population,
+        :heads_of_household,
+        :ph,
+        age_ranges: [],
+        organization_ids: [],
+        project_ids: [],
+        project_type_codes: [],
+      )
     end
 
     private def client_source
       GrdaWarehouse::Hud::Client.destination
     end
 
-    private def project_source
-      GrdaWarehouse::Hud::Project.viewable_by(current_user)
-    end
-
-    private def service_history_source
-      GrdaWarehouse::ServiceHistoryEnrollment
-    end
-
     private def service_history_scope
-      sh_scope = service_history_source.joins(:project).merge(project_source).where(computed_project_type: @project_types)
-
-      sh_scope = sh_scope.merge(project_source.where(id: @project_ids)) if @project_ids.any?
-      sh_scope = sh_scope.joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
-
-      history_scope(sh_scope, @sub_population)
+      scope = history_scope(service_history_source.in_project_type(@filter.project_type_ids), @filter.sub_population)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_projects(scope)
+      scope = filter_for_age_ranges(scope)
+      scope = filter_for_hoh(scope)
+      scope
     end
   end
 end
