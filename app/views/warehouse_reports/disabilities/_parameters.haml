@@ -21,7 +21,6 @@
       %label.label.label-primary.parameter-label
         Age Ranges
       %label.label.label-info.parameter-value
-        = debug age_ranges
         = age_ranges.map{ |range| @filter.available_age_ranges.invert[range.to_sym] }.join(', ')
   - heads_of_household = parameters['heads_of_household'] == '1'
   - if heads_of_household
