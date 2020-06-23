@@ -180,7 +180,7 @@ Rails.application.routes.draw do
       end
     end
     resources :aprs, only: [:index, :show, :edit, :update] do
-      resources :questions, only: [:show]
+      resources :questions, only: [:show, :update]
     end
   end
   resources :report_results_summary, only: [:show]

@@ -13,9 +13,13 @@ module HudReports
       @report = @generator.find_report(current_user)
     end
 
+    def update
+      # TODO: generate a report with just this question
+    end
+
     def set_generator
-      generator_id = params[:id].to_i
-      @generator = generators[generator_id]
+      @generator_id = params[:id].to_i
+      @generator = generators[@generator_id]
     end
 
     def generators

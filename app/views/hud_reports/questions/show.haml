@@ -6,8 +6,11 @@
 
 %h1= content_for :title
 
-- metadata = @report.answer(question: @question).metadata
-- metadata['tables'].each do |table|
-  %h2= table
-  - exporter = HudReports::CsvExporter.new(@report, table)
-  = render 'table', columns: exporter.display_column_names, rows: exporter.as_array
+= render 'form'
+
+- if @report.present?
+  - metadata = @report.answer(question: @question).metadata
+  - metadata['tables'].each do |table|
+    %h2= table
+    - exporter = HudReports::CsvExporter.new(@report, table)
+    = render 'table', columns: exporter.display_column_names, rows: exporter.as_array
