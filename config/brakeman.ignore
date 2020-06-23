@@ -218,7 +218,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 623,
+      "line": 383,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"EXISTS (#{inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")} and \\\"Client\\\".\\\"id\\\" = \\\"inner_clients\\\".\\\"id\\\")\")",
       "render_path": null,
@@ -914,6 +914,26 @@
       "note": ""
     },
     {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "e8363134a72c5ae3f5d9027a26f181923b910359a92ea85fe228e8ae96346dd8",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called with model attribute",
+      "file": "app/models/performance_dashboards/base.rb",
+      "line": 134,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "Reporting::MonthlyReports::Base.available_types[@sub_population].constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceDashboards::Base",
+        "method": "chosen_sub_population"
+      },
+      "user_input": "Reporting::MonthlyReports::Base.available_types[@sub_population]",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Dangerous Send",
       "warning_code": 23,
       "fingerprint": "e9bc472741128330205459b50abc916ff6cf8a17bc0b39ffa91dc0421dbe2efa",
@@ -980,7 +1000,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 718,
+      "line": 478,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql((\"consented_coc_codes='[]'::jsonb OR \" + \"#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map do\n connection.quote(s)\n end.join(\",\")}]\"))",
       "render_path": null,
@@ -1053,6 +1073,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-06-21 19:48:29 -0400",
+  "updated": "2020-06-23 07:39:30 -0400",
   "brakeman_version": "4.8.2"
 }
