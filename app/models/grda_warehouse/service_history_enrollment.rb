@@ -272,6 +272,28 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(she_t[:move_in_date].gteq(date).or(she_t[:move_in_date].eq(nil)))
   end
 
+  scope :in_age_ranges, -> (age_ranges) do
+    age_ranges = age_ranges.reject(&:blank?).map(&:to_sym)
+    return current_scope unless age_ranges.present?
+
+    age_exists = she_t[:age].not_eq(nil)
+    age_ors = []
+    age_ors << she_t[:age].lt(18) if age_ranges.include?(:under_eighteen)
+    age_ors << she_t[:age].gteq(18).and(she_t[:age].lteq(24)) if age_ranges.include?(:eighteen_to_twenty_four)
+    age_ors << she_t[:age].gteq(25).and(she_t[:age].lteq(61)) if age_ranges.include?(:twenty_five_to_sixty_one)
+    age_ors << she_t[:age].gt(61) if age_ranges.include?(:over_sixty_one)
+
+    accumulative = nil
+    age_ors.each do |age|
+      accumulative = if accumulative.present?
+        accumulative.or(age)
+      else
+        age
+      end
+    end
+    current_scope.where(age_exists.and(accumulative))
+  end
+
   #################################
     # Standard Cohort Scopes
 

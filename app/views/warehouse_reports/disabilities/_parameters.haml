@@ -7,27 +7,34 @@
       %label.label.label-primary.parameter-label
         Range
       %label.label.label-info.parameter-value
-        %strong
-          = "#{start_date} .. #{end_date}"
+        = "#{start_date} .. #{end_date}"
 
-  - sub_population = parameters['sub_population'] || :all_clients
+  - sub_population = parameters['sub_population'] || :clients
   .report-parameters__parameter
     %label.label.label-primary.parameter-label
       Population
     %label.label.label-info.parameter-value
-      %strong
       = available_sub_populations.invert[sub_population.to_sym]
+  - age_ranges = parameters['age_ranges']
+  - if age_ranges.present?
+    .report-parameters__parameter
+      %label.label.label-primary.parameter-label
+        Age Ranges
+      %label.label.label-info.parameter-value
+        = age_ranges.reject(&:blank?).map{ |range| @filter.available_age_ranges.invert[range.to_sym] }.join(', ')
+  - heads_of_household = parameters['heads_of_household']
+  - if heads_of_household
+    %label.label.label-primary
+      Limited to HoH
 
 - parameters['disabilities'].each do |id|
   - next if id.blank?
   %label.label.label-primary
-    %strong
-      = ::HUD::disability_types[id.to_i]
+    = ::HUD::disability_types[id.to_i]
   &nbsp;
 
 - parameters['project_types'].each do |id|
   - next if id.blank?
   %label.label.label-default
-    %strong
-      = ::HUD::project_types[id.to_i]
+    = ::HUD::project_types[id.to_i]
   &nbsp;
