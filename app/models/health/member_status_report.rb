@@ -89,7 +89,7 @@ module Health
     end
 
     private def patient_enrolled_during_report?(patient)
-      @patients_enrolled_during_report ||= Health::Patient.active_between(report_range.start, report_range.end).pluck(:id)
+      @patients_enrolled_during_report ||= Health::Patient.active_between(report_range.first, report_range.last).pluck(:id)
       @patients_enrolled_during_report.include?(patient.id)
     end
 
