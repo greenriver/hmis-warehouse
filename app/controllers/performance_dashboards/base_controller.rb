@@ -46,8 +46,8 @@ class PerformanceDashboards::BaseController < ApplicationController
 
   def defaults
     OpenStruct.new(
-      end_date: Date.current,
-      start_date: Date.current - 1.year,
+      end_date: (Date.current - 1.year).end_of_year,
+      start_date: (Date.current - 1.year).beginning_of_year,
       comparison_pattern: PerformanceDashboards::Overview.comparison_patterns.values.first,
       coc_codes: [],
       household_type: :all,
