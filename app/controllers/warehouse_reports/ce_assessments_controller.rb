@@ -9,12 +9,16 @@ module WarehouseReports
     include WarehouseReportAuthorization
 
     def index
+      @column = sort_options.map { |i| i[:column] }.detect { |c| c == params[:column] } || 'assessment_date'
+      @direction = ['asc', 'desc'].detect { |c| c == params[:direction] } || 'desc'
+
       @clients = GrdaWarehouse::Hud::Client.
         preload(:ce_assessments).
         joins(:ce_assessments).
         merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active.visible_by?(current_user)).
-        viewable_by(current_user).
-        order(last_name: :asc, first_name: :asc)
+        viewable_by(current_user)
+
+      @clients = sort_clients(@clients, @column, @direction)
 
       respond_to do |format|
         format.html do
@@ -26,7 +30,44 @@ module WarehouseReports
       end
     end
 
-    def detail_columns
+    private def sort_clients(clients, column, direction)
+      case column
+      when 'assessment_date'
+        clients.order(created_at: direction)
+      when 'last_name'
+        clients.order(last_name: direction, first_name: direction)
+      else
+        clients
+      end
+    end
+
+    private def sort_options
+      [
+        {
+          column: 'assessment_date',
+          direction: :desc,
+          title: 'Most Recent Assessments',
+        },
+        {
+          column: 'assessment_date',
+          direction: :asc,
+          title: 'Least Recent Assessments',
+        },
+        {
+          column: 'last_name',
+          direction: :asc,
+          title: 'Last name A-Z',
+        },
+        {
+          column: 'last_name',
+          direction: :desc,
+          title: 'Last name Z-A',
+        },
+      ]
+    end
+    helper_method :sort_options
+
+    private def detail_columns
       @detail_columns ||= {
         'WarehouseID' => [:client, :id],
         'Client Name' => [:client, :name],
@@ -111,5 +152,13 @@ module WarehouseReports
       }.freeze
     end
     helper_method :detail_columns
+
+    private def report_params
+      params.permit(
+        :direction,
+        :column,
+      )
+    end
+    helper_method :report_params
   end
 end

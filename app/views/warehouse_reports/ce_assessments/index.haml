@@ -1,6 +1,7 @@
 %h1 Coordinated Entry Assessment Details
 
 .d-flex
+  = render 'sort'
   = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
     Download Excel
 
@@ -14,8 +15,8 @@
         %th Current Location
         %th Assessment Score
         %th Vulnerability Score
-        %th Started
-        %th Submitted?
+        %th Started On
+        %th Completed?
     %tbody
       - @clients.each do |client|
         %tr
