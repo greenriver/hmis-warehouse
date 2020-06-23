@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe Reporting::MonthlyReports::Veteran, type: :model do
+RSpec.describe VeteransSubPop::Reporting::MonthlyReports::Veterans, type: :model do
   let(:report) { build :veteran_dashboard, date_range: '2015-01-01'.to_date..'2017-01-01'.to_date }
   let!(:data_source) { create :data_source_fixed_id }
   let!(:veteran) { create :hud_client, VeteranStatus: 1, data_source_id: 1 }
