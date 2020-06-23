@@ -15,14 +15,15 @@
       Population
     %label.label.label-info.parameter-value
       = available_sub_populations.invert[sub_population.to_sym]
-  - age_ranges = parameters['age_ranges']
+  - age_ranges = parameters['age_ranges']&.reject(&:blank?)
   - if age_ranges.present?
     .report-parameters__parameter
       %label.label.label-primary.parameter-label
         Age Ranges
       %label.label.label-info.parameter-value
-        = age_ranges.reject(&:blank?).map{ |range| @filter.available_age_ranges.invert[range.to_sym] }.join(', ')
-  - heads_of_household = parameters['heads_of_household']
+        = debug age_ranges
+        = age_ranges.map{ |range| @filter.available_age_ranges.invert[range.to_sym] }.join(', ')
+  - heads_of_household = parameters['heads_of_household'] == '1'
   - if heads_of_household
     %label.label.label-primary
       Limited to HoH
