@@ -3,6 +3,7 @@ LSA FY2019 Sample Code
 
 Name:  8_9 to 8_21 lsa_Calculated counts (File 9 of 10)
 Date:  4/15/2020   
+	   5/21/2020 - add set of Step column to all INSERT statements
 
 
 	8.9 Get Counts of People by Project ID and Household Characteristics
@@ -14,14 +15,14 @@ Date:  4/15/2020
 
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ProjectID, ReportID)
+		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
 	select count (distinct n.PersonalID)
 		, cd.Cohort, 10 as Universe
 		, coalesce(pop.HHType, 0) 
 		, pop.PopID as PopID
 		, -1, 53
 		, n.ProjectID		
-		, cd.ReportID
+		, cd.ReportID, '8.9'
 	from tlsa_Enrollment n 
 	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
 		and bn.RecordType = 200
@@ -59,7 +60,7 @@ Date:  4/15/2020
 	--Unduplicated count of people in households for each project type
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct n.PersonalID)
 		, cd.Cohort, case n.ProjectType 
 			when 1 then 11 
@@ -69,7 +70,7 @@ Date:  4/15/2020
 			else 15 end
 		, coalesce(pop.HHType, 0) 
 		, pop.PopID, -1, 53
-		, cd.ReportID
+		, cd.ReportID, '8.10.1'
 	from tlsa_Enrollment n 
 	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
 		and bn.RecordType = 200
@@ -107,12 +108,12 @@ Date:  4/15/2020
 	--Unduplicated count of people in households for ES/SH/TH combined
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct n.PersonalID)
 		, cd.Cohort, 16 as Universe
 		, coalesce(pop.HHType, 0) 
 		, pop.PopID, -1, 53
-		, cd.ReportID
+		, cd.ReportID, '8.10.2'
 	from tlsa_Enrollment n 
 	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
 		and bn.RecordType = 200
@@ -149,12 +150,12 @@ Date:  4/15/2020
 	--Count households
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ProjectID, ReportID)
+		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
 	select count (distinct cast(hhid.HoHID as nvarchar) + cast(hhid.ActiveHHType as nvarchar))
 		, cd.Cohort, 10 
 		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 54
-		, hhid.ProjectID, cd.ReportID
+		, hhid.ProjectID, cd.ReportID, '8.11'
 	from tlsa_HHID hhid 
 	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
@@ -193,7 +194,7 @@ Date:  4/15/2020
 --Unduplicated count households for each project type
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct cast(hhid.HoHID as nvarchar) + cast(hhid.ActiveHHType as nvarchar))
 		, cd.Cohort, case hhid.ProjectType 
 			when 1 then 11 
@@ -203,7 +204,7 @@ Date:  4/15/2020
 			else 15 end as Universe
 		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID, -1, 54
-		, cd.ReportID
+		, cd.ReportID, '8.12.1'
 	from tlsa_HHID hhid 
 	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
@@ -243,12 +244,12 @@ Date:  4/15/2020
 	--Unduplicated count of households for ES/SH/TH combined
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct cast(hhid.HoHID as nvarchar) + cast(hhid.ActiveHHType as nvarchar))
 		, cd.Cohort, 16 as Universe
 		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID, -1, 54
-		, cd.ReportID
+		, cd.ReportID, '8.12.2'
 	from tlsa_HHID hhid 
 	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
@@ -283,12 +284,12 @@ Date:  4/15/2020
 	--Count people with specific characteristic
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ProjectID, ReportID)
+		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
 	select count (distinct lp.PersonalID)
 		, cd.Cohort, 10 
 		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID, -1, 55
-		, n.ProjectID, cd.ReportID
+		, n.ProjectID, cd.ReportID, '8.13'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID
 	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
@@ -341,7 +342,7 @@ Date:  4/15/2020
 	--Count people with specific characteristics for each project type
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct lp.PersonalID)
 		, cd.Cohort, case n.ProjectType 
 			when 1 then 11 
@@ -351,7 +352,7 @@ Date:  4/15/2020
 			else 15 end 
 		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID, -1, 55
-		, cd.ReportID
+		, cd.ReportID, '8.14.1'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID
 	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
@@ -403,12 +404,12 @@ Date:  4/15/2020
 	--Count people with specific characteristics for ES/SH/TH combined
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct lp.PersonalID)
 		, cd.Cohort, 16 
 		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID, -1, 55
-		, cd.ReportID
+		, cd.ReportID, '8.14.2'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID
 	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
@@ -461,14 +462,14 @@ Date:  4/15/2020
 */
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ProjectID, ReportID)
+		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
 	select count (distinct n.PersonalID + cast(est.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(rrhpsh.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(bnd.theDate as nvarchar))
 		, 1, 10, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 56
 		, n.ProjectID
-		, rpt.ReportID
+		, rpt.ReportID, '8.15'
 	from tlsa_Enrollment n 
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 	inner join ref_Populations pop on
@@ -498,7 +499,7 @@ Date:  4/15/2020
 */
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct n.PersonalID + cast(est.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(rrhpsh.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(bnd.theDate as nvarchar))
@@ -510,7 +511,7 @@ Date:  4/15/2020
 			else 15 end 
 		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 56
-		, rpt.ReportID
+		, rpt.ReportID, '8.16.1'
 	from tlsa_Enrollment n 
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 	inner join ref_Populations pop on
@@ -537,13 +538,13 @@ Date:  4/15/2020
 
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct n.PersonalID + cast(est.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(bnd.theDate as nvarchar))
 		, 1, 16
 		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 56
-		, rpt.ReportID
+		, rpt.ReportID, '8.16.2'
 	from tlsa_Enrollment n 
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 	inner join ref_Populations pop on
@@ -570,14 +571,14 @@ Date:  4/15/2020
 */
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ProjectID, ReportID)
+		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
 	select count (distinct n.PersonalID + cast(est.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(rrhpsh.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(bnd.theDate as nvarchar))
 		, 1, 10, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 57
 		, n.ProjectID
-		, rpt.ReportID
+		, rpt.ReportID, '8.17'
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
@@ -611,7 +612,7 @@ Date:  4/15/2020
 */
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct n.PersonalID + cast(est.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(rrhpsh.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(bnd.theDate as nvarchar))
@@ -623,7 +624,7 @@ Date:  4/15/2020
 			else 15 end 
 		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 57
-		, rpt.ReportID
+		, rpt.ReportID, '8.18.1'
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
@@ -655,13 +656,13 @@ Date:  4/15/2020
 	--ES/SH/TH unduplicated
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select count (distinct n.PersonalID + cast(est.theDate as nvarchar))
 		+ count (distinct n.PersonalID + cast(bnd.theDate as nvarchar))
 		, 1, 16
 		, coalesce(pop.HHType, 0)
 		, pop.PopID, -1, 57
-		, rpt.ReportID
+		, rpt.ReportID, '8.16.2'
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
@@ -692,11 +693,11 @@ Date:  4/15/2020
 */
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ProjectID, ReportID)
+		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
 	select count (distinct n.EnrollmentID), 20, 10, 0, 0, -1
 		, case when hx.ExitDate is null then 58
 			else 59 end 
-		, p.ProjectID, cd.ReportID
+		, p.ProjectID, cd.ReportID, '8.19'
 	from tlsa_Enrollment n
 	left outer join hmis_Exit hx on hx.EnrollmentID = n.EnrollmentID 
 	inner join hmis_Project p on p.ProjectID = n.ProjectID 
@@ -712,11 +713,11 @@ Date:  4/15/2020
 */
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ProjectID, ReportID)
+		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
 	select count (distinct hn.EnrollmentID), 20, 10, 0, 0, -1
 		, case when hx.ExitDate is null then 60
 			else 61 end 
-		, p.ProjectID, cd.ReportID
+		, p.ProjectID, cd.ReportID, '8.20'
 	from tlsa_Enrollment n
 	inner join tlsa_CohortDates cd on cd.Cohort = 20
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
@@ -745,8 +746,8 @@ Date:  4/15/2020
 */
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ProjectID, ReportID)
-	select count (distinct hn.EnrollmentID), 1, 10, 0, 0, -1, 62, p.ProjectID, rpt.ReportID
+		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
+	select count (distinct hn.EnrollmentID), 1, 10, 0, 0, -1, 62, p.ProjectID, rpt.ReportID, '8.21'
 	from lsa_Report rpt
 	inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
 	inner join hmis_Project p on p.ProjectID = hn.ProjectID and p.ContinuumProject = 1 and p.ProjectType in (1,2,3,8,13)

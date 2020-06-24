@@ -485,9 +485,9 @@ module ReportGenerators::Lsa::Fy2019
         begin
           CREATE INDEX [IX_tlsa_Person_CHTime] ON [tlsa_Person] ([CHTime]) INCLUDE ([LastActive])
         end
-        if not exists(select * from sys.indexes where name = 'IX_ch_Include_chDate')
+        if not exists(select * from sys.indexes where name = 'IX_ch_Include_ESSHStreetDate')
         begin
-          CREATE INDEX [IX_ch_Include_chDate] ON [ch_Include] ([chDate])
+          CREATE INDEX [IX_ch_Include_ESSHStreetDate] ON [ch_Include] ([ESSHStreetDate])
         end
 
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_TrackingMethod')
