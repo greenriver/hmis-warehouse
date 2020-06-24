@@ -13,6 +13,11 @@ module HmisCsvTwentyTwenty::Importer
 
     has_one :destination_record, **hud_assoc(:EnrollmentCoCID, 'EnrollmentCoc')
 
+    def self.clean_row_for_import(row, deidentified:) # rubocop:disable  Lint/UnusedMethodArgument
+      row['HouseholdID'] = row['HouseholdID'].to_s[0..31] # limit household ids to 32 characters
+      row
+    end
+
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
       return none unless project_ids.present?
 

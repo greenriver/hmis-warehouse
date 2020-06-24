@@ -286,7 +286,7 @@ module HmisCsvTwentyTwenty::Importer
         row.save!
         note_processed(file_name, 1, type)
       rescue StandardError => e
-        add_error(klass: klass, source_id: row.source_id, message: e.messages)
+        add_error(klass: klass, source_id: row.source_id, message: e.message)
       end
     end
 
@@ -298,13 +298,13 @@ module HmisCsvTwentyTwenty::Importer
         klass.import([row], on_duplicate_key_update: [klass.hud_key])
         note_processed(file_name, 1, type)
       rescue StandardError => e
-        add_error(klass: klass, source_id: row.source_id, message: e.messages)
+        add_error(klass: klass, source_id: row.source_id, message: e.message)
       end
     end
 
     private def source_data_scope_for(file_name)
       @loaded_files ||= @loader_log.class.importable_files
-      @loaded_files[file_name].where(loader_id: @loader_log.id)
+      @loaded_files[file_name].unscoped.where(loader_id: @loader_log.id)
     end
 
     def date_range
