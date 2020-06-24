@@ -273,7 +273,7 @@ module ClientController
         m == '/clients/rollup/' + params.require(:partial).underscore
       end
 
-      raise 'Rollup not in whitelist' unless rollup.present?
+      raise 'Rollup not in allowlist' unless rollup.present?
 
       render partial: rollup, layout: false if request.xhr?
     end

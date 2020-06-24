@@ -1,9 +1,12 @@
 - key = :enrolled
-- detail_params = filter_params.merge(options: {key: key,breakdown: breakdown}.merge(options))
+- detail_params = filter_params.merge(options: {key: key, breakdown: breakdown}.merge(options))
 - comparison_params = detail_params.dup.to_h
 - comparison_params[:filters] ||= {}
 - comparison_params[:filters].merge!({ start_date: @comparison.start_date, end_date: @comparison.end_date })
-- chart_class = "#{key}-#{breakdown.parameterize}-chart"
+- if defined?(chart_class_slug)
+  - chart_class = "#{key}-#{chart_class_slug}-chart"
+- else
+  - chart_class = "#{key}-#{breakdown.parameterize}-chart"
 
 = render 'performance_dashboards/overview/breakdown/base',
   key: key,
