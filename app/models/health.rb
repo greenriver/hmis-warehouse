@@ -14,7 +14,7 @@ module Health
   end
 
   module_function def models_by_health_filename
-    # use an explicit whitelist as a security measure
+    # use an explicit allowlist as a security measure
     {
       'appointments.csv' => Health::Appointment,
       'medications.csv' => Health::Medication,

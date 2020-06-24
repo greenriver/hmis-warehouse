@@ -13,7 +13,7 @@ class PerformanceDashboards::BaseController < ApplicationController
       m == params.require(:partial).underscore
     end
 
-    raise 'Rollup not in whitelist' unless @section.present?
+    raise 'Rollup not in allowlist' unless @section.present?
 
     @section = section_subpath + @section
     render partial: @section, layout: false if request.xhr?

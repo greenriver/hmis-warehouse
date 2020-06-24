@@ -70,7 +70,6 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
     return color
 
   _follow_link: (d, element) =>
-    console.log(@options)
     return unless @options.follow_link == true
 
     bucket_title = @chart.categories()[d.index]

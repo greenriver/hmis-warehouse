@@ -13,7 +13,7 @@ module GrdaWarehouse::Hud
 
   # a Hash mapping hud filenames to GrdaWarehouse::Hud models
   module_function def models_by_hud_filename
-    # use an explict whitelist as a security measure
+    # use an explict allowlist as a security measure
     {
       'Affiliation.csv' => GrdaWarehouse::Hud::Affiliation,
       'Client.csv' => GrdaWarehouse::Hud::Client,
