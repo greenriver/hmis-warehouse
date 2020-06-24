@@ -1,12 +1,23 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class PerformanceDashboards::BaseController < ApplicationController
   include WarehouseReportAuthorization
   include PjaxModalController
+
+  def section
+    @section = @report.class.available_chart_types.detect do |m|
+      m == params.require(:partial).underscore
+    end
+
+    raise 'Rollup not in allowlist' unless @section.present?
+
+    @section = section_subpath + @section
+    render partial: @section, layout: false if request.xhr?
+  end
 
   def set_filter
     @filter = OpenStruct.new
@@ -46,8 +57,8 @@ class PerformanceDashboards::BaseController < ApplicationController
 
   def defaults
     OpenStruct.new(
-      end_date: Date.current,
-      start_date: Date.current - 1.year,
+      end_date: (Date.current - 1.year).end_of_year,
+      start_date: (Date.current - 1.year).beginning_of_year,
       comparison_pattern: PerformanceDashboards::Overview.comparison_patterns.values.first,
       coc_codes: [],
       household_type: :all,

@@ -1,0 +1,78 @@
+###
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
+module WarehouseReports
+  class CeAssessmentsController < ApplicationController
+    include WarehouseReportAuthorization
+
+    def index
+      @column = sort_options.map { |i| i[:column] }.detect { |c| c == params[:column] } || 'assessment_date'
+      @direction = ['asc', 'desc'].detect { |c| c == params[:direction] } || 'desc'
+
+      @clients = GrdaWarehouse::Hud::Client.
+        preload(:ce_assessments).
+        joins(:ce_assessments).
+        merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active.visible_by?(current_user)).
+        viewable_by(current_user)
+
+      @clients = sort_clients(@clients, @column, @direction)
+
+      respond_to do |format|
+        format.html do
+          @clients = @clients.page(params[:page].to_i).per(25)
+        end
+        format.xlsx do
+          headers['Content-Disposition'] = 'attachment; filename=ce_assessments.xlsx'
+        end
+      end
+    end
+
+    private def sort_clients(clients, column, direction)
+      case column
+      when 'assessment_date'
+        clients.order(created_at: direction)
+      when 'last_name'
+        clients.order(last_name: direction, first_name: direction)
+      else
+        clients
+      end
+    end
+
+    private def sort_options
+      [
+        {
+          column: 'assessment_date',
+          direction: :desc,
+          title: 'Most Recent Assessments',
+        },
+        {
+          column: 'assessment_date',
+          direction: :asc,
+          title: 'Least Recent Assessments',
+        },
+        {
+          column: 'last_name',
+          direction: :asc,
+          title: 'Last name A-Z',
+        },
+        {
+          column: 'last_name',
+          direction: :desc,
+          title: 'Last name Z-A',
+        },
+      ]
+    end
+    helper_method :sort_options
+
+    private def report_params
+      params.permit(
+        :direction,
+        :column,
+      )
+    end
+    helper_method :report_params
+  end
+end

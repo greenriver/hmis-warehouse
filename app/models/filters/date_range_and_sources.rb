@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Filters
@@ -22,6 +22,19 @@ module Filters
     attribute :project_type_codes, Array, default: []
 
     validates_presence_of :start, :end
+
+    # NOTE: keep this up-to-date if adding additional attributes
+    def cache_key
+      [
+        user.id,
+        effective_project_ids,
+        cohort_ids,
+        coc_codes,
+        sub_population,
+        start_age,
+        end_age,
+      ]
+    end
 
     def effective_project_ids
       @effective_project_ids = effective_project_ids_from_projects

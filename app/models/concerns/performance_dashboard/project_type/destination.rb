@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboard::ProjectType::Destination
@@ -9,7 +9,7 @@ module PerformanceDashboard::ProjectType::Destination
 
   # Fetch last destination for each client
   def destinations
-    @destinations ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = HUD.valid_destinations.keys.map { |b| [b, []] }.to_h
       counted = Set.new
       exits_current_period.
@@ -36,7 +36,7 @@ module PerformanceDashboard::ProjectType::Destination
   end
 
   def destinations_data_for_chart
-    @destinations_data_for_chart ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]
       columns += destinations.values.map(&:count).reverse
       categories = destinations.keys.reverse.map do |k|

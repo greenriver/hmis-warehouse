@@ -1,14 +1,14 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class SandboxEmailInterceptor
   # TODO: list recipients who will always be BCC'd when application is running in sandbox mode
   RECIPIENTS = ENV['SANDBOX_RECIPIENTS']&.split(';') || []
 
-  # TODO: list whitelisted email addresses here -- any other emails will only be BCC'd to the above
+  # TODO: list allowlisted email addresses here -- any other emails will only be BCC'd to the above
   # when this intercepter is in place
   ENV_WHITELIST = ENV['SANDBOX_WHITELIST']&.split(';') || []
   WHITELIST = (ENV_WHITELIST + RECIPIENTS).compact.map!(&:downcase)

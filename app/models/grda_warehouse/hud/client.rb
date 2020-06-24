@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 require 'restclient'
@@ -30,6 +30,9 @@ module GrdaWarehouse::Hud
     has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
     has_many :youth_intakes, class_name: 'GrdaWarehouse::YouthIntake::Base', inverse_of: :client
     has_many :ce_assessments, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
+    has_one :ce_assessment, -> do
+      merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active)
+    end, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
     has_many :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', inverse_of: :client
     has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
     has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
