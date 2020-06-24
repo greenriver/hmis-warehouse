@@ -12,7 +12,7 @@ module Censuses
       "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type.to_sym]} on"
     end
 
-    def clients_for_date(date, project_type, population = 'all_clients')
+    def clients_for_date(date, project_type, population = :clients)
       known_sub_populations = GrdaWarehouse::ServiceHistoryEnrollment.known_standard_cohorts
 
       raise "Population #{population} not defined" unless known_sub_populations.include?(population.to_sym)

@@ -4,7 +4,7 @@ module VeteransSubPop::Reporting
 
     included do
       def client_source
-        GrdaWarehouse::Hud::Client.destination.veteran
+        GrdaWarehouse::Hud::Client.destination.veterans
       end
     end
   end

@@ -28,6 +28,7 @@ module WarehouseReports
         select(:id, :FirstName, :LastName, she_t[:date], :VeteranStatus, :DOB).
         order(she_t[:date], :LastName, :FirstName)
 
+      # NOTE: not using filter_for_organizations as @clients are GrdaWarehouse::Hud::Client not SHE
       @clients = @clients.merge(GrdaWarehouse::Hud::Organization.where(id: @filter.organization_ids)) if @filter.organization_ids.any?
       @clients = @clients.merge(GrdaWarehouse::Hud::Project.where(id: @filter.project_ids)) if @filter.project_ids.any?
 
