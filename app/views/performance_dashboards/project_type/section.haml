@@ -1,1 +1,13 @@
 = render @section
+
+= content_for :page_js do
+  :javascript
+    var section_path = "#{request.path}/section/";
+    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.living_situation-chart', {remote: false});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.destination-chart', {remote: false});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.returns-chart', {remote: false});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.length_of_time-chart', {remote: false});
+
+
+

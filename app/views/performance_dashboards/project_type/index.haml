@@ -26,10 +26,10 @@
   :javascript
     var section_path = "#{request.path}/section/";
     var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});
-    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.living_situation-chart');
-    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.destination-chart');
-    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.returns-chart');
-    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.length_of_time-chart');
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.living_situation-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.destination-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.returns-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.length_of_time-chart', {remote: true});
 
 
 

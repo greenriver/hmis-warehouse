@@ -1,1 +1,9 @@
 = render @section
+
+= content_for :page_js do
+  :javascript
+    var section_path = "#{request.path}/section/";
+    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{breakdown}-chart', {remote: false});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{breakdown}-chart', {remote: false});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{breakdown}-chart', {remote: false});

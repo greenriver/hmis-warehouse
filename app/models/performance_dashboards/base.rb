@@ -370,7 +370,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   # An exit is an enrollment where the exit date is within the report range, and there are no enrollments in the
   # specified project types that were open after the reporting period.
   def exits
-    next_period = report_scope_source.exit.
+    next_period = report_scope_source.entry.
       open_between(start_date: @end_date + 1.day, end_date: Date.current).
       with_service_between(start_date: @end_date + 1.day, end_date: Date.current).
       in_project_type(@project_types)

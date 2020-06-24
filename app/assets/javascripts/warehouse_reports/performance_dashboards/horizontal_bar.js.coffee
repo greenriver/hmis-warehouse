@@ -1,11 +1,14 @@
 #= require ./namespace
 
 class App.WarehouseReports.PerformanceDashboards.HorizontalBar
-  constructor: (@chart_selector) ->
+  constructor: (@chart_selector, options) ->
     Chart.defaults.global.defaultFontSize = 10
     @color_map = {}
     @next_color = 0
-    @_observe()
+    if options?.remote == true
+      @_observe()
+    else
+      @_build_chart()
 
   _build_chart: () =>
     # console.log($(@chart_selector).data())

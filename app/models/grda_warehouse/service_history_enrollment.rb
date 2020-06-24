@@ -165,7 +165,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :exit_within_date_range, -> (start_date: , end_date: ) do
-    self.exit.ended_between(start_date: start_date, end_date: end_date)
+    self.entry.ended_between(start_date: start_date, end_date: end_date)
   end
 
   scope :service_in_last_three_years, -> {
@@ -187,11 +187,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :started_between, -> (start_date: , end_date: ) do
-    where(first_date_in_program: [start_date..end_date])
+    where(first_date_in_program: (start_date..end_date))
   end
 
   scope :ended_between, -> (start_date: , end_date: ) do
-    where(last_date_in_program: [start_date..end_date])
+    where(last_date_in_program: (start_date..end_date))
   end
 
   scope :coc_funded, -> do
