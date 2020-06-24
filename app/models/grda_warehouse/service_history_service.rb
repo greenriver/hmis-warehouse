@@ -8,14 +8,17 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   include ArelHelper
   include ServiceHistoryServiceConcern
 
-  belongs_to :service_history_enrollment, inverse_of: :service_history_services
+  belongs_to :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id], inverse_of: :service_history_services
   belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
   has_one :enrollment, through: :service_history_enrollment
 
   scope :service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
-    # FIXME is all the right choice if service_scope returns nil?
-    (send(service_scope) || all).
+    if service_scope.is_a?(ActiveRecord::Relation)
+      merge(service_scope).where(date: start_date..end_date)
+    else
+      (send(service_scope) || all).
       where(date: start_date..end_date)
+    end
   end
 
   scope :hud_project_type, -> (project_types) do
