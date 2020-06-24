@@ -40,6 +40,13 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   attr_reader :start_date, :end_date, :coc_codes, :project_types, :filter
   attr_accessor :comparison_pattern, :project_type_codes
 
+  private def cache_slug
+    f = @filter.deep_dup
+    f.user_id = @filter.user.id
+    f.user = nil
+    f
+  end
+
   def self.detail_method(key)
     available_keys[key.to_sym]
   end

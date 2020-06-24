@@ -9,16 +9,18 @@ module PerformanceDashboard::Overview::Entering::Household
 
   # NOTE: always count the most-recently started enrollment within the range
   def entering_by_household
-    buckets = household_buckets.map { |b| [b, []] }.to_h
-    counted = Set.new
-    entering.
-      joins(:client).
-      order(first_date_in_program: :desc).
-      pluck(:client_id, :individual_adult, :age, :other_clients_under_18, :children_only, :first_date_in_program).each do |id, individual_adult, age, other_clients_under_18, children_only, _| # rubocop:disable Metrics/ParameterLists
-      buckets[household_bucket(individual_adult, age, other_clients_under_18, children_only)] << id unless counted.include?(id)
-      counted << id
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      buckets = household_buckets.map { |b| [b, []] }.to_h
+      counted = Set.new
+      entering.
+        joins(:client).
+        order(first_date_in_program: :desc).
+        pluck(:client_id, :individual_adult, :age, :other_clients_under_18, :children_only, :first_date_in_program).each do |id, individual_adult, age, other_clients_under_18, children_only, _| # rubocop:disable Metrics/ParameterLists
+        buckets[household_bucket(individual_adult, age, other_clients_under_18, children_only)] << id unless counted.include?(id)
+        counted << id
+      end
+      buckets
     end
-    buckets
   end
 
   def entering_by_household_data_for_chart

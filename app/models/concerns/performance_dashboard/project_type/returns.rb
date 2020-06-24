@@ -12,7 +12,7 @@ module PerformanceDashboard::ProjectType::Returns
 
   # Find the first exit to a permanent destination
   def permanent_exits
-    @permanent_exits ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       exits = {}
       exits_current_period.
         order(last_date_in_program: :asc).
@@ -35,7 +35,7 @@ module PerformanceDashboard::ProjectType::Returns
   # destination, potentially someone exited more than once within the report range
   # and returned from that enrollment...
   def homeless_re_entries
-    @homeless_re_entries ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       entries = {}
       entries_current_period.where(first_date_in_program: (@start_date..Date.current)).
         hud_homeless.
@@ -67,7 +67,7 @@ module PerformanceDashboard::ProjectType::Returns
   end
 
   def returns_data_for_chart
-    @returns_data_for_chart ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]
       columns += returns_buckets.map do |bucket|
         homeless_re_entries.values.map { |en| en[:returns_bucket] }.count(bucket)

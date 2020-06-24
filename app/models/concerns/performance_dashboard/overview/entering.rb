@@ -18,7 +18,9 @@ module PerformanceDashboard::Overview::Entering
   end
 
   def entering_total_count
-    entering.select(:client_id).count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      entering.select(:client_id).count
+    end
   end
 
   # Only return the most-recent matching enrollment for each client

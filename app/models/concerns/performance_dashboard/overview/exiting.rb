@@ -18,7 +18,9 @@ module PerformanceDashboard::Overview::Exiting
   end
 
   def exiting_total_count
-    exiting.select(:client_id).count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      exiting.select(:client_id).count
+    end
   end
 
   # Only return the most-recent matching enrollment for each client

@@ -21,6 +21,19 @@ module Filters
 
     validates_presence_of :start, :end
 
+    # NOTE: keep this up-to-date if adding additional attributes
+    def cache_key
+      [
+        user.id,
+        effective_project_ids,
+        cohort_ids,
+        coc_codes,
+        sub_population,
+        start_age,
+        end_age,
+      ]
+    end
+
     def effective_project_ids
       @effective_project_ids = effective_project_ids_from_projects
       @effective_project_ids += effective_project_ids_from_project_groups

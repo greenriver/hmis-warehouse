@@ -8,6 +8,17 @@ class PerformanceDashboards::BaseController < ApplicationController
   include WarehouseReportAuthorization
   include PjaxModalController
 
+  def section
+    @section = @report.class.available_chart_types.detect do |m|
+      m == params.require(:partial).underscore
+    end
+
+    raise 'Rollup not in whitelist' unless @section.present?
+
+    @section = section_subpath + @section
+    render partial: @section, layout: false if request.xhr?
+  end
+
   def set_filter
     @filter = OpenStruct.new
     @filter.user = current_user
