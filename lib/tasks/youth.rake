@@ -4,7 +4,7 @@ require 'faker'
 namespace :youth do
   desc 'Import youth data (client specific)'
   task :import, [:file_path] => [:environment, 'log:info_to_stdout'] do |_task, args|
-    file_path = args.file_path || 'var/youth.xlsx'
+    file_path = args.file_path || 'tmp/youth.xlsx'
     puts "Importing #{file_path}"
 
     # Some notes:
@@ -270,7 +270,7 @@ namespace :youth do
       if row[:referred_to].present?
         # this is ugly, but some of the referrals have commas in them
         referrals = row[:referred_to].split(', Re')
-        referrals = referrals.map { |r| r = "Re#{r}" unless r.starts_with?('Re') }
+        referrals = referrals.map { |r| r = if r&.starts_with?('Re') then r else "Re#{r}" end }
         referrals.compact.each do |referred_to|
           clean_referred_to = available_referrals[referred_to]
           raise "Missing referral type: #{referred_to.inspect}" unless clean_referred_to.present?

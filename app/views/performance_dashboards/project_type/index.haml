@@ -16,7 +16,20 @@
     = render 'common/panel_collapse', id: id, title: 'Summary of Selected Universe', default_open: active_filter_open
 
 %section
-  - charts = %w(living_situations destinations lengths_of_time returns)
-  - charts.each do |chart|
+  - @report.class.available_chart_types.each do |chart|
     %article.mb-6
-      = render chart
+      .rollup{data: {partial: chart}}
+        %p.well.text-center.jRemoveWhenComplete Loading...
+
+-# load in all the bits of aggregate statistics via ajax
+= content_for :page_js do
+  :javascript
+    var section_path = "#{request.path}/section/";
+    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.living_situation-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.destination-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.returns-chart', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.length_of_time-chart', {remote: true});
+
+
+

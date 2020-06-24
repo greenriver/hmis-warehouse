@@ -1,17 +1,24 @@
 #= require ./namespace
 
 class App.WarehouseReports.PerformanceDashboards.HorizontalBar
-  constructor: (@chart_selector, @columns, @categories, @options) ->
+  constructor: (@chart_selector, options) ->
     Chart.defaults.global.defaultFontSize = 10
     @color_map = {}
     @next_color = 0
-    @padding = @options.padding || {}
-    @height = @options.height || 800
-    @_build_chart()
+    if options?.remote == true
+      @_observe()
+    else
+      @_build_chart()
 
   _build_chart: () =>
+    # console.log($(@chart_selector).data())
+    @options = $(@chart_selector).data('chart').options
+    @categories = $(@chart_selector).data('chart').categories
+
+    @padding = @options.padding || {}
+    @height = @options.height || 800
     data = {
-      columns: @columns
+      columns: $(@chart_selector).data('chart').columns
       type: 'bar'
       color: @_colors
       labels: true
@@ -66,7 +73,7 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
     return color
 
   _follow_link: (d, element) =>
-    return unless @options.follow_link == 'true'
+    return unless @options.follow_link == true
 
     bucket_title = @chart.categories()[d.index]
     bucket = @options.sub_keys[bucket_title]
@@ -79,9 +86,35 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
       @options.params.options.end_date = @options.date_ranges.comparison.end_date
     # If we clicked on a point, send us to the list of associated clients
     @options.params.options.report = report
-    @options.params.options.sub_key = bucket
+    if bucket?
+      @options.params.options.sub_key = bucket
     # console.log(@options.params)
 
-    url = @options.link_base + '?' + $.param(@options.params)
+    url = '/' + @options.link_base + '?' + $.param(@options.params)
     # console.log(url)
     window.open url
+
+  _observe: =>
+    @processed = []
+    MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+    if MutationObserver
+      (
+        new MutationObserver (mutations) =>
+          for mutation in mutations
+            if $(mutation.target).data('complete') == 'true' && @_selector_exists() && @_selector_unprocessed()
+              # console.log($(@chart_selector).data(), @chart_selector)
+              @_build_chart()
+              @processed.push @chart_selector
+      ).observe(
+        document.body
+        childList: false
+        subtree: true
+        attributes: true
+        attributeFilter: ['complete']
+      )
+
+  _selector_exists: =>
+    $(@chart_selector).length > 0
+
+  _selector_unprocessed: =>
+    @chart_selector not in @processed

@@ -188,6 +188,12 @@ def report_list
         description: 'Clients fleeing domestic violence.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/ce_assessments',
+        name: 'CE Assessment Report',
+        description: 'Coordinated Entry assessment details.',
+        limitable: true,
+      },
     ],
     'Data Quality' => [
       {
@@ -542,6 +548,12 @@ def report_list
         url: 'warehouse_reports/youth_export',
         name: 'Youth Export',
         description: 'Youth data for a given time frame',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/youth_intake_export',
+        name: 'Youth Intake Export',
+        description: 'Export youth intake and associated data for a given time frame',
         limitable: false,
       },
       {

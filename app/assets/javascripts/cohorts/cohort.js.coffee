@@ -49,7 +49,7 @@ class App.Cohorts.Cohort
       defaultColDef:
         sortable: true,
         filter: true,
-        resizeable: true,
+        resizable: true,
       # enableSorting: true,
       # enableFilter: true,
       singleClickEdit: true,
