@@ -188,6 +188,12 @@ def report_list
         description: 'Clients fleeing domestic violence.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/ce_assessments',
+        name: 'CE Assessment Report',
+        description: 'Coordinated Entry assessment details.',
+        limitable: true,
+      },
     ],
     'Data Quality' => [
       {
