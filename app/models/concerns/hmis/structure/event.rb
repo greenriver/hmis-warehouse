@@ -8,8 +8,13 @@ module HMIS::Structure::Event
   extend ActiveSupport::Concern
   include ::HMIS::Structure::Base
 
+  included do
+    self.hud_key = :EventID
+    acts_as_paranoid(column: :DateDeleted)
+  end
+
   module ClassMethods
-    def hmis_structure(version: nil)
+    def hmis_configuration(version: nil)
       case version
       when '2020', nil
         {

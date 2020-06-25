@@ -9,9 +9,9 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::IncomeBenefit
 
+    attr_accessor :source_id
+
     self.table_name = 'IncomeBenefits'
-    self.hud_key = :IncomeBenefitsID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :income_benefits
     has_one :client, through: :enrollment, inverse_of: :income_benefits

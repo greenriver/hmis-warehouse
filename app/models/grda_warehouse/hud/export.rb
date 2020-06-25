@@ -9,12 +9,9 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Export
 
-    self.table_name = 'Export'
-    self.hud_key = :ExportID
+    attr_accessor :source_id
 
-    def self.hud_paranoid_column
-      nil
-    end
+    self.table_name = 'Export'
 
     has_many :affiliations, **hud_assoc(:AffiliationID, 'Affiliation'), inverse_of: :export
     has_many :clients, **hud_assoc(:PersonalID, 'Client'), inverse_of: :export

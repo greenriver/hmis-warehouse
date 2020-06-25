@@ -15,12 +15,12 @@ module GrdaWarehouse::Hud
   class Inventory < Base
     include HudSharedScopes
     include ::HMIS::Structure::Inventory
-
-    self.table_name = 'Inventory'
-    self.hud_key = :InventoryID
-    acts_as_paranoid column: :DateDeleted
     include ArelHelper
     require 'csv'
+
+    attr_accessor :source_id
+
+    self.table_name = 'Inventory'
 
     FAMILY_HOUSEHOLD_TYPE = 3
     INDIVIDUAL_HOUSEHOLD_TYPE = 1

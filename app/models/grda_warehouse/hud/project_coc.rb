@@ -10,9 +10,9 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::ProjectCoc
     include ArelHelper
 
+    attr_accessor :source_id
+
     self.table_name = 'ProjectCoC'
-    self.hud_key = :ProjectCoCID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :project_cocs
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :project_cocs, optional: true

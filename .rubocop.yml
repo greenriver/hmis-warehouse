@@ -25,6 +25,7 @@ AllCops:
     - 'app/models/weather/**/*.rb'
     - 'app/renderers/**/*.rb'
     - 'app/uploaders/**/*.rb'
+    - 'drivers/**/*.rb'
     - 'lib/**/*.rb'
 
   Exclude:
@@ -77,6 +78,7 @@ Style/ClassAndModuleChildren:
     - 'app/models/concerns/**/*'
     - 'app/controllers/**/*'
     - 'app/jobs/**/*'
+    - 'drivers/**/*'
 
 Style/ConditionalAssignment:
   Enabled: false

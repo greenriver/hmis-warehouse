@@ -7,11 +7,12 @@
 module GrdaWarehouse::Hud
   class EnrollmentCoc < Base
     include HudSharedScopes
-    include ::HMIS::Structure::EnrollmentCoC
+    include ::HMIS::Structure::EnrollmentCoc
+
+    attr_accessor :source_id
 
     self.table_name = 'EnrollmentCoC'
-    self.hud_key = :EnrollmentCoCID
-    acts_as_paranoid column: :DateDeleted
+    self.sequence_name = 'public."EnrollmentCoC_id_seq"'
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :enrollment_cocs
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_enrollment_cocs

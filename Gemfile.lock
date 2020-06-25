@@ -445,6 +445,10 @@ GEM
     polyamorous (2.3.0)
       activerecord (>= 5.0)
     popper_js (1.14.5)
+    postgres-copy (1.4.1)
+      activerecord (>= 5.1)
+      pg (>= 0.17)
+      responders
     pretender (0.3.4)
       actionpack (>= 4.2)
     pry (0.12.2)
@@ -489,6 +493,8 @@ GEM
       ruby-graphviz (~> 1.2)
     rails-html-sanitizer (1.3.0)
       loofah (~> 2.3)
+    rails_drivers (1.2.0)
+      rails (>= 5.2)
     railties (5.2.4.3)
       actionpack (= 5.2.4.3)
       activesupport (= 5.2.4.3)
@@ -806,6 +812,7 @@ DEPENDENCIES
   paper_trail
   paranoia (~> 2.0)
   pg
+  postgres-copy
   pretender
   pry-rails
   puma (~> 3.12.6)
@@ -814,6 +821,7 @@ DEPENDENCIES
   rails (~> 5.2.4)
   rails-controller-testing
   rails-erd
+  rails_drivers
   ransack
   redcarpet
   redis-rails

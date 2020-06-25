@@ -9,12 +9,12 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HudSharedScopes
     include TsqlImport
+    include NotifierConfig
     include ::HMIS::Structure::Enrollment
 
+    attr_accessor :source_id
+
     self.table_name = 'Enrollment'
-    self.hud_key = :EnrollmentID
-    acts_as_paranoid column: :DateDeleted
-    include NotifierConfig
 
     alias_attribute :date, :EntryDate
 

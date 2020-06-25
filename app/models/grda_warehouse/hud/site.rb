@@ -11,6 +11,8 @@ module GrdaWarehouse::Hud
     self.hud_key = 'GeographyID'
     acts_as_paranoid column: :DateDeleted
 
+    attr_accessor :source_id
+
     def self.hud_csv_headers(version: nil)
       [
         :GeographyID,

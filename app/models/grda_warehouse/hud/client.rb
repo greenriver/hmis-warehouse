@@ -19,9 +19,10 @@ module GrdaWarehouse::Hud
     include ClientHealthEmergency
     has_paper_trail
 
+    attr_accessor :source_id
+
     self.table_name = :Client
-    self.hud_key = :PersonalID
-    acts_as_paranoid(column: :DateDeleted)
+
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
 
     has_many :client_files

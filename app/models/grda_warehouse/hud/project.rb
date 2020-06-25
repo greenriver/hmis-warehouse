@@ -12,9 +12,10 @@ module GrdaWarehouse::Hud
     include ProjectReport
     include ::HMIS::Structure::Project
 
+    attr_accessor :source_id
+
     self.table_name = :Project
-    self.hud_key = :ProjectID
-    acts_as_paranoid column: :DateDeleted
+
     has_paper_trail
 
    include Filterable

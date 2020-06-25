@@ -9,9 +9,9 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Funder
 
+    attr_accessor :source_id
+
     self.table_name = 'Funder'
-    self.hud_key = :FunderID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :funders
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: :true
@@ -29,6 +29,16 @@ module GrdaWarehouse::Hud
           or(at[:EndDate].eq(nil))
         )
       where(closed_within_range.or(opened_within_range).or(open_throughout))
+    end
+
+    scope :within_range, -> (range) do
+      where(
+        f_t[:EndDate].gteq(range.first).
+        or(f_t[:EndDate].eq(nil)).
+        and(f_t[:StartDate].lteq(range.last).
+          or(f_t[:StartDate].eq(nil))
+        )
+      )
     end
 
     def valid_funder_code?

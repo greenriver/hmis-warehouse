@@ -10,8 +10,7 @@ module GrdaWarehouse::Hud
     self.table_name = 'Disabilities'
     include ::HMIS::Structure::Disability
 
-    self.hud_key = :DisabilitiesID
-    acts_as_paranoid column: :DateDeleted
+    attr_accessor :source_id
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities

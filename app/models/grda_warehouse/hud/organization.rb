@@ -11,9 +11,10 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Organization
 
+    attr_accessor :source_id
+
     self.table_name = 'Organization'
-    self.hud_key = :OrganizationID
-    acts_as_paranoid column: :DateDeleted
+
     has_many :projects, **hud_assoc(:OrganizationID, 'Project'), inverse_of: :organization
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :organizations, optional: true
     belongs_to :data_source, inverse_of: :organizations

@@ -8,8 +8,16 @@ module HMIS::Structure::Export
   extend ActiveSupport::Concern
   include ::HMIS::Structure::Base
 
+  included do
+    self.hud_key = :ExportID
+  end
+
   module ClassMethods
-    def hmis_structure(version: nil)
+    def hud_paranoid_column
+      nil
+    end
+
+    def hmis_configuration(version: nil)
       case version
       when '6.11', '6.12', '2020', nil
         {

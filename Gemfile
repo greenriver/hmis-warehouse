@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
-gem "rails", '~>5.2.4'
+gem 'rails', '~>5.2.4'
+gem 'rails_drivers'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
@@ -14,6 +15,7 @@ gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_prim
 gem "pg"
 gem 'activerecord-sqlserver-adapter', '~> 5.0', require: false
 gem 'activerecord-import'
+gem 'postgres-copy'
 # gem 'active_record_distinct_on'
 gem 'charlock_holmes', require: false
 gem "bootsnap"

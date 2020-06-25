@@ -9,9 +9,9 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::AssessmentResult
 
+    attr_accessor :source_id
+
     self.table_name = :AssessmentResults
-    self.hud_key = :AssessmentResultID
-    acts_as_paranoid column: :DateDeleted
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessment_results, optional: true
     belongs_to :assessment, **hud_assoc(:AssessmentID, 'Assessment')
