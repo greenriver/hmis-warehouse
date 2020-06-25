@@ -4,6 +4,7 @@
   %p.mr-auto= @detail.date_range_words
   %div
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon.icon-download2
       Download Excel
 - rows = @detail.detail_for(@options)
 - if rows.any?
