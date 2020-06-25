@@ -54,7 +54,7 @@ class ApplicationController < ActionController::Base
 
   # To permit merge(link_params) when creating a new link from existing parameters
   def link_params
-    params.permit!
+    params.permit!.merge(only_path: true, script_name: nil)
   end
   helper_method :link_params
 
