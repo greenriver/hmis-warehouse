@@ -26,6 +26,16 @@ module PerformanceDashboards
       else
         @detail = @report
       end
+
+      respond_to do |format|
+        format.xlsx do
+          render(
+            xlsx: 'details',
+            filename: "#{@detail.support_title(@options)} - #{Time.current.to_s.delete(',')}.xlsx",
+          )
+        end
+        format.html
+      end
     end
 
     private def option_params
