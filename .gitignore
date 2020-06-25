@@ -19,6 +19,7 @@
 
 config/deploy/docker/assets/REVISION
 config/deploy/docker/assets/secret.deploy.values.yml
+docker-compose.override.yml
 
 # Ignore all local config files, except some ruby/rails ones
 /.*
