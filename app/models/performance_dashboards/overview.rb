@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
@@ -21,6 +21,17 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
       entering: :entering,
       exiting: :exiting,
     }
+  end
+
+  def self.available_chart_types
+    [
+      'by_age',
+      'by_ethnicity',
+      'by_gender',
+      'by_household',
+      'by_race',
+      'by_veteran',
+    ]
   end
 
   def exiting_by_destination

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # ### HIPPA Risk Assessment
@@ -37,8 +37,7 @@ module Health
         # Any qa before the end of the report range?
         qa_activity_dates = patient&.qualifying_activities&.during_current_enrollment&.where(hqa_t[:date_of_activity].lteq(report_range.end))&.pluck(:date_of_activity)&.uniq || []
 
-        # only include patients referred before the report end date
-        next unless patient_enrolled_during_report?(pr.enrollment_start_date)
+        next unless patient_enrolled_during_report?(patient)
 
         # Get the most recent modification date based on QA dates and referral date
         patient_updated_at = (qa_activity_dates + [pr.enrollment_start_date]).compact.max
@@ -89,8 +88,9 @@ module Health
       complete_report
     end
 
-    private def patient_enrolled_during_report? enrollment_start_date
-      enrollment_start_date.present? && enrollment_start_date <= report_range.end
+    private def patient_enrolled_during_report?(patient)
+      @patients_enrolled_during_report ||= Health::Patient.active_between(report_range.first, report_range.last).pluck(:id)
+      @patients_enrolled_during_report.include?(patient.id)
     end
 
     def self.spreadsheet_columns

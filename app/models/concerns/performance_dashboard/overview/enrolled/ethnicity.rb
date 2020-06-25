@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboard::Overview::Enrolled::Ethnicity
@@ -9,16 +9,18 @@ module PerformanceDashboard::Overview::Enrolled::Ethnicity
 
   # NOTE: always count the most-recently started enrollment within the range
   def enrolled_by_ethnicity
-    buckets = ethnicity_buckets.map { |b| [b, []] }.to_h
-    counted = Set.new
-    enrolled.
-      joins(:client).
-      order(first_date_in_program: :desc).
-      pluck(:client_id, :Ethnicity, :first_date_in_program).each do |id, ethnicity, _|
-        buckets[ethnicity_bucket(ethnicity)] << id unless counted.include?(id)
-        counted << id
-      end
-    buckets
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      buckets = ethnicity_buckets.map { |b| [b, []] }.to_h
+      counted = Set.new
+      enrolled.
+        joins(:client).
+        order(first_date_in_program: :desc).
+        pluck(:client_id, :Ethnicity, :first_date_in_program).each do |id, ethnicity, _|
+          buckets[ethnicity_bucket(ethnicity)] << id unless counted.include?(id)
+          counted << id
+        end
+      buckets
+    end
   end
 
   def enrolled_by_ethnicity_data_for_chart

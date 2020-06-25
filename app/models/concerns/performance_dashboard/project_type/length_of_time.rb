@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboard::ProjectType::LengthOfTime
@@ -22,7 +22,7 @@ module PerformanceDashboard::ProjectType::LengthOfTime
 
   # Fetch service during range, sum unique days within 3 years of end date
   def lengths_of_time
-    @lengths_of_time ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = time_buckets.map { |b| [b, []] }.to_h
       counted = Set.new
       services.
@@ -81,7 +81,7 @@ module PerformanceDashboard::ProjectType::LengthOfTime
   end
 
   def lengths_of_time_data_for_chart
-    @lengths_of_time_data_for_chart ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]
       columns += lengths_of_time.values.map(&:count)
       categories = lengths_of_time.keys.map do |k|

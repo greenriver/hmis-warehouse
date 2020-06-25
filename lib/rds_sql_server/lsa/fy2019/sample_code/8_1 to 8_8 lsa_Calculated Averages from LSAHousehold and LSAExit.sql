@@ -3,6 +3,7 @@ LSA FY2019 Sample Code
 
 Name:  8_1 to 8_8 lsa_Calculated averages from LSAHousehold and LSAExit (File 8 of 10)
 Date:  4/7/2020   
+	   5/21/2020 - Add set of Step column to all INSERT statements
 
 
 	8.1 and 8.2 Average Days for Length of Time Homeless 
@@ -10,7 +11,7 @@ Date:  4/7/2020
 	delete from lsa_Calculated
 	--AVERAGE DAYS IN ES/SH 
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select distinct avg(ESDays) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -18,6 +19,7 @@ Date:  4/7/2020
 		, coalesce(pop.SystemPath, -1)
 		, 1 as ReportRow
 		, lh.ReportID
+		, '8.1/2.1'
 	from tlsa_Household lh
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -43,7 +45,7 @@ Date:  4/7/2020
 	
 	-- AVERAGE DAYS IN TH
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select distinct avg(lh.THDays) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -51,6 +53,7 @@ Date:  4/7/2020
 		, coalesce(pop.SystemPath, -1)
 		, 2 as ReportRow
 		, lh.ReportID
+		, '8.1/2.2'
 	from tlsa_Household lh
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -76,7 +79,7 @@ Date:  4/7/2020
 
 	--AVERAGE DAYS in ES/SH/TH combined
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select distinct avg(lh.ESTDays) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -84,6 +87,7 @@ Date:  4/7/2020
 		, coalesce(pop.SystemPath, -1)
 		, 3 as ReportRow
 		, lh.ReportID
+		, '8.1/2.3'
 	from tlsa_Household lh
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -109,7 +113,7 @@ Date:  4/7/2020
 
 	--AVERAGE DAYS in RRH/PSH Pre-MoveIn
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select distinct avg(lh.RRHPSHPreMoveInDays) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -117,6 +121,7 @@ Date:  4/7/2020
 		, coalesce(pop.SystemPath, -1)
 		, 4 as ReportRow
 		, lh.ReportID
+		, '8.1/2.4'
 	from tlsa_Household lh
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -142,7 +147,7 @@ Date:  4/7/2020
 
 	--AVERAGE DAYS Enrolled in ES/SH/TH/RRH/PSH PROJECTS WHILE HOMELESS
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lh.SystemHomelessDays) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -150,6 +155,7 @@ Date:  4/7/2020
 		, coalesce(pop.SystemPath, -1)
 		, 5 as ReportRow
 		, lh.ReportID
+		, '8.1/2.5'
 	from tlsa_Household lh
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -176,7 +182,7 @@ Date:  4/7/2020
 	--AVERAGE DAYS Not Enrolled in ES/SH/TH/RRH/PSH PROJECTS 
 	--  and DOCUMENTED HOMELESS BASED ON 3.917
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lh.Other3917Days) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -184,6 +190,7 @@ Date:  4/7/2020
 		, coalesce(pop.SystemPath, -1)
 		, 6 as ReportRow
 		, lh.ReportID
+		, '8.1/2.6'
 	from tlsa_Household lh
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -210,7 +217,7 @@ Date:  4/7/2020
 	--AVERAGE DAYS HOMELESS IN ES/SH/TH/RRH/PSH projects +
 	-- DAYS DOCUMENTED HOMELESS BASED ON 3.917
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lh.TotalHomelessDays) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -218,6 +225,7 @@ Date:  4/7/2020
 		, coalesce(pop.SystemPath, -1)
 		, 7 as ReportRow
 		, lh.ReportID
+		, '8.1/2.7'
 	from tlsa_Household lh
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -243,7 +251,7 @@ Date:  4/7/2020
 
 	--AVERAGE DAYS HOUSED IN RRH
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lh.RRHHousedDays) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -251,6 +259,7 @@ Date:  4/7/2020
 		, coalesce(pop.SystemPath, -1)
 		, 8 as ReportRow
 		, lh.ReportID
+		, '8.1/2.8'
 	from tlsa_Household lh
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -276,7 +285,7 @@ Date:  4/7/2020
 
 	--AVERAGE DAYS Enrolled in ES/SH/TH/RRH/PSH PROJECTS and not Housed in PSH
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lh.SystemDaysNotPSHHoused) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -284,6 +293,7 @@ Date:  4/7/2020
 		, coalesce(pop.SystemPath, -1)
 		, 9 as ReportRow
 		, lh.ReportID
+		, '8.1/2.9'
 	from tlsa_Household lh
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -312,7 +322,7 @@ Date:  4/7/2020
 */
 	--Time Housed in PSH 
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lh.PSHHousedDays) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -321,6 +331,7 @@ Date:  4/7/2020
 		--Row 10 = households that exited, 11 = active on the last day
 		, case when PSHStatus in (12,22) then 10 else 11 end as ReportRow
 		, lh.ReportID
+		, '8.3'
 	from tlsa_Household lh 
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -347,7 +358,7 @@ Date:  4/7/2020
 */
 	--Time in RRH not housed
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lh.RRHPreMoveInDays) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -360,6 +371,7 @@ Date:  4/7/2020
 			--Row 13 = active households not placed in PH
 			else 13 end as ReportRow
 		, lh.ReportID
+		, '8.4.1'
 	from tlsa_Household lh 
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -386,7 +398,7 @@ Date:  4/7/2020
 
 	--Time housed in RRH
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lh.RRHHousedDays) as Value
 		, 1 as Cohort, -1 as Universe
 		, coalesce(pop.HHType, 0) as HHType
@@ -397,6 +409,7 @@ Date:  4/7/2020
 			--Row 16 = active households 
 			else 16 end as ReportRow
 		, lh.ReportID
+		, '8.4.2'
 	from tlsa_Household lh 
 	inner join ref_Populations pop on
 		(lh.HHType = pop.HHType or pop.HHType is null)
@@ -423,7 +436,7 @@ Date:  4/7/2020
 	8.5 Days to Return/Re-engage by Last Project Type
 */
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lx.ReturnTime) as Value
 		, lx.Cohort, 
 		case when lx.ExitTo between 1 and 6 then 2
@@ -433,6 +446,7 @@ Date:  4/7/2020
 		, -1 as SystemPath
 		, lx.ExitFrom + 16 as ReportRow
 		, lx.ReportID
+		, '8.5'
 	from tlsa_Exit lx
 	inner join ref_Populations pop on
 		(lx.HHType = pop.HHType or pop.HHType is null)
@@ -457,7 +471,7 @@ Date:  4/7/2020
 	8.6 and 8.7 Days to Return/Re-engage by Population / SystemPath
 */
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lx.ReturnTime) as Value
 		, lx.Cohort, 
 		case when lx.ExitTo between 1 and 6 then 2
@@ -467,6 +481,7 @@ Date:  4/7/2020
 		, coalesce(pop.SystemPath, -1)
 		, coalesce(pop.SystemPath, 0) + 23 as ReportRow
 		, lx.ReportID
+		, '8.5-8.6'
 	from tlsa_Exit lx
 	inner join ref_Populations pop on
 		(lx.HHType = pop.HHType or pop.HHType is null)
@@ -493,7 +508,7 @@ Date:  4/7/2020
 	8.8 Days to Return/Re-engage by Exit Destination
 */
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
-		, Population, SystemPath, ReportRow, ReportID)
+		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lx.ReturnTime) as Value
 		, lx.Cohort, 
 		case when lx.ExitTo between 1 and 6 then 2
@@ -503,6 +518,7 @@ Date:  4/7/2020
 		, -1 as SystemPath
 		, case when lx.ExitTo between 1 and 15 then lx.ExitTo + 36 else 52 end as ReportRow
 		, lx.ReportID
+		, '8.8'
 	from tlsa_Exit lx
 	inner join ref_Populations pop on
 		(lx.HHType = pop.HHType or pop.HHType is null)

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 require 'faker'
@@ -69,6 +69,8 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       OtherIncomeSourceIdentify: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
       OtherBenefitsSourceIdentify: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
       OtherTypeProvided: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
+      Address1: -> (value) { if value.present? then Faker::Address.street_address else nil end },
+      Address2: -> (value) { if value.present? then Faker::Address.street_address else nil end },
     }
   end
 
