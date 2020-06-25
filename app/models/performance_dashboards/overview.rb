@@ -23,6 +23,17 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
     }
   end
 
+  def self.available_chart_types
+    [
+      'by_age',
+      'by_ethnicity',
+      'by_gender',
+      'by_household',
+      'by_race',
+      'by_veteran',
+    ]
+  end
+
   def exiting_by_destination
     destinations = {}
     exiting.pluck(:client_id, :destination).each do |id, destination|

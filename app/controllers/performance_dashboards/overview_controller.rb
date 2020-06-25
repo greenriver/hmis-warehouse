@@ -13,6 +13,10 @@ module PerformanceDashboards
     def index
     end
 
+    private def section_subpath
+      'performance_dashboards/overview/'
+    end
+
     def details
       @options = option_params[:options]
       @breakdown = params.dig(:options, :breakdown)

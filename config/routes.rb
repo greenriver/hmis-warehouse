@@ -582,9 +582,11 @@ Rails.application.routes.draw do
   namespace :performance_dashboards do
     resources :overview, only: [:index] do
       get :details, on: :collection
+      get 'section/:partial', on: :collection, to: "overview#section", as: :section
     end
     resources :project_type, only: [:index] do
       get :details, on: :collection
+      get 'section/:partial', on: :collection, to: "project_type#section", as: :section
     end
   end
 

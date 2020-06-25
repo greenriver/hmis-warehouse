@@ -9,16 +9,18 @@ module PerformanceDashboard::Overview::Exiting::Veteran
 
   # NOTE: always count the most-recently started enrollment within the range
   def exiting_by_veteran
-    buckets = veteran_buckets.map { |b| [b, []] }.to_h
-    counted = Set.new
-    exiting.
-      joins(:client).
-      order(first_date_in_program: :desc).
-      pluck(:client_id, c_t[:VeteranStatus], :first_date_in_program).each do |id, veteran_status, _|
-        buckets[veteran_bucket(veteran_status)] << id unless counted.include?(id)
-        counted << id
-      end
-    buckets
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      buckets = veteran_buckets.map { |b| [b, []] }.to_h
+      counted = Set.new
+      exiting.
+        joins(:client).
+        order(first_date_in_program: :desc).
+        pluck(:client_id, c_t[:VeteranStatus], :first_date_in_program).each do |id, veteran_status, _|
+          buckets[veteran_bucket(veteran_status)] << id unless counted.include?(id)
+          counted << id
+        end
+      buckets
+    end
   end
 
   def exiting_by_veteran_data_for_chart

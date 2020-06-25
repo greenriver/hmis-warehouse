@@ -21,4 +21,13 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
       exiting: :exiting,
     }
   end
+
+  def self.available_chart_types
+    [
+      'living_situations',
+      'destinations',
+      'lengths_of_time',
+      'returns',
+    ]
+  end
 end

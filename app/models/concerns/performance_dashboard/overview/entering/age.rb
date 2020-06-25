@@ -9,7 +9,7 @@ module PerformanceDashboard::Overview::Entering::Age
 
   # NOTE: always count the most-recently started enrollment within the range
   def entering_by_age
-    @entering_by_age ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = age_buckets.map { |b| [b, []] }.to_h
       counted = Set.new
       entering.order(first_date_in_program: :desc).

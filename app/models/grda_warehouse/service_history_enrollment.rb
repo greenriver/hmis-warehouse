@@ -16,7 +16,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   has_one :head_of_household, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], inverse_of: :service_history, autosave: false
   belongs_to :data_source, autosave: false
   belongs_to :processed_client, -> { where(routine: 'service_history')}, class_name: 'GrdaWarehouse::WarehouseClientsProcessed', foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history_enrollments, autosave: false
-  has_many :service_history_services, inverse_of: :service_history_enrollment
+  has_many :service_history_services, inverse_of: :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id]
   has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], foreign_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
 
   # make a scope for every project type and a type? method for instances
@@ -165,7 +165,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :exit_within_date_range, -> (start_date: , end_date: ) do
-    self.exit.ended_between(start_date: start_date, end_date: end_date)
+    self.entry.ended_between(start_date: start_date, end_date: end_date)
   end
 
   scope :service_in_last_three_years, -> {
@@ -187,11 +187,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :started_between, -> (start_date: , end_date: ) do
-    where(first_date_in_program: [start_date..end_date])
+    where(first_date_in_program: (start_date..end_date))
   end
 
   scope :ended_between, -> (start_date: , end_date: ) do
-    where(last_date_in_program: [start_date..end_date])
+    where(last_date_in_program: (start_date..end_date))
   end
 
   scope :coc_funded, -> do

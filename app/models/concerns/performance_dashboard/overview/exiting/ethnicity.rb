@@ -9,16 +9,18 @@ module PerformanceDashboard::Overview::Exiting::Ethnicity
 
   # NOTE: always count the most-recently started enrollment within the range
   def exiting_by_ethnicity
-    buckets = ethnicity_buckets.map { |b| [b, []] }.to_h
-    counted = Set.new
-    exiting.
-      joins(:client).
-      order(first_date_in_program: :desc).
-      pluck(:client_id, :Ethnicity, :first_date_in_program).each do |id, ethnicity, _|
-        buckets[ethnicity_bucket(ethnicity)] << id unless counted.include?(id)
-        counted << id
-      end
-    buckets
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      buckets = ethnicity_buckets.map { |b| [b, []] }.to_h
+      counted = Set.new
+      exiting.
+        joins(:client).
+        order(first_date_in_program: :desc).
+        pluck(:client_id, :Ethnicity, :first_date_in_program).each do |id, ethnicity, _|
+          buckets[ethnicity_bucket(ethnicity)] << id unless counted.include?(id)
+          counted << id
+        end
+      buckets
+    end
   end
 
   def exiting_by_ethnicity_data_for_chart

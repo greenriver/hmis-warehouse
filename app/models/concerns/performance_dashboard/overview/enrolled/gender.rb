@@ -9,16 +9,18 @@ module PerformanceDashboard::Overview::Enrolled::Gender
 
   # NOTE: always count the most-recently started enrollment within the range
   def enrolled_by_gender
-    buckets = gender_buckets.map { |b| [b, []] }.to_h
-    counted = Set.new
-    enrolled.
-      joins(:client).
-      order(first_date_in_program: :desc).
-      pluck(:client_id, c_t[:Gender], :first_date_in_program).each do |id, gender, _|
-      buckets[gender_bucket(gender)] << id unless counted.include?(id)
-      counted << id
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      buckets = gender_buckets.map { |b| [b, []] }.to_h
+      counted = Set.new
+      enrolled.
+        joins(:client).
+        order(first_date_in_program: :desc).
+        pluck(:client_id, c_t[:Gender], :first_date_in_program).each do |id, gender, _|
+        buckets[gender_bucket(gender)] << id unless counted.include?(id)
+        counted << id
+      end
+      buckets
     end
-    buckets
   end
 
   def enrolled_by_gender_data_for_chart
