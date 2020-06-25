@@ -56,6 +56,10 @@ node_modules
 *.swp
 TAGS
 yarn.lock
+untracked
+*.code-workspace
+.vscode
+docker-compose.dev.yml
 
 # docker deployment
 docker/deploy/REVISION
