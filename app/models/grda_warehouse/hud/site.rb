@@ -7,7 +7,6 @@
 module GrdaWarehouse::Hud
   class Site < Base
     include HudSharedScopes
-    include ::HMIS::Structure::Site
 
     self.table_name = 'Site'
     self.hud_key = 'GeographyID'
