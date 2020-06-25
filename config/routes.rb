@@ -192,6 +192,7 @@ Rails.application.routes.draw do
     resources :user_login, only: [:index]
   end
   namespace :warehouse_reports do
+    resources :ce_assessments, only: [:index]
     resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
     resources :youth_intakes, only: [:index] do
@@ -201,6 +202,7 @@ Rails.application.routes.draw do
     end
     resources :youth_follow_ups, only: [:index]
     resources :youth_export, only: [:index, :show, :create, :destroy]
+    resources :youth_intake_export, only: [:index, :create]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
@@ -583,9 +585,11 @@ Rails.application.routes.draw do
   namespace :performance_dashboards do
     resources :overview, only: [:index] do
       get :details, on: :collection
+      get 'section/:partial', on: :collection, to: "overview#section", as: :section
     end
     resources :project_type, only: [:index] do
       get :details, on: :collection
+      get 'section/:partial', on: :collection, to: "project_type#section", as: :section
     end
   end
 
@@ -687,7 +691,9 @@ Rails.application.routes.draw do
       get :search
       resources :cases do
         resources :locations, except: [:index]
-        resources :contacts
+        resources :contacts do
+          resources :results
+        end
         resources :site_managers
         resources :staff
       end

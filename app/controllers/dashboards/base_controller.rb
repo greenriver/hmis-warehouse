@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Dashboards
@@ -66,7 +66,7 @@ module Dashboards
         m == params.require(:partial).underscore
       end
 
-      raise 'Rollup not in whitelist' unless section.present?
+      raise 'Rollup not in allowlist' unless section.present?
 
       section = 'dashboards/base/' + section
       render partial: section, layout: false if request.xhr?

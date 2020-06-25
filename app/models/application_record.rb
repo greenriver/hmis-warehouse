@@ -1,10 +1,11 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 #
 class ApplicationRecord < ActiveRecord::Base
+  include Efind
   self.abstract_class = true
 
   def self.original_config

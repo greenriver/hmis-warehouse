@@ -8,30 +8,10 @@
     %p.description.mb-0= desc
 
 .well.mb-6.pt-0
-  .jChart.c-chart.c-chart--horizontal-bar{class: chart_class}
+  .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: { columns: columns, categories: categories, options: { height: chart_height, follow_link: show_client_details?, link_base: 'performance_dashboards/project_type/details', key: key, sub_keys: @report.destination_bucket_titles.invert, params: detail_params, date_ranges: { report: { start_date: @report.start_date, end_date: @report.end_date, }, comparison: { start_date: @comparison.start_date, end_date: @comparison.end_date, } } } }.to_json.html_safe } }
 
 = content_for :page_js do
   :javascript
-    (function($) {
-      var columns = #{columns.to_json.html_safe};
-      var categories = #{categories.to_json.html_safe};
-      var options = {
-        height: #{chart_height.to_json.html_safe},
-        follow_link: '#{show_client_details?}',
-        link_base: 'project_type/details',
-        key: '#{key}',
-        sub_keys: #{@report.destination_bucket_titles.invert.to_json.html_safe},
-        params: #{detail_params.to_json.html_safe},
-        date_ranges: {
-          report: {
-            start_date: '#{@report.start_date}',
-            end_date: '#{@report.end_date}'
-          },
-          comparison: {
-            start_date: '#{@comparison.start_date}',
-            end_date: '#{@comparison.end_date}'
-          }
-        }
-      };
-      var destination_chart = new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.#{chart_class}', columns, categories, options);
-    })(jQuery);
+    var section_path = "#{request.path}/section/";
+    var sections = new App.Sections.Loader($('.rollup'), section_path, #{filter_params.to_json.html_safe});
+    new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.#{chart_class}-chart');

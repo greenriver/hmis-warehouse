@@ -6,18 +6,18 @@
 - if @report.include_comparison?
   - columns << @comparison.entering_by_veteran_data_for_chart[:columns]
 - categories = @report.entering_by_veteran_data_for_chart[:categories]
-= render 'performance_dashboards/overview/breakdown/entering', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options
+= render 'performance_dashboards/overview/breakdown/entering', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, chart_class_slug: 'by-veteran'
 
 - columns = [@report.enrolled_by_veteran_data_for_chart[:columns]]
 - if @report.include_comparison?
   - columns << @comparison.enrolled_by_veteran_data_for_chart[:columns]
 - categories = @report.enrolled_by_veteran_data_for_chart[:categories]
-= render 'performance_dashboards/overview/breakdown/enrolled', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options
+= render 'performance_dashboards/overview/breakdown/enrolled', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, chart_class_slug: 'by-veteran'
 
 - columns = [@report.exiting_by_veteran_data_for_chart[:columns]]
 - if @report.include_comparison?
   - columns << @comparison.exiting_by_veteran_data_for_chart[:columns]
 - categories = @report.exiting_by_veteran_data_for_chart[:categories]
-= render 'performance_dashboards/overview/breakdown/exiting', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options
+= render 'performance_dashboards/overview/breakdown/exiting', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, chart_class_slug: 'by-veteran'
 
 

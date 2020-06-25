@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboard::Overview::Exiting::Gender
@@ -9,16 +9,18 @@ module PerformanceDashboard::Overview::Exiting::Gender
 
   # NOTE: always count the most-recently started enrollment within the range
   def exiting_by_gender
-    buckets = gender_buckets.map { |b| [b, []] }.to_h
-    counted = Set.new
-    exiting.
-      joins(:client).
-      order(first_date_in_program: :desc).
-      pluck(:client_id, c_t[:Gender], :first_date_in_program).each do |id, gender, _|
-      buckets[gender_bucket(gender)] << id unless counted.include?(id)
-      counted << id
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      buckets = gender_buckets.map { |b| [b, []] }.to_h
+      counted = Set.new
+      exiting.
+        joins(:client).
+        order(first_date_in_program: :desc).
+        pluck(:client_id, c_t[:Gender], :first_date_in_program).each do |id, gender, _|
+        buckets[gender_bucket(gender)] << id unless counted.include?(id)
+        counted << id
+      end
+      buckets
     end
-    buckets
   end
 
   def exiting_by_gender_data_for_chart
