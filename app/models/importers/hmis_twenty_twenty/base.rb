@@ -446,6 +446,7 @@ module Importers::HmisTwentyTwenty
       end
       # note date columns for cleanup
       date_columns = date_columns_for_class(klass)
+      time_columns = time_columns_for_class(klass)
       # Reopen the file with corrected headers
       csv = CSV.new(read_from, headers: header, liberal_parsing: true)
       # since we're providing headers, skip the header row
@@ -466,6 +467,11 @@ module Importers::HmisTwentyTwenty
             next if row[col].blank? || correct_date_format?(row[col])
 
             row[col] = fix_date_format(row[col])
+          end
+          time_columns.each do |col|
+            next if row[col].blank? || correct_time_format?(row[col])
+
+            row[col] = fix_time_format(row[col])
           end
           if row.count == header.count
             row = set_useful_export_id(row: row, export_id: export_id_addition)
@@ -495,6 +501,11 @@ module Importers::HmisTwentyTwenty
       if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
         month, day, year = string.split('-')
         return "#{year}-#{month}-#{day}"
+      # Sometimes dates come in mm/dd/yyyy
+      # Sometimes times come in mm/dd/yyyy hh:mm
+      elsif /\d{1,2}\/\d{1,2}\/\d{4}/.match?(string)
+        month, day, year = string.split('/')
+        return "#{year}-#{month}-#{day}"
       end
       # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
       # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
@@ -523,6 +534,54 @@ module Importers::HmisTwentyTwenty
       hmis_columns = klass.hmis_structure(version: '2020').keys
       klass.content_columns.select do |c|
         c.type == :date && c.name.to_sym.in?(hmis_columns)
+      end.map do |c|
+        c.name.to_s
+      end
+    end
+
+    private def fix_time_format(string)
+      return unless string
+      # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
+      return string if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
+
+      # Sometimes dates come in mm-dd-yyyy and Ruby Date really doesn't like that.
+      if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
+        month, day, year = string.split('-')
+        return "#{year}-#{month}-#{day}"
+      # Sometimes dates come in mm/dd/yyyy
+      # Sometimes times come in mm/dd/yyyy hh:mm
+      elsif /\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
+        date, time = string.split(' ')
+        month, day, year = date.split('/')
+        return "#{year}-#{month}-#{day} #{time}"
+      end
+      # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
+      # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
+      # Since we're almost always dealing with dates that are in the past
+      # If the year is between 00 and next year, we'll add 2000,
+      # otherwise, we'll add 1900
+      @next_year ||= Date.current.next_year.strftime('%y').to_i
+      d = DateTime.parse(string, false) # false to not guess at century
+      if d.year <= @next_year
+        d = d.next_year(2000)
+      else
+        d = d.next_year(1900)
+      end
+      d.strftime('%Y-%m-%d %H%M%S')
+    end
+
+    private def correct_time_format?(string)
+      accepted_time_pattern.match?(string)
+    end
+
+    private def accepted_time_pattern
+      @accepted_time_pattern ||= /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.freeze
+    end
+
+    private def time_columns_for_class(klass)
+      hmis_columns = klass.hmis_structure(version: '2020').keys
+      klass.content_columns.select do |c|
+        c.type == :datetime && c.name.to_sym.in?(hmis_columns)
       end.map do |c|
         c.name.to_s
       end
