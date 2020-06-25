@@ -7,4 +7,8 @@
 class HmisCsvValidation::Base < GrdaWarehouseBase
   self.table_name = 'hmis_csv_import_validations'
   belongs_to :source, polymorphic: true
+
+  def skip_row?
+    false
+  end
 end

@@ -8,4 +8,8 @@ class HmisCsvValidation::Error < HmisCsvValidation::Base
   def self.type_name
     'Error'
   end
+
+  def skip_row?
+    true
+  end
 end
