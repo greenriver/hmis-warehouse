@@ -463,7 +463,6 @@ module Importers::HMISSixOneOne
         month, day, year = string.split('-')
         return "#{year}-#{month}-#{day}"
       # Sometimes dates come in mm/dd/yyyy
-      # Sometimes times come in mm/dd/yyyy hh:mm
       elsif /\d{1,2}\/\d{1,2}\/\d{4}/.match?(string)
         month, day, year = string.split('/')
         return "#{year}-#{month}-#{day}"
@@ -509,7 +508,6 @@ module Importers::HMISSixOneOne
       if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
         month, day, year = string.split('-')
         return "#{year}-#{month}-#{day}"
-      # Sometimes dates come in mm/dd/yyyy
       # Sometimes times come in mm/dd/yyyy hh:mm
       elsif /\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
         date, time = string.split(' ')
