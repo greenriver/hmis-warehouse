@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = :User
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     has_many :affiliations, **hud_assoc(:UserID, 'Affiliation')
     has_many :clients, **hud_assoc(:PersonalID, 'Client')

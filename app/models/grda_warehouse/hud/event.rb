@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = :Event
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :events, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :events

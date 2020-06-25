@@ -21,6 +21,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = 'Inventory'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     FAMILY_HOUSEHOLD_TYPE = 3
     INDIVIDUAL_HOUSEHOLD_TYPE = 1

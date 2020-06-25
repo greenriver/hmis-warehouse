@@ -22,6 +22,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = :Client
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
 

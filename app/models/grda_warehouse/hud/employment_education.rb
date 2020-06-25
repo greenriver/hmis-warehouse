@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = 'EmploymentEducation'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :employment_educations
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_employment_educations

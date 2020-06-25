@@ -7,11 +7,13 @@
 module GrdaWarehouse::Hud
   class Geography < Base
     include HudSharedScopes
-    self.table_name = 'Geography'
     self.hud_key = :GeographyID
     acts_as_paranoid column: :DateDeleted
 
     attr_accessor :source_id
+
+    self.table_name = 'Geography'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     def self.hud_csv_headers(version: nil)
       case version

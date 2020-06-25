@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = 'Services'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :data_source, inverse_of: :services
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_services

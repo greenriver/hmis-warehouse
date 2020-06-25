@@ -14,6 +14,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = 'Organization'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     has_many :projects, **hud_assoc(:OrganizationID, 'Project'), inverse_of: :organization
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :organizations, optional: true

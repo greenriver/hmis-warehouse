@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = 'Funder'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :funders
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :funders, optional: :true

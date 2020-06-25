@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = 'Exit'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :exit
     belongs_to :data_source, inverse_of: :exits

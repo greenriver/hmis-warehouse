@@ -13,6 +13,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = 'ProjectCoC'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :project_cocs
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :project_cocs, optional: true

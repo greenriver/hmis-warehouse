@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = :Assessment
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :assessments, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs

@@ -12,7 +12,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = 'EnrollmentCoC'
-    self.sequence_name = 'public."EnrollmentCoC_id_seq"'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :enrollment_cocs
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_enrollment_cocs
