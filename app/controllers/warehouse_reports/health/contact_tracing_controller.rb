@@ -442,7 +442,7 @@ module WarehouseReports::Health
       @site_managers ||= @managers.map do |manager|
         {
           investigator: '', # manager.investigator,
-          index_case_id: manager.case_id,
+          index_case_id: manager.case_id.to_s,
           site: manager.site_name,
           site_leader: manager.site_leader_name,
           notification_date: manager.contacted_on&.strftime('%m/%d/%Y'),
@@ -450,6 +450,105 @@ module WarehouseReports::Health
       end
     end
     helper_method :site_managers
+
+    def staff_contacts_columns
+      @staff_contacts_columns ||= {
+        investigator: {
+          section_header: 'INVESTIGATION INFO',
+          column_header: 'Investigator',
+        },
+        date_interviewed: {
+          section_header: '',
+          column_header: 'Date interviewed',
+        },
+        index_case_id: {
+          section_header: '',
+          column_header: 'Linked Index Case ID',
+        },
+        first_name: {
+          section_header: 'STAFF CONTACT INFORMATION',
+          column_header: 'First Name',
+        },
+        last_name: {
+          section_header: '',
+          column_header: 'Last Name',
+        },
+        dob_or_age: {
+          section_header: '',
+          column_header: 'DOB or Estimated Age',
+        },
+        gender: {
+          section_header: '',
+          column_header: 'Gender',
+        },
+        address: {
+          section_header: '',
+          column_header: 'Address if Known',
+        },
+        phone_number: {
+          section_header: '',
+          column_header: 'Phone Number',
+        },
+        site: {
+          section_header: '',
+          column_header: 'Site',
+        },
+        contact_notifies: {
+          section_header: '',
+          column_header: 'Contact Notified',
+        },
+        exposure_nature: {
+          section_header: '',
+          column_header: 'Nature of Exposure (frequency, duration, timing)',
+        },
+        symptomatic: {
+          section_header: '',
+          column_header: 'Symptomatic?',
+        },
+        symptoms: {
+          section_header: '',
+          column_header: 'Symptoms',
+        },
+        referred_for_testing: {
+          section_header: '',
+          column_header: 'Referred for testing?',
+        },
+        test_result: {
+          section_header: '',
+          column_header: 'Test result',
+        },
+        notes: {
+          section_header: '',
+          column_header: 'Notes about this contact:',
+        },
+      }
+    end
+    helper_method :staff_contacts_columns
+
+    def staff_contacts
+      @staff_contacts ||= @staff.map do |contact|
+        {
+          investigator: '', # contact.investigator
+          date_interviewed: contact.date_interviewed,
+          index_case_id: contact.case_id.to_s,
+          first_name: contact.first_name,
+          last_name: contact.last_name,
+          dob_or_age: [contact.dob&.strftime('%m/%d/%Y'), contact.estimated_age].reject(&:blank?)&.join(' / '),
+          gender: ::HUD.gender(contact.gender),
+          address: contact.address,
+          phone_number: contact.phone_number,
+          site: contact.site_name,
+          contact_notified: contact.notified,
+          exposure_nature: contact.nature_of_exposure,
+          symptomatic: contact.symptomatic,
+          symptoms: ((contact.symptoms || []) + [contact.other_symptoms]).reject(&:blank?).join('/'),
+          referred_for_testing: contact.referred_for_testing,
+          test_result: contact.test_result,
+          notes: contact.notes,
+        }
+      end
+    end
+    helper_method :staff_contacts
 
     def columns
       @columns ||= {
