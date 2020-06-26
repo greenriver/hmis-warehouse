@@ -1,0 +1,23 @@
+wb = xlsx_package.workbook
+headers = @detail.header_for(@options)
+rows = @detail.detail_for(@options)
+title = @detail.support_title(@options).gsub(/[^-a-z0-9 ]/i, '')
+
+wb.add_worksheet name: title do |sheet|
+  title_style = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  summary = [
+    'Report Start Date:',
+    @detail.start_date.to_s,
+    'Report End Date:',
+    @detail.end_date.to_s,
+    title,
+  ]
+  sheet.add_row(summary, style: title_style)
+  sheet.add_row(headers, style: title_style)
+  rows.each_value do |row|
+    values = row.each_with_index.map do |col, i|
+      @report.detail_column_display(header: headers[i], column: col)
+    end
+    sheet.add_row values
+  end
+end
