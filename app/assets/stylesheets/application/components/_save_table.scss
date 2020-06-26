@@ -1,0 +1,47 @@
+@import '../helpers';
+
+.c-save-table {
+  .c-checkbox {
+    font-size: 18px;
+  }
+}
+
+.c-save-table__loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(white, .5);
+  z-index: 1000;
+  pointer-events: none;
+  span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    font-size: 50px;
+  }
+}
+
+.c-save-table__submit-container {
+  overflow: hidden;
+  max-height: 0;
+  position: fixed;
+  bottom: 0;
+  left: 30px;
+  right: calc(#{$nav-side-width} + 30px);
+  text-align: center;
+  background: rgba($brand-warning-l, .5);
+  z-index: 1;
+  transition: .25s ease-in-out;
+  &.show {
+    max-height: 100px;
+  }
+}
+
+
+.c-save-table__submit-changes {
+  margin: 15px;
+}

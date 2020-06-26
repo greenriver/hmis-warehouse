@@ -2,51 +2,10 @@
 %h1= t '.title'
 = render partial: 'menus/admin_tabs'
 :scss
-  .j-table__loading {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(white, .5);
-    z-index: 1000;
-    pointer-events: none;
-    span {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 5;
-      font-size: 100px;
-    }
-  }
-  .j-table__submit-container {
-    overflow: hidden;
-    max-height: 0;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    text-align: center;
-    background: rgba(orange, .5);
-    z-index: 1;
-    transition: .25s ease-in-out;
-  }
-  .j-table__submit-container.show {
-    max-height: 100px;
-  }
-  .j-table__submit-changes {
-    margin: 15px;
-  }
-
-  .c-checkbox {
-    font-size: 18px;
-  }
-
-.table-responsive.j-table
-  .j-table__submit-container
+.table-responsive.j-table.c-save-table{data: {objects: @roles.map(&:id).to_json.html_safe}}
+  .c-save-table__submit-container.j-table__submit-container
     = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
-    %button.j-table__submit-changes.btn.btn-primary{type: 'button'} Save changes
+    %button.j-table__submit-changes.c-save-table__submit-changes.btn.btn-primary{type: 'button'} Save changes
   %table.table.c-table.c-table--striped.j-table__table
     %thead
       %tr.c-table__header.c-table__header--primary
@@ -95,20 +54,15 @@
               = Role.description_for permission: permission
           - @roles.each do |role|
             - permitted = role.send(permission)
-            %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon.j-table__input.text-center{data:{role: role.id}, class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
-              .form-check
+            %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon.j-table__input{data:{role: role.id}, class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
+              .form-check.text-center
                 - id = permission.to_s
                 - name = "role[#{id}]"
                 - id += "_#{role.id}"
                 %input{name: name, type: 'hidden', value: 0}
-                .c-checkbox
+                .c-checkbox.d-flex.align-items-center
                   %input{id: id, name:name, type: 'checkbox', value: 1, checked: permitted}
                   %label{for: id}
-
-              -# - if permitted
-              -#   %i.icon-check-circle
-              -# - else
-              -#   %i.icon-times-circle-o
 
 - content_for :page_js do
   :javascript

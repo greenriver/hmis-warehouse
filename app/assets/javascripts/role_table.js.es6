@@ -5,8 +5,10 @@ window.App.RoleTable = class TableSearch {
       tableContainerSelector: '.j-table',
       submitContainerSelector: '.j-table__submit-container',
       tableObjectHeadingSelector: '.j-table__object',
+      tableInputSelector: '.j-table__input',
     }, props)
 
+    this.isSaving = false
     this.$tableContainer = $(this.props.tableContainerSelector)
     this.init()
   }
@@ -52,26 +54,33 @@ window.App.RoleTable = class TableSearch {
   }
 
   submitChanges() {
+    $(this.submitActionSelector).blur()
+    if (this.isSaving) return
     this.saving()
     const {
+      tableContainerSelector,
       tableObjectHeadingSelector,
       tableInputSelector,
     } = this.props
-    var rolePromises = $(tableObjectHeadingSelector)
-    .toArray()
-    .map( (el) => $(el).data('role') )
-    .map((id) => {
-      var inputData = $(`input[name=authenticity_token], ${tableInputSelector}[data-role=${id}] input`).serialize()
-      return $.ajax({
-        url: `/admin/roles/${id}`,
-        type: 'PATCH',
-        dataType: 'html',
-        data: inputData,
-      })
-    })
+    const rolePromises =
+      this.$tableContainer.data('objects')
+        .map((id, i) => {
+          const inputBaseQuery = `${tableInputSelector}[data-role=${id}] input`
+          const inputs = this.$tableContainer.find(`${inputBaseQuery}.dirty`)
+          if (inputs.length) {
+            inputs.add(`${tableContainerSelector} input[name=authenticity_token]`)
+            return $.ajax({
+              type: 'PATCH',
+              dataType: 'JSON',
+              url: `/admin/roles/${id}`,
+              data: this.$tableContainer.find(inputBaseQuery).serialize(),
+            })
+          } else {
+            return null
+          }
+        })
     Promise.all(rolePromises)
       .then(() => {
-        console.log('All Saved')
         this.confirmSaved()
       }).catch((error) => {
         this.confirmSaved()
@@ -99,22 +108,31 @@ window.App.RoleTable = class TableSearch {
   }
 
   saving() {
-    this.$tableContainer.prepend('<div class="c-loading j-table__loading"><span>Saving</span></div>')
+    this.isSaving = true
+    $(this.submitActionSelector).attr('disabled', true)
+    this.$tableContainer.prepend('<div class="c-loading j-table__loading c-save-table__loading"><span>Saving</span></div>')
   }
 
-  confirmSaved() {
-    console.log('confirmed')
+  confirmSaved(error=null) {
+    this.isSaving = false
     const $loading = this.$tableContainer.find('.j-table__loading')
-    // Show confirmation message
-    setTimeout(() => {
-      this.changeDirtyState(false)
-      $(this.props.submitContainerSelector).removeClass('show')
-      $loading.html(`
-        <span style='font-size: 100px'> ✓ </span>
+    $(this.submitActionSelector).attr('disabled', false)
+    if (!error) {
+      // Show confirmation message
+      setTimeout(() => {
+        this.changeDirtyState(false)
+        $(this.props.submitContainerSelector).removeClass('show')
+        $loading.html(`
+          <span style='font-size: 100px'> ✓ </span>
+        `)
+      }, 500)
+      // Remove loading elements
+      setTimeout(() => { $loading.fadeOut() }, 500)
+      this.isDirty = false
+    } else {
+      $(this.props.submitContainerSelector).append(`
+        <div>${error}</div>
       `)
-    }, 500)
-    // Remove loading elements
-    setTimeout(() => { $loading.fadeOut() }, 500)
-    this.isDirty = false
+    }
   }
 }

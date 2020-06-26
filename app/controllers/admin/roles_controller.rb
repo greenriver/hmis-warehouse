@@ -33,7 +33,6 @@ module Admin
         format.html do
           respond_with(@role, location: admin_roles_path)
         end
-        format.js { render status: 204 }
       end
     end
 
