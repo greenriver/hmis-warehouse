@@ -39,6 +39,35 @@ wb.add_worksheet(name: "Index Cases") do |sheet|
   sheet["L1"].style=index_case_head_style
 end
 
+wb.add_worksheet(name: "Patient Contacts") do |sheet|
+  # Add headers
+  sheet.add_row(patient_contact_columns.values.map{|column| column[:section_header]})
+  sheet.merge_cells("A1:D1")
+  sheet.merge_cells("E1:AS1")
+
+  sheet.add_row(patient_contact_columns.values.map{|column| column[:column_header]})
+
+  # Add Rows
+  patient_contacts.each do |patient_contact|
+    row = []
+    patient_contact_columns.keys.each do |key|
+      row << patient_contact[key]
+    end
+    sheet.add_row(row)
+  end
+
+  # Add styles
+  investigation_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER)
+  (0..3).each do |col|
+    sheet.col_style(col, investigation_style)
+  end
+
+  investigation_head_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
+  sheet["A1"].style=investigation_head_style
+
+  contact_head_style = sheet.styles.add_style(sz: 12, b: true)
+  sheet["E1"].style=contact_head_style
+end
 # wb.add_worksheet(name: "Contact Investigation") do |sheet|
 #   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
 #   background = sheet.styles.add_style(bg_color: "E2EFDA", border: Axlsx::STYLE_THIN_BORDER)

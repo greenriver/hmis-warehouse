@@ -148,7 +148,7 @@ module WarehouseReports::Health
           investigation_complete: index_case.complete,
           infectious_start_date: index_case.infectious_start_date&.strftime('%m/%d/%Y'),
           plus_two_weeks: index_case.day_two&.strftime('%m/%d/%Y'),
-          symptoms: (index_case.symptoms + [index_case.other_symptoms]).reject(&:blank?).join('/'),
+          symptoms: ((index_case.symptoms || []) + [index_case.other_symptoms]).reject(&:blank?)&.join('/'),
           testing_date: index_case.testing_date&.strftime('%m/%d/%Y'),
           isolation_start_date: index_case.isolation_start_date&.strftime('%m/%d/%Y'),
           first_name: index_case.first_name,
@@ -156,7 +156,7 @@ module WarehouseReports::Health
           alias: index_case.aliases,
           dob: index_case.dob&.strftime('%m/%d/%Y'),
           gender: ::HUD.gender(index_case.gender),
-          race: index_case.race.reject(&:blank?).map { |r| ::HUD.race(r) }.join(', '),
+          race: index_case.race&.reject(&:blank?)&.map { |r| ::HUD.race(r) }&.join(', '),
           ethnicity: ::HUD.ethnicity(index_case.ethnicity),
           preferred_language: index_case.preferred_language,
           where_person_sleeps: index_case.locations[0],
@@ -172,6 +172,245 @@ module WarehouseReports::Health
       end
     end
     helper_method :index_cases
+
+    def patient_contact_columns
+      @patient_contact_columns ||= {
+        investigator: {
+          section_header: 'INVESTIGATION INFO',
+          column_header: 'Investigator',
+        },
+        contact_interviewed: {
+          section_header: '',
+          column_header: 'Date contact interviewed',
+        },
+        alert_in_epic: {
+          section_header: '',
+          column_header: 'Alert in Epic?',
+        },
+        index_case_id: {
+          section_header: '',
+          column_header: 'Linked Index Case ID',
+        },
+        first_name: {
+          section_header: 'CONTACT INFORMATION',
+          column_header: 'First Name',
+        },
+        last_name: {
+          section_header: '',
+          column_header: 'Last Name',
+        },
+        alias: {
+          section_header: '',
+          column_header: 'Alias',
+        },
+        phone_number: {
+          section_header: '',
+          column_header: 'Phone #',
+        },
+        address: {
+          section_header: '',
+          column_header: 'Address if known',
+        },
+        contact_notified: {
+          section_header: '',
+          column_header: 'Contact Notified',
+        },
+        dob_or_age: {
+          section_header: '',
+          column_header: 'DOB or Estimated Age',
+        },
+        gender: {
+          section_header: '',
+          column_header: 'Gender',
+        },
+        race: {
+          section_header: '',
+          column_header: 'Race',
+        },
+        ethnicity: {
+          section_header: '',
+          column_header: 'Ethnicity',
+        },
+        preferred_language: {
+          section_header: '',
+          column_header: 'Preferred Language',
+        },
+        relationship: {
+          section_header: '',
+          column_header: 'Relationship to index case',
+        },
+        exposure_location: {
+          section_header: '',
+          column_header: 'Location of Exposure',
+        },
+        exposure_nature: {
+          section_header: '',
+          column_header: 'Nature of Exposure (frequency, duration, timing)',
+        },
+        location: {
+          section_header: '',
+          column_header: 'Location where contact may be found',
+        },
+        sleeping_location: {
+          section_header: '',
+          column_header: 'Where person sleeps',
+        },
+        symptomatic: {
+          section_header: '',
+          column_header: 'Symptomatic?',
+        },
+        symptoms: {
+          section_header: '',
+          column_header: 'Symptoms',
+        },
+        onset_date: {
+          section_header: '',
+          column_header: 'Symptom Onset date',
+        },
+        referred_for_testing: {
+          section_header: '',
+          column_header: 'Referred for testing?',
+        },
+        test_result_1: {
+          section_header: '',
+          column_header: 'Test result 1',
+        },
+        isolation_1: {
+          section_header: '',
+          column_header: 'Went to Isolation?',
+        },
+        isolation_location_1: {
+          section_header: '',
+          column_header: 'Isolation Location',
+        },
+        quarantine_1: {
+          section_header: '',
+          column_header: 'Went to Quarantine?',
+        },
+        quarantine_location_1: {
+          section_header: '',
+          column_header: 'Quarantine Location',
+        },
+        test_result_2: {
+          section_header: '',
+          column_header: 'Test result 2',
+        },
+        isolation_2: {
+          section_header: '',
+          column_header: 'Went to Isolation?',
+        },
+        isolation_location_2: {
+          section_header: '',
+          column_header: 'Isolation Location',
+        },
+        quarantine_2: {
+          section_header: '',
+          column_header: 'Went to Quarantine?',
+        },
+        quarantine_location_2: {
+          section_header: '',
+          column_header: 'Quarantine Location',
+        },
+        test_result_3: {
+          section_header: '',
+          column_header: 'Test result 3',
+        },
+        isolation_3: {
+          section_header: '',
+          column_header: 'Went to Isolation?',
+        },
+        isolation_location_3: {
+          section_header: '',
+          column_header: 'Isolation Location',
+        },
+        quarantine_3: {
+          section_header: '',
+          column_header: 'Went to Quarantine?',
+        },
+        quarantine_location_3: {
+          section_header: '',
+          column_header: 'Quarantine Location',
+        },
+        test_result_4: {
+          section_header: '',
+          column_header: 'Test result 4',
+        },
+        isolation_4: {
+          section_header: '',
+          column_header: 'Went to Isolation?',
+        },
+        isolation_location_4: {
+          section_header: '',
+          column_header: 'Isolation Location',
+        },
+        quarantine_4: {
+          section_header: '',
+          column_header: 'Went to Quarantine?',
+        },
+        quarantine_location_4: {
+          section_header: '',
+          column_header: 'Quarantine Location',
+        },
+        notes: {
+          section_header: '',
+          column_header: 'Notes about this contact:',
+        },
+      }
+    end
+    helper_method :patient_contact_columns
+
+    def patient_contacts
+      @patient_contacts ||= @contacts.map do |contact|
+        {
+          investigator: contact.investigator,
+          date_interviewed: contact.date_interviewed&.strftime('%m/%d/%Y'),
+          alert_in_epic: contact.alert_in_epic,
+          index_case_id: contact.case_id.to_s,
+          first_name: contact.first_name,
+          last_name: contact.last_name,
+          alias: contact.aliases,
+          phone_number: contact.phone_number,
+          address: contact.address,
+          contact_notified: contact.notified,
+          dob_or_age: [contact.dob&.strftime('%m/%d/%Y'), contact.estimated_age].reject(&:blank?)&.join(' / '),
+          gender: ::HUD.gender(contact.gender),
+          race: contact.race&.reject(&:blank?)&.map { |r| ::HUD.race(r) }&.join(', '),
+          ethnicity: ::HUD.ethnicity(contact.ethnicity),
+          preferred_language: contact.preferred_language,
+          relationship: contact.relationship_to_index_case,
+          exposure_location: contact.location_of_exposure,
+          exposure_nature: contact.nature_of_exposure,
+          location: contact.location_of_contact,
+          sleeping_location: contact.sleeping_location,
+          symptomatic: contact.symptomatic,
+          symptoms: ((contact.symptoms || []) + [contact.other_symptoms]).reject(&:blank?).join('/'),
+          symptom_onset_date: contact.symptom_onset_date&.strftime('%m/%d/%Y'),
+          referred_for_testing: contact.referred_for_testing,
+          test_result_1: contact.results[0]&.test_result,
+          isolation_1: contact.results[0]&.isolated,
+          isolation_location_1: contact.results[0]&.isolation_location,
+          quarantine_1: contact.results[0]&.quarantine,
+          quarantine_location_1: contact.results[0]&.quarantine_location,
+          test_result_2: contact.results[1]&.test_result,
+          isolation_2: contact.results[1]&.isolated,
+          isolation_location_2: contact.results[1]&.isolation_location,
+          quarantine_2: contact.results[1]&.quarantine,
+          quarantine_location_2: contact.results[1]&.quarantine_location,
+          test_result_3: contact.results[2]&.test_result,
+          isolation_3: contact.results[2]&.isolated,
+          isolation_location_3: contact.results[2]&.isolation_location,
+          quarantine_3: contact.results[2]&.quarantine,
+          quarantine_location_3: contact.results[2]&.quarantine_location,
+          test_result_4: contact.results[3]&.test_result,
+          isolation_4: contact.results[3]&.isolated,
+          isolation_location_4: contact.results[3]&.isolation_location,
+          quarantine_4: contact.results[3]&.quarantine,
+          quarantine_location_4: contact.results[3]&.quarantine_location,
+          notes: contact.notes,
+        }
+      end
+    end
+    helper_method :patient_contacts
 
     def columns
       @columns ||= {
