@@ -6,6 +6,7 @@ window.App.RoleTable = class TableSearch {
       submitContainerSelector: '.j-table__submit-container',
       tableObjectHeadingSelector: '.j-table__object',
       tableInputSelector: '.j-table__input',
+      tableCancelChange: '.j-table__cancel',
     }, props)
 
     this.isSaving = false
@@ -20,6 +21,7 @@ window.App.RoleTable = class TableSearch {
       tableSearchInputSelector='.j-table__search',
       tableRowSelector='.j-table__row',
       submitActionSelector= '.j-table__submit-changes',
+      tableCancelChange
     } = this.props
 
     // Init Datable
@@ -46,6 +48,10 @@ window.App.RoleTable = class TableSearch {
     // Register events
     $(submitActionSelector).click(this.submitChanges.bind(this))
     $(`${tableSelector} input`).on('change', this.changeDirtyState.bind(this, true))
+    $(tableCancelChange).click(() => {
+      this.isDirty = false
+      return
+    })
     window.onbeforeunload = () => {
       if (this.isDirty) {
         return 'Looks like there are unsaved changes. Those changes will be lost if you navigate away'
@@ -110,7 +116,21 @@ window.App.RoleTable = class TableSearch {
   saving() {
     this.isSaving = true
     $(this.submitActionSelector).attr('disabled', true)
-    this.$tableContainer.prepend('<div class="c-loading j-table__loading c-save-table__loading"><span>Saving</span></div>')
+    this.$tableContainer.prepend(`
+      <div class="j-table__loading c-save-table__loading">
+        <div>
+          <span>Saving</span>
+          <div class="c-loading c-loading--lg c-loading--dark">
+            <div class="c-loading__dot"></div>
+            <div class="c-loading__dot"></div>
+            <div class="c-loading__dot"></div>
+            <div class="c-loading__dot"></div>
+            <div class="c-loading__dot"></div>
+            <div class="c-loading__dot"></div>
+          </div>
+        <div>
+      </div>
+    `)
   }
 
   confirmSaved(error=null) {
@@ -122,9 +142,6 @@ window.App.RoleTable = class TableSearch {
       setTimeout(() => {
         this.changeDirtyState(false)
         $(this.props.submitContainerSelector).removeClass('show')
-        $loading.html(`
-          <span style='font-size: 100px'> ✓ </span>
-        `)
       }, 500)
       // Remove loading elements
       setTimeout(() => { $loading.fadeOut() }, 500)
