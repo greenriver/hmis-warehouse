@@ -412,6 +412,45 @@ module WarehouseReports::Health
     end
     helper_method :patient_contacts
 
+    def site_manager_columns
+      @site_manager_columns ||= {
+        investigator: {
+          section_header: 'INVESTIGATION INFO',
+          column_header: 'Investigator',
+        },
+        index_case_id: {
+          section_header: '',
+          column_header: 'Linked Index Case ID',
+        },
+        site: {
+          section_header: 'SITE LEADERS NOTIFIED (e.g., shelter or clinic managers)',
+          column_header: 'Site',
+        },
+        site_leader: {
+          section_header: '',
+          column_header: 'Site Leader Name',
+        },
+        notification_date: {
+          section_header: '',
+          column_header: 'Notified Date',
+        },
+      }
+    end
+    helper_method :site_manager_columns
+
+    def site_managers
+      @site_managers ||= @managers.map do |manager|
+        {
+          investigator: '', # manager.investigator,
+          index_case_id: manager.case_id,
+          site: manager.site_name,
+          site_leader: manager.site_leader_name,
+          notification_date: manager.contacted_on&.strftime('%m/%d/%Y'),
+        }
+      end
+    end
+    helper_method :site_managers
+
     def columns
       @columns ||= {
         name: 'Confirmed Case Name',

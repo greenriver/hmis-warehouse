@@ -68,6 +68,37 @@ wb.add_worksheet(name: "Patient Contacts") do |sheet|
   contact_head_style = sheet.styles.add_style(sz: 12, b: true)
   sheet["E1"].style=contact_head_style
 end
+
+wb.add_worksheet(name: "Site Manager Notifications") do |sheet|
+  # Add headers
+  sheet.add_row(site_manager_columns.values.map{|column| column[:section_header]})
+  sheet.merge_cells("A1:B1")
+  sheet.merge_cells("C1:E1")
+
+  sheet.add_row(site_manager_columns.values.map{|column| column[:column_header]})
+
+  # Add Rows
+  site_managers.each do |manager|
+    row = []
+    site_manager_columns.keys.each do |key|
+      row << manager[key]
+    end
+    sheet.add_row(row)
+  end
+
+  # Add styles
+  investigation_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER)
+  (0..1).each do |col|
+    sheet.col_style(col, investigation_style)
+  end
+
+  investigation_head_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
+  sheet["A1"].style=investigation_head_style
+
+  site_manager_head_style = sheet.styles.add_style(sz: 12, b: true)
+  sheet["C1"].style=site_manager_head_style
+end
+
 # wb.add_worksheet(name: "Contact Investigation") do |sheet|
 #   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
 #   background = sheet.styles.add_style(bg_color: "E2EFDA", border: Axlsx::STYLE_THIN_BORDER)
