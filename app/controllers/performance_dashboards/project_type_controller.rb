@@ -21,6 +21,16 @@ module PerformanceDashboards
       @options = option_params[:filters]
       @breakdown = params.dig(:filters, :breakdown)
       @sub_key = params.dig(:filters, :sub_key)
+
+      respond_to do |format|
+        format.xlsx do
+          render(
+            xlsx: 'details',
+            filename: "#{@report.support_title(@options)} - #{Time.current.to_s.delete(',')}.xlsx",
+          )
+        end
+        format.html
+      end
     end
 
     private def option_params
