@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 require 'json/ext'
@@ -244,9 +244,29 @@ module Cohorts
       @clients = @clients.where.not(id: @cohort.cohort_clients.select(:client_id)).pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
       end
+      @removal_reasons = removal_reasons(@clients)
       Rails.logger.info "CLIENTS: #{@clients.count}"
     end
     # rubocop:enable Metrics/AbcSize
+
+    def removal_reasons(clients)
+      @removal_reasons ||= begin
+        reasons = {}
+        GrdaWarehouse::CohortClient.with_deleted.
+          where(cohort_id: @cohort.id, client_id: clients.map { |c| c[:id] }).
+          joins(:cohort_client_changes).
+          merge(GrdaWarehouse::CohortClientChange.removal).
+          order(c_c_change_t[:changed_at].desc).
+          pluck(
+            c_client_t[:client_id],
+            c_c_change_t[:changed_at],
+            c_c_change_t[:reason],
+          ).each do |id, changed_at, reason|
+            reasons[id] ||= "#{reason} on #{changed_at.to_date}"
+          end
+        reasons
+      end
+    end
 
     # Based on HudChronic#load_filter, but you can't include both Chronic and HudChronic as they define the same methods
     def load_hud_filter

@@ -1,94 +1,20 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Hud
   class Geography < Base
     include HudSharedScopes
+    # Since this Geography is no longer included in the HMIS spec, we're not creating
+    # the struture file
+    # include ::HMIS::Structure::Geography
+    include ::HMIS::Structure::Base
+
     self.table_name = 'Geography'
     self.hud_key = :GeographyID
     acts_as_paranoid column: :DateDeleted
-
-    def self.hud_csv_headers(version: nil)
-      case version
-      when '5.1'
-        [
-          :SiteID,
-          :ProjectID,
-          :CoCCode,
-          :PrincipalSite,
-          :Geocode,
-          :Address,
-          :City,
-          :State,
-          :ZIP,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID
-        ].freeze
-      when '6.11', '6.12'
-        [
-          :GeographyID,
-          :ProjectID,
-          :CoCCode,
-          :InformationDate,
-          :Geocode,
-          :GeographyType,
-          :Address1,
-          :Address2,
-          :City,
-          :State,
-          :ZIP,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      when '2020'
-        [
-          :GeographyID,
-          :ProjectID,
-          :CoCCode,
-          :InformationDate,
-          :Geocode,
-          :GeographyType,
-          :Address1,
-          :Address2,
-          :City,
-          :State,
-          :ZIP,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      else
-        [
-          :GeographyID,
-          :ProjectID,
-          :CoCCode,
-          :InformationDate,
-          :Geocode,
-          :GeographyType,
-          :Address1,
-          :Address2,
-          :City,
-          :State,
-          :ZIP,
-          :DateCreated,
-          :DateUpdated,
-          :UserID,
-          :DateDeleted,
-          :ExportID,
-        ].freeze
-      end
-    end
 
     belongs_to :project_coc, class_name: 'GrdaWarehouse::Hud::ProjectCoc', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :geographies
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :geographies, optional: true
@@ -104,6 +30,172 @@ module GrdaWarehouse::Hud
         joins(:project_coc).merge( GrdaWarehouse::Hud::ProjectCoc.viewable_by user )
       end
     end
+
+    def self.hmis_structure(version: nil)
+      case version
+      when '5.1', '6.11', '6.12'
+        {
+          GeographyID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          ProjectID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          CoCCode: {
+            type: :string,
+            limit: 6,
+            null: false,
+          },
+          InformationDate: {
+            type: :date,
+            null: false,
+          },
+          Geocode: {
+            type: :string,
+            limit: 6,
+            null: false,
+          },
+          GeographyType: {
+            type: :integer,
+            null: false,
+          },
+          Address1: {
+            type: :string,
+            limit: 100,
+          },
+          Address2: {
+            type: :string,
+            limit: 100,
+          },
+          City: {
+            type: :string,
+            limit: 50,
+          },
+          State: {
+            type: :string,
+            limit: 2,
+          },
+          ZIP: {
+            type: :string,
+            limit: 5,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
+      end
+    end
+
+    def self.hmis_indices(version: nil) # rubocop:disable Lint/UnusedMethodArgument
+      {
+        [:DateCreated] => nil,
+        [:DateUpdated] => nil,
+        [:GeographyID, :ProjectID] => nil,
+        [:ExportID] => nil,
+      }
+    end
+
+    # For posterity
+    # def self.hud_csv_headers(version: nil)
+    #   case version
+    #   when '5.1'
+    #     [
+    #       :SiteID,
+    #       :ProjectID,
+    #       :CoCCode,
+    #       :PrincipalSite,
+    #       :Geocode,
+    #       :Address,
+    #       :City,
+    #       :State,
+    #       :ZIP,
+    #       :DateCreated,
+    #       :DateUpdated,
+    #       :UserID,
+    #       :DateDeleted,
+    #       :ExportID
+    #     ].freeze
+    #   when '6.11', '6.12'
+    #     [
+    #       :GeographyID,
+    #       :ProjectID,
+    #       :CoCCode,
+    #       :InformationDate,
+    #       :Geocode,
+    #       :GeographyType,
+    #       :Address1,
+    #       :Address2,
+    #       :City,
+    #       :State,
+    #       :ZIP,
+    #       :DateCreated,
+    #       :DateUpdated,
+    #       :UserID,
+    #       :DateDeleted,
+    #       :ExportID,
+    #     ].freeze
+    #   when '2020'
+    #     [
+    #       :GeographyID,
+    #       :ProjectID,
+    #       :CoCCode,
+    #       :InformationDate,
+    #       :Geocode,
+    #       :GeographyType,
+    #       :Address1,
+    #       :Address2,
+    #       :City,
+    #       :State,
+    #       :ZIP,
+    #       :DateCreated,
+    #       :DateUpdated,
+    #       :UserID,
+    #       :DateDeleted,
+    #       :ExportID,
+    #     ].freeze
+    #   else
+    #     [
+    #       :GeographyID,
+    #       :ProjectID,
+    #       :CoCCode,
+    #       :InformationDate,
+    #       :Geocode,
+    #       :GeographyType,
+    #       :Address1,
+    #       :Address2,
+    #       :City,
+    #       :State,
+    #       :ZIP,
+    #       :DateCreated,
+    #       :DateUpdated,
+    #       :UserID,
+    #       :DateDeleted,
+    #       :ExportID,
+    #     ].freeze
+    #   end
+    # end
 
     def self.related_item_keys
       [:ProjectID]

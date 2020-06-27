@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboards
@@ -13,6 +13,10 @@ module PerformanceDashboards
     def index
     end
 
+    private def section_subpath
+      'performance_dashboards/overview/'
+    end
+
     def details
       @options = option_params[:options]
       @breakdown = params.dig(:options, :breakdown)
@@ -21,6 +25,16 @@ module PerformanceDashboards
         @detail = @comparison
       else
         @detail = @report
+      end
+
+      respond_to do |format|
+        format.xlsx do
+          render(
+            xlsx: 'details',
+            filename: "#{@detail.support_title(@options)} - #{Time.current.to_s.delete(',')}.xlsx",
+          )
+        end
+        format.html
       end
     end
 

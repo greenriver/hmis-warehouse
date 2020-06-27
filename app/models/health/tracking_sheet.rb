@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Health
@@ -98,9 +98,9 @@ module Health
     end
 
     def cha_renewal_date patient_id
-      reviwed_date = cha_reviewed_date(patient_id)
-      return nil unless reviwed_date.present?
-      reviwed_date + 1.years
+      reviewed_date = cha_reviewed_date(patient_id)
+      return nil unless reviewed_date.present?
+      reviewed_date + 1.years
     end
 
     def care_plan_renewal_date patient_id

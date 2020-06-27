@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboard::Overview::Enrolled::Age
@@ -9,7 +9,7 @@ module PerformanceDashboard::Overview::Enrolled::Age
 
   # NOTE: always count the most-recently started enrollment within the range
   def enrolled_by_age
-    @enrolled_by_age ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = age_buckets.map { |b| [b, []] }.to_h
       counted = Set.new
       enrolled.order(first_date_in_program: :desc).
