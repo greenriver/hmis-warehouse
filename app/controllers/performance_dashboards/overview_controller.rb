@@ -74,7 +74,7 @@ module PerformanceDashboards
     end
 
     private def set_key
-      @key = PerformanceDashboards::Overview.detail_method(params.dig(:options, :key))
+      @key = PerformanceDashboards::Overview.detail_method(params.dig(:filters, :key))
     end
   end
 end

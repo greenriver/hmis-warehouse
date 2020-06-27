@@ -18,19 +18,14 @@ module PerformanceDashboards
     end
 
     def details
-      @options = option_params[:options]
-      @breakdown = params.dig(:options, :breakdown)
-      @sub_key = params.dig(:options, :sub_key)
-      if params.dig(:options, :report) == 'comparison'
-        @detail = @comparison
-      else
-        @detail = @report
-      end
+      @options = option_params[:filters]
+      @breakdown = params.dig(:filters, :breakdown)
+      @sub_key = params.dig(:filters, :sub_key)
     end
 
     private def option_params
       params.permit(
-        options: [
+        filters: [
           :key,
           :sub_key,
           :living_situation,
@@ -81,7 +76,7 @@ module PerformanceDashboards
     end
 
     private def set_key
-      @key = PerformanceDashboards::ProjectType.detail_method(params.dig(:options, :key))
+      @key = PerformanceDashboards::ProjectType.detail_method(params.dig(:filters, :key))
     end
   end
 end

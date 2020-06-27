@@ -16,4 +16,4 @@
         = link_to_if show_client_details?, "Total Unique #{'Client'.pluralize(count)}: #{count}", details_performance_dashboards_overview_index_path(comparison_params), data: {loads_in_pjax_modal: true}
 
 .well.mb-6.pt-0
-  .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: { columns: columns, categories: categories, options: { follow_link: show_client_details?, link_base: 'performance_dashboards/overview/details', key: key, breakdown: breakdown, sub_keys: sub_keys, params: detail_params, date_ranges: { report: { start_date: @report.start_date, end_date: @report.end_date, }, comparison: { start_date: @comparison.start_date, end_date: @comparison.end_date, } } } }.to_json.html_safe } }
+  .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: { columns: columns, categories: categories, options: { follow_link: show_client_details?, link_base: 'performance_dashboards/overview/details', key: key, breakdown: breakdown, sub_keys: sub_keys, params: detail_params, date_ranges: { report: @report.@report.option_params, comparison: @comparison.option_params } } }.to_json.html_safe } }

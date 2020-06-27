@@ -11,51 +11,54 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
       @_build_chart()
 
   _build_chart: () =>
-    # console.log($(@chart_selector).data())
-    @options = $(@chart_selector).data('chart').options
-    @categories = $(@chart_selector).data('chart').categories
+    if $(@chart_selector).length > 0
+      @options = $(@chart_selector).data('chart').options
+      @categories = $(@chart_selector).data('chart').categories
+      @link_params = $(@chart_selector).data('chart').params
 
-    @padding = @options.padding || {}
-    @height = @options.height || 800
-    data = {
-      columns: $(@chart_selector).data('chart').columns
-      type: 'bar'
-      color: @_colors
-      labels: true
-      onclick: @_follow_link
-    }
-    @chart = bb.generate({
-      data: data,
-      bindto: @chart_selector,
-      size:
-        height: @height
-      axis:
-        rotated: true,
-        y:
-          outer: false
-          tick:
-            rotate: -35
-            autorotate: true
-        x:
-          height: 100
-          type: 'category',
-          categories: @categories,
-          outer: false
-          tick:
-            rotate: -35
-            autorotate: true
-            fit: true
-            culling: false
-      grid:
-        y:
-          show: true
-      bar:
-        width: 35
-      padding:
-        left: @padding.left || 150
-        top: 0
-        bottom: 40
-    })
+      @padding = @options.padding || {}
+      @height = @options.height || 400
+      data = {
+        columns: $(@chart_selector).data('chart').columns
+        type: 'bar'
+        color: @_colors
+        labels: true
+        onclick: @_follow_link
+      }
+      @chart = bb.generate({
+        data: data,
+        bindto: @chart_selector,
+        size:
+          height: @height
+        axis:
+          rotated: true,
+          y:
+            outer: false
+            tick:
+              rotate: -35
+              autorotate: true
+          x:
+            height: 100
+            type: 'category',
+            categories: @categories,
+            outer: false
+            tick:
+              rotate: -35
+              autorotate: true
+              fit: true
+              culling: false
+        grid:
+          y:
+            show: true
+        bar:
+          width: 30
+        padding:
+          left: @padding.left || 150
+          top: 0
+          bottom: 20
+      })
+    else
+      console.log("#{@chart_selector} not found on page")
 
   _colors: (c, d) =>
     key = d
@@ -78,19 +81,19 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
     bucket_title = @chart.categories()[d.index]
     bucket = @options.sub_keys[bucket_title]
     # console.log(d, @chart, @chart.categories(), @options.sub_keys, @options.params, bucket_title, bucket)
+    # return
     report = 'report'
     if @chart.data()[1].id == d.id
-      report = 'comparison'
       # console.log(@options, @options.date_ranges.comparison.start_date)
-      @options.params.options.start_date = @options.date_ranges.comparison.start_date
-      @options.params.options.end_date = @options.date_ranges.comparison.end_date
+      @link_params.filters.start_date = @options.date_ranges.comparison.start_date
+      @link_params.filters.end_date = @options.date_ranges.comparison.end_date
     # If we clicked on a point, send us to the list of associated clients
-    @options.params.options.report = report
+    @link_params.filters.report = report
     if bucket?
-      @options.params.options.sub_key = bucket
-    # console.log(@options.params)
+      @link_params.filters.sub_key = bucket
+    # console.log(@link_params)
 
-    url = '/' + @options.link_base + '?' + $.param(@options.params)
+    url = '/' + @options.link_base + '?' + $.param(@link_params)
     # console.log(url)
     window.open url
 

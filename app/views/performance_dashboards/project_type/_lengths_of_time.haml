@@ -1,6 +1,6 @@
 :ruby
   key = :length_of_time
-  detail_params = filter_params.merge(options: {key: key, length_of_time: true})
+  detail_params = { filters: @report.detail_params, options: { key: key, length_of_time: true } }
   columns = [@report.lengths_of_time_data_for_chart[:columns]]
   if @report.include_comparison?
     columns << @comparison.lengths_of_time_data_for_chart[:columns]
@@ -11,7 +11,7 @@
 = render 'performance_dashboards/project_type/base',
   title: "Length of Time in #{@report.project_type_title}",
   key: key,
-  chart_height: 800,
+  chart_height: 600,
   desc: 'Count of days served in enrollments occurring in the selected universe within 3 years of the end date for each client.',
   detail_params: detail_params,
   comparison_params: nil,
