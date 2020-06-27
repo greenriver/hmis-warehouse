@@ -66,6 +66,11 @@ module PerformanceDashboards
     end
     helper_method :multiple_project_types?
 
+    private def include_comparison_pattern?
+      false
+    end
+    helper_method :include_comparison_pattern?
+
     private def set_report
       @report = PerformanceDashboards::ProjectType.new(@filter)
       if @report.include_comparison?
@@ -77,6 +82,10 @@ module PerformanceDashboards
 
     private def set_key
       @key = PerformanceDashboards::ProjectType.detail_method(params.dig(:filters, :key))
+    end
+
+    private def default_comparison_pattern
+      :no_comparison_period
     end
   end
 end

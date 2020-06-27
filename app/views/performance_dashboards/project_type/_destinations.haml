@@ -1,6 +1,6 @@
 :ruby
   key = :destination
-  detail_params = @report.detail_params.merge(options: {key: key, destination: true})
+  detail_params = @report.detail_params.merge({ key: key, destination: true })
   columns = [@report.destinations_data_for_chart[:columns]]
   if @report.include_comparison?
     columns << @comparison.destinations_data_for_chart[:columns]
@@ -8,12 +8,4 @@
   categories = @report.destinations_data_for_chart[:categories]
   chart_class = "#{key}-chart"
 
-= render 'performance_dashboards/project_type/base',
-  key: key,
-  title: 'Destinations',
-  chart_height: 600,
-  desc: 'Destination provided at exit for the most-recent exit occuring within the period for each client.',
-  detail_params: detail_params,
-  comparison_params: nil,
-  columns: columns,
-  categories: categories
+= render 'performance_dashboards/project_type/base', key: key, sub_keys: @report.destination_bucket_titles.invert, title: 'Destinations', chart_height: 600, desc: 'Destination provided at exit for the most-recent exit occuring within the period for each client.', detail_params: detail_params, comparison_params: nil, columns: columns, categories: categories

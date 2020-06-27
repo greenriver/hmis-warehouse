@@ -9,30 +9,30 @@ module PerformanceDashboard::ProjectType::Destination
 
   # Fetch last destination for each client
   def destinations
-    # Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-    buckets = HUD.valid_destinations.keys.map { |b| [b, []] }.to_h
-    counted = Set.new
-    exits_current_period.
-      order(last_date_in_program: :desc).
-      pluck(:client_id, she_t[:id], she_t[:destination], :first_date_in_program).each do |c_id, en_id, destination, _|
-      buckets[destination] ||= []
-      # Store enrollment id so we can fetch details later, unique on client id
-      buckets[destination] << en_id unless counted.include?(c_id)
-      counted << c_id
-    end
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      buckets = HUD.valid_destinations.keys.map { |b| [b, []] }.to_h
+      counted = Set.new
+      exits_current_period.
+        order(last_date_in_program: :desc).
+        pluck(:client_id, she_t[:id], she_t[:destination], :first_date_in_program).each do |c_id, en_id, destination, _|
+        buckets[destination] ||= []
+        # Store enrollment id so we can fetch details later, unique on client id
+        buckets[destination] << en_id unless counted.include?(c_id)
+        counted << c_id
+      end
 
-    # expose top 10 plus other
-    top_destinations = buckets.
-      # Ignore blank, 8, 9, 99
-      reject { |k, _| k.in?([nil, 8, 9, 99]) }.
-      sort_by { |_, v| v.count }.
-      last(5).to_h
-    top_destinations[:other] = buckets.except(*top_destinations.keys).
-      map do |_, v|
-        v
-      end.flatten
-    top_destinations
-    # end
+      # expose top 10 plus other
+      top_destinations = buckets.
+        # Ignore blank, 8, 9, 99
+        reject { |k, _| k.in?([nil, 8, 9, 99]) }.
+        sort_by { |_, v| v.count }.
+        last(5).to_h
+      top_destinations[:other] = buckets.except(*top_destinations.keys).
+        map do |_, v|
+          v
+        end.flatten
+      top_destinations
+    end
   end
 
   def destinations_data_for_chart

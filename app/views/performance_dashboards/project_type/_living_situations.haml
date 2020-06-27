@@ -3,17 +3,9 @@
   detail_params = @report.detail_params.merge({ living_situation: true, key: key })
   columns = [@report.prior_living_situations_data_for_chart[:columns]]
   if @report.include_comparison?
-    columns << @comparison.prior_living_situations_data_for_chart(@report.prior_living_situations.keys)[:columns]
+    columns << @comparison.prior_living_situations_data_for_chart[:columns]
   end
   categories = @report.prior_living_situations_data_for_chart[:categories]
 
 
-= render 'performance_dashboards/project_type/base',
-  title: "Prior Living Situation",
-  key: key,
-  chart_height: 700,
-  desc: 'Prior living situation provided at entry for the most-recently started enrollment for each client.',
-  detail_params: detail_params,
-  comparison_params: nil,
-  columns: columns,
-  categories: categories
+= render 'performance_dashboards/project_type/base', title: "Prior Living Situation", key: key, sub_keys: @report.living_situation_bucket_titles.invert, chart_height: 700, desc: 'Prior living situation provided at entry for the most-recently started enrollment for each client.', detail_params: detail_params, comparison_params: nil, columns: columns, categories: categories

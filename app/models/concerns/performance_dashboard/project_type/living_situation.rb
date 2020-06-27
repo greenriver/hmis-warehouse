@@ -12,33 +12,22 @@ module PerformanceDashboard::ProjectType::LivingSituation
   end
 
   # Fetch first prior living situation for each client
-  def prior_living_situations(situations = nil)
-    # Rails.cache.fetch([self.class.name, cache_slug, __method__, situations], expires_in: 5.minutes) do
-    buckets = HUD.living_situations.keys.map { |b| [b, []] }.to_h
-    counted = Set.new
-    enrolled.order(first_date_in_program: :desc).
-      pluck(:client_id, she_t[:id], e_t[:LivingSituation], :first_date_in_program).each do |c_id, en_id, situation, _|
-      buckets[situation] ||= []
-      # Store enrollment id so we can fetch details later, unique on client id
-      buckets[situation] << en_id unless counted.include?(c_id)
-      counted << c_id
-    end
-
-    # expose top 5 plus other, unless we've specified the situations, then use those.
-    # Specifying the situations allows for comparison to the reporting period
-    # FIXME: the problem is that the counts may differ between current and prior period
-    # So the return order may not match
-
-    if situations
-      top_situations = situations.map { |k| [k, []] }.to_h
-      buckets.each do |k, v|
-        if k.in?(situations) && k != :other
-          top_situations[k] = v
-        else
-          top_situations[:other] += v
-        end
+  def prior_living_situations
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      buckets = HUD.living_situations.keys.map { |b| [b, []] }.to_h
+      counted = Set.new
+      enrolled.order(first_date_in_program: :desc).
+        pluck(:client_id, she_t[:id], e_t[:LivingSituation], :first_date_in_program).each do |c_id, en_id, situation, _|
+        buckets[situation] ||= []
+        # Store enrollment id so we can fetch details later, unique on client id
+        buckets[situation] << en_id unless counted.include?(c_id)
+        counted << c_id
       end
-    else
+
+      # expose top 5 plus other, unless we've specified the situations, then use those.
+      # Specifying the situations allows for comparison to the reporting period
+      # FIXME: the problem is that the counts may differ between current and prior period
+      # So the return order may not match
       top_situations = buckets.
         # Ignore blank, 8, 9, 99
         reject { |k, _| k.in?([nil, 8, 9, 99]) }.
@@ -48,16 +37,15 @@ module PerformanceDashboard::ProjectType::LivingSituation
         map do |_, v|
           v
         end.flatten
+      top_situations
     end
-    top_situations
-    # end
   end
 
-  def prior_living_situations_data_for_chart(situations = nil)
+  def prior_living_situations_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]
-      columns += prior_living_situations(situations).values.map(&:count).reverse
-      categories = prior_living_situations(situations).keys.reverse.map do |k|
+      columns += prior_living_situations.values.map(&:count).reverse
+      categories = prior_living_situations.keys.reverse.map do |k|
         if k == :other
           'All others'
         else

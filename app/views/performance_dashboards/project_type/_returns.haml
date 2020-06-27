@@ -1,6 +1,6 @@
 :ruby
   key = :returns
-  detail_params = @report.detail_params.merge(options: {key: key, returns: true})
+  detail_params = @report.detail_params.merge({ key: key, returns: true })
   columns = [@report.returns_data_for_chart[:columns]]
   if @report.include_comparison?
     columns << @comparison.returns_data_for_chart[:columns]
@@ -8,12 +8,4 @@
   categories = @report.returns_data_for_chart[:categories]
 
 
-= render 'performance_dashboards/project_type/base',
-  title: "Returns to Homelessness",
-  key: key,
-  chart_height: 500,
-  desc: "Lenth of time between a client's first exit during the period to a permanent destination and the next entry into ES, SH, or SO that occurred at least 7 days after the exit. Re-entry looks forward to the current date regardless of chosen periods.",
-  detail_params: detail_params,
-  comparison_params: nil,
-  columns: columns,
-  categories: categories
+= render 'performance_dashboards/project_type/base', title: "Returns to Homelessness", key: key, sub_keys: @report.returns_bucket_titles.invert, chart_height: 500, desc: "Lenth of time between a client's first exit during the period to a permanent destination and the next entry into ES, SH, or SO that occurred at least 7 days after the exit. Re-entry looks forward to the current date regardless of chosen periods.", detail_params: detail_params, comparison_params: nil, columns: columns, categories: categories

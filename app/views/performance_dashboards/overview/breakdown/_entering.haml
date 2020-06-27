@@ -1,19 +1,11 @@
 - key = :entering
-- detail_params = filter_params.merge(options: {key: key, breakdown: breakdown}.merge(options))
+- detail_params = @report.detail_params.merge({key: key, breakdown: breakdown}).merge(options)
 - comparison_params = detail_params.dup.to_h
-- comparison_params[:filters] ||= {}
-- comparison_params[:filters].merge!({ start_date: @comparison.start_date, end_date: @comparison.end_date })
+- comparison_params.merge!({ start_date: @comparison.start_date, end_date: @comparison.end_date })
+- client_counts = { report: @report.entering_total_count, comparison: @comparison.entering_total_count}
 - if defined?(chart_class_slug)
   - chart_class = "#{key}-#{chart_class_slug}-chart"
 - else
   - chart_class = "#{key}-#{breakdown.parameterize}-chart"
 
-= render 'performance_dashboards/overview/breakdown/base',
-  key: key,
-  chart_class: chart_class,
-  desc: 'Clients entering a project in the chosen universe who have not been seen in the universe for the past 24 months.',
-  detail_params: detail_params,
-  comparison_params: comparison_params,
-  columns: columns,
-  categories: categories,
-  sub_keys: sub_keys
+= render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: 'Clients entering a project in the chosen universe who have not been seen in the universe for the past 24 months.', detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts

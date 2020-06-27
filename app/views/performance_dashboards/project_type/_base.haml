@@ -11,7 +11,7 @@
       follow_link: show_client_details?,
       link_base: 'performance_dashboards/project_type/details',
       key: key,
-      sub_keys: @report.destination_bucket_titles.invert,
+      sub_keys: sub_keys,
       date_ranges: {
         report: {
           start_date: @report.start_date,
@@ -31,5 +31,4 @@
     %p.description.mb-0= desc
 
 .well.mb-6.pt-0
-  = debug chart_options
   .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: chart_options.to_json.html_safe } }

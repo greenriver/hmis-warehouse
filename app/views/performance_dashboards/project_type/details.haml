@@ -1,8 +1,6 @@
 - title = "Support for #{@report.support_title(@options)}"
 = content_for :modal_title, title
 %p= @report.date_range_words
-= debug @options
-= debug @report.detail_params.to_h.except(:user)
 
 - rows = @report.detail_for(@options)
 - if rows.any?

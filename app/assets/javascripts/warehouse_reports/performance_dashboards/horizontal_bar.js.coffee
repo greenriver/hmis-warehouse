@@ -80,18 +80,23 @@ class App.WarehouseReports.PerformanceDashboards.HorizontalBar
 
     bucket_title = @chart.categories()[d.index]
     bucket = @options.sub_keys[bucket_title]
-    # console.log(d, @chart, @chart.categories(), @options.sub_keys, @options.params, bucket_title, bucket)
+    # console.log(d, @chart, @chart.categories(), @options.sub_keys, @options, bucket_title, bucket)
     # return
+    # console.log(d, @chart.data(), bucket_title, bucket, @options)
     report = 'report'
-    if @chart.data()[1].id == d.id
-      # console.log(@options, @options.date_ranges.comparison.start_date)
+    if @chart.data()[1]?.id == d.id
       @link_params.filters.start_date = @options.date_ranges.comparison.start_date
       @link_params.filters.end_date = @options.date_ranges.comparison.end_date
+    else
+      @link_params.filters.start_date = @options.date_ranges.report.start_date
+      @link_params.filters.end_date = @options.date_ranges.report.end_date
     # If we clicked on a point, send us to the list of associated clients
     @link_params.filters.report = report
     if bucket?
       @link_params.filters.sub_key = bucket
-    # console.log(@link_params)
+    else
+      @link_params.filters.sub_key = ''
+    # console.log(@link_params, bucket)
 
     url = '/' + @options.link_base + '?' + $.param(@link_params)
     # console.log(url)
