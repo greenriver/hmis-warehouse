@@ -33,6 +33,10 @@ module Admin
         format.html do
           respond_with(@role, location: admin_roles_path)
         end
+        format.json do
+          render(json: nil, status: :ok) if @role.errors.none?
+          return
+        end
       end
     end
 
