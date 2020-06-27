@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 require 'application_responder'
@@ -54,7 +54,7 @@ class ApplicationController < ActionController::Base
 
   # To permit merge(link_params) when creating a new link from existing parameters
   def link_params
-    params.permit!
+    params.permit!.merge(only_path: true, script_name: nil)
   end
   helper_method :link_params
 

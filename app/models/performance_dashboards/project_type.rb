@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
@@ -20,5 +20,14 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
       entering: :entering,
       exiting: :exiting,
     }
+  end
+
+  def self.available_chart_types
+    [
+      'living_situations',
+      'destinations',
+      'lengths_of_time',
+      'returns',
+    ]
   end
 end

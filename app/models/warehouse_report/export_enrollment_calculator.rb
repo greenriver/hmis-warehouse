@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
@@ -53,7 +53,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     end
     @exits[client.id]
   end
-  
+
   def most_recent_exit_with_destination_for_client(client)
     @most_recent_exit_with_destination_for_client ||= begin
       exits = {}

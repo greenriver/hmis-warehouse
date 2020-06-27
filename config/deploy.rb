@@ -69,7 +69,7 @@ task :group_writable_and_owned_by_shared_user do
 end
 after 'deploy:log_revision', :group_writable_and_owned_by_shared_user
 
-# Default branch is :master
+# Default branch is :production
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
 
 # Default deploy_to directory is /var/www/my_app_name

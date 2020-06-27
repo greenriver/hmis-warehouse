@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Health
@@ -114,6 +114,7 @@ module Health
         last_name: Health::Enrollment.last_name(transaction),
         birthdate: Health::Enrollment.DOB(transaction),
         ssn: Health::Enrollment.SSN(transaction),
+        gender: Health::Enrollment.gender(transaction),
         medicaid_id: Health::Enrollment.subscriber_id(transaction),
         enrollment_start_date: Health::Enrollment.enrollment_date(transaction),
       }

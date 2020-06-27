@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class Role < ApplicationRecord
@@ -461,6 +461,10 @@ class Role < ApplicationRecord
         categories: [
           'Cohorts',
         ],
+      },
+      can_download_cohorts: {
+        description: 'Ability to download the contents of a cohort',
+        administrative: false,
       },
       can_assign_users_to_clients: {
         description: 'Ability to setup user-client relationships',

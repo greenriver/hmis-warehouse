@@ -1,3 +1,4 @@
+- radio_wrapper_class = if f.options[:wrapper] == :readonly then :readonly else :vertical_collection end
 .row
   .col-md-8
     .c-card.mb-4
@@ -13,10 +14,17 @@
       .c-card__content
         = f.input :first_name
         = f.input :last_name
+        = f.input :dob, as: :date_picker
+        = f.input :estimated_age
+        = f.input :gender, as: :radio_buttons, collection: {'Unknown' => ''}.merge(HUD.genders.invert), wrapper: radio_wrapper_class
+        = f.input :address, label: @staff.label_for(:address)
+        = f.input :phone_number
         = f.input :site_name
         = f.input :notified, as: :boolean_button_group, collection: @staff.yes_no_options, include_blank: true, label: @staff.label_for(:notified)
         = f.input :nature_of_exposure, hint: 'Frequency, duration, timing'
         = f.input :symptomatic, as: :boolean_button_group, collection: @staff.symptomatic_options, include_blank: true, label: @staff.label_for(:symptomatic)
+        = f.input :symptoms, as: :check_boxes, collection: @staff.symptom_options, wrapper: radio_wrapper_class
+        = f.input :other_symptoms, label: @staff.label_for(:other_symptoms)
         = f.input :referred_for_testing, as: :boolean_button_group, collection: @staff.referred_options, include_blank: true, label: @staff.label_for(:referred_for_testing)
         = f.input :test_result, as: :boolean_button_group, collection: @staff.test_result_options, include_blank: true
         = f.input :notes, as: :text
