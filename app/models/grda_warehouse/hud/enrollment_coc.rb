@@ -19,6 +19,7 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollment_cocs, optional: true
     has_one :project, through: :enrollment
     belongs_to :data_source
+    has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :enrollment_coc
 
     scope :viewable_by, -> (user) do
       if user.can_edit_anything_super_user?

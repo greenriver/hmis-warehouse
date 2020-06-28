@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_28_001355) do
+ActiveRecord::Schema.define(version: 2020_06_28_002641) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1401,6 +1401,16 @@ ActiveRecord::Schema.define(version: 2020_06_28_001355) do
     t.index ["created_at"], name: "index_client_split_histories_on_created_at"
     t.index ["split_from"], name: "index_client_split_histories_on_split_from"
     t.index ["updated_at"], name: "index_client_split_histories_on_updated_at"
+  end
+
+  create_table "coc_codes", force: :cascade do |t|
+    t.string "coc_code", null: false
+    t.string "official_name", null: false
+    t.string "preferred_name"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["coc_code"], name: "index_coc_codes_on_coc_code"
   end
 
   create_table "cohort_client_changes", id: :serial, force: :cascade do |t|

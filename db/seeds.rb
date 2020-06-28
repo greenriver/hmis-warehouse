@@ -795,6 +795,13 @@ def maintain_data_sources
   end
 end
 
+def maintain_coc_codes
+  HUD.cocs.each do |code, name|
+    coc = GrdaWarehouse::Lookups::CocCode.where(coc_code: code).first_or_initialize
+    coc.update(official_name: name)
+  end
+end
+
 # These tables are partitioned and need to have triggers and functions that
 # schema loading doesn't include.  This will ensure that they exist on each deploy
 def ensure_db_triggers_and_functions
@@ -807,4 +814,4 @@ setup_fake_user() if Rails.env.development?
 maintain_data_sources()
 maintain_report_definitions()
 maintain_health_seeds()
-
+maintain_coc_codes()
