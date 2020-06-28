@@ -26,8 +26,9 @@
           = f.input :comparison_pattern, as: :boolean_button_group, collection: PerformanceDashboards::Overview.comparison_patterns, label: 'Compare with', include_blank: false, selected: @filter[:comparison_pattern], wrapper_html: last_group_html
   #projects.tab-pane{role: :tabpanel}
     .row
-      .col-sm-4
-        = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: @filter[:coc_codes], required: false, input_html: { multiple: true, class: :select2 }
+      - if GrdaWarehouse::Config.get(:multi_coc_installation)
+        .col-sm-4
+          = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: @filter[:coc_codes], required: false, input_html: { multiple: true, class: :select2 }
       .col-sm-8
         - if multiple_project_types?
           = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, input_html: { multiple: true, class: :select2 }, wrapper_html: last_group_html

@@ -26,7 +26,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
   end
 
   def self.available_chart_types
-    [
+    chart_types = [
       'by_age',
       'by_ethnicity',
       'by_gender',
@@ -34,8 +34,10 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
       'by_race',
       'by_veteran',
       'by_project_type',
-      'by_coc',
     ]
+    # Only show CoC tab if the site is setup to show it
+    chart_types << 'by_coc' if GrdaWarehouse::Config.get(:multi_coc_installation)
+    chart_types
   end
 
   def exiting_by_destination
@@ -106,7 +108,7 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
   end
 
   def available_breakdowns
-    {
+    breakdowns = {
       age: 'By Age',
       gender: 'By Gender',
       household: 'By Household Type',
@@ -114,7 +116,10 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
       race: 'By Race',
       ethnicity: 'By Ethnicity',
       project_type: 'By Project Type',
-      coc: 'By CoC',
     }
+
+    # Only show CoC tab if the site is setup to show it
+    breakdowns[:coc] = 'By CoC' if GrdaWarehouse::Config.get(:multi_coc_installation)
+    breakdowns
   end
 end
