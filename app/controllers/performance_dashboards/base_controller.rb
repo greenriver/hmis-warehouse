@@ -147,6 +147,11 @@ class PerformanceDashboards::BaseController < ApplicationController
   end
   helper_method :filter_params
 
+  private def available_cocs
+    GrdaWarehouse::Lookups::CocCode.as_select_options(current_user)
+  end
+  helper_method :available_cocs
+
   private def comparison_dates(pattern)
     case pattern
     when :prior_period
