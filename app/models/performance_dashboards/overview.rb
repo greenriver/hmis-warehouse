@@ -15,6 +15,8 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
   include PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Exiting
   include PerformanceDashboard::Overview::Enrolled
+  include PerformanceDashboard::Overview::ProjectType
+  include PerformanceDashboard::Overview::Coc
 
   def self.available_keys
     {
@@ -31,6 +33,8 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
       'by_household',
       'by_race',
       'by_veteran',
+      'by_project_type',
+      'by_coc',
     ]
   end
 
@@ -109,6 +113,8 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
       veteran: 'By Veteran Status',
       race: 'By Race',
       ethnicity: 'By Ethnicity',
+      project_type: 'By Project Type',
+      coc: 'By CoC',
     }
   end
 end

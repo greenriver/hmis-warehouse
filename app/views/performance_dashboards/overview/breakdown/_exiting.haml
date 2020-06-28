@@ -7,5 +7,7 @@
   - chart_class = "#{key}-#{chart_class_slug}-chart"
 - else
   - chart_class = "#{key}-#{breakdown.parameterize}-chart"
+- unless defined?(chart_height)
+  - chart_height = 600
 
-= render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: 'Clients exiting a project in the universe who has not been seen in any project in the universe since.', detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts
+= render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: 'Clients exiting a project in the universe who has not been seen in any project in the universe since.', detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts, chart_height: chart_height
