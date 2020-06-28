@@ -12,6 +12,7 @@ class PerformanceDashboards::BaseController < ApplicationController
     @section = @report.class.available_chart_types.detect do |m|
       m == params.require(:partial).underscore
     end
+    @section = 'overall' if @section.blank? && params.require(:partial) == 'overall'
 
     raise 'Rollup not in allowlist' unless @section.present?
 
@@ -38,6 +39,7 @@ class PerformanceDashboards::BaseController < ApplicationController
     @filter.data_source_ids = params.dig(:filters, :data_source_ids)&.reject(&:blank?)&.map(&:to_i) || defaults.data_source_ids
     @filter.organization_ids = params.dig(:filters, :organization_ids)&.reject(&:blank?)&.map(&:to_i) || defaults.organization_ids
     @filter.project_ids = params.dig(:filters, :project_ids)&.reject(&:blank?)&.map(&:to_i) || defaults.project_ids
+    @filter.funder_ids = params.dig(:filters, :funder_ids)&.reject(&:blank?)&.map(&:to_i) || defaults.funder_ids
     @filter.veteran_statuses = params.dig(:filters, :veteran_statuses)&.reject(&:blank?)&.map(&:to_i) || defaults.veteran_statuses
     @filter.age_ranges = params.dig(:filters, :age_ranges)&.reject(&:blank?)&.map { |range| range.to_sym } || defaults.age_ranges
     @filter.genders = params.dig(:filters, :genders)&.reject(&:blank?)&.map { |gender| gender.to_i } || defaults.genders
@@ -76,6 +78,7 @@ class PerformanceDashboards::BaseController < ApplicationController
       data_source_ids: [],
       organization_ids: [],
       project_ids: [],
+      funder_ids: [],
     )
   end
   helper_method :defaults
@@ -142,15 +145,11 @@ class PerformanceDashboards::BaseController < ApplicationController
         data_source_ids: [],
         organization_ids: [],
         project_ids: [],
+        funder_ids: [],
       ],
     )
   end
   helper_method :filter_params
-
-  private def available_cocs
-    GrdaWarehouse::Lookups::CocCode.as_select_options(current_user)
-  end
-  helper_method :available_cocs
 
   private def comparison_dates(pattern)
     case pattern

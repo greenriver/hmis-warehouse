@@ -17,7 +17,7 @@ class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
       merge(GrdaWarehouse::Hud::Project.viewable_by(user))
   end
 
-  def self.as_select_options(user)
+  def self.options_for_select(user:)
     viewable_by(user).
     distinct.
     order(:coc_code).

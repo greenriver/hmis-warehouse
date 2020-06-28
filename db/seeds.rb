@@ -496,13 +496,13 @@ def report_list
         url: 'performance_dashboards/overview',
         name: 'Performance Overview',
         description: 'Overview of warehouse performance.',
-        limitable: false,
+        limitable: true,
       },
       {
         url: 'performance_dashboards/project_type',
         name: 'Project Type Breakdowns',
         description: 'Performance by project type.',
-        limitable: false,
+        limitable: true,
       },
     ],
     'Health Emergency' => [

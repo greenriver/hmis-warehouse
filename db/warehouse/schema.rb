@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_28_002641) do
+ActiveRecord::Schema.define(version: 2020_06_28_153252) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -621,6 +621,7 @@ ActiveRecord::Schema.define(version: 2020_06_28_002641) do
     t.index ["DateDeleted", "data_source_id"], name: "index_Funder_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "funder_date_updated"
     t.index ["ExportID"], name: "funder_export_id"
+    t.index ["ProjectID", "Funder"], name: "index_Funder_on_ProjectID_and_Funder"
     t.index ["data_source_id", "FunderID"], name: "unk_Funder", unique: true
     t.index ["data_source_id"], name: "index_Funder_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Funder_on_pending_date_deleted"

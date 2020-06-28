@@ -110,6 +110,18 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     available_projects_for_select.values.flatten(1).select { |_, id| @filter.project_ids.include?(id) }&.map(&:first)
   end
 
+  def available_cocs_for_select
+    GrdaWarehouse::Lookups::CocCode.options_for_select(user: @filter.user)
+  end
+
+  def available_funders_for_select
+    GrdaWarehouse::Hud::Funder.options_for_select(user: @filter.user)
+  end
+
+  def funder_names
+    available_funders_for_select.select { |_, id| @filter.funder_ids.include?(id.to_i) }&.map(&:first)
+  end
+
   def chosen_age_ranges
     @age_ranges.map do |range|
       age_ranges.invert[range]
@@ -195,6 +207,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     scope = filter_for_data_sources(scope)
     scope = filter_for_organizations(scope)
     scope = filter_for_projects(scope)
+    scope = filter_for_funders(scope)
     scope
   end
 
@@ -313,6 +326,16 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     return scope if @filter.project_ids.blank?
 
     scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+  end
+
+  private def filter_for_funders(scope)
+    return scope if @filter.funder_ids.blank?
+
+    project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user).
+      where(Funder: @filter.funder_ids).
+      joins(:project).
+      select(p_t[:id])
+    scope.in_project(project_ids)
   end
 
   private def filter_for_data_sources(scope)

@@ -14,7 +14,8 @@
       = render 'performance_dashboards/active_filters'
     = render 'common/panel_collapse', id: id, title: 'Summary of Selected Universe', default_open: active_filter_open
 
-%section.mb-0= render 'overall'
+%section.mb-0
+  .rollup{data: {partial: 'overall'}}
 
 %section
   -# %h2.c-heading.c-heading--full-bleed Demographics Summary
