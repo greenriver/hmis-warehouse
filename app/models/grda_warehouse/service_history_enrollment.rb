@@ -361,4 +361,12 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
   end
 
+  def self.available_age_ranges
+    {
+      under_eighteen: '< 18',
+      eighteen_to_twenty_four: '18 - 24',
+      twenty_five_to_sixty_one: '25 - 61',
+      over_sixty_one: '62+',
+    }.invert.freeze
+  end
 end
