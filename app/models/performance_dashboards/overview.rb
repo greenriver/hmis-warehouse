@@ -51,7 +51,6 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
 
   def homeless
     report_scope(all_project_types: true).
-      with_service_between(start_date: @start_date, end_date: @end_date).
       homeless
   end
 
@@ -62,7 +61,6 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
   def newly_homeless
     previous_period = report_scope_source.
       entry_within_date_range(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
-      with_service_between(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
       homeless
 
     homeless.where.not(period_exists_sql(previous_period))
@@ -74,7 +72,6 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
 
   def literally_homeless
     report_scope(all_project_types: true).
-      with_service_between(start_date: @start_date, end_date: @end_date).
       homeless(chronic_types_only: true)
   end
 
@@ -85,7 +82,6 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
   def newly_literally_homeless
     previous_period = report_scope_source.
       entry_within_date_range(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
-      with_service_between(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
       homeless(chronic_types_only: true)
 
     literally_homeless.
@@ -98,7 +94,6 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
 
   def housed
     report_scope.
-      with_service_between(start_date: @start_date, end_date: @end_date).
       where.not(move_in_date: filter.range).
       or(exits.where(housing_status_at_exit: 4)) # Stably housed
   end

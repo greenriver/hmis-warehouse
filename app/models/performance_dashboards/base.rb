@@ -212,8 +212,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   private def filter_for_range(scope)
-    scope.open_between(start_date: @start_date, end_date: @end_date).
-      with_service_between(start_date: @start_date, end_date: @end_date)
+    scope.open_between(start_date: @start_date, end_date: @end_date)
   end
 
   private def filter_for_cocs(scope)
@@ -383,7 +382,6 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   def entries
     previous_period = report_scope_source.entry.
       open_between(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
-      with_service_between(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
       in_project_type(@project_types)
     # To make this performant, we'll manipulate these a bit
 
@@ -391,8 +389,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def entries_current_period
-    report_scope.entry_within_date_range(start_date: @start_date, end_date: @end_date).
-      with_service_between(start_date: @start_date, end_date: @end_date)
+    report_scope.entry_within_date_range(start_date: @start_date, end_date: @end_date)
   end
 
   # An exit is an enrollment where the exit date is within the report range, and there are no enrollments in the
@@ -400,15 +397,13 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   def exits
     next_period = report_scope_source.entry.
       open_between(start_date: @end_date + 1.day, end_date: Date.current).
-      with_service_between(start_date: @end_date + 1.day, end_date: Date.current).
       in_project_type(@project_types)
 
     exits_current_period.where.not(period_exists_sql(next_period))
   end
 
   def exits_current_period
-    report_scope.exit_within_date_range(start_date: @start_date, end_date: @end_date).
-      with_service_between(start_date: @start_date, end_date: @end_date)
+    report_scope.exit_within_date_range(start_date: @start_date, end_date: @end_date)
   end
 
   def open_enrollments
