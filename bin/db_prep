@@ -9,40 +9,48 @@ require 'fileutils'
 # path to your application root.
 APP_ROOT = Pathname.new File.expand_path('..', __dir__)
 
+def run_or_exit cmd
+  return if system(cmd)
+
+  puts "Last command failed. Aborting."
+
+  exit(1)
+end
+
 Dir.chdir APP_ROOT do
   puts "\n== Preparing Database =="
-  system 'bundle exec rake db:create'
-  system 'bundle exec rake db:schema:conditional_load'
-  system 'bundle exec rake db:migrate'
+  run_or_exit 'bundle exec rake db:create'
+  run_or_exit 'bundle exec rake db:schema:conditional_load'
+  run_or_exit 'bundle exec rake db:migrate'
 
   puts "\n== Preparing Warehouse =="
-  system 'bundle exec rake warehouse:db:create'
+  run_or_exit 'bundle exec rake warehouse:db:create'
 
   # DB has objects that can't be tracked with schema.rb: types, materialized views, and triggers
   if ENV['RAILS_ENV'] == 'test'
-    system 'bundle exec rake warehouse:db:schema:conditional_load'
+    run_or_exit 'bundle exec rake warehouse:db:schema:conditional_load'
   else
-    system 'bundle exec rake warehouse:db:structure:conditional_load'
+    run_or_exit 'bundle exec rake warehouse:db:structure:conditional_load'
   end
 
-  system 'bundle exec rake warehouse:db:migrate'
+  run_or_exit 'bundle exec rake warehouse:db:migrate'
 
   puts "\n== Preparing Health Database =="
-  system 'bundle exec rake health:db:create'
-  system 'bundle exec rake health:db:schema:conditional_load'
-  system 'bundle exec rake health:db:migrate'
+  run_or_exit 'bundle exec rake health:db:create'
+  run_or_exit 'bundle exec rake health:db:schema:conditional_load'
+  run_or_exit 'bundle exec rake health:db:migrate'
 
   puts "\n== Preparing Reporting Database =="
-  system 'bundle exec rake reporting:db:create'
-  system 'bundle exec rake reporting:db:schema:conditional_load'
-  system 'bundle exec rake reporting:db:migrate'
+  run_or_exit 'bundle exec rake reporting:db:create'
+  run_or_exit 'bundle exec rake reporting:db:schema:conditional_load'
+  run_or_exit 'bundle exec rake reporting:db:migrate'
   # Force a rebuild of this table
-  system 'bundle exec rails runner "GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!"'
+  run_or_exit 'bundle exec rails runner "GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!"'
 
   if ENV['RAILS_ENV'] != 'test'
     puts "\n== Seeding Database =="
-    system 'bundle exec rake db:seed'
-    system 'bundle exec rake grda_warehouse:seed_grades'
+    run_or_exit 'bundle exec rake db:seed'
+    run_or_exit 'bundle exec rake grda_warehouse:seed_grades'
   else
     puts "\n== NOT Seeding test Database =="
   end
