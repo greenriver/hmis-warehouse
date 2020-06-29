@@ -30,8 +30,11 @@ class PerformanceDashboards::BaseController < ApplicationController
     @filter.coc_codes = params.dig(:filters, :coc_codes)&.select { |code| PerformanceDashboards::Overview.coc_codes.include?(code) } || defaults.coc_codes
     @filter.household_type = params.dig(:filters, :household_type)&.to_sym || defaults.household_type
     @filter.hoh_only = params.dig(:filters, :hoh_only) == '1' || defaults.hoh_only
-    @filter.project_type_codes = Array.wrap(params.dig(:filters, :project_types))&.reject { |type| type.blank? }.presence || defaults.project_type_codes
-    @filter.project_types = @filter.project_type_codes.map { |type| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[type.to_sym] }.flatten if @filter.project_type_codes.present?
+    # NOTE: params[:filters][:project_types] will be 'es', 'th', etc.
+    # the report expects @filter.project_types to be an array of integers 1, 2 etc.
+
+    @filter.project_type_codes = Array.wrap(params.dig(:filters, :project_type_codes))&.reject { |type| type.blank? }.presence || defaults.project_type_codes
+    @filter.project_types = @filter.project_type_codes.map { |type| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[type.to_sym] }.flatten
     @filter.data_source_ids = params.dig(:filters, :data_source_ids)&.reject(&:blank?)&.map(&:to_i) || defaults.data_source_ids
     @filter.organization_ids = params.dig(:filters, :organization_ids)&.reject(&:blank?)&.map(&:to_i) || defaults.organization_ids
     @filter.project_ids = params.dig(:filters, :project_ids)&.reject(&:blank?)&.map(&:to_i) || defaults.project_ids
@@ -59,7 +62,7 @@ class PerformanceDashboards::BaseController < ApplicationController
     OpenStruct.new(
       end_date: (Date.current - 1.year).end_of_year,
       start_date: (Date.current - 1.year).beginning_of_year,
-      comparison_pattern: PerformanceDashboards::Overview.comparison_patterns.values.first,
+      comparison_pattern: default_comparison_pattern,
       coc_codes: [],
       household_type: :all,
       hoh_only: nil,
