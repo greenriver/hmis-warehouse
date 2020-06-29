@@ -14,8 +14,8 @@
 - categories = @report.enrolled_by_ethnicity_data_for_chart[:categories]
 = render 'performance_dashboards/overview/breakdown/enrolled', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options
 
-- columns = [@report.exiting_by_gender_data_for_chart[:columns]]
+- columns = [@report.exiting_by_ethnicity_data_for_chart[:columns]]
 - if @report.include_comparison?
-  - columns << @comparison.exiting_by_gender_data_for_chart[:columns]
-- categories = @report.exiting_by_gender_data_for_chart[:categories]
+  - columns << @comparison.exiting_by_ethnicity_data_for_chart[:columns]
+- categories = @report.exiting_by_ethnicity_data_for_chart[:categories]
 = render 'performance_dashboards/overview/breakdown/exiting', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options

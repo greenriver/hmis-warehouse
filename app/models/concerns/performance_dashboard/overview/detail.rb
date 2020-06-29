@@ -45,6 +45,10 @@ module PerformanceDashboard::Overview::Detail
       HUD.veteran_status(column)
     when 'Individual Adult', 'Child Only'
       yn(column)
+    when 'Project Type'
+      HUD.project_type(column)
+    when 'CoC'
+      HUD.coc_name(column)
     else
       column
     end
@@ -68,6 +72,10 @@ module PerformanceDashboard::Overview::Detail
         title += " #{race_bucket_titles[sub_key.to_s]}"
       elsif options[:ethnicity].present?
         title += " #{ethnicity_bucket_titles[sub_key.to_i]}"
+      elsif options[:project_type].present?
+        title += " #{project_type_bucket_titles[sub_key.to_i]}"
+      elsif options[:coc].present?
+        title += " #{coc_bucket_titles[sub_key.to_s]}"
       end
     end
     title += " #{key.titleize} #{breakdown}"
@@ -99,6 +107,8 @@ module PerformanceDashboard::Overview::Detail
       end
     end
     columns['Ethnicity'] = c_t[:Ethnicity] if options[:ethnicity]
+    columns['Project Type'] = she_t[project_type_col] if options[:project_type]
+    columns['CoC'] = ec_t[:CoCCode] if options[:coc]
     columns
   end
 end
