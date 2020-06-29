@@ -441,7 +441,7 @@ module WarehouseReports::Health
     def site_managers
       @site_managers ||= @managers.map do |manager|
         {
-          investigator: '', # manager.investigator,
+          investigator: manager.investigator,
           index_case_id: manager.case_id.to_s,
           site: manager.site_name,
           site_leader: manager.site_leader_name,
@@ -528,7 +528,7 @@ module WarehouseReports::Health
     def staff_contacts
       @staff_contacts ||= @staff.map do |contact|
         {
-          investigator: '', # contact.investigator
+          investigator: contact.investigator,
           date_interviewed: contact.date_interviewed,
           index_case_id: contact.case_id.to_s,
           first_name: contact.first_name,
