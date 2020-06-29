@@ -44,13 +44,14 @@
         - categories = Role.category_for(permission: permission)
         %tr.j-table__row{'data-title' => permission.to_s.humanize, 'data-categories' => categories.to_s.html_safe}
           %td.c-table__cell--border-r-primary{colspan:1}
-            .c-table__cell-title.d-flex.align-items-center
-              = permission.to_s.humanize
-              - if Role.administrative?(permission: permission)
-                %i.icon-lock.ml-2{data: {toggle: :tooltip, title: 'Administrative Permission'}}
-              .ml-1
+            .c-table__cell-title.d-flex.align-items-center.flex-wrap
+              %span.mr-1
+                = permission.to_s.humanize
+                - if Role.administrative?(permission: permission)
+                  %i.icon-lock.ml-2{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+              %div
                 - categories.each do |cat|
-                  %span.badge.badge-primary.ml-1=cat
+                  %span.badge.badge-primary.mr-1=cat
             .c-table__cell-description
               = Role.description_for(permission: permission)
           - @roles.each do |role|
