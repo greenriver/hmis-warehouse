@@ -47,6 +47,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     f
   end
 
+  def detail_params
+    @filter.to_h.except(:user).
+      merge(comparison_pattern: :no_comparison_period)
+  end
+
   def self.detail_method(key)
     available_keys[key.to_sym]
   end

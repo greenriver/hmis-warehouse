@@ -26,7 +26,7 @@ module PerformanceDashboard::ProjectType::Destination
         # Ignore blank, 8, 9, 99
         reject { |k, _| k.in?([nil, 8, 9, 99]) }.
         sort_by { |_, v| v.count }.
-        last(10).to_h
+        last(5).to_h
       top_destinations[:other] = buckets.except(*top_destinations.keys).
         map do |_, v|
           v
