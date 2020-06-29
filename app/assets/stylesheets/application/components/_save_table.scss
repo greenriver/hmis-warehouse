@@ -62,8 +62,18 @@
       color: rgba($black, .8);
     }
   }
+  &.has-error {
+    background: rgba($brand-danger-l, .95);
+  }
 }
 
+.c-save-table__submit-container-error-text {
+  color: rgba($black, .9);
+  font-weight: bold;
+  flex: 1 0 auto;
+  padding-left: space(4);
+  text-align: left;
+}
 
 .c-save-table__submit-changes {
   margin: 15px;

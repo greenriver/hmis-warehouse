@@ -89,8 +89,7 @@ window.App.RoleTable = class TableSearch {
       .then(() => {
         this.confirmSaved()
       }).catch((error) => {
-        this.confirmSaved()
-        console.error('Save failed', error)
+        this.confirmSaved(error)
       })
   }
 
@@ -144,12 +143,17 @@ window.App.RoleTable = class TableSearch {
         $(this.props.submitContainerSelector).removeClass('show')
       }, 500)
       // Remove loading elements
-      setTimeout(() => { $loading.fadeOut() }, 500)
       this.isDirty = false
     } else {
-      $(this.props.submitContainerSelector).append(`
-        <div>${error}</div>
+      console.error('Roles/permissions update failed', error)
+      const $container = $(this.props.submitContainerSelector)
+      $container.find('.c-save-table__submit-container-error-text').html(`
+        <span>
+          We're having trouble saving your changes. Please try again.
+        </span>
       `)
+      $container.addClass('has-error')
     }
+    setTimeout(() => { $loading.fadeOut() }, 500)
   }
 }

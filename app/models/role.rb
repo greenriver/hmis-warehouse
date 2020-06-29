@@ -465,6 +465,7 @@ class Role < ApplicationRecord
       can_download_cohorts: {
         description: 'Ability to download the contents of a cohort',
         administrative: false,
+        categories: [],
       },
       can_assign_users_to_clients: {
         description: 'Ability to setup user-client relationships',

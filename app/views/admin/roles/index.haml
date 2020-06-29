@@ -3,6 +3,7 @@
 = render partial: 'menus/admin_tabs'
 .table-responsive.j-table.c-save-table{data: {objects: @roles.map(&:id).to_json.html_safe}}
   .c-save-table__submit-container.j-table__submit-container
+    .c-save-table__submit-container-error-text
     = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
     = link_to 'Cancel', '', class: 'btn btn-link j-table__cancel'
     %button.j-table__submit-changes.c-save-table__submit-changes.btn.btn-primary{type: 'button'} Save changes
@@ -60,7 +61,7 @@
                 - name = "role[#{id}]"
                 - id += "_#{role.id}"
                 %input{name: name, type: 'hidden', value: 0}
-                .c-checkbox.d-flex.align-items-center
+                .c-checkbox.d-flex.align-items-center.justify-content-center
                   %input{id: id, name:name, type: 'checkbox', value: 1, checked: permitted}
                   %label{for: id}
 
