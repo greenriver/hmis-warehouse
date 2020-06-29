@@ -45,6 +45,8 @@ module PerformanceDashboards
           :sub_population,
           :race,
           :ethnicity,
+          :project_type,
+          :coc,
           :breakdown,
         ],
       )
