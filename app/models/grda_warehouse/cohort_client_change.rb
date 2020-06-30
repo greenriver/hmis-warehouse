@@ -21,7 +21,7 @@ module GrdaWarehouse
       where(change: ['destroy', 'deactivate'])
     end
 
-    # has_one :cohort_exit, -> { where("id > " ).order(id: :asc) }, class_name: GrdaWarehouse::CohortClientChange.name, primary_key: [:cohort_id, :cohort_client_id], foreign_key: [:cohort_id, :cohort_client_id]
+    # has_one :cohort_exit, -> { where("id > " ).order(id: :asc) }, class_name: 'GrdaWarehouse::CohortClientChange', primary_key: [:cohort_id, :cohort_client_id], foreign_key: [:cohort_id, :cohort_client_id]
 
     def associated_exit
       a_t = self.class.arel_table

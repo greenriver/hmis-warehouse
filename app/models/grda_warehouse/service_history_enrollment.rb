@@ -5,6 +5,7 @@
 ###
 
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
+  include RailsDrivers::Extensions
   include ArelHelper
 
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :service_history_enrollments, autosave: false
@@ -280,82 +281,32 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(she_t[:move_in_date].gteq(date).or(she_t[:move_in_date].eq(nil)))
   end
 
+  scope :in_age_ranges, -> (age_ranges) do
+    age_ranges = age_ranges.reject(&:blank?).map(&:to_sym)
+    return current_scope unless age_ranges.present?
+
+    age_exists = she_t[:age].not_eq(nil)
+    age_ors = []
+    age_ors << she_t[:age].lt(18) if age_ranges.include?(:under_eighteen)
+    age_ors << she_t[:age].gteq(18).and(she_t[:age].lteq(24)) if age_ranges.include?(:eighteen_to_twenty_four)
+    age_ors << she_t[:age].gteq(25).and(she_t[:age].lteq(61)) if age_ranges.include?(:twenty_five_to_sixty_one)
+    age_ors << she_t[:age].gt(61) if age_ranges.include?(:over_sixty_one)
+
+    accumulative = nil
+    age_ors.each do |age|
+      accumulative = if accumulative.present?
+        accumulative.or(age)
+      else
+        age
+      end
+    end
+    current_scope.where(age_exists.and(accumulative))
+  end
+
   #################################
     # Standard Cohort Scopes
-    scope :all_clients, -> do
-      all
-    end
 
-    scope :veteran, -> do
-      joins(:client).merge(GrdaWarehouse::Hud::Client.veteran)
-    end
-    scope :veterans, -> do
-      veteran
-    end
-
-    scope :non_veteran, -> do
-      joins(:client).merge(GrdaWarehouse::Hud::Client.non_veteran)
-    end
-    scope :non_veterans, -> do
-      veteran
-    end
-
-    scope :family_parents, -> do
-      # Client is the head of household
-      family.where(she_t[:head_of_household].eq(true))
-    end
-
-    scope :family, -> do
-      if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
-        where(presented_as_individual: false)
-      else
-        a_t = arel_table
-        where(
-          # Client is in enrollment household with more than one member
-          a_t[:presented_as_individual].eq(false).
-          # client is adult, and there are kids
-          and(
-            a_t[:age].gt(17).and(a_t[:other_clients_under_18].gt(0))
-          ).
-          # client is a child and there are adults
-          or(
-            a_t[:age].lt(18).
-            and(a_t[:other_clients_between_18_and_25].gt(0).
-            or(a_t[:other_clients_over_25].gt(0)))
-          )
-        )
-      end
-    end
-    scope :youth_families, -> do
-      if GrdaWarehouse::Config.get(:family_calculation_method) == 'multiple_people'
-        where(
-          presented_as_individual: false,
-          age: 0..25,
-          other_clients_over_25: 0,
-        )
-      else
-        a_t = arel_table
-        where(
-          # Client is in enrollment household with more than one member
-          # At least one person 18-25 and one under 18
-          a_t[:presented_as_individual].eq(false).
-          # client is a youth (18-24), and there are kids
-          and(
-            a_t[:age].gt(17).
-            and(a_t[:age].lt(25)).
-            and(a_t[:other_clients_under_18].gt(0)).
-            and(a_t[:other_clients_over_25].eq(0))
-          ).
-          # client is a child and there are adults, but no one over 25
-          or(
-            a_t[:age].lt(18).
-            and(a_t[:other_clients_between_18_and_25].gt(0).
-            or(a_t[:other_clients_over_25].eq(0)))
-          )
-        )
-      end
-    end
-
+    # FIXME: do we need these? individual, youth, children, adult
     scope :individual, -> do
       where(presented_as_individual: true)
     end
@@ -372,64 +323,9 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       where(age: (18..Float::INFINITY))
     end
 
-    # Client age on date is 18-24
-    # Presented alone or as the head of household with no one else > 24
-    scope :unaccompanied_youth, -> do
-      where(unaccompanied_youth: true)
+    def self.known_standard_cohorts
+      AvailableSubPopulations.available_sub_populations.values
     end
-
-    scope :parenting_youth, -> do
-      where(parenting_youth: true).
-      where(she_t[:head_of_household].eq(true))
-    end
-
-    scope :children_only, -> do
-      where(children_only: true)
-    end
-
-    scope :parenting_juvenile, -> do
-      where(parenting_juvenile: true).
-      where(she_t[:head_of_household].eq(true))
-    end
-    scope :parenting_children, -> do
-      parenting_juvenile
-    end
-
-    scope :unaccompanied_minors, -> do
-      where(unaccompanied_minor: true)
-    end
-
-    scope :individual_adult, -> do
-      individual.adult
-    end
-
-    scope :individual_adults, -> do
-      individual.adult
-    end
-
-    def self.know_standard_cohorts
-      [
-        :all_clients,
-        :veteran,
-        :non_veteran,
-        :family,
-        :youth_families,
-        :individual,
-        :youth,
-        :children,
-        :adult,
-        :unaccompanied_youth,
-        :family_parents,
-        :parenting_youth,
-        :children_only,
-        :parenting_juvenile,
-        :parenting_children,
-        :unaccompanied_minors,
-        :individual_adult,
-        :individual_adults,
-      ]
-    end
-
 
     # End Standard Cohort Scopes
     #################################
@@ -474,4 +370,12 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     end
   end
 
+  def self.available_age_ranges
+    {
+      under_eighteen: '< 18',
+      eighteen_to_twenty_four: '18 - 24',
+      twenty_five_to_sixty_one: '25 - 61',
+      over_sixty_one: '62+',
+    }.invert.freeze
+  end
 end

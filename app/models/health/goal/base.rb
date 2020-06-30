@@ -10,7 +10,7 @@
 module Health
   class Goal::Base < HealthBase
     self.table_name = 'health_goals'
-    has_paper_trail versions: {class_name: Health::HealthVersion.name}
+    has_paper_trail versions: {class_name: 'Health::HealthVersion'}
     acts_as_paranoid
 
     phi_patient :patient_id
@@ -55,10 +55,10 @@ module Health
     phi_attr :responsible_team_member_id, Phi::SmallPopulation
 
 
-    # belongs_to :careplan, class_name: Health::Careplan.name
+    # belongs_to :careplan, class_name: 'Health::Careplan'
     # delegate :patient, to: :careplan
     belongs_to :patient
-    belongs_to :editor, class_name: User.name, foreign_key: :user_id
+    belongs_to :editor, class_name: 'User', foreign_key: :user_id
 
     validates_presence_of :name, :number, :type
 

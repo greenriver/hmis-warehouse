@@ -133,7 +133,7 @@ module AuditReports
           ).
             where(
               user_id: batch,
-              item_model: GrdaWarehouse::Hud::Client.name,
+              item_model: 'GrdaWarehouse::Hud::Client',
             ).
             group(:user_id, datepart(ActivityLog, 'month', al_t[:created_at]).to_sql).
             distinct.

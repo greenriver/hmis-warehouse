@@ -10,6 +10,8 @@ module Filters
     attribute :start, Date, lazy: true, default: -> (r,_) { r.default_start }
     attribute :end, Date, lazy: true, default: -> (r,_) { r.default_end }
     attribute :sort
+    attribute :age_ranges, Array, default: []
+    attribute :heads_of_household, Boolean, default: false
 
     validates_presence_of :start, :end
 
@@ -52,6 +54,15 @@ module Filters
       def default_start
         self.end - 1.month
       end
+    end
+
+    def available_age_ranges
+      {
+        under_eighteen: '< 18',
+        eighteen_to_twenty_four: '18 - 24',
+        twenty_five_to_sixty_one: '25 - 61',
+        over_sixty_one: '62+',
+      }.invert.freeze
     end
   end
 end
