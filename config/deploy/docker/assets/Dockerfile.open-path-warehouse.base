@@ -64,6 +64,7 @@ COPY spec ./spec
 COPY db ./db
 COPY app ./app
 COPY vendor ./vendor
+COPY drivers ./drivers
 COPY locale ./locale
 
 RUN RAILS_ENV=production bundle exec rake assets:precompile && \
