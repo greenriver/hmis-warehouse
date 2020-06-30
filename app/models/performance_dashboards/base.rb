@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
@@ -39,6 +39,13 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
   attr_reader :start_date, :end_date, :coc_codes, :project_types, :filter
   attr_accessor :comparison_pattern, :project_type_codes
+
+  private def cache_slug
+    f = @filter.deep_dup
+    f.user_id = @filter.user.id
+    f.user = nil
+    f
+  end
 
   def self.detail_method(key)
     available_keys[key.to_sym]
@@ -363,7 +370,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   # An exit is an enrollment where the exit date is within the report range, and there are no enrollments in the
   # specified project types that were open after the reporting period.
   def exits
-    next_period = report_scope_source.exit.
+    next_period = report_scope_source.entry.
       open_between(start_date: @end_date + 1.day, end_date: Date.current).
       with_service_between(start_date: @end_date + 1.day, end_date: Date.current).
       in_project_type(@project_types)

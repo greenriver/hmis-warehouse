@@ -1,14 +1,16 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Hud
   class Disability < Base
     include HudSharedScopes
-    self.table_name = 'Disabilities'
     include ::HMIS::Structure::Disability
+
+    self.table_name = 'Disabilities'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     attr_accessor :source_id
 

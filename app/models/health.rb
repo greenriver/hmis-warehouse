@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Health
@@ -14,7 +14,7 @@ module Health
   end
 
   module_function def models_by_health_filename
-    # use an explicit whitelist as a security measure
+    # use an explicit allowlist as a security measure
     {
       'appointments.csv' => Health::Appointment,
       'medications.csv' => Health::Medication,

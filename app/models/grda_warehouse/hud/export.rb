@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Hud
@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     attr_accessor :source_id
 
     self.table_name = 'Export'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     has_many :affiliations, **hud_assoc(:AffiliationID, 'Affiliation'), inverse_of: :export
     has_many :clients, **hud_assoc(:PersonalID, 'Client'), inverse_of: :export

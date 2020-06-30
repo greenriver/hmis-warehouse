@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module ClientController
@@ -273,7 +273,7 @@ module ClientController
         m == '/clients/rollup/' + params.require(:partial).underscore
       end
 
-      raise 'Rollup not in whitelist' unless rollup.present?
+      raise 'Rollup not in allowlist' unless rollup.present?
 
       render partial: rollup, layout: false if request.xhr?
     end

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboards
@@ -11,6 +11,10 @@ module PerformanceDashboards
     before_action :set_key, only: [:details]
 
     def index
+    end
+
+    private def section_subpath
+      'performance_dashboards/project_type/'
     end
 
     def details

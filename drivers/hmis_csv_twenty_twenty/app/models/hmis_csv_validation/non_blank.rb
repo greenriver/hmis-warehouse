@@ -11,7 +11,8 @@ class HmisCsvValidation::NonBlank < HmisCsvValidation::Error
 
     new(
       importer_log_id: item.importer_log_id,
-      source: item,
+      source_id: item.source_id,
+      source_type: item.source_type,
       status: "A value is required for #{column}",
     )
   end

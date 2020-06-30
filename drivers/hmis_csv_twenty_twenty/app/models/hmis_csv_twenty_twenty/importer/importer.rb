@@ -220,8 +220,9 @@ module HmisCsvTwentyTwenty::Importer
           destination.importer_log_id = importer_log.id
           destination.pre_processed_at = Time.current
           destination.set_source_hash
-          failures += destination.run_row_validations
-          batch << destination
+          row_failures = destination.run_row_validations
+          failures += row_failures
+          batch << destination unless row_failures.any?(&:skip_row?)
 
           if batch.count == INSERT_BATCH_SIZE
             process_batch!(klass, batch, file_name, type: 'pre_processed')
