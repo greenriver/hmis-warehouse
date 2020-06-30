@@ -10,7 +10,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_28_153252) do
+ActiveRecord::Schema.define(version: 2020_06_29_180206) do
+
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
@@ -930,6 +931,7 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.index ["ExportID"], name: "project_coc_export_id"
     t.index ["data_source_id", "ProjectCoCID"], name: "unk_ProjectCoC", unique: true
     t.index ["data_source_id", "ProjectID", "CoCCode"], name: "index_ProjectCoC_on_data_source_id_and_ProjectID_and_CoCCode"
+    t.index ["data_source_id"], name: "index_ProjectCoC_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_ProjectCoC_on_pending_date_deleted"
   end
 
@@ -4686,6 +4688,7 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "head_of_household", default: false, null: false
     t.date "move_in_date"
     t.boolean "unaccompanied_minor", default: false
+    t.index ["age"], name: "index_service_history_enrollments_on_age"
     t.index ["client_id", "record_type"], name: "index_she_on_client_id"
     t.index ["computed_project_type", "record_type", "client_id"], name: "index_she_on_computed_project_type"
     t.index ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_she_ds_proj_org_r_type"
@@ -4721,10 +4724,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2000_date_client_id"
+    t.index ["client_id"], name: "index_shs_2000_client_id_only"
     t.index ["date"], name: "index_shs_2000_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2000_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2000_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2000_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2000_en_id_only"
   end
 
   create_table "service_history_services_2001", id: false, force: :cascade do |t|
@@ -4739,10 +4744,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2001_date_client_id"
+    t.index ["client_id"], name: "index_shs_2001_client_id_only"
     t.index ["date"], name: "index_shs_2001_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2001_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2001_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2001_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2001_en_id_only"
   end
 
   create_table "service_history_services_2002", id: false, force: :cascade do |t|
@@ -4757,10 +4764,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2002_date_client_id"
+    t.index ["client_id"], name: "index_shs_2002_client_id_only"
     t.index ["date"], name: "index_shs_2002_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2002_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2002_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2002_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2002_en_id_only"
   end
 
   create_table "service_history_services_2003", id: false, force: :cascade do |t|
@@ -4775,10 +4784,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2003_date_client_id"
+    t.index ["client_id"], name: "index_shs_2003_client_id_only"
     t.index ["date"], name: "index_shs_2003_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2003_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2003_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2003_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2003_en_id_only"
   end
 
   create_table "service_history_services_2004", id: false, force: :cascade do |t|
@@ -4793,10 +4804,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2004_date_client_id"
+    t.index ["client_id"], name: "index_shs_2004_client_id_only"
     t.index ["date"], name: "index_shs_2004_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2004_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2004_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2004_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2004_en_id_only"
   end
 
   create_table "service_history_services_2005", id: false, force: :cascade do |t|
@@ -4811,10 +4824,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2005_date_client_id"
+    t.index ["client_id"], name: "index_shs_2005_client_id_only"
     t.index ["date"], name: "index_shs_2005_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2005_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2005_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2005_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2005_en_id_only"
   end
 
   create_table "service_history_services_2006", id: false, force: :cascade do |t|
@@ -4829,10 +4844,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2006_date_client_id"
+    t.index ["client_id"], name: "index_shs_2006_client_id_only"
     t.index ["date"], name: "index_shs_2006_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2006_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2006_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2006_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2006_en_id_only"
   end
 
   create_table "service_history_services_2007", id: false, force: :cascade do |t|
@@ -4847,10 +4864,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2007_date_client_id"
+    t.index ["client_id"], name: "index_shs_2007_client_id_only"
     t.index ["date"], name: "index_shs_2007_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2007_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2007_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2007_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2007_en_id_only"
   end
 
   create_table "service_history_services_2008", id: false, force: :cascade do |t|
@@ -4865,10 +4884,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2008_date_client_id"
+    t.index ["client_id"], name: "index_shs_2008_client_id_only"
     t.index ["date"], name: "index_shs_2008_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2008_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2008_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2008_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2008_en_id_only"
   end
 
   create_table "service_history_services_2009", id: false, force: :cascade do |t|
@@ -4883,10 +4904,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2009_date_client_id"
+    t.index ["client_id"], name: "index_shs_2009_client_id_only"
     t.index ["date"], name: "index_shs_2009_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2009_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2009_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2009_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2009_en_id_only"
   end
 
   create_table "service_history_services_2010", id: false, force: :cascade do |t|
@@ -4901,10 +4924,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2010_date_client_id"
+    t.index ["client_id"], name: "index_shs_2010_client_id_only"
     t.index ["date"], name: "index_shs_2010_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2010_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2010_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2010_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2010_en_id_only"
   end
 
   create_table "service_history_services_2011", id: false, force: :cascade do |t|
@@ -4919,10 +4944,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2011_date_client_id"
+    t.index ["client_id"], name: "index_shs_2011_client_id_only"
     t.index ["date"], name: "index_shs_2011_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2011_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2011_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2011_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2011_en_id_only"
   end
 
   create_table "service_history_services_2012", id: false, force: :cascade do |t|
@@ -4937,10 +4964,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2012_date_client_id"
+    t.index ["client_id"], name: "index_shs_2012_client_id_only"
     t.index ["date"], name: "index_shs_2012_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2012_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2012_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2012_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2012_en_id_only"
   end
 
   create_table "service_history_services_2013", id: false, force: :cascade do |t|
@@ -4955,10 +4984,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2013_date_client_id"
+    t.index ["client_id"], name: "index_shs_2013_client_id_only"
     t.index ["date"], name: "index_shs_2013_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2013_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2013_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2013_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2013_en_id_only"
   end
 
   create_table "service_history_services_2014", id: false, force: :cascade do |t|
@@ -4973,10 +5004,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2014_date_client_id"
+    t.index ["client_id"], name: "index_shs_2014_client_id_only"
     t.index ["date"], name: "index_shs_2014_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2014_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2014_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2014_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2014_en_id_only"
   end
 
   create_table "service_history_services_2015", id: false, force: :cascade do |t|
@@ -4991,10 +5024,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2015_date_client_id"
+    t.index ["client_id"], name: "index_shs_2015_client_id_only"
     t.index ["date"], name: "index_shs_2015_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2015_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2015_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2015_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2015_en_id_only"
   end
 
   create_table "service_history_services_2016", id: false, force: :cascade do |t|
@@ -5009,10 +5044,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2016_date_client_id"
+    t.index ["client_id"], name: "index_shs_2016_client_id_only"
     t.index ["date"], name: "index_shs_2016_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2016_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2016_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2016_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2016_en_id_only"
   end
 
   create_table "service_history_services_2017", id: false, force: :cascade do |t|
@@ -5027,10 +5064,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2017_date_client_id"
+    t.index ["client_id"], name: "index_shs_2017_client_id_only"
     t.index ["date"], name: "index_shs_2017_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2017_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2017_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2017_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2017_en_id_only"
   end
 
   create_table "service_history_services_2018", id: false, force: :cascade do |t|
@@ -5045,10 +5084,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2018_date_client_id"
+    t.index ["client_id"], name: "index_shs_2018_client_id_only"
     t.index ["date"], name: "index_shs_2018_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2018_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2018_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2018_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2018_en_id_only"
   end
 
   create_table "service_history_services_2019", id: false, force: :cascade do |t|
@@ -5063,10 +5104,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2019_date_client_id"
+    t.index ["client_id"], name: "index_shs_2019_client_id_only"
     t.index ["date"], name: "index_shs_2019_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2019_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2019_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2019_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2019_en_id_only"
   end
 
   create_table "service_history_services_2020", id: false, force: :cascade do |t|
@@ -5081,10 +5124,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2020_date_client_id"
+    t.index ["client_id"], name: "index_shs_2020_client_id_only"
     t.index ["date"], name: "index_shs_2020_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2020_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2020_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2020_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2020_en_id_only"
   end
 
   create_table "service_history_services_2021", id: false, force: :cascade do |t|
@@ -5099,10 +5144,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2021_date_client_id"
+    t.index ["client_id"], name: "index_shs_2021_client_id_only"
     t.index ["date"], name: "index_shs_2021_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2021_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2021_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2021_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2021_en_id_only"
   end
 
   create_table "service_history_services_2022", id: false, force: :cascade do |t|
@@ -5117,10 +5164,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2022_date_client_id"
+    t.index ["client_id"], name: "index_shs_2022_client_id_only"
     t.index ["date"], name: "index_shs_2022_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2022_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2022_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2022_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2022_en_id_only"
   end
 
   create_table "service_history_services_2023", id: false, force: :cascade do |t|
@@ -5135,10 +5184,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2023_date_client_id"
+    t.index ["client_id"], name: "index_shs_2023_client_id_only"
     t.index ["date"], name: "index_shs_2023_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2023_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2023_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2023_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2023_en_id_only"
   end
 
   create_table "service_history_services_2024", id: false, force: :cascade do |t|
@@ -5153,10 +5204,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2024_date_client_id"
+    t.index ["client_id"], name: "index_shs_2024_client_id_only"
     t.index ["date"], name: "index_shs_2024_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2024_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2024_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2024_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2024_en_id_only"
   end
 
   create_table "service_history_services_2025", id: false, force: :cascade do |t|
@@ -5171,10 +5224,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2025_date_client_id"
+    t.index ["client_id"], name: "index_shs_2025_client_id_only"
     t.index ["date"], name: "index_shs_2025_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2025_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2025_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2025_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2025_en_id_only"
   end
 
   create_table "service_history_services_2026", id: false, force: :cascade do |t|
@@ -5189,10 +5244,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2026_date_client_id"
+    t.index ["client_id"], name: "index_shs_2026_client_id_only"
     t.index ["date"], name: "index_shs_2026_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2026_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2026_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2026_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2026_en_id_only"
   end
 
   create_table "service_history_services_2027", id: false, force: :cascade do |t|
@@ -5207,10 +5264,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2027_date_client_id"
+    t.index ["client_id"], name: "index_shs_2027_client_id_only"
     t.index ["date"], name: "index_shs_2027_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2027_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2027_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2027_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2027_en_id_only"
   end
 
   create_table "service_history_services_2028", id: false, force: :cascade do |t|
@@ -5225,10 +5284,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2028_date_client_id"
+    t.index ["client_id"], name: "index_shs_2028_client_id_only"
     t.index ["date"], name: "index_shs_2028_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2028_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2028_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2028_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2028_en_id_only"
   end
 
   create_table "service_history_services_2029", id: false, force: :cascade do |t|
@@ -5243,10 +5304,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2029_date_client_id"
+    t.index ["client_id"], name: "index_shs_2029_client_id_only"
     t.index ["date"], name: "index_shs_2029_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2029_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2029_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2029_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2029_en_id_only"
   end
 
   create_table "service_history_services_2030", id: false, force: :cascade do |t|
@@ -5261,10 +5324,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2030_date_client_id"
+    t.index ["client_id"], name: "index_shs_2030_client_id_only"
     t.index ["date"], name: "index_shs_2030_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2030_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2030_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2030_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2030_en_id_only"
   end
 
   create_table "service_history_services_2031", id: false, force: :cascade do |t|
@@ -5279,10 +5344,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2031_date_client_id"
+    t.index ["client_id"], name: "index_shs_2031_client_id_only"
     t.index ["date"], name: "index_shs_2031_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2031_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2031_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2031_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2031_en_id_only"
   end
 
   create_table "service_history_services_2032", id: false, force: :cascade do |t|
@@ -5297,10 +5364,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2032_date_client_id"
+    t.index ["client_id"], name: "index_shs_2032_client_id_only"
     t.index ["date"], name: "index_shs_2032_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2032_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2032_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2032_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2032_en_id_only"
   end
 
   create_table "service_history_services_2033", id: false, force: :cascade do |t|
@@ -5315,10 +5384,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2033_date_client_id"
+    t.index ["client_id"], name: "index_shs_2033_client_id_only"
     t.index ["date"], name: "index_shs_2033_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2033_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2033_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2033_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2033_en_id_only"
   end
 
   create_table "service_history_services_2034", id: false, force: :cascade do |t|
@@ -5333,10 +5404,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2034_date_client_id"
+    t.index ["client_id"], name: "index_shs_2034_client_id_only"
     t.index ["date"], name: "index_shs_2034_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2034_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2034_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2034_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2034_en_id_only"
   end
 
   create_table "service_history_services_2035", id: false, force: :cascade do |t|
@@ -5351,10 +5424,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2035_date_client_id"
+    t.index ["client_id"], name: "index_shs_2035_client_id_only"
     t.index ["date"], name: "index_shs_2035_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2035_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2035_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2035_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2035_en_id_only"
   end
 
   create_table "service_history_services_2036", id: false, force: :cascade do |t|
@@ -5369,10 +5444,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2036_date_client_id"
+    t.index ["client_id"], name: "index_shs_2036_client_id_only"
     t.index ["date"], name: "index_shs_2036_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2036_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2036_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2036_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2036_en_id_only"
   end
 
   create_table "service_history_services_2037", id: false, force: :cascade do |t|
@@ -5387,10 +5464,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2037_date_client_id"
+    t.index ["client_id"], name: "index_shs_2037_client_id_only"
     t.index ["date"], name: "index_shs_2037_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2037_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2037_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2037_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2037_en_id_only"
   end
 
   create_table "service_history_services_2038", id: false, force: :cascade do |t|
@@ -5405,10 +5484,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2038_date_client_id"
+    t.index ["client_id"], name: "index_shs_2038_client_id_only"
     t.index ["date"], name: "index_shs_2038_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2038_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2038_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2038_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2038_en_id_only"
   end
 
   create_table "service_history_services_2039", id: false, force: :cascade do |t|
@@ -5423,10 +5504,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2039_date_client_id"
+    t.index ["client_id"], name: "index_shs_2039_client_id_only"
     t.index ["date"], name: "index_shs_2039_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2039_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2039_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2039_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2039_en_id_only"
   end
 
   create_table "service_history_services_2040", id: false, force: :cascade do |t|
@@ -5441,10 +5524,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2040_date_client_id"
+    t.index ["client_id"], name: "index_shs_2040_client_id_only"
     t.index ["date"], name: "index_shs_2040_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2040_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2040_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2040_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2040_en_id_only"
   end
 
   create_table "service_history_services_2041", id: false, force: :cascade do |t|
@@ -5459,10 +5544,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2041_date_client_id"
+    t.index ["client_id"], name: "index_shs_2041_client_id_only"
     t.index ["date"], name: "index_shs_2041_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2041_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2041_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2041_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2041_en_id_only"
   end
 
   create_table "service_history_services_2042", id: false, force: :cascade do |t|
@@ -5477,10 +5564,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2042_date_client_id"
+    t.index ["client_id"], name: "index_shs_2042_client_id_only"
     t.index ["date"], name: "index_shs_2042_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2042_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2042_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2042_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2042_en_id_only"
   end
 
   create_table "service_history_services_2043", id: false, force: :cascade do |t|
@@ -5495,10 +5584,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2043_date_client_id"
+    t.index ["client_id"], name: "index_shs_2043_client_id_only"
     t.index ["date"], name: "index_shs_2043_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2043_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2043_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2043_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2043_en_id_only"
   end
 
   create_table "service_history_services_2044", id: false, force: :cascade do |t|
@@ -5513,10 +5604,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2044_date_client_id"
+    t.index ["client_id"], name: "index_shs_2044_client_id_only"
     t.index ["date"], name: "index_shs_2044_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2044_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2044_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2044_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2044_en_id_only"
   end
 
   create_table "service_history_services_2045", id: false, force: :cascade do |t|
@@ -5531,10 +5624,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2045_date_client_id"
+    t.index ["client_id"], name: "index_shs_2045_client_id_only"
     t.index ["date"], name: "index_shs_2045_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2045_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2045_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2045_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2045_en_id_only"
   end
 
   create_table "service_history_services_2046", id: false, force: :cascade do |t|
@@ -5549,10 +5644,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2046_date_client_id"
+    t.index ["client_id"], name: "index_shs_2046_client_id_only"
     t.index ["date"], name: "index_shs_2046_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2046_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2046_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2046_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2046_en_id_only"
   end
 
   create_table "service_history_services_2047", id: false, force: :cascade do |t|
@@ -5567,10 +5664,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2047_date_client_id"
+    t.index ["client_id"], name: "index_shs_2047_client_id_only"
     t.index ["date"], name: "index_shs_2047_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2047_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2047_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2047_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2047_en_id_only"
   end
 
   create_table "service_history_services_2048", id: false, force: :cascade do |t|
@@ -5585,10 +5684,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2048_date_client_id"
+    t.index ["client_id"], name: "index_shs_2048_client_id_only"
     t.index ["date"], name: "index_shs_2048_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2048_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2048_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2048_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2048_en_id_only"
   end
 
   create_table "service_history_services_2049", id: false, force: :cascade do |t|
@@ -5603,10 +5704,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2049_date_client_id"
+    t.index ["client_id"], name: "index_shs_2049_client_id_only"
     t.index ["date"], name: "index_shs_2049_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2049_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2049_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2049_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2049_en_id_only"
   end
 
   create_table "service_history_services_2050", id: false, force: :cascade do |t|
@@ -5621,10 +5724,12 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2050_date_client_id"
+    t.index ["client_id"], name: "index_shs_2050_client_id_only"
     t.index ["date"], name: "index_shs_2050_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2050_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2050_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2050_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2050_en_id_only"
   end
 
   create_table "service_history_services_remainder", id: false, force: :cascade do |t|
@@ -5922,6 +6027,7 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.integer "source_id"
     t.integer "destination_id"
     t.integer "client_match_id"
+    t.index ["data_source_id"], name: "index_warehouse_clients_on_data_source_id"
     t.index ["deleted_at"], name: "index_warehouse_clients_on_deleted_at"
     t.index ["destination_id"], name: "index_warehouse_clients_on_destination_id"
     t.index ["id_in_source"], name: "index_warehouse_clients_on_id_in_source"
@@ -5961,6 +6067,7 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.string "lgbtq_from_hmis"
     t.integer "days_homeless_plus_overrides"
     t.index ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days"
+    t.index ["client_id"], name: "index_warehouse_clients_processed_on_client_id"
     t.index ["days_served"], name: "index_warehouse_clients_processed_on_days_served"
     t.index ["homeless_days"], name: "index_warehouse_clients_processed_on_homeless_days"
     t.index ["routine"], name: "index_warehouse_clients_processed_on_routine"

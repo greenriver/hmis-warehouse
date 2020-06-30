@@ -25,11 +25,20 @@ module Admin
     end
 
     def edit
+      @users = User.joins(:roles).merge(Role.where(id: @role.id))
     end
 
     def update
       @role.update role_params
-      respond_with(@role, location: admin_roles_path)
+      respond_to do |format|
+        format.html do
+          respond_with(@role, location: admin_roles_path)
+        end
+        format.json do
+          render(json: nil, status: :ok) if @role.errors.none?
+          return
+        end
+      end
     end
 
     def create
