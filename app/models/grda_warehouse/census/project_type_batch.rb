@@ -20,7 +20,7 @@ module GrdaWarehouse::Census
 
       GrdaWarehouse::Census.census_populations.each do |population|
         add_clients_to_census_buckets(
-          population[:factory].get_client_counts(self, project_type),
+          population[:factory].constantize.get_client_counts(self, project_type),
           project_type_code,
           population[:population],
         )
@@ -52,18 +52,19 @@ module GrdaWarehouse::Census
 
     def build_project_type_independent_batch
       GrdaWarehouse::Census.census_populations.each do |population|
+        population_factory = population[:factory].constantize
         add_clients_to_census_buckets(
-          population[:factory].get_homeless_client_counts(self),
+          population_factory.get_homeless_client_counts(self),
           :homeless,
           population[:population],
         )
         add_clients_to_census_buckets(
-          population[:factory].get_literally_homeless_client_counts(self),
+          population_factory.get_literally_homeless_client_counts(self),
           :literally_homeless,
           population[:population],
         )
         add_clients_to_census_buckets(
-          population[:factory].get_system_client_counts(self),
+          population_factory.get_system_client_counts(self),
           :system,
           population[:population],
         )

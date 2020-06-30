@@ -14,8 +14,7 @@ AvailableSubPopulations.add_sub_population(
 
 GrdaWarehouse::Census.add_population(
   population: :veterans,
-  scope: GrdaWarehouse::ServiceHistoryEnrollment.veterans,
-  factory: VeteransSubPop::GrdaWarehouse::Census::VeteransFactory,
+  factory: 'VeteransSubPop::GrdaWarehouse::Census::VeteransFactory',
 )
 
 SubpopulationHistoryScope.add_sub_population(

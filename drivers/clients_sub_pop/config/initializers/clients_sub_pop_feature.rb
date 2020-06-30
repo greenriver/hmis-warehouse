@@ -14,8 +14,7 @@ AvailableSubPopulations.add_sub_population(
 
 GrdaWarehouse::Census.add_population(
   population: :all_clients,
-  scope: GrdaWarehouse::ServiceHistoryEnrollment.clients,
-  factory: ClientsSubPop::GrdaWarehouse::Census::ClientsFactory,
+  factory: 'ClientsSubPop::GrdaWarehouse::Census::ClientsFactory',
 )
 
 SubpopulationHistoryScope.add_sub_population(

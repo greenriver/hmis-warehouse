@@ -79,11 +79,10 @@ module GrdaWarehouse::Census
     ]
   end
 
-  def self.add_population(population:, scope:, factory:)
+  def self.add_population(population:, factory:)
     populations = census_populations
     populations << {
       population: population,
-      scope: scope,
       factory: factory,
     }
     Rails.application.config.census[:census_populations] = populations

@@ -19,8 +19,9 @@ module GrdaWarehouse::Census
 
     def build_census_batch
       GrdaWarehouse::Census.census_populations.each do |population|
+        scope = GrdaWarehouse::ServiceHistoryEnrollment.public_send(population[:population])
         add_clients_to_census_buckets(
-          get_client_and_project_counts(population[:scope]),
+          get_client_and_project_counts(scope),
           population[:population]
         )
       end
