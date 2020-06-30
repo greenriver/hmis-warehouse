@@ -1,6 +1,15 @@
 .row
   .col-md-8
     .c-card.mb-4
+      .c-card__header.c-card__header--external
+        %h3 Investigation Information
+      .c-card__content
+        = f.input :investigator, label: @manager.label_for(:investigator)
+.row
+  .col-md-8
+    .c-card.mb-4
+      .c-card__header.c-card__header--external
+        %h3 Site Leader Information
       .c-card__content
         = f.input :site_name
         = f.input :site_leader_name

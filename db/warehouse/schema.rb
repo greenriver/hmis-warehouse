@@ -10,8 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_30_134853) do
-
+ActiveRecord::Schema.define(version: 2020_06_28_153252) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
@@ -201,6 +200,7 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "evicted", default: false, null: false
     t.boolean "dv_rrh_desired", default: false
     t.string "health_prioritized"
+    t.boolean "demographic_dirty", default: true
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -267,7 +267,10 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.index ["DateCreated"], name: "disabilities_date_created"
+    t.index ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)"
+    t.index ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx1", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id"
+    t.index ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateUpdated"], name: "disabilities_date_updated"
     t.index ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx"
     t.index ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID"
@@ -617,6 +620,7 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.index ["DateDeleted", "data_source_id"], name: "index_Funder_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "funder_date_updated"
     t.index ["ExportID"], name: "funder_export_id"
+    t.index ["ProjectID", "Funder"], name: "index_Funder_on_ProjectID_and_Funder"
     t.index ["data_source_id", "FunderID"], name: "unk_Funder", unique: true
     t.index ["data_source_id"], name: "index_Funder_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Funder_on_pending_date_deleted"
@@ -774,11 +778,14 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.index ["DateCreated"], name: "income_benefits_date_created"
+    t.index ["DateDeleted", "data_source_id"], name: "IncomeBenefits_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateDeleted", "data_source_id"], name: "index_IncomeBenefits_on_DateDeleted_and_data_source_id"
+    t.index ["DateDeleted"], name: "IncomeBenefits_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateUpdated"], name: "income_benefits_date_updated"
     t.index ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID"
     t.index ["ExportID"], name: "income_benefits_export_id"
     t.index ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID"
+    t.index ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id"
@@ -923,6 +930,7 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.index ["ExportID"], name: "project_coc_export_id"
     t.index ["data_source_id", "ProjectCoCID"], name: "unk_ProjectCoC", unique: true
     t.index ["data_source_id", "ProjectID", "CoCCode"], name: "index_ProjectCoC_on_data_source_id_and_ProjectID_and_CoCCode"
+    t.index ["data_source_id"], name: "index_ProjectCoC_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_ProjectCoC_on_pending_date_deleted"
   end
 
@@ -1396,6 +1404,16 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.index ["updated_at"], name: "index_client_split_histories_on_updated_at"
   end
 
+  create_table "coc_codes", force: :cascade do |t|
+    t.string "coc_code", null: false
+    t.string "official_name", null: false
+    t.string "preferred_name"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["coc_code"], name: "index_coc_codes_on_coc_code"
+  end
+
   create_table "cohort_client_changes", id: :serial, force: :cascade do |t|
     t.integer "cohort_client_id", null: false
     t.integer "cohort_id", null: false
@@ -1601,7 +1619,7 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.string "site_coc_codes"
     t.string "default_coc_zipcodes"
     t.string "continuum_name"
-    t.string "cas_url", default: "https://cas.boston.gov"
+    t.string "cas_url", default: "https://cas.openpath.host"
     t.string "release_duration", default: "Indefinite"
     t.boolean "allow_partial_release", default: true
     t.string "cas_flag_method", default: "manual"
@@ -1626,6 +1644,7 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.string "health_emergency"
     t.string "health_emergency_tracing"
     t.integer "health_priority_age"
+    t.boolean "multi_coc_installation", default: false, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1744,10 +1763,10 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.integer "data_source_id", null: false
     t.integer "client_id", null: false
     t.string "enterprise_guid", null: false
-    t.integer "participant_site_identifier", null: false
     t.integer "site_id", null: false
     t.integer "subject_id", null: false
     t.datetime "last_updated"
+    t.integer "participant_site_identifier"
     t.index ["client_id"], name: "index_eto_client_lookups_on_client_id"
     t.index ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id"
   end
@@ -2072,6 +2091,904 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.index ["updated_at"], name: "index_helps_on_updated_at"
   end
 
+  create_table "hmis_2020_affiliations", force: :cascade do |t|
+    t.string "AffiliationID"
+    t.string "ProjectID"
+    t.string "ResProjectID"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["AffiliationID", "data_source_id"], name: "hmis_2020_affiliations-lZaj"
+    t.index ["ExportID"], name: "hmis_2020_affiliations-qycr"
+    t.index ["source_type", "source_id"], name: "hmis_2020_affiliations-jXFa"
+  end
+
+  create_table "hmis_2020_assessment_questions", force: :cascade do |t|
+    t.string "AssessmentQuestionID"
+    t.string "AssessmentID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "AssessmentQuestionGroup"
+    t.integer "AssessmentQuestionOrder"
+    t.string "AssessmentQuestion"
+    t.string "AssessmentAnswer"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["AssessmentID"], name: "hmis_2020_assessment_questions-fD1j"
+    t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_2020_assessment_questions-0oMf"
+    t.index ["ExportID"], name: "hmis_2020_assessment_questions-sDob"
+    t.index ["source_type", "source_id"], name: "hmis_2020_assessment_questions-gVG2"
+  end
+
+  create_table "hmis_2020_assessment_results", force: :cascade do |t|
+    t.string "AssessmentResultID"
+    t.string "AssessmentID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "AssessmentResultType"
+    t.string "AssessmentResult"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["AssessmentID"], name: "hmis_2020_assessment_results-AnQd"
+    t.index ["AssessmentResultID", "data_source_id"], name: "hmis_2020_assessment_results-rawc"
+    t.index ["ExportID"], name: "hmis_2020_assessment_results-2kxY"
+    t.index ["source_type", "source_id"], name: "hmis_2020_assessment_results-CKgC"
+  end
+
+  create_table "hmis_2020_assessments", force: :cascade do |t|
+    t.string "AssessmentID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "AssessmentDate"
+    t.string "AssessmentLocation"
+    t.integer "AssessmentType"
+    t.integer "AssessmentLevel"
+    t.integer "PrioritizationStatus"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["AssessmentDate"], name: "hmis_2020_assessments-YW8L"
+    t.index ["AssessmentID", "data_source_id"], name: "hmis_2020_assessments-3sM0"
+    t.index ["AssessmentID"], name: "hmis_2020_assessments-kqMe"
+    t.index ["EnrollmentID"], name: "hmis_2020_assessments-gMUw"
+    t.index ["ExportID"], name: "hmis_2020_assessments-u0eq"
+    t.index ["PersonalID"], name: "hmis_2020_assessments-kdgA"
+    t.index ["source_type", "source_id"], name: "hmis_2020_assessments-B1tS"
+  end
+
+  create_table "hmis_2020_clients", force: :cascade do |t|
+    t.string "PersonalID"
+    t.string "FirstName"
+    t.string "MiddleName"
+    t.string "LastName"
+    t.string "NameSuffix"
+    t.integer "NameDataQuality"
+    t.string "SSN"
+    t.string "SSNDataQuality"
+    t.date "DOB"
+    t.string "DOBDataQuality"
+    t.integer "AmIndAKNative"
+    t.integer "Asian"
+    t.integer "BlackAfAmerican"
+    t.integer "NativeHIOtherPacific"
+    t.integer "White"
+    t.integer "RaceNone"
+    t.integer "Ethnicity"
+    t.integer "Gender"
+    t.integer "VeteranStatus"
+    t.integer "YearEnteredService"
+    t.integer "YearSeparated"
+    t.integer "WorldWarII"
+    t.integer "KoreanWar"
+    t.integer "VietnamWar"
+    t.integer "DesertStorm"
+    t.integer "AfghanistanOEF"
+    t.integer "IraqOIF"
+    t.integer "IraqOND"
+    t.integer "OtherTheater"
+    t.integer "MilitaryBranch"
+    t.integer "DischargeStatus"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DOB"], name: "hmis_2020_clients-qUjP"
+    t.index ["DateCreated"], name: "hmis_2020_clients-rrgI"
+    t.index ["DateUpdated"], name: "hmis_2020_clients-jdcP"
+    t.index ["ExportID"], name: "hmis_2020_clients-gmgS"
+    t.index ["FirstName"], name: "hmis_2020_clients-48Qj"
+    t.index ["LastName"], name: "hmis_2020_clients-3vTw"
+    t.index ["PersonalID", "data_source_id"], name: "hmis_2020_clients-t6qe"
+    t.index ["PersonalID"], name: "hmis_2020_clients-qK9d"
+    t.index ["VeteranStatus"], name: "hmis_2020_clients-z1iL"
+    t.index ["source_type", "source_id"], name: "hmis_2020_clients-VRsB"
+  end
+
+  create_table "hmis_2020_current_living_situations", force: :cascade do |t|
+    t.string "CurrentLivingSitID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "InformationDate"
+    t.integer "CurrentLivingSituation"
+    t.string "VerifiedBy"
+    t.integer "LeaveSituation14Days"
+    t.integer "SubsequentResidence"
+    t.integer "ResourcesToObtain"
+    t.integer "LeaseOwn60Day"
+    t.integer "MovedTwoOrMore"
+    t.string "LocationDetails"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_2020_current_living_situations-cLpS"
+    t.index ["CurrentLivingSitID"], name: "hmis_2020_current_living_situations-DXZ0"
+    t.index ["CurrentLivingSituation"], name: "hmis_2020_current_living_situations-WmJZ"
+    t.index ["EnrollmentID"], name: "hmis_2020_current_living_situations-jG8y"
+    t.index ["ExportID"], name: "hmis_2020_current_living_situations-hGfj"
+    t.index ["InformationDate"], name: "hmis_2020_current_living_situations-4v4L"
+    t.index ["PersonalID"], name: "hmis_2020_current_living_situations-vWt4"
+    t.index ["source_type", "source_id"], name: "hmis_2020_current_living_situations-qbbx"
+  end
+
+  create_table "hmis_2020_disabilities", force: :cascade do |t|
+    t.string "DisabilitiesID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "InformationDate"
+    t.integer "DisabilityType"
+    t.integer "DisabilityResponse"
+    t.integer "IndefiniteAndImpairs"
+    t.integer "TCellCountAvailable"
+    t.integer "TCellCount"
+    t.integer "TCellSource"
+    t.integer "ViralLoadAvailable"
+    t.integer "ViralLoad"
+    t.integer "ViralLoadSource"
+    t.integer "DataCollectionStage"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_disabilities-p0j2"
+    t.index ["DateUpdated"], name: "hmis_2020_disabilities-oxMH"
+    t.index ["DisabilitiesID", "data_source_id"], name: "hmis_2020_disabilities-DA3C"
+    t.index ["DisabilitiesID"], name: "hmis_2020_disabilities-8DFL"
+    t.index ["EnrollmentID"], name: "hmis_2020_disabilities-1JPN"
+    t.index ["ExportID"], name: "hmis_2020_disabilities-G1Z0"
+    t.index ["PersonalID"], name: "hmis_2020_disabilities-2lYA"
+    t.index ["source_type", "source_id"], name: "hmis_2020_disabilities-zFRZ"
+  end
+
+  create_table "hmis_2020_employment_educations", force: :cascade do |t|
+    t.string "EmploymentEducationID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "InformationDate"
+    t.integer "LastGradeCompleted"
+    t.integer "SchoolStatus"
+    t.integer "Employed"
+    t.integer "EmploymentType"
+    t.integer "NotEmployedReason"
+    t.integer "DataCollectionStage"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_employment_educations-oPbl"
+    t.index ["DateUpdated"], name: "hmis_2020_employment_educations-rTDS"
+    t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_2020_employment_educations-zM3A"
+    t.index ["EmploymentEducationID"], name: "hmis_2020_employment_educations-Hv6e"
+    t.index ["EnrollmentID"], name: "hmis_2020_employment_educations-mSvG"
+    t.index ["ExportID"], name: "hmis_2020_employment_educations-uCTm"
+    t.index ["PersonalID"], name: "hmis_2020_employment_educations-EPrc"
+    t.index ["source_type", "source_id"], name: "hmis_2020_employment_educations-rxeE"
+  end
+
+  create_table "hmis_2020_enrollment_cocs", force: :cascade do |t|
+    t.string "EnrollmentCoCID"
+    t.string "EnrollmentID"
+    t.string "HouseholdID"
+    t.string "ProjectID"
+    t.string "PersonalID"
+    t.date "InformationDate"
+    t.string "CoCCode"
+    t.integer "DataCollectionStage"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["CoCCode"], name: "hmis_2020_enrollment_cocs-5ROz"
+    t.index ["DateCreated"], name: "hmis_2020_enrollment_cocs-zikd"
+    t.index ["DateDeleted"], name: "hmis_2020_enrollment_cocs-GUQA"
+    t.index ["DateUpdated"], name: "hmis_2020_enrollment_cocs-6Mre"
+    t.index ["EnrollmentCoCID", "data_source_id"], name: "hmis_2020_enrollment_cocs-LilW"
+    t.index ["EnrollmentCoCID"], name: "hmis_2020_enrollment_cocs-6ENr"
+    t.index ["EnrollmentID"], name: "hmis_2020_enrollment_cocs-gQJA"
+    t.index ["ExportID"], name: "hmis_2020_enrollment_cocs-sVGW"
+    t.index ["PersonalID"], name: "hmis_2020_enrollment_cocs-5FMZ"
+    t.index ["source_type", "source_id"], name: "hmis_2020_enrollment_cocs-Se2O"
+  end
+
+  create_table "hmis_2020_enrollments", force: :cascade do |t|
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "ProjectID"
+    t.date "EntryDate"
+    t.string "HouseholdID"
+    t.integer "RelationshipToHoH"
+    t.integer "LivingSituation"
+    t.integer "LengthOfStay"
+    t.integer "LOSUnderThreshold"
+    t.integer "PreviousStreetESSH"
+    t.date "DateToStreetESSH"
+    t.integer "TimesHomelessPastThreeYears"
+    t.integer "MonthsHomelessPastThreeYears"
+    t.integer "DisablingCondition"
+    t.date "DateOfEngagement"
+    t.date "MoveInDate"
+    t.date "DateOfPATHStatus"
+    t.integer "ClientEnrolledInPATH"
+    t.integer "ReasonNotEnrolled"
+    t.integer "WorstHousingSituation"
+    t.integer "PercentAMI"
+    t.string "LastPermanentStreet"
+    t.string "LastPermanentCity"
+    t.string "LastPermanentState"
+    t.string "LastPermanentZIP"
+    t.integer "AddressDataQuality"
+    t.date "DateOfBCPStatus"
+    t.integer "EligibleForRHY"
+    t.integer "ReasonNoServices"
+    t.integer "RunawayYouth"
+    t.integer "SexualOrientation"
+    t.string "SexualOrientationOther"
+    t.integer "FormerWardChildWelfare"
+    t.integer "ChildWelfareYears"
+    t.integer "ChildWelfareMonths"
+    t.integer "FormerWardJuvenileJustice"
+    t.integer "JuvenileJusticeYears"
+    t.integer "JuvenileJusticeMonths"
+    t.integer "UnemploymentFam"
+    t.integer "MentalHealthIssuesFam"
+    t.integer "PhysicalDisabilityFam"
+    t.integer "AlcoholDrugAbuseFam"
+    t.integer "InsufficientIncome"
+    t.integer "IncarceratedParent"
+    t.integer "ReferralSource"
+    t.integer "CountOutreachReferralApproaches"
+    t.integer "UrgentReferral"
+    t.integer "TimeToHousingLoss"
+    t.integer "ZeroIncome"
+    t.integer "AnnualPercentAMI"
+    t.integer "FinancialChange"
+    t.integer "HouseholdChange"
+    t.integer "EvictionHistory"
+    t.integer "SubsidyAtRisk"
+    t.integer "LiteralHomelessHistory"
+    t.integer "DisabledHoH"
+    t.integer "CriminalRecord"
+    t.integer "SexOffender"
+    t.integer "DependentUnder6"
+    t.integer "SingleParent"
+    t.integer "HH5Plus"
+    t.integer "IraqAfghanistan"
+    t.integer "FemVet"
+    t.integer "HPScreeningScore"
+    t.integer "ThresholdScore"
+    t.string "VAMCStation"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_enrollments-ZK9t"
+    t.index ["DateDeleted"], name: "hmis_2020_enrollments-WHri"
+    t.index ["DateUpdated"], name: "hmis_2020_enrollments-hQVn"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_enrollments-xB0L"
+    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_enrollments-Qd6d"
+    t.index ["EnrollmentID", "data_source_id"], name: "hmis_2020_enrollments-dRUc"
+    t.index ["EnrollmentID"], name: "hmis_2020_enrollments-UrCS"
+    t.index ["EntryDate"], name: "hmis_2020_enrollments-6ZYF"
+    t.index ["ExportID"], name: "hmis_2020_enrollments-kzx7"
+    t.index ["HouseholdID"], name: "hmis_2020_enrollments-xiJ6"
+    t.index ["LivingSituation"], name: "hmis_2020_enrollments-Io4W"
+    t.index ["PersonalID"], name: "hmis_2020_enrollments-UM6y"
+    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_2020_enrollments-kIRP"
+    t.index ["ProjectID", "HouseholdID"], name: "hmis_2020_enrollments-8tOj"
+    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_2020_enrollments-HNd8"
+    t.index ["ProjectID"], name: "hmis_2020_enrollments-dn8l"
+    t.index ["RelationshipToHoH"], name: "hmis_2020_enrollments-y1wr"
+    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_2020_enrollments-9mEF"
+    t.index ["source_type", "source_id"], name: "hmis_2020_enrollments-3NkS"
+  end
+
+  create_table "hmis_2020_events", force: :cascade do |t|
+    t.string "EventID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "EventDate"
+    t.integer "Event"
+    t.integer "ProbSolDivRRResult"
+    t.integer "ReferralCaseManageAfter"
+    t.string "LocationCrisisorPHHousing"
+    t.integer "ReferralResult"
+    t.date "ResultDate"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["EnrollmentID"], name: "hmis_2020_events-ej4z"
+    t.index ["EventDate"], name: "hmis_2020_events-SY9T"
+    t.index ["EventID", "data_source_id"], name: "hmis_2020_events-5Ulw"
+    t.index ["EventID"], name: "hmis_2020_events-h86C"
+    t.index ["ExportID"], name: "hmis_2020_events-chRs"
+    t.index ["PersonalID"], name: "hmis_2020_events-sFna"
+    t.index ["source_type", "source_id"], name: "hmis_2020_events-ztpH"
+  end
+
+  create_table "hmis_2020_exits", force: :cascade do |t|
+    t.string "ExitID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "ExitDate"
+    t.integer "Destination"
+    t.string "OtherDestination"
+    t.integer "HousingAssessment"
+    t.integer "SubsidyInformation"
+    t.integer "ProjectCompletionStatus"
+    t.integer "EarlyExitReason"
+    t.integer "ExchangeForSex"
+    t.integer "ExchangeForSexPastThreeMonths"
+    t.integer "CountOfExchangeForSex"
+    t.integer "AskedOrForcedToExchangeForSex"
+    t.integer "AskedOrForcedToExchangeForSexPastThreeMonths"
+    t.integer "WorkPlaceViolenceThreats"
+    t.integer "WorkplacePromiseDifference"
+    t.integer "CoercedToContinueWork"
+    t.integer "LaborExploitPastThreeMonths"
+    t.integer "CounselingReceived"
+    t.integer "IndividualCounseling"
+    t.integer "FamilyCounseling"
+    t.integer "GroupCounseling"
+    t.integer "SessionCountAtExit"
+    t.integer "PostExitCounselingPlan"
+    t.integer "SessionsInPlan"
+    t.integer "DestinationSafeClient"
+    t.integer "DestinationSafeWorker"
+    t.integer "PosAdultConnections"
+    t.integer "PosPeerConnections"
+    t.integer "PosCommunityConnections"
+    t.date "AftercareDate"
+    t.integer "AftercareProvided"
+    t.integer "EmailSocialMedia"
+    t.integer "Telephone"
+    t.integer "InPersonIndividual"
+    t.integer "InPersonGroup"
+    t.integer "CMExitReason"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_exits-F305"
+    t.index ["DateDeleted"], name: "hmis_2020_exits-s54g"
+    t.index ["DateUpdated"], name: "hmis_2020_exits-Crsu"
+    t.index ["EnrollmentID"], name: "hmis_2020_exits-Z3F6"
+    t.index ["ExitDate"], name: "hmis_2020_exits-nEjV"
+    t.index ["ExitID", "data_source_id"], name: "hmis_2020_exits-S9yO"
+    t.index ["ExitID"], name: "hmis_2020_exits-4DnO"
+    t.index ["ExportID"], name: "hmis_2020_exits-c4Un"
+    t.index ["PersonalID"], name: "hmis_2020_exits-QkLT"
+    t.index ["source_type", "source_id"], name: "hmis_2020_exits-dozv"
+  end
+
+  create_table "hmis_2020_exports", force: :cascade do |t|
+    t.string "ExportID"
+    t.integer "SourceType"
+    t.string "SourceID"
+    t.string "SourceName"
+    t.string "SourceContactFirst"
+    t.string "SourceContactLast"
+    t.string "SourceContactPhone"
+    t.string "SourceContactExtension"
+    t.string "SourceContactEmail"
+    t.datetime "ExportDate"
+    t.date "ExportStartDate"
+    t.date "ExportEndDate"
+    t.string "SoftwareName"
+    t.string "SoftwareVersion"
+    t.integer "ExportPeriodType"
+    t.integer "ExportDirective"
+    t.integer "HashStatus"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["ExportID", "data_source_id"], name: "hmis_2020_exports-YcvP"
+    t.index ["ExportID"], name: "hmis_2020_exports-awLV"
+    t.index ["source_type", "source_id"], name: "hmis_2020_exports-5gdY"
+  end
+
+  create_table "hmis_2020_funders", force: :cascade do |t|
+    t.string "FunderID"
+    t.string "ProjectID"
+    t.integer "Funder"
+    t.string "OtherFunder"
+    t.string "GrantID"
+    t.date "StartDate"
+    t.date "EndDate"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_funders-CQE4"
+    t.index ["DateUpdated"], name: "hmis_2020_funders-yKF3"
+    t.index ["ExportID"], name: "hmis_2020_funders-qRxb"
+    t.index ["FunderID", "data_source_id"], name: "hmis_2020_funders-XiWW"
+    t.index ["FunderID"], name: "hmis_2020_funders-P3hw"
+    t.index ["source_type", "source_id"], name: "hmis_2020_funders-Srvd"
+  end
+
+  create_table "hmis_2020_health_and_dvs", force: :cascade do |t|
+    t.string "HealthAndDVID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "InformationDate"
+    t.integer "DomesticViolenceVictim"
+    t.integer "WhenOccurred"
+    t.integer "CurrentlyFleeing"
+    t.integer "GeneralHealthStatus"
+    t.integer "DentalHealthStatus"
+    t.integer "MentalHealthStatus"
+    t.integer "PregnancyStatus"
+    t.date "DueDate"
+    t.integer "DataCollectionStage"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_health_and_dvs-85bD"
+    t.index ["DateUpdated"], name: "hmis_2020_health_and_dvs-TUTe"
+    t.index ["EnrollmentID"], name: "hmis_2020_health_and_dvs-SbP4"
+    t.index ["ExportID"], name: "hmis_2020_health_and_dvs-w4jj"
+    t.index ["HealthAndDVID", "data_source_id"], name: "hmis_2020_health_and_dvs-zonF"
+    t.index ["HealthAndDVID"], name: "hmis_2020_health_and_dvs-zE81"
+    t.index ["PersonalID"], name: "hmis_2020_health_and_dvs-Kqiz"
+    t.index ["source_type", "source_id"], name: "hmis_2020_health_and_dvs-Ha57"
+  end
+
+  create_table "hmis_2020_income_benefits", force: :cascade do |t|
+    t.string "IncomeBenefitsID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "InformationDate"
+    t.integer "IncomeFromAnySource"
+    t.string "TotalMonthlyIncome"
+    t.integer "Earned"
+    t.string "EarnedAmount"
+    t.integer "Unemployment"
+    t.string "UnemploymentAmount"
+    t.integer "SSI"
+    t.string "SSIAmount"
+    t.integer "SSDI"
+    t.string "SSDIAmount"
+    t.integer "VADisabilityService"
+    t.string "VADisabilityServiceAmount"
+    t.integer "VADisabilityNonService"
+    t.string "VADisabilityNonServiceAmount"
+    t.integer "PrivateDisability"
+    t.string "PrivateDisabilityAmount"
+    t.integer "WorkersComp"
+    t.string "WorkersCompAmount"
+    t.integer "TANF"
+    t.string "TANFAmount"
+    t.integer "GA"
+    t.string "GAAmount"
+    t.integer "SocSecRetirement"
+    t.string "SocSecRetirementAmount"
+    t.integer "Pension"
+    t.string "PensionAmount"
+    t.integer "ChildSupport"
+    t.string "ChildSupportAmount"
+    t.integer "Alimony"
+    t.string "AlimonyAmount"
+    t.integer "OtherIncomeSource"
+    t.string "OtherIncomeAmount"
+    t.string "OtherIncomeSourceIdentify"
+    t.integer "BenefitsFromAnySource"
+    t.integer "SNAP"
+    t.integer "WIC"
+    t.integer "TANFChildCare"
+    t.integer "TANFTransportation"
+    t.integer "OtherTANF"
+    t.integer "OtherBenefitsSource"
+    t.string "OtherBenefitsSourceIdentify"
+    t.integer "InsuranceFromAnySource"
+    t.integer "Medicaid"
+    t.integer "NoMedicaidReason"
+    t.integer "Medicare"
+    t.integer "NoMedicareReason"
+    t.integer "SCHIP"
+    t.integer "NoSCHIPReason"
+    t.integer "VAMedicalServices"
+    t.integer "NoVAMedReason"
+    t.integer "EmployerProvided"
+    t.integer "NoEmployerProvidedReason"
+    t.integer "COBRA"
+    t.integer "NoCOBRAReason"
+    t.integer "PrivatePay"
+    t.integer "NoPrivatePayReason"
+    t.integer "StateHealthIns"
+    t.integer "NoStateHealthInsReason"
+    t.integer "IndianHealthServices"
+    t.integer "NoIndianHealthServicesReason"
+    t.integer "OtherInsurance"
+    t.string "OtherInsuranceIdentify"
+    t.integer "HIVAIDSAssistance"
+    t.integer "NoHIVAIDSAssistanceReason"
+    t.integer "ADAP"
+    t.integer "NoADAPReason"
+    t.integer "ConnectionWithSOAR"
+    t.integer "DataCollectionStage"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_income_benefits-JwPq"
+    t.index ["DateUpdated"], name: "hmis_2020_income_benefits-aphJ"
+    t.index ["EnrollmentID"], name: "hmis_2020_income_benefits-AUwp"
+    t.index ["ExportID"], name: "hmis_2020_income_benefits-BE9p"
+    t.index ["IncomeBenefitsID", "data_source_id"], name: "hmis_2020_income_benefits-tBcJ"
+    t.index ["IncomeBenefitsID"], name: "hmis_2020_income_benefits-pfYl"
+    t.index ["PersonalID"], name: "hmis_2020_income_benefits-NcHX"
+    t.index ["source_type", "source_id"], name: "hmis_2020_income_benefits-LCKi"
+  end
+
+  create_table "hmis_2020_inventories", force: :cascade do |t|
+    t.string "InventoryID"
+    t.string "ProjectID"
+    t.string "CoCCode"
+    t.integer "HouseholdType"
+    t.integer "Availability"
+    t.integer "UnitInventory"
+    t.integer "BedInventory"
+    t.integer "CHVetBedInventory"
+    t.integer "YouthVetBedInventory"
+    t.integer "VetBedInventory"
+    t.integer "CHYouthBedInventory"
+    t.integer "YouthBedInventory"
+    t.integer "CHBedInventory"
+    t.integer "OtherBedInventory"
+    t.integer "ESBedType"
+    t.date "InventoryStartDate"
+    t.date "InventoryEndDate"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_inventories-J6na"
+    t.index ["DateUpdated"], name: "hmis_2020_inventories-0TGU"
+    t.index ["ExportID"], name: "hmis_2020_inventories-whCo"
+    t.index ["InventoryID", "data_source_id"], name: "hmis_2020_inventories-LNwI"
+    t.index ["InventoryID"], name: "hmis_2020_inventories-fun6"
+    t.index ["ProjectID", "CoCCode"], name: "hmis_2020_inventories-yV3L"
+    t.index ["source_type", "source_id"], name: "hmis_2020_inventories-DTHt"
+  end
+
+  create_table "hmis_2020_organizations", force: :cascade do |t|
+    t.string "OrganizationID"
+    t.string "OrganizationName"
+    t.integer "VictimServicesProvider"
+    t.string "OrganizationCommonName"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["ExportID"], name: "hmis_2020_organizations-VQWo"
+    t.index ["OrganizationID", "data_source_id"], name: "hmis_2020_organizations-MfSb"
+    t.index ["OrganizationID"], name: "hmis_2020_organizations-Prts"
+    t.index ["source_type", "source_id"], name: "hmis_2020_organizations-SWg3"
+  end
+
+  create_table "hmis_2020_project_cocs", force: :cascade do |t|
+    t.string "ProjectCoCID"
+    t.string "ProjectID"
+    t.string "CoCCode"
+    t.string "Geocode"
+    t.string "Address1"
+    t.string "Address2"
+    t.string "City"
+    t.string "State"
+    t.string "Zip"
+    t.integer "GeographyType"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_project_cocs-Tmf3"
+    t.index ["DateUpdated"], name: "hmis_2020_project_cocs-OI4Q"
+    t.index ["ExportID"], name: "hmis_2020_project_cocs-GTs4"
+    t.index ["ProjectCoCID", "data_source_id"], name: "hmis_2020_project_cocs-JAwb"
+    t.index ["ProjectCoCID"], name: "hmis_2020_project_cocs-iuZj"
+    t.index ["ProjectID", "CoCCode"], name: "hmis_2020_project_cocs-K8nw"
+    t.index ["source_type", "source_id"], name: "hmis_2020_project_cocs-icQq"
+  end
+
+  create_table "hmis_2020_projects", force: :cascade do |t|
+    t.string "ProjectID"
+    t.string "OrganizationID"
+    t.string "ProjectName"
+    t.string "ProjectCommonName"
+    t.date "OperatingStartDate"
+    t.date "OperatingEndDate"
+    t.integer "ContinuumProject"
+    t.integer "ProjectType"
+    t.integer "HousingType"
+    t.integer "ResidentialAffiliation"
+    t.integer "TrackingMethod"
+    t.integer "HMISParticipatingProject"
+    t.integer "TargetPopulation"
+    t.integer "PITCount"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_projects-ctk2"
+    t.index ["DateUpdated"], name: "hmis_2020_projects-zcbu"
+    t.index ["ExportID"], name: "hmis_2020_projects-fqB3"
+    t.index ["ProjectID", "data_source_id"], name: "hmis_2020_projects-oxQa"
+    t.index ["ProjectID"], name: "hmis_2020_projects-nhkJ"
+    t.index ["ProjectType"], name: "hmis_2020_projects-xkUs"
+    t.index ["source_type", "source_id"], name: "hmis_2020_projects-5SSM"
+  end
+
+  create_table "hmis_2020_services", force: :cascade do |t|
+    t.string "ServicesID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "DateProvided"
+    t.integer "RecordType"
+    t.integer "TypeProvided"
+    t.string "OtherTypeProvided"
+    t.integer "SubTypeProvided"
+    t.string "FAAmount"
+    t.integer "ReferralOutcome"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_services-eNab"
+    t.index ["DateDeleted"], name: "hmis_2020_services-WGtP"
+    t.index ["DateProvided"], name: "hmis_2020_services-8nZj"
+    t.index ["DateUpdated"], name: "hmis_2020_services-VJ0s"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_services-m63x"
+    t.index ["EnrollmentID", "RecordType", "DateDeleted", "DateProvided"], name: "hmis_2020_services-LqGx"
+    t.index ["EnrollmentID"], name: "hmis_2020_services-wXdL"
+    t.index ["ExportID"], name: "hmis_2020_services-Y8F7"
+    t.index ["PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "hmis_2020_services-ggIO"
+    t.index ["PersonalID"], name: "hmis_2020_services-Rwkq"
+    t.index ["RecordType", "DateDeleted"], name: "hmis_2020_services-WrTZ"
+    t.index ["RecordType", "DateProvided"], name: "hmis_2020_services-ApuA"
+    t.index ["RecordType"], name: "hmis_2020_services-mIRP"
+    t.index ["ServicesID", "data_source_id"], name: "hmis_2020_services-3lC5"
+    t.index ["ServicesID"], name: "hmis_2020_services-QkXD"
+    t.index ["source_type", "source_id"], name: "hmis_2020_services-4CG1"
+  end
+
+  create_table "hmis_2020_users", force: :cascade do |t|
+    t.string "UserID"
+    t.string "UserFirstName"
+    t.string "UserLastName"
+    t.string "UserPhone"
+    t.string "UserExtension"
+    t.string "UserEmail"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["ExportID"], name: "hmis_2020_users-Ls1u"
+    t.index ["UserID", "data_source_id"], name: "hmis_2020_users-DmeI"
+    t.index ["UserID"], name: "hmis_2020_users-74tq"
+    t.index ["source_type", "source_id"], name: "hmis_2020_users-ZfY6"
+  end
+
   create_table "hmis_assessments", id: :serial, force: :cascade do |t|
     t.integer "assessment_id", null: false
     t.integer "site_id", null: false
@@ -2129,6 +3046,832 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.datetime "eto_last_updated"
     t.string "sexual_orientation"
     t.index ["client_id"], name: "index_hmis_clients_on_client_id"
+  end
+
+  create_table "hmis_csv_2020_affiliations", force: :cascade do |t|
+    t.string "AffiliationID"
+    t.string "ProjectID"
+    t.string "ResProjectID"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["AffiliationID", "data_source_id"], name: "hmis_csv_2020_affiliations-F2ar"
+    t.index ["ExportID"], name: "hmis_csv_2020_affiliations-ofln"
+  end
+
+  create_table "hmis_csv_2020_assessment_questions", force: :cascade do |t|
+    t.string "AssessmentQuestionID"
+    t.string "AssessmentID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "AssessmentQuestionGroup"
+    t.string "AssessmentQuestionOrder"
+    t.string "AssessmentQuestion"
+    t.string "AssessmentAnswer"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["AssessmentID"], name: "hmis_csv_2020_assessment_questions-U6Dk"
+    t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_csv_2020_assessment_questions-ZGxE"
+    t.index ["ExportID"], name: "hmis_csv_2020_assessment_questions-Xt6t"
+  end
+
+  create_table "hmis_csv_2020_assessment_results", force: :cascade do |t|
+    t.string "AssessmentResultID"
+    t.string "AssessmentID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "AssessmentResultType"
+    t.string "AssessmentResult"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["AssessmentID"], name: "hmis_csv_2020_assessment_results-NEN7"
+    t.index ["AssessmentResultID", "data_source_id"], name: "hmis_csv_2020_assessment_results-Rkod"
+    t.index ["ExportID"], name: "hmis_csv_2020_assessment_results-NLC4"
+  end
+
+  create_table "hmis_csv_2020_assessments", force: :cascade do |t|
+    t.string "AssessmentID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "AssessmentDate"
+    t.string "AssessmentLocation"
+    t.string "AssessmentType"
+    t.string "AssessmentLevel"
+    t.string "PrioritizationStatus"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["AssessmentDate"], name: "hmis_csv_2020_assessments-GRoC"
+    t.index ["AssessmentID", "data_source_id"], name: "hmis_csv_2020_assessments-y7s0"
+    t.index ["AssessmentID"], name: "hmis_csv_2020_assessments-W4vL"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_assessments-EZd7"
+    t.index ["ExportID"], name: "hmis_csv_2020_assessments-MoqJ"
+    t.index ["PersonalID"], name: "hmis_csv_2020_assessments-nFH4"
+  end
+
+  create_table "hmis_csv_2020_clients", force: :cascade do |t|
+    t.string "PersonalID"
+    t.string "FirstName"
+    t.string "MiddleName"
+    t.string "LastName"
+    t.string "NameSuffix"
+    t.string "NameDataQuality"
+    t.string "SSN"
+    t.string "SSNDataQuality"
+    t.string "DOB"
+    t.string "DOBDataQuality"
+    t.string "AmIndAKNative"
+    t.string "Asian"
+    t.string "BlackAfAmerican"
+    t.string "NativeHIOtherPacific"
+    t.string "White"
+    t.string "RaceNone"
+    t.string "Ethnicity"
+    t.string "Gender"
+    t.string "VeteranStatus"
+    t.string "YearEnteredService"
+    t.string "YearSeparated"
+    t.string "WorldWarII"
+    t.string "KoreanWar"
+    t.string "VietnamWar"
+    t.string "DesertStorm"
+    t.string "AfghanistanOEF"
+    t.string "IraqOIF"
+    t.string "IraqOND"
+    t.string "OtherTheater"
+    t.string "MilitaryBranch"
+    t.string "DischargeStatus"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DOB"], name: "hmis_csv_2020_clients-FQ7O"
+    t.index ["DateCreated"], name: "hmis_csv_2020_clients-2cnC"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_clients-wlPc"
+    t.index ["ExportID"], name: "hmis_csv_2020_clients-20vV"
+    t.index ["FirstName"], name: "hmis_csv_2020_clients-Q0u6"
+    t.index ["LastName"], name: "hmis_csv_2020_clients-85Ap"
+    t.index ["PersonalID", "data_source_id"], name: "hmis_csv_2020_clients-qppE"
+    t.index ["PersonalID"], name: "hmis_csv_2020_clients-moFz"
+    t.index ["VeteranStatus"], name: "hmis_csv_2020_clients-kRKs"
+  end
+
+  create_table "hmis_csv_2020_current_living_situations", force: :cascade do |t|
+    t.string "CurrentLivingSitID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "InformationDate"
+    t.string "CurrentLivingSituation"
+    t.string "VerifiedBy"
+    t.string "LeaveSituation14Days"
+    t.string "SubsequentResidence"
+    t.string "ResourcesToObtain"
+    t.string "LeaseOwn60Day"
+    t.string "MovedTwoOrMore"
+    t.string "LocationDetails"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_csv_2020_current_living_situations-jzq2"
+    t.index ["CurrentLivingSitID"], name: "hmis_csv_2020_current_living_situations-EGfX"
+    t.index ["CurrentLivingSituation"], name: "hmis_csv_2020_current_living_situations-Vh4Y"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_current_living_situations-ScsR"
+    t.index ["ExportID"], name: "hmis_csv_2020_current_living_situations-KGuH"
+    t.index ["InformationDate"], name: "hmis_csv_2020_current_living_situations-VCsb"
+    t.index ["PersonalID"], name: "hmis_csv_2020_current_living_situations-3hVq"
+  end
+
+  create_table "hmis_csv_2020_disabilities", force: :cascade do |t|
+    t.string "DisabilitiesID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "InformationDate"
+    t.string "DisabilityType"
+    t.string "DisabilityResponse"
+    t.string "IndefiniteAndImpairs"
+    t.string "TCellCountAvailable"
+    t.string "TCellCount"
+    t.string "TCellSource"
+    t.string "ViralLoadAvailable"
+    t.string "ViralLoad"
+    t.string "ViralLoadSource"
+    t.string "DataCollectionStage"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_disabilities-ohpt"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_disabilities-4Nml"
+    t.index ["DisabilitiesID", "data_source_id"], name: "hmis_csv_2020_disabilities-anqe"
+    t.index ["DisabilitiesID"], name: "hmis_csv_2020_disabilities-toFu"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_disabilities-9jL3"
+    t.index ["ExportID"], name: "hmis_csv_2020_disabilities-Sp4k"
+    t.index ["PersonalID"], name: "hmis_csv_2020_disabilities-xa8A"
+  end
+
+  create_table "hmis_csv_2020_employment_educations", force: :cascade do |t|
+    t.string "EmploymentEducationID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "InformationDate"
+    t.string "LastGradeCompleted"
+    t.string "SchoolStatus"
+    t.string "Employed"
+    t.string "EmploymentType"
+    t.string "NotEmployedReason"
+    t.string "DataCollectionStage"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_employment_educations-bTVG"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_employment_educations-4yxa"
+    t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_csv_2020_employment_educations-3UVX"
+    t.index ["EmploymentEducationID"], name: "hmis_csv_2020_employment_educations-U3yq"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_employment_educations-JTgH"
+    t.index ["ExportID"], name: "hmis_csv_2020_employment_educations-8u1c"
+    t.index ["PersonalID"], name: "hmis_csv_2020_employment_educations-ffjb"
+  end
+
+  create_table "hmis_csv_2020_enrollment_cocs", force: :cascade do |t|
+    t.string "EnrollmentCoCID"
+    t.string "EnrollmentID"
+    t.string "HouseholdID"
+    t.string "ProjectID"
+    t.string "PersonalID"
+    t.string "InformationDate"
+    t.string "CoCCode"
+    t.string "DataCollectionStage"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["CoCCode"], name: "hmis_csv_2020_enrollment_cocs-RyqL"
+    t.index ["DateCreated"], name: "hmis_csv_2020_enrollment_cocs-dizj"
+    t.index ["DateDeleted"], name: "hmis_csv_2020_enrollment_cocs-ManB"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_enrollment_cocs-myvn"
+    t.index ["EnrollmentCoCID", "data_source_id"], name: "hmis_csv_2020_enrollment_cocs-MhSp"
+    t.index ["EnrollmentCoCID"], name: "hmis_csv_2020_enrollment_cocs-zRK2"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_enrollment_cocs-phxe"
+    t.index ["ExportID"], name: "hmis_csv_2020_enrollment_cocs-AFlL"
+    t.index ["PersonalID"], name: "hmis_csv_2020_enrollment_cocs-GYSJ"
+  end
+
+  create_table "hmis_csv_2020_enrollments", force: :cascade do |t|
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "ProjectID"
+    t.string "EntryDate"
+    t.string "HouseholdID"
+    t.string "RelationshipToHoH"
+    t.string "LivingSituation"
+    t.string "LengthOfStay"
+    t.string "LOSUnderThreshold"
+    t.string "PreviousStreetESSH"
+    t.string "DateToStreetESSH"
+    t.string "TimesHomelessPastThreeYears"
+    t.string "MonthsHomelessPastThreeYears"
+    t.string "DisablingCondition"
+    t.string "DateOfEngagement"
+    t.string "MoveInDate"
+    t.string "DateOfPATHStatus"
+    t.string "ClientEnrolledInPATH"
+    t.string "ReasonNotEnrolled"
+    t.string "WorstHousingSituation"
+    t.string "PercentAMI"
+    t.string "LastPermanentStreet"
+    t.string "LastPermanentCity"
+    t.string "LastPermanentState"
+    t.string "LastPermanentZIP"
+    t.string "AddressDataQuality"
+    t.string "DateOfBCPStatus"
+    t.string "EligibleForRHY"
+    t.string "ReasonNoServices"
+    t.string "RunawayYouth"
+    t.string "SexualOrientation"
+    t.string "SexualOrientationOther"
+    t.string "FormerWardChildWelfare"
+    t.string "ChildWelfareYears"
+    t.string "ChildWelfareMonths"
+    t.string "FormerWardJuvenileJustice"
+    t.string "JuvenileJusticeYears"
+    t.string "JuvenileJusticeMonths"
+    t.string "UnemploymentFam"
+    t.string "MentalHealthIssuesFam"
+    t.string "PhysicalDisabilityFam"
+    t.string "AlcoholDrugAbuseFam"
+    t.string "InsufficientIncome"
+    t.string "IncarceratedParent"
+    t.string "ReferralSource"
+    t.string "CountOutreachReferralApproaches"
+    t.string "UrgentReferral"
+    t.string "TimeToHousingLoss"
+    t.string "ZeroIncome"
+    t.string "AnnualPercentAMI"
+    t.string "FinancialChange"
+    t.string "HouseholdChange"
+    t.string "EvictionHistory"
+    t.string "SubsidyAtRisk"
+    t.string "LiteralHomelessHistory"
+    t.string "DisabledHoH"
+    t.string "CriminalRecord"
+    t.string "SexOffender"
+    t.string "DependentUnder6"
+    t.string "SingleParent"
+    t.string "HH5Plus"
+    t.string "IraqAfghanistan"
+    t.string "FemVet"
+    t.string "HPScreeningScore"
+    t.string "ThresholdScore"
+    t.string "VAMCStation"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_enrollments-djbw"
+    t.index ["DateDeleted"], name: "hmis_csv_2020_enrollments-B4uX"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_enrollments-qD0O"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_2020_enrollments-8UEw"
+    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_csv_2020_enrollments-LQ7R"
+    t.index ["EnrollmentID", "data_source_id"], name: "hmis_csv_2020_enrollments-2DM8"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_enrollments-XI6S"
+    t.index ["EntryDate"], name: "hmis_csv_2020_enrollments-l0fG"
+    t.index ["ExportID"], name: "hmis_csv_2020_enrollments-1CJ3"
+    t.index ["HouseholdID"], name: "hmis_csv_2020_enrollments-1ErZ"
+    t.index ["LivingSituation"], name: "hmis_csv_2020_enrollments-Leaw"
+    t.index ["PersonalID"], name: "hmis_csv_2020_enrollments-7ZVi"
+    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_csv_2020_enrollments-CxJA"
+    t.index ["ProjectID", "HouseholdID"], name: "hmis_csv_2020_enrollments-gF7Z"
+    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_csv_2020_enrollments-KtXA"
+    t.index ["ProjectID"], name: "hmis_csv_2020_enrollments-CKRZ"
+    t.index ["RelationshipToHoH"], name: "hmis_csv_2020_enrollments-GH0S"
+    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_csv_2020_enrollments-bpsk"
+  end
+
+  create_table "hmis_csv_2020_events", force: :cascade do |t|
+    t.string "EventID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "EventDate"
+    t.string "Event"
+    t.string "ProbSolDivRRResult"
+    t.string "ReferralCaseManageAfter"
+    t.string "LocationCrisisorPHHousing"
+    t.string "ReferralResult"
+    t.string "ResultDate"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_events-niJ9"
+    t.index ["EventDate"], name: "hmis_csv_2020_events-G60G"
+    t.index ["EventID", "data_source_id"], name: "hmis_csv_2020_events-BBvn"
+    t.index ["EventID"], name: "hmis_csv_2020_events-HCAc"
+    t.index ["ExportID"], name: "hmis_csv_2020_events-lkZq"
+    t.index ["PersonalID"], name: "hmis_csv_2020_events-7ZMP"
+  end
+
+  create_table "hmis_csv_2020_exits", force: :cascade do |t|
+    t.string "ExitID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "ExitDate"
+    t.string "Destination"
+    t.string "OtherDestination"
+    t.string "HousingAssessment"
+    t.string "SubsidyInformation"
+    t.string "ProjectCompletionStatus"
+    t.string "EarlyExitReason"
+    t.string "ExchangeForSex"
+    t.string "ExchangeForSexPastThreeMonths"
+    t.string "CountOfExchangeForSex"
+    t.string "AskedOrForcedToExchangeForSex"
+    t.string "AskedOrForcedToExchangeForSexPastThreeMonths"
+    t.string "WorkPlaceViolenceThreats"
+    t.string "WorkplacePromiseDifference"
+    t.string "CoercedToContinueWork"
+    t.string "LaborExploitPastThreeMonths"
+    t.string "CounselingReceived"
+    t.string "IndividualCounseling"
+    t.string "FamilyCounseling"
+    t.string "GroupCounseling"
+    t.string "SessionCountAtExit"
+    t.string "PostExitCounselingPlan"
+    t.string "SessionsInPlan"
+    t.string "DestinationSafeClient"
+    t.string "DestinationSafeWorker"
+    t.string "PosAdultConnections"
+    t.string "PosPeerConnections"
+    t.string "PosCommunityConnections"
+    t.string "AftercareDate"
+    t.string "AftercareProvided"
+    t.string "EmailSocialMedia"
+    t.string "Telephone"
+    t.string "InPersonIndividual"
+    t.string "InPersonGroup"
+    t.string "CMExitReason"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_exits-B03u"
+    t.index ["DateDeleted"], name: "hmis_csv_2020_exits-9oMc"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_exits-u5YR"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_exits-lfLn"
+    t.index ["ExitDate"], name: "hmis_csv_2020_exits-wXSx"
+    t.index ["ExitID", "data_source_id"], name: "hmis_csv_2020_exits-m68a"
+    t.index ["ExitID"], name: "hmis_csv_2020_exits-yZ3j"
+    t.index ["ExportID"], name: "hmis_csv_2020_exits-xc6a"
+    t.index ["PersonalID"], name: "hmis_csv_2020_exits-86BM"
+  end
+
+  create_table "hmis_csv_2020_exports", force: :cascade do |t|
+    t.string "ExportID"
+    t.string "SourceType"
+    t.string "SourceID"
+    t.string "SourceName"
+    t.string "SourceContactFirst"
+    t.string "SourceContactLast"
+    t.string "SourceContactPhone"
+    t.string "SourceContactExtension"
+    t.string "SourceContactEmail"
+    t.string "ExportDate"
+    t.string "ExportStartDate"
+    t.string "ExportEndDate"
+    t.string "SoftwareName"
+    t.string "SoftwareVersion"
+    t.string "ExportPeriodType"
+    t.string "ExportDirective"
+    t.string "HashStatus"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["ExportID", "data_source_id"], name: "hmis_csv_2020_exports-K9wp"
+    t.index ["ExportID"], name: "hmis_csv_2020_exports-iweG"
+  end
+
+  create_table "hmis_csv_2020_funders", force: :cascade do |t|
+    t.string "FunderID"
+    t.string "ProjectID"
+    t.string "Funder"
+    t.string "OtherFunder"
+    t.string "GrantID"
+    t.string "StartDate"
+    t.string "EndDate"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_funders-IC4k"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_funders-Ix1m"
+    t.index ["ExportID"], name: "hmis_csv_2020_funders-PEzG"
+    t.index ["FunderID", "data_source_id"], name: "hmis_csv_2020_funders-BLkd"
+    t.index ["FunderID"], name: "hmis_csv_2020_funders-1HLT"
+  end
+
+  create_table "hmis_csv_2020_health_and_dvs", force: :cascade do |t|
+    t.string "HealthAndDVID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "InformationDate"
+    t.string "DomesticViolenceVictim"
+    t.string "WhenOccurred"
+    t.string "CurrentlyFleeing"
+    t.string "GeneralHealthStatus"
+    t.string "DentalHealthStatus"
+    t.string "MentalHealthStatus"
+    t.string "PregnancyStatus"
+    t.string "DueDate"
+    t.string "DataCollectionStage"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_health_and_dvs-TUWh"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_health_and_dvs-y2fn"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_health_and_dvs-zvlJ"
+    t.index ["ExportID"], name: "hmis_csv_2020_health_and_dvs-lO76"
+    t.index ["HealthAndDVID", "data_source_id"], name: "hmis_csv_2020_health_and_dvs-6zDo"
+    t.index ["HealthAndDVID"], name: "hmis_csv_2020_health_and_dvs-2NoM"
+    t.index ["PersonalID"], name: "hmis_csv_2020_health_and_dvs-xYMb"
+  end
+
+  create_table "hmis_csv_2020_income_benefits", force: :cascade do |t|
+    t.string "IncomeBenefitsID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "InformationDate"
+    t.string "IncomeFromAnySource"
+    t.string "TotalMonthlyIncome"
+    t.string "Earned"
+    t.string "EarnedAmount"
+    t.string "Unemployment"
+    t.string "UnemploymentAmount"
+    t.string "SSI"
+    t.string "SSIAmount"
+    t.string "SSDI"
+    t.string "SSDIAmount"
+    t.string "VADisabilityService"
+    t.string "VADisabilityServiceAmount"
+    t.string "VADisabilityNonService"
+    t.string "VADisabilityNonServiceAmount"
+    t.string "PrivateDisability"
+    t.string "PrivateDisabilityAmount"
+    t.string "WorkersComp"
+    t.string "WorkersCompAmount"
+    t.string "TANF"
+    t.string "TANFAmount"
+    t.string "GA"
+    t.string "GAAmount"
+    t.string "SocSecRetirement"
+    t.string "SocSecRetirementAmount"
+    t.string "Pension"
+    t.string "PensionAmount"
+    t.string "ChildSupport"
+    t.string "ChildSupportAmount"
+    t.string "Alimony"
+    t.string "AlimonyAmount"
+    t.string "OtherIncomeSource"
+    t.string "OtherIncomeAmount"
+    t.string "OtherIncomeSourceIdentify"
+    t.string "BenefitsFromAnySource"
+    t.string "SNAP"
+    t.string "WIC"
+    t.string "TANFChildCare"
+    t.string "TANFTransportation"
+    t.string "OtherTANF"
+    t.string "OtherBenefitsSource"
+    t.string "OtherBenefitsSourceIdentify"
+    t.string "InsuranceFromAnySource"
+    t.string "Medicaid"
+    t.string "NoMedicaidReason"
+    t.string "Medicare"
+    t.string "NoMedicareReason"
+    t.string "SCHIP"
+    t.string "NoSCHIPReason"
+    t.string "VAMedicalServices"
+    t.string "NoVAMedReason"
+    t.string "EmployerProvided"
+    t.string "NoEmployerProvidedReason"
+    t.string "COBRA"
+    t.string "NoCOBRAReason"
+    t.string "PrivatePay"
+    t.string "NoPrivatePayReason"
+    t.string "StateHealthIns"
+    t.string "NoStateHealthInsReason"
+    t.string "IndianHealthServices"
+    t.string "NoIndianHealthServicesReason"
+    t.string "OtherInsurance"
+    t.string "OtherInsuranceIdentify"
+    t.string "HIVAIDSAssistance"
+    t.string "NoHIVAIDSAssistanceReason"
+    t.string "ADAP"
+    t.string "NoADAPReason"
+    t.string "ConnectionWithSOAR"
+    t.string "DataCollectionStage"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_income_benefits-lVjn"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_income_benefits-YyfJ"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_income_benefits-6HMy"
+    t.index ["ExportID"], name: "hmis_csv_2020_income_benefits-SEnq"
+    t.index ["IncomeBenefitsID", "data_source_id"], name: "hmis_csv_2020_income_benefits-O58u"
+    t.index ["IncomeBenefitsID"], name: "hmis_csv_2020_income_benefits-KXp0"
+    t.index ["PersonalID"], name: "hmis_csv_2020_income_benefits-Qf5l"
+  end
+
+  create_table "hmis_csv_2020_inventories", force: :cascade do |t|
+    t.string "InventoryID"
+    t.string "ProjectID"
+    t.string "CoCCode"
+    t.string "HouseholdType"
+    t.string "Availability"
+    t.string "UnitInventory"
+    t.string "BedInventory"
+    t.string "CHVetBedInventory"
+    t.string "YouthVetBedInventory"
+    t.string "VetBedInventory"
+    t.string "CHYouthBedInventory"
+    t.string "YouthBedInventory"
+    t.string "CHBedInventory"
+    t.string "OtherBedInventory"
+    t.string "ESBedType"
+    t.string "InventoryStartDate"
+    t.string "InventoryEndDate"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_inventories-eYpq"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_inventories-NeSc"
+    t.index ["ExportID"], name: "hmis_csv_2020_inventories-wdcK"
+    t.index ["InventoryID", "data_source_id"], name: "hmis_csv_2020_inventories-sfWI"
+    t.index ["InventoryID"], name: "hmis_csv_2020_inventories-RGrg"
+    t.index ["ProjectID", "CoCCode"], name: "hmis_csv_2020_inventories-BTZq"
+  end
+
+  create_table "hmis_csv_2020_organizations", force: :cascade do |t|
+    t.string "OrganizationID"
+    t.string "OrganizationName"
+    t.string "VictimServicesProvider"
+    t.string "OrganizationCommonName"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["ExportID"], name: "hmis_csv_2020_organizations-LqQF"
+    t.index ["OrganizationID", "data_source_id"], name: "hmis_csv_2020_organizations-cRJF"
+    t.index ["OrganizationID"], name: "hmis_csv_2020_organizations-tyIy"
+  end
+
+  create_table "hmis_csv_2020_project_cocs", force: :cascade do |t|
+    t.string "ProjectCoCID"
+    t.string "ProjectID"
+    t.string "CoCCode"
+    t.string "Geocode"
+    t.string "Address1"
+    t.string "Address2"
+    t.string "City"
+    t.string "State"
+    t.string "Zip"
+    t.string "GeographyType"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_project_cocs-fRQZ"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_project_cocs-wP5S"
+    t.index ["ExportID"], name: "hmis_csv_2020_project_cocs-336L"
+    t.index ["ProjectCoCID", "data_source_id"], name: "hmis_csv_2020_project_cocs-K765"
+    t.index ["ProjectCoCID"], name: "hmis_csv_2020_project_cocs-5NHP"
+    t.index ["ProjectID", "CoCCode"], name: "hmis_csv_2020_project_cocs-G4ij"
+  end
+
+  create_table "hmis_csv_2020_projects", force: :cascade do |t|
+    t.string "ProjectID"
+    t.string "OrganizationID"
+    t.string "ProjectName"
+    t.string "ProjectCommonName"
+    t.string "OperatingStartDate"
+    t.string "OperatingEndDate"
+    t.string "ContinuumProject"
+    t.string "ProjectType"
+    t.string "HousingType"
+    t.string "ResidentialAffiliation"
+    t.string "TrackingMethod"
+    t.string "HMISParticipatingProject"
+    t.string "TargetPopulation"
+    t.string "PITCount"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_projects-m4tQ"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_projects-MNAC"
+    t.index ["ExportID"], name: "hmis_csv_2020_projects-f4DP"
+    t.index ["ProjectID", "data_source_id"], name: "hmis_csv_2020_projects-StS2"
+    t.index ["ProjectID"], name: "hmis_csv_2020_projects-I9LN"
+    t.index ["ProjectType"], name: "hmis_csv_2020_projects-gAEK"
+  end
+
+  create_table "hmis_csv_2020_services", force: :cascade do |t|
+    t.string "ServicesID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "DateProvided"
+    t.string "RecordType"
+    t.string "TypeProvided"
+    t.string "OtherTypeProvided"
+    t.string "SubTypeProvided"
+    t.string "FAAmount"
+    t.string "ReferralOutcome"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "UserID"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["DateCreated"], name: "hmis_csv_2020_services-Nlyp"
+    t.index ["DateDeleted"], name: "hmis_csv_2020_services-5b2P"
+    t.index ["DateProvided"], name: "hmis_csv_2020_services-i7KB"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_services-MSYV"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_2020_services-7Ekp"
+    t.index ["EnrollmentID", "RecordType", "DateDeleted", "DateProvided"], name: "hmis_csv_2020_services-1ggS"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_services-mvqR"
+    t.index ["ExportID"], name: "hmis_csv_2020_services-b6iK"
+    t.index ["PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "hmis_csv_2020_services-lVDS"
+    t.index ["PersonalID"], name: "hmis_csv_2020_services-ZiEF"
+    t.index ["RecordType", "DateDeleted"], name: "hmis_csv_2020_services-VRZ7"
+    t.index ["RecordType", "DateProvided"], name: "hmis_csv_2020_services-8SnT"
+    t.index ["RecordType"], name: "hmis_csv_2020_services-feYP"
+    t.index ["ServicesID", "data_source_id"], name: "hmis_csv_2020_services-dacu"
+    t.index ["ServicesID"], name: "hmis_csv_2020_services-4Q3B"
+  end
+
+  create_table "hmis_csv_2020_users", force: :cascade do |t|
+    t.string "UserID"
+    t.string "UserFirstName"
+    t.string "UserLastName"
+    t.string "UserPhone"
+    t.string "UserExtension"
+    t.string "UserEmail"
+    t.string "DateCreated"
+    t.string "DateUpdated"
+    t.string "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.datetime "loaded_at", null: false
+    t.integer "loader_id", null: false
+    t.index ["ExportID"], name: "hmis_csv_2020_users-Vflk"
+    t.index ["UserID", "data_source_id"], name: "hmis_csv_2020_users-Y4OW"
+    t.index ["UserID"], name: "hmis_csv_2020_users-3tXl"
+  end
+
+  create_table "hmis_csv_import_errors", force: :cascade do |t|
+    t.integer "importer_log_id", null: false
+    t.string "message"
+    t.string "details"
+    t.string "source_type", null: false
+    t.string "source_id", null: false
+    t.index ["importer_log_id"], name: "index_hmis_csv_import_errors_on_importer_log_id"
+    t.index ["source_type", "source_id"], name: "hmis_csv_import_errors-wgH3"
+  end
+
+  create_table "hmis_csv_import_validations", force: :cascade do |t|
+    t.integer "importer_log_id", null: false
+    t.string "type", null: false
+    t.string "source_id", null: false
+    t.string "source_type", null: false
+    t.string "status"
+    t.index ["importer_log_id"], name: "index_hmis_csv_import_validations_on_importer_log_id"
+    t.index ["source_type", "source_id"], name: "hmis_csv_validations-ONiu"
+    t.index ["type"], name: "index_hmis_csv_import_validations_on_type"
+  end
+
+  create_table "hmis_csv_importer_logs", force: :cascade do |t|
+    t.integer "data_source_id", null: false
+    t.jsonb "summary"
+    t.string "status"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "upload_id"
+    t.index ["created_at"], name: "index_hmis_csv_importer_logs_on_created_at"
+    t.index ["data_source_id"], name: "index_hmis_csv_importer_logs_on_data_source_id"
+    t.index ["updated_at"], name: "index_hmis_csv_importer_logs_on_updated_at"
+  end
+
+  create_table "hmis_csv_load_errors", force: :cascade do |t|
+    t.integer "loader_log_id", null: false
+    t.string "file_name", null: false
+    t.string "message"
+    t.string "details"
+    t.string "source"
+    t.index ["loader_log_id"], name: "index_hmis_csv_load_errors_on_loader_log_id"
+  end
+
+  create_table "hmis_csv_loader_logs", force: :cascade do |t|
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id"
+    t.jsonb "summary"
+    t.string "status"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "upload_id"
+    t.index ["created_at"], name: "index_hmis_csv_loader_logs_on_created_at"
+    t.index ["data_source_id"], name: "index_hmis_csv_loader_logs_on_data_source_id"
+    t.index ["importer_log_id"], name: "index_hmis_csv_loader_logs_on_importer_log_id"
+    t.index ["updated_at"], name: "index_hmis_csv_loader_logs_on_updated_at"
   end
 
   create_table "hmis_forms", id: :serial, force: :cascade do |t|
@@ -2265,70 +4008,6 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.index ["imported_at"], name: "index_hud_create_logs_on_imported_at"
   end
 
-  create_table "hud_report_apr_clients", force: :cascade do |t|
-    t.integer "age"
-    t.boolean "head_of_household"
-    t.boolean "parenting_youth"
-    t.date "first_date_in_program"
-    t.date "last_date_in_program"
-    t.boolean "veteran"
-    t.integer "longest_stay"
-    t.boolean "chronically_homeless"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "hud_report_ce_apr_clients", force: :cascade do |t|
-    t.boolean "youth", default: false
-    t.boolean "child", default: false
-    t.boolean "adult_or_hoh", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "hud_report_cells", force: :cascade do |t|
-    t.bigint "report_instance_id"
-    t.string "question", null: false
-    t.string "cell_name"
-    t.boolean "universe", default: false
-    t.json "metadata"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.json "summary"
-    t.string "status"
-    t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
-  end
-
-  create_table "hud_report_instances", force: :cascade do |t|
-    t.bigint "user_id"
-    t.string "coc_code"
-    t.string "report_name"
-    t.date "start_date"
-    t.date "end_date"
-    t.json "options"
-    t.string "state"
-    t.datetime "started_at"
-    t.datetime "completed_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.json "project_ids"
-    t.json "question_names", null: false
-    t.binary "zip_file"
-    t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
-  end
-
-  create_table "hud_report_universe_members", force: :cascade do |t|
-    t.bigint "report_cell_id"
-    t.string "universe_membership_type"
-    t.bigint "universe_membership_id"
-    t.bigint "client_id"
-    t.string "first_name"
-    t.string "last_name"
-    t.index ["client_id"], name: "index_hud_report_universe_members_on_client_id"
-    t.index ["report_cell_id"], name: "index_hud_report_universe_members_on_report_cell_id"
-    t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"
-  end
-
   create_table "identify_duplicates_log", id: :serial, force: :cascade do |t|
     t.datetime "started_at"
     t.datetime "completed_at"
@@ -2427,6 +4106,7 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.jsonb "all_clients", default: []
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "juveniles", default: []
     t.jsonb "unaccompanied_minors", default: []
     t.jsonb "youth_families", default: []
     t.jsonb "family_parents", default: []
@@ -2516,6 +4196,14 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.jsonb "sh_all_clients", default: []
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "literally_homeless_juveniles", default: []
+    t.jsonb "system_juveniles", default: []
+    t.jsonb "homeless_juveniles", default: []
+    t.jsonb "ph_juveniles", default: []
+    t.jsonb "es_juveniles", default: []
+    t.jsonb "th__juveniles", default: []
+    t.jsonb "so_juveniles", default: []
+    t.jsonb "sh_juveniles", default: []
     t.jsonb "literally_homeless_unaccompanied_minors", default: []
     t.jsonb "system_unaccompanied_minors", default: []
     t.jsonb "homeless_unaccompanied_minors", default: []
@@ -2631,6 +4319,14 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.integer "th_beds", default: 0
     t.integer "so_beds", default: 0
     t.integer "sh_beds", default: 0
+    t.integer "literally_homeless_juveniles", default: 0
+    t.integer "system_juveniles", default: 0
+    t.integer "homeless_juveniles", default: 0
+    t.integer "ph_juveniles", default: 0
+    t.integer "es_juveniles", default: 0
+    t.integer "th_juveniles", default: 0
+    t.integer "so_juveniles", default: 0
+    t.integer "sh_juveniles", default: 0
     t.integer "literally_homeless_unaccompanied_minors", default: 0
     t.integer "system_unaccompanied_minors", default: 0
     t.integer "homeless_unaccompanied_minors", default: 0
@@ -2673,6 +4369,7 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.integer "beds", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "juveniles", default: 0
     t.integer "unaccompanied_minors", default: 0
     t.integer "youth_families", default: 0
     t.integer "family_parents", default: 0
@@ -3011,8 +4708,6 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.integer "project_type", limit: 2
     t.boolean "homeless"
     t.boolean "literally_homeless"
-    t.index ["date"], name: "index_service_history_services_on_date"
-    t.index ["project_type"], name: "index_service_history_services_on_project_type"
   end
 
   create_table "service_history_services_2000", id: false, force: :cascade do |t|
@@ -3027,10 +4722,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2000_date_client_id"
+    t.index ["client_id"], name: "index_shs_2000_client_id_only"
     t.index ["date"], name: "index_shs_2000_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2000_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2000_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2000_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2000_en_id_only"
   end
 
   create_table "service_history_services_2001", id: false, force: :cascade do |t|
@@ -3045,10 +4742,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2001_date_client_id"
+    t.index ["client_id"], name: "index_shs_2001_client_id_only"
     t.index ["date"], name: "index_shs_2001_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2001_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2001_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2001_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2001_en_id_only"
   end
 
   create_table "service_history_services_2002", id: false, force: :cascade do |t|
@@ -3063,10 +4762,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2002_date_client_id"
+    t.index ["client_id"], name: "index_shs_2002_client_id_only"
     t.index ["date"], name: "index_shs_2002_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2002_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2002_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2002_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2002_en_id_only"
   end
 
   create_table "service_history_services_2003", id: false, force: :cascade do |t|
@@ -3081,10 +4782,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2003_date_client_id"
+    t.index ["client_id"], name: "index_shs_2003_client_id_only"
     t.index ["date"], name: "index_shs_2003_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2003_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2003_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2003_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2003_en_id_only"
   end
 
   create_table "service_history_services_2004", id: false, force: :cascade do |t|
@@ -3099,10 +4802,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2004_date_client_id"
+    t.index ["client_id"], name: "index_shs_2004_client_id_only"
     t.index ["date"], name: "index_shs_2004_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2004_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2004_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2004_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2004_en_id_only"
   end
 
   create_table "service_history_services_2005", id: false, force: :cascade do |t|
@@ -3117,10 +4822,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2005_date_client_id"
+    t.index ["client_id"], name: "index_shs_2005_client_id_only"
     t.index ["date"], name: "index_shs_2005_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2005_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2005_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2005_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2005_en_id_only"
   end
 
   create_table "service_history_services_2006", id: false, force: :cascade do |t|
@@ -3135,10 +4842,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2006_date_client_id"
+    t.index ["client_id"], name: "index_shs_2006_client_id_only"
     t.index ["date"], name: "index_shs_2006_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2006_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2006_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2006_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2006_en_id_only"
   end
 
   create_table "service_history_services_2007", id: false, force: :cascade do |t|
@@ -3153,10 +4862,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2007_date_client_id"
+    t.index ["client_id"], name: "index_shs_2007_client_id_only"
     t.index ["date"], name: "index_shs_2007_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2007_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2007_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2007_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2007_en_id_only"
   end
 
   create_table "service_history_services_2008", id: false, force: :cascade do |t|
@@ -3171,10 +4882,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2008_date_client_id"
+    t.index ["client_id"], name: "index_shs_2008_client_id_only"
     t.index ["date"], name: "index_shs_2008_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2008_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2008_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2008_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2008_en_id_only"
   end
 
   create_table "service_history_services_2009", id: false, force: :cascade do |t|
@@ -3189,10 +4902,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2009_date_client_id"
+    t.index ["client_id"], name: "index_shs_2009_client_id_only"
     t.index ["date"], name: "index_shs_2009_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2009_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2009_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2009_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2009_en_id_only"
   end
 
   create_table "service_history_services_2010", id: false, force: :cascade do |t|
@@ -3207,10 +4922,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2010_date_client_id"
+    t.index ["client_id"], name: "index_shs_2010_client_id_only"
     t.index ["date"], name: "index_shs_2010_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2010_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2010_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2010_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2010_en_id_only"
   end
 
   create_table "service_history_services_2011", id: false, force: :cascade do |t|
@@ -3225,10 +4942,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2011_date_client_id"
+    t.index ["client_id"], name: "index_shs_2011_client_id_only"
     t.index ["date"], name: "index_shs_2011_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2011_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2011_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2011_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2011_en_id_only"
   end
 
   create_table "service_history_services_2012", id: false, force: :cascade do |t|
@@ -3243,10 +4962,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2012_date_client_id"
+    t.index ["client_id"], name: "index_shs_2012_client_id_only"
     t.index ["date"], name: "index_shs_2012_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2012_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2012_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2012_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2012_en_id_only"
   end
 
   create_table "service_history_services_2013", id: false, force: :cascade do |t|
@@ -3261,10 +4982,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2013_date_client_id"
+    t.index ["client_id"], name: "index_shs_2013_client_id_only"
     t.index ["date"], name: "index_shs_2013_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2013_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2013_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2013_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2013_en_id_only"
   end
 
   create_table "service_history_services_2014", id: false, force: :cascade do |t|
@@ -3279,10 +5002,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2014_date_client_id"
+    t.index ["client_id"], name: "index_shs_2014_client_id_only"
     t.index ["date"], name: "index_shs_2014_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2014_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2014_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2014_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2014_en_id_only"
   end
 
   create_table "service_history_services_2015", id: false, force: :cascade do |t|
@@ -3297,10 +5022,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2015_date_client_id"
+    t.index ["client_id"], name: "index_shs_2015_client_id_only"
     t.index ["date"], name: "index_shs_2015_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2015_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2015_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2015_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2015_en_id_only"
   end
 
   create_table "service_history_services_2016", id: false, force: :cascade do |t|
@@ -3315,10 +5042,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2016_date_client_id"
+    t.index ["client_id"], name: "index_shs_2016_client_id_only"
     t.index ["date"], name: "index_shs_2016_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2016_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2016_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2016_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2016_en_id_only"
   end
 
   create_table "service_history_services_2017", id: false, force: :cascade do |t|
@@ -3333,10 +5062,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2017_date_client_id"
+    t.index ["client_id"], name: "index_shs_2017_client_id_only"
     t.index ["date"], name: "index_shs_2017_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2017_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2017_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2017_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2017_en_id_only"
   end
 
   create_table "service_history_services_2018", id: false, force: :cascade do |t|
@@ -3351,10 +5082,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2018_date_client_id"
+    t.index ["client_id"], name: "index_shs_2018_client_id_only"
     t.index ["date"], name: "index_shs_2018_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2018_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2018_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2018_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2018_en_id_only"
   end
 
   create_table "service_history_services_2019", id: false, force: :cascade do |t|
@@ -3369,10 +5102,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2019_date_client_id"
+    t.index ["client_id"], name: "index_shs_2019_client_id_only"
     t.index ["date"], name: "index_shs_2019_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2019_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2019_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2019_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2019_en_id_only"
   end
 
   create_table "service_history_services_2020", id: false, force: :cascade do |t|
@@ -3387,10 +5122,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2020_date_client_id"
+    t.index ["client_id"], name: "index_shs_2020_client_id_only"
     t.index ["date"], name: "index_shs_2020_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2020_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2020_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2020_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2020_en_id_only"
   end
 
   create_table "service_history_services_2021", id: false, force: :cascade do |t|
@@ -3405,10 +5142,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2021_date_client_id"
+    t.index ["client_id"], name: "index_shs_2021_client_id_only"
     t.index ["date"], name: "index_shs_2021_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2021_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2021_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2021_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2021_en_id_only"
   end
 
   create_table "service_history_services_2022", id: false, force: :cascade do |t|
@@ -3423,10 +5162,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2022_date_client_id"
+    t.index ["client_id"], name: "index_shs_2022_client_id_only"
     t.index ["date"], name: "index_shs_2022_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2022_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2022_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2022_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2022_en_id_only"
   end
 
   create_table "service_history_services_2023", id: false, force: :cascade do |t|
@@ -3441,10 +5182,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2023_date_client_id"
+    t.index ["client_id"], name: "index_shs_2023_client_id_only"
     t.index ["date"], name: "index_shs_2023_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2023_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2023_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2023_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2023_en_id_only"
   end
 
   create_table "service_history_services_2024", id: false, force: :cascade do |t|
@@ -3459,10 +5202,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2024_date_client_id"
+    t.index ["client_id"], name: "index_shs_2024_client_id_only"
     t.index ["date"], name: "index_shs_2024_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2024_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2024_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2024_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2024_en_id_only"
   end
 
   create_table "service_history_services_2025", id: false, force: :cascade do |t|
@@ -3477,10 +5222,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2025_date_client_id"
+    t.index ["client_id"], name: "index_shs_2025_client_id_only"
     t.index ["date"], name: "index_shs_2025_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2025_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2025_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2025_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2025_en_id_only"
   end
 
   create_table "service_history_services_2026", id: false, force: :cascade do |t|
@@ -3495,10 +5242,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2026_date_client_id"
+    t.index ["client_id"], name: "index_shs_2026_client_id_only"
     t.index ["date"], name: "index_shs_2026_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2026_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2026_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2026_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2026_en_id_only"
   end
 
   create_table "service_history_services_2027", id: false, force: :cascade do |t|
@@ -3513,10 +5262,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2027_date_client_id"
+    t.index ["client_id"], name: "index_shs_2027_client_id_only"
     t.index ["date"], name: "index_shs_2027_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2027_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2027_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2027_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2027_en_id_only"
   end
 
   create_table "service_history_services_2028", id: false, force: :cascade do |t|
@@ -3531,10 +5282,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2028_date_client_id"
+    t.index ["client_id"], name: "index_shs_2028_client_id_only"
     t.index ["date"], name: "index_shs_2028_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2028_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2028_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2028_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2028_en_id_only"
   end
 
   create_table "service_history_services_2029", id: false, force: :cascade do |t|
@@ -3549,10 +5302,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2029_date_client_id"
+    t.index ["client_id"], name: "index_shs_2029_client_id_only"
     t.index ["date"], name: "index_shs_2029_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2029_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2029_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2029_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2029_en_id_only"
   end
 
   create_table "service_history_services_2030", id: false, force: :cascade do |t|
@@ -3567,10 +5322,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2030_date_client_id"
+    t.index ["client_id"], name: "index_shs_2030_client_id_only"
     t.index ["date"], name: "index_shs_2030_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2030_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2030_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2030_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2030_en_id_only"
   end
 
   create_table "service_history_services_2031", id: false, force: :cascade do |t|
@@ -3585,10 +5342,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2031_date_client_id"
+    t.index ["client_id"], name: "index_shs_2031_client_id_only"
     t.index ["date"], name: "index_shs_2031_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2031_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2031_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2031_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2031_en_id_only"
   end
 
   create_table "service_history_services_2032", id: false, force: :cascade do |t|
@@ -3603,10 +5362,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2032_date_client_id"
+    t.index ["client_id"], name: "index_shs_2032_client_id_only"
     t.index ["date"], name: "index_shs_2032_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2032_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2032_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2032_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2032_en_id_only"
   end
 
   create_table "service_history_services_2033", id: false, force: :cascade do |t|
@@ -3621,10 +5382,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2033_date_client_id"
+    t.index ["client_id"], name: "index_shs_2033_client_id_only"
     t.index ["date"], name: "index_shs_2033_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2033_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2033_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2033_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2033_en_id_only"
   end
 
   create_table "service_history_services_2034", id: false, force: :cascade do |t|
@@ -3639,10 +5402,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2034_date_client_id"
+    t.index ["client_id"], name: "index_shs_2034_client_id_only"
     t.index ["date"], name: "index_shs_2034_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2034_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2034_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2034_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2034_en_id_only"
   end
 
   create_table "service_history_services_2035", id: false, force: :cascade do |t|
@@ -3657,10 +5422,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2035_date_client_id"
+    t.index ["client_id"], name: "index_shs_2035_client_id_only"
     t.index ["date"], name: "index_shs_2035_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2035_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2035_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2035_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2035_en_id_only"
   end
 
   create_table "service_history_services_2036", id: false, force: :cascade do |t|
@@ -3675,10 +5442,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2036_date_client_id"
+    t.index ["client_id"], name: "index_shs_2036_client_id_only"
     t.index ["date"], name: "index_shs_2036_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2036_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2036_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2036_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2036_en_id_only"
   end
 
   create_table "service_history_services_2037", id: false, force: :cascade do |t|
@@ -3693,10 +5462,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2037_date_client_id"
+    t.index ["client_id"], name: "index_shs_2037_client_id_only"
     t.index ["date"], name: "index_shs_2037_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2037_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2037_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2037_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2037_en_id_only"
   end
 
   create_table "service_history_services_2038", id: false, force: :cascade do |t|
@@ -3711,10 +5482,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2038_date_client_id"
+    t.index ["client_id"], name: "index_shs_2038_client_id_only"
     t.index ["date"], name: "index_shs_2038_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2038_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2038_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2038_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2038_en_id_only"
   end
 
   create_table "service_history_services_2039", id: false, force: :cascade do |t|
@@ -3729,10 +5502,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2039_date_client_id"
+    t.index ["client_id"], name: "index_shs_2039_client_id_only"
     t.index ["date"], name: "index_shs_2039_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2039_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2039_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2039_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2039_en_id_only"
   end
 
   create_table "service_history_services_2040", id: false, force: :cascade do |t|
@@ -3747,10 +5522,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2040_date_client_id"
+    t.index ["client_id"], name: "index_shs_2040_client_id_only"
     t.index ["date"], name: "index_shs_2040_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2040_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2040_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2040_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2040_en_id_only"
   end
 
   create_table "service_history_services_2041", id: false, force: :cascade do |t|
@@ -3765,10 +5542,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2041_date_client_id"
+    t.index ["client_id"], name: "index_shs_2041_client_id_only"
     t.index ["date"], name: "index_shs_2041_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2041_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2041_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2041_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2041_en_id_only"
   end
 
   create_table "service_history_services_2042", id: false, force: :cascade do |t|
@@ -3783,10 +5562,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2042_date_client_id"
+    t.index ["client_id"], name: "index_shs_2042_client_id_only"
     t.index ["date"], name: "index_shs_2042_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2042_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2042_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2042_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2042_en_id_only"
   end
 
   create_table "service_history_services_2043", id: false, force: :cascade do |t|
@@ -3801,10 +5582,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2043_date_client_id"
+    t.index ["client_id"], name: "index_shs_2043_client_id_only"
     t.index ["date"], name: "index_shs_2043_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2043_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2043_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2043_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2043_en_id_only"
   end
 
   create_table "service_history_services_2044", id: false, force: :cascade do |t|
@@ -3819,10 +5602,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2044_date_client_id"
+    t.index ["client_id"], name: "index_shs_2044_client_id_only"
     t.index ["date"], name: "index_shs_2044_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2044_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2044_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2044_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2044_en_id_only"
   end
 
   create_table "service_history_services_2045", id: false, force: :cascade do |t|
@@ -3837,10 +5622,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2045_date_client_id"
+    t.index ["client_id"], name: "index_shs_2045_client_id_only"
     t.index ["date"], name: "index_shs_2045_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2045_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2045_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2045_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2045_en_id_only"
   end
 
   create_table "service_history_services_2046", id: false, force: :cascade do |t|
@@ -3855,10 +5642,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2046_date_client_id"
+    t.index ["client_id"], name: "index_shs_2046_client_id_only"
     t.index ["date"], name: "index_shs_2046_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2046_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2046_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2046_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2046_en_id_only"
   end
 
   create_table "service_history_services_2047", id: false, force: :cascade do |t|
@@ -3873,10 +5662,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2047_date_client_id"
+    t.index ["client_id"], name: "index_shs_2047_client_id_only"
     t.index ["date"], name: "index_shs_2047_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2047_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2047_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2047_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2047_en_id_only"
   end
 
   create_table "service_history_services_2048", id: false, force: :cascade do |t|
@@ -3891,10 +5682,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2048_date_client_id"
+    t.index ["client_id"], name: "index_shs_2048_client_id_only"
     t.index ["date"], name: "index_shs_2048_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2048_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2048_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2048_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2048_en_id_only"
   end
 
   create_table "service_history_services_2049", id: false, force: :cascade do |t|
@@ -3909,10 +5702,12 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2049_date_client_id"
+    t.index ["client_id"], name: "index_shs_2049_client_id_only"
     t.index ["date"], name: "index_shs_2049_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2049_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2049_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2049_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2049_en_id_only"
   end
 
   create_table "service_history_services_2050", id: false, force: :cascade do |t|
@@ -3927,10 +5722,14 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2050_date_client_id"
+    t.index ["client_id"], name: "index_shs_2050_client_id"
+    t.index ["client_id"], name: "index_shs_2050_client_id_only"
     t.index ["date"], name: "index_shs_2050_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2050_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2050_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2050_date_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2050_en_id"
+    t.index ["service_history_enrollment_id"], name: "index_shs_2050_en_id_only"
   end
 
   create_table "service_history_services_remainder", id: false, force: :cascade do |t|
@@ -4228,6 +6027,7 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.integer "source_id"
     t.integer "destination_id"
     t.integer "client_match_id"
+    t.index ["data_source_id"], name: "index_warehouse_clients_on_data_source_id"
     t.index ["deleted_at"], name: "index_warehouse_clients_on_deleted_at"
     t.index ["destination_id"], name: "index_warehouse_clients_on_destination_id"
     t.index ["id_in_source"], name: "index_warehouse_clients_on_id_in_source"
@@ -4264,9 +6064,10 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
     t.boolean "active_in_cas_match", default: false
     t.string "last_exit_destination"
     t.datetime "last_cas_match_date"
-    t.integer "days_homeless_plus_overrides"
     t.string "lgbtq_from_hmis"
+    t.integer "days_homeless_plus_overrides"
     t.index ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days"
+    t.index ["client_id"], name: "index_warehouse_clients_processed_on_client_id"
     t.index ["days_served"], name: "index_warehouse_clients_processed_on_days_served"
     t.index ["homeless_days"], name: "index_warehouse_clients_processed_on_homeless_days"
     t.index ["routine"], name: "index_warehouse_clients_processed_on_routine"
@@ -4443,7 +6244,6 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
   add_foreign_key "service_history_services_2017", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2018", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2019", "service_history_enrollments", on_delete: :cascade
-  add_foreign_key "service_history_services_2020", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2021", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2022", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2023", "service_history_enrollments", on_delete: :cascade
@@ -5143,29 +6943,6 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
       service_history_enrollments.head_of_household
      FROM service_history_enrollments;
   SQL
-  create_view "todd_stats", sql_definition: <<-SQL
-      SELECT pg_stat_all_tables.relname,
-      round((
-          CASE
-              WHEN ((pg_stat_all_tables.n_live_tup + pg_stat_all_tables.n_dead_tup) = 0) THEN (0)::double precision
-              ELSE ((pg_stat_all_tables.n_dead_tup)::double precision / ((pg_stat_all_tables.n_dead_tup + pg_stat_all_tables.n_live_tup))::double precision)
-          END * (100.0)::double precision)) AS "Frag %",
-      pg_stat_all_tables.n_live_tup AS "Live rows",
-      pg_stat_all_tables.n_dead_tup AS "Dead rows",
-      pg_stat_all_tables.n_mod_since_analyze AS "Rows modified since analyze",
-          CASE
-              WHEN (COALESCE(pg_stat_all_tables.last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_vacuum
-              ELSE COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
-          END AS last_vacuum,
-          CASE
-              WHEN (COALESCE(pg_stat_all_tables.last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_analyze
-              ELSE COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
-          END AS last_analyze,
-      (pg_stat_all_tables.vacuum_count + pg_stat_all_tables.autovacuum_count) AS vacuum_count,
-      (pg_stat_all_tables.analyze_count + pg_stat_all_tables.autoanalyze_count) AS analyze_count
-     FROM pg_stat_all_tables
-    WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
-  SQL
   create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
       SELECT service_history_services.id,
       service_history_services.service_history_enrollment_id,
@@ -5184,5 +6961,6 @@ ActiveRecord::Schema.define(version: 2020_05_30_134853) do
   add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
   add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
   add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
 
 end

@@ -12,6 +12,11 @@ App.select2.init = () =>
     # Add select all functionality if has `multiple` attribute
     if this.hasAttribute('multiple')
       App.select2.initToggleSelectAll($select)
+    # CoCs get special functionality
+    if this.classList.contains('select2-id-when-selected')
+      App.select2.initIdWhenSelected($select)
+    if this.classList.contains('select2-parenthetical-when-selected')
+      App.select2.initParentheticalWhenSelected($select)
 
 App.select2.initToggleSelectAll = ($select) =>
   # If we made any changes manually, and there are any selected, set the link to "select none"
@@ -76,3 +81,31 @@ App.select2.initToggleSelectAll = ($select) =>
     updateSelectAllState()
   # initial state
   updateSelectAllState()
+
+App.select2.initIdWhenSelected = ($select) =>
+  $select.select2(
+    {
+      templateSelection: (selected) =>
+        if !selected.id
+          return selected.text
+        # use the code to keep the select smaller
+        return selected.id
+    }
+  )
+
+App.select2.initParentheticalWhenSelected = ($select) =>
+  $select.select2(
+    {
+      templateSelection: (selected) =>
+        if !selected.id
+          return selected.text
+        # use the parenthetical text to keep the select smaller
+        regex = /\((.+?)\)/
+        matched = selected.text.match(regex)
+        if !matched.length == 2
+          return selected.text
+        return matched[1]
+    }
+  )
+
+
