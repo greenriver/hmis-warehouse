@@ -14,7 +14,7 @@ class Clients::AuditsController < ApplicationController
   def index
     client_id = @client.id
     al_t = ActivityLog.arel_table
-    @audit_log = ActivityLog.where(item_model: GrdaWarehouse::Hud::Client.name).
+    @audit_log = ActivityLog.where(item_model: 'GrdaWarehouse::Hud::Client').
       where(al_t[:path].matches("%clients/#{client_id}/%"). # contains client_id
             or(al_t[:path].matches("%clients/#{client_id}"))). # ends with client_id
       order(created_at: :desc).

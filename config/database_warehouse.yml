@@ -15,7 +15,7 @@ default: &default
   <% if ENV['WAREHOUSE_DATABASE_HOST'] %>
   host: <%= ENV['WAREHOUSE_DATABASE_HOST'] %>
   <% end %>
-  
+
 <%= ENV['RAILS_ENV'] %>:
   <<: *default
   database: <%= ENV['WAREHOUSE_DATABASE_DB'] %>

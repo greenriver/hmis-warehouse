@@ -8,30 +8,26 @@ module WarehouseReports
   class ReEntryController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
+    include SubpopulationHistoryScope
+    include ClientDetailReports
+
     before_action :set_limited, only: [:index]
-    before_action :set_projects
-    before_action :set_organizations
-    before_action :set_sub_population
-    before_action :set_project_types
+    before_action :set_filter
 
     def index
-      date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
-      @range = ::Filters::DateRangeWithSubPopulation.new(date_range_options)
-
-      @start_date = @range.start
-      @end_date = @range.end
-
       # limit enrollments to only those who are re-entries
       re_entry_enrollment_ids = reporting_class.re_entry.distinct.pluck(:enrollment_id)
 
       @enrollments = enrollment_scope.
-        entry_within_date_range(start_date: @start_date, end_date: @end_date).
+        entry_within_date_range(start_date: @filter.start, end_date: @filter.end).
         where(id: re_entry_enrollment_ids)
 
       # limit to chosen organizations and projects
-      @enrollments = @enrollments.merge(GrdaWarehouse::Hud::Organization.where(id: @organization_ids)) if @organization_ids.any?
-      @enrollments = @enrollments.merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)) if @project_ids.any?
-
+      @enrollments = @enrollments.in_project_type(@filter.project_type_ids)
+      @enrollments = filter_for_organizations(@enrollments)
+      @enrollments = filter_for_projects(@enrollments)
+      @enrollments = filter_for_age_ranges(@enrollments)
+      @enrollments = filter_for_hoh(@enrollments)
       # go back for the re-entries for those we actually have permission to see
       @re_entries = reporting_class.re_entry.where(enrollment_id: @enrollments.pluck(:id)).index_by(&:enrollment_id)
 
@@ -44,68 +40,29 @@ module WarehouseReports
       end
     end
 
-    def history_scope(scope, sub_population)
-      scope_hash = {
-        all_clients: scope,
-        veteran: scope.veteran,
-        youth: scope.unaccompanied_youth,
-        parenting_youth: scope.parenting_youth,
-        parenting_children: scope.parenting_juvenile,
-        unaccompanied_minors: scope.unaccompanied_minors,
-        individual_adults: scope.individual_adult,
-        non_veteran: scope.non_veteran,
-        family: scope.family,
-        youth_families: scope.youth_families,
-        family_parents: scope.family_parents,
-        children: scope.children_only,
-      }
-      scope_hash[sub_population.to_sym]
-    end
-
     def enrollment_scope
-      enrollment_source.entry.joins(:project, :organization).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+      service_history_source.entry.joins(:project, :organization).
         preload(:project, :organization, :client)
     end
 
-    def enrollment_source
-      GrdaWarehouse::ServiceHistoryEnrollment
-    end
-
-    def service_source
-      GrdaWarehouse::ServiceHistoryService
-    end
-
     def reporting_class
-      @reporting_class ||= Reporting::MonthlyReports::Base.class_for @sub_population
+      @reporting_class ||= Reporting::MonthlyReports::Base.class_for(@filter.sub_population)
     end
 
-    def set_organizations
-      @organization_ids = begin
-                            params[:range][:organization_ids].map(&:presence).compact.map(&:to_i)
-                          rescue StandardError
-                            []
-                          end
-    end
+    private def filter_params
+      return {} unless params[:filter].present?
 
-    def set_projects
-      @project_ids = begin
-                       params[:range][:project_ids].map(&:presence).compact.map(&:to_i)
-                     rescue StandardError
-                       []
-                     end
-    end
-
-    def set_sub_population
-      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
-    end
-
-    def set_project_types
-      @project_type_codes = params[:range].try(:[], :project_types)&.map(&:presence)&.compact&.map(&:to_sym) || [:es, :sh, :so, :th]
-      @project_types = []
-      @project_type_codes.each do |code|
-        @project_types += GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[code]
-      end
+      params.require(:filter).permit(
+        :start,
+        :end,
+        :sub_population,
+        :heads_of_household,
+        :ph,
+        age_ranges: [],
+        organization_ids: [],
+        project_ids: [],
+        project_type_codes: [],
+      )
     end
   end
 end

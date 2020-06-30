@@ -14,13 +14,13 @@
         Download Excel
 
 %p
-  = @enrollments.count
-  Clients have entries in
-  = GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[@project_type_codes]
+  = pluralize(@enrollments.count, 'Client')
+  have entries in
+  = @filter.selected_project_type_names.join(', ')
   between
-  = @start_date
+  = @filter.start
   and
-  = "#{@end_date}."
+  = "#{@filter.end}."
   = render 'common/population_warnings'
 = render 'warehouse_reports/limited_by_project_note'
 
