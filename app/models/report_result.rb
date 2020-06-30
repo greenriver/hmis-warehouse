@@ -10,7 +10,7 @@ class ReportResult < ApplicationRecord
   include ActionView::Helpers::DateHelper
   belongs_to :report
   belongs_to :user
-  belongs_to :delayed_job, class_name: Delayed::Job.name
+  belongs_to :delayed_job, class_name: 'Delayed::Job'
 
   scope :most_recent, -> do
     where(percent_complete: 100).group(:type).maximum(:updated_at)

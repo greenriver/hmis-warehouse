@@ -7,9 +7,9 @@
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
   include Eto::PathwaysAnswers
-  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+  belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   has_one :destination_client, through: :client
-  belongs_to :hmis_assessment, class_name: GrdaWarehouse::HMIS::Assessment.name, primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
+  belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::HMIS::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
   serialize :api_response, Hash
   serialize :answers, Hash
 
