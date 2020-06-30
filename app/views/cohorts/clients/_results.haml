@@ -22,6 +22,7 @@
             %th
               %i.icon-info{data: {toggle: :tooltip, title: 'Days Literally Homeless in the past three years may be inaccurate if client hasn\'t been active recently'}}
               Days Literally Homeless
+            %th Client Notes
             %th Previous Removal Reason
 
         %tbody
@@ -47,6 +48,10 @@
               %td= @days_homeless[client[:id]]
               %td= @days_homeless_three_years[client[:id]]
               %td= @days_literally_homeless_three_years[client[:id]]
+              %td
+                - note_count = @client_notes[client[:id]]&.count || 0
+                %span.badge.badge-primary.mt-1{data: {toggle: :tooltip, title: @client_notes[client[:id]]&.join(', ')}}
+                  = pluralize(note_count, 'note')
               %td= @removal_reasons[client[:id]]
   - else
     .c-card__content
