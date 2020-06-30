@@ -68,3 +68,51 @@
 %hr
 .mt-4
   = f.submit 'Update View'
+  %button.btn.btn-secondary.j-download-pdf(type='button') Download PDF
+
+#j-download-modal.modal.fade(role="dialog" aria-hidden="true")
+  .modal-dialog.modal-dialog-scrollable.modal-dialog-centered{role: :document}
+    .modal-content
+      .modal-header
+        %h4.modal-title Download PDF
+        %button.close(aria-label="Close" type="button" data-dismiss="modal")
+          %i.modal-icon-close
+      .modal-body.clearfix
+
+
+- content_for :page_js do
+  :javascript
+    'use strict';
+    var url = #{url_for(format: 'pdf').to_json.html_safe};
+    var processResponse = function(data) {
+      var blob = new Blob([data], {type: 'application/pdf'});
+      var link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = "download.pdf";
+      link.click();
+    }
+    var submitForm = function($form) {
+      var xhr = $.ajax({
+        type: 'GET',
+        url: url,
+        xhrFields: { responseType: 'blob' },
+        data: $form.serialize(),
+      });
+      var cancel = function() { xhr.abort() }
+      return {xhr: xhr.then(processResponse), cancel: cancel}
+    }
+    $(function() {
+      var $modal = $("#j-download-modal");
+      $(".j-download-pdf").click(function() {
+        $modal.find('.modal-body').html('<p class="lead">Processing...</p>');
+        $modal.modal('show');
+        var $form = $(this).closest('form');
+        var ajax = submitForm($form)
+        ajax.xhr
+          .then(function() { $modal.modal('hide') } )
+          .catch(function() {
+            $modal.find('.modal-body').html('<p class="lead text-danger">An Error Occured, please try again</p>');
+          });
+        $modal.on('hidden.bs.modal', ajax.cancel)
+      });
+    });

@@ -10,4 +10,5 @@
 - unless defined?(chart_height)
   - chart_height = 600
 
-= render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: 'Clients with an ongoing enrollment in a project in the universe during the period.', detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts, chart_height: chart_height
+.perf-overview-breakdown
+  = render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: 'Clients with an ongoing enrollment in a project in the universe during the period.', detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts, chart_height: chart_height

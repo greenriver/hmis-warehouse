@@ -11,6 +11,18 @@ module PerformanceDashboards
     before_action :set_key, only: [:details]
 
     def index
+      respond_to do |format|
+        format.pdf do
+          @pdf = true
+          render_pdf
+        end
+        format.html do
+          if params[:debug_pdf]
+            @pdf = true
+            render inline: pdf_html
+          end
+        end
+      end
     end
 
     private def section_subpath
@@ -81,6 +93,40 @@ module PerformanceDashboards
 
     private def default_comparison_pattern
       PerformanceDashboards::Overview.comparison_patterns.values.first
+    end
+
+    private def render_pdf
+      file_name = "Performance Overview #{DateTime.current.to_s(:db)}"
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf', disposition: 'attachment'
+    end
+
+    protected def pdf
+      grover_options = {
+        display_url: root_url,
+        displayHeaderFooter: true,
+        headerTemplate: '<h2>Header</h2>',
+        footerTemplate: '<h6 class="text-center">Footer</h6>',
+        timeout: 50_000,
+        format: 'Letter',
+        emulate_media: 'print',
+        margin: {
+          top: '.5in',
+          bottom: '.5in',
+          left: '.4in',
+          right: '.4in',
+        },
+        debug: {
+          # headless: false,
+          # devtools: true
+        },
+      }
+
+      Grover.new(pdf_html, grover_options).to_pdf
+    end
+
+    private def pdf_html
+      template = 'performance_dashboards/overview/index_pdf'
+      render_to_string({ template: template, layout: false })
     end
   end
 end
