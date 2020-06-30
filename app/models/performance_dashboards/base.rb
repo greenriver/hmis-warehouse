@@ -359,7 +359,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def report_scope_source
-    GrdaWarehouse::ServiceHistoryEnrollment
+    GrdaWarehouse::ServiceHistoryEnrollment.entry
   end
 
   private def add_alternative(scope, alternative)
