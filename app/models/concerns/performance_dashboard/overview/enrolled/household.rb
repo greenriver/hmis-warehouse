@@ -20,6 +20,7 @@ module PerformanceDashboard::Overview::Enrolled::Household
           buckets[household_bucket(row)] << row.client_id unless counted.include?(row.client_id)
           counted << row.client_id
         end
+      buckets
     end
   end
 
