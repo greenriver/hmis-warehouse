@@ -10,44 +10,59 @@
         %dd= @comparison.date_range_words
 
   .col-md-6.col-lg-3
-    %h4.mt-0 Projects
+    %h4.mt-0 Projects & Funding
     %dl.mr-4
       %dt CoC Codes
-      %dd
-        - if @report.chosen_coc_codes.blank?
+      - if @report.chosen_coc_codes.blank?
+        %dd.text-muted
           All
-        - else
+      - else
+        %dd
           = @report.chosen_coc_codes
     %dl.mr-4
       %dt Project Types
-      %dd
-        - if @report.chosen_project_types.blank?
+      - if @report.chosen_project_types.blank?
+        %dd.text-muted
           All
-        - else
+      - else
+        %dd
           - @report.chosen_project_types.each do |type|
             .project-type= type
+  .col-md-6.col-lg-3.mt-md-6
+    %dl.mr-4
+      %dt Funding Sources
+      - if @report.funder_names.blank?
+        %dd.text-muted
+          All
+      - else
+        %dd
+          - @report.funder_names.each do |fs|
+            .funding-source= fs
     %dl.mr-4
       %dt Data Sources
-      %dd
-        - if @report.data_source_names.blank?
+      - if @report.data_source_names.blank?
+        %dd.text-muted
           All
-        - else
+      - else
+        %dd
           - @report.data_source_names.each do |ds|
             .data-source= ds
     %dl.mr-4
       %dt Organizations
-      %dd
-        - if @report.organization_names.blank?
+      - if @report.organization_names.blank?
+        %dd.text-muted
           All
-        - else
+      - else
+        %dd
           - @report.organization_names.each do |type|
             .organization= type
     %dl.mr-4
       %dt Projects
-      %dd
-        - if @report.project_names.blank?
+      - if @report.project_names.blank?
+        %dd.text-muted
           All
-        - else
+      - else
+        %dd
           - @report.project_names.each do |type|
             .project= type
 
@@ -62,46 +77,50 @@
       %dd= @report.chosen_household_type
     %dl.mr-4
       %dt Ages
-      %dd
-        - if @report.chosen_age_ranges.blank?
+      - if @report.chosen_age_ranges.blank?
+        %dd.text-muted
           Any
-        - else
+      - else
+        %dd
           = @report.chosen_age_ranges
     %dl.mr-4
       %dt Veteran Statuses
-      %dd
-        - if @report.chosen_veteran_statuses.blank?
+      - if @report.chosen_veteran_statuses.blank?
+        %dd.text-muted
           Any
-        - else
+      - else
+        %dd
           - @report.chosen_veteran_statuses.each do |status|
             .status= status
     %dl.mr-4
       %dt Genders
-      %dd
-        - if @report.chosen_genders.blank?
+      - if @report.chosen_genders.blank?
+        %dd.text-muted
           All
-        - else
+      - else
+        %dd
           - @report.chosen_genders.each do |gender|
             .gender= gender
 
-  .col-md-6.col-lg-3
     %h4.mt-0 Demographics
     %dl.mr-4
     %dt Sub-Population
     %dd= @report.chosen_sub_population
     %dl.mr-4
     %dt Races
-    %dd
-      - if @report.chosen_races.blank?
+    - if @report.chosen_races.blank?
+      %dd.text-muted
         All
-      - else
+    - else
+      %dd
         - @report.chosen_races.each do |race|
           .race= race
     %dl.mr-4
     %dt Ethnicities
-    %dd
-      - if @report.chosen_ethnicities.blank?
+    - if @report.chosen_ethnicities.blank?
+      %dd.text-muted
         All
-      - else
+    - else
+      %dd
         - @report.chosen_ethnicities.each do |ethnicity|
           .ethnicity= ethnicity
