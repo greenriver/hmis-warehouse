@@ -10,7 +10,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_28_153252) do
+ActiveRecord::Schema.define(version: 2020_06_29_180206) do
+
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
@@ -1619,7 +1620,7 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.string "site_coc_codes"
     t.string "default_coc_zipcodes"
     t.string "continuum_name"
-    t.string "cas_url", default: "https://cas.openpath.host"
+    t.string "cas_url", default: "https://cas.boston.gov"
     t.string "release_duration", default: "Indefinite"
     t.boolean "allow_partial_release", default: true
     t.string "cas_flag_method", default: "manual"
@@ -4687,6 +4688,7 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "head_of_household", default: false, null: false
     t.date "move_in_date"
     t.boolean "unaccompanied_minor", default: false
+    t.index ["age"], name: "index_service_history_enrollments_on_age"
     t.index ["client_id", "record_type"], name: "index_she_on_client_id"
     t.index ["computed_project_type", "record_type", "client_id"], name: "index_she_on_computed_project_type"
     t.index ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_she_ds_proj_org_r_type"
@@ -5722,13 +5724,11 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
     t.boolean "homeless"
     t.boolean "literally_homeless"
     t.index ["client_id", "date", "record_type"], name: "index_shs_2050_date_client_id"
-    t.index ["client_id"], name: "index_shs_2050_client_id"
     t.index ["client_id"], name: "index_shs_2050_client_id_only"
     t.index ["date"], name: "index_shs_2050_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_2050_on_id", unique: true
     t.index ["project_type", "date", "record_type"], name: "index_shs_2050_date_project_type"
     t.index ["service_history_enrollment_id", "date", "record_type"], name: "index_shs_2050_date_en_id"
-    t.index ["service_history_enrollment_id"], name: "index_shs_2050_en_id"
     t.index ["service_history_enrollment_id"], name: "index_shs_2050_en_id_only"
   end
 
@@ -6942,6 +6942,29 @@ ActiveRecord::Schema.define(version: 2020_06_28_153252) do
       service_history_enrollments.individual_elder,
       service_history_enrollments.head_of_household
      FROM service_history_enrollments;
+  SQL
+  create_view "todd_stats", sql_definition: <<-SQL
+      SELECT pg_stat_all_tables.relname,
+      round((
+          CASE
+              WHEN ((pg_stat_all_tables.n_live_tup + pg_stat_all_tables.n_dead_tup) = 0) THEN (0)::double precision
+              ELSE ((pg_stat_all_tables.n_dead_tup)::double precision / ((pg_stat_all_tables.n_dead_tup + pg_stat_all_tables.n_live_tup))::double precision)
+          END * (100.0)::double precision)) AS "Frag %",
+      pg_stat_all_tables.n_live_tup AS "Live rows",
+      pg_stat_all_tables.n_dead_tup AS "Dead rows",
+      pg_stat_all_tables.n_mod_since_analyze AS "Rows modified since analyze",
+          CASE
+              WHEN (COALESCE(pg_stat_all_tables.last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_vacuum
+              ELSE COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_vacuum,
+          CASE
+              WHEN (COALESCE(pg_stat_all_tables.last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_analyze
+              ELSE COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_analyze,
+      (pg_stat_all_tables.vacuum_count + pg_stat_all_tables.autovacuum_count) AS vacuum_count,
+      (pg_stat_all_tables.analyze_count + pg_stat_all_tables.autoanalyze_count) AS analyze_count
+     FROM pg_stat_all_tables
+    WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
   SQL
   create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
       SELECT service_history_services.id,
