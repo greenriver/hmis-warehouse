@@ -272,6 +272,10 @@ module ArelHelper
     Health::Tracing::Contact.arel_table
   end
 
+  def r_monthly_t
+    Reporting::MonthlyReports::Base.arel_table
+  end
+
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
     # convert non-node into a node
@@ -587,6 +591,10 @@ module ArelHelper
 
     def htco_t
       Health::Tracing::Contact.arel_table
+    end
+
+    def r_monthly_t
+      Reporting::MonthlyReports::Base.arel_table
     end
   end
 end

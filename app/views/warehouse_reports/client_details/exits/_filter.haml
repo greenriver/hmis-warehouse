@@ -1,20 +1,24 @@
-= simple_form_for @range, as: :range, url: polymorphic_path([:warehouse_reports, :client_details, :exits], sub_population: @sub_population), html: { method: :get, class: 'jFilter mt-2 mb-6' }, defaults: { wrapper_html: { class: 'mb-0 mr-2' } } do |f|
+= simple_form_for @filter, as: :filter, url: polymorphic_path([:warehouse_reports, :client_details, :exits], sub_population: @filter.sub_population), html: { method: :get, class: 'jFilter mt-2 mb-6' }, defaults: { wrapper_html: { class: 'mb-0 mr-2' } } do |f|
   - content_for :filters_col_full do
-    .row.mb-4
+    .row
       .col-md-8
         = render 'warehouse_reports/date_range_filters', f:f
-      .col-md-4.d-flex.align-items-center
-        .form-group.form-check.mt-no-label.mb-0
-          = check_box_tag(:ph, true, params[:ph].present?, class: 'form-check-input')
-          %label.form-check-label.mb-0{for: :ph} PH Only
-
+      .col-md-4.d-flex.align-items-center.pt-no-label
+        = f.input :ph, as: :boolean, label: 'Limit to permanent destinations'
     .row
       .col-md-4
-        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, include_blank: false, input_html: {class: 'select2'}, wrapper_html: {class: 'mb-0 mr-4 w-100'}
+        = f.input :project_type_codes, collection: @filter.available_residential_project_types, input_html: { multiple: true, class: 'select2 jProjectTypes' }
       .col-md-4
-        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @organization_ids, label: 'Organizations', required: false
+        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select, group_method: :last, label: 'Organizations', required: false, input_html: {multiple: true, class: :select2 }
       .col-md-4
-        = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, selected: @project_ids, label: 'Projects', required: false
+        = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select, group_method: :last, label: 'Projects', required: false, input_html: {multiple: true, class: :select2 }
+    .row
+      .col-md-4
+        = f.input :sub_population, collection: GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations, include_blank: false, input_html: { class: :select2 }
+      .col-sm-4
+        = f.input :age_ranges, collection: @filter.available_age_ranges, include_blank: false, input_html: { multiple: true, class: :select2 }
+      .col-sm-4.d-flex.align-items-center.pt-no-label
+        = f.input :heads_of_household, as: :boolean, label: 'Limit to Heads of Household?'
 
   - content_for :form_js do
     = 'warehouse_reports/new_range_js'

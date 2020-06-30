@@ -21,6 +21,26 @@
       "note": ""
     },
     {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "167d304a2a6e35f5514e9151322701f7330f801e1b29f03e072fadc7e6e35dae",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called with model attribute",
+      "file": "app/jobs/warehouse_reports/dashboard_report_job.rb",
+      "line": 16,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym][sub_population.to_sym].constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WarehouseReports::DashboardReportJob",
+        "method": "perform"
+      },
+      "user_input": "GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym]",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "183d6735294c38b8c0b0611b9ad3b005663982697937cb37c89c72f00df84e1f",
@@ -775,6 +795,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "c5bd3adf51202218b95877c9d15e95e4053876e998ccaca44a7054ea9efa9803",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/reporting/monthly_reports/base.rb",
+      "line": 419,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"CREATE TABLE #{Reporting::MonthlyReports::Base.remainder_table} (CHECK ( #{\" type NOT IN ('#{Reporting::MonthlyReports::Base.sub_tables.keys.join(\"', '\")}') \"} ) ) INHERITS (#{Reporting::MonthlyReports::Base.parent_table});\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Reporting::MonthlyReports::Base",
+        "method": "Reporting::MonthlyReports::Base.ensure_tables"
+      },
+      "user_input": "Reporting::MonthlyReports::Base.remainder_table",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Cross-Site Scripting",
       "warning_code": 2,
       "fingerprint": "c6d2416929705fe07d75e0cba96b643e0d9361ef1329ece172ff0fcd797deb31",
@@ -831,7 +871,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/reporting/monthly_reports/base.rb",
-      "line": 389,
+      "line": 475,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'\")",
       "render_path": null,
@@ -901,6 +941,26 @@
         "method": "exists_sql"
       },
       "user_input": "ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "e8363134a72c5ae3f5d9027a26f181923b910359a92ea85fe228e8ae96346dd8",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called with model attribute",
+      "file": "app/models/performance_dashboards/base.rb",
+      "line": 134,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "Reporting::MonthlyReports::Base.available_types[@sub_population].constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PerformanceDashboards::Base",
+        "method": "chosen_sub_population"
+      },
+      "user_input": "Reporting::MonthlyReports::Base.available_types[@sub_population]",
       "confidence": "Medium",
       "note": ""
     },
@@ -1021,6 +1081,26 @@
       },
       "user_input": "GrdaWarehouse::Hud::Client.destination.find(params[:client_id].to_i)",
       "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "fe7de455d82a4e3fef770c1272e861fb8f1d73042b2f82f1b417753f2d17bec7",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/reporting/monthly_reports/base.rb",
+      "line": 403,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"CREATE TABLE #{details[:table_name]} ( CHECK ( #{\"type = '#{details[:type]}'\"} ) ) INHERITS (#{Reporting::MonthlyReports::Base.parent_table});\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Reporting::MonthlyReports::Base",
+        "method": "Reporting::MonthlyReports::Base.ensure_tables"
+      },
+      "user_input": "details[:table_name]",
+      "confidence": "Medium",
       "note": ""
     }
   ],

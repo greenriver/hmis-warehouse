@@ -97,8 +97,8 @@ module PerformanceDashboard::Overview::Detail
     if options[:household]
       columns['Age'] = she_t[:age]
       columns['Other Clients Under 18'] = she_t[:other_clients_under_18]
-      columns['Individual Adult'] = she_t[:individual_adult]
-      columns['Child Only'] = she_t[:children_only]
+      columns['Other Clients 18 to 25'] = she_t[:other_clients_between_18_and_25]
+      columns['Other Clients over 25'] = she_t[:other_clients_over_25]
     end
     columns['Veteran Status'] = c_t[:VeteranStatus] if options[:veteran]
     if options[:race]

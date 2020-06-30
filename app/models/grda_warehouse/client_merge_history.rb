@@ -6,8 +6,8 @@
 
 module GrdaWarehouse
   class ClientMergeHistory < GrdaWarehouseBase
-    belongs_to :destination_client, class_name: GrdaWarehouse::Hud::Client.name, primary_key: :id, foreign_key: :merged_into
-    belongs_to :source_client, class_name: GrdaWarehouse::Hud::Client.name, primary_key: :id, foreign_key: :merged_from
+    belongs_to :destination_client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :id, foreign_key: :merged_into
+    belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :id, foreign_key: :merged_from
 
     def current_destination source_id
       if source_id.blank?

@@ -11,9 +11,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     include ::Reporting::ProjectDataQualityReports::VersionFour::Display
     include ::Reporting::ProjectDataQualityReports::VersionFour::Support
 
-    has_many :enrollments, class_name: Reporting::DataQualityReports::Enrollment.name, foreign_key: :report_id
-    has_many :report_projects, class_name: Reporting::DataQualityReports::Project.name, foreign_key: :report_id
-    has_one :report_project_group, class_name: Reporting::DataQualityReports::ProjectGroup.name, foreign_key: :report_id
+    has_many :enrollments, class_name: 'Reporting::DataQualityReports::Enrollment', foreign_key: :report_id
+    has_many :report_projects, class_name: 'Reporting::DataQualityReports::Project', foreign_key: :report_id
+    has_one :report_project_group, class_name: 'Reporting::DataQualityReports::ProjectGroup', foreign_key: :report_id
 
     def run!
       progress_methods = [
