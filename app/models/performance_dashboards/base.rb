@@ -187,7 +187,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def valid_sub_population(population)
-    self.class.sub_populations.values.detect { |m| m == population&.to_sym } || :all_clients
+    self.class.sub_populations.values.detect { |m| m == population&.to_sym } || :clients
   end
 
   # @return filtered scope

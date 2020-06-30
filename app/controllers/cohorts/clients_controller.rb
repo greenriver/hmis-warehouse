@@ -212,7 +212,7 @@ module Cohorts
       else
         @clients = @clients.where(wcp_t[:homeless_days].gteq(@actives[:min_days_homeless]))
       end
-      @actives[:actives_population] = [:all_clients] unless @actives.key? :actives_population
+      @actives[:actives_population] = [:clients] unless @actives.key? :actives_population
 
       enrollment_scope = base_enrollment_scope
       enrollment_scope = enrollment_scope.in_age_ranges(@actives[:age_ranges]) if @actives[:age_ranges].present?

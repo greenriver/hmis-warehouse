@@ -7,7 +7,7 @@
       .col-sm-3
         = f.input :end, as: :date_picker, input_html: { value: @actives.try(:[], :end).presence || 1.days.ago.to_date}
       .col-sm-3
-        = f.input :min_days_homeless, label: 'Minimum days homeless', input_html: {type: :number, value: 180, value: @actives.try(:[], :min_days_homeless).presence || 180 }
+        = f.input :min_days_homeless, label: 'Minimum days homeless', input_html: {type: :number, value: @actives.try(:[], :min_days_homeless).presence || 180 }
     .row
       .col-sm-4
         = f.input :limit_to_last_three_years, label: 'Limit days homeless to the last three years', as: :boolean, input_html: {checked: true}, wrapper_html: {class: 'mb-2'}
