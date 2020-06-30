@@ -87,7 +87,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/service_history_service.rb",
-      "line": 125,
+      "line": 128,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'\")",
       "render_path": null,
@@ -218,7 +218,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 383,
+      "line": 625,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"EXISTS (#{inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")} and \\\"Client\\\".\\\"id\\\" = \\\"inner_clients\\\".\\\"id\\\")\")",
       "render_path": null,
@@ -351,6 +351,37 @@
       },
       "user_input": "params.permit(:range => ([:start, :end]))[:range]",
       "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "7309180c3aafe13ae6fdc0948ec954da8c7c62359d1d0bbf94f91251bbcd7be9",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/admin/roles/index.haml",
+      "line": 44,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "Role.category_for(:permission => permission).to_s",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Admin::RolesController",
+          "method": "index",
+          "line": 19,
+          "file": "app/controllers/admin/roles_controller.rb",
+          "rendered": {
+            "name": "admin/roles/index",
+            "file": "app/views/admin/roles/index.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "admin/roles/index"
+      },
+      "user_input": null,
+      "confidence": "Medium",
       "note": ""
     },
     {
@@ -1000,7 +1031,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 478,
+      "line": 720,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql((\"consented_coc_codes='[]'::jsonb OR \" + \"#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map do\n connection.quote(s)\n end.join(\",\")}]\"))",
       "render_path": null,
@@ -1073,6 +1104,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-06-23 07:39:30 -0400",
+  "updated": "2020-06-27 14:55:47 -0400",
   "brakeman_version": "4.8.2"
 }

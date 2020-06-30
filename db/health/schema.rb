@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_18_132804) do
+ActiveRecord::Schema.define(version: 2020_06_29_205716) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1373,6 +1373,7 @@ ActiveRecord::Schema.define(version: 2020_06_18_132804) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "investigator"
     t.index ["case_id"], name: "index_tracing_site_leaders_on_case_id"
   end
 
@@ -1398,6 +1399,7 @@ ActiveRecord::Schema.define(version: 2020_06_18_132804) do
     t.string "phone_number"
     t.jsonb "symptoms"
     t.string "other_symptoms"
+    t.string "investigator"
     t.index ["case_id"], name: "index_tracing_staffs_on_case_id"
   end
 
