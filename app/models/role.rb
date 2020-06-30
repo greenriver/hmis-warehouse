@@ -318,7 +318,7 @@ class Role < ApplicationRecord
         description: 'Administrative ability to fundamentally change the way various items are calculated and to disable/enable modules',
         administrative: true,
         categories: [
-          'Adminstration',
+          'Administration',
         ],
       },
       # Deprecated TODO: remove references, then remove permission
@@ -326,7 +326,7 @@ class Role < ApplicationRecord
         description: 'Management interface for setup of data quality grading scheme',
         administrative: true,
         categories: [
-          'Adminstration',
+          'Administration',
         ],
       },
       can_view_vspdat: {
