@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_01_150708) do
+ActiveRecord::Schema.define(version: 2020_07_01_171520) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -884,6 +884,7 @@ ActiveRecord::Schema.define(version: 2020_07_01_150708) do
     t.boolean "active_homeless_status_override", default: false
     t.boolean "include_in_days_homeless_override", default: false
     t.boolean "extrapolate_contacts", default: false, null: false
+    t.boolean "combine_enrollments", default: false
     t.index "COALESCE(act_as_project_type, \"ProjectType\")", name: "project_project_override_index"
     t.index ["DateCreated"], name: "project_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id"
@@ -2183,32 +2184,32 @@ ActiveRecord::Schema.define(version: 2020_07_01_150708) do
     t.string "ExportID"
     t.integer "data_source_id", null: false
     t.integer "importer_log_id", null: false
-    t.datetime "pre_processed_at", null: false
+    t.datetime "aggregated_at", null: false
     t.string "source_hash"
     t.integer "source_id", null: false
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
-    t.index ["DateCreated"], name: "hmis_2020_aggregated_enrollments-faIi"
-    t.index ["DateDeleted"], name: "hmis_2020_aggregated_enrollments-IpSr"
-    t.index ["DateUpdated"], name: "hmis_2020_aggregated_enrollments-pR97"
-    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_aggregated_enrollments-oima"
-    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_aggregated_enrollments-SCj6"
-    t.index ["EnrollmentID", "data_source_id"], name: "hmis_2020_aggregated_enrollments-9eP1"
-    t.index ["EnrollmentID"], name: "hmis_2020_aggregated_enrollments-fzjk"
-    t.index ["EntryDate"], name: "hmis_2020_aggregated_enrollments-gi5V"
-    t.index ["ExportID"], name: "hmis_2020_aggregated_enrollments-7vdi"
-    t.index ["HouseholdID"], name: "hmis_2020_aggregated_enrollments-zG6g"
-    t.index ["LivingSituation"], name: "hmis_2020_aggregated_enrollments-NFso"
-    t.index ["PersonalID"], name: "hmis_2020_aggregated_enrollments-8D6Z"
-    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_2020_aggregated_enrollments-aIoc"
-    t.index ["ProjectID", "HouseholdID"], name: "hmis_2020_aggregated_enrollments-q1CC"
-    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-O8sa"
-    t.index ["ProjectID", "data_source_id"], name: "hmis_2020_aggregated_enrollments-QBbA"
-    t.index ["ProjectID"], name: "hmis_2020_aggregated_enrollments-a23g"
-    t.index ["RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-4Zf0"
-    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_2020_aggregated_enrollments-KHEY"
-    t.index ["source_type", "source_id"], name: "hmis_2020_aggregated_enrollments-6IgM"
+    t.index ["DateCreated"], name: "hmis_2020_aggregated_enrollments-jkZE"
+    t.index ["DateDeleted"], name: "hmis_2020_aggregated_enrollments-ETgo"
+    t.index ["DateUpdated"], name: "hmis_2020_aggregated_enrollments-R842"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_aggregated_enrollments-Rzts"
+    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_aggregated_enrollments-SALY"
+    t.index ["EnrollmentID", "data_source_id"], name: "hmis_2020_aggregated_enrollments-bAqe"
+    t.index ["EnrollmentID"], name: "hmis_2020_aggregated_enrollments-jg0H"
+    t.index ["EntryDate"], name: "hmis_2020_aggregated_enrollments-YR1E"
+    t.index ["ExportID"], name: "hmis_2020_aggregated_enrollments-lJ13"
+    t.index ["HouseholdID"], name: "hmis_2020_aggregated_enrollments-QjYA"
+    t.index ["LivingSituation"], name: "hmis_2020_aggregated_enrollments-nRCU"
+    t.index ["PersonalID"], name: "hmis_2020_aggregated_enrollments-boX2"
+    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_2020_aggregated_enrollments-NBU9"
+    t.index ["ProjectID", "HouseholdID"], name: "hmis_2020_aggregated_enrollments-OyPW"
+    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-F974"
+    t.index ["ProjectID", "data_source_id"], name: "hmis_2020_aggregated_enrollments-aQDR"
+    t.index ["ProjectID"], name: "hmis_2020_aggregated_enrollments-uBMF"
+    t.index ["RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-DXbp"
+    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_2020_aggregated_enrollments-9k6O"
+    t.index ["source_type", "source_id"], name: "hmis_2020_aggregated_enrollments-stze"
   end
 
   create_table "hmis_2020_assessment_questions", force: :cascade do |t|

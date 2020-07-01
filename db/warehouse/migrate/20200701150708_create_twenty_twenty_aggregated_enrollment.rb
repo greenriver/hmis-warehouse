@@ -6,7 +6,7 @@ class CreateTwentyTwentyAggregatedEnrollment < ActiveRecord::Migration[5.2]
 
     add_column klass.table_name, :data_source_id, :integer, null: false, index: true
     add_column klass.table_name, :importer_log_id, :integer, index: true, null: false
-    add_column klass.table_name, :pre_processed_at, :datetime, null: false
+    add_column klass.table_name, :aggregated_at, :datetime, null: false
     add_column klass.table_name, :source_hash, :string
     add_column klass.table_name, :source_id, :integer, null: false
     add_column klass.table_name, :source_type, :string, null: false

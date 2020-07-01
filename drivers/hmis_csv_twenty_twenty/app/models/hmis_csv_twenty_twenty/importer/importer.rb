@@ -106,9 +106,9 @@ module HmisCsvTwentyTwenty::Importer
         log("Aggregating #{klass.name}")
         # TODO: Apply whole table validations
 
-        aggregators = aggregators_from_class(klass)
+        aggregators = aggregators_from_class(klass) # Make datasource explicit
         if aggregators.present?
-          aggregators.each(&:aggregate!)
+          aggregators.each { |a| a.aggregate!(@importer_log.id) }
           HmisTwentyTwenty.look_aside(klass)
         end
       end
