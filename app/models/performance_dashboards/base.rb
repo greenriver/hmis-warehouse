@@ -243,44 +243,16 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   private def filter_for_age(scope)
-    return scope unless @age_ranges.present?
+    return scope unless @age_ranges.present? && (age_ranges.values & @age_ranges).present?
 
-    age_scope = nil
-    if @age_ranges.include?(:under_eighteen)
-      age_scope = add_alternative(
-        age_scope,
-        report_scope_source.where(she_t[:age].lt(18)),
-      )
-    end
-
-    if @age_ranges.include?(:eighteen_to_twenty_four)
-      age_scope = add_alternative(
-        age_scope,
-        report_scope_source.where(
-          she_t[:age].gteq(18).
-          and(she_t[:age].lteq(24)),
-        ),
-      )
-    end
-
-    if @age_ranges.include?(:twenty_five_to_sixty_one)
-      age_scope = add_alternative(
-        age_scope,
-        report_scope_source.where(
-          she_t[:age].gteq(25).
-          and(she_t[:age].lteq(61)),
-        ),
-      )
-    end
-
-    if @age_ranges.include?(:over_sixty_one)
-      age_scope = add_alternative(
-        age_scope,
-        report_scope_source.where(she_t[:age].gt(61)),
-      )
-    end
-
-    scope.merge(age_scope)
+    # Or'ing ages is very slow, instead we'll build up an acceptable
+    # array of ages
+    ages = []
+    ages += (0..17).to_a if @age_ranges.include?(:under_eighteen)
+    ages += (18..24).to_a if @age_ranges.include?(:eighteen_to_twenty_four)
+    ages += (25..61).to_a if @age_ranges.include?(:twenty_five_to_sixty_one)
+    ages += (62..110).to_a if @age_ranges.include?(:over_sixty_one)
+    scope.where(she_t[:age].in(ages))
   end
 
   private def filter_for_gender(scope)
@@ -371,7 +343,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   private def race_alternative(key)
-    report_scope_source.joins(:client).where(c_t[key].in(@races[key.to_s]))
+    report_scope_source.joins(:client).where(c_t[key].eq(@races[key.to_s]))
   end
 
   def yn(boolean)
