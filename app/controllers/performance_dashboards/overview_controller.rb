@@ -11,6 +11,7 @@ module PerformanceDashboards
     before_action :set_key, only: [:details]
 
     def index
+      @pdf_available = true
       respond_to do |format|
         format.pdf do
           @pdf = true
