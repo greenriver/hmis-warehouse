@@ -33,8 +33,31 @@ module HmisTwentyTwenty
       }.freeze
     end
 
-    def self.importable_files
-      importable_files_map.transform_values { |name| "#{module_scope}::#{name}".constantize }
+    def self.look_aside_scope
+      # Default to no look aside module
+      nil
     end
+
+    def self.importable_files
+      importable_files_map.transform_values do |name|
+        module_name = if HmisTwentyTwenty.look_aside?(name) && look_aside_scope.present?
+          look_aside_scope
+        else
+          module_scope
+        end
+
+        "#{module_name}::#{name}".constantize
+      end
+    end
+  end
+
+  def self.look_aside(clazz)
+    @look_aside ||= []
+    @look_aside << clazz.name.split('::').last
+  end
+
+  def self.look_aside?(name)
+    @look_aside ||= []
+    @look_aside.include?(name)
   end
 end

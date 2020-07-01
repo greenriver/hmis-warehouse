@@ -10,7 +10,7 @@
 # There's no reason to have client records with no enrollments
 # All tables that hang off a client also hang off enrollments
 
-# reload!; importer = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: 7, data_source_id: 90, debug: true); importer.import!
+# reload!; importer = HmisCsvTwentyTwenty::Importer::Importer.new(loader_id: 2, data_source_id: 14, debug: true); importer.import!
 
 module HmisCsvTwentyTwenty::Importer
   class Importer
@@ -50,6 +50,70 @@ module HmisCsvTwentyTwenty::Importer
       'HmisCsvTwentyTwenty::Importer'
     end
 
+    def self.look_aside_scope
+      'HmisCsvTwentyTwenty::Aggregator'
+    end
+
+    def import!
+      return if already_running_for_data_source?
+
+      GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
+        start_import
+        pre_process!
+        aggregate!
+        ingest!
+        complete_import
+      end
+    end
+
+    # Move all data from the data lake
+    def pre_process!
+      importer_log.update(status: :pre_processing)
+
+      # TODO: This could be parallelized
+      importable_files.each do |file_name, klass|
+        log("Pre-processing #{klass.name}")
+        batch = []
+        failures = []
+        source_data_scope_for(file_name).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+          destination = klass.new_from(source, deidentified: @deidentified)
+          destination.importer_log_id = importer_log.id
+          destination.pre_processed_at = Time.current
+          destination.set_source_hash
+          failures += destination.run_row_validations
+          batch << destination
+
+          if batch.count == INSERT_BATCH_SIZE
+            process_batch!(klass, batch, file_name, type: 'pre_processed')
+            batch = []
+          end
+          if failures.count == INSERT_BATCH_SIZE
+            HmisCsvValidation::Base.import(failures.compact)
+            failures = []
+          end
+        end
+
+        process_batch!(klass, batch, file_name, type: 'pre_processed') if batch.present? # ensure we get the last batch
+        HmisCsvValidation::Base.import(failures.compact) if failures.present?
+      end
+    end
+
+    def aggregate!
+      importer_log.update(status: :aggregating)
+
+      # TODO: This could be parallelized
+      importable_files.each do |_file_name, klass|
+        log("Aggregating #{klass.name}")
+        # TODO: Apply whole table validations
+
+        aggregators = aggregators_from_class(klass)
+        if aggregators.present?
+          aggregators.each(&:aggregate!)
+          HmisTwentyTwenty.look_aside(klass)
+        end
+      end
+    end
+
     # Pass 0, Walk the tree starting from projects and mark all as dead (in date range where appropriate)
     # Pass 1, create any where hud-key isn't in warehouse in same data source and involved projects
     # Pass 2, pluck previous hash and DateUpdated from warehouse, joining on involved scope
@@ -65,29 +129,67 @@ module HmisCsvTwentyTwenty::Importer
     # For any enrollments where history_generated_on is blank? || history_generated_on < Exit.ExitDate run equivalent of:
     # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
     # In here, add history_generated_on date to enrollment record
+    def ingest!
+      # Mark everything that exists in the warehouse, that would be covered by this import
+      # as pending deletion.  We'll remove the pending where appropriate
+      mark_tree_as_dead(Date.current)
 
-    def import!
-      return if already_running_for_data_source?
+      # Add any records we don't have
+      add_new_data
 
-      GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
-        start_import
-        pre_process!
+      # Process existing records,
+      # determine which records have changed and are newer
+      process_existing
 
-        # Mark everything that exists in the warehouse, that would be covered by this import
-        # as pending deletion.  We'll remove the pending where appropriate
-        mark_tree_as_dead(Date.current)
+      # Sweep all remaining items in a pending delete state
+      remove_pending_deletes
+    end
 
-        # Add any records we don't have
-        add_new_data
+    def aggregators_from_class(klass)
+      basename = klass.name.split('::').last
+      @data_source.import_aggregators[basename]&.map(&:constantize)
+    end
 
-        # Process existing records,
-        # determine which records have changed and are newer
-        process_existing
+    def mark_tree_as_dead(pending_date_deleted)
+      importable_files.each_value do |klass|
+        klass.mark_tree_as_dead(
+          data_source_id: data_source.id,
+          project_ids: involved_project_ids,
+          date_range: date_range,
+          pending_date_deleted: pending_date_deleted,
+        )
+      end
+    end
 
-        # Sweep all remaining items in a pending delete state
-        remove_pending_deletes
+    def add_new_data
+      importable_files.each do |file_name, klass|
+        log("Adding new #{klass.name}")
+        destination_class = klass.reflect_on_association(:destination_record).klass
+        batch = []
+        klass.new_data(
+          data_source_id: data_source.id,
+          project_ids: involved_project_ids,
+          date_range: date_range,
+          importer_log_id: importer_log.id,
+        ).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+          batch << row.as_destination_record
+          if batch.count == INSERT_BATCH_SIZE
+            process_batch!(destination_class, batch, file_name, type: 'added')
+            batch = []
+          end
+        end
 
-        complete_import
+        process_batch!(destination_class, batch, file_name, type: 'added') if batch.present? # ensure we get the last batch
+        log("Added #{summary_for(file_name, 'added')} new #{klass.name}")
+      end
+    end
+
+    def process_existing
+      # TODO: This could be parallelized
+      importable_files.each do |file_name, klass|
+        mark_unchanged(klass, file_name)
+        mark_incoming_older(klass, file_name)
+        apply_updates(klass, file_name)
       end
     end
 
@@ -101,13 +203,10 @@ module HmisCsvTwentyTwenty::Importer
       end
     end
 
-    def process_existing
-      # TODO: This could be parallelized
-      importable_files.each do |file_name, klass|
-        mark_unchanged(klass, file_name)
-        mark_incoming_older(klass, file_name)
-        apply_updates(klass, file_name)
-      end
+    def involved_project_ids
+      @involved_project_ids ||= HmisCsvTwentyTwenty::Importer::Project.
+        where(importer_log_id: importer_log.id).
+        pluck(:ProjectID)
     end
 
     # At this point,
@@ -171,8 +270,7 @@ module HmisCsvTwentyTwenty::Importer
         data_source_id: data_source.id,
         project_ids: involved_project_ids,
         date_range: date_range,
-      ).
-        where.not(DateUpdated: nil). # A bad import can sometimes cause this
+      ).where.not(DateUpdated: nil). # A bad import can sometimes cause this
         pluck(klass.hud_key, :source_hash)
       incoming = klass.where(importer_log_id: @importer_log.id).pluck(klass.hud_key, :source_hash)
       unchanged = (existing & incoming).map(&:first)
@@ -206,79 +304,6 @@ module HmisCsvTwentyTwenty::Importer
       @track_dirty_enrollment
     end
 
-    # Move all data from the data lake
-    def pre_process!
-      importer_log.update(status: :pre_processing)
-
-      # TODO: This could be parallelized
-      importable_files.each do |file_name, klass|
-        log("Pre-processing #{klass.name}")
-        batch = []
-        failures = []
-        source_data_scope_for(file_name).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
-          destination = klass.new_from(source, deidentified: @deidentified)
-          destination.importer_log_id = importer_log.id
-          destination.pre_processed_at = Time.current
-          destination.set_source_hash
-          row_failures = destination.run_row_validations
-          failures += row_failures
-          batch << destination unless row_failures.any?(&:skip_row?)
-
-          if batch.count == INSERT_BATCH_SIZE
-            process_batch!(klass, batch, file_name, type: 'pre_processed')
-            batch = []
-          end
-          if failures.count == INSERT_BATCH_SIZE
-            HmisCsvValidation::Base.import(failures.compact)
-            failures = []
-          end
-        end
-
-        process_batch!(klass, batch, file_name, type: 'pre_processed') if batch.present? # ensure we get the last batch
-        HmisCsvValidation::Base.import(failures.compact) if failures.present?
-      end
-    end
-
-    def involved_project_ids
-      @involved_project_ids ||= HmisCsvTwentyTwenty::Importer::Project.
-        where(importer_log_id: importer_log.id).
-        pluck(:ProjectID)
-    end
-
-    def mark_tree_as_dead(pending_date_deleted)
-      importable_files.each_value do |klass|
-        klass.mark_tree_as_dead(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-          pending_date_deleted: pending_date_deleted,
-        )
-      end
-    end
-
-    def add_new_data
-      importable_files.each do |file_name, klass|
-        log("Adding new #{klass.name}")
-        destination_class = klass.reflect_on_association(:destination_record).klass
-        batch = []
-        klass.new_data(
-          data_source_id: data_source.id,
-          project_ids: involved_project_ids,
-          date_range: date_range,
-          importer_log_id: importer_log.id,
-        ).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
-          batch << row.as_destination_record
-          if batch.count == INSERT_BATCH_SIZE
-            process_batch!(destination_class, batch, file_name, type: 'added')
-            batch = []
-          end
-        end
-
-        process_batch!(destination_class, batch, file_name, type: 'added') if batch.present? # ensure we get the last batch
-        log("Added #{summary_for(file_name, 'added')} new #{klass.name}")
-      end
-    end
-
     private def process_batch!(klass, batch, file_name, type:)
       klass.import(batch)
       note_processed(file_name, batch.count, type)
@@ -308,7 +333,7 @@ module HmisCsvTwentyTwenty::Importer
       @loaded_files[file_name].unscoped.where(loader_id: @loader_log.id)
     end
 
-    def date_range
+    private def date_range
       @date_range ||= Filters::DateRange.new(
         start: export_record.ExportStartDate.to_date,
         end: export_record.ExportEndDate.to_date,
@@ -392,7 +417,7 @@ module HmisCsvTwentyTwenty::Importer
         message: "Error importing #{klass}",
         details: message,
       )
-      @loader_log_log.summary[file]['total_errors'] += 1
+      @loader_log.summary[file]['total_errors'] += 1
       log(message)
     end
   end
