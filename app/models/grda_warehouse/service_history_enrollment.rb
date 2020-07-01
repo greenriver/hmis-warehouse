@@ -253,7 +253,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
         shs_t[:service_history_enrollment_id].eq(she_t[:id]).
         and(shs_t[:client_id].eq(she_t[:client_id]))
       ).
-      exists
+      arel.exists
     )
     # joins(:service_history_services).
     #   merge(GrdaWarehouse::ServiceHistoryService.service_between(start_date: start_date, end_date: end_date, service_scope: service_scope))
