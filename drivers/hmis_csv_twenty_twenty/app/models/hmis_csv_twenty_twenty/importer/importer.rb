@@ -102,7 +102,7 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.update(status: :aggregating)
 
       # TODO: This could be parallelized
-      importable_files.each do |_file_name, klass|
+      importable_files.each_value do |klass|
         log("Aggregating #{klass.name}")
         # TODO: Apply whole table validations
 
@@ -312,7 +312,7 @@ module HmisCsvTwentyTwenty::Importer
         row.save!
         note_processed(file_name, 1, type)
       rescue StandardError => e
-        add_error(klass: klass, source_id: row.source_id, message: e.message)
+        add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
       end
     end
 
@@ -324,7 +324,7 @@ module HmisCsvTwentyTwenty::Importer
         klass.import([row], on_duplicate_key_update: [klass.hud_key])
         note_processed(file_name, 1, type)
       rescue StandardError => e
-        add_error(klass: klass, source_id: row.source_id, message: e.message)
+        add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
       end
     end
 
@@ -410,7 +410,7 @@ module HmisCsvTwentyTwenty::Importer
       logger.info message if @debug
     end
 
-    def add_error(klass:, source_id:, message:)
+    def add_error(file:, klass:, source_id:, message:)
       importer_log.import_errors.create!(
         source_type: klass,
         source_id: source_id,
