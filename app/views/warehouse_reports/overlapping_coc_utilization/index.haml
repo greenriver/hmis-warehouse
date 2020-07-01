@@ -1,0 +1,19 @@
+- title = "Overlapping CoC Utilization"
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
+
+.warehouse-reports__ad_hoc-export
+  .row
+    .col-6
+      #leaflet-map.coc-util-overlap
+    .col-6
+      = simple_form_for :compare, url: url_for, method: :get do |f|
+        = f.input :coc1, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 1', input_html: { class: [:select2] }
+        = f.input :coc2, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
+        = f.submit 'Compare'
+
+= content_for :page_js do
+  %script
+    shapes = #{@shapes.to_json.html_safe};
+    new App.Maps.MapWithShapes('leaflet-map', shapes);

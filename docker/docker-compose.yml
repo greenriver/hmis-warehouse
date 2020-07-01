@@ -1,7 +1,7 @@
 version: '3.7'
 
 x-app: &app
-  image: hmis-warehouse:0.0.3
+  image: hmis-warehouse:1.0
   build:
     context: .
     args:
@@ -10,7 +10,7 @@ x-app: &app
       NODE_MAJOR: '12'
       YARN_VERSION: '1.17.3'
       BUNDLER_VERSION: '1.17.3'
-      ADDITIONAL_PACKAGES: vim nodejs python2 unzip xvfb google-chrome-stable less freetds-dev freetds-bin phantomjs xfonts-75dpi alien libpng-dev libicu-dev libcurl4-openssl-dev curl libmagic-dev libmagickcore-dev libmagickwand-dev wkhtmltopdf lftp
+      ADDITIONAL_PACKAGES: libproj-dev libgeos-dev postgis vim nodejs python2 unzip xvfb google-chrome-stable less freetds-dev freetds-bin phantomjs xfonts-75dpi alien libpng-dev libicu-dev libcurl4-openssl-dev curl libmagic-dev libmagickcore-dev libmagickwand-dev wkhtmltopdf lftp exuberant-ctags zsh postgresql-client ssh silversearcher-ag
   environment: &env
     NODE_ENV: ${NODE_ENV:-development}
     BOOTSNAP_CACHE_DIR: /bundle/bootsnap
@@ -82,8 +82,11 @@ services:
       - mailhog
 
   db:
+    image: hmis-warehouse-db:1.0
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.postgres
     container_name: hmis-warehouse-db
-    image: postgres:12-alpine
     environment:
       POSTGRES_PASSWORD: postgres
       PSQL_HISTFILE: /root/log/.psql_history

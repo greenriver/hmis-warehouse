@@ -347,4 +347,46 @@ namespace :grda_warehouse do
 
     WarehouseReports::HealthEmergencyBatchNotifierJob.perform_now
   end
+
+  desc "Get shapes"
+  task :get_shapes, [] => [:environment] do
+    Rails.logger.info "Downloading shapes of geometries (you need to set up your AWS environment to download)"
+    FileUtils.chdir(Rails.root.join('shape_files'))
+    system('./sync.from.s3')
+
+    num_zips = `find . -name '*zip' | wc --lines`.to_i
+    if num_zips == 0
+      # If you don't care about CoC/ZipCode shapes and want to just get through
+      # the migration, just comment out this whole rake task. You can run it
+      # later
+      raise "You didn't sync shape files correctly yet. Aborting"
+    end
+
+    Rails.logger.info "Preparing shapes of geometries for insertion into database"
+    FileUtils.chdir(Rails.root)
+    system("./shape_files/zip_codes.census.2018/make.inserts") || exit
+    system("./shape_files/CoC/make.inserts") || exit
+
+    Rails.logger.info "Inserting CoCs into the database, conserving RAM"
+    ActiveRecord::Base.logger.silence do
+      File.open('shape_files/CoC/coc.sql', 'r') do |fin|
+        fin.each_line do |line|
+          GrdaWarehouseBase.connection.execute(line)
+        end
+      end
+    end
+
+    Rails.logger.info "Inserting zip codes into the database, conserving RAM (takes awhile)"
+    ActiveRecord::Base.logger.silence do
+      File.open('shape_files/zip_codes.census.2018/zip.codes.sql', 'r') do |fin|
+        fin.each_line do |line|
+          GrdaWarehouseBase.connection.execute(line)
+        end
+      end
+    end
+
+    Rails.logger.info "Simplifying shapes for much faster UI"
+    GrdaWarehouse::Shape::ZipCode.simplify!
+    GrdaWarehouse::Shape::CoC.simplify!
+  end
 end

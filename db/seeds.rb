@@ -195,6 +195,12 @@ def report_list
         description: 'Coordinated Entry assessment details.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/overlapping_coc_utilization',
+        name: 'Overlapping CoC Utilization',
+        description: 'Overlapping CoC utilization',
+        limitable: true,
+      },
     ],
     'Data Quality' => [
       {
@@ -598,7 +604,7 @@ def maintain_report_definitions
       r.name = report[:name]
       r.description = report[:description]
       r.limitable = report[:limitable]
-      r.save
+      r.save!
     end
   end
 end
@@ -809,6 +815,10 @@ def maintain_coc_codes
   end
 end
 
+def install_shapes
+  Rake::Task['grda_warehouse:get_shapes'].invoke
+end
+
 # These tables are partitioned and need to have triggers and functions that
 # schema loading doesn't include.  This will ensure that they exist on each deploy
 def ensure_db_triggers_and_functions
@@ -822,3 +832,4 @@ maintain_data_sources()
 maintain_report_definitions()
 maintain_health_seeds()
 maintain_coc_codes()
+install_shapes()

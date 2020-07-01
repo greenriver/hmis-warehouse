@@ -24,16 +24,9 @@ FROM open-path-warehouse:latest--pre-cache
 
 ARG BUILDER
 
-# FIXME: delete after next pre-cache build
-ENV GROVER_NO_SANDBOX=true \
-    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
-    CHROMIUM_PATH=/usr/bin/chromium-browser
+# Remove after pre-cache gets rebuilt
 RUN apk add --no-cache \
-  imagemagick \
-  wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
-  chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-  lftp postgresql tmux
+  postgis geos geos-dev
 
 LABEL "app"=open-path-warehouse
 LABEL "ruby-version"=2.6.5
@@ -48,7 +41,6 @@ COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
 COPY bin ./bin
 COPY public ./public
 COPY config/deploy/docker/assets/download_secrets.rb ./bin
-COPY config/deploy/docker/assets/sync_app_assets.rb ./bin
 COPY config/deploy/docker/lib/cron_installer.rb ./bin
 COPY config/deploy/docker/lib/scheduled_task.rb ./bin
 COPY config/deploy/docker/assets/deploy_tasks.open-path-warehouse.sh ./bin/deploy_tasks.sh

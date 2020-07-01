@@ -1,0 +1,5 @@
+FROM postgres:12
+
+RUN apt-get update -qq \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+  postgis postgresql-12-postgis-3

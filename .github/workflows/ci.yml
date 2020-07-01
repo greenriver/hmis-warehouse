@@ -60,9 +60,12 @@ jobs:
            imagemagick \
            libc6-dev \
            libcurl4-openssl-dev \
+           libgeos-dev \
            libicu-dev \
            libmagic-dev \
            libpq-dev \
+           libproj-dev \
+           postgis \
            postgresql-client \
            python \
            unzip \

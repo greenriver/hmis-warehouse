@@ -1,0 +1,3 @@
+echo syncing to s3 so we do not need to rely on various shape file sources being available and easy to scrape
+
+aws s3 sync ./ s3://openpath-public-shape-files/ --exclude \* --include \*.zip

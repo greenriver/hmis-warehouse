@@ -1,0 +1,6 @@
+export ASSETS_BUCKET_NAME=openpath-public-shape-files
+export ASSETS_PREFIX=''
+export UPDATE_ONLY=true
+export AWS_REGION=us-east-1
+
+../bin/sync_app_assets.rb

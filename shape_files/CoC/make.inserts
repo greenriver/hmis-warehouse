@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+require 'pathname'
+
+FileUtils.chdir(Pathname.new(__FILE__).dirname)
+
+Dir.glob("*.zip").each do |zipfile|
+  system("unzip -f #{zipfile}")
+end
+
+FileUtils.rm_f('coc.sql')
+
+Dir.glob('**/*shp').each do |shape_file|
+  system "shp2pgsql -s 4269:4326 -p -I #{shape_file} shape_cocs > coc.structure.sql"
+  puts "Exporting insert statements into coc.sql for #{shape_file}"
+  system(<<~EOS)
+    shp2pgsql -s 4269:4326 -c -I #{shape_file} shape_cocs \
+      | sed -e 's/gid/id/' \
+      | grep 'INSERT' \
+      >> coc.sql
+  EOS
+end

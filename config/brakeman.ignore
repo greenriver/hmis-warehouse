@@ -525,6 +525,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "822ab18e43cc8a9807a17e1d1ecac0217f8446e30ea8531ce8e75f8402dc1ea0",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
+      "line": 42,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Shape::SharedBehaviors::ClassMethods",
+        "method": "simplify!"
+      },
+      "user_input": "simplification_distance_in_degrees",
+      "confidence": "Medium",
+      "note": "injection is always a number and not from the database or user input"
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "850068cbcbd30e554efc5cc597f03ad14dfbd68240142d37a64e9f7a6c53a1a7",
@@ -611,7 +631,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 296,
+      "line": 298,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -971,7 +991,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/performance_dashboards/base.rb",
-      "line": 158,
+      "line": 160,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[@sub_population].constantize",
       "render_path": null,
@@ -1104,6 +1124,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-07-02 08:41:44 -0400",
+  "updated": "2020-07-08 18:07:50 +0000",
   "brakeman_version": "4.8.2"
 }
