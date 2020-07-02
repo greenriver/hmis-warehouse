@@ -7,6 +7,7 @@
 module HmisCsvTwentyTwenty::Aggregated
   class Exit < GrdaWarehouse::Hud::Base
     include HmisCsvTwentyTwenty::Importer::ImportConcern
+    include AggregatedImportConcern
     include ArelHelper
     include ::HMIS::Structure::Exit
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

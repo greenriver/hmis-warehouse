@@ -91,7 +91,6 @@ module HmisCsvTwentyTwenty::Importer
         destination.set_source_hash
         failures += destination.run_row_validations
         batch << destination
-
         if batch.count == INSERT_BATCH_SIZE
           process_batch!(klass, batch, file_name, type: 'pre_processed')
           batch = []
@@ -313,27 +312,31 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     private def process_batch!(klass, batch, file_name, type:)
+      errors = []
       klass.import(batch)
       note_processed(file_name, batch.count, type)
-    rescue StandardError => e
-      batch.each do |row|
-        row.save!
-        note_processed(file_name, 1, type)
       rescue StandardError => e
-        add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
-      end
+        batch.each do |row|
+          row.save!
+          note_processed(file_name, 1, type)
+        rescue StandardError => e
+          errors << add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
+        end
+        @importer_log.import_errors.import(errors)
     end
 
     private def bulk_update!(klass, batch, file_name, type:)
+      errors = []
       klass.import(batch, on_duplicate_key_update: [klass.hud_key])
       note_processed(file_name, batch.count, type)
-    rescue StandardError
+    rescue StandardError => e
       batch.each do |row|
         klass.import([row], on_duplicate_key_update: [klass.hud_key])
         note_processed(file_name, 1, type)
       rescue StandardError => e
-        add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
+        errors << add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
       end
+      @importer_log.import_errors.import(errors)
     end
 
     private def source_data_scope_for(file_name)
@@ -419,7 +422,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def add_error(file:, klass:, source_id:, message:)
-      importer_log.import_errors.create!(
+      importer_log.import_errors.build(
         source_type: klass,
         source_id: source_id,
         message: "Error importing #{klass}",
