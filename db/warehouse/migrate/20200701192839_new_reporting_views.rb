@@ -87,7 +87,7 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
       "date >= (CURRENT_DATE - #{SH_INTERVAL})"
     )
     client_history_view GrdaWarehouse::ServiceHistoryEnrollment.where(
-      "COALESCE(last_date_in_program, first_date_in_program) >= (CURRENT_DATE - #{SH_INTERVAL})"
+      "last_date_in_program IS NULL OR last_date_in_program >= (CURRENT_DATE - #{SH_INTERVAL})"
     )
     enrollment_info_view GrdaWarehouse::Hud::Service
     enrollment_info_view GrdaWarehouse::Hud::Exit
