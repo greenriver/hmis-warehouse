@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_30_152328) do
+ActiveRecord::Schema.define(version: 2020_07_01_192839) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -2926,6 +2926,7 @@ ActiveRecord::Schema.define(version: 2020_06_30_152328) do
     t.boolean "head_of_household", default: false, null: false
     t.date "move_in_date"
     t.boolean "unaccompanied_minor", default: false
+    t.index ["age"], name: "index_service_history_enrollments_on_age"
     t.index ["client_id", "record_type"], name: "index_she_on_client_id"
     t.index ["computed_project_type", "record_type", "client_id"], name: "index_she_on_computed_project_type"
     t.index ["data_source_id", "project_id", "organization_id", "record_type"], name: "index_she_ds_proj_org_r_type"
@@ -5158,9 +5159,7 @@ ActiveRecord::Schema.define(version: 2020_06_30_152328) do
       service_history_services.literally_homeless
      FROM (service_history_services
        JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
-    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
-            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
+    WHERE (service_history_services.date >= (CURRENT_DATE - '5 years'::interval));
   SQL
   create_view "bi_service_history_enrollments", sql_definition: <<-SQL
       SELECT service_history_enrollments.id,
@@ -5199,9 +5198,7 @@ ActiveRecord::Schema.define(version: 2020_06_30_152328) do
       service_history_enrollments.unaccompanied_minor
      FROM (service_history_enrollments
        JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
-    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
-            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
+    WHERE (COALESCE(service_history_enrollments.last_date_in_program, service_history_enrollments.first_date_in_program) >= (CURRENT_DATE - '5 years'::interval));
   SQL
   create_view "bi_Organization", sql_definition: <<-SQL
       SELECT "Organization"."OrganizationID",

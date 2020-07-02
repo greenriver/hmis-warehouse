@@ -2,6 +2,7 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
   HUD_CSV_VERSION = '2020'
   NAMESPACE = 'bi'
   PG_ROLE = 'bi'
+  SH_INTERVAL = '\'5 years\'::interval'
   DEMOGRAPHICS_VIEW = "\"#{NAMESPACE}_Demographics\""
 
   def safe_drop_view(name)
@@ -82,9 +83,12 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
 
     hud_client_view GrdaWarehouse::Hud::Enrollment
 
-    client_info_view GrdaWarehouse::ServiceHistoryService
-    client_info_view GrdaWarehouse::ServiceHistoryEnrollment
-
+    client_history_view GrdaWarehouse::ServiceHistoryService.where(
+      "date >= (CURRENT_DATE - #{SH_INTERVAL})"
+    )
+    client_history_view GrdaWarehouse::ServiceHistoryEnrollment.where(
+      "COALESCE(last_date_in_program, first_date_in_program) >= (CURRENT_DATE - #{SH_INTERVAL})"
+    )
     enrollment_info_view GrdaWarehouse::Hud::Service
     enrollment_info_view GrdaWarehouse::Hud::Exit
     enrollment_info_view GrdaWarehouse::Hud::EnrollmentCoc
@@ -135,8 +139,8 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
     safe_create_view view_name(model.arel_table), sql_definition: query.to_sql
   end
 
-  def client_info_view(model)
-    scope = model.joins(:client).merge(GrdaWarehouse::Hud::Client.destination)
+  def client_history_view(model)
+    scope = model.joins(:client)
     if model.paranoid?
       scope = scope.where(model.paranoia_column.to_sym => nil)
     end
