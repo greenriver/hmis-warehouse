@@ -1,0 +1,7 @@
+- content_for :title, 'Veterans Dashboard'
+- @show_census = false
+%h1= content_for :title
+- if @html
+  = render 'dashboards/tabs', active: 'veterans'
+%p.text-muted
+  Veteran clients enrolled in homeless projects (ES, SH, SO, TH).

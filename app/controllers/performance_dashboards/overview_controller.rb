@@ -80,7 +80,7 @@ module PerformanceDashboards
     end
 
     private def default_comparison_pattern
-      PerformanceDashboards::Overview.comparison_patterns.values.first
+      :no_comparison_period
     end
   end
 end

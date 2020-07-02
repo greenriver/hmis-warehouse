@@ -140,17 +140,18 @@ jobs:
          WAREHOUSE_DATABASE_ADAPTER: postgresql
          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
        run: |
-         bin/db_prep
+        pg_isready -h postgres -U postgres
+        bin/db_prep
 
-         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-         chmod 600 ~/.pgpass
+        echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+        chmod 600 ~/.pgpass
 
-         #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f db/make_repair_sequences_script.sql > repair.sql
-         #echo repair.sql
-         #echo repairing sequences
-         #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f repair.sql
+        #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f db/make_repair_sequences_script.sql > repair.sql
+        #echo repair.sql
+        #echo repairing sequences
+        #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f repair.sql
 
-         npm install
+        npm install
 
      - name: Run tests
        env:

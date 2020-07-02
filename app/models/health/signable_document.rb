@@ -37,9 +37,9 @@ module Health
     validate :sane_number_signed
 
     belongs_to :signable, polymorphic: true
-    # belongs_to :health_file, dependent: :destroy, class_name: Health::SignableDocumentFile.name
+    # belongs_to :health_file, dependent: :destroy, class_name: 'Health::SignableDocumentFile'
     has_many :health_files, class_name: 'Health::SignableDocumentFile', foreign_key: :parent_id, dependent: :destroy
-    has_one :signature_request, class_name: Health::SignatureRequest.name
+    has_one :signature_request, class_name: 'Health::SignatureRequest'
     has_one :team_member, through: :signature_request
     delegate :signed?, to: :signature_request, allow_nil: true
 

@@ -4,6 +4,7 @@ def setup_fake_user
   unless User.find_by(email: 'noreply@example.com').present?
     # Add roles
     admin = Role.where(name: 'Admin').first_or_create
+    admin.update(can_edit_users: true, can_edit_roles: true)
     dnd_staff = Role.where(name: 'CoC Staff').first_or_create
 
     # Add a user.  This should not be added in production

@@ -9,9 +9,9 @@
 - if @clients.any?
   %p
     Clients who first received a residential service in the period from
-    = @range.start
+    = @filter.start
     to
-    = @range.end
+    = @filter.end
     = render 'common/population_warnings'
   %h4 All Clients Added
   .row
@@ -58,9 +58,10 @@
 - else
   %p.text-center No clients found
 
+- url = summary_warehouse_reports_first_time_homeless_index_path(filter: { start: @filter.start, end: @filter.end, sub_population: @filter.sub_population, project_type_codes: @filter.project_type_codes, age_ranges: @filter.age_ranges, heads_of_household: @filter.heads_of_household})
 - content_for :page_js do
   :javascript
     (function($) {
-      chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{summary_warehouse_reports_first_time_homeless_index_path(start: @range.start, end: @range.end, project_types: @project_types.to_json, sub_population: @sub_population)}');
+      chart = new App.ChartsScatterByDate.FirstTimeHomeless('#{url}');
       chart.load();
     })(jQuery);
