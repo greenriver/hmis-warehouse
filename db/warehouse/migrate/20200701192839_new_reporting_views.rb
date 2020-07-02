@@ -103,13 +103,10 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
   def de_identified_client_cols
     model = GrdaWarehouse::Hud::Client
     hmis_cols = model.hmis_structure(version: '2020').keys.map(&:to_sym)
-    # HUD PII columns
-    # De-identified per
-    # HMIS CSV FORMAT Specifications FY2020 – January 2020
-    # Hash Status=4 SHA256
+    # De-identified per HMIS CSV FORMAT Specifications FY2020 – January 2020
+    # https://hudhdx.info/Resources/Vendors/HMIS%20CSV%20Specifications%20FY2020%20v1.8.pdf
+    # ~Page 7 HashStatus of ‘SHA-256’ (4)
     hmis_cols -= %i/PersonalID FirstName MiddleName LastName NameSuffix NameDataQuality SSN SSNDataQuality/
-    # https://hudhdx.info/Resources/Vendors/HMIS%20CSV%20Specifications%20FY2020%20v1.1.pdf
-    # Page 11 HashStatus of ‘SHA-256’ (4)
     de_identified = [
       'PersonalID',
       '4 as "HashStatus"',
