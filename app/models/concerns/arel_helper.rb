@@ -124,6 +124,10 @@ module ArelHelper
     GrdaWarehouse::Hud::Client.arel_table
   end
 
+  def cn_t
+    GrdaWarehouse::ClientNotes::Base.arel_table
+  end
+
   def p_t
     GrdaWarehouse::Hud::Project.arel_table
   end
@@ -266,6 +270,10 @@ module ArelHelper
 
   def htco_t
     Health::Tracing::Contact.arel_table
+  end
+
+  def r_monthly_t
+    Reporting::MonthlyReports::Base.arel_table
   end
 
   # and to the class itself (so they can be used in scopes, for example)
@@ -433,6 +441,10 @@ module ArelHelper
       GrdaWarehouse::Hud::Client.arel_table
     end
 
+    def cn_t
+      GrdaWarehouse::ClientNotes::Base.arel_table
+    end
+
     def p_t
       GrdaWarehouse::Hud::Project.arel_table
     end
@@ -579,6 +591,10 @@ module ArelHelper
 
     def htco_t
       Health::Tracing::Contact.arel_table
+    end
+
+    def r_monthly_t
+      Reporting::MonthlyReports::Base.arel_table
     end
   end
 end

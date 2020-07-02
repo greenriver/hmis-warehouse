@@ -44,20 +44,21 @@ module Reports::Lsa::Fy2018
     end
 
     def self.available_sub_populations
-      [
-        ['All Clients', :all_clients],
-        ['Veteran', :veteran],
-        ['Youth', :youth],
-        ['Parents', :family_parents],
-        ['Parenting Youth', :parenting_youth],
-        ['Parenting Children', :parenting_children],
-        ['Individual Adults', :individual_adults],
-        ['Non Veteran', :non_veteran],
-        ['Family', :family],
-        ['Youth Families', :youth_families],
-        ['Children', :children],
-        ['Unaccompanied Minors', :unaccompanied_minors],
-      ]
+      AvailableSubPopulations.available_sub_populations
+      # [
+      #   ['All Clients', :all_clients],
+      #   ['Veteran', :veteran],
+      #   ['Youth', :youth],
+      #   ['Parents', :family_parents],
+      #   ['Parenting Youth', :parenting_youth],
+      #   ['Parenting Children', :parenting_children],
+      #   ['Individual Adults', :individual_adults],
+      #   ['Non Veteran', :non_veteran],
+      #   ['Family', :family],
+      #   ['Youth Families', :youth_families],
+      #   ['Children', :children],
+      #   ['Unaccompanied Minors', :unaccompanied_minors],
+      # ]
     end
 
     def value_for_options options

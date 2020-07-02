@@ -6,7 +6,7 @@
 
 module GrdaWarehouse
   class CasHoused < GrdaWarehouseBase
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     scope :unprocessed, -> do
       where inactivated: false
     end
