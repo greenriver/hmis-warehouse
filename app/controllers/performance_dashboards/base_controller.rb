@@ -89,7 +89,7 @@ class PerformanceDashboards::BaseController < ApplicationController
     # project_type_codes exists as both a single and multi, ensure it's always
     # an array
 
-    filtered[:filters][:project_type_codes] = Array.wrap(params[:filters][:project_type_codes]) if params.dig(:filters, :project_type_codes).is_a?(String)
+    filtered[:filters][:project_type_codes] = Array.wrap(params[:filters][:project_type_codes])
     filtered
   end
   helper_method :filter_params
