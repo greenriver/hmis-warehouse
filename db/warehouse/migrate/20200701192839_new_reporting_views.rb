@@ -10,7 +10,6 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
     end
   end
 
-
   def safe_create_role(role: PG_ROLE)
     sql = <<~SQL
       DO $$
@@ -77,15 +76,16 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
     non_client_view GrdaWarehouse::Hud::Inventory
     non_client_view GrdaWarehouse::Hud::Funder
 
-    client_view # destination
-    demographics_view # source
+    safe_create_view view_name(GrdaWarehouse::Hud::Client),
+      sql_definition: GrdaWarehouse::Hud::Client.destination.select(de_identified_client_cols).to_sql
 
-    safe_drop_view view_name(GrdaWarehouse::Hud::Enrollment)
-    enrollments_view
+    safe_create_view DEMOGRAPHICS_VIEW,
+      sql_definition: GrdaWarehouse::Hud::Client.source.select(de_identified_client_cols).to_sql
 
-    # #TODO report_clients (holds destination client records)
-    # #TODO report_demographics (holds source client records)
-    # enrollment_view
+    hud_client_view GrdaWarehouse::Hud::Enrollment
+
+    client_info_view GrdaWarehouse::ServiceHistoryService
+    client_info_view GrdaWarehouse::ServiceHistoryEnrollment
 
     enrollment_info_view GrdaWarehouse::Hud::Service
     enrollment_info_view GrdaWarehouse::Hud::Exit
@@ -125,30 +125,30 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
     [:id, *de_identified, *hmis_cols]
   end
 
-  def client_view
-    model = GrdaWarehouse::Hud::Client
-    safe_create_view view_name(model), sql_definition: model.destination.select(de_identified_client_cols).to_sql
-  end
-
-
-  def demographics_view
-    model = GrdaWarehouse::Hud::Client.source
-    safe_create_view DEMOGRAPHICS_VIEW, sql_definition: model.source.select(de_identified_client_cols).to_sql
-  end
-
-   def enrollments_view
-    model = GrdaWarehouse::Hud::Enrollment
+  def hud_client_view(model)
     query = join_source_and_client(model.arel_table)
-    query = query.project(
+    if model.paranoid?
+      query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
+    end
+    cols = [
       destination_client_table[:id].as('client_id'),
       enrollments_table[:id].as('enrollment_id'),
       *model.hmis_structure(version: '2020').keys.map{|col| model.arel_table[col]},
       source_client_table[:id].as('demographic_id')
-    )
+    ]
+    query = query.project(*cols)
+    safe_create_view view_name(model.arel_table), sql_definition: query.to_sql
+  end
+
+  def client_info_view(model)
+    scope = model.joins(:client).merge(GrdaWarehouse::Hud::Client.destination)
     if model.paranoid?
-      query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
+      scope = scope.where(model.paranoia_column.to_sym => nil)
     end
-    safe_create_view view_name(GrdaWarehouse::Hud::Enrollment), sql_definition: query.to_sql
+    scope.select(
+      model.column_names
+    )
+    safe_create_view view_name(model.arel_table), sql_definition: scope.to_sql
   end
 
   def non_client_view(model)

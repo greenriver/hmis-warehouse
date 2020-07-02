@@ -5358,8 +5358,6 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
      FROM "Client"
     WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
              FROM data_sources
-            WHERE ((data_sources.deleted_at IS NULL) AND ((data_sources.source_type IS NOT NULL) OR (data_sources.authoritative = true))))) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
             WHERE ((data_sources.deleted_at IS NULL) AND ((data_sources.source_type IS NOT NULL) OR (data_sources.authoritative = true))))));
   SQL
   create_view "bi_Enrollment", sql_definition: <<-SQL
@@ -5442,6 +5440,64 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
     WHERE ("Enrollment"."DateDeleted" IS NULL);
+  SQL
+  create_view "bi_service_history_services", sql_definition: <<-SQL
+      SELECT service_history_services.id,
+      service_history_services.service_history_enrollment_id,
+      service_history_services.record_type,
+      service_history_services.date,
+      service_history_services.age,
+      service_history_services.service_type,
+      service_history_services.client_id,
+      service_history_services.project_type,
+      service_history_services.homeless,
+      service_history_services.literally_homeless
+     FROM (service_history_services
+       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
+    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
+             FROM data_sources
+            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
+  SQL
+  create_view "bi_service_history_enrollments", sql_definition: <<-SQL
+      SELECT service_history_enrollments.id,
+      service_history_enrollments.client_id,
+      service_history_enrollments.data_source_id,
+      service_history_enrollments.date,
+      service_history_enrollments.first_date_in_program,
+      service_history_enrollments.last_date_in_program,
+      service_history_enrollments.enrollment_group_id,
+      service_history_enrollments.project_id,
+      service_history_enrollments.age,
+      service_history_enrollments.destination,
+      service_history_enrollments.head_of_household_id,
+      service_history_enrollments.household_id,
+      service_history_enrollments.project_name,
+      service_history_enrollments.project_type,
+      service_history_enrollments.project_tracking_method,
+      service_history_enrollments.organization_id,
+      service_history_enrollments.record_type,
+      service_history_enrollments.housing_status_at_entry,
+      service_history_enrollments.housing_status_at_exit,
+      service_history_enrollments.service_type,
+      service_history_enrollments.computed_project_type,
+      service_history_enrollments.presented_as_individual,
+      service_history_enrollments.other_clients_over_25,
+      service_history_enrollments.other_clients_under_18,
+      service_history_enrollments.other_clients_between_18_and_25,
+      service_history_enrollments.unaccompanied_youth,
+      service_history_enrollments.parenting_youth,
+      service_history_enrollments.parenting_juvenile,
+      service_history_enrollments.children_only,
+      service_history_enrollments.individual_adult,
+      service_history_enrollments.individual_elder,
+      service_history_enrollments.head_of_household,
+      service_history_enrollments.move_in_date,
+      service_history_enrollments.unaccompanied_minor
+     FROM (service_history_enrollments
+       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
+    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
+             FROM data_sources
+            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
   SQL
   create_view "bi_Services", sql_definition: <<-SQL
       SELECT destination_clients.id AS client_id,
