@@ -55,6 +55,7 @@ class User < ApplicationRecord
   has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
 
   has_many :messages
+  has_many :document_exports, dependent: :destroy
 
   belongs_to :agency, optional: true
 

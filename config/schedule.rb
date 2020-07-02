@@ -26,6 +26,7 @@ daily_schedule = ENV['DAILY_SCHEDULE'] || '3:10 am'
 every 1.day, at: daily_schedule do
   # Long-running
   rake "grda_warehouse:daily"
+  runner "PruneDocumentExportsJob.perform_later"
 end
 shifted_time = Time.parse(daily_schedule) - 2.hours
 every 1.day, at: shifted_time.strftime('%H:%M %P') do

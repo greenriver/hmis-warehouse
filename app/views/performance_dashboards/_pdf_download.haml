@@ -1,0 +1,56 @@
+:ruby
+  document_export_type = DocumentExports::PerformanceDashboardExport.name
+  rand = SecureRandom.hex(4)
+  modal_id = "m#{rand}"
+  link_id = "l#{rand}"
+
+%button.btn.btn-secondary(type='button' id=link_id) Download PDF
+
+.modal.fade(role="dialog" aria-hidden="true" id=modal_id)
+  .modal-dialog.modal-dialog-scrollable.modal-dialog-centered{role: :document}
+    .modal-content
+      .modal-header
+        %h4.modal-title Download PDF
+        %button.close(aria-label="Close" type="button" data-dismiss="modal")
+          %i.modal-icon-close
+      .modal-body.clearfix
+
+- content_for :page_js do
+  :javascript
+    'use strict';
+
+    var submitForm = function($form) {
+      var data = {
+        params: $form.serialize(),
+        type: #{document_export_type.to_json.html_safe},
+      };
+
+      var xhr = $.ajax({
+        type: 'POST',
+        url: #{document_exports_path.to_json.html_safe},
+        data: data
+      });
+      var cancel = function() { xhr.abort() }
+      return {xhr: xhr, cancel: cancel}
+    };
+
+    $(function() {
+      var $modal = $("#" + #{modal_id.to_json.html_safe});
+      $("#" + #{link_id.to_json.html_safe}).click(function() {
+        $modal.find('.modal-body').html('<p class="lead">Processing...</p>');
+        $modal.modal('show');
+        var $form = $(this).closest('form');
+        var ajax = submitForm($form);
+        ajax.xhr
+          .then(function(data) {
+            $modal.find('.modal-body').html(data)
+          })
+          .catch(function() {
+            $modal.find('.modal-body').html('<p class="lead text-danger">An Error Occured, please try again</p>');
+          });
+        $modal.on('hidden.bs.modal', () => {
+          ajax.cancel();
+          $modal.find('.modal-body').html('');
+        })
+      });
+    });

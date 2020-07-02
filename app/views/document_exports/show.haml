@@ -1,0 +1,53 @@
+#j-pending.mb-5
+  %p Please wait, your request is being processed...
+  .download-wrapper
+    %a.btn.btn-primary.disabled Download
+    = embedded_svg('icon-cog', class: 'icon-svg--with-button icon-animated--rotate')
+#j-success.d-none.mb-5
+  %p
+    = embedded_svg('icon-check-circle', class: 'icon-svg icon-svg--success')
+    Processing complete. Click the button below to download.
+  %a#j-download-link.btn.btn-secondary{href: '#'}
+    Download
+#j-error.d-none.mb-5
+  %p We're sorry, an error occurred while processing your request. Please try again.
+
+:javascript
+  'use strict'
+  var pollUrl = #{url_for(format: 'json', id: @export.id, action: 'show').to_json.html_safe};
+  $(function() {
+    var interval = null;
+    var $link = $('#j-download-link');
+    var pollCount = 0;
+    var pollInterval = 3000;
+    var maxPollCount = 400;
+
+    var updateDisplay = function(data) {
+      switch (data.status) {
+      case 'completed':
+        clearInterval(interval)
+        $link.attr('href', data.url);
+        $('#j-success').removeClass('d-none');
+        $('#j-pending').addClass('d-none');
+        clearInterval(interval);
+        break;
+      case 'error':
+        $('#j-error').removeClass('d-none');
+        $('#j-pending').addClass('d-none');
+        clearInterval(interval);
+        break;
+      }
+    }
+
+    interval = setInterval(
+      function() {
+        pollCount += 1;
+        if (pollCount > maxPollCount || $('#j-pending').length === 0 ) {
+          clearInterval(interval);
+          return;
+        }
+        $.get(pollUrl, updateDisplay)
+      },
+      pollInterval
+    );
+  });
