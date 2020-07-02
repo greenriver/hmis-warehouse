@@ -252,7 +252,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       where(
         shs_t[:service_history_enrollment_id].eq(she_t[:id]).
         and(shs_t[:client_id].eq(she_t[:client_id]))
-      ).
+      ).arel.
       exists
     )
     # joins(:service_history_services).
