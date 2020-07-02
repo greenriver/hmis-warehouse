@@ -51,9 +51,9 @@ module HmisTwentyTwenty
     end
   end
 
-  def self.look_aside(clazz)
+  def self.look_aside(klass)
     @look_aside ||= []
-    @look_aside << clazz.name.split('::').last
+    @look_aside << klass.name.split('::').last
   end
 
   def self.look_aside?(name)

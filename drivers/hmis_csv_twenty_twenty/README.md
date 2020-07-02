@@ -25,21 +25,20 @@ Class `Importer` is the entry point to this module.
 
 ##### Row Pre-Processing
 
-Row pre-processing (`pre-process!`) consumes the records stored in the string tables and inserts the data via a second set of tables
-with typed HMIS columns by applying model-specific transformations (e.g, converting strings
+Row pre-processing (`pre-process!`) consumes the records stored in the string tables and inserts the data via a
+second set of tables with typed HMIS columns by applying model-specific transformations (e.g, converting strings
 to dates, de-identifying clients), and applying row level validations to detect inconsistencies such as
-missing required fields, or invalid values.
+missing required fields, or invalid values. If the records cannot be processed individually (e.g, to combine
+ enrollments), the rows are inserted into a separate table for aggregated pre-processing.
 
-##### Aggregate Pre-Processing
+##### Aggregated Pre-Processing
 
-Aggregate pre-processing ('aggregate!') consumes the pre-processed rows from the HUD export to apply whole file validations
-(e.g, exits without enrollments), and apply transformations into look-aside tables (e.g, combining consecutive
-enrollments).
+Aggregated pre-processing (`aggregate!`) consumes the pre-processed rows from the aggregation tables and
+inserts the processed data into the the pre-processed tables.
 
 ##### Ingestion
 
-Finally, the pre-processed records, (overridden by look-aside table records for models where transformations
-were made) are merged into the warehouse tables ('ingest!').
+Finally, the pre-processed records are merged into the warehouse tables ('ingest!').
 
 #### HmisCsvValidation
 

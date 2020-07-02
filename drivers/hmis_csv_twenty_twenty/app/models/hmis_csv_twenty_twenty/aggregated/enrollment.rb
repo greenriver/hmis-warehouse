@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module HmisCsvTwentyTwenty::Aggregator
+module HmisCsvTwentyTwenty::Aggregated
   class Enrollment < GrdaWarehouse::Hud::Base
     include HmisCsvTwentyTwenty::Importer::ImportConcern
     include ::HMIS::Structure::Enrollment

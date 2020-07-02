@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module HmisCsvTwentyTwenty::Aggregator
+module HmisCsvTwentyTwenty::Aggregated
   class CombineEnrollments
     INSERT_BATCH_SIZE = 2_000
 
@@ -18,7 +18,7 @@ module HmisCsvTwentyTwenty::Aggregator
           # Pass the enrollment through for ingestion
           destination = new_from(enrollment)
           destination.importer_log_id = importer_id
-          destination.aggregated_at = Time.current
+          destination.pre_processed_at = Time.current
           destination.set_source_hash
           batch << destination
         end
@@ -41,11 +41,11 @@ module HmisCsvTwentyTwenty::Aggregator
     end
 
     def self.enrollment_source
-      HmisCsvTwentyTwenty::Importer::Enrollment
+      HmisCsvTwentyTwenty::Aggregated::Enrollment
     end
 
     def self.enrollment_destination
-      HmisCsvTwentyTwenty::Aggregator::Enrollment
+      HmisCsvTwentyTwenty::Importer::Enrollment
     end
   end
 end

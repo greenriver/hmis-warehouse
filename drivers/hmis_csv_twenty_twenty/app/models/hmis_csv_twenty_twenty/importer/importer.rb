@@ -51,7 +51,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def self.look_aside_scope
-      'HmisCsvTwentyTwenty::Aggregator'
+      'HmisCsvTwentyTwenty::Aggregated'
     end
 
     def import!
@@ -66,36 +66,44 @@ module HmisCsvTwentyTwenty::Importer
       end
     end
 
-    # Move all data from the data lake
+    # Move all data from the data lake to either the structured, or aggregated tables
     def pre_process!
       importer_log.update(status: :pre_processing)
+
+      importable_files.each_value do |klass|
+        HmisTwentyTwenty.look_aside(klass) if aggregators_from_class(klass, @data_source).present?
+      end
 
       # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
         log("Pre-processing #{klass.name}")
-        batch = []
-        failures = []
-        source_data_scope_for(file_name).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
-          destination = klass.new_from(source, deidentified: @deidentified)
-          destination.importer_log_id = importer_log.id
-          destination.pre_processed_at = Time.current
-          destination.set_source_hash
-          failures += destination.run_row_validations
-          batch << destination
-
-          if batch.count == INSERT_BATCH_SIZE
-            process_batch!(klass, batch, file_name, type: 'pre_processed')
-            batch = []
-          end
-          if failures.count == INSERT_BATCH_SIZE
-            HmisCsvValidation::Base.import(failures.compact)
-            failures = []
-          end
-        end
-
-        process_batch!(klass, batch, file_name, type: 'pre_processed') if batch.present? # ensure we get the last batch
-        HmisCsvValidation::Base.import(failures.compact) if failures.present?
+        pre_process_class!(file_name, klass)
       end
+    end
+
+    def pre_process_class!(file_name, klass)
+      batch = []
+      failures = []
+      source_data_scope_for(file_name).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+        destination = klass.new_from(source, deidentified: @deidentified)
+        destination.importer_log_id = importer_log.id
+        destination.pre_processed_at = Time.current
+        destination.set_source_hash
+        failures += destination.run_row_validations
+        batch << destination
+
+        if batch.count == INSERT_BATCH_SIZE
+          process_batch!(klass, batch, file_name, type: 'pre_processed')
+          batch = []
+        end
+        if failures.count == INSERT_BATCH_SIZE
+          HmisCsvValidation::Base.import(failures.compact)
+          failures = []
+        end
+      end
+
+      process_batch!(klass, batch, file_name, type: 'pre_processed') if batch.present? # ensure we get the last batch
+      HmisCsvValidation::Base.import(failures.compact) if failures.present?
     end
 
     def aggregate!
@@ -103,14 +111,14 @@ module HmisCsvTwentyTwenty::Importer
 
       # TODO: This could be parallelized
       importable_files.each_value do |klass|
-        log("Aggregating #{klass.name}")
         # TODO: Apply whole table validations
 
-        aggregators = aggregators_from_class(klass) # Make datasource explicit
-        if aggregators.present?
-          aggregators.each { |a| a.aggregate!(@importer_log.id) }
-          HmisTwentyTwenty.look_aside(klass)
-        end
+        aggregators = aggregators_from_class(klass, @data_source)
+        next unless aggregators.present?
+
+        log("Aggregating #{klass.name}")
+        aggregators.each { |a| a.aggregate!(@importer_log.id) }
+        HmisTwentyTwenty.look_aside(klass)
       end
     end
 
@@ -145,9 +153,9 @@ module HmisCsvTwentyTwenty::Importer
       remove_pending_deletes
     end
 
-    def aggregators_from_class(klass)
+    def aggregators_from_class(klass, data_source)
       basename = klass.name.split('::').last
-      @data_source.import_aggregators[basename]&.map(&:constantize)
+      data_source.import_aggregators[basename]&.map(&:constantize)
     end
 
     def mark_tree_as_dead(pending_date_deleted)
