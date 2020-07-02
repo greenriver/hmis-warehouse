@@ -100,7 +100,7 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
   end
 
 
-  def client_view
+  def de_identified_client_cols
     model = GrdaWarehouse::Hud::Client
     hmis_cols = model.hmis_structure(version: '2020').keys.map(&:to_sym)
     # HUD PII columns
@@ -122,13 +122,18 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
       'CONCAT(RIGHT("SSN",4), ENCODE(SHA256(LPAD("SSN",9,\'x\')::bytea), \'hex\')) as "SSN"',
       'SSNDataQuality',
     ]
-    safe_create_view view_name(model), sql_definition: model.destination.select(:id, *de_identified, *hmis_cols).to_sql
+    [:id, *de_identified, *hmis_cols]
+  end
+
+  def client_view
+    model = GrdaWarehouse::Hud::Client
+    safe_create_view view_name(model), sql_definition: model.destination.select(de_identified_client_cols).to_sql
   end
 
 
   def demographics_view
-    model = GrdaWarehouse::Hud::Client
-    safe_create_view DEMOGRAPHICS_VIEW, sql_definition: model.source.to_sql
+    model = GrdaWarehouse::Hud::Client.source
+    safe_create_view DEMOGRAPHICS_VIEW, sql_definition: model.source.select(de_identified_client_cols).to_sql
   end
 
    def enrollments_view
