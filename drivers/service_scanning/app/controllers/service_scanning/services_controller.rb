@@ -9,6 +9,7 @@ module ServiceScanning
 
     def index
       options = index_params
+
       klass = ServiceScanning::Service.type_from_key(options&.dig(:slug))
       @service = klass.new(options&.except(:slug))
       client_id = params.dig(:service, :client_id)
@@ -36,7 +37,7 @@ module ServiceScanning
         :scanner_id,
         :project_id,
         :client_id,
-        :type,
+        :slug,
         :other_type,
         :provided_at,
         :note,
@@ -48,7 +49,7 @@ module ServiceScanning
 
       params.require(:service).permit(
         :project_id,
-        :type,
+        :slug,
         :other_type,
         :provided_at,
       )
@@ -74,6 +75,10 @@ module ServiceScanning
       ::GrdaWarehouse::Hud::Client.joins(:source_eto_client_lookups).
         merge(::GrdaWarehouse::EtoQaaws::ClientLookup.where(participant_site_identifier: id)).
         first
+    end
+
+    def flash_interpolation_options
+      { resource_name: 'Service' }
     end
   end
 end

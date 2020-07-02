@@ -1,5 +1,4 @@
 = simple_form_for @service, as: :service, url: service_scanning_services_path do |f|
-  = debug @service
   = f.input :project_id, collection: @service.class.project_options_for_select(user: current_user), selected: @service.project_id, input_html: { class: :select2 }, as: :grouped_select, group_method: :last, required: true
   = f.input :slug, collection: @service.class.available_types, input_html: { class: :select2 }, label: 'Service Provided', required: true
 

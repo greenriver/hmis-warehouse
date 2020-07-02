@@ -34,7 +34,8 @@ module ServiceScanning
     end
 
     def self.type_from_key(key)
-      return ServiceScanning::BedNight unless type_map.key?(key&.to_sym)
+      key = key&.to_sym
+      return ServiceScanning::BedNight unless type_map.key?(key)
 
       type_map[key]
     end
