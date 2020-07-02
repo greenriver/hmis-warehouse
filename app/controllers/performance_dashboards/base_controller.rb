@@ -132,11 +132,13 @@ class PerformanceDashboards::BaseController < ApplicationController
       filters: [
         :end_date,
         :start_date,
+        :comparison_pattern,
         :household_type,
         :hoh_only,
         :sub_population,
         coc_codes: [],
         project_types: [],
+        project_type_codes: [],
         veteran_statuses: [],
         age_ranges: [],
         genders: [],
