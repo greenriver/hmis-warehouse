@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_30_152328) do
+ActiveRecord::Schema.define(version: 2020_07_02_125231) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1389,6 +1389,7 @@ ActiveRecord::Schema.define(version: 2020_06_30_152328) do
     t.string "migrated_username"
     t.jsonb "recipients"
     t.datetime "sent_at"
+    t.boolean "alert_active", default: true, null: false
     t.index ["client_id"], name: "index_client_notes_on_client_id"
     t.index ["user_id"], name: "index_client_notes_on_user_id"
   end
@@ -4639,6 +4640,39 @@ ActiveRecord::Schema.define(version: 2020_06_30_152328) do
     t.datetime "updated_at"
     t.index ["contact_id"], name: "index_report_tokens_on_contact_id"
     t.index ["report_id"], name: "index_report_tokens_on_report_id"
+  end
+
+  create_table "scanned_services", force: :cascade do |t|
+    t.bigint "client_id", null: false
+    t.bigint "project_id", null: false
+    t.bigint "user_id", null: false
+    t.string "type", null: false
+    t.string "other_type"
+    t.datetime "provided_at"
+    t.string "note"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
+    t.index ["client_id"], name: "index_scanned_services_on_client_id"
+    t.index ["created_at"], name: "index_scanned_services_on_created_at"
+    t.index ["project_id"], name: "index_scanned_services_on_project_id"
+    t.index ["type"], name: "index_scanned_services_on_type"
+    t.index ["updated_at"], name: "index_scanned_services_on_updated_at"
+    t.index ["user_id"], name: "index_scanned_services_on_user_id"
+  end
+
+  create_table "scanner_ids", force: :cascade do |t|
+    t.bigint "client_id", null: false
+    t.string "source_type", null: false
+    t.string "scanned_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["client_id"], name: "index_scanner_ids_on_client_id"
+    t.index ["created_at"], name: "index_scanner_ids_on_created_at"
+    t.index ["scanned_id"], name: "index_scanner_ids_on_scanned_id"
+    t.index ["source_type"], name: "index_scanner_ids_on_source_type"
+    t.index ["updated_at"], name: "index_scanner_ids_on_updated_at"
   end
 
   create_table "secure_files", id: :serial, force: :cascade do |t|
