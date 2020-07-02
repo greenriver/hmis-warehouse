@@ -1,0 +1,79 @@
+###
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+module ServiceScanning
+  class ServicesController < ApplicationController
+
+    def index
+      options = index_params
+      klass = ServiceScanning::Service.type_from_key(options&.dig(:slug))
+      @service = klass.new(options&.except(:slug))
+      client_id = params.dig(:service, :client_id)
+      @last_client = ::GrdaWarehouse::Hud::Client.find(client_id) if client_id
+      service_id = params.dig(:service, :service_id)
+      @last_service = ServiceScanning::Service.find(service_id) if service_id
+    end
+
+    def create
+      options = service_params
+      klass = ServiceScanning::Service.type_from_key(options[:slug])
+      client = attempt_to_find_client(options[:scanner_id])
+      redirect_to(service_scanning_scanner_id_path(return_to: index_params)) unless client.present?
+
+      options[:user_id] = current_user.id
+      options[:client_id] = client.id
+      @service = klass.create(options)
+      respond_with(@service, location: service_scanning_services_path({service: index_params.merge(client_id: client.id, service_id: @service.id)}))
+    end
+
+    private def service_params
+      return {} unless params[:service]
+
+      params.require(:service).permit(
+        :scanner_id,
+        :project_id,
+        :client_id,
+        :type,
+        :other_type,
+        :provided_at,
+        :note,
+      )
+    end
+
+    private def index_params
+      return {} unless params[:service]
+
+      params.require(:service).permit(
+        :project_id,
+        :type,
+        :other_type,
+        :provided_at,
+      )
+    end
+
+    private def attempt_to_find_client(scanner_id)
+      client = client_from_scanner_ids(scanner_id)
+      return client if client
+
+      client = client_from_hmis_clients(scanner_id)
+      return client if client
+
+      nil
+    end
+
+    private def client_from_scanner_ids(id)
+      ::GrdaWarehouse::Hud::Client.joins(:service_scanning_scanner_ids).
+        merge(ServiceScanning::ScannerId.where(scanned_id: id)).
+        first
+    end
+
+    private def client_from_hmis_clients(id)
+      ::GrdaWarehouse::Hud::Client.joins(:source_eto_client_lookups).
+        merge(::GrdaWarehouse::EtoQaaws::ClientLookup.where(participant_site_identifier: id)).
+        first
+    end
+  end
+end

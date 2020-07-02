@@ -5,7 +5,7 @@
 ###
 
 module ServiceScanning
-  def self.table_name_prefix
-    'service_scanning_'
+  class ScannerId < GrdaWarehouseBase
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   end
 end

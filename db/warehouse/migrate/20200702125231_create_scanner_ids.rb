@@ -1,6 +1,6 @@
 class CreateScannerIds < ActiveRecord::Migration[5.2]
   def change
-    create_table :scanner_ids do |t|
+    create_table :service_scanning_scanner_ids do |t|
       t.references :client, null: false, index: true
       t.string :source_type, null: false, index: true
       t.string :scanned_id, null: false, index: true
@@ -8,7 +8,7 @@ class CreateScannerIds < ActiveRecord::Migration[5.2]
       t.datetime :deleted_at
     end
 
-    create_table :scanned_services do |t|
+    create_table :service_scanning_services do |t|
       t.references :client, null: false, index: true
       t.references :project, null: false, index: true
       t.references :user, null: false

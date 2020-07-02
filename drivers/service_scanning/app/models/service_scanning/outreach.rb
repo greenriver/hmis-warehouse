@@ -5,7 +5,14 @@
 ###
 
 module ServiceScanning
-  def self.table_name_prefix
-    'service_scanning_'
+  class Outreach < Service
+
+    def title
+      'Outreach Contact'
+    end
+
+    def slug
+      :outreach
+    end
   end
 end

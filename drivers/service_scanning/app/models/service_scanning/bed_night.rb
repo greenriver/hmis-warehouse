@@ -5,7 +5,14 @@
 ###
 
 module ServiceScanning
-  def self.table_name_prefix
-    'service_scanning_'
+  class BedNight < Service
+
+    def title
+      'Bed-Night'
+    end
+
+    def slug
+      :bed_night
+    end
   end
 end

@@ -1,0 +1,8 @@
+- if @last_service && @last_client
+  .well
+    %h3 Added #{@last_service.title}
+    %dl
+      %dt Client
+      %dd= @last_client.name
+      %dt Provided At
+      %dd= @last_service.provided_at

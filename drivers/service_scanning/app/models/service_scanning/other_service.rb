@@ -5,7 +5,14 @@
 ###
 
 module ServiceScanning
-  def self.table_name_prefix
-    'service_scanning_'
+  class OtherService < Service
+
+    def title
+      "Other Service: #{other_type}"
+    end
+
+    def slug
+      :other
+    end
   end
 end

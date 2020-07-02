@@ -1,0 +1,8 @@
+- content_for :title, 'Add Service'
+.o-page
+  .o-page__header.d-flex
+    %h1= content_for :title
+
+  .o-page__main-content.mt-3
+    = simple_form_for @service, url: service_scanning_services_path do |f|
+      = f.input :source_type

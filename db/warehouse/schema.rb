@@ -4642,39 +4642,6 @@ ActiveRecord::Schema.define(version: 2020_07_02_125231) do
     t.index ["report_id"], name: "index_report_tokens_on_report_id"
   end
 
-  create_table "scanned_services", force: :cascade do |t|
-    t.bigint "client_id", null: false
-    t.bigint "project_id", null: false
-    t.bigint "user_id", null: false
-    t.string "type", null: false
-    t.string "other_type"
-    t.datetime "provided_at"
-    t.string "note"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.datetime "deleted_at"
-    t.index ["client_id"], name: "index_scanned_services_on_client_id"
-    t.index ["created_at"], name: "index_scanned_services_on_created_at"
-    t.index ["project_id"], name: "index_scanned_services_on_project_id"
-    t.index ["type"], name: "index_scanned_services_on_type"
-    t.index ["updated_at"], name: "index_scanned_services_on_updated_at"
-    t.index ["user_id"], name: "index_scanned_services_on_user_id"
-  end
-
-  create_table "scanner_ids", force: :cascade do |t|
-    t.bigint "client_id", null: false
-    t.string "source_type", null: false
-    t.string "scanned_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "deleted_at"
-    t.index ["client_id"], name: "index_scanner_ids_on_client_id"
-    t.index ["created_at"], name: "index_scanner_ids_on_created_at"
-    t.index ["scanned_id"], name: "index_scanner_ids_on_scanned_id"
-    t.index ["source_type"], name: "index_scanner_ids_on_source_type"
-    t.index ["updated_at"], name: "index_scanner_ids_on_updated_at"
-  end
-
   create_table "secure_files", id: :serial, force: :cascade do |t|
     t.string "name"
     t.string "file"
@@ -5833,6 +5800,39 @@ ActiveRecord::Schema.define(version: 2020_07_02_125231) do
     t.index ["date", "service_history_enrollment_id"], name: "index_shs_1900_date_en_id"
     t.index ["date"], name: "index_shs_1900_date_brin", using: :brin
     t.index ["id"], name: "index_service_history_services_remainder_on_id", unique: true
+  end
+
+  create_table "service_scanning_scanner_ids", force: :cascade do |t|
+    t.bigint "client_id", null: false
+    t.string "source_type", null: false
+    t.string "scanned_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["client_id"], name: "index_service_scanning_scanner_ids_on_client_id"
+    t.index ["created_at"], name: "index_service_scanning_scanner_ids_on_created_at"
+    t.index ["scanned_id"], name: "index_service_scanning_scanner_ids_on_scanned_id"
+    t.index ["source_type"], name: "index_service_scanning_scanner_ids_on_source_type"
+    t.index ["updated_at"], name: "index_service_scanning_scanner_ids_on_updated_at"
+  end
+
+  create_table "service_scanning_services", force: :cascade do |t|
+    t.bigint "client_id", null: false
+    t.bigint "project_id", null: false
+    t.bigint "user_id", null: false
+    t.string "type", null: false
+    t.string "other_type"
+    t.datetime "provided_at"
+    t.string "note"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "deleted_at"
+    t.index ["client_id"], name: "index_service_scanning_services_on_client_id"
+    t.index ["created_at"], name: "index_service_scanning_services_on_created_at"
+    t.index ["project_id"], name: "index_service_scanning_services_on_project_id"
+    t.index ["type"], name: "index_service_scanning_services_on_type"
+    t.index ["updated_at"], name: "index_service_scanning_services_on_updated_at"
+    t.index ["user_id"], name: "index_service_scanning_services_on_user_id"
   end
 
   create_table "taggings", id: :serial, force: :cascade do |t|

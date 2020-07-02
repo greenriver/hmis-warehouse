@@ -1,0 +1,26 @@
+- content_for :title, 'Add Service'
+.o-page
+  .o-page__header.d-flex
+    %h1= content_for :title
+
+  .o-page__main-content.mt-3
+    .row
+      .col-sm-6
+        = render 'form'
+      .col-sm-6
+        = render 'last_added'
+= content_for :page_js do
+  :javascript
+    $('.exact_date_time_picker').datetimepicker(
+      {
+        sideBySide: true,
+        stepping: 1,
+        format: "MMM D, YYYY h:mm a",
+        icons: {
+          time: "icon icon-clock",
+          date: "icon icon-calendar",
+          up: "icon icon-arrow-up",
+          down: "icon icon-arrow-down"
+        }
+      }
+    );

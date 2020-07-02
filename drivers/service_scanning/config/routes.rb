@@ -1,6 +1,6 @@
-BostonHmis::Application.routes.draw do
-  scope :service_scanning do
-    # TODO
-    # get '/my_path', to: 'service_scanning/my_controller'
+Rails.application.routes.draw do
+  namespace :service_scanning do
+    resources :services
+    resources :scanner_ids
   end
 end
