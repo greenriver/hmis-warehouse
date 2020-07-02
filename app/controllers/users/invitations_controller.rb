@@ -72,6 +72,7 @@ class Users::InvitationsController < Devise::InvitationsController
       :notify_on_client_added,
       :notify_on_anomaly_identified,
       role_ids: [],
+      access_group_ids: [],
       coc_codes: [],
       contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
     )
