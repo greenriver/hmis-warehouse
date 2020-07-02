@@ -5094,21 +5094,74 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Client"."DischargeStatus" AS data_source_id
      FROM "Client";
   SQL
+  create_view "bi_service_history_services", sql_definition: <<-SQL
+      SELECT service_history_services.id,
+      service_history_services.service_history_enrollment_id,
+      service_history_services.record_type,
+      service_history_services.date,
+      service_history_services.age,
+      service_history_services.service_type,
+      service_history_services.client_id,
+      service_history_services.project_type,
+      service_history_services.homeless,
+      service_history_services.literally_homeless
+     FROM (service_history_services
+       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
+    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
+             FROM data_sources
+            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
+  SQL
+  create_view "bi_service_history_enrollments", sql_definition: <<-SQL
+      SELECT service_history_enrollments.id,
+      service_history_enrollments.client_id,
+      service_history_enrollments.data_source_id,
+      service_history_enrollments.date,
+      service_history_enrollments.first_date_in_program,
+      service_history_enrollments.last_date_in_program,
+      service_history_enrollments.enrollment_group_id,
+      service_history_enrollments.project_id,
+      service_history_enrollments.age,
+      service_history_enrollments.destination,
+      service_history_enrollments.head_of_household_id,
+      service_history_enrollments.household_id,
+      service_history_enrollments.project_name,
+      service_history_enrollments.project_type,
+      service_history_enrollments.project_tracking_method,
+      service_history_enrollments.organization_id,
+      service_history_enrollments.record_type,
+      service_history_enrollments.housing_status_at_entry,
+      service_history_enrollments.housing_status_at_exit,
+      service_history_enrollments.service_type,
+      service_history_enrollments.computed_project_type,
+      service_history_enrollments.presented_as_individual,
+      service_history_enrollments.other_clients_over_25,
+      service_history_enrollments.other_clients_under_18,
+      service_history_enrollments.other_clients_between_18_and_25,
+      service_history_enrollments.unaccompanied_youth,
+      service_history_enrollments.parenting_youth,
+      service_history_enrollments.parenting_juvenile,
+      service_history_enrollments.children_only,
+      service_history_enrollments.individual_adult,
+      service_history_enrollments.individual_elder,
+      service_history_enrollments.head_of_household,
+      service_history_enrollments.move_in_date,
+      service_history_enrollments.unaccompanied_minor
+     FROM (service_history_enrollments
+       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
+    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
+             FROM data_sources
+            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
+  SQL
   create_view "bi_Organization", sql_definition: <<-SQL
       SELECT "Organization"."OrganizationID",
       "Organization"."OrganizationName",
+      "Organization"."VictimServicesProvider",
       "Organization"."OrganizationCommonName",
       "Organization"."DateCreated",
       "Organization"."DateUpdated",
       "Organization"."UserID",
       "Organization"."DateDeleted",
-      "Organization"."ExportID",
-      "Organization".data_source_id,
-      "Organization".id,
-      "Organization".dmh,
-      "Organization".source_hash,
-      "Organization".pending_date_deleted,
-      "Organization"."VictimServicesProvider"
+      "Organization"."ExportID"
      FROM "Organization"
     WHERE ("Organization"."DateDeleted" IS NULL);
   SQL
@@ -5117,37 +5170,21 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Project"."OrganizationID",
       "Project"."ProjectName",
       "Project"."ProjectCommonName",
+      "Project"."OperatingStartDate",
+      "Project"."OperatingEndDate",
       "Project"."ContinuumProject",
       "Project"."ProjectType",
+      "Project"."HousingType",
       "Project"."ResidentialAffiliation",
       "Project"."TrackingMethod",
+      "Project"."HMISParticipatingProject",
       "Project"."TargetPopulation",
       "Project"."PITCount",
       "Project"."DateCreated",
       "Project"."DateUpdated",
       "Project"."UserID",
       "Project"."DateDeleted",
-      "Project"."ExportID",
-      "Project".data_source_id,
-      "Project".id,
-      "Project".act_as_project_type,
-      "Project".hud_continuum_funded,
-      "Project".confidential,
-      "Project".computed_project_type,
-      "Project"."OperatingStartDate",
-      "Project"."OperatingEndDate",
-      "Project"."VictimServicesProvider",
-      "Project"."HousingType",
-      "Project".local_planning_group,
-      "Project".source_hash,
-      "Project".housing_type_override,
-      "Project".uses_move_in_date,
-      "Project".operating_start_date_override,
-      "Project".pending_date_deleted,
-      "Project"."HMISParticipatingProject",
-      "Project".active_homeless_status_override,
-      "Project".include_in_days_homeless_override,
-      "Project".extrapolate_contacts
+      "Project"."ExportID"
      FROM "Project"
     WHERE ("Project"."DateDeleted" IS NULL);
   SQL
@@ -5155,25 +5192,18 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       SELECT "ProjectCoC"."ProjectCoCID",
       "ProjectCoC"."ProjectID",
       "ProjectCoC"."CoCCode",
-      "ProjectCoC"."DateCreated",
-      "ProjectCoC"."DateUpdated",
-      "ProjectCoC"."UserID",
-      "ProjectCoC"."DateDeleted",
-      "ProjectCoC"."ExportID",
-      "ProjectCoC".data_source_id,
-      "ProjectCoC".id,
-      "ProjectCoC".hud_coc_code,
-      "ProjectCoC".source_hash,
-      "ProjectCoC".pending_date_deleted,
       "ProjectCoC"."Geocode",
-      "ProjectCoC"."GeographyType",
       "ProjectCoC"."Address1",
       "ProjectCoC"."Address2",
       "ProjectCoC"."City",
       "ProjectCoC"."State",
       "ProjectCoC"."Zip",
-      "ProjectCoC".geography_type_override,
-      "ProjectCoC".geocode_override
+      "ProjectCoC"."GeographyType",
+      "ProjectCoC"."DateCreated",
+      "ProjectCoC"."DateUpdated",
+      "ProjectCoC"."UserID",
+      "ProjectCoC"."DateDeleted",
+      "ProjectCoC"."ExportID"
      FROM "ProjectCoC"
     WHERE ("ProjectCoC"."DateDeleted" IS NULL);
   SQL
@@ -5185,16 +5215,13 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Affiliation"."DateUpdated",
       "Affiliation"."UserID",
       "Affiliation"."DateDeleted",
-      "Affiliation"."ExportID",
-      "Affiliation".data_source_id,
-      "Affiliation".id,
-      "Affiliation".source_hash,
-      "Affiliation".pending_date_deleted
+      "Affiliation"."ExportID"
      FROM "Affiliation"
     WHERE ("Affiliation"."DateDeleted" IS NULL);
   SQL
   create_view "bi_Export", sql_definition: <<-SQL
       SELECT "Export"."ExportID",
+      "Export"."SourceType",
       "Export"."SourceID",
       "Export"."SourceName",
       "Export"."SourceContactFirst",
@@ -5209,46 +5236,32 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Export"."SoftwareVersion",
       "Export"."ExportPeriodType",
       "Export"."ExportDirective",
-      "Export"."HashStatus",
-      "Export".data_source_id,
-      "Export".id,
-      "Export"."SourceType",
-      "Export".effective_export_end_date,
-      "Export".source_hash
+      "Export"."HashStatus"
      FROM "Export";
   SQL
   create_view "bi_Inventory", sql_definition: <<-SQL
       SELECT "Inventory"."InventoryID",
       "Inventory"."ProjectID",
       "Inventory"."CoCCode",
-      "Inventory"."InformationDate",
       "Inventory"."HouseholdType",
-      "Inventory"."BedType",
       "Inventory"."Availability",
       "Inventory"."UnitInventory",
       "Inventory"."BedInventory",
-      "Inventory"."CHBedInventory",
+      "Inventory"."CHVetBedInventory",
+      "Inventory"."YouthVetBedInventory",
       "Inventory"."VetBedInventory",
+      "Inventory"."CHYouthBedInventory",
       "Inventory"."YouthBedInventory",
-      "Inventory"."YouthAgeGroup",
+      "Inventory"."CHBedInventory",
+      "Inventory"."OtherBedInventory",
+      "Inventory"."ESBedType",
       "Inventory"."InventoryStartDate",
       "Inventory"."InventoryEndDate",
-      "Inventory"."HMISParticipatingBeds",
       "Inventory"."DateCreated",
       "Inventory"."DateUpdated",
       "Inventory"."UserID",
       "Inventory"."DateDeleted",
-      "Inventory"."ExportID",
-      "Inventory".data_source_id,
-      "Inventory".id,
-      "Inventory".source_hash,
-      "Inventory".pending_date_deleted,
-      "Inventory"."CHVetBedInventory",
-      "Inventory"."YouthVetBedInventory",
-      "Inventory"."CHYouthBedInventory",
-      "Inventory"."OtherBedInventory",
-      "Inventory"."TargetPopulation",
-      "Inventory"."ESBedType"
+      "Inventory"."ExportID"
      FROM "Inventory"
     WHERE ("Inventory"."DateDeleted" IS NULL);
   SQL
@@ -5256,6 +5269,7 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       SELECT "Funder"."FunderID",
       "Funder"."ProjectID",
       "Funder"."Funder",
+      "Funder"."OtherFunder",
       "Funder"."GrantID",
       "Funder"."StartDate",
       "Funder"."EndDate",
@@ -5263,12 +5277,7 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Funder"."DateUpdated",
       "Funder"."UserID",
       "Funder"."DateDeleted",
-      "Funder"."ExportID",
-      "Funder".data_source_id,
-      "Funder".id,
-      "Funder".source_hash,
-      "Funder".pending_date_deleted,
-      "Funder"."OtherFunder"
+      "Funder"."ExportID"
      FROM "Funder"
     WHERE ("Funder"."DateDeleted" IS NULL);
   SQL
@@ -5440,64 +5449,6 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
     WHERE ("Enrollment"."DateDeleted" IS NULL);
-  SQL
-  create_view "bi_service_history_services", sql_definition: <<-SQL
-      SELECT service_history_services.id,
-      service_history_services.service_history_enrollment_id,
-      service_history_services.record_type,
-      service_history_services.date,
-      service_history_services.age,
-      service_history_services.service_type,
-      service_history_services.client_id,
-      service_history_services.project_type,
-      service_history_services.homeless,
-      service_history_services.literally_homeless
-     FROM (service_history_services
-       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
-    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
-            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
-  SQL
-  create_view "bi_service_history_enrollments", sql_definition: <<-SQL
-      SELECT service_history_enrollments.id,
-      service_history_enrollments.client_id,
-      service_history_enrollments.data_source_id,
-      service_history_enrollments.date,
-      service_history_enrollments.first_date_in_program,
-      service_history_enrollments.last_date_in_program,
-      service_history_enrollments.enrollment_group_id,
-      service_history_enrollments.project_id,
-      service_history_enrollments.age,
-      service_history_enrollments.destination,
-      service_history_enrollments.head_of_household_id,
-      service_history_enrollments.household_id,
-      service_history_enrollments.project_name,
-      service_history_enrollments.project_type,
-      service_history_enrollments.project_tracking_method,
-      service_history_enrollments.organization_id,
-      service_history_enrollments.record_type,
-      service_history_enrollments.housing_status_at_entry,
-      service_history_enrollments.housing_status_at_exit,
-      service_history_enrollments.service_type,
-      service_history_enrollments.computed_project_type,
-      service_history_enrollments.presented_as_individual,
-      service_history_enrollments.other_clients_over_25,
-      service_history_enrollments.other_clients_under_18,
-      service_history_enrollments.other_clients_between_18_and_25,
-      service_history_enrollments.unaccompanied_youth,
-      service_history_enrollments.parenting_youth,
-      service_history_enrollments.parenting_juvenile,
-      service_history_enrollments.children_only,
-      service_history_enrollments.individual_adult,
-      service_history_enrollments.individual_elder,
-      service_history_enrollments.head_of_household,
-      service_history_enrollments.move_in_date,
-      service_history_enrollments.unaccompanied_minor
-     FROM (service_history_enrollments
-       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
-    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
-            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
   SQL
   create_view "bi_Services", sql_definition: <<-SQL
       SELECT destination_clients.id AS client_id,

@@ -1,7 +1,8 @@
 class NewReportingViews < ActiveRecord::Migration[5.2]
-  PG_SCHEMA = 'bi'
+  HUD_CSV_VERSION = '2020'
+  NAMESPACE = 'bi'
   PG_ROLE = 'bi'
-  DEMOGRAPHICS_VIEW = "\"#{PG_SCHEMA}_Demographics\""
+  DEMOGRAPHICS_VIEW = "\"#{NAMESPACE}_Demographics\""
 
   def safe_drop_view(name)
     sql = "DROP VIEW IF EXISTS #{name}"
@@ -52,7 +53,6 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
 
     safe_drop_view view_name(GrdaWarehouse::Hud::Client)
     safe_drop_view DEMOGRAPHICS_VIEW
-    #GrdaWarehouseBase.connection.execute("DROP SCHEMA IF EXISTS #{PG_SCHEMA} CASCADE");
 
     safe_drop_view view_name(GrdaWarehouse::Hud::Funder)
     safe_drop_view view_name(GrdaWarehouse::Hud::Inventory)
@@ -64,8 +64,6 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
   end
 
   def up
-    # TODO: Permissions
-    #GrdaWarehouseBase.connection.execute("CREATE SCHEMA IF NOT EXISTS #{PG_SCHEMA}");
     safe_create_role
 
     non_client_view GrdaWarehouse::Hud::Organization
@@ -102,7 +100,7 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
 
   def de_identified_client_cols
     model = GrdaWarehouse::Hud::Client
-    hmis_cols = model.hmis_structure(version: '2020').keys.map(&:to_sym)
+    hmis_cols = model.hmis_structure(version: HUD_CSV_VERSION).keys.map(&:to_sym)
     # De-identified per HMIS CSV FORMAT Specifications FY2020 – January 2020
     # https://hudhdx.info/Resources/Vendors/HMIS%20CSV%20Specifications%20FY2020%20v1.8.pdf
     # ~Page 7 HashStatus of ‘SHA-256’ (4)
@@ -130,7 +128,7 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
     cols = [
       destination_client_table[:id].as('client_id'),
       enrollments_table[:id].as('enrollment_id'),
-      *model.hmis_structure(version: '2020').keys.map{|col| model.arel_table[col]},
+      *model.hmis_structure(version: HUD_CSV_VERSION).keys.map{|col| model.arel_table[col]},
       source_client_table[:id].as('demographic_id')
     ]
     query = query.project(*cols)
@@ -151,7 +149,7 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
   def non_client_view(model)
     at = model.arel_table
     query = at
-    query = query.project('*') #TODO
+    query = query.project(*model.hmis_structure(version: HUD_CSV_VERSION).keys.map{|col| model.arel_table[col]})
     if model.paranoid?
       query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
     end
@@ -163,7 +161,7 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
     query = query.project(
       destination_client_table[:id].as('client_id'),
       enrollments_table[:id].as('enrollment_id'),
-      *model.hmis_structure(version: '2020').keys.map{|col| model.arel_table[col]},
+      *model.hmis_structure(version: HUD_CSV_VERSION).keys.map{|col| model.arel_table[col]},
       source_client_table[:id].as('demographic_id')
     )
     if model.paranoid?
@@ -173,7 +171,7 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
   end
 
   def view_name(model)
-    "\"#{PG_SCHEMA}_#{model.table_name}\""
+    "\"#{NAMESPACE}_#{model.table_name}\""
   end
 
   def source_client_table
