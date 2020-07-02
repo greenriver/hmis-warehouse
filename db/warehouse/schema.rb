@@ -5274,14 +5274,14 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
   SQL
   create_view "bi_Client", sql_definition: <<-SQL
       SELECT "Client".id,
+      "Client"."PersonalID",
       4 AS "HashStatus",
       encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
       encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
       encode(sha256((soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
       encode(sha256((soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
-      concat("right"(("Client"."SSN")::text, 4), encode(sha256(("Client"."SSN")::bytea), 'hex'::text)) AS "SSN",
-      "Client"."PersonalID",
       "Client"."NameDataQuality",
+      concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
       "Client"."SSNDataQuality",
       "Client"."DOB",
       "Client"."DOBDataQuality",

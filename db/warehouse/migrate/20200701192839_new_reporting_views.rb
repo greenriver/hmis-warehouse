@@ -107,14 +107,20 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
     # De-identified per
     # HMIS CSV FORMAT Specifications FY2020 – January 2020
     # Hash Status=4 SHA256
-    hmis_cols -= %i/FirstName MiddleName LastName NameSuffix SSN/
+    hmis_cols -= %i/PersonalID FirstName MiddleName LastName NameSuffix NameDataQuality SSN SSNDataQuality/
+    # https://hudhdx.info/Resources/Vendors/HMIS%20CSV%20Specifications%20FY2020%20v1.1.pdf
+    # Page 11 HashStatus of ‘SHA-256’ (4)
     de_identified = [
+      'PersonalID',
       '4 as "HashStatus"',
       'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("FirstName")))::bytea), \'hex\') as "FirstName"',
       'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("MiddleName")))::bytea), \'hex\') as "MiddleName"',
       'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("LastName")))::bytea), \'hex\') as "LastName"',
       'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("NameSuffix")))::bytea), \'hex\') as "NameSuffix"',
-      'CONCAT(right("SSN",4), encode(sha256("SSN"::bytea), \'hex\')) as "SSN"'
+      'NameDataQuality',
+      #'LPAD(RIGHT("SSN",4),9,\'x\') as "MaskedSSN"',
+      'CONCAT(RIGHT("SSN",4), ENCODE(SHA256(LPAD("SSN",9,\'x\')::bytea), \'hex\')) as "SSN"',
+      'SSNDataQuality',
     ]
     safe_create_view view_name(model), sql_definition: model.destination.select(:id, *de_identified, *hmis_cols).to_sql
   end
