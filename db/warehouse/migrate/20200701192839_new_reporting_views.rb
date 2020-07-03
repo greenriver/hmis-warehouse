@@ -65,7 +65,7 @@ class NewReportingViews < ActiveRecord::Migration[5.2]
   end
 
   def up
-    safe_create_role
+    # safe_create_role
 
     non_client_view GrdaWarehouse::Hud::Organization
     non_client_view GrdaWarehouse::Hud::Project
