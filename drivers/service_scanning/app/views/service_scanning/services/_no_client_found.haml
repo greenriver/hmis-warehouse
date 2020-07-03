@@ -1,0 +1,14 @@
+%p.alert.alert-danger.jNoClient
+  No Client Found!
+  = link_to service_scanning_scanner_ids_path({scanned_id: params.dig(:service, :scanner_id)}), class: 'btn btn-secondary btn-sm ml-4 jBarcodeSearch', target: '_blank' do
+    %i.icon-plus
+    Attach a barcode to a client
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      // $('.jBarcodeSearch')[0].click();//('click');
+      // console.log( $('.jBarcodeSearch'));
+      // setTimeout(function(){ $('.jBarcodeSearch').click(); console.log('clicked');}, 100);
+      // $('.jNoClient').remove();
+    });

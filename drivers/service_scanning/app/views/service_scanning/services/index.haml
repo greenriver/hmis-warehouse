@@ -4,6 +4,8 @@
     %h1= content_for :title
 
   .o-page__main-content.mt-3
+    - if @no_client_found
+      = render 'no_client_found'
     .row
       .col-sm-6
         = render 'form'
