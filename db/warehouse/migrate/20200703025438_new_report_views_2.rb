@@ -1,4 +1,6 @@
 class NewReportViews2 < ActiveRecord::Migration[5.2]
+  include ArelHelper
+
   HUD_CSV_VERSION = '2020'
   NAMESPACE = 'bi'
   PG_ROLE = 'bi'
@@ -49,6 +51,8 @@ class NewReportViews2 < ActiveRecord::Migration[5.2]
     safe_drop_view view_name(GrdaWarehouse::Hud::CurrentLivingSituation)
     safe_drop_view view_name(GrdaWarehouse::Hud::Event)
     safe_drop_view view_name(GrdaWarehouse::Hud::Assessment)
+    safe_drop_view view_name(GrdaWarehouse::Hud::AssessmentQuestion)
+    safe_drop_view view_name(GrdaWarehouse::Hud::AssessmentResult)
 
     safe_drop_view view_name(GrdaWarehouse::Hud::Enrollment)
 
@@ -65,15 +69,28 @@ class NewReportViews2 < ActiveRecord::Migration[5.2]
   end
 
   def up
+    down # This changes some column types, so we need to remove the tables first
     # safe_create_role
 
     non_client_view GrdaWarehouse::Hud::Organization
-    non_client_view GrdaWarehouse::Hud::Project   #:organization< :export
-    non_client_view GrdaWarehouse::Hud::ProjectCoc #:project, :export
-    non_client_view GrdaWarehouse::Hud::Affiliation #:project, :export
+    non_client_view GrdaWarehouse::Hud::Project
+    non_client_view GrdaWarehouse::Hud::ProjectCoc
+    non_client_view GrdaWarehouse::Hud::Affiliation
     non_client_view GrdaWarehouse::Hud::Export
-    non_client_view GrdaWarehouse::Hud::Inventory  #:project_coc, :export
-    non_client_view GrdaWarehouse::Hud::Funder #:project, :export
+    non_client_view GrdaWarehouse::Hud::Inventory
+    non_client_view GrdaWarehouse::Hud::Funder
+    non_client_view GrdaWarehouse::Hud::Service
+    non_client_view GrdaWarehouse::Hud::Exit
+    non_client_view GrdaWarehouse::Hud::EnrollmentCoc
+    non_client_view GrdaWarehouse::Hud::Disability
+    non_client_view GrdaWarehouse::Hud::HealthAndDv
+    non_client_view GrdaWarehouse::Hud::IncomeBenefit
+    non_client_view GrdaWarehouse::Hud::EmploymentEducation
+    non_client_view GrdaWarehouse::Hud::CurrentLivingSituation
+    non_client_view GrdaWarehouse::Hud::Event
+    non_client_view GrdaWarehouse::Hud::Assessment
+    non_client_view GrdaWarehouse::Hud::AssessmentQuestion
+    non_client_view GrdaWarehouse::Hud::AssessmentResult
 
     safe_create_view view_name(GrdaWarehouse::Hud::Client),
       sql_definition: GrdaWarehouse::Hud::Client.destination.select(de_identified_client_cols).to_sql
@@ -81,7 +98,7 @@ class NewReportViews2 < ActiveRecord::Migration[5.2]
     safe_create_view DEMOGRAPHICS_VIEW,
       sql_definition: GrdaWarehouse::Hud::Client.source.select(de_identified_client_cols, :data_source_id).to_sql
 
-    enrollment_view GrdaWarehouse::Hud::Enrollment
+    non_client_view GrdaWarehouse::Hud::Enrollment
 
     client_history_view GrdaWarehouse::ServiceHistoryService.where(
       "date >= (CURRENT_DATE - #{SH_INTERVAL})"
@@ -89,16 +106,6 @@ class NewReportViews2 < ActiveRecord::Migration[5.2]
     client_history_view GrdaWarehouse::ServiceHistoryEnrollment.where(
       "last_date_in_program IS NULL OR last_date_in_program >= (CURRENT_DATE - #{SH_INTERVAL})"
     )
-    enrollment_info_view GrdaWarehouse::Hud::Service
-    enrollment_info_view GrdaWarehouse::Hud::Exit
-    enrollment_info_view GrdaWarehouse::Hud::EnrollmentCoc
-    enrollment_info_view GrdaWarehouse::Hud::Disability
-    enrollment_info_view GrdaWarehouse::Hud::HealthAndDv
-    enrollment_info_view GrdaWarehouse::Hud::IncomeBenefit
-    enrollment_info_view GrdaWarehouse::Hud::EmploymentEducation
-    enrollment_info_view GrdaWarehouse::Hud::CurrentLivingSituation
-    enrollment_info_view GrdaWarehouse::Hud::Event
-    enrollment_info_view GrdaWarehouse::Hud::Assessment
   end
 
 
@@ -124,24 +131,51 @@ class NewReportViews2 < ActiveRecord::Migration[5.2]
     [:id, *de_identified, *hmis_cols]
   end
 
-  def project_table
+  def p_t
     GrdaWarehouse::Hud::Project.arel_table
   end
 
-  def enrollment_view(model)
-    query = join_source_and_client(model.arel_table)
-    if model.paranoid?
-      query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
+  def assessment_table
+    GrdaWarehouse::Hud::Assessment.arel_table
+  end
+
+  def contains_and_not_source?(model, col)
+    return false if model.hud_key.to_s == col
+
+    model.column_names.include?(col.to_s)
+  end
+
+  def join_cols
+    {
+      'PersonalID' => wc_t,
+      'ProjectID' => p_t,
+      'OrganizationID' => o_t,
+      'AssessmentID' => assessment_table,
+      'EnrollmentID' => e_t,
+    }
+  end
+
+  def hmis_cols(model)
+    # Ignore any key or join columns, we'll replace them with primary keys
+    excepts = []
+    excepts << model.hud_key.to_s
+    join_cols.each_key do |col|
+      excepts << col if contains_and_not_source?(model, col)
     end
-    cols = [
-      destination_client_table[:id].as('client_id'),
-      enrollments_table[:id].as('enrollment_id'),
-      *model.hmis_structure(version: HUD_CSV_VERSION).keys.map{|col| model.arel_table[col]},
-      source_client_table[:id].as('demographic_id'),
-      model.arel_table[:data_source_id],
-    ]
-    query = query.project(*cols)
-    safe_create_view view_name(model.arel_table), sql_definition: query.to_sql
+
+    # Replace columns used for joins
+    cols = [model.arel_table[:id].as(model.connection.quote_column_name(model.hud_key.to_s))]
+    excepts.drop(1).each do |col|
+      join_col = if col == 'PersonalID' then :destination_id else :id end
+      cols << join_cols[col][join_col].as(model.connection.quote_column_name(col))
+    end
+
+    cols += model.hmis_structure(version: HUD_CSV_VERSION).keys.reject do |col|
+      col.to_s.in?(excepts)
+    end.map do |col|
+      model.arel_table[col]
+    end
+    cols
   end
 
   def client_history_view(model)
@@ -149,34 +183,68 @@ class NewReportViews2 < ActiveRecord::Migration[5.2]
     if model.paranoid?
       scope = scope.where(model.paranoia_column.to_sym => nil)
     end
-    scope.select(
-      model.column_names
-    )
+    cols = model.column_names
+
+    if cols.include?('project_id')
+      scope = scope.joins(:project)
+      cols.reject!{ |c| c == 'project_id' }
+      cols << p_t[:id].as('project_id')
+    end
+    scope = scope.select(*cols)
     safe_create_view view_name(model.arel_table), sql_definition: scope.to_sql
   end
 
-  def non_client_view(model)
-    at = model.arel_table
-    query = at
-    query = query.project(*model.hmis_structure(version: HUD_CSV_VERSION).keys.map{|col| model.arel_table[col]}, model.arel_table[:data_source_id])
-    if model.paranoid?
-      query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
-    end
-    safe_create_view view_name(model), sql_definition: query.to_sql
+  def join_project_if_appropriate(model, query)
+    return query if model.name == 'GrdaWarehouse::Hud::Project'
+    return join_to_projects(query) if model.column_names.include?('ProjectID')
+
+    query
   end
 
-  def enrollment_info_view(model)
-    query = join_to_enrollments(join_source_and_client(model.arel_table))
-    query = query.project(
-      destination_client_table[:id].as('client_id'),
-      enrollments_table[:id].as('enrollment_id'),
-      *model.hmis_structure(version: HUD_CSV_VERSION).keys.map{|col| model.arel_table[col]},
-      source_client_table[:id].as('demographic_id'),
+  def join_organization_if_appropriate(model, query)
+    return query if model.name == 'GrdaWarehouse::Hud::Organization'
+    return join_to_organizations(query) if model.column_names.include?('OrganizationID')
+
+    query
+  end
+
+  def join_enrollment_if_appropriate(model, query)
+    return query if model.name == 'GrdaWarehouse::Hud::Enrollment'
+    return join_to_enrollments(query) if model.column_names.include?('EnrollmentID')
+
+    query
+  end
+
+  def join_destination_client_if_appropriate(model, query)
+    return query if model.name == 'GrdaWarehouse::Hud::Client'
+    return join_to_destination_clients(query) if model.column_names.include?('PersonalID')
+
+    query
+  end
+
+  def join_assessment_if_appropriate(model, query)
+    return query if model.name == 'GrdaWarehouse::Hud::Assessment'
+    return join_to_assessments(query) if model.column_names.include?('AssessmentID')
+
+    query
+  end
+
+  def non_client_view(model)
+    query = join_project_if_appropriate(model, model.arel_table)
+    query = join_organization_if_appropriate(model, query)
+    query = join_enrollment_if_appropriate(model, query)
+    query = join_destination_client_if_appropriate(model, query)
+    query = join_assessment_if_appropriate(model, query)
+
+    cols = [
+      hmis_cols(model),
       model.arel_table[:data_source_id],
-    )
-    if model.paranoid?
-      query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil )
-    end
+    ]
+    cols << source_client_table[:id].as('demographic_id') if model.column_names.include?('PersonalID')
+
+    query = query.project(cols)
+    query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil ) if model.paranoid?
+
     safe_create_view view_name(model), sql_definition: query.to_sql
   end
 
@@ -196,33 +264,6 @@ class NewReportViews2 < ActiveRecord::Migration[5.2]
     ).tap{ |t| t.table_alias = 'destination_clients' }
   end
 
-  def enrollments_table
-    GrdaWarehouse::Hud::Enrollment.arel_table
-  end
-
-  def client_join_table
-    GrdaWarehouse::WarehouseClient.arel_table
-  end
-
-  def join_source_and_client(table)
-    at = if table.is_a?(Arel::SelectManager)
-      table.froms.first
-    else
-      table
-    end
-
-    table.join(source_client_table).on(
-      at[:data_source_id].eq(source_client_table[:data_source_id]).
-      and( at[:PersonalID].eq source_client_table[:PersonalID] ).
-      and( source_client_table[:DateDeleted].eq nil )
-    ).join(client_join_table).on(
-      source_client_table[:id].eq client_join_table[:source_id]
-    ).join(destination_client_table).on(
-      destination_client_table[:id].eq(client_join_table[:destination_id]).
-      and( destination_client_table[:DateDeleted].eq nil )
-    )
-  end
-
   def join_to_enrollments(table)
     at = if table.is_a?(Arel::SelectManager)
       table.froms.first
@@ -232,7 +273,67 @@ class NewReportViews2 < ActiveRecord::Migration[5.2]
     model = GrdaWarehouse::Hud::Enrollment.arel_table
     table.join(model).on(
       at[:data_source_id].eq(model[:data_source_id]).
-      and( at[:PersonalID].eq model[:PersonalID] ).
+      and( at[:EnrollmentID].eq model[:EnrollmentID] ).
+      and( model[:DateDeleted].eq nil )
+    )
+  end
+
+  def join_to_destination_clients(table)
+    at = if table.is_a?(Arel::SelectManager)
+      table.froms.first
+    else
+      table
+    end
+    table.join(source_client_table).on(
+      at[:data_source_id].eq(source_client_table[:data_source_id]).
+      and( at[:PersonalID].eq source_client_table[:PersonalID] ).
+      and( source_client_table[:DateDeleted].eq nil )
+    ).join(wc_t).on(
+      source_client_table[:id].eq wc_t[:source_id]
+    ).join(destination_client_table).on(
+      destination_client_table[:id].eq(wc_t[:destination_id]).
+      and( destination_client_table[:DateDeleted].eq nil )
+    )
+  end
+
+  def join_to_projects(table)
+    at = if table.is_a?(Arel::SelectManager)
+      table.froms.first
+    else
+      table
+    end
+    model = GrdaWarehouse::Hud::Project.arel_table
+    table.join(model).on(
+      at[:data_source_id].eq(model[:data_source_id]).
+      and( at[:ProjectID].eq model[:ProjectID] ).
+      and( model[:DateDeleted].eq nil )
+    )
+  end
+
+  def join_to_organizations(table)
+    at = if table.is_a?(Arel::SelectManager)
+      table.froms.first
+    else
+      table
+    end
+    model = GrdaWarehouse::Hud::Organization.arel_table
+    table.join(model).on(
+      at[:data_source_id].eq(model[:data_source_id]).
+      and( at[:OrganizationID].eq model[:OrganizationID] ).
+      and( model[:DateDeleted].eq nil )
+    )
+  end
+
+  def join_to_assessments(table)
+    at = if table.is_a?(Arel::SelectManager)
+      table.froms.first
+    else
+      table
+    end
+    model = GrdaWarehouse::Hud::Assessment.arel_table
+    table.join(model).on(
+      at[:data_source_id].eq(model[:data_source_id]).
+      and( at[:AssessmentID].eq model[:AssessmentID] ).
       and( model[:DateDeleted].eq nil )
     )
   end
