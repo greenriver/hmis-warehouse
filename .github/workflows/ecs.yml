@@ -71,21 +71,29 @@ jobs:
 
         # Pull the image that speeds up builds. Build it if we have to.
         # Delete from ECR to re-cache
+        echo pulling or building pre-cache image
         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest--pre-cache || docker build --file=config/deploy/docker/assets/Dockerfile.${ECR_REPOSITORY}.pre-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:latest--pre-cache .
+        echo pushing pre-cache
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest--pre-cache
 
         # tag it the way the subsequent Dockerfiles know it
+        echo tagging pre-cache
         docker tag $ECR_REGISTRY/$ECR_REPOSITORY:latest--pre-cache ${ECR_REPOSITORY}:latest--pre-cache
 
         # the pre-cache image is like a stale version of the code. This builds the most recent things
+        echo building base
         docker build --file=config/deploy/docker/assets/Dockerfile.${ECR_REPOSITORY}.base -t ${ECR_REPOSITORY}:latest--base .
 
         # tag it so we can push it remotely
+        echo tagging base
         docker tag ${ECR_REPOSITORY}:latest--base $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
 
+        echo building web
         docker build --file=config/deploy/docker/assets/Dockerfile.${ECR_REPOSITORY}.web -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web .
+        echo building dj
         docker build --file=config/deploy/docker/assets/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
 
+        echo pushing base web and dj
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj

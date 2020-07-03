@@ -1,25 +1,155 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Contact Investigation") do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  background = sheet.styles.add_style(bg_color: "E2EFDA", border: Axlsx::STYLE_THIN_BORDER)
-  headers = columns.values
-  sheet.add_row(headers, :style => title)
 
-  highlight = true
-  @cases.each do |index_case|
-    case_info = case_info_sheet(index_case)
-    rows = columns.keys.map { |column| case_info[column].size }.max
-    rows.times do |i|
-      row = []
-      columns.keys.each do |column|
-        row << case_info[column][i]
-      end
-      if highlight
-        sheet.add_row(row, style: background)
-      else
-        sheet.add_row(row)
-      end
+wb.add_worksheet(name: "Index Cases") do |sheet|
+  # Add headers
+  sheet.add_row(index_case_columns.values.map{|column| column[:section_header]})
+  sheet.merge_cells("B1:F1")
+  sheet.merge_cells("G1:K1")
+  sheet.merge_cells("L1:AB1")
+
+  sheet.add_row(index_case_columns.values.map{|column| column[:column_header]})
+
+  # Add Rows
+  index_cases.each do |index_case|
+    row = []
+    index_case_columns.keys.each do |key|
+      row << index_case[key]
     end
-    highlight = ! highlight
+    sheet.add_row(row)
   end
+
+  # Add styles
+  investigation_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER)
+    (1..5).each do |col|
+    sheet.col_style(col, investigation_style)
+    end
+
+  investigation_head_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
+  sheet["B1"].style=investigation_head_style
+
+  period_of_interest_style = sheet.styles.add_style(bg_color: 'F0F0F0', border: Axlsx::STYLE_THIN_BORDER)
+  (6..10).each do |col|
+    sheet.col_style(col, period_of_interest_style)
+  end
+
+  period_of_interest_head_style = sheet.styles.add_style(bg_color: 'F0F0F0', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
+  sheet["G1"].style=period_of_interest_head_style
+
+  index_case_head_style = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet["L1"].style=index_case_head_style
 end
+
+wb.add_worksheet(name: "Patient Contacts") do |sheet|
+  # Add headers
+  sheet.add_row(patient_contact_columns.values.map{|column| column[:section_header]})
+  sheet.merge_cells("A1:D1")
+  sheet.merge_cells("E1:AS1")
+
+  sheet.add_row(patient_contact_columns.values.map{|column| column[:column_header]})
+
+  # Add Rows
+  patient_contacts.each do |patient_contact|
+    row = []
+    patient_contact_columns.keys.each do |key|
+      row << patient_contact[key]
+    end
+    sheet.add_row(row)
+  end
+
+  # Add styles
+  investigation_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER)
+  (0..3).each do |col|
+    sheet.col_style(col, investigation_style)
+  end
+
+  investigation_head_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
+  sheet["A1"].style=investigation_head_style
+
+  contact_head_style = sheet.styles.add_style(sz: 12, b: true)
+  sheet["E1"].style=contact_head_style
+end
+
+wb.add_worksheet(name: "Site Manager Notifications") do |sheet|
+  # Add headers
+  sheet.add_row(site_manager_columns.values.map{|column| column[:section_header]})
+  sheet.merge_cells("A1:B1")
+  sheet.merge_cells("C1:E1")
+
+  sheet.add_row(site_manager_columns.values.map{|column| column[:column_header]})
+
+  # Add Rows
+  site_managers.each do |manager|
+    row = []
+    site_manager_columns.keys.each do |key|
+      row << manager[key]
+    end
+    sheet.add_row(row)
+  end
+
+  # Add styles
+  investigation_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER)
+  (0..1).each do |col|
+    sheet.col_style(col, investigation_style)
+  end
+
+  investigation_head_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
+  sheet["A1"].style=investigation_head_style
+
+  site_manager_head_style = sheet.styles.add_style(sz: 12, b: true)
+  sheet["C1"].style=site_manager_head_style
+end
+
+wb.add_worksheet(name: "Staff Contacts") do |sheet|
+  # Add headers
+  sheet.add_row(staff_contacts_columns.values.map{|column| column[:section_header]})
+  sheet.merge_cells("A1:C1")
+  sheet.merge_cells("D1:Q1")
+
+  sheet.add_row(staff_contacts_columns.values.map{|column| column[:column_header]})
+
+  # Add Rows
+  staff_contacts.each do |contact|
+    row = []
+    staff_contacts_columns.keys.each do |key|
+      row << contact[key]
+    end
+    sheet.add_row(row)
+  end
+
+  # Add styles
+  investigation_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER)
+  (0..2).each do |col|
+    sheet.col_style(col, investigation_style)
+  end
+
+  investigation_head_style = sheet.styles.add_style(bg_color: 'FFF0C5', border: Axlsx::STYLE_THIN_BORDER, sz: 12, b: true, alignment: {horizontal: :center})
+  sheet["A1"].style=investigation_head_style
+
+  staff_contact_head_style = sheet.styles.add_style(sz: 12, b: true)
+  sheet["D1"].style=staff_contact_head_style
+end
+
+# wb.add_worksheet(name: "Contact Investigation") do |sheet|
+#   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+#   background = sheet.styles.add_style(bg_color: "E2EFDA", border: Axlsx::STYLE_THIN_BORDER)
+#   headers = columns.values
+#   sheet.add_row(headers, :style => title)
+#
+#   highlight = true
+#   @cases.each do |index_case|
+#     case_info = case_info_sheet(index_case)
+#     rows = columns.keys.map { |column| case_info[column].size }.max
+#     rows.times do |i|
+#       row = []
+#       columns.keys.each do |column|
+#         row << case_info[column][i]
+#       end
+#       if highlight
+#         sheet.add_row(row, style: background)
+#       else
+#         sheet.add_row(row)
+#       end
+#     end
+#     highlight = ! highlight
+#   end
+# end

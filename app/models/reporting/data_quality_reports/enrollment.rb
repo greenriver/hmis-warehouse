@@ -91,7 +91,7 @@ module Reporting::DataQualityReports
 
     self.table_name = :warehouse_data_quality_report_enrollments
 
-    belongs_to :report, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name, foreign_key: :report_id
+    belongs_to :report, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base', foreign_key: :report_id
 
     scope :enrolled, -> do
       where enrolled: true

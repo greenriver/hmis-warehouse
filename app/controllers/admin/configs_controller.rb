@@ -57,6 +57,7 @@ module Admin
         :health_emergency,
         :health_emergency_tracing,
         :health_priority_age,
+        :multi_coc_installation,
         client_details: [],
       )
     end

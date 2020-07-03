@@ -1,0 +1,8 @@
+= simple_form_for [:admin, @role] do |f|
+  = f.error_notification
+
+  .form-inputs
+    = f.input :name, label: 'Role name'
+
+  .form-actions
+    = f.button :submit, class: 'btn btn-primary'

@@ -1,6 +1,6 @@
 
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@sub_population]} Entry Detail"[0..31]) do |sheet|
+wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@filter.sub_population]} Entry Detail"[0..31]) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row([
     'Warehouse Client ID',
@@ -20,7 +20,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
       enrollments = @enrollments[client_id]
       enrollments.each do |enrollment|
         row = [
-          client_id, 
+          client_id,
           enrollment[:first_name],
           enrollment[:last_name],
           enrollment[:first_date_in_program],
@@ -29,7 +29,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
           enrollment[:organization_name],
           HUD.project_type(enrollment[:project_type]),
           section,
-        ] 
+        ]
         sheet.add_row(row)
       end
     end

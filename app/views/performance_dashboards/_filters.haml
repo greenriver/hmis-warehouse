@@ -6,7 +6,7 @@
       Dates
   %li.nav-item{role: :presentation}
     %a{href: '#projects', role: :tab, data: {toggle: :tab}, aria: {controls: 'projects'}, class: 'nav-link'}
-      Projects
+      Projects & Funding
   %li.nav-item{role: :presentation}
     %a{href: '#household', role: :tab, data: {toggle: :tab}, aria: {controls: 'household'}, class: 'nav-link'}
       Household
@@ -20,24 +20,29 @@
         = f.input :start_date, as: :date_picker, input_html: { value: @filter[:start_date] }, label: 'Start date of period'
       .col-sm-3
         = f.input :end_date, as: :date_picker, input_html: { value: @filter[:end_date] }, label: 'End date of period'
-    .row
-      .col-sm-12
-        = f.input :comparison_pattern, as: :boolean_button_group, collection: PerformanceDashboards::Overview.comparison_patterns, label: 'Compare with', include_blank: false, selected: @filter[:comparison_pattern], wrapper_html: last_group_html
+    - if include_comparison_pattern?
+      .row
+        .col-sm-12
+          = f.input :comparison_pattern, as: :boolean_button_group, collection: PerformanceDashboards::Overview.comparison_patterns, label: 'Compare with', include_blank: false, selected: @filter[:comparison_pattern], wrapper_html: last_group_html
   #projects.tab-pane{role: :tabpanel}
     .row
-      .col-sm-4
-        = f.input :coc_codes, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: @filter[:coc_codes], required: false, input_html: { multiple: true, class: :select2 }
+      - if GrdaWarehouse::Config.get(:multi_coc_installation)
+        .col-sm-4
+          = f.input :coc_codes, collection: @report.available_cocs_for_select, selected: @filter[:coc_codes], required: false, input_html: { multiple: true, class: [:select2, 'select2-id-when-selected'] }
       .col-sm-8
         - if multiple_project_types?
-          = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, input_html: { multiple: true, class: :select2 }, wrapper_html: last_group_html
+          = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, input_html: { multiple: true, class: [:select2, 'select2-parenthetical-when-selected'] }, wrapper_html: last_group_html
         - else
-          = f.input :project_types, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, label: 'Project Type', input_html: { class: :select2 }, wrapper_html: last_group_html
+          = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, selected: @filter[:project_type_codes], required: false, label: 'Project Type', input_html: { class: :select2 }, wrapper_html: last_group_html
     .row.mt-4
-      .col-sm-4
+      .col-sm-6
+        = f.input :funder_ids, collection: @report.available_funders_for_select, selected: @filter[:funder_ids], input_html: {multiple: true, class: 'select2'}, label: 'Funding Sources'
+      .col-sm-6
         = f.input :data_source_ids, collection: @report.available_data_sources_for_select, selected: @filter[:data_source_ids], input_html: {multiple: true, class: 'select2'}, label: 'Data Sources'
-      .col-sm-4
+    .row
+      .col-sm-6
         = f.input :organization_ids, collection: @report.available_organizations_for_select, selected: @filter[:organization_ids], as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
-      .col-sm-4
+      .col-sm-6
         = f.input :project_ids, collection: @report.available_projects_for_select, selected: @filter[:project_ids], as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
   #household.tab-pane{role: :tabpanel}
     .row

@@ -1,4 +1,4 @@
-- title = "#{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@sub_population]} Exit Detail"
+- title = "#{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@filter.sub_population]} Exit Detail"
 - content_for :title, title
 .row
   .col-sm-8
@@ -17,14 +17,13 @@
 %h3 Summary
 %p
   The following is exit data for veteran who exited homelessness between
-  = @range.start
+  = @filter.start
   and
-  = "#{@range.end}."
+  = "#{@filter.end}."
   During that time there were
   = @clients.count
   exits consisting of
-  = @clients.map{ |row| row[:client_id]}.uniq.count
-  unique clients.
+  #{pluralize(@clients.map{ |row| row[:client_id]}.uniq.count, 'unique client')}.
   = render 'common/population_warnings'
 = render 'warehouse_reports/limited_by_project_note'
 %table.table.table-sm.table-hover

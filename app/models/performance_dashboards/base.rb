@@ -47,6 +47,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     f
   end
 
+  def detail_params
+    @filter.to_h.except(:user).
+      merge(comparison_pattern: :no_comparison_period)
+  end
+
   def self.detail_method(key)
     available_keys[key.to_sym]
   end
@@ -105,6 +110,18 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     available_projects_for_select.values.flatten(1).select { |_, id| @filter.project_ids.include?(id) }&.map(&:first)
   end
 
+  def available_cocs_for_select
+    GrdaWarehouse::Lookups::CocCode.options_for_select(user: @filter.user)
+  end
+
+  def available_funders_for_select
+    GrdaWarehouse::Hud::Funder.options_for_select(user: @filter.user)
+  end
+
+  def funder_names
+    available_funders_for_select.select { |_, id| @filter.funder_ids.include?(id.to_i) }&.map(&:first)
+  end
+
   def chosen_age_ranges
     @age_ranges.map do |range|
       age_ranges.invert[range]
@@ -138,7 +155,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def chosen_sub_population
-    Reporting::MonthlyReports::Base.available_types[@sub_population]&.new&.sub_population_title
+    Reporting::MonthlyReports::Base.available_types[@sub_population]&.constantize&.new&.sub_population_title
   end
 
   def chosen_races
@@ -166,11 +183,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def self.sub_populations
-    Reporting::MonthlyReports::Base.available_types.map { |k, klass| [klass.new.sub_population_title, k] }.to_h
+    Reporting::MonthlyReports::Base.available_types.map { |k, klass| [klass.constantize.new.sub_population_title, k] }.to_h
   end
 
   def valid_sub_population(population)
-    self.class.sub_populations.values.detect { |m| m == population&.to_sym } || :all_clients
+    self.class.sub_populations.values.detect { |m| m == population&.to_sym } || :clients
   end
 
   # @return filtered scope
@@ -190,6 +207,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     scope = filter_for_data_sources(scope)
     scope = filter_for_organizations(scope)
     scope = filter_for_projects(scope)
+    scope = filter_for_funders(scope)
     scope
   end
 
@@ -210,11 +228,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
     case @household_type
     when :without_children
-      scope.where(other_clients_under_18: 0)
+      scope.adult_only_households
     when :with_children
-      scope.where(other_clients_under_18: 1)
+      scope.adults_with_children
     when :only_children
-      scope.where(children_only: true)
+      scope.child_only_households
     end
   end
 
@@ -225,44 +243,16 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   private def filter_for_age(scope)
-    return scope unless @age_ranges.present?
+    return scope unless @age_ranges.present? && (age_ranges.values & @age_ranges).present?
 
-    age_scope = nil
-    if @age_ranges.include?(:under_eighteen)
-      age_scope = add_alternative(
-        age_scope,
-        report_scope_source.where(she_t[:age].lt(18)),
-      )
-    end
-
-    if @age_ranges.include?(:eighteen_to_twenty_four)
-      age_scope = add_alternative(
-        age_scope,
-        report_scope_source.where(
-          she_t[:age].gteq(18).
-          and(she_t[:age].lteq(24)),
-        ),
-      )
-    end
-
-    if @age_ranges.include?(:twenty_five_to_sixty_one)
-      age_scope = add_alternative(
-        age_scope,
-        report_scope_source.where(
-          she_t[:age].gteq(25).
-          and(she_t[:age].lteq(61)),
-        ),
-      )
-    end
-
-    if @age_ranges.include?(:over_sixty_one)
-      age_scope = add_alternative(
-        age_scope,
-        report_scope_source.where(she_t[:age].gt(61)),
-      )
-    end
-
-    scope.merge(age_scope)
+    # Or'ing ages is very slow, instead we'll build up an acceptable
+    # array of ages
+    ages = []
+    ages += (0..17).to_a if @age_ranges.include?(:under_eighteen)
+    ages += (18..24).to_a if @age_ranges.include?(:eighteen_to_twenty_four)
+    ages += (25..61).to_a if @age_ranges.include?(:twenty_five_to_sixty_one)
+    ages += (62..110).to_a if @age_ranges.include?(:over_sixty_one)
+    scope.where(she_t[:age].in(ages))
   end
 
   private def filter_for_gender(scope)
@@ -310,6 +300,16 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
   end
 
+  private def filter_for_funders(scope)
+    return scope if @filter.funder_ids.blank?
+
+    project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user).
+      where(Funder: @filter.funder_ids).
+      joins(:project).
+      select(p_t[:id])
+    scope.in_project(project_ids)
+  end
+
   private def filter_for_data_sources(scope)
     return scope if @filter.data_source_ids.blank?
 
@@ -331,7 +331,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def report_scope_source
-    GrdaWarehouse::ServiceHistoryEnrollment
+    GrdaWarehouse::ServiceHistoryEnrollment.entry
   end
 
   private def add_alternative(scope, alternative)
@@ -343,7 +343,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   private def race_alternative(key)
-    report_scope_source.joins(:client).where(c_t[key].in(@races[key.to_s]))
+    report_scope_source.joins(:client).where(c_t[key].eq(@races[key.to_s]))
   end
 
   def yn(boolean)

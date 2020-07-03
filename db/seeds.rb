@@ -4,6 +4,7 @@ def setup_fake_user
   unless User.find_by(email: 'noreply@example.com').present?
     # Add roles
     admin = Role.where(name: 'Admin').first_or_create
+    admin.update(can_edit_users: true, can_edit_roles: true)
     dnd_staff = Role.where(name: 'CoC Staff').first_or_create
 
     # Add a user.  This should not be added in production
@@ -496,13 +497,13 @@ def report_list
         url: 'performance_dashboards/overview',
         name: 'Performance Overview',
         description: 'Overview of warehouse performance.',
-        limitable: false,
+        limitable: true,
       },
       {
         url: 'performance_dashboards/project_type',
         name: 'Project Type Breakdowns',
         description: 'Performance by project type.',
-        limitable: false,
+        limitable: true,
       },
     ],
     'Health Emergency' => [
@@ -795,6 +796,13 @@ def maintain_data_sources
   end
 end
 
+def maintain_coc_codes
+  HUD.cocs.each do |code, name|
+    coc = GrdaWarehouse::Lookups::CocCode.where(coc_code: code).first_or_initialize
+    coc.update(official_name: name)
+  end
+end
+
 # These tables are partitioned and need to have triggers and functions that
 # schema loading doesn't include.  This will ensure that they exist on each deploy
 def ensure_db_triggers_and_functions
@@ -807,4 +815,4 @@ setup_fake_user() if Rails.env.development?
 maintain_data_sources()
 maintain_report_definitions()
 maintain_health_seeds()
-
+maintain_coc_codes()

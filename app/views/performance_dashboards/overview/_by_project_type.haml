@@ -1,0 +1,25 @@
+- breakdown = 'By Project Type'
+- sub_keys = @report.project_type_bucket_titles.invert
+- options = {project_type: :true}
+- chart_class_slug = 'by-project_type'
+- chart_height = 900
+
+- columns = [@report.entering_by_project_type_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.entering_by_project_type_data_for_chart[:columns]
+- categories = @report.entering_by_project_type_data_for_chart[:categories]
+= render 'performance_dashboards/overview/breakdown/entering', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, chart_class_slug: chart_class_slug, chart_height: chart_height
+
+- columns = [@report.enrolled_by_project_type_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.enrolled_by_project_type_data_for_chart[:columns]
+- categories = @report.enrolled_by_project_type_data_for_chart[:categories]
+= render 'performance_dashboards/overview/breakdown/enrolled', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, chart_class_slug: chart_class_slug, chart_height: chart_height
+
+- columns = [@report.exiting_by_project_type_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.exiting_by_project_type_data_for_chart[:columns]
+- categories = @report.exiting_by_project_type_data_for_chart[:categories]
+= render 'performance_dashboards/overview/breakdown/exiting', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, chart_class_slug: chart_class_slug, chart_height: chart_height
+
+

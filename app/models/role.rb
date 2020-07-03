@@ -51,6 +51,10 @@ class Role < ApplicationRecord
     return perms
   end
 
+  def self.permission_categories
+    permissions_with_descriptions.map{|perm_key, perm| perm[:categories]}.flatten.uniq
+  end
+
   def self.health_permissions
     health_permissions_with_descriptions.keys
   end
@@ -59,9 +63,14 @@ class Role < ApplicationRecord
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:description] rescue ''
   end
 
+  def self.category_for permission:
+    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:categories] rescue []
+  end
+
   def self.administrative? permission:
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true
   end
+
 
   def self.permissions_with_descriptions
     {
@@ -309,7 +318,7 @@ class Role < ApplicationRecord
         description: 'Administrative ability to fundamentally change the way various items are calculated and to disable/enable modules',
         administrative: true,
         categories: [
-          'Adminstration',
+          'Administration',
         ],
       },
       # Deprecated TODO: remove references, then remove permission
@@ -317,7 +326,7 @@ class Role < ApplicationRecord
         description: 'Management interface for setup of data quality grading scheme',
         administrative: true,
         categories: [
-          'Adminstration',
+          'Administration',
         ],
       },
       can_view_vspdat: {
@@ -456,6 +465,7 @@ class Role < ApplicationRecord
       can_download_cohorts: {
         description: 'Ability to download the contents of a cohort',
         administrative: false,
+        categories: [],
       },
       can_assign_users_to_clients: {
         description: 'Ability to setup user-client relationships',
