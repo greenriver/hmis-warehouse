@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_01_192839) do
+ActiveRecord::Schema.define(version: 2020_07_03_025438) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -5209,7 +5209,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Organization"."DateUpdated",
       "Organization"."UserID",
       "Organization"."DateDeleted",
-      "Organization"."ExportID"
+      "Organization"."ExportID",
+      "Organization".data_source_id
      FROM "Organization"
     WHERE ("Organization"."DateDeleted" IS NULL);
   SQL
@@ -5232,7 +5233,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Project"."DateUpdated",
       "Project"."UserID",
       "Project"."DateDeleted",
-      "Project"."ExportID"
+      "Project"."ExportID",
+      "Project".data_source_id
      FROM "Project"
     WHERE ("Project"."DateDeleted" IS NULL);
   SQL
@@ -5251,7 +5253,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "ProjectCoC"."DateUpdated",
       "ProjectCoC"."UserID",
       "ProjectCoC"."DateDeleted",
-      "ProjectCoC"."ExportID"
+      "ProjectCoC"."ExportID",
+      "ProjectCoC".data_source_id
      FROM "ProjectCoC"
     WHERE ("ProjectCoC"."DateDeleted" IS NULL);
   SQL
@@ -5263,7 +5266,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Affiliation"."DateUpdated",
       "Affiliation"."UserID",
       "Affiliation"."DateDeleted",
-      "Affiliation"."ExportID"
+      "Affiliation"."ExportID",
+      "Affiliation".data_source_id
      FROM "Affiliation"
     WHERE ("Affiliation"."DateDeleted" IS NULL);
   SQL
@@ -5284,7 +5288,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Export"."SoftwareVersion",
       "Export"."ExportPeriodType",
       "Export"."ExportDirective",
-      "Export"."HashStatus"
+      "Export"."HashStatus",
+      "Export".data_source_id
      FROM "Export";
   SQL
   create_view "bi_Inventory", sql_definition: <<-SQL
@@ -5309,7 +5314,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Inventory"."DateUpdated",
       "Inventory"."UserID",
       "Inventory"."DateDeleted",
-      "Inventory"."ExportID"
+      "Inventory"."ExportID",
+      "Inventory".data_source_id
      FROM "Inventory"
     WHERE ("Inventory"."DateDeleted" IS NULL);
   SQL
@@ -5325,7 +5331,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Funder"."DateUpdated",
       "Funder"."UserID",
       "Funder"."DateDeleted",
-      "Funder"."ExportID"
+      "Funder"."ExportID",
+      "Funder".data_source_id
      FROM "Funder"
     WHERE ("Funder"."DateDeleted" IS NULL);
   SQL
@@ -5411,7 +5418,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Client"."DateUpdated",
       "Client"."UserID",
       "Client"."DateDeleted",
-      "Client"."ExportID"
+      "Client"."ExportID",
+      "Client".data_source_id
      FROM "Client"
     WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
              FROM data_sources
@@ -5491,7 +5499,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Enrollment"."UserID",
       "Enrollment"."DateDeleted",
       "Enrollment"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "Enrollment".data_source_id
      FROM ((("Enrollment"
        JOIN "Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
@@ -5516,7 +5525,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Services"."UserID",
       "Services"."DateDeleted",
       "Services"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "Services".data_source_id
      FROM (((("Services"
        JOIN "Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
@@ -5570,7 +5580,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Exit"."UserID",
       "Exit"."DateDeleted",
       "Exit"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "Exit".data_source_id
      FROM (((("Exit"
        JOIN "Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
@@ -5594,7 +5605,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "EnrollmentCoC"."UserID",
       "EnrollmentCoC"."DateDeleted",
       "EnrollmentCoC"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "EnrollmentCoC".data_source_id
      FROM (((("EnrollmentCoC"
        JOIN "Client" source_clients ON ((("EnrollmentCoC".data_source_id = source_clients.data_source_id) AND (("EnrollmentCoC"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
@@ -5624,7 +5636,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Disabilities"."UserID",
       "Disabilities"."DateDeleted",
       "Disabilities"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "Disabilities".data_source_id
      FROM (((("Disabilities"
        JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
@@ -5653,7 +5666,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "HealthAndDV"."UserID",
       "HealthAndDV"."DateDeleted",
       "HealthAndDV"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "HealthAndDV".data_source_id
      FROM (((("HealthAndDV"
        JOIN "Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
@@ -5741,7 +5755,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "IncomeBenefits"."UserID",
       "IncomeBenefits"."DateDeleted",
       "IncomeBenefits"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "IncomeBenefits".data_source_id
      FROM (((("IncomeBenefits"
        JOIN "Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
@@ -5767,7 +5782,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "EmploymentEducation"."UserID",
       "EmploymentEducation"."DateDeleted",
       "EmploymentEducation"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "EmploymentEducation".data_source_id
      FROM (((("EmploymentEducation"
        JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
@@ -5795,7 +5811,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "CurrentLivingSituation"."UserID",
       "CurrentLivingSituation"."DateDeleted",
       "CurrentLivingSituation"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "CurrentLivingSituation".data_source_id
      FROM (((("CurrentLivingSituation"
        JOIN "Client" source_clients ON ((("CurrentLivingSituation".data_source_id = source_clients.data_source_id) AND (("CurrentLivingSituation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
@@ -5821,7 +5838,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Event"."UserID",
       "Event"."DateDeleted",
       "Event"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "Event".data_source_id
      FROM (((("Event"
        JOIN "Client" source_clients ON ((("Event".data_source_id = source_clients.data_source_id) AND (("Event"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
@@ -5845,7 +5863,8 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       "Assessment"."UserID",
       "Assessment"."DateDeleted",
       "Assessment"."ExportID",
-      source_clients.id AS demographic_id
+      source_clients.id AS demographic_id,
+      "Assessment".data_source_id
      FROM (((("Assessment"
        JOIN "Client" source_clients ON ((("Assessment".data_source_id = source_clients.data_source_id) AND (("Assessment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
