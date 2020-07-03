@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_03_025438) do
+ActiveRecord::Schema.define(version: 2020_07_03_154409) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -7071,61 +7071,6 @@ ActiveRecord::Schema.define(version: 2020_07_03_025438) do
   add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
   add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
 
-  create_view "bi_service_history_services", sql_definition: <<-SQL
-      SELECT service_history_services.id,
-      service_history_services.service_history_enrollment_id,
-      service_history_services.record_type,
-      service_history_services.date,
-      service_history_services.age,
-      service_history_services.service_type,
-      service_history_services.client_id,
-      service_history_services.project_type,
-      service_history_services.homeless,
-      service_history_services.literally_homeless
-     FROM (service_history_services
-       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
-    WHERE (service_history_services.date >= (CURRENT_DATE - '5 years'::interval));
-  SQL
-  create_view "bi_service_history_enrollments", sql_definition: <<-SQL
-      SELECT service_history_enrollments.id,
-      service_history_enrollments.client_id,
-      service_history_enrollments.data_source_id,
-      service_history_enrollments.date,
-      service_history_enrollments.first_date_in_program,
-      service_history_enrollments.last_date_in_program,
-      service_history_enrollments.enrollment_group_id,
-      service_history_enrollments.age,
-      service_history_enrollments.destination,
-      service_history_enrollments.head_of_household_id,
-      service_history_enrollments.household_id,
-      service_history_enrollments.project_name,
-      service_history_enrollments.project_type,
-      service_history_enrollments.project_tracking_method,
-      service_history_enrollments.organization_id,
-      service_history_enrollments.record_type,
-      service_history_enrollments.housing_status_at_entry,
-      service_history_enrollments.housing_status_at_exit,
-      service_history_enrollments.service_type,
-      service_history_enrollments.computed_project_type,
-      service_history_enrollments.presented_as_individual,
-      service_history_enrollments.other_clients_over_25,
-      service_history_enrollments.other_clients_under_18,
-      service_history_enrollments.other_clients_between_18_and_25,
-      service_history_enrollments.unaccompanied_youth,
-      service_history_enrollments.parenting_youth,
-      service_history_enrollments.parenting_juvenile,
-      service_history_enrollments.children_only,
-      service_history_enrollments.individual_adult,
-      service_history_enrollments.individual_elder,
-      service_history_enrollments.head_of_household,
-      service_history_enrollments.move_in_date,
-      service_history_enrollments.unaccompanied_minor,
-      "Project".id AS project_id
-     FROM ((service_history_enrollments
-       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
-       JOIN "Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = service_history_enrollments.data_source_id) AND (("Project"."ProjectID")::text = (service_history_enrollments.project_id)::text) AND (("Project"."OrganizationID")::text = (service_history_enrollments.organization_id)::text))))
-    WHERE ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval)));
-  SQL
   create_view "bi_Organization", sql_definition: <<-SQL
       SELECT "Organization".id AS "OrganizationID",
       "Organization"."OrganizationName",
@@ -7828,5 +7773,82 @@ ActiveRecord::Schema.define(version: 2020_07_03_025438) do
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
     WHERE ("Enrollment"."DateDeleted" IS NULL);
+  SQL
+  create_view "bi_service_history_services", sql_definition: <<-SQL
+      SELECT service_history_services.id,
+      service_history_services.service_history_enrollment_id,
+      service_history_services.record_type,
+      service_history_services.date,
+      service_history_services.age,
+      service_history_services.service_type,
+      service_history_services.client_id,
+      service_history_services.project_type,
+      service_history_services.homeless,
+      service_history_services.literally_homeless
+     FROM (service_history_services
+       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
+    WHERE (service_history_services.date >= (CURRENT_DATE - '5 years'::interval));
+  SQL
+  create_view "bi_service_history_enrollments", sql_definition: <<-SQL
+      SELECT service_history_enrollments.id,
+      service_history_enrollments.client_id,
+      service_history_enrollments.data_source_id,
+      service_history_enrollments.date,
+      service_history_enrollments.first_date_in_program,
+      service_history_enrollments.last_date_in_program,
+      service_history_enrollments.age,
+      service_history_enrollments.destination,
+      service_history_enrollments.head_of_household_id,
+      service_history_enrollments.household_id,
+      service_history_enrollments.project_name,
+      service_history_enrollments.project_type,
+      service_history_enrollments.project_tracking_method,
+      service_history_enrollments.organization_id,
+      service_history_enrollments.record_type,
+      service_history_enrollments.housing_status_at_entry,
+      service_history_enrollments.housing_status_at_exit,
+      service_history_enrollments.service_type,
+      service_history_enrollments.computed_project_type,
+      service_history_enrollments.presented_as_individual,
+      service_history_enrollments.other_clients_over_25,
+      service_history_enrollments.other_clients_under_18,
+      service_history_enrollments.other_clients_between_18_and_25,
+      service_history_enrollments.unaccompanied_youth,
+      service_history_enrollments.parenting_youth,
+      service_history_enrollments.parenting_juvenile,
+      service_history_enrollments.children_only,
+      service_history_enrollments.individual_adult,
+      service_history_enrollments.individual_elder,
+      service_history_enrollments.head_of_household,
+      service_history_enrollments.move_in_date,
+      service_history_enrollments.unaccompanied_minor,
+      "Project".id AS project_id,
+      "Enrollment".id AS enrollment_id
+     FROM (((service_history_enrollments
+       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
+       JOIN "Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = service_history_enrollments.data_source_id) AND (("Project"."ProjectID")::text = (service_history_enrollments.project_id)::text) AND (("Project"."OrganizationID")::text = (service_history_enrollments.organization_id)::text))))
+       JOIN "Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = service_history_enrollments.data_source_id) AND (("Enrollment"."EnrollmentID")::text = (service_history_enrollments.enrollment_group_id)::text) AND (("Enrollment"."ProjectID")::text = (service_history_enrollments.project_id)::text))))
+    WHERE ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval)));
+  SQL
+  create_view "bi_data_sources", sql_definition: <<-SQL
+      SELECT data_sources.id,
+      data_sources.name,
+      data_sources.file_path,
+      data_sources.last_imported_at,
+      data_sources.newest_updated_at,
+      data_sources.created_at,
+      data_sources.updated_at,
+      data_sources.source_type,
+      data_sources.munged_personal_id,
+      data_sources.short_name,
+      data_sources.visible_in_window,
+      data_sources.authoritative,
+      data_sources.after_create_path,
+      data_sources.import_paused,
+      data_sources.authoritative_type,
+      data_sources.source_id,
+      data_sources.deleted_at
+     FROM data_sources
+    WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
   SQL
 end
