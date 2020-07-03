@@ -5198,7 +5198,7 @@ ActiveRecord::Schema.define(version: 2020_07_01_192839) do
       service_history_enrollments.unaccompanied_minor
      FROM (service_history_enrollments
        JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
-    WHERE (COALESCE(service_history_enrollments.last_date_in_program, service_history_enrollments.first_date_in_program) >= (CURRENT_DATE - '5 years'::interval));
+    WHERE ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval)));
   SQL
   create_view "bi_Organization", sql_definition: <<-SQL
       SELECT "Organization"."OrganizationID",
