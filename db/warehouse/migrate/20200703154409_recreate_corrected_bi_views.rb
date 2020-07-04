@@ -134,10 +134,6 @@ class RecreateCorrectedBiViews < ActiveRecord::Migration[5.2]
     [:id, *de_identified, *hmis_cols]
   end
 
-  def p_t
-    GrdaWarehouse::Hud::Project.arel_table
-  end
-
   def assessment_table
     GrdaWarehouse::Hud::Assessment.arel_table
   end

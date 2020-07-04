@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_03_154409) do
+ActiveRecord::Schema.define(version: 2020_07_03_234840) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4051,6 +4051,54 @@ ActiveRecord::Schema.define(version: 2020_07_03_154409) do
     t.index ["updated_at"], name: "index_lftp_s3_syncs_on_updated_at"
   end
 
+  create_table "lookups_ethnicities", force: :cascade do |t|
+    t.integer "value", null: false
+    t.string "text", null: false
+    t.index ["value"], name: "index_lookups_ethnicities_on_value"
+  end
+
+  create_table "lookups_funding_sources", force: :cascade do |t|
+    t.integer "value", null: false
+    t.string "text", null: false
+    t.index ["value"], name: "index_lookups_funding_sources_on_value"
+  end
+
+  create_table "lookups_genders", force: :cascade do |t|
+    t.integer "value", null: false
+    t.string "text", null: false
+    t.index ["value"], name: "index_lookups_genders_on_value"
+  end
+
+  create_table "lookups_living_situations", force: :cascade do |t|
+    t.integer "value", null: false
+    t.string "text", null: false
+    t.index ["value"], name: "index_lookups_living_situations_on_value"
+  end
+
+  create_table "lookups_project_types", force: :cascade do |t|
+    t.integer "value", null: false
+    t.string "text", null: false
+    t.index ["value"], name: "index_lookups_project_types_on_value"
+  end
+
+  create_table "lookups_relationships", force: :cascade do |t|
+    t.integer "value", null: false
+    t.string "text", null: false
+    t.index ["value"], name: "index_lookups_relationships_on_value"
+  end
+
+  create_table "lookups_tracking_methods", force: :cascade do |t|
+    t.integer "value"
+    t.string "text", null: false
+    t.index ["value"], name: "index_lookups_tracking_methods_on_value"
+  end
+
+  create_table "lookups_yes_no_etcs", force: :cascade do |t|
+    t.integer "value", null: false
+    t.string "text", null: false
+    t.index ["value"], name: "index_lookups_yes_no_etcs_on_value"
+  end
+
   create_table "new_service_history", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "data_source_id"
@@ -7235,7 +7283,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_154409) do
        JOIN "Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("Services"."DateDeleted" IS NULL);
+    WHERE (("Services"."DateProvided" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateDeleted" IS NULL));
   SQL
   create_view "bi_Exit", sql_definition: <<-SQL
       SELECT "Exit".id AS "ExitID",
@@ -7850,5 +7898,53 @@ ActiveRecord::Schema.define(version: 2020_07_03_154409) do
       data_sources.deleted_at
      FROM data_sources
     WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
+  SQL
+  create_view "bi_lookups_ethnicities", sql_definition: <<-SQL
+      SELECT lookups_ethnicities.id,
+      lookups_ethnicities.value,
+      lookups_ethnicities.text
+     FROM lookups_ethnicities;
+  SQL
+  create_view "bi_lookups_funding_sources", sql_definition: <<-SQL
+      SELECT lookups_funding_sources.id,
+      lookups_funding_sources.value,
+      lookups_funding_sources.text
+     FROM lookups_funding_sources;
+  SQL
+  create_view "bi_lookups_genders", sql_definition: <<-SQL
+      SELECT lookups_genders.id,
+      lookups_genders.value,
+      lookups_genders.text
+     FROM lookups_genders;
+  SQL
+  create_view "bi_lookups_living_situations", sql_definition: <<-SQL
+      SELECT lookups_living_situations.id,
+      lookups_living_situations.value,
+      lookups_living_situations.text
+     FROM lookups_living_situations;
+  SQL
+  create_view "bi_lookups_project_types", sql_definition: <<-SQL
+      SELECT lookups_project_types.id,
+      lookups_project_types.value,
+      lookups_project_types.text
+     FROM lookups_project_types;
+  SQL
+  create_view "bi_lookups_relationships", sql_definition: <<-SQL
+      SELECT lookups_relationships.id,
+      lookups_relationships.value,
+      lookups_relationships.text
+     FROM lookups_relationships;
+  SQL
+  create_view "bi_lookups_tracking_methods", sql_definition: <<-SQL
+      SELECT lookups_tracking_methods.id,
+      lookups_tracking_methods.value,
+      lookups_tracking_methods.text
+     FROM lookups_tracking_methods;
+  SQL
+  create_view "bi_lookups_yes_no_etcs", sql_definition: <<-SQL
+      SELECT lookups_yes_no_etcs.id,
+      lookups_yes_no_etcs.value,
+      lookups_yes_no_etcs.text
+     FROM lookups_yes_no_etcs;
   SQL
 end
