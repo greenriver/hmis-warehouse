@@ -400,13 +400,17 @@ module HUD
 
   # 2.5.1
   def tracking_method(id, reverse = false)
-    map = {
+    map = tracking_methods
+
+    _translate map, id, reverse
+  end
+
+  def tracking_methods
+    {
       0 => 'Entry/Exit Date',
       3 => 'Night-by-Night',
       nil => 'Entry/Exit Date',
     }
-
-    _translate map, id, reverse
   end
 
   def funding_sources
@@ -963,7 +967,13 @@ module HUD
 
   # 3.15.1
   def relationship_to_hoh(id, reverse = false)
-    map = {
+    map = relationships_to_hoh
+
+    _translate map, id, reverse
+  end
+
+  def relationships_to_hoh
+    {
       1 => 'Self (head of household)',
       2 => 'Child',
       3 => 'Spouse or partner',
@@ -971,8 +981,6 @@ module HUD
       5 => 'Unrelated household member',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 4.1.1
