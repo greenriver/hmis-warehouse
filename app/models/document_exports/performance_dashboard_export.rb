@@ -8,7 +8,8 @@ module DocumentExports
   class PerformanceDashboardExport < DocumentExport
     def authorized?
       if Rails.env.development?
-        true
+        # FIXME - is this right?
+        user.can_view_censuses? && can_view_clients?
       else
         raise 'auth not implemented'
       end
@@ -16,32 +17,37 @@ module DocumentExports
 
     def perform
       with_status_progression do
-        report = load_report
-        html = render_html(report)
-        PdfGenerator.new.perform(html) do |io|
-          self.file = io
-        end
-        save!
+        render_to_pdf!(
+          context: PerformanceDashboards::OverviewController.view_paths,
+          file: 'performance_dashboards/overview/index_pdf',
+          assigns: view_assigns,
+        )
       end
     end
 
     protected
 
-    def render_html(report)
-      assigns = {
-        report: report,
+    def view_assigns
+      # FIXME: - tbd
+      filter_set = param_filter_set
+      {
+        report: PerformanceDashboards::Overview.new(filter_set),
+        comparison_dates: filter_set.to_comparison_set,
+        breakdown: breakdown,
         pdf: true,
       }
-      context = PerformanceDashboards::OverviewController.view_paths
-      view = ActionView::Base.new(context, assigns)
-
-      file_path = 'performance_dashboards/overview/index_pdf'
-      view.render(file: file_path)
     end
 
-    def load_report
-      # FIXME: - tbd
-      OpenStruct.new(user_id: user_id)
+    def breakdown
+      params[:breakdown]&.to_sym || :age
     end
+
+    def param_filter_set
+      filters = PerformanceDashboards::ReportFilterSet.new
+      filter.current_user = user
+      filter.assign_attributes(params[:filters])
+      filters
+    end
+
   end
 end

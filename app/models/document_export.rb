@@ -49,7 +49,13 @@ class DocumentExport < ApplicationRecord
     where('created_at <= ?', Time.now - EXPIRES_AFTER)
   end
 
-  def parse_params
-    params ? Rack::Utils.parse_nested_query(params) : {}
+  protected def render_to_pdf!(file:, assigns: {}, context: nil)
+    context ||= Rails.configuration.paths['app/views']
+    view = ActionView::Base.new(context, assigns)
+    html = view.render(file: file)
+    PdfGenerator.new.perform(html) do |io|
+      self.file = io
+    end
+    save!
   end
 end
