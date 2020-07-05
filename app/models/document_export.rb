@@ -40,8 +40,13 @@ class DocumentExport < ApplicationRecord
     self.version ||= CURRENT_VERSION
   end
 
+  EXPIRES_AFTER = 12.hours
   def self.not_expired
-    where('created_at > ?', 1.hour.ago)
+    where('created_at > ?', Time.now - EXPIRES_AFTER)
+  end
+
+  def self.expired
+    where('created_at <= ?', Time.now - EXPIRES_AFTER)
   end
 
   def parse_params

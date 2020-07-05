@@ -6,9 +6,7 @@ class PruneDocumentExportsJob < ApplicationJob
       'prune_document_exports_job',
       timeout_seconds: 0,
     ) do
-      DocumentExport.
-        where('created_at < ?', 1.day.ago).
-        destroy_all
+      DocumentExport.expired.destroy_all
     end
   end
 end
