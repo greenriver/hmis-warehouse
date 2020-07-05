@@ -7278,12 +7278,13 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "Services"."ExportID",
       "Services".data_source_id,
       source_clients.id AS demographic_id
-     FROM (((("Services"
+     FROM ((((("Services"
        JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE (("Services"."DateProvided" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateDeleted" IS NULL));
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateProvided" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_Exit", sql_definition: <<-SQL
       SELECT "Exit".id AS "ExitID",
@@ -7336,7 +7337,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
        JOIN "Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("Exit"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Exit"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_EnrollmentCoC", sql_definition: <<-SQL
       SELECT "EnrollmentCoC".id AS "EnrollmentCoCID",
@@ -7354,13 +7355,14 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "EnrollmentCoC"."ExportID",
       "EnrollmentCoC".data_source_id,
       source_clients.id AS demographic_id
-     FROM ((((("EnrollmentCoC"
+     FROM (((((("EnrollmentCoC"
        JOIN "Project" ON ((("EnrollmentCoC".data_source_id = "Project".data_source_id) AND (("EnrollmentCoC"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
        JOIN "Enrollment" ON ((("EnrollmentCoC".data_source_id = "Enrollment".data_source_id) AND (("EnrollmentCoC"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("EnrollmentCoC".data_source_id = source_clients.data_source_id) AND (("EnrollmentCoC"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("EnrollmentCoC"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("EnrollmentCoC"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_Disabilities", sql_definition: <<-SQL
       SELECT "Disabilities".id AS "DisabilitiesID",
@@ -7384,12 +7386,13 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "Disabilities"."ExportID",
       "Disabilities".data_source_id,
       source_clients.id AS demographic_id
-     FROM (((("Disabilities"
+     FROM ((((("Disabilities"
        JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("Disabilities"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Disabilities"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_HealthAndDV", sql_definition: <<-SQL
       SELECT "HealthAndDV".id AS "HealthAndDVID",
@@ -7412,12 +7415,13 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "HealthAndDV"."ExportID",
       "HealthAndDV".data_source_id,
       source_clients.id AS demographic_id
-     FROM (((("HealthAndDV"
+     FROM ((((("HealthAndDV"
        JOIN "Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("HealthAndDV"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("HealthAndDV"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_IncomeBenefits", sql_definition: <<-SQL
       SELECT "IncomeBenefits".id AS "IncomeBenefitsID",
@@ -7499,12 +7503,13 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "IncomeBenefits"."ExportID",
       "IncomeBenefits".data_source_id,
       source_clients.id AS demographic_id
-     FROM (((("IncomeBenefits"
+     FROM ((((("IncomeBenefits"
        JOIN "Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("IncomeBenefits"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("IncomeBenefits"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_EmploymentEducation", sql_definition: <<-SQL
       SELECT "EmploymentEducation".id AS "EmploymentEducationID",
@@ -7524,12 +7529,13 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "EmploymentEducation"."ExportID",
       "EmploymentEducation".data_source_id,
       source_clients.id AS demographic_id
-     FROM (((("EmploymentEducation"
+     FROM ((((("EmploymentEducation"
        JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("EmploymentEducation"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("EmploymentEducation"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_CurrentLivingSituation", sql_definition: <<-SQL
       SELECT "CurrentLivingSituation".id AS "CurrentLivingSitID",
@@ -7551,12 +7557,13 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "CurrentLivingSituation"."ExportID",
       "CurrentLivingSituation".data_source_id,
       source_clients.id AS demographic_id
-     FROM (((("CurrentLivingSituation"
+     FROM ((((("CurrentLivingSituation"
        JOIN "Enrollment" ON ((("CurrentLivingSituation".data_source_id = "Enrollment".data_source_id) AND (("CurrentLivingSituation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("CurrentLivingSituation".data_source_id = source_clients.data_source_id) AND (("CurrentLivingSituation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("CurrentLivingSituation"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("CurrentLivingSituation"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_Event", sql_definition: <<-SQL
       SELECT "Event".id AS "EventID",
@@ -7576,12 +7583,13 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "Event"."ExportID",
       "Event".data_source_id,
       source_clients.id AS demographic_id
-     FROM (((("Event"
+     FROM ((((("Event"
        JOIN "Enrollment" ON ((("Event".data_source_id = "Enrollment".data_source_id) AND (("Event"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("Event".data_source_id = source_clients.data_source_id) AND (("Event"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("Event"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Event"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_Assessment", sql_definition: <<-SQL
       SELECT "Assessment".id AS "AssessmentID",
@@ -7599,12 +7607,13 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "Assessment"."ExportID",
       "Assessment".data_source_id,
       source_clients.id AS demographic_id
-     FROM (((("Assessment"
+     FROM ((((("Assessment"
        JOIN "Enrollment" ON ((("Assessment".data_source_id = "Enrollment".data_source_id) AND (("Assessment"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("Assessment".data_source_id = source_clients.data_source_id) AND (("Assessment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("Assessment"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Assessment"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_AssessmentQuestions", sql_definition: <<-SQL
       SELECT "AssessmentQuestions".id AS "AssessmentQuestionID",
@@ -7622,13 +7631,14 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "AssessmentQuestions"."ExportID",
       "AssessmentQuestions".data_source_id,
       source_clients.id AS demographic_id
-     FROM ((((("AssessmentQuestions"
+     FROM (((((("AssessmentQuestions"
        JOIN "Enrollment" ON ((("AssessmentQuestions".data_source_id = "Enrollment".data_source_id) AND (("AssessmentQuestions"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("AssessmentQuestions".data_source_id = source_clients.data_source_id) AND (("AssessmentQuestions"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
        JOIN "Assessment" ON ((("AssessmentQuestions".data_source_id = "Assessment".data_source_id) AND (("AssessmentQuestions"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
-    WHERE ("AssessmentQuestions"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentQuestions"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_AssessmentResults", sql_definition: <<-SQL
       SELECT "AssessmentResults".id AS "AssessmentResultID",
@@ -7644,13 +7654,14 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "AssessmentResults"."ExportID",
       "AssessmentResults".data_source_id,
       source_clients.id AS demographic_id
-     FROM ((((("AssessmentResults"
+     FROM (((((("AssessmentResults"
        JOIN "Enrollment" ON ((("AssessmentResults".data_source_id = "Enrollment".data_source_id) AND (("AssessmentResults"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+       LEFT JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("AssessmentResults".data_source_id = source_clients.data_source_id) AND (("AssessmentResults"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
        JOIN "Assessment" ON ((("AssessmentResults".data_source_id = "Assessment".data_source_id) AND (("AssessmentResults"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
-    WHERE ("AssessmentResults"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentResults"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_Client", sql_definition: <<-SQL
       SELECT "Client".id,
@@ -7815,12 +7826,13 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "Enrollment"."ExportID",
       "Enrollment".data_source_id,
       source_clients.id AS demographic_id
-     FROM (((("Enrollment"
+     FROM ((((("Enrollment"
        JOIN "Project" ON ((("Enrollment".data_source_id = "Project".data_source_id) AND (("Enrollment"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
+       JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
        JOIN "Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
        JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
        JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-    WHERE ("Enrollment"."DateDeleted" IS NULL);
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Enrollment"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_service_history_services", sql_definition: <<-SQL
       SELECT service_history_services.id,

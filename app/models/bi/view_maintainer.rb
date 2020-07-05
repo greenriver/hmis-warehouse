@@ -221,8 +221,9 @@ module Bi
     end
 
     def join_enrollment_if_appropriate(model, query)
-      return query if model.name == 'GrdaWarehouse::Hud::Enrollment'
-      return join_to_enrollments(query) if model.column_names.include?('EnrollmentID')
+      return join_to_exits(query).where(exit_in_range) if model.name == 'GrdaWarehouse::Hud::Enrollment'
+      return join_to_enrollments(query).where(exit_in_range) if model.hud_key.to_s == 'ExitID'
+      return join_to_exits_through_enrollments(query).where(exit_in_range) if model.column_names.include?('EnrollmentID')
 
       query
     end
@@ -277,6 +278,10 @@ module Bi
       ).tap{ |t| t.table_alias = 'destination_clients' }
     end
 
+    def exit_in_range
+      Arel.sql("\"Exit\".\"ExitDate\" IS NULL OR \"Exit\".\"ExitDate\" >= (CURRENT_DATE - #{SH_INTERVAL})")
+    end
+
     def join_to_enrollments(table)
       at = if table.is_a?(Arel::SelectManager)
         table.froms.first
@@ -288,6 +293,39 @@ module Bi
         at[:data_source_id].eq(model[:data_source_id]).
         and( at[:EnrollmentID].eq model[:EnrollmentID] ).
         and( model[:DateDeleted].eq nil )
+      )
+    end
+
+    def join_to_exits(table)
+      at = if table.is_a?(Arel::SelectManager)
+        table.froms.first
+      else
+        table
+      end
+      model = GrdaWarehouse::Hud::Exit.arel_table
+      table.join(model).on(
+        at[:data_source_id].eq(model[:data_source_id]).
+        and( at[:EnrollmentID].eq model[:EnrollmentID] ).
+        and( model[:DateDeleted].eq nil )
+      )
+    end
+
+    def join_to_exits_through_enrollments(table)
+      at = if table.is_a?(Arel::SelectManager)
+        table.froms.first
+      else
+        table
+      end
+      en_model = GrdaWarehouse::Hud::Enrollment.arel_table
+      exit_model = GrdaWarehouse::Hud::Exit.arel_table
+      table.join(en_model).on(
+        at[:data_source_id].eq(en_model[:data_source_id]).
+        and( at[:EnrollmentID].eq en_model[:EnrollmentID] ).
+        and( en_model[:DateDeleted].eq nil )
+      ).join(exit_model, Arel::Nodes::OuterJoin).on(
+        en_model[:data_source_id].eq(exit_model[:data_source_id]).
+        and( en_model[:EnrollmentID].eq exit_model[:EnrollmentID] ).
+        and( exit_model[:DateDeleted].eq nil )
       )
     end
 
