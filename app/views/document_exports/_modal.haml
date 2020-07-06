@@ -1,0 +1,12 @@
+- if !@rendered_document_export_modal
+  :ruby
+    @rendered_document_export_modal = true
+    data = { url: document_exports_path }
+  .modal.fade#j-document-export-modal{'role' => 'dialog', 'aria-hidden' => 'true', 'data' => data}
+    .modal-dialog.modal-dialog-scrollable.modal-dialog-centered{role: :document}
+      .modal-content
+        .modal-header
+          %h4.modal-title Download PDF
+          %button.close(aria-label="Close" type="button" data-dismiss="modal")
+            %i.modal-icon-close
+        .modal-body.clearfix

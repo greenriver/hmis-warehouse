@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class PerformanceDashboards
+module PerformanceDashboards
   class ReportFilterSet
     include ActiveModel::Attributes
     include ActiveModel::AttributeAssignment

@@ -11,7 +11,7 @@ module PerformanceDashboards
     before_action :set_key, only: [:details]
 
     def index
-      @pdf_available = true
+      @pdf_export = pdf_export
       respond_to do |format|
         format.pdf do
           @pdf = true
@@ -129,5 +129,10 @@ module PerformanceDashboards
       template = 'performance_dashboards/overview/index_pdf'
       render_to_string({ template: template, layout: false })
     end
+
+    private def pdf_export
+      DocumentExports::PerformanceDashboardExport.new
+    end
+
   end
 end

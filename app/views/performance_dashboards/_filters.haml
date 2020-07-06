@@ -68,5 +68,5 @@
 %hr
 .mt-4
   = f.submit 'Update View'
-  - if @pdf_available
-    = render 'performance_dashboards/pdf_download'
+  - if @pdf_export
+    = render 'performance_dashboards/pdf_download', export: @pdf_export

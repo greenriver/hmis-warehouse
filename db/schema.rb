@@ -154,8 +154,7 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.bigint "user_id", null: false
     t.string "version", null: false
     t.string "status", null: false
-    t.string "jsonb"
-    t.string "string"
+    t.string "query_string"
     t.string "file"
     t.index ["user_id"], name: "index_document_exports_on_user_id"
   end

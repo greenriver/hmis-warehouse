@@ -59,3 +59,6 @@ class DocumentExport < ApplicationRecord
     save!
   end
 end
+
+# require subclasses are populated for validation
+require_dependency 'document_exports/performance_dashboard_export'

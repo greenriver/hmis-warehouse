@@ -9,7 +9,7 @@ module DocumentExports
     def authorized?
       if Rails.env.development?
         # FIXME - is this right?
-        user.can_view_censuses? && can_view_clients?
+        user.can_view_censuses? && user.can_view_clients?
       else
         raise 'auth not implemented'
       end
@@ -39,14 +39,18 @@ module DocumentExports
     end
 
     def breakdown
-      params[:breakdown]&.to_sym || :age
+      params['breakdown']&.to_sym || :age
     end
 
     def param_filter_set
-      filters = PerformanceDashboards::ReportFilterSet.new
-      filter.current_user = user
-      filter.assign_attributes(params[:filters])
-      filters
+      filter = PerformanceDashboards::ReportFilterSet.new
+      filter.user = user
+      filter.assign_attributes(params['filters'])
+      filter
+    end
+
+    def params
+      query_string.present? ? Rack::Utils.parse_nested_query(query_string) : {}
     end
 
   end

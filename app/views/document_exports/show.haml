@@ -1,15 +1,14 @@
-#j-pending.mb-5
-  %p Please wait, your request is being processed...
-  .download-wrapper
-    %a.btn.btn-primary.disabled Download
-    = embedded_svg('icon-cog', class: 'icon-svg--with-button icon-animated--rotate')
-#j-success.d-none.mb-5
+#j-pending
+  .d-flex.mb-3
+    .mr-2= render 'spinner'
+    %p Please wait, your request is being processed...
+#j-success.d-none
   %p
     = embedded_svg('icon-check-circle', class: 'icon-svg icon-svg--success')
     Processing complete. Click the button below to download.
   %a#j-download-link.btn.btn-secondary{href: '#'}
     Download
-#j-error.d-none.mb-5
+#j-error.d-none
   %p We're sorry, an error occurred while processing your request. Please try again.
 
 :javascript

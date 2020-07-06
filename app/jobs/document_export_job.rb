@@ -2,7 +2,7 @@ class DocumentExportJob < ApplicationJob
   queue_as :default
 
   def perform(export_id: nil)
-    load_export(export_id)
+    export = load_export(export_id)
     if export
       export.perform
     else
@@ -12,11 +12,11 @@ class DocumentExportJob < ApplicationJob
 
   protected
 
-  def load_export(_id)
+  def load_export(id)
     DocumentExport.
       not_expired.
       with_current_version.
-      where(id: export_id).
+      where(id: id).
       first
   end
 end

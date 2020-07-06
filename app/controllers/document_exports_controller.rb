@@ -5,15 +5,12 @@
 ###
 
 class DocumentExportsController < ApplicationController
+
   def create
-    @export = export_scope.build(
-      type: params.require(:type),
-      params: params.require(:params),
-      status: DocumentExport::NEW_STATUS,
-    )
+    @export = export_scope.build(export_params)
     if @export.authorized?
       @export.save!
-      DocumentExportJob.perform_later(@export.id)
+      DocumentExportJob.perform_later(export_id: @export.id)
       render 'show', layout: false
     else
       not_authorized!
@@ -34,7 +31,21 @@ class DocumentExportsController < ApplicationController
     end
   end
 
-  private def export_scope
+  protected def export_scope
     current_user.document_exports
   end
+
+  protected def export_params
+    valid_types = DocumentExport.subclasses.map(&:name)
+    type = params.require(:type).presence_in(valid_types)
+    if !type
+      raise ActionController::BadRequest.new("bad type #{params[:type]}")
+    end
+    {
+      type: type,
+      query_string: params[:query_string],
+      status: DocumentExport::NEW_STATUS,
+    }
+  end
+
 end
