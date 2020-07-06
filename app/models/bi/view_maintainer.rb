@@ -108,6 +108,7 @@ module Bi
       generic_view(GrdaWarehouse::Lookups::Relationship)
       generic_view(GrdaWarehouse::Lookups::TrackingMethod)
       generic_view(GrdaWarehouse::Lookups::YesNoEtc)
+      generic_view(GrdaWarehouse::Census::ByProject)
     end
 
     def de_identified_client_cols
