@@ -1,5 +1,7 @@
 .c-card
   - if @clients.any?
+    - show_client_notes = @cohort.visible_columns(user: current_user).any?{ |c| c.column == 'client_notes' }
+    - show_removal_reason = @cohort.visible_columns(user: current_user).any?{ |c| c.column == 'previous_removal_reason' }
     .c-card__content.c-card__content--flush
       %p.p-4.pb-1.font-weight-bold= "Found #{@clients.count} matching clients"
       %table.table.table-sm.small
@@ -22,7 +24,10 @@
             %th
               %i.icon-info{data: {toggle: :tooltip, title: 'Days Literally Homeless in the past three years may be inaccurate if client hasn\'t been active recently'}}
               Days Literally Homeless
-            %th Previous Removal Reason
+            - if show_client_notes
+              %th= _('Client Notes')
+            - if show_removal_reason
+              %th= _('Previous Removal Reason')
 
         %tbody
           - @clients.each do |client|
@@ -47,7 +52,13 @@
               %td= @days_homeless[client[:id]]
               %td= @days_homeless_three_years[client[:id]]
               %td= @days_literally_homeless_three_years[client[:id]]
-              %td= @removal_reasons[client[:id]]
+              - if show_client_notes
+                %td
+                  - note_count = @client_notes[client[:id]]&.count || 0
+                  %span.badge.badge-primary.mt-1{data: {toggle: :tooltip, title: @client_notes[client[:id]]&.join(', ')}}
+                    = pluralize(note_count, 'note')
+              - if show_removal_reason
+                %td= @removal_reasons[client[:id]]
   - else
     .c-card__content
       No clients found
