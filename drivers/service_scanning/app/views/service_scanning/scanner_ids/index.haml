@@ -1,8 +1,10 @@
-- content_for :title, 'Add Service'
+- content_for :title, 'Attach a Scan Card'
 .o-page
   .o-page__header.d-flex
     %h1= content_for :title
 
   .o-page__main-content.mt-3
-    = simple_form_for @service, url: service_scanning_services_path do |f|
-      = f.input :source_type
+    %p Use this form to search for a client.  Once you find them, you can attach a scan card for future use.
+    = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
+    .mt-6
+      = render 'search_results'

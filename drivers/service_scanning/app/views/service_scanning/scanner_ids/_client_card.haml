@@ -1,0 +1,23 @@
+- id = client.id
+
+= render 'clients/search/demographics', client: client
+= render 'scanner_ids', client: client
+
+- content_for "client_card_content-primary__#{id}" do
+  .c-card__content-block.px-0
+    = render 'clients/search/aliases', client: client
+
+- content_for "client_card_content-secondary__#{id}" do
+  .row.flex-wrap
+
+    - if content_for? "client_card_demographics__#{client.id}"
+      .col-md-12.col-lg-6.c-card__content-block
+        = yield "client_card_demographics__#{client.id}"
+
+    - if content_for? "client_card_scanner_id__#{client.id}"
+      .col-md-12.col-lg-6.c-card__content-block
+        = yield "client_card_scanner_id__#{client.id}"
+
+-# Card Wrapper
+-# Receives and renders all content blocks in correct place
+= render 'clients/client_card_wrapper', id: client.id, disable_link: false, window_link: service_scanning_scanner_id_path(client)

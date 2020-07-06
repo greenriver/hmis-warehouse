@@ -1,0 +1,9 @@
+- content_for "client_card_scanner_id__#{client.id}" do
+  - scanner_ids = client.service_scanning_scanner_ids
+  - if scanner_ids.present?
+    .row
+      .col-md-6.client__scanner_id.mb-2
+        %h3 Scan Card IDs
+        - scanner_ids.each do |card|
+          .client__scanner_id
+            .no-wrap= card.scanned_id
