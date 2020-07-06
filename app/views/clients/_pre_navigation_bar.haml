@@ -1,0 +1,10 @@
+.d-flex
+  - if health_emergency?
+    .client-tabs__health-emergency.health-emergency
+      = render "clients/#{health_emergency}", client: @client
+  - if @client.alert_notes.exists?
+    .client-tabs__active-alerts.flex-grow-1.text-center
+      .pt-4
+        = link_to alerts_client_notes_path(@client), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+          %i.icon-warning
+          #{pluralize(@client.alert_notes.count, 'active alert')}

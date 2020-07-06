@@ -1,0 +1,14 @@
+- title = 'Client Alerts'
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+.row
+  .col-sm-8
+    %h1= content_for :modal_title, title
+.row
+  .col-sm-8
+    - if @notes.any?
+      - @notes.order(created_at: :desc).each do |note|
+        = render 'note', note: note, show_destroy: false
+    - else
+      No alerts on file

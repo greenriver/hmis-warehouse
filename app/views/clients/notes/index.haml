@@ -20,7 +20,7 @@
           = _("You can only see notes you add.")
     - if @notes.any?
       - @notes.order(created_at: :desc).each do |note|
-        = render 'note', note: note
+        = render 'note', note: note, show_destroy: true
     - else
       No notes on file
 

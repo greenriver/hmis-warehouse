@@ -1,10 +1,6 @@
-- content_for :title, 'Attach a Scan Card'
-.o-page
-  .o-page__header.d-flex
-    %h1= content_for :title
+- content_for :modal_title, 'Attach a Scan Card'
 
-  .o-page__main-content.mt-3
-    %p Use this form to search for a client.  Once you find them, you can attach a scan card for future use.
-    = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
-    .mt-6
-      = render 'search_results'
+%p Use this form to search for a client.  Once you find them, you can attach a scan card for future use.
+= render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
+.mt-6
+  = render 'search_results'

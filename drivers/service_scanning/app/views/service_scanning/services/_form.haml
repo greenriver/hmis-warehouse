@@ -1,8 +1,21 @@
 = simple_form_for @service, as: :service, url: service_scanning_services_path do |f|
   = f.input :project_id, collection: @service.class.project_options_for_select(user: current_user), selected: @service.project_id, input_html: { class: :select2 }, as: :grouped_select, group_method: :last, required: true
-  = f.input :slug, collection: @service.class.available_types, input_html: { class: :select2 }, label: 'Service Provided', required: true
-
-  = f.input :other_type, collection: @service.class.known_other_types, selected: @service.other_type, input_html: { class: :select2, data: { tags: true }}, include_blank: true, hint: 'If you don\'t see the type required, type it in and select it'
+  = f.input :slug, collection: @service.class.available_types, input_html: { class: 'select2 jType' }, label: 'Service Provided', required: true
+  .jOtherType
+    = f.input :other_type, collection: @service.class.known_other_types, selected: @service.other_type, input_html: { class: :select2, data: { tags: true }}, include_blank: true, hint: 'If you don\'t see the type required, type it in and select it'
   = f.input :scanner_id, input_html: { value: nil, autofocus: true }, label: 'Client Scan Card'
   = f.input :provided_at, input_html: { value: Time.current, class: :exact_date_time_picker }, label: 'Time Service Provided', as: :string
   = f.button :submit, value: 'Add Service'
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.jType').on('change', function(e) {
+        if($(this).val() == 'other'){
+          $('.jOtherType').show();
+        } else {
+          $('.jOtherType').hide();
+        }
+      });
+      $('.jType').trigger('change');
+    });

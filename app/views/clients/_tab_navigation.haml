@@ -141,7 +141,5 @@
         permission: show_health_hpc,
       },
     }
-  - if health_emergency?
-    .client-tabs__health-emergency.health-emergency
-      = render "clients/#{health_emergency}", client: @client
+  = render 'clients/pre_navigation_bar'
   = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health

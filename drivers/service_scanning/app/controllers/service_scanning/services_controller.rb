@@ -6,6 +6,8 @@
 
 module ServiceScanning
   class ServicesController < ApplicationController
+    include PjaxModalController
+    before_action :require_can_view_client_window!
 
     def index
       options = index_params
@@ -34,6 +36,12 @@ module ServiceScanning
       end
 
       respond_with(@service, location: service_scanning_services_path(service: index_params.merge(client_id: client.id, service_id: @service.id)))
+    end
+
+    def destroy
+      @service = ServiceScanning::Service.find(params[:id].to_i)
+      @service.destroy
+      respond_with(@service, location: service_scanning_services_path(service: index_params))
     end
 
     private def service_params

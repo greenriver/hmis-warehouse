@@ -6,6 +6,7 @@
 
 module Clients
   class NotesController < ApplicationController
+    include PjaxModalController
     include ClientPathGenerator
     include ClientDependentControllers
 
@@ -22,6 +23,10 @@ module Clients
         @notes = @client.window_notes.visible_by(current_user, @client)
         @note = GrdaWarehouse::ClientNotes::WindowNote.new
       end
+    end
+
+    def alerts
+      @notes = @client.alert_notes
     end
 
     def create

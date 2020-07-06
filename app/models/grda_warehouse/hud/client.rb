@@ -151,6 +151,7 @@ module GrdaWarehouse::Hud
     has_many :window_notes, class_name: 'GrdaWarehouse::ClientNotes::WindowNote'
     has_many :anomaly_notes, class_name: 'GrdaWarehouse::ClientNotes::AnomalyNote'
     has_many :cohort_notes, class_name: 'GrdaWarehouse::ClientNotes::CohortNote'
+    has_many :alert_notes, class_name: 'GrdaWarehouse::ClientNotes::Alert'
 
     has_many :anomalies, class_name: 'GrdaWarehouse::Anomaly'
     has_many :cas_houseds, class_name: 'GrdaWarehouse::CasHoused'

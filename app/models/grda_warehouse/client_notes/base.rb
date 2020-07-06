@@ -27,6 +27,10 @@ module GrdaWarehouse::ClientNotes
       where(type: 'GrdaWarehouse::ClientNotes::CohortNote')
     end
 
+    scope :alerts, -> do
+      where(type: 'GrdaWarehouse::ClientNotes::Alert')
+    end
+
     scope :visible_by, -> (user, client) do
       if user.can_edit_client_notes?
         current_scope
@@ -52,6 +56,8 @@ module GrdaWarehouse::ClientNotes
         GrdaWarehouse::ClientNotes::WindowNote,
         GrdaWarehouse::ClientNotes::ChronicJustification,
         GrdaWarehouse::ClientNotes::CohortNote,
+        GrdaWarehouse::ClientNotes::Alert,
+        GrdaWarehouse::ClientNotes::EmergencyContact,
       ]
     end
 

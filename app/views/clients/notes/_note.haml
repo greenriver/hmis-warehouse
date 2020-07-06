@@ -1,10 +1,12 @@
+- show_destroy = if defined?(show_destroy) then show_destroy else true end
 .well.client-notes
   %h4= note.type_name
-  %p= note.note
+  %p= simple_format note.note
   .row
     .col-sm-8
       %p.small.text-muted
         Posted by #{content_tag(:strong, note.user&.name)} on #{content_tag(:strong, note.created_at)}
-    .col-sm-4.text-right
-      = link_to(client_note_path(note, client_id: @client.id), method: :delete, data: {confirm: "Would you really like to delete this note?"}, class: 'btn btn-secondary btn-small btn-icon-only') do
-        %span.icon-cross
+    - if show_destroy
+      .col-sm-4.text-right
+        = link_to(client_note_path(note, client_id: @client.id), method: :delete, data: {confirm: "Would you really like to delete this note?"}, class: 'btn btn-sm btn-icon-only btn-danger') do
+          %span.icon-cross

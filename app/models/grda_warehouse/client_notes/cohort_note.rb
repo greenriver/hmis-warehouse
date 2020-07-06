@@ -7,7 +7,7 @@
 module GrdaWarehouse::ClientNotes
   class CohortNote < Base
     def self.type_name
-      "Cohort Note"
+      'Cohort Note'
     end
 
     # only destroyable by admins for now

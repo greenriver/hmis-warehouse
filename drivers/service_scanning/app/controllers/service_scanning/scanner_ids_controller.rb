@@ -6,6 +6,8 @@
 
 module ServiceScanning
   class ScannerIdsController < ApplicationController
+    include PjaxModalController
+    before_action :require_can_view_client_window!
     before_action :set_client, only: [:show, :destroy]
 
     def index

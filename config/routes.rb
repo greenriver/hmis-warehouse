@@ -456,7 +456,9 @@ Rails.application.routes.draw do
       post :batch_download, on: :collection
       get :pre_populated, on: :collection
     end
-    resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
+    resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes' do
+      get :alerts, on: :collection
+    end
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
     resources :anomalies, except: [:show], controller: 'clients/anomalies'

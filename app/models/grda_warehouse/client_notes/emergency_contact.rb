@@ -5,9 +5,14 @@
 ###
 
 module GrdaWarehouse::ClientNotes
-  class ChronicJustification < Base
+  class EmergencyContact < Base
     def self.type_name
-      'Chronic Justification'
+      'Emergency Contact'
+    end
+
+    # anyone who can see this client
+    scope :visible_by, -> (user, client) do
+      joins(:client).merge(GrdaWarehouse::Hud::Client.viewable_by(user))
     end
   end
 end

@@ -53,6 +53,7 @@ module Cohorts
     def note_params
       params.require(:grda_warehouse_client_notes_cohort_note).permit(
         :note,
+        :alert_active,
       )
     end
 

@@ -7,7 +7,7 @@
 module GrdaWarehouse::ClientNotes
   class AnomalyNote < Base
     def self.type_name
-      "Anomaly Note"
+      'Anomaly Note'
     end
 
     scope :visible_by, -> (user) do
