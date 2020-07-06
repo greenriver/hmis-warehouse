@@ -22,6 +22,7 @@ class DocumentExportsController < ApplicationController
       format.json do
         payload = {
           status: @export.status,
+          # this doesn't work in development, would like to get an expiring s3 url here
           url: @export.file&.url,
         }
         render json: payload

@@ -3,11 +3,10 @@
     .mr-2= render 'spinner'
     %p Please wait, your request is being processed...
 #j-success.d-none
-  %p
-    = embedded_svg('icon-check-circle', class: 'icon-svg icon-svg--success')
+  .mb-2
     Processing complete. Click the button below to download.
-  %a#j-download-link.btn.btn-secondary{href: '#'}
-    Download
+  %div
+    %a#j-download-link.btn.btn-secondary{href: '#'} Download
 #j-error.d-none
   %p We're sorry, an error occurred while processing your request. Please try again.
 

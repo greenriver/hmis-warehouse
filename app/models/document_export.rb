@@ -49,14 +49,6 @@ class DocumentExport < ApplicationRecord
     where('created_at <= ?', Time.now - EXPIRES_AFTER)
   end
 
-  protected def render_to_pdf!(file:, view: )
-    html = view.render(file: file)
-    include application_helper
-    PdfGenerator.new.perform(html) do |io|
-      self.file = io
-    end
-    save!
-  end
 end
 
 # require subclasses are populated for validation

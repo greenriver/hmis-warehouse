@@ -17,17 +17,24 @@ module DocumentExports
 
     def perform
       with_status_progression do
-        context = PerformanceDashboards::OverviewController.view_paths
-        view = PerformanceDashboardExportTemplate.new(context, view_assigns)
-        view.current_user = user
-        render_to_pdf!(
-          view: view,
-          file: 'performance_dashboards/overview/index_pdf'
-        )
+        template_file = 'performance_dashboards/overview/index_pdf'
+        PdfGenerator.new.perform(
+          html: view.render(file: template_file),
+          file_name: "Performance Overview #{DateTime.current.to_s(:db)}"
+        ) do |io|
+          self.file = io
+        end
       end
     end
 
     protected
+
+    def view
+      context = PerformanceDashboards::OverviewController.view_paths
+      view = PerformanceDashboardExportTemplate.new(context, view_assigns)
+      view.current_user = user
+      view
+    end
 
     def view_assigns
       # FIXME: - tbd
