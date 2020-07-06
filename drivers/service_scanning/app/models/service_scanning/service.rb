@@ -43,5 +43,13 @@ module ServiceScanning
     def self.known_other_types
       ServiceScanning::Service.distinct.pluck(:other_type)
     end
+
+    def self.services_by_type_for(client)
+      where(client_id: client.id).
+        order(provided_at: :desc).
+        preload(:project).
+        to_a.
+        group_by(&:type)
+    end
   end
 end

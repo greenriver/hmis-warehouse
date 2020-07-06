@@ -1,0 +1,25 @@
+- services = ServiceScanning::Service.services_by_type_for(@client)
+- if services.any?
+  .mb-6
+    %h3.mt-0 HMIS Blackout Bed Register
+    .c-card.c-card--block.c-card--flush
+      .d-flex
+        - services.each do |_, contacts|
+          .service.pl-4.mt-4
+            %strong.service-type.text-center
+              #{contacts.first.title.pluralize}
+            .service-count.ml-4.text-center
+              = contacts.count
+      .table-responsive.mt-4(style="max-height:300px;overflow-y:auto;")
+        %table.table
+          %thead
+            %tr
+              %th Time of Service
+              %th Type of Service
+              %th Location
+          %tbody
+            - services.values.flatten.each do |contact|
+              %tr
+                %td= contact.provided_at
+                %td= contact.title
+                %td= contact.project.name_and_type
