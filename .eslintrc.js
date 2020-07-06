@@ -15,6 +15,7 @@ module.exports = {
         "setInterval": true,
         "setTimeout": true,
         "clearTimeout": true,
+        "clearInterval": true,
         "$": true
     },
     'parserOptions': {

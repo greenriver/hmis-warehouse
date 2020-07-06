@@ -11,7 +11,6 @@ module PerformanceDashboards
     before_action :set_key, only: [:details]
 
     def index
-      @pdf_export = pdf_export
       respond_to do |format|
         format.pdf do
           @pdf = true
@@ -96,42 +95,9 @@ module PerformanceDashboards
       :no_comparison_period
     end
 
-    private def render_pdf
-      file_name = "Performance Overview #{DateTime.current.to_s(:db)}"
-      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf', disposition: 'attachment'
+    private def set_pdf_export
+      @pdf_export = DocumentExports::PerformanceDashboardExport.new
     end
-
-    protected def pdf
-      grover_options = {
-        display_url: root_url,
-        displayHeaderFooter: true,
-        headerTemplate: '<h2>Header</h2>',
-        footerTemplate: '<h6 class="text-center">Footer</h6>',
-        timeout: 50_000,
-        format: 'Letter',
-        emulate_media: 'print',
-        margin: {
-          top: '.5in',
-          bottom: '.5in',
-          left: '.4in',
-          right: '.4in',
-        },
-        debug: {
-          # headless: false,
-          # devtools: true
-        },
-      }
-
-      Grover.new(pdf_html, grover_options).to_pdf
-    end
-
-    private def pdf_html
-      template = 'performance_dashboards/overview/index_pdf'
-      render_to_string({ template: template, layout: false })
-    end
-
-    private def pdf_export
-      DocumentExports::PerformanceDashboardExport.new
-    end
+    before_action :set_pdf_export
   end
 end

@@ -9,16 +9,16 @@ class DocumentExport < ApplicationRecord
   mount_uploader :file, DocumentExportUploader
 
   STATUS_OPTIONS = [
-    NEW_STATUS = 'new'.freeze,
-    IN_PROGRESS_STATUS = 'in_progress'.freeze,
+    PENDING_STATUS = 'pending'.freeze,
     COMPLETED_STATUS = 'completed'.freeze,
     ERROR_STATUS = 'error'.freeze,
   ].freeze
+  validates :status, inclusion: { in: STATUS_OPTIONS }
 
   def with_status_progression
     okay = false
     begin
-      update_attributes(status: IN_PROGRESS_STATUS)
+      update_attributes(status: PENDING_STATUS)
       okay = yield
     ensure
       if okay

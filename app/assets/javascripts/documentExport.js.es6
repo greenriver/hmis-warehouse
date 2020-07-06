@@ -1,47 +1,82 @@
-'use strict';
+const initialState = {
+  open: false,
+  status: 'pending',
+  linkUrl: null,
+};
 
-var setupNode = function (_idx, e) {
-  const $node = $(e);
+$(() => {
   const $modal = $('#j-document-export-modal');
-  const url = $modal.data('url');
 
-  const formData = {
-    type: $node.data('type'),
-    query_string: $node.data('query-string'),
+  let state = { ...initialState };
+  const setState = (newState) => {
+    state = {
+      ...state,
+      ...newState,
+    };
   };
-  // console.info(formData);
-  const submitForm = function () {
+
+  $modal.on('hidden.bs.modal', () => {
+    setState(initialState);
+  });
+
+  const updateDisplay = (newState) => {
+    setState(newState);
+    console.info('set state display', state);
+    if (state.open) {
+      $modal.modal('show');
+    }
+    $modal.attr('data-status', state.status);
+    $modal.find('.j-link').attr('href', state.linkUrl);
+  };
+
+  let interval = null;
+  const resetInterval = () => {
+    if (interval) {
+      clearInterval(interval);
+    }
+    interval = null;
+  };
+
+  const handleSubmission = (postResult) => {
+    updateDisplay(postResult);
+    const pollTime = 3000;
+    const maxPollCount = 400;
+    let pollCount = 0;
+    interval = setInterval(() => {
+      pollCount += 1;
+      if (pollCount > maxPollCount || state.status !== 'pending' || !state.open) {
+        clearInterval(interval);
+        return;
+      }
+      $.get(postResult.pollUrl, (pollResult) => {
+        updateDisplay(pollResult);
+      }).catch((e) => {
+        console.error(e);
+        updateDisplay({ status: 'error' });
+      });
+    }, pollTime);
+  };
+
+  const handleDownloadClick = (evt) => {
+    const $node = $(evt.currentTarget);
+    resetInterval();
+    updateDisplay({ open: true });
+
+    const formData = {
+      type: $node.data('type'),
+      query_string: $node.data('query-string'),
+    };
+
     const xhr = $.ajax({
-      url,
+      url: $modal.data('url'),
       type: 'POST',
       data: formData,
     });
-    const cancel = function () {
-      xhr.abort();
-    };
-    return { xhr, cancel };
+    xhr.then(handleSubmission).catch((e) => {
+      console.error(e);
+      updateDisplay({ status: 'error' });
+    });
   };
 
-  $node.on('click', function () {
-    $modal.find('.modal-body').html('<p class="lead">Processing...</p>');
-    $modal.modal('show');
-    const ajax = submitForm();
-    ajax.xhr
-      .then(function (resp) {
-        $modal.find('.modal-body').html(resp);
-      })
-      .catch(function () {
-        $modal
-          .find('.modal-body')
-          .html('<p class="lead text-danger">An Error Occured, please try again</p>');
-      });
-    $modal.on('hidden.bs.modal', () => {
-      ajax.cancel();
-      $modal.find('.modal-body').html('');
-    });
-  });
-};
-
-$(function () {
-  $('.j-document-exports').each(setupNode);
+  $(document).on('click', '.j-document-exports', handleDownloadClick);
 });

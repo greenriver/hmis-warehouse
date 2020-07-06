@@ -55,7 +55,7 @@ module DocumentExports
     def param_filter_set
       filter = PerformanceDashboards::ReportFilterSet.new
       filter.user = user
-      filter.assign_attributes(params['filters'])
+      filter.assign_attributes(params['filters'] || {})
       filter
     end
 
