@@ -5,7 +5,6 @@
 ###
 
 class DocumentExportsController < ApplicationController
-
   def create
     @export = export_scope.build(export_params)
     if @export.authorized?
@@ -38,14 +37,12 @@ class DocumentExportsController < ApplicationController
   protected def export_params
     valid_types = DocumentExport.subclasses.map(&:name)
     type = params.require(:type).presence_in(valid_types)
-    if !type
-      raise ActionController::BadRequest.new("bad type #{params[:type]}")
-    end
+    raise ActionController::BadRequest, "bad type #{params[:type]}" unless type
+
     {
       type: type,
       query_string: params[:query_string],
       status: DocumentExport::NEW_STATUS,
     }
   end
-
 end

@@ -133,6 +133,5 @@ module PerformanceDashboards
     private def pdf_export
       DocumentExports::PerformanceDashboardExport.new
     end
-
   end
 end
