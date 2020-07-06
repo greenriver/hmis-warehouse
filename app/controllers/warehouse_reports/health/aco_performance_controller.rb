@@ -16,11 +16,11 @@ module WarehouseReports::Health
     before_action :set_dates, only: [:index]
 
     def index
-      @report = Health::AcoPerformance.new(aco: @aco, range: (@start_date..@end_date)) if @aco
+      @report = Health::AcoPerformance.new(aco: @aco.to_i, range: (@start_date..@end_date)) if @aco
     end
 
     def set_aco
-      @aco = params.dig(:filter, :aco)
+      @aco = params.dig(:filter, :aco).to_i
     end
 
     def set_dates

@@ -51,7 +51,7 @@ module Health
     private def referral_scope
       Health::PatientReferral.
         with_patient.
-        where(accountable_care_organization_id: @aco.id).
+        where(accountable_care_organization_id: @aco).
         active_within_range(start_date: @range.first, end_date: @range.last)
     end
   end
