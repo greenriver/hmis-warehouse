@@ -778,6 +778,8 @@ Rails.application.routes.draw do
   resource :account_password, only: [:edit, :update]
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
 
+  resources :document_exports, only: [:show, :create]
+
   resources :public_files, only: [:show]
   resources :public_agencies, only: [:index]
 
