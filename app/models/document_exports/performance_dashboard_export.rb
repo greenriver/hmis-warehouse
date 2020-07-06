@@ -17,10 +17,12 @@ module DocumentExports
 
     def perform
       with_status_progression do
+        context = PerformanceDashboards::OverviewController.view_paths
+        view = PerformanceDashboardExportTemplate.new(context, view_assigns)
+        view.current_user = user
         render_to_pdf!(
-          context: PerformanceDashboards::OverviewController.view_paths,
-          file: 'performance_dashboards/overview/index_pdf',
-          assigns: view_assigns,
+          view: view,
+          file: 'performance_dashboards/overview/index_pdf'
         )
       end
     end
@@ -32,7 +34,8 @@ module DocumentExports
       filter_set = param_filter_set
       {
         report: PerformanceDashboards::Overview.new(filter_set),
-        comparison_dates: filter_set.to_comparison_set,
+        filter: filter_set,
+        comparison: filter_set.to_comparison_set,
         breakdown: breakdown,
         pdf: true,
       }
@@ -51,6 +54,18 @@ module DocumentExports
 
     def params
       query_string.present? ? Rack::Utils.parse_nested_query(query_string) : {}
+    end
+
+    class PerformanceDashboardExportTemplate < ActionView::Base
+      include ApplicationHelper
+      attr_accessor :current_user
+      def show_client_details?
+        @show_client_details ||= current_user.can_view_clients?
+      end
+
+      def details_performance_dashboards_overview_index_path(*args)
+        '#'
+      end
     end
 
   end

@@ -11,6 +11,7 @@ module PerformanceDashboards
 
     attr_accessor :user
 
+
     attribute :start_date, :date, default: -> { (Date.current - 1.year).end_of_year }
     attribute :end_date, :date, default: -> { (Date.current - 1.year).beginning_of_year }
     attribute :comparison_pattern, :symbol, default: :no_comparison_period
@@ -29,6 +30,36 @@ module PerformanceDashboards
     attribute :sub_population, :symbol, default: :clients
     attribute :races, :normalized_string_array, default: []
     attribute :ethnicities, :normalized_integer_array, default: []
+
+    def range
+      # FIXME: called by the Overview#housed but doesn't seem to be provided by params
+      nil
+    end
+
+    # FIXME - what's this do?
+    # app/models/performance_dashboards/base.rb
+    # 45:    f.user_id = @filter.user.id
+    attr_accessor :user_id
+
+    def to_h
+      # FIXME - what's this do?
+      attributes
+    end
+
+    def exiting_total_count
+      # FIXME - what's this do?
+      nil
+    end
+
+    def enrolled_total_count
+      # FIXME - what's this do?
+      nil
+    end
+
+    def entering_total_count
+      # FIXME - what's this do?
+      nil
+    end
 
     def races
       # FIXME: - this behavior preserved from controller

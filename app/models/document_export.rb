@@ -49,10 +49,9 @@ class DocumentExport < ApplicationRecord
     where('created_at <= ?', Time.now - EXPIRES_AFTER)
   end
 
-  protected def render_to_pdf!(file:, assigns: {}, context: nil)
-    context ||= Rails.configuration.paths['app/views']
-    view = ActionView::Base.new(context, assigns)
+  protected def render_to_pdf!(file:, view: )
     html = view.render(file: file)
+    include application_helper
     PdfGenerator.new.perform(html) do |io|
       self.file = io
     end
