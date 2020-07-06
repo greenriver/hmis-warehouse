@@ -1,31 +1,31 @@
 'use strict';
 
 var setupNode = function (_idx, e) {
-  var $node = $(e);
-  var $modal = $('#j-document-export-modal');
-  var url = $modal.data('url');
+  const $node = $(e);
+  const $modal = $('#j-document-export-modal');
+  const url = $modal.data('url');
 
-  var formData = {
+  const formData = {
     type: $node.data('type'),
     query_string: $node.data('query-string'),
   };
   // console.info(formData);
-  var submitForm = function () {
-    var xhr = $.ajax({
+  const submitForm = function () {
+    const xhr = $.ajax({
+      url,
       type: 'POST',
-      url: url,
       data: formData,
     });
-    var cancel = function () {
+    const cancel = function () {
       xhr.abort();
     };
-    return { xhr: xhr, cancel: cancel };
+    return { xhr, cancel };
   };
 
   $node.on('click', function () {
     $modal.find('.modal-body').html('<p class="lead">Processing...</p>');
     $modal.modal('show');
-    var ajax = submitForm();
+    const ajax = submitForm();
     ajax.xhr
       .then(function (resp) {
         $modal.find('.modal-body').html(resp);
