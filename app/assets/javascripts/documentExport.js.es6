@@ -21,7 +21,7 @@ $(() => {
 
   const updateDisplay = (newState) => {
     setState(newState);
-    console.info('set state display', state);
+    //console.info('set state display', state);
     if (state.open) {
       $modal.modal('show');
     }
@@ -51,7 +51,7 @@ $(() => {
       $.get(postResult.pollUrl, (pollResult) => {
         updateDisplay(pollResult);
       }).catch((e) => {
-        console.error(e);
+        //console.error(e);
         updateDisplay({ status: 'error' });
       });
     }, pollTime);
@@ -73,7 +73,7 @@ $(() => {
       data: formData,
     });
     xhr.then(handleSubmission).catch((e) => {
-      console.error(e);
+      //console.error(e);
       updateDisplay({ status: 'error' });
     });
   };

@@ -33,11 +33,18 @@ module DocumentExports
     end
 
     def view_assigns
-      filter_set = param_filter_set
+      filter = load_filter
+      comparison_filter = filter.to_comparison
+      report = PerformanceDashboards::Overview.new(filter)
+      if report.include_comparison?
+        comparison_report = PerformanceDashboards::Overview.new(comparison_filter)
+      end
+
       {
-        report: PerformanceDashboards::Overview.new(filter_set),
-        filter: filter_set,
-        comparison: filter_set.to_comparison_set,
+        report: report,
+        filter: filter,
+        comparison: comparison_report || report,
+        comparison_filter: comparison_filter,
         breakdown: breakdown,
         pdf: true,
       }
@@ -47,10 +54,12 @@ module DocumentExports
       params['breakdown']&.to_sym || :age
     end
 
-    def param_filter_set
-      filter = PerformanceDashboards::ReportFilterSet.new
-      filter.user = user
-      filter.assign_attributes(params['filters'] || {})
+    def load_filter
+      filter = ::Filters::PerformanceDashboard.new(user_id: user.id)
+      filter_params = params['filters'].presence
+      if filter_params
+        filter.set_from_params(filter_params)
+      end
       filter
     end
 
