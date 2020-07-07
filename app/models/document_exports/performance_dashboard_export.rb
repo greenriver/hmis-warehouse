@@ -7,12 +7,8 @@
 module DocumentExports
   class PerformanceDashboardExport < DocumentExport
     def authorized?
-      if Rails.env.development?
-        # FIXME - is this right?
-        user.can_view_censuses? && user.can_view_clients?
-      else
-        raise 'auth not implemented'
-      end
+      # FIXME - check this please
+      user.can_view_censuses? && user.can_view_clients?
     end
 
     def perform
