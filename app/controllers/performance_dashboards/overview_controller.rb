@@ -11,18 +11,6 @@ module PerformanceDashboards
     before_action :set_key, only: [:details]
 
     def index
-      respond_to do |format|
-        format.pdf do
-          @pdf = true
-          render_pdf
-        end
-        format.html do
-          if params[:debug_pdf]
-            @pdf = true
-            render inline: pdf_html
-          end
-        end
-      end
     end
 
     private def section_subpath

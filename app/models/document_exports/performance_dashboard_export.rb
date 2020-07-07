@@ -37,7 +37,6 @@ module DocumentExports
     end
 
     def view_assigns
-      # FIXME: - tbd
       filter_set = param_filter_set
       {
         report: PerformanceDashboards::Overview.new(filter_set),
