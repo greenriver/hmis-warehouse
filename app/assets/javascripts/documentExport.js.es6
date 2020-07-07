@@ -1,7 +1,7 @@
 const initialState = {
   open: false,
   status: 'pending',
-  linkUrl: null,
+  downloadUrl: null,
 };
 
 $(() => {
@@ -26,7 +26,7 @@ $(() => {
       $modal.modal('show');
     }
     $modal.attr('data-status', state.status);
-    $modal.find('.j-link').attr('href', state.linkUrl);
+    $modal.find('.j-download-link').attr('href', state.downloadUrl);
   };
 
   let interval = null;

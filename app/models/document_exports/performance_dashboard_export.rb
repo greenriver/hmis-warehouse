@@ -56,7 +56,7 @@ module DocumentExports
 
     def load_filter
       filter = ::Filters::PerformanceDashboard.new(user_id: user.id)
-      filter_params = params['filters'].presence
+      filter_params = params['filters'].presence&.symbolize_keys
       if filter_params
         filter.set_from_params(filter_params)
       end

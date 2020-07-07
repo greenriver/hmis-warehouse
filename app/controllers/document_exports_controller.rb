@@ -42,7 +42,7 @@ class DocumentExportsController < ApplicationController
     {
       pollUrl: document_export_path(export.id),
       status: export.status,
-      url: export.completed? ? download_document_export_path(export.id) : nil,
+      downloadUrl: export.completed? ? download_document_export_path(export.id) : nil,
     }
   end
 
