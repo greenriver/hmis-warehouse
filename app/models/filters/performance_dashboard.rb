@@ -83,7 +83,7 @@ module Filters
     def ensure_date_span
       return if last - first < 365
 
-      self.end = first + 1.years
+      self.end = first + 1.years - 1.days
     end
 
     def default_comparison_pattern
