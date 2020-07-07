@@ -31,7 +31,7 @@ module HmisCsvTwentyTwenty::Aggregated
       enrollment_destination.import(batch) if batch.present?
 
       # Combine enrollments from the import data source
-      enrollment_scope = enrollment_source.where(data_source_ids: importer_log.data_source_id)
+      enrollment_scope = enrollment_source.where(data_source_id: importer_log.data_source_id)
 
       project_ids.each do |project_id|
         enrollment_batch = []
