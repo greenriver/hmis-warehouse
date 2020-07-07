@@ -50,8 +50,7 @@ $(() => {
       }
       $.get(postResult.pollUrl, (pollResult) => {
         updateDisplay(pollResult);
-      }).catch((e) => {
-        //console.error(e);
+      }).catch(() => {
         updateDisplay({ status: 'error' });
       });
     }, pollTime);
@@ -72,8 +71,7 @@ $(() => {
       type: 'POST',
       data: formData,
     });
-    xhr.then(handleSubmission).catch((e) => {
-      //console.error(e);
+    xhr.then(handleSubmission).catch(() => {
       updateDisplay({ status: 'error' });
     });
   };
