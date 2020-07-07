@@ -143,8 +143,28 @@ module Cohorts
       @clients = @clients.where.not(id: @cohort.cohort_clients.select(:client_id)).pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
       end
+      @client_notes = cohort_client_notes(@clients)
       @removal_reasons = removal_reasons(@clients)
       Rails.logger.info "CLIENTS: #{@clients.count}"
+    end
+
+    def cohort_client_notes(clients)
+      @cohort_client_notes ||= begin
+        notes = {}
+        GrdaWarehouse::Hud::Client.where(id: clients.map { |c| c[:id] }).
+          joins(:cohort_notes).
+          order(cn_t[:updated_at].desc).
+          pluck(
+            :id,
+            cn_t[:note],
+            cn_t[:updated_at],
+          ).
+          each do |id, note, timestamp|
+            notes[id] ||= []
+            notes[id] << "#{note} on #{timestamp.to_date}"
+          end
+        notes
+      end
     end
 
     def removal_reasons(clients)

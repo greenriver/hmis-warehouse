@@ -64,9 +64,9 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   def household_types
     {
       all: 'All household types',
-      without_children: 'Households without children',
-      with_children: 'Households with both adults and children',
-      only_children: 'Households with only children',
+      without_children: 'Adult only Households',
+      with_children: 'Adult and Child Households',
+      only_children: 'Child only Households',
     }.invert.freeze
   end
 

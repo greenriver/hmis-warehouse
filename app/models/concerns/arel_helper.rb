@@ -124,6 +124,10 @@ module ArelHelper
     GrdaWarehouse::Hud::Client.arel_table
   end
 
+  def cn_t
+    GrdaWarehouse::ClientNotes::Base.arel_table
+  end
+
   def p_t
     GrdaWarehouse::Hud::Project.arel_table
   end
@@ -435,6 +439,10 @@ module ArelHelper
 
     def c_t
       GrdaWarehouse::Hud::Client.arel_table
+    end
+
+    def cn_t
+      GrdaWarehouse::ClientNotes::Base.arel_table
     end
 
     def p_t
