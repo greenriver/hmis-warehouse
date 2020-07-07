@@ -18,7 +18,7 @@ module DocumentExports
           html: view.render(file: template_file),
           file_name: "Performance Overview #{DateTime.current.to_s(:db)}"
         ) do |io|
-          self.file = io
+          self.pdf_file = io
         end
       end
     end

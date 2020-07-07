@@ -6,7 +6,6 @@
 
 class DocumentExport < ApplicationRecord
   belongs_to :user
-  mount_uploader :file, DocumentExportUploader
 
   STATUS_OPTIONS = [
     PENDING_STATUS = 'pending'.freeze,
@@ -14,6 +13,14 @@ class DocumentExport < ApplicationRecord
     ERROR_STATUS = 'error'.freeze,
   ].freeze
   validates :status, inclusion: { in: STATUS_OPTIONS }
+
+  def completed?
+    status == COMPLETED_STATUS
+  end
+
+  def self.diet_select
+    select(column_names - ['file_data'])
+  end
 
   def with_status_progression
     okay = false
@@ -47,6 +54,18 @@ class DocumentExport < ApplicationRecord
 
   def self.expired
     where('created_at <= ?', Time.now - EXPIRES_AFTER)
+  end
+
+  MIME_TYPES = [
+    BINARY_MIME_TYPE =  'application/octet-stream',
+    PDF_MIME_TYPE = 'application/pdf'
+  ]
+  validates :mime_type, inclusion: { in: MIME_TYPES}, allow_blank: true
+
+  def pdf_file=(file_io)
+    self.filename = File.basename(file_io.path)
+    self.file_data = file_io.read
+    self.mime_type = PDF_MIME_TYPE
   end
 
 end

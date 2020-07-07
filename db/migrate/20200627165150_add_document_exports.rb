@@ -7,7 +7,9 @@ class AddDocumentExports < ActiveRecord::Migration[5.2]
       t.string :version, null: false
       t.string :status, null: false
       t.string :query_string
-      t.string :file
+      t.binary :file_data
+      t.string :filename
+      t.string :mime_type
     end
   end
 end

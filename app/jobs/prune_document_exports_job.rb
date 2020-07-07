@@ -6,7 +6,7 @@ class PruneDocumentExportsJob < ApplicationJob
       'prune_document_exports_job',
       timeout_seconds: 0,
     ) do
-      DocumentExport.expired.destroy_all
+      DocumentExport.expired.diet_select.destroy_all
     end
   end
 end

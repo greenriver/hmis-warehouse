@@ -5,6 +5,7 @@
 ###
 
 class DocumentExportsController < ApplicationController
+
   def create
     @export = export_scope.build(export_params)
     if @export.authorized?
@@ -17,12 +18,26 @@ class DocumentExportsController < ApplicationController
   end
 
   def show
-    @export = export_scope.find(params[:id])
-    respond_to do |format|
-      format.json do
-        render json: serialize_export(@export)
+    export = export_scope.diet_select.find(params[:id])
+    # poll for status, don't bother with auth check
+    render json: serialize_export(export)
+  end
+
+  def download
+    export = export_scope.find(params[:id])
+    if export.authorized?
+      if export.completed?
+        send_data(
+          export.file_data,
+          filename: export.filename,
+          type: export.mime_type,
+          disposition: :attachment
+        )
+      else
+        raise ActiveRecord::RecordNotFound
       end
-      format.html
+    else
+      not_authorized!
     end
   end
 
@@ -30,8 +45,7 @@ class DocumentExportsController < ApplicationController
     {
       pollUrl: document_export_path(export.id),
       status: export.status,
-      # this doesn't work in development, would like to get an expiring s3 url here
-      url: export.file&.url,
+      url: export.completed? ? download_document_export_path(export.id) : nil
     }
   end
 
