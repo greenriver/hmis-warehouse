@@ -125,7 +125,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     # We sometimes see very odd dates, this will attempt to make them sane.
     # Since most dates should be not too far in the future, we'll check for anything less
     # Than a year out
-    def fix_date_format(string)
+    def self.fix_date_format(string)
       return unless string
       # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
       return string if /\d{4}-\d{1,2}-\d{1,2}/.match?(string)
@@ -154,7 +154,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       d.strftime('%Y-%m-%d')
     end
 
-    def fix_time_format(string)
+    def self.fix_time_format(string)
       return unless string
       # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
       return string if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)

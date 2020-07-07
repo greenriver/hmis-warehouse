@@ -19,6 +19,7 @@ RSpec.describe 'Combine Enrollments', type: :model do
       data_source_id: @data_source.id,
       remove_files: false,
     )
+    @loader.load!
     @loader.import!
   end
 
@@ -29,6 +30,7 @@ RSpec.describe 'Combine Enrollments', type: :model do
     FileUtils.rm_rf(@import_path)
   end
 
-  it 'does nothing' do
+  it 'includes all clients' do
+    expect(GrdaWarehouse::Hud::Client.count).to eq(2)
   end
 end
