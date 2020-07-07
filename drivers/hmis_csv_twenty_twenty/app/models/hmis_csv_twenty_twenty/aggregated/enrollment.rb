@@ -13,6 +13,7 @@ module HmisCsvTwentyTwenty::Aggregated
     self.table_name = 'hmis_2020_aggregated_enrollments'
 
     has_one :destination_record, **hud_assoc(:EnrollmentID, 'Enrollment')
+    has_one :exit, primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id], class_name: 'HmisCsvTwentyTwenty::Aggregated::Exit', autosave: false
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
       return none unless project_ids.present?

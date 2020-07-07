@@ -116,7 +116,7 @@ module HmisCsvTwentyTwenty::Importer
         next unless aggregators.present?
 
         log("Aggregating #{klass.name}")
-        aggregators.each { |a| a.aggregate!(@importer_log.id) }
+        aggregators.each { |a| a.aggregate!(@importer_log) }
         HmisTwentyTwenty.look_aside(klass)
       end
     end
