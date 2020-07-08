@@ -5,9 +5,9 @@
 ###
 
 module GrdaWarehouse::DocumentExports
-  class PerformanceDashboardExport < GrdaWarehouse::DocumentExport
+  class PerformanceDashboardExport < ::GrdaWarehouse::DocumentExport
     def authorized?
-      user.can_view_any_reports? && user.can_view_clients?
+      user.can_view_any_reports? && PerformanceDashboards::Overview.viewable_by(user)
     end
 
     def perform
@@ -77,6 +77,5 @@ module GrdaWarehouse::DocumentExports
         '#'
       end
     end
-
   end
 end

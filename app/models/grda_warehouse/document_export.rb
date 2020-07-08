@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class GrdaWarehouse::DocumentExport < ApplicationRecord
+class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
   belongs_to :user
 
   STATUS_OPTIONS = [
