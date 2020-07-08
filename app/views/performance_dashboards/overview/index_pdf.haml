@@ -1,0 +1,68 @@
+!!!
+%html
+  %head
+    = wicked_pdf_stylesheet_link_tag 'dashboard_pdf', media: 'all'
+    = wicked_pdf_javascript_include_tag 'pdf'
+    = wicked_pdf_javascript_include_tag 'application'
+    %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700', rel: 'stylesheet', type: 'text/css'}
+
+  %body
+    - @show_census = true
+    - chart_options = { size: { height: 300, width: 1200 } }
+    %section.d-flex.align-items-start
+      .mr-4
+        %h1 Performance Overview
+      .ml-auto
+        - logo = wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
+        = image_tag(logo, width: 250) if logo.present?
+    %section.mb-5
+      = render 'performance_dashboards/overview/overall'
+    %section.filter-summary.mb-5
+      %h2.mb-4 Summary of Selected Universe
+      = render 'performance_dashboards/active_filters_two_col'
+    - @report.available_breakdowns.each do |breakdown, title|
+      - @breakdown_section_title = title
+      %section.mb-5
+        .pdf-breakdown= render "performance_dashboards/overview/by_#{breakdown}"
+      = content_for :page_js do
+        :javascript
+          $(function() {
+            'use strict';
+            var opts = {};
+            new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{breakdown}-chart', opts);
+            new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{breakdown}-chart', opts);
+            new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{breakdown}-chart', opts);
+          });
+
+
+    = svg 'symbol-defs'
+    = yield :page_js
+    :css
+      p {
+        font-size: 16px !important;
+      }
+      .icon-info {
+        display: none;
+      }
+      a {
+        color: #333 !important;
+        text-decoration: none !important;
+      }
+      .perf-overview-breakdown {
+        page-break-inside: avoid;
+      }
+      h2 {
+        font-size: 20px !important;
+      }
+      .well header {
+        margin-bottom: 2em;
+      }
+      .well.well {
+        background: inherit;
+        border: none;
+        box-shadow: none;
+      }
+      .filter-summary {
+        page-break-inside: avoid;
+      }
+

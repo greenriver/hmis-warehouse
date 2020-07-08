@@ -18,6 +18,10 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
   include PerformanceDashboard::Overview::ProjectType
   include PerformanceDashboard::Overview::Coc
 
+  def self.url
+    'performance_dashboards/overview'
+  end
+
   def self.available_keys
     {
       entering: :entering,

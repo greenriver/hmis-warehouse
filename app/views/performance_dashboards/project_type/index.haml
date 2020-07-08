@@ -5,7 +5,7 @@
 %section
   #filter-accordion.panel-group.panel-collapsible.mb-0.panel-sibling--below
     - content_for :panel_collapse_content, flush: true do
-      = simple_form_for :filters, method: :get do |f|
+      = simple_form_for @filter, as: :filters, method: :get, url: performance_dashboards_project_type_index_path do |f|
         = render 'performance_dashboards/filters', f: f
     = render 'common/panel_collapse', id: id, title: 'Universe Selection', default_open: filter_open, wrapper_class: 'mb-0'
 
