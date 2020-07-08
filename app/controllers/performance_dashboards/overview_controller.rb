@@ -80,7 +80,7 @@ module PerformanceDashboards
     end
 
     private def set_pdf_export
-      @pdf_export = DocumentExports::PerformanceDashboardExport.new
+      @pdf_export = GrdaWarehouse::DocumentExports::PerformanceDashboardExport.new
     end
     before_action :set_pdf_export
   end

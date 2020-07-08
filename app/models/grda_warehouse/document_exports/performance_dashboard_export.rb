@@ -4,11 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module DocumentExports
-  class PerformanceDashboardExport < DocumentExport
+module GrdaWarehouse::DocumentExports
+  class PerformanceDashboardExport < GrdaWarehouse::DocumentExport
     def authorized?
-      # FIXME - check this please
-      user.can_view_censuses? && user.can_view_clients?
+      user.can_view_any_reports? && user.can_view_clients?
     end
 
     def perform

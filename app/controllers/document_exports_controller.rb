@@ -51,14 +51,14 @@ class DocumentExportsController < ApplicationController
   end
 
   protected def export_params
-    valid_types = DocumentExport.subclasses.map(&:name)
+    valid_types = GrdaWarehouse::DocumentExport.subclasses.map(&:name)
     type = params.require(:type).presence_in(valid_types)
     raise ActionController::BadRequest, "bad type #{params[:type]}" unless type
 
     {
       type: type,
       query_string: params[:query_string],
-      status: DocumentExport::PENDING_STATUS,
+      status: GrdaWarehouse::DocumentExport::PENDING_STATUS,
     }
   end
 end

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class DocumentExport < ApplicationRecord
+class GrdaWarehouse::DocumentExport < ApplicationRecord
   belongs_to :user
 
   STATUS_OPTIONS = [
@@ -67,8 +67,7 @@ class DocumentExport < ApplicationRecord
     self.file_data = file_io.read
     self.mime_type = PDF_MIME_TYPE
   end
-
 end
 
 # require subclasses are populated for validation
-require_dependency 'document_exports/performance_dashboard_export'
+require_dependency 'grda_warehouse/document_exports/performance_dashboard_export'

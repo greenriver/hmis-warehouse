@@ -13,7 +13,7 @@ class DocumentExportJob < ApplicationJob
   protected
 
   def load_export(id)
-    DocumentExport.
+    GrdaWarehouse::DocumentExport.
       not_expired.
       with_current_version.
       where(id: id).
