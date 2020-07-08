@@ -13,7 +13,7 @@
     %strong
       Care Plans signed within 122 days
     %br
-      = @report.with_careplans_in_122_days.keys.count
+      = @report.with_careplans_in_122_days.values.count(true)
 
 .row.mt-4
   %table.table
