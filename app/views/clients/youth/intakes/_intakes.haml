@@ -16,9 +16,10 @@
   .col-sm-6
     = render 'referrals_list'
 
-.row
-  .col-sm-12
-    = render 'follow_up_list'
+- if @intakes.exists?
+  .row
+    .col-sm-12
+      = render 'follow_up_list'
 
 = content_for :page_js do
   :javascript
