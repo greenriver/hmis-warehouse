@@ -334,6 +334,7 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :overview, only: [:index]
+      resources :aco_performance, only: [:index]
       resources :agency_performance, only: [:index] do
         collection do
           post :detail
