@@ -11,6 +11,10 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
   include PerformanceDashboard::ProjectType::Returns
   include PerformanceDashboard::ProjectType::Detail
 
+  def self.url
+    'performance_dashboards/project_type'
+  end
+
   def project_type_title
     GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES[filter.project_type_codes.first&.to_sym]
   end

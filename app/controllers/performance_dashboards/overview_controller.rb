@@ -78,5 +78,10 @@ module PerformanceDashboards
     private def set_key
       @key = PerformanceDashboards::Overview.detail_method(params.dig(:filters, :key))
     end
+
+    private def set_pdf_export
+      @pdf_export = GrdaWarehouse::DocumentExports::PerformanceDashboardExport.new
+    end
+    before_action :set_pdf_export
   end
 end

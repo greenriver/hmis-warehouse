@@ -1,0 +1,34 @@
+%h4.mt-0 Household
+- if @filter.hoh_only
+  %dl
+    %dt Clients Limited
+    %dd Counting only Heads of Households
+%dl
+  %dt Household Type
+  %dd= @report.chosen_household_type
+%dl
+  %dt Ages
+  - if @report.chosen_age_ranges.blank?
+    %dd.text-muted
+      Any
+  - else
+    %dd
+      = @report.chosen_age_ranges
+%dl
+  %dt Veteran Statuses
+  - if @report.chosen_veteran_statuses.blank?
+    %dd.text-muted
+      Any
+  - else
+    %dd
+      - @report.chosen_veteran_statuses.each do |status|
+        .status= status
+%dl
+  %dt Genders
+  - if @report.chosen_genders.blank?
+    %dd.text-muted
+      All
+  - else
+    %dd
+      - @report.chosen_genders.each do |gender|
+        .gender= gender
