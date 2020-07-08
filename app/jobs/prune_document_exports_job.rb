@@ -1,4 +1,4 @@
-class PruneDocumentExportsJob < ApplicationJob
+class PruneDocumentExportsJob < BaseJob
   queue_as :default
 
   def perform
