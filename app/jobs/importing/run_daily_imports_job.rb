@@ -154,6 +154,9 @@ module Importing
         @notifier.ping('Updating dashboards') if @send_notifications
         Reporting::PopulationDashboardPopulateJob.perform_later(sub_population: 'all')
 
+        # Remove any expired export jobs
+        PruneDocumentExportsJob.perform_later
+
         create_statistical_matches
         generate_logging_info
 

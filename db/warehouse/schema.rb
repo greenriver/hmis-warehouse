@@ -1720,6 +1720,21 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.index ["deleted_at"], name: "index_direct_financial_assistances_on_deleted_at"
   end
 
+  create_table "document_exports", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "type", null: false
+    t.bigint "user_id", null: false
+    t.string "version", null: false
+    t.string "status", null: false
+    t.string "query_string"
+    t.binary "file_data"
+    t.string "filename"
+    t.string "mime_type"
+    t.index ["type"], name: "index_document_exports_on_type"
+    t.index ["user_id"], name: "index_document_exports_on_user_id"
+  end
+
   create_table "enrollment_change_histories", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.date "on", null: false
@@ -7958,5 +7973,28 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       lookups_yes_no_etcs.value,
       lookups_yes_no_etcs.text
      FROM lookups_yes_no_etcs;
+  SQL
+  create_view "bi_nightly_census_by_projects", sql_definition: <<-SQL
+      SELECT nightly_census_by_projects.id,
+      nightly_census_by_projects.date,
+      nightly_census_by_projects.project_id,
+      nightly_census_by_projects.veterans,
+      nightly_census_by_projects.non_veterans,
+      nightly_census_by_projects.children,
+      nightly_census_by_projects.adults,
+      nightly_census_by_projects.youth,
+      nightly_census_by_projects.families,
+      nightly_census_by_projects.individuals,
+      nightly_census_by_projects.parenting_youth,
+      nightly_census_by_projects.parenting_juveniles,
+      nightly_census_by_projects.all_clients,
+      nightly_census_by_projects.beds,
+      nightly_census_by_projects.created_at,
+      nightly_census_by_projects.updated_at,
+      nightly_census_by_projects.juveniles,
+      nightly_census_by_projects.unaccompanied_minors,
+      nightly_census_by_projects.youth_families,
+      nightly_census_by_projects.family_parents
+     FROM nightly_census_by_projects;
   SQL
 end

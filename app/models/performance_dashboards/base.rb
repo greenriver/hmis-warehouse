@@ -32,7 +32,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     @races = filter.races
     @ethnicities = filter.ethnicities
     @veteran_statuses = filter.veteran_statuses
-    @project_types = filter.project_types || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
     @comparison_pattern = filter.comparison_pattern
     @sub_population = valid_sub_population(filter.sub_population)
   end
@@ -40,11 +40,13 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   attr_reader :start_date, :end_date, :coc_codes, :project_types, :filter
   attr_accessor :comparison_pattern, :project_type_codes
 
+  def self.viewable_by(user)
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
+      viewable_by(user).exists?
+  end
+
   private def cache_slug
-    f = @filter.deep_dup
-    f.user_id = @filter.user.id
-    f.user = nil
-    f
+    @filter.attributes
   end
 
   def detail_params
@@ -159,7 +161,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def chosen_races
-    @races.keys.map do |race|
+    @races.map do |race|
       HUD.race(race)
     end
   end
@@ -264,7 +266,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   private def filter_for_race(scope)
     return scope unless @races.present?
 
-    keys = @races.keys
+    keys = @races
     race_scope = nil
     race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if keys.include?('AmIndAKNative')
     race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
@@ -343,7 +345,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   private def race_alternative(key)
-    report_scope_source.joins(:client).where(c_t[key].eq(@races[key.to_s]))
+    report_scope_source.joins(:client).where(c_t[key].eq(1))
   end
 
   def yn(boolean)

@@ -13,6 +13,7 @@ module Filters
     attribute :project_group_ids, Array, default: []
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
+    attribute :funder_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
     attribute :coc_codes, Array, default: []
     attribute :sub_population, Symbol, default: :clients
@@ -110,6 +111,11 @@ module Filters
         merge(all_project_scope)
     end
 
+    def all_funders_scope
+      GrdaWarehouse::Hud::Funder.joins(:project).
+        merge(all_project_scope)
+    end
+
     def all_coc_code_scope
       GrdaWarehouse::Hud::ProjectCoc.joins(:project).
         merge(all_project_scope)
@@ -130,6 +136,10 @@ module Filters
 
     def data_source_options_for_select(user: )
       all_data_sources_scope.options_for_select(user: user)
+    end
+
+    def funder_options_for_select(user: )
+      all_funders_scope.options_for_select(user: user)
     end
 
     def coc_code_options_for_select(user: )

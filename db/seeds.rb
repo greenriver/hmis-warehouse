@@ -426,6 +426,12 @@ def report_list
         limitable: false,
       },
       {
+        url: 'warehouse_reports/health/aco_performance',
+        name: 'ACO Performance',
+        description: 'Summary data on ACO performance in the BH CP.',
+        limitable: false,
+      },
+      {
         url: 'warehouse_reports/health/patient_referrals',
         name: 'Patient Referrals',
         description: 'View and update batches of patient referrals by referral date.',

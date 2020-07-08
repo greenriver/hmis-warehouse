@@ -24,7 +24,8 @@
 
 .d-flex.flex-wrap.justify-content-between.align-items-end.mb-2
   %header.mb-2.mr-4{style: 'flex: 1; min-width: 300px'}
-    %h2= key.to_s.titleize
+    %h2
+      = [key.to_s.titleize, @breakdown_section_title].compact.join(': ')
     %p.description.mb-0= desc
   .d-flex.mb-2
     .report-period.mr-6

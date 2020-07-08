@@ -1,0 +1,41 @@
+- data = { url: document_exports_path, status: 'pending' }
+.modal.fade#j-document-export-modal.document-export-modal{'role' => 'dialog', 'aria-hidden' => 'true', 'data' => data}
+  .modal-dialog.modal-dialog-scrollable.modal-dialog-centered{role: :document}
+    .modal-content
+      .modal-header
+        %h4.modal-title Download PDF
+        %button.close(aria-label="Close" type="button" data-dismiss="modal")
+          %i.modal-icon-close
+      .modal-body.clearfix
+        .doc-export-part.pending
+          .lead.d-flex.mb-3
+            .mr-2= render 'spinner'
+            %div Please wait, your request is being processed...
+          .text-right
+            %button.btn.btn-secondary{"data-dismiss" => "modal", :type => "button"} Cancel
+
+        .doc-export-part.completed
+          .lead.mb-4
+            Processing complete. Click the button below to download.
+          %div
+            %a.text-white.j-download-link.btn.btn-default{href: '#'} Download
+
+        .doc-export-part.error
+          .lead.mb-3
+            We're sorry, an error occurred while processing your request. Please try again.
+          .text-right
+            %button.btn.btn-secondary{"data-dismiss" => "modal", :type => "button"} Close
+
+:css
+  .doc-export-part {
+    display: none;
+  }
+  [data-status="pending"] .doc-export-part.pending {
+    display: block;
+  }
+  [data-status="completed"] .doc-export-part.completed {
+    display: block;
+  }
+  [data-status="error"] .doc-export-part.error {
+    display: block;
+  }
