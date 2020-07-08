@@ -112,24 +112,48 @@ module ReportGenerators::SystemPerformance::Fy2019
           limit(1).
           pluck(:destination).first
       end
+
+      client_personal_ids = personal_ids(universe)
+
       remaining_leavers = destinations.reject{ |id, destination| [6, 29, 24].include?(destination.to_i)}
       @answers[:sevena1_c2][:value] = remaining_leavers.size
       @support[:sevena1_c2][:support] = {
-        headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
+        counts: remaining_leavers.map do |id, destination|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            HUD.destination(destination),
+          ]
+        end
       }
+
       temporary_leavers = destinations.select{ |id, destination| [1, 15, 14, 18, 27, 4, 12, 13, 5, 2, 25].include?(destination.to_i)}
       @answers[:sevena1_c3][:value] = temporary_leavers.size
       @support[:sevena1_c3][:support] = {
-        headers: ['Client ID', 'Destination'],
-        counts: temporary_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
+        counts: temporary_leavers.map do |id, destination|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            HUD.destination(destination),
+          ]
+        end
       }
+
       permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
       @answers[:sevena1_c4][:value] = permanent_leavers.size
       @support[:sevena1_c4][:support] = {
-        headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
+        counts: permanent_leavers.map do |id, destination|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            HUD.destination(destination),
+          ]
+        end
       }
+
       top = (@answers[:sevena1_c3][:value].to_f + @answers[:sevena1_c4][:value].to_f)
       bottom = @answers[:sevena1_c2][:value]
       @answers[:sevena1_c5][:value] = (top / bottom * 100).round(2)
@@ -191,18 +215,34 @@ module ReportGenerators::SystemPerformance::Fy2019
         destinations[id] = exit_data[:destination]
       end
 
+      client_personal_ids = personal_ids(universe)
+
       remaining_leavers = destinations.reject{ |id, destination| [15, 6, 25, 24].include?(destination.to_i)}
       @answers[:sevenb1_c2][:value] = remaining_leavers.size
       @support[:sevenb1_c2][:support] = {
-        headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
+        counts: remaining_leavers.map do |id, destination|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            HUD.destination(destination),
+          ]
+        end
       }
+
       permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
       @answers[:sevenb1_c3][:value] = permanent_leavers.size
       @support[:sevenb1_c3][:support] = {
-        headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
+        counts: permanent_leavers.map do |id, destination|
+          [
+            id,
+            client_personal_ids[id].join(','),
+            HUD.destination(destination),
+          ]
+        end
       }
+
       top = @answers[:sevenb1_c3][:value].to_f
       bottom = @answers[:sevenb1_c2][:value]
       @answers[:sevenb1_c4][:value] = (top / bottom * 100).round(2)
@@ -280,18 +320,35 @@ module ReportGenerators::SystemPerformance::Fy2019
         next if exit_data.blank?
         destinations[id] = exit_data[:destination]
       end
+
+      client_personal_ids = personal_ids(leavers)
+
       remaining_leavers = destinations.reject{ |id, destination| [15, 6, 25, 24].include?(destination.to_i)}
       @answers[:sevenb2_c2][:value] = remaining_leavers.size + stayers.size
       @support[:sevenb2_c2][:support] = {
-        headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
+        counts: remaining_leavers.map do |id, destination|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            HUD.destination(destination),
+          ]
+        end
       }
+
       permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
       @answers[:sevenb2_c3][:value] = permanent_leavers.size + stayers.size
       @support[:sevenb2_c3][:support] = {
-        headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
+        counts: permanent_leavers.map do |id, destination|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            HUD.destination(destination),
+          ]
+        end
       }
+
       top = @answers[:sevenb2_c3][:value].to_f
       bottom = @answers[:sevenb2_c2][:value]
       @answers[:sevenb2_c4][:value] = (top / bottom * 100).round(2)

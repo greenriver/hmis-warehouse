@@ -96,6 +96,8 @@ module ReportGenerators::SystemPerformance::Fy2019
           end
         end
 
+        @client_personal_ids = personal_ids(project_exit_scope.distinct.pluck(:client_id))
+
         @answers[:two_b2][:value] = project_exists_from[:so].size
         @support[:two_b2][:support] = support_for(answer: :two_b2, data: project_exists_from[:so])
         @answers[:two_b3][:value] = project_exists_from[:es].size
@@ -279,10 +281,11 @@ module ReportGenerators::SystemPerformance::Fy2019
       case answer
       when :two_b2, :two_b3, :two_b4, :two_b5, :two_b6
         add_support(
-          headers: ['Client ID', 'Project', 'Project Type', 'Destination', 'Start Date', 'Exit Date'],
+          headers: ['Client ID', 'Personal IDs', 'Project', 'Project Type', 'Destination', 'Start Date', 'Exit Date'],
           data: data.map do |m|
             [
               m[:client_id],
+              @client_personal_ids[m[:client_id]].join(', '),
               m[:project_name],
               HUD::project_type(m[:project_type]),
               HUD::destination(m[:destination]),
@@ -293,8 +296,14 @@ module ReportGenerators::SystemPerformance::Fy2019
         )
       when :two_c2, :two_c3, :two_c4, :two_c5, :two_c6, :two_e2, :two_e3, :two_e4, :two_e5, :two_e6, :two_g2, :two_g3, :two_g4, :two_g5, :two_g6
         add_support(
-          headers: ['Client ID', 'Days'],
-          data: data,
+          headers: ['Client ID', 'Personal IDs', 'Days'],
+          data: data.map do |(id, days)|
+            [
+              id,
+              @client_personal_ids[id].join(', '),
+              days,
+            ]
+          end
         )
       end
     end
