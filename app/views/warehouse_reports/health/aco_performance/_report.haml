@@ -13,7 +13,7 @@
     %strong
       Care Plans signed within 122 days
     %br
-      = @report.with_careplans_in_122_days.keys.count
+      = @report.with_careplans_in_122_days_status.values.count(true)
 
 .row.mt-4
   %table.table
@@ -27,4 +27,4 @@
         %tr
           %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
           %td= checkmark(@report.qa_signature_dates[patient.id].present?)
-          %td= checkmark(@report.with_careplans_in_122_days[patient.id].present?)
+          %td= checkmark(@report.with_careplans_in_122_days_status[patient.id].present?)

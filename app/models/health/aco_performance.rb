@@ -25,23 +25,22 @@ module Health
     end
 
     def qa_signature_dates
-      # Note: using minimum will ensure the first PCTP, subsequent don't matter
       @qa_signatures ||= Health::QualifyingActivity.submittable.
-        during_current_enrollment.
+        # during_current_enrollment. # Any PCTP signature counts as a signed care plan
         where(patient_id: patient_referrals.keys). # limit to patients in scope
       where(date_of_activity: @range).
         where(activity: :pctp_signed).
-        group(:patient_id).minimum(:date_of_activity)
+        group(:patient_id).maximum(:date_of_activity) # Most recent signed care plan
     end
 
-   def with_careplans_in_122_days
-      @with_careplans_in_122_days ||= patient_referrals.keys.map do |p_id|
+   def with_careplans_in_122_days_status
+      @with_careplans_in_122_days_status ||= patient_referrals.keys.map do |p_id|
         careplan_date = qa_signature_dates[p_id]&.to_date
         enrollment_date = patient_referrals[p_id]&.to_date
 
         signed = careplan_date.present? &&
           enrollment_date.present? &&
-          careplan_date.between?(@range.first, @range.last) &&
+          # careplan_date.between?(@range.first, @range.last) && # Any PCTP signature counts as a signed care plan
           (careplan_date - enrollment_date).to_i <= 122
 
         [p_id, signed]
