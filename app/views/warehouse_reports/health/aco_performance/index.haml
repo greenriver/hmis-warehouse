@@ -1,0 +1,9 @@
+- title = "Accountable Care Organization Performance Between #{@start_date} and #{@end_date}"
+- content_for :title, title
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+
+= render 'form'
+
+- if @report.present?
+  = render 'report'
