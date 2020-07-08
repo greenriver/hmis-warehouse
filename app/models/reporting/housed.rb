@@ -1,12 +1,14 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # For now, this only deals with RRH projects
 module Reporting
   class Housed < ReportingBase
+    include RailsDrivers::Extensions
+
     self.table_name = :warehouse_houseds
     include ArelHelper
     include TsqlImport

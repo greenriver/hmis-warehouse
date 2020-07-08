@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Export::HmisTwentyTwenty
@@ -20,9 +20,9 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     # Also unique the HouseholdID to a data source
     def apply_overrides row, data_source_id:
       if row[:HouseholdID].blank?
-        row[:HouseholdID] = "p_#{client_export_id(row[:PersonalID], data_source_id)}"
+        row[:HouseholdID] = Digest::MD5.hexdigest("e_#{data_source_id}_#{row[:ProjectID]}_#{row[:EnrollmentID]}")
       else
-        row[:HouseholdID] = "#{data_source_id}_#{(row[:HouseholdID])}"
+        row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{(row[:HouseholdID])}")
       end
       # Required by HUD spec, not always provided 99 is not valid, but we can't really guess
       row[:DataCollectionStage] = 99 if row[:DataCollectionStage].blank?

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Censuses
@@ -92,9 +92,9 @@ module Censuses
       enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.service_within_date_range(start_date: date, end_date: date).
         in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type])
       if population == :veterans
-        enrollment_scope.veteran
+        enrollment_scope.veterans
       else
-        enrollment_scope.non_veteran
+        enrollment_scope.non_veterans
       end
     end
   end

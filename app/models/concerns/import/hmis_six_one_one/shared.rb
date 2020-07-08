@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Import::HMISSixOneOne::Shared
@@ -22,7 +22,11 @@ module Import::HMISSixOneOne::Shared
   end
 
   def log(message)
-    @notifier&.ping message
+    begin
+      @notifier&.ping message
+    rescue Slack::Notifier::APIError
+      sleep(3)
+    end
     logger.info message if @debug
   end
 

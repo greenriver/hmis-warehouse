@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module ClientController
@@ -12,27 +12,15 @@ module ClientController
 
     def sort_filter_index
       # sort / paginate
-      at           = @clients.arel_table
-      default_sort = at[sort_column.to_sym].send(sort_direction)
+      default_sort = c_t[:LastName].asc
+      nulls_last = ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
       sort = if client_processed_sort_columns.include?(sort_column)
-        @clients = @clients.joins(:processed_service_history)
-        at = GrdaWarehouse::WarehouseClientsProcessed.arel_table
-        # nasty hack to prevent nulls from bubbling to the top
-        c, ew = if sort_direction == 'asc'
-          [[at[sort_column.to_sym].eq(nil), 1], 0]
-        else
-          [[at[sort_column.to_sym].eq(nil), 0], 1]
-        end
-        [acase([c], elsewise: ew).send(sort_direction), at[sort_column.to_sym].send(sort_direction)]
+        @clients = @clients.joins(:processed_service_history).includes(:processed_service_history)
+        [wcp_t[sort_column.to_sym].send(sort_direction).to_sql + nulls_last.to_s, default_sort]
       elsif sort_column == 'DOB'
-        c, ew = if sort_direction == 'asc'
-          [[at[:DOB].eq(nil), 1], 0]
-        else
-          [[at[:DOB].eq(nil), 0], 1]
-        end
-        [acase([c], elsewise: ew).send(sort_direction), default_sort]
+        [c_t[sort_column.to_sym].send(sort_direction).to_sql + nulls_last.to_s, default_sort]
       else
-        [default_sort]
+        [c_t[sort_column.to_sym].send(sort_direction)]
       end
 
       # Filter by date
@@ -273,7 +261,7 @@ module ClientController
         m == '/clients/rollup/' + params.require(:partial).underscore
       end
 
-      raise 'Rollup not in whitelist' unless rollup.present?
+      raise 'Rollup not in allowlist' unless rollup.present?
 
       render partial: rollup, layout: false if request.xhr?
     end

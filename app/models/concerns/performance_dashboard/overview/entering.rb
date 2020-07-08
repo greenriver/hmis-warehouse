@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboard::Overview::Entering
@@ -12,13 +12,17 @@ module PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Entering::Veteran
   include PerformanceDashboard::Overview::Entering::Race
   include PerformanceDashboard::Overview::Entering::Ethnicity
+  include PerformanceDashboard::Overview::Entering::ProjectType
+  include PerformanceDashboard::Overview::Entering::Coc
 
   def entering
     entries.distinct
   end
 
   def entering_total_count
-    entering.select(:client_id).count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      entering.select(:client_id).count
+    end
   end
 
   # Only return the most-recent matching enrollment for each client
@@ -35,6 +39,10 @@ module PerformanceDashboard::Overview::Entering
       entering_by_race_details(options)
     elsif options[:ethnicity]
       entering_by_ethnicity_details(options)
+    elsif options[:project_type]
+      entering_by_project_type_details(options)
+    elsif options[:coc]
+      entering_by_coc_details(options)
     end
   end
 

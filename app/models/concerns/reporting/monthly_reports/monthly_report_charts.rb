@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Reporting::MonthlyReports::MonthlyReportCharts
@@ -12,6 +12,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     attr_accessor :months
     attr_accessor :project_types
     attr_accessor :filter
+    attr_accessor :age_ranges
 
     # accepts an array of months in the format:
     # [[year, month], [year, month]]
@@ -88,10 +89,39 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
       client_ids = warehouse_vispdat_client_ids
       client_ids += hmis_vispdat_client_ids
-      return where.not(client_id: client_ids) if filter[:vispdat].presence == :without_vispdat
-      return where(client_id: client_ids) if filter[:vispdat].presence == :with_vispdat
+      client_scope = current_scope
+      if filter[:vispdat].presence == :without_vispdat
+        client_scope = client_scope.where.not(client_id: client_ids)
+      elsif filter[:vispdat].presence == :with_vispdat
+        client_scope = where(client_id: client_ids)
+      end
 
-      return current_scope
+      client_scope = client_scope.heads_of_household if filter[:heads_of_household]
+      client_scope = client_scope.filter_for_age(filter[:age_ranges])
+
+      client_scope
+    end
+
+    def self.filter_for_age(age_ranges)
+      return current_scope unless age_ranges&.compact.present?
+
+      age_exists = r_monthly_t[:age_at_entry].not_eq(nil)
+      age_ors = []
+      age_ors << r_monthly_t[:age_at_entry].lt(18) if age_ranges.include?(:under_eighteen)
+      age_ors << r_monthly_t[:age_at_entry].gteq(18).and(r_monthly_t[:age_at_entry].lteq(24)) if age_ranges.include?(:eighteen_to_twenty_four)
+      age_ors << r_monthly_t[:age_at_entry].gteq(25).and(r_monthly_t[:age_at_entry].lteq(61)) if age_ranges.include?(:twenty_five_to_sixty_one)
+      age_ors << r_monthly_t[:age_at_entry].gt(61) if age_ranges.include?(:over_sixty_one)
+
+      accumulative = nil
+      age_ors.each do |age|
+        accumulative = if accumulative.present?
+          accumulative.or(age)
+        else
+          age
+        end
+      end
+
+      current_scope.where(age_exists.and(accumulative))
     end
 
     def self.warehouse_vispdat_client_ids

@@ -1,14 +1,14 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::HMIS
   class Staff <  Base
     dub 'staff'
 
-    belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name, foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
     has_many :staff_x_clients, inverse_of: :staff, dependent: :delete_all
     has_many :clients, through: :staff_x_clients
 

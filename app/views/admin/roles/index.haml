@@ -1,8 +1,13 @@
 - content_for(:title, t('.title'))
 %h1= t '.title'
 = render partial: 'menus/admin_tabs'
-.table-responsive
-  %table.table.c-table.c-table--striped.j-table
+.table-responsive.j-table.c-save-table{data: {objects: @roles.map(&:id).to_json.html_safe}}
+  .c-save-table__submit-container.j-table__submit-container
+    .c-save-table__submit-container-error-text
+    = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
+    = link_to 'Cancel', '', class: 'btn btn-link j-table__cancel'
+    %button.j-table__submit-changes.c-save-table__submit-changes.btn.btn-primary{type: 'button'} Save changes
+  %table.table.c-table.c-table--striped.j-table__table
     %thead
       %tr.c-table__header.c-table__header--primary
         %th.c-table__cell--border-r-primary.v-align-middle{colspan:1, style: 'min-width: 400px'}
@@ -24,46 +29,43 @@
                 Add a role
       %tr.c-table__header.c-table__header--secondary
         %th.c-table__cell--border-r-primary{colspan:1}
-          %input.form-control.j-search-permissions.w-100{placeholder: 'Search permissions'}
+          .mb-2
+            %select.j-table__search.form-control.w-100.select2{multiple: true, placeholder: 'Select permission categories'}
+              -# %option.disabled{disabled: true} Select cateories
+              - Role.permission_categories.each do |cat|
+                %option{value: cat}= cat
+          %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
         - @roles.each do |role|
-          %th.c-table__cell--border-r-secondary.c-table__header-title.text-center
+          %th.c-table__cell--border-r-secondary.c-table__header-title.text-center.j-table__object{data:{role: role.id}}
             = link_to role.name, action: :edit, id: role
 
     %tbody
       - Role.permissions(exclude_health: true).each do |permission|
-        %tr.j-permission-row{'data-title' => permission.to_s.humanize}
+        - categories = Role.category_for(permission: permission)
+        %tr.j-table__row{'data-title' => permission.to_s.humanize, 'data-categories' => categories.to_s.html_safe}
           %td.c-table__cell--border-r-primary{colspan:1}
-            .c-table__cell-title.d-flex.align-items-start
-              = permission.to_s.humanize
-              - if Role.administrative?(permission: permission)
-                %i.icon-lock.ml-2{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+            .c-table__cell-title.d-flex.align-items-center.flex-wrap
+              %span.mr-1
+                = permission.to_s.humanize
+                - if Role.administrative?(permission: permission)
+                  %i.icon-lock.ml-2{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+              %div
+                - categories.each do |cat|
+                  %span.badge.badge-primary.mr-1=cat
             .c-table__cell-description
-              = Role.description_for permission: permission
+              = Role.description_for(permission: permission)
           - @roles.each do |role|
             - permitted = role.send(permission)
-            %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon{class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
-              - if permitted
-                %i.icon-check-circle
-              - else
-                %i.icon-times-circle-o
-
+            %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon.j-table__input{data:{role: role.id}, class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
+              .form-check.text-center
+                - id = permission.to_s
+                - name = "role[#{id}]"
+                - id += "_#{role.id}"
+                %input{name: name, type: 'hidden', value: 0}
+                .c-checkbox.d-flex.align-items-center.justify-content-center
+                  %input{id: id, name:name, type: 'checkbox', value: 1, checked: permitted}
+                  %label{for: id}
 
 - content_for :page_js do
   :javascript
-    $('.j-table').DataTable({
-      // scrollY: '55vh',
-      scrollCollapse: true,
-      scrollX: true,
-      searching: false,
-      ordering: false,
-      paging: false,
-      bInfo: false,
-      fixedColumns: {
-        leftColumns: 1
-      }
-    });
-
-    new App.TableSearch({
-      inputClass: '.j-search-permissions',
-      rowClass: '.j-permission-row',
-    })
+    new App.RoleTable()

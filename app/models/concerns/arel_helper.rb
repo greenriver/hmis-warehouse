@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # provides less verbose versions of stuff that's useful for working with arel
@@ -124,6 +124,10 @@ module ArelHelper
     GrdaWarehouse::Hud::Client.arel_table
   end
 
+  def cn_t
+    GrdaWarehouse::ClientNotes::Base.arel_table
+  end
+
   def p_t
     GrdaWarehouse::Hud::Project.arel_table
   end
@@ -186,6 +190,10 @@ module ArelHelper
 
   def c_client_t
     GrdaWarehouse::CohortClient.arel_table
+  end
+
+  def c_c_change_t
+    GrdaWarehouse::CohortClientChange.arel_table
   end
 
   def yib_t
@@ -262,6 +270,10 @@ module ArelHelper
 
   def htco_t
     Health::Tracing::Contact.arel_table
+  end
+
+  def r_monthly_t
+    Reporting::MonthlyReports::Base.arel_table
   end
 
   # and to the class itself (so they can be used in scopes, for example)
@@ -429,6 +441,10 @@ module ArelHelper
       GrdaWarehouse::Hud::Client.arel_table
     end
 
+    def cn_t
+      GrdaWarehouse::ClientNotes::Base.arel_table
+    end
+
     def p_t
       GrdaWarehouse::Hud::Project.arel_table
     end
@@ -491,6 +507,10 @@ module ArelHelper
 
     def c_client_t
       GrdaWarehouse::CohortClient.arel_table
+    end
+
+    def c_c_change_t
+      GrdaWarehouse::CohortClientChange.arel_table
     end
 
     def yib_t
@@ -571,6 +591,10 @@ module ArelHelper
 
     def htco_t
       Health::Tracing::Contact.arel_table
+    end
+
+    def r_monthly_t
+      Reporting::MonthlyReports::Base.arel_table
     end
   end
 end

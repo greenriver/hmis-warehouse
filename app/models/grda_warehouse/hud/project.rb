@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # these are also sometimes called programs
@@ -36,6 +36,8 @@ module GrdaWarehouse::Hud
       pt.freeze
     end
 
+    HOMELESS_PROJECT_TYPE_CODES = [:es, :so, :sh, :th]
+
     RESIDENTIAL_PROJECT_TYPE_IDS = RESIDENTIAL_PROJECT_TYPES.values.flatten.uniq.sort
 
     CHRONIC_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :so, :sh).flatten
@@ -57,6 +59,7 @@ module GrdaWarehouse::Hud
     PROJECT_TYPE_TITLES = PROJECT_GROUP_TITLES.select{|k,_| k.in?([:ph, :es, :th, :sh, :so])}
     HOMELESS_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
     CHRONIC_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
+    RESIDENTIAL_TYPE_TITLES = PROJECT_GROUP_TITLES.select{|k,_| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh])}
     PROJECT_TYPE_COLORS = {
       ph: 'rgba(150, 3, 130, 0.5)',
       th: 'rgba(103, 81, 140, 0.5)',
@@ -68,7 +71,7 @@ module GrdaWarehouse::Hud
     ALL_PROJECT_TYPES = ::HUD.project_types.keys
     PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14]
     PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
-    WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph] + RESIDENTIAL_PROJECT_TYPES[:th]
+    WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
     PERFORMANCE_REPORTING = {   # duplicate of code in various places
       ph: [3,9,10,13],
       th: [2],
@@ -86,10 +89,10 @@ module GrdaWarehouse::Hud
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true
 
     has_and_belongs_to_many :project_groups,
-      class_name: GrdaWarehouse::ProjectGroup.name,
+      class_name: 'GrdaWarehouse::ProjectGroup',
       join_table: :project_project_groups
 
-    has_many :service_history_enrollments, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
+    has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :ProjectID, :OrganizationID], foreign_key: [:data_source_id, :project_id, :organization_id]
 
     has_many :project_cocs, **hud_assoc(:ProjectID, 'ProjectCoc'), inverse_of: :project
     has_many :geographies, **hud_assoc(:ProjectID, 'Geography'), inverse_of: :project

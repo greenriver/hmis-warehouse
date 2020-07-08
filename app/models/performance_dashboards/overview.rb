@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
@@ -15,12 +15,33 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
   include PerformanceDashboard::Overview::Entering
   include PerformanceDashboard::Overview::Exiting
   include PerformanceDashboard::Overview::Enrolled
+  include PerformanceDashboard::Overview::ProjectType
+  include PerformanceDashboard::Overview::Coc
+
+  def self.url
+    'performance_dashboards/overview'
+  end
 
   def self.available_keys
     {
       entering: :entering,
       exiting: :exiting,
     }
+  end
+
+  def self.available_chart_types
+    chart_types = [
+      'by_age',
+      'by_ethnicity',
+      'by_gender',
+      'by_household',
+      'by_race',
+      'by_veteran',
+      'by_project_type',
+    ]
+    # Only show CoC tab if the site is setup to show it
+    chart_types << 'by_coc' if GrdaWarehouse::Config.get(:multi_coc_installation)
+    chart_types
   end
 
   def exiting_by_destination
@@ -91,13 +112,18 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
   end
 
   def available_breakdowns
-    {
+    breakdowns = {
       age: 'By Age',
       gender: 'By Gender',
       household: 'By Household Type',
       veteran: 'By Veteran Status',
       race: 'By Race',
       ethnicity: 'By Ethnicity',
+      project_type: 'By Project Type',
     }
+
+    # Only show CoC tab if the site is setup to show it
+    breakdowns[:coc] = 'By CoC' if GrdaWarehouse::Config.get(:multi_coc_installation)
+    breakdowns
   end
 end

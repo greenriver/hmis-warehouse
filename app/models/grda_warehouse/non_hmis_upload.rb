@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse
@@ -10,10 +10,10 @@ module GrdaWarehouse
     include ActionView::Helpers::DateHelper
     acts_as_paranoid
 
-    belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
     belongs_to :user
 
-    belongs_to :delayed_job, optional: true, class_name: Delayed::Job.name
+    belongs_to :delayed_job, optional: true, class_name: 'Delayed::Job'
 
     mount_uploader :file, ImportUploader
     validates :data_source, presence: true

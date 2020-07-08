@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # A reporting table to power the population dash boards.
@@ -20,24 +20,30 @@ module Reporting::MonthlyReports
     attr_accessor :date_range
 
     def self.available_types
-      {
-        all_clients: Reporting::MonthlyReports::AllClients,
-        veteran: Reporting::MonthlyReports::Veteran,
-        youth: Reporting::MonthlyReports::Youth,
-        family_parents: Reporting::MonthlyReports::Parents,
-        parenting_youth: Reporting::MonthlyReports::ParentingYouth,
-        parenting_children: Reporting::MonthlyReports::ParentingChildren,
-        unaccompanied_minors: Reporting::MonthlyReports::UnaccompaniedMinors,
-        individual_adults: Reporting::MonthlyReports::IndividualAdults,
-        non_veteran: Reporting::MonthlyReports::NonVeteran,
-        family: Reporting::MonthlyReports::Family,
-        youth_families: Reporting::MonthlyReports::YouthFamilies,
-        children: Reporting::MonthlyReports::Children,
+      Rails.application.config.monthly_reports[:available_types] || {
+        # all_clients: 'Reporting::MonthlyReports::AllClients',
+        # veteran: 'Reporting::MonthlyReports::Veteran',
+        # youth: 'Reporting::MonthlyReports::Youth',
+        # family_parents: 'Reporting::MonthlyReports::Parents',
+        # parenting_youth: 'Reporting::MonthlyReports::ParentingYouth',
+        # parenting_children: 'Reporting::MonthlyReports::ParentingChildren',
+        # unaccompanied_minors: 'Reporting::MonthlyReports::UnaccompaniedMinors',
+        # individual_adults: 'Reporting::MonthlyReports::IndividualAdults',
+        # non_veteran: 'Reporting::MonthlyReports::NonVeteran',
+        # family: 'Reporting::MonthlyReports::Family',
+        # youth_families: 'Reporting::MonthlyReports::YouthFamilies',
+        # children: 'Reporting::MonthlyReports::Children',
       }
     end
 
+    def self.add_available_type(key, klass)
+      available_types = Reporting::MonthlyReports::Base.available_types
+      available_types[key] = klass
+      Rails.application.config.monthly_reports[:available_types] = available_types
+    end
+
     def self.class_for sub_population
-      available_types[sub_population.to_sym]
+      available_types[sub_population.to_sym].constantize
     end
 
     def set_dates
@@ -134,6 +140,7 @@ module Reporting::MonthlyReports
             month: month,
             year: year,
             client_id: client_id,
+            age_at_entry: enrollment[:age],
             enrollment_id: enrollment.id,
             head_of_household: enrollment[:head_of_household],
             household_id: enrollment.household_id.presence || "c_#{client_id}",
@@ -165,6 +172,7 @@ module Reporting::MonthlyReports
       @enrollment_columns ||= [
         :id,
         :client_id,
+        :age,
         :first_date_in_program,
         :last_date_in_program,
         :project_id,
@@ -321,12 +329,21 @@ module Reporting::MonthlyReports
       GrdaWarehouse::ServiceHistoryEnrollment.homeless
     end
 
+    def self.available_age_ranges
+      {
+        under_eighteen: '< 18',
+        eighteen_to_twenty_four: '18 - 24',
+        twenty_five_to_sixty_one: '25 - 61',
+        over_sixty_one: '62+',
+      }.invert.freeze
+    end
+
     def self.sub_tables
       available_types.map do |name, klass|
         [
           name, {
             table_name: "warehouse_partitioned_monthly_reports_#{name}",
-            type: klass.name,
+            type: klass,
           },
         ]
       end.to_h
@@ -338,6 +355,75 @@ module Reporting::MonthlyReports
 
     def self.remainder_table
       :warehouse_partitioned_monthly_reports_unknown
+    end
+
+    def self.ensure_db_structure
+      ensure_tables
+      ensure_triggers
+    end
+
+    def self.ensure_tables
+      return if Reporting::MonthlyReports::Base.sub_tables.values.map{|m| Reporting::MonthlyReports::Base.connection.table_exists?(m[:table_name])}.all?
+
+      if Reporting::MonthlyReports::Base.connection.table_exists? Reporting::MonthlyReports::Base.parent_table
+        connection.drop_table Reporting::MonthlyReports::Base.parent_table, force: :cascade
+      end
+
+      connection.create_table Reporting::MonthlyReports::Base.parent_table do |t|
+        t.integer "month", null: false
+        t.integer "year", null: false
+        t.string "type"
+        t.integer "client_id", null: false
+        t.integer "age_at_entry"
+        t.integer "head_of_household", default: 0, null: false
+        t.string "household_id"
+        t.integer "project_id", null: false
+        t.integer "organization_id", null: false
+        t.integer "destination_id"
+        t.boolean "first_enrollment", default: false, null: false
+        t.boolean "enrolled", default: false, null: false
+        t.boolean "active", default: false, null: false
+        t.boolean "entered", default: false, null: false
+        t.boolean "exited", default: false, null: false
+        t.integer "project_type", null: false
+        t.date "entry_date"
+        t.date "exit_date"
+        t.integer "days_since_last_exit"
+        t.integer "prior_exit_project_type"
+        t.integer "prior_exit_destination_id"
+        t.datetime "calculated_at", null: false
+        t.integer "enrollment_id"
+        t.date "mid_month"
+      end
+
+      Reporting::MonthlyReports::Base.sub_tables.each do |name, details|
+        table_name = details[:table_name]
+        constraint = "type = '#{details[:type]}'"
+        sql = "CREATE TABLE #{table_name} ( CHECK ( #{constraint} ) ) INHERITS (#{Reporting::MonthlyReports::Base.parent_table});"
+        connection.execute(sql)
+
+        connection.add_index table_name, :id, unique: true, name: "index_month_#{name}_id"
+        connection.add_index table_name, :client_id, name: "index_month_#{name}_client_id"
+        connection.add_index table_name, :age_at_entry, name: "index_month_#{name}_age"
+        connection.add_index table_name, [:mid_month, :destination_id, :enrolled], name: "index_month_#{name}_dest_enr"
+        connection.add_index table_name, [:mid_month, :active, :entered], name: "index_month_#{name}_act_enter"
+        connection.add_index table_name, [:mid_month, :active, :exited], name: "index_month_#{name}_act_exit"
+        connection.add_index table_name, [:mid_month, :project_type, :head_of_household], name: "index_month_#{name}_p_type_hoh"
+      end
+      # Don't forget the remainder
+      table_name = Reporting::MonthlyReports::Base.remainder_table
+      name = 'remainder'
+      known = Reporting::MonthlyReports::Base.sub_tables.keys.join("', '")
+      remainder_check = " type NOT IN ('#{known}') "
+      sql = "CREATE TABLE #{table_name} (CHECK ( #{remainder_check} ) ) INHERITS (#{Reporting::MonthlyReports::Base.parent_table});"
+      connection.execute(sql)
+      connection.add_index table_name, :id, unique: true, name: "index_month_#{name}_id"
+      connection.add_index table_name, :client_id, name: "index_month_#{name}_client_id"
+      connection.add_index table_name, :age_at_entry, name: "index_month_#{name}_age"
+      connection.add_index table_name, [:mid_month, :destination_id, :enrolled], name: "index_month_#{name}_dest_enr"
+      connection.add_index table_name, [:mid_month, :active, :entered], name: "index_month_#{name}_act_enter"
+      connection.add_index table_name, [:mid_month, :active, :exited], name: "index_month_#{name}_act_exit"
+      connection.add_index table_name, [:mid_month, :project_type, :head_of_household], name: "index_month_#{name}_p_type_hoh"
     end
 
     # schema.rb doesn't include tiggers or functions

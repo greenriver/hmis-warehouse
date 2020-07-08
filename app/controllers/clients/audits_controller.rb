@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class Clients::AuditsController < ApplicationController
@@ -14,7 +14,7 @@ class Clients::AuditsController < ApplicationController
   def index
     client_id = @client.id
     al_t = ActivityLog.arel_table
-    @audit_log = ActivityLog.where(item_model: GrdaWarehouse::Hud::Client.name).
+    @audit_log = ActivityLog.where(item_model: 'GrdaWarehouse::Hud::Client').
       where(al_t[:path].matches("%clients/#{client_id}/%"). # contains client_id
             or(al_t[:path].matches("%clients/#{client_id}"))). # ends with client_id
       order(created_at: :desc).

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 require 'memoist'
 
@@ -19,7 +19,7 @@ module GrdaWarehouse
 
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :tags, class_name: Cas::Tag.name, optional: true
+    belongs_to :tags, class_name: 'Cas::Tag', optional: true
 
     has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
@@ -90,9 +90,16 @@ module GrdaWarehouse
         scope = scope.order(id: :asc).page(page).per(per)
       end
       @client_search_result = scope.preload(
+        :cohort_client_changes,
         {
           cohort_client_notes: :user,
-          client: [:source_clients, :processed_service_history, {cohort_clients: :cohort}]
+          client: [
+            :source_clients,
+            :processed_service_history,
+            {
+              cohort_clients: :cohort
+            },
+          ]
         }
       )
     end
@@ -290,6 +297,7 @@ module GrdaWarehouse
         ::CohortColumns::VispdatScoreManual.new(),
         ::CohortColumns::DaysOnCohort.new(),
         ::CohortColumns::CasVashEligible.new(),
+        ::CohortColumns::PreviousRemovalReason.new(),
         ::CohortColumns::UserString1.new(),
         ::CohortColumns::UserString2.new(),
         ::CohortColumns::UserString3.new(),

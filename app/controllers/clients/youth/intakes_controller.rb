@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Clients::Youth
@@ -59,8 +59,8 @@ module Clients::Youth
     def create
       @intake = intake_source.new(user_id: current_user.id, client_id: @client.id)
       @intake.assign_attributes(intake_params)
-      @intake.client_race = intake_params[:client_race].select(&:present?).to_json
-      @intake.disabilities = intake_params[:disabilities].select(&:present?).to_json
+      @intake.client_race = intake_params[:client_race].select(&:present?)
+      @intake.disabilities = intake_params[:disabilities].select(&:present?)
 
       set_other_options
       @intake.save

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # Delegate to create census data by project type
@@ -18,19 +18,13 @@ module GrdaWarehouse::Census
     def build_batch_for_project_type(project_type_code)
       project_type = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[project_type_code]
 
-      add_clients_to_census_buckets(get_veteran_client_counts(project_type), project_type_code, :veterans)
-      add_clients_to_census_buckets(get_non_veteran_client_counts(project_type), project_type_code, :non_veterans)
-      add_clients_to_census_buckets(get_child_client_counts(project_type), project_type_code, :children)
-      add_clients_to_census_buckets(get_adult_client_counts(project_type), project_type_code, :adults)
-      add_clients_to_census_buckets(get_youth_client_counts(project_type), project_type_code, :youth)
-      add_clients_to_census_buckets(get_family_client_counts(project_type), project_type_code, :families)
-      add_clients_to_census_buckets(get_youth_families_client_counts(project_type), project_type_code, :youth_families)
-      add_clients_to_census_buckets(get_parents_client_counts(project_type), project_type_code, :family_parents)
-      add_clients_to_census_buckets(get_individual_client_counts(project_type), project_type_code, :individuals)
-      add_clients_to_census_buckets(get_parenting_youth_client_counts(project_type), project_type_code, :parenting_youth)
-      add_clients_to_census_buckets(get_parenting_juvenile_client_counts(project_type), project_type_code, :parenting_juveniles)
-      add_clients_to_census_buckets(get_unaccompanied_minors_client_counts(project_type), project_type_code, :unaccompanied_minors)
-      add_clients_to_census_buckets(get_all_client_counts(project_type), project_type_code, :all_clients)
+      GrdaWarehouse::Census.census_populations.each do |population|
+        add_clients_to_census_buckets(
+          population[:factory].constantize.get_client_counts(self, project_type),
+          project_type_code,
+          population[:population],
+        )
+      end
 
       beds_by_date = {}
       @by_count.each do | date, _ |
@@ -57,59 +51,24 @@ module GrdaWarehouse::Census
     end
 
     def build_project_type_independent_batch
-      add_clients_to_census_buckets(get_homeless_veteran_client_counts(), :homeless, :veterans)
-      add_clients_to_census_buckets(get_literally_homeless_veteran_client_counts(), :literally_homeless, :veterans)
-      add_clients_to_census_buckets(get_system_veteran_client_counts(), :system, :veterans)
-
-      add_clients_to_census_buckets(get_homeless_non_veteran_client_counts(), :homeless, :non_veterans)
-      add_clients_to_census_buckets(get_literally_homeless_non_veteran_client_counts(), :literally_homeless, :non_veterans)
-      add_clients_to_census_buckets(get_system_non_veteran_client_counts(), :system, :non_veterans)
-
-      add_clients_to_census_buckets(get_homeless_child_client_counts(), :homeless, :children)
-      add_clients_to_census_buckets(get_literally_homeless_child_client_counts(), :literally_homeless, :children)
-      add_clients_to_census_buckets(get_system_child_client_counts(), :system, :children)
-
-      add_clients_to_census_buckets(get_homeless_adult_client_counts(), :homeless, :adults)
-      add_clients_to_census_buckets(get_literally_homeless_adult_client_counts(), :literally_homeless, :adults)
-      add_clients_to_census_buckets(get_system_adult_client_counts(), :system, :adults)
-
-      add_clients_to_census_buckets(get_homeless_youth_client_counts(), :homeless, :youth)
-      add_clients_to_census_buckets(get_literally_homeless_youth_client_counts(), :literally_homeless, :youth)
-      add_clients_to_census_buckets(get_system_youth_client_counts(), :system, :youth)
-
-      add_clients_to_census_buckets(get_homeless_family_client_counts(), :homeless, :families)
-      add_clients_to_census_buckets(get_literally_homeless_family_client_counts(), :literally_homeless, :families)
-      add_clients_to_census_buckets(get_system_family_client_counts(), :system, :families)
-
-      add_clients_to_census_buckets(get_homeless_youth_families_client_counts(), :homeless, :youth_families)
-      add_clients_to_census_buckets(get_literally_homeless_youth_families_client_counts(), :literally_homeless, :youth_families)
-      add_clients_to_census_buckets(get_system_youth_families_client_counts(), :system, :youth_families)
-
-      add_clients_to_census_buckets(get_homeless_parents_client_counts(), :homeless, :family_parents)
-      add_clients_to_census_buckets(get_literally_homeless_parents_client_counts(), :literally_homeless, :family_parents)
-      add_clients_to_census_buckets(get_system_parents_client_counts(), :system, :family_parents)
-
-      add_clients_to_census_buckets(get_homeless_individual_client_counts(), :homeless, :individuals)
-      add_clients_to_census_buckets(get_literally_homeless_individual_client_counts(), :literally_homeless, :individuals)
-      add_clients_to_census_buckets(get_system_individual_client_counts(), :system, :individuals)
-
-      add_clients_to_census_buckets(get_homeless_parenting_youth_client_counts(), :homeless, :parenting_youth)
-      add_clients_to_census_buckets(get_literally_homeless_parenting_youth_client_counts(), :literally_homeless, :parenting_youth)
-      add_clients_to_census_buckets(get_system_parenting_youth_client_counts(), :system, :parenting_youth)
-
-      add_clients_to_census_buckets(get_homeless_parenting_juvenile_client_counts(), :homeless, :parenting_juveniles)
-      add_clients_to_census_buckets(get_literally_homeless_parenting_juvenile_client_counts(), :literally_homeless, :parenting_juveniles)
-      add_clients_to_census_buckets(get_system_parenting_juvenile_client_counts(), :system, :parenting_juveniles)
-
-      add_clients_to_census_buckets(get_homeless_unaccompanied_minors_client_counts(), :homeless, :unaccompanied_minors)
-      add_clients_to_census_buckets(get_literally_homeless_unaccompanied_minors_client_counts(), :literally_homeless, :unaccompanied_minors)
-      add_clients_to_census_buckets(get_system_unaccompanied_minors_client_counts(), :system, :unaccompanied_minors)
-
-      add_clients_to_census_buckets(get_homeless_all_clients_client_counts(), :homeless, :all_clients)
-      add_clients_to_census_buckets(get_literally_homeless_all_clients_client_counts(), :literally_homeless, :all_clients)
-      add_clients_to_census_buckets(get_system_all_clients_client_counts(), :system, :all_clients)
-
-
+      GrdaWarehouse::Census.census_populations.each do |population|
+        population_factory = population[:factory].constantize
+        add_clients_to_census_buckets(
+          population_factory.get_homeless_client_counts(self),
+          :homeless,
+          population[:population],
+        )
+        add_clients_to_census_buckets(
+          population_factory.get_literally_homeless_client_counts(self),
+          :literally_homeless,
+          population[:population],
+        )
+        add_clients_to_census_buckets(
+          population_factory.get_system_client_counts(self),
+          :system,
+          population[:population],
+        )
+      end
     end
 
     def add_clients_to_census_buckets(collection, project_type_code, column_name_part)
@@ -119,386 +78,6 @@ module GrdaWarehouse::Census
         @by_count[date][column_name] = count
       end
     end
-
-    # Veteran
-
-    def get_veteran_client_counts(project_type)
-      get_client_counts(project_type, :client, GrdaWarehouse::Hud::Client.veteran)
-    end
-
-
-    def get_homeless_veteran_client_counts ()
-      get_aggregate_client_counts(
-        joins: :client,
-        client_scope: GrdaWarehouse::Hud::Client.veteran,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_veteran_client_counts
-      get_aggregate_client_counts(
-        joins: :client,
-        client_scope: GrdaWarehouse::Hud::Client.veteran,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_veteran_client_counts
-      get_aggregate_client_counts(
-        joins: :client,
-        client_scope: GrdaWarehouse::Hud::Client.veteran
-      )
-    end
-
-    # Non-veteran
-
-    def get_non_veteran_client_counts (project_type)
-      get_client_counts(project_type, :client, GrdaWarehouse::Hud::Client.non_veteran)
-    end
-
-    def get_homeless_non_veteran_client_counts
-      get_aggregate_client_counts(
-        joins: :client,
-        client_scope: GrdaWarehouse::Hud::Client.non_veteran,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_non_veteran_client_counts
-      get_aggregate_client_counts(
-        joins: :client,
-        client_scope: GrdaWarehouse::Hud::Client.non_veteran,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_non_veteran_client_counts
-      get_aggregate_client_counts(
-       joins: :client,
-       client_scope:  GrdaWarehouse::Hud::Client.non_veteran
-      )
-    end
-
-    # Child
-
-    def get_child_client_counts (project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.children)
-    end
-
-    def get_homeless_child_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope:  GrdaWarehouse::ServiceHistoryEnrollment.children,
-        second_scope:  GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_child_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.children,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_child_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.children
-      )
-    end
-
-    # Adult
-
-    def get_adult_client_counts ( project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.adult)
-    end
-
-    def get_homeless_adult_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.adult,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_adult_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.adult,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-        )
-    end
-
-    def get_system_adult_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.adult
-      )
-    end
-
-    # Youth
-
-    def get_youth_client_counts (project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.youth)
-    end
-
-    def get_homeless_youth_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_youth_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_youth_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth
-      )
-    end
-
-    # Family
-
-    def get_family_client_counts (project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.family)
-    end
-
-    def get_homeless_family_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_family_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_family_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family
-      )
-    end
-
-    # Youth Families
-
-    def get_youth_families_client_counts (project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.youth_families)
-    end
-
-    def get_homeless_youth_families_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth_families,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_youth_families_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth_families,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_youth_families_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth_families
-      )
-    end
-
-    # Parents
-
-    def get_parents_client_counts (project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.family_parents)
-    end
-
-    def get_homeless_parents_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family_parents,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_parents_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family_parents,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_parents_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family_parents
-      )
-    end
-
-    # Individual
-
-    def get_individual_client_counts (project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.individual)
-    end
-
-    def get_homeless_individual_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.individual,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_individual_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.individual,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_individual_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.individual
-      )
-    end
-
-    # Parenting Youth
-
-    def get_parenting_youth_client_counts (project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth)
-    end
-
-    def get_homeless_parenting_youth_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_parenting_youth_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_parenting_youth_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth
-      )
-    end
-
-    # Parenting Juvenile
-
-    def get_parenting_juvenile_client_counts (project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile)
-    end
-
-    def get_homeless_parenting_juvenile_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_parenting_juvenile_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_parenting_juvenile_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile
-      )
-    end
-
-    # Unaccompanied Minors
-
-    def get_unaccompanied_minors_client_counts (project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors)
-    end
-
-    def get_homeless_unaccompanied_minors_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_unaccompanied_minors_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_unaccompanied_minors_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors
-      )
-    end
-
-    # All Clients
-
-    def get_all_client_counts (project_type)
-      get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.all_clients)
-    end
-
-    def get_homeless_all_clients_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.all_clients,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_literally_homeless_all_clients_client_counts
-      get_aggregate_client_counts(
-       joins: :service_history_enrollment,
-       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.all_clients,
-       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
-      )
-    end
-
-    def get_system_all_clients_client_counts
-      get_aggregate_client_counts(
-        joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.all_clients
-      )
-    end
-
-    #
 
     def get_client_counts(project_type, join, client_scope)
       ids = {}
@@ -522,5 +101,410 @@ module GrdaWarehouse::Census
 
       query.distinct.group(:date).count(:client_id)
     end
+
+    # # Veteran
+
+    # class VeteransFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :client, GrdaWarehouse::Hud::Client.veteran)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :client,
+    #       client_scope: GrdaWarehouse::Hud::Client.veteran,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :client,
+    #       client_scope: GrdaWarehouse::Hud::Client.veteran,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :client,
+    #       client_scope: GrdaWarehouse::Hud::Client.veteran
+    #     )
+    #   end
+    # end
+
+    # # Non-veteran
+
+    # class NonVeteransFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :client, GrdaWarehouse::Hud::Client.non_veteran)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :client,
+    #       client_scope: GrdaWarehouse::Hud::Client.non_veteran,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :client,
+    #       client_scope: GrdaWarehouse::Hud::Client.non_veteran,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :client,
+    #       client_scope:  GrdaWarehouse::Hud::Client.non_veteran
+    #     )
+    #   end
+    # end
+
+    # # Child
+
+    # class ChildrenFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.children)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope:  GrdaWarehouse::ServiceHistoryEnrollment.children,
+    #       second_scope:  GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.children,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.children
+    #     )
+    #   end
+    # end
+
+    # # Adult
+
+    # class AdultsFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.adult)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.adult,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.adult,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #       )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.adult
+    #     )
+    #   end
+    # end
+
+    # # Youth
+
+    # class YouthFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.youth)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth
+    #     )
+    #   end
+    # end
+
+    # # Family
+
+    # class FamiliesFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.family)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family
+    #     )
+    #   end
+    # end
+
+    # # Youth Families
+
+    # class YouthFamiliesFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.youth_families)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth_families,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth_families,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.youth_families
+    #     )
+    #   end
+    # end
+
+    # # Parents
+
+    # class FamilyParentsFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.family_parents)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family_parents,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family_parents,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.family_parents
+    #     )
+    #   end
+    # end
+
+    # # Individual
+
+    # class IndividualsFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.individual)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.individual,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.individual,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.individual
+    #     )
+    #   end
+    # end
+
+    # # Parenting Youth
+
+    # class ParentingYouthFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_youth
+    #     )
+    #   end
+    # end
+
+    # # Parenting Juvenile
+
+    # class ParentingJuvenilesFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.parenting_juvenile
+    #     )
+    #   end
+    # end
+
+    # # Unaccompanied Minors
+
+    # class UnaccompaniedMinorsFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.unaccompanied_minors
+    #     )
+    #   end
+    # end
+
+    # # All Clients
+
+    # class AllClientsFactory
+    #   def self.get_client_counts(batch, project_type)
+    #     batch.get_client_counts(project_type, :service_history_enrollment, GrdaWarehouse::ServiceHistoryEnrollment.all_clients)
+    #   end
+
+    #   def self.get_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.all_clients,
+    #       second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_literally_homeless_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #      joins: :service_history_enrollment,
+    #      client_scope: GrdaWarehouse::ServiceHistoryEnrollment.all_clients,
+    #      second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+    #     )
+    #   end
+
+    #   def self.get_system_client_counts(batch)
+    #     batch.get_aggregate_client_counts(
+    #       joins: :service_history_enrollment,
+    #       client_scope: GrdaWarehouse::ServiceHistoryEnrollment.all_clients
+    #     )
+    #   end
+    # end
+
+    #
   end
 end

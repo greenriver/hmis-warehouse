@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboard::Overview::Enrolled
@@ -12,13 +12,17 @@ module PerformanceDashboard::Overview::Enrolled
   include PerformanceDashboard::Overview::Enrolled::Veteran
   include PerformanceDashboard::Overview::Enrolled::Race
   include PerformanceDashboard::Overview::Enrolled::Ethnicity
+  include PerformanceDashboard::Overview::Enrolled::ProjectType
+  include PerformanceDashboard::Overview::Enrolled::Coc
 
   def enrolled
     open_enrollments.distinct
   end
 
   def enrolled_total_count
-    enrolled.select(:client_id).count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      enrolled.select(:client_id).count
+    end
   end
 
   # Only return the most-recent matching enrollment for each client
@@ -35,6 +39,10 @@ module PerformanceDashboard::Overview::Enrolled
       enrolled_by_race_details(options)
     elsif options[:ethnicity]
       enrolled_by_ethnicity_details(options)
+    elsif options[:project_type]
+      enrolled_by_project_type_details(options)
+    elsif options[:coc]
+      enrolled_by_coc_details(options)
     end
   end
 

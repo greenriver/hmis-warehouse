@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 require 'memoist'
@@ -13,13 +13,13 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     extend Memoist
     self.table_name = :project_data_quality
 
-    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
-    belongs_to :project_group, class_name: GrdaWarehouse::ProjectGroup.name
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
+    belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup'
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
     has_many :project_group_contacts, through: :project_group, source: :contacts
     has_many :organization_project_group_contacts, through: :project_group, source: :organization_contacts
-    has_many :report_tokens, foreign_key: :report_id, class_name: GrdaWarehouse::ReportToken.name
+    has_many :report_tokens, foreign_key: :report_id, class_name: 'GrdaWarehouse::ReportToken'
 
     scope :complete, -> do
       where.not(completed_at: nil).

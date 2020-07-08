@@ -14,12 +14,12 @@ RUN apk add --no-cache \
   icu icu-dev \
   curl libcurl curl-dev \
   libmagic file-dev file \
-  build-base libxml2-dev libxslt-dev postgresql-dev tmux
+  build-base libxml2-dev libxslt-dev postgresql-dev tmux postgresql
 
 WORKDIR /app
 
 RUN gem install bundler --version=1.17.3 && \
-  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var
+  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var drivers
 
 COPY Gemfile Gemfile.lock Rakefile config.ru ./
 COPY bin ./bin
@@ -30,6 +30,7 @@ COPY config ./config
 #COPY db ./db
 COPY app ./app
 COPY vendor ./vendor
+COPY drivers ./drivers
 COPY config/deploy/docker/assets/dotenv.temporary ./.env
 
 # https://github.com/sass/sassc-ruby/issues/146#issuecomment-542288556

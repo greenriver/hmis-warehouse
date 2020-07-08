@@ -1,0 +1,17 @@
+= simple_form_for @filter, as: :filter, url: warehouse_reports_youth_intake_export_index_path(format: :xlsx),  html: { class: 'jFilter' } do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-6
+        = render 'warehouse_reports/date_range_filters', f:f
+
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Download Data'
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      $('.btn').each(function(i){
+        $(this).removeAttr('data-disable-with');
+      });
+    });

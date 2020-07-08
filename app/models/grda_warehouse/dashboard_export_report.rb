@@ -1,12 +1,12 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class GrdaWarehouse::DashboardExportReport < GrdaWarehouseBase
   include ActionView::Helpers::DateHelper
-  belongs_to :file, class_name: GrdaWarehouse::DashboardExportFile.name
+  belongs_to :file, class_name: 'GrdaWarehouse::DashboardExportFile'
 
   def complete?
     completed_at.present?

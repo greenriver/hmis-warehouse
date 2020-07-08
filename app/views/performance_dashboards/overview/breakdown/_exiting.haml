@@ -1,16 +1,14 @@
 - key = :exiting
-- detail_params = filter_params.merge(options: {key: key, breakdown: breakdown}.merge(options))
+- detail_params = @report.detail_params.merge({key: key, breakdown: breakdown}).merge(options)
 - comparison_params = detail_params.dup.to_h
-- comparison_params[:filters] ||= {}
-- comparison_params[:filters].merge!({ start_date: @comparison.start_date, end_date: @comparison.end_date })
-- chart_class = "#{key}-#{breakdown.parameterize}-chart"
+- comparison_params.merge!({ start_date: @comparison.start_date, end_date: @comparison.end_date })
+- client_counts = { report: @report.exiting_total_count, comparison: @comparison.exiting_total_count}
+- if defined?(chart_class_slug)
+  - chart_class = "#{key}-#{chart_class_slug}-chart"
+- else
+  - chart_class = "#{key}-#{breakdown.parameterize}-chart"
+- unless defined?(chart_height)
+  - chart_height = 600
 
-= render 'performance_dashboards/overview/breakdown/base',
-  key: key,
-  chart_class: chart_class,
-  desc: 'Clients exiting a project in the universe who has not been seen in any project in the universe since.',
-  detail_params: detail_params,
-  comparison_params: comparison_params,
-  columns: columns,
-  categories: categories,
-  sub_keys: sub_keys
+.perf-overview-breakdown
+  = render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: 'Clients exiting a project in the universe who has not been seen in any project in the universe since.', detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts, chart_height: chart_height

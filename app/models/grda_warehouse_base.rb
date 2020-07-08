@@ -1,14 +1,14 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class GrdaWarehouseBase < ActiveRecord::Base
   include ArelHelper
+  include  Efind
   establish_connection DB_WAREHOUSE
   self.abstract_class = true
-  include ArelHelper
 
   def self.sql_server?
     connection.adapter_name == 'SQLServer'

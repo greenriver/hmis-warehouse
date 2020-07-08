@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HudChronicDefinition
@@ -13,11 +13,11 @@ module HudChronicDefinition
   included do
     attr_accessor :hud_chronic_data
 
-    has_many :hud_chronics, class_name: GrdaWarehouse::HudChronic.name, inverse_of: :client
+    has_many :hud_chronics, class_name: 'GrdaWarehouse::HudChronic', inverse_of: :client
 
     has_many :hud_chronics_in_range, ->(range) do
       where(date: range)
-    end, class_name: GrdaWarehouse::HudChronic.name, inverse_of: :client
+    end, class_name: 'GrdaWarehouse::HudChronic', inverse_of: :client
 
     # HUD Chronic:
     # Client must be disabled

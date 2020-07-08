@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Censuses
@@ -12,11 +12,9 @@ module Censuses
       "#{GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES[project_type.to_sym]} on"
     end
 
-    def clients_for_date(date, project_type, population = 'all_clients')
-      known_sub_populations = GrdaWarehouse::ServiceHistoryEnrollment.know_standard_cohorts
-      # Additional aliased scopes
-      known_sub_populations << :veterans
-      known_sub_populations << :non_veterans
+    def clients_for_date(date, project_type, population = :clients)
+      known_sub_populations = GrdaWarehouse::ServiceHistoryEnrollment.known_standard_cohorts
+
       raise "Population #{population} not defined" unless known_sub_populations.include?(population.to_sym)
 
       columns = {

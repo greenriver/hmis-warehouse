@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboard::ProjectType::Detail
@@ -60,9 +60,9 @@ module PerformanceDashboard::ProjectType::Detail
       elsif options[:destination].present?
         title += " #{destination_bucket_titles[sub_key.to_i]}"
       elsif options[:length_of_time].present?
-        title += " #{time_bucket_titles[sub_key.to_i]}"
+        title += " #{time_bucket_titles[sub_key.to_sym]}"
       elsif options[:returns].present?
-        title += " #{returns_bucket_titles[sub_key.to_i]}"
+        title += " #{returns_bucket_titles[sub_key.to_sym]}"
       end
     end
     title += " #{key.titleize}"

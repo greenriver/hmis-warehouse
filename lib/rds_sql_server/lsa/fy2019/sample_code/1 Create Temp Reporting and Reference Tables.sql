@@ -1,8 +1,14 @@
 /*
 LSA FY2019 Sample Code
 
-Name:  1 create temp reporting tables.sql  (File 1 of 10)
+Name:  1 Create Temp Reporting and Reference Tables.sql
 Date:  4/17/2020   
+       5/21/2020 -- add column Step (nvarchar(10) not NULL) to all tables except ref_Calendar and ref_Populations.
+					This is set in the sample code with every INSERT and UPDATE statement to the section number in
+					which the step occurs.  For sections with multiple INSERT and/or UPDATE statements, the section
+					number is followed by a statement number -- e.g., '3.6.1' and '3.6.2', etc.
+	   5/28/2020 -- remove extraneous DQ1Adult and DQ3Adult columns from CREATE tlsa_Enrollment
+	   6/4/2020  -- change ch_Include.chDate column name to ESSHStreetDate per specs
 
 This script drops (if tables exist) and creates the following temp reporting tables:
 
@@ -12,6 +18,7 @@ This script drops (if tables exist) and creates the following temp reporting tab
 			household types, and other frequently-referenced data 
 	tlsa_Enrollment - a 'master' table of enrollments associated with the HouseholdIDs in tlsa_HHID
 			with enrollment ages and other frequently-referenced data
+
 	tlsa_Person - a person-level pre-cursor to LSAPerson / people active in report period
 		ch_Exclude - dates in TH or housed in RRH/PSH; used for LSAPerson chronic homelessness determination
 		ch_Include - dates in ES/SH or on the street; used for LSAPerson chronic homelessness determination
@@ -20,6 +27,7 @@ This script drops (if tables exist) and creates the following temp reporting tab
 		sys_TimePadded - used to identify households' last inactive date for SystemPath 
 		sys_Time - used to count dates in ES/SH, TH, RRH/PSH but not housed, housed in RRH/PSH, and ES/SH/StreetDates
 	tlsa_Exit - household-level precursor to LSAExit / households with system exits in exit cohort periods
+
 	dq_Enrollments - Enrollments included in LSAReport data quality reporting 
 
 This script drops (if tables exist), creates, and populates the following 
@@ -75,6 +83,7 @@ create table tlsa_HHID (
 	, HHAdultAge int
 	, HHParent int
 	, AC3Plus int
+	, Step nvarchar(10) not NULL
 	, constraint pk_tlsa_HHID primary key clustered (HouseholdID)
 	)
 
@@ -99,9 +108,7 @@ create table tlsa_Enrollment (
 	, DVStatus int
 	, Active bit
 	, CH bit
---	, ExitCohort int
-	, DQ1Adult int
-	, DQ3Adult int
+	, Step nvarchar(10) not NULL
 	, constraint pk_tlsa_Enrollment primary key clustered (EnrollmentID)
 	)
 
@@ -167,7 +174,8 @@ create table tlsa_Person (
 	AC3PlusPSH int,
 	AHARPSH int,
 	AHARHoHPSH int,
-	ReportID int
+	ReportID int,
+	Step nvarchar(10) not NULL,
 	constraint pk_tlsa_Person primary key clustered (PersonalID) 
 	)
 	;
@@ -178,6 +186,7 @@ if object_id ('ch_Exclude') is not NULL drop table ch_Exclude
 	create table ch_Exclude(
 	PersonalID varchar(32) not NULL,
 	excludeDate date not NULL,
+	Step nvarchar(10) not NULL,
 	constraint pk_ch_Exclude primary key clustered (PersonalID, excludeDate) 
 	)
 	;
@@ -186,8 +195,9 @@ if object_id ('ch_Include') is not NULL drop table ch_Include
 	
 	create table ch_Include(
 	PersonalID varchar(32) not NULL,
-	chDate date not NULL,
-	constraint pk_ch_Include primary key clustered (PersonalID, chDate)
+	ESSHStreetDate date not NULL,
+	Step nvarchar(10) not NULL,
+	constraint pk_ch_Include primary key clustered (PersonalID, ESSHStreetDate)
 	)
 	;
 	
@@ -196,9 +206,9 @@ if object_id ('ch_Episodes') is not NULL drop table ch_Episodes
 	PersonalID varchar(32),
 	episodeStart date,
 	episodeEnd date,
-	episodeDays int null
+	episodeDays int null,
+	Step nvarchar(10) not NULL,
 	constraint pk_ch_Episodes primary key clustered (PersonalID, episodeStart)
-
 	)
 	;
 
@@ -273,7 +283,8 @@ create table tlsa_Household(
 	ESTAHAR int,
 	RRHAHAR int,
 	PSHAHAR int,
-	ReportID int
+	ReportID int,
+	Step nvarchar(10) not NULL,
 	constraint pk_tlsa_Household primary key clustered (HoHID, HHType)
 	)
 	;
@@ -286,6 +297,7 @@ create table tlsa_Household(
 	, Cohort int not null
 	, StartDate date
 	, EndDate date
+	, Step nvarchar(10) not NULL
 	)
 	;
 
@@ -296,6 +308,7 @@ create table tlsa_Household(
 		, HHType int
 		, sysDate date
 		, sysStatus int
+		, Step nvarchar(10) not NULL
 		, constraint pk_sys_Time primary key clustered (HoHID, HHType, sysDate)
 		)
 		;
@@ -315,7 +328,8 @@ create table tlsa_Household(
 	, Status1 int
 	, Status3 int
 	, SSNValid int
-    primary key (EnrollmentID) 
+	, Step nvarchar(10) not NULL
+    constraint pk_dq_Enrollment primary key clustered (EnrollmentID) 
 	)
 	;
 		
@@ -342,6 +356,7 @@ create table tlsa_Household(
 		AC3Plus int,
 		SystemPath int,
 		ReportID int not NULL,
+		Step nvarchar(10) not NULL,
 		constraint pk_tlsa_Exit primary key (Cohort, HoHID, HHType)
 		)
 		;

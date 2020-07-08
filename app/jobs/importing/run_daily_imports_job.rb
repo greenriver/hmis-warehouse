@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Importing
@@ -153,6 +153,9 @@ module Importing
         # Pre-calculate the dashboards
         @notifier.ping('Updating dashboards') if @send_notifications
         Reporting::PopulationDashboardPopulateJob.perform_later(sub_population: 'all')
+
+        # Remove any expired export jobs
+        PruneDocumentExportsJob.perform_later
 
         create_statistical_matches
         generate_logging_info

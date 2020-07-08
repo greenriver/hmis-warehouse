@@ -1,21 +1,22 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module WarehouseReports::ClientDetails
   class LastPermanentZipsController < ApplicationController
     include ArelHelper
     include WarehouseReportAuthorization
+    include SubpopulationHistoryScope
     before_action :set_limited, only: [:index]
 
     def index
-      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :all_clients).to_sym
+      @sub_population = (params.try(:[], :range).try(:[], :sub_population).presence || :clients).to_sym
       date_range_options = params.permit(range: [:start, :end, :sub_population])[:range]
       # Also handle month based requests from javascript
       if params[:month].present?
-        @sub_population = (params.try(:[], :sub_population).presence || :all_clients).to_sym
+        @sub_population = (params.try(:[], :sub_population).presence || :clients).to_sym
         month = params.permit(:month)
         @range = ::Filters::DateRangeWithSubPopulation.new(
           start: Date.strptime(month[:month], '%B %Y').beginning_of_month,
@@ -64,21 +65,6 @@ module WarehouseReports::ClientDetails
         project_name: p_t[:ProjectName].to_sql,
         head_of_household: she_t[:head_of_household].to_sql,
       }
-    end
-
-    def history_scope(scope, sub_population)
-      scope_hash = {
-        all_clients: scope,
-        veteran: scope.veteran,
-        youth: scope.unaccompanied_youth,
-        parenting_youth: scope.parenting_youth,
-        parenting_children: scope.parenting_juvenile,
-        individual_adults: scope.individual_adult,
-        non_veteran: scope.non_veteran,
-        family: scope.family,
-        children: scope.children_only,
-      }
-      scope_hash[sub_population.to_sym]
     end
 
     def service_history_source

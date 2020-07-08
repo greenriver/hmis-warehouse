@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class User < ApplicationRecord
@@ -55,6 +55,7 @@ class User < ApplicationRecord
   has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
 
   has_many :messages
+  has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
 
   belongs_to :agency, optional: true
 

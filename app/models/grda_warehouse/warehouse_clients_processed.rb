@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 require 'util/hud'
@@ -12,9 +12,9 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
   self.table_name = :warehouse_clients_processed
 
-  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
-  belongs_to :warehouse_client, class_name: GrdaWarehouse::WarehouseClient.name, foreign_key: :client_id, primary_key: :destination_id
-  has_many :service_history_enrollments, class_name: GrdaWarehouse::ServiceHistoryEnrollment.name, primary_key: :client_id, foreign_key: :client_id
+  belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+  belongs_to :warehouse_client, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :client_id, primary_key: :destination_id
+  has_many :service_history_enrollments, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: :client_id, foreign_key: :client_id
 
   scope :service_history, -> {where(routine: 'service_history')}
 

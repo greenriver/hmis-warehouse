@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Filters
@@ -13,13 +13,29 @@ module Filters
     attribute :project_group_ids, Array, default: []
     attribute :organization_ids, Array, default: []
     attribute :data_source_ids, Array, default: []
+    attribute :funder_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
     attribute :coc_codes, Array, default: []
-    attribute :sub_population, Symbol, default: :all_clients
+    attribute :sub_population, Symbol, default: :clients
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
+    attribute :ph, Boolean, default: false
+    attribute :project_type_codes, Array, default: []
 
     validates_presence_of :start, :end
+
+    # NOTE: keep this up-to-date if adding additional attributes
+    def cache_key
+      [
+        user.id,
+        effective_project_ids,
+        cohort_ids,
+        coc_codes,
+        sub_population,
+        start_age,
+        end_age,
+      ]
+    end
 
     def effective_project_ids
       @effective_project_ids = effective_project_ids_from_projects
@@ -95,6 +111,11 @@ module Filters
         merge(all_project_scope)
     end
 
+    def all_funders_scope
+      GrdaWarehouse::Hud::Funder.joins(:project).
+        merge(all_project_scope)
+    end
+
     def all_coc_code_scope
       GrdaWarehouse::Hud::ProjectCoc.joins(:project).
         merge(all_project_scope)
@@ -117,6 +138,10 @@ module Filters
       all_data_sources_scope.options_for_select(user: user)
     end
 
+    def funder_options_for_select(user: )
+      all_funders_scope.options_for_select(user: user)
+    end
+
     def coc_code_options_for_select(user: )
       all_coc_code_scope.options_for_select(user: user)
     end
@@ -129,6 +154,24 @@ module Filters
       GrdaWarehouse::Hud::Client.joins(:cohort_clients).
         merge(GrdaWarehouse::CohortClient.active.where(cohort_id: cohort_ids)).
         distinct
+    end
+
+    def available_residential_project_types
+      GrdaWarehouse::Hud::Project::RESIDENTIAL_TYPE_TITLES.invert
+    end
+
+    def available_homeless_project_types
+      GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert
+    end
+
+    def project_type_ids
+      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
+        *project_type_codes.reject(&:blank?).map(&:to_sym)
+      ).flatten
+    end
+
+    def selected_project_type_names
+      GrdaWarehouse::Hud::Project::RESIDENTIAL_TYPE_TITLES.values_at(*project_type_codes.reject(&:blank?).map(&:to_sym))
     end
 
     def user

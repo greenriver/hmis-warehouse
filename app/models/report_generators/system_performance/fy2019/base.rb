@@ -2,7 +2,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module ReportGenerators::SystemPerformance::Fy2019
@@ -45,21 +45,20 @@ module ReportGenerators::SystemPerformance::Fy2019
     end
 
     def sub_population_scope scope, sub_population
+      sub_population = sub_population.to_sym
       scope_hash = {
-        all_clients: scope,
-        veteran: scope.veteran,
         youth: scope.unaccompanied_youth,
         family_parents: scope.family_parents,
         parenting_youth: scope.parenting_youth,
         parenting_children: scope.parenting_juvenile,
-        individual_adults: scope.individual_adult,
-        non_veteran: scope.non_veteran,
-        family: scope.family,
         youth_families: scope.youth_families,
-        children: scope.children_only,
         unaccompanied_minors: scope.unaccompanied_minors,
       }
-      scope_hash[sub_population.to_sym]
+      if scope_hash.key?(sub_population)
+        scope_hash[sub_population]
+      else
+        scope.send(sub_population)
+      end
     end
 
     def race_scope scope, race_code

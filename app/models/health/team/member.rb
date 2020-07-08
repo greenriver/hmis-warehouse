@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # ### HIPPA Risk Assessment
@@ -11,7 +11,7 @@ module Health
   class Team::Member < HealthBase
     include ArelHelper
     self.table_name = 'team_members'
-    has_paper_trail versions: {class_name: Health::HealthVersion.name}
+    has_paper_trail versions: {class_name: 'Health::HealthVersion'}
     acts_as_paranoid
 
     phi_patient :patient_id
@@ -20,7 +20,7 @@ module Health
     phi_attr :last_contact, Phi::Date
 
 
-    # belongs_to :team, class_name: Health::Team.name
+    # belongs_to :team, class_name: 'Health::Team'
     belongs_to :patient
 
     validates :email, email_format: { check_mx: true }, length: {maximum: 250}, allow_blank: true

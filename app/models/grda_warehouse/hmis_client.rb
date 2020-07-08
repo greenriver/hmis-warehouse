@@ -1,13 +1,13 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   include NotifierConfig
 
-  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+  belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   has_one :destination_client, through: :client
   serialize :case_manager_attributes, Hash
   serialize :assigned_staff_attributes, Hash

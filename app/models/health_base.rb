@@ -1,13 +1,13 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class HealthBase < ActiveRecord::Base
   establish_connection DB_HEALTH
   self.abstract_class = true
-  has_paper_trail versions: {class_name: Health::HealthVersion.name}
+  has_paper_trail versions: {class_name: 'Health::HealthVersion'}
 
   include ArelHelper
   class << self

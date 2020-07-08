@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Census
@@ -9,7 +9,7 @@ module GrdaWarehouse::Census
     include TsqlImport
     self.table_name = "nightly_census_by_projects"
 
-    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
 
     scope :by_project_id, -> (project_id) do
       where(project_id: project_id)

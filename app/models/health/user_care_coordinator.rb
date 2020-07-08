@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # ### HIPPA Risk Assessment
@@ -12,7 +12,7 @@ module Health
     phi_attr :care_coordinator_id, Phi::SmallPopulation
 
     belongs_to :user
-    belongs_to :care_coordinator, class_name: User.name
+    belongs_to :care_coordinator, class_name: 'User'
     validates_presence_of :user_id
     validates_presence_of :care_coordinator_id
   end

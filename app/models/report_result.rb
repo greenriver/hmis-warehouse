@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class ReportResult < ApplicationRecord
@@ -10,7 +10,7 @@ class ReportResult < ApplicationRecord
   include ActionView::Helpers::DateHelper
   belongs_to :report
   belongs_to :user
-  belongs_to :delayed_job, class_name: Delayed::Job.name
+  belongs_to :delayed_job, class_name: 'Delayed::Job'
 
   scope :most_recent, -> do
     where(percent_complete: 100).group(:type).maximum(:updated_at)

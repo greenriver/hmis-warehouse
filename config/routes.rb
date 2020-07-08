@@ -1,3 +1,6 @@
+require 'rails_drivers/routes'
+RailsDrivers::Routes.load_driver_routes
+
 Rails.application.routes.draw do
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   match "/404", to: "errors#not_found", via: :all
@@ -126,26 +129,6 @@ Rails.application.routes.draw do
     end
   end
 
-  def sub_populations
-    [
-      :all_clients,
-      :clients,
-      :childrens,
-      :children,
-      :families,
-      :youth_families,
-      :individual_adults,
-      :non_veterans,
-      :family_parents,
-      :parenting_childrens,
-      :parenting_children,
-      :parenting_youths,
-      :unaccompanied_minors,
-      :veterans,
-      :youths,
-    ].freeze
-  end
-
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
@@ -189,6 +172,7 @@ Rails.application.routes.draw do
     resources :user_login, only: [:index]
   end
   namespace :warehouse_reports do
+    resources :ce_assessments, only: [:index]
     resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
     resources :youth_intakes, only: [:index] do
@@ -198,6 +182,7 @@ Rails.application.routes.draw do
     end
     resources :youth_follow_ups, only: [:index]
     resources :youth_export, only: [:index, :show, :create, :destroy]
+    resources :youth_intake_export, only: [:index, :create]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
@@ -349,6 +334,7 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :overview, only: [:index]
+      resources :aco_performance, only: [:index]
       resources :agency_performance, only: [:index] do
         collection do
           post :detail
@@ -558,31 +544,17 @@ Rails.application.routes.draw do
     get :date_range, on: :collection
     get :details, on: :collection
   end
-  namespace :census do
-    resources :project_types, only: [:index] do
-      get :json, on: :collection
-    end
-  end
+
   resources :dashboards, only: [:index]
-  namespace :dashboards do
-    sub_populations.each do |sub_population|
-      resources(sub_population, only: [:index]) do
-        collection do
-          get :active
-          get :housed
-          get :entered
-          get 'section/:partial', to: "#{sub_population}#section", as: :section
-        end
-      end
-    end
-  end
 
   namespace :performance_dashboards do
     resources :overview, only: [:index] do
       get :details, on: :collection
+      get 'section/:partial', on: :collection, to: "overview#section", as: :section
     end
     resources :project_type, only: [:index] do
       get :details, on: :collection
+      get 'section/:partial', on: :collection, to: "project_type#section", as: :section
     end
   end
 
@@ -684,7 +656,9 @@ Rails.application.routes.draw do
       get :search
       resources :cases do
         resources :locations, except: [:index]
-        resources :contacts
+        resources :contacts do
+          resources :results
+        end
         resources :site_managers
         resources :staff
       end
@@ -804,6 +778,10 @@ Rails.application.routes.draw do
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
+
+  resources :document_exports, only: [:show, :create] do
+    get :download, on: :member
+  end
 
   resources :public_files, only: [:show]
   resources :public_agencies, only: [:index]

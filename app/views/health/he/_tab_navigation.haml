@@ -3,19 +3,19 @@
   tabs = {
     case: {
       title: 'Case',
-      path: health_he_case_path(id: case_id),
+      path: health_he_case_path(@case),
     },
     contacts: {
       title: 'Close Contacts',
-      path: health_he_case_contacts_path(case_id: case_id),
+      path: health_he_case_contacts_path(@case),
     },
     site_managers: {
       title: 'Site Manager Notifications',
-      path: health_he_case_site_managers_path(case_id: case_id),
+      path: health_he_case_site_managers_path(@case),
     },
     staff: {
       title: 'Staff Contacts',
-      path: health_he_case_staff_index_path(case_id: case_id),
+      path: health_he_case_staff_index_path(@case),
     },
   }
 %ul.mb-2.nav.nav-tabs{role: :tablist}

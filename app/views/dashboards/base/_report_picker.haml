@@ -17,7 +17,11 @@
         = f.input :start_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @start_month, input_html: { class: :select2 }, required: false
       .col-4
         = f.input :end_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @end_month, input_html: { class: :select2 }, required: false
-
+    .row
+      .col-4
+        = f.input :heads_of_household, as: :boolean, label: 'Limit to heads of household', input_html: { checked: @heads_of_household }
+      .col-4
+        = f.input :age_ranges, collection: @report.class.available_age_ranges, selected: @age_ranges, input_html: { class: :select2, multiple: true }, required: false
     .w-20
       = f.button :submit, 'Update View'
 

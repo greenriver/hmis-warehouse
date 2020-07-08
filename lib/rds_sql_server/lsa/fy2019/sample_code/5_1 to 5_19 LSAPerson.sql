@@ -3,14 +3,28 @@ LSA FY2019 Sample Code
 
 Name:  5_1 to 5_19 LSAPerson.sql  
 Date:  4/7/2020   
-	   5/14/2020 - Section 5.10 - removed extraneous update statements 	
-
+	   5/14/2020 - Section 5.10 - removed extraneous update statements 
+	   5/21/2020 - Sections 5.1-5.18 - add set of Step column to all insert and update statements
+	   6/4/2020  - 5.8.1-5.9.1 - change ch_Include.chDate column name to ESSHStreetDate per specs
+				   5.8.3 - correct WHERE criteria / use all DateToStreetESSH records dated after CHStart 
+						   instead of just the earliest one
+				   5.9.3 -> 5.10.1 - change UPDATE statement for CHTime/CHTimeStatus for non-HoH children 
+						   from 5.9.3 to 5.10.1 and renumber other 5.10 statements accordingly.
+				   5.10.2 and 5.10.4 - use 1 year instead of x days in DATEADD functions for consistency with specs.
+				   5.15.1 - use AHAREST instead of HHTypeEST in case statement setting AdultEST.
+				   5.16.3 - use HoHPSH instead of HoHAdult in case statement setting AHARHoHPSH.
+		6/11/2020 - 5.10.5 - add parentheses in 2 places to isolate 'or' conditions
+					5.14.2, 5.15.2, and 5.16.2 - update to include people in households whose ExitDate 
+						and MoveInDate are on ReportStart for AHARRRH, AdultRRH, AHARHoHRRH.
+		6/18/2020 - 5.17.2 - correct step number (was 5.17.1)
+					5.18.8 - correct to set values for AC3PlusEST/RRH/PSH to 0 or 1 (was -1 or 1)
 
 	5.1 Get Active HMIS HouseholdIDs
 */
 
 	update hhid
 	set hhid.Active = 1 
+		, hhid.Step = '5.1'
 	from tlsa_HHID HHID
 	inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
 	inner join lsa_Project p on p.ProjectID = hhid.ProjectID
@@ -28,6 +42,7 @@ Date:  4/7/2020
 
 	update n
 	set n.Active = 1
+		, n.Step = '5.2'
 	from lsa_Report rpt
 	inner join tlsa_Enrollment n on n.EntryDate <= rpt.ReportEnd
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID and hhid.Active = 1
@@ -41,7 +56,7 @@ Date:  4/7/2020
 	delete from tlsa_Person
 
 	insert into tlsa_Person (PersonalID, HoHAdult, 
-		Gender, Ethnicity, Race, VetStatus, DisabilityStatus, DVStatus, ReportID)
+		Gender, Ethnicity, Race, VetStatus, DisabilityStatus, DVStatus, ReportID, Step)
 	select distinct n.PersonalID
 		, HoHAdult.stat
 	, case 
@@ -82,6 +97,7 @@ Date:  4/7/2020
 			when DV.stat is null then 99
 			else DV.stat end 		
 		, rpt.ReportID
+		, '5.3-5.4'
 	from lsa_Report rpt
 	inner join tlsa_Enrollment n on n.EntryDate <= rpt.ReportEnd and n.Active = 1
 	inner join 
@@ -127,12 +143,14 @@ Date:  4/7/2020
 		inner join tlsa_Enrollment n on n.EntryDate <= rpt.ReportEnd and n.Active = 1
 		inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 		where n.PersonalID = lp.PersonalID)
+		, lp.Step = '5.5.1'
 	from tlsa_Person lp
 	where lp.HoHAdult > 0
 
 	--The start of the period is:  LastActive minus (3 years) plus (1 day)
 	update lp
 	set lp.CHStart = dateadd(dd, 1, (dateadd(yyyy, -3, lp.LastActive)))
+		, lp.Step = '5.5.2'
 	from tlsa_Person lp
 	where HoHAdult > 0
 
@@ -142,6 +160,7 @@ Date:  4/7/2020
 
 	update n
 	set n.CH = 1
+		, n.Step = '5.6'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID	
 		and n.EntryDate <= lp.LastActive
@@ -157,8 +176,8 @@ Date:  4/7/2020
 	-- or housed in RRH/PSH.
 	delete from ch_Exclude
 
-	insert into ch_Exclude (PersonalID, excludeDate)
-	select distinct lp.PersonalID, cal.theDate
+	insert into ch_Exclude (PersonalID, excludeDate, Step)
+	select distinct lp.PersonalID, cal.theDate, '5.7'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
 	inner join ref_Calendar cal on cal.theDate >=
@@ -179,8 +198,8 @@ Date:  4/7/2020
 	delete from ch_Include
 
 	--Dates enrolled in ES entry/exit or SH
-	insert into ch_Include (PersonalID, chDate)
-	select distinct lp.PersonalID, cal.theDate
+	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
+	select distinct lp.PersonalID, cal.theDate, '5.8.1'
 	from tlsa_Person lp
 		inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
 		inner join ref_Calendar cal on 
@@ -193,8 +212,8 @@ Date:  4/7/2020
 		and chx.excludeDate is null
 
 	--ES nbn bed nights
-	insert into ch_Include (PersonalID, chDate)
-	select distinct lp.PersonalID, cal.theDate
+	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
+	select distinct lp.PersonalID, cal.theDate, '5.8.2'
 	from tlsa_Person lp
 		inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
 		inner join hmis_Services bn on bn.EnrollmentID = chn.EnrollmentID
@@ -207,15 +226,15 @@ Date:  4/7/2020
 			and cal.theDate between lp.CHStart and lp.LastActive
 		left outer join ch_Exclude chx on chx.excludeDate = cal.theDate
 			and chx.PersonalID = chn.PersonalID
-		left outer join ch_Include chi on chi.chDate = cal.theDate 
+		left outer join ch_Include chi on chi.ESSHStreetDate = cal.theDate 
 			and chi.PersonalID = chn.PersonalID
 	where chn.ProjectType = 1 and chn.TrackingMethod = 3 and chx.excludeDate is null
-		and chi.chDate is null
+		and chi.ESSHStreetDate is null
 
 	--ES/SH/Street dates from 3.917 DateToStreetESSH to the day prior to 
 	--  EntryDates > CHStart.
-	insert into ch_Include (PersonalID, chDate)
-	select distinct lp.PersonalID, cal.theDate
+	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
+	select distinct lp.PersonalID, cal.theDate, '5.8.3'
 	from tlsa_Person lp
 		inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID
 			and chn.EntryDate > lp.CHStart
@@ -226,15 +245,10 @@ Date:  4/7/2020
 			and cal.theDate < hn.EntryDate
 		left outer join ch_Exclude chx on chx.excludeDate = cal.theDate
 			and chx.PersonalID = chn.PersonalID
-		left outer join ch_Include chi on chi.chDate = cal.theDate 
+		left outer join ch_Include chi on chi.ESSHStreetDate = cal.theDate 
 			and chi.PersonalID = chn.PersonalID
-	where hn.EnrollmentID in 
-			(select top 1 earliest.EnrollmentID
-			 from hmis_Enrollment earliest
-			 where earliest.EnrollmentID = chn.EnrollmentID 
-			 order by earliest.DateToStreetESSH asc)
-		and	chx.excludeDate is null
-		and chi.chDate is null
+	where chx.excludeDate is null
+		and chi.ESSHStreetDate is null
 			and (chn.ProjectType in (1,8)
 				or hn.LivingSituation in (1,18,16)		
 				or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11))
@@ -244,8 +258,8 @@ Date:  4/7/2020
 
 	--	For RRH/PSH, dates from entry to the earlier of move-in or exit are counted
 	--   when LivingSituation at entry is ES/SH/Street.
-	insert into ch_Include (PersonalID, chDate)
-	select distinct lp.PersonalID, cal.theDate
+	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
+	select distinct lp.PersonalID, cal.theDate, '5.8.4'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
 	inner join hmis_Enrollment hn on hn.EnrollmentID = chn.EnrollmentID 
@@ -254,28 +268,28 @@ Date:  4/7/2020
 		and cal.theDate < coalesce(chn.MoveInDate, chn.ExitDate, lp.LastActive)
 	left outer join ch_Exclude chx on chx.excludeDate = cal.theDate
 		and chx.PersonalID = chn.PersonalID
-	left outer join ch_Include chi on chi.chDate = cal.theDate 
+	left outer join ch_Include chi on chi.ESSHStreetDate = cal.theDate 
 		and chi.PersonalID = chn.PersonalID
 	where chx.excludeDate is null
-		and chi.chDate is null
+		and chi.ESSHStreetDate is null
 			and hn.LivingSituation in (1,18,16)		
 
 	--Gaps of less than 7 nights between two ESSHStreet dates are counted
-	insert into ch_Include (PersonalID, chDate)
-	select gap.PersonalID, cal.theDate
-	from (select distinct s.PersonalID, s.chDate as StartDate, min(e.chDate) as EndDate
+	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
+	select gap.PersonalID, cal.theDate, '5.8.5'
+	from (select distinct s.PersonalID, s.ESSHStreetDate as StartDate, min(e.ESSHStreetDate) as EndDate
 			from ch_Include s 
-				inner join ch_Include e on e.PersonalID = s.PersonalID and e.chDate > s.chDate 
-					and dateadd(dd, -7, e.chDate) <= s.chDate
+				inner join ch_Include e on e.PersonalID = s.PersonalID and e.ESSHStreetDate > s.ESSHStreetDate 
+					and dateadd(dd, -7, e.ESSHStreetDate) <= s.ESSHStreetDate
 			where s.PersonalID not in 
 				(select PersonalID 
 				from ch_Include 
-				where chDate = dateadd(dd, 1, s.chDate))
-			group by s.PersonalID, s.chDate) gap
+				where ESSHStreetDate = dateadd(dd, 1, s.ESSHStreetDate))
+			group by s.PersonalID, s.ESSHStreetDate) gap
 		inner join ref_Calendar cal on cal.theDate between gap.StartDate and gap.EndDate
 		left outer join ch_Include chi on chi.PersonalID = gap.PersonalID 
-			and chi.chDate = cal.theDate
-	where chi.chDate is null
+			and chi.ESSHStreetDate = cal.theDate
+	where chi.ESSHStreetDate is null
 
 /*
 	5.9 Get ES/SH/Street Episodes
@@ -283,29 +297,27 @@ Date:  4/7/2020
 	delete from ch_Episodes
 
 	-- For any given PersonalID:
-	-- Any chDate in ch_Include without a record for the day before is the start of an episode (episodeStart).
+	-- Any ESSHStreetDate in ch_Include without a record for the day before is the start of an episode (episodeStart).
 	-- Any cdDate in ch_Include without a record for the day after is the end of an episode (episodeEnd).
 	-- Each episodeStart combined with the next earliest episodeEnd represents one episode.
 	-- The length of the episode is the difference in days between episodeStart and episodeEnd + 1 day.
 
-	insert into ch_Episodes (PersonalID, episodeStart, episodeEnd)
-	select distinct s.PersonalID, s.chDate, min(e.chDate)
+	insert into ch_Episodes (PersonalID, episodeStart, episodeEnd, Step)
+	select distinct s.PersonalID, s.ESSHStreetDate, min(e.ESSHStreetDate), '5.9.1'
 	from ch_Include s 
-	inner join ch_Include e on e.PersonalID = s.PersonalID  and e.chDate >= s.chDate
+	inner join ch_Include e on e.PersonalID = s.PersonalID  and e.ESSHStreetDate >= s.ESSHStreetDate
 	--any date in ch_Include without a record for the day before is the start of an episode
-	where s.PersonalID not in (select PersonalID from ch_Include where chDate = dateadd(dd, -1, s.chDate))
+	where s.PersonalID not in (select PersonalID from ch_Include where ESSHStreetDate = dateadd(dd, -1, s.ESSHStreetDate))
 	--any date in ch_Include without a record for the day after is the end of an episode
-		and e.PersonalID not in (select PersonalID from ch_Include where chDate = dateadd(dd, 1, e.chDate))
-	group by s.PersonalID, s.chDate
+		and e.PersonalID not in (select PersonalID from ch_Include where ESSHStreetDate = dateadd(dd, 1, e.ESSHStreetDate))
+	group by s.PersonalID, s.ESSHStreetDate
 
 	update chep 
 	set episodeDays = datediff(dd, chep.episodeStart, chep.episodeEnd) + 1
+		, Step = '5.9.2'
 	from ch_Episodes chep
 
-	update lp 
-	set lp.CHTime = case when lp.HoHAdult = 0 then -1 else 0 end
-		, CHTimeStatus = -1
-	from tlsa_Person lp
+
 
 /*
 	5.10 Set CHTime and CHTimeStatus 
@@ -314,11 +326,17 @@ Date:  4/7/2020
 	--Any client with a 365+ day episode that overlaps with their
 	--last year of activity meets the time criteria for CH
 	update lp 
-	set CHTime = 365, CHTimeStatus = 1
+	set lp.CHTime = case when lp.HoHAdult = 0 then -1 else 0 end
+		, lp.CHTimeStatus = -1
+		, lp.Step = '5.10.1'
+	from tlsa_Person lp	
+	
+	update lp 
+	set CHTime = 365, CHTimeStatus = 1, lp.Step = '5.10.2'
 	from tlsa_Person lp
 		inner join ch_Episodes chep on chep.PersonalID = lp.PersonalID
 			and chep.episodeDays >= 365
-			and dateadd(dd, 365, chep.episodeEnd) >= lp.LastActive
+			and chep.episodeEnd > dateadd(yyyy, -1, lp.LastActive)
 	where CHTime = 0
 
 	--Clients with a total of 365+ days in the three year period and at least four episodes 
@@ -332,6 +350,7 @@ Date:  4/7/2020
 			when ep.episodeDays < 365 then -1 
 			when ep.episodes >= 4 then 2
 			else 3 end
+		, lp.Step = '5.10.3'
 	from tlsa_Person lp
 	inner join (select chep.PersonalID
 		, sum(chep.episodeDays) as episodeDays, count(distinct chep.episodeStart) as episodes
@@ -344,12 +363,13 @@ Date:  4/7/2020
 	update lp 
 	set lp.CHTime = 400
 		, lp.CHTimeStatus = 2
+		, lp.Step = '5.10.4'
 	from tlsa_Person lp
 		inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
 		inner join hmis_Enrollment hn on hn.EnrollmentID = chn.EnrollmentID
 			and hn.MonthsHomelessPastThreeYears in (112,113) 
 			and hn.TimesHomelessPastThreeYears = 4
-			and hn.EntryDate >= dateadd(dd, -364, lp.LastActive)
+			and hn.EntryDate > dateadd(yyyy, -1, lp.LastActive)
 	where 
 		lp.CHTime not in (-1,365) or lp.CHTimeStatus = 3
 
@@ -358,30 +378,31 @@ Date:  4/7/2020
 		
 	update lp 
 	set lp.CHTimeStatus = 99
+		, lp.Step = '5.10.5'
 	from tlsa_Person lp
 		inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
 		inner join hmis_Enrollment hn on hn.EnrollmentID = chn.EnrollmentID
-	where lp.CHTime in (0,270) or lp.CHTimeStatus = 3
+	where (lp.CHTime in (0,270) or lp.CHTimeStatus = 3)
 		and (hn.DateToStreetESSH > hn.EntryDate 
 				or (hn.LivingSituation in (8,9,99) or hn.LivingSituation is null)
 				or (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null)
 				or (chn.ProjectType not in (1,8) and hn.LivingSituation in (4,5,6,7,15,25) 
 						and hn.LengthOfStay in (2,3)
-						and hn.PreviousStreetESSH is null or hn.PreviousStreetESSH not in (0,1))
+						and (hn.PreviousStreetESSH is null or hn.PreviousStreetESSH not in (0,1)))
 				or (chn.ProjectType not in (1,8) and hn.LengthOfStay in (10,11) 
-							and hn.PreviousStreetESSH = 1)
+							and (hn.PreviousStreetESSH is null or hn.PreviousStreetESSH not in (0,1)))
 				or ((chn.ProjectType in (1,8)
 					  or hn.LivingSituation in (1,16,18)
-					  or (hn.LivingSituation in (4,5,6,7,15,25) 
+					  or (chn.ProjectType not in (1,8) and hn.LivingSituation in (4,5,6,7,15,25) 
 							and hn.LengthOfStay in (2,3)
 							and hn.PreviousStreetESSH = 1)
-					  or (hn.LengthOfStay in (10,11) 
+					  or (chn.ProjectType not in (1,8) and hn.LengthOfStay in (10,11) 
 							and hn.PreviousStreetESSH = 1)
 					)
 					and (
-						hn.MonthsHomelessPastThreeYears in (8,9) 
+						hn.MonthsHomelessPastThreeYears in (8,9,99) 
 							or hn.MonthsHomelessPastThreeYears is null
-							or hn.TimesHomelessPastThreeYears in (8,9)
+							or hn.TimesHomelessPastThreeYears in (8,9,99)
 							or hn.TimesHomelessPastThreeYears is null
 							or hn.DateToStreetESSH is null
 						)
@@ -397,6 +418,7 @@ Date:  4/7/2020
 		 from tlsa_Enrollment n
 		 where n.PersonalID = lp.PersonalID and n.ProjectType in (1,2,8) and n.Active = 1)
 		 , -1)
+		, lp.Step = '5.11.1'
 	from tlsa_Person lp
 
 	update lp 
@@ -405,6 +427,7 @@ Date:  4/7/2020
 		 from tlsa_Enrollment n
 		 where n.PersonalID = lp.PersonalID and n.ProjectType in (1,2,8) and n.Active = 1)
 		 , -1)
+		, lp.Step = '5.11.2'
 	from tlsa_Person lp
 
 	update lp 
@@ -413,6 +436,7 @@ Date:  4/7/2020
 		 from tlsa_Enrollment n
 		 where n.PersonalID = lp.PersonalID and n.ProjectType = 13 and n.Active = 1)
 		 , -1)
+		, lp.Step = '5.11.3'
 	from tlsa_Person lp
 
 	update lp 
@@ -421,6 +445,7 @@ Date:  4/7/2020
 		 from tlsa_Enrollment n
 		 where n.PersonalID = lp.PersonalID and n.ProjectType = 13 and n.Active = 1)
 		 , -1)
+		, lp.Step = '5.11.4'
 	from tlsa_Person lp
 
 	update lp 
@@ -429,6 +454,7 @@ Date:  4/7/2020
 		 from tlsa_Enrollment n
 		 where n.PersonalID = lp.PersonalID and n.ProjectType = 3 and n.Active = 1)
 		 , -1)
+		, lp.Step = '5.11.5'
 	from tlsa_Person lp
 
 	update lp 
@@ -437,6 +463,7 @@ Date:  4/7/2020
 		 from tlsa_Enrollment n
 		 where n.PersonalID = lp.PersonalID and n.ProjectType = 3 and n.Active = 1)
 		 , -1)
+		, lp.Step = '5.11.6'
 	from tlsa_Person lp
 
 
@@ -451,6 +478,7 @@ Date:  4/7/2020
 	set lp.HHTypeEST = 
 		case when hh.HHTypeCombined is null then -1
 		else hh.HHTypeCombined end	
+		, lp.Step = '5.12.1'
 	from tlsa_Person lp
 		left outer join --Level 2 - combine HHTypes into a single value
 		 (select HHTypes.PersonalID
@@ -473,6 +501,7 @@ Date:  4/7/2020
 	set lp.HHTypeRRH = 
 		case when hh.HHTypeCombined is null then -1
 		else hh.HHTypeCombined end	
+		, lp.Step = '5.12.2'
 	from tlsa_Person lp
 		left outer join --Level 2 - combine HHTypes into a single value
 		 (select HHTypes.PersonalID
@@ -495,6 +524,7 @@ Date:  4/7/2020
 	set lp.HHTypePSH = 
 		case when hh.HHTypeCombined is null then -1
 		else hh.HHTypeCombined end	
+		, lp.Step = '5.12.3'
 	from tlsa_Person lp
 		left outer join --Level 2 - combine HHTypes into a single value
 		 (select HHTypes.PersonalID
@@ -534,6 +564,7 @@ Date:  4/7/2020
 						where n.Active = 1 and n.ProjectType in (1,2,8) and n.RelationshipToHoH = 1) HHTypes  
 				where HHTypes.PersonalID = lp.PersonalID)
 			, -1) end	
+		, lp.Step = '5.13.1'
 	from tlsa_Person lp
 
 	--set RRH HoH identifiers 
@@ -554,6 +585,7 @@ Date:  4/7/2020
 						where n.Active = 1 and n.ProjectType = 13 and n.RelationshipToHoH = 1) HHTypes  
 				where HHTypes.PersonalID = lp.PersonalID)
 			, -1) end	
+		, lp.Step = '5.13.2'
 	from tlsa_Person lp
 
 	--set PSH HoH identifiers 
@@ -574,6 +606,7 @@ Date:  4/7/2020
 						where n.Active = 1 and n.ProjectType = 3 and n.RelationshipToHoH = 1) HHTypes  
 				where HHTypes.PersonalID = lp.PersonalID)
 			, -1) end	
+		, lp.Step = '5.13.3'
 	from tlsa_Person lp
 
 /*
@@ -599,6 +632,7 @@ Date:  4/7/2020
 							and (n.ExitDate is null or n.ExitDate > (select ReportStart from lsa_Report))) HHTypes  
 					where HHTypes.PersonalID = lp.PersonalID)
 				, -1) end	
+		, lp.Step = '5.14.1'
 	from tlsa_Person lp
 	
 	--set RRH HHType 
@@ -615,11 +649,16 @@ Date:  4/7/2020
 							when hhid.ActiveHHType = 3 then 30
 							else 9 end as HHTypeEach
 						from tlsa_Enrollment n
+						inner join lsa_Report rpt on n.Active = 1
 						inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
-						where n.Active = 1 and n.ProjectType = 13 and n.MoveInDate is not null 
-							and (n.ExitDate is null or n.ExitDate > (select ReportStart from lsa_Report))) HHTypes  
+						where n.ProjectType = 13
+							and 
+							(n.ExitDate is null 
+							 or n.ExitDate > rpt.ReportStart
+							 or (n.MoveInDate = n.ExitDate and n.MoveInDate = rpt.ReportStart))) HHTypes  
 					where HHTypes.PersonalID = lp.PersonalID)
-				, -1) end	
+				, -1) end		
+		, lp.Step = '5.14.2'
 	from tlsa_Person lp
 
 	--set PSH HHType 
@@ -641,6 +680,7 @@ Date:  4/7/2020
 							and (n.ExitDate is null or n.ExitDate > (select ReportStart from lsa_Report))) HHTypes  
 					where HHTypes.PersonalID = lp.PersonalID)
 				, -1) end	
+		, lp.Step = '5.14.3'
 	from tlsa_Person lp
 
 /*
@@ -650,7 +690,7 @@ Date:  4/7/2020
 	--set AdultEST
 	update lp
 	set lp.AdultEST = 
-		case when lp.HoHAdult not in (1,3) or lp.HHTypeEST = -1 then -1
+		case when lp.HoHAdult not in (1,3) or lp.AHAREST = -1 then -1
 			else isnull
 				(
 					(select cast(replace(cast(sum(HHTypes.HHTypeEach) as nvarchar), '0', '') as int)
@@ -666,6 +706,7 @@ Date:  4/7/2020
 							and (n.ExitDate is null or n.ExitDate > (select ReportStart from lsa_Report))) HHTypes  
 					where HHTypes.PersonalID = lp.PersonalID)
 				, -1) end	
+		, lp.Step = '5.15.1'
 	from tlsa_Person lp
 
 	--set AdultRRH 
@@ -682,12 +723,18 @@ Date:  4/7/2020
 							when hhid.ActiveHHType = 3 then 30
 							else 9 end as HHTypeEach
 						from tlsa_Enrollment n
+						inner join lsa_Report rpt on n.Active = 1
 						inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
-						where n.Active = 1 and n.ProjectType = 13 and n.MoveInDate is not null 
-							and (n.ExitDate is null or n.ExitDate > (select ReportStart from lsa_Report))
-							and n.ActiveAge between 18 and 65) HHTypes  
+						where n.ProjectType = 13
+							and n.ActiveAge between 18 and 65
+							and 
+							(n.ExitDate is null 
+							 or n.ExitDate > rpt.ReportStart
+							 or (n.MoveInDate = n.ExitDate and n.MoveInDate = rpt.ReportStart
+							 ))) HHTypes  
 					where HHTypes.PersonalID = lp.PersonalID)
 				, -1) end	
+		, lp.Step = '5.15.2'
 	from tlsa_Person lp
 
 	--set AdultPSH 
@@ -710,6 +757,7 @@ Date:  4/7/2020
 							and n.ActiveAge between 18 and 65) HHTypes  
 					where HHTypes.PersonalID = lp.PersonalID)
 				, -1) end	
+		, lp.Step = '5.15.3'
 	from tlsa_Person lp
 
 /*
@@ -734,6 +782,7 @@ Date:  4/7/2020
 							and (n.ExitDate is null or n.ExitDate > (select ReportStart from lsa_Report))) HHTypes  
 				where HHTypes.PersonalID = lp.PersonalID)
 				, -1) end	
+		, lp.Step = '5.16.1'
 	from tlsa_Person lp
 	
 	--set RRH HHType 
@@ -750,18 +799,24 @@ Date:  4/7/2020
 							when hhid.ActiveHHType = 3 then 30
 							else 9 end as HHTypeEach
 						from tlsa_Enrollment n
+						inner join lsa_Report rpt on n.Active = 1
 						inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
-						where n.Active = 1 and n.ProjectType = 13 and n.MoveInDate is not null 
-							and (n.ExitDate is null or n.ExitDate > (select ReportStart from lsa_Report))
-							and n.RelationshipToHoH = 1) HHTypes  
+						where n.ProjectType = 13
+							and n.RelationshipToHoH = 1
+							and 
+							(n.ExitDate is null 
+							 or n.ExitDate > rpt.ReportStart
+							 or (n.MoveInDate = n.ExitDate and n.MoveInDate = rpt.ReportStart
+							 ))) HHTypes  
 					where HHTypes.PersonalID = lp.PersonalID)
 				, -1) end	
+		, lp.Step = '5.16.2'
 	from tlsa_Person lp
 
 	--set PSH HHType 
 	update lp
 	set lp.AHARHoHPSH = 
-		case when lp.HoHAdult not in (1,3) or lp.AHARPSH = -1 then -1
+		case when lp.HoHPSH = -1 or lp.AHARPSH = -1 then -1
 			else isnull
 				(
 					(select cast(replace(cast(sum(HHTypes.HHTypeEach) as nvarchar), '0', '') as int)
@@ -778,6 +833,7 @@ Date:  4/7/2020
 							and n.RelationshipToHoH = 1) HHTypes  
 					where HHTypes.PersonalID = lp.PersonalID)
 				, -1) end	
+		, lp.Step = '5.16.3'
 	from tlsa_Person lp
 
 /*
@@ -843,6 +899,7 @@ Date:  4/7/2020
 				from tlsa_Enrollment n 
 				inner join tlsa_HHID hh on hh.HouseholdID = n.HouseholdID
 				where n.Active = 1 and n.HouseholdID = hhid.HouseholdID) 
+		, hhid.Step = '5.17.1'
 	from tlsa_HHID hhid
 	where hhid.Active = 1
 
@@ -852,6 +909,7 @@ Date:  4/7/2020
 				else 0 end)
 		from tlsa_Enrollment n 
 		where n.Active = 1 and n.HouseholdID = hhid.HouseholdID)
+		, hhid.Step = '5.17.2'
 	from tlsa_HHID hhid
 	where hhid.Active = 1
 
@@ -865,6 +923,7 @@ Date:  4/7/2020
 		, lp.HHDisabilityEST = -1
 		, lp.HHFleeingDVEST = -1
 		, lp.HHParentEST = -1
+		, lp.Step = '5.18.1'
 	from tlsa_Person lp
 	where HHTypeEST = -1
 	
@@ -884,6 +943,7 @@ Date:  4/7/2020
 	   , lp.HHParentEST = case popHHTypes.HHParent
 			when '0' then -1
 			else convert(int,replace(popHHTypes.HHParent, '0', '')) end
+		, lp.Step = '5.18.2'
 	from tlsa_Person lp
 		inner join (select distinct lp.PersonalID
 			, HHChronic = (select convert(varchar(4),sum(distinct
@@ -951,6 +1011,7 @@ Date:  4/7/2020
 		, lp.HHDisabilityRRH = -1
 		, lp.HHFleeingDVRRH = -1
 		, lp.HHParentRRH = -1
+		, lp.Step = '5.18.3'
 	from tlsa_Person lp
 	where HHTypeRRH = -1
 
@@ -970,6 +1031,7 @@ Date:  4/7/2020
 	   , lp.HHParentRRH = case popHHTypes.HHParent
 			when '0' then -1
 			else convert(int,replace(popHHTypes.HHParent, '0', '')) end
+		, lp.Step = '5.18.4'
 	from tlsa_Person lp
 		inner join (select distinct lp.PersonalID
 			, HHChronic = (select convert(varchar(4),sum(distinct
@@ -1037,6 +1099,7 @@ Date:  4/7/2020
 		, lp.HHDisabilityPSH = -1
 		, lp.HHFleeingDVPSH = -1
 		, lp.HHParentPSH = -1
+		, lp.Step = '5.18.5'
 	from tlsa_Person lp
 	where HHTypePSH = -1
 
@@ -1056,6 +1119,7 @@ Date:  4/7/2020
 	   , lp.HHParentPSH = case popHHTypes.HHParent
 			when '0' then -1
 			else convert(int,replace(popHHTypes.HHParent, '0', '')) end
+		, lp.Step = '5.18.6'
 	from tlsa_Person lp
 		inner join (select distinct lp.PersonalID
 			, HHChronic = (select convert(varchar(4),sum(distinct
@@ -1167,6 +1231,7 @@ Date:  4/7/2020
 					and hhid.HHAdultAge between 18 and 55 and hhid.ActiveHHType = 2
 					and hhid.ProjectType = 3
 				where n.PersonalID = lp.PersonalID and n.Active = 1), -1)
+		, lp.Step = '5.18.7'
 	from tlsa_Person lp
 
 	update lp
@@ -1174,17 +1239,18 @@ Date:  4/7/2020
 				from tlsa_HHID hhid
 					inner join tlsa_Enrollment n on hhid.HouseholdID = n.HouseholdID
 				where n.PersonalID = lp.PersonalID
-					and n.ProjectType in (1,2,8) and n.Active = 1), -1)
+					and n.ProjectType in (1,2,8) and n.Active = 1), 0)
 		, lp.AC3PlusRRH = coalesce((select max(hhid.AC3Plus) 
 				from tlsa_HHID hhid
 					inner join tlsa_Enrollment n on hhid.HouseholdID = n.HouseholdID
 				where n.PersonalID = lp.PersonalID
-					and n.ProjectType = 13 and n.Active = 1), -1)		
+					and n.ProjectType = 13 and n.Active = 1), 0)		
 		, lp.AC3PlusPSH = coalesce((select max(hhid.AC3Plus) 
 				from tlsa_HHID hhid
 					inner join tlsa_Enrollment n on hhid.HouseholdID = n.HouseholdID
 				where n.PersonalID = lp.PersonalID
-					and n.ProjectType = 3 and n.Active = 1), -1)
+					and n.ProjectType = 3 and n.Active = 1), 0)
+		, lp.Step = '5.18.8'
 	from tlsa_Person lp
 
 /*

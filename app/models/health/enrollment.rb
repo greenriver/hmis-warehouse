@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # ### HIPAA Risk Assessment
@@ -69,6 +69,12 @@ module Health
         detect{|h| h.keys.include? :DMG}[:DMG].
         detect{|h| h.keys.include? :E1251}[:E1251][:value][:raw]
       )
+    end
+
+    def self.gender(transaction)
+      member(transaction).
+        detect{|h| h.keys.include? :DMG}[:DMG].
+        detect{|h| h.keys.include? :E1068}[:E1068][:value][:raw]
     end
 
     def self.SSN(transaction)

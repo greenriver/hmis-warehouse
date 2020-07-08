@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # Risk: Describes a patient and contains PHI
@@ -57,10 +57,10 @@ module Health
     has_many :ed_ip_visits, primary_key: :medicaid_id, foreign_key: :medicaid_id
 
     # has_many :teams, through: :careplans
-    # has_many :team_members, class_name: Health::Team::Member.name, through: :team
+    # has_many :team_members, class_name: 'Health::Team::Member', through: :team
     has_many :team_members, class_name: 'Health::Team::Member'
 
-    # has_many :goals, class_name: Health::Goal::Base.name, through: :careplans
+    # has_many :goals, class_name: 'Health::Goal::Base', through: :careplans
     has_many :goals, class_name: 'Health::Goal::Base'
     # NOTE: not sure if this is the right order but it seems they should have some kind of order
     has_many :hpc_goals, -> {order 'health_goals.start_date'}, class_name: 'Health::Goal::Hpc'

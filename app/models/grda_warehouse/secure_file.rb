@@ -1,15 +1,15 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse
   class SecureFile < GrdaWarehouseBase
     acts_as_paranoid
 
-    belongs_to :recipient, class_name: User.name
-    belongs_to :sender, class_name: User.name
+    belongs_to :recipient, class_name: 'User'
+    belongs_to :sender, class_name: 'User'
     validates_presence_of :name
     validate :file_exists_and_not_too_large
 

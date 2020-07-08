@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Health::He
@@ -16,7 +16,7 @@ module Health::He
     end
 
     def new
-      @staff = @case.staffs.build
+      @staff = @case.staffs.build(investigator: @case.investigator)
     end
 
     def create
@@ -39,6 +39,7 @@ module Health::He
 
     def staff_params
       params.require(:health_tracing_staff).permit(
+        :investigator,
         :date_interviewed,
         :first_name,
         :last_name,
@@ -49,6 +50,12 @@ module Health::He
         :referred_for_testing,
         :test_result,
         :notes,
+        :phone_number,
+        :address,
+        :dob,
+        :estimated_age,
+        :gender,
+        symptoms: [],
       )
     end
 

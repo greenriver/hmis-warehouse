@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # ### HIPAA Risk Assessment
@@ -16,6 +16,7 @@ module Health::Tracing
 
     def self.label_for(column_name)
       @label_for ||= {
+        investigator: 'Investigator name',
         site_name: 'Site name',
         site_leader_name: 'Site leader name',
         contacted_on: 'Notification date',

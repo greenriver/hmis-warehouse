@@ -1,0 +1,5 @@
+= f.input :test_result, as: :boolean_button_group, collection: @result.test_result_options, include_blank: true
+= f.input :isolated, as: :boolean_button_group, collection: @result.yes_no_options, include_blank: true, label: @result.label_for(:isolated)
+= f.input :isolation_location
+= f.input :quarantine, as: :boolean_button_group, collection: @result.yes_no_options, include_blank: true, label: @result.label_for(:quarantine)
+= f.input :quarantine_location
