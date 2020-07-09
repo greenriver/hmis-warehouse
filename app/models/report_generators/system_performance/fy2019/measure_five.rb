@@ -73,7 +73,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         counts: @clients.map do|id, _|
           [
             id,
-            client_personal_ids[id],
+            client_personal_ids[id].join(', '),
           ]
         end
       }
@@ -87,7 +87,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         counts: previous_clients.map do |id, _|
           [
             id,
-            client_personal_ids[id],
+            client_personal_ids[id].join(', '),
             @clients[id][:start_date],
             @clients[id][:earlier_entry],
           ]
@@ -113,7 +113,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         counts: @clients.map do |id, _|
           [
             id,
-            client_personal_ids[id],
+            client_personal_ids[id].join(', '),
           ]
         end
       }
@@ -125,7 +125,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         counts: previous_clients.map do |id, _|
           [
             id,
-            client_personal_ids[id],
+            client_personal_ids[id].join(', '),
             @clients[id][:start_date],
             @clients[id][:earlier_entry],
           ]

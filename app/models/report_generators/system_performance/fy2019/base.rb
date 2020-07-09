@@ -136,13 +136,9 @@ module ReportGenerators::SystemPerformance::Fy2019
     end
 
     def personal_ids(destination_ids)
-      sc_t = GrdaWarehouse::Hud::Client.arel_table.dup
-      sc_t.table_alias = 'source_clients_Client' # Relies on how AR names the inner join
-
-      GrdaWarehouse::Hud::Client.joins(:source_clients).
-        where(id: destination_ids).
-        select(:id, sc_t[:PersonalID]).
-        pluck(:id, sc_t[:PersonalID]).
+      GrdaWarehouse::WarehouseClient.
+        where(destination_id: destination_ids).
+        pluck(:destination_id, :id_in_source).
         group_by(&:first).transform_values{ |v| v.map(&:last) }
     end
   end
