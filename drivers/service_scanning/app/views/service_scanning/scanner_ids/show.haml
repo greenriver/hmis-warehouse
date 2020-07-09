@@ -1,28 +1,24 @@
-- content_for :title, 'Attach a Scan Card'
-.o-page
-  .o-page__header.d-flex
-    %h1= content_for :title
+- content_for :modal_title, 'Attach a Scan Card'
+.mt-3
+  = render 'clients/aliases'
 
-  .o-page__main-content.mt-3
-    = render 'clients/aliases'
+  = render 'add_card'
 
-    = render 'add_card'
-
-    - if @scanned_ids.present?
-      %p Previously attached scan card IDs
-      %table.table.table-striped
-        %thead
+  - if @scanned_ids.present?
+    %p Previously attached scan card IDs
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Card ID
+          %th Added on
+          %th
+      %tbody
+        - @scanned_ids.each do |card|
           %tr
-            %th Card ID
-            %th Added on
-            %th
-        %tbody
-          - @scanned_ids.each do |card|
-            %tr
-              %td= card.scanned_id
-              %td= card.created_at
-              %td
-                = link_to service_scanning_scanner_id_path(@client, card_id: card), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: { confirm: 'Are you sure you want to remove this Scan Card ID?' } do
-                  %i.icon-cross
+            %td= card.scanned_id
+            %td= card.created_at
+            %td
+              = link_to service_scanning_scanner_id_path(@client, card_id: card), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: { confirm: 'Are you sure you want to remove this Scan Card ID?' } do
+                %i.icon-cross
 
 

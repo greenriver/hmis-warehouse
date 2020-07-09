@@ -3,7 +3,7 @@
   = f.input :slug, collection: @service.class.available_types, input_html: { class: 'select2 jType' }, label: 'Service Provided', required: true
   .jOtherType
     = f.input :other_type, collection: @service.class.known_other_types, selected: @service.other_type, input_html: { class: :select2, data: { tags: true }}, include_blank: true, hint: 'If you don\'t see the type required, type it in and select it'
-  = f.input :scanner_id, input_html: { value: nil, autofocus: true }, label: 'Client Scan Card'
+  = f.input :scanner_id, input_html: { value: nil, autofocus: true }, label: 'Client Scan Card', hint: 'This is usually the ETO case number, but can be any unique value for the client.'
   = f.input :provided_at, input_html: { value: Time.current, class: :exact_date_time_picker }, label: 'Time Service Provided', as: :string
   = f.button :submit, value: 'Add Service'
 

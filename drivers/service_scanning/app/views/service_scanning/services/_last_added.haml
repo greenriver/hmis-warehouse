@@ -1,16 +1,20 @@
 - if @last_service && @last_client
   - if @last_client.alert_notes.exists?
-    .client-tabs__active-alerts
-      = link_to alerts_client_notes_path(@last_client), data: { loads_in_pjax_modal: true } do
-        Client has #{pluralize(@last_client.alert_notes.count, 'active alert')}.
+    .service-scanning__active-alerts.text-center
+      = link_to alerts_client_notes_path(@last_client), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+        %i.icon-warning
+        #{pluralize(@last_client.alert_notes.count, 'active alert')}
   .well
     .d-flex
       %h3 Added #{@last_service.title}
       .ml-auto
         = link_to service_scanning_service_path(@last_service), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: "Are you sure you want to remove this service from #{@last_client.name}"} do
           %i.icon-cross
-    %dl
-      %dt Client
-      %dd= @last_client.name
-      %dt Provided At
-      %dd= @last_service.provided_at
+    .d-flex
+      %dl
+        %dt Client
+        %dd= @last_client.name
+        %dt Provided At
+        %dd= @last_service.provided_at
+      - if @last_client.image
+        .ml-auto.mt-2.client__image{ style: "background-image: url(#{ image_client_path(id: @last_client.id) })" }

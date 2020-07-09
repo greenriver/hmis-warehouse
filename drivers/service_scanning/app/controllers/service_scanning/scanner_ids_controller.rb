@@ -8,6 +8,7 @@ module ServiceScanning
   class ScannerIdsController < ApplicationController
     include PjaxModalController
     before_action :require_can_view_client_window!
+    before_action :require_can_use_service_register!
     before_action :set_client, only: [:show, :destroy]
 
     def index
@@ -35,7 +36,8 @@ module ServiceScanning
     def create
       @client = client_source.searchable_by(current_user).find(params[:card][:id].to_i)
       @card = @client.service_scanning_scanner_ids.create(card_params.merge(source_type: 'ManuallyAdded'))
-      respond_with(@card, location: service_scanning_scanner_id_path(@client))
+
+      respond_with(@card, location: service_scanning_scanner_id_path(@client)) unless request.xhr?
     end
 
     private def client_source

@@ -755,6 +755,13 @@ class Role < ApplicationRecord
           'Health Emergency',
         ],
       },
+      can_use_service_register: {
+        description: 'Grants the ability to scan individual services for a given program.',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
     }
   end
 

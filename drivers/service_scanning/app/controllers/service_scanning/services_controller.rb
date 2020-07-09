@@ -8,6 +8,7 @@ module ServiceScanning
   class ServicesController < ApplicationController
     include PjaxModalController
     before_action :require_can_view_client_window!
+    before_action :require_can_use_service_register!
 
     def index
       options = index_params
