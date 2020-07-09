@@ -30,6 +30,7 @@ docker-compose.override.yml
 !/.rubocop.yml
 !/.github
 !/.env.test
+!/.eslintrc.js
 
 # Ignore operational files
 package.box

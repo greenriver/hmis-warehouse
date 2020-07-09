@@ -93,5 +93,28 @@ module Filters
     def default_project_type_codes
       GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
     end
+
+    def to_comparison
+      comparison = deep_dup
+      (comparison.start, comparison.end) = comparison_dates if comparison_pattern != :no_comparison_period
+      comparison
+    end
+
+    private def comparison_dates
+      case comparison_pattern
+      when :prior_period
+        prior_end = start_date - 1.days
+        period_length = (end_date - start_date).to_i
+        prior_start = prior_end - period_length.to_i.days
+        [prior_start, prior_end]
+      when :prior_year
+        prior_end = end_date - 1.years
+        prior_start = start_date - 1.years
+        [prior_start, prior_end]
+      else
+        [start_date, end_date]
+      end
+    end
+
   end
 end

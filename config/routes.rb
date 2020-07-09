@@ -334,6 +334,7 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :overview, only: [:index]
+      resources :aco_performance, only: [:index]
       resources :agency_performance, only: [:index] do
         collection do
           post :detail
@@ -777,6 +778,10 @@ Rails.application.routes.draw do
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
+
+  resources :document_exports, only: [:show, :create] do
+    get :download, on: :member
+  end
 
   resources :public_files, only: [:show]
   resources :public_agencies, only: [:index]

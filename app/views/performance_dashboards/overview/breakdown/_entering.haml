@@ -10,4 +10,5 @@
 - unless defined?(chart_height)
   - chart_height = 600
 
-= render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: 'Clients entering a project in the chosen universe who have not been seen in the universe for the past 24 months.', detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts, chart_height: chart_height
+.perf-overview-breakdown
+  = render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: 'Clients entering a project in the chosen universe who have not been seen in the universe for the past 24 months.', detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts, chart_height: chart_height

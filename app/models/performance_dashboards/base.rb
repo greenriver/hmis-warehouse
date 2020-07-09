@@ -40,6 +40,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   attr_reader :start_date, :end_date, :coc_codes, :project_types, :filter
   attr_accessor :comparison_pattern, :project_type_codes
 
+  def self.viewable_by(user)
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
+      viewable_by(user).exists?
+  end
+
   private def cache_slug
     @filter.attributes
   end
