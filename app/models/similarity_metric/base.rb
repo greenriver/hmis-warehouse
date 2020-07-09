@@ -69,6 +69,5 @@ eos
     def bogus?
       self.class == Base
     end
-
   end
 end

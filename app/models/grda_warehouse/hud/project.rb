@@ -36,6 +36,8 @@ module GrdaWarehouse::Hud
       pt.freeze
     end
 
+    HOMELESS_PROJECT_TYPE_CODES = [:es, :so, :sh, :th]
+
     RESIDENTIAL_PROJECT_TYPE_IDS = RESIDENTIAL_PROJECT_TYPES.values.flatten.uniq.sort
 
     CHRONIC_PROJECT_TYPES = RESIDENTIAL_PROJECT_TYPES.values_at(:es, :so, :sh).flatten
@@ -69,7 +71,7 @@ module GrdaWarehouse::Hud
     ALL_PROJECT_TYPES = ::HUD.project_types.keys
     PROJECT_TYPES_WITHOUT_INVENTORY = [4, 6, 7, 11, 12, 14]
     PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
-    WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph] + RESIDENTIAL_PROJECT_TYPES[:th]
+    WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
     PERFORMANCE_REPORTING = {   # duplicate of code in various places
       ph: [3,9,10,13],
       th: [2],

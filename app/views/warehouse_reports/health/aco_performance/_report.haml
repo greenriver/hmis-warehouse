@@ -1,0 +1,30 @@
+.row.text-center
+  .col-4.well
+    %strong
+      Total patients
+    %br
+      = @report.patient_referrals.count
+  .col-4.well
+    %strong
+      Patients with Care Plans
+    %br
+      = @report.qa_signature_dates.keys.count
+  .col-4.well
+    %strong
+      Care Plans signed within 122 days
+    %br
+      = @report.with_careplans_in_122_days_status.values.count(true)
+
+.row.mt-4
+  %table.table
+    %thead
+      %tr
+        %th Patient Name
+        %th Signed Care Plan
+        %th Signed within 122 days
+    %tbody
+      - @report.patients.each do |patient|
+        %tr
+          %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
+          %td= checkmark(@report.qa_signature_dates[patient.id].present?)
+          %td= checkmark(@report.with_careplans_in_122_days_status[patient.id].present?)

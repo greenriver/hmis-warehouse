@@ -7,7 +7,7 @@
 RailsDrivers.loaded << :adults_with_children_sub_pop
 
 AvailableSubPopulations.add_sub_population(
-  'Adults with Children',
+  'Adult and Child Households',
   :adults_with_children,
   'AdultsWithChildrenSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultsWithChildren',
 )

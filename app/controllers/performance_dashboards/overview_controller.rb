@@ -62,10 +62,6 @@ module PerformanceDashboards
     end
     helper_method :include_comparison_pattern?
 
-    private def default_project_types
-      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.keys
-    end
-
     private def set_report
       @report = PerformanceDashboards::Overview.new(@filter)
       if @report.include_comparison?
@@ -75,12 +71,17 @@ module PerformanceDashboards
       end
     end
 
+    private def filter_class
+      ::Filters::PerformanceDashboard
+    end
+
     private def set_key
       @key = PerformanceDashboards::Overview.detail_method(params.dig(:filters, :key))
     end
 
-    private def default_comparison_pattern
-      :no_comparison_period
+    private def set_pdf_export
+      @pdf_export = GrdaWarehouse::DocumentExports::PerformanceDashboardExport.new
     end
+    before_action :set_pdf_export
   end
 end

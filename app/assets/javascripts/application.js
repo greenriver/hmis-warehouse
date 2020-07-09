@@ -85,5 +85,6 @@
 //= require table_search
 //= require TableWithToggleRows
 //= require role_table
+//= require documentExport.js
 
 //= require init
