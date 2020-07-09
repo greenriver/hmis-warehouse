@@ -72,14 +72,17 @@ module ReportGenerators::SystemPerformance::Fy2019
       @answers[:four2_c2][:value] = universe_of_stayers.size
       @answers[:four3_c2][:value] = universe_of_stayers.size
 
+      client_personal_ids = personal_ids(universe_of_stayers.map{ |client| client[:client_id] })
+
       @support[:four1_c2][:support] = {
-        headers: ['Client ID', 'Project Name', 'Entry Date', 'Exit Date'],
+        headers: ['Client ID', 'Personal IDs', 'Project Name', 'Entry Date', 'Exit Date'],
         counts: universe_of_stayers.map do |client|
           [
             client[:client_id],
+            client_personal_ids[client[:client_id]].join(', '),
             client[:project_name],
             client[:first_date_in_program],
-            client[:last_date_in_program]
+            client[:last_date_in_program],
           ]
         end
       }
@@ -89,26 +92,43 @@ module ReportGenerators::SystemPerformance::Fy2019
         if client[:latest_earned_income] - client[:earliest_earned_income] > 0
           @answers[:four1_c3][:value] += 1
           @support[:four1_c3][:support] ||= {
-            headers: ['Client ID', 'Latest Earned Income', 'Earliest Earned Income'],
+            headers: ['Client ID', 'Personal IDs', 'Latest Earned Income', 'Earliest Earned Income'],
             counts: []
           }
-          @support[:four1_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income], client[:earliest_earned_income]]
+          @support[:four1_c3][:support][:counts] << [
+            client[:client_id],
+            client_personal_ids[client[:client_id]].join(', '),
+            client[:latest_earned_income],
+            client[:earliest_earned_income],
+          ]
         end
+
         if client[:latest_non_earned_income] - client[:earliest_non_earned_income] > 0
           @answers[:four2_c3][:value] += 1
           @support[:four2_c3][:support] ||= {
-            headers: ['Client ID', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
+            headers: ['Client ID', 'Personal IDs', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
             counts: []
           }
-          @support[:four2_c3][:support][:counts] << [client[:client_id], client[:latest_non_earned_income], client[:earliest_non_earned_income]]
+          @support[:four2_c3][:support][:counts] << [
+            client[:client_id],
+            client_personal_ids[client[:client_id]].join(', '),
+            client[:latest_non_earned_income],
+            client[:earliest_non_earned_income],
+          ]
         end
+
         if (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
           @answers[:four3_c3][:value] += 1
           @support[:four3_c3][:support] ||= {
-            headers: ['Client ID', 'Latest Total Income', 'Earliest Total Income'],
+            headers: ['Client ID',  'Personal IDs', 'Latest Total Income', 'Earliest Total Income'],
             counts: []
           }
-          @support[:four3_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
+          @support[:four3_c3][:support][:counts] << [
+            client[:client_id],
+            client_personal_ids[client[:client_id]].join(', '),
+            client[:latest_earned_income] + client[:latest_non_earned_income],
+            client[:earliest_earned_income] + client[:earliest_non_earned_income],
+          ]
         end
       end
       @answers[:four1_c4][:value] = (@answers[:four1_c3][:value].to_f / @answers[:four1_c2][:value] * 100).round(2) rescue 0
@@ -125,14 +145,17 @@ module ReportGenerators::SystemPerformance::Fy2019
       @answers[:four5_c2][:value] = universe_of_leavers.size
       @answers[:four6_c2][:value] = universe_of_leavers.size
 
+      client_personal_ids = personal_ids(universe_of_leavers.map{ |client| client[:client_id] })
+
       @support[:four4_c2][:support] = {
-        headers: ['Client ID', 'Project Name', 'Entry Date', 'Exit Date'],
+        headers: ['Client ID', 'Personal IDs', 'Project Name', 'Entry Date', 'Exit Date'],
         counts: universe_of_leavers.map do |client|
           [
             client[:client_id],
+            client_personal_ids[client[:client_id]].join(', '),
             client[:project_name],
             client[:first_date_in_program],
-            client[:last_date_in_program]
+            client[:last_date_in_program],
           ]
         end
       }
@@ -142,32 +165,50 @@ module ReportGenerators::SystemPerformance::Fy2019
         if client[:latest_earned_income] - client[:earliest_earned_income] > 0
           @answers[:four4_c3][:value] += 1
           @support[:four4_c3][:support] ||= {
-            headers: ['Client ID', 'Latest Earned Income', 'Earliest Earned Income'],
+            headers: ['Client ID', 'Personal IDs', 'Latest Earned Income', 'Earliest Earned Income'],
             counts: []
           }
-          @support[:four4_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income], client[:earliest_earned_income]]
+          @support[:four4_c3][:support][:counts] << [
+            client[:client_id],
+            client_personal_ids[client[:client_id]].join(', '),
+            client[:latest_earned_income],
+            client[:earliest_earned_income],
+          ]
         end
+
         if client[:latest_non_earned_income] - client[:earliest_non_earned_income] > 0
           @answers[:four5_c3][:value] += 1
           @support[:four5_c3][:support] ||= {
-            headers: ['Client ID', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
+            headers: ['Client ID', 'Personal IDs', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
             counts: []
           }
-          @support[:four5_c3][:support][:counts] << [client[:client_id], client[:latest_non_earned_income], client[:earliest_non_earned_income]]
+          @support[:four5_c3][:support][:counts] << [
+            client[:client_id],
+            client_personal_ids[client[:client_id]].join(', '),
+            client[:latest_non_earned_income],
+            client[:earliest_non_earned_income],
+          ]
         end
+
         if (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
           @answers[:four6_c3][:value] += 1
           @support[:four6_c3][:support] ||= {
-            headers: ['Client ID', 'Latest Total Income', 'Earliest Total Income'],
+            headers: ['Client ID', 'Personal IDs', 'Latest Total Income', 'Earliest Total Income'],
             counts: []
           }
-          @support[:four6_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
+          @support[:four6_c3][:support][:counts] << [
+            client[:client_id],
+            client_personal_ids[client[:client_id]].join(', '),
+            client[:latest_earned_income] + client[:latest_non_earned_income],
+            client[:earliest_earned_income] + client[:earliest_non_earned_income],
+          ]
         end
       end
       @answers[:four4_c4][:value] = (@answers[:four4_c3][:value].to_f / @answers[:four4_c2][:value] * 100).round(2) rescue 0
       @answers[:four5_c4][:value] = (@answers[:four5_c3][:value].to_f / @answers[:four5_c2][:value] * 100).round(2) rescue 0
       @answers[:four6_c4][:value] = (@answers[:four6_c3][:value].to_f / @answers[:four6_c2][:value] * 100).round(2) rescue 0
     end
+
     def calculate_stayers
       # 1. A “system stayer” is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
       # Page 24 of 41
