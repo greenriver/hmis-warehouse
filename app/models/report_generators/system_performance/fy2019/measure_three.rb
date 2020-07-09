@@ -73,11 +73,14 @@ module ReportGenerators::SystemPerformance::Fy2019
         end.group_by{ |row| row[:client_id]}
       @answers[:three2_c2][:value] = clients.size
 
+      client_personal_ids = personal_ids(clients.keys)
+
       @support[:three2_c2][:support] = add_support(
-        headers: ['Client ID', 'Project', 'Start Date'],
+        headers: ['Client ID', 'Personal IDs', 'Project', 'Start Date'],
         data: clients.map do |id, enrollments|
           [
             id,
+            client_personal_ids[id].join(', '),
             enrollments.map{|en| en[:project_name]}.join('; '),
             enrollments.map{|en| en[:first_date_in_program]}.join('; '),
           ]
@@ -146,13 +149,16 @@ module ReportGenerators::SystemPerformance::Fy2019
         @answers[:three2_c4][:value] = sh.size
         @answers[:three2_c5][:value] = th.size
 
+        client_personal_ids = personal_ids(client_scope.pluck(:client_id))
+
         @support[:three2_c3][:support] = add_support(
-          headers: ['Client ID', 'Project(s)', 'Start Date(s)'],
+          headers: ['Client ID', 'Personal IDs', 'Project(s)', 'Start Date(s)'],
           data: es.map do |id,project_type|
             project_names = clients[[id,project_type]].map{|en| en[:project_name]}.join('; ')
             entry_dates = clients[[id,project_type]].map{|en| en[:first_date_in_program]}.join('; ')
             [
               id,
+              client_personal_ids[id].join(', '),
               project_names,
               entry_dates,
             ]
@@ -160,12 +166,13 @@ module ReportGenerators::SystemPerformance::Fy2019
           end
         )
         @support[:three2_c4][:support] = add_support(
-          headers: ['Client ID'],
+          headers: ['Client ID', 'Personal IDs', 'Project(s)', 'Start Date(s)'],
           data: sh.map do |id,project_type|
             project_names = clients[[id,project_type]].map{|en| en[:project_name]}.join('; ')
             entry_dates = clients[[id,project_type]].map{|en| en[:first_date_in_program]}.join('; ')
             [
               id,
+              client_personal_ids[id].join(', '),
               project_names,
               entry_dates,
             ]
@@ -173,12 +180,13 @@ module ReportGenerators::SystemPerformance::Fy2019
           end
         )
         @support[:three2_c5][:support] = add_support(
-          headers: ['Client ID'],
+          headers: ['Client ID', 'Personal IDs', 'Project(s)', 'Start Date(s)'],
           data: th.map do |id,project_type|
             project_names = clients[[id,project_type]].map{|en| en[:project_name]}.join('; ')
             entry_dates = clients[[id,project_type]].map{|en| en[:first_date_in_program]}.join('; ')
             [
               id,
+              client_personal_ids[id].join(', '),
               project_names,
               entry_dates,
             ]

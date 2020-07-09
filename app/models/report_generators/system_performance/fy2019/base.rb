@@ -134,5 +134,13 @@ module ReportGenerators::SystemPerformance::Fy2019
         completed_at: Time.now
       )
     end
+
+    def personal_ids(destination_ids)
+      GrdaWarehouse::WarehouseClient.
+        where(destination_id: destination_ids).
+        distinct.
+        pluck(:destination_id, :id_in_source).
+        group_by(&:first).transform_values{ |v| v.map(&:last).uniq }
+    end
   end
 end
