@@ -139,7 +139,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       GrdaWarehouse::WarehouseClient.
         where(destination_id: destination_ids).
         pluck(:destination_id, :id_in_source).
-        group_by(&:first).transform_values{ |v| v.map(&:last) }
+        group_by(&:first).transform_values{ |v| v.map(&:last).uniq }
     end
   end
 end
