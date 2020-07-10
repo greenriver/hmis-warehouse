@@ -11,6 +11,10 @@ module Reports
         viewable_by(current_user).
         with_hud_project_type(PROJECT_TYPES).
         distinct
+
+      date = params[:date]&.to_date
+      @projects = @projects.merge(GrdaWarehouse::Hud::Project.active_on(date)) if date.present?
+
       respond_to do |format|
         format.html
         format.csv { send_data GrdaWarehouse::Hud::Project.to_csv(scope: @projects, override_project_type: true), filename: "project-#{Time.now}.csv" }

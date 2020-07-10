@@ -1,0 +1,10 @@
+.well
+  %p
+    Select a date for the HIC. The resulting export will only contain  projects that were active on
+    that date and inventory that was available on that date.
+
+  = simple_form_for :filter, url: reports_hic_export_path do |f|
+    = f.input :version, as: :hidden, input_html: { value: @version }
+    = f.input :date, as: :date_picker
+
+    = f.submit 'Select Date'

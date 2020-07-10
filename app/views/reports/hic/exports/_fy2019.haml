@@ -1,6 +1,6 @@
 %ul
-  %li= link_to 'Organization File', "#{reports_hic_organization_path}.csv"
-  %li= link_to 'Project File', "#{reports_hic_project_path}.csv"
-  %li= link_to 'Inventory File', "#{reports_hic_inventory_path}.csv"
-  %li= link_to 'Geography File', "#{reports_hic_geography_path}.csv"
-  %li= link_to 'Funder File', "#{reports_hic_funder_path}.csv"
+  %li= link_to 'Organization File', reports_hic_organization_path(date: date, format: :csv)
+  %li= link_to 'Project File', reports_hic_project_path(date: date, format: :csv)
+  %li= link_to 'Inventory File', reports_hic_inventory_path(date: date, format: :csv)
+  %li= link_to 'Geography File', reports_hic_geography_path(date: date, format: :csv)
+  %li= link_to 'Funder File', reports_hic_funder_path(date: date, format: :csv)

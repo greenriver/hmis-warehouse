@@ -193,6 +193,15 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :active_on, ->(date) do
+      where(
+        p_t[:OperatingEndDate].gteq(date).or(p_t[:OperatingEndDate].eq(nil)).
+          and(p_t[:OperatingStartDate].eq(nil).and(p_t[:operating_start_date_override].eq(nil)).
+            or(p_t[:OperatingStartDate].lteq(date).and(p_t[:operating_start_date_override].eq(nil))).
+            or(p_t[:operating_start_date_override].lteq(date)))
+      )
+    end
+
     def coc_funded?
       return self.ContinuumProject == 1 if hud_continuum_funded.nil?
       hud_continuum_funded
