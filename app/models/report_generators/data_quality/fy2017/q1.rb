@@ -13,6 +13,7 @@ module ReportGenerators::DataQuality::Fy2017
         @answers = setup_questions()
         @support = @answers.deep_dup
         @all_client_ids = fetch_all_client_ids()
+        @client_personal_ids = personal_ids(@all_client_ids)
         if @all_client_ids.any?
           add_total_clients_served()
           update_report_progress(percent: 10)
@@ -93,11 +94,15 @@ module ReportGenerators::DataQuality::Fy2017
       support = []
       @all_client_ids.each_slice(250) do |client_ids|
         client_batch(client_ids).each do |client_id, enrollments|
-          support << [client_id, enrollments.count]
+          support << [
+            client_id,
+            @client_personal_ids[client_id].join(', '),
+            enrollments.count,
+          ]
         end
       end
       @support[:q1_b1][:support] = add_support(
-        headers: ['Client ID', 'Enrollments'],
+        headers: ['Client ID', 'Personal IDs', 'Enrollments'],
         data: support,
       )
     end
@@ -108,11 +113,20 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[:q1_b3][:value] = @children.size
       @answers[:q1_b4][:value] = @unknown.size
 
-      headers = ['Client ID', 'Age']
-      @support[:q1_b2][:support] = add_support(headers: headers, data: @adults)
-      @support[:q1_b3][:support] = add_support(headers: headers, data: @children)
-      @support[:q1_b4][:support] = add_support(headers: headers, data: @unknown)
+      headers = ['Client ID', 'Personal IDs', 'Age']
+      @support[:q1_b2][:support] = add_support(headers: headers, data: age_answers_support(@adults))
+      @support[:q1_b3][:support] = add_support(headers: headers, data: age_answers_support(@children))
+      @support[:q1_b4][:support] = add_support(headers: headers, data: age_answers_support(@unknown))
+    end
 
+    def age_answers_support(data)
+      data.map do |(id, age)|
+        [
+          id,
+          @client_personal_ids[id].join(', '),
+          age,
+        ]
+      end
     end
 
     def add_leaver_answers
@@ -120,12 +134,13 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[:q1_b6][:value] = adult_leavers.size
       @answers[:q1_b7][:value] = adult_leavers_and_heads_of_household_leavers.size
 
-      headers = ['Client ID', 'Age', 'Project Name', 'Entry Date', 'Exit Date']
+      headers = ['Client ID', 'Personal IDs', 'Age', 'Project Name', 'Entry Date', 'Exit Date']
       @support[:q1_b5][:support] = add_support(
         headers: headers,
         data: leavers.map do |_, enrollment|
           [
             enrollment[:client_id],
+            @client_personal_ids[enrollment[:client_id]].join(', '),
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
@@ -138,6 +153,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: adult_leavers.map do |_, enrollment|
           [
             enrollment[:client_id],
+            @client_personal_ids[enrollment[:client_id]].join(', '),
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
@@ -150,6 +166,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: adult_leavers_and_heads_of_household_leavers.map do |_, enrollment|
           [
             enrollment[:client_id],
+            @client_personal_ids[enrollment[:client_id]].join(', '),
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
@@ -164,12 +181,13 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[:q1_b8][:value] = stayers.size
       @answers[:q1_b9][:value] = adult_stayers.size
 
-      headers = ['Client ID', 'Age', 'Project Name', 'Entry Date', 'Exit Date']
+      headers = ['Client ID', 'Personal IDs', 'Age', 'Project Name', 'Entry Date', 'Exit Date']
       @support[:q1_b8][:support] = add_support(
         headers: headers,
         data: stayers.map do |_, enrollment|
           [
             enrollment[:client_id],
+            @client_personal_ids[enrollment[:client_id]].join(', '),
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
@@ -182,6 +200,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: adult_stayers.map do |_, enrollment|
           [
             enrollment[:client_id],
+            @client_personal_ids[enrollment[:client_id]].join(', '),
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
@@ -202,12 +221,13 @@ module ReportGenerators::DataQuality::Fy2017
       end
 
       @answers[:q1_b10][:value] = veterans.size
-      headers = ['Client ID', 'Veteran Status', 'Age']
+      headers = ['Client ID', 'Personal IDs', 'Veteran Status', 'Age']
       @support[:q1_b10][:support] = add_support(
         headers: headers,
         data: veterans.map do |client_id, enrollment|
           [
             client_id,
+            @client_personal_ids[client_id].join(', '),
             HUD.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
             enrollment[:age],
           ]
@@ -235,10 +255,11 @@ module ReportGenerators::DataQuality::Fy2017
       chronic = disabled_clients.select{|k,_| chronic_ids.include?(k)}
       @answers[:q1_b11][:value] = chronic.size
       @support[:q1_b11][:support] = add_support(
-        headers: ['Client ID', 'Age', 'Project Name', 'Entry', 'Exit'],
+        headers: ['Client ID', 'Personal IDs', 'Age', 'Project Name', 'Entry', 'Exit'],
         data: chronic.map do |id, enrollment|
           [
             enrollment[:client_id],
+            @client_personal_ids[enrollment[:client_id]].join(', '),
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
@@ -264,11 +285,12 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q1_b12][:value] = youth_households.size
       @support[:q1_b12][:support] = add_support(
-        headers: ['Client ID', 'Age', 'Household ID', 'Members', 'Size'],
+        headers: ['Client ID', 'Personal IDs', 'Age', 'Household ID', 'Members', 'Size'],
         data: youth_households.map do |id, household|
           member = household[:household].first
           [
             id,
+            @client_personal_ids[id].join(', '),
             member[:age],
             member[:household_id],
             household[:household].
@@ -285,11 +307,12 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q1_b13][:value] = parenting_youth.size
       @support[:q1_b13][:support] = add_support(
-        headers: ['Client ID', 'Age', 'Household ID', 'Members', 'Size', 'Composition'],
+        headers: ['Client ID', 'Personal IDs', 'Age', 'Household ID', 'Members', 'Size', 'Composition'],
         data: parenting_youth.map do |id, household|
           member = household[:household].first
           [
             id,
+            @client_personal_ids[id].join(', '),
             member[:age],
             member[:household_id],
             household[:household].first[:household_id],
@@ -304,10 +327,11 @@ module ReportGenerators::DataQuality::Fy2017
     def add_household_head_answers
       @answers[:q1_b14][:value] = adult_heads.size
       @support[:q1_b14][:support] = add_support(
-        headers: ['Client ID', 'Household ID', 'Members', 'Size'],
+        headers: ['Client ID', 'Personal IDs', 'Household ID', 'Members', 'Size'],
         data: adult_heads.map do |id, household|
           [
             id,
+            @client_personal_ids[id].join(', '),
             household[:household].first[:household_id],
             household[:household].
               map{|m| m[:client_id]}.join(', '),
@@ -318,10 +342,11 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q1_b15][:value] = other_heads.size
       @support[:q1_b15][:support] = add_support(
-        headers: ['Client ID', 'Household ID', 'Members', 'Size'],
+        headers: ['Client ID', 'Personal IDs', 'Household ID', 'Members', 'Size'],
         data: other_heads.map do |id, household|
           [
             id,
+            @client_personal_ids[id].join(', '),
             household[:household].first[:household_id],
             household[:household].
               map{|m| m[:client_id]}.join(', '),
@@ -343,9 +368,14 @@ module ReportGenerators::DataQuality::Fy2017
         end
       @answers[:q1_b16][:value] = lts.size
       @support[:q1_b16][:support] = add_support(
-        headers: ['Client ID', 'Relationship to Head of Household', 'Stay Length'],
+        headers: ['Client ID', 'Personal IDs', 'Relationship to Head of Household', 'Stay Length'],
         data: lts.map do |id, enrollment|
-          [id, enrollment[:RelationshipToHoH], enrollment[:stay_length]]
+          [
+            id,
+            @client_personal_ids[id].join(', '),
+            enrollment[:RelationshipToHoH],
+            enrollment[:stay_length],
+          ]
         end
       )
     end
