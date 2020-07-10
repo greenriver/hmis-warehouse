@@ -3,10 +3,12 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
 
-.warehouse-reports__ad_hoc-export
+- report_id = 'coc-overlap-report'
+- map_id = report_id + '-map'
+.warehouse-reports__ad_hoc-export{id: report_id}
   .row
     .col-6
-      #leaflet-map.coc-util-overlap
+      .coc-util-overlap{id: map_id}
     .col-6
       = simple_form_for :compare, url: url_for, method: :get do |f|
         = f.input :coc1, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 1', input_html: { class: [:select2] }
@@ -14,6 +16,9 @@
         = f.submit 'Compare'
 
 = content_for :page_js do
-  %script
-    shapes = #{@shapes.to_json.html_safe};
-    new App.Maps.MapWithShapes('leaflet-map', shapes);
+  :javascript
+    new App.Reports.CocOverlap('#{report_id}', {
+      mapId: "#{map_id}",
+      mapShapes: #{@shapes.to_json.html_safe},
+      inputs: [ ]
+    })
