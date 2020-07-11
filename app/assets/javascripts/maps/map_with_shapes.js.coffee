@@ -1,18 +1,22 @@
 #= require ./namespace
 
 class App.Maps.MapWithShapes
-  constructor: (@element_id, @shapes) ->
-
+  constructor: ({@elementId, @shapes}, @callback) ->
+    @selectionIndex = 0
     mapOptions =
       minZoom: 6
       maxZoom: 9
 
-    @map = new L.Map(@element_id, mapOptions)
-    osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-    osmAttrib = 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-    osm = new L.TileLayer(osmUrl, {attribution: osmAttrib})
+    @mapHighlightColors = ['#fca736', '#ffe09b']
+    @highlightedFeatures = []
 
-    @map.addLayer(osm)
+    @map = new L.Map(@elementId, mapOptions)
+
+    # Do not show basemap to resmeble mock
+    # osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    # osmAttrib = 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+    # osm = new L.TileLayer(osmUrl, {attribution: osmAttrib})
+    # @map.addLayer(osm)
 
     geoJSONOptions =
       style: @style
@@ -65,10 +69,10 @@ class App.Maps.MapWithShapes
   style: (feature) =>
     metric = feature.properties.metric
     {
-      fillColor: @getColor(metric)
+      fillColor: 'white' #@getColor(metric)
       weight: 1
       opacity: 1
-      color: 'gray'
+      color: '#d7d7de'
       dashArray: ''
       fillOpacity: 0.8
     }
@@ -77,14 +81,12 @@ class App.Maps.MapWithShapes
     colors = ['#ffffff', '#fff7fb','#ece7f2','#d0d1e6','#a6bddb','#74a9cf','#3690c0','#0570b0','#045a8d','#023858']
     colors[Math.floor(metric*colors.length)]
 
-  highlightFeature: (e) =>
-    layer = e.target
+  highlightFeature: (e, highlightIndex=0) =>
+    layer = e?.target || e
 
     layer.setStyle({
-      weight: 3
-      color: '#666'
-      dashArray: ''
-      fillOpacity: 0.8
+      fillColor: @mapHighlightColors[highlightIndex],
+      fillOpacity: 1
     })
 
     @info.update(layer.feature.properties)
@@ -94,12 +96,12 @@ class App.Maps.MapWithShapes
 
   resetHighlight: (e) =>
     @info.update()
-    @geojson.resetStyle(e.target)
+    @geojson.resetStyle(e.target? || e)
 
   onEachFeature: (feature, layer) =>
     handlers =
-      mouseover: @highlightFeature
-      mouseout: @resetHighlight
+      # mouseover: @highlightFeature
+      # mouseout: @resetHighlight
       click: @handleClick
     layer.on(handlers)
 
@@ -110,21 +112,29 @@ class App.Maps.MapWithShapes
     metric = e.target.feature.properties.metric
     popupText = name + " (" + metric + ")"
 
-    @updateForm(record_id)
-
     options =
       title: name
 
+    # Update current marker
+    # noop for now until we establish UX
     if @marker?
       @map.removeLayer(@marker)
+    # @marker = L.marker(centroid, options)
+    # @marker.addTo(@map)
+    # @marker.bindPopup(popupText).openPopup()
 
-    @marker = L.marker(centroid, options)
-    @marker.addTo(@map)
-    @marker.bindPopup(popupText).openPopup()
+    index = @callback(record_id)
+    @update(e.target, index)
 
-  updateForm: (record_id) =>
-    @form_offset = -1  unless @form_offset?
-    @form_elements = [$('#compare_coc1'), $('#compare_coc2')] unless @form_elements?
-    @form_offset = (@form_offset + 1) % @form_elements.length
 
-    @form_elements[@form_offset].val(record_id).trigger('change')
+  update: (selectedFeature, selectionIndex) =>
+    currentlyHighlighted = @highlightedFeatures[selectionIndex]
+    if currentlyHighlighted
+      @resetHighlight(@highlightedFeatures[selectionIndex])
+
+    # Search through the layers if the selection is not a Layer
+    unless selectedFeature.feature
+      selectedFeature = @geojson.getLayers().find (l) =>
+        l.feature.properties.id == +selectedFeature
+    @highlightedFeatures[selectionIndex] = selectedFeature
+    @highlightFeature(selectedFeature, selectionIndex)

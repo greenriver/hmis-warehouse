@@ -5,20 +5,26 @@
 
 - report_id = 'coc-overlap-report'
 - map_id = report_id + '-map'
+- end_date = Date.current
+- start_date = end_date - 1.year
 .warehouse-reports__ad_hoc-export{id: report_id}
   .row
     .col-6
-      .coc-util-overlap{id: map_id}
-    .col-6
       = simple_form_for :compare, url: url_for, method: :get do |f|
+        = f.input :start_date, as: :date_picker, input_html: {value: start_date}
+        = f.input :end_date, as: :date_picker, input_html: {value: end_date}
         = f.input :coc1, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 1', input_html: { class: [:select2] }
         = f.input :coc2, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
         = f.submit 'Compare'
+    .col-6
+      .coc-util-overlap{id: map_id}
 
 = content_for :page_js do
   :javascript
     new App.Reports.CocOverlap('#{report_id}', {
-      mapId: "#{map_id}",
-      mapShapes: #{@shapes.to_json.html_safe},
-      inputs: [ ]
+      map: {
+        elementId: "#{map_id}",
+        shapes: #{@shapes.to_json.html_safe},
+      },
+      inputs: [ '#compare_coc1', '#compare_coc2']
     })
