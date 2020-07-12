@@ -1,0 +1,13 @@
+%table.table.table-striped
+  %thead
+    %tr
+      %th{style: 'width: 35%'}= scope.titleize
+      %th{style: 'width: 35%'} Total Shared Clients
+      %th{style: 'width: 15%'}
+        %span.c-swatch
+        %span Asynchronus
+      %th{style: 'width: 15%'}
+        %span.c-swatch
+        %span Concurent
+  %tbody
+    = yield

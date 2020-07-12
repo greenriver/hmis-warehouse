@@ -13,6 +13,7 @@ module WarehouseReports
     end
 
     def index
+      @project_types = GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES
       @cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
       @shapes = GrdaWarehouse::Shape.geo_collection_hash(@cocs)
     end

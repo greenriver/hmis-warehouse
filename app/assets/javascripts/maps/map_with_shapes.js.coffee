@@ -26,8 +26,8 @@ class App.Maps.MapWithShapes
 
     @map.fitBounds(@geojson.getBounds())
 
-    @initInfoBox()
-    @initLegend()
+    # @initInfoBox()
+    # @initLegend()
 
   initInfoBox: =>
     @info = L.control()
