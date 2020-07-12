@@ -1,9 +1,11 @@
+%hr.my-8{style: 'border-top: 3px solid #d5d5dc'}
+
 .mb-4
   %h3 Count of Asynchronously and Concurrently Overlapping Clients
   .row.flex-wrap
     .col
       %p Time Range
-      %p [Start and end date]
+      %p= "#{@start_date} - #{@end_date}"
     .col
       %p Total Shared Clients
       %p 205

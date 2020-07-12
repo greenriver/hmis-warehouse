@@ -77,9 +77,16 @@ class App.Maps.MapWithShapes
       fillOpacity: 0.8
     }
 
-  getColor: (metric) ->
-    colors = ['#ffffff', '#fff7fb','#ece7f2','#d0d1e6','#a6bddb','#74a9cf','#3690c0','#0570b0','#045a8d','#023858']
-    colors[Math.floor(metric*colors.length)]
+  getColor: (d) ->
+    # #0154a6
+    if d > 70 then '#0154A6'
+    else if d > 60 then '#256CB3'
+    else if d > 50 then '#4A85BF'
+    else if d > 40 then '#6E9DCC'
+    else if d > 30 then '#92B6D9'
+    else if d > 20 then '#B6CEE6'
+    else if d > 10 then '#DBE7F2'
+    else '#FFFFFF'
 
   highlightFeature: (e, highlightIndex=0) =>
     layer = e?.target || e
@@ -124,10 +131,10 @@ class App.Maps.MapWithShapes
     # @marker.bindPopup(popupText).openPopup()
 
     index = @callback(record_id)
-    @update(e.target, index)
+    @updateSelections(e.target, index)
 
 
-  update: (selectedFeature, selectionIndex) =>
+  updateSelections: (selectedFeature, selectionIndex) =>
     currentlyHighlighted = @highlightedFeatures[selectionIndex]
     if currentlyHighlighted
       @resetHighlight(@highlightedFeatures[selectionIndex])
@@ -138,3 +145,15 @@ class App.Maps.MapWithShapes
         l.feature.properties.id == +selectedFeature
     @highlightedFeatures[selectionIndex] = selectedFeature
     @highlightFeature(selectedFeature, selectionIndex)
+
+  updateData: (shapes, selections) =>
+    @geojson.getLayers().forEach (l) =>
+      id = l.feature.properties.id
+      shapeMetric = shapes[l.feature.properties.id]
+      l.feature.properties.metric = shapeMetric
+      # do not change the currently selected layers
+      return if selections.includes id
+      l.setStyle({
+        fillColor: @getColor(shapeMetric)
+        fillOpacity: 1
+      })

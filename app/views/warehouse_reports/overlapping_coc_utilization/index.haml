@@ -7,6 +7,7 @@
 
 - report_id = 'coc-overlap-report'
 - map_id = report_id + '-map'
+- results_id = report_id + '-results'
 - end_date = Date.current
 - start_date = end_date - 1.year
 .warehouse-reports__ad_hoc-export{id: report_id}
@@ -21,8 +22,7 @@
         = f.input :coc2, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
     .col-6.ml-auto
       .coc-util-overlap{id: map_id}
-  %hr.my-8{style: 'border-top: 3px solid #d5d5dc'}
-  = render 'results'
+  %div{id: results_id}
 
 = content_for :page_js do
   :javascript
@@ -32,5 +32,5 @@
         shapes: #{@shapes.to_json.html_safe},
       },
       inputs: [ '#compare_coc1', '#compare_coc2'],
-      datesInputs: [ '#compare_start_date', '#compare_end_date'],
+      dateInputs: [ '#compare_start_date', '#compare_end_date'],
     })
