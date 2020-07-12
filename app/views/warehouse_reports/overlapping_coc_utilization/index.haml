@@ -18,8 +18,16 @@
         = f.input :start_date, as: :date_picker, input_html: {value: start_date}
         = f.input :end_date, as: :date_picker, input_html: {value: end_date}
         %p.font-weight-bold Select two CoCs below or by clicking on the map:
-        = f.input :coc1, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 1', input_html: { class: [:select2] }
-        = f.input :coc2, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
+        %div.d-flex
+          .c-swatch.mr-2{style: 'flex: 1 1 5%'}
+            .c-swatch__display.c-swatch__display--map-0
+          %div{style: 'flex: 1 1 95%'}
+            = f.input :coc1, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 1', input_html: { class: [:select2] }
+        %div.d-flex
+          .c-swatch.mr-2{style: 'flex: 1 1 5%'}
+            .c-swatch__display.c-swatch__display--map-1
+          %div{style: 'flex: 1 1 95%'}
+            = f.input :coc2, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
     .col-6.ml-auto
       .coc-util-overlap{id: map_id}
   %div{id: results_id}

@@ -54,9 +54,10 @@ class App.Reports.CocOverlap
 
   loading: (loading) =>
     opacity = 1
-    pointerEvents = 'none'
+    pointerEvents = 'all'
     if loading
       opacity = .4
+      pointerEvents = 'none'
     $("##{@elementId}-results").css({opacity, pointerEvents})
     $("##{@elementId}-map").css({opacity, pointerEvents})
 

@@ -18,15 +18,33 @@ module WarehouseReports
     end
 
     def overlap
-      @project_types = GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES
-      @start_date = params[:start_date]
-      @end_date = params[:end_date]
-      @cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
+      #fake data for testing
+      project_types = ([
+        'All (Unique Clients)',
+        'CA (Coordinated Assessment)',
+      ] + GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.values).map do |type|
+        [type, [rand(100), rand(100)]]
+      end
+      funding_sources = [
+        'All (Unique Clients)',
+        'State',
+        'ESG (Emergency Solutions Grants)'
+      ].map do |source|
+        [source, [rand(100), rand(100)]]
+      end
+      cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
       map_data = {}
-      GrdaWarehouse::Shape.geo_collection_hash(@cocs)[:features].each do |feature|
+      GrdaWarehouse::Shape.geo_collection_hash(cocs)[:features].each do |feature|
         map_data[feature.dig(:properties,:id).to_s] = rand(100)
       end
-      render json: { map: map_data, html: render_to_string(partial: 'overlap') }
+      locals = {
+        start_date: params[:start_date],
+        end_date: params[:end_date],
+        project_types: project_types,
+        funding_sources: funding_sources,
+      }
+      html = render_to_string partial: 'overlap', locals: locals
+      render json: { map: map_data, html: html }
     end
   end
 end

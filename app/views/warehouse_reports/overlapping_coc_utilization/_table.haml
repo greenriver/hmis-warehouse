@@ -4,10 +4,12 @@
       %th{style: 'width: 35%'}= scope.titleize
       %th{style: 'width: 35%'} Total Shared Clients
       %th{style: 'width: 15%'}
-        %span.c-swatch
-        %span Asynchronus
+        .c-swatch
+          %span.c-swatch__display.c-swatch__display--bar-0
+          %span Asynchronus
       %th{style: 'width: 15%'}
-        %span.c-swatch
-        %span Concurent
+        .c-swatch
+          %span.c-swatch__display.c-swatch__display--bar-1
+          %span Concurent
   %tbody
     = yield

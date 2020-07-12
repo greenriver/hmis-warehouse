@@ -5,38 +5,28 @@
   .row.flex-wrap
     .col
       %p Time Range
-      %p= "#{@start_date} - #{@end_date}"
+      %p #{start_date} - #{end_date}
     .col
       %p Total Shared Clients
       %p 205
 
-:ruby
-  types = {
-    'all' => 'All (Unique Clients)',
-    'ca' => 'CA (Coordinated Assessment)'
-  }.merge @project_types
-  funding_sources = {
-    'all' => 'All (Unique Clients)',
-    'state' => 'State',
-    'esg' => 'ESG (Emergency Solutions Grants)'
-  }
 .mb-8
   = render 'table', scope: 'project_type' do
-    - values = [103, 102]
-    - types.each do |key, project_type|
+    - relative_total = project_types.map(&:last).flatten.max
+    - project_types.sort_by{ |s| -s.last.sum }.each do |project_type, values|
       %tr
         %td{style: 'width: 35%'}= project_type
         %td{style: 'width: 35%'}
-          = render 'bars', total: 103, values: values
+          = render 'bars', relative_total: relative_total, values: values
         %td{style: 'width: 15%'}= values.first
         %td{style: 'width: 15%'}= values.last
 .mb-6
   = render 'table', scope: 'funding_source' do
-    - values = [103, 102]
-    - funding_sources.each do |key, source|
+    - relative_total = funding_sources.map(&:last).flatten.max
+    - funding_sources.sort_by{ |s| -s.last.sum}.each do |source, values|
       %tr
         %td{style: 'width: 35%'}= source
         %td{style: 'width: 35%'}
-          = render 'bars', total: 103, values: values
+          = render 'bars', relative_total: relative_total, values: values
         %td{style: 'width: 15%'}= values.first
         %td{style: 'width: 15%'}= values.last

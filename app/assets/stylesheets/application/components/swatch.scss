@@ -1,0 +1,26 @@
+@import '../helpers';
+
+.c-swatch {
+  display: flex;
+  align-items: center;
+}
+
+.c-swatch__display {
+  display: inline-block;
+  min-height: 20px;
+  min-width: 20px;
+  background: gray;
+  margin-right: space(1);
+}
+
+@each $index, $color in $map-colors {
+  .c-swatch__display--map-#{$index} {
+    background-color: $color;
+  }
+}
+
+@each $index, $color in $bar-colors {
+  .c-swatch__display--bar-#{$index} {
+    background-color: $color;
+  }
+}
