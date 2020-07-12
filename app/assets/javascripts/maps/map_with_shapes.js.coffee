@@ -89,13 +89,13 @@ class App.Maps.MapWithShapes
       fillOpacity: 1
     })
 
-    @info.update(layer.feature.properties)
+    @info?.update(layer.feature.properties)
 
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge)
       layer.bringToFront()
 
   resetHighlight: (e) =>
-    @info.update()
+    @info?.update()
     @geojson.resetStyle(e.target? || e)
 
   onEachFeature: (feature, layer) =>
