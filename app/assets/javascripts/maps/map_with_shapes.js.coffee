@@ -8,8 +8,11 @@ class App.Maps.MapWithShapes
       minZoom: 6
       maxZoom: 9
       zoomControl: false
+    @strokeColor = '#d7d7de'
 
-    @mapHighlightColors = ['#fca736', '#ffe09b']
+    # repeat first color last because for some reason the change in the selection index
+    # is off by 1
+    @mapHighlightColors = ['#fca736', '#ffe09b', '#fca736']
     @highlightedFeatures = []
 
     @map = new L.Map(@elementId, mapOptions)
@@ -81,7 +84,7 @@ class App.Maps.MapWithShapes
       fillColor: 'white' #@getColor(metric)
       weight: 1
       opacity: 1
-      color: '#d7d7de'
+      color: @strokeColor
       dashArray: ''
       fillOpacity: 0.8
     }
@@ -99,10 +102,9 @@ class App.Maps.MapWithShapes
   highlightFeature: (e, highlightIndex=0) =>
     layer = e?.target || e
 
-    layer.setStyle({
-      fillColor: @mapHighlightColors[highlightIndex],
+    layer.setStyle
+      fillColor: @mapHighlightColors[highlightIndex]
       fillOpacity: 1
-    })
 
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge)
       layer.bringToFront()
@@ -114,9 +116,20 @@ class App.Maps.MapWithShapes
   updateInfo: (e) =>
     layer = e?.target || e
     @info?.update(layer.feature.properties)
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge)
+      layer.bringToFront()
+    layer.setStyle
+      color: @mapHighlightColors[@selectionIndex]
+      weight: 3
+      opacity: 1
 
-  clearInfo: () =>
+  clearInfo: (e) =>
+    layer = e?.target || e
     @info?.update(null)
+    layer.setStyle
+      color: @strokeColor
+      weight: 1
+      opacity: 1
 
   onEachFeature: (feature, layer) =>
     handlers =
@@ -144,6 +157,7 @@ class App.Maps.MapWithShapes
     # @marker.bindPopup(popupText).openPopup()
 
     index = @callback(record_id)
+    @selectionIndex = index + 1
     @updateSelections(e.target, index)
 
 
