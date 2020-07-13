@@ -3,6 +3,7 @@
 class App.Maps.MapWithShapes
   constructor: ({@elementId, @shapes}, @callback) ->
     @selectionIndex = 0
+    @showingData = false
     mapOptions =
       minZoom: 6
       maxZoom: 9
@@ -14,7 +15,7 @@ class App.Maps.MapWithShapes
     @map = new L.Map(@elementId, mapOptions)
 
     L.control.zoom({
-        position: 'topright'
+        position: 'bottomleft'
     }).addTo(@map);
 
     # Do not show basemap to resmeble mock
@@ -31,17 +32,20 @@ class App.Maps.MapWithShapes
 
     @map.fitBounds(@geojson.getBounds())
 
-    # @initInfoBox()
+    @initInfoBox()
     # @initLegend()
 
   initInfoBox: =>
     @info = L.control()
 
     @info.update = (props) =>
+      metric = ''
       if props?
-        @_div.innerHTML = '<h4>'+props.name+'</h4></h3>'+props.metric+'</h3>'
+        if @showingData
+          metric = "<p>Overlapping clients: <strong>#{props.metric}</p>"
+        @_div.innerHTML = "<h4>#{props.name}</h4>#{metric}"
       else
-        @_div.innerHTML = '<h4>Hover over a Geography</h4>'
+        @_div.innerHTML = '<p class="mb-0 font-italic">Select a CoC</p>'
 
     @info.onAdd = (map) =>
       @_div = L.DomUtil.create('div', 'l-info')
@@ -100,8 +104,6 @@ class App.Maps.MapWithShapes
       fillOpacity: 1
     })
 
-    @info?.update(layer.feature.properties)
-
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge)
       layer.bringToFront()
 
@@ -109,10 +111,17 @@ class App.Maps.MapWithShapes
     @info?.update()
     @geojson.resetStyle(e.target? || e)
 
+  updateInfo: (e) =>
+    layer = e?.target || e
+    @info?.update(layer.feature.properties)
+
+  clearInfo: () =>
+    @info?.update(null)
+
   onEachFeature: (feature, layer) =>
     handlers =
-      # mouseover: @highlightFeature
-      # mouseout: @resetHighlight
+      mouseover: @updateInfo
+      mouseout: @clearInfo
       click: @handleClick
     layer.on(handlers)
 
@@ -151,6 +160,7 @@ class App.Maps.MapWithShapes
     @highlightFeature(selectedFeature, selectionIndex)
 
   updateData: (shapes, selections) =>
+    @showingData = true
     @geojson.getLayers().forEach (l) =>
       id = l.feature.properties.id
       shapeMetric = shapes[l.feature.properties.id]

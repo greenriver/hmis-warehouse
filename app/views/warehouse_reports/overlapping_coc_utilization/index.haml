@@ -24,6 +24,10 @@
     font-size: 16px;
     font-weight: 600;
   }
+  .input-group-append button {
+    align-items: center;
+    font-size: 18px;
+  }
 
 - title = "Overlapping CoC Utilization"
 - content_for :title, title
@@ -36,7 +40,7 @@
 - map_id = report_id + '-map'
 - results_id = report_id + '-results'
 - end_date = Date.current
-- start_date = end_date - 1.year
+- start_date = end_date - 1.week
 .warehouse-reports__ad_hoc-export.c-report{id: report_id}
   .row.pb-8
     .col-5
