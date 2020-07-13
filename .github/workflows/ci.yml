@@ -189,7 +189,7 @@ jobs:
          RAILS_ENV: test
          REPORTING_DATABASE_ADAPTER: postgresql
          REPORTING_DATABASE_DB_TEST: test_boston_reporting
-         WAREHOUSE_DATABASE_ADAPTER: postgresql
+         WAREHOUSE_DATABASE_ADAPTER: postgis
          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
          WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
        run: |
