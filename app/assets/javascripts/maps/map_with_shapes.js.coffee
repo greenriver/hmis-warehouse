@@ -6,11 +6,16 @@ class App.Maps.MapWithShapes
     mapOptions =
       minZoom: 6
       maxZoom: 9
+      zoomControl: false
 
     @mapHighlightColors = ['#fca736', '#ffe09b']
     @highlightedFeatures = []
 
     @map = new L.Map(@elementId, mapOptions)
+
+    L.control.zoom({
+        position: 'topright'
+    }).addTo(@map);
 
     # Do not show basemap to resmeble mock
     # osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
@@ -78,8 +83,6 @@ class App.Maps.MapWithShapes
     }
 
   getColor: (d) ->
-    # #0154a6
-    console.log(d)
     if d > 200 then '#0154A6'
     else if d > 165 then '#256CB3'
     else if d > 132 then '#4A85BF'
