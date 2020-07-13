@@ -25,6 +25,9 @@ jobs:
        image: kartoza/postgis:12.1
        env:
          POSTGRES_PASSWORD: postgres
+         POSTGRES_USER: postgres
+         POSTGRES_PASS: postgres
+         POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
        # Set health checks to wait until postgres has started
        options: >-
          --health-cmd pg_isready
