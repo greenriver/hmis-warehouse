@@ -53,14 +53,14 @@
         .c-input-group
           %p.c-input-group__description Select two CoCs below or by clicking on the map:
           %div.d-flex
-            .c-swatch.mr-2{style: 'flex: 1 1 5%'}
+            .c-swatch.mr-2{style: 'flex: 1 1 5%; max-width: 5%'}
               .c-swatch__display.c-swatch__display--map-0
-            %div{style: 'flex: 1 1 95%'}
+            %div{style: 'flex: 1 1 95%; max-width: 95%'}
               = f.input :coc1, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 1', input_html: { class: [:select2] }
           %div.d-flex
-            .c-swatch.mr-2{style: 'flex: 1 1 5%'}
+            .c-swatch.mr-2{style: 'flex: 1 1 5%; max-width: 5%'}
               .c-swatch__display.c-swatch__display--map-1
-            %div{style: 'flex: 1 1 95%'}
+            %div{style: 'flex: 1 1 95%; max-width: 95%'}
               = f.input :coc2, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
     .col-6.ml-auto.d-flex.flex-column
       .coc-util-overlap.mb-6{id: map_id}
