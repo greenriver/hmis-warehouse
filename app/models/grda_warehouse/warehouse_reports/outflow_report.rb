@@ -138,13 +138,13 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def entries_scope
-      service_history_enrollment_scope.
+      scope = service_history_enrollment_scope.
         entry.
         open_between(start_date: @filter.start, end_date: @filter.end)
     end
 
     def exits_scope
-      service_history_enrollment_scope.
+      scope = service_history_enrollment_scope.
         homeless.
         exit_within_date_range(start_date: @filter.start, end_date: @filter.end)
     end
@@ -173,6 +173,12 @@ module GrdaWarehouse::WarehouseReports
       scope = scope.where(o_t[:id].in @filter.organization_ids) unless @filter.organization_ids.empty?
       if @filter.limit_to_vispdats
         scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids)
+      end
+      if @filter.ethnicities.present?
+        scope = scope.joins(:client).where(c_t[:Ethnicity].in(@filter.ethnicities))
+      end
+      @filter.races.each do |race|
+        scope = scope.joins(:client).where(c_t[race].eq(1))
       end
 
       return scope
