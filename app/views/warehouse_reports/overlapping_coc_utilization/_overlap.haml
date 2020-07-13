@@ -8,7 +8,7 @@
       %p #{start_date} - #{end_date}
     .col
       %p.font-weight-bold.mb-2 Total Shared Clients
-      %p{style: 'font-weight: bold; font-size: 24px; '} 205
+      %p{style: 'font-weight: bold; font-size: 24px; '}= project_types.map{ |s| s.last.sum }.sum
 
 .mb-8
   = render 'table', scope: 'project_type' do

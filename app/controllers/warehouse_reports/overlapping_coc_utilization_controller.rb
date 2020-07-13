@@ -40,8 +40,8 @@ module WarehouseReports
       end
       ###
       locals = {
-        start_date: params[:start_date],
-        end_date: params[:end_date],
+        start_date: params.dig(:compare, :start_date),
+        end_date: params.dig(:compare, :end_date),
         project_types: project_types,
         funding_sources: funding_sources,
       }
