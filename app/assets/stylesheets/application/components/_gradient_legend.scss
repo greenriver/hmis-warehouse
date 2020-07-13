@@ -1,0 +1,20 @@
+.c-gradient-legend {
+}
+
+.c-gradient-legend__gradient {
+  background: #f9f9f9;
+  border: 1px solid #CCC;
+  min-height: 25px;
+  margin-bottom: 3px;
+}
+
+.c-gradient-legend__labels {
+  display: flex;
+  justify-content: space-between;
+}
+
+.c-gradient-legend__label {
+  font-weight: bold;
+  font-size: 13px;
+  line-height: (18/13);
+}

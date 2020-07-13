@@ -6,19 +6,19 @@
 }
 
 .c-bar-viz__total {
-  flex: 1 1 5%;
-  max-width: 5%;
+  @include flex(1, 1, 50px);
+  max-width: 50px;
   font-weight: bold;
-  margin-right: space(1);
+  margin-right: space(3);
   text-align: right;
 }
 
 .c-bar-viz__bars {
-  flex: 1 1 95%;
+  @include flex(1, 1, 95%);
   max-width: 95%;
 }
 
 .c-bar-viz__bar {
   min-height: 20px;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 }

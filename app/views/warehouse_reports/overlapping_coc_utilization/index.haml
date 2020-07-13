@@ -1,18 +1,39 @@
+:scss
+  .date_picker .input-group {
+    max-width: none
+  }
+  .select2-selection.select2-selection--single {
+    background: white;
+  }
+  #compare_coc1 ~ .select2 {
+    $color: #fca736;
+    .select2-selection {
+      border: 1px solid $color;
+    }
+  }
+  #compare_coc2 ~ .select2 {
+    $color: #ffe09b;
+    .select2-selection {
+      border: 1px solid $color;
+    }
+  }
+
 - title = "Overlapping CoC Utilization"
 - content_for :title, title
 = render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
+
 .l-page-heading.mb-4
   %h1= title
-  %p This report summarizes the overlaps in clients and services betweeen CoCs you have shared access with.
 
 - report_id = 'coc-overlap-report'
 - map_id = report_id + '-map'
 - results_id = report_id + '-results'
 - end_date = Date.current
 - start_date = end_date - 1.year
-.warehouse-reports__ad_hoc-export{id: report_id}
-  .row
+.warehouse-reports__ad_hoc-export.c-report{id: report_id}
+  .row.pb-8
     .col-5
+      %p This report summarizes the overlaps in clients and services betweeen CoCs you have shared access with.
       = simple_form_for :compare, url: url_for, method: :get do |f|
         %p.font-weight-bold To start, select a time range:
         = f.input :start_date, as: :date_picker, input_html: {value: start_date}
@@ -29,7 +50,9 @@
           %div{style: 'flex: 1 1 95%'}
             = f.input :coc2, collection: @cocs, value_method: :id, name_method: :name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
     .col-6.ml-auto
-      .coc-util-overlap{id: map_id}
+      .coc-util-overlap.mb-6{id: map_id}
+      = render 'common/gradient_legend', labels: ['200+ Overlapping Clients', 'No Overlapping Clients'], colors: ['#0154A6', '#FFFFFF']
+
   %div{id: results_id}
 
 = content_for :page_js do

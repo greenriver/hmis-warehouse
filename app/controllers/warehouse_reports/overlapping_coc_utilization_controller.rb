@@ -18,6 +18,7 @@ module WarehouseReports
     end
 
     def overlap
+      ###
       #fake data for testing
       project_types = ([
         'All (Unique Clients)',
@@ -35,8 +36,9 @@ module WarehouseReports
       cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
       map_data = {}
       GrdaWarehouse::Shape.geo_collection_hash(cocs)[:features].each do |feature|
-        map_data[feature.dig(:properties,:id).to_s] = rand(100)
+        map_data[feature.dig(:properties,:id).to_s] = rand(225)
       end
+      ###
       locals = {
         start_date: params[:start_date],
         end_date: params[:end_date],

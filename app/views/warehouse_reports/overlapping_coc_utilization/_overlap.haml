@@ -1,14 +1,14 @@
 %hr.my-8{style: 'border-top: 3px solid #d5d5dc'}
 
 .mb-4
-  %h3 Count of Asynchronously and Concurrently Overlapping Clients
+  %h2.mb-4 Count of Asynchronously and Concurrently Overlapping Clients
   .row.flex-wrap
     .col
-      %p Time Range
+      %p.font-weight-bold Time Range
       %p #{start_date} - #{end_date}
     .col
-      %p Total Shared Clients
-      %p 205
+      %p.font-weight-bold Total Shared Clients
+      %p{style: 'font-weight: bold; font-size: 24px; '} 205
 
 .mb-8
   = render 'table', scope: 'project_type' do

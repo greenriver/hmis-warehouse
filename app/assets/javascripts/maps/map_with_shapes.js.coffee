@@ -79,13 +79,14 @@ class App.Maps.MapWithShapes
 
   getColor: (d) ->
     # #0154a6
-    if d > 70 then '#0154A6'
-    else if d > 60 then '#256CB3'
-    else if d > 50 then '#4A85BF'
-    else if d > 40 then '#6E9DCC'
-    else if d > 30 then '#92B6D9'
-    else if d > 20 then '#B6CEE6'
-    else if d > 10 then '#DBE7F2'
+    console.log(d)
+    if d > 200 then '#0154A6'
+    else if d > 165 then '#256CB3'
+    else if d > 132 then '#4A85BF'
+    else if d > 100 then '#6E9DCC'
+    else if d > 67 then '#92B6D9'
+    else if d > 34 then '#B6CEE6'
+    else if d > 0 then '#DBE7F2'
     else '#FFFFFF'
 
   highlightFeature: (e, highlightIndex=0) =>
