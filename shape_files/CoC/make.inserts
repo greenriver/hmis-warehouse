@@ -6,7 +6,7 @@ require 'pathname'
 FileUtils.chdir(Pathname.new(__FILE__).dirname)
 
 Dir.glob("*.zip").each do |zipfile|
-  system("unzip -f #{zipfile}")
+  system "unzip -u #{zipfile}"
 end
 
 FileUtils.rm_f('coc.sql')

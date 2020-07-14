@@ -354,7 +354,7 @@ namespace :grda_warehouse do
     FileUtils.chdir(Rails.root.join('shape_files'))
     system('./sync.from.s3')
 
-    num_zips = `find . -name '*zip' | wc --lines`.to_i
+    num_zips = `find . -name '*zip' | wc -l`.to_i
     if num_zips == 0
       # If you don't care about CoC/ZipCode shapes and want to just get through
       # the migration, just comment out this whole rake task. You can run it
@@ -368,6 +368,8 @@ namespace :grda_warehouse do
     system("./shape_files/CoC/make.inserts") || exit
 
     Rails.logger.info "Inserting CoCs into the database, conserving RAM"
+    GrdaWarehouse::Shape::ZipCode.delete_all
+    GrdaWarehouse::Shape::CoC.delete_all
     ActiveRecord::Base.logger.silence do
       File.open('shape_files/CoC/coc.sql', 'r') do |fin|
         fin.each_line do |line|
