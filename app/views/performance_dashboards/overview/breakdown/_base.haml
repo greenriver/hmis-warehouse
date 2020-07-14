@@ -22,23 +22,58 @@
     }
   }
 
-.d-flex.flex-wrap.justify-content-between.align-items-end.mb-2
-  %header.mb-2.mr-4{style: 'flex: 1; min-width: 300px'}
+.d-flex.flex-wrap.justify-content-between.mb-2{class: @report_variant == 'sparse' ? 'align-items-baseline' : 'align-items-end'}
+  %header.mb-2.ml-auto{style: 'flex: 1; min-width: 300px'}
     %h2
-      = [key.to_s.titleize, @breakdown_section_title].compact.join(': ')
+      - if @breakdown_section_title
+        = [key.to_s.titleize, @breakdown_section_title].compact.join(': ')
+      - elsif key == :enrolled && @report_variant == 'sparse'
+        Actively Enrolled Clients from #{@report.date_range_words}
+      - else
+        = key.to_s.titleize
     %p.description.mb-0= desc
-  .d-flex.mb-2
-    .report-period.mr-6
-      %h4.m-0 Report Period
-      %p.mb-0 #{@report.date_range_words}
-      - count = client_counts[:report]
-      = link_to_if show_client_details?, "Total Unique #{'Client'.pluralize(count)}: #{count}", details_performance_dashboards_overview_index_path({ filters: detail_params }), data: {loads_in_pjax_modal: true}
-    - if @report.include_comparison?
-      .comparison-period
-        %h4.m-0 Comparison Period
-        %p.mb-0 #{@comparison.date_range_words}
-        - count = client_counts[:comparison]
-        = link_to_if show_client_details?, "Total Unique #{'Client'.pluralize(count)}: #{count}", details_performance_dashboards_overview_index_path({ filters: comparison_params }), data: {loads_in_pjax_modal: true}
+    %p.description.mb-0
+      %span.text-color-hl-prs1 Note:
+      We do not show data that were explicity excluded from your universe settings.
+  .mb-2.ml-3
+    - if @report_variant == 'sparse'
+      .gray.lead.font-weight-normal
+        - if @report.include_comparison?
+          .mb-1.small.font-weight-bold Unique Enrolled Clients
+          .mb-1
+            Reporting Period:
+            = link_to_if show_client_details?,
+              number_with_delimiter(client_counts[:report]),
+              details_performance_dashboards_overview_index_path({ filters: detail_params }),
+              data: {loads_in_pjax_modal: true},
+              class: 'font-weight-bold'
+          %div
+            Comparison Period:
+            = link_to_if show_client_details?,
+              number_with_delimiter(client_counts[:comparison]),
+              details_performance_dashboards_overview_index_path({ filters: comparison_params }),
+              data: {loads_in_pjax_modal: true},
+              class: 'font-weight-bold'
+        - else
+          Unique Enrolled Clients:
+          = link_to_if show_client_details?,
+            number_with_delimiter(client_counts[:report]),
+            details_performance_dashboards_overview_index_path({ filters: detail_params }),
+            data: {loads_in_pjax_modal: true},
+            class: 'font-weight-bold'
+    - else
+      .d-flex.mb-2
+        .report-period.mr-6
+          %h4.m-0 Report Period
+          %p.mb-0 #{@report.date_range_words}
+          - count = client_counts[:report]
+          = link_to_if show_client_details?, "Unique Enrolled Clients: #{number_with_delimiter count}", details_performance_dashboards_overview_index_path({ filters: detail_params }), data: {loads_in_pjax_modal: true}
+        - if @report.include_comparison?
+          .comparison-period
+            %h4.m-0 Comparison Period
+            %p.mb-0 #{@comparison.date_range_words}
+            - count = client_counts[:comparison]
+            = link_to_if show_client_details?, "Unique Enrolled Clients: #{number_with_delimiter count}", details_performance_dashboards_overview_index_path({ filters: comparison_params }), data: {loads_in_pjax_modal: true}
 
 .well.mb-6.pt-0
   .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: chart_options.to_json.html_safe } }

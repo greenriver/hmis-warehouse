@@ -1,0 +1,17 @@
+.d-flex.align-items-center.mb-5.gray
+  .pr-2
+    %h3.gray Universe Selection
+  .ml-auto
+    - total_url = filters_performance_dashboards_overview_index_path(*link_params)
+    %a.btn.btn-primary.btn-sm{href: total_url, data: { loads_in_pjax_modal: true }}
+      Edit
+
+- @filter.control_sections.each do |section|
+  - section_url = filters_performance_dashboards_overview_index_path(*(link_params.merge(filter_section_id: section.id)))
+  .sb-filter-section-prs1
+    %h4.mb-2.gray= section.title
+    - section.controls.each do |control|
+      .mb-3
+        .mb-1
+          %a.sb-link-prs1{class: (control.required ? 'sb-link-required-prs1' : nil), href: section_url, data: { loads_in_pjax_modal: true }}= control.label
+        %div= render control.summary_partial_path

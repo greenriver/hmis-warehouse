@@ -126,4 +126,20 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
     breakdowns[:coc] = 'By CoC' if GrdaWarehouse::Config.get(:multi_coc_installation)
     breakdowns
   end
+
+  protected def filter_selected_data_for_chart(data)
+    chosen = data.delete(:chosen)&.to_set
+    chosen&.delete(:all)
+    if chosen.present?
+      (columns, categories) = data.values_at(:columns, :categories)
+      date = columns.shift
+      filtered = columns.zip(categories).select {|_, cat| cat.in?(chosen) }
+      data[:columns] = [date] + filtered.map(&:first)
+      data[:categories] = filtered.map(&:last)
+      data
+    else
+      data
+    end
+  end
+
 end

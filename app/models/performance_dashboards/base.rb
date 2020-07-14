@@ -124,6 +124,10 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     available_funders_for_select.select { |_, id| @filter.funder_ids.include?(id.to_i) }&.map(&:first)
   end
 
+  def chosen_ages
+    @age_ranges
+  end
+
   def chosen_age_ranges
     @age_ranges.map do |range|
       age_ranges.invert[range]
@@ -152,6 +156,10 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     end.uniq
   end
 
+  def chosen_project_types_only_homeless?
+    filter.project_type_ids.sort == GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.sort
+  end
+
   def chosen_household_type
     household_type(@household_type.to_sym)
   end
@@ -174,9 +182,9 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
   def self.comparison_patterns
     {
+      no_comparison_period: 'None',
       prior_year: 'Same period, prior year',
       prior_period: 'Prior Period',
-      no_comparison_period: 'No comparison period',
     }.invert.freeze
   end
 

@@ -1,22 +1,22 @@
 - breakdown = 'By Age'
 - sub_keys = @report.age_bucket_titles.invert
 - options = {age: :true}
-- chart_height = 500
-
-- columns = [@report.entering_by_age_data_for_chart[:columns]]
-- if @report.include_comparison?
-  - columns << @comparison.entering_by_age_data_for_chart[:columns]
-- categories = @report.entering_by_age_data_for_chart[:categories]
-= render 'performance_dashboards/overview/breakdown/entering', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, chart_height: chart_height
+- bar_size = 100
 
 - columns = [@report.enrolled_by_age_data_for_chart[:columns]]
 - if @report.include_comparison?
   - columns << @comparison.enrolled_by_age_data_for_chart[:columns]
 - categories = @report.enrolled_by_age_data_for_chart[:categories]
-= render 'performance_dashboards/overview/breakdown/enrolled', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, chart_height: chart_height
+= render 'performance_dashboards/overview/breakdown/enrolled', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, bar_size: bar_size
+
+- columns = [@report.entering_by_age_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.entering_by_age_data_for_chart[:columns]
+- categories = @report.entering_by_age_data_for_chart[:categories]
+= render 'performance_dashboards/overview/breakdown/entering', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, bar_size: bar_size
 
 - columns = [@report.exiting_by_age_data_for_chart[:columns]]
 - if @report.include_comparison?
   - columns << @comparison.exiting_by_age_data_for_chart[:columns]
 - categories = @report.exiting_by_age_data_for_chart[:categories]
-= render 'performance_dashboards/overview/breakdown/exiting', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, chart_height: chart_height
+= render 'performance_dashboards/overview/breakdown/exiting', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, bar_size: bar_size

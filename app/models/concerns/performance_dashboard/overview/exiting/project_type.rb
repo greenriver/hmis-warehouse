@@ -27,11 +27,14 @@ module PerformanceDashboard::Overview::Exiting::ProjectType
     @exiting_by_project_type_data_for_chart ||= begin
       columns = [date_range_words]
       columns += exiting_by_project_type.values.map(&:count)
-      categories = exiting_by_project_type.keys.map { |m| HUD.project_type(m) }
-      {
+      categories = exiting_by_project_type.keys
+      filter_selected_data_for_chart({
+        chosen: @project_types,
         columns: columns,
         categories: categories,
-      }
+      }).tap do |data|
+        data[:categories].map! { |s| HUD.project_type(s) }
+      end
     end
   end
 

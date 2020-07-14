@@ -1,0 +1,10 @@
+:ruby
+  klasses = %w{select2}
+  if multiple_project_types?
+    klasses.push('select2-parenthetical-when-selected')
+  end
+= f.input :project_type_codes,
+  collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert,
+  required: false,
+  input_html: { multiple: true, class: klasses },
+  label: control.label

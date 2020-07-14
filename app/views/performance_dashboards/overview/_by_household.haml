@@ -2,17 +2,17 @@
 - sub_keys = @report.household_bucket_titles.invert
 - options = {household: :true}
 
-- columns = [@report.entering_by_household_data_for_chart[:columns]]
-- if @report.include_comparison?
-  - columns << @comparison.entering_by_household_data_for_chart[:columns]
-- categories = @report.entering_by_household_data_for_chart[:categories]
-= render 'performance_dashboards/overview/breakdown/entering', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options
-
 - columns = [@report.enrolled_by_household_data_for_chart[:columns]]
 - if @report.include_comparison?
   - columns << @comparison.enrolled_by_household_data_for_chart[:columns]
 - categories = @report.enrolled_by_household_data_for_chart[:categories]
 = render 'performance_dashboards/overview/breakdown/enrolled', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options
+
+- columns = [@report.entering_by_household_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.entering_by_household_data_for_chart[:columns]
+- categories = @report.entering_by_household_data_for_chart[:categories]
+= render 'performance_dashboards/overview/breakdown/entering', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options, bar_size: 140
 
 - columns = [@report.exiting_by_household_data_for_chart[:columns]]
 - if @report.include_comparison?

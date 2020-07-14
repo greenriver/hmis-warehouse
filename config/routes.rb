@@ -551,6 +551,7 @@ Rails.application.routes.draw do
     resources :overview, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "overview#section", as: :section
+      get :filters, on: :collection
     end
     resources :project_type, only: [:index] do
       get :details, on: :collection

@@ -217,7 +217,7 @@ Devise.setup do |config|
   # The time you want to timeout the user session without activity. After this
   # time the user will be asked for credentials again. Default is 30 minutes.
   if Rails.env.development?
-    config.timeout_in = 30.minutes
+    config.timeout_in = ENV.fetch('LOGIN_TIMEOUT_MINUTES', 30).to_i.minutes
   else
     config.timeout_in = 30.minutes
   end

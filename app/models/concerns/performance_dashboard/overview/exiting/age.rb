@@ -24,11 +24,14 @@ module PerformanceDashboard::Overview::Exiting::Age
     @exiting_by_age_data_for_chart ||= begin
       columns = [date_range_words]
       columns += exiting_by_age.values.map(&:count)
-      categories = exiting_by_age.keys.map(&:to_s).map(&:humanize)
-      {
+      categories = entering_by_age.keys
+      filter_selected_data_for_chart({
+        chosen: chosen_ages,
         columns: columns,
         categories: categories,
-      }
+      }).tap do |data|
+        data[:categories].map! { |s| age_bucket_titles[s] }
+      end
     end
   end
 

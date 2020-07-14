@@ -7,8 +7,12 @@
   - chart_class = "#{key}-#{chart_class_slug}-chart"
 - else
   - chart_class = "#{key}-#{breakdown.parameterize}-chart"
-- unless defined?(chart_height)
-  - chart_height = 600
+
+:ruby
+  if local_assigns[:chart_height].blank?
+    bar_size = local_assigns[:bar_size] || 100
+    chart_height = (bar_size * categories.size) + 50
+  end
 
 .perf-overview-breakdown
   = render 'performance_dashboards/overview/breakdown/base', key: key, chart_class: chart_class, desc: 'Clients exiting a project in the universe who has not been seen in any project in the universe since.', detail_params: detail_params, comparison_params: comparison_params, columns: columns, categories: categories, sub_keys: sub_keys, client_counts: client_counts, chart_height: chart_height

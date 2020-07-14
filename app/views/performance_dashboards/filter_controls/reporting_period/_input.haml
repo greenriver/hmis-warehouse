@@ -1,0 +1,7 @@
+.form-group.form-group-valid
+  %label= control.label
+  .d-flex
+    .mr-2
+      = f.input :start, as: :date_picker, label: 'Start date of period'
+    %div
+      = f.input :end, as: :date_picker, label: 'End date of period'

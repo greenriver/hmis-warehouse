@@ -116,5 +116,62 @@ module Filters
       end
     end
 
+    #########
+
+    def control_sections
+      @control_sections ||= build_control_sections
+    end
+
+    protected def build_control_sections
+      [
+        build_general_control_section,
+        build_coc_control_section,
+        build_household_control_section,
+        build_demographics_control_section,
+      ]
+    end
+
+    protected def build_general_control_section
+      ::Filters::UiControlSection.new(id: 'general').tap do |section|
+        section.add_control(id: 'project_types', required: true, label: 'Population by Project Type')
+        section.add_control(id: 'reporting_period', required: true)
+        section.add_control(id: 'comparison_period')
+      end
+    end
+
+    protected def build_coc_control_section
+      ::Filters::UiControlSection.new(id: 'coc', title: 'CoC & Funding').tap do |section|
+        if GrdaWarehouse::Config.get(:multi_coc_installation)
+          section.add_control(id: 'coc_codes', label: 'CoC Codes')
+        end
+        section.add_control(id: 'funding_sources')
+        section.add_control(id: 'data_sources')
+        section.add_control(id: 'organizations')
+        section.add_control(id: 'projects')
+      end
+    end
+
+    protected def build_household_control_section
+      ::Filters::UiControlSection.new(id: 'household').tap do |section|
+        section.add_control(id: 'household_type', required: true)
+        section.add_control(id: 'hoh_only', label: 'Only Heads of Household?')
+      end
+    end
+
+    protected def build_demographics_control_section
+      ::Filters::UiControlSection.new(id: 'demographics').tap do |section|
+        section.add_control(
+          id: 'sub_population',
+          label: 'Sub-Population',
+          required: true
+        )
+        section.add_control(id: 'races')
+        section.add_control(id: 'ethnicities')
+        section.add_control(id: 'age_ranges')
+        section.add_control(id: 'genders')
+        section.add_control(id: 'veteran_statuses')
+      end
+    end
+
   end
 end

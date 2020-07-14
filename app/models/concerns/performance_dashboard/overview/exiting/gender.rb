@@ -28,10 +28,11 @@ module PerformanceDashboard::Overview::Exiting::Gender
       columns = [date_range_words]
       columns += exiting_by_gender.values.map(&:count)
       categories = exiting_by_gender.keys.map { |g| HUD.gender(g) }
-      {
+      filter_selected_data_for_chart({
+        chosen: chosen_genders,
         columns: columns,
         categories: categories,
-      }
+      })
     end
   end
 

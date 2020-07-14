@@ -39,17 +39,20 @@
         = render 'layouts/site_menu'
 
       .l-main__content{ class: ('with-menu' if user_signed_in?) }
-        %main
-          .container-fluid.mb-4{class: container_classes}
-            .utility<
-              = render "utility"
-            - if content_for? :modal_title
-              %h1
-                = yield :modal_title
-            = yield
-            - if content_for? :modal_footer
-              .row
-                = yield :modal_footer
+        - if @layout__plain_inner
+          = yield
+        - else
+          %main
+            .container-fluid.mb-4{class: container_classes}
+              .utility<
+                = render "utility"
+              - if content_for? :modal_title
+                %h1
+                  = yield :modal_title
+              = yield
+              - if content_for? :modal_footer
+                .row
+                  = yield :modal_footer
     %footer{ class: ('with-menu' if user_signed_in?) }
       .container-fluid.w-100{class: container_classes}
         .d-flex.align-items-center.pt-4.pb-6

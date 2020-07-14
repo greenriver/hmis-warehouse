@@ -1,0 +1,50 @@
+= content_for :modal_title do
+  = @chosen_section ? @chosen_section.title : 'Edit Universe Selection'
+
+- url = performance_dashboards_overview_index_path
+= simple_form_for @filter, as: :filters, url: url, method: :get do |f|
+  = hidden_field_tag :breakdown, breakdown
+
+  - if @chosen_section
+    .form-filters-section-prs1
+      = render 'performance_dashboards/filter_controls/section_form_fields',
+        section: @chosen_section, f: f
+    .d-none
+      - # include the rest of the form controls as "hidden" inputs
+      - @sections.each do |section|
+        - if section != @chosen_section
+          = render 'performance_dashboards/filter_controls/section_form_fields',
+            section: section, f: f
+  - else
+    .row
+      - @sections.in_groups(2).each do |sections|
+        .col-md-6
+          - sections.compact.each do |section|
+            .form-filters-section-prs1
+              = render 'performance_dashboards/filter_controls/section_form_fields',
+                section: section, f: f
+  .form-filters-controls-prs1
+    = f.submit 'Save & Update', class: 'float-none'
+    %button.btn.btn-outline-primary(type='button' pjax-modal-close) Cancel
+    - if @chosen_section.blank?
+      = link_to 'Reset to Default', url_for(action: :index), class: 'btn btn-outline-primary'
+
+- content_for :page_js do
+  :javascript
+    // initializing behaviors and modal size
+    // FIXME - this should probably be global
+    'use strict'
+    $(function() {
+      var newModalClass = #{modal_size.to_json.html_safe};
+      var modalDialog = document.querySelector('#pjax-modal .modal-dialog');
+      if (modalDialog) {
+        $(modalDialog)
+          .removeClass('modal-xl')
+          .removeClass('modal-lg')
+          .addClass(newModalClass);
+      }
+      var modalBody = document.querySelector('#pjax-modal .modal-body')
+      if (modalBody) {
+        App.select2.init(modalBody)
+      }
+    });

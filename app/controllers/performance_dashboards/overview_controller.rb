@@ -13,6 +13,19 @@ module PerformanceDashboards
     def index
     end
 
+    def filters
+      @sections = @filter.control_sections
+      chosen = params[:filter_section_id]
+      if chosen
+        @chosen_section = @sections.detect do |section|
+          section.id == chosen
+        end
+      end
+      if @chosen_section.nil?
+        @modal_size = :xl
+      end
+    end
+
     private def section_subpath
       'performance_dashboards/overview/'
     end
@@ -63,6 +76,7 @@ module PerformanceDashboards
     helper_method :include_comparison_pattern?
 
     private def set_report
+      @report_variant = 'sparse'
       @report = PerformanceDashboards::Overview.new(@filter)
       if @report.include_comparison?
         @comparison = PerformanceDashboards::Overview.new(@comparison_filter)

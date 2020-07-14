@@ -1,0 +1,4 @@
+= f.input :funder_ids,
+  collection: @report.available_funders_for_select,
+  input_html: {multiple: true, class: 'select2'},
+  label: control.label
