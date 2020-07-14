@@ -27,13 +27,14 @@ module PerformanceDashboard::Overview::Entering::Ethnicity
     @entering_by_ethnicity_data_for_chart ||= begin
       columns = [date_range_words]
       columns += entering_by_ethnicity.values.map(&:count)
-      categories = entering_by_ethnicity.keys.map do |type|
-        HUD.ethnicity(type)
+      categories = entering_by_ethnicity.keys
+      filter_selected_data_for_chart({
+        chosen: @ethnicities,
+        columns: columns,
+        categories: categories,
+      }).tap do |data|
+        data[:categories].map! { |s| HUD.ethnicity(s) }
       end
-      {
-        columns: columns, # ignore :all
-        categories: categories, # ignore :all
-      }
     end
   end
 

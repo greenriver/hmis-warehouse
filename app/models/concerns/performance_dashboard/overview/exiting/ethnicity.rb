@@ -27,13 +27,14 @@ module PerformanceDashboard::Overview::Exiting::Ethnicity
     @exiting_by_ethnicity_data_for_chart ||= begin
       columns = [date_range_words]
       columns += exiting_by_ethnicity.values.map(&:count)
-      categories = exiting_by_ethnicity.keys.map do |type|
-        HUD.ethnicity(type)
-      end
-      {
+      categories = exiting_by_ethnicity.keys
+      filter_selected_data_for_chart({
+        chosen: @ethnicities,
         columns: columns,
         categories: categories,
-      }
+      }).tap do |data|
+        data[:categories].map! { |s| HUD.ethnicity(s) }
+      end
     end
   end
 
