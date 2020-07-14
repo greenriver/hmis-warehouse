@@ -28,6 +28,7 @@ module PerformanceDashboard::Overview::Entering::ProjectType
       columns = [date_range_words]
       columns += entering_by_project_type.values.map(&:count)
       categories = entering_by_project_type.keys
+      categories &= GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten
       filter_selected_data_for_chart(
         {
           labels: categories.map { |s| [s, HUD.project_type(s)] }.to_h,
