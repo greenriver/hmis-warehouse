@@ -29,10 +29,10 @@ module PerformanceDashboard::Overview::Exiting::Ethnicity
       columns += exiting_by_ethnicity.values.map(&:count)
       categories = exiting_by_ethnicity.keys
       filter_selected_data_for_chart({
-        chosen: @ethnicities,
-        columns: columns,
-        categories: categories,
-      }).tap do |data|
+                                       chosen: @ethnicities,
+                                       columns: columns,
+                                       categories: categories,
+                                     }).tap do |data|
         data[:categories].map! { |s| HUD.ethnicity(s) }
       end
     end

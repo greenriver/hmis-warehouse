@@ -26,10 +26,10 @@ module PerformanceDashboard::Overview::Exiting::Age
       columns += exiting_by_age.values.map(&:count)
       categories = entering_by_age.keys
       filter_selected_data_for_chart({
-        chosen: chosen_ages,
-        columns: columns,
-        categories: categories,
-      }).tap do |data|
+                                       chosen: chosen_ages,
+                                       columns: columns,
+                                       categories: categories,
+                                     }).tap do |data|
         data[:categories].map! { |s| age_bucket_titles[s] }
       end
     end

@@ -29,10 +29,10 @@ module PerformanceDashboard::Overview::Enrolled::Race
       columns += enrolled_by_race.values.map(&:count)
       categories = enrolled_by_race.keys
       filter_selected_data_for_chart({
-        chosen: @races,
-        columns: columns, # ignore :all
-        categories: categories, # ignore :all
-      }).tap do |data|
+                                       chosen: @races,
+                                       columns: columns, # ignore :all
+                                       categories: categories, # ignore :all
+                                     }).tap do |data|
         data[:categories].map! { |s| HUD.race(s) }
       end
     end

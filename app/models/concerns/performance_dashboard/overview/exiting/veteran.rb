@@ -29,10 +29,10 @@ module PerformanceDashboard::Overview::Exiting::Veteran
       columns += exiting_by_veteran.values.map(&:count)
       categories = exiting_by_veteran.keys
       filter_selected_data_for_chart({
-        chosen: @veteran_statuses,
-        columns: columns,
-        categories: categories,
-      }).tap do |data|
+                                       chosen: @veteran_statuses,
+                                       columns: columns,
+                                       categories: categories,
+                                     }).tap do |data|
         data[:categories].map! { |s| HUD.veteran_status(s) }
       end
     end

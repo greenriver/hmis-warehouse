@@ -29,10 +29,10 @@ module PerformanceDashboard::Overview::Entering::Gender
       columns += entering_by_gender.values.map(&:count)
       categories = entering_by_gender.keys.map { |g| HUD.gender(g) }
       filter_selected_data_for_chart({
-        chosen: chosen_genders,
-        columns: columns,
-        categories: categories,
-      })
+                                       chosen: chosen_genders,
+                                       columns: columns,
+                                       categories: categories,
+                                     })
     end
   end
 

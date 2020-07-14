@@ -29,10 +29,10 @@ module PerformanceDashboard::Overview::Exiting::Race
       columns += exiting_by_race.values.map(&:count)
       categories = exiting_by_race.keys
       filter_selected_data_for_chart({
-        chosen: @races,
-        columns: columns,
-        categories: categories,
-      }).tap do |data|
+                                       chosen: @races,
+                                       columns: columns,
+                                       categories: categories,
+                                     }).tap do |data|
         data[:categories].map! { |s| HUD.race(s) }
       end
     end

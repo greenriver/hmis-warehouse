@@ -29,10 +29,10 @@ module PerformanceDashboard::Overview::Enrolled::ProjectType
       columns += enrolled_by_project_type.values.map(&:count)
       categories = enrolled_by_project_type.keys
       filter_selected_data_for_chart({
-        chosen: @project_types,
-        columns: columns,
-        categories: categories,
-      }).tap do |data|
+                                       chosen: @project_types,
+                                       columns: columns,
+                                       categories: categories,
+                                     }).tap do |data|
         data[:categories].map! { |s| HUD.project_type(s) }
       end
     end

@@ -133,13 +133,10 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
     if chosen.present?
       (columns, categories) = data.values_at(:columns, :categories)
       date = columns.shift
-      filtered = columns.zip(categories).select {|_, cat| cat.in?(chosen) }
+      filtered = columns.zip(categories).select { |_, cat| cat.in?(chosen) }
       data[:columns] = [date] + filtered.map(&:first)
       data[:categories] = filtered.map(&:last)
-      data
-    else
-      data
     end
+    data
   end
-
 end

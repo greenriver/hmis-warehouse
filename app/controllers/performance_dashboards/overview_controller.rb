@@ -21,9 +21,7 @@ module PerformanceDashboards
           section.id == chosen
         end
       end
-      if @chosen_section.nil?
-        @modal_size = :xl
-      end
+      @modal_size = :xl if @chosen_section.nil?
     end
 
     private def section_subpath
