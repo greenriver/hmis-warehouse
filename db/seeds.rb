@@ -498,7 +498,7 @@ def report_list
         limitable: false,
       },
     ],
-    'Performance Dashboard' => [
+    'Performance' => [
       {
         url: 'performance_dashboards/overview',
         name: 'Performance Overview',
