@@ -46,6 +46,7 @@ module GrdaWarehouse::DocumentExports
         comparison_filter: comparison_filter,
         breakdown: breakdown,
         pdf: true,
+        report_variant: 'sparse',
       }
     end
 
