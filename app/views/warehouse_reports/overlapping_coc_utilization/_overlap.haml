@@ -1,0 +1,32 @@
+%hr.my-8{style: 'border-top: 3px solid #d5d5dc'}
+
+.mb-4
+  %h2.mb-5 Count of Asynchronously and Concurrently Overlapping Clients
+  .row.flex-wrap
+    .col
+      %p.font-weight-bold.mb-2 Time Range
+      %p #{start_date} - #{end_date}
+    .col
+      %p.font-weight-bold.mb-2 Total Shared Clients
+      %p{style: 'font-weight: bold; font-size: 24px; '}= project_types.map{ |s| s.last.sum }.sum
+
+.mb-8
+  = render 'table', scope: 'project_type' do
+    - relative_total = project_types.map(&:last).flatten.max
+    - project_types.sort_by{ |s| -s.last.sum }.each do |project_type, values|
+      %tr
+        %td{style: 'width: 35%'}= project_type
+        %td{style: 'width: 35%'}
+          = render 'bars', relative_total: relative_total, values: values
+        %td{style: 'width: 15%'}= values.first
+        %td{style: 'width: 15%'}= values.last
+.mb-6
+  = render 'table', scope: 'funding_source' do
+    - relative_total = funding_sources.map(&:last).flatten.max
+    - funding_sources.sort_by{ |s| -s.last.sum}.each do |source, values|
+      %tr
+        %td{style: 'width: 35%'}= source
+        %td{style: 'width: 35%'}
+          = render 'bars', relative_total: relative_total, values: values
+        %td{style: 'width: 15%'}= values.first
+        %td{style: 'width: 15%'}= values.last

@@ -62,6 +62,7 @@
 //= require_directory ./census
 //= require_directory ./filter
 //= require_directory ./maps
+//= require_directory ./reports
 //= require_directory ./rollups
 //= require_directory ./sections
 //= require_directory ./health

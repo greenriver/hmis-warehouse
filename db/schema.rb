@@ -46,8 +46,6 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.datetime "updated_at"
     t.index ["controller_name"], name: "index_activity_logs_on_controller_name"
     t.index ["created_at", "item_model", "user_id"], name: "index_activity_logs_on_created_at_and_item_model_and_user_id"
-    t.index ["created_at"], name: "activity_logs_created_at_idx", using: :brin
-    t.index ["created_at"], name: "created_at_idx", using: :brin
     t.index ["item_model", "user_id", "created_at"], name: "index_activity_logs_on_item_model_and_user_id_and_created_at"
     t.index ["item_model", "user_id"], name: "index_activity_logs_on_item_model_and_user_id"
     t.index ["item_model"], name: "index_activity_logs_on_item_model"
@@ -67,28 +65,6 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.bigint "agency_id", null: false
     t.index ["agency_id"], name: "index_agencies_consent_limits_on_agency_id"
     t.index ["consent_limit_id"], name: "index_agencies_consent_limits_on_consent_limit_id"
-  end
-
-  create_table "cas_reports", id: :serial, force: :cascade do |t|
-    t.integer "client_id", null: false
-    t.integer "match_id", null: false
-    t.integer "decision_id", null: false
-    t.integer "decision_order", null: false
-    t.string "match_step", null: false
-    t.string "decision_status", null: false
-    t.boolean "current_step", default: false, null: false
-    t.boolean "active_match", default: false, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "elapsed_days", default: 0, null: false
-    t.datetime "client_last_seen_date"
-    t.datetime "criminal_hearing_date"
-    t.string "decline_reason"
-    t.string "not_working_with_client_reason"
-    t.string "administrative_cancel_reason"
-    t.boolean "client_spoken_with_services_agency"
-    t.boolean "cori_release_form_submitted"
-    t.index ["client_id", "match_id", "decision_id"], name: "index_cas_reports_on_client_id_and_match_id_and_decision_id", unique: true
   end
 
   create_table "client_service_history", id: false, force: :cascade do |t|
@@ -307,89 +283,87 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.string "verb"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "can_edit_anything_super_user", default: false
     t.boolean "can_view_clients", default: false
     t.boolean "can_edit_clients", default: false
     t.boolean "can_view_censuses", default: false
     t.boolean "can_view_census_details", default: false
     t.boolean "can_edit_users", default: false
+    t.boolean "can_edit_roles", default: false
+    t.boolean "can_audit_users", default: false
     t.boolean "can_view_full_ssn", default: false
     t.boolean "can_view_full_dob", default: false
     t.boolean "can_view_hiv_status", default: false
     t.boolean "can_view_dmh_status", default: false
     t.boolean "can_view_imports", default: false
-    t.boolean "can_edit_roles", default: false
     t.boolean "can_view_projects", default: false
-    t.boolean "can_view_organizations", default: false
-    t.boolean "can_view_client_window", default: false
-    t.boolean "can_upload_hud_zips", default: false
-    t.boolean "can_administer_health", default: false
-    t.boolean "can_edit_client_health", default: false
-    t.boolean "can_view_client_health", default: false
-    t.boolean "health_role", default: false, null: false
-    t.boolean "can_edit_project_groups", default: false
-    t.boolean "can_edit_anything_super_user", default: false
     t.boolean "can_edit_projects", default: false
+    t.boolean "can_edit_project_groups", default: false
+    t.boolean "can_view_organizations", default: false
     t.boolean "can_edit_organizations", default: false
     t.boolean "can_edit_data_sources", default: false
+    t.boolean "can_search_window", default: false
+    t.boolean "can_view_client_window", default: false
+    t.boolean "can_upload_hud_zips", default: false
     t.boolean "can_edit_translations", default: false
     t.boolean "can_manage_assessments", default: false
-    t.boolean "can_manage_config", default: false
-    t.boolean "can_edit_dq_grades", default: false
     t.boolean "can_manage_client_files", default: false
     t.boolean "can_manage_window_client_files", default: false
+    t.boolean "can_see_own_file_uploads", default: false
+    t.boolean "can_manage_config", default: false
+    t.boolean "can_edit_dq_grades", default: false
     t.boolean "can_view_vspdat", default: false
     t.boolean "can_edit_vspdat", default: false
+    t.boolean "can_submit_vspdat", default: false
     t.boolean "can_create_clients", default: false
     t.boolean "can_view_client_history_calendar", default: false
-    t.boolean "can_view_aggregate_health", default: false
-    t.boolean "can_assign_users_to_clients", default: false
-    t.boolean "can_view_client_user_assignments", default: false
-    t.boolean "can_export_hmis_data", default: false
-    t.boolean "can_confirm_housing_release", default: false
-    t.boolean "can_see_own_file_uploads", default: false
-    t.boolean "can_search_window", default: false
-    t.boolean "can_submit_vspdat", default: false
     t.boolean "can_edit_client_notes", default: false
     t.boolean "can_edit_window_client_notes", default: false
     t.boolean "can_see_own_window_client_notes", default: false
-    t.boolean "can_track_anomalies", default: false
-    t.boolean "can_view_all_reports", default: false
-    t.boolean "can_assign_reports", default: false
-    t.boolean "can_view_assigned_reports", default: false
-    t.boolean "can_view_reports", default: false
     t.boolean "can_manage_cohorts", default: false
     t.boolean "can_edit_cohort_clients", default: false
     t.boolean "can_edit_assigned_cohorts", default: false
     t.boolean "can_view_assigned_cohorts", default: false
-    t.boolean "can_manage_organization_users", default: false
-    t.boolean "can_add_administrative_event", default: false
+    t.boolean "can_assign_users_to_clients", default: false
+    t.boolean "can_view_client_user_assignments", default: false
+    t.boolean "can_export_hmis_data", default: false
+    t.boolean "can_confirm_housing_release", default: false
+    t.boolean "can_track_anomalies", default: false
+    t.boolean "can_view_all_reports", default: false
+    t.boolean "can_assign_reports", default: false
+    t.boolean "can_view_assigned_reports", default: false
     t.boolean "can_view_project_data_quality_client_details", default: false
-    t.boolean "can_manage_health_agency", default: false, null: false
+    t.boolean "can_manage_organization_users", default: false
+    t.boolean "can_view_all_user_client_assignments", default: false
+    t.boolean "can_add_administrative_event", default: false
+    t.boolean "can_see_clients_in_window_for_assigned_data_sources", default: false
+    t.boolean "can_upload_deidentified_hud_hmis_files", default: false
+    t.boolean "can_upload_whitelisted_hud_hmis_files", default: false
+    t.boolean "can_edit_warehouse_alerts", default: false
+    t.boolean "can_upload_dashboard_extras", default: false
+    t.boolean "can_administer_health", default: false
+    t.boolean "can_edit_client_health", default: false
+    t.boolean "can_view_client_health", default: false
+    t.boolean "can_view_aggregate_health", default: false
+    t.boolean "can_manage_health_agency", default: false
     t.boolean "can_approve_patient_assignments", default: false
     t.boolean "can_manage_claims", default: false
     t.boolean "can_manage_all_patients", default: false
     t.boolean "can_manage_patients_for_own_agency", default: false
+    t.boolean "can_manage_care_coordinators", default: false
+    t.boolean "can_approve_cha", default: false
+    t.boolean "can_approve_ssm", default: false
+    t.boolean "can_approve_release", default: false
+    t.boolean "can_approve_participation", default: false
     t.boolean "can_edit_all_patient_items", default: false
     t.boolean "can_edit_patient_items_for_own_agency", default: false
     t.boolean "can_create_care_plans_for_own_agency", default: false
     t.boolean "can_view_all_patients", default: false
     t.boolean "can_view_patients_for_own_agency", default: false
     t.boolean "can_add_case_management_notes", default: false
-    t.boolean "can_see_clients_in_window_for_assigned_data_sources", default: false
-    t.boolean "can_approve_patient_items_for_agency", default: false
-    t.boolean "can_approve_cha", default: false
-    t.boolean "can_approve_ssm", default: false
-    t.boolean "can_approve_release", default: false
-    t.boolean "can_approve_participation", default: false
-    t.boolean "can_manage_care_coordinators", default: false
     t.boolean "can_manage_accountable_care_organizations", default: false
     t.boolean "can_view_member_health_reports", default: false
-    t.boolean "can_edit_warehouse_alerts", default: false
-    t.boolean "can_upload_deidentified_hud_hmis_files", default: false
-    t.boolean "can_upload_whitelisted_hud_hmis_files", default: false
-    t.boolean "can_upload_dashboard_extras", default: false
-    t.boolean "can_view_all_user_client_assignments", default: false
-    t.boolean "can_audit_users", default: false
+    t.boolean "health_role", default: false, null: false
     t.boolean "can_audit_clients", default: false
     t.boolean "can_export_anonymous_hmis_data", default: false
     t.boolean "can_view_youth_intake", default: false
@@ -403,34 +377,35 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.boolean "can_edit_own_agency_youth_intake", default: false
     t.boolean "can_view_clients_with_roi_in_own_coc", default: false
     t.boolean "can_enable_2fa", default: false
+    t.boolean "can_edit_help", default: false
     t.boolean "can_view_ce_assessment", default: false
     t.boolean "can_edit_ce_assessment", default: false
     t.boolean "can_submit_ce_assessment", default: false
-    t.boolean "can_edit_help", default: false
+    t.boolean "can_edit_access_groups", default: false
+    t.boolean "enforced_2fa", default: false
     t.boolean "can_view_all_hud_reports", default: false
     t.boolean "can_view_own_hud_reports", default: false
-    t.boolean "enforced_2fa", default: false
-    t.boolean "can_edit_access_groups", default: false
     t.boolean "can_view_confidential_enrollment_details", default: false
+    t.boolean "can_impersonate_users", default: false
     t.boolean "can_manage_ad_hoc_data_sources", default: false
     t.boolean "can_view_client_ad_hoc_data_sources", default: false
-    t.boolean "can_impersonate_users", default: false
     t.boolean "can_use_strict_search", default: false
     t.boolean "can_use_separated_consent", default: false
+    t.boolean "training_required", default: false
     t.boolean "can_delete_projects", default: false
     t.boolean "can_delete_data_sources", default: false
-    t.boolean "training_required", default: false
+    t.boolean "can_edit_health_emergency_triage", default: false
     t.boolean "can_edit_health_emergency_clinical", default: false
     t.boolean "can_see_health_emergency", default: false
     t.boolean "can_edit_health_emergency_screening", default: false
     t.boolean "can_see_health_emergency_history", default: false
+    t.boolean "can_download_cohorts", default: false
     t.boolean "can_edit_health_emergency_medical_restriction", default: false
     t.boolean "can_see_health_emergency_medical_restriction", default: false
     t.boolean "can_see_health_emergency_screening", default: false
     t.boolean "can_see_health_emergency_clinical", default: false
-    t.boolean "can_edit_health_emergency_contact_tracing", default: false
     t.boolean "receives_medical_restriction_notifications", default: false
-    t.boolean "can_download_cohorts", default: false
+    t.boolean "can_edit_health_emergency_contact_tracing", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
