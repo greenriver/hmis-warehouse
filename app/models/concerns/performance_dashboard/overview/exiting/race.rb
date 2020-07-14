@@ -27,13 +27,14 @@ module PerformanceDashboard::Overview::Exiting::Race
     @exiting_by_race_data_for_chart ||= begin
       columns = [date_range_words]
       columns += exiting_by_race.values.map(&:count)
-      categories = exiting_by_race.keys.map do |type|
-        HUD.race(type)
-      end
-      {
+      categories = exiting_by_race.keys
+      filter_selected_data_for_chart({
+        chosen: @races,
         columns: columns,
         categories: categories,
-      }
+      }).tap do |data|
+        data[:categories].map! { |s| HUD.race(s) }
+      end
     end
   end
 

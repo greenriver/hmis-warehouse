@@ -27,13 +27,14 @@ module PerformanceDashboard::Overview::Enrolled::Race
     @enrolled_by_race_data_for_chart ||= begin
       columns = [date_range_words]
       columns += enrolled_by_race.values.map(&:count)
-      categories = enrolled_by_race.keys.map do |type|
-        HUD.race(type)
-      end
-      {
+      categories = enrolled_by_race.keys
+      filter_selected_data_for_chart({
+        chosen: @races,
         columns: columns, # ignore :all
         categories: categories, # ignore :all
-      }
+      }).tap do |data|
+        data[:categories].map! { |s| HUD.race(s) }
+      end
     end
   end
 
