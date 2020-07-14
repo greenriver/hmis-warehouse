@@ -140,7 +140,12 @@ module Filters
     end
 
     protected def build_coc_control_section
-      ::Filters::UiControlSection.new(id: 'coc', title: 'CoC & Funding').tap do |section|
+      title = if GrdaWarehouse::Config.get(:multi_coc_installation)
+        'CoC & Funding'
+      else
+        'Projects & Funding'
+      end
+      ::Filters::UiControlSection.new(id: 'coc', title: title).tap do |section|
         if GrdaWarehouse::Config.get(:multi_coc_installation)
           section.add_control(id: 'coc_codes', label: 'CoC Codes')
         end
