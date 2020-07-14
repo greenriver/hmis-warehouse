@@ -25,6 +25,8 @@ module Health
         disenrolled_patients = 0
         updated_patients = 0
 
+        file_date = enrollment.file_date
+
         enrollment.enrollments.each do |transaction|
           referral = referral(transaction)
           if referral.present?
@@ -44,7 +46,7 @@ module Health
         enrollment.disenrollments.each do |transaction|
           referral = referral(transaction)
           if referral.present?
-            disenroll_patient(transaction, referral)
+            disenroll_patient(transaction, referral, file_date)
             disenrolled_patients += 1
           end
         end
@@ -143,11 +145,11 @@ module Health
       Health::PatientReferral.create_referral(patient, referral_data)
     end
 
-    def disenroll_patient(transaction, referral)
+    def disenroll_patient(transaction, referral, file_date)
       code = Health::Enrollment.disenrollment_reason_code(transaction)
 
       referral.update(
-        pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction),
+        pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction) || file_date,
         stop_reason_description: disenrollment_reason_description(code),
       )
     end
