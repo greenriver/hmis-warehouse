@@ -28,13 +28,14 @@ module PerformanceDashboard::Overview::Exiting::Veteran
       columns = [date_range_words]
       columns += exiting_by_veteran.values.map(&:count)
       categories = exiting_by_veteran.keys
-      filter_selected_data_for_chart({
-                                       chosen: @veteran_statuses,
-                                       columns: columns,
-                                       categories: categories,
-                                     }).tap do |data|
-        data[:categories].map! { |s| HUD.veteran_status(s) }
-      end
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.veteran_status(s)] }.to_h,
+          chosen: @veteran_statuses,
+          columns: columns,
+          categories: categories,
+        }
+      )
     end
   end
 
