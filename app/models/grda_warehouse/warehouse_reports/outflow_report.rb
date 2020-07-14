@@ -138,13 +138,13 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def entries_scope
-      scope = service_history_enrollment_scope.
+      service_history_enrollment_scope.
         entry.
         open_between(start_date: @filter.start, end_date: @filter.end)
     end
 
     def exits_scope
-      scope = service_history_enrollment_scope.
+      service_history_enrollment_scope.
         homeless.
         exit_within_date_range(start_date: @filter.start, end_date: @filter.end)
     end
