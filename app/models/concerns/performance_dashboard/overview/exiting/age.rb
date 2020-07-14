@@ -31,7 +31,7 @@ module PerformanceDashboard::Overview::Exiting::Age
           chosen: @age_ranges,
           columns: columns,
           categories: categories,
-        }
+        },
       )
     end
   end

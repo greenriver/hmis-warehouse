@@ -35,7 +35,7 @@ module PerformanceDashboard::Overview::Entering::Household
           chosen: [@household_type].compact,
           columns: columns,
           categories: categories,
-        }
+        },
       )
     end
   end

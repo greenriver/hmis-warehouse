@@ -34,7 +34,7 @@ module PerformanceDashboard::Overview::Exiting::Race
           chosen: @races,
           columns: columns,
           categories: categories,
-        }
+        },
       )
     end
   end

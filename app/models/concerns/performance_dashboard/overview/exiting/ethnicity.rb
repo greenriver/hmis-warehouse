@@ -34,7 +34,7 @@ module PerformanceDashboard::Overview::Exiting::Ethnicity
           chosen: @ethnicities,
           columns: columns,
           categories: categories,
-        }
+        },
       )
     end
   end

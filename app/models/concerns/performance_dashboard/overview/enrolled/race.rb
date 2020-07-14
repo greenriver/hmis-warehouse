@@ -34,7 +34,7 @@ module PerformanceDashboard::Overview::Enrolled::Race
           chosen: @races,
           columns: columns,
           categories: categories,
-        }
+        },
       )
     end
   end

@@ -34,7 +34,7 @@ module PerformanceDashboard::Overview::Enrolled::Ethnicity
           chosen: @ethnicities,
           columns: columns,
           categories: categories,
-        }
+        },
       )
     end
   end

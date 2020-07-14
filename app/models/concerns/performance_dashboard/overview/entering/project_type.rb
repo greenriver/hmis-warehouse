@@ -34,7 +34,7 @@ module PerformanceDashboard::Overview::Entering::ProjectType
           chosen: @project_types,
           columns: columns,
           categories: categories,
-        }
+        },
       )
     end
   end

@@ -32,7 +32,7 @@ module PerformanceDashboard::Overview::Enrolled::Age
           chosen: @age_ranges,
           columns: columns,
           categories: categories,
-        }
+        },
       )
     end
   end

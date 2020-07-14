@@ -34,7 +34,7 @@ module PerformanceDashboard::Overview::Exiting::Veteran
           chosen: @veteran_statuses,
           columns: columns,
           categories: categories,
-        }
+        },
       )
     end
   end

@@ -140,9 +140,9 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
       data[:categories] = filtered.map(&:last)
       excluded_categories = initial_categories - data[:categories]
       if excluded_categories.present?
-        # FIXME - pack this option into the columns so I don't have to modify 20+ calls in partials
+        # FIXME: - pack this option into the columns so I don't have to modify 20+ calls in partials
         excluded_categories.map! { |s| labels.fetch(s, s) }
-        data[:categories].unshift({excluded_categories: excluded_categories})
+        data[:categories].unshift({ excluded_categories: excluded_categories })
       end
     end
     data[:categories].map! { |s| labels.fetch(s, s) }

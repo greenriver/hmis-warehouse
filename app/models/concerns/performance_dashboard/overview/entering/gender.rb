@@ -34,7 +34,7 @@ module PerformanceDashboard::Overview::Entering::Gender
           chosen: @genders,
           columns: columns,
           categories: categories,
-        }
+        },
       )
     end
   end
