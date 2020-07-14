@@ -7,6 +7,10 @@ module GrdaWarehouse
         cocname
       end
 
+      def number_and_name
+        "#{cocnum} #{cocname}"
+      end
+
       def additional_geo_json_properties
         {
           'metric' => Random.rand

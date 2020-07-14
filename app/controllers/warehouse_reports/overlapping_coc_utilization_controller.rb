@@ -63,8 +63,6 @@ module WarehouseReports
     private def all_clients(coc1, coc2)
       <<~SQL
         SELECT
-          -- pt1.text AS "Project Type",
-          -- ft1.text AS "Funder",
           count(DISTINCT c.id) as "Shared Clients"
         FROM
           "Client" c
@@ -80,7 +78,6 @@ module WarehouseReports
       <<~SQL
         SELECT
           pt1.text AS "Project Type",
-          -- ft1.text AS "Funder",
           count(DISTINCT c.id) as "Shared Clients"
         FROM
           "Client" c
@@ -98,7 +95,6 @@ module WarehouseReports
       <<~SQL
         SELECT
           ft1.text AS "Funding Source",
-          -- ft1.text AS "Funder",
           count(DISTINCT c.id) as "Shared Clients"
         FROM
           "Client" c
