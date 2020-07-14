@@ -4,8 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse::Vispdat
-  class Child < GrdaWarehouseBase
-    belongs_to :family
+module PII
+  class RekeyJob < BaseJob
+    queue_as :pii
+
+    def perform
+      Rake::Task['secrets:rotate'].execute
+    end
   end
 end

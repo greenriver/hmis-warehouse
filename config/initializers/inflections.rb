@@ -24,4 +24,5 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.acronym 'DND'
   inflect.acronym 'CoC'
   inflect.acronym 'DHCD'
+  inflect.acronym 'PII'
 end

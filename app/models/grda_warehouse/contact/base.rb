@@ -6,6 +6,7 @@
 
 module GrdaWarehouse::Contact
   class Base < GrdaWarehouseBase
+    include PIIAttributeSupport
     self.table_name = :contacts
     acts_as_paranoid
 

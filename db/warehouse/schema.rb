@@ -202,6 +202,16 @@ ActiveRecord::Schema.define(version: 2020_07_16_132417) do
     t.boolean "dv_rrh_desired", default: false
     t.string "health_prioritized"
     t.boolean "demographic_dirty", default: true
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+    t.string "encrypted_MiddleName"
+    t.string "encrypted_MiddleName_iv"
+    t.string "encrypted_LastName"
+    t.string "encrypted_LastName_iv"
+    t.string "encrypted_SSN"
+    t.string "encrypted_SSN_iv"
+    t.string "encrypted_NameSuffix"
+    t.string "encrypted_NameSuffix_iv"
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -1734,6 +1744,18 @@ ActiveRecord::Schema.define(version: 2020_07_16_132417) do
     t.string "mime_type"
     t.index ["type"], name: "index_document_exports_on_type"
     t.index ["user_id"], name: "index_document_exports_on_user_id"
+  end
+
+  create_table "encryption_secrets", force: :cascade do |t|
+    t.string "version_stage", null: false
+    t.string "version_id", null: false
+    t.boolean "previous", default: true, null: false
+    t.boolean "current", default: true, null: false
+    t.datetime "rotated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["version_id"], name: "index_encryption_secrets_on_version_id", unique: true
+    t.index ["version_stage"], name: "index_encryption_secrets_on_version_stage", unique: true
   end
 
   create_table "enrollment_change_histories", id: :serial, force: :cascade do |t|

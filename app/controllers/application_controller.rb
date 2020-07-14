@@ -36,6 +36,17 @@ class ApplicationController < ActionController::Base
   before_action :enforce_2fa!
   before_action :require_training!
   before_action :health_emergency?
+  before_action :set_up_pii_access
+
+  def set_up_pii_access
+    if current_user.blank?
+      GrdaWarehouse::Hud::Client.deny_pii!
+    elsif current_user.email == 'tblackman@greenriver.comAAAA'
+      GrdaWarehouse::Hud::Client.allow_pii!
+    else
+      GrdaWarehouse::Hud::Client.deny_pii!
+    end
+  end
 
   prepend_before_action :skip_timeout
 

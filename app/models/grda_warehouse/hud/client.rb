@@ -18,12 +18,19 @@ module GrdaWarehouse::Hud
     include HudChronicDefinition
     include SiteChronic
     include ClientHealthEmergency
+    include PIIAttributeSupport
     has_paper_trail
 
     self.table_name = :Client
     self.hud_key = :PersonalID
     acts_as_paranoid(column: :DateDeleted)
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
+
+    attr_pii :FirstName
+    attr_pii :LastName
+    attr_pii :MiddleName
+    attr_pii :NameSuffix
+    attr_pii :SSN
 
     has_many :client_files
     has_many :health_files
