@@ -6,7 +6,7 @@ class AddShapeData < ActiveRecord::Migration[5.2]
 
     reversible do |r|
       r.up do
-        Rake::Task['grda_warehouse:get_shapes'].invoke
+        Rake::Task['grda_warehouse:get_shapes'].invoke rescue nil
 
         url = 'warehouse_reports/overlapping_coc_utilization'
         r = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).first_or_initialize
