@@ -1,4 +1,5 @@
 :ruby
+  excluded_categories = local_assigns[:excluded_categories].presence
   chart_options = {
     params: { filters: detail_params },
     columns: columns,
@@ -32,9 +33,11 @@
       - else
         = key.to_s.titleize
     %p.description.mb-0= desc
-    %p.description.mb-0
-      %span.text-color-hl-prs1 Note:
-      We do not show data that were explicity excluded from your universe settings.
+    - if excluded_categories.present?
+      %p.description.mb-0
+        %span.text-color-hl-prs1 Note:
+        We do not show data that were explicity excluded from your universe settings.
+        Currently excluding: #{excluded_categories.join(', ')}.
   .mb-2.ml-3
     - if @report_variant == 'sparse'
       .gray.lead.font-weight-normal
