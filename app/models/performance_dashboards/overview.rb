@@ -144,8 +144,8 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
         excluded_categories.map! { |s| labels.fetch(s, s) }
         data[:categories].unshift({excluded_categories: excluded_categories})
       end
-      data[:categories].map! { |s| labels.fetch(s, s) }
     end
+    data[:categories].map! { |s| labels.fetch(s, s) }
     data
   end
 end
