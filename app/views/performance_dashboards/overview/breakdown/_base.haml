@@ -39,7 +39,7 @@
     - if @report_variant == 'sparse'
       .gray.lead.font-weight-normal
         - if @report.include_comparison?
-          .mb-1.small.font-weight-bold Unique Enrolled Clients
+          .mb-1.small.font-weight-bold Unique #{key.to_s.titleize} Clients
           .mb-1
             Reporting Period:
             = link_to_if show_client_details?,
@@ -55,7 +55,7 @@
               data: {loads_in_pjax_modal: true},
               class: 'font-weight-bold'
         - else
-          Unique Enrolled Clients:
+          Unique #{key.to_s.titleize} Clients
           = link_to_if show_client_details?,
             number_with_delimiter(client_counts[:report]),
             details_performance_dashboards_overview_index_path({ filters: detail_params }),
@@ -67,13 +67,13 @@
           %h4.m-0 Report Period
           %p.mb-0 #{@report.date_range_words}
           - count = client_counts[:report]
-          = link_to_if show_client_details?, "Unique Enrolled Clients: #{number_with_delimiter count}", details_performance_dashboards_overview_index_path({ filters: detail_params }), data: {loads_in_pjax_modal: true}
+          = link_to_if show_client_details?, "Total Unique Clients: #{number_with_delimiter count}", details_performance_dashboards_overview_index_path({ filters: detail_params }), data: {loads_in_pjax_modal: true}
         - if @report.include_comparison?
           .comparison-period
             %h4.m-0 Comparison Period
             %p.mb-0 #{@comparison.date_range_words}
             - count = client_counts[:comparison]
-            = link_to_if show_client_details?, "Unique Enrolled Clients: #{number_with_delimiter count}", details_performance_dashboards_overview_index_path({ filters: comparison_params }), data: {loads_in_pjax_modal: true}
+            = link_to_if show_client_details?, "Total Unique Clients: #{number_with_delimiter count}", details_performance_dashboards_overview_index_path({ filters: comparison_params }), data: {loads_in_pjax_modal: true}
 
 .well.mb-6.pt-0
   .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: chart_options.to_json.html_safe } }
