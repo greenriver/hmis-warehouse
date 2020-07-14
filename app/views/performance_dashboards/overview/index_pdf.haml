@@ -15,8 +15,6 @@
       .ml-auto
         - logo = wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
         = image_tag(logo, width: 250) if logo.present?
-    %section.mb-5
-      = render 'performance_dashboards/overview/overall'
     %section.filter-summary.mb-5
       %h2.mb-4 Summary of Selected Universe
       = render 'performance_dashboards/active_filters_two_col'
