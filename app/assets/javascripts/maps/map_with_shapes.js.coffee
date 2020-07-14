@@ -8,6 +8,7 @@ class App.Maps.MapWithShapes
       minZoom: 6
       maxZoom: 9
       zoomControl: false
+      scrollWheelZoom: false
     @strokeColor = '#d7d7de'
 
     # repeat first color last because for some reason the change in the selection index

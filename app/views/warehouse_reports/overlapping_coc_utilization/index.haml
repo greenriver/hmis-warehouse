@@ -39,8 +39,7 @@
 - report_id = 'coc-overlap-report'
 - map_id = report_id + '-map'
 - results_id = report_id + '-results'
-- end_date = Date.current
-- start_date = end_date - 1.week
+
 .warehouse-reports__ad_hoc-export.c-report{id: report_id}
   .row.pb-8
     .col-5
@@ -48,8 +47,8 @@
       = simple_form_for :compare, url: url_for, method: :get do |f|
         .c-input-group
           %p.c-input-group__description To start, select a time range:
-          = f.input :start_date, as: :date_picker, input_html: {value: start_date}
-          = f.input :end_date, as: :date_picker, input_html: {value: end_date}
+          = f.input :start_date, as: :date_picker, input_html: {value: @start_date}
+          = f.input :end_date, as: :date_picker, input_html: {value: @end_date}
         .c-input-group
           %p.c-input-group__description Select two CoCs below or by clicking on the map:
           %div.d-flex

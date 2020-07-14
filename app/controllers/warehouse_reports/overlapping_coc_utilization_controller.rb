@@ -13,6 +13,8 @@ module WarehouseReports
     end
 
     def index
+      @end_date = (Date.current - 1.years).end_of_year
+      @start_date = @end_date.beginning_of_year
       @cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
       @shapes = GrdaWarehouse::Shape.geo_collection_hash(@cocs)
     end
@@ -112,18 +114,18 @@ module WarehouseReports
       ###
       # fake data for testing
       project_types = ([
-        'All (Unique Clients)',
         'CA (Coordinated Assessment)',
       ] + GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.values).map do |type|
         [type, [rand(100), rand(100)]]
       end
+      project_types << ['All Program Types (Unique Clients)', [150, 175]]
       funding_sources = [
-        'All (Unique Clients)',
         'State',
         'ESG (Emergency Solutions Grants)',
       ].map do |source|
         [source, [rand(100), rand(100)]]
       end
+      funding_sources << ['All Funding Sources (Unique Clients)', [150, 175]]
       cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
       map_data = {}
       GrdaWarehouse::Shape.geo_collection_hash(cocs)[:features].each do |feature|
