@@ -27,13 +27,14 @@ module PerformanceDashboard::Overview::Enrolled::Veteran
     @enrolled_by_veteran_data_for_chart ||= begin
       columns = [date_range_words]
       columns += enrolled_by_veteran.values.map(&:count)
-      categories = enrolled_by_veteran.keys.map do |type|
-        HUD.veteran_status(type)
-      end
-      {
+      categories = enrolled_by_veteran.keys
+      filter_selected_data_for_chart({
+        chosen: @veteran_statuses,
         columns: columns,
         categories: categories,
-      }
+      }).tap do |data|
+        data[:categories].map! { |s| HUD.veteran_status(s) }
+      end
     end
   end
 
