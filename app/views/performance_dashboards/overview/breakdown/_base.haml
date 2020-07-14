@@ -32,12 +32,16 @@
         Actively Enrolled Clients from #{@report.date_range_words}
       - else
         = key.to_s.titleize
-    %p.description.mb-0= desc
+    .description= desc
     - if excluded_categories.present?
-      %p.description.mb-0
+      .my-2
         %span.text-color-hl-prs1 Note:
-        We do not show data that were explicity excluded from your universe settings.
-        Currently excluding: #{excluded_categories.join(', ')}.
+        We do not show data that were explicitly excluded from your universe settings.
+      %div
+        .font-weight-bold.small.mb-1 Currently excluding:
+        %ul.list-inline.d-inline
+          - excluded_categories.each do |cat|
+            %li.list-inline-item.chip-v1-prs1= cat
   .mb-2.ml-3
     - if @report_variant == 'sparse'
       .gray.lead.font-weight-normal
