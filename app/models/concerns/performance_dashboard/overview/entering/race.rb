@@ -28,13 +28,14 @@ module PerformanceDashboard::Overview::Entering::Race
       columns = [date_range_words]
       columns += entering_by_race.values.map(&:count)
       categories = entering_by_race.keys
-      filter_selected_data_for_chart({
-                                       chosen: @races,
-                                       columns: columns,
-                                       categories: categories,
-                                     }).tap do |data|
-        data[:categories].map! { |s| HUD.race(s) }
-      end
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.race(s)] }.to_h,
+          chosen: @races,
+          columns: columns,
+          categories: categories,
+        }
+      )
     end
   end
 
