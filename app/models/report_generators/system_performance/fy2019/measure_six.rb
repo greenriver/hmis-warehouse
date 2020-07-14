@@ -80,8 +80,6 @@ module ReportGenerators::SystemPerformance::Fy2019
     end
 
     def measure_6_a_and_b
-      headers = [:client_id, :destination, :date, :first_date_in_program, :last_date_in_program, :project_type, :project_id, :data_source_id, :project_name]
-
       project_types = TH + SH + PH
 
       project_exit_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
@@ -132,11 +130,13 @@ module ReportGenerators::SystemPerformance::Fy2019
       @answers[:sixab_b6][:value] = project_exists_from[:ph].count
       @answers[:sixab_b7][:value] = @answers[:sixab_b2][:value] + @answers[:sixab_b3][:value] + @answers[:sixab_b4][:value] + @answers[:sixab_b5][:value] + @answers[:sixab_b6][:value]
 
-      @support[:sixab_b2][:support] = support_for(answer: :sixab_b2, data: project_exists_from[:so])
-      @support[:sixab_b3][:support] = support_for(answer: :sixab_b3, data: project_exists_from[:es])
-      @support[:sixab_b4][:support] = support_for(answer: :sixab_b4, data: project_exists_from[:th])
-      @support[:sixab_b5][:support] = support_for(answer: :sixab_b5, data: project_exists_from[:sh])
-      @support[:sixab_b6][:support] = support_for(answer: :sixab_b6, data: project_exists_from[:ph])
+      client_personal_ids = personal_ids(project_exit_scope.pluck(:client_id))
+
+      @support[:sixab_b2][:support] = support_for(answer: :sixab_b2, data: project_exists_from[:so], personal_ids: client_personal_ids)
+      @support[:sixab_b3][:support] = support_for(answer: :sixab_b3, data: project_exists_from[:es], personal_ids: client_personal_ids)
+      @support[:sixab_b4][:support] = support_for(answer: :sixab_b4, data: project_exists_from[:th], personal_ids: client_personal_ids)
+      @support[:sixab_b5][:support] = support_for(answer: :sixab_b5, data: project_exists_from[:sh], personal_ids: client_personal_ids)
+      @support[:sixab_b6][:support] = support_for(answer: :sixab_b6, data: project_exists_from[:ph], personal_ids: client_personal_ids)
 
       update_report_progress(percent: 10)
 
@@ -237,22 +237,21 @@ module ReportGenerators::SystemPerformance::Fy2019
       @answers[:sixab_g5][:value] = project_exit_counts[:g_366_730_days][:sh][:counts].size
       @answers[:sixab_g6][:value] = project_exit_counts[:g_366_730_days][:ph][:counts].size
 
-      @support[:sixab_c2][:support] = support_for(answer: :sixab_c2, data: project_exit_counts[:c_0_180_days][:so][:support])
-      @support[:sixab_c3][:support] = support_for(answer: :sixab_c3, data: project_exit_counts[:c_0_180_days][:es][:support])
-      @support[:sixab_c4][:support] = support_for(answer: :sixab_c4, data: project_exit_counts[:c_0_180_days][:th][:support])
-      @support[:sixab_c5][:support] = support_for(answer: :sixab_c5, data: project_exit_counts[:c_0_180_days][:sh][:support])
-      @support[:sixab_c6][:support] = support_for(answer: :sixab_c6, data: project_exit_counts[:c_0_180_days][:ph][:support])
-      @support[:sixab_e2][:support] = support_for(answer: :sixab_e2, data: project_exit_counts[:e_181_365_days][:so][:support])
-      @support[:sixab_e3][:support] = support_for(answer: :sixab_e3, data: project_exit_counts[:e_181_365_days][:es][:support])
-      @support[:sixab_e4][:support] = support_for(answer: :sixab_e4, data: project_exit_counts[:e_181_365_days][:th][:support])
-      @support[:sixab_e5][:support] = support_for(answer: :sixab_e5, data: project_exit_counts[:e_181_365_days][:sh][:support])
-      @support[:sixab_e6][:support] = support_for(answer: :sixab_e6, data: project_exit_counts[:e_181_365_days][:ph][:support])
-      @support[:sixab_g2][:support] = support_for(answer: :sixab_g2, data: project_exit_counts[:g_366_730_days][:so][:support])
-      @support[:sixab_g3][:support] = support_for(answer: :sixab_g3, data: project_exit_counts[:g_366_730_days][:es][:support])
-      @support[:sixab_g4][:support] = support_for(answer: :sixab_g4, data: project_exit_counts[:g_366_730_days][:th][:support])
-      @support[:sixab_g5][:support] = support_for(answer: :sixab_g5, data: project_exit_counts[:g_366_730_days][:sh][:support])
-      @support[:sixab_g6][:support] = support_for(answer: :sixab_g6, data: project_exit_counts[:g_366_730_days][:ph][:support])
-
+      @support[:sixab_c2][:support] = support_for(answer: :sixab_c2, data: project_exit_counts[:c_0_180_days][:so][:support], personal_ids: client_personal_ids)
+      @support[:sixab_c3][:support] = support_for(answer: :sixab_c3, data: project_exit_counts[:c_0_180_days][:es][:support], personal_ids: client_personal_ids)
+      @support[:sixab_c4][:support] = support_for(answer: :sixab_c4, data: project_exit_counts[:c_0_180_days][:th][:support], personal_ids: client_personal_ids)
+      @support[:sixab_c5][:support] = support_for(answer: :sixab_c5, data: project_exit_counts[:c_0_180_days][:sh][:support], personal_ids: client_personal_ids)
+      @support[:sixab_c6][:support] = support_for(answer: :sixab_c6, data: project_exit_counts[:c_0_180_days][:ph][:support], personal_ids: client_personal_ids)
+      @support[:sixab_e2][:support] = support_for(answer: :sixab_e2, data: project_exit_counts[:e_181_365_days][:so][:support], personal_ids: client_personal_ids)
+      @support[:sixab_e3][:support] = support_for(answer: :sixab_e3, data: project_exit_counts[:e_181_365_days][:es][:support], personal_ids: client_personal_ids)
+      @support[:sixab_e4][:support] = support_for(answer: :sixab_e4, data: project_exit_counts[:e_181_365_days][:th][:support], personal_ids: client_personal_ids)
+      @support[:sixab_e5][:support] = support_for(answer: :sixab_e5, data: project_exit_counts[:e_181_365_days][:sh][:support], personal_ids: client_personal_ids)
+      @support[:sixab_e6][:support] = support_for(answer: :sixab_e6, data: project_exit_counts[:e_181_365_days][:ph][:support], personal_ids: client_personal_ids)
+      @support[:sixab_g2][:support] = support_for(answer: :sixab_g2, data: project_exit_counts[:g_366_730_days][:so][:support], personal_ids: client_personal_ids)
+      @support[:sixab_g3][:support] = support_for(answer: :sixab_g3, data: project_exit_counts[:g_366_730_days][:es][:support], personal_ids: client_personal_ids)
+      @support[:sixab_g4][:support] = support_for(answer: :sixab_g4, data: project_exit_counts[:g_366_730_days][:th][:support], personal_ids: client_personal_ids)
+      @support[:sixab_g5][:support] = support_for(answer: :sixab_g5, data: project_exit_counts[:g_366_730_days][:sh][:support], personal_ids: client_personal_ids)
+      @support[:sixab_g6][:support] = support_for(answer: :sixab_g6, data: project_exit_counts[:g_366_730_days][:ph][:support], personal_ids: client_personal_ids)
       # simple math
       @answers[:sixab_c7][:value] = @answers[:sixab_c2][:value] + @answers[:sixab_c3][:value] + @answers[:sixab_c4][:value] + @answers[:sixab_c5][:value] + @answers[:sixab_c6][:value]
       @answers[:sixab_e7][:value] = @answers[:sixab_e2][:value] + @answers[:sixab_e3][:value] + @answers[:sixab_e4][:value] + @answers[:sixab_e5][:value] + @answers[:sixab_e6][:value]
@@ -433,17 +432,33 @@ module ReportGenerators::SystemPerformance::Fy2019
           limit(1).
           pluck(:destination).first
       end
+
+      client_personal_ids = personal_ids(universe)
+
       remaining_leavers = destinations.reject{ |id, destination| [15, 6,25,24].include?(destination.to_i)}
       @answers[:sixc1_c2][:value] = remaining_leavers.size
       @support[:sixc1_c2][:support] = {
-        headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
+        counts: remaining_leavers.map do |id, destination|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            HUD.destination(destination),
+          ]
+        end
       }
+
       permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23].include?(destination.to_i)}
       @answers[:sixc1_c3][:value] = permanent_leavers.size
       @support[:sixc1_c3][:support] = {
-        headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
+        counts: permanent_leavers.map do |id, destination|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            HUD.destination(destination),
+          ]
+        end
       }
       @answers[:sixc1_c4][:value] = ((@answers[:sixc1_c3][:value].to_f / @answers[:sixc1_c2][:value]) * 100).round(2)
       return @answers
@@ -516,32 +531,48 @@ module ReportGenerators::SystemPerformance::Fy2019
           limit(1).
           pluck(:destination).first
       end
+
+      client_personal_ids = personal_ids(leavers)
+
       remaining_leavers = destinations.reject{ |id, destination| [15, 6, 25, 24].include?(destination.to_i)}
       @answers[:sixc2_c2][:value] = remaining_leavers.size + stayers.size
       @support[:sixc2_c2][:support] = {
-        headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
+        counts: remaining_leavers.map do |id, destination|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            HUD.destination(destination),
+          ]
+        end
       }
+
       permanent_leavers = destinations.select{ |id, destination| [26, 11, 21, 3, 10, 28, 20, 19, 22, 23].include?(destination.to_i)}
       @answers[:sixc2_c3][:value] = permanent_leavers.size + stayers.size
       @support[:sixc2_c3][:support] = {
-        headers: ['Client ID', 'Destination'],
+        headers: ['Client ID', 'Personal IDs', 'Destination'],
         counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
       }
       @answers[:sixc2_c4][:value] = ((@answers[:sixc2_c3][:value].to_f / @answers[:sixc2_c2][:value]) * 100).round(2)
       return @answers
     end
 
-    def support_for answer:, data:
+    def support_for(answer:, data:, personal_ids:)
       case answer
       when :sixab_b2, :sixab_b3, :sixab_b4, :sixab_b5, :sixab_b6
         {
-          headers: ['Client ID', 'Project Name'],
-          counts: data.map{|m| [m[:client_id], m[:project_name]]},
+          headers: ['Client ID', 'Personal IDs', 'Project Name'],
+          counts: data.map do |m|
+            [
+              m[:client_id],
+              personal_ids[m[:client_id]].join(', '),
+              m[:project_name],
+            ]
+          end
         }
       when :sixab_c2, :sixab_c3, :sixab_c4, :sixab_c5, :sixab_c6, :sixab_e2, :sixab_e3, :sixab_e4, :sixab_e5, :sixab_e6, :sixab_g2, :sixab_g3, :sixab_g4, :sixab_g5, :sixab_g6
         {
-          headers: ['Client ID', 'Days'],
+          headers: ['Client ID', 'Personal IDs', 'Days'],
           counts: data,
         }
       else

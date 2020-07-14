@@ -101,11 +101,20 @@ module ReportGenerators::SystemPerformance::Fy2019
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
         end
       end
+
+      client_personal_ids = personal_ids(remaining)
+
       if clients.size > 0
         @answers[:onea_c2][:value] = clients.size
         @support[:onea_c2][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map{|id, days| [id, days]}
+          headers: ['Client ID', 'Personal IDs', 'Days'],
+          counts: clients.map do |id, days|
+            [
+              id,
+              client_personal_ids[id].join(', '),
+              days,
+            ]
+          end
         }
         @answers[:onea_e2][:value] = clients.values.reduce(:+) / (clients.size)
         @answers[:onea_h2][:value] = median(clients.values)
@@ -136,11 +145,20 @@ module ReportGenerators::SystemPerformance::Fy2019
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 20).round(2))
         end
       end
+
+      client_personal_ids = personal_ids(remaining)
+
       if clients.size > 0
         @answers[:onea_c3][:value] = clients.count
         @support[:onea_c3][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map{|id, days| [id, days]}
+          headers: ['Client ID', 'Personal IDs', 'Days'],
+          counts: clients.map do |id, days|
+            [
+              id,
+              client_personal_ids[id].join(', '),
+              days,
+            ]
+          end
         }
         @answers[:onea_e3][:value] = clients.values.reduce(:+) / (clients.count)
         @answers[:onea_h3][:value] = median(clients.values)
@@ -186,11 +204,20 @@ module ReportGenerators::SystemPerformance::Fy2019
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
         end
       end
+
+      client_personal_ids = personal_ids(remaining)
+
       if clients.size > 0
         @answers[:oneb_c2][:value] = clients.size
         @support[:oneb_c2][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map{|id, days| [id, days]}
+          headers: ['Client ID', 'Personal IDs', 'Days'],
+          counts: clients.map do |id, days|
+            [
+              id,
+              client_personal_ids[id].join(', '),
+              days,
+            ]
+          end
         }
         @answers[:oneb_e2][:value] = clients.values.reduce(:+) / (clients.size)
         @answers[:oneb_h2][:value] = median(clients.values)
@@ -231,11 +258,19 @@ module ReportGenerators::SystemPerformance::Fy2019
         end
       end
 
+      client_personal_ids = personal_ids(remaining)
+
       if clients.size > 0
         @answers[:oneb_c3][:value] = clients.count
         @support[:oneb_c3][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map{|id, days| [id, days]}
+          headers: ['Client ID', 'Personal IDs', 'Days'],
+          counts: clients.map do |id, days|
+            [
+              id,
+              client_personal_ids[id].join(', '),
+              days,
+            ]
+          end
         }
         @answers[:oneb_e3][:value] = clients.values.reduce(:+) / (clients.count)
         @answers[:oneb_h3][:value] = median(clients.values)

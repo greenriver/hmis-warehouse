@@ -2,10 +2,6 @@
   - content_for :filters_col_full do
     .row
       .col-sm-4
-        = f.input :start_date, as: :date_picker, input_html: {value: @start_date}
-      .col-sm-4
-        = f.input :end_date, as: :date_picker, input_html: {value: @end_date}
-      .col-sm-4
         = f.input :aco, collection: Health::AccountableCareOrganization.active, selected: @aco, include_blank: '', label: 'ACO name', input_html: { class: :select2 }
 
   - content_for :filter_actions do

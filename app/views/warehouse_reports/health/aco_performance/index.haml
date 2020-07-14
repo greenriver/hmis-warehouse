@@ -1,4 +1,4 @@
-- title = "Accountable Care Organization Performance Between #{@start_date} and #{@end_date}"
+- title = "#{@aco_name || 'Accountable Care Organization'} Performance"
 - content_for :title, title
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'health'

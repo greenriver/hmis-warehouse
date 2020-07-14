@@ -27,11 +27,15 @@ module PerformanceDashboard::Overview::Entering::ProjectType
     @entering_by_project_type_data_for_chart ||= begin
       columns = [date_range_words]
       columns += entering_by_project_type.values.map(&:count)
-      categories = entering_by_project_type.keys.map { |m| HUD.project_type(m) }
-      {
-        columns: columns,
-        categories: categories,
-      }
+      categories = entering_by_project_type.keys
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.project_type(s)] }.to_h,
+          chosen: @project_types,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 

@@ -27,11 +27,15 @@ module PerformanceDashboard::Overview::Enrolled::Gender
     @enrolled_by_gender_data_for_chart ||= begin
       columns = [date_range_words]
       columns += enrolled_by_gender.values.map(&:count)
-      categories = enrolled_by_gender.keys.map { |g| HUD.gender(g) }
-      {
-        columns: columns,
-        categories: categories,
-      }
+      categories = enrolled_by_gender.keys
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.gender(s)] }.to_h,
+          chosen: @genders,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 

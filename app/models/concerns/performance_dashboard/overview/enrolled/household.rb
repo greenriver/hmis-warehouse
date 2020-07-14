@@ -28,13 +28,15 @@ module PerformanceDashboard::Overview::Enrolled::Household
     @enrolled_by_household_data_for_chart ||= begin
       columns = [date_range_words]
       columns += enrolled_by_household.values.map(&:count).drop(1) # ignore :all
-      categories = enrolled_by_household.keys.map do |type|
-        household_type(type)
-      end.drop(1) # ignore :all
-      {
-        columns: columns, # ignore :all
-        categories: categories, # ignore :all
-      }
+      categories = enrolled_by_household.keys.drop(1) # ignore :all
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, household_type(s)] }.to_h,
+          chosen: [@household_type].compact,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 

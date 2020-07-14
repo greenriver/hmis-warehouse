@@ -9,15 +9,12 @@ module Health
     include ArelHelper
 
     attr_accessor :range
-    def initialize(aco:, range:)
+    def initialize(aco)
       @aco = aco
-      @range = (range.first.to_date..range.last.to_date)
     end
 
     def patient_referrals
-      @patient_referrals ||= referral_scope.
-        pluck(:patient_id, hpr_t[:enrollment_start_date]).
-        to_h
+      @patient_referrals ||= referral_scope.group(:patient_id).minimum(:enrollment_start_date)
     end
 
     def patients
@@ -28,7 +25,6 @@ module Health
       @qa_signatures ||= Health::QualifyingActivity.submittable.
         # during_current_enrollment. # Any PCTP signature counts as a signed care plan
         where(patient_id: patient_referrals.keys). # limit to patients in scope
-      where(date_of_activity: @range).
         where(activity: :pctp_signed).
         group(:patient_id).maximum(:date_of_activity) # Most recent signed care plan
     end
@@ -40,6 +36,7 @@ module Health
 
         signed = careplan_date.present? &&
           enrollment_date.present? &&
+          careplan_date >= enrollment_date &&
           # careplan_date.between?(@range.first, @range.last) && # Any PCTP signature counts as a signed care plan
           (careplan_date - enrollment_date).to_i <= 122
 
@@ -49,9 +46,8 @@ module Health
 
     private def referral_scope
       Health::PatientReferral.
-        with_patient.
-        where(accountable_care_organization_id: @aco).
-        active_within_range(start_date: @range.first, end_date: @range.last)
+        contributing.
+        at_acos(@aco)
     end
   end
 end
