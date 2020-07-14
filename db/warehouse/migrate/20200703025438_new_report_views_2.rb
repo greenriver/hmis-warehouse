@@ -226,115 +226,115 @@ class NewReportViews2 < ActiveRecord::Migration[5.2]
     return query if model.name == 'GrdaWarehouse::Hud::Assessment'
     return join_to_assessments(query) if model.column_names.include?('AssessmentID')
 
-    query
-  end
+  #   query
+  # end
 
-  def non_client_view(model)
-    query = join_project_if_appropriate(model, model.arel_table)
-    query = join_organization_if_appropriate(model, query)
-    query = join_enrollment_if_appropriate(model, query)
-    query = join_destination_client_if_appropriate(model, query)
-    query = join_assessment_if_appropriate(model, query)
+  # def non_client_view(model)
+  #   query = join_project_if_appropriate(model, model.arel_table)
+  #   query = join_organization_if_appropriate(model, query)
+  #   query = join_enrollment_if_appropriate(model, query)
+  #   query = join_destination_client_if_appropriate(model, query)
+  #   query = join_assessment_if_appropriate(model, query)
 
-    cols = [
-      hmis_cols(model),
-      model.arel_table[:data_source_id],
-    ]
-    cols << source_client_table[:id].as('demographic_id') if model.column_names.include?('PersonalID')
+  #   cols = [
+  #     hmis_cols(model),
+  #     model.arel_table[:data_source_id],
+  #   ]
+  #   cols << source_client_table[:id].as('demographic_id') if model.column_names.include?('PersonalID')
 
-    query = query.project(cols)
-    query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil ) if model.paranoid?
+  #   query = query.project(cols)
+  #   query = query.where( model.arel_table[model.paranoia_column.to_sym].eq nil ) if model.paranoid?
 
-    safe_create_view view_name(model), sql_definition: query.to_sql
-  end
+  #   safe_create_view view_name(model), sql_definition: query.to_sql
+  # end
 
-  def view_name(model)
-    "\"#{NAMESPACE}_#{model.table_name}\""
-  end
+  # def view_name(model)
+  #   "\"#{NAMESPACE}_#{model.table_name}\""
+  # end
 
-  def source_client_table
-    @source_client_table ||= Arel::Table.new(
-      GrdaWarehouse::Hud::Client.table_name
-    ).tap{ |t| t.table_alias = 'source_clients' }
-  end
+  # def source_client_table
+  #   @source_client_table ||= Arel::Table.new(
+  #     GrdaWarehouse::Hud::Client.table_name
+  #   ).tap{ |t| t.table_alias = 'source_clients' }
+  # end
 
-  def destination_client_table
-    @destination_client_table ||= Arel::Table.new(
-      GrdaWarehouse::Hud::Client.table_name
-    ).tap{ |t| t.table_alias = 'destination_clients' }
-  end
+  # def destination_client_table
+  #   @destination_client_table ||= Arel::Table.new(
+  #     GrdaWarehouse::Hud::Client.table_name
+  #   ).tap{ |t| t.table_alias = 'destination_clients' }
+  # end
 
-  def join_to_enrollments(table)
-    at = if table.is_a?(Arel::SelectManager)
-      table.froms.first
-    else
-      table
-    end
-    model = GrdaWarehouse::Hud::Enrollment.arel_table
-    table.join(model).on(
-      at[:data_source_id].eq(model[:data_source_id]).
-      and( at[:EnrollmentID].eq model[:EnrollmentID] ).
-      and( model[:DateDeleted].eq nil )
-    )
-  end
+  # def join_to_enrollments(table)
+  #   at = if table.is_a?(Arel::SelectManager)
+  #     table.froms.first
+  #   else
+  #     table
+  #   end
+  #   model = GrdaWarehouse::Hud::Enrollment.arel_table
+  #   table.join(model).on(
+  #     at[:data_source_id].eq(model[:data_source_id]).
+  #     and( at[:EnrollmentID].eq model[:EnrollmentID] ).
+  #     and( model[:DateDeleted].eq nil )
+  #   )
+  # end
 
-  def join_to_destination_clients(table)
-    at = if table.is_a?(Arel::SelectManager)
-      table.froms.first
-    else
-      table
-    end
-    table.join(source_client_table).on(
-      at[:data_source_id].eq(source_client_table[:data_source_id]).
-      and( at[:PersonalID].eq source_client_table[:PersonalID] ).
-      and( source_client_table[:DateDeleted].eq nil )
-    ).join(wc_t).on(
-      source_client_table[:id].eq wc_t[:source_id]
-    ).join(destination_client_table).on(
-      destination_client_table[:id].eq(wc_t[:destination_id]).
-      and( destination_client_table[:DateDeleted].eq nil )
-    )
-  end
+  # def join_to_destination_clients(table)
+  #   at = if table.is_a?(Arel::SelectManager)
+  #     table.froms.first
+  #   else
+  #     table
+  #   end
+  #   table.join(source_client_table).on(
+  #     at[:data_source_id].eq(source_client_table[:data_source_id]).
+  #     and( at[:PersonalID].eq source_client_table[:PersonalID] ).
+  #     and( source_client_table[:DateDeleted].eq nil )
+  #   ).join(wc_t).on(
+  #     source_client_table[:id].eq wc_t[:source_id]
+  #   ).join(destination_client_table).on(
+  #     destination_client_table[:id].eq(wc_t[:destination_id]).
+  #     and( destination_client_table[:DateDeleted].eq nil )
+  #   )
+  # end
 
-  def join_to_projects(table)
-    at = if table.is_a?(Arel::SelectManager)
-      table.froms.first
-    else
-      table
-    end
-    model = GrdaWarehouse::Hud::Project.arel_table
-    table.join(model).on(
-      at[:data_source_id].eq(model[:data_source_id]).
-      and( at[:ProjectID].eq model[:ProjectID] ).
-      and( model[:DateDeleted].eq nil )
-    )
-  end
+  # def join_to_projects(table)
+  #   at = if table.is_a?(Arel::SelectManager)
+  #     table.froms.first
+  #   else
+  #     table
+  #   end
+  #   model = GrdaWarehouse::Hud::Project.arel_table
+  #   table.join(model).on(
+  #     at[:data_source_id].eq(model[:data_source_id]).
+  #     and( at[:ProjectID].eq model[:ProjectID] ).
+  #     and( model[:DateDeleted].eq nil )
+  #   )
+  # end
 
-  def join_to_organizations(table)
-    at = if table.is_a?(Arel::SelectManager)
-      table.froms.first
-    else
-      table
-    end
-    model = GrdaWarehouse::Hud::Organization.arel_table
-    table.join(model).on(
-      at[:data_source_id].eq(model[:data_source_id]).
-      and( at[:OrganizationID].eq model[:OrganizationID] ).
-      and( model[:DateDeleted].eq nil )
-    )
-  end
+  # def join_to_organizations(table)
+  #   at = if table.is_a?(Arel::SelectManager)
+  #     table.froms.first
+  #   else
+  #     table
+  #   end
+  #   model = GrdaWarehouse::Hud::Organization.arel_table
+  #   table.join(model).on(
+  #     at[:data_source_id].eq(model[:data_source_id]).
+  #     and( at[:OrganizationID].eq model[:OrganizationID] ).
+  #     and( model[:DateDeleted].eq nil )
+  #   )
+  # end
 
-  def join_to_assessments(table)
-    at = if table.is_a?(Arel::SelectManager)
-      table.froms.first
-    else
-      table
-    end
-    model = GrdaWarehouse::Hud::Assessment.arel_table
-    table.join(model).on(
-      at[:data_source_id].eq(model[:data_source_id]).
-      and( at[:AssessmentID].eq model[:AssessmentID] ).
-      and( model[:DateDeleted].eq nil )
-    )
-  end
+  # def join_to_assessments(table)
+  #   at = if table.is_a?(Arel::SelectManager)
+  #     table.froms.first
+  #   else
+  #     table
+  #   end
+  #   model = GrdaWarehouse::Hud::Assessment.arel_table
+  #   table.join(model).on(
+  #     at[:data_source_id].eq(model[:data_source_id]).
+  #     and( at[:AssessmentID].eq model[:AssessmentID] ).
+  #     and( model[:DateDeleted].eq nil )
+  #   )
+  # end
 end
