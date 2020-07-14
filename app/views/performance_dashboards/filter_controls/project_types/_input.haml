@@ -3,8 +3,41 @@
   if multiple_project_types?
     klasses.push('select2-parenthetical-when-selected')
   end
-= f.input :project_type_codes,
-  collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert,
-  required: false,
-  input_html: { multiple: true, class: klasses },
-  label: control.label
+
+  homeless = @report.chosen_project_types_only_homeless?
+  ctl_name = 'display_project_type_ctl'
+  homeless_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    .map { |s| HUD.project_type_brief(s) }
+
+.form-group.form-group-valid
+  %label= control.label
+  .form-check.mb-2
+    %input.j-project-type-choice.form-check-input{type:'radio', value: 'homeless', name: ctl_name, id:'homeless_project_type', checked: homeless}
+    %label.form-check-label(for='homeless_project_type')
+      Only Homeless (#{homeless_types.join(', ')})
+  .form-check
+    %input.j-project-type-choice.form-check-input{type:'radio', value:'custom', name: ctl_name, id:'custom_project_type', checked: !homeless}
+    %label.form-check-label(for='custom_project_type') Custom
+
+  #j-custom-project-type{class: homeless && 'd-none'}
+    = f.input :project_type_codes,
+      collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert,
+      required: false,
+      input_html: { multiple: true, class: klasses, id: 'filters_project_type_codes'},
+      label: false
+
+- content_for :page_js do
+  :javascript
+    'use strict';
+    var defaultValues = #{homeless_types.map(&:downcase).to_json.html_safe};
+
+    $('.j-project-type-choice').change(function() {
+      var $radio = $(this);
+      var isHomeless = $radio.is(':checked') && $radio.val() == 'homeless';
+      if (isHomeless) {
+        var $input = $('#filters_project_type_codes')
+        $input.val(defaultValues);
+        $input.trigger('change');
+      }
+      $('#j-custom-project-type').toggleClass('d-none', isHomeless);
+    });
