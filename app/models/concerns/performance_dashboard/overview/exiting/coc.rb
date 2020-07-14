@@ -28,11 +28,15 @@ module PerformanceDashboard::Overview::Exiting::Coc
     @exiting_by_coc_data_for_chart ||= begin
       columns = [date_range_words]
       columns += exiting_by_coc.values.map(&:count)
-      categories = exiting_by_coc.keys.map { |m| HUD.coc_name(m) }
-      {
-        columns: columns,
-        categories: categories,
-      }
+      categories = exiting_by_coc.keys
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.coc_name(s)] }.to_h,
+          chosen: @coc_codes,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 
