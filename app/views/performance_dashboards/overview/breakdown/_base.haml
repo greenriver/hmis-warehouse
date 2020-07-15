@@ -32,16 +32,19 @@
         Actively Enrolled Clients from #{@report.date_range_words}
       - else
         = key.to_s.titleize
-    .description= desc
-    - if excluded_categories.present?
-      .my-2
-        %span.text-color-hl-prs1 Note:
-        We do not show data that were explicitly excluded from your universe settings.
-      %div
-        .font-weight-bold.small.mb-1 Currently excluding:
-        %ul.list-inline.d-inline
-          - excluded_categories.each do |cat|
-            %li.list-inline-item.chip-v1-prs1= cat
+
+    .description
+      = desc
+      - note_content = '<p>Clients with multiple enrollments may be counted in multiple categories.'
+      - if excluded_categories.present?
+        - note_content += '<br/>Data explicitly excluded from the universe is not shown. </p>'
+        - note_content += '<p class="font-weight-bold mr-2">Currently excluding: <ul class="list-inline d-inline mt-4">'
+        - excluded_categories.each do |cat|
+          - note_content += "<li class='list-inline-item chip-v1-prs1'>#{cat}</li>"
+        - note_content += '</ul></div></div>'
+      - note_content += '</p>'
+      %span.icon-info{data: {toggle: :popover, title: 'Note', placement: :bottom, trigger: :focus, content: note_content, html: :true }}
+
   .mb-2.ml-3
     - if @report_variant == 'sparse'
       .gray.lead.font-weight-normal
