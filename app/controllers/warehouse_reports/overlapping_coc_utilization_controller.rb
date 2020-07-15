@@ -6,6 +6,7 @@
 
 module WarehouseReports
   class OverlappingCoCUtilizationController < ApplicationController
+    include WarehouseReportAuthorization
     RELEVANT_COC_STATE = ENV.fetch('RELEVANT_COC_STATE') do
       GrdaWarehouse::Shape::CoC.order(Arel.sql('random()')).limit(1).pluck(:st)
     rescue StandardError
