@@ -1,230 +1,230 @@
 class NewReportViews2 < ActiveRecord::Migration[5.2]
-  include ArelHelper
+  # include ArelHelper
 
-  HUD_CSV_VERSION = '2020'
-  NAMESPACE = 'bi'
-  PG_ROLE = 'bi'
-  SH_INTERVAL = '\'5 years\'::interval'
-  DEMOGRAPHICS_VIEW = "\"#{NAMESPACE}_Demographics\""
+  # HUD_CSV_VERSION = '2020'
+  # NAMESPACE = 'bi'
+  # PG_ROLE = 'bi'
+  # SH_INTERVAL = '\'5 years\'::interval'
+  # DEMOGRAPHICS_VIEW = "\"#{NAMESPACE}_Demographics\""
 
-  def safe_drop_view(name)
-    sql = "DROP VIEW IF EXISTS #{name}"
-    say_with_time sql do
-      GrdaWarehouseBase.connection.execute sql
-    end
-  end
+  # def safe_drop_view(name)
+  #   sql = "DROP VIEW IF EXISTS #{name}"
+  #   say_with_time sql do
+  #     GrdaWarehouseBase.connection.execute sql
+  #   end
+  # end
 
-  def safe_create_role(role: PG_ROLE)
-    sql = <<~SQL
-      DO $$
-      BEGIN
-        CREATE ROLE #{role} WITH NOLOGIN;
-        EXCEPTION WHEN DUPLICATE_OBJECT THEN
-        RAISE NOTICE 'not creating role #{role} -- it already exists';
-      END
-      $$;
-    SQL
-    say_with_time sql do
-      GrdaWarehouseBase.connection.execute sql
-    end
-  end
+  # def safe_create_role(role: PG_ROLE)
+  #   sql = <<~SQL
+  #     DO $$
+  #     BEGIN
+  #       CREATE ROLE #{role} WITH NOLOGIN;
+  #       EXCEPTION WHEN DUPLICATE_OBJECT THEN
+  #       RAISE NOTICE 'not creating role #{role} -- it already exists';
+  #     END
+  #     $$;
+  #   SQL
+  #   say_with_time sql do
+  #     GrdaWarehouseBase.connection.execute sql
+  #   end
+  # end
 
-  def safe_create_view(name, sql_definition:)
-    sql = "CREATE OR REPLACE VIEW #{name} AS #{sql_definition}"
-    say_with_time sql do
-      GrdaWarehouseBase.connection.execute sql
-    end
-    sql = "GRANT SELECT ON #{name} TO #{PG_ROLE}"
-    say_with_time sql do
-      GrdaWarehouseBase.connection.execute sql
-    end
-  end
+  # def safe_create_view(name, sql_definition:)
+  #   sql = "CREATE OR REPLACE VIEW #{name} AS #{sql_definition}"
+  #   say_with_time sql do
+  #     GrdaWarehouseBase.connection.execute sql
+  #   end
+  #   sql = "GRANT SELECT ON #{name} TO #{PG_ROLE}"
+  #   say_with_time sql do
+  #     GrdaWarehouseBase.connection.execute sql
+  #   end
+  # end
 
-  def down
-    safe_drop_view view_name(GrdaWarehouse::Hud::Service)
-    safe_drop_view view_name(GrdaWarehouse::Hud::Exit)
-    safe_drop_view view_name(GrdaWarehouse::Hud::EnrollmentCoc)
-    safe_drop_view view_name(GrdaWarehouse::Hud::Disability)
-    safe_drop_view view_name(GrdaWarehouse::Hud::HealthAndDv)
-    safe_drop_view view_name(GrdaWarehouse::Hud::IncomeBenefit)
-    safe_drop_view view_name(GrdaWarehouse::Hud::EmploymentEducation)
-    safe_drop_view view_name(GrdaWarehouse::Hud::CurrentLivingSituation)
-    safe_drop_view view_name(GrdaWarehouse::Hud::Event)
-    safe_drop_view view_name(GrdaWarehouse::Hud::Assessment)
-    safe_drop_view view_name(GrdaWarehouse::Hud::AssessmentQuestion)
-    safe_drop_view view_name(GrdaWarehouse::Hud::AssessmentResult)
+  # def down
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Service)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Exit)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::EnrollmentCoc)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Disability)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::HealthAndDv)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::IncomeBenefit)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::EmploymentEducation)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::CurrentLivingSituation)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Event)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Assessment)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::AssessmentQuestion)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::AssessmentResult)
 
-    safe_drop_view view_name(GrdaWarehouse::Hud::Enrollment)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Enrollment)
 
-    safe_drop_view view_name(GrdaWarehouse::Hud::Client)
-    safe_drop_view DEMOGRAPHICS_VIEW
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Client)
+  #   safe_drop_view DEMOGRAPHICS_VIEW
 
-    safe_drop_view view_name(GrdaWarehouse::Hud::Funder)
-    safe_drop_view view_name(GrdaWarehouse::Hud::Inventory)
-    safe_drop_view view_name(GrdaWarehouse::Hud::Export)
-    safe_drop_view view_name(GrdaWarehouse::Hud::Affiliation)
-    safe_drop_view view_name(GrdaWarehouse::Hud::ProjectCoc)
-    safe_drop_view view_name(GrdaWarehouse::Hud::Project)
-    safe_drop_view view_name(GrdaWarehouse::Hud::Organization)
-  end
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Funder)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Inventory)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Export)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Affiliation)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::ProjectCoc)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Project)
+  #   safe_drop_view view_name(GrdaWarehouse::Hud::Organization)
+  # end
 
-  def up
-    down # This changes some column types, so we need to remove the tables first
-    # safe_create_role
+  # def up
+  #   down # This changes some column types, so we need to remove the tables first
+  #   # safe_create_role
 
-    non_client_view GrdaWarehouse::Hud::Organization
-    non_client_view GrdaWarehouse::Hud::Project
-    non_client_view GrdaWarehouse::Hud::ProjectCoc
-    non_client_view GrdaWarehouse::Hud::Affiliation
-    non_client_view GrdaWarehouse::Hud::Export
-    non_client_view GrdaWarehouse::Hud::Inventory
-    non_client_view GrdaWarehouse::Hud::Funder
-    non_client_view GrdaWarehouse::Hud::Service
-    non_client_view GrdaWarehouse::Hud::Exit
-    non_client_view GrdaWarehouse::Hud::EnrollmentCoc
-    non_client_view GrdaWarehouse::Hud::Disability
-    non_client_view GrdaWarehouse::Hud::HealthAndDv
-    non_client_view GrdaWarehouse::Hud::IncomeBenefit
-    non_client_view GrdaWarehouse::Hud::EmploymentEducation
-    non_client_view GrdaWarehouse::Hud::CurrentLivingSituation
-    non_client_view GrdaWarehouse::Hud::Event
-    non_client_view GrdaWarehouse::Hud::Assessment
-    non_client_view GrdaWarehouse::Hud::AssessmentQuestion
-    non_client_view GrdaWarehouse::Hud::AssessmentResult
+  #   non_client_view GrdaWarehouse::Hud::Organization
+  #   non_client_view GrdaWarehouse::Hud::Project
+  #   non_client_view GrdaWarehouse::Hud::ProjectCoc
+  #   non_client_view GrdaWarehouse::Hud::Affiliation
+  #   non_client_view GrdaWarehouse::Hud::Export
+  #   non_client_view GrdaWarehouse::Hud::Inventory
+  #   non_client_view GrdaWarehouse::Hud::Funder
+  #   non_client_view GrdaWarehouse::Hud::Service
+  #   non_client_view GrdaWarehouse::Hud::Exit
+  #   non_client_view GrdaWarehouse::Hud::EnrollmentCoc
+  #   non_client_view GrdaWarehouse::Hud::Disability
+  #   non_client_view GrdaWarehouse::Hud::HealthAndDv
+  #   non_client_view GrdaWarehouse::Hud::IncomeBenefit
+  #   non_client_view GrdaWarehouse::Hud::EmploymentEducation
+  #   non_client_view GrdaWarehouse::Hud::CurrentLivingSituation
+  #   non_client_view GrdaWarehouse::Hud::Event
+  #   non_client_view GrdaWarehouse::Hud::Assessment
+  #   non_client_view GrdaWarehouse::Hud::AssessmentQuestion
+  #   non_client_view GrdaWarehouse::Hud::AssessmentResult
 
-    safe_create_view view_name(GrdaWarehouse::Hud::Client),
-      sql_definition: GrdaWarehouse::Hud::Client.destination.select(de_identified_client_cols).to_sql
+  #   safe_create_view view_name(GrdaWarehouse::Hud::Client),
+  #     sql_definition: GrdaWarehouse::Hud::Client.destination.select(de_identified_client_cols).to_sql
 
-    safe_create_view DEMOGRAPHICS_VIEW,
-      sql_definition: GrdaWarehouse::Hud::Client.source.select(de_identified_client_cols, :data_source_id).to_sql
+  #   safe_create_view DEMOGRAPHICS_VIEW,
+  #     sql_definition: GrdaWarehouse::Hud::Client.source.select(de_identified_client_cols, :data_source_id).to_sql
 
-    non_client_view GrdaWarehouse::Hud::Enrollment
+  #   non_client_view GrdaWarehouse::Hud::Enrollment
 
-    client_history_view GrdaWarehouse::ServiceHistoryService.where(
-      "date >= (CURRENT_DATE - #{SH_INTERVAL})"
-    )
-    client_history_view GrdaWarehouse::ServiceHistoryEnrollment.where(
-      "last_date_in_program IS NULL OR last_date_in_program >= (CURRENT_DATE - #{SH_INTERVAL})"
-    )
-  end
+  #   client_history_view GrdaWarehouse::ServiceHistoryService.where(
+  #     "date >= (CURRENT_DATE - #{SH_INTERVAL})"
+  #   )
+  #   client_history_view GrdaWarehouse::ServiceHistoryEnrollment.where(
+  #     "last_date_in_program IS NULL OR last_date_in_program >= (CURRENT_DATE - #{SH_INTERVAL})"
+  #   )
+  # end
 
 
-  def de_identified_client_cols
-    model = GrdaWarehouse::Hud::Client
-    hmis_cols = model.hmis_structure(version: HUD_CSV_VERSION).keys.map(&:to_sym)
-    # De-identified per HMIS CSV FORMAT Specifications FY2020 – January 2020
-    # https://hudhdx.info/Resources/Vendors/HMIS%20CSV%20Specifications%20FY2020%20v1.8.pdf
-    # ~Page 7 HashStatus of ‘SHA-256’ (4)
-    hmis_cols -= %i/PersonalID FirstName MiddleName LastName NameSuffix NameDataQuality SSN SSNDataQuality/
-    de_identified = [
-      'PersonalID',
-      '4 as "HashStatus"',
-      'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("FirstName")))::bytea), \'hex\') as "FirstName"',
-      'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("MiddleName")))::bytea), \'hex\') as "MiddleName"',
-      'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("LastName")))::bytea), \'hex\') as "LastName"',
-      'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("NameSuffix")))::bytea), \'hex\') as "NameSuffix"',
-      'NameDataQuality',
-      #'LPAD(RIGHT("SSN",4),9,\'x\') as "MaskedSSN"',
-      'CONCAT(RIGHT("SSN",4), ENCODE(SHA256(LPAD("SSN",9,\'x\')::bytea), \'hex\')) as "SSN"',
-      'SSNDataQuality',
-    ]
-    [:id, *de_identified, *hmis_cols]
-  end
+  # def de_identified_client_cols
+  #   model = GrdaWarehouse::Hud::Client
+  #   hmis_cols = model.hmis_structure(version: HUD_CSV_VERSION).keys.map(&:to_sym)
+  #   # De-identified per HMIS CSV FORMAT Specifications FY2020 – January 2020
+  #   # https://hudhdx.info/Resources/Vendors/HMIS%20CSV%20Specifications%20FY2020%20v1.8.pdf
+  #   # ~Page 7 HashStatus of ‘SHA-256’ (4)
+  #   hmis_cols -= %i/PersonalID FirstName MiddleName LastName NameSuffix NameDataQuality SSN SSNDataQuality/
+  #   de_identified = [
+  #     'PersonalID',
+  #     '4 as "HashStatus"',
+  #     'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("FirstName")))::bytea), \'hex\') as "FirstName"',
+  #     'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("MiddleName")))::bytea), \'hex\') as "MiddleName"',
+  #     'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("LastName")))::bytea), \'hex\') as "LastName"',
+  #     'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("NameSuffix")))::bytea), \'hex\') as "NameSuffix"',
+  #     'NameDataQuality',
+  #     #'LPAD(RIGHT("SSN",4),9,\'x\') as "MaskedSSN"',
+  #     'CONCAT(RIGHT("SSN",4), ENCODE(SHA256(LPAD("SSN",9,\'x\')::bytea), \'hex\')) as "SSN"',
+  #     'SSNDataQuality',
+  #   ]
+  #   [:id, *de_identified, *hmis_cols]
+  # end
 
-  def p_t
-    GrdaWarehouse::Hud::Project.arel_table
-  end
+  # def p_t
+  #   GrdaWarehouse::Hud::Project.arel_table
+  # end
 
-  def assessment_table
-    GrdaWarehouse::Hud::Assessment.arel_table
-  end
+  # def assessment_table
+  #   GrdaWarehouse::Hud::Assessment.arel_table
+  # end
 
-  def contains_and_not_source?(model, col)
-    return false if model.hud_key.to_s == col
+  # def contains_and_not_source?(model, col)
+  #   return false if model.hud_key.to_s == col
 
-    model.column_names.include?(col.to_s)
-  end
+  #   model.column_names.include?(col.to_s)
+  # end
 
-  def join_cols
-    {
-      'PersonalID' => wc_t,
-      'ProjectID' => p_t,
-      'OrganizationID' => o_t,
-      'AssessmentID' => assessment_table,
-      'EnrollmentID' => e_t,
-    }
-  end
+  # def join_cols
+  #   {
+  #     'PersonalID' => wc_t,
+  #     'ProjectID' => p_t,
+  #     'OrganizationID' => o_t,
+  #     'AssessmentID' => assessment_table,
+  #     'EnrollmentID' => e_t,
+  #   }
+  # end
 
-  def hmis_cols(model)
-    # Ignore any key or join columns, we'll replace them with primary keys
-    excepts = []
-    excepts << model.hud_key.to_s
-    join_cols.each_key do |col|
-      excepts << col if contains_and_not_source?(model, col)
-    end
+  # def hmis_cols(model)
+  #   # Ignore any key or join columns, we'll replace them with primary keys
+  #   excepts = []
+  #   excepts << model.hud_key.to_s
+  #   join_cols.each_key do |col|
+  #     excepts << col if contains_and_not_source?(model, col)
+  #   end
 
-    # Replace columns used for joins
-    cols = [model.arel_table[:id].as(model.connection.quote_column_name(model.hud_key.to_s))]
-    excepts.drop(1).each do |col|
-      join_col = if col == 'PersonalID' then :destination_id else :id end
-      cols << join_cols[col][join_col].as(model.connection.quote_column_name(col))
-    end
+  #   # Replace columns used for joins
+  #   cols = [model.arel_table[:id].as(model.connection.quote_column_name(model.hud_key.to_s))]
+  #   excepts.drop(1).each do |col|
+  #     join_col = if col == 'PersonalID' then :destination_id else :id end
+  #     cols << join_cols[col][join_col].as(model.connection.quote_column_name(col))
+  #   end
 
-    cols += model.hmis_structure(version: HUD_CSV_VERSION).keys.reject do |col|
-      col.to_s.in?(excepts)
-    end.map do |col|
-      model.arel_table[col]
-    end
-    cols
-  end
+  #   cols += model.hmis_structure(version: HUD_CSV_VERSION).keys.reject do |col|
+  #     col.to_s.in?(excepts)
+  #   end.map do |col|
+  #     model.arel_table[col]
+  #   end
+  #   cols
+  # end
 
-  def client_history_view(model)
-    scope = model.joins(:client)
-    if model.paranoid?
-      scope = scope.where(model.paranoia_column.to_sym => nil)
-    end
-    cols = model.column_names
+  # def client_history_view(model)
+  #   scope = model.joins(:client)
+  #   if model.paranoid?
+  #     scope = scope.where(model.paranoia_column.to_sym => nil)
+  #   end
+  #   cols = model.column_names
 
-    if cols.include?('project_id')
-      scope = scope.joins(:project)
-      cols.reject!{ |c| c == 'project_id' }
-      cols << p_t[:id].as('project_id')
-    end
-    scope = scope.select(*cols)
-    safe_create_view view_name(model.arel_table), sql_definition: scope.to_sql
-  end
+  #   if cols.include?('project_id')
+  #     scope = scope.joins(:project)
+  #     cols.reject!{ |c| c == 'project_id' }
+  #     cols << p_t[:id].as('project_id')
+  #   end
+  #   scope = scope.select(*cols)
+  #   safe_create_view view_name(model.arel_table), sql_definition: scope.to_sql
+  # end
 
-  def join_project_if_appropriate(model, query)
-    return query if model.name == 'GrdaWarehouse::Hud::Project'
-    return join_to_projects(query) if model.column_names.include?('ProjectID')
+  # def join_project_if_appropriate(model, query)
+  #   return query if model.name == 'GrdaWarehouse::Hud::Project'
+  #   return join_to_projects(query) if model.column_names.include?('ProjectID')
 
-    query
-  end
+  #   query
+  # end
 
-  def join_organization_if_appropriate(model, query)
-    return query if model.name == 'GrdaWarehouse::Hud::Organization'
-    return join_to_organizations(query) if model.column_names.include?('OrganizationID')
+  # def join_organization_if_appropriate(model, query)
+  #   return query if model.name == 'GrdaWarehouse::Hud::Organization'
+  #   return join_to_organizations(query) if model.column_names.include?('OrganizationID')
 
-    query
-  end
+  #   query
+  # end
 
-  def join_enrollment_if_appropriate(model, query)
-    return query if model.name == 'GrdaWarehouse::Hud::Enrollment'
-    return join_to_enrollments(query) if model.column_names.include?('EnrollmentID')
+  # def join_enrollment_if_appropriate(model, query)
+  #   return query if model.name == 'GrdaWarehouse::Hud::Enrollment'
+  #   return join_to_enrollments(query) if model.column_names.include?('EnrollmentID')
 
-    query
-  end
+  #   query
+  # end
 
-  def join_destination_client_if_appropriate(model, query)
-    return query if model.name == 'GrdaWarehouse::Hud::Client'
-    return join_to_destination_clients(query) if model.column_names.include?('PersonalID')
+  # def join_destination_client_if_appropriate(model, query)
+  #   return query if model.name == 'GrdaWarehouse::Hud::Client'
+  #   return join_to_destination_clients(query) if model.column_names.include?('PersonalID')
 
-    query
-  end
+  #   query
+  # end
 
-  def join_assessment_if_appropriate(model, query)
-    return query if model.name == 'GrdaWarehouse::Hud::Assessment'
-    return join_to_assessments(query) if model.column_names.include?('AssessmentID')
+  # def join_assessment_if_appropriate(model, query)
+  #   return query if model.name == 'GrdaWarehouse::Hud::Assessment'
+  #   return join_to_assessments(query) if model.column_names.include?('AssessmentID')
 
   #   query
   # end
