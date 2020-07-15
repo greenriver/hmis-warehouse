@@ -11,12 +11,13 @@ module PerformanceDashboard::Overview::Entering::Age
   def entering_by_age
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = age_buckets.map { |b| [b, []] }.to_h
-      counted = Set.new
+      counted = {}
       entering.order(first_date_in_program: :desc).
         pluck(:client_id, :age, :first_date_in_program).each do |id, age, _|
-        buckets[age_bucket(age)] << id unless counted.include?(id)
-        counted << id
-      end
+          counted[age_bucket(age)] ||= Set.new
+          buckets[age_bucket(age)] << id unless counted[age_bucket(age)].include?(id)
+          counted[age_bucket(age)] << id
+        end
       buckets
     end
   end

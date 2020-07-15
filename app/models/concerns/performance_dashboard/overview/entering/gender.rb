@@ -11,14 +11,15 @@ module PerformanceDashboard::Overview::Entering::Gender
   def entering_by_gender
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = gender_buckets.map { |b| [b, []] }.to_h
-      counted = Set.new
+      counted = {}
       entering.
         joins(:client).
         order(first_date_in_program: :desc).
         pluck(:client_id, c_t[:Gender], :first_date_in_program).each do |id, gender, _|
-        buckets[gender_bucket(gender)] << id unless counted.include?(id)
-        counted << id
-      end
+          counted[gender_bucket(gender)] ||= Set.new
+          buckets[gender_bucket(gender)] << id unless counted[gender_bucket(gender)].include?(id)
+          counted[gender_bucket(gender)] << id
+        end
       buckets
     end
   end

@@ -11,15 +11,16 @@ module PerformanceDashboard::Overview::Entering::Coc
   def entering_by_coc
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = coc_buckets.map { |b| [b, []] }.to_h
-      counted = Set.new
+      counted = {}
       entering.joins(:enrollment_coc_at_entry).
         joins(:client).
         order(first_date_in_program: :desc).
         pluck(:client_id, ec_t[:CoCCode], :first_date_in_program).each do |id, coc, _|
-        buckets[coc_bucket(coc)] ||= []
-        buckets[coc_bucket(coc)] << id unless counted.include?(id)
-        counted << id
-      end
+          counted[coc_bucket(coc)] ||= Set.new
+          buckets[coc_bucket(coc)] ||= []
+          buckets[coc_bucket(coc)] << id unless counted[coc_bucket(coc)].include?(id)
+          counted[coc_bucket(coc)] << id
+        end
       buckets
     end
   end

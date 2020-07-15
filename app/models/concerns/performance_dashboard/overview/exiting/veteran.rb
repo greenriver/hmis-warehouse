@@ -11,13 +11,14 @@ module PerformanceDashboard::Overview::Exiting::Veteran
   def exiting_by_veteran
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = veteran_buckets.map { |b| [b, []] }.to_h
-      counted = Set.new
+      counted = {}
       exiting.
         joins(:client).
         order(first_date_in_program: :desc).
         pluck(:client_id, c_t[:VeteranStatus], :first_date_in_program).each do |id, veteran_status, _|
-          buckets[veteran_bucket(veteran_status)] << id unless counted.include?(id)
-          counted << id
+          counted[veteran_bucket(veteran_status)] ||= Set.new
+          buckets[veteran_bucket(veteran_status)] << id unless counted[veteran_bucket(veteran_status)].include?(id)
+          counted[veteran_bucket(veteran_status)] << id
         end
       buckets
     end

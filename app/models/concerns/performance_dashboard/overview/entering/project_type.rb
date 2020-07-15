@@ -11,14 +11,15 @@ module PerformanceDashboard::Overview::Entering::ProjectType
   def entering_by_project_type
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = project_type_buckets.map { |b| [b, []] }.to_h
-      counted = Set.new
+      counted = {}
       entering.
         joins(:client).
         order(first_date_in_program: :desc).
         pluck(:client_id, she_t[project_type_col], :first_date_in_program).each do |id, project_type, _|
-        buckets[project_type_bucket(project_type)] << id unless counted.include?(id)
-        counted << id
-      end
+          counted[project_type_bucket(project_type)] ||= Set.new
+          buckets[project_type_bucket(project_type)] << id unless counted[project_type_bucket(project_type)].include?(id)
+          counted[project_type_bucket(project_type)] << id
+        end
       buckets
     end
   end
