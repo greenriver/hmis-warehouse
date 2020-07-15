@@ -38,8 +38,8 @@ module WarehouseReports
         JOIN "Funder" f1 ON p1. "ProjectID" = f1. "ProjectID"
           AND p1.data_source_id = f1.data_source_id
           AND f1. "DateDeleted" IS NULL
-        JOIN bi_lookups_funding_sources ft1 ON f1. "Funder" = ft1. "value"::text
-        JOIN bi_lookups_project_types pt1 ON p1. "ProjectType" = pt1. "value"
+        JOIN lookups_funding_sources ft1 ON f1. "Funder" = ft1. "value"::text
+        JOIN lookups_project_types pt1 ON p1. "ProjectType" = pt1. "value"
         JOIN warehouse_clients wc2 ON c.id = wc2.destination_id
           AND wc1.deleted_at IS NULL
         JOIN "Client" s2 ON wc2.source_id = s2.id
@@ -60,13 +60,14 @@ module WarehouseReports
     end
 
     private def c
-      GrdaWarehouse::Hud::Client.connection
+      GrdaWarehouseBase.connection
     end
+    helper_method :c
 
     private def all_clients(coc1, coc2)
-      <<~SQL
+      sql = <<~SQL
         SELECT
-          count(DISTINCT c.id) as "Shared Clients"
+          count(DISTINCT c.id) as clients
         FROM
           "Client" c
           #{join_source_pair}
@@ -75,13 +76,15 @@ module WarehouseReports
           AND c2. "CoCCode" = #{c.quote coc2}
         ORDER BY count(DISTINCT c.id) DESC
       SQL
+      c.select_one sql
     end
+    helper_method :all_clients
 
     private def by_project_type(coc1, coc2)
-      <<~SQL
+      sql = <<~SQL
         SELECT
-          pt1.text AS "Project Type",
-          count(DISTINCT c.id) as "Shared Clients"
+          pt1.text AS project_type,
+          count(DISTINCT c.id) as clients
         FROM
           "Client" c
           #{join_source_pair}
@@ -92,13 +95,14 @@ module WarehouseReports
         GROUP BY 1
         ORDER BY count(DISTINCT c.id) DESC
       SQL
+      c.select_all sql
     end
 
     private def by_funding_source(coc1, coc2)
       <<~SQL
         SELECT
-          ft1.text AS "Funding Source",
-          count(DISTINCT c.id) as "Shared Clients"
+          ft1.text AS funding_source,
+          count(DISTINCT c.id) as clients
         FROM
           "Client" c
           #{join_source_pair}
@@ -112,30 +116,35 @@ module WarehouseReports
     end
 
     def overlap
+      report_params = params.require(:compare).permit(:coc1, :coc2)
+      coc1 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc1))
+      coc2 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc2))
+
+      project_types = by_project_type(coc1.cocnum, coc2.cocnum).map do |r|
+        [r['project_type'], [r['clients'], 0]]
+      end
+
+      # Placeholder data to be replaced
+      # project_types << ['All Program Types (Unique Clients)', [150, 175]]
+      # funding_sources = [
+      #   'State',
+      #   'ESG (Emergency Solutions Grants)',
+      # ].map do |source|
+      #   [source, [rand(100), rand(100)]]
+      # end
+      # funding_sources << ['All Funding Sources (Unique Clients)', [150, 175]]
+      # cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
+      # map_data = {}
+      # GrdaWarehouse::Shape.geo_collection_hash(cocs)[:features].each do |feature|
+      #   map_data[feature.dig(:properties, :id).to_s] = rand(225)
+      # end
       ###
-      # fake data for testing
-      project_types = ([
-        'CA (Coordinated Assessment)',
-      ] + GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.values).map do |type|
-        [type, [rand(100), rand(100)]]
-      end
-      project_types << ['All Program Types (Unique Clients)', [150, 175]]
-      funding_sources = [
-        'State',
-        'ESG (Emergency Solutions Grants)',
-      ].map do |source|
-        [source, [rand(100), rand(100)]]
-      end
-      funding_sources << ['All Funding Sources (Unique Clients)', [150, 175]]
-      cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
-      map_data = {}
-      GrdaWarehouse::Shape.geo_collection_hash(cocs)[:features].each do |feature|
-        map_data[feature.dig(:properties, :id).to_s] = rand(225)
-      end
-      ###
+
       locals = {
         start_date: params.dig(:compare, :start_date),
         end_date: params.dig(:compare, :end_date),
+        params: report_params,
+        total_shared_clients: all_clients(coc1.cocnum, coc2.cocnum)['clients'],
         project_types: project_types,
         funding_sources: funding_sources,
       }
