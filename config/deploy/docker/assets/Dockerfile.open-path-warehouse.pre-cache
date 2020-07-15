@@ -33,7 +33,8 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 RUN gem install bundler --version=1.17.3 && \
-  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var locale
+  mkdir -p app/assets tmp/pids lib/assets vendor/assets && \
+  mkdir -p public locale var locale shape_files/CoC shape_files/zip_codes.census.2018
 
 COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
 COPY bin ./bin
@@ -43,6 +44,10 @@ COPY config ./config
 COPY app ./app
 COPY vendor ./vendor
 COPY config/deploy/docker/assets/dotenv.temporary ./.env
+
+COPY shape_files/sync.from.s3 ./shape_files
+COPY shape_files/CoC/make.inserts ./shape_files/CoC
+COPY shape_files/zip_codes.census.2018/make.inserts ./shape_files/zip_codes.census.2018
 
 # https://github.com/sass/sassc-ruby/issues/146#issuecomment-542288556
 # core dumps during precompile on github when using the pre-cache image pulled
