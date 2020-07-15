@@ -354,7 +354,7 @@ namespace :grda_warehouse do
     FileUtils.chdir(Rails.root.join('shape_files'))
     system('./sync.from.s3')
 
-    num_zips = `find . -name '*zip' | wc -l`.to_i
+    num_zips = `find . -name '*zip'`.split(/\n/).length
     if num_zips == 0
       # If you don't care about CoC/ZipCode shapes and want to just get through
       # the migration, just comment out this whole rake task. You can run it

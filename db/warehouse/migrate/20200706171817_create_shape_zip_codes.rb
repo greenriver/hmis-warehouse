@@ -5,11 +5,11 @@ class CreateShapeZipCodes < ActiveRecord::Migration[5.2]
     if Rails.env.development?
       reversible do |r|
         r.up do
-          execute "CREATE EXTENSION postgis"
+          execute "CREATE EXTENSION IF NOT EXISTS postgis"
         end
 
         r.down do
-          execute "DROP EXTENSION postgis"
+          execute "DROP EXTENSION IF EXISTS postgis"
         end
       end
     end
