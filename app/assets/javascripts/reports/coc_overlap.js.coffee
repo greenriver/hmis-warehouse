@@ -85,9 +85,14 @@ class App.Reports.CocOverlap
       @loading(true)
       $.ajax(
         type: 'GET'
-        url: '/warehouse_reports/overlapping_coc_utilization/overlap'
+        url: '/warehouse_reports/overlapping_coc_utilization/overlap.json'
         data: $("##{@elementId} form").serialize()
-      ).done  @updateResults.bind(@)
+      ).done(
+        @updateResults.bind(@)
+      ).fail(
+        @loading(false)
+        alert('Sorry, something went wrong. Please try again soon.')
+      )
 
   updateResults: (data) =>
     $("##{@elementId}-results").html data.html
