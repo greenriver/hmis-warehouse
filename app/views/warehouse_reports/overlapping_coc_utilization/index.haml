@@ -63,7 +63,7 @@
               = f.input :coc2, collection: @cocs, value_method: :id, label_method: :number_and_name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
     .col-md-6.ml-auto.d-flex.flex-column
       .coc-util-overlap.mb-6.o-container--with-loader{id: map_id}
-      = render 'common/gradient_legend', labels: ['200+ Overlapping Clients', 'No Overlapping Clients'], colors: ['#0154A6', '#FFFFFF']
+      = render 'common/gradient_legend', labels: ['[MAX] Overlapping Clients', 'No Overlapping Clients'], colors: ['#0154A6', '#FFFFFF']
 
   %div.o-container--with-loader{id: results_id}
 
