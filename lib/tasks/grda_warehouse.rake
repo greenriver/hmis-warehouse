@@ -390,5 +390,7 @@ namespace :grda_warehouse do
     Rails.logger.info "Simplifying shapes for much faster UI"
     GrdaWarehouse::Shape::ZipCode.simplify!
     GrdaWarehouse::Shape::CoC.simplify!
+
+    Rails.logger.info "Done with shape importing"
   end
 end

@@ -816,7 +816,9 @@ def maintain_coc_codes
 end
 
 def install_shapes
-  Rake::Task['grda_warehouse:get_shapes'].invoke
+  if GrdaWarehouse::Shape::ZipCode.none? || GrdaWarehouse::Shape::CoC.none?
+    Rake::Task['grda_warehouse:get_shapes'].invoke
+  end
 end
 
 # These tables are partitioned and need to have triggers and functions that
