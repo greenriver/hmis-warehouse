@@ -42,7 +42,7 @@
 
 .warehouse-reports__ad_hoc-export.c-report{id: report_id}
   .row.pb-8
-    .col-5
+    .col-md-5
       %p.mb-6 This report summarizes the overlaps in clients and services betweeen CoCs you have shared access with.
       = simple_form_for :compare, url: url_for, method: :get do |f|
         .c-input-group
@@ -61,11 +61,11 @@
               .c-swatch__display.c-swatch__display--map-1
             %div{style: 'flex: 1 1 95%; max-width: 95%'}
               = f.input :coc2, collection: @cocs, value_method: :id, label_method: :number_and_name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
-    .col-6.ml-auto.d-flex.flex-column
-      .coc-util-overlap.mb-6{id: map_id}
+    .col-md-6.ml-auto.d-flex.flex-column
+      .coc-util-overlap.mb-6.o-container--with-loader{id: map_id}
       = render 'common/gradient_legend', labels: ['200+ Overlapping Clients', 'No Overlapping Clients'], colors: ['#0154A6', '#FFFFFF']
 
-  %div{id: results_id}
+  %div.o-container--with-loader{id: results_id}
 
 = content_for :page_js do
   :javascript

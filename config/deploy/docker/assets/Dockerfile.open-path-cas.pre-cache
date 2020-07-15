@@ -19,7 +19,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 RUN gem install bundler --version=1.17.3 && \
-  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var drivers
+  mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var drivers shape_files
 
 COPY Gemfile Gemfile.lock Rakefile config.ru ./
 COPY bin ./bin
@@ -31,6 +31,7 @@ COPY config ./config
 COPY app ./app
 COPY vendor ./vendor
 COPY drivers ./drivers
+COPY shape_files ./shape_files
 COPY config/deploy/docker/assets/dotenv.temporary ./.env
 
 # https://github.com/sass/sassc-ruby/issues/146#issuecomment-542288556
