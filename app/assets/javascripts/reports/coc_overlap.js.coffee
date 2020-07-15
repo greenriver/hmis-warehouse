@@ -58,8 +58,27 @@ class App.Reports.CocOverlap
     if loading
       opacity = .4
       pointerEvents = 'none'
-    $("##{@elementId}-results").css({opacity, pointerEvents})
-    $("##{@elementId}-map").css({opacity, pointerEvents})
+    containers = ['results', 'map']
+    loaderClass = 'j-loading-indecator'
+    containers.forEach (container) =>
+      $container = $("##{@elementId}-#{container}").css({opacity, pointerEvents})
+      if loading
+        $container.prepend(
+          """
+            <div class='#{loaderClass}'>
+              <div class="c-loading c-loading--lg c-loading--dark c-loading--center">
+                <div class="c-loading__dot"></div>
+                <div class="c-loading__dot"></div>
+                <div class="c-loading__dot"></div>
+                <div class="c-loading__dot"></div>
+                <div class="c-loading__dot"></div>
+                <div class="c-loading__dot"></div>
+              </div>
+            <div>
+          """
+        )
+      else
+        $container.find(".#{loaderClass}").remove()
 
   report: =>
     if @state.selections.length == @MAX_SELECTIONS

@@ -1,3 +1,5 @@
+@import '../helpers';
+
 .l-info {
   max-width: 300px;
   min-width: 200px;
@@ -35,4 +37,8 @@
 .coc-util-overlap {
   width: 100%;
   flex: 1 1 100%;
+  min-height: 600px;
+  @include media-breakpoint-up(md) {
+    min-height: auto;
+  }
 }
