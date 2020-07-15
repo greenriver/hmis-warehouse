@@ -28,11 +28,15 @@ module PerformanceDashboard::Overview::Enrolled::Coc
     @enrolled_by_coc_data_for_chart ||= begin
       columns = [date_range_words]
       columns += enrolled_by_coc.values.map(&:count)
-      categories = enrolled_by_coc.keys.map { |m| HUD.coc_name(m) }
-      {
-        columns: columns,
-        categories: categories,
-      }
+      categories = enrolled_by_coc.keys
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.coc_name(s)] }.to_h,
+          chosen: @coc_codes,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 
