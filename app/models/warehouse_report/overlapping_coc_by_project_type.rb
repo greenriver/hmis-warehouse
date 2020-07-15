@@ -4,22 +4,23 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::OverlappingCoc < WarehouseReport
+class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
 
-  def initialize(coc_code_1:, coc_code_2:, start_date:, end_date:, brakedown:)
+  def initialize(coc_code_1:, coc_code_2:, start_date:, end_date:)
     @coc_code_1 = coc_code_1
     @coc_code_2 = coc_code_2
     @start_date = start_date
     @end_date = end_date
-    @brakedown = brakedown
   end
 
   def coc_client_ids(coc_code)
     GrdaWarehouse::ServiceHistoryEnrollment.entry.
       open_between(start_date: @start_date, end_date: @end_date).
-        in_coc(coc_code: coc_code).distinct.pluck(:client_id, :computed_project_type)
+      service_within_date_range(start_date: @start_date, end_date: @end_date).
+      in_coc(coc_code: coc_code).distinct.pluck(:client_id, :computed_project_type)
   end
 
+  # returns [[client_id, project_type]]
   def overlapping_clients
     coc_client_ids(@coc_code_1) & coc_client_ids(@coc_code_2)
   end
@@ -53,11 +54,15 @@ class WarehouseReport::OverlappingCoc < WarehouseReport
     end
   end
 
+  def all_overlapping_clients
+    overlapping_clients.map(&:first).uniq.count
+  end
+
   # [
   #   [Project Type, [async_count, concurrent_count]]
   # ]
   def for_chart
-    data = GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten.uniq.map do |p_type|
+    GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten.uniq.map do |p_type|
       async = async_by_type[p_type]&.count || 0
       concurrent = concurrent_by_type[p_type]&.count || 0
       [
@@ -66,8 +71,8 @@ class WarehouseReport::OverlappingCoc < WarehouseReport
           async,
           concurrent,
         ]
-      ]
-    end
+      ] if (async + concurrent).positive?
+    end.compact
   end
 
   def concurrent_by_type
@@ -75,6 +80,7 @@ class WarehouseReport::OverlappingCoc < WarehouseReport
       dates_by_p_type.each do |p_type, coc_data|
         coc_1 = coc_data.dig(@coc_code_1)
         coc_2 = coc_data.dig(@coc_code_2)
+
         concurrent[p_type] ||= []
         concurrent[p_type] = (coc_1 & coc_2).map(&:first).uniq
       end
