@@ -7,7 +7,7 @@
 module WarehouseReports
   class OverlappingCoCUtilizationController < ApplicationController
     RELEVANT_COC_STATE = ENV.fetch('RELEVANT_COC_STATE') do
-      GrdaWarehouse::Shape::CoC.order('random()').limit(1).pluck(:st)
+      GrdaWarehouse::Shape::CoC.order(Arel.sql('random()')).limit(1).pluck(:st)
     rescue StandardError
       'UNKNOWN'
     end
