@@ -4,11 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::Health::HousingStatus
+class WarehouseReport::Health::HousingStatus # rubocop:disable Style/ClassAndModuleChildren
   include ArelHelper
   include HealthCharts
 
-  def initialize(end_date=Date.current, acos=nil, user:)
+  def initialize(end_date = Date.current, acos = nil, user:)
     @end_date = end_date
     @start_date = @end_date - 5.years
     @range = @start_date..@end_date
@@ -55,7 +55,7 @@ class WarehouseReport::Health::HousingStatus
           timestamp: timestamp,
           client_id: client_id,
           housing_status: housing_status,
-          aco_id:aco_id,
+          aco_id: aco_id,
           source: 'EPIC Patient',
         )
       end
@@ -111,7 +111,7 @@ class WarehouseReport::Health::HousingStatus
       pluck(
         hmis_form_t[:collected_at].to_sql,
         :id,
-        hmis_form_t[:housing_status].to_sql
+        hmis_form_t[:housing_status].to_sql,
       ).
       each do |timestamp, client_id, housing_status|
         aco_id = aco_id_for_client_id(client_id)
@@ -152,31 +152,30 @@ class WarehouseReport::Health::HousingStatus
       merge(
         GrdaWarehouse::WarehouseClient.where(
           source_id: GrdaWarehouse::Hud::Client.
-            visible_in_window_to(@user).select(:id)
-        )
+            visible_in_window_to(@user).select(:id),
+        ),
       ).where(id: patient_scope.pluck(:client_id)).distinct.index_by(&:id)
     @client_for_id[id]
   end
 
   def count_for_aco(housing_status:, aco_id:)
-    report_data[aco_id].values.count{ |m| m[:clean_housing_status] == housing_status }
+    report_data[aco_id].values.count { |m| m[:clean_housing_status] == housing_status }
   end
 
   def count_for_status(housing_status:)
-    report_data.values.flat_map(&:values).count{ |m| m[:clean_housing_status] == housing_status }
+    report_data.values.flat_map(&:values).count { |m| m[:clean_housing_status] == housing_status }
   end
 
   def add_housing_status(timestamp:, client_id:, housing_status:, aco_id:, source:)
     @report_data[aco_id] ||= {}
     @report_data[aco_id][client_id] ||= OpenStruct.new(timestamp: nil, housing_status: nil)
-    if @report_data[aco_id][client_id][:timestamp].blank? || @report_data[aco_id][client_id][:timestamp] < timestamp
+    if @report_data[aco_id][client_id][:timestamp].blank? || @report_data[aco_id][client_id][:timestamp] < timestamp # rubocop:disable Style/GuardClause
       @report_data[aco_id][client_id] = OpenStruct.new(
         timestamp: timestamp,
         housing_status: housing_status,
         clean_housing_status: self.class.health_housing_outcome_status(housing_status),
-        source: source
+        source: source,
       )
     end
   end
-
 end
