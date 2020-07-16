@@ -504,6 +504,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         category_3.
         ongoing(on_date: @report_end).
         hud_project_type(PH_PSH).
+        joins(:enrollment).
         where(
           e_t[:MoveInDate].eq(nil).or(e_t[:MoveInDate].gt(@report_end))
         )
