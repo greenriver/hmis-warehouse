@@ -9,10 +9,10 @@ require 'fileutils'
 # path to your application root.
 APP_ROOT = Pathname.new File.expand_path('..', __dir__)
 
-def run_or_exit cmd
+def run_or_exit(cmd)
   return if system(cmd)
 
-  puts "Last command failed. Aborting."
+  puts 'Last command failed. Aborting.'
 
   exit(1)
 end
