@@ -482,7 +482,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         hud_project_type(PH_PSH).
         joins(:enrollment).
         where(
-          e_t[:MoveInDate].not_eq(nil).and(e_t[:MoveInDate].le(@report_end))
+          e_t[:MoveInDate].not_eq(nil).and(e_t[:MoveInDate].lteq(@report_end))
         ).
         where.not(client_id: client_id_scope.
           select(:client_id).
