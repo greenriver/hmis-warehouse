@@ -150,6 +150,7 @@ Rails.application.routes.draw do
       resource :site, only: [:show]
       resource :geography, only: [:show]
       resource :funder, only: [:show]
+      resource :project_coc, only: [:show]
     end
   end
   namespace :hud_reports do
