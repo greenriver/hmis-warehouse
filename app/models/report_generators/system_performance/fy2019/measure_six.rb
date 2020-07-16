@@ -480,6 +480,10 @@ module ReportGenerators::SystemPerformance::Fy2019
         open_between(start_date: @report_start,
         end_date: @report_end + 1.day).
         hud_project_type(PH_PSH).
+        joins(:enrollment).
+        where(
+          e_t[:MoveInDate].not_eq(nil).and(e_t[:MoveInDate].le(@report_end))
+        ).
         where.not(client_id: client_id_scope.
           select(:client_id).
           distinct
@@ -499,7 +503,10 @@ module ReportGenerators::SystemPerformance::Fy2019
       stayers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         category_3.
         ongoing(on_date: @report_end).
-        hud_project_type(PH_PSH)
+        hud_project_type(PH_PSH).
+        where(
+          e_t[:MoveInDate].eq(nil).or(e_t[:MoveInDate].gt(@report_end))
+        )
 
       if @report.options['coc_code'].present?
         stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
