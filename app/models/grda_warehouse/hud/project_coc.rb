@@ -9,6 +9,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::ProjectCoc
     include ArelHelper
+    require 'csv'
 
     self.table_name = 'ProjectCoC'
     self.hud_key = :ProjectCoCID
@@ -70,6 +71,32 @@ module GrdaWarehouse::Hud
             coc_code,
           ]
         end
+    end
+
+    # when we export, we always need to replace ProjectCoCID with the value of id
+    # and ProjectID with the id of the related project
+    def self.to_csv(scope:)
+      attributes = self.hud_csv_headers.dup
+      headers = attributes.clone
+      attributes[attributes.index(:ProjectCoCID)] = :id
+      attributes[attributes.index(:ProjectID)] = 'project.id'
+
+      CSV.generate(headers: true) do |csv|
+        csv << headers
+
+        scope.each do |i|
+          csv << attributes.map do |attr|
+            attr = attr.to_s
+            # we need to grab the appropriate id from the related project
+            if attr.include?('.')
+              obj, meth = attr.split('.')
+              i.send(obj).send(meth)
+            else
+              i.send(attr)
+            end
+          end
+        end
+      end
     end
   end
 end
