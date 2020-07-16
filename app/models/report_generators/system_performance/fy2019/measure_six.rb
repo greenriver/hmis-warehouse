@@ -385,7 +385,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         category_3.
         open_between(start_date: @report_start,
           end_date: @report_end + 1.day).
-        hud_project_type(SH + TH + RRH).
+        hud_project_type(SH + TH). # RRH is in PH below
         where.not(client_id: client_id_scope.
           select(:client_id).
           distinct
@@ -398,7 +398,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           hud_project_type(PH).
           joins(:enrollment).
           where(
-              e_t[:MoveInDate].eq(nil)
+              e_t[:MoveInDate].eq(nil).or(e_t[:MoveInDate].gt(@report_end))
           ).
           where.not(client_id: client_id_scope.
             select(:client_id).
