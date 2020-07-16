@@ -11,6 +11,8 @@ module Filters
     attribute :no_service_after_date, Date, lazy: true, default: -> (r,_) { r.default_no_service_after_date }
     attribute :no_recent_service_project_ids, Array, default: []
     attribute :limit_to_vispdats, Boolean, default: false
+    attribute :races, Array, default: []
+    attribute :ethnicities, Array, default: []
 
     validates_presence_of :start, :end, :sub_population
 
