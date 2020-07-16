@@ -15,7 +15,7 @@
         - @report.available_breakdowns.each do |k, title|
           - class_name = if breakdown == k then 'active' else '' end
           %li.nav-item{role: :presentation}
-            = link_to(filter_params.merge(breakdown: k), class: ['nav-link', 'px-5', class_name]) do
+            = link_to(filter_params.merge(breakdown: k), class: ['nav-link', class_name]) do
               = title.gsub(/^By /, '')
     .main-inner-prs1
       = render 'disaggregations'
