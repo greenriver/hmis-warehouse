@@ -11,7 +11,15 @@
   transition: .35s max-width ease-in-out;
   max-width: 100%;
   flex: 0 0 100%;
+}
+.l-content-width-md .l-main__content  {
   @include media-breakpoint-up(lg) {
+    flex: 0 0 calc(100vw - #{$nav-side-width});
+    max-width: calc(100vw - #{$nav-side-width});
+  }
+}
+.l-content-width-lg .l-main__content  {
+  @include media-breakpoint-up(xl) {
     flex: 0 0 calc(100vw - #{$nav-side-width});
     max-width: calc(100vw - #{$nav-side-width});
   }
