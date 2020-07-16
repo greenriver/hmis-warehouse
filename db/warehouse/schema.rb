@@ -10,13 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_03_234840) do
+ActiveRecord::Schema.define(version: 2020_07_16_132417) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
+  enable_extension "postgis"
 
   create_table "Affiliation", id: :serial, force: :cascade do |t|
     t.string "AffiliationID"
@@ -1647,6 +1648,8 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "health_emergency_tracing"
     t.integer "health_priority_age"
     t.boolean "multi_coc_installation", default: false, null: false
+    t.float "auto_de_duplication_accept_threshold"
+    t.float "auto_de_duplication_reject_threshold"
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -5896,6 +5899,78 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.index ["type"], name: "index_service_scanning_services_on_type"
     t.index ["updated_at"], name: "index_service_scanning_services_on_updated_at"
     t.index ["user_id"], name: "index_service_scanning_services_on_user_id"
+  end
+
+  create_table "shape_cocs", force: :cascade do |t|
+    t.string "st"
+    t.string "state_name"
+    t.string "cocnum"
+    t.string "cocname"
+    t.decimal "ard"
+    t.decimal "pprn"
+    t.decimal "fprn"
+    t.string "fprn_statu"
+    t.decimal "es_c_hwac"
+    t.decimal "es_c_hwoa_"
+    t.decimal "es_c_hwoc"
+    t.decimal "es_vso_tot"
+    t.decimal "th_c_hwac_"
+    t.decimal "th_c_hwoa"
+    t.decimal "th_c_hwoc"
+    t.decimal "th_c_vet"
+    t.decimal "rrh_c_hwac"
+    t.decimal "rrh_c_hwoa"
+    t.decimal "rrh_c_hwoc"
+    t.decimal "rrh_c_vet"
+    t.decimal "psh_c_hwac"
+    t.decimal "psh_c_hwoa"
+    t.decimal "psh_c_hwoc"
+    t.decimal "psh_c_vet"
+    t.decimal "psh_c_ch"
+    t.string "psh_u_hwac"
+    t.string "psh_u_hwoa"
+    t.string "psh_u_hwoc"
+    t.string "psh_u_vet"
+    t.string "psh_u_ch"
+    t.decimal "sh_c_hwoa"
+    t.decimal "sh_c_vet"
+    t.decimal "sh_pers_hw"
+    t.decimal "unsh_pers_"
+    t.decimal "sh_pers__1"
+    t.decimal "unsh_pers1"
+    t.decimal "sh_pers__2"
+    t.decimal "unsh_per_1"
+    t.decimal "sh_ch"
+    t.decimal "unsh_ch"
+    t.decimal "sh_youth_u"
+    t.decimal "unsh_youth"
+    t.decimal "sh_vets"
+    t.decimal "unsh_vets"
+    t.decimal "shape_leng"
+    t.decimal "shape_area"
+    t.geometry "orig_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.index ["cocname"], name: "index_shape_cocs_on_cocname"
+    t.index ["geom"], name: "index_shape_cocs_on_geom", using: :gist
+    t.index ["orig_geom"], name: "index_shape_cocs_on_orig_geom", using: :gist
+    t.index ["st"], name: "index_shape_cocs_on_st"
+  end
+
+  create_table "shape_zip_codes", force: :cascade do |t|
+    t.string "zcta5ce10", limit: 5
+    t.string "geoid10", limit: 5
+    t.string "classfp10", limit: 2
+    t.string "mtfcc10", limit: 5
+    t.string "funcstat10", limit: 1
+    t.float "aland10"
+    t.float "awater10"
+    t.string "intptlat10", limit: 11
+    t.string "intptlon10", limit: 12
+    t.geometry "orig_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.index ["geom"], name: "index_shape_zip_codes_on_geom", using: :gist
+    t.index ["orig_geom"], name: "index_shape_zip_codes_on_orig_geom", using: :gist
+    t.index ["zcta5ce10"], name: "index_shape_zip_codes_on_zcta5ce10", unique: true
   end
 
   create_table "taggings", id: :serial, force: :cascade do |t|
