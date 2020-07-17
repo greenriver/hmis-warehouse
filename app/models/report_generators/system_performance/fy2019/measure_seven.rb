@@ -211,7 +211,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           end.first
         next if exit_data.blank?
         # remove anyone who exited from PH, but had already moved into housing
-        next if PH_PSH.include?(exit_data[:destination].to_i) && exit_data[:move_in_date].present? && exit_data[:move_in_date] <= @report_end
+        next if PH_PSH.include?(exit_data[:project_type].to_i) && exit_data[:move_in_date].present? && exit_data[:move_in_date] <= @report_end
         destinations[id] = exit_data[:destination]
       end
 
@@ -237,7 +237,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         counts: permanent_leavers.map do |id, destination|
           [
             id,
-            client_personal_ids[id].join(','),
+            client_personal_ids[id].join(', '),
             HUD.destination(destination),
           ]
         end
@@ -317,7 +317,7 @@ module ReportGenerators::SystemPerformance::Fy2019
             }
           end.first
         # remove anyone who exited from PH, but never moved into housing
-        next if exit_data.blank?
+        next exit_data.blank? || exit_date[:move_in_date].blank?
         destinations[id] = exit_data[:destination]
       end
 
