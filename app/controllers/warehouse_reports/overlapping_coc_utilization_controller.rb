@@ -55,20 +55,20 @@ module WarehouseReports
     end
 
     def overlap
-      coc1 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc1))
-      coc2 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc2))
+      @coc1 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc1))
+      @coc2 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc2))
       start_date = report_params.require(:start_date)
       end_date = report_params.require(:end_date)
       p_type_report = WarehouseReport::OverlappingCocByProjectType.new(
-        coc_code_1: coc1.cocnum,
-        coc_code_2: coc2.cocnum,
+        coc_code_1: @coc1.cocnum,
+        coc_code_2: @coc2.cocnum,
         start_date: start_date,
         end_date: end_date,
       )
       project_types = p_type_report.for_chart
       funding_sources = WarehouseReport::OverlappingCocByFundingSource.new(
-        coc_code_1: coc1.cocnum,
-        coc_code_2: coc2.cocnum,
+        coc_code_1: @coc1.cocnum,
+        coc_code_2: @coc2.cocnum,
         start_date: start_date,
         end_date: end_date,
       ).for_chart
