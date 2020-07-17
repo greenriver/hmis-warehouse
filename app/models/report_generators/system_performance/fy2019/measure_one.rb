@@ -92,7 +92,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       # Line 1
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
-        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false, false)
+        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false, true)
         if homeless_day_count > 0
           clients[id] = homeless_day_count
         end
@@ -136,7 +136,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       clients = {} # Fill this with hashes: {client_id: days_homeless}
 
       remaining.each_with_index do |id, index|
-        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false, false)
+        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false, true)
         if homeless_day_count > 0
           clients[id] = homeless_day_count
         end
