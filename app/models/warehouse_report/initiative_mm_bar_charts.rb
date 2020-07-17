@@ -4,21 +4,20 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::InitiativeMmBarCharts
-
+class WarehouseReport::InitiativeMmBarCharts # rubocop:disable Style/ClassAndModuleChildren
   DATA_TYPES = [
-    :length_of_stay_breakdowns
-  ]
+    :length_of_stay_breakdowns,
+  ].freeze
 
   PERIODS = [
     :report,
-    :comparison
-  ]
+    :comparison,
+  ].freeze
 
   TYPES = [
     :mean,
-    :median
-  ]
+    :median,
+  ].freeze
 
   def initialize(data, report_range, comparison_range)
     @data = data
@@ -32,42 +31,42 @@ class WarehouseReport::InitiativeMmBarCharts
 
   def chart_title(type)
     if type == :mean
-      "Report Period Mean vs. Comparison Period Mean"
+      'Report Period Mean vs. Comparison Period Mean'
     else
-      "Report Period Median vs. Comparison Period Median"
+      'Report Period Median vs. Comparison Period Median'
     end
   end
 
-  def table_rows(by)
+  def table_rows(_by)
     PERIODS
   end
 
-  def empty?(data_type, by, period)
+  def empty?(_data_type, _by, _period)
     false
   end
 
   def chart_id(data_type, calc, by)
-    "d3-#{data_type.to_s}-#{calc.to_s}-by-#{by.to_s}__chart"
+    "d3-#{data_type}-#{calc}-by-#{by}__chart"
   end
 
   def legend_id(data_type, by)
-    "d3-#{data_type.to_s}-mm-by-#{by.to_s}__legend"
+    "d3-#{data_type}-mm-by-#{by}__legend"
   end
 
   def collapse_id(data_type, by)
-    "d3-#{data_type.to_s}-mm-by-#{by.to_s}__collapse"
+    "d3-#{data_type}-mm-by-#{by}__collapse"
   end
 
   def table_id(data_type, by)
-    "d3-#{data_type.to_s}-mm-by-#{by.to_s}__table"
+    "d3-#{data_type}-mm-by-#{by}__table"
   end
 
   def support_section(data_type, by)
-    "#{data_type.to_s}_by_#{by.to_s}".parameterize.underscore
+    "#{data_type}_by_#{by}".parameterize.underscore
   end
 
   def chart_data(data_type, by)
-    m = "build_data_by_#{by.to_s}".to_sym
+    m = "build_data_by_#{by}".to_sym
     send(m, data_type)
   end
 
@@ -83,13 +82,13 @@ class WarehouseReport::InitiativeMmBarCharts
         labels: chart_data[:labels],
         support_keys: chart_data[:support_keys],
       }
-      charts[type]=data
+      charts[type] = data
     end
     charts
   end
 
   def select_data(data_type, by, period)
-    m = "#{data_type.to_s}_by_#{by.to_s}".to_sym
+    m = "#{data_type}_by_#{by}".to_sym
     if period == :comparison
       m = "all_comparison_#{m}"
     else
@@ -100,7 +99,11 @@ class WarehouseReport::InitiativeMmBarCharts
 
   def mean(values)
     values = values.map(&:to_f)
-    (values.sum.to_f/values.length).round rescue 0
+    begin
+      (values.sum.to_f / values.length).round
+    rescue StandardError
+      0
+    end
   end
 
   def median(values)
@@ -110,26 +113,26 @@ class WarehouseReport::InitiativeMmBarCharts
     values.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2
   end
 
-  def stack_keys(data_type, by)
-    by == :project_type ? @project_types : @projects.map{|p_id, p_name| p_name }
+  def stack_keys(_data_type, by)
+    by == :project_type ? @project_types : @projects.map { |_, p_name| p_name }
   end
 
   def chart_data_template
-    {counts: {mean:[], median:[]}, types: [], values: [], keys: [], support_keys: {}}
+    { counts: { mean: [], median: [] }, types: [], values: [], keys: [], support_keys: {} }
   end
 
   def build_data_by_project_type(data_type)
-    period_data = PERIODS.map{|p| select_data(data_type, :project_type, p)}
+    period_data = PERIODS.map { |p| select_data(data_type, :project_type, p) }
     chart_data = chart_data_template
     stack_keys = stack_keys(data_type, :project_type).reject(&:blank?)
     TYPES.each do |type|
       period_data.each_with_index do |data, index|
         p = PERIODS[index]
-        d = {type: p.to_s}
+        d = { type: p.to_s }
         stack_keys.each do |sk|
           d[sk] = 0
         end
-        data.keys.each do |pt_id|
+        data.each_key do |pt_id|
           pt = ::HUD.project_type_brief(pt_id.to_i)
           d[pt] = send(type, data[pt_id])
           chart_data[:values].push(d[pt])
@@ -147,13 +150,13 @@ class WarehouseReport::InitiativeMmBarCharts
   end
 
   def build_data_by_project(data_type)
-    period_data = PERIODS.map{|p| select_data(data_type, :project, p)}
+    period_data = PERIODS.map { |p| select_data(data_type, :project, p) }
     chart_data = chart_data_template
     stack_keys = stack_keys(data_type, :project).reject(&:blank?)
     TYPES.each do |type|
       period_data.each_with_index do |data, index|
         p = PERIODS[index]
-        d = {type: p.to_s}
+        d = { type: p.to_s }
         @projects.each do |p_id, p_name|
           values = data[p_id] || [0]
           d[p_name] = send(type, values)
@@ -170,5 +173,4 @@ class WarehouseReport::InitiativeMmBarCharts
     end
     chart_data
   end
-
 end
