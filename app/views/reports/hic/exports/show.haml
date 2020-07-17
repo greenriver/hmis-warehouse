@@ -3,6 +3,15 @@
 = render '/reports/breadcrumbs'
 %h1= title
 
-%p The following files will export files appropriate for upload at hudhdx.info.  They will only include projects of the following types: ES, TH, SH, PH (PSH, RRH, Other PH (OPH) – consists of PH – Housing with Services (no disability required for entry) and PH – Housing Only).
+.row
+  .col-6
+    = render 'filter'
+  .col-6
+    .well
+      %p
+        The following files will export files appropriate for upload at hudhdx.info.
+        They will only include projects of the following types: ES, TH, SH, PH
+        (PSH, RRH, Other PH (OPH) – consists of PH – Housing with Services
+        (no disability required for entry) and PH – Housing Only).
 
-= render @partial
+      = render @partial, date: Date.current
