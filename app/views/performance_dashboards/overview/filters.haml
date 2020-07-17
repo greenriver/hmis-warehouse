@@ -1,7 +1,7 @@
 = content_for :modal_title do
   = if @chosen_section then "Edit #{@chosen_section.title} Selection" else 'Edit Universe Selection' end
 
-- url = performance_dashboards_overview_index_path
+- url = polymorphic_path(report_path_array)
 = simple_form_for @filter, as: :filters, url: url, method: :get do |f|
   = hidden_field_tag :breakdown, breakdown
 

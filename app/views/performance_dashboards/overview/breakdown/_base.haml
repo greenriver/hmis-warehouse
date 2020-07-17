@@ -9,7 +9,7 @@
     options: {
       height: chart_height,
       follow_link: show_client_details?,
-      link_base: 'performance_dashboards/overview/details',
+      link_base: detail_link_base,
       key: key,
       sub_keys: sub_keys,
       date_ranges: {
@@ -31,7 +31,7 @@
       - if @breakdown_section_title
         = [key.to_s.titleize, @breakdown_section_title].compact.join(': ')
       - elsif key == :enrolled && @report_variant == 'sparse'
-        Actively Enrolled Clients from #{@report.date_range_words}
+        Actively Enrolled #{performance_type.pluralize} from #{@report.date_range_words}
       - else
         = key.to_s.titleize
 
@@ -51,7 +51,7 @@
     - if @report_variant == 'sparse'
       .gray.lead.font-weight-normal
         - if @report.include_comparison?
-          .mb-1.small.font-weight-bold Unique #{key.to_s.titleize} Clients
+          .mb-1.small.font-weight-bold Unique #{key.to_s.titleize} #{performance_type.pluralize}
           .mb-1
             Reporting Period:
             = link_to_if show_client_details?,
@@ -67,7 +67,7 @@
               data: {loads_in_pjax_modal: true},
               class: 'font-weight-bold'
         - else
-          Unique #{key.to_s.titleize} Clients
+          Unique #{key.to_s.titleize} #{performance_type.pluralize}
           = link_to_if show_client_details?,
             number_with_delimiter(client_counts[:report]),
             details_performance_dashboards_overview_index_path({ filters: detail_params }),

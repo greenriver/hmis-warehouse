@@ -61,5 +61,31 @@ module PerformanceDashboards
       'Household'
     end
     helper_method :performance_type
+
+    private def filter_path_array
+      [
+        :filters,
+        :performance,
+        :dashboards,
+        :household,
+        :index,
+      ]
+    end
+    helper_method :filter_path_array
+
+    private def report_path_array
+      [
+        :performance,
+        :dashboards,
+        :household,
+        :index,
+      ]
+    end
+    helper_method :report_path_array
+
+    private def client_filters?
+      false
+    end
+    helper_method :client_filters?
   end
 end

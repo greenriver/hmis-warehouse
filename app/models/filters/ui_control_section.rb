@@ -23,12 +23,13 @@ module Filters
   end
 
   class UiControl
-    attr_accessor :id, :label, :required
+    attr_accessor :id, :label, :required, :clients_only
 
-    def initialize(id:, label: nil, required: false)
+    def initialize(id:, label: nil, required: false, clients_only: false)
       self.id = id
       self.label = label || id.humanize.titleize
       self.required = required
+      self.clients_only = clients_only
     end
 
     def summary_partial_path

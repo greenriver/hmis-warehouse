@@ -159,7 +159,7 @@ module Filters
     protected def build_household_control_section
       ::Filters::UiControlSection.new(id: 'household').tap do |section|
         section.add_control(id: 'household_type', required: true)
-        section.add_control(id: 'hoh_only', label: 'Only Heads of Household?')
+        section.add_control(id: 'hoh_only', label: 'Only Heads of Household?', clients_only: true)
       end
     end
 
@@ -170,11 +170,11 @@ module Filters
           label: 'Sub-Population',
           required: true
         )
-        section.add_control(id: 'races')
-        section.add_control(id: 'ethnicities')
-        section.add_control(id: 'age_ranges')
-        section.add_control(id: 'genders')
-        section.add_control(id: 'veteran_statuses')
+        section.add_control(id: 'races', clients_only: true)
+        section.add_control(id: 'ethnicities', clients_only: true)
+        section.add_control(id: 'age_ranges', clients_only: true)
+        section.add_control(id: 'genders', clients_only: true)
+        section.add_control(id: 'veteran_statuses', clients_only: true)
       end
     end
 
