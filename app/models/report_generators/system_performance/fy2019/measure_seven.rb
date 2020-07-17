@@ -317,7 +317,7 @@ module ReportGenerators::SystemPerformance::Fy2019
             }
           end.first
         # remove anyone who exited from PH, but never moved into housing
-        next if exit_data.blank? || exit_date[:move_in_date].blank?
+        next if exit_data.blank? || exit_data[:move_in_date].blank?
         destinations[id] = exit_data[:destination]
       end
 
