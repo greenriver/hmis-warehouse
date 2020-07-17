@@ -13,11 +13,41 @@ module WarehouseReports
       'UNKNOWN'
     end
 
+    private def state_coc_shapes
+      GrdaWarehouse::Shape::CoC.where(
+        st: RELEVANT_COC_STATE,
+      )
+    end
+
+    private def overlap_by_coc_code
+      GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode).map do |coc_code|
+        [coc_code, rand(255)]
+      end.to_h
+    end
+
+    private def map_shapes
+      GrdaWarehouse::Shape.geo_collection_hash(
+        state_coc_shapes,
+      )
+    end
+    helper_method :map_shapes
+
+    private def map_data
+      {}.tap do |data|
+        map_shapes[:features].each do |feature|
+          overlap_by_coc_code.each do |coc_code, value|
+            data[feature.dig(:properties, :id).to_s] = value if feature.dig(:properties, :cocnum) == coc_code
+          end
+        end
+      end
+    end
+    helper_method :map_data
+
     def index
       @end_date = (Date.current - 1.years).end_of_year
       @start_date = @end_date.beginning_of_year
-      @cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
-      @shapes = GrdaWarehouse::Shape.geo_collection_hash(@cocs)
+      @cocs = state_coc_shapes
+      @shapes = map_shapes
     end
 
     def report_params
@@ -43,27 +73,6 @@ module WarehouseReports
         end_date: end_date,
       ).for_chart
 
-      ###
-      # fake data for testing
-      # project_types = ([
-      #   'CA (Coordinated Assessment)',
-      # ] + GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.values).map do |type|
-      #   [type, [rand(100), rand(100)]]
-      # end
-      # project_types << ['All Program Types (Unique Clients)', [150, 175]]
-      # funding_sources = [
-      #   'State',
-      #   'ESG (Emergency Solutions Grants)',
-      # ].map do |source|
-      #   [source, [rand(100), rand(100)]]
-      # end
-      # funding_sources << ['All Funding Sources (Unique Clients)', [150, 175]]
-      cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
-      map_data = {}
-      GrdaWarehouse::Shape.geo_collection_hash(cocs)[:features].each do |feature|
-        map_data[feature.dig(:properties, :id).to_s] = rand(225)
-      end
-      ###
       locals = {
         start_date: params.dig(:compare, :start_date),
         end_date: params.dig(:compare, :end_date),

@@ -1,32 +1,10 @@
 :scss
-  .date_picker .input-group {
-    max-width: none
-  }
-  .select2-selection.select2-selection--single {
-    background: white;
-  }
-  #compare_coc1 ~ .select2 {
-    $color: #fca736;
-    .select2-selection {
-      border: 1px solid $color;
-    }
-  }
-  #compare_coc2 ~ .select2 {
-    $color: #ffe09b;
-    .select2-selection {
-      border: 1px solid $color;
-    }
-  }
   .c-input-group {
     margin-bottom: 50px;
   }
   .c-input-group__description {
     font-size: 16px;
     font-weight: 600;
-  }
-  .input-group-append button {
-    align-items: center;
-    font-size: 18px;
   }
 
 - title = "Overlapping CoC Utilization"
@@ -41,31 +19,45 @@
 - results_id = report_id + '-results'
 
 .warehouse-reports__ad_hoc-export.c-report{id: report_id}
-  .row.pb-8
-    .col-md-5
-      %p.mb-6 This report summarizes the overlaps in clients and services betweeen CoCs you have shared access with.
-      = simple_form_for :compare, url: url_for, method: :get do |f|
+  .row
+    .col-md-12
+      %p.mb-6 This report summarizes the overlaps in clients and services between CoCs you have shared access with.
+  = simple_form_for :compare, url: url_for, method: :get do |f|
+    .row
+      .col-md-3
         .c-input-group
-          %p.c-input-group__description To start, select a time range:
-          = f.input :start_date, as: :date_picker, input_html: {value: @start_date}
-          = f.input :end_date, as: :date_picker, input_html: {value: @end_date}
+          %p.c-input-group__description Service Date Range
+          .d-flex
+            = f.input :start_date, as: :date_picker, label: false, input_html: {value: @start_date}, hint: 'Select clients who received service in the during the time-frame.'
+      .col-md-3
         .c-input-group
-          %p.c-input-group__description Select two CoCs below or by clicking on the map:
-          %div.d-flex
-            .c-swatch.mr-2{style: 'flex: 1 1 5%; max-width: 5%'}
-              .c-swatch__display.c-swatch__display--map-0
-            %div{style: 'flex: 1 1 95%; max-width: 95%'}
-              = f.input :coc1, collection: @cocs, value_method: :id, label_method: :number_and_name, required: true, label: 'CoC 1', input_html: { class: [:select2] }
-          %div.d-flex
-            .c-swatch.mr-2{style: 'flex: 1 1 5%; max-width: 5%'}
-              .c-swatch__display.c-swatch__display--map-1
-            %div{style: 'flex: 1 1 95%; max-width: 95%'}
-              = f.input :coc2, collection: @cocs, value_method: :id, label_method: :number_and_name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
-    .col-md-6.ml-auto.d-flex.flex-column
-      .coc-util-overlap.mb-6.o-container--with-loader{id: map_id}
-      = render 'common/gradient_legend', labels: ['200+ Overlapping Clients', 'No Overlapping Clients'], colors: ['#0154A6', '#FFFFFF']
+          %p.c-input-group__description.d-none.d-sm-block &nbsp;
+          = f.input :end_date, as: :date_picker, label: false, input_html: {value: @end_date}
+      .col-md-3
+        .c-input-group
+          %p.c-input-group__description.text-nowrap.text-truncate
+            %span.mr-2 Primary CoC
+            %span.c-swatch.d-inline
+              %span.c-swatch__display.c-swatch__display--map-0
+          = f.input :coc1, collection: @cocs, value_method: :id, label_method: :number_and_name, required: true, label: false, input_html: { class: [:select2] }, hint: 'Show the number of clients you have shared with each other CoCs'
+      .col-md-3
+        .c-input-group
+          %p.c-input-group__description.text-nowrap.text-truncate
+            %span.mr-2 Secondary CoC
+            %span.c-swatch.d-inline
+              %span.c-swatch__display.c-swatch__display--map-1
+          = f.input :coc2, collection: @cocs, value_method: :id, label_method: :number_and_name, required: false, label: false, input_html: { class: [:select2] }, hint: 'Select a second CoC to show you a break-down of the clients shared between the to CoCs'
+  .row
+    .col-md-6
+      %h2.mb-8 Primary CoC shares clients with the these other CoCs in the region
+      .mb-1= render 'common/gradient_legend', labels: ['No shared clients','200+ shared clients'], colors: ['#FFFFFF', '#0154A6']
+      .coc-util-overlap.mb-6.o-container--with-loader{id: map_id, style: 'min-height: 600px; borer: 1px solid silver; background: lightblue;'}
 
-  %div.o-container--with-loader{id: results_id}
+    .col-md-6
+      %div.o-container--with-loader{id: results_id, style: 'min-height: 600px;'}
+        %h2.mb-8 Breakdown of services provided to shared clients of Primary CoC and Secondary CoC.
+        %p
+          %em This report requires two CoCs to be selected.
 
 = content_for :page_js do
   :javascript

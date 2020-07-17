@@ -49,7 +49,7 @@ class App.Maps.MapWithShapes
           metric = "<p>Overlapping clients: <strong>#{props.metric}</p>"
         @_div.innerHTML = "<h4>#{props.name}</h4>#{metric}"
       else
-        @_div.innerHTML = '<p class="mb-0 font-italic">Select a CoC</p>'
+        @_div.innerHTML = ''
 
     @info.onAdd = (map) =>
       @_div = L.DomUtil.create('div', 'l-info')
