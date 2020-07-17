@@ -43,13 +43,11 @@ class App.Maps.MapWithShapes
     @info = L.control()
 
     @info.update = (props) =>
-      metric = ''
+      console.log(props)
       if props?
-        if @showingData
-          metric = "<p>Overlapping clients: <strong>#{props.metric}</p>"
-        @_div.innerHTML = "<h4>#{props.name}</h4>#{metric}"
-      else
-        @_div.innerHTML = ''
+        @_div.innerHTML = '<h4>'+props.name+'</h4>'
+        if props.metric?
+          @_div.innerHTML = @_div.innerHTML+'<p>Shared clients: <strong>'+props.metric+'</p>'
 
     @info.onAdd = (map) =>
       @_div = L.DomUtil.create('div', 'l-info')
