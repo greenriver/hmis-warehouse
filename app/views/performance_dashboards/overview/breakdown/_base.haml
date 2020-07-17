@@ -1,9 +1,11 @@
 :ruby
+  legend_id = "legend-#{SecureRandom.hex(8)}"
   excluded_categories = local_assigns[:excluded_categories].presence
   chart_options = {
     params: { filters: detail_params },
     columns: columns,
     categories: categories,
+    legendBindTo: "##{legend_id}",
     options: {
       height: chart_height,
       follow_link: show_client_details?,
@@ -85,5 +87,6 @@
             - count = client_counts[:comparison]
             = link_to_if show_client_details?, "Total Unique Clients: #{number_with_delimiter count}", details_performance_dashboards_overview_index_path({ filters: comparison_params }), data: {loads_in_pjax_modal: true}
 
+.chart-legend-prs1{id: legend_id}
 .well.mb-6.pt-0
   .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: chart_options.to_json.html_safe } }
