@@ -9,6 +9,7 @@ module PerformanceDashboards
     before_action :set_filter
     before_action :set_report
     before_action :set_key, only: [:details]
+    before_action :set_pdf_export
 
     def index
     end
@@ -27,6 +28,7 @@ module PerformanceDashboards
     private def section_subpath
       'performance_dashboards/overview/'
     end
+    helper_method :section_subpath
 
     def details
       @options = option_params[:filters]
@@ -94,6 +96,10 @@ module PerformanceDashboards
     private def set_pdf_export
       @pdf_export = GrdaWarehouse::DocumentExports::PerformanceDashboardExport.new
     end
-    before_action :set_pdf_export
+
+    private def performance_type
+      'Client'
+    end
+    helper_method :performance_type
   end
 end

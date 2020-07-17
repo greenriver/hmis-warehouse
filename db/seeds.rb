@@ -26,7 +26,7 @@ end
 # Reports
 def report_list
   {
-    'Operational Reports' => [
+    'Operational' => [
       {
         url: 'warehouse_reports/chronic',
         name: 'Potentially Chronic Clients',
@@ -380,7 +380,7 @@ def report_list
         limitable: true,
       },
     ],
-    'Audit Reports' => [
+    'Audit' => [
       {
         url: 'audit_reports/agency_user',
         name: 'Agency User Audit Report',
@@ -501,7 +501,13 @@ def report_list
     'Performance' => [
       {
         url: 'performance_dashboards/overview',
-        name: 'Performance Overview',
+        name: 'Client Performance',
+        description: 'Overview of warehouse performance.',
+        limitable: true,
+      },
+      {
+        url: 'performance_dashboards/household',
+        name: 'Household Performance',
         description: 'Overview of warehouse performance.',
         limitable: true,
       },

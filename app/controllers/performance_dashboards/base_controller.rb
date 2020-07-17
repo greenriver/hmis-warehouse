@@ -46,7 +46,7 @@ class PerformanceDashboards::BaseController < ApplicationController
   helper_method :active_filter_open
 
   def breakdown
-    @breakdown ||= params[:breakdown]&.to_sym || :age
+    @breakdown ||= params[:breakdown]&.to_sym || @report.available_breakdowns.keys.first
   end
   helper_method :breakdown
 
