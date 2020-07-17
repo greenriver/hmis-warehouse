@@ -5,24 +5,20 @@
 ###
 
 module Reports
-  class Hic::FundersController < Hic::BaseController
+  class Hic::ProjectCocsController < Hic::BaseController
     def show
-      @funders = funder_scope.joins(:project).
+      @project_cocs = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
         merge(GrdaWarehouse::Hud::Project.with_hud_project_type(PROJECT_TYPES)).
         distinct
 
       date = params[:date]&.to_date
-      @funders = @funders.merge(GrdaWarehouse::Hud::Project.active_on(date)) if date.present?
+      @project_cocs = @project_cocs.merge(GrdaWarehouse::Hud::Project.active_on(date)) if date.present?
 
       respond_to do |format|
         format.html
-        format.csv { send_data GrdaWarehouse::Hud::Funder.to_csv(scope: @funders), filename: "funder-#{Time.now}.csv" }
+        format.csv { send_data GrdaWarehouse::Hud::ProjectCoc.to_csv(scope: @project_cocs), filename: "projectcoc-#{Time.now}.csv" }
       end
-    end
-
-    def funder_scope
-      GrdaWarehouse::Hud::Funder
     end
   end
 end
