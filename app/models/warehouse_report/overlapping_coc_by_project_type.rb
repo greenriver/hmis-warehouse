@@ -106,6 +106,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
 
   def details_clients
+    client_num = 0
     service_histories.where(
       client_id: overlapping_client_ids,
     ).preload(
@@ -115,7 +116,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       },
     ).group_by(&:client).map do |client, services|
       {
-        label: "Client ##{client.id}",
+        label: "Client ##{client_num += 1}",
         gender: client.gender,
         age_group: age_group(client),
         race: client.race_description,
