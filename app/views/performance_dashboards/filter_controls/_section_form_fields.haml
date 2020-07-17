@@ -1,5 +1,5 @@
 %h3.mb-2.gray.form-filter-section-title-prs1
   = section.title
 - section.controls.each do |control|
-  - if ! control.clients_only || client_filters? && control.clients_only
+  - if ! control.clients_only || @report.client_filters? && control.clients_only
     = render control.input_partial_path, control: control, f: f

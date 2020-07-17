@@ -42,7 +42,7 @@ module PerformanceDashboard::Overview::Exiting::Household
   end
 
   private def exiting_by_household_details(options)
-    sub_key = options[:sub_key]&.to_i
+    sub_key = options[:sub_key]&.to_sym
     ids = if sub_key
       exiting_by_household[sub_key]
     else

@@ -42,13 +42,13 @@ class DocumentExportsController < ApplicationController
   end
 
   protected def find_or_create
-    found = export_scope
-      .diet_select
-      .completed
-      .recent
-      .where(export_params)
-      .first
-    found ? found : export_scope.build(export_params)
+    found = export_scope.
+      diet_select.
+      completed.
+      recent.
+      where(export_params).
+      first
+    found || export_scope.build(export_params)
   end
 
   protected def serialize_export(export)
@@ -64,7 +64,7 @@ class DocumentExportsController < ApplicationController
   end
 
   protected def export_params
-    valid_types = GrdaWarehouse::DocumentExport.subclasses.map(&:name)
+    valid_types = GrdaWarehouse::DocumentExport.descendants.map(&:name)
     type = params.require(:type).presence_in(valid_types)
     raise ActionController::BadRequest, "bad type #{params[:type]}" unless type
 

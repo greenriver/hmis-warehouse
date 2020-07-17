@@ -2,16 +2,16 @@
   .pr-2
     %h3.gray Universe Selection
   .ml-auto
-    - total_url = polymorphic_path(filter_path_array, *link_params.except(:action))
+    - total_url = polymorphic_path(@report.filter_path_array, *link_params.except(:action))
     %a.btn.btn-primary.btn-sm{href: total_url, data: { loads_in_pjax_modal: true }}
       Edit
 
-- @filter.control_sections.each do |section|
-  - section_url = polymorphic_path(filter_path_array, *(link_params.except(:action).merge(filter_section_id: section.id)))
+- @report.control_sections.each do |section|
+  - section_url = polymorphic_path(@report.filter_path_array, *(link_params.except(:action).merge(filter_section_id: section.id)))
   .sb-filter-section-prs1
     %h4.mb-2.gray= section.title
     - section.controls.each do |control|
-      - if ! control.clients_only || client_filters? && control.clients_only
+      - if ! control.clients_only || @report.client_filters? && control.clients_only
         .mb-3
           .mb-1
             %a.sb-link-prs1{class: (control.required ? 'sb-link-required-prs1' : nil), href: section_url, data: { loads_in_pjax_modal: true }}= control.label

@@ -24,6 +24,39 @@ class PerformanceDashboards::Household < PerformanceDashboards::Base # rubocop:d
     }
   end
 
+  def performance_type
+    'Household'
+  end
+
+  def client_filters?
+    false
+  end
+
+  def report_path_array
+    [
+      :performance,
+      :dashboards,
+      :household,
+      :index,
+    ]
+  end
+
+  protected def build_household_control_section
+    ::Filters::UiControlSection.new(id: 'household').tap do |section|
+      section.add_control(id: 'household_type', required: true)
+    end
+  end
+
+  protected def build_demographics_control_section
+    ::Filters::UiControlSection.new(id: 'demographics').tap do |section|
+      section.add_control(
+        id: 'sub_population',
+        label: 'Sub-Population',
+        required: true,
+      )
+    end
+  end
+
   def self.available_chart_types
     chart_types = [
       'by_household',

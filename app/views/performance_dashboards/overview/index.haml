@@ -8,7 +8,7 @@
       = render '/warehouse_reports/breadcrumbs', tab: 'performance'
       = render "utility"
     .top-nav-prs1
-      %h1 #{performance_type} Performance
+      %h1 #{@report.performance_type} Performance
       .d-flex
         .lead.mb-4.mr-auto View Report Disaggregated By:
         .ml-2.mb-2= render 'performance_dashboards/pdf_download', export: @pdf_export

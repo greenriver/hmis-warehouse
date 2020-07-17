@@ -9,7 +9,7 @@
     options: {
       height: chart_height,
       follow_link: show_client_details?,
-      link_base: detail_link_base,
+      link_base: @report.detail_link_base,
       key: key,
       sub_keys: sub_keys,
       date_ranges: {
@@ -31,7 +31,7 @@
       - if @breakdown_section_title
         = [key.to_s.titleize, @breakdown_section_title].compact.join(': ')
       - elsif key == :enrolled && @report_variant == 'sparse'
-        Actively Enrolled #{performance_type.pluralize} from #{@report.date_range_words}
+        Actively Enrolled #{@report.performance_type.pluralize} from #{@report.date_range_words}
       - else
         = key.to_s.titleize
 
@@ -51,41 +51,29 @@
     - if @report_variant == 'sparse'
       .gray.lead.font-weight-normal
         - if @report.include_comparison?
-          .mb-1.small.font-weight-bold Unique #{key.to_s.titleize} #{performance_type.pluralize}
+          .mb-1.small.font-weight-bold Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}
           .mb-1
             Reporting Period:
-            = link_to_if show_client_details?,
-              number_with_delimiter(client_counts[:report]),
-              details_performance_dashboards_overview_index_path({ filters: detail_params }),
-              data: {loads_in_pjax_modal: true},
-              class: 'font-weight-bold'
+            = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
           %div
             Comparison Period:
-            = link_to_if show_client_details?,
-              number_with_delimiter(client_counts[:comparison]),
-              details_performance_dashboards_overview_index_path({ filters: comparison_params }),
-              data: {loads_in_pjax_modal: true},
-              class: 'font-weight-bold'
+            = link_to_if show_client_details?, number_with_delimiter(client_counts[:comparison]), polymorphic_path(@report.detail_path_array, { filters: comparison_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
         - else
-          Unique #{key.to_s.titleize} #{performance_type.pluralize}
-          = link_to_if show_client_details?,
-            number_with_delimiter(client_counts[:report]),
-            details_performance_dashboards_overview_index_path({ filters: detail_params }),
-            data: {loads_in_pjax_modal: true},
-            class: 'font-weight-bold'
+          Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}
+          = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
     - else
       .d-flex.mb-2
         .report-period.mr-6
           %h4.m-0 Report Period
           %p.mb-0 #{@report.date_range_words}
           - count = client_counts[:report]
-          = link_to_if show_client_details?, "Total Unique Clients: #{number_with_delimiter count}", details_performance_dashboards_overview_index_path({ filters: detail_params }), data: {loads_in_pjax_modal: true}
+          = link_to_if show_client_details?, "Total Unique Clients: #{number_with_delimiter count}", polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}
         - if @report.include_comparison?
           .comparison-period
             %h4.m-0 Comparison Period
             %p.mb-0 #{@comparison.date_range_words}
             - count = client_counts[:comparison]
-            = link_to_if show_client_details?, "Total Unique Clients: #{number_with_delimiter count}", details_performance_dashboards_overview_index_path({ filters: comparison_params }), data: {loads_in_pjax_modal: true}
+            = link_to_if show_client_details?, "Total Unique Clients: #{number_with_delimiter count}", polymorphic_path(@report.detail_path_array, { filters: comparison_params }), data: {loads_in_pjax_modal: true}
 
 .chart-legend-prs1{id: legend_id}
 .well.mb-6.pt-0

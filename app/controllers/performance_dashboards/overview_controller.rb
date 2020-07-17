@@ -15,7 +15,7 @@ module PerformanceDashboards
     end
 
     def filters
-      @sections = @filter.control_sections
+      @sections = @report.control_sections
       chosen = params[:filter_section_id]
       if chosen
         @chosen_section = @sections.detect do |section|
@@ -24,11 +24,6 @@ module PerformanceDashboards
       end
       @modal_size = :xl if @chosen_section.nil?
     end
-
-    private def section_subpath
-      'performance_dashboards/overview/'
-    end
-    helper_method :section_subpath
 
     def details
       @options = option_params[:filters]
@@ -77,9 +72,9 @@ module PerformanceDashboards
 
     private def set_report
       @report_variant = 'sparse'
-      @report = PerformanceDashboards::Overview.new(@filter)
+      @report = report_class.new(@filter)
       if @report.include_comparison?
-        @comparison = PerformanceDashboards::Overview.new(@comparison_filter)
+        @comparison = report_class.new(@comparison_filter)
       else
         @comparison = @report
       end
@@ -90,37 +85,15 @@ module PerformanceDashboards
     end
 
     private def set_key
-      @key = PerformanceDashboards::Overview.detail_method(params.dig(:filters, :key))
+      @key = report_class.detail_method(params.dig(:filters, :key))
     end
 
     private def set_pdf_export
-      @pdf_export = GrdaWarehouse::DocumentExports::PerformanceDashboardExport.new
+      @pdf_export = GrdaWarehouse::DocumentExports::ClientPerformanceExport.new
     end
 
-    private def performance_type
-      'Client'
+    private def report_class
+      PerformanceDashboards::Overview
     end
-    helper_method :performance_type
-
-    private def filter_path_array
-      [
-        :filters,
-        :performance,
-        :dashboards,
-        :overview,
-        :index,
-      ]
-    end
-    helper_method :filter_path_array
-
-    private def report_path_array
-      [
-        :performance,
-        :dashboards,
-        :overview,
-        :index,
-      ]
-    end
-    helper_method :report_path_array
   end
 end

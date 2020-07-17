@@ -29,6 +29,15 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
     }
   end
 
+  def report_path_array
+    [
+      :performance,
+      :dashboards,
+      :overview,
+      :index,
+    ]
+  end
+
   def self.available_chart_types
     chart_types = [
       'by_age',

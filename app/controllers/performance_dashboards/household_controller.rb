@@ -14,7 +14,7 @@ module PerformanceDashboards
     end
 
     def filters
-      @sections = @filter.control_sections
+      @sections = @report.control_sections
       chosen = params[:filter_section_id]
       if chosen
         @chosen_section = @sections.detect do |section|
@@ -23,11 +23,6 @@ module PerformanceDashboards
       end
       @modal_size = :xl if @chosen_section.nil?
     end
-
-    private def section_subpath
-      'performance_dashboards/household/'
-    end
-    helper_method :section_subpath
 
     private def option_params
       params.permit(
@@ -43,49 +38,12 @@ module PerformanceDashboards
       )
     end
 
-    private def set_report
-      @report_variant = 'sparse'
-      @report = PerformanceDashboards::Household.new(@filter)
-      if @report.include_comparison?
-        @comparison = PerformanceDashboards::Household.new(@comparison_filter)
-      else
-        @comparison = @report
-      end
+    private def set_pdf_export
+      @pdf_export = GrdaWarehouse::DocumentExports::HouseholdPerformanceExport.new
     end
 
-    private def set_key
-      @key = PerformanceDashboards::Household.detail_method(params.dig(:filters, :key))
+    private def report_class
+      PerformanceDashboards::Household
     end
-
-    private def performance_type
-      'Household'
-    end
-    helper_method :performance_type
-
-    private def filter_path_array
-      [
-        :filters,
-        :performance,
-        :dashboards,
-        :household,
-        :index,
-      ]
-    end
-    helper_method :filter_path_array
-
-    private def report_path_array
-      [
-        :performance,
-        :dashboards,
-        :household,
-        :index,
-      ]
-    end
-    helper_method :report_path_array
-
-    private def client_filters?
-      false
-    end
-    helper_method :client_filters?
   end
 end

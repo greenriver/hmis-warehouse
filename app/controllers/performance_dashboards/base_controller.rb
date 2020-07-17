@@ -16,7 +16,7 @@ class PerformanceDashboards::BaseController < ApplicationController
 
     raise 'Rollup not in allowlist' unless @section.present?
 
-    @section = section_subpath + @section
+    @section = @report.section_subpath + @section
     render partial: @section, layout: false if request.xhr?
   end
 
@@ -85,14 +85,4 @@ class PerformanceDashboards::BaseController < ApplicationController
     render_to_string partial: '/performance_dashboards/filter_controls/helpers/items_selection_summary', locals: { value: value }
   end
   helper_method :filter_item_selection_summary
-
-  private def detail_link_base
-    "#{section_subpath}details"
-  end
-  helper_method :detail_link_base
-
-  private def client_filters?
-    true
-  end
-  helper_method :client_filters?
 end
