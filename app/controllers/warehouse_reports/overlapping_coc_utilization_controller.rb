@@ -19,6 +19,12 @@ module WarehouseReports
       )
     end
 
+    private def coc_shapes_with_data
+      state_coc_shapes.where(
+        cocnum: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode),
+      )
+    end
+
     private def overlap_by_coc_code
       GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode).map do |coc_code|
         [coc_code, rand(255)]
@@ -46,7 +52,7 @@ module WarehouseReports
     def index
       @end_date = (Date.current - 1.years).end_of_year
       @start_date = @end_date.beginning_of_year
-      @cocs = state_coc_shapes
+      @cocs = coc_shapes_with_data
       @shapes = map_shapes
     end
 
