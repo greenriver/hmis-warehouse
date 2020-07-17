@@ -18,6 +18,10 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
     status == COMPLETED_STATUS
   end
 
+  def self.completed
+    where(status: COMPLETED_STATUS)
+  end
+
   def self.diet_select
     select(column_names - ['file_data'])
   end
@@ -54,6 +58,10 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
 
   def self.expired
     where('created_at <= ?', Time.now - EXPIRES_AFTER)
+  end
+
+  def self.recent
+    where('created_at > ?', 8.hours.ago)
   end
 
   MIME_TYPES = [

@@ -6,10 +6,13 @@
 
 class DocumentExportsController < ApplicationController
   def create
-    @export = export_scope.build(export_params)
+    @export = find_or_create
     if @export.authorized?
-      @export.save!
-      DocumentExportJob.perform_later(export_id: @export.id)
+      if @export.new_record?
+        @export.status = GrdaWarehouse::DocumentExport::PENDING_STATUS
+        @export.save!
+        DocumentExportJob.perform_later(export_id: @export.id)
+      end
       render json: serialize_export(@export)
     else
       not_authorized!
@@ -38,6 +41,16 @@ class DocumentExportsController < ApplicationController
     end
   end
 
+  protected def find_or_create
+    found = export_scope
+      .diet_select
+      .completed
+      .recent
+      .where(export_params)
+      .first
+    found ? found : export_scope.build(export_params)
+  end
+
   protected def serialize_export(export)
     {
       pollUrl: document_export_path(export.id),
@@ -58,7 +71,6 @@ class DocumentExportsController < ApplicationController
     {
       type: type,
       query_string: params[:query_string],
-      status: GrdaWarehouse::DocumentExport::PENDING_STATUS,
     }
   end
 end
