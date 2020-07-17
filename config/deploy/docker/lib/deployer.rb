@@ -46,6 +46,10 @@ class Deployer
 
   attr_accessor :force_build
 
+  # The fully-qualified domain name of the application
+  # We use this so we can get data from the app about the deployment state
+  attr_accessor :fqdn
+
   def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:)
     self.target_group_name = target_group_name
     self.assume_ci_build   = assume_ci_build
@@ -53,6 +57,7 @@ class Deployer
     self.execution_role    = execution_role
     self.task_role         = task_role
     self.dj_options        = dj_options || []
+    self.fqdn              = fqdn
     self.push_allowed      = true
     self.web_options       = web_options
     self.force_build       = false
@@ -122,6 +127,7 @@ class Deployer
         target_group_arn: _target_group_arn,
         target_group_name: target_group_name,
         execution_role: execution_role,
+        fqdn: fqdn,
         task_role: task_role,
         web_options: web_options,
       })
