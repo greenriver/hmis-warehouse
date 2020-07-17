@@ -8,12 +8,11 @@
   %h2.mb-5
     = "Clients served in both #{@coc1.number_and_name} and #{@coc2.number_and_name}"
     .text-small= "between #{start_date} - #{end_date}"
-  .row.flex-wrap
-    .col
-      %p.font-weight-bold.mb-2 Total Shared Clients
-      %p{style: 'font-weight: bold; font-size: 24px; '}
-        = link_to detail_url.() do
-          = overlapping_client_count
+  %p
+    %span{style: 'font-weight: bold; font-size: 24px; '}
+      = link_to detail_url.() do
+        = overlapping_client_count
+    %span.font-weight-bold.mb-2 Total Shared Clients
 - if project_types.any?
   .mb-8
     = render 'table', scope: 'project_type' do

@@ -1,0 +1,7 @@
+.mb-4
+  %h2.mb-5
+    = "Enrollment details for clients served in both "
+    = "#{@report.coc1.number_and_name} and #{@report.coc2.number_and_name}"
+    .text-small= "between #{@report.start_date} - #{@report.end_date}"
+%pre= JSON::pretty_generate(@report.details_hash)
+

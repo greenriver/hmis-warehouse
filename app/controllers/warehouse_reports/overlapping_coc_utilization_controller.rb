@@ -56,8 +56,24 @@ module WarehouseReports
       @shapes = map_shapes
     end
 
-    def report_params
-      params.require(:compare).permit(:coc1, :coc2, :start_date, :end_date)
+    def details
+      @coc1 = GrdaWarehouse::Shape::CoC.find_by(id: params.require(:coc1))
+      @coc2 = GrdaWarehouse::Shape::CoC.find_by(id: params.require(:coc2))
+      @report = WarehouseReport::OverlappingCocByProjectType.new(
+        coc_code_1: @coc1.cocnum,
+        coc_code_2: @coc2.cocnum,
+        start_date: Date.parse(params.require(:start_date)),
+        end_date: Date.parse(params.require(:end_date)),
+      )
+    end
+
+    private def report_params
+      params.require(:compare).permit(
+        :coc1,
+        :coc2,
+        :start_date,
+        :end_date,
+      )
     end
     helper_method :report_params
 
