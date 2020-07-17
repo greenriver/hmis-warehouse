@@ -13,7 +13,7 @@ module ClientController
     def sort_filter_index
       # sort / paginate
       default_sort = c_t[:LastName].asc
-      nulls_last = ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+      nulls_last = ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name.in?(['PostgreSQL', 'PostGIS'])
       sort = if client_processed_sort_columns.include?(sort_column)
         @clients = @clients.joins(:processed_service_history).includes(:processed_service_history)
         [wcp_t[sort_column.to_sym].send(sort_direction).to_sql + nulls_last.to_s, default_sort]
