@@ -1,3 +1,9 @@
+:ruby
+  detail_url = -> (extra_params={}) do
+    details_warehouse_reports_overlapping_coc_utilization_index_path(
+      report_params.to_h.symbolize_keys.merge(extra_params.symbolize_keys)
+    )
+  end
 .mb-4
   %h2.mb-5
     = "Clients served in both #{@coc1.number_and_name} and #{@coc2.number_and_name}"
@@ -5,15 +11,18 @@
   .row.flex-wrap
     .col
       %p.font-weight-bold.mb-2 Total Shared Clients
-      %p{style: 'font-weight: bold; font-size: 24px; '}= overlapping_client_count
+      %p{style: 'font-weight: bold; font-size: 24px; '}
+        = link_to detail_url.() do
+          = overlapping_client_count
 - if project_types.any?
   .mb-8
     = render 'table', scope: 'project_type' do
-      - relative_total = project_types.map(&:last).flatten.max
-      - project_types.sort_by{ |s| -s.last.sum }.each do |project_type, values|
+      - relative_total = project_types.map(&:second).flatten.max
+      - project_types.sort_by{ |s| -s.second.sum }.each do |name, values, id|
         %tr
           %td{style: 'width: 35%'}
-            = project_type
+            = link_to detail_url.(project_type: id) do
+              = name
           %td{style: 'width: 35%'}
             = render 'bars', relative_total: relative_total, values: values
           %td{style: 'width: 15%'}= values.first
@@ -21,10 +30,12 @@
 - if funding_sources.present?
   .mb-6
     = render 'table', scope: 'funding_source' do
-      - relative_total = funding_sources.map(&:last).flatten.max
-      - funding_sources.sort_by{ |s| -s.last.sum}.each do |source, values|
+      - relative_total = funding_sources.map(&:second).flatten.max
+      - funding_sources.sort_by{ |s| -s.second.sum}.each do |name, values, id|
         %tr
-          %td{style: 'width: 35%'}= source
+          %td{style: 'width: 35%'}
+            = link_to detail_url.(funding_source: id) do
+              = nam
           %td{style: 'width: 35%'}
             = render 'bars', relative_total: relative_total, values: values
           %td{style: 'width: 15%'}= values.first

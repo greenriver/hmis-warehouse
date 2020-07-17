@@ -70,7 +70,8 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
         [
           async,
           concurrent,
-        ]
+        ],
+        p_type
       ] if (async + concurrent).positive?
     end.compact
   end

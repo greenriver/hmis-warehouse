@@ -72,7 +72,8 @@ class WarehouseReport::OverlappingCocByFundingSource < WarehouseReport
         [
           async,
           concurrent,
-        ]
+        ],
+        funding_source
       ] if (async + concurrent).positive?
     end.compact
   end

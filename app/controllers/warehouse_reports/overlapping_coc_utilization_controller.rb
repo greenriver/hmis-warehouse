@@ -59,6 +59,7 @@ module WarehouseReports
     def report_params
       params.require(:compare).permit(:coc1, :coc2, :start_date, :end_date)
     end
+    helper_method :report_params
 
     def overlap
       @coc1 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc1))

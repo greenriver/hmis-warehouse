@@ -175,6 +175,7 @@ Rails.application.routes.draw do
     resources :overlapping_coc_utilization, only: [:index] do
       collection do
         get :overlap
+        get :details
       end
     end
     resources :ce_assessments, only: [:index]
