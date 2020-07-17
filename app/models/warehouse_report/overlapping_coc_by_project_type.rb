@@ -91,7 +91,18 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
 
   def all_overlapping_clients
-    overlapping_client_ids
+    overlapping_client_ids.size
+  end
+
+  def details_hash
+    {
+      start_date: start_date.iso8601,
+      end_date: end_date.iso8601,
+      cocs: [coc1,coc2].map { |coc|
+        { code: coc.cocnum, name: coc.cocname}
+      },
+      clients: details_clients,
+    }
   end
 
   def details_clients
@@ -115,7 +126,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
 
   # FIXME: stolen from GrdaWarehouse::ServiceHistoryEnrollment.available_age_ranges
-  def age_group(client)
+  private def age_group(client)
     return 'Unknown age' unless client.age&.positive?
     case client.age
     when 0..17
@@ -129,7 +140,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     end
   end
 
-  def enrollment_details(services)
+  private def enrollment_details(services)
     services.group_by(&:service_history_enrollment).map do |e, enrollment_services|
       {
         coc: e.project.project_cocs.first.CoCCode,
@@ -139,8 +150,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     end
   end
 
-
-  def history_details(services)
+  private def history_details(services)
     services.compact.sort_by(&:date).slice_when do |i, j|
       (i.date - j.date).abs > 1
     end.map do |seq|
@@ -151,11 +161,6 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
       {from: seq.first.date.iso8601, to: seq.last.date.iso8601, label: label}
     end
-  end
-  def details_hash
-    {
-      clients: details_clients
-    }
   end
 
 
