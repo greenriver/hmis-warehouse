@@ -59,7 +59,7 @@ namespace :warehouse do
 
       desc "Conditionally load the database schema"
       task :conditional_load, [] => [:environment] do |t, args|
-        if GrdaWarehouseBase.connection.tables.length == 0
+        if GrdaWarehouseBase.connection.tables.length < 2
           Rake::Task['warehouse:db:schema:load'].invoke
         else
           puts "Refusing to load the warehouse database schema since there are tables present. This is not an error."

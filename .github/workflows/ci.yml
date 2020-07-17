@@ -24,6 +24,7 @@ jobs:
      postgres:
        image: kartoza/postgis:12.1
        env:
+         POSTGRES_PASSWORD: postgres
          POSTGRES_USER: postgres
          POSTGRES_PASS: postgres
          POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
@@ -62,6 +63,7 @@ jobs:
            imagemagick \
            libc6-dev \
            libcurl4-openssl-dev \
+           libgeos-dev \
            libicu-dev \
            libmagic-dev \
            libpq-dev \
