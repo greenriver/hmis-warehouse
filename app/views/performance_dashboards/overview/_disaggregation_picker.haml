@@ -1,0 +1,37 @@
+:ruby
+  options = @report.available_breakdowns.map do |id, title|
+    title = title.gsub(/^By /, '')
+    [title, id]
+  end
+  attr = {
+    id: 'j-disaggregation',
+    class: 'form-control select optional select2',
+    'data-minimum-results-for-search': 10,
+  }
+.d-flex.align-items-center
+  .form-group
+    %label.select.lead.mb-3(for='j-disaggregation')
+      View Report Disaggregated By:
+    = select_tag('tab', options_for_select(options, breakdown), attr)
+  #j-disaggregation-spinner.ml-2.d-none
+    .mr-2= render 'spinner'
+    %div Loading&hellip;
+
+- content_for :page_js do
+  :javascript
+    'use strict';
+    $(function() {
+      var $select = $('#j-disaggregation');
+      $select.change(function() {
+        var breakdown = $select.val();
+        if (breakdown) {
+          $select.prop('disabled', true)
+          $('#j-disaggregation-spinner').removeClass('d-none').addClass('d-flex');
+          var url = new URL(window.location.href);
+          url.searchParams.set("breakdown", breakdown);
+          window.location = url.href;
+        }
+      });
+    })
+
+-# - url = performance_dashboards_overview_index_path = form_for :nav, as: nil, url: url, method: :get do |f| = f.input :breakdown, collection: @report.available_breakdowns.map(&:reverse), include_blank: false, required: false, input_html: { class: :select2}, label: 'View Report Disaggregated By'

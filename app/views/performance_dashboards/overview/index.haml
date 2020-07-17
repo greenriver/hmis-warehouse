@@ -10,13 +10,7 @@
     .top-nav-prs1
       %h1 #{performance_type} Performance
       .d-flex
-        .lead.mb-4.mr-auto View Report Disaggregated By:
+        .mr-auto.mt-2= render 'disaggregation_picker'
         .ml-2.mb-2= render 'performance_dashboards/pdf_download', export: @pdf_export
-      %ul.mb-4.nav.nav-tabs.mt-0.mb-4{role: :tablist}
-        - @report.available_breakdowns.each do |k, title|
-          - class_name = if breakdown == k then 'active' else '' end
-          %li.nav-item{role: :presentation}
-            = link_to(filter_params.merge(breakdown: k), class: ['nav-link', class_name]) do
-              = title.gsub(/^By /, '')
     .main-inner-prs1
       = render 'disaggregations'
