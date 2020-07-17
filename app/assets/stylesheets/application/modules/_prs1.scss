@@ -78,15 +78,15 @@
 }
 .top-nav-prs1 {
   background: #fff;
-  box-shadow: 2px 2px 2px #ccc;
-  position: sticky;
-  top: -98px;
-  z-index: 2;
+  border-bottom: 1px solid #ccc;
   padding: 15px 20px 0px;
+  //position: sticky;
+  //top: -98px;
+  //z-index: 2;
 }
-.o-menu-prs1 {
-  z-index: 3;
-}
+// .o-menu-prs1 {
+//   z-index: 3;
+// }
 .chip-v1-prs1 {
   background: #e8e8e8;
   border-radius: 4px;
@@ -108,3 +108,26 @@
   height: 16px;
   margin-right: 0.75em;
 }
+
+.hero-prs1 {
+  margin-right: 6em;
+}
+.hero-value-prs1 {
+  font-size: 2.4rem;
+  font-weight: 600;
+  line-height: 1.0;
+  color: #222;
+}
+.hero-label-prs1 {
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.4;
+  color: #222;
+}
+.hero-unit-prs1 {
+  color: #555;
+  line-height: 1.4;
+  font-size: 0.9rem;
+}
+
+

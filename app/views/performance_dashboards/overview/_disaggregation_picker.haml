@@ -10,8 +10,7 @@
   }
 .d-flex.align-items-center
   .form-group
-    %label.select.lead.mb-3(for='j-disaggregation')
-      View Report Disaggregated By:
+    %label.select.lead.mb-3(for='j-disaggregation') Disaggregated By:
     = select_tag('tab', options_for_select(options, breakdown), attr)
   #j-disaggregation-spinner.ml-2.d-none
     .mr-2= render 'spinner'

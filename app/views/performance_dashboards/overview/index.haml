@@ -8,9 +8,12 @@
       = render '/warehouse_reports/breadcrumbs', tab: 'performance'
       = render "utility"
     .top-nav-prs1
-      %h1 #{@report.performance_type} Performance
       .d-flex
-        .mr-auto.mt-2= render 'disaggregation_picker'
-        .ml-2.mb-2= render 'performance_dashboards/pdf_download', export: @pdf_export
+        .mr-auto
+          %h1.mb-4 #{@report.performance_type} Performance
+          = render 'hero_counts'
+        .ml-2.mb-2
+          = render 'performance_dashboards/pdf_download', export: @pdf_export
+          .mr-auto.mt-2= render 'disaggregation_picker'
     .main-inner-prs1
       = render 'disaggregations'
