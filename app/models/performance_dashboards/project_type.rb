@@ -26,6 +26,10 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
     }
   end
 
+  def section_subpath
+    'performance_dashboards/overview/'
+  end
+
   def self.available_chart_types
     [
       'living_situations',

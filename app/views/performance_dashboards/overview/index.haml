@@ -5,10 +5,10 @@
     = render 'performance_dashboards/filter_controls/sidebar'
   .main-outer-prs1
     .utility-prs1
-      = render '/warehouse_reports/breadcrumbs', tab: 'performance-dashboard'
+      = render '/warehouse_reports/breadcrumbs', tab: 'performance'
       = render "utility"
     .top-nav-prs1
-      %h1 #{performance_type} Performance
+      %h1 #{@report.performance_type} Performance
       .d-flex
         .mr-auto.mt-2= render 'disaggregation_picker'
         .ml-2.mb-2= render 'performance_dashboards/pdf_download', export: @pdf_export

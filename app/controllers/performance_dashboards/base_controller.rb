@@ -16,7 +16,7 @@ class PerformanceDashboards::BaseController < ApplicationController
 
     raise 'Rollup not in allowlist' unless @section.present?
 
-    @section = section_subpath + @section
+    @section = @report.section_subpath + @section
     render partial: @section, layout: false if request.xhr?
   end
 
