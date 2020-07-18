@@ -30,6 +30,7 @@ ARG BUILDER
 RUN apk add --no-cache \
   postgis geos geos-dev && \
   mkdir -p shape_files/CoC shape_files/zip_codes.census.2018
+
 ###########################################
 # END Remove after pre-cache gets rebuilt #
 ###########################################

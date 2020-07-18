@@ -726,6 +726,11 @@ Rails.application.routes.draw do
       resources :imports, only: [:index]
       resources :debug, only: [:index]
     end
+    resources :de_duplication, only: [:index] do
+      collection do
+        patch :update
+      end
+    end
     namespace :health do
       resources :admin, only: [:index]
       resources :agencies, except: [:show]
