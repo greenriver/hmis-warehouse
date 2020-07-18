@@ -1,0 +1,45 @@
+- content_for(:title, 'Automatic Client De-Duplication')
+%h1= content_for(:title)
+= render partial: 'menus/admin_tabs'
+
+%p
+  HMIS Client records are de-duplicated when imported to the warehouse.  The warehouse uses two approaches to de-duplication.  The initial deterministic algorithm compares client
+  %strong name, social security number, and date of birth.
+  If two of the attributes are an exact match, the two client records are merged.
+
+%p
+  After the deterministic process, a statistical analysis is run against the client records comparing a handful of demographic fields to eventually present a summary score for each client comparison.  You can use this page to set a threshold to have the warehouse automatically merge client records.
+
+.row
+  .col-sm-3
+    %h3 Overall Match Distribution
+    .jAll{data: { chart: GrdaWarehouse::ClientMatch.for_chart.to_json }}
+  .col-sm-3
+    %h3 Unprocessed Matches
+    .jUnprocessed{data: { chart: GrdaWarehouse::ClientMatch.for_chart(match_type: :processed_or_candidate).to_json }}
+  .col-sm-3
+    %h3 Previously Accepted Matches
+    .jAccepted{data: { chart: GrdaWarehouse::ClientMatch.for_chart(match_type: :accepted).to_json }}
+  .col-sm-3
+    %h3 Previously Rejected Matches
+    .jRejected{data: { chart: GrdaWarehouse::ClientMatch.for_chart(match_type: :rejected).to_json }}
+
+
+= simple_form_for @config, url: admin_de_duplication_index_path do |f|
+  .row
+    .col-sm-4.offset-sm-2
+      = f.input :auto_de_duplication_reject_threshold, label: 'Auto de-duplication rejection threshold', hint: 'Any matches with a score lower than the chosen score will automatically be rejected', input_html: {min: 0, max: 3, step: 0.01, style: 'width: auto;'}
+    .col-sm-4
+      = f.input :auto_de_duplication_accept_threshold, label: 'Auto de-duplication accept threshold', hint: 'Any matches with a score higher than the chosen score will automatically be accepted', input_html: {min: 0, max: 3, step: 0.01, style: 'width: auto;'}
+  .row
+    .col-sm-3.offset-sm-6
+      = f.button :submit, value: 'Set Auto De-Duplication Thresholds'
+
+- data = GrdaWarehouse::ClientMatch.score_distribution
+
+= content_for :page_js do
+  :javascript
+    new App.Admin.ClientMatches.MixedChart('.jAll');
+    new App.Admin.ClientMatches.MixedChart('.jUnprocessed');
+    new App.Admin.ClientMatches.MixedChart('.jAccepted');
+    new App.Admin.ClientMatches.MixedChart('.jRejected');
