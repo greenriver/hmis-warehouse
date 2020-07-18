@@ -71,7 +71,6 @@ module PerformanceDashboards
     helper_method :include_comparison_pattern?
 
     private def set_report
-      @report_variant = 'sparse'
       @report = report_class.new(@filter)
       if @report.include_comparison?
         @comparison = report_class.new(@comparison_filter)
