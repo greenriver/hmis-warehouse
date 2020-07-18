@@ -66,6 +66,37 @@ module GrdaWarehouse
       end
     end
 
+    def self.score_distribution(match_type: :all)
+      scope = case match_type
+      when :all
+        all
+      when :accepted
+        accepted
+      when :rejected
+        rejected
+      when :processed_or_candidate
+        processed_or_candidate
+      end
+
+      scope.
+        where.not(score: nil).
+        group(Arel.sql('ROUND(cast(score as numeric), 1)')).
+        count(1).
+        transform_keys(&:abs)
+    end
+
+    def self.for_chart(match_type: :all)
+      dist = score_distribution(match_type: match_type)
+      x = [:x] + dist.keys
+      y = [:score] + dist.values
+      {
+        columns: [
+          x,
+          y,
+        ],
+      }
+    end
+
     def accepted?
       self.status == 'accepted'
     end

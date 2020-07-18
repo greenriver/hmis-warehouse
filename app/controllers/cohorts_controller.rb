@@ -211,7 +211,7 @@ class CohortsController < ApplicationController
       m[:column] == @column && m[:direction] == @direction
     end.first[:order]
 
-    result += ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+    result += ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name.in?(['PostgreSQL', 'PostGIS'])
     result
   end
 end

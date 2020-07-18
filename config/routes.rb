@@ -143,13 +143,14 @@ Rails.application.routes.draw do
 
   namespace :reports do
     namespace :hic do
-      resource :export, only: [:show]
+      resource :export, only: [:show, :create]
       resource :organization, only: [:show]
       resource :project, only: [:show]
       resource :inventory, only: [:show]
       resource :site, only: [:show]
       resource :geography, only: [:show]
       resource :funder, only: [:show]
+      resource :project_coc, only: [:show]
     end
   end
   namespace :hud_reports do
@@ -720,6 +721,11 @@ Rails.application.routes.draw do
     namespace :dashboard do
       resources :imports, only: [:index]
       resources :debug, only: [:index]
+    end
+    resources :de_duplication, only: [:index] do
+      collection do
+        patch :update
+      end
     end
     namespace :health do
       resources :admin, only: [:index]

@@ -749,7 +749,7 @@ class Role < ApplicationRecord
         ],
       },
       receives_medical_restriction_notifications: {
-        description: 'Email notifications will be sent whenever a medical restriction or test result is added',
+        description: 'Email notifications will be sent whenever a medical restriction or test result is added.',
         administrative: false,
         categories: [
           'Health Emergency',
@@ -760,6 +760,14 @@ class Role < ApplicationRecord
         administrative: false,
         categories: [
           'Client Extras',
+        ],
+      },
+      can_manage_auto_client_de_duplication: {
+        description: 'Ability to see statistics around client de-duplication and set the threshold for probabilistic matching.',
+        administrative: true,
+        categories: [
+          'Administration',
+
         ],
       },
     }

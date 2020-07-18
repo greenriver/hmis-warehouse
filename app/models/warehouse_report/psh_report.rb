@@ -6,7 +6,7 @@
 
 # dev projects -- with affiliation: 61; single RRH: 44
 
-class WarehouseReport::PshReport < WarehouseReport::RrhReport
+class WarehouseReport::PshReport < WarehouseReport::RrhReport # rubocop:disable Style/ClassAndModuleChildren
   include ArelHelper
 
   def default_support_columns

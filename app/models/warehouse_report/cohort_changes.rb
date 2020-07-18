@@ -4,12 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::CohortChanges < OpenStruct
+class WarehouseReport::CohortChanges < OpenStruct # rubocop:disable Style/ClassAndModuleChildren
   include ArelHelper
 
-  attr_accessor :start_date
-  attr_accessor :end_date
-  attr_accessor :cohort_id
+  attr_writer :start_date
+  attr_writer :end_date
+  attr_writer :cohort_id
 
   def start_date
     self[:start_date]
@@ -23,7 +23,7 @@ class WarehouseReport::CohortChanges < OpenStruct
     self[:cohort_id]
   end
 
-  def group client_id
+  def group(client_id)
     case client_id
     when *new_ids
       'New'
@@ -39,6 +39,7 @@ class WarehouseReport::CohortChanges < OpenStruct
   def average_time_to_housing
     times = details[:time_to_housings]
     return 'No one housed' unless times.any?
+
     times.sum.to_f / times.count
   end
 
@@ -95,14 +96,10 @@ class WarehouseReport::CohortChanges < OpenStruct
         exit_destinations[destination_key][lgbtq_bucket(cc.lgbtq)] += 1
 
         vispdat_scores[vispdat_bucket(client_id)] += 1
-        vispdat_within_90_days = nil
-        if vispdat.present? && vispdat.submitted_at.present? && (self[:end_date] - vispdat.submitted_at.to_date) < 90
-          assessment_within_90_days += 1
-        end
 
-        if vispdat.present? && vispdat.submitted_at.present? && c_en.exit_date.present? && c_en.change_reason&.downcase == 'housed'
-          time_to_housings << (c_en.exit_date.to_date - vispdat.submitted_at.to_date).to_i
-        end
+        assessment_within_90_days += 1 if vispdat.present? && vispdat.submitted_at.present? && (self[:end_date] - vispdat.submitted_at.to_date) < 90
+
+        time_to_housings << (c_en.exit_date.to_date - vispdat.submitted_at.to_date).to_i if vispdat.present? && vispdat.submitted_at.present? && c_en.exit_date.present? && c_en.change_reason&.downcase == 'housed'
       end
       {
         sleeping_locations: sleeping_locations,
@@ -114,7 +111,7 @@ class WarehouseReport::CohortChanges < OpenStruct
     end
   end
 
-  def lgbtq_bucket lgbtq
+  def lgbtq_bucket(lgbtq)
     case lgbtq&.downcase
     when 'yes'
       :lgbtq
@@ -123,7 +120,7 @@ class WarehouseReport::CohortChanges < OpenStruct
     end
   end
 
-  def vispdat_bucket client_id
+  def vispdat_bucket(client_id)
     vispdat_score = vispdat_for(client_id)&.score || 'unknown'
     case vispdat_score
     when *(0..3).to_a
@@ -138,7 +135,7 @@ class WarehouseReport::CohortChanges < OpenStruct
   end
 
   # most recent completed vispdat per client by client_id
-  def vispdat_for client_id
+  def vispdat_for(client_id)
     @vispdat ||= GrdaWarehouse::Vispdat::Base.completed.
       order(submitted_at: :asc).
       where(client_id: enrollment_scope.select(:client_id)).
@@ -148,22 +145,22 @@ class WarehouseReport::CohortChanges < OpenStruct
     @vispdat[client_id]
   end
 
-  def cohort_change_for client_id
+  def cohort_change_for(client_id)
     @cohort_change_for ||= enrollment_scope.order(id: :asc).index_by(&:client_id)
     @cohort_change_for[client_id]
   end
 
-  def gender_bucket client_id
+  def gender_bucket(client_id)
     gender_id = client_from_id(client_id).Gender
     case gender_id
-    when 2,3,4
+    when 2, 3, 4
       :gender_diverse
     else
       :cisgender
     end
   end
 
-  def race_bucket client_id
+  def race_bucket(client_id)
     case client_cache.race_string(scope_limit: active_clients, destination_id: client_id)
     when 'White'
       :white
@@ -172,7 +169,7 @@ class WarehouseReport::CohortChanges < OpenStruct
     end
   end
 
-  def client_from_id client_id
+  def client_from_id(client_id)
     clients_by_id[client_id]
   end
 
@@ -190,7 +187,6 @@ class WarehouseReport::CohortChanges < OpenStruct
 
   def cohort_enrollments
     enrollment_scope.joins(:client).includes(:cohort_client)
-
   end
 
   def new_ids
@@ -234,5 +230,4 @@ class WarehouseReport::CohortChanges < OpenStruct
   def cohort_scope
     GrdaWarehouse::CombinedCohortClientChange.on_cohort(self[:cohort_id])
   end
-
 end
