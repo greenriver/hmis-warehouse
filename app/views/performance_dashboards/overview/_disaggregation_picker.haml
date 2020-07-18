@@ -1,13 +1,3 @@
--#
-  .lead.mb-4.mr-auto View Report Disaggregated By:
-  %ul.mb-4.nav.nav-tabs.mt-0.mb-4{role: :tablist}
-    - @report.available_breakdowns.each do |k, title|
-      - class_name = if breakdown == k then 'active' else '' end
-      %li.nav-item{role: :presentation}
-        = link_to(filter_params.merge(breakdown: k), class: ['nav-link', class_name]) do
-          = title.gsub(/^By /, '')
-
-
 :ruby
   options = @report.available_breakdowns.map do |id, title|
     title = title.gsub(/^By /, '')
