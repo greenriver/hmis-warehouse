@@ -43,7 +43,7 @@ class PerformanceDashboards::Household < PerformanceDashboards::Base # rubocop:d
 
   protected def build_household_control_section
     ::Filters::UiControlSection.new(id: 'household').tap do |section|
-      section.add_control(id: 'household_type', required: true)
+      section.add_control(id: 'household_type', required: true, value: chosen_household_type)
     end
   end
 
@@ -53,6 +53,7 @@ class PerformanceDashboards::Household < PerformanceDashboards::Base # rubocop:d
         id: 'sub_population',
         label: 'Sub-Population',
         required: true,
+        value: chosen_sub_population,
       )
     end
   end
