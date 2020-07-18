@@ -15,7 +15,7 @@ class GrdaWarehouseBase < ActiveRecord::Base
   end
 
   def self.postgres?
-    connection.adapter_name == 'PostgreSQL'
+    connection.adapter_name.in?(['PostgreSQL', 'PostGIS'])
   end
 
   def self.reset_connection
