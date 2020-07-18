@@ -23,12 +23,18 @@ module Filters
   end
 
   class UiControl
-    attr_accessor :id, :label, :required
+    attr_accessor :id, :label, :short_label, :value, :required
 
-    def initialize(id:, label: nil, required: false)
+    def initialize(id:, value:, label: nil, short_label: nil, required: false)
       self.id = id
       self.label = label || id.humanize.titleize
+      self.short_label = short_label
       self.required = required
+      self.value = value
+    end
+
+    def report_period?
+      id =~ /_period\z/
     end
 
     def summary_partial_path

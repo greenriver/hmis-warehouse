@@ -18,6 +18,10 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
     status == COMPLETED_STATUS
   end
 
+  def self.completed
+    where(status: COMPLETED_STATUS)
+  end
+
   def self.diet_select
     select(column_names - ['file_data'])
   end
@@ -56,6 +60,10 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
     where('created_at <= ?', Time.now - EXPIRES_AFTER)
   end
 
+  def self.recent
+    where('created_at > ?', 8.hours.ago)
+  end
+
   MIME_TYPES = [
     BINARY_MIME_TYPE =  'application/octet-stream',
     PDF_MIME_TYPE = 'application/pdf'
@@ -69,5 +77,6 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
   end
 end
 
-# require subclasses are populated for validation
-require_dependency 'grda_warehouse/document_exports/performance_dashboard_export'
+# require subclasses are populated for validation of acceptable types
+# require_dependency 'grda_warehouse/document_exports/client_performance_export'
+# require_dependency 'grda_warehouse/document_exports/household_performance_export'

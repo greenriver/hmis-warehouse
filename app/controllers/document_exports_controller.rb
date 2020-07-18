@@ -6,10 +6,13 @@
 
 class DocumentExportsController < ApplicationController
   def create
-    @export = export_scope.build(export_params)
+    @export = find_or_create
     if @export.authorized?
-      @export.save!
-      DocumentExportJob.perform_later(export_id: @export.id)
+      if @export.new_record?
+        @export.status = GrdaWarehouse::DocumentExport::PENDING_STATUS
+        @export.save!
+        DocumentExportJob.perform_later(export_id: @export.id)
+      end
       render json: serialize_export(@export)
     else
       not_authorized!
@@ -38,6 +41,16 @@ class DocumentExportsController < ApplicationController
     end
   end
 
+  protected def find_or_create
+    found = export_scope.
+      diet_select.
+      completed.
+      recent.
+      where(export_params).
+      first
+    found || export_scope.build(export_params)
+  end
+
   protected def serialize_export(export)
     {
       pollUrl: document_export_path(export.id),
@@ -51,14 +64,13 @@ class DocumentExportsController < ApplicationController
   end
 
   protected def export_params
-    valid_types = GrdaWarehouse::DocumentExport.subclasses.map(&:name)
+    valid_types = GrdaWarehouse::DocumentExport.descendants.map(&:name)
     type = params.require(:type).presence_in(valid_types)
     raise ActionController::BadRequest, "bad type #{params[:type]}" unless type
 
     {
       type: type,
       query_string: params[:query_string],
-      status: GrdaWarehouse::DocumentExport::PENDING_STATUS,
     }
   end
 end

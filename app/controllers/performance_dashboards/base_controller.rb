@@ -8,6 +8,17 @@ class PerformanceDashboards::BaseController < ApplicationController
   include WarehouseReportAuthorization
   include PjaxModalController
 
+  def filters
+    @sections = @report.control_sections
+    chosen = params[:filter_section_id]
+    if chosen
+      @chosen_section = @sections.detect do |section|
+        section.id == chosen
+      end
+    end
+    @modal_size = :xl if @chosen_section.nil?
+  end
+
   def section
     @section = @report.class.available_chart_types.detect do |m|
       m == params.require(:partial).underscore
@@ -16,7 +27,7 @@ class PerformanceDashboards::BaseController < ApplicationController
 
     raise 'Rollup not in allowlist' unless @section.present?
 
-    @section = section_subpath + @section
+    @section = @report.section_subpath + @section
     render partial: @section, layout: false if request.xhr?
   end
 
@@ -46,7 +57,7 @@ class PerformanceDashboards::BaseController < ApplicationController
   helper_method :active_filter_open
 
   def breakdown
-    @breakdown ||= params[:breakdown]&.to_sym || :age
+    @breakdown ||= params[:breakdown]&.to_sym || @report.available_breakdowns.keys.first
   end
   helper_method :breakdown
 
