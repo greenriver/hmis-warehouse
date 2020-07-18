@@ -101,7 +101,14 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
       'Projects & Funding'
     end
     ::Filters::UiControlSection.new(id: 'coc', title: title).tap do |section|
-      section.add_control(id: 'coc_codes', label: 'CoC Codes', value: chosen_coc_codes) if GrdaWarehouse::Config.get(:multi_coc_installation)
+      if GrdaWarehouse::Config.get(:multi_coc_installation)
+        section.add_control(
+          id: 'coc_codes',
+          label: 'CoC Codes',
+          short_label: 'CoC',
+          value: chosen_coc_codes
+        )
+      end
       section.add_control(id: 'funding_sources', value: funder_names)
       section.add_control(id: 'data_sources', value: data_source_names)
       section.add_control(id: 'organizations', value: organization_names)
@@ -115,7 +122,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
       section.add_control(
         id: 'hoh_only',
         label: 'Only Heads of Household?',
-        value: @filter.hoh_only,
+        value: @filter.hoh_only ? 'HOH Only' : nil,
       )
     end
   end
