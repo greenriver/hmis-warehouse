@@ -1,3 +1,5 @@
+@import '../helpers';
+
 .sb-filter-section-prs1 {
   padding-bottom: 1em;
   margin-bottom: 1em;
@@ -119,17 +121,15 @@
 }
 
 .hero-prs1 {
-  margin-right: 6em;
-  margin-bottom: 1.5em;
+  margin-right: space(5);
+  margin-bottom: space(2);
 }
 .hero-value-prs1 {
   font-size: 2.4rem;
-  font-weight: 600;
   line-height: 1.0;
   color: #222;
 }
 .hero-label-prs1 {
-  font-weight: 600;
   font-size: 1.15rem;
   line-height: 1.4;
   color: #222;

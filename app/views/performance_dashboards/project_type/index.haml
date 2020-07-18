@@ -1,25 +1,26 @@
-= render '/warehouse_reports/breadcrumbs', tab: 'performance'
-- title = @report.project_type_title
-%h1 #{title} Performance
-- id = 'filter'
-%section
-  #filter-accordion.panel-group.panel-collapsible.mb-0.panel-sibling--below
-    - content_for :panel_collapse_content, flush: true do
-      = simple_form_for @filter, as: :filters, method: :get, url: performance_dashboards_project_type_index_path do |f|
-        = render 'performance_dashboards/filters', f: f
-    = render 'common/panel_collapse', id: id, title: 'Universe Selection', default_open: filter_open, wrapper_class: 'mb-0'
-
-  - id = 'active-filters'
-  #active-filters-accordion.panel-group.panel-collapsible.panel-sibling--above
-    - content_for :panel_collapse_content, flush: true do
-      = render 'performance_dashboards/active_filters'
-    = render 'common/panel_collapse', id: id, title: 'Summary of Selected Universe', default_open: active_filter_open
-
-%section
-  - @report.class.available_chart_types.each do |chart|
-    %article.mb-6
-      .rollup{data: {partial: chart}}
-        %p.well.text-center.jRemoveWhenComplete Loading...
+- @layout__plain_inner = true
+- @layout__width = 'lg'
+.content-outer-prs1
+  %nav.nav-drawer.prs1
+    = render 'performance_dashboards/filter_controls/sidebar'
+  .main-outer-prs1
+    .utility-prs1
+      = render '/warehouse_reports/breadcrumbs', tab: 'performance'
+      = render "utility"
+    .top-nav-prs1
+      .d-flex.mb-5
+        .mr-auto
+          %h1 #{@report.project_type_title} Performance
+        .ml-3
+          = render 'performance_dashboards/pdf_download', export: @pdf_export
+      %div
+        %div(style='margin-bottom: 2em')= render 'performance_dashboards/overview/universe_selection'
+    .main-inner-prs1
+      %section
+        - @report.class.available_chart_types.each do |chart|
+          %article.mb-6
+            .rollup{data: {partial: chart}}
+              %p.well.text-center.jRemoveWhenComplete Loading...
 
 -# load in all the bits of aggregate statistics via ajax
 = content_for :page_js do

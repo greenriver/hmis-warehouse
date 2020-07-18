@@ -53,6 +53,10 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     true
   end
 
+  def multiple_project_types?
+    true
+  end
+
   def detail_link_base
     "#{section_subpath}details"
   end

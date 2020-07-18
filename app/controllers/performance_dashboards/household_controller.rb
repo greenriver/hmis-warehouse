@@ -13,17 +13,6 @@ module PerformanceDashboards
     def index
     end
 
-    def filters
-      @sections = @report.control_sections
-      chosen = params[:filter_section_id]
-      if chosen
-        @chosen_section = @sections.detect do |section|
-          section.id == chosen
-        end
-      end
-      @modal_size = :xl if @chosen_section.nil?
-    end
-
     private def option_params
       params.permit(
         filters: [

@@ -14,17 +14,6 @@ module PerformanceDashboards
     def index
     end
 
-    def filters
-      @sections = @report.control_sections
-      chosen = params[:filter_section_id]
-      if chosen
-        @chosen_section = @sections.detect do |section|
-          section.id == chosen
-        end
-      end
-      @modal_size = :xl if @chosen_section.nil?
-    end
-
     def details
       @options = option_params[:filters]
       @breakdown = params.dig(:filters, :breakdown)
@@ -59,16 +48,6 @@ module PerformanceDashboards
         ],
       )
     end
-
-    private def multiple_project_types?
-      true
-    end
-    helper_method :multiple_project_types?
-
-    private def include_comparison_pattern?
-      true
-    end
-    helper_method :include_comparison_pattern?
 
     private def set_report
       @report = report_class.new(@filter)

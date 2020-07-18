@@ -19,6 +19,10 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
     GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES[filter.project_type_codes.first&.to_sym]
   end
 
+  def multiple_project_types?
+    false
+  end
+
   def self.available_keys
     {
       entering: :entering,
@@ -27,7 +31,7 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
   end
 
   def section_subpath
-    'performance_dashboards/overview/'
+    'performance_dashboards/project_type/'
   end
 
   def self.available_chart_types
@@ -36,6 +40,19 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
       'destinations',
       'lengths_of_time',
       'returns',
+    ]
+  end
+
+  def available_breakdowns
+    {}
+  end
+
+  def report_path_array
+    [
+      :performance,
+      :dashboards,
+      :project_type,
+      :index,
     ]
   end
 end
