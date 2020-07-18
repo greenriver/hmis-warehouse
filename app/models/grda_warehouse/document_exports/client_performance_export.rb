@@ -10,7 +10,7 @@ module GrdaWarehouse::DocumentExports
       with_status_progression do
         template_file = 'performance_dashboards/overview/index_pdf'
         PdfGenerator.new.perform(
-          html: view.render(file: template_file),
+          html: view.render(file: template_file, layout: 'layouts/performance_report'),
           file_name: "Client Performance #{DateTime.current.to_s(:db)}"
         ) do |io|
           self.pdf_file = io

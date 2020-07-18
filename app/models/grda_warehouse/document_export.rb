@@ -76,7 +76,3 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
     self.mime_type = PDF_MIME_TYPE
   end
 end
-
-# require subclasses are populated for validation of acceptable types
-# require_dependency 'grda_warehouse/document_exports/client_performance_export'
-# require_dependency 'grda_warehouse/document_exports/household_performance_export'

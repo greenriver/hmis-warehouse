@@ -106,7 +106,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
           id: 'coc_codes',
           label: 'CoC Codes',
           short_label: 'CoC',
-          value: chosen_coc_codes
+          value: chosen_coc_codes,
         )
       end
       section.add_control(id: 'funding_sources', value: funder_names)
