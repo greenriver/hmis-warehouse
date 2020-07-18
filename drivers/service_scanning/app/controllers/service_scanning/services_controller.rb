@@ -23,15 +23,21 @@ module ServiceScanning
     end
 
     def create
-      options = service_params
+      options = service_params.merge(user_id: current_user.id)
       klass = ServiceScanning::Service.type_from_key(options[:slug])
+      @service = klass.new(options)
+      if @service.project.blank?
+        flash[:error] = 'A project is required.'
+        redirect_to(service_scanning_services_path(service: index_params.merge(autofocus: :project_id)))
+        return
+      end
+
       client = attempt_to_find_client(options[:scanner_id])
 
       if client.blank?
         redirect_to(service_scanning_services_path(service: index_params.merge(no_client: true)))
         return
       else
-        options[:user_id] = current_user.id
         options[:client_id] = client.id
         @service = klass.create(options)
       end

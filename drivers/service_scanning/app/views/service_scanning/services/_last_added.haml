@@ -9,11 +9,12 @@
       %h3 Added #{@last_service.title}
       .ml-auto
         = link_to service_scanning_service_path(@last_service), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: "Are you sure you want to remove this service from #{@last_client.name}"} do
-          %i.icon-cross
+          %i.icon-cross.mr-2
+          Remove this service?
     .d-flex
       %dl
         %dt Client
-        %dd= @last_client.name
+        %dd= link_to @last_client.name, client_path(@last_client.id), target: :_blank
         %dt Provided At
         %dd= @last_service.provided_at
       - if @last_client.image

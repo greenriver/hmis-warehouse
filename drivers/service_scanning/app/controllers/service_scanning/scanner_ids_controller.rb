@@ -7,6 +7,7 @@
 module ServiceScanning
   class ScannerIdsController < ApplicationController
     include PjaxModalController
+    include ClientController
     before_action :require_can_view_client_window!
     before_action :require_can_use_service_register!
     before_action :set_client, only: [:show, :destroy]
@@ -34,7 +35,9 @@ module ServiceScanning
     end
 
     def create
-      @client = client_source.searchable_by(current_user).find(params[:card][:id].to_i)
+      params[:id] = params[:card][:id].to_i
+      set_client
+      # @client = client_source.searchable_by(current_user).find(params[:card][:id].to_i)
       @card = @client.service_scanning_scanner_ids.create(card_params.merge(source_type: 'ManuallyAdded'))
 
       respond_with(@card, location: service_scanning_scanner_id_path(@client)) unless request.xhr?
@@ -44,13 +47,39 @@ module ServiceScanning
       ::GrdaWarehouse::Hud::Client
     end
 
+    # should always return a destination client, but some visibility
+    # is governed by the source client, some by the destination
+    private def client_scope(id: nil)
+      client_source.destination.where(
+        Arel.sql(
+          client_source.arel_table[:id].in(visible_by_source(id: id)).
+          or(client_source.arel_table[:id].in(visible_by_destination(id: id))).to_sql,
+        ),
+      )
+    end
+
+    private def visible_by_source(id: nil)
+      query = ::GrdaWarehouse::WarehouseClient.joins(:source).
+        merge(client_source.viewable_by(current_user))
+      query = query.where(destination_id: id) if id.present?
+
+      Arel.sql(query.select(:destination_id).to_sql)
+    end
+
+    private def visible_by_destination(id: nil)
+      query = client_source.viewable_by(current_user)
+      query = query.where(id: id) if id.present?
+
+      Arel.sql(query.select(:id).to_sql)
+    end
+
     private def client_search_scope
       client_source.searchable_by(current_user)
     end
 
-    private def set_client
-      @client = client_source.searchable_by(current_user).find(params[:id].to_i)
-    end
+    # private def set_client
+    #   @client = client_source.searchable_by(current_user).find(params[:id].to_i)
+    # end
 
     private def card_params
       params.require(:card).permit(

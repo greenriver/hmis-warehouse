@@ -147,6 +147,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       'VI-SPDAT' => :vispdat,
       'Health' => :health,
       'Coordinated Assessment' => :coordinated_assessment,
+      'Other' => :other,
     }
   end
 
