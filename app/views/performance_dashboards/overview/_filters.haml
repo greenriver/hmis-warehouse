@@ -39,6 +39,7 @@
       var modalDialog = document.querySelector('#pjax-modal .modal-dialog');
       if (modalDialog) {
         $(modalDialog)
+          .removeClass('modal-xxl')
           .removeClass('modal-xl')
           .removeClass('modal-lg')
           .addClass(newModalClass);

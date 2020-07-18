@@ -16,7 +16,7 @@ class PerformanceDashboards::BaseController < ApplicationController
         section.id == chosen
       end
     end
-    @modal_size = :xl if @chosen_section.nil?
+    @modal_size = :xxl if @chosen_section.nil?
   end
 
   def section
