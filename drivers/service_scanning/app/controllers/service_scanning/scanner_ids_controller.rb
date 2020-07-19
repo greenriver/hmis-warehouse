@@ -54,36 +54,12 @@ module ServiceScanning
     # should always return a destination client, but some visibility
     # is governed by the source client, some by the destination
     private def client_scope(id: nil)
-      client_source.destination.where(
-        Arel.sql(
-          client_source.arel_table[:id].in(visible_by_source(id: id)).
-          or(client_source.arel_table[:id].in(visible_by_destination(id: id))).to_sql,
-        ),
-      )
-    end
-
-    private def visible_by_source(id: nil)
-      query = ::GrdaWarehouse::WarehouseClient.joins(:source).
-        merge(client_source.viewable_by(current_user))
-      query = query.where(destination_id: id) if id.present?
-
-      Arel.sql(query.select(:destination_id).to_sql)
-    end
-
-    private def visible_by_destination(id: nil)
-      query = client_source.viewable_by(current_user)
-      query = query.where(id: id) if id.present?
-
-      Arel.sql(query.select(:id).to_sql)
+      client_source.client_source.destination_client_viewable_by_user(client_id: id, user: current_user)
     end
 
     private def client_search_scope
       client_source.searchable_by(current_user)
     end
-
-    # private def set_client
-    #   @client = client_source.searchable_by(current_user).find(params[:id].to_i)
-    # end
 
     private def card_params
       params.require(:card).permit(

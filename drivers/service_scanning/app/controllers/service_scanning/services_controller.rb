@@ -7,6 +7,8 @@
 module ServiceScanning
   class ServicesController < ApplicationController
     include PjaxModalController
+    include ClientController
+    include ClientPathGenerator
     before_action :require_can_view_client_window!
     before_action :require_can_use_service_register!
 
@@ -20,11 +22,28 @@ module ServiceScanning
       service_id = params.dig(:service, :service_id)
       @last_service = ServiceScanning::Service.find(service_id) if service_id
       @no_client_found = params.dig(:service, :no_client).present?
+      query = params.dig(:service, :q)
+      if query
+        @search_results = client_source.text_search(
+          query,
+          client_scope: client_search_scope
+        ).
+        order(LastName: :asc, FirstName: :asc).
+        page(params[:page]).per(20)
+      end
     end
 
     def create
       options = service_params.merge(user_id: current_user.id)
       klass = ServiceScanning::Service.type_from_key(options[:slug])
+
+      # Some Error Checking
+      if klass.blank?
+        flash[:error] = 'Unknown Service Type.'
+        redirect_to(service_scanning_services_path(service: index_params.merge(autofocus: :project_id)))
+        return
+      end
+
       @service = klass.new(options)
       if @service.project.blank?
         flash[:error] = 'A project is required.'
@@ -32,25 +51,32 @@ module ServiceScanning
         return
       end
 
-      # If the submission looks like a scan card (some number of letters followed by numbers)
-      scanner_id = options[:scanner_id]
-      if scanner_id.match?(/^[a-z]*(\d+)$/i)
-        numeric_id = scanner_id.gsub(/^[a-z]*/i, '')
-        client = attempt_to_find_client(numeric_id, @service.project.data_source_id)
-
-        if client.blank?
-          redirect_to(service_scanning_services_path(service: index_params.merge(no_client: true)))
+      # If we have a valid client ID, we don't need to bother with the scanner IDs
+      if @service.client_id.present?
+        client = @service.client
+        if client.present?
+          @service.save!(options)
+          respond_with(@service, location: service_scanning_services_path(service: index_params.merge(client_id: client.id, service_id: @service.id)))
           return
         else
-          options[:client_id] = client.id
-          @service = klass.create(options)
+          flash[:error] = 'Unable to add service.'
+          redirect_to(service_scanning_services_path(service: index_params.merge(autofocus: :project_id)))
+          return
         end
+      end
 
-        respond_with(@service, location: service_scanning_services_path(service: index_params.merge(client_id: client.id, service_id: @service.id)))
+      scanner_id = options[:scanner_id]
+      if scanner_id.blank?
+        flash[:error] = 'An ID or search term is required.'
+        redirect_to(service_scanning_services_path(service: index_params))
+        return
+      elsif scanner_id.match?(/^[a-z]*(\d+)$/i)
+        # If the submission looks like a scan card (some number of letters followed by numbers)
+        handle_id_search(scanner_id, options)
       else
         # we need to conduct at client search
-        # FIXME
-        raise 'Unimplemented'
+        redirect_to(service_scanning_services_path(service: index_params.merge(q: scanner_id)))
+        return
       end
     end
 
@@ -58,6 +84,21 @@ module ServiceScanning
       @service = ServiceScanning::Service.find(params[:id].to_i)
       @service.destroy
       respond_with(@service, location: service_scanning_services_path(service: index_params))
+    end
+
+    private def handle_id_search(scanner_id, options)
+      numeric_id = scanner_id.gsub(/^[a-z]*/i, '')
+      client = attempt_to_find_client(numeric_id, @service.project.data_source_id)
+
+      if client.blank?
+        redirect_to(service_scanning_services_path(service: index_params.merge(no_client: true)))
+        return
+      else
+        @service.client_id = client.id
+        @service.save!
+      end
+
+      respond_with(@service, location: service_scanning_services_path(service: index_params.merge(client_id: client.id, service_id: @service.id)))
     end
 
     private def service_params
@@ -85,6 +126,7 @@ module ServiceScanning
         :provided_at,
       )
     end
+    helper_method :index_params
 
     private def attempt_to_find_client(scanner_id, data_source_id)
       client = client_from_scanner_ids(scanner_id)
@@ -115,6 +157,20 @@ module ServiceScanning
           data_source_id: data_source_id,
         )).
         first
+    end
+
+    private def client_source
+      ::GrdaWarehouse::Hud::Client
+    end
+
+    # should always return a destination client, but some visibility
+    # is governed by the source client, some by the destination
+    private def client_scope(id: nil)
+      client_source.client_source.destination_client_viewable_by_user(client_id: id, user: current_user)
+    end
+
+    private def client_search_scope
+      client_source.searchable_by(current_user)
     end
 
     def flash_interpolation_options

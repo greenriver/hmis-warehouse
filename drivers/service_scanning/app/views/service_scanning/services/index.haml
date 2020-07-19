@@ -9,7 +9,10 @@
           = render 'no_client_found'
         = render 'form'
       .col-sm-6
-        = render 'last_added'
+        - if @search_results
+          = render 'search_results'
+        - else
+          = render 'last_added'
 = content_for :page_js do
   :javascript
     $('.exact_date_time_picker').datetimepicker(

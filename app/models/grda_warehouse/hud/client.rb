@@ -474,6 +474,28 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # should always return a destination client, but some visibility
+    # is governed by the source client, some by the destination
+    def self.destination_client_viewable_by_user(client_id:, user:)
+      destination.where(
+        Arel.sql(
+          arel_table[:id].in(visible_by_source(id: client_id, user: user)).
+          or(arel_table[:id].in(visible_by_destination(id: client_id, user: user))).to_sql,
+        ),
+      )
+    end
+
+    def self.visible_by_source(id:, user:)
+      query = GrdaWarehouse::WarehouseClient.joins(:source).merge(viewable_by(user))
+      query = query.where(destination_id: id) if id.present?
+      Arel.sql(query.select(:destination_id).to_sql)
+    end
+
+    def self.visible_by_destination(id:, user:)
+      query = viewable_by(user)
+      query = query.where(id: id) if id.present?
+      Arel.sql(query.select(:id).to_sql)
+    end
 
     scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
       if coc_codes.present?
