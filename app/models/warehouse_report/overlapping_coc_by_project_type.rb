@@ -29,7 +29,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
 
   def shared_clients
-    GrdaWarehouse::Hud::Client.where(
+    @shared_clients ||= GrdaWarehouse::Hud::Client.where(
       id: overlapping_client_ids.map(&:to_i),
     )
   end
@@ -107,14 +107,15 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
 
   def details_clients
     client_num = 0
+    clients_by_id = shared_clients.index_by(&:id)
     service_histories.where(
       client_id: overlapping_client_ids,
     ).preload(
-      :client,
       service_history_enrollment: {
         project: :project_cocs,
       },
-    ).group_by(&:client).map do |client, services|
+    ).group_by(&:client_id).map do |client_id, services|
+      client = clients_by_id[client_id]
       {
         label: "Client ##{client_num += 1}",
         gender: client.gender,
