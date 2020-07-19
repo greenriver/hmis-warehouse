@@ -32,17 +32,26 @@ module ServiceScanning
         return
       end
 
-      client = attempt_to_find_client(options[:scanner_id])
+      # If the submission looks like a scan card (some number of letters followed by numbers)
+      scanner_id = options[:scanner_id]
+      if scanner_id.match?(/^[a-z]*(\d+)$/i)
+        numeric_id = scanner_id.gsub(/^[a-z]*/i, '')
+        client = attempt_to_find_client(numeric_id, @service.project.data_source_id)
 
-      if client.blank?
-        redirect_to(service_scanning_services_path(service: index_params.merge(no_client: true)))
-        return
+        if client.blank?
+          redirect_to(service_scanning_services_path(service: index_params.merge(no_client: true)))
+          return
+        else
+          options[:client_id] = client.id
+          @service = klass.create(options)
+        end
+
+        respond_with(@service, location: service_scanning_services_path(service: index_params.merge(client_id: client.id, service_id: @service.id)))
       else
-        options[:client_id] = client.id
-        @service = klass.create(options)
+        # we need to conduct at client search
+        # FIXME
+        raise 'Unimplemented'
       end
-
-      respond_with(@service, location: service_scanning_services_path(service: index_params.merge(client_id: client.id, service_id: @service.id)))
     end
 
     def destroy
@@ -77,11 +86,11 @@ module ServiceScanning
       )
     end
 
-    private def attempt_to_find_client(scanner_id)
+    private def attempt_to_find_client(scanner_id, data_source_id)
       client = client_from_scanner_ids(scanner_id)
       return client if client
 
-      client = client_from_hmis_clients(scanner_id)
+      client = client_from_hmis_clients(scanner_id, data_source_id)
       if client
         ServiceScanning::ScannerId.create(
           client_id: client.id,
@@ -99,9 +108,12 @@ module ServiceScanning
         first
     end
 
-    private def client_from_hmis_clients(id)
+    private def client_from_hmis_clients(id, data_source_id)
       ::GrdaWarehouse::Hud::Client.joins(:source_eto_client_lookups).
-        merge(::GrdaWarehouse::EtoQaaws::ClientLookup.where(participant_site_identifier: id)).
+        merge(::GrdaWarehouse::EtoQaaws::ClientLookup.where(
+          participant_site_identifier: id,
+          data_source_id: data_source_id,
+        )).
         first
     end
 

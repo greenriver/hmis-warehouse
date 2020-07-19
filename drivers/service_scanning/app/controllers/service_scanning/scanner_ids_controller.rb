@@ -8,6 +8,7 @@ module ServiceScanning
   class ScannerIdsController < ApplicationController
     include PjaxModalController
     include ClientController
+    include ClientPathGenerator
     before_action :require_can_view_client_window!
     before_action :require_can_use_service_register!
     before_action :set_client, only: [:show, :destroy]
@@ -37,10 +38,13 @@ module ServiceScanning
     def create
       params[:id] = params[:card][:id].to_i
       set_client
-      # @client = client_source.searchable_by(current_user).find(params[:card][:id].to_i)
-      @card = @client.service_scanning_scanner_ids.create(card_params.merge(source_type: 'ManuallyAdded'))
+      options = card_params.to_h.merge(source_type: 'ManuallyAdded')
+      options[:scanned_id] = options[:scanned_id].gsub(/[a-z]/i, '')
+      @card = @client.service_scanning_scanner_ids.create(options)
+      return if request.xhr?
 
-      respond_with(@card, location: service_scanning_scanner_id_path(@client)) unless request.xhr?
+      flash[:notice] = 'ID card successfully added.'
+      redirect_to(service_scanning_scanner_id_path(@client))
     end
 
     private def client_source

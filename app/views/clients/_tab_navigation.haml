@@ -84,6 +84,12 @@
         permission: can_audit_clients?,
       },
     })
+    hmis.merge!({
+      service_scanning_scanner_id_path(@client) => {
+        title: 'Scan Card IDs',
+        permission: can_use_service_register?,
+      },
+    }) if RailsDrivers.loaded.include?(:service_scanning)
     health = {
       # BH CP Pages
       polymorphic_path(health_path_generator + [:patient, :index], client_id: @client) => {
