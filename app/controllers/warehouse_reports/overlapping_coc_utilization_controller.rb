@@ -65,6 +65,7 @@ module WarehouseReports
         start_date: Date.parse(params.require(:start_date)),
         end_date: Date.parse(params.require(:end_date)),
       )
+      render json: @report.details_hash
     end
 
     private def report_params

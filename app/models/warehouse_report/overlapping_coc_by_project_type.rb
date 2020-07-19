@@ -3,9 +3,12 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+require 'memoist'
 
 class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   attr_reader :start_date, :end_date
+  extend Memoist
+
 
   def initialize(coc_code_1:, coc_code_2:, start_date:, end_date:)
     @coc_code_1 = coc_code_1
@@ -20,19 +23,25 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     [@coc_code_1, @coc_code_2]
   end
 
+  def coc_shape_by_cocnum
+    GrdaWarehouse::Shape::CoC.where(cocnum: coc_codes).index_by(&:cocnum)
+  end
+  memoize :coc_shape_by_cocnum
+
   def coc1
-    GrdaWarehouse::Shape::CoC.find_by(cocnum: coc_codes.first)
+    coc_shape_by_cocnum[@coc_code_1]
   end
 
   def coc2
-    GrdaWarehouse::Shape::CoC.find_by(cocnum: coc_codes.second)
+    coc_shape_by_cocnum[@coc_code_2]
   end
 
   def shared_clients
-    @shared_clients ||= GrdaWarehouse::Hud::Client.where(
+    GrdaWarehouse::Hud::Client.where(
       id: overlapping_client_ids.map(&:to_i),
     )
   end
+  memoize :shared_clients
 
   def coc_client_ids(coc_code)
     GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -40,6 +49,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       service_within_date_range(start_date: @start_date, end_date: @end_date).
       in_coc(coc_code: coc_code).distinct.pluck(:client_id, :computed_project_type)
   end
+  memoize :coc_client_ids
 
   # returns [[client_id, project_type]]
   def client_project_type_pairs
@@ -47,13 +57,14 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
 
   def overlap_by_project_type
-    @overlap_by_project_type ||= {}.tap do |overlap|
+    {}.tap do |overlap|
       client_project_type_pairs.each do |c_id, p_type|
         overlap[p_type] ||= Set.new
         overlap[p_type] << c_id
       end
     end
   end
+  memoize :overlap_by_project_type
 
   def service_histories
     GrdaWarehouse::ServiceHistoryService.joins(
@@ -68,7 +79,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
 
 
   def dates_by_p_type
-    @dates_by_p_type ||= {}.tap do |dates|
+    {}.tap do |dates|
       coc_codes.each do |coc|
         overlap_by_project_type.each do |p_type, clients|
           dates[p_type] ||= {}
@@ -85,6 +96,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
     end
   end
+  memoize :dates_by_p_type
 
   def overlapping_client_ids
     client_project_type_pairs.map(&:first).uniq
@@ -189,7 +201,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
 
   def concurrent_by_type
-    @concurrent_by_type ||= {}.tap do |concurrent|
+    {}.tap do |concurrent|
       dates_by_p_type.each do |p_type, coc_data|
         coc_1 = coc_data.dig(@coc_code_1)
         coc_2 = coc_data.dig(@coc_code_2)
@@ -199,12 +211,14 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       end
     end
   end
+  memoize :concurrent_by_type
 
   def async_by_type
-    @async_by_type ||= {}.tap do |async|
+    {}.tap do |async|
       overlap_by_project_type.each do |p_type, ids|
         async[p_type] = ids - concurrent_by_type[p_type]
       end
     end
   end
+  memoize :async_by_type
 end
