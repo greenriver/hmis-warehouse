@@ -5,6 +5,7 @@
 ###
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
+  include RailsDrivers::Extensions
   require 'memoist'
   include ArelHelper
   acts_as_paranoid
@@ -82,6 +83,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   scope :authoritative, -> do
     where(authoritative: true)
+  end
+
+  scope :scannable, -> do
+    where(service_scannable: true)
   end
 
   scope :visible_in_window_to, -> (user) do

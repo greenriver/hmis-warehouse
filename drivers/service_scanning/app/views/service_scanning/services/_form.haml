@@ -5,7 +5,7 @@
   .jOtherType
     = f.input :other_type, collection: @service.class.known_other_types, selected: @service.other_type, input_html: { class: :select2, data: { tags: true }}, include_blank: true, hint: 'If you don\'t see the type required, type it in and select it'
   = f.input :provided_at, input_html: { value: Time.current, class: :exact_date_time_picker }, label: 'Time Service Provided', as: :string
-  - client_auto_focus = params.dig(:service, :autofocus).blank? && ! @no_client_found
+  - client_auto_focus = params.dig(:service, :project_id).present? && params.dig(:service, :autofocus).blank? && ! @no_client_found
   = f.input :scanner_id, input_html: { value: nil, autofocus: client_auto_focus }, label: 'Scan Card or Name Search', hint: 'If the client doesn\'t have a scan card, search by name.'
 
   = f.button :submit, value: 'Add Service or Search for Client'

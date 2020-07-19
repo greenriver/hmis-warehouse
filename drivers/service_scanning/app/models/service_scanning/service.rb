@@ -23,7 +23,7 @@ module ServiceScanning
       project_type_column = ::GrdaWarehouse::Hud::Project.project_type_column
       options = {}
         project_scope = ::GrdaWarehouse::Hud::Project.joins(:data_source).
-          merge(::GrdaWarehouse::DataSource.where(service_scannable: true))
+          merge(::GrdaWarehouse::DataSource.scannable)
         project_scope.
           joins(:organization).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).

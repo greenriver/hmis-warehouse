@@ -23,6 +23,7 @@ module ServiceScanning
       @last_service = ServiceScanning::Service.find(service_id) if service_id
       @no_client_found = params.dig(:service, :no_client).present?
       query = params.dig(:service, :q)
+      @show_new_client_form = query.present? && ::GrdaWarehouse::DataSource.authoritative.scannable && can_create_clients?
       if query
         @search_results = client_source.text_search(
           query,
@@ -80,6 +81,92 @@ module ServiceScanning
       end
     end
 
+    def new_client
+      @client = client_source.new
+    end
+
+    # Copied and modified from ClientController
+    def create_client
+      unless ::GrdaWarehouse::DataSource.authoritative.scannable.exists?
+        flash[:error] = 'No Scannable Data Source Found'
+        redirect_to(service_scanning_services_path(service: index_params))
+        return
+      end
+      clean_params = client_create_params
+      clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
+
+      # If we only have one scannable data source, we don't bother sending it, just use it
+      clean_params[:data_source_id] ||= ::GrdaWarehouse::DataSource.authoritative.scannable.first.id
+      @client = client_source.new(clean_params)
+
+      params_valid = validate_new_client_params(clean_params)
+
+      @existing_matches ||= []
+      if ! params_valid
+        flash[:error] = 'Unable to create client'
+        render action: :new_client
+      else
+        # Create a new source and destination client
+        # and redirect to the search page
+        client_source.transaction do
+          destination_ds_id = ::GrdaWarehouse::DataSource.destination.first.id
+          @client.save
+          @client.update(PersonalID: @client.id)
+
+          destination_client = client_source.new(clean_params.
+            merge(
+              data_source_id: destination_ds_id,
+              PersonalID: @client.id,
+              creator_id: current_user.id,
+            ))
+          destination_client.save
+
+          warehouse_client = ::GrdaWarehouse::WarehouseClient.create(
+            id_in_source: @client.id,
+            source_id: @client.id,
+            destination_id: destination_client.id,
+            data_source_id: @client.data_source_id,
+          )
+          if !request.xhr?
+            if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
+              flash[:notice] = "Client #{@client.full_name} created."
+              after_create_path = client_path_generator
+              if @client.data_source.after_create_path.present?
+                after_create_path += [@client.data_source.after_create_path]
+                redirect_to polymorphic_path(after_create_path, client_id: destination_client.id)
+              else
+                redirect_to polymorphic_path(after_create_path, id: destination_client.id)
+              end
+            else
+              flash[:error] = 'Unable to create client'
+              render action: :new_client
+            end
+          end
+        end
+      end
+    end
+
+    def validate_new_client_params(clean_params)
+      valid = true
+      unless [0, 9].include?(clean_params[:SSN].length)
+        @client.errors.add(:SSN, :format, message: 'must contain 9 digits')
+        valid = false
+      end
+      if clean_params[:FirstName].blank?
+        @client.errors.add(:FirstName, :required, message: 'is required')
+        valid = false
+      end
+      if clean_params[:LastName].blank?
+        @client.errors.add(:LastName, :required, message: 'is required')
+        valid = false
+      end
+      if clean_params[:DOB].blank?
+        @client.errors.add(:DOB, :required, message: 'Date of birth is required')
+        valid = false
+      end
+      valid
+    end
+
     def destroy
       @service = ServiceScanning::Service.find(params[:id].to_i)
       @service.destroy
@@ -127,6 +214,20 @@ module ServiceScanning
       )
     end
     helper_method :index_params
+
+    def client_create_params
+      params.require(:client).
+        permit(
+          :FirstName,
+          :MiddleName,
+          :LastName,
+          :SSN,
+          :DOB,
+          :Gender,
+          :VeteranStatus,
+          :data_source_id,
+        )
+    end
 
     private def attempt_to_find_client(scanner_id, data_source_id)
       client = client_from_scanner_ids(scanner_id)
