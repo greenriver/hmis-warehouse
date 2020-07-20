@@ -148,13 +148,13 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     return 'Unknown age' unless client.age&.positive?
     case client.age
     when 0..17
-      '<18'
+      'Under 18'
     when 18..24
-      '18 - 24'
+      'Age 18 - 24'
     when 25..61
-      '25 - 61'
+      'Age 25 - 61'
     when 62..10000
-      '62+'
+      'Age 62+'
     end
   end
 
