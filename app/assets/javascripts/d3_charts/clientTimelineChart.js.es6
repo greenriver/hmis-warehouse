@@ -10,7 +10,6 @@ function formatCocLabel(text, width, padding) {
     const lineHeight = 1.2; // ems
 
     text.text(null);
-    console.info('h', coc, projectName);
 
     text
       .append('tspan')
@@ -68,11 +67,19 @@ App.WarehouseReports.ClientTimelineChart = (options) => {
     .attr('width', width)
     .attr('height', height);
 
-  svg
+  const xAxis = svg
     .append('g')
     .attr('class', 'axis')
     .attr('transform', `translate(${margin.left},${margin.top + plotHeight})`)
     .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%m/%y')));
+
+  xAxis
+    .selectAll('line')
+    .attr('stroke', '#ccc')
+    .attr('stroke-dasharray', '4')
+    .each(function (_, i) {
+      d3.select(this).attr('y2', i % 2 ? -1 * (plotHeight - 1) : 0);
+    });
 
   const yAxis = svg
     .append('g')
@@ -82,7 +89,6 @@ App.WarehouseReports.ClientTimelineChart = (options) => {
       d3
         .axisLeft(yScale)
         .tickPadding(10)
-        .tickSize(0)
         .tickFormat((d, i) => enrollments[i].coc)
         .tickFormat((d, i) => {
           const { coc, project_name } = enrollments[i];
