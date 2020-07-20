@@ -61,7 +61,7 @@ RSpec.describe GrdaWarehouse::ClientNotes::Base, type: :model do
   end
 
   describe 'instance methods' do
-    describe 'destroyable_by?(user)' do
+    describe 'destroyable_by(user)' do
       let(:chronic_justification_written_by_bob) { create :grda_warehouse_client_notes_chronic_justification, user: bob }
       let(:bob) { create :user }
       let(:sally) { create :user }
