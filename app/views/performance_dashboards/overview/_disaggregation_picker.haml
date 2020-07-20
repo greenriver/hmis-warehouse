@@ -16,6 +16,8 @@
   #j-disaggregation-spinner.ml-2.d-none
     .mr-2= render 'spinner'
     %div Loading&hellip;
+  .ml-auto
+    = render 'performance_dashboards/pdf_download', export: @pdf_export
 
 - content_for :page_js do
   :javascript

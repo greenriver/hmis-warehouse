@@ -93,7 +93,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
         required: true,
         label: 'Population by Project Type',
         short_label: 'Project Type',
-        value: describe_household_control_section
+        value: describe_household_control_section,
       )
       section.add_control(id: 'reporting_period', required: true, value: date_range_words)
       section.add_control(id: 'comparison_period', value: nil)
@@ -135,11 +135,13 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   protected def build_household_control_section
     ::Filters::UiControlSection.new(id: 'household').tap do |section|
       section.add_control(id: 'household_type', required: true, value: @filter.household_type == :all ? nil : chosen_household_type)
-      section.add_control(
-        id: 'hoh_only',
-        label: 'Only Heads of Household?',
-        value: @filter.hoh_only ? 'HOH Only' : nil,
-      )
+      if performance_type == 'Client'
+        section.add_control(
+          id: 'hoh_only',
+          label: 'Only Heads of Household?',
+          value: @filter.hoh_only ? 'HOH Only' : nil,
+        )
+      end
     end
   end
 
@@ -152,19 +154,21 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
         required: true,
         value: @filter.sub_population == :clients ? nil : chosen_sub_population,
       )
-      section.add_control(id: 'races', value: chosen_races, short_label: 'Race')
-      section.add_control(id: 'ethnicities', value: chosen_ethnicities, short_label: 'Ethnicity')
-      section.add_control(id: 'age_ranges', value: chosen_age_ranges, short_label: 'Age')
-      section.add_control(
-        id: 'genders',
-        short_label: 'Gender',
-        value: chosen_genders,
-      )
-      section.add_control(
-        id: 'veteran_statuses',
-        short_label: 'Veteran Status',
-        value: chosen_veteran_statuses,
-      )
+      if performance_type == 'Client'
+        section.add_control(id: 'races', value: chosen_races, short_label: 'Race')
+        section.add_control(id: 'ethnicities', value: chosen_ethnicities, short_label: 'Ethnicity')
+        section.add_control(id: 'age_ranges', value: chosen_age_ranges, short_label: 'Age')
+        section.add_control(
+          id: 'genders',
+          short_label: 'Gender',
+          value: chosen_genders,
+        )
+        section.add_control(
+          id: 'veteran_statuses',
+          short_label: 'Veteran Status',
+          value: chosen_veteran_statuses,
+        )
+      end
     end
   end
 
