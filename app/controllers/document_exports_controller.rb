@@ -74,3 +74,9 @@ class DocumentExportsController < ApplicationController
     }
   end
 end
+if Rails.env.development?
+  # require subclasses are populated for validation of acceptable types
+  require_dependency 'grda_warehouse/document_exports/client_performance_export'
+  require_dependency 'grda_warehouse/document_exports/household_performance_export'
+  require_dependency 'grda_warehouse/document_exports/project_type_performance_export'
+end

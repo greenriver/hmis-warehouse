@@ -8,9 +8,9 @@ module GrdaWarehouse::DocumentExports
   class ProjectTypePerformanceExport < BasePerformanceExport
     def perform
       with_status_progression do
-        template_file = 'performance_dashboards/overview/index_pdf'
+        template_file = 'performance_dashboards/project_type/index_pdf'
         PdfGenerator.new.perform(
-          html: view.render(file: template_file),
+          html: view.render(file: template_file, layout: 'layouts/performance_report'),
           file_name: "ProjectType Performance #{DateTime.current.to_s(:db)}"
         ) do |io|
           self.pdf_file = io
