@@ -61,15 +61,18 @@ module WarehouseReports
     end
 
     def details
-      report_args = {
+      @report = WarehouseReport::OverlappingCocByProjectType.new(
         coc_code_1: GrdaWarehouse::Shape::CoC.find(params.require(:coc1)).cocnum,
         coc_code_2: GrdaWarehouse::Shape::CoC.find(params.require(:coc2)).cocnum,
         start_date: Date.parse(params.require(:start_date)),
         end_date: Date.parse(params.require(:end_date)),
-      }
-      report_cache_key = [current_user.id, @report.class.name, Date.current, report_args]
-      @report = WarehouseReport::OverlappingCocByProjectType.new(**report_args)
-      @details = Rails.cache.fetch(report_cache_key, expires_in: 5.minutes) do
+        project_type: params.dig(:project_type),
+      )
+
+      @details = Rails.cache.fetch(
+        @report.cache_key.merge(user_id: current_user.id),
+        expires_in: 5.seconds,
+      ) do
         @report.details_hash
       end
     rescue WarehouseReport::OverlappingCocByProjectType::Error => e

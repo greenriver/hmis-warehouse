@@ -3,7 +3,8 @@
     = "#{pluralize @report.total_shared_clients, 'client'} were served in both "
     = "#{@report.coc1.number_and_name} and #{@report.coc2.number_and_name}"
     = "between #{@report.start_date} - #{@report.end_date}"
-
+  - if @report.project_type
+    %h3 Only considering clients with #{::HUD.project_type(@report.project_type)} enrollments in both projects
 - @details[:clients].each.with_index do |data, idx|
   - chart_id = "j-client-#{idx}"
   %section.mb-6

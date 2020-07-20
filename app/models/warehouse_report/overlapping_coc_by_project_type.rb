@@ -6,24 +6,39 @@
 require 'memoist'
 
 class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
+  VERSION = 2
   class Error < ::StandardError; end
 
-  attr_reader :start_date, :end_date
+  attr_reader :start_date, :end_date, :project_type
   extend Memoist
 
 
-  def initialize(coc_code_1:, coc_code_2:, start_date:, end_date:)
+  def initialize(coc_code_1:, coc_code_2:, start_date:, end_date:, project_type: nil)
     @coc_code_1 = coc_code_1
     @coc_code_2 = coc_code_2
     @start_date = start_date
     @end_date = end_date
+    @project_type = project_type.to_i if project_type.present?
 
-    raise Error, 'This report requires two different COCs.' if @coc_code_1 == @coc_code_2
+    raise Error, 'This report requires two different COCs.' if coc1 == coc2
     raise Error, "Start date '#{@start_date}' must be before or before end date '#{@end_date}'." if @start_date > @end_date
     raise Error, 'Report duration cannot exceed 3 years.' unless @start_date >= @end_date.prev_year(3)
+    raise Error, 'Invalid project type' if @project_type.present? && !::HUD.project_types.key?(@project_type)
 
     #FIXME there is some sort of schema cache issue in development
     GrdaWarehouse::Hud::Client.primary_key = :id
+  end
+
+  def cache_key
+    {
+      report: self.class.name,
+      version: VERSION,
+      coc_code_1: @coc_code_1,
+      coc_code_2: @coc_code_2,
+      start_date: @start_date,
+      end_date: @end_date,
+      project_type: @project_type
+    }.compact
   end
 
   def time_range
@@ -77,15 +92,27 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
   memoize :overlap_by_project_type
 
+
+  def enrollments
+    scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+      open_between(start_date: @start_date, end_date: @end_date).
+      service_within_date_range(start_date: @start_date, end_date: @end_date).
+      in_coc(coc_code: coc_codes)
+
+    scope = scope.merge(
+      GrdaWarehouse::ServiceHistoryEnrollment.where(computed_project_type: @project_type),
+    ) if @project_type
+
+    scope
+  end
+  memoize :enrollments
+
   def service_histories
     GrdaWarehouse::ServiceHistoryService.joins(
       service_history_enrollment: {
         project: :project_cocs
       }
-    ).service_between(
-      start_date: @start_date,
-      end_date: @end_date,
-    )
+    ).merge(enrollments)
   end
 
 
@@ -151,9 +178,10 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
 
   # FIXME: stolen from GrdaWarehouse::ServiceHistoryEnrollment.available_age_ranges
+  # Based on age as of the start of of the report period
   private def age_group(client)
     return 'Unknown age' unless client.age&.positive?
-    case client.age
+    case client.age(start_date)
     when 0..17
       'Under 18'
     when 18..24
@@ -170,6 +198,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       {
         coc: project.project_cocs.first.CoCCode,
         project_name: project.name,
+        project_type: ::HUD.project_type_brief(project_type),
         history: history_details(project_services)
       }
     end.sort_by do |service|
