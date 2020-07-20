@@ -1,5 +1,7 @@
 //= require ./namespace
 
+const truncate = (str, limit) => (str.length > limit ? str.slice(0, 30) + '…' : str);
+
 function formatCocLabel(text, width, padding) {
   text.each(function () {
     const paddingV = width * padding;
@@ -17,14 +19,14 @@ function formatCocLabel(text, width, padding) {
       .attr('y', y)
       .attr('font-weight', 'bold')
       .attr('fill', '#555')
-      .text(coc);
+      .text(truncate(coc, 30));
     text
       .append('tspan')
       .attr('x', -paddingV)
       .attr('y', y)
       .attr('dy', lineHeight + 'em')
       .attr('fill', '#333')
-      .text(projectName.slice(0, 30) + '…');
+      .text(truncate(projectName, 30));
 
     return;
   });
