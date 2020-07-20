@@ -1,23 +1,23 @@
-.mb-4
-  %h2.mb-5
+%div(style='margin-bottom: 4.5em')
+  %h2
     = "Enrollment details for #{pluralize @report.all_overlapping_clients, 'client'} served in both "
     = "#{@report.coc1.number_and_name} and #{@report.coc2.number_and_name}"
-    .text-small= "between #{@report.start_date} - #{@report.end_date}"
+    = "between #{@report.start_date} - #{@report.end_date}"
 
 - clients = @details[:clients]
 - clients.each.with_index do |data, idx|
   - chart_id = "j-client-#{idx}"
-  %h4= data[:label]
-  .row(style='margin-bottom: 5em')
-    .col-4
-      %dl
-        %dd Gender
-        %dt= data[:gender]
-        %dd Race
-        %dt= data[:race]
-        %dd Ethnicity
-        %dt= data[:ethnicity]
-    .col-8
+  %h3= data[:label]
+  .row(style='margin-bottom: 4.5em')
+    .col-md-4
+      %dl.row
+        %dt.col-md-3 Gender
+        %dd.col-md-9.mt-0.mb-2= data[:gender]
+        %dt.col-md-3 Race
+        %dd.col-md-9.mt-0.mb-2= data[:race]
+        %dt.col-md-3 Ethnicity
+        %dd.col-md-9.mt-0= data[:ethnicity]
+    .col-md-8
       .j-chart(id=chart_id)
     -#%pre= JSON::pretty_generate({enrollments: data[:enrollments], domain: @domain})
   - content_for :page_js do

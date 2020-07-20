@@ -99,7 +99,7 @@ App.WarehouseReports.ClientTimelineChart = (options) => {
     .append('g')
     .attr('class', 'axis')
     .attr('transform', `translate(${margin.left},${margin.top + plotHeight})`)
-    .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%m/%d')));
+    .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%m/%y')));
 
   svg
     .append('g')
