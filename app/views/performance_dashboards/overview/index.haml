@@ -10,7 +10,7 @@
     .top-nav-prs1
       .d-flex.mb-5
         .mr-auto
-          %h1.h1-hero-prs1 #{@report.performance_type} Performance
+          %h1 #{@report.performance_type} Performance
         .ml-3
           = render 'performance_dashboards/pdf_download', export: @pdf_export
       %div

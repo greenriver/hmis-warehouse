@@ -17,7 +17,7 @@
   - items.each do |item|
     .hero-prs1
       .d-flex.align-items-center
-        .hero-value-prs1.mr-3.font-size-large.text-bold= number_with_delimiter item[:value]
+        .h1.hero-value-prs1.mr-3= number_with_delimiter item[:value]
         %div
-          .hero-label-prs1.text-bold= item[:name]
+          .hero-label-prs1.font-weight-bold.gray= item[:name]
           .hero-unit-prs1 Unique #{@report.performance_type.pluralize}

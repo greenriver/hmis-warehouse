@@ -1,6 +1,6 @@
 :ruby
   key_title = {
-    enrolled: "Actively Entrolled",
+    enrolled: "Actively Enrolled",
     entering: "Entering",
     exiting: "Exiting",
   }.fetch(key)
@@ -50,16 +50,16 @@
     = render 'universe_selection'
   .col-md-4
     - if @report.include_comparison?
-      .mb-1.font-weight-bold.gray Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}
-      .mb-1.gray.lead.font-weight-normal
+      .mb-1.font-weight-bold.gray Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}:
+      .mb-1.gray.font-weight-normal
         Reporting Period:
         = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
-      .mb-1.gray.lead.font-weight-normal
+      .mb-1.gray.font-weight-normal
         Comparison Period:
         = link_to_if show_client_details?, number_with_delimiter(client_counts[:comparison]), polymorphic_path(@report.detail_path_array, { filters: comparison_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
     - else
-      .mb-1.gray.lead.font-weight-normal
-        Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}
+      .mb-1.gray.font-weight-normal.text-right
+        Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}:
         = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
 
 .chart-legend-prs1{id: legend_id}
