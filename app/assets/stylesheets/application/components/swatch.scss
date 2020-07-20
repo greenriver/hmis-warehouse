@@ -23,4 +23,7 @@
   .c-swatch__display--bar-#{$index} {
     background-color: $color;
   }
+  .c-swatch__display--fill-#{$index} {
+    fill: $color;
+  }
 }
