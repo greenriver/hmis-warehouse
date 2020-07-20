@@ -3,5 +3,30 @@
     = "Enrollment details for #{pluralize @report.all_overlapping_clients, 'client'} served in both "
     = "#{@report.coc1.number_and_name} and #{@report.coc2.number_and_name}"
     .text-small= "between #{@report.start_date} - #{@report.end_date}"
-%pre= JSON::pretty_generate(@report.details_hash)
+
+- clients = @details[:clients]
+- clients.each.with_index do |data, idx|
+  - chart_id = "j-client-#{idx}"
+  %h4= data[:label]
+  .row(style='margin-bottom: 5em')
+    .col-4
+      %dl
+        %dd Gender
+        %dt= data[:gender]
+        %dd Race
+        %dt= data[:race]
+        %dd Ethnicity
+        %dt= data[:ethnicity]
+    .col-8
+      .j-chart(id=chart_id)
+    -#%pre= JSON::pretty_generate({enrollments: data[:enrollments], domain: @domain})
+  - content_for :page_js do
+    :javascript
+      var domain = #{@domain.to_json.html_safe};
+      var enrollments = #{data[:enrollments].to_json.html_safe};
+      App.WarehouseReports.ClientTimelineChart({
+        enrollments: enrollments,
+        rootSelector: '#' + #{chart_id.to_json.html_safe},
+        domain: domain,
+      });
 
