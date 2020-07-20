@@ -1,7 +1,7 @@
 - show_second_column = can_track_anomalies? || @client.alert_notes.exists?
 - aliases = @client.client_names(user: current_user, health: true).uniq
 - alias_class = if show_second_column then 'col-sm-9' else 'col' end
-.row
+.row.flex-grow-1
   %div{class: alias_class}
     - if @client.deceased?
       .alert.alert-danger
