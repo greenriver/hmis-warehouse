@@ -74,7 +74,7 @@ RSpec.describe GrdaWarehouse::ClientNotes::Base, type: :model do
 
       context 'if user is not note author' do
         it 'user cannot destroy note' do
-          expect(chronic_justification_written_by_bob.destroyable_by(sally)).to eq false
+          expect(chronic_justification_written_by_bob.destroyable_by(sally)).to be_falsey
         end
       end
     end
