@@ -75,6 +75,17 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_encryption_types
+      {
+        'None' => :none,
+        'PII Encrypted' => :pii,
+      }
+    end
+
+    def self.client_search_available?
+      get(:pii_encryption_type).to_sym.in?([:none])
+    end
+
     def self.currrent_health_emergency_tracing_title
       available_health_emergency_tracings.invert[get(:health_emergency_tracing).to_sym] || ''
     end
