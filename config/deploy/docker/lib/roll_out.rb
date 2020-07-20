@@ -12,13 +12,14 @@ class RollOut
   attr_accessor :deployment_id # Used to verify when the deploy_tasks script finishes
   attr_accessor :dj_options
   attr_accessor :execution_role
-  attr_accessor :status_uri
   attr_accessor :image_base
+  attr_accessor :last_task_completed
   attr_accessor :log_prefix
   attr_accessor :log_stream_name
   attr_accessor :rails_env
   attr_accessor :secrets_arn
   attr_accessor :service_exists
+  attr_accessor :status_uri
   attr_accessor :target_group_arn
   attr_accessor :target_group_name
   attr_accessor :task_definition
@@ -503,16 +504,21 @@ class RollOut
     {}
   end
 
+  # tailing the logs until we see "---DONE---" isn't reliable because we don't
+  # know how long to wait for sure. We consider it complete if we saw
+  # ---DONE--- or if the task executed the rake task that updates the
+  # deployment ID
   def _poll_until_deploy_tasks_complete!
     complete = false
     while !complete
       response = _get_status
       complete = (response.dig('registered_deployment_id') == self.deployment_id)
 
-      if complete
+      if complete || self.last_task_completed
         puts "[INFO] Looks like the deployment tasks ran to completion (#{self.deployment_id})"
+        complete = true
       else
-        puts "[WARN] Looks like the deployment task isn't done."
+        puts '[WARN] Looks like the deployment task isn\'t done.'
         puts "[WARN] We expected: #{self.deployment_id}"
         puts "[WARN] We got: #{response.dig('registered_deployment_id')}"
         puts "[WARN] You can safely (p)roceed if this is the first deployment"
@@ -538,6 +544,7 @@ class RollOut
   # If you can construct or query for the log stream name, you can use this to
   # tail any tasks, even those that are part of a service.
   def _tail_logs(start_time=Time.now)
+    self.last_task_completed = false
     begin
       resp = cwl.get_log_events({
         log_group_name: target_group_name,
@@ -552,21 +559,31 @@ class RollOut
 
     puts "[TASK] Log stream is #{target_group_name}/#{log_stream_name}"
 
-    while ( resp.events.length > 0 || (Time.now.utc.to_i - start_time.utc.to_i) < ENV.fetch('LOG_TIME') { '60' }.to_i )
-      resp.events.each do |event|
-        puts "[TASK] #{event.message}"
-      end
-
-      next_token = resp.next_forward_token
-
-      sleep 15
-
-      resp = cwl.get_log_events({
+    get_log_events = ->(next_token) do
+      cwl.get_log_events({
         log_group_name: target_group_name,
         log_stream_name: log_stream_name,
         next_token: next_token,
         start_from_head: true,
       })
+    end
+
+    too_soon = -> do
+      (Time.now.utc.to_i - start_time.utc.to_i) < 60*5
+    end
+
+    while ( resp.events.length > 0 || too_soon.call )
+      resp.events.each do |event|
+        puts "[TASK] #{event.message}"
+        if event.message.match?(/---DONE---/)
+          self.last_task_completed = true
+          return
+        end
+      end
+
+      sleep 15
+
+      resp = get_log_events.call(resp.next_forward_token)
     end
   end
 
