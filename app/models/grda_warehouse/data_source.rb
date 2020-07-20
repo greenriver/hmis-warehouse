@@ -5,6 +5,7 @@
 ###
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
+  self.primary_key = :id
   require 'memoist'
   include ArelHelper
   acts_as_paranoid
