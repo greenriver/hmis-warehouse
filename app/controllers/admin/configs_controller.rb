@@ -60,6 +60,8 @@ module Admin
         :multi_coc_installation,
         :auto_de_duplication_accept_threshold,
         :auto_de_duplication_reject_threshold,
+        :pii_encryption_type,
+        :auto_de_duplication_enabled,
         client_details: [],
       )
     end
