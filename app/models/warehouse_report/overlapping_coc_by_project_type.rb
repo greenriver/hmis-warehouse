@@ -19,6 +19,10 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     GrdaWarehouse::Hud::Client.primary_key = :id
   end
 
+  def time_range
+    [start_date, end_date]
+  end
+
   def coc_codes
     [@coc_code_1, @coc_code_2]
   end
@@ -155,13 +159,15 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
 
   private def enrollment_details(services)
-    services.group_by(&:service_history_enrollment).map do |e, enrollment_services|
+    services.group_by{|s| s.service_history_enrollment.project}.map do |project, project_services|
       {
-        coc: e.project.project_cocs.first.CoCCode,
-        project_name: e.project.name,
-        history: history_details(services)
+        coc: project.project_cocs.first.CoCCode,
+        project_name: project.name,
+        history: history_details(project_services)
       }
-    end
+    end.sort_by do |service|
+      service[:history][0][:from]# rescue Date.new(0,0,0)
+    end.reverse
   end
 
   private def history_details(services)
@@ -173,7 +179,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       else
         "#{seq.first.date}-#{seq.last.date}"
       end
-      {from: seq.first.date.iso8601, to: seq.last.date.iso8601, label: label}
+      {from: seq.first.date.beginning_of_day.iso8601, to: seq.last.date.end_of_day.iso8601, label: label}
     end
   end
 

@@ -4,8 +4,7 @@
     = "#{@report.coc1.number_and_name} and #{@report.coc2.number_and_name}"
     = "between #{@report.start_date} - #{@report.end_date}"
 
-- clients = @details[:clients]
-- clients.each.with_index do |data, idx|
+- @details[:clients].each.with_index do |data, idx|
   - chart_id = "j-client-#{idx}"
   %h3= data[:label]
   .row(style='margin-bottom: 4.5em')
@@ -17,12 +16,14 @@
         %dd.col-md-9.mt-0.mb-2= data[:race]
         %dt.col-md-3 Ethnicity
         %dd.col-md-9.mt-0= data[:ethnicity]
+        %dt.col-md-3 Age Group
+        %dd.col-md-9.mt-0= data[:age_group]
     .col-md-8
       .j-chart(id=chart_id)
-    -#%pre= JSON::pretty_generate({enrollments: data[:enrollments], domain: @domain})
+      -#%pre= JSON::pretty_generate(data)
   - content_for :page_js do
     :javascript
-      var domain = #{@domain.to_json.html_safe};
+      var domain = #{@report.time_range.to_json.html_safe};
       var enrollments = #{data[:enrollments].to_json.html_safe};
       App.WarehouseReports.ClientTimelineChart({
         enrollments: enrollments,

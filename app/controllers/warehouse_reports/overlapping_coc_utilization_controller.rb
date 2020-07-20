@@ -65,12 +65,10 @@ module WarehouseReports
         start_date: Date.parse(params.require(:start_date)),
         end_date: Date.parse(params.require(:end_date)),
       }
+      cache_key = [current_user.id, @report.class.name, attr]
 
       @report = WarehouseReport::OverlappingCocByProjectType.new(attr)
-
-      @domain = [@report.start_date, @report.end_date]
-      key = [current_user.id, @report.class.name, attr]
-      @details = Rails.cache.fetch(key, expires_in: 5.minutes) do
+      @details = Rails.cache.fetch(cache_key, expires_in: 5.minutes) do
         @report.details_hash
       end
     end
