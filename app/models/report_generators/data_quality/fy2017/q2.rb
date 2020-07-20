@@ -12,6 +12,7 @@ module ReportGenerators::DataQuality::Fy2017
         @answers = setup_questions()
         @support = @answers.deep_dup
         @all_client_ids = fetch_all_client_ids()
+        @client_personal_ids = personal_ids(@all_client_ids)
         if @all_client_ids.any?
           update_report_progress(percent: 15)
           @clients_with_issues = Set.new
@@ -71,25 +72,39 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q2_b2][:value] = poor_quality.size
       @support[:q2_b2][:support] = add_support(
-        headers: ['Client ID', 'Name Data Quality'],
+        headers: ['Client ID', 'Personal IDs', 'Name Data Quality'],
         data: poor_quality.map do |id, enrollment|
-          [id, enrollment[:NameDataQuality]]
+          [
+            id,
+            @client_personal_ids[id].join(', '),
+            enrollment[:NameDataQuality],
+          ]
         end
       )
 
       @answers[:q2_c2][:value] = missing.size
       @support[:q2_c2][:support] = add_support(
-        headers: ['Client ID', 'First Name', 'Last Name'],
+        headers: ['Client ID', 'Personal IDs', 'First Name', 'Last Name'],
         data: missing.map do |id, enrollment|
-          [id, enrollment[:FirstName], enrollment[:LastName]]
+          [
+            id,
+            @client_personal_ids[id].join(', '),
+            enrollment[:FirstName],
+            enrollment[:LastName],
+          ]
         end
       )
 
       @answers[:q2_d2][:value] = quality_issues.size
       @support[:q2_d2][:support] = add_support(
-        headers: ['Client ID', 'First Name', 'Last Name'],
+        headers: ['Client ID', 'Personal IDs', 'First Name', 'Last Name'],
         data: poor_quality.map do |id, enrollment|
-          [id, enrollment[:FirstName], enrollment[:LastName]]
+          [
+            id,
+            @client_personal_ids[id].join(', '),
+            enrollment[:FirstName],
+            enrollment[:LastName],
+          ]
         end
       )
       @answers[:q2_e2][:value] = counted.size
@@ -129,25 +144,40 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q2_b3][:value] = poor_quality.size
       @support[:q2_b3][:support] = add_support(
-        headers: ['Client ID', 'SSN Data Quality'],
+        headers: ['Client ID', 'Personal IDs', 'SSN Data Quality'],
         data: poor_quality.map do |id, enrollment|
-          [id, enrollment[:SSNDataQuality]]
+          [
+            id,
+            @client_personal_ids[id].join(', '),
+            enrollment[:SSNDataQuality],
+          ]
         end
       )
 
       @answers[:q2_c3][:value] = missing.size
       @support[:q2_c3][:support] = add_support(
-        headers: ['Client ID', 'First Name', 'Last Name'],
+        headers: ['Client ID', 'Personal IDs', 'First Name', 'Last Name'],
         data: missing.map do |id, enrollment|
-          [id, enrollment[:FirstName], enrollment[:LastName]]
+          [
+            id,
+            @client_personal_ids[id].join(', '),
+            enrollment[:FirstName],
+            enrollment[:LastName],
+          ]
         end
       )
 
       @answers[:q2_d3][:value] = quality_issues.size
       @support[:q2_d3][:support] = add_support(
-        headers: ['Client ID', 'First Name', 'Last Name', 'SSN'],
+        headers: ['Client ID', 'Personal IDs', 'First Name', 'Last Name', 'SSN'],
         data: quality_issues.map do |id, enrollment|
-          [id, enrollment[:FirstName], enrollment[:LastName], enrollment[:SSN]]
+          [
+            id,
+            @client_personal_ids[id].join(', '),
+            enrollment[:FirstName],
+            enrollment[:LastName],
+            enrollment[:SSN],
+          ]
         end
       )
       @answers[:q2_e3][:value] = counted.size
@@ -189,25 +219,40 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q2_b4][:value] = poor_quality.size
       @support[:q2_b4][:support] = add_support(
-        headers: ['Client ID', 'DOB Data Quality'],
+        headers: ['Client ID', 'Personal IDs', 'DOB Data Quality'],
         data: poor_quality.map do |id, enrollment|
-          [id, enrollment[:DOBDataQuality]]
+          [
+            id,
+            @client_personal_ids[id].join(', '),
+            enrollment[:DOBDataQuality],
+          ]
         end
       )
 
       @answers[:q2_c4][:value] = missing.size
       @support[:q2_c4][:support] = add_support(
-        headers: ['Client ID', 'First Name', 'Last Name'],
+        headers: ['Client ID', 'Personal IDs', 'First Name', 'Last Name'],
         data: missing.map do |id, enrollment|
-          [id, enrollment[:FirstName], enrollment[:LastName]]
+          [
+            id,
+            @client_personal_ids[id].join(', '),
+            enrollment[:FirstName],
+            enrollment[:LastName],
+          ]
         end
       )
 
       @answers[:q2_d4][:value] = quality_issues.size
       @support[:q2_d4][:support] = add_support(
-        headers: ['Client ID', 'First Name', 'Last Name', 'DOB'],
+        headers: ['Client ID', 'Personal IDs', 'First Name', 'Last Name', 'DOB'],
         data: quality_issues.map do |id, enrollment|
-          [id, enrollment[:FirstName], enrollment[:LastName], enrollment[:DOB]]
+          [
+            id,
+            @client_personal_ids[id].join(', '),
+            enrollment[:FirstName],
+            enrollment[:LastName],
+            enrollment[:DOB],
+          ]
         end
       )
       @answers[:q2_e4][:value] = counted.size
@@ -240,10 +285,11 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q2_b5][:value] = poor_quality.size
       @support[:q2_b5][:support] = add_support(
-        headers: ['Client ID', 'RaceNone'],
+        headers: ['Client ID', 'Personal IDs', 'RaceNone'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             HUD.race_none(enrollment[:RaceNone]),
           ]
         end
@@ -251,10 +297,11 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q2_c5][:value] = missing.size
       @support[:q2_c5][:support] = add_support(
-        headers: ['Client ID', 'RaceNone'],
+        headers: ['Client ID', 'Personal IDs', 'RaceNone'],
         data: missing.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             HUD.race_none(enrollment[:RaceNone]),
           ]
         end
@@ -289,10 +336,11 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q2_b6][:value] = poor_quality.size
       @support[:q2_b6][:support] = add_support(
-        headers: ['Client ID', 'Ethnicity'],
+        headers: ['Client ID', 'Personal IDs', 'Ethnicity'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             HUD.ethnicity(enrollment[:Ethnicity]),
           ]
         end
@@ -300,10 +348,11 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q2_c6][:value] = missing.size
       @support[:q2_c6][:support] = add_support(
-        headers: ['Client ID', 'Ethnicity'],
+        headers: ['Client ID', 'Personal IDs', 'Ethnicity'],
         data: missing.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             HUD.ethnicity(enrollment[:Ethnicity]),
           ]
         end
@@ -338,10 +387,11 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q2_b7][:value] = poor_quality.size
       @support[:q2_b7][:support] = add_support(
-        headers: ['Client ID', 'Gender'],
+        headers: ['Client ID', 'Personal IDs', 'Gender'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             HUD.gender(enrollment[:Gender])
           ]
         end
@@ -349,10 +399,11 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q2_c7][:value] = missing.size
       @support[:q2_c7][:support] = add_support(
-        headers: ['Client ID', 'Gender'],
+        headers: ['Client ID', 'Personal IDs', 'Gender'],
         data: missing.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             HUD.gender(enrollment[:Gender])
           ]
         end

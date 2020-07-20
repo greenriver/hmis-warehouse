@@ -34,9 +34,9 @@ module Health
               re_enroll_patient(referral, transaction)
               returning_patients += 1
             else
+              update_patient_referrals(referral.patient, transaction)
               updated_patients += 1
             end
-            update_patient_referrals(referral.patient, transaction)
           else
             enroll_patient(transaction)
             new_patients += 1
@@ -68,7 +68,7 @@ module Health
             next if referral.disenrolled? # This is a disenrollment, and the patient is already disenrolled
 
             # This is a missed disenrollment
-            disenroll_patient(transaction, referral)
+            disenroll_patient(transaction, referral, file_date)
             disenrolled_patients += 1
 
           elsif referral.nil?
