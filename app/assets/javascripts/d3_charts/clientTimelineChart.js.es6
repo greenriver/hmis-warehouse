@@ -1,42 +1,37 @@
 //= require ./namespace
 
-function wrap(text, width, padding) {
+function formatCocLabel(text, width, padding) {
   text.each(function () {
     const paddingV = width * padding;
     const widthV = width - paddingV;
-    var text = d3.select(this),
-      words = text.text().split(/\s+/).reverse(),
-      word,
-      line = [],
-      lineHeight = 1.2, // ems
-      y = text.attr('y'),
-      //dy = parseFloat(text.attr('dy')),
-      dy = 0,
-      tspan = text
-        .text(null)
-        .append('tspan')
-        .attr('x', -paddingV)
-        .attr('y', y)
-        .attr('dy', dy + 'em');
-    while ((word = words.pop())) {
-      line.push(word);
-      tspan.text(line.join(' '));
-      if (tspan.node().getComputedTextLength() > widthV) {
-        line.pop();
-        tspan.text(line.join(' '));
-        line = [word];
-        tspan = text
-          .append('tspan')
-          .attr('x', -paddingV)
-          .attr('y', y)
-          .attr('dy', lineHeight + dy + 'em')
-          .text(word);
-      }
-    }
+    const text = d3.select(this);
+    const [coc, projectName] = text.text().split('|||');
+    const y = text.attr('y');
+    const lineHeight = 1.2; // ems
+
+    text.text(null);
+    console.info('h', coc, projectName);
+
+    text
+      .append('tspan')
+      .attr('x', -paddingV)
+      .attr('y', y)
+      .attr('font-weight', 'bold')
+      .attr('fill', '#555')
+      .text(coc);
+    text
+      .append('tspan')
+      .attr('x', -paddingV)
+      .attr('y', y)
+      .attr('dy', lineHeight + 'em')
+      .attr('fill', '#333')
+      .text(projectName.slice(0, 30) + '…');
+
+    return;
   });
 }
 
-const barSize = 30;
+const barSize = 35;
 const barPaddingInner = 0.75;
 const barPaddingOuter = 0.25;
 App.WarehouseReports.ClientTimelineChart = (options) => {
@@ -46,7 +41,7 @@ App.WarehouseReports.ClientTimelineChart = (options) => {
   const height = options.enrollments.length * barSize + margin.bottom + margin.top;
   const plotWidth = width - (margin.left + margin.right);
   const plotHeight = height - (margin.top + margin.bottom);
-  const cocCodes = options.cocs.map((d) => d.code)
+  const cocCodes = options.cocs.map((d) => d.code);
 
   const domain = options.domain.map((s) => d3.isoParse(s));
   const enrollments = options.enrollments.map((enrollment, idx) => ({
@@ -73,12 +68,38 @@ App.WarehouseReports.ClientTimelineChart = (options) => {
     .attr('width', width)
     .attr('height', height);
 
-  const chart = svg
+  svg
+    .append('g')
+    .attr('class', 'axis')
+    .attr('transform', `translate(${margin.left},${margin.top + plotHeight})`)
+    .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%m/%y')));
+
+  const yAxis = svg
+    .append('g')
+    .attr('class', 'axis')
+    .attr('transform', `translate(${margin.left},${margin.top})`)
+    .call(
+      d3
+        .axisLeft(yScale)
+        .tickPadding(10)
+        .tickSize(0)
+        .tickFormat((d, i) => enrollments[i].coc)
+        .tickFormat((d, i) => {
+          const { coc, project_name } = enrollments[i];
+          return `${coc}|||${project_name}`;
+        }),
+    );
+  yAxis.selectAll('.tick text').call(formatCocLabel, margin.left, 0.1);
+  yAxis
+    .selectAll('line')
+    .attr('transform', `translate(${plotWidth},0)`)
+    .attr('x2', -1 * (plotWidth - 1))
+    .attr('stroke', '#ccc');
+
+  svg
     .append('g')
     .attr('class', 'chart')
-    .attr('transform', `translate(${margin.left},${margin.top})`);
-
-  chart
+    .attr('transform', `translate(${margin.left},${margin.top})`)
     .selectAll('g')
     .data(enrollments)
     .enter()
@@ -93,28 +114,5 @@ App.WarehouseReports.ClientTimelineChart = (options) => {
     .attr('x', (d) => xScale(d.from))
     .attr('width', (d) => xScale(d.to) - xScale(d.from))
     .attr('height', yScale.bandwidth())
-    .attr('class', (d) => `c-swatch__display--fill-${cocCodes.indexOf(d.cocCode)}`)
-    .attr('fill-opacity', 0.8);
-
-  svg
-    .append('g')
-    .attr('class', 'axis')
-    .attr('transform', `translate(${margin.left},${margin.top + plotHeight})`)
-    .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%m/%y')));
-
-  svg
-    .append('g')
-    .attr('class', 'axis')
-    .attr('transform', `translate(${margin.left},${margin.top})`)
-    .call(
-      d3
-        .axisLeft(yScale)
-        .tickSize(0)
-        .tickFormat((d, i) => {
-          const { coc, project_name } = enrollments[i];
-          return `${coc} - ${project_name}`;
-        }),
-    )
-    .selectAll('.tick text')
-    .call(wrap, margin.left, 0.1);
+    .attr('class', (d) => `c-swatch__display--fill-${cocCodes.indexOf(d.cocCode)}`);
 };
