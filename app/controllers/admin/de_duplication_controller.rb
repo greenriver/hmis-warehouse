@@ -34,6 +34,7 @@ module Admin
       params.require(:grda_warehouse_config).permit(
         :auto_de_duplication_accept_threshold,
         :auto_de_duplication_reject_threshold,
+        :auto_de_duplication_enabled,
       )
     end
 
