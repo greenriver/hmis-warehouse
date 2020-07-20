@@ -28,7 +28,7 @@ module Filters
     def initialize(id:, value:, label: nil, short_label: nil, required: false)
       self.id = id
       self.label = label || id.humanize.titleize
-      self.short_label = short_label
+      self.short_label = short_label || self.label
       self.required = required
       self.value = value
     end

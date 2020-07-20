@@ -1,4 +1,12 @@
 :ruby
+  key_title = {
+    enrolled: "Actively Entrolled",
+    entering: "Entering",
+    exiting: "Exiting",
+  }.fetch(key)
+  key_title = "#{key_title} #{@report.performance_type.pluralize}"
+  (_, breakdown_title) = @report.available_breakdowns.detect { |id, _| id == breakdown }
+
   legend_id = "legend-#{SecureRandom.hex(8)}"
   excluded_categories = local_assigns[:excluded_categories].presence
   chart_options = {
@@ -25,17 +33,10 @@
     }
   }
 
-.d-flex.flex-wrap.justify-content-between.mb-2.align-items-baseline
-  %header.mb-2.ml-auto{style: 'flex: 1; min-width: 300px'}
-    %h2
-      - if @breakdown_section_title
-        = [key.to_s.titleize, @breakdown_section_title].compact.join(': ')
-      - elsif key == :enrolled
-        Actively Enrolled #{@report.performance_type.pluralize} from #{@report.date_range_words}
-      - else
-        = key.to_s.titleize
-
-    .description
+%h2.mb-3= [key_title, breakdown_title].compact.join(': ')
+.row
+  .col-md-8
+    .description.mb-5
       = desc
       - note_content = '<p>Clients with multiple enrollments may be counted in multiple categories.'
       - if excluded_categories.present?
@@ -46,18 +47,18 @@
         - note_content += '</ul></div></div>'
       - note_content += '</p>'
       %span.icon-info{data: {toggle: :popover, title: 'Note', placement: :bottom, trigger: :focus, content: note_content, html: :true }}
-
-  .mb-2.ml-3
-    .gray.lead.font-weight-normal
-      - if @report.include_comparison?
-        .mb-1.small.font-weight-bold Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}
-        .mb-1
-          Reporting Period:
-          = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
-        %div
-          Comparison Period:
-          = link_to_if show_client_details?, number_with_delimiter(client_counts[:comparison]), polymorphic_path(@report.detail_path_array, { filters: comparison_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
-      - else
+    = render 'universe_selection'
+  .col-md-4
+    - if @report.include_comparison?
+      .mb-1.font-weight-bold.gray Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}
+      .mb-1.gray.lead.font-weight-normal
+        Reporting Period:
+        = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
+      .mb-1.gray.lead.font-weight-normal
+        Comparison Period:
+        = link_to_if show_client_details?, number_with_delimiter(client_counts[:comparison]), polymorphic_path(@report.detail_path_array, { filters: comparison_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
+    - else
+      .mb-1.gray.lead.font-weight-normal
         Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}
         = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
 

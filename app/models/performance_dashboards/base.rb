@@ -88,9 +88,25 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
   protected def build_general_control_section
     ::Filters::UiControlSection.new(id: 'general').tap do |section|
-      section.add_control(id: 'project_types', required: true, label: 'Population by Project Type', value: chosen_project_types_only_homeless? ? 'Only Homeless' : chosen_project_types)
+      section.add_control(
+        id: 'project_types',
+        required: true,
+        label: 'Population by Project Type',
+        short_label: 'Project Type',
+        value: describe_household_control_section
+      )
       section.add_control(id: 'reporting_period', required: true, value: date_range_words)
       section.add_control(id: 'comparison_period', value: nil)
+    end
+  end
+
+  protected def describe_household_control_section
+    if chosen_project_types_only_homeless?
+      'Only Homeless'
+    elsif filter.project_type_codes.sort == GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.keys.map(&:to_s).sort
+      'All'
+    else
+      chosen_project_types
     end
   end
 

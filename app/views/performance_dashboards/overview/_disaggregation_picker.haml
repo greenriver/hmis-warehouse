@@ -8,22 +8,14 @@
     class: 'form-control select optional select2',
     'data-minimum-results-for-search': 10,
   }
-.d-flex.align-items-center.mb-5.disaggregation-picker-prs-1
+.d-flex.align-items-center.disaggregation-picker-prs-1
   .d-flex.align-items-baseline
-    %label.select.lead.mb-0.mr-3(for='j-disaggregation' style='flex-shrink: 0')
+    %label.select.mb-0.mr-3(for='j-disaggregation' style='flex-shrink: 0')
       Disaggregated By:
     = select_tag('tab', options_for_select(options, breakdown), attr)
   #j-disaggregation-spinner.ml-2.d-none
     .mr-2= render 'spinner'
     %div Loading&hellip;
-
-:css
-  .disaggregation-picker-prs-1 .label {
-    color: #000;
-  }
-  .disaggregation-picker-prs-1 .select2-selection {
-    background: #fff;
-  }
 
 - content_for :page_js do
   :javascript
