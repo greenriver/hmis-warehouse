@@ -19,7 +19,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     @end_date = end_date
 
     raise Error, 'This report requires two different COCs.' if @coc_code_1 == @coc_code_2
-    raise Error, "Start date '#{@start_date}' must be before or before end date '#{@end_date}'. Debug: #{@start_date > @end_date}" if @start_date > @end_date
+    raise Error, "Start date '#{@start_date}' must be before or before end date '#{@end_date}'." if @start_date > @end_date
     raise Error, 'Report duration cannot exceed 3 years.' unless @start_date >= @end_date.prev_year(3)
 
     #FIXME there is some sort of schema cache issue in development
