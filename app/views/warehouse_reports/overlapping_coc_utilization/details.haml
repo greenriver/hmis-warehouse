@@ -20,5 +20,6 @@
         enrollments: enrollments,
         rootSelector: '#' + #{chart_id.to_json.html_safe},
         domain: domain,
+        cocs: #{@details[:cocs].to_json.html_safe}
       });
 
