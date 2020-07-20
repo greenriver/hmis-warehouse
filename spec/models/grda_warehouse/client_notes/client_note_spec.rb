@@ -61,20 +61,20 @@ RSpec.describe GrdaWarehouse::ClientNotes::Base, type: :model do
   end
 
   describe 'instance methods' do
-    describe 'user_can_destroy?(user)' do
+    describe 'destroyable_by?(user)' do
       let(:chronic_justification_written_by_bob) { create :grda_warehouse_client_notes_chronic_justification, user: bob }
       let(:bob) { create :user }
       let(:sally) { create :user }
 
       context 'if when user is note author' do
         it 'user can destroy note' do
-          expect(chronic_justification_written_by_bob.user_can_destroy?(bob)).to eq true
+          expect(chronic_justification_written_by_bob.destroyable_by(bob)).to eq true
         end
       end
 
       context 'if user is not note author' do
         it 'user cannot destroy note' do
-          expect(chronic_justification_written_by_bob.user_can_destroy?(sally)).to eq false
+          expect(chronic_justification_written_by_bob.destroyable_by(sally)).to eq false
         end
       end
     end

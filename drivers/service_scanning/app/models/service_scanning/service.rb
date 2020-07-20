@@ -58,7 +58,7 @@ module ServiceScanning
     end
 
     def self.known_other_types
-      ServiceScanning::Service.distinct.pluck(:other_type)
+      ServiceScanning::Service.distinct.pluck(:other_type).map(&:presence).compact.sort
     end
 
     def self.services_by_type_for(client)

@@ -1,4 +1,5 @@
-- show_destroy = if defined?(show_destroy) then show_destroy else true end
+- show_destroy = if local_assigns[:show_destroy].nil? then note.destroyable_by(current_user) else local_assigns[:show_destroy] end
+
 .well.client-notes
   %h4= note.type_name
   %p= simple_format note.note

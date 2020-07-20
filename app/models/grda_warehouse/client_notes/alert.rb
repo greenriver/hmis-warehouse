@@ -23,5 +23,11 @@ module GrdaWarehouse::ClientNotes
         NotifyUser.note_added( id ).deliver_later
       end
     end
+
+    def destroyable_by(user)
+      return true if user_id == user.id
+
+      user.can_edit_client_notes? || user.can_edit_window_client_notes?
+    end
   end
 end

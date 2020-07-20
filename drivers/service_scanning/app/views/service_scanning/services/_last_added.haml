@@ -1,7 +1,7 @@
 - if @last_service && @last_client
   - if @last_client.alert_notes.exists?
     .service-scanning__active-alerts.text-center
-      = link_to alerts_client_notes_path(@last_client), class: 'btn btn-secondary', data: { loads_in_pjax_modal: true } do
+      = link_to alerts_client_notes_path(@last_client), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
         %i.icon-warning
         #{pluralize(@last_client.alert_notes.count, 'active alert')}
   .well

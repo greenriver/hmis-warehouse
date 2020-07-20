@@ -10,7 +10,7 @@
     %h1= content_for :title
 .row
   .col-sm-8
-    - unless can_edit_client_notes?
+    - unless can_edit_client_notes? || can_view_all_window_notes?
       %p.alert.alert-info
         - if can_edit_window_client_notes? && @client.release_valid?
           = _("#{@client.name} has a consent form on file, you can see any notes about this client.")
@@ -20,7 +20,7 @@
           = _("You can only see notes you add.")
     - if @notes.any?
       - @notes.order(created_at: :desc).each do |note|
-        = render 'note', note: note, show_destroy: true
+        = render 'note', note: note
     - else
       No notes on file
 

@@ -1,5 +1,10 @@
 %h3 Client Search Results
 - @search_results.each do |client|
+  - if client.alert_notes.exists?
+    .service-scanning__active-alerts.text-center
+      = link_to alerts_client_notes_path(client), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+        %i.icon-warning
+        #{pluralize(client.alert_notes.count, 'active alert')}
   .well
     .row
       .col-6

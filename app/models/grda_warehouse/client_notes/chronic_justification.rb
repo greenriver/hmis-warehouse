@@ -9,5 +9,11 @@ module GrdaWarehouse::ClientNotes
     def self.type_name
       'Chronic Justification'
     end
+
+    def destroyable_by(user)
+      return true if user_id == user.id
+
+      user.can_edit_client_notes?
+    end
   end
 end

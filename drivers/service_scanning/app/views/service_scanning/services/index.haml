@@ -3,6 +3,12 @@
   .o-page__header.d-flex
     %h1= content_for :title
   .o-page__main-content.mt-3
+    .alert.alert-info
+      .row
+        .col-12
+          %h3 Instructions
+          %p If you're scanning a card, set the appropriate options in the form below and scan the card into the Scan Card or Name Search box.  The form will remember your settings while you remain on the page, so subsequent services can be added simply by scanning the next card.
+          %p If you're searching by name, set the appropriate options in the form below and enter the full or parial name into the Scan Card or Name Search box.  Click Add Service or Search by Client.  In the search results, click Add Service next to the appropriate client.
     .row
       .col-sm-6
         - if @no_client_found

@@ -4,7 +4,7 @@
     show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
     show_demographic = @client.show_window_demographic_to?(current_user) rescue false
     @note_count = 0
-    show_notes = can_edit_window_client_notes? || can_see_own_window_client_notes? || can_edit_client_notes?
+    show_notes = can_edit_window_client_notes_or_own_window_client_notes?
     if show_notes
       @note_count = @client.notes.visible_by(current_user, @client).count
     end

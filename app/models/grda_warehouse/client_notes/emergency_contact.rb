@@ -10,9 +10,10 @@ module GrdaWarehouse::ClientNotes
       'Emergency Contact'
     end
 
-    # anyone who can see this client
-    scope :visible_by, -> (user, client) do
-      joins(:client).merge(GrdaWarehouse::Hud::Client.viewable_by(user))
+    def destroyable_by(user)
+      return true if user_id == user.id
+
+      user.can_edit_client_notes? || user.can_edit_window_client_notes?
     end
   end
 end
