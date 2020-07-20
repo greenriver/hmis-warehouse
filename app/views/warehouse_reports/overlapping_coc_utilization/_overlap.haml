@@ -4,14 +4,15 @@
       report_params.to_h.symbolize_keys.merge(extra_params.symbolize_keys)
     )
   end
+  project_types = report.chart_by_project_type
 .mb-4
   %h2.mb-5
-    = "Clients served in both #{@coc1.number_and_name} and #{@coc2.number_and_name}"
-    .text-small= "between #{start_date} - #{end_date}"
+    = "Clients served in both #{report.coc1.number_and_name} and #{report.coc2.number_and_name}"
+    .text-small= "between #{report.start_date} - #{report.end_date}"
   %p
     %span{style: 'font-weight: bold; font-size: 24px; '}
       = link_to detail_url.() do
-        = overlapping_client_count
+        = report.total_shared_clients
     %span.font-weight-bold.mb-2 Total Shared Clients
 - if project_types.any?
   .mb-8
@@ -22,19 +23,6 @@
           %td{style: 'width: 35%'}
             = link_to detail_url.(project_type: id) do
               = name
-          %td{style: 'width: 35%'}
-            = render 'bars', relative_total: relative_total, values: values
-          %td{style: 'width: 15%'}= values.first
-          %td{style: 'width: 15%'}= values.last
-- if funding_sources.present?
-  .mb-6
-    = render 'table', scope: 'funding_source' do
-      - relative_total = funding_sources.map(&:second).flatten.max
-      - funding_sources.sort_by{ |s| -s.second.sum}.each do |name, values, id|
-        %tr
-          %td{style: 'width: 35%'}
-            = link_to detail_url.(funding_source: id) do
-              = nam
           %td{style: 'width: 35%'}
             = render 'bars', relative_total: relative_total, values: values
           %td{style: 'width: 15%'}= values.first
