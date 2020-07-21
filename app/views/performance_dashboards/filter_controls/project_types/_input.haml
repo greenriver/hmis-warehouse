@@ -10,7 +10,7 @@
     .map { |s| HUD.project_type_brief(s) }
 
 .form-group.form-group-valid
-  %label= control.label
+  .mb-1.h5-prs1= control.label
   - if @report.multiple_project_types?
     .form-check.mb-2
       %input.j-project-type-choice.form-check-input{type:'radio', value: 'homeless', name: ctl_name, id:'homeless_project_type', checked: homeless}

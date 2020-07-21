@@ -1,5 +1,8 @@
 @import '../helpers';
 
+// overrides and hacks for scenario 1 CA.
+// FIXME - should be made compliant with css org system
+
 .sb-filter-section-prs1 {
   padding-bottom: 1em;
   margin-bottom: 1em;
@@ -45,6 +48,9 @@
   background-color: #fff;
   box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px, rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
   border-top: 1px solid #ddd;
+}
+.form-filters-section-prs1 .c-boolean-button label{
+  padding: 0.2em 1em;
 }
 .nav-drawer.prs1 {
   background: #fff;
@@ -150,4 +156,7 @@
   padding: 0 !important;
   min-height: initial !important;
 }
-
+.h5-prs1 {
+  color: #555;
+  font-weight: 700;
+}
