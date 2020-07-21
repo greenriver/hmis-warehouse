@@ -677,7 +677,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # if any of the destination data has changed
     # or if the enrollment has been connected to a new destination client
     def self.hash_columns(project_type)
-      @hash_columns ||= begin
+      @hash_columns = begin
         columns = enrollment_hash_columns.values.map do |col|
           [e_t[col], '_']
         end
@@ -693,7 +693,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # Only include living situations in SO, to avoid rebuilding everything
         if SO.include?(project_type)
           columns += living_situation_hash_columns.values.map do |col|
-            [c_t[col], '_']
+            [cls_t[col], '_']
           end
         end
         columns.flatten
@@ -701,7 +701,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def self.enrollment_column_order
-      @enrollment_column_order ||= begin
+      enrollment_column_order = begin
         columns = enrollment_hash_columns.values.map do |col|
           Arel.sql(e_t[col].asc.to_sql + ' NULLS FIRST')
         end
@@ -722,20 +722,20 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def self.living_situation_hash_columns
-      @living_situation_hash_columns ||= {
+      {
         information_date: :InformationDate,
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
         updated_at: :DateUpdated,
-      }
+      }.freeze
     end
     def self.client_hash_columns
-       @client_hash_columns ||= {
-          destination_client_id: :id,
-       }
+      {
+        destination_client_id: :id,
+      }.freeze
     end
     def self.enrollment_hash_columns
-      @enrollment_hash_columns ||= {
+      {
         id: :id,
         data_source_id: :data_source_id,
         entry_date: :EntryDate,
@@ -745,26 +745,26 @@ module GrdaWarehouse::Tasks::ServiceHistory
         head_of_household: :RelationshipToHoH,
         move_in_date: :MoveInDate,
         updated_at: :DateUpdated,
-      }
+      }.freeze
     end
 
     def self.exit_hash_columns
-      @exit_hash_columns ||= {
+      {
         exit_date: :ExitDate,
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
         destination: :Destination,
         updated_at: :DateUpdated,
-      }
+      }.freeze
     end
 
     def self.service_hash_columns
-      @service_hash_columns = {
+      {
         date_provided: :DateProvided,
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
         updated_at: :DateUpdated,
-      }
+      }.freeze
     end
 
     # def self.service_history_hash_columns
