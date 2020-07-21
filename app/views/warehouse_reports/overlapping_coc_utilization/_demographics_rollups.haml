@@ -15,6 +15,7 @@
 
 .row
   - counts.each do |key, vv|
+    - next unless vv.any?
     - chart_id = "j-agg-#{key}"
     .col-md-4.col-xl-3
       %h4

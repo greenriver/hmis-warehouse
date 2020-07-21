@@ -60,6 +60,9 @@ class App.Reports.CocOverlap
     if loading
       opacity = .4
       pointerEvents = 'none'
+      $(".coc1-name").html ''
+      $(".coc2-name").html ''
+
     containers = ['results']
     loaderClass = 'j-loading-indicator'
     containers.forEach (container) =>
