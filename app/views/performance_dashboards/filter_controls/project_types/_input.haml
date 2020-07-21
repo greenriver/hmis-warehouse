@@ -16,6 +16,7 @@
       %input.j-project-type-choice.form-check-input{type:'radio', value: 'homeless', name: ctl_name, id:'homeless_project_type', checked: homeless}
       %label.form-check-label(for='homeless_project_type')
         Only Homeless (#{homeless_types.join(', ')})
+        = render 'performance_dashboards/filter_controls/project_types/homeless_tooltip'
     .form-check
       %input.j-project-type-choice.form-check-input{type:'radio', value:'custom', name: ctl_name, id:'custom_project_type', checked: !homeless}
       %label.form-check-label(for='custom_project_type') Custom
