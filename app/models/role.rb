@@ -83,6 +83,13 @@ class Role < ApplicationRecord
           'Data Sources & Inventory',
         ],
       },
+      can_decrypt_pii: {
+      description: 'If PII is encrypted separately, this permission allows a user to decrypt that on the fly.',
+        administrative: true,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_clients: {
         description: 'Allows access to the non-window view of clients. This should only be given to administrator level users.',
         administrative: true,

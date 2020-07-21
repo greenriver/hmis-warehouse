@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_16_133200) do
+ActiveRecord::Schema.define(version: 2020_07_21_151558) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -28,6 +28,21 @@ ActiveRecord::Schema.define(version: 2020_07_16_133200) do
     t.integer "user_id"
     t.string "coc_codes", default: [], array: true
     t.datetime "deleted_at"
+  end
+
+  create_table "account_requests", force: :cascade do |t|
+    t.string "email", null: false
+    t.string "status", null: false
+    t.text "details"
+    t.datetime "accepted_at"
+    t.integer "accepted_by"
+    t.string "rejection_reason"
+    t.datetime "rejected_at"
+    t.integer "rejected_by"
+    t.bigint "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_account_requests_on_user_id"
   end
 
   create_table "activity_logs", id: :serial, force: :cascade do |t|
@@ -419,6 +434,8 @@ ActiveRecord::Schema.define(version: 2020_07_16_133200) do
     t.boolean "can_download_cohorts", default: false
     t.boolean "can_use_service_register", default: false
     t.boolean "can_manage_auto_client_de_duplication", default: false
+    t.boolean "can_view_all_window_notes", default: false
+    t.boolean "can_decrypt_pii", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
