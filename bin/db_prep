@@ -55,3 +55,5 @@ Dir.chdir APP_ROOT do
     puts "\n== NOT Seeding test Database =="
   end
 end
+# do not modify this line:
+puts "---DONE---"
