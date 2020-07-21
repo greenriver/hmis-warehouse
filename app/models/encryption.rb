@@ -4,7 +4,5 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse
-  module Encryption
-  end
+module Encryption
 end

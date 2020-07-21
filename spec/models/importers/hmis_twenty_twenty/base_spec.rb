@@ -251,6 +251,38 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
     end
   end
 
+  describe "encrypted PII behaviors" do
+    before(:all) do
+      raise "turn pii on"
+      GrdaWarehouse::Hud::Client.current_pii_key
+
+      GrdaWarehouse::Utility.clear!
+      @delete_later = []
+      @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
+      file_path = 'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_files'
+      import(file_path, @data_source)
+    end
+    after(:all) do
+      # Because we are only running the import once, we have to do our own DB and file cleanup
+      GrdaWarehouse::Utility.clear!
+      cleanup_files
+    end
+
+    it 'the database will have three source clients' do
+      # spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_files/source/Client.csv
+      raise "add middle"
+      raise "add ssn"
+      raise "add suffix"
+      raise "test them"
+      #expect(GrdaWarehouse::Hud::Client.source.where(PersonalID: 2f4b...).first.LastName ).to eq('One')
+      #expect(GrdaWarehouse::Hud::Client.source.where(PersonalID: 2f4b...).first.read_attribute(:LastName) ).to_not eq('One')
+    end
+  end
+
+  describe "unencrypted PII behaviors" do
+      raise "flipside of above"
+  end
+
   def import(file_path, data_source)
     source_file_path = File.join(file_path, 'source')
     import_path = File.join(file_path, data_source.id.to_s)

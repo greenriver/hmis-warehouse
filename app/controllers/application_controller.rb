@@ -41,7 +41,6 @@ class ApplicationController < ActionController::Base
   def set_up_pii_access
     if current_user.blank?
       GrdaWarehouse::Hud::Client.deny_pii!
-    # TDB: FIXME: Wire in to proper permission checking.
     elsif current_user.can_decrypt_pii?
       GrdaWarehouse::Hud::Client.allow_pii!
     else

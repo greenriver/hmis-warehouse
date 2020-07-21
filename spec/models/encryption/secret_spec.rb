@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe GrdaWarehouse::Encryption::Secret, type: :model do
+RSpec.describe Encryption::Secret, type: :model do
   before(:all) do
     GrdaWarehouseBase.connection.execute(<<~SQL)
       CREATE TEMPORARY TABLE client_for_testing (
@@ -18,11 +18,11 @@ RSpec.describe GrdaWarehouse::Encryption::Secret, type: :model do
     SQL
   end
 
-  before(:all) { GrdaWarehouse::Encryption::Util.new.init! }
+  before(:all) { Encryption::Util.new.init! }
 
   before(:each) { client_class.allow_pii! }
 
-  let(:subject) { GrdaWarehouse::Encryption::Secret }
+  let(:subject) { Encryption::Secret }
 
   let(:client_class) do
     Class.new(GrdaWarehouseBase) do |k|
@@ -43,9 +43,9 @@ RSpec.describe GrdaWarehouse::Encryption::Secret, type: :model do
 
     @original_encrypted_FirstName = client.encrypted_FirstName
     @original_encrypted_FirstName_iv = client.encrypted_FirstName_iv
-    @original_encryption_key = GrdaWarehouse::Encryption::Secret.current.plaintext_key
+    @original_encryption_key = Encryption::Secret.current.plaintext_key
 
-    GrdaWarehouse::Encryption::Secret.current.rotate! do |old_secret, new_secret|
+    Encryption::Secret.current.rotate! do |old_secret, new_secret|
       old_key = old_secret.plaintext_key
       new_key = new_secret.plaintext_key
 
@@ -63,7 +63,7 @@ RSpec.describe GrdaWarehouse::Encryption::Secret, type: :model do
     end
 
     it 'should change key' do
-      expect(GrdaWarehouse::Encryption::Secret.current.plaintext_key).to_not eq(@original_encryption_key)
+      expect(Encryption::Secret.current.plaintext_key).to_not eq(@original_encryption_key)
     end
 
     it 'should change database values' do

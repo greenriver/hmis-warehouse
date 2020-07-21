@@ -2,7 +2,7 @@ namespace :secrets do
   desc "Rotate out the first placeholder secret for a real one"
   task :init, [] => [:environment] do |t, args|
     # Rotate out the first placeholder secret for a real one
-    GrdaWarehouse::Encryption::Util.new.init!
+    Encryption::Util.new.init!
   end
 
   desc "copy over cleartext"
@@ -58,7 +58,7 @@ namespace :secrets do
 
   desc "Rotate secrets. This doesn't update any data"
   task :rotate, [] => [:environment] do |t, args|
-    GrdaWarehouse::Encryption::Secret.current.rotate! do |old_secret, new_secret|
+    Encryption::Secret.current.rotate! do |old_secret, new_secret|
       Rails.logger.info "Rotating data now"
 
       old_key = old_secret.plaintext_key
@@ -73,6 +73,6 @@ namespace :secrets do
 
   desc "Show secret versions"
   task :show_versions, [] => [:environment] do |t, args|
-    ap GrdaWarehouse::Encryption::Util.new.history
+    ap Encryption::Util.new.history
   end
 end
