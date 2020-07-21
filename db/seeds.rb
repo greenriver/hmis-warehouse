@@ -513,7 +513,7 @@ def report_list
       },
       {
         url: 'performance_dashboards/project_type',
-        name: 'Project Type Breakdowns',
+        name: 'Project Type Performance',
         description: 'Performance by project type.',
         limitable: true,
       },
