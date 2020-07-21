@@ -16,6 +16,8 @@ class App.Reports.CocOverlap
     @props.dateInputs.forEach (input, i) =>
       $(input).on 'change', @report.bind(@)
 
+    @report()
+
 
   handleSelectionChange: (event, value) =>
     { selections } = @state
@@ -59,22 +61,13 @@ class App.Reports.CocOverlap
       opacity = .4
       pointerEvents = 'none'
     containers = ['results', 'map']
-    loaderClass = 'j-loading-indecator'
+    loaderClass = 'j-loading-indicator'
     containers.forEach (container) =>
       $container = $("##{@elementId}-#{container}").css({opacity, pointerEvents})
       if loading
         $container.prepend(
           """
-            <div class='#{loaderClass}'>
-              <div class="c-loading c-loading--lg c-loading--dark c-loading--center">
-                <div class="c-loading__dot"></div>
-                <div class="c-loading__dot"></div>
-                <div class="c-loading__dot"></div>
-                <div class="c-loading__dot"></div>
-                <div class="c-loading__dot"></div>
-                <div class="c-loading__dot"></div>
-              </div>
-            <div>
+            <div class="#{loaderClass} c-spinner c-spinner--lg c-spinner--center"></div>
           """
         )
       else
