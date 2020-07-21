@@ -6,10 +6,35 @@
 
 class Users::AccountRequestsController < ApplicationController
   skip_before_action :authenticate_user!
+  before_action :require_account_requests_enabled?
 
   def new
+    @account_request = account_request_source.new
   end
 
   def create
+    @account_request = account_request_source.create(account_request_params.merge(status: :requested))
+
+    respond_with(@account_request, location: root_path)
+  end
+
+  def account_request_params
+    params.require(:account_request).permit(
+      :email,
+      :first_name,
+      :last_name,
+      :phone,
+      :details,
+    )
+  end
+
+  def account_request_source
+    AccountRequest
+  end
+
+  private def require_account_requests_enabled?
+    return true if GrdaWarehouse::Config.get(:request_account_available)
+
+    not_authorized!
   end
 end

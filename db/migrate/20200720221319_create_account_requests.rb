@@ -2,6 +2,9 @@ class CreateAccountRequests < ActiveRecord::Migration[5.2]
   def change
     create_table :account_requests do |t|
       t.string :email, null: false
+      t.string :first_name
+      t.string :last_name
+      t.string :phone
       t.string :status, null: false
       t.text :details
       t.datetime :accepted_at
