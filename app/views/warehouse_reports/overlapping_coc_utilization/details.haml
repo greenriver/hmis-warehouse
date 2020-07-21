@@ -6,8 +6,7 @@
   - if @report.project_type
     %h3 Only considering clients with #{::HUD.project_type(@report.project_type)} enrollments in both projects
 
-%div(style='margin-bottom: 2em')
+.mb-4
   = render 'demographics_rollups'
-
 - @details[:clients].each.with_index do |data, idx|
   = render 'client_card', data: data, id: idx

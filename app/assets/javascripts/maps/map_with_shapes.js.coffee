@@ -43,11 +43,14 @@ class App.Maps.MapWithShapes
     @info = L.control()
 
     @info.update = (props) =>
-      console.log(props)
       if props?
         @_div.innerHTML = '<h4>'+props.name+'</h4>'
         if props.metric?
           @_div.innerHTML = @_div.innerHTML+'<p>Shared clients: <strong>'+props.metric+'</p>'
+        @_div.hidden = false
+      else
+        @_div.hidden = true
+
 
     @info.onAdd = (map) =>
       @_div = L.DomUtil.create('div', 'l-info')

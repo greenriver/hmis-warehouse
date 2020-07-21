@@ -56,7 +56,7 @@ module WarehouseReports
     def index
       @end_date = (Date.current - 1.years).end_of_year
       @start_date = @end_date.beginning_of_year
-      @cocs = coc_shapes_with_data
+      @cocs = state_coc_shapes
       @shapes = map_shapes
     end
 
@@ -90,17 +90,33 @@ module WarehouseReports
     helper_method :report_params
 
     def overlap
+      coc1 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc1))
+      coc2 = if (coc2_id = report_params.dig(:coc2)).present?
+        GrdaWarehouse::Shape::CoC.find(coc2_id)
+      end
+
       report_args = {
-        coc_code_1: GrdaWarehouse::Shape::CoC.find(report_params.require(:coc1)).cocnum,
-        coc_code_2: GrdaWarehouse::Shape::CoC.find(report_params.require(:coc2)).cocnum,
+        coc_code_1: coc1.cocnum,
+        coc_code_2: coc2&.cocnum,
         start_date: Date.parse(report_params.require(:start_date)),
         end_date: Date.parse(report_params.require(:end_date)),
       }
+      report_html = if coc2
+        begin
+          report = WarehouseReport::OverlappingCocByProjectType.new(**report_args)
+          render_to_string(partial: 'overlap', locals: { report: report })
+        rescue WarehouseReport::OverlappingCocByProjectType::Error => e
+          e.message
+        end
+      end
 
-      report = WarehouseReport::OverlappingCocByProjectType.new(**report_args)
-      render json: { map: map_data, html: render_to_string(partial: 'overlap', locals: { report: report }) }
-    rescue WarehouseReport::OverlappingCocByProjectType::Error => e
-      render json: { map: map_data, html: e.message }
+      render json: {
+        coc1: coc1.number_and_name,
+        coc2: coc2&.number_and_name,
+        map_title: "#{coc1.number_and_name} shared clients with the following CoCs",
+        map: map_data,
+        html: report_html,
+      }
     end
   end
 end

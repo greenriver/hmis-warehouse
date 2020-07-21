@@ -1,12 +1,8 @@
 :scss
-  .c-input-group {
-    margin-bottom: 50px;
-  }
-  .c-input-group__description {
+  .form-group label {
     font-size: 16px;
     font-weight: 600;
   }
-
 - title = "Overlapping CoC Utilization"
 - content_for :title, title
 = render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
@@ -25,34 +21,18 @@
   = simple_form_for :compare, url: url_for, method: :get do |f|
     .row
       .col-md-3
-        .c-input-group
-          %p.c-input-group__description Service Date Range
-          .d-flex
-            = f.input :start_date, as: :date_picker, label: false, input_html: {value: @start_date}, hint: 'Select clients who received service in the during the time-frame.'
+        = f.input :coc1, collection: @cocs, value_method: :id, label_method: :number_and_name, required: false, label: 'Primary CoC', input_html: { class: [:select2] }, hint: 'Show the number of clients you have shared with each other CoCs'
       .col-md-3
-        .c-input-group
-          %p.c-input-group__description.d-none.d-sm-block &nbsp;
-          = f.input :end_date, as: :date_picker, label: false, input_html: {value: @end_date}
+        = f.input :coc2, collection: @cocs, value_method: :id, label_method: :number_and_name, required: false, label: 'Secondary CoC', input_html: { class: [:select2] }, hint: 'Select a second CoC to show you a break-down of the clients shared between the to CoCs'
       .col-md-3
-        .c-input-group
-          %p.c-input-group__description.text-nowrap.text-truncate
-            %span.mr-2 Primary CoC
-            %span.c-swatch.d-inline
-              %span.c-swatch__display.c-swatch__display--map-0
-          = f.input :coc1, collection: @cocs, value_method: :id, label_method: :number_and_name, required: true, label: false, input_html: { class: [:select2] }, hint: 'Show the number of clients you have shared with each other CoCs'
+        = f.input :start_date, as: :date_picker, label: 'Service Date Range', input_html: {value: @start_date}, hint: 'Select clients who received service in the during the time-frame.', required: false
       .col-md-3
-        .c-input-group
-          %p.c-input-group__description.text-nowrap.text-truncate
-            %span.mr-2 Secondary CoC
-            %span.c-swatch.d-inline
-              %span.c-swatch__display.c-swatch__display--map-1
-          = f.input :coc2, collection: @cocs, value_method: :id, label_method: :number_and_name, required: false, label: false, input_html: { class: [:select2] }, hint: 'Select a second CoC to show you a break-down of the clients shared between the to CoCs'
+        = f.input :end_date, as: :date_picker, label: '&nbsp;'.html_safe, input_html: {value: @end_date}, required: false
   .row
     .col-md-6
       %h2.mb-8 Primary CoC shares clients with the these other CoCs in the region
+      .coc-util-overlap.o-container--with-loader{id: map_id, style: 'min-height: 600px; borer: 1px solid silver; background: lightblue;'}
       .mb-1= render 'common/gradient_legend', labels: ['No shared clients','200+ shared clients'], colors: ['#FFFFFF', '#0154A6']
-      .coc-util-overlap.mb-6.o-container--with-loader{id: map_id, style: 'min-height: 600px; borer: 1px solid silver; background: lightblue;'}
-
     .col-md-6
       %div.o-container--with-loader{id: results_id, style: 'min-height: 600px;'}
         %h2.mb-8 Breakdown of services provided to shared clients of Primary CoC and Secondary CoC.

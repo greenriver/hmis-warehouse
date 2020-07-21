@@ -44,6 +44,7 @@ App.WarehouseReports.clientDemographicsRollupChart = (options) => {
     .attr('height', plotHeight)
     .style('fill', (_, i) => z(i));
 
+  /*
   svg
     .append('g')
     .attr('class', 'axis')
@@ -56,7 +57,7 @@ App.WarehouseReports.clientDemographicsRollupChart = (options) => {
         d3.select(this).attr('dx', '0.25em');
       }
     });
-
+  */
   const legendBox = svg
     .append('g')
     .attr('class', 'legend')

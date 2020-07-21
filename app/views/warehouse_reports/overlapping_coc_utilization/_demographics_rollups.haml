@@ -37,10 +37,9 @@
           end
         end
         if multi > 0
-          vv['More Than One Race'] = multi
+          vv['Two or more Races'] = multi
         end
       end
-
       keys = vv.keys.sort_by {|k| [vv[k].to_i, key] }.reverse
     - content_for :page_js do
       :javascript

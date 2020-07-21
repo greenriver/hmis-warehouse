@@ -81,13 +81,17 @@ class App.Reports.CocOverlap
         $container.find(".#{loaderClass}").remove()
 
   report: =>
-    if @state.selections.length == @MAX_SELECTIONS
+    if @state.selections.length > 0
       @loading(true)
       $.ajax(
         type: 'GET'
         url: '/warehouse_reports/overlapping_coc_utilization/overlap'
         data: $("##{@elementId} form").serialize()
-      ).done  @updateResults.bind(@)
+      ).done(
+        @updateResults.bind(@)
+      ).fail (xhr) =>
+        @loading(false)
+        alert(xhr.responseText)
 
   updateResults: (data) =>
     $("##{@elementId}-results").html data.html
