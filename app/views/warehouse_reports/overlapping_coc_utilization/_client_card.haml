@@ -1,8 +1,8 @@
 - chart_id = "j-client-#{id}"
 %section.mb-6
-  %h3
-    = "#{data[:label]}: "
-    %small= data.values_at(*%i/ethnicity race gender age_group/).select(&:present?).join('; ')
+  %h3.d-flex.align-items-baseline
+    .mr-auto= data.values_at(*%i/ethnicity race gender age_group/).select(&:present?).join('; ')
+    = link_to "View client", client_path(data[:client_id])
   .j-chart(id=chart_id)
 - content_for :page_js do
   :javascript

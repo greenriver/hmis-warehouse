@@ -1,18 +1,19 @@
-%table.table.table-striped{style: 'border: 1px solid #e1e7ee;'}
-  %thead
-    %tr{style: 'background: #e1e7ee'}
-      %th{style: 'width: 35%'}= scope.titleize
-      %th{style: 'width: 35%'} Shared Clients
-      %th{style: 'width: 15%'}
-        .c-swatch
-          %span.c-swatch__display.c-swatch__display--bar-0
-          %span Asynchronous
-      %th{style: 'width: 15%'}
-        .c-swatch
-          %span.c-swatch__display.c-swatch__display--bar-1
-          %span Concurrent
-  %tbody
-    = yield
+.c-card.c-card--flush.c-card--block.mb-4
+  %table.table
+    %thead
+      %tr{style: 'background: #e1e7ee'}
+        %th{style: 'width: 35%'}= scope.titleize
+        %th{style: 'width: 35%'} Shared Clients
+        %th{style: 'width: 15%'}
+          .c-swatch
+            %span.c-swatch__display.c-swatch__display--bar-0
+            %span Asynchronous
+        %th{style: 'width: 15%'}
+          .c-swatch
+            %span.c-swatch__display.c-swatch__display--bar-1
+            %span Concurrent
+    %tbody
+      = yield
 .text-muted
   %strong= 'Note: '
   = '"Asynchronous" means that the client was enrolled in the project type in both CoCs but never on the same day. "Concurrent" means that they were enrolled on the same day.'

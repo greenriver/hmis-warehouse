@@ -6,7 +6,7 @@
 require 'memoist'
 
 class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
-  VERSION = 2
+  VERSION = 3
   class Error < ::StandardError; end
 
   attr_reader :start_date, :end_date, :project_type
@@ -171,6 +171,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
         race: client.race_description,
         ethnicity: ::HUD.ethnicity(client.Ethnicity),
         enrollments: enrollment_details(services),
+        client_id: client.to_param
       }
     end
   end
