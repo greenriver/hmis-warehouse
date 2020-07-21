@@ -65,15 +65,21 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   def shared_clients
     GrdaWarehouse::Hud::Client.where(
       id: overlapping_client_ids.map(&:to_i),
-    )
+    ).select(*%w/id DOB Gender Ethnicity/+GrdaWarehouse::Hud::Client.race_fields)
   end
   memoize :shared_clients
 
   def coc_client_ids(coc_code)
-    GrdaWarehouse::ServiceHistoryEnrollment.entry.
+    scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
       open_between(start_date: @start_date, end_date: @end_date).
       service_within_date_range(start_date: @start_date, end_date: @end_date).
-      in_coc(coc_code: coc_code).distinct.pluck(:client_id, :computed_project_type)
+      in_coc(coc_code: coc_code)
+
+    scope = scope.merge(
+      GrdaWarehouse::ServiceHistoryEnrollment.where(computed_project_type: @project_type),
+    ) if @project_type
+
+    scope.distinct.pluck(:client_id, :computed_project_type)
   end
   memoize :coc_client_ids
 
@@ -92,29 +98,21 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   end
   memoize :overlap_by_project_type
 
-
-  def enrollments
-    scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-      open_between(start_date: @start_date, end_date: @end_date).
-      service_within_date_range(start_date: @start_date, end_date: @end_date).
-      in_coc(coc_code: coc_codes)
+  def service_histories
+    scope = GrdaWarehouse::ServiceHistoryService.joins(
+      service_history_enrollment: {
+        project: :project_cocs
+      }
+    ).service_between(
+      start_date: @start_date,
+      end_date: @end_date,
+    )
 
     scope = scope.merge(
       GrdaWarehouse::ServiceHistoryEnrollment.where(computed_project_type: @project_type),
     ) if @project_type
-
     scope
   end
-  memoize :enrollments
-
-  def service_histories
-    GrdaWarehouse::ServiceHistoryService.joins(
-      service_history_enrollment: {
-        project: :project_cocs
-      }
-    ).merge(enrollments)
-  end
-
 
   def dates_by_p_type
     {}.tap do |dates|
@@ -198,11 +196,11 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       {
         coc: project.project_cocs.first.CoCCode,
         project_name: project.name,
-        project_type: ::HUD.project_type_brief(project_type),
+        project_type: ::HUD.project_type_brief(project.ProjectType),
         history: history_details(project_services)
       }
     end.sort_by do |service|
-      service[:history][0][:from]# rescue Date.new(0,0,0)
+      service[:history][0][:from] rescue Date.new(1,1,0)
     end.reverse
   end
 

@@ -5,6 +5,7 @@
     = "between #{@report.start_date} - #{@report.end_date}"
   - if @report.project_type
     %h3 Only considering clients with #{::HUD.project_type(@report.project_type)} enrollments in both projects
+
 - @details[:clients].each.with_index do |data, idx|
   - chart_id = "j-client-#{idx}"
   %section.mb-6
