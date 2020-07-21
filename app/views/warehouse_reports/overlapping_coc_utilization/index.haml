@@ -5,7 +5,7 @@
   }
 - title = "Overlapping CoC Utilization"
 - content_for :title, title
-= render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
 
 .l-page-heading.mb-4
   %h1= title
@@ -17,15 +17,15 @@
 .warehouse-reports__ad_hoc-export.c-report{id: report_id}
   .row
     .col-md-12
-      %p.mb-6 This report summarizes the overlaps in clients and services between CoCs.
+      %p.mb-6 Choose two CoCs and a date range to explore overlapping services provided to clients across chosen CoCs.
   = simple_form_for :compare, url: url_for, method: :get do |f|
     .row
       .col-md-3
-        = f.input :coc1, collection: @cocs, value_method: :id, label_method: :number_and_name, required: false, label: 'Primary CoC', input_html: { class: [:select2] }, hint: 'Show the number of clients you have shared with each other CoCs'
+        = f.input :coc1, collection: @cocs, value_method: :id, label_method: :number_and_name, required: false, label: 'Primary CoC', input_html: { class: [:select2] }, hint: 'The map will highlight shared clients between this CoC and others'
       .col-md-3
-        = f.input :coc2, collection: @cocs, value_method: :id, label_method: :number_and_name, required: false, label: 'Secondary CoC', input_html: { class: [:select2] }, hint: 'Select a second CoC to show you a break-down of the clients shared between the to CoCs'
+        = f.input :coc2, collection: @cocs, value_method: :id, label_method: :number_and_name, required: false, label: 'Secondary CoC', input_html: { class: [:select2] }, hint: 'Client shared between the primary and secondary CoCs will be broken down further'
       .col-md-3
-        = f.input :start_date, as: :date_picker, label: 'Service Date Range', input_html: {value: @start_date}, hint: 'Select clients who received service in the during the time-frame.', required: false
+        = f.input :start_date, as: :date_picker, label: 'Service Date Range', input_html: {value: @start_date}, hint: 'Comparisons will be shown for the selected time-frame.', required: false
       .col-md-3
         = f.input :end_date, as: :date_picker, label: '&nbsp;'.html_safe, input_html: {value: @end_date}, required: false
   .row

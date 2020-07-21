@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_06_193249) do
+ActiveRecord::Schema.define(version: 2020_07_19_235413) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1648,6 +1648,10 @@ ActiveRecord::Schema.define(version: 2020_07_06_193249) do
     t.string "health_emergency_tracing"
     t.integer "health_priority_age"
     t.boolean "multi_coc_installation", default: false, null: false
+    t.float "auto_de_duplication_accept_threshold"
+    t.float "auto_de_duplication_reject_threshold"
+    t.string "pii_encryption_type", default: "none"
+    t.boolean "auto_de_duplication_enabled", default: false, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1707,6 +1711,7 @@ ActiveRecord::Schema.define(version: 2020_07_06_193249) do
     t.string "authoritative_type"
     t.string "source_id"
     t.datetime "deleted_at"
+    t.boolean "service_scannable", default: false, null: false
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|

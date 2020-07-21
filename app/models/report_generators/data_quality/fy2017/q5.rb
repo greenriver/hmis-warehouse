@@ -47,6 +47,7 @@ module ReportGenerators::DataQuality::Fy2017
       project_types = ES + SH + SO
       @es_sh_so_client_ids = client_ids_for_project_types(project_types)
       return unless @es_sh_so_client_ids.any?
+      client_personal_ids = personal_ids(@es_sh_so_client_ids)
 
       @es_sh_so_client_ids.each_slice(250) do |client_ids|
         fetch_clients(project_types, client_ids).each do |client_id, enrollments|
@@ -54,25 +55,25 @@ module ReportGenerators::DataQuality::Fy2017
           adult_or_hoh_clients[client_id] = enrollment if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
         end
       end
-      add_issues(field: :q5_b2, clients: adult_or_hoh_clients)
+      add_issues(field: :q5_b2, clients: adult_or_hoh_clients, personal_ids: client_personal_ids)
 
       approximate_start_date_issues = date_missing(
         item: :DateToStreetESSH,
         clients: adult_or_hoh_clients
       )
-      add_issues(field: :q5_e2, clients: approximate_start_date_issues)
+      add_issues(field: :q5_e2, clients: approximate_start_date_issues, personal_ids: client_personal_ids)
 
       times_homeless_missing_issues = item_missing(
         item: :TimesHomelessPastThreeYears,
         clients: adult_or_hoh_clients
       )
-      add_issues_with_times_homeless(field: :q5_f2, clients: times_homeless_missing_issues)
+      add_issues_with_times_homeless(field: :q5_f2, clients: times_homeless_missing_issues, personal_ids: client_personal_ids)
 
       months_homeless_missing_issues = item_missing(
         item: :MonthsHomelessPastThreeYears,
         clients: adult_or_hoh_clients
       )
-      add_issues_with_months_homeless(field: :q5_g2, clients: months_homeless_missing_issues)
+      add_issues_with_months_homeless(field: :q5_g2, clients: months_homeless_missing_issues, personal_ids: client_personal_ids)
 
       poor_quality = Set.new
       poor_quality += approximate_start_date_issues.keys
@@ -89,6 +90,7 @@ module ReportGenerators::DataQuality::Fy2017
       project_types = TH
       @th_client_ids = client_ids_for_project_types(project_types)
       return unless @th_client_ids.any?
+      client_personal_ids = personal_ids(@th_client_ids)
 
       @th_client_ids.each_slice(250) do |client_ids|
         fetch_clients(project_types, client_ids).each do |client_id, enrollments|
@@ -96,33 +98,33 @@ module ReportGenerators::DataQuality::Fy2017
           adult_or_hoh_clients[client_id] = enrollment if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
         end
       end
-      add_issues(field: :q5_b3, clients: adult_or_hoh_clients)
+      add_issues(field: :q5_b3, clients: adult_or_hoh_clients, personal_ids: client_personal_ids)
 
       institution_time_issues = issues_with_institution_time(clients: adult_or_hoh_clients)
-      add_issues(field: :q5_c3, clients: institution_time_issues)
+      add_issues(field: :q5_c3, clients: institution_time_issues, personal_ids: client_personal_ids)
 
       housing_time_issues = issues_with_housing_time(clients: adult_or_hoh_clients)
-      add_issues(field: :q5_d3, clients: housing_time_issues)
+      add_issues(field: :q5_d3, clients: housing_time_issues, personal_ids: client_personal_ids)
 
       approximate_start_date_issues = date_missing(
         item: :DateToStreetESSH,
         clients: adult_or_hoh_clients
       )
-      add_issues(field: :q5_e3, clients: approximate_start_date_issues)
+      add_issues(field: :q5_e3, clients: approximate_start_date_issues, personal_ids: client_personal_ids)
 
       times_homeless_missing_issues = item_missing(
         item: :TimesHomelessPastThreeYears,
         clients: adult_or_hoh_clients,
         extra_restrictions: true
       )
-      add_issues_with_times_homeless(field: :q5_f3, clients: times_homeless_missing_issues)
+      add_issues_with_times_homeless(field: :q5_f3, clients: times_homeless_missing_issues, personal_ids: client_personal_ids)
 
       months_homeless_missing_issues = item_missing(
         item: :MonthsHomelessPastThreeYears,
         clients: adult_or_hoh_clients,
         extra_restrictions: true
       )
-      add_issues_with_months_homeless(field: :q5_g3, clients: months_homeless_missing_issues)
+      add_issues_with_months_homeless(field: :q5_g3, clients: months_homeless_missing_issues, personal_ids: client_personal_ids)
 
       poor_quality = Set.new
       poor_quality += institution_time_issues.keys
@@ -140,6 +142,7 @@ module ReportGenerators::DataQuality::Fy2017
       project_types = PH
       @ph_client_ids = client_ids_for_project_types(project_types)
       return unless @ph_client_ids.any?
+      client_personal_ids = personal_ids(@ph_client_ids)
 
       @ph_client_ids.each_slice(250) do |client_ids|
         fetch_clients(project_types, client_ids).each do |client_id, enrollments|
@@ -147,33 +150,33 @@ module ReportGenerators::DataQuality::Fy2017
           adult_or_hoh_clients[client_id] = enrollment if adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
         end
       end
-      add_issues(field: :q5_b4, clients: adult_or_hoh_clients)
+      add_issues(field: :q5_b4, clients: adult_or_hoh_clients, personal_ids: client_personal_ids)
 
       institution_time_issues = issues_with_institution_time(clients: adult_or_hoh_clients)
-      add_issues(field: :q5_c4, clients: institution_time_issues)
+      add_issues(field: :q5_c4, clients: institution_time_issues, personal_ids: client_personal_ids)
 
       housing_time_issues = issues_with_housing_time(clients: adult_or_hoh_clients)
-      add_issues(field: :q5_d4, clients: housing_time_issues)
+      add_issues(field: :q5_d4, clients: housing_time_issues, personal_ids: client_personal_ids)
 
       approximate_start_date_issues = date_missing(
         item: :DateToStreetESSH,
         clients: adult_or_hoh_clients
       )
-      add_issues(field: :q5_e4, clients: approximate_start_date_issues)
+      add_issues(field: :q5_e4, clients: approximate_start_date_issues, personal_ids: client_personal_ids)
 
       times_homeless_missing_issues = item_missing(
         item: :TimesHomelessPastThreeYears,
         clients: adult_or_hoh_clients,
         extra_restrictions: true
       )
-      add_issues_with_times_homeless(field: :q5_f4, clients: times_homeless_missing_issues)
+      add_issues_with_times_homeless(field: :q5_f4, clients: times_homeless_missing_issues, personal_ids: client_personal_ids)
 
       months_homeless_missing_issues = item_missing(
         item: :MonthsHomelessPastThreeYears,
         clients: adult_or_hoh_clients,
         extra_restrictions: true
       )
-      add_issues_with_months_homeless(field: :q5_g4, clients: months_homeless_missing_issues)
+      add_issues_with_months_homeless(field: :q5_g4, clients: months_homeless_missing_issues, personal_ids: client_personal_ids)
 
       poor_quality = Set.new
       poor_quality += institution_time_issues.keys
@@ -192,13 +195,14 @@ module ReportGenerators::DataQuality::Fy2017
       @answers[:q5_h5][:value] = ((@clients_with_issues.size.to_f / all_client_count) * 100).round(2)
     end
 
-    def add_issues field:, clients:
+    def add_issues(field:, clients:, personal_ids:)
       @answers[field][:value] = clients.size
       @support[field][:support] = add_support(
-        headers: ['Client ID', 'Project', 'Entry', 'Exit'],
+        headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit'],
         data: clients.map do |id, enrollment|
           [
             id,
+            personal_ids[id].join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -207,13 +211,14 @@ module ReportGenerators::DataQuality::Fy2017
       )
     end
 
-    def add_issues_with_times_homeless field:, clients:
+    def add_issues_with_times_homeless(field:, clients:, personal_ids:)
       @answers[field][:value] = clients.size
       @support[field][:support] = add_support(
-        headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Times Homeless Past Three Years'],
+        headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit', 'Times Homeless Past Three Years'],
         data: clients.map do |id, enrollment|
           [
             id,
+            personal_ids[id].join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -223,13 +228,14 @@ module ReportGenerators::DataQuality::Fy2017
       )
     end
 
-    def add_issues_with_months_homeless field:, clients:
+    def add_issues_with_months_homeless(field:, clients:, personal_ids:)
       @answers[field][:value] = clients.size
       @support[field][:support] = add_support(
-        headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Months Homeless Past Three Years'],
+        headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit', 'Months Homeless Past Three Years'],
         data: clients.map do |id, enrollment|
           [
             id,
+            personal_ids[id].join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],

@@ -26,7 +26,7 @@ end
 # Reports
 def report_list
   {
-    'Operational Reports' => [
+    'Operational' => [
       {
         url: 'warehouse_reports/chronic',
         name: 'Potentially Chronic Clients',

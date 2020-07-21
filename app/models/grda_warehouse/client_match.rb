@@ -33,6 +33,48 @@ module GrdaWarehouse
       where(status: ['processed_sources', 'candidate'])
     end
 
+    scope :within_auto_accept_threshold, -> do
+      threshold = auto_accept_threshold
+      return none unless auto_matching_enabled? && threshold.present?
+
+      # Scores are negative, thresholds positive
+      # Scores range down into the -3s so -10 should be safe
+      candidate.where(score: [-10..-threshold])
+    end
+
+    scope :within_auto_reject_threshold, -> do
+      threshold = auto_reject_threshold
+      return none unless auto_matching_enabled? && threshold.present?
+
+      # Scores are negative, thresholds positive
+      candidate.where(score: [-threshold..0])
+    end
+
+    def self.auto_process!
+      within_auto_accept_threshold.joins(:source_client, :destination_client).
+        find_each(&:accept!)
+      within_auto_reject_threshold.joins(:source_client, :destination_client).
+        find_each(&:reject!)
+    end
+
+    def self.auto_matching_enabled?
+      GrdaWarehouse::Config.get(:auto_de_duplication_enabled) == true
+    end
+
+    def self.auto_accept_threshold
+      threshold = GrdaWarehouse::Config.get(:auto_de_duplication_accept_threshold)
+      return nil if threshold.blank? || threshold.zero?
+
+      threshold
+    end
+
+    def self.auto_reject_threshold
+      threshold = GrdaWarehouse::Config.get(:auto_de_duplication_reject_threshold)
+      return nil if threshold.blank? || threshold.zero?
+
+      threshold
+    end
+
     def self.create_candidates!(client, threshold:, metrics:)
       relavent_fields = ([:id, :DateUpdated]+metrics.map(&:field)).uniq.map(&:to_s)
       data = SimilarityMetric.pairwise_candidates(client, threshold: threshold, metrics: metrics)
@@ -66,6 +108,37 @@ module GrdaWarehouse
       end
     end
 
+    def self.score_distribution(match_type: :all)
+      scope = case match_type
+      when :all
+        all
+      when :accepted
+        accepted
+      when :rejected
+        rejected
+      when :processed_or_candidate
+        processed_or_candidate
+      end
+
+      scope.
+        where.not(score: nil).
+        group(Arel.sql('ROUND(cast(score as numeric), 1)')).
+        count(1).
+        transform_keys(&:abs)
+    end
+
+    def self.for_chart(match_type: :all)
+      dist = score_distribution(match_type: match_type)
+      x = [:x] + dist.keys
+      y = ['Match Count'] + dist.values
+      {
+        columns: [
+          x,
+          y,
+        ],
+      }
+    end
+
     def accepted?
       self.status == 'accepted'
     end
@@ -77,7 +150,6 @@ module GrdaWarehouse
     def candidate?
       self.status == 'candidate'
     end
-
 
     # return an indication of the field(s) (could be an array)
     # contribution to the overall score
@@ -97,6 +169,29 @@ module GrdaWarehouse
       return nil if weight_sum.zero?
 
       score_sum/weight_sum
+    end
+
+    def accept!(user: nil)
+      user ||= User.setup_system_user
+      update(
+        updated_by_id: user.id,
+        status: 'accepted',
+      )
+      return unless destination_client && source_client
+
+      dst = destination_client.destination_client
+      src = source_client
+      dst.merge_from(src, reviewed_by: user, reviewed_at: Time.current, client_match_id: id)
+      Importing::RunAddServiceHistoryJob.perform_later
+    end
+
+    def reject!(user: nil)
+      user ||= User.setup_system_user
+      update(
+        updated_by_id: user.id,
+        status: 'rejected',
+      )
+      save!
     end
   end
 end

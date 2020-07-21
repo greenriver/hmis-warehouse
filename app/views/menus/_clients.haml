@@ -11,7 +11,7 @@
             = _('My Agency\'s HMIS Clients')
           - else
             = _('My Agency\'s Clients')
-    - if can_access_some_client_search?
+    - if GrdaWarehouse::Config.client_search_available? && can_access_some_client_search?
       - if current_user.user_clients.exists?
         %li.o-menu__item
           = link_to assigned_clients_path, class: 'o-menu__link' do
