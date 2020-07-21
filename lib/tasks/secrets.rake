@@ -69,8 +69,10 @@ namespace :secrets do
         client.rekey!(old_key, new_key)
       end
     end
+  end
 
-    # Rails.logger.info "Showing last three secret versions"
-    # ap GrdaWarehouse::Encryption::Util.new.history.last(3)
+  desc "Show secret versions"
+  task :show_versions, [] => [:environment] do |t, args|
+    ap GrdaWarehouse::Encryption::Util.new.history
   end
 end

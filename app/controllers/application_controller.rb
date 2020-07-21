@@ -41,7 +41,8 @@ class ApplicationController < ActionController::Base
   def set_up_pii_access
     if current_user.blank?
       GrdaWarehouse::Hud::Client.deny_pii!
-    elsif current_user.email == 'tblackman@greenriver.comAAAA'
+    # TDB: FIXME: Wire in to proper permission checking.
+    elsif current_user.email == 'tblackman@greenriver.com'
       GrdaWarehouse::Hud::Client.allow_pii!
     else
       GrdaWarehouse::Hud::Client.deny_pii!
