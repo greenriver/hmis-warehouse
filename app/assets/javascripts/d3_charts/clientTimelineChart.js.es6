@@ -1,6 +1,6 @@
 //= require ./namespace
 
-const truncate = (str, limit) => (str.length > limit ? str.slice(0, 30) + '…' : str);
+const truncate = (str, limit) => (str.length > limit ? str.slice(0, limit) + '…' : str);
 
 function formatCocLabel(text, width, padding) {
   text.each(function () {
@@ -9,6 +9,7 @@ function formatCocLabel(text, width, padding) {
     const text = d3.select(this);
     const [coc, projectName] = text.text().split('|||');
     const y = text.attr('y');
+    const widthChars = 48
     const lineHeight = 1.2; // ems
 
     text.text(null);
@@ -17,16 +18,16 @@ function formatCocLabel(text, width, padding) {
       .append('tspan')
       .attr('x', -paddingV)
       .attr('y', y)
-      .attr('font-weight', 'bold')
-      .attr('fill', '#555')
-      .text(truncate(coc, 30));
+      .attr('fill', '#333')
+      .text(truncate(projectName, widthChars));
     text
       .append('tspan')
       .attr('x', -paddingV)
       .attr('y', y)
       .attr('dy', lineHeight + 'em')
-      .attr('fill', '#333')
-      .text(truncate(projectName, 30));
+      .attr('font-weight', 'bold')
+      .attr('fill', '#555')
+      .text(truncate(coc, widthChars));
 
     return;
   });
@@ -38,7 +39,7 @@ const barPaddingOuter = 0.25;
 App.WarehouseReports.clientTimelineChart = (options) => {
   const wrapper = document.querySelector(options.rootSelector);
   const { width } = wrapper.getBoundingClientRect();
-  const margin = { top: 0, bottom: 20, left: 200, right: 0 };
+  const margin = { top: 0, bottom: 20, left: 300, right: 0 };
   const height = options.enrollments.length * barSize + margin.bottom + margin.top;
   const plotWidth = width - (margin.left + margin.right);
   const plotHeight = height - (margin.top + margin.bottom);

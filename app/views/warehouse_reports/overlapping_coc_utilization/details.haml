@@ -1,6 +1,6 @@
 %div(style='margin-bottom: 4.5em')
   %h2
-    = "#{pluralize @report.total_shared_clients, 'client'} were served in both "
+    = "#{pluralize @details[:clients].size, 'client'} were served in both "
     = "#{@report.coc1.number_and_name} and #{@report.coc2.number_and_name}"
     = "between #{@report.start_date} - #{@report.end_date}"
   - if @report.project_type
