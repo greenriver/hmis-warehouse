@@ -22,9 +22,23 @@
         = key.to_s.humanize.titleize
       .j-chart(id=chart_id)
     :ruby
+      # fix nulls
       nulls = vv.delete('')
       if nulls
         vv['Unknown'] = nulls
+      end
+
+      # get multi race into one bucket
+      if key == :race
+        multi = 0
+        vv.keys.each do |cat|
+          if cat =~ /, /
+            multi += vv.delete(cat)
+          end
+        end
+        if multi > 0
+          vv['More Than One Race'] = multi
+        end
       end
 
       keys = vv.keys.sort_by {|k| [vv[k].to_i, key] }.reverse
