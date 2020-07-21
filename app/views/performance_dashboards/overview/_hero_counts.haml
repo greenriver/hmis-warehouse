@@ -1,0 +1,23 @@
+:ruby
+  items = [
+    {
+      name: 'Enrolled',
+      value: @report.enrolled_total_count,
+    },
+    {
+      name: 'Entering',
+      value: @report.entering_total_count
+    },
+    {
+      name: 'Exiting',
+      value: @report.entering_total_count
+    },
+  ]
+.d-flex.flex-wrap
+  - items.each do |item|
+    .hero-prs1
+      .d-flex.align-items-center
+        .h1.hero-value-prs1.mr-3= number_with_delimiter item[:value]
+        %div
+          .hero-label-prs1.h5-prs1= item[:name]
+          .hero-unit-prs1 Unique #{@report.performance_type.pluralize}
