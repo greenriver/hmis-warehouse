@@ -1,0 +1,10 @@
+- if value.blank?
+  .text-muted All
+- else
+  %div
+    - if value.is_a?(Enumerable)
+      - value.each do |item|
+        %div= item
+    - else
+      = value
+

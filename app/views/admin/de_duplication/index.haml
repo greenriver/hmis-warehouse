@@ -27,10 +27,13 @@
 
 = simple_form_for @config, url: admin_de_duplication_index_path do |f|
   .row
-    .col-sm-4.offset-sm-2
+    .col-sm-4
       = f.input :auto_de_duplication_reject_threshold, label: 'Auto de-duplication rejection threshold', hint: 'Any matches with a score lower than the chosen score will automatically be rejected', input_html: {min: 0, max: 3, step: 0.01, style: 'width: auto;'}
     .col-sm-4
       = f.input :auto_de_duplication_accept_threshold, label: 'Auto de-duplication accept threshold', hint: 'Any matches with a score higher than the chosen score will automatically be accepted', input_html: {min: 0, max: 3, step: 0.01, style: 'width: auto;'}
+    .col-sm-4
+      .mt-no-label
+        = f.input :auto_de_duplication_enabled, label: 'Auto de-duplication enabled?'
   .row
     .col-sm-3.offset-sm-6
       = f.button :submit, value: 'Set Auto De-Duplication Thresholds'

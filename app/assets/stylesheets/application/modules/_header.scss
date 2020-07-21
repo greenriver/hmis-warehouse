@@ -38,7 +38,14 @@
   font-size: rem(20px);
   display: flex;
   align-items: center;
+}
+.l-content-width-md .c-header-nav__mobile-link  {
   @include media-breakpoint-up(lg) {
+    display: none;
+  }
+}
+.l-content-width-lg .c-header-nav__mobile-link  {
+  @include media-breakpoint-up(xl) {
     display: none;
   }
 }
