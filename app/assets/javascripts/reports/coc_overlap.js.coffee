@@ -60,7 +60,7 @@ class App.Reports.CocOverlap
     if loading
       opacity = .4
       pointerEvents = 'none'
-    containers = ['results', 'map']
+    containers = ['results']
     loaderClass = 'j-loading-indicator'
     containers.forEach (container) =>
       $container = $("##{@elementId}-#{container}").css({opacity, pointerEvents})
