@@ -47,7 +47,7 @@
         - note_content += '</ul></div></div>'
       - note_content += '</p>'
       %span.icon-info{data: {toggle: :popover, title: 'Note', placement: :bottom, trigger: :focus, content: note_content, html: :true }}
-    = render 'universe_selection'
+    = render 'performance_dashboards/overview/universe_selection'
   .col-md-4
     - if @report.include_comparison?
       .mb-1.font-weight-bold.gray Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}:

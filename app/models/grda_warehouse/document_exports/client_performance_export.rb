@@ -41,6 +41,10 @@ module GrdaWarehouse::DocumentExports
       def details_performance_dashboards_overview_index_path(*args)
         '#'
       end
+
+      def breakdown
+        @breakdown
+      end
     end
   end
 end

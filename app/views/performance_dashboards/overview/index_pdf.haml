@@ -1,17 +1,15 @@
-- @title= 'Performance Overview'
+- @title = "#{@report.performance_type} Performance"
 %section.filter-summary.mb-5
   %h2.mb-4 Summary of Selected Universe
   = render 'performance_dashboards/active_filters_two_col'
-- @report.available_breakdowns.each do |breakdown, title|
-  - @breakdown_section_title = title
-  %section.mb-5
-    .pdf-breakdown= render "performance_dashboards/overview/by_#{breakdown}"
-  = content_for :page_js do
-    :javascript
-      $(function() {
-        'use strict';
-        var opts = {};
-        new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{breakdown}-chart', opts);
-        new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{breakdown}-chart', opts);
-        new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{breakdown}-chart', opts);
-      });
+%section.mb-5
+  .pdf-breakdown= render "performance_dashboards/overview/by_#{breakdown}"
+= content_for :page_js do
+  :javascript
+    $(function() {
+      'use strict';
+      var opts = {};
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.enrolled-by-#{breakdown}-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.entering-by-#{breakdown}-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.exiting-by-#{breakdown}-chart', opts);
+    });
