@@ -5,13 +5,13 @@
 ###
 require 'memoist'
 
-class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
+class WarehouseReport::OverlappingCocByProjectType < WarehouseReport # rubocop:disable Style/ClassAndModuleChildren
   VERSION = 3
   class Error < ::StandardError; end
 
   attr_reader :start_date, :end_date, :project_type
-  extend Memoist
 
+  extend Memoist
 
   def initialize(coc_code_1:, coc_code_2:, start_date:, end_date:, project_type: nil)
     @coc_code_1 = coc_code_1
@@ -25,7 +25,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     raise Error, 'Report duration cannot exceed 3 years.' unless @start_date >= @end_date.prev_year(3)
     raise Error, 'Invalid project type' if @project_type.present? && !::HUD.project_types.key?(@project_type)
 
-    #FIXME there is some sort of schema cache issue in development
+    # FIXME: there is some sort of schema cache issue in development
     GrdaWarehouse::Hud::Client.primary_key = :id
   end
 
@@ -37,7 +37,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       coc_code_2: @coc_code_2,
       start_date: @start_date,
       end_date: @end_date,
-      project_type: @project_type
+      project_type: @project_type,
     }.compact
   end
 
@@ -65,19 +65,22 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   def shared_clients
     GrdaWarehouse::Hud::Client.where(
       id: overlapping_client_ids.map(&:to_i),
-    ).select(*%w/id DOB Gender Ethnicity/+GrdaWarehouse::Hud::Client.race_fields)
+    ).select(*['id', 'DOB', 'Gender', 'Ethnicity'] + GrdaWarehouse::Hud::Client.race_fields)
   end
   memoize :shared_clients
 
   def coc_client_ids(coc_code)
     scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+      residential.
       open_between(start_date: @start_date, end_date: @end_date).
       service_within_date_range(start_date: @start_date, end_date: @end_date).
       in_coc(coc_code: coc_code)
 
-    scope = scope.merge(
-      GrdaWarehouse::ServiceHistoryEnrollment.where(computed_project_type: @project_type),
-    ) if @project_type
+    if @project_type
+      scope = scope.merge(
+        GrdaWarehouse::ServiceHistoryEnrollment.where(computed_project_type: @project_type),
+      )
+    end
 
     scope.distinct.pluck(:client_id, :computed_project_type)
   end
@@ -101,16 +104,18 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   def service_histories
     scope = GrdaWarehouse::ServiceHistoryService.joins(
       service_history_enrollment: {
-        project: :project_cocs
-      }
+        project: :project_cocs,
+      },
     ).service_between(
       start_date: @start_date,
       end_date: @end_date,
     )
 
-    scope = scope.merge(
-      GrdaWarehouse::ServiceHistoryEnrollment.where(computed_project_type: @project_type),
-    ) if @project_type
+    if @project_type
+      scope = scope.merge(
+        GrdaWarehouse::ServiceHistoryEnrollment.where(computed_project_type: @project_type),
+      )
+    end
     scope
   end
 
@@ -125,8 +130,8 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
             in_project_type(p_type).
             distinct.
             merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc)).
-            pluck(:client_id, :project_type, :date).each do |c_id, p_type, date|
-              dates[p_type][coc] << [c_id, date]
+            pluck(:client_id, :project_type, :date).each do |c_id, p_type2, date|
+              dates[p_type2][coc] << [c_id, date]
             end
         end
       end
@@ -135,7 +140,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   memoize :dates_by_p_type
 
   def overlapping_client_ids
-    client_project_type_pairs.map(&:first).uniq
+    (coc_client_ids(@coc_code_1).map(&:first) & coc_client_ids(@coc_code_2).map(&:first))
   end
 
   def total_shared_clients
@@ -146,9 +151,9 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     {
       start_date: start_date.iso8601,
       end_date: end_date.iso8601,
-      cocs: [coc1,coc2].map { |coc|
-        { code: coc.cocnum, name: coc.cocname}
-      },
+      cocs: [coc1, coc2].map do |coc|
+        { code: coc.cocnum, name: coc.cocname }
+      end,
       clients: details_clients,
     }
   end
@@ -171,7 +176,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
         race: client.race_description,
         ethnicity: ::HUD.ethnicity(client.Ethnicity),
         enrollments: enrollment_details(services),
-        client_id: client.to_param
+        client_id: client.to_param,
       }
     end
   end
@@ -180,6 +185,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   # Based on age as of the start of of the report period
   private def age_group(client)
     return 'Unknown age' unless client.age&.positive?
+
     case client.age(start_date)
     when 0..17
       'Under 18'
@@ -187,21 +193,23 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       'Age 18 - 24'
     when 25..61
       'Age 25 - 61'
-    when 62..10000
+    when 62..10_000
       'Age 62+'
     end
   end
 
   private def enrollment_details(services)
-    services.group_by{|s| s.service_history_enrollment.project}.map do |project, project_services|
+    services.group_by { |s| s.service_history_enrollment.project }.map do |project, project_services|
       {
         coc: project.project_cocs.first.CoCCode,
         project_name: project.name,
         project_type: ::HUD.project_type_brief(project.ProjectType),
-        history: history_details(project_services)
+        history: history_details(project_services),
       }
     end.sort_by do |service|
-      service[:history][0][:from] rescue Date.new(1,1,0)
+      service[:history][0][:from]
+    rescue StandardError
+      Date.new(1, 1, 0)
     end.reverse
   end
 
@@ -214,10 +222,9 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       else
         "#{seq.first.date}-#{seq.last.date}"
       end
-      {from: seq.first.date.beginning_of_day.iso8601, to: seq.last.date.end_of_day.iso8601, label: label}
+      { from: seq.first.date.beginning_of_day.iso8601, to: seq.last.date.end_of_day.iso8601, label: label }
     end
   end
-
 
   # [
   #   [Project Type, [async_count, concurrent_count]]
@@ -226,14 +233,16 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten.uniq.map do |p_type|
       async = async_by_type[p_type]&.count || 0
       concurrent = concurrent_by_type[p_type]&.count || 0
+      next unless (async + concurrent).positive?
+
       [
         HUD.project_type(p_type),
         [
           async,
           concurrent,
         ],
-        p_type
-      ] if (async + concurrent).positive?
+        p_type,
+      ]
     end.compact
   end
 

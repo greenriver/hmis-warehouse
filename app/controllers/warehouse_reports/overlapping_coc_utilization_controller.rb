@@ -29,36 +29,11 @@ module WarehouseReports
     include ArelHelper
 
     private def overlap_by_coc_code
-      start_date = report_params[:start_date]
-      end_date = report_params[:start_date]
-      my_coc = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc1))
-
-      e_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        open_between(
-          start_date: start_date,
-          end_date: end_date,
-        ).
-        service_within_date_range(
-          start_date: start_date,
-          end_date: end_date,
-        ).
-        joins(
-          project: :project_cocs,
-        )
-
-      my_client_ids = e_scope.in_coc(
-        coc_code: my_coc.cocnum,
-      ).distinct.pluck(:client_id)
-
-      other_client_counts = e_scope.where(
-        client_id: my_client_ids,
-      ).where.not(
-        pc_t[:CoCCode].eq(my_coc.cocnum),
-      ).group(
-        pc_t[:CoCCode],
-      ).count('distinct service_history_enrollments.client_id')
-
-      other_client_counts
+      ::WarehouseReport::OverlappingCoc.new(
+        start_date: Date.parse(report_params[:start_date]),
+        end_date: Date.parse(report_params[:end_date]),
+        coc_code: GrdaWarehouse::Shape::CoC.find(report_params[:coc1]).cocnum,
+      ).results
     end
 
     private def map_shapes
