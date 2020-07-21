@@ -35,7 +35,7 @@ function formatCocLabel(text, width, padding) {
 const barSize = 35;
 const barPaddingInner = 0.75;
 const barPaddingOuter = 0.25;
-App.WarehouseReports.ClientTimelineChart = (options) => {
+App.WarehouseReports.clientTimelineChart = (options) => {
   const wrapper = document.querySelector(options.rootSelector);
   const { width } = wrapper.getBoundingClientRect();
   const margin = { top: 0, bottom: 20, left: 200, right: 0 };

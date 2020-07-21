@@ -1,0 +1,16 @@
+- chart_id = "j-client-#{id}"
+%section.mb-6
+  %h3
+    = "#{data[:label]}: "
+    %small= data.values_at(*%i/ethnicity race gender age_group/).select(&:present?).join('; ')
+  .j-chart(id=chart_id)
+- content_for :page_js do
+  :javascript
+    var domain = #{@report.time_range.to_json.html_safe};
+    var enrollments = #{data[:enrollments].to_json.html_safe};
+    App.WarehouseReports.clientTimelineChart({
+      enrollments: enrollments,
+      rootSelector: '#' + #{chart_id.to_json.html_safe},
+      domain: domain,
+      cocs: #{@details[:cocs].to_json.html_safe}
+    });

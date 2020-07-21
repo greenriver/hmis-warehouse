@@ -6,22 +6,8 @@
   - if @report.project_type
     %h3 Only considering clients with #{::HUD.project_type(@report.project_type)} enrollments in both projects
 
-- @details[:clients].each.with_index do |data, idx|
-  - chart_id = "j-client-#{idx}"
-  %section.mb-6
-    %h3
-      = "#{data[:label]}: "
-      %small= data.values_at(*%i/ethnicity race gender age_group/).select(&:present?).join('; ')
-    .j-chart(id=chart_id)
-    -#%pre= JSON::pretty_generate(data)
-  - content_for :page_js do
-    :javascript
-      var domain = #{@report.time_range.to_json.html_safe};
-      var enrollments = #{data[:enrollments].to_json.html_safe};
-      App.WarehouseReports.ClientTimelineChart({
-        enrollments: enrollments,
-        rootSelector: '#' + #{chart_id.to_json.html_safe},
-        domain: domain,
-        cocs: #{@details[:cocs].to_json.html_safe}
-      });
+%div(style='margin-bottom: 2em')
+  = render 'demographics_rollups'
 
+- @details[:clients].each.with_index do |data, idx|
+  = render 'client_card', data: data, id: idx
