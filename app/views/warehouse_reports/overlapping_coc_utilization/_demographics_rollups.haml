@@ -1,0 +1,38 @@
+:ruby
+  counts = {
+    gender: {},
+    age_group: {},
+    ethnicity: {},
+    race: {},
+  }
+  @details[:clients].map do |client|
+    counts.keys.each do |key|
+      vv = counts[key]
+      vv[client[key]] ||= 0
+      vv[client[key]] += 1
+    end
+  end
+
+.row
+  - counts.each do |key, vv|
+    - chart_id = "j-agg-#{key}"
+    .col-md-4.col-xl-3
+      %h4
+        Clients by
+        = key.to_s.humanize.titleize
+      .j-chart(id=chart_id)
+    :ruby
+      nulls = vv.delete('')
+      if nulls
+        vv['Unknown'] = nulls
+      end
+
+      keys = vv.keys.sort_by {|k| [vv[k].to_i, key] }.reverse
+    - content_for :page_js do
+      :javascript
+        App.WarehouseReports.clientDemographicsRollupChart({
+          rootSelector: '#' + #{chart_id.to_json.html_safe},
+          categories: #{keys.to_json.html_safe},
+          values: #{vv.to_json.html_safe},
+          domain: #{[0, vv.values.sum].to_json.html_safe}
+        });
