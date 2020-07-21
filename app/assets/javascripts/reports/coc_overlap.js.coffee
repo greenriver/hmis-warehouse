@@ -94,6 +94,7 @@ class App.Reports.CocOverlap
             alert(xhr.responseText)
 
   updateResults: (data) =>
+    $(".coc1-name").html data.coc1
     $("##{@elementId}-results").html data.html
     @map.updateData(data.map, @state.selections)
     @loading(false)
