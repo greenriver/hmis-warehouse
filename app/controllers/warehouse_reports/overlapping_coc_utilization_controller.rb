@@ -53,11 +53,13 @@ module WarehouseReports
       end
     end
 
+    Form = Struct.new(:coc1, :coc2, :start_date, :end_date, keyword_init: true)
     def index
       @end_date = (Date.current - 1.years).end_of_year
       @start_date = @end_date.beginning_of_year
       @cocs = state_coc_shapes
       @shapes = map_shapes
+      @compare = Form.new(**report_params.to_h.symbolize_keys)
     end
 
     def details
