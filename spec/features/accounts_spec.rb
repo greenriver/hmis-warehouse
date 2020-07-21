@@ -11,14 +11,14 @@ RSpec.feature 'Accounts', type: :feature do
     scenario 'with wrong password' do
       fill_in 'Email', with: 'noreply@example.com'
       fill_in 'Password', with: 'password'
-      click_button 'Log in'
+      click_button 'Sign In'
       expect(page).to have_content 'Invalid Email or password'
     end
 
     scenario 'with correct password' do
       fill_in 'Email', with: user.email
       fill_in 'Password', with: user.password
-      click_button 'Log in'
+      click_button 'Sign In'
       expect(page).to have_content 'Sign Out'
     end
 
@@ -29,11 +29,11 @@ RSpec.feature 'Accounts', type: :feature do
         Devise.maximum_attempts.times do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: 'password'
-          click_button 'Log in'
+          click_button 'Sign In'
         end
         fill_in 'Email', with: user.email
         fill_in 'Password', with: user.password
-        click_button 'Log in'
+        click_button 'Sign In'
         expect(page).to have_content 'Your account is locked.'
       end
 
@@ -43,12 +43,12 @@ RSpec.feature 'Accounts', type: :feature do
         Devise.maximum_attempts.times do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: 'password'
-          click_button 'Log in'
+          click_button 'Sign In'
         end
         Timecop.travel(Time.now + Devise.unlock_in - 1.minute) do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: user.password
-          click_button 'Log in'
+          click_button 'Sign In'
           expect(page).to have_content 'Your account is locked.'
         end
       end
@@ -59,12 +59,12 @@ RSpec.feature 'Accounts', type: :feature do
         Devise.maximum_attempts.times do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: 'password'
-          click_button 'Log in'
+          click_button 'Sign In'
         end
         Timecop.travel(Time.now + Devise.unlock_in) do
           fill_in 'Email', with: user.email
           fill_in 'Password', with: user.password
-          click_button 'Log in'
+          click_button 'Sign In'
           expect(page).to have_content 'Sign Out'
         end
       end

@@ -4,11 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::Health::HousingStatusChanges
+class WarehouseReport::Health::HousingStatusChanges # rubocop:disable Style/ClassAndModuleChildren
   include ArelHelper
   include HealthCharts
 
-  def initialize(start_date, end_date, acos=nil, user:)
+  def initialize(start_date, end_date, acos = nil, user:)
     @start_date = start_date
     @end_date = end_date
     @range = @start_date..@end_date
@@ -198,14 +198,14 @@ class WarehouseReport::Health::HousingStatusChanges
       merge(
         GrdaWarehouse::WarehouseClient.where(
           source_id: GrdaWarehouse::Hud::Client.
-            visible_in_window_to(@user).select(:id)
-        )
+            visible_in_window_to(@user).select(:id),
+        ),
       ).where(id: patient_scope.pluck(:client_id)).distinct.index_by(&:id)
     @client_for_id[id]
   end
 
   def count_for_aco(group:, housing_status:, aco_id:)
-    report_data[aco_id].values.map{ |a| a[group] }.count{ |m| m[:clean_housing_status] == housing_status }
+    report_data[aco_id].values.map { |a| a[group] }.count { |m| m[:clean_housing_status] == housing_status }
   end
 
   def add_housing_statuses(statuses:, source:)
@@ -213,7 +213,6 @@ class WarehouseReport::Health::HousingStatusChanges
       add_housing_status(timestamp: timestamp.to_date, client_id: client_id, housing_status: status, aco_id: aco_id, source: source)
     end
   end
-
 
   def add_housing_status(timestamp:, client_id:, housing_status:, aco_id:, source:)
     @report_data[aco_id] ||= {}
@@ -230,7 +229,7 @@ class WarehouseReport::Health::HousingStatusChanges
         housing_status: housing_status,
         clean_housing_status: self.class.health_housing_outcome_status(housing_status),
         source: source,
-      )
+      ),
     }
 
     # Move the start back if the next one is older
@@ -242,7 +241,7 @@ class WarehouseReport::Health::HousingStatusChanges
         source: source,
       )
     end
-    if @report_data[aco_id][client_id][:ending].timestamp < timestamp
+    if @report_data[aco_id][client_id][:ending].timestamp < timestamp # rubocop:disable Style/GuardClause
       @report_data[aco_id][client_id][:ending] = OpenStruct.new(
         timestamp: timestamp,
         housing_status: housing_status,
