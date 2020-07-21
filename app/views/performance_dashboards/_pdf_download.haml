@@ -1,8 +1,24 @@
 :ruby
+  filter_params = {}
+  (params['filters'] || {}).to_h.each_pair do |key, value|
+    if value.is_a?(Array)
+      value = value.map(&:presence).compact.presence
+    end
+    if value.present?
+      filter_params[key] = value
+    end
+  end
+  report_params = {
+    'filters' => filter_params
+  }
+  if breakdown.present?
+    report_params['breakdown'] = breakdown
+  end
   data = {
     type: export.type,
-    query_string: request.query_string
+    query_string: report_params.to_query
   }
 
-%button.btn.btn-secondary.j-document-exports{type: 'button', data: data}
-  Download PDF
+%button.btn.btn-sm.btn-secondary.j-document-exports{type: 'button', data: data}
+  %i.icon-download2
+  Download Report

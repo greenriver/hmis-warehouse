@@ -83,6 +83,7 @@ services:
 
   db:
     image: hmis-warehouse-db:1.0
+    shm_size: '1gb'
     build:
       context: .
       dockerfile: docker/Dockerfile.postgres

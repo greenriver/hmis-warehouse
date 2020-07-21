@@ -7,6 +7,7 @@
 require 'restclient'
 module GrdaWarehouse::Hud
   class Client < Base
+    self.primary_key = :id
     include RailsDrivers::Extensions
     include Rails.application.routes.url_helpers
     include RandomScope

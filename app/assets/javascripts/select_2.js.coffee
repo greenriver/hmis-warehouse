@@ -1,8 +1,8 @@
 #= require ./namespace
 App.select2 ||= {}
 
-App.select2.init = () =>
-  $('.select2').each () ->
+App.select2.init = (root) =>
+  $(root || document).find('.select2').each () ->
     $select = $(this)
     placeholder = $select.attr('placeholder')
     options = {}
@@ -107,5 +107,3 @@ App.select2.initParentheticalWhenSelected = ($select) =>
         return matched[1]
     }
   )
-
-
