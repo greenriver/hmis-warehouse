@@ -12,7 +12,7 @@ const legend = {
 
 App.WarehouseReports.clientDemographicsRollupChart = (options) => {
   const legendHeight = options.categories.length * legend.rowHeight;
-  const margin = { top: 0, bottom: 20, left: 0, right: 0 };
+  const margin = { top: 0, bottom: 0, left: 0, right: 0 };
   const wrapper = document.querySelector(options.rootSelector);
   const { width } = wrapper.getBoundingClientRect();
   const height = plotHeight + margin.bottom + margin.top + legendHeight;
