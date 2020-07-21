@@ -70,10 +70,9 @@ module WarehouseReports
         end_date: Date.parse(params.require(:end_date)),
         project_type: params.dig(:project_type),
       )
-
       @details = Rails.cache.fetch(
-        @report.cache_key.merge(user_id: current_user.id),
-        expires_in: 5.seconds,
+        @report.cache_key.merge(user_id: current_user.id, view: :details_hash),
+        expires_in: 30.minutes,
       ) do
         @report.details_hash
       end
@@ -82,6 +81,8 @@ module WarehouseReports
     end
 
     private def report_params
+      return {} if params[:compare].blank?
+
       params.require(:compare).permit(
         :coc1,
         :coc2,
@@ -106,7 +107,12 @@ module WarehouseReports
       report_html = if coc2
         begin
           report = WarehouseReport::OverlappingCocByProjectType.new(**report_args)
-          render_to_string(partial: 'overlap', locals: { report: report })
+          Rails.cache.fetch(
+            report.cache_key.merge(user_id: current_user.id, view: :overlap),
+            expires_in: 30.minutes,
+          ) do
+            render_to_string(partial: 'overlap', locals: { report: report })
+          end
         rescue WarehouseReport::OverlappingCocByProjectType::Error => e
           e.message
         end

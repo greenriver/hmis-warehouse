@@ -23,7 +23,7 @@
           %td{style: 'width: 35%'}
             = link_to detail_url.(project_type: id) do
               = name
-          %td{style: 'width: 35%'}
+          %td
+            = values.sum
+          %td{colspan: 2}
             = render 'bars', relative_total: relative_total, values: values
-          %td{style: 'width: 15%'}= values.first
-          %td{style: 'width: 15%'}= values.last
