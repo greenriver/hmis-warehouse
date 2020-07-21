@@ -82,16 +82,23 @@ class App.Reports.CocOverlap
 
   report: =>
     if @state.selections.length > 0
-      @loading(true)
-      $.ajax(
-        type: 'GET'
-        url: '/warehouse_reports/overlapping_coc_utilization/overlap'
-        data: $("##{@elementId} form").serialize()
-      ).done(
-        @updateResults.bind(@)
-      ).fail (xhr) =>
+      if @request
+        console.log('Aborting prior request')
+        @request.abort()
         @loading(false)
-        alert(xhr.responseText)
+
+      @loading(true)
+      @request =
+        $.ajax(
+          type: 'GET'
+          url: '/warehouse_reports/overlapping_coc_utilization/overlap'
+          data: $("##{@elementId} form").serialize()
+        ).done(
+          @updateResults.bind(@)
+        ).fail (xhr) =>
+          unless (xhr.readyState == 0 || xhr.status == 0)
+            @loading(false)
+            alert(xhr.responseText)
 
   updateResults: (data) =>
     $("##{@elementId}-results").html data.html
