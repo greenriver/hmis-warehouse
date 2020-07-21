@@ -9,8 +9,8 @@
     'data-minimum-results-for-search': 10,
   }
 .d-flex.align-items-center.disaggregation-picker-prs-1
-  .d-flex.align-items-baseline
-    %label.h4.gray.mb-0.mr-3(for='j-disaggregation' style='flex-shrink: 0')
+  .d-flex.align-items-baseline.disaggregation-picker-prs-1__disaggregation
+    %label.h4.mt-0.gray.mb-0.mr-3(for='j-disaggregation' style='flex-shrink: 0')
       Disaggregated By:
     = select_tag('tab', options_for_select(options, breakdown), attr)
   #j-disaggregation-spinner.ml-2.d-none

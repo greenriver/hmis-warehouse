@@ -1,13 +1,4 @@
-:ruby
-  if @report.chosen_project_types_only_homeless?
-    items = @report.chosen_project_types.map do |item|
-      "<li class='list-inline-item chip-v1-prs1'>#{CGI.escapeHTML item}</li>"
-    end
-    note_content = %Q{<p><ul class="list-inline d-inline mt-4">#{items.join.html_safe}</ul></p>}
-  end
-
 .d-flex
   %div= filter_item_selection_summary control.value
-  - if note_content
-    .pl-1
-      %i.icon-info{data: {toggle: :popover, title: "Definition of “#{control.value}”", trigger: :focus, content: note_content, html: :true }}
+  - if @report.chosen_project_types_only_homeless?
+    .pl-1= render 'performance_dashboards/filter_controls/project_types/homeless_tooltip'
