@@ -95,6 +95,7 @@ class App.Reports.CocOverlap
 
   updateResults: (data) =>
     $(".coc1-name").html data.coc1
+    $(".coc2-name").html data.coc2
     $("##{@elementId}-results").html data.html
     @map.updateData(data.map, @state.selections)
     @loading(false)
