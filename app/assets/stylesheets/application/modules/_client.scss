@@ -600,3 +600,10 @@ $file-thumbnail-size: 75px;
   @include open-sans-normal;
   padding-left: 20px;
 }
+.client-tabs__active-alerts {
+
+}
+.service-scanning__active-alerts {
+  padding: space(4);
+  background-color: $brand-warning-l;
+}
