@@ -42,6 +42,8 @@ App.WarehouseReports.clientDemographicsRollupChart = (options) => {
     .attr('x', (d) => xScale(d[0]))
     .attr('width', (d) => xScale(d[1]) - xScale(d[0]))
     .attr('height', plotHeight)
+    .attr('title', (d, i) => d[1]-d[0]+' '+options.categories[i])
+    .attr('data-toggle', 'tooltip')
     .style('fill', (_, i) => z(i));
 
   /*
@@ -88,6 +90,8 @@ App.WarehouseReports.clientDemographicsRollupChart = (options) => {
     .attr('x', (1 + legend.padding) * legendYScale.bandwidth())
     .attr('y', (d) => legendYScale(d))
     .attr('dy', '0.5em')
-    .text((d) => d)
+    .text(function (d, i) {
+      return options.values[d] + ' - ' + d
+    })
     .style('alignment-baseline', 'middle');
 };

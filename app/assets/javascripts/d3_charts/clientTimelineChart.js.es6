@@ -51,6 +51,7 @@ App.WarehouseReports.clientTimelineChart = (options) => {
     id: idx,
     history: enrollment.history.map((evt) => ({
       cocCode: enrollment.coc,
+      label: evt.label,
       from: d3.isoParse(evt.from),
       to: d3.isoParse(evt.to),
     })),
@@ -73,6 +74,7 @@ App.WarehouseReports.clientTimelineChart = (options) => {
   const xAxis = svg
     .append('g')
     .attr('class', 'axis')
+    .attr('aria-label', 'x axis')
     .attr('transform', `translate(${margin.left},${margin.top + plotHeight})`)
     .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%m/%y')));
 
@@ -87,6 +89,7 @@ App.WarehouseReports.clientTimelineChart = (options) => {
   const yAxis = svg
     .append('g')
     .attr('class', 'axis')
+    .attr('aria-label', 'y axis')
     .attr('transform', `translate(${margin.left},${margin.top})`)
     .call(
       d3
@@ -121,6 +124,9 @@ App.WarehouseReports.clientTimelineChart = (options) => {
     .enter()
     .append('rect')
     .attr('x', (d) => xScale(d.from))
+    .attr('aria-label', (d) => d.label)
+    .attr('title', (d) => d.label)
+    .attr('data-toggle', 'tooltip')
     .attr('width', (d) => xScale(d.to) - xScale(d.from))
     .attr('height', yScale.bandwidth())
     .attr('class', (d) => `c-swatch__display--fill-${cocCodes.indexOf(d.cocCode)}`);
