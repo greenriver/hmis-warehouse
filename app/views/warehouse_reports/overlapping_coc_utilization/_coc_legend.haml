@@ -8,7 +8,10 @@
         %span.muted Primary CoC not selected
 .mb-1
   .c-swatch
-    %span.c-swatch__display.c-swatch__display--bar-1.mr-2
+    - if local_assigns[:outline_secondary]
+      %span.c-swatch__display.mr-2{style: "border:3px solid #265479; background-color: #fff"}
+    - else
+      %span.c-swatch__display.c-swatch__display--bar-1.mr-2
     %span.coc2-name
       - if filters.coc2
         = filters.coc2.number_and_name
