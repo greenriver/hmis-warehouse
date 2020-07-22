@@ -304,6 +304,9 @@ Rails.application.routes.draw do
         get :download, on: :member
       end
     end
+    namespace :custom do
+      resources :quick_sight_access, only: [:index, :create]
+    end
     namespace :health_emergency do
       resources :testing_results, only: [:index]
       resources :uploaded_results, only: [:index, :create, :new, :show]

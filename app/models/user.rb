@@ -306,6 +306,12 @@ class User < ApplicationRecord
     end
   end
 
+  def can_access_report?(url:)
+    GrdaWarehouse::WarehouseReports::ReportDefinition.
+      where(url: url).
+      viewable_by(self).exists?
+  end
+
   def user_care_coordinators
     Health::UserCareCoordinator.where(user_id: id)
   end
