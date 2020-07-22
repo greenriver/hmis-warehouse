@@ -2,16 +2,16 @@
   %table.table
     %thead
       %tr{style: 'background: #e1e7ee'}
-        %th{style: 'width: 35%'}= scope.titleize
-        %th{style: 'width: 35%'} Shared Clients
-        %th{style: 'width: 15%'}
-          .c-swatch
-            %span.c-swatch__display.c-swatch__display--map-0
-            %span Asynchronous
-        %th{style: 'width: 15%'}
-          .c-swatch
-            %span.c-swatch__display.c-swatch__display--map-1
-            %span Concurrent
+        %th= scope.titleize
+        %th{style: 'width: 120px'} Shared Clients
+        %th{style: 'width: 256px'}
+          .d-flex.flex-wrap
+            .c-swatch.mr-2
+              %span.c-swatch__display.c-swatch__display--map-0{style:'border: 1px solid #ccc'}
+              %span Asynchronous
+            .c-swatch
+              %span.c-swatch__display.c-swatch__display--map-1{style:'border: 1px solid #ccc'}
+              %span Concurrent
     %tbody
       = yield
 .text-muted

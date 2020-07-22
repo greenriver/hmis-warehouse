@@ -1,11 +1,17 @@
 //= require ./namespace
 
 App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
-  const map = new App.Maps.MapWithShapes(mapProps, (evt, value) => {
-    console.info(evt, value);
-  });
+  const map = new App.Maps.MapWithShapes(mapProps);
   const $form = $(formSelector);
   const $submitButton = $('.j-submit-button');
+  const $prompt = $('.j-submit-button-prompt');
+  const $loading = $('.j-submit-button-loading');
+
+  $('#compare_coc1').on('select2:select', (evt) => {
+    const { value } = evt.currentTarget;
+    $submitButton.prop('disabled', !value);
+    $prompt.toggleClass('d-none', !!value);
+  });
 
   const indicateLoading = (loading) => {
     let opacity = 1;
@@ -14,6 +20,7 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
       opacity = 0.4;
       pointerEvents = 'none';
     }
+    $loading.toggleClass('d-none', !loading);
     const loaderClass = 'j-loading-indicator';
     const $container = $(resultsSelector).css({ opacity, pointerEvents });
     if (loading) {
@@ -27,12 +34,12 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
   };
 
   const displayResults = (data) => {
-    $('.coc1-name').html(data.coc1);
-    $('.coc2-name').html(data.coc2);
+    $('.coc1-name').html(data.coc1 || `<span class="muted">Primary CoC not selected</span>`);
+    $('.coc2-name').html(data.coc2 || `<span class="muted">Secondary CoC not selected</span>`);
     $('.j-title').html(data.title);
     $('.j-subtitle').html(data.subtitle);
     $(resultsSelector).html(data.html);
-    map.updateData(data.map, []);
+    map.updateShapes({ shapes: data.map, primaryId: data.coc1_id, secondaryId: data.coc2_id });
   };
 
   const postForm = (evt) => {

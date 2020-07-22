@@ -1,8 +1,14 @@
 - chart_id = "j-client-#{id}"
 %section.mb-6
   .d-flex.align-items-baseline
-    %h3.mr-auto= data.values_at(*%i/ethnicity race gender age_group/).select(&:present?).join('; ')
-    = link_to "View client", client_path(data[:client_id])
+    %h3.mr-3.text-nowrap Client ##{id+1}
+    - if can_access_some_version_of_clients?
+      .ml-auto
+        .ml-4.text-right.text-nowrap
+          = link_to client_path(data[:client_id]), class: 'text-semi-bold' do
+            View client dashboard
+            &raquo;
+  .h5-prs1.mb-2= data.values_at(*%i/ethnicity race gender age_group/).select(&:present?).join('; ')
   .j-chart(id=chart_id)
 - content_for :page_js do
   :javascript

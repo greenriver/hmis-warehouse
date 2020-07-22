@@ -108,7 +108,7 @@ module WarehouseReports
             end_date: filters.end_date,
           )
           Rails.cache.fetch(
-            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.5),
+            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.92),
             expires_in: 30.minutes,
           ) do
             render_to_string(partial: 'overlap', locals: { report: report })
@@ -119,6 +119,8 @@ module WarehouseReports
       end
 
       payload = {
+        coc1_id: coc1&.id,
+        coc2_id: coc2&.id,
         coc1: coc1.number_and_name,
         coc2: coc2&.number_and_name,
         map_title: "#{coc1.number_and_name} shared clients with the following CoCs",

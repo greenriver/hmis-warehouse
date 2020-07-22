@@ -2,8 +2,13 @@
   .fix-date-picker .date_picker .input-group {
     max-width: inherit;
   }
+  .fix-select2 .select2-selection {
+    background: #fff !important;
+    padding: 0.5em !important;
+    min-height: initial !important;
+  }
 = simple_form_for filters, as: :compare, url: url_for(action: :overlap), html: {id: form_id}, method: :get do |f|
-  .row.fix-date-picker
+  .row.fix-date-picker.fix-select2
     .col-lg-6
       .row
         .col-md-6
@@ -38,6 +43,10 @@
             required: true,
             input_html: {id: 'compare_end_date'}
   .d-flex.align-items-center.justify-content-end
-    .mr-4 Choose a Primary CoC to continue
+    .j-submit-button-prompt.mr-4{class: filters.coc1 ? 'd-none' : nil} Select a Primary CoC
+    .j-submit-button-loading.mr-4.d-none
+      .d-flex
+        .mr-2= render 'spinner'
+        %div Loading&hellip;
     %div
-      %button.btn.btn-primary.j-submit-button(type='button') Update
+      %button.btn.btn-primary.j-submit-button(type='button' disabled) Update
