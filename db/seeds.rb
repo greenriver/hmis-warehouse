@@ -195,6 +195,12 @@ def report_list
         description: 'Coordinated Entry assessment details.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/overlapping_coc_utilization',
+        name: 'Overlapping CoC Utilization',
+        description: 'Explore enrollments for CoCs with shared clients',
+        limitable: true,
+      },
     ],
     'Data Quality' => [
       {
