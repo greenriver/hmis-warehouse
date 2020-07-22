@@ -12,17 +12,22 @@
       vv[client[key]] += 1
     end
   end
+  palette = %w[
+    #00595A
+    #FDBE08
+    #0054A6
+    #95CAD0
+    #545464
+    #D5D5DC
+    #D17200
+    #000000
+  ]
 
 .row
   - counts.each do |key, vv|
-    - next unless vv.any?
-    - chart_id = "j-agg-#{key}"
-    .col-md-4.col-xl-3
-      %h4
-        Clients by
-        = key.to_s.humanize.titleize
-      .j-chart(id=chart_id)
     :ruby
+      next unless vv.any?
+      chart_id = "j-agg-#{key}"
       # fix nulls
       nulls = vv.delete('')
       if nulls
@@ -42,11 +47,31 @@
         end
       end
       keys = vv.keys.sort_by {|k| [vv[k].to_i, key] }.reverse
+
+    .col-md-4.col-xl-3
+      %h4
+        Clients by
+        = key.to_s.humanize.titleize
+      .j-chart(id=chart_id)
+      %table.table.table-sm
+        %colgroup
+          %col(width='20px')
+        %thead
+          %tr
+            %th.small(colspan=2) Category
+            %th.small.text-right Clients
+        - keys.each.with_index do |key, idx|
+          %tr
+            %td
+              %span.c-swatch__display{style: "background-color: #{palette[idx]}"}
+            %td= key
+            %td.text-right= vv[key]
     - content_for :page_js do
       :javascript
         App.WarehouseReports.clientDemographicsRollupChart({
           rootSelector: '#' + #{chart_id.to_json.html_safe},
           categories: #{keys.to_json.html_safe},
           values: #{vv.to_json.html_safe},
-          domain: #{[0, vv.values.sum].to_json.html_safe}
+          domain: #{[0, vv.values.sum].to_json.html_safe},
+          palette: #{palette.to_json.html_safe}
         });

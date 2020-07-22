@@ -13,7 +13,7 @@ class App.Maps.MapWithShapes
 
     # repeat first color last because for some reason the change in the selection index
     # is off by 1
-    @mapHighlightColors = ['#fca736', '#ffe09b', '#fca736']
+    @mapHighlightColors = ['#275479', '#333', '#36A4A6']
     @highlightedFeatures = []
 
     @map = new L.Map(@elementId, mapOptions)
@@ -92,13 +92,13 @@ class App.Maps.MapWithShapes
     }
 
   getColor: (d) ->
-    if d > 200 then '#0154A6'
-    else if d > 165 then '#256CB3'
-    else if d > 132 then '#4A85BF'
-    else if d > 100 then '#6E9DCC'
-    else if d > 67 then '#92B6D9'
-    else if d > 34 then '#B6CEE6'
-    else if d > 0 then '#DBE7F2'
+    if d > 200 then '#D17200'
+    else if d > 165 then '#D38628'
+    else if d > 132 then '#D59A4F'
+    else if d > 100 then '#D7AE77'
+    else if d > 67 then '#D9C29E'
+    else if d > 34 then '#DBD6C6'
+    else if d > 0 then '#DDEAED'
     else '#FFFFFF'
 
   highlightFeature: (e, highlightIndex=0) =>

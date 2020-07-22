@@ -1,0 +1,12 @@
+.mb-2= render 'coc_legend'
+.mb-2
+  = render 'common/gradient_legend',
+    labels: ['No Overlapping Clients','200+ Overlapping Clients'],
+    colors: ['#DDEAED', '#D17200']
+.coc-util-overlap.o-container--with-loader.overlapping-coc-map{id: map_id}
+
+:css
+  .overlapping-coc-map {
+    min-height: 600px;
+    border: 1px solid #ccc;
+  }

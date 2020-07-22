@@ -1,14 +1,11 @@
 :ruby
   detail_url = -> (extra_params={}) do
     details_warehouse_reports_overlapping_coc_utilization_index_path(
-      report_params.to_h.symbolize_keys.merge(extra_params.symbolize_keys)
+      {compare: filters.to_params}.merge(extra_params)
     )
   end
   project_types = report.chart_by_project_type
 .mb-4
-  %h2.mb-5
-    = "Clients served in both #{report.coc1.number_and_name} and #{report.coc2.number_and_name}"
-    .text-small= "between #{report.start_date} - #{report.end_date}"
   %p
     %span{style: 'font-weight: bold; font-size: 24px; '}
       = link_to detail_url.() do

@@ -30,9 +30,9 @@ module WarehouseReports
 
     private def overlap_by_coc_code
       ::WarehouseReport::OverlappingCoc.new(
-        start_date: Date.parse(report_params[:start_date]),
-        end_date: Date.parse(report_params[:end_date]),
-        coc_code: GrdaWarehouse::Shape::CoC.find(report_params[:coc1]).cocnum,
+        start_date: filters.start_date,
+        end_date: filters.end_date,
+        coc_code: filters.coc1.cocnum,
       ).results
     end
 
@@ -57,21 +57,17 @@ module WarehouseReports
       end
     end
 
-    Form = Struct.new(:coc1, :coc2, :start_date, :end_date, keyword_init: true)
     def index
-      @end_date = (Date.current - 1.years).end_of_year
-      @start_date = @end_date.beginning_of_year
       @cocs = state_coc_shapes
       @shapes = map_shapes
-      @compare = Form.new(**report_params.to_h.symbolize_keys)
     end
 
     def details
       @report = WarehouseReport::OverlappingCocByProjectType.new(
-        coc_code_1: GrdaWarehouse::Shape::CoC.find(params.require(:coc1)).cocnum,
-        coc_code_2: GrdaWarehouse::Shape::CoC.find(params.require(:coc2)).cocnum,
-        start_date: Date.parse(params.require(:start_date)),
-        end_date: Date.parse(params.require(:end_date)),
+        coc_code_1: filters.coc1&.cocnum,
+        coc_code_2: filters.coc2&.cocnum,
+        start_date: filters.start_date,
+        end_date: filters.end_date,
         project_type: params.dig(:project_type),
       )
       @details = Rails.cache.fetch(
@@ -84,35 +80,34 @@ module WarehouseReports
       bad_request(e.message)
     end
 
+    private def filters
+      @filters ||= OverlappingCoCUtilizationForm.new(report_params)
+    end
+    helper_method :filters
+
     private def report_params
       return {} if params[:compare].blank?
 
       params.require(:compare).permit(
-        :coc1,
-        :coc2,
+        :coc1_id,
+        :coc2_id,
         :start_date,
         :end_date,
       )
     end
-    helper_method :report_params
 
     def overlap
-      coc1 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc1))
-      coc2 = if (coc2_id = report_params.dig(:coc2)).present?
-        GrdaWarehouse::Shape::CoC.find(coc2_id)
-      end
-
-      report_args = {
-        coc_code_1: coc1.cocnum,
-        coc_code_2: coc2&.cocnum,
-        start_date: Date.parse(report_params.require(:start_date)),
-        end_date: Date.parse(report_params.require(:end_date)),
-      }
-      report_html = if coc2
+      coc1, coc2 = filters.coc1, filters.coc2
+      report_html = if coc1 && coc2
         begin
-          report = WarehouseReport::OverlappingCocByProjectType.new(**report_args)
+          report = WarehouseReport::OverlappingCocByProjectType.new(
+            coc_code_1: coc1.cocnum,
+            coc_code_2: coc2&.cocnum,
+            start_date: filters.start_date,
+            end_date: filters.end_date,
+          )
           Rails.cache.fetch(
-            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 8),
+            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.5),
             expires_in: 30.minutes,
           ) do
             render_to_string(partial: 'overlap', locals: { report: report })
@@ -122,13 +117,62 @@ module WarehouseReports
         end
       end
 
-      render json: {
+      payload = {
         coc1: coc1.number_and_name,
         coc2: coc2&.number_and_name,
         map_title: "#{coc1.number_and_name} shared clients with the following CoCs",
         map: map_data,
         html: report_html,
+        subtitle: "Served between #{filters.start_date} - #{filters.end_date}",
       }
+      if coc1 && coc2
+        payload[:title] = "Clients served in both #{filters.coc1.number_and_name} and #{filters.coc2.number_and_name}"
+      else
+        payload[:title] = "Clients in #{filters.coc1.number_and_name} overlapping with other CoCs"
+      end
+      render json: payload
     end
+
+    class OverlappingCoCUtilizationForm
+      attr_accessor :coc1_id, :coc2_id, :start_date, :end_date
+
+      def coc1
+        coc1_id ? (@coc1 ||= GrdaWarehouse::Shape::CoC.find(coc1_id)) : nil
+      end
+
+      def coc2
+        coc2_id ? (@coc2 ||= GrdaWarehouse::Shape::CoC.find(coc2_id)) : nil
+      end
+
+      def to_params
+        {
+          coc1_id: coc1_id,
+          coc2_id: coc2_id,
+          start_date: start_date,
+          end_date: end_date
+        }
+      end
+
+      def initialize(attr)
+        assign_attributes(attr)
+      end
+
+      def assign_attributes(attr)
+        self.end_date = parse_date(attr[:end_date]) || (Date.current - 1.years).end_of_year
+        self.start_date = parse_date(attr[:start_date]) || self.end_date.beginning_of_year
+        self.coc1_id = attr[:coc1_id].presence
+        self.coc2_id = attr[:coc2_id].presence
+      end
+
+      private def parse_date(str)
+        begin
+          Date.parse(str)
+        rescue
+          nil
+        end
+      end
+
+    end
+
   end
 end
