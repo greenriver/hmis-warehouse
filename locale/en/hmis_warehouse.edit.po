@@ -3767,7 +3767,7 @@ msgstr ""
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
 msgstr ""
 
-msgid "The HMIS Warehouse can be used for homless client care coordination and reporting."
+msgid "The HMIS Warehouse can be used for homeless client care coordination and reporting."
 msgstr ""
 
 msgid "This is a Family VI-SPDAT"
