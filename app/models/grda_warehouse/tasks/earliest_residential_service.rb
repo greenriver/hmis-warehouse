@@ -8,7 +8,7 @@ module GrdaWarehouse::Tasks
 
   # for accelerating queries asking for clients who entered homelessness within a particular date range
   class EarliestResidentialService
-    include TsqlImport
+    include CustomBulkInsert
     include ArelHelper
 
     def initialize(replace_all=false, dry_run: false)

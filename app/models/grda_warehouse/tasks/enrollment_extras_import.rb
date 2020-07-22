@@ -8,7 +8,7 @@ require 'roo'
 require 'roo-xls'
 module GrdaWarehouse::Tasks
   class EnrollmentExtrasImport
-    # include TsqlImport
+    # include CustomBulkInsert
     include ArelHelper
 
     SPEC = {

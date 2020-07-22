@@ -17,7 +17,7 @@ require 'charlock_holmes'
 
 module Importers::HMISSixOneOne
   class Base
-    include TsqlImport
+    include CustomBulkInsert
     include NotifierConfig
 
     attr_accessor :logger, :notifier_config, :import, :range

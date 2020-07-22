@@ -10,7 +10,7 @@ require 'charlock_holmes'
 
 module Health::Tasks
   class ImportEpic
-    include TsqlImport
+    include CustomBulkInsert
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :logger
 

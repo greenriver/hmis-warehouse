@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HMISSixOneOne
   class Enrollment < GrdaWarehouse::Hud::Enrollment
     include ::Import::HMISSixOneOne::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :EnrollmentID
     setup_hud_column_access( GrdaWarehouse::Hud::Enrollment.hud_csv_headers(version: '6.11') )
     self.hud_key = :EnrollmentID

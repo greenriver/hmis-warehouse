@@ -24,7 +24,7 @@ end
 
 module ReportGenerators::Lsa::Fy2019
   class All < Base
-    include TsqlImport
+    include CustomBulkInsert
     include NotifierConfig
     include ActionView::Helpers::DateHelper
     attr_accessor :send_notifications, :notifier_config

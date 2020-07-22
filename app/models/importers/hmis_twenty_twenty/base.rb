@@ -16,7 +16,7 @@ require 'charlock_holmes'
 # All tables that hang off a client also hang off enrollments
 module Importers::HmisTwentyTwenty
   class Base
-    include TsqlImport
+    include CustomBulkInsert
     include NotifierConfig
 
     attr_accessor :logger, :notifier_config, :import, :range

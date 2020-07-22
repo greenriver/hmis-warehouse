@@ -7,7 +7,7 @@
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class VersionFour < Base
     include ArelHelper
-    include TsqlImport
+    include CustomBulkInsert
     include ::Reporting::ProjectDataQualityReports::VersionFour::Display
     include ::Reporting::ProjectDataQualityReports::VersionFour::Support
 

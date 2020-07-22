@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HMISSixOneOne
   class HealthAndDv < GrdaWarehouse::Hud::HealthAndDv
     include ::Import::HMISSixOneOne::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :HealthAndDVID
     setup_hud_column_access( GrdaWarehouse::Hud::HealthAndDv.hud_csv_headers(version: '6.11') )
 

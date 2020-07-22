@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HmisTwentyTwenty
   class Exit < GrdaWarehouse::Hud::Exit
     include ::Import::HmisTwentyTwenty::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :ExitID
     setup_hud_column_access( GrdaWarehouse::Hud::Exit.hud_csv_headers(version: '2020') )
 

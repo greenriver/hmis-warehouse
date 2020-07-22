@@ -32,7 +32,7 @@ end
 
 module ReportGenerators::Lsa::Fy2018
   class All < Base
-    include TsqlImport
+    include CustomBulkInsert
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config
 

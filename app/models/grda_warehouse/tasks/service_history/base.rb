@@ -6,7 +6,7 @@
 
 module GrdaWarehouse::Tasks::ServiceHistory
   class Base
-    include TsqlImport
+    include CustomBulkInsert
     include ActiveSupport::Benchmarkable
     include ArelHelper
     include NotifierConfig

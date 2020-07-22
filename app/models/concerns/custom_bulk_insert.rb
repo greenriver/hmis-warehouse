@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module TsqlImport
+module CustomBulkInsert
   extend ActiveSupport::Concern
 
   def insert_batch(klass, columns, values, transaction: true, batch_size: 200)

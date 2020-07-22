@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HmisTwentyTwenty
   class Funder < GrdaWarehouse::Hud::Funder
     include ::Import::HmisTwentyTwenty::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :FunderID
     setup_hud_column_access( GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2020') )
 

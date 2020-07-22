@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HmisTwentyTwenty
   class Client < GrdaWarehouse::Hud::Client
     include ::Import::HmisTwentyTwenty::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :PersonalID
     setup_hud_column_access( GrdaWarehouse::Hud::Client.hud_csv_headers(version: '2020') )
 

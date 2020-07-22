@@ -6,7 +6,7 @@
 
 module GrdaWarehouse::Confidence
   class Base < GrdaWarehouseBase
-    include TsqlImport
+    include CustomBulkInsert
     include NotifierConfig
 
     self.table_name = :data_monitorings
