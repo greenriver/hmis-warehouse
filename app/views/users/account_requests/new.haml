@@ -1,7 +1,7 @@
 .row
   .col-sm-6
     %h2= _('Request access to the HMIS Warehouse')
-    .account-request-description= simple_format _('The HMIS Warehouse can be used for homless client care coordination and reporting.')
+    .account-request-description= simple_format _('The HMIS Warehouse can be used for homeless client care coordination and reporting.')
 
     = simple_form_for @account_request, url: users_account_requests_path do |f|
       %h3 General
