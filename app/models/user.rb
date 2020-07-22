@@ -32,6 +32,9 @@ class User < ApplicationRecord
          password_length: 10..128,
          otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
          otp_number_of_backup_codes: 10
+
+  devise :omniauthable, omniauth_providers: %i[cognito]
+
   # has_secure_password # not needed with devise
   # Connect users to login attempts
   has_many :login_activities, as: :user

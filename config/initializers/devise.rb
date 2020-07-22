@@ -1,5 +1,3 @@
-Rails.logger.debug "Running initializer in #{__FILE__}"
-
 # Use this hook to configure devise mailer, warden hooks and so forth.
 # Many of these configuration options can be set straight in your model.
 Devise.setup do |config|
@@ -318,6 +316,19 @@ Devise.setup do |config|
   #   manager.intercept_401 = false
   #   manager.default_strategies(scope: :user).unshift :some_external_strategy
   # end
+
+  if ENV['AWS_COGNITO_APP_ID'].present?
+    config.omniauth(
+      :cognito,
+      ENV.fetch('AWS_COGNITO_APP_ID'),
+      ENV.fetch('AWS_COGNITO_APP_SECRET'),
+      strategy_class: OmniAuth::Strategies::CognitoIdP,
+      aws_region: ENV.fetch('AWS_COGNITO_REGION'),
+      user_pool_id: ENV.fetch('AWS_COGNITO_POOL_ID'),
+      callback_path: '/users/auth/cognito/callback',
+      scope: %i[openid email profile aws.cognito.signin.user.admin]
+    )
+  end
 
   # ==> Mountable engine configurations
   # When using Devise inside an engine, let's call it `MyEngine`, and this engine
