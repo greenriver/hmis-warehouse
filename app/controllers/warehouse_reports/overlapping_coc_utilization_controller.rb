@@ -7,72 +7,169 @@
 module WarehouseReports
   class OverlappingCoCUtilizationController < ApplicationController
     include WarehouseReportAuthorization
+
     RELEVANT_COC_STATE = ENV.fetch('RELEVANT_COC_STATE') do
       GrdaWarehouse::Shape::CoC.order(Arel.sql('random()')).limit(1).pluck(:st)
     rescue StandardError
       'UNKNOWN'
     end
 
-    def index
-      @end_date = (Date.current - 1.years).end_of_year
-      @start_date = @end_date.beginning_of_year
-      @cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
-      @shapes = GrdaWarehouse::Shape.geo_collection_hash(@cocs)
+    private def state_coc_shapes
+      GrdaWarehouse::Shape::CoC.where(
+        st: RELEVANT_COC_STATE,
+      )
     end
 
-    def report_params
-      params.require(:compare).permit(:coc1, :coc2, :start_date, :end_date)
+    private def coc_shapes_with_data
+      state_coc_shapes.where(
+        cocnum: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode),
+      )
+    end
+
+    include ArelHelper
+
+    private def overlap_by_coc_code
+      ::WarehouseReport::OverlappingCoc.new(
+        start_date: filters.start_date,
+        end_date: filters.end_date,
+        coc_code: filters.coc1.cocnum,
+      ).results
+    end
+
+    private def map_shapes
+      GrdaWarehouse::Shape.geo_collection_hash(
+        state_coc_shapes,
+      )
+    end
+    helper_method :map_shapes
+
+    private def bad_request(msg_html)
+      render html: "<h1>Invalid request</h1><p>#{msg_html}</p>".html_safe
+    end
+
+    private def map_data
+      {}.tap do |data|
+        map_shapes[:features].each do |feature|
+          overlap_by_coc_code.each do |coc_code, value|
+            data[feature.dig(:properties, :id).to_s] = value if feature.dig(:properties, :cocnum) == coc_code
+          end
+        end
+      end
+    end
+
+    def index
+      @cocs = state_coc_shapes
+      @shapes = map_shapes
+    end
+
+    def details
+      @report = WarehouseReport::OverlappingCocByProjectType.new(
+        coc_code_1: filters.coc1&.cocnum,
+        coc_code_2: filters.coc2&.cocnum,
+        start_date: filters.start_date,
+        end_date: filters.end_date,
+        project_type: params.dig(:project_type),
+      )
+      @details = Rails.cache.fetch(
+        @report.cache_key.merge(user_id: current_user.id, view: :details_hash),
+        expires_in: 30.minutes,
+      ) do
+        @report.details_hash
+      end
+    rescue WarehouseReport::OverlappingCocByProjectType::Error => e
+      bad_request(e.message)
+    end
+
+    private def filters
+      @filters ||= OverlappingCoCUtilizationForm.new(report_params)
+    end
+    helper_method :filters
+
+    private def report_params
+      return {} if params[:compare].blank?
+
+      params.require(:compare).permit(
+        :coc1_id,
+        :coc2_id,
+        :start_date,
+        :end_date,
+      )
     end
 
     def overlap
-      coc1 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc1))
-      coc2 = GrdaWarehouse::Shape::CoC.find(report_params.require(:coc2))
-      start_date = report_params.require(:start_date)
-      end_date = report_params.require(:end_date)
-      p_type_report = WarehouseReport::OverlappingCocByProjectType.new(
-        coc_code_1: coc1.cocnum,
-        coc_code_2: coc2.cocnum,
-        start_date: start_date,
-        end_date: end_date,
-      )
-      project_types = p_type_report.for_chart
-      funding_sources = WarehouseReport::OverlappingCocByFundingSource.new(
-        coc_code_1: coc1.cocnum,
-        coc_code_2: coc2.cocnum,
-        start_date: start_date,
-        end_date: end_date,
-      ).for_chart
-
-      ###
-      # fake data for testing
-      # project_types = ([
-      #   'CA (Coordinated Assessment)',
-      # ] + GrdaWarehouse::Hud::Project::PROJECT_TYPE_TITLES.values).map do |type|
-      #   [type, [rand(100), rand(100)]]
-      # end
-      # project_types << ['All Program Types (Unique Clients)', [150, 175]]
-      # funding_sources = [
-      #   'State',
-      #   'ESG (Emergency Solutions Grants)',
-      # ].map do |source|
-      #   [source, [rand(100), rand(100)]]
-      # end
-      # funding_sources << ['All Funding Sources (Unique Clients)', [150, 175]]
-      cocs = GrdaWarehouse::Shape::CoC.where(st: RELEVANT_COC_STATE).efficient.order('cocname')
-      map_data = {}
-      GrdaWarehouse::Shape.geo_collection_hash(cocs)[:features].each do |feature|
-        map_data[feature.dig(:properties, :id).to_s] = rand(225)
+      coc1 = filters.coc1
+      coc2 = filters.coc2
+      report_html = if coc1 && coc2
+        begin
+          report = WarehouseReport::OverlappingCocByProjectType.new(
+            coc_code_1: coc1.cocnum,
+            coc_code_2: coc2&.cocnum,
+            start_date: filters.start_date,
+            end_date: filters.end_date,
+          )
+          Rails.cache.fetch(
+            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.5),
+            expires_in: 30.minutes,
+          ) do
+            render_to_string(partial: 'overlap', locals: { report: report })
+          end
+        rescue WarehouseReport::OverlappingCocByProjectType::Error => e
+          e.message
+        end
       end
-      ###
-      locals = {
-        start_date: params.dig(:compare, :start_date),
-        end_date: params.dig(:compare, :end_date),
-        project_types: project_types,
-        funding_sources: funding_sources,
-        overlapping_client_count: p_type_report.all_overlapping_clients,
+
+      payload = {
+        coc1: coc1.number_and_name,
+        coc2: coc2&.number_and_name,
+        map_title: "#{coc1.number_and_name} shared clients with the following CoCs",
+        map: map_data,
+        html: report_html,
+        subtitle: "Served between #{filters.start_date} - #{filters.end_date}",
       }
-      html = render_to_string partial: 'overlap', locals: locals
-      render json: { map: map_data, html: html }
+      if coc1 && coc2
+        payload[:title] = "Clients served in both #{filters.coc1.number_and_name} and #{filters.coc2.number_and_name}"
+      else
+        payload[:title] = "Clients in #{filters.coc1.number_and_name} overlapping with other CoCs"
+      end
+      render json: payload
+    end
+
+    class OverlappingCoCUtilizationForm
+      attr_accessor :coc1_id, :coc2_id, :start_date, :end_date
+
+      def coc1
+        coc1_id ? (@coc1 ||= GrdaWarehouse::Shape::CoC.find(coc1_id)) : nil
+      end
+
+      def coc2
+        coc2_id ? (@coc2 ||= GrdaWarehouse::Shape::CoC.find(coc2_id)) : nil
+      end
+
+      def to_params
+        {
+          coc1_id: coc1_id,
+          coc2_id: coc2_id,
+          start_date: start_date,
+          end_date: end_date,
+        }
+      end
+
+      def initialize(attr)
+        assign_attributes(attr)
+      end
+
+      def assign_attributes(attr)
+        self.end_date = parse_date(attr[:end_date]) || (Date.current - 1.years).end_of_year
+        self.start_date = parse_date(attr[:start_date]) || end_date.beginning_of_year
+        self.coc1_id = attr[:coc1_id].presence
+        self.coc2_id = attr[:coc2_id].presence
+      end
+
+      private def parse_date(str)
+        Date.parse(str)
+      rescue StandardError
+        nil
+      end
     end
   end
 end

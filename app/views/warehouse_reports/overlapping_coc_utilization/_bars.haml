@@ -1,7 +1,6 @@
 - relative_total ||= values.sum
-- colors ||= ['#36a4a6', '#265479']
-.c-bar-viz
-  .c-bar-viz__total=values.sum
-  .c-bar-viz__bars
-    - values.each_with_index do |value, i|
-      .c-bar-viz__bar{style: "width: #{(value.to_f/relative_total.to_f)*100}%; background: #{colors[i]}"}
+- colors ||= ['#fca736', '#ffe09b']
+- labels ||= ['asynchronous', 'concurrent']
+.progress
+  - values.each_with_index do |value, i|
+    .progress-bar{style: "width: #{(value.to_f/relative_total.to_f)*100}%; background: #{colors[i]}", data: {toggle:"tooltip"}, title: "#{value} shared #{labels[i]} clients with #{filters.coc2.cocnum}"}

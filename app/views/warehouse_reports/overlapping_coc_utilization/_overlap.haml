@@ -1,32 +1,26 @@
-%hr.my-8{style: 'border-top: 3px solid #d5d5dc'}
-
+:ruby
+  detail_url = -> (extra_params={}) do
+    details_warehouse_reports_overlapping_coc_utilization_index_path(
+      {compare: filters.to_params}.merge(extra_params)
+    )
+  end
+  project_types = report.chart_by_project_type
 .mb-4
-  %h2.mb-5 Count of Asynchronously and Concurrently Overlapping Clients
-  .row.flex-wrap
-    .col
-      %p.font-weight-bold.mb-2 Time Range
-      %p #{start_date} - #{end_date}
-    .col
-      %p.font-weight-bold.mb-2 Total Shared Clients
-      %p{style: 'font-weight: bold; font-size: 24px; '}= overlapping_client_count
-
-.mb-8
-  = render 'table', scope: 'project_type' do
-    - relative_total = project_types.map(&:last).flatten.max
-    - project_types.sort_by{ |s| -s.last.sum }.each do |project_type, values|
-      %tr
-        %td{style: 'width: 35%'}= project_type
-        %td{style: 'width: 35%'}
-          = render 'bars', relative_total: relative_total, values: values
-        %td{style: 'width: 15%'}= values.first
-        %td{style: 'width: 15%'}= values.last
-.mb-6
-  = render 'table', scope: 'funding_source' do
-    - relative_total = funding_sources.map(&:last).flatten.max
-    - funding_sources.sort_by{ |s| -s.last.sum}.each do |source, values|
-      %tr
-        %td{style: 'width: 35%'}= source
-        %td{style: 'width: 35%'}
-          = render 'bars', relative_total: relative_total, values: values
-        %td{style: 'width: 15%'}= values.first
-        %td{style: 'width: 15%'}= values.last
+  %p
+    %span{style: 'font-weight: bold; font-size: 24px; '}
+      = link_to detail_url.() do
+        = report.total_shared_clients
+    %span.font-weight-bold.mb-2 Total Shared Clients
+- if project_types.any?
+  .mb-8
+    = render 'table', scope: 'project_type' do
+      - relative_total = project_types.map(&:second).flatten.max
+      - project_types.sort_by{ |s| -s.second.sum }.each do |name, values, id|
+        %tr
+          %td{style: 'width: 35%'}
+            = link_to detail_url.(project_type: id) do
+              = name
+          %td
+            = values.sum
+          %td{colspan: 2}
+            = render 'bars', relative_total: relative_total, values: values

@@ -8,12 +8,13 @@ module GrdaWarehouse
       end
 
       def number_and_name
-        "#{cocnum} #{cocname}"
+        "#{cocname} (#{cocnum})"
       end
 
       def additional_geo_json_properties
         {
-          'metric' => Random.rand
+          cocnum: cocnum,
+          cocname: cocname
         }
       end
 

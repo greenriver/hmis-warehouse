@@ -1,0 +1,43 @@
+:css
+  .fix-date-picker .date_picker .input-group {
+    max-width: inherit;
+  }
+= simple_form_for filters, as: :compare, url: url_for(action: :overlap), html: {id: form_id}, method: :get do |f|
+  .row.fix-date-picker
+    .col-lg-6
+      .row
+        .col-md-6
+          = f.input :coc1_id,
+            collection: @cocs,
+            value_method: :id,
+            label_method: :number_and_name,
+            required: true,
+            label: 'Primary CoC',
+            input_html: { class: [:select2], id: 'compare_coc1'}
+        .col-md-6
+          = f.input :coc2_id,
+            collection: @cocs,
+            value_method: :id,
+            label_method: :number_and_name,
+            required: false,
+            label: 'Secondary CoC',
+            input_html: { class: [:select2], id: 'compare_coc2'}
+    .col-lg-6
+      .row
+        .col-md-6
+          = f.input :start_date,
+            as: :date_picker,
+            label: 'Service Start Date',
+            required: true,
+            input_html: {id: 'compare_start_date'}
+        .col-md-6
+          = f.input :end_date,
+            as: :date_picker,
+            label: '&nbsp;'.html_safe,
+            label: 'Service End Date',
+            required: true,
+            input_html: {id: 'compare_end_date'}
+  .d-flex.align-items-center.justify-content-end
+    .mr-4 Choose a Primary CoC to continue
+    %div
+      %button.btn.btn-primary.j-submit-button(type='button') Update

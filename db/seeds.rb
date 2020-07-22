@@ -852,6 +852,11 @@ def maintain_lookups
     GrdaWarehouse::Lookups::Relationship.delete_all
     columns = [:value, :text]
     GrdaWarehouse::Lookups::Relationship.import(columns, HUD.relationships_to_hoh.to_a)
+end
+
+def install_shapes
+  if GrdaWarehouse::Shape::ZipCode.none? || GrdaWarehouse::Shape::CoC.none?
+    Rake::Task['grda_warehouse:get_shapes'].invoke
   end
 end
 

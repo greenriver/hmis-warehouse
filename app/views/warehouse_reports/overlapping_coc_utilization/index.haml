@@ -1,79 +1,40 @@
-:scss
-  .date_picker .input-group {
-    max-width: none
-  }
-  .select2-selection.select2-selection--single {
-    background: white;
-  }
-  #compare_coc1 ~ .select2 {
-    $color: #fca736;
-    .select2-selection {
-      border: 1px solid $color;
-    }
-  }
-  #compare_coc2 ~ .select2 {
-    $color: #ffe09b;
-    .select2-selection {
-      border: 1px solid $color;
-    }
-  }
-  .c-input-group {
-    margin-bottom: 50px;
-  }
-  .c-input-group__description {
-    font-size: 16px;
-    font-weight: 600;
-  }
-  .input-group-append button {
-    align-items: center;
-    font-size: 18px;
-  }
+:ruby
+  title = "Overlapping CoC Utilization"
+  content_for :title, title
+  report_id = 'coc-overlap-report'
+  map_id = report_id + '-map'
+  results_id = report_id + '-results'
+  form_id = report_id + '-form'
 
-- title = "Overlapping CoC Utilization"
-- content_for :title, title
-= render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
 
 .l-page-heading.mb-4
   %h1= title
 
-- report_id = 'coc-overlap-report'
-- map_id = report_id + '-map'
-- results_id = report_id + '-results'
-
 .warehouse-reports__ad_hoc-export.c-report{id: report_id}
-  .row.pb-8
-    .col-md-5
-      %p.mb-6 This report summarizes the overlaps in clients and services betweeen CoCs you have shared access with.
-      = simple_form_for :compare, url: url_for, method: :get do |f|
-        .c-input-group
-          %p.c-input-group__description To start, select a time range:
-          = f.input :start_date, as: :date_picker, input_html: {value: @start_date}
-          = f.input :end_date, as: :date_picker, input_html: {value: @end_date}
-        .c-input-group
-          %p.c-input-group__description Select two CoCs below or by clicking on the map:
-          %div.d-flex
-            .c-swatch.mr-2{style: 'flex: 1 1 5%; max-width: 5%'}
-              .c-swatch__display.c-swatch__display--map-0
-            %div{style: 'flex: 1 1 95%; max-width: 95%'}
-              = f.input :coc1, collection: @cocs, value_method: :id, label_method: :number_and_name, required: true, label: 'CoC 1', input_html: { class: [:select2] }
-          %div.d-flex
-            .c-swatch.mr-2{style: 'flex: 1 1 5%; max-width: 5%'}
-              .c-swatch__display.c-swatch__display--map-1
-            %div{style: 'flex: 1 1 95%; max-width: 95%'}
-              = f.input :coc2, collection: @cocs, value_method: :id, label_method: :number_and_name, required: true, label: 'CoC 2', input_html: { class: [:select2] }
-    .col-md-6.ml-auto.d-flex.flex-column
-      .coc-util-overlap.mb-6.o-container--with-loader{id: map_id}
-      = render 'common/gradient_legend', labels: ['[MAX] Overlapping Clients', 'No Overlapping Clients'], colors: ['#0154A6', '#FFFFFF']
-
-  %div.o-container--with-loader{id: results_id}
+  .pb-5(style='border-bottom: 1px solid #ccc; margin-bottom: 3em')
+    = render 'form', form_id: form_id
+  %h2.mb-6
+    .j-title
+    .small.j-subtitle
+  .row
+    .col-md-6
+      = render 'map', map_id: map_id
+    .col-md-6
+      %div.o-container--with-loader{id: results_id, style: 'min-height: 600px;'}
+        .d-flex
+          .mr-2
+            %i.icon-info
+          .text-lead
+            Select two dfferent CoCs for a breakdown of services provided to shared clients of Primary CoC and Secondary CoC.
 
 = content_for :page_js do
   :javascript
-    new App.Reports.CocOverlap('#{report_id}', {
-      map: {
+    App.Reports.cocOverlap({
+      resultsSelector: '##{results_id}',
+      formSelector: '##{form_id}',
+      mapProps: {
         elementId: "#{map_id}",
         shapes: #{@shapes.to_json.html_safe},
       },
-      inputs: [ '#compare_coc1', '#compare_coc2'],
-      dateInputs: [ '#compare_start_date', '#compare_end_date'],
     })
