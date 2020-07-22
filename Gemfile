@@ -53,6 +53,7 @@ gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
 gem 'omniauth'
+gem 'omniauth-rails_csrf_protection', '~> 0.1' #CVE-2015-9284 mitigation
 gem 'pretender'
 gem 'rqrcode-rails3'
 gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
