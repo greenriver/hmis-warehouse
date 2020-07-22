@@ -4,7 +4,7 @@
   }
   .fix-select2 .select2-selection {
     background: #fff !important;
-    padding: 0.5rem !important;
+    padding: 0.58rem !important;
     min-height: initial !important;
   }
 = simple_form_for filters, as: :compare, url: url_for(action: :overlap), html: {id: form_id}, method: :get do |f|
@@ -44,5 +44,9 @@
             input_html: {id: 'compare_end_date'}
   .d-flex.align-items-center.justify-content-end
     .j-submit-button-prompt.mr-4{class: filters.coc1 ? 'd-none' : nil} Select a Primary CoC
+    .j-submit-button-loading.mr-4.d-none
+      .d-flex
+        .mr-2= render 'spinner'
+        %div Loading&hellip;
     %div
       %button.btn.btn-primary.j-submit-button(type='button' disabled) Update

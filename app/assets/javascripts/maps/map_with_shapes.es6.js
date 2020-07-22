@@ -10,6 +10,7 @@ App.Maps.MapWithShapes = class MapWithShapes {
     this.onEachFeature = this.onEachFeature.bind(this);
     this.updateShapes = this.updateShapes.bind(this);
     this.highlightPrimary = this.highlightPrimary.bind(this);
+    this.resetHighlight = this.resetHighlight.bind(this);
     this.highlightSecondary = this.highlightSecondary.bind(this);
     this.elementId = elementId;
     this.shapes = shapes;
@@ -134,7 +135,9 @@ App.Maps.MapWithShapes = class MapWithShapes {
   }
 
   highlightPrimary(id) {
+    //this.resetHighlight(this.primaryId);
     const layer = this.getLayerById(id);
+    this.primaryId = id;
     if (layer) {
       layer.setStyle({ fillColor: '#36a4a6', fillOpacity: 1 });
       this.bringLayerToFront(layer);
@@ -142,11 +145,19 @@ App.Maps.MapWithShapes = class MapWithShapes {
   }
 
   highlightSecondary(id) {
+    //this.resetHighlight(this.secondaryId);
     const layer = this.getLayerById(id);
     this.secondaryId = id;
     if (layer) {
       layer.setStyle({ color: '#265479', weight: 3, opacity: 1 });
       this.bringLayerToFront(layer);
+    }
+  }
+
+  resetHighlight(id) {
+    const layer = this.getLayerById(id);
+    if (layer) {
+      this.geojson.resetStyle(layer);
     }
   }
 
@@ -204,9 +215,9 @@ App.Maps.MapWithShapes = class MapWithShapes {
     return layer.on(handlers);
   }
 
-  updateShapes(shapes) {
+  updateShapes({ shapes, primaryId, secondaryId }) {
     this.showingData = true;
-    return this.geojson.getLayers().forEach((l) => {
+    this.geojson.getLayers().forEach((l) => {
       const shapeMetric = shapes[l.feature.properties.id];
       l.feature.properties.metric = shapeMetric;
       return l.setStyle({
@@ -214,5 +225,7 @@ App.Maps.MapWithShapes = class MapWithShapes {
         fillOpacity: 1,
       });
     });
+    this.highlightPrimary(primaryId);
+    this.highlightSecondary(secondaryId);
   }
 };
