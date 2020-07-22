@@ -5,7 +5,6 @@
   - content_for :title, title
   %h1= content_for :title
   .row
-    .col-sm-7
-      %p.home-intro
-        = _('Boston DND Warehouse')
-    .col-sm-5
+    .col-sm-8
+      .well
+        = render 'login_form'
