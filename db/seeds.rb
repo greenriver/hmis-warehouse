@@ -198,7 +198,7 @@ def report_list
       {
         url: 'warehouse_reports/overlapping_coc_utilization',
         name: 'Overlapping CoC Utilization',
-        description: 'Overlapping CoC utilization',
+        description: 'Explore enrollments for CoCs with shared clients',
         limitable: true,
       },
     ],
@@ -823,7 +823,10 @@ end
 
 def install_shapes
   if GrdaWarehouse::Shape::ZipCode.none? || GrdaWarehouse::Shape::CoC.none?
-    Rake::Task['grda_warehouse:get_shapes'].invoke
+    begin
+      Rake::Task['grda_warehouse:get_shapes'].invoke
+    rescue Exception
+    end
   end
 end
 

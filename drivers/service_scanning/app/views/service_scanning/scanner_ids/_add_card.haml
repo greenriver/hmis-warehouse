@@ -1,0 +1,6 @@
+.well
+  = simple_form_for @card, as: :card, url: service_scanning_scanner_ids_path, data: { submits_to_pjax_modal: request.xhr? } do |f|
+    = f.hidden_field :id, value: @client.id
+    = f.input :scanned_id, label: 'Scan Card ID', hint: 'Scan the card into this box'
+    .mt-4.form-group.pb-4
+      = f.button :submit, value: 'Add Scan Card ID'
