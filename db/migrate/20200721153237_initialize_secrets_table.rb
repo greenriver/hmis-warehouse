@@ -1,5 +1,7 @@
 class InitializeSecretsTable < ActiveRecord::Migration[5.2]
   def up
-    Rake::Task['secrets:init'].execute
+    if Encryption::Util.encryption_enabled?
+      Rake::Task['secrets:init'].execute
+    end
   end
 end

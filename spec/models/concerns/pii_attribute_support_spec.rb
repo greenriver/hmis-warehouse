@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe PIIAttributeSupport, type: :model do
+RSpec.describe PIIAttributeSupport, :pii, type: :model do
   let(:person_class) do
     Class.new(GrdaWarehouseBase) do |k|
       k.table_name = 'people_for_testing'
@@ -24,8 +24,13 @@ RSpec.describe PIIAttributeSupport, type: :model do
     SQL
   end
 
+  # Turn PII encryption on for the spec
+  before(:each) { allow(Encryption::Util).to receive(:encryption_enabled?) { true } }
+
+  # Want to test for encryption-related exceptions being thrown
+  before(:each) { Encryption::SoftFailEncryptor.pii_soft_failure = false }
+
   before(:each) do
-    Encryption::SoftFailEncryptor.pii_soft_failure = false
     person_class.allow_pii!
     person_class.current_pii_key = SecureRandom.hex(16)
     person.first_name = 'Larry'

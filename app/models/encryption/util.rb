@@ -8,12 +8,16 @@ module Encryption
   class Util
     SECRET_ID = ENV.fetch('ENCRYPTION_SECRET_ARN') { 'disabled' }
 
+    def self.encryption_disabled?
+      SECRET_ID.blank? || !SECRET_ID.starts_with?('arn:aws:secretsmanager:')
+    end
+
     def self.encryption_enabled?
-      new.encryption_enabled?
+      !encryption_disabled?
     end
 
     # Run once to get an empty secret if you need it
-    def bootstrap!
+    def self.bootstrap!
       default_name = [
         ENV.fetch('CLIENT') { 'unknown-client' },
         'warehouse',
@@ -28,23 +32,26 @@ module Encryption
       ap response.arn
     end
 
-    def init!
-      return unless Secret.count == 0
+    def self.init!
+      return if Secret.count > 1
 
       # To reduce complexity, the first entry is not an actual secret. This
       # prevents needing code that only runs the first time (beyond this simple
       # method of course)
-      Secret.create!({
-        current: true,
-        previous: false,
+      secret = Secret.where({
         version_stage: 'bootstrap-do-not-use',
         version_id: 'bootstrap-do-not-use'
+      }).first_or_initialize
+
+      secret.update!({
+        current: true,
+        previous: false,
       })
 
       Secret.current.rotate!
     end
 
-    def history
+    def self.history
       response = _client.list_secret_version_ids({
         secret_id: SECRET_ID,
       })
@@ -58,7 +65,7 @@ module Encryption
       versions
     end
 
-    def prune!(limit=50)
+    def self.prune!(limit=50)
       count = 0
       history.each do |version|
         version.version_stages.each do |stage|
@@ -76,29 +83,20 @@ module Encryption
       end
     end
 
-    def get_key(version_id)
+    def self.get_key(version_id)
       resp = _client.get_secret_value({
         secret_id: SECRET_ID,
         version_id: version_id,
       })
       JSON.parse(resp.secret_string)['encryption_key']
-    rescue Aws::Errors::SeviceError
+    rescue Aws::Errors::ServiceError
       Rails.logger.error "Could not get secret requested"
       'secret-not-found'
     end
 
-    # TDB: FIXME: make this dynamic so we can turn off for most specs
-    def encryption_disabled?
-      SECRET_ID == 'disabled' || SECRET_ID.blank?
-    end
-
-    def encryption_enabled?
-      !encryption_disabled?
-    end
-
     private
 
-    def _client
+    def self._client
       @_client ||= Aws::SecretsManager::Client.new
     end
   end

@@ -115,6 +115,9 @@ jobs:
 
      - name: Prepare test db
        env:
+         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+         AWS_REGION: us-east-1
+         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
          CLIENT: test
          DATABASE_ADAPTER: postgresql
          DATABASE_APP_DB_TEST: boston_hmis_test
@@ -125,6 +128,7 @@ jobs:
          DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
          DEFAULT_FROM: greenriver.testing@mailinator.com
          ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+         ENCRYPTION_SECRET_ARN: ${{ secrets.ENCRYPTION_SECRET_ARN }}
          FQDN: openpath.host
          HEALTH_DATABASE_ADAPTER: postgresql
          HEALTH_DATABASE_DB_TEST: health_test
@@ -197,4 +201,8 @@ jobs:
          WAREHOUSE_DATABASE_USER: postgres
          WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
        run: |
-         bundle exec rspec --color --format documentation
+         echo testing non-pii code which is the bulk of the suite
+         ENCRYPTION_SECRET_ARN=disabled bundle exec rspec --color --format documentation --tag ~pii
+
+         echo testing pii code
+         bundle exec rspec --color --format documentation --tag pii

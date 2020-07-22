@@ -251,11 +251,8 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
     end
   end
 
-  describe "encrypted PII behaviors" do
+  describe "with PII encrypted", :pii do
     before(:all) do
-      raise "turn pii on"
-      GrdaWarehouse::Hud::Client.current_pii_key
-
       GrdaWarehouse::Utility.clear!
       @delete_later = []
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
@@ -268,19 +265,70 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
       cleanup_files
     end
 
-    it 'the database will have three source clients' do
-      # spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_files/source/Client.csv
-      raise "add middle"
-      raise "add ssn"
-      raise "add suffix"
-      raise "test them"
-      #expect(GrdaWarehouse::Hud::Client.source.where(PersonalID: 2f4b...).first.LastName ).to eq('One')
-      #expect(GrdaWarehouse::Hud::Client.source.where(PersonalID: 2f4b...).first.read_attribute(:LastName) ).to_not eq('One')
+    let(:client_a) do
+      GrdaWarehouse::Hud::Client.source.find_by(PersonalID: "2f4b963171644a8b9902bdfe79a4b403")
+    end
+
+    # Base64 encoded values are expected like you see below, so those lines
+    # here just prove it's valid base64 as a sanity check
+    it 'will encrypt' do
+      client_a.class.allow_pii!
+
+      expect(client_a.FirstName).to eq("ClientA")
+      expect(client_a.read_attribute(:FirstName)).to be_nil
+      Base64.decode64(client_a.encrypted_FirstName)
+      Base64.decode64(client_a.encrypted_FirstName_iv)
+      expect(client_a.MiddleName).to eq("A")
+      expect(client_a.read_attribute(:MiddleName)).to be_nil
+      Base64.decode64(client_a.encrypted_MiddleName)
+      Base64.decode64(client_a.encrypted_MiddleName_iv)
+      expect(client_a.LastName).to eq("One")
+      expect(client_a.read_attribute(:LastName)).to be_nil
+      Base64.decode64(client_a.encrypted_LastName)
+      Base64.decode64(client_a.encrypted_LastName_iv)
+      expect(client_a.SSN).to eq("111111111")
+      expect(client_a.read_attribute(:SSN)).to be_nil
+      Base64.decode64(client_a.encrypted_SSN)
+      Base64.decode64(client_a.encrypted_SSN_iv)
     end
   end
 
-  describe "unencrypted PII behaviors" do
-      raise "flipside of above"
+  describe "with PII unencrypted" do
+    before(:all) do
+      GrdaWarehouse::Utility.clear!
+      @delete_later = []
+      @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
+      file_path = 'spec/fixtures/files/importers/hmis_twenty_twenty/enrollment_test_files'
+      import(file_path, @data_source)
+    end
+    after(:all) do
+      # Because we are only running the import once, we have to do our own DB and file cleanup
+      GrdaWarehouse::Utility.clear!
+      cleanup_files
+    end
+
+    let(:client_a) do
+      GrdaWarehouse::Hud::Client.source.find_by(PersonalID: "2f4b963171644a8b9902bdfe79a4b403")
+    end
+
+    it 'will not encrypt' do
+      expect(client_a.FirstName).to eq("ClientA")
+      expect(client_a.read_attribute(:FirstName)).to eq("ClientA")
+      expect(client_a.encrypted_FirstName).to be_nil
+      expect(client_a.encrypted_FirstName_iv).to be_nil
+      expect(client_a.MiddleName).to eq("A")
+      expect(client_a.read_attribute(:MiddleName)).to eq("A")
+      expect(client_a.encrypted_MiddleName).to be_nil
+      expect(client_a.encrypted_MiddleName_iv).to be_nil
+      expect(client_a.LastName).to eq("One")
+      expect(client_a.read_attribute(:LastName)).to eq("One")
+      expect(client_a.encrypted_LastName).to be_nil
+      expect(client_a.encrypted_LastName_iv).to be_nil
+      expect(client_a.SSN).to eq("111111111")
+      expect(client_a.read_attribute(:SSN)).to eq("111111111")
+      expect(client_a.encrypted_SSN).to be_nil
+      expect(client_a.encrypted_SSN_iv).to be_nil
+    end
   end
 
   def import(file_path, data_source)

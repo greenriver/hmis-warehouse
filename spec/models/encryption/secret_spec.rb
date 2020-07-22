@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Encryption::Secret, type: :model do
+RSpec.describe Encryption::Secret, :pii, type: :model do
   before(:all) do
     GrdaWarehouseBase.connection.execute(<<~SQL)
       CREATE TEMPORARY TABLE client_for_testing (
@@ -18,8 +18,7 @@ RSpec.describe Encryption::Secret, type: :model do
     SQL
   end
 
-  before(:all) { Encryption::Util.new.init! }
-
+  before(:each) { allow(Encryption::Util).to receive(:encryption_enabled?) { true } }
   before(:each) { client_class.allow_pii! }
 
   let(:subject) { Encryption::Secret }

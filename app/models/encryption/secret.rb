@@ -26,8 +26,6 @@
       end
 
       def rotate!(&block)
-        return if Util.new.encryption_disabled?
-
         if block_given?
           SecretRotation.new(self).run!(&block)
         else
@@ -36,7 +34,7 @@
       end
 
       def plaintext_key
-        Util.new.get_key(version_id)
+        Util.get_key(version_id)
       end
 
       private

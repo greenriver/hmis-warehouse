@@ -36,6 +36,16 @@ module PIIAttributeSupport
       end
     end
 
+    #def encrypt(encoded_cipher_text, encoded_iv)
+    #    if allow_pii?
+    #      cipher_text = Base64.decode64(encoded_cipher_text)
+    #      iv = Base64.decode64(encoded_iv)
+    #      Encryption::SoftFailEncryptor.decrypt(value: cipher_text, key: pii_encryption_key, iv: iv)
+    #    else
+    #      '[REDACTED]'
+    #    end
+    #  end
+
     def pluck(*args)
       # without encryption, just do the normal thing
       super(*args) unless Encryption::Util.encryption_enabled?
@@ -100,7 +110,7 @@ module PIIAttributeSupport
     end
 
     def attr_pii(column_name)
-      if Encryption::Util.new.encryption_enabled?
+      if Encryption::Util.encryption_enabled?
         attr_encrypted(column_name, key: :pii_encryption_key, encryptor: Encryption::SoftFailEncryptor)
 
         Encryption::SoftFailEncryptor.pii_soft_failure = (ENV['PII_SOFT_FAIL'] == 'true')

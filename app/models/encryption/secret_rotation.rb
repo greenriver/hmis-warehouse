@@ -56,7 +56,7 @@ module Encryption
     rescue Aws::SecretsManager::Errors::LimitExceededException => e
       raise e unless first_try
       Rails.logger.warn "Pruning some stages and trying again"
-      Util.new.prune!(5)
+      Util.prune!(5)
       run!(&block)
     end
 

@@ -2,7 +2,7 @@ namespace :secrets do
   desc "Rotate out the first placeholder secret for a real one"
   task :init, [] => [:environment] do |t, args|
     # Rotate out the first placeholder secret for a real one
-    Encryption::Util.new.init!
+    Encryption::Util.init!
   end
 
   desc "copy over cleartext"
@@ -73,6 +73,6 @@ namespace :secrets do
 
   desc "Show secret versions"
   task :show_versions, [] => [:environment] do |t, args|
-    ap Encryption::Util.new.history
+    ap Encryption::Util.history
   end
 end

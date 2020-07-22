@@ -6,41 +6,78 @@
 
 module TsqlImport
   extend ActiveSupport::Concern
-  included do
-    def batch_insert_template(klass, columns)
-      @batch_insert_template = begin
-        tn = klass.quoted_table_name
-        cols = columns.map { |c| klass.connection.quote_column_name c }.join(',')
-        "INSERT INTO #{tn} (#{cols}) VALUES "
+
+  def insert_batch(klass, columns, values, transaction: true, batch_size: 200)
+    return if values.empty?
+
+    if transaction
+      klass.transaction do
+        _process klass, columns, values, batch_size: batch_size
       end
+    else
+      _process klass, columns, values, batch_size: batch_size
+    end
+  end
+
+  private
+
+  def _process(klass, columns, values, batch_size: 200)
+    needs_encryption = klass.included_modules.include?(PIIAttributeSupport) && Encryption::Util.encryption_enabled?
+
+    if needs_encryption
+      values = _transform_values(klass, columns, values)
+      columns = _transform_columns(klass, columns)
     end
 
-    def insert_batch(klass, columns, values, transaction: true, batch_size: 200)
-      return if values.empty?
+    klass.import columns, values, batch_size: batch_size
+  end
 
-      if transaction
-        klass.transaction do
-          process klass, columns, values, batch_size: batch_size
-        end
-      else
-        process klass, columns, values, batch_size: batch_size
-      end
-    end
+  def _transform_values(klass, columns, values)
+    @saved_allow_pii = klass.allow_pii?
+    klass.allow_pii!
 
-    def process(klass, columns, values, batch_size: 200)
-      cmd = batch_insert_template(klass, columns).to_s
-      # tsql limits bulk inserts to 1000 rows
-      values.each_slice(batch_size) do |a|
-        values_sql = a.map do |row|
-          quoted_values = row.map { |val| klass.connection.quote(val) }
-          "(#{quoted_values.join(',')})"
-        end.join(',')
-        klass.benchmark "#{klass}#insert_batch: #{a.size} rows" do
-          klass.logger.silence do
-            sql = "#{cmd} #{values_sql}"
-            klass.connection.execute sql
+    transformers =
+      columns.map(&:to_sym).map do |column|
+        if column.in?(klass.encrypted_attributes.keys)
+          ->(val) do
+            # TODO: move to pii concern once working
+            iv = SecureRandom.bytes(12)
+            cipher_text = Encryption::SoftFailEncryptor.encrypt(value: val, key: klass.pii_encryption_key, iv: iv)
+
+            [
+              Base64.encode64(cipher_text),
+              Base64.encode64(iv),
+            ]
           end
+        else
+          ->(val) { [val] }
         end
+      end
+
+    values.map do |record|
+      result = []
+      transformers.each.with_index do |func, i|
+        result += func.call(record[i])
+      end
+      result
+    end
+  ensure
+    if @saved_allow_pii
+      klass.allow_pii!
+    else
+      klass.deny_pii!
+    end
+  end
+
+  def _transform_columns(klass, columns)
+    columns.map(&:to_sym).flat_map do |column|
+      if column.in?(klass.encrypted_attributes.keys)
+        [
+          klass.encrypted_attributes.dig(column, :attribute),
+          "#{encrypted_attributes.dig(column, :attribute)}_iv".to_sym,
+        ]
+      else
+        [column]
       end
     end
   end
