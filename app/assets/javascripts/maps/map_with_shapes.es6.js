@@ -57,7 +57,6 @@ App.Maps.MapWithShapes = class MapWithShapes {
 
     this.info.update = (props) => {
       if (props != null) {
-        console.log(props)
         this._div.innerHTML = `<h4>${props.name} (${props.cocnum})</h4>`;
         if (props.id == this.primaryId) {
           this._div.innerHTML =
@@ -227,6 +226,7 @@ App.Maps.MapWithShapes = class MapWithShapes {
     this.geojson.getLayers().forEach((l) => {
       const shapeMetric = shapes[l.feature.properties.id];
       l.feature.properties.metric = shapeMetric;
+      this.geojson.resetStyle(l);
       return l.setStyle({
         fillColor: this.getColor(shapeMetric),
         fillOpacity: 1,
