@@ -330,6 +330,7 @@ GEM
       execjs (~> 2.0)
       sprockets (>= 2.0.0)
       tilt (>= 1.2)
+    hashie (4.1.0)
     heapy (0.1.4)
     hellosign-ruby-sdk (3.7.7)
       faraday
@@ -432,6 +433,9 @@ GEM
       nenv (~> 0.1)
       shellany (~> 0.0)
     oauth (0.5.4)
+    omniauth (1.9.1)
+      hashie (>= 3.4.6)
+      rack (>= 1.6.2, < 3)
     orm_adapter (0.5.0)
     overcommit (0.52.1)
       childprocess (>= 0.6.3, < 4)
@@ -812,6 +816,7 @@ DEPENDENCIES
   net-sftp
   nokogiri (>= 1.7.1)
   nominatim
+  omniauth
   overcommit
   paper_trail
   paranoia (~> 2.0)
