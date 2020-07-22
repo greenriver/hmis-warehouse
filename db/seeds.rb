@@ -823,7 +823,10 @@ end
 
 def install_shapes
   if GrdaWarehouse::Shape::ZipCode.none? || GrdaWarehouse::Shape::CoC.none?
-    Rake::Task['grda_warehouse:get_shapes'].invoke
+    begin
+      Rake::Task['grda_warehouse:get_shapes'].invoke
+    rescue Exception
+    end
   end
 end
 
