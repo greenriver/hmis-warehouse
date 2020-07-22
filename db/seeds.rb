@@ -858,6 +858,7 @@ def maintain_lookups
     GrdaWarehouse::Lookups::Relationship.delete_all
     columns = [:value, :text]
     GrdaWarehouse::Lookups::Relationship.import(columns, HUD.relationships_to_hoh.to_a)
+  end
 end
 
 def install_shapes
