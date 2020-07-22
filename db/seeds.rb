@@ -197,7 +197,7 @@ def report_list
       },
       {
         url: 'warehouse_reports/overlapping_coc_utilization',
-        name: 'Overlapping CoC Utilization',
+        name: 'Inter-CoC Client Overlap',
         description: 'Explore enrollments for CoCs with shared clients',
         limitable: true,
       },

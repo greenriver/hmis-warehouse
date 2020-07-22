@@ -97,7 +97,8 @@ module WarehouseReports
     end
 
     def overlap
-      coc1, coc2 = filters.coc1, filters.coc2
+      coc1 = filters.coc1
+      coc2 = filters.coc2
       report_html = if coc1 && coc2
         begin
           report = WarehouseReport::OverlappingCocByProjectType.new(
@@ -107,7 +108,7 @@ module WarehouseReports
             end_date: filters.end_date,
           )
           Rails.cache.fetch(
-            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.91),
+            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.92),
             expires_in: 30.minutes,
           ) do
             render_to_string(partial: 'overlap', locals: { report: report })
@@ -151,7 +152,7 @@ module WarehouseReports
           coc1_id: coc1_id,
           coc2_id: coc2_id,
           start_date: start_date,
-          end_date: end_date
+          end_date: end_date,
         }
       end
 
@@ -161,20 +162,16 @@ module WarehouseReports
 
       def assign_attributes(attr)
         self.end_date = parse_date(attr[:end_date]) || (Date.current - 1.years).end_of_year
-        self.start_date = parse_date(attr[:start_date]) || self.end_date.beginning_of_year
+        self.start_date = parse_date(attr[:start_date]) || end_date.beginning_of_year
         self.coc1_id = attr[:coc1_id].presence
         self.coc2_id = attr[:coc2_id].presence
       end
 
       private def parse_date(str)
-        begin
-          Date.parse(str)
-        rescue
-          nil
-        end
+        Date.parse(str)
+      rescue StandardError
+        nil
       end
-
     end
-
   end
 end

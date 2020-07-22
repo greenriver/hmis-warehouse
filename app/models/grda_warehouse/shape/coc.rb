@@ -14,7 +14,7 @@ module GrdaWarehouse
       def additional_geo_json_properties
         {
           cocnum: cocnum,
-          cocname: cocname
+          cocname: cocname,
         }
       end
 

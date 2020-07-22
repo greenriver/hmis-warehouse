@@ -57,10 +57,17 @@ App.Maps.MapWithShapes = class MapWithShapes {
 
     this.info.update = (props) => {
       if (props != null) {
-        this._div.innerHTML = '<h4>' + props.name + '</h4>';
-        if (props.metric != null) {
+        console.log(props)
+        this._div.innerHTML = `<h4>${props.name} (${props.cocnum})</h4>`;
+        if (props.id == this.primaryId) {
+          this._div.innerHTML =
+            this._div.innerHTML + '<p>Primary CoC</p>';
+        } else if (props.metric != null) {
           this._div.innerHTML =
             this._div.innerHTML + '<p>Shared clients: <strong>' + props.metric + '</p>';
+        } else {
+          this._div.innerHTML =
+            this._div.innerHTML + '<p>Shared clients: <strong>0</p>';
         }
         return (this._div.hidden = false);
       } else {
