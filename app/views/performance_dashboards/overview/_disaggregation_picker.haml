@@ -1,0 +1,39 @@
+:ruby
+  options = @report.available_breakdowns.map do |id, title|
+    title = title.gsub(/^By /, '')
+    [title, id]
+  end
+  attr = {
+    id: 'j-disaggregation',
+    class: 'form-control select optional select2',
+    'data-minimum-results-for-search': 10,
+  }
+.d-flex.align-items-center.disaggregation-picker-prs-1
+  .d-flex.align-items-baseline.disaggregation-picker-prs-1__disaggregation
+    %label.h4.mt-0.gray.mb-0.mr-3(for='j-disaggregation' style='flex-shrink: 0')
+      Disaggregated By:
+    = select_tag('tab', options_for_select(options, breakdown), attr)
+  #j-disaggregation-spinner.ml-2.d-none
+    .mr-2= render 'spinner'
+    %div Loading&hellip;
+  .ml-auto
+    = render 'performance_dashboards/pdf_download', export: @pdf_export
+
+- content_for :page_js do
+  :javascript
+    'use strict';
+    $(function() {
+      var $select = $('#j-disaggregation');
+      $select.change(function() {
+        var breakdown = $select.val();
+        if (breakdown) {
+          $select.prop('disabled', true)
+          $('#j-disaggregation-spinner').removeClass('d-none').addClass('d-flex');
+          var url = new URL(window.location.href);
+          url.searchParams.set("breakdown", breakdown);
+          window.location = url.href;
+          history.pushState({}, breakdown, url.href);
+        }
+      });
+    })
+

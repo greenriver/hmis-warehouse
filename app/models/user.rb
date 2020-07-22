@@ -55,6 +55,7 @@ class User < ApplicationRecord
   has_many :clients, through: :user_clients, inverse_of: :users, dependent: :destroy
 
   has_many :messages
+  has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
 
   belongs_to :agency, optional: true
 
@@ -179,7 +180,10 @@ class User < ApplicationRecord
   end
 
   def my_root_path
-    return clients_path if can_access_some_client_search?
+    return clients_path if GrdaWarehouse::Config.client_search_available? && can_access_some_client_search?
+    return warehouse_reports_path if can_view_any_reports?
+    return censuses_path if can_view_censuses?
+
     root_path
   end
 

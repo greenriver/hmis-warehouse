@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_12_150045) do
+ActiveRecord::Schema.define(version: 2020_07_20_151331) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -417,6 +417,9 @@ ActiveRecord::Schema.define(version: 2020_06_12_150045) do
     t.boolean "can_edit_health_emergency_contact_tracing", default: false
     t.boolean "receives_medical_restriction_notifications", default: false
     t.boolean "can_download_cohorts", default: false
+    t.boolean "can_use_service_register", default: false
+    t.boolean "can_manage_auto_client_de_duplication", default: false
+    t.boolean "can_view_all_window_notes", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 

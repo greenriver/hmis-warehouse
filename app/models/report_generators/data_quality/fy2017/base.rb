@@ -253,7 +253,7 @@ module ReportGenerators::DataQuality::Fy2017
           enrollment = enrollments.last
           age = enrollment[:age]
           if age.blank?
-            @unknown [client_id] = age
+            @unknown[client_id] = age
           elsif adult?(age)
             @adults[client_id] = age
           elsif child?(age)
@@ -496,6 +496,14 @@ module ReportGenerators::DataQuality::Fy2017
       homeless_for_one_year?(enrollment: enrollment) ||
       enrollment[:TimesHomelessPastThreeYears].present? && enrollment[:TimesHomelessPastThreeYears] >= 4 &&
        enrollment[:MonthsHomelessPastThreeYears].present? && enrollment[:MonthsHomelessPastThreeYears] >= 12
+    end
+
+    def personal_ids(destination_ids)
+      GrdaWarehouse::WarehouseClient.
+        where(destination_id: destination_ids).
+        distinct.
+        pluck(:destination_id, :id_in_source).
+        group_by(&:first).transform_values{ |v| v.map(&:last).uniq }
     end
 
     def debug

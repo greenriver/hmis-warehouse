@@ -1,0 +1,55 @@
+%h4.mt-0 Projects & Funding
+%dl
+  %dt CoC Codes
+  - if @report.chosen_coc_codes.blank?
+    %dd.text-muted
+      All
+  - else
+    %dd
+      = @report.chosen_coc_codes
+%dl
+  %dt Project Types
+  - if @report.chosen_project_types.blank?
+    %dd.text-muted
+      All
+  - else
+    %dd
+      - @report.chosen_project_types.each do |type|
+        .project-type= type
+
+%dl
+  %dt Funding Sources
+  - if @report.funder_names.blank?
+    %dd.text-muted
+      All
+  - else
+    %dd
+      - @report.funder_names.each do |fs|
+        .funding-source= fs
+%dl
+  %dt Data Sources
+  - if @report.data_source_names.blank?
+    %dd.text-muted
+      All
+  - else
+    %dd
+      - @report.data_source_names.each do |ds|
+        .data-source= ds
+%dl
+  %dt Organizations
+  - if @report.organization_names.blank?
+    %dd.text-muted
+      All
+  - else
+    %dd
+      - @report.organization_names.each do |type|
+        .organization= type
+%dl
+  %dt Projects
+  - if @report.project_names.blank?
+    %dd.text-muted
+      All
+  - else
+    %dd
+      - @report.project_names.each do |type|
+        .project= type

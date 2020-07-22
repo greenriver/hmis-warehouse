@@ -9,14 +9,17 @@ class RollOut
   attr_accessor :aws_profile
   attr_accessor :cluster
   attr_accessor :default_environment
+  attr_accessor :deployment_id # Used to verify when the deploy_tasks script finishes
   attr_accessor :dj_options
   attr_accessor :execution_role
   attr_accessor :image_base
+  attr_accessor :last_task_completed
   attr_accessor :log_prefix
   attr_accessor :log_stream_name
   attr_accessor :rails_env
   attr_accessor :secrets_arn
   attr_accessor :service_exists
+  attr_accessor :status_uri
   attr_accessor :target_group_arn
   attr_accessor :target_group_name
   attr_accessor :task_definition
@@ -38,7 +41,7 @@ class RollOut
 
   NOT_SPOT = 'not-spot'
 
-  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:)
+  def initialize(image_base:, target_group_name:, target_group_arn:, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, fqdn:)
     self.aws_profile         = ENV.fetch('AWS_PROFILE')
     self.cluster             = ENV.fetch('AWS_CLUSTER') { self.aws_profile }
     self.image_base          = image_base
@@ -49,6 +52,13 @@ class RollOut
     self.task_role           = task_role
     self.dj_options          = dj_options
     self.web_options         = web_options
+    self.status_uri          = URI("https://#{fqdn}/system_status/details")
+
+    # Comment this out if you want to bypass checking on deploy task completion
+    if _get_status == {}
+      puts "Status uri #{self.status_uri} isn't correct"
+      exit
+    end
 
     if target_group_name.match?(/production/)
       self.rails_env = 'production'
@@ -58,16 +68,32 @@ class RollOut
       raise "Cannot figure out environment from target_group_name!"
     end
 
+    deployed_at = Date.today.to_s
+    deployed_by = ENV['USER']||'unknown'
+
+    # when the deploy tasks complete, it updates a redis key
+    # with this value. We can then ping the app to see when this happens at
+    # system_status/details.
+    self.deployment_id = [
+      deployed_at,
+      deployed_by[0,3], # A little anonymity
+      File.read("#{Deployer::ASSETS_PATH}/REVISION").chomp,
+      SecureRandom.hex(6),
+    ].join('::')
+
+    puts "[INFO] DEPLOYMENT_ID=#{self.deployment_id}"
+
     self.default_environment = [
       { "name" => "ECS", "value" => "true" },
       { "name" => "LOG_LEVEL", "value" => "info" },
       { "name" => "TARGET_GROUP_NAME", "value" => target_group_name },
-      { "name" => "DEPLOYED_AT", "value" => Date.today.to_s },
-      { "name" => "DEPLOYED_BY", "value" => ENV['USER']||'unknown' },
+      { "name" => "DEPLOYED_AT", "value" => deployed_at },
+      { "name" => "DEPLOYED_BY", "value" => deployed_by },
       { "name" => "AWS_REGION", "value" => ENV.fetch('AWS_REGION') { 'us-east-1' } },
       { "name" => "SECRET_ARN", "value" => secrets_arn },
       { "name" => "CLUSTER_NAME", "value" => self.cluster },
       { "name" => "RAILS_ENV", "value" => rails_env },
+      { "name" => "DEPLOYMENT_ID", "value" => self.deployment_id },
       # { "name" => "RAILS_MAX_THREADS", "value" => '5' },
       # { "name" => "WEB_CONCURRENCY", "value" =>  '2' },
       # { "name" => "PUMA_PERSISTENT_TIMEOUT", "value" =>  '70' },
@@ -117,6 +143,8 @@ class RollOut
     )
 
     _run_task!
+
+    _poll_until_deploy_tasks_complete!
   end
 
   def register_cron_job_worker!
@@ -469,9 +497,54 @@ class RollOut
     _tail_logs(start_time)
   end
 
+  def _get_status
+    raw = Net::HTTP.get(status_uri)
+    JSON.parse(raw)
+  rescue Errno::EADDRNOTAVAIL, SocketError, JSON::ParserError
+    {}
+  end
+
+  # tailing the logs until we see "---DONE---" isn't reliable because we don't
+  # know how long to wait for sure. We consider it complete if we saw
+  # ---DONE--- or if the task executed the rake task that updates the
+  # deployment ID
+  def _poll_until_deploy_tasks_complete!
+    complete = false
+    while !complete
+      response = _get_status
+      complete = (response.dig('registered_deployment_id') == self.deployment_id)
+
+      if complete || self.last_task_completed
+        puts "[INFO] Looks like the deployment tasks ran to completion (#{self.deployment_id})"
+        complete = true
+      else
+        puts '[WARN] Looks like the deployment task isn\'t done.'
+        puts "[WARN] We expected: #{self.deployment_id}"
+        puts "[WARN] We got: #{response.dig('registered_deployment_id')}"
+        puts "[WARN] You can safely (p)roceed if this is the first deployment"
+        print "\nYou can (w)ait, (p)roceed with deployment anyway, or (a)bort: "
+        response = STDIN.gets
+        if response.downcase.match(/w/)
+          puts "[INFO] Waiting 30 seconds"
+          sleep 30
+        elsif response.downcase.match(/p/)
+          puts "[WARN] Continuing on anyway"
+          complete = true
+        elsif response.downcase.match(/a/)
+          puts "[WARN] exiting"
+          exit
+        else
+          puts "[INFO] Waiting 30 seconds since we didn't understand your response"
+          sleep 30
+        end
+      end
+    end
+  end
+
   # If you can construct or query for the log stream name, you can use this to
   # tail any tasks, even those that are part of a service.
   def _tail_logs(start_time=Time.now)
+    self.last_task_completed = false
     begin
       resp = cwl.get_log_events({
         log_group_name: target_group_name,
@@ -484,21 +557,33 @@ class RollOut
       return
     end
 
-    while ( resp.events.length > 0 || (Time.now.utc.to_i - start_time.utc.to_i) < 60 )
-      resp.events.each do |event|
-        puts "[TASK] #{event.message}"
-      end
+    puts "[TASK] Log stream is #{target_group_name}/#{log_stream_name}"
 
-      next_token = resp.next_forward_token
-
-      sleep 10
-
-      resp = cwl.get_log_events({
+    get_log_events = ->(next_token) do
+      cwl.get_log_events({
         log_group_name: target_group_name,
         log_stream_name: log_stream_name,
         next_token: next_token,
         start_from_head: true,
       })
+    end
+
+    too_soon = -> do
+      (Time.now.utc.to_i - start_time.utc.to_i) < 60*5
+    end
+
+    while ( resp.events.length > 0 || too_soon.call )
+      resp.events.each do |event|
+        puts "[TASK] #{event.message}"
+        if event.message.match?(/---DONE---/)
+          self.last_task_completed = true
+          return
+        end
+      end
+
+      sleep 15
+
+      resp = get_log_events.call(resp.next_forward_token)
     end
   end
 

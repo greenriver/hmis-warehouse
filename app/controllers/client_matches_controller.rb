@@ -68,14 +68,11 @@ class ClientMatchesController < ApplicationController
 
   def update
     @client_match = client_match_scope.find(params[:id])
-    @client_match.updated_by_id = current_user.id
-    @client_match.update_attributes(client_match_params)
-
-    if @client_match.accepted?
-      dst = @client_match.destination_client.destination_client
-      src = @client_match.source_client
-      dst.merge_from(src, reviewed_by: current_user, reviewed_at: @client_match.updated_at, client_match_id: @client_match.id)
-      Importing::RunAddServiceHistoryJob.perform_later
+    new_status = client_match_params.dig(:status)
+    if new_status == 'accepted'
+      @client_match.accept!(user: current_user)
+    elsif new_status == 'rejected'
+      @client_match.reject!(user: current_user)
     end
 
     respond_to do |format|

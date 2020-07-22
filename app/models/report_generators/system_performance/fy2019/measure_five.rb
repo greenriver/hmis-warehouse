@@ -65,10 +65,17 @@ module ReportGenerators::SystemPerformance::Fy2019
       # Select clients entering any of the applicable project types in the report date range.
       relevent_project_types = ES + SH + TH
       set_client_universe(relevent_project_types)
+      client_personal_ids = personal_ids(@clients.keys)
+
       @answers[:five1_c2][:value] = @clients.size
       @support[:five1_c2][:support] = {
-        headers:['Client ID'],
-        counts: @clients.map{|id, _| [id]}
+        headers:['Client ID', 'Personal IDs'],
+        counts: @clients.map do|id, _|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+          ]
+        end
       }
       # save our progress
       @report.update(percent_complete: 1)
@@ -76,10 +83,11 @@ module ReportGenerators::SystemPerformance::Fy2019
       previous_clients = find_first_entries(relevent_project_types)
       @answers[:five1_c3][:value] = previous_clients.size
       @support[:five1_c3][:support] = {
-        headers: ['Client ID', 'Current Enrollment Start', 'Earlier Enrollment Start'],
+        headers: ['Client ID', 'Personal IDs', 'Current Enrollment Start', 'Earlier Enrollment Start'],
         counts: previous_clients.map do |id, _|
           [
             id,
+            client_personal_ids[id].join(', '),
             @clients[id][:start_date],
             @clients[id][:earlier_entry],
           ]
@@ -95,21 +103,29 @@ module ReportGenerators::SystemPerformance::Fy2019
       # Select clients entering any of the applicable project types in the report date range.
       relevent_project_types = ES + SH + TH + PH
       set_client_universe(relevent_project_types)
+      client_personal_ids = personal_ids(@clients.keys)
+
       # save our progress
       @report.update(percent_complete: 51)
       @answers[:five2_c2][:value] = @clients.size
       @support[:five2_c2][:support] = {
-        headers:['Client ID'],
-        counts: @clients.map{|id, _| [id]}
+        headers:['Client ID', 'Personal IDs'],
+        counts: @clients.map do |id, _|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+          ]
+        end
       }
       # Determine the client's first start date within the date range
       previous_clients = find_first_entries(relevent_project_types)
       @answers[:five2_c3][:value] = previous_clients.size
       @support[:five2_c3][:support] = {
-        headers: ['Client ID', 'Current Enrollment Start', 'Earlier Enrollment Start'],
+        headers: ['Client ID', 'Personal IDs', 'Current Enrollment Start', 'Earlier Enrollment Start'],
         counts: previous_clients.map do |id, _|
           [
             id,
+            client_personal_ids[id].join(', '),
             @clients[id][:start_date],
             @clients[id][:earlier_entry],
           ]

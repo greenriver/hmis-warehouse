@@ -1,6 +1,6 @@
 - title = "User Audit for #{@agency}"
 - content_for :title, title
-= render '/warehouse_reports/breadcrumbs', tab: 'audit-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'audit'
 
 - if current_user.can_manage_all_agencies
   = simple_form_for :report, url: audit_reports_agency_user_index_path, method: :get do |f|

@@ -2,7 +2,7 @@ To make a new sub-population, copy this directory and replace the following:
 
 adults_with_children
 AdultsWithChildren
-Adults with Children
+Adult and Child Households
 
 Adjust any of the scopes needing adjustment in the models directory.
 Adjust the views with appropriate language

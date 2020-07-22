@@ -1,0 +1,9 @@
+- title = "#{@aco_name || 'Accountable Care Organization'} Performance"
+- content_for :title, title
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+
+= render 'form'
+
+- if @report.present?
+  = render 'report'

@@ -26,3 +26,8 @@
 
       .d-none--empty.mb-6.w-100<
         = render 'clients/required_documents'
+
+      - if RailsDrivers.loaded.include?(:service_scanning)
+        .d-none--empty.mb-6.w-100<
+          - if can_view_client_window?
+            = render 'service_scanning/scanner_ids/clients/register'

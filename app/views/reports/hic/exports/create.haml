@@ -1,0 +1,14 @@
+- title = "HIC Export For Projects Active on #{@date}"
+- content_for :title, title
+= render '/reports/breadcrumbs'
+%h1= title
+
+%p
+  The following files will export files appropriate for upload at hudhdx.info.
+  They will only include projects of the following types: ES, TH, SH, PH
+  (PSH, RRH, Other PH (OPH) – consists of PH – Housing with Services
+  (no disability required for entry) and PH – Housing Only) that were
+  active on
+  %b= @date
+
+  = render @partial, date: @date

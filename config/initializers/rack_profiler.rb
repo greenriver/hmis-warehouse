@@ -7,4 +7,8 @@ if Rails.env.development?
 
   # initialization is skipped so trigger it
   Rack::MiniProfilerRails.initialize!(Rails.application)
+
+  Rack::MiniProfiler.config.pre_authorize_cb = lambda { |env|
+    ENV['RACK_MINI_PROFILER'] != 'off'
+  }
 end
