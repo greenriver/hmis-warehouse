@@ -1,9 +1,7 @@
 //= require ./namespace
 
 App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
-  const map = new App.Maps.MapWithShapes(mapProps, (value) => {
-    console.info(value);
-  });
+  const map = new App.Maps.MapWithShapes(mapProps);
   const $form = $(formSelector);
   const $submitButton = $('.j-submit-button');
   const $prompt = $('.j-submit-button-prompt');
@@ -46,10 +44,12 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
     $('.j-title').html(data.title);
     $('.j-subtitle').html(data.subtitle);
     $(resultsSelector).html(data.html);
-    map.updateData(data.map, []);
-    const chosenPrimary = $('#compare_coc1').val();
-    if (chosenPrimary) {
-    }
+    map.updateShapes(data.map);
+    map.highlightPrimary(data.coc1_id);
+    map.highlightSecondary(data.coc2_id);
+    //const chosenPrimary = $('#compare_coc1').val();
+    //if (chosenPrimary) {
+    //}
   };
 
   const postForm = (evt) => {

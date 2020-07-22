@@ -118,6 +118,8 @@ module WarehouseReports
       end
 
       payload = {
+        coc1_id: coc1&.id,
+        coc2_id: coc2&.id,
         coc1: coc1.number_and_name,
         coc2: coc2&.number_and_name,
         map_title: "#{coc1.number_and_name} shared clients with the following CoCs",
