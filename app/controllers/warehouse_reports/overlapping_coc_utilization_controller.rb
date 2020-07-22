@@ -107,7 +107,7 @@ module WarehouseReports
             end_date: filters.end_date,
           )
           Rails.cache.fetch(
-            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.5),
+            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.91),
             expires_in: 30.minutes,
           ) do
             render_to_string(partial: 'overlap', locals: { report: report })

@@ -1,11 +1,25 @@
 //= require ./namespace
 
 App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
-  const map = new App.Maps.MapWithShapes(mapProps, (evt, value) => {
-    console.info(evt, value);
+  const map = new App.Maps.MapWithShapes(mapProps, (value) => {
+    console.info(value);
   });
   const $form = $(formSelector);
   const $submitButton = $('.j-submit-button');
+  const $prompt = $('.j-submit-button-prompt');
+
+  //const displayPrompt = () => {
+  //  $('.j-submit-button-prompt').toggleClass('d-none', !!value);
+  //  const { value } = evt.currentTarget;
+  //  $submitButton.prop('disabled', !value);
+  //  $('.j-submit-button-prompt').toggleClass('d-none', !!value);
+  //}
+
+  $('#compare_coc1').on('select2:select', (evt) => {
+    const { value } = evt.currentTarget;
+    $submitButton.prop('disabled', !value);
+    $('.j-submit-button-prompt').toggleClass('d-none', !!value);
+  });
 
   const indicateLoading = (loading) => {
     let opacity = 1;
@@ -33,6 +47,9 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
     $('.j-subtitle').html(data.subtitle);
     $(resultsSelector).html(data.html);
     map.updateData(data.map, []);
+    const chosenPrimary = $('#compare_coc1').val();
+    if (chosenPrimary) {
+    }
   };
 
   const postForm = (evt) => {

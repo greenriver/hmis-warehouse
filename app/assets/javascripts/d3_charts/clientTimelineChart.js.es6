@@ -9,7 +9,7 @@ function formatCocLabel(text, width, padding) {
     const text = d3.select(this);
     const [coc, projectName] = text.text().split('|||');
     const y = text.attr('y');
-    const widthChars = 48
+    const widthChars = 48;
     const lineHeight = 1.2; // ems
 
     text.text(null);
@@ -51,7 +51,7 @@ App.WarehouseReports.clientTimelineChart = (options) => {
     id: idx,
     history: enrollment.history.map((evt) => ({
       cocCode: enrollment.coc,
-      label: evt.label,
+      label: `${evt.label} at ${enrollment.project_name}`,
       from: d3.isoParse(evt.from),
       to: d3.isoParse(evt.to),
     })),
@@ -101,7 +101,7 @@ App.WarehouseReports.clientTimelineChart = (options) => {
           return `${coc}|||${project_name}`;
         }),
     );
-  yAxis.selectAll('.tick text').call(formatCocLabel, margin.left, 0.1);
+  yAxis.selectAll('.tick text').call(formatCocLabel, margin.left, 0.025);
   yAxis
     .selectAll('line')
     .attr('transform', `translate(${plotWidth},0)`)

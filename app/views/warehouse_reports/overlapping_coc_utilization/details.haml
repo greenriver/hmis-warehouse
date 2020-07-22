@@ -8,21 +8,20 @@
     &laquo;
     Overlapping CoC Utilization
 
-
 %div(style='margin-bottom: 3em')
-  %h1
-    = "#{pluralize @details[:clients].size, 'client'}"
+  %h1.mb-3
+    = "#{pluralize @details[:clients].size, 'Shared Client'}"
     - if @report.project_type
       in #{::HUD.project_type(@report.project_type)} enrollments
-    = "in #{@report.coc1.cocnum} and #{@report.coc2.cocnum}"
-    .small
-      = "Served between #{@report.start_date} - #{@report.end_date}"
+    = "by Demographics and Time"
+  .text-muted(style='width: 800px')
+    %em= "Served by #{@report.coc1.number_and_name} and #{@report.coc2.number_and_name} between #{@report.start_date} - #{@report.end_date}."
 
 %div(style='margin-bottom: 4em')
   %h2 Client Demographic Breakdown
   = render 'demographics_rollups'
 
-%h2.mb-5 Client Details
+%h2.mb-5 Client Details over Time
 .mb-5= render 'coc_legend'
 - @details[:clients].each.with_index do |data, idx|
   = render 'client_card', data: data, id: idx

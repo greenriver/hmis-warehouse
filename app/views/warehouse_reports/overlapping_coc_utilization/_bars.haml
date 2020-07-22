@@ -1,6 +1,6 @@
 - relative_total ||= values.sum
 - colors ||= ['#fca736', '#ffe09b']
 - labels ||= ['asynchronous', 'concurrent']
-.progress
+.progress(style='background: #fff; border: 1px solid #ccc;')
   - values.each_with_index do |value, i|
     .progress-bar{style: "width: #{(value.to_f/relative_total.to_f)*100}%; background: #{colors[i]}", data: {toggle:"tooltip"}, title: "#{value} shared #{labels[i]} clients with #{filters.coc2.cocnum}"}
