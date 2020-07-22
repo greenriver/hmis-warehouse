@@ -3458,6 +3458,9 @@ msgstr ""
 msgid "City of Boston DND Warehouse"
 msgstr ""
 
+msgid "Client Notes"
+msgstr ""
+
 msgid "Client Search"
 msgstr ""
 
@@ -3698,6 +3701,9 @@ msgstr ""
 msgid "Pre-Placement Project"
 msgstr ""
 
+msgid "Previous Removal Reason"
+msgstr ""
+
 msgid "Process Duplicates"
 msgstr ""
 
@@ -3725,6 +3731,9 @@ msgstr ""
 msgid "Reports"
 msgstr ""
 
+msgid "Request access to the HMIS Warehouse"
+msgstr ""
+
 msgid "Requires ground floor unit or elevator access"
 msgstr ""
 
@@ -3740,6 +3749,12 @@ msgstr ""
 msgid "Search Start"
 msgstr ""
 
+msgid "Set Automated HMIS CSV Loads"
+msgstr ""
+
+msgid "Set ETO API Configuration"
+msgstr ""
+
 msgid "Shelter Agency Contacts"
 msgstr ""
 
@@ -3750,6 +3765,9 @@ msgid "Stabilization Project"
 msgstr ""
 
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
+msgstr ""
+
+msgid "The HMIS Warehouse can be used for homless client care coordination and reporting."
 msgstr ""
 
 msgid "This is a Family VI-SPDAT"
@@ -3818,6 +3836,9 @@ msgstr ""
 msgid "You must attach a file in the form."
 msgstr ""
 
+msgid "account requests"
+msgstr ""
+
 msgid "client"
 msgstr ""
 
@@ -3825,6 +3846,9 @@ msgid "clients"
 msgstr ""
 
 msgid "cohort enrollment"
+msgstr ""
+
+msgid "enrollment"
 msgstr ""
 
 msgid "groups"
