@@ -324,10 +324,13 @@ Devise.setup do |config|
       :cognito,
       ENV.fetch('AWS_COGNITO_APP_ID'),
       ENV.fetch('AWS_COGNITO_APP_SECRET'),
+      name: :cognito,
       strategy_class: OmniAuth::Strategies::CognitoIdP,
       aws_region: ENV.fetch('AWS_COGNITO_REGION'),
+      client_options: {
+        site: ENV['AWS_COGNITO_USER_POOL_SITE']
+      },
       user_pool_id: ENV.fetch('AWS_COGNITO_POOL_ID'),
-      callback_path: '/users/auth/cognito/callback',
       scope: %i[openid email profile aws.cognito.signin.user.admin]
     )
   end
