@@ -82,6 +82,10 @@ end
     :service_history_services
   end
 
+  def self.view_column_names
+    column_names
+  end
+
   # schema.rb doesn't include tiggers or functions
   # these need to be active for SHS to work correctly
   def self.ensure_triggers

@@ -336,6 +336,25 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     connection.execute("REINDEX TABLE #{table_name}")
   end
 
+  def self.view_column_names
+    column_names - [
+      'project_type',
+      'service_type',
+      'presented_as_individual',
+      'other_clients_over_25',
+      'other_clients_under_18',
+      'other_clients_between_18_and_25',
+      'unaccompanied_youth',
+      'parenting_youth',
+      'parenting_juvenile',
+      'children_only',
+      'individual_adult',
+      'individual_elder',
+      'head_of_household',
+      'unaccompanied_minor',
+    ]
+  end
+
   # Relevant Project Types/Program Types
   # 1: Emergency Shelter (ES)
   # 2: Transitional Housing (TH)

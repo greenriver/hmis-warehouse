@@ -84,7 +84,9 @@ module Bi
 
       safe_create_view(
         DEMOGRAPHICS_VIEW,
-        sql_definition: GrdaWarehouse::Hud::Client.source.select(de_identified_client_cols, :data_source_id).to_sql
+        sql_definition: GrdaWarehouse::Hud::Client.source.
+          joins(:warehouse_client_source).
+          select(de_identified_demographic_cols, :data_source_id).to_sql
       )
 
       non_client_view(GrdaWarehouse::Hud::Enrollment)
@@ -119,7 +121,6 @@ module Bi
       # ~Page 7 HashStatus of ‘SHA-256’ (4)
       hmis_cols -= %i/PersonalID FirstName MiddleName LastName NameSuffix NameDataQuality SSN SSNDataQuality/
       de_identified = [
-        'PersonalID',
         '4 as "HashStatus"',
         'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("FirstName")))::bytea), \'hex\') as "FirstName"',
         'ENCODE(SHA256(SOUNDEX(UPPER(TRIM("MiddleName")))::bytea), \'hex\') as "MiddleName"',
@@ -130,7 +131,13 @@ module Bi
         'CONCAT(RIGHT("SSN",4), ENCODE(SHA256(LPAD("SSN",9,\'x\')::bytea), \'hex\')) as "SSN"',
         'SSNDataQuality',
       ]
-      [:id, *de_identified, *hmis_cols]
+      [c_t[:id].as('PersonalID').to_sql, *de_identified, *hmis_cols]
+    end
+
+    def de_identified_demographic_cols
+      de_identified_client_cols + [
+        wc_t[:destination_id].as('client_id').to_sql
+      ]
     end
 
     def assessment_table
@@ -191,7 +198,7 @@ module Bi
       if model.paranoid?
         scope = scope.where(model.paranoia_column.to_sym => nil)
       end
-      cols = model.column_names
+      cols = model.view_column_names
 
       if cols.include?('project_id')
         scope = scope.joins(:project)
