@@ -21,6 +21,29 @@ class AccountsController < ApplicationController
     if changed_notes.present?
       flash[:notice] = changed_notes.join(' ')
       @user.update(account_params)
+
+      if ENV['AWS_COGNITO_POOL_ID'].present? && @user.provider == 'cognito' && @user.uid.present?
+        idp = Aws::CognitoIdentityProvider::Client.new
+        idp.admin_update_user_attributes(
+          username: @user.uid,
+          user_pool_id: ENV['AWS_COGNITO_POOL_ID'],
+          user_attributes: [
+            {
+              name: 'given_name',
+              value: @user.first_name,
+            },
+            {
+              name: 'family_name',
+              value: @user.last_name,
+            },
+            {
+              name: 'phone_number',
+              value: @user.phone,
+            },
+          ],
+        )
+      end
+
       bypass_sign_in(@user)
     end
     redirect_to edit_account_path
