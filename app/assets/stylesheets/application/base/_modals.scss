@@ -100,3 +100,10 @@
     border: 0;
   }
 }
+
+.modal-xxl {
+  max-width: 85vw;
+  @include media-breakpoint-up(lg) {
+    max-width: 992px;
+  }
+}

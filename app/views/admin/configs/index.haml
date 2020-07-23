@@ -39,6 +39,7 @@
       %section.o-section-card
         %h3 Connections
         .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :pii_encryption_type, collection: GrdaWarehouse::Config.available_encryption_types, label: 'PII Encryption Type', input_html: {class: :select2}
           = f.input :eto_api_available, label: 'Is the ETO API available?'
           = f.input :url_of_blank_consent_form, label: 'Blank consent form URL'
           = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'

@@ -17,13 +17,15 @@ module PerformanceDashboard::Overview::Age
     ]
   end
 
+  AGE_BUCKET_TITLES = {
+    under_eighteen: 'Under 18',
+    eighteen_to_twenty_four: '18-24',
+    twenty_five_to_sixty_one: '25-61',
+    over_sixty_one: 'Over 61',
+    unknown: 'Unknown',
+  }.freeze
   def age_bucket_titles
-    age_buckets.map do |key|
-      [
-        key,
-        key.to_s.humanize,
-      ]
-    end.to_h
+    AGE_BUCKET_TITLES
   end
 
   def age_bucket(age)

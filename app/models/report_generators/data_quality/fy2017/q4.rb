@@ -13,6 +13,7 @@ module ReportGenerators::DataQuality::Fy2017
         @answers = setup_questions()
         @support = @answers.deep_dup
         @all_client_ids = fetch_all_client_ids()
+        @client_personal_ids = personal_ids(@all_client_ids)
         if @all_client_ids.any?
           @clients_with_issues = Set.new
           setup_age_categories(@all_client_ids)
@@ -78,13 +79,16 @@ module ReportGenerators::DataQuality::Fy2017
         [8,9,30,nil].include?(enrollment[:destination])
       end
       counted += poor_quality.keys
+      client_personal_ids = personal_ids(counted)
+
       @clients_with_issues += poor_quality.keys
       @answers[:q4_b2][:value] = poor_quality.size
       @support[:q4_b2][:support] = add_support(
-        headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Destination'],
+        headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit', 'Destination'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            client_personal_ids[id].join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -106,6 +110,7 @@ module ReportGenerators::DataQuality::Fy2017
     #   e. [data collection stage] for [income and sources] = 1 AND [income from any source] = 1 AND there are no identified income sources.
     def add_income_at_entry_answers
       client_ids = (@adults.keys + other_heads.keys).uniq
+      client_personal_ids = personal_ids(client_ids)
 
       # This potentially contains more income records than we need
       # since we only care about the most recent enrollment
@@ -155,10 +160,11 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q4_b3][:value] = poor_quality.size
       @support[:q4_b3][:support] = add_support(
-        headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Reason'],
+        headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit', 'Reason'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            client_personal_ids[id].join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -176,6 +182,7 @@ module ReportGenerators::DataQuality::Fy2017
     #   d. [income from any source] = 1 AND there are no identified income sources.
     def add_income_at_exit_answers
       client_ids = adult_leavers_and_heads_of_household_leavers.keys
+      client_personal_ids = personal_ids(client_ids)
 
       # This potentially contains more income records than we need
       # since we only care about the most recent enrollment
@@ -225,10 +232,11 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q4_b5][:value] = poor_quality.size
       @support[:q4_b5][:support] = add_support(
-        headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Reason'],
+        headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit', 'Reason'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            client_personal_ids[id].join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -252,6 +260,8 @@ module ReportGenerators::DataQuality::Fy2017
       end.to_h.select do |_,enrollment|
         enrollment[:stay_length] >= 365
       end
+
+      client_personal_ids = personal_ids(clients_with_enrollments.keys)
 
       poor_quality = Hash.new
       clients_with_enrollments.keys.each_slice(BATCH_SIZE) do |client_ids|
@@ -305,10 +315,11 @@ module ReportGenerators::DataQuality::Fy2017
 
       @answers[:q4_b4][:value] = poor_quality.size
       @support[:q4_b4][:support] = add_support(
-        headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Reason'],
+        headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit', 'Reason'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            client_personal_ids[id].join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],

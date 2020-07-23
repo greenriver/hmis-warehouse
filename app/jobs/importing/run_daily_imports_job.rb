@@ -53,6 +53,7 @@ module Importing
         # Importers::Samba.new.run!
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+        GrdaWarehouse::ClientMatch.auto_process!
         @notifier.ping('Duplicates identified') if @send_notifications
         # this keeps the computed project type columns in sync, previously
         # this was done with a coalesce query, but it ended up being too slow
@@ -153,6 +154,9 @@ module Importing
         # Pre-calculate the dashboards
         @notifier.ping('Updating dashboards') if @send_notifications
         Reporting::PopulationDashboardPopulateJob.perform_later(sub_population: 'all')
+
+        # Remove any expired export jobs
+        PruneDocumentExportsJob.perform_later
 
         create_statistical_matches
         generate_logging_info

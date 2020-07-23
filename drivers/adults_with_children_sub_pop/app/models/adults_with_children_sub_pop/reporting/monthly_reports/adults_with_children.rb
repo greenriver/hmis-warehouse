@@ -14,7 +14,7 @@ module AdultsWithChildrenSubPop::Reporting::MonthlyReports
     end
 
     def sub_population_title
-      'Adults with Children'
+      'Adult and Child Households'
     end
 
     def sub_population

@@ -92,7 +92,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       # Line 1
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
-        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false)
+        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false, true)
         if homeless_day_count > 0
           clients[id] = homeless_day_count
         end
@@ -101,11 +101,20 @@ module ReportGenerators::SystemPerformance::Fy2019
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
         end
       end
+
+      client_personal_ids = personal_ids(remaining)
+
       if clients.size > 0
         @answers[:onea_c2][:value] = clients.size
         @support[:onea_c2][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map{|id, days| [id, days]}
+          headers: ['Client ID', 'Personal IDs', 'Days'],
+          counts: clients.map do |id, days|
+            [
+              id,
+              client_personal_ids[id].join(', '),
+              days,
+            ]
+          end
         }
         @answers[:onea_e2][:value] = clients.values.reduce(:+) / (clients.size)
         @answers[:onea_h2][:value] = median(clients.values)
@@ -127,7 +136,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       clients = {} # Fill this with hashes: {client_id: days_homeless}
 
       remaining.each_with_index do |id, index|
-        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types)
+        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false, true)
         if homeless_day_count > 0
           clients[id] = homeless_day_count
         end
@@ -136,11 +145,20 @@ module ReportGenerators::SystemPerformance::Fy2019
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 20).round(2))
         end
       end
+
+      client_personal_ids = personal_ids(remaining)
+
       if clients.size > 0
         @answers[:onea_c3][:value] = clients.count
         @support[:onea_c3][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map{|id, days| [id, days]}
+          headers: ['Client ID', 'Personal IDs', 'Days'],
+          counts: clients.map do |id, days|
+            [
+              id,
+              client_personal_ids[id].join(', '),
+              days,
+            ]
+          end
         }
         @answers[:onea_e3][:value] = clients.values.reduce(:+) / (clients.count)
         @answers[:onea_h3][:value] = median(clients.values)
@@ -177,7 +195,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       # Line 1
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
-        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, true)
+        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, true, true)
         if homeless_day_count > 0
           clients[id] = homeless_day_count
         end
@@ -186,11 +204,20 @@ module ReportGenerators::SystemPerformance::Fy2019
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
         end
       end
+
+      client_personal_ids = personal_ids(remaining)
+
       if clients.size > 0
         @answers[:oneb_c2][:value] = clients.size
         @support[:oneb_c2][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map{|id, days| [id, days]}
+          headers: ['Client ID', 'Personal IDs', 'Days'],
+          counts: clients.map do |id, days|
+            [
+              id,
+              client_personal_ids[id].join(', '),
+              days,
+            ]
+          end
         }
         @answers[:oneb_e2][:value] = clients.values.reduce(:+) / (clients.size)
         @answers[:oneb_h2][:value] = median(clients.values)
@@ -221,7 +248,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       # Line 2
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
-        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, true)
+        homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, true, true)
         if homeless_day_count > 0
           clients[id] = homeless_day_count
         end
@@ -231,11 +258,19 @@ module ReportGenerators::SystemPerformance::Fy2019
         end
       end
 
+      client_personal_ids = personal_ids(remaining)
+
       if clients.size > 0
         @answers[:oneb_c3][:value] = clients.count
         @support[:oneb_c3][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map{|id, days| [id, days]}
+          headers: ['Client ID', 'Personal IDs', 'Days'],
+          counts: clients.map do |id, days|
+            [
+              id,
+              client_personal_ids[id].join(', '),
+              days,
+            ]
+          end
         }
         @answers[:oneb_e3][:value] = clients.values.reduce(:+) / (clients.count)
         @answers[:oneb_h3][:value] = median(clients.values)
@@ -249,7 +284,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           with_service_between(start_date: @report_start - 1.day, end_date: @report_end)
     end
 
-    def calculate_days_homeless id, project_types, stop_project_types, include_pre_entry=false
+    def calculate_days_homeless(id, project_types, stop_project_types, include_pre_entry, consider_move_in_date)
       columns = {
         enrollment_id: she_t[:id],
         date: shs_t[:date],
@@ -334,7 +369,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         end
         all_nights.sort_by{|m| m[:date]}
       end
-      homeless_days = filter_days_for_homelessness(all_nights, project_types, stop_project_types)
+      homeless_days = filter_days_for_homelessness(all_nights, project_types, stop_project_types, consider_move_in_date)
       if homeless_days.any?
         # Find the latest bed night (stopping at the report date end)
         client_end_date = [homeless_days.last.to_date, @report_end ].min
@@ -447,7 +482,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
     # Applies logic described in the Programming Specifications to limit the entries
     # for each day to one, and only those that should be considered based on the project types
-    def filter_days_for_homelessness dates, project_types, stop_project_types
+    def filter_days_for_homelessness(dates, project_types, stop_project_types, consider_move_in_dates)
       filtered_days = []
       # build a useful hash of arrays
       days = dates.sort_by{|d| d[:date]}.group_by{|d| d[:date]}
@@ -466,7 +501,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           next if is_on_exit(night, k)
 
           has_countable_project =  has_countable_project || has_countable_project_on?(night, stop_project_types)
-          in_stop_project =  in_stop_project || in_stop_project_on?(night, k, stop_project_types)
+          in_stop_project =  in_stop_project || in_stop_project_on?(night, k, stop_project_types, consider_move_in_dates)
         end
         if  has_countable_project && (! in_stop_project)
           filtered_days << k
@@ -481,8 +516,12 @@ module ReportGenerators::SystemPerformance::Fy2019
       (! stop_project_types.include?(night[:project_type]))
     end
 
-    private def in_stop_project_on?(night, date, stop_project_types)
-      (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))
+    private def in_stop_project_on?(night, date, stop_project_types, consider_move_in_dates)
+      if consider_move_in_dates && PH.include?(night[:project_type])
+        return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].present? && night[:MoveInDate] <= date))
+      else
+        return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))
+      end
     end
 
     private def is_on_exit(night, date)

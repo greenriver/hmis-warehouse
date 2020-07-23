@@ -58,11 +58,13 @@ class DataSourcesController < ApplicationController
         import_paused = data_source_params[:import_paused] || false
         source_id = data_source_params[:source_id]
         munged_personal_id = data_source_params[:munged_personal_id] || false
+        service_scannable = data_source_params[:service_scannable] || false
         changes = {
           visible_in_window: visible_in_window,
           import_paused: import_paused,
           source_id: source_id,
           munged_personal_id: munged_personal_id,
+          service_scannable: service_scannable,
         }
         @data_source.update!(changes)
       end
@@ -93,6 +95,7 @@ class DataSourcesController < ApplicationController
         :import_paused,
         :source_id,
         :munged_personal_id,
+        :service_scannable,
         projects_attributes:
         [
           :id,
@@ -122,6 +125,7 @@ class DataSourcesController < ApplicationController
         :after_create_path,
         :import_paused,
         :source_id,
+        :service_scannable,
       )
   end
 

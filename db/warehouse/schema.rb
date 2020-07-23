@@ -10,13 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_03_234840) do
+ActiveRecord::Schema.define(version: 2020_07_21_190101) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
+  enable_extension "postgis"
 
   create_table "Affiliation", id: :serial, force: :cascade do |t|
     t.string "AffiliationID"
@@ -1647,6 +1648,11 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "health_emergency_tracing"
     t.integer "health_priority_age"
     t.boolean "multi_coc_installation", default: false, null: false
+    t.float "auto_de_duplication_accept_threshold"
+    t.float "auto_de_duplication_reject_threshold"
+    t.string "pii_encryption_type", default: "none"
+    t.boolean "auto_de_duplication_enabled", default: false, null: false
+    t.boolean "request_account_available", default: false, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1706,6 +1712,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "authoritative_type"
     t.string "source_id"
     t.datetime "deleted_at"
+    t.boolean "service_scannable", default: false, null: false
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
@@ -1718,6 +1725,21 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.datetime "deleted_at"
     t.boolean "imported", default: false
     t.index ["deleted_at"], name: "index_direct_financial_assistances_on_deleted_at"
+  end
+
+  create_table "document_exports", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "type", null: false
+    t.bigint "user_id", null: false
+    t.string "version", null: false
+    t.string "status", null: false
+    t.string "query_string"
+    t.binary "file_data"
+    t.string "filename"
+    t.string "mime_type"
+    t.index ["type"], name: "index_document_exports_on_type"
+    t.index ["user_id"], name: "index_document_exports_on_user_id"
   end
 
   create_table "enrollment_change_histories", id: :serial, force: :cascade do |t|
@@ -5883,6 +5905,78 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.index ["user_id"], name: "index_service_scanning_services_on_user_id"
   end
 
+  create_table "shape_cocs", force: :cascade do |t|
+    t.string "st"
+    t.string "state_name"
+    t.string "cocnum"
+    t.string "cocname"
+    t.decimal "ard"
+    t.decimal "pprn"
+    t.decimal "fprn"
+    t.string "fprn_statu"
+    t.decimal "es_c_hwac"
+    t.decimal "es_c_hwoa_"
+    t.decimal "es_c_hwoc"
+    t.decimal "es_vso_tot"
+    t.decimal "th_c_hwac_"
+    t.decimal "th_c_hwoa"
+    t.decimal "th_c_hwoc"
+    t.decimal "th_c_vet"
+    t.decimal "rrh_c_hwac"
+    t.decimal "rrh_c_hwoa"
+    t.decimal "rrh_c_hwoc"
+    t.decimal "rrh_c_vet"
+    t.decimal "psh_c_hwac"
+    t.decimal "psh_c_hwoa"
+    t.decimal "psh_c_hwoc"
+    t.decimal "psh_c_vet"
+    t.decimal "psh_c_ch"
+    t.string "psh_u_hwac"
+    t.string "psh_u_hwoa"
+    t.string "psh_u_hwoc"
+    t.string "psh_u_vet"
+    t.string "psh_u_ch"
+    t.decimal "sh_c_hwoa"
+    t.decimal "sh_c_vet"
+    t.decimal "sh_pers_hw"
+    t.decimal "unsh_pers_"
+    t.decimal "sh_pers__1"
+    t.decimal "unsh_pers1"
+    t.decimal "sh_pers__2"
+    t.decimal "unsh_per_1"
+    t.decimal "sh_ch"
+    t.decimal "unsh_ch"
+    t.decimal "sh_youth_u"
+    t.decimal "unsh_youth"
+    t.decimal "sh_vets"
+    t.decimal "unsh_vets"
+    t.decimal "shape_leng"
+    t.decimal "shape_area"
+    t.geometry "orig_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.index ["cocname"], name: "index_shape_cocs_on_cocname"
+    t.index ["geom"], name: "index_shape_cocs_on_geom", using: :gist
+    t.index ["orig_geom"], name: "index_shape_cocs_on_orig_geom", using: :gist
+    t.index ["st"], name: "index_shape_cocs_on_st"
+  end
+
+  create_table "shape_zip_codes", force: :cascade do |t|
+    t.string "zcta5ce10", limit: 5
+    t.string "geoid10", limit: 5
+    t.string "classfp10", limit: 2
+    t.string "mtfcc10", limit: 5
+    t.string "funcstat10", limit: 1
+    t.float "aland10"
+    t.float "awater10"
+    t.string "intptlat10", limit: 11
+    t.string "intptlon10", limit: 12
+    t.geometry "orig_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.index ["geom"], name: "index_shape_zip_codes_on_geom", using: :gist
+    t.index ["orig_geom"], name: "index_shape_zip_codes_on_orig_geom", using: :gist
+    t.index ["zcta5ce10"], name: "index_shape_zip_codes_on_zcta5ce10", unique: true
+  end
+
   create_table "taggings", id: :serial, force: :cascade do |t|
     t.integer "tag_id"
     t.integer "taggable_id"
@@ -7958,5 +8052,28 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       lookups_yes_no_etcs.value,
       lookups_yes_no_etcs.text
      FROM lookups_yes_no_etcs;
+  SQL
+  create_view "bi_nightly_census_by_projects", sql_definition: <<-SQL
+      SELECT nightly_census_by_projects.id,
+      nightly_census_by_projects.date,
+      nightly_census_by_projects.project_id,
+      nightly_census_by_projects.veterans,
+      nightly_census_by_projects.non_veterans,
+      nightly_census_by_projects.children,
+      nightly_census_by_projects.adults,
+      nightly_census_by_projects.youth,
+      nightly_census_by_projects.families,
+      nightly_census_by_projects.individuals,
+      nightly_census_by_projects.parenting_youth,
+      nightly_census_by_projects.parenting_juveniles,
+      nightly_census_by_projects.all_clients,
+      nightly_census_by_projects.beds,
+      nightly_census_by_projects.created_at,
+      nightly_census_by_projects.updated_at,
+      nightly_census_by_projects.juveniles,
+      nightly_census_by_projects.unaccompanied_minors,
+      nightly_census_by_projects.youth_families,
+      nightly_census_by_projects.family_parents
+     FROM nightly_census_by_projects;
   SQL
 end

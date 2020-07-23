@@ -4,9 +4,7 @@
 
 .o-page
   .o-page__header.d-block
-    .row
-      .col-sm-10
-        = render 'clients/aliases'
+    = render 'clients/aliases'
   = render 'clients/tab_navigation', current: polymorphic_path(['client_he', health_emergency], client_id: @client)
 
   .row

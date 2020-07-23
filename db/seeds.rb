@@ -26,7 +26,7 @@ end
 # Reports
 def report_list
   {
-    'Operational Reports' => [
+    'Operational' => [
       {
         url: 'warehouse_reports/chronic',
         name: 'Potentially Chronic Clients',
@@ -380,7 +380,7 @@ def report_list
         limitable: true,
       },
     ],
-    'Audit Reports' => [
+    'Audit' => [
       {
         url: 'audit_reports/agency_user',
         name: 'Agency User Audit Report',
@@ -423,6 +423,12 @@ def report_list
         url: 'warehouse_reports/health/agency_performance',
         name: 'Agency Performance',
         description: 'Summary data on agency performance in the BH CP.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/aco_performance',
+        name: 'ACO Performance',
+        description: 'Summary data on ACO performance in the BH CP.',
         limitable: false,
       },
       {
@@ -492,16 +498,22 @@ def report_list
         limitable: false,
       },
     ],
-    'Performance Dashboard' => [
+    'Performance' => [
       {
         url: 'performance_dashboards/overview',
-        name: 'Performance Overview',
+        name: 'Client Performance',
+        description: 'Overview of warehouse performance.',
+        limitable: true,
+      },
+      {
+        url: 'performance_dashboards/household',
+        name: 'Household Performance',
         description: 'Overview of warehouse performance.',
         limitable: true,
       },
       {
         url: 'performance_dashboards/project_type',
-        name: 'Project Type Breakdowns',
+        name: 'Project Type Performance',
         description: 'Performance by project type.',
         limitable: true,
       },
