@@ -338,8 +338,13 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   def self.view_column_names
     column_names - [
+      'date',
       'project_type',
+      'organization_id',
       'service_type',
+      'record_type',
+      'housing_status_at_entry',
+      'housing_status_at_exit',
       'presented_as_individual',
       'other_clients_over_25',
       'other_clients_under_18',

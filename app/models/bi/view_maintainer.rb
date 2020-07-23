@@ -52,6 +52,7 @@ module Bi
       safe_drop_view(view_name(GrdaWarehouse::Lookups::Relationship))
       safe_drop_view(view_name(GrdaWarehouse::Lookups::TrackingMethod))
       safe_drop_view(view_name(GrdaWarehouse::Lookups::YesNoEtc))
+      safe_drop_view(view_name(GrdaWarehouse::Census::ByProject))
     end
 
     def create_views
@@ -97,11 +98,11 @@ module Bi
         )
       )
       client_history_view(
-        GrdaWarehouse::ServiceHistoryEnrollment.where(
+        GrdaWarehouse::ServiceHistoryEnrollment.entry.where(
           "last_date_in_program IS NULL OR last_date_in_program >= (CURRENT_DATE - #{SH_INTERVAL})"
         )
       )
-      generic_view(GrdaWarehouse::DataSource)
+      generic_view(GrdaWarehouse::DataSource, GrdaWarehouse::DataSource.view_column_names)
       generic_view(GrdaWarehouse::Lookups::Ethnicity)
       generic_view(GrdaWarehouse::Lookups::FundingSource)
       generic_view(GrdaWarehouse::Lookups::Gender)
@@ -110,7 +111,7 @@ module Bi
       generic_view(GrdaWarehouse::Lookups::Relationship)
       generic_view(GrdaWarehouse::Lookups::TrackingMethod)
       generic_view(GrdaWarehouse::Lookups::YesNoEtc)
-      generic_view(GrdaWarehouse::Census::ByProject)
+      generic_view(GrdaWarehouse::Census::ByProject, GrdaWarehouse::Census::ByProject.view_column_names)
     end
 
     def de_identified_client_cols
@@ -183,12 +184,11 @@ module Bi
       cols
     end
 
-    def generic_view(model)
+    def generic_view(model, cols=model.column_names)
       scope = model
       if model.paranoid?
         scope = scope.where(model.paranoia_column.to_sym => nil)
       end
-      cols = model.column_names
       scope = scope.select(*cols)
       safe_create_view view_name(model.arel_table), sql_definition: scope.to_sql
     end

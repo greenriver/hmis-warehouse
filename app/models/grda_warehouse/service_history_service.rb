@@ -83,7 +83,11 @@ end
   end
 
   def self.view_column_names
-    column_names
+    column_names - [
+      'service_type',
+      'homeless',
+      'literally_homeless',
+    ]
   end
 
   # schema.rb doesn't include tiggers or functions
