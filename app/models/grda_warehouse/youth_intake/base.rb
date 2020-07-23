@@ -247,7 +247,7 @@ module GrdaWarehouse::YouthIntake
     end
 
     def self.report_columns
-      column_names - [:user_id, :deleted_at]
+      column_names - [:user_id, :deleted_at, :other_agency_involvement]
     end
 
   end
