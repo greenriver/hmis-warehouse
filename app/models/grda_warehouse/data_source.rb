@@ -5,6 +5,8 @@
 ###
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
+  include RailsDrivers::Extensions
+  self.primary_key = :id
   require 'memoist'
   include ArelHelper
   acts_as_paranoid
@@ -84,6 +86,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative: true)
   end
 
+  scope :scannable, -> do
+    where(service_scannable: true)
+  end
+
   scope :visible_in_window_to, -> (user) do
     return none unless user
 
@@ -147,6 +153,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       'VI-SPDAT' => :vispdat,
       'Health' => :health,
       'Coordinated Assessment' => :coordinated_assessment,
+      'Other' => :other,
     }
   end
 

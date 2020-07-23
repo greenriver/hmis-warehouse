@@ -9,12 +9,9 @@ module PerformanceDashboards
     before_action :set_filter
     before_action :set_report
     before_action :set_key, only: [:details]
+    before_action :set_pdf_export
 
     def index
-    end
-
-    private def section_subpath
-      'performance_dashboards/overview/'
     end
 
     def details
@@ -52,20 +49,10 @@ module PerformanceDashboards
       )
     end
 
-    private def multiple_project_types?
-      true
-    end
-    helper_method :multiple_project_types?
-
-    private def include_comparison_pattern?
-      true
-    end
-    helper_method :include_comparison_pattern?
-
     private def set_report
-      @report = PerformanceDashboards::Overview.new(@filter)
+      @report = report_class.new(@filter)
       if @report.include_comparison?
-        @comparison = PerformanceDashboards::Overview.new(@comparison_filter)
+        @comparison = report_class.new(@comparison_filter)
       else
         @comparison = @report
       end
@@ -76,12 +63,15 @@ module PerformanceDashboards
     end
 
     private def set_key
-      @key = PerformanceDashboards::Overview.detail_method(params.dig(:filters, :key))
+      @key = report_class.detail_method(params.dig(:filters, :key))
     end
 
     private def set_pdf_export
-      @pdf_export = GrdaWarehouse::DocumentExports::PerformanceDashboardExport.new
+      @pdf_export = GrdaWarehouse::DocumentExports::ClientPerformanceExport.new
     end
-    before_action :set_pdf_export
+
+    private def report_class
+      PerformanceDashboards::Overview
+    end
   end
 end

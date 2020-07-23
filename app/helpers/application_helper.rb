@@ -143,6 +143,7 @@ module ApplicationHelper
       result << params[:controller]
       result << params[:action]
       result << 'not-signed-in' if current_user.blank?
+      result << (@layout__width == 'lg' ? 'l-content-width-lg' : 'l-content-width-md')
     end
   end
 
