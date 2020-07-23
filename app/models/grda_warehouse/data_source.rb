@@ -147,6 +147,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative_type: 'coordinated_assessment')
   end
 
+  def self.view_column_names
+    [
+      'id',
+      'name',
+      'short_name',
+    ]
+  end
+
   def self.authoritative_types
     {
       'Youth' => :youth,
