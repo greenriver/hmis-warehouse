@@ -39,7 +39,7 @@ namespace :secrets do
 
   desc "Set Up for Testing"
   task :test, [] => [:environment] do |t, args|
-    raise "cannot do this outside of dev" unless Rails.env.development?
+    raise "Cannot do this outside of dev" unless Rails.env.development?
 
     GrdaWarehouse::Hud::Client.allow_pii!
 
@@ -56,7 +56,7 @@ namespace :secrets do
     Rake::Task['secrets:wipe'].invoke
   end
 
-  desc "Rotate secrets. This doesn't update any data"
+  desc "Rotate secrets"
   task :rotate, [] => [:environment] do |t, args|
     Encryption::Secret.current.rotate! do |old_secret, new_secret|
       Rails.logger.info "Rotating data now"

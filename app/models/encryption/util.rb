@@ -90,7 +90,7 @@ module Encryption
       })
       JSON.parse(resp.secret_string)['encryption_key']
     rescue Aws::Errors::ServiceError
-      Rails.logger.error "Could not get secret requested"
+      Rails.logger.error "[PII] Could not get the secret requested and thus get the encryption key"
       'secret-not-found'
     end
 

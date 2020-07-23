@@ -12,6 +12,10 @@ module PIIAttributeSupport
       @current_pii_key = temporary_key
     end
 
+    def forget_current_pii_key!
+      @current_pii_key = nil
+    end
+
     # Call in controller before_action
     def deny_pii!
       @allow_pii = false
@@ -30,21 +34,12 @@ module PIIAttributeSupport
       if allow_pii?
         current_pii_key
       elsif Encryption::SoftFailEncryptor.pii_soft_failure
+        Rails.logger.error "[PII] Didn't allow PII explicitly"
         'invalid-key'
       else
         raise PIIAccessDeniedException
       end
     end
-
-    #def encrypt(encoded_cipher_text, encoded_iv)
-    #    if allow_pii?
-    #      cipher_text = Base64.decode64(encoded_cipher_text)
-    #      iv = Base64.decode64(encoded_iv)
-    #      Encryption::SoftFailEncryptor.decrypt(value: cipher_text, key: pii_encryption_key, iv: iv)
-    #    else
-    #      '[REDACTED]'
-    #    end
-    #  end
 
     def pluck(*args)
       # without encryption, just do the normal thing
@@ -127,6 +122,7 @@ module PIIAttributeSupport
   # attr_encrypted was passed either the old or new key depending on when those
   # classes loaded, so best to be explicit about which keys
   def rekey!(old_key = self.class.prev_key, new_key = self.class.key)
+    self.class.allow_pii!
     encrypted_attributes.each do |attribute, params|
       encoded_value = send(params[:attribute])
 
@@ -141,6 +137,6 @@ module PIIAttributeSupport
 
     save!
   ensure
-    self.class.current_pii_key = nil
+    self.class.forget_current_pii_key!
   end
 end
