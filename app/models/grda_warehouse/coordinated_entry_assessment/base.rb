@@ -63,8 +63,8 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     # Callbacks
     ####################
     before_save :calculate_scores, :calculate_priority_score
-    after_update :notify_users
-    after_update :add_to_cohorts
+    after_save :notify_users
+    after_save :add_to_cohorts
 
     ####################
     # Access
