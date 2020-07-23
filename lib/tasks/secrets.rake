@@ -5,34 +5,33 @@ namespace :secrets do
     Encryption::Util.init!
   end
 
+  # Copy cleartext into encrypted fields
+  # THIS DOES NOT ERASE cleartext
+  # Erasing cleartext is in a separate step
   desc "copy over cleartext"
   task :copy_cleartext, [] => [:environment] do |t, args|
-    GrdaWarehouse::Hud::Client.transaction do
-      # Copy cleartext into encrypted fields
-      # THIS DOES NOT ERASE cleartext
-      # Erasing cleartext will be a separate step when we're sure this is
-      # working
-      GrdaWarehouse::Hud::Client.find_each do |client|
-        client.FirstName = client.read_attribute(:FirstName) if client.read_attribute(:FirstName).present?
-        client.LastName = client.read_attribute(:LastName) if client.read_attribute(:LastName).present?
-        client.MiddleName = client.read_attribute(:MiddleName) if client.read_attribute(:MiddleName).present?
-        client.SSN = client.read_attribute(:SSN) if client.read_attribute(:SSN).present?
-        client.NameSuffix = client.read_attribute(:NameSuffix) if client.read_attribute(:NameSuffix).present?
-        client.save!
+    PIIAttributeSupport.allowed_pii_classes.each do |klass|
+      klass.find_each do |person|
+        klass.encrypted_attributes.keys.each do |cleartext_column|
+          if person.read_attribute(cleartext_column).present?
+            person.send("#{cleartext_column}=", person.read_attribute(cleartext_column))
+          end
+        end
+        person.save!
       end
     end
   end
 
   desc "Wipe cleartext"
   task :wipe, [] => [:environment] do |t, args|
-    GrdaWarehouse::Hud::Client.transaction do
-      GrdaWarehouse::Hud::Client.find_each do |client|
-        client.write_attribute(:FirstName, nil)
-        client.write_attribute(:LastName, nil)
-        client.write_attribute(:MiddleName, nil)
-        client.write_attribute(:SSN, nil)
-        client.write_attribute(:NameSuffix, nil)
-        client.save!
+    PIIAttributeSupport.allowed_pii_classes.each do |klass|
+      klass.find_each do |person|
+        klass.encrypted_attributes.keys.each do |cleartext_column|
+          # assumes we're always keeping cleartext column for installations
+          # not doing PII encryption
+          person.write_attribute(cleartext_column, nil)
+        end
+        person.save!
       end
     end
   end
@@ -65,8 +64,11 @@ namespace :secrets do
       new_key = new_secret.plaintext_key
 
       Rails.logger.info "Rotating clients"
-      GrdaWarehouse::Hud::Client.find_each do |client|
-        client.rekey!(old_key, new_key)
+
+      PIIAttributeSupport.allowed_pii_classes.each do |klass|
+        klass.find_each do |client|
+          client.rekey!(old_key, new_key)
+        end
       end
     end
   end

@@ -743,7 +743,6 @@ DEPENDENCIES
   aws-sdk-ecs (~> 1)
   aws-sdk-glacier (~> 1)
   aws-sdk-iam (~> 1)
-  aws-sdk-kms (~> 1)
   aws-sdk-rails
   aws-sdk-rds (~> 1)
   aws-sdk-s3 (~> 1)

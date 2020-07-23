@@ -3,7 +3,8 @@ class InitializeSecretsTable < ActiveRecord::Migration[5.2]
     if Encryption::Util.encryption_enabled?
       Rake::Task['secrets:init'].execute
       Rake::Task['secrets:copy_cleartext'].execute
-      Rake::Task['secrets:wipe'].execute
+      # bring this back in after verifying it all works.
+      # Rake::Task['secrets:wipe'].execute
     end
   end
 end

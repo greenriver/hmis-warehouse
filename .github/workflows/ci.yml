@@ -151,10 +151,17 @@ jobs:
          WAREHOUSE_DATABASE_USER: postgres
        run: |
         pg_isready -h postgres -U postgres
-        bin/db_prep
 
         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
         chmod 600 ~/.pgpass
+
+        echo making bi role
+        echo create role bi nologin > cmd.sql
+        echo postgres > pass
+        psql -U postgres -h postgres -d postgres -f cmd.sql < pass
+        #bash -l -c 'psql -U postgres -h postgres -d postgres -f cmd.sql'
+
+        bin/db_prep
 
         #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f db/make_repair_sequences_script.sql > repair.sql
         #echo repair.sql

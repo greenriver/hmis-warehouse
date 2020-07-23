@@ -18,22 +18,30 @@ def run_or_exit(cmd)
 end
 
 Dir.chdir APP_ROOT do
-  puts "\n== Preparing Database =="
-  run_or_exit 'bundle exec rake db:create'
-  run_or_exit 'bundle exec rake db:schema:conditional_load'
-  run_or_exit 'bundle exec rake db:migrate'
-
-  puts "\n== Preparing Warehouse =="
+  puts "\n== Creating Warehouse database =="
   run_or_exit 'bundle exec rake warehouse:db:create'
 
   # DB has objects that can't be tracked with schema.rb: types, materialized views, and triggers
   if ENV['RAILS_ENV'] == 'test'
+    puts "\n== Loading Warehouse schema =="
     run_or_exit 'bundle exec rake warehouse:db:schema:conditional_load'
   else
+    puts "\n== Loading Warehouse structure =="
     run_or_exit 'bundle exec rake warehouse:db:structure:conditional_load'
   end
 
+  puts "\n== Migrating Warehouse =="
   run_or_exit 'bundle exec rake warehouse:db:migrate'
+
+  puts "\n== Creating App Database =="
+  run_or_exit 'bundle exec rake db:create'
+
+  puts "\n== Loading App Database =="
+  run_or_exit 'bundle exec rake db:schema:conditional_load'
+
+  puts "\n== Migrating App Database =="
+  run_or_exit 'bundle exec rake db:migrate'
+
 
   puts "\n== Preparing Health Database =="
   run_or_exit 'bundle exec rake health:db:create'

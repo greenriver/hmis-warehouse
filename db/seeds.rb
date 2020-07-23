@@ -822,3 +822,7 @@ maintain_data_sources()
 maintain_report_definitions()
 maintain_health_seeds()
 maintain_coc_codes()
+
+if Encryption::Util.encryption_enabled?
+  Rake::Task['secrets:init'].execute
+end

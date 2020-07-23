@@ -33,7 +33,10 @@ module Encryption
     end
 
     def self.init!
-      return if Secret.count > 1
+      if Secret.count > 1
+        Rails.logger.info "[PII] Not initializing PII since the secrets table looks initialized already."
+        return
+      end
 
       # To reduce complexity, the first entry is not an actual secret. This
       # prevents needing code that only runs the first time (beyond this simple

@@ -2,11 +2,11 @@
 
 echo Migrating with individual rake tasks
 
-echo Migrating app database
-bundle exec rake db:migrate
-
 echo Migrating warehouse database
 bundle exec rake warehouse:db:migrate
+
+echo Migrating app database
+bundle exec rake db:migrate
 
 echo Migrating health database
 bundle exec rake health:db:migrate

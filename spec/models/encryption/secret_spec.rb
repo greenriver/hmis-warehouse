@@ -7,31 +7,11 @@
 require 'rails_helper'
 
 RSpec.describe Encryption::Secret, :pii, type: :model do
-  before(:all) do
-    GrdaWarehouseBase.connection.execute(<<~SQL)
-      CREATE TEMPORARY TABLE client_for_testing (
-        id serial,
-        "FirstName" character varying,
-        "encrypted_FirstName" character varying,
-        "encrypted_FirstName_iv" character varying
-      )
-    SQL
-  end
-
   before(:each) { allow(Encryption::Util).to receive(:encryption_enabled?) { true } }
-  before(:each) { client_class.allow_pii! }
+  before(:each) { TestClient.allow_pii! }
 
   let(:subject) { Encryption::Secret }
-
-  let(:client_class) do
-    Class.new(GrdaWarehouseBase) do |k|
-      k.table_name = 'client_for_testing'
-      include PIIAttributeSupport
-      attr_pii :FirstName
-    end
-  end
-
-  let(:client) { client_class.new(FirstName: 'Jim') }
+  let(:client) { TestClient.new(FirstName: 'Jim') }
 
   it 'should have a current key' do
     expect(subject.current.plaintext_key.length).to eq(32)
@@ -48,7 +28,7 @@ RSpec.describe Encryption::Secret, :pii, type: :model do
       old_key = old_secret.plaintext_key
       new_key = new_secret.plaintext_key
 
-      client_class.find_each do |client|
+      TestClient.find_each do |client|
         client.rekey!(old_key, new_key)
       end
     end
@@ -71,7 +51,7 @@ RSpec.describe Encryption::Secret, :pii, type: :model do
     end
 
     it 'should not touch cleartext column if it exists' do
-      if client_class.column_names.include?('FirstName')
+      if TestClient.column_names.include?('FirstName')
         expect(client.read_attribute(:FirstName)).to be_nil
       end
     end

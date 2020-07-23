@@ -3,6 +3,45 @@ module PIIAttributeSupport
 
   PIIAccessDeniedException = Class.new(StandardError)
 
+  # Update this to the complete set of classes supporting encrypted PII
+  def self.allowed_pii_class_names
+    return @allowed_pii_class_names unless @allowed_pii_class_names.nil?
+
+    @allowed_pii_class_names = [
+      'GrdaWarehouse::Hud::Client',
+    ]
+
+    if Rails.env.test?
+      @allowed_pii_class_names << 'TestPerson'
+      @allowed_pii_class_names << 'TestClient'
+    end
+
+    @allowed_pii_class_names
+  end
+
+  def self.allowed_pii_classes
+    allowed_pii_class_names.map(&:constantize)
+  end
+
+  def self.pii_table_names
+    allowed_pii_classes.map(&:table_name)
+  end
+
+  # a memoized lookup by class of the columns and attr_encrypted configuration
+  # used by pluck
+  def self.pii_columns
+    return @pii_columns unless @pii_columns.nil?
+    keys = self.pii_table_names
+    values = allowed_pii_classes.map do |klass|
+      attrs = klass.encrypted_attributes.dup
+      attrs.each_key do |column_name|
+        attrs[column_name][:model_class]  = klass
+      end
+      attrs
+    end
+    @pii_columns = Hash[keys.zip(values)]
+  end
+
   module ClassMethods
     def current_pii_key
       @current_pii_key ||= Encryption::Secret.current.plaintext_key
@@ -41,69 +80,6 @@ module PIIAttributeSupport
       end
     end
 
-    def pluck(*args)
-      # without encryption, just do the normal thing
-      super(*args) unless Encryption::Util.encryption_enabled?
-
-      original_request = Array(args).flatten.map(&:to_sym)
-
-      decrypter = ->(encoded_cipher_text, encoded_iv) do
-        if allow_pii?
-          cipher_text = Base64.decode64(encoded_cipher_text)
-          iv = Base64.decode64(encoded_iv)
-          Encryption::SoftFailEncryptor.decrypt(value: cipher_text, key: pii_encryption_key, iv: iv)
-        else
-          '[REDACTED]'
-        end
-      end
-
-      # Build actual request with the procs needed to extract the value we need
-      # e.g. [:FirstName, :email] would become [:encrypted_FirstName, :encrypted_FirstName_iv, :email]
-      transformers = []
-      actual_request = original_request.flat_map do |column|
-        if column.in?(encrypted_attributes.keys)
-          transformers << decrypter
-          [
-            encrypted_attributes.dig(column, :attribute),
-            "#{encrypted_attributes.dig(column, :attribute)}_iv".to_sym,
-          ]
-        else
-          transformers << ->(x) { x }
-          column
-        end
-      end
-
-      # This will included base64 encoded encrypted value and base64 encoded iv potentially.
-      raw_response = super(*actual_request)
-
-      response = raw_response.map do |record|
-        i = 0
-        transformers.map do |func|
-          # the no-op proc take one argument and returns itself (e.g. ['hello@example.com'] -> 'hello@example.com')
-          # the decryption proc takes two arguments and returns the cleartext value
-          #    (e.g. ['b0xuGX8Df/g3pBYU7yj1BSgi0ao=', 'N12CmX0LkO3YQhLE'] -> 'John')
-          args = Array(record)[i,func.arity]
-
-          # This proc "consumed" this many of the raw results in the record.
-          # 1 or 2 in practice
-          i += func.arity
-
-          # Transform it
-          func.call(*args)
-        end
-      end
-
-      # requesting one column just returns all the values in a 1D array
-      # requesting two or more columns returns an array of arrays of values
-      # e.g. pluck(:name) -> ['Ted', 'Bill', 'Sam']
-      # e.g. pluck(:name, :age) -> [['Ted', 14], ['Bill', 18], ['Sam', 42]]
-      if original_request.length == 1
-        response.flatten
-      else
-        response
-      end
-    end
-
     def attr_pii(column_name)
       if Encryption::Util.encryption_enabled?
         attr_encrypted(column_name, key: :pii_encryption_key, encryptor: Encryption::SoftFailEncryptor)
@@ -138,5 +114,12 @@ module PIIAttributeSupport
     save!
   ensure
     self.class.forget_current_pii_key!
+  end
+
+  included do |parent|
+    if PIIAttributeSupport.allowed_pii_class_names.exclude?(parent.name)
+      names = PIIAttributeSupport.allowed_pii_class_names.join(', ')
+      raise "You can't include PIIAttributeSupport in #{parent} yet. It must be in this set: [#{names}]"
+    end
   end
 end
