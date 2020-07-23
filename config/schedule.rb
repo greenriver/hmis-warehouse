@@ -93,6 +93,7 @@ if ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
   end
   every 1.day, at: '6am' do
     rake "health:queue_eligibility_determination"
+    rake "health:queue_retrieve_enrollments"
   end
 end
 
