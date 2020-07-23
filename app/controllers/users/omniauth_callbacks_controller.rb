@@ -3,10 +3,10 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     auth = request.env['omniauth.auth']
 
     user = User.where(provider: auth.provider, uid: auth.uid).first_or_create do |u|
-      u.first_name = 'A'
-      u.lasts_name = 'A'
       u.email = auth.info.email
       u.password = Devise.friendly_token[0, 20]
+      u.first_name = auth.info.given_name || 'Anonymous'
+      u.last_name = auth.info.family_name || 'User'
       u.skip_confirmation!
     end
 
@@ -14,8 +14,10 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       sign_in_and_redirect user, event: :authentication # this will throw if user is not activated
       set_flash_message(:notice, :success, kind: 'Cognito') if is_navigational_format?
     else
+      raise user.errors.full_messages.inspect if Rails.env.development?
+
       session['devise.cognito_data'] = request.env['omniauth.auth'].except(:extra) # Removing extra as it can overflow some session stores
-      redirect_to new_user_registration_url, notice: user.errors.full_messages.inspect
+      redirect_to root_url, alert: user.errors.full_messages.inspect
     end
   end
 

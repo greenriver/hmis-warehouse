@@ -119,6 +119,10 @@ class User < ApplicationRecord
     end
   end
 
+  def external_idp?
+    !provider.nil?
+  end
+
   def active_for_authentication?
     super && active
   end

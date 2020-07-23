@@ -23,25 +23,29 @@ class AccountsController < ApplicationController
       @user.update(account_params)
 
       if ENV['AWS_COGNITO_POOL_ID'].present? && @user.provider == 'cognito' && @user.uid.present?
-        idp = Aws::CognitoIdentityProvider::Client.new
-        idp.admin_update_user_attributes(
-          username: @user.uid,
-          user_pool_id: ENV['AWS_COGNITO_POOL_ID'],
-          user_attributes: [
-            {
-              name: 'given_name',
-              value: @user.first_name,
-            },
-            {
-              name: 'family_name',
-              value: @user.last_name,
-            },
-            {
-              name: 'phone_number',
-              value: @user.phone,
-            },
-          ],
-        )
+        begin
+          idp = Aws::CognitoIdentityProvider::Client.new
+          idp.admin_update_user_attributes(
+            username: @user.uid,
+            user_pool_id: ENV['AWS_COGNITO_POOL_ID'],
+            user_attributes: [
+              {
+                name: 'given_name',
+                value: @user.first_name,
+              },
+              {
+                name: 'family_name',
+                value: @user.last_name,
+              },
+              {
+                name: 'phone_number',
+                value: @user.phone,
+              },
+            ],
+          )
+        rescue Aws::CognitoIdentityProvider::Errors::UserNotFoundException
+          # ignore
+        end
       end
 
       bypass_sign_in(@user)
