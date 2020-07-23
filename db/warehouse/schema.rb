@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_22_200713) do
+ActiveRecord::Schema.define(version: 2020_07_23_144121) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1718,6 +1718,7 @@ ActiveRecord::Schema.define(version: 2020_07_22_200713) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.boolean "imported", default: false
+    t.decimal "amount"
     t.index ["deleted_at"], name: "index_direct_financial_assistances_on_deleted_at"
   end
 
