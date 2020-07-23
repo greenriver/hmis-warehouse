@@ -180,6 +180,10 @@ module ArelHelper
     GrdaWarehouse::Hud::Funder.arel_table
   end
 
+  def cls_t
+    GrdaWarehouse::Hud::CurrentLivingSituation.arel_table
+  end
+
   def enx_t
     GrdaWarehouse::EnrollmentExtra.arel_table
   end
@@ -495,6 +499,10 @@ module ArelHelper
 
     def f_t
       GrdaWarehouse::Hud::Funder.arel_table
+    end
+
+    def cls_t
+      GrdaWarehouse::Hud::CurrentLivingSituation.arel_table
     end
 
     def enx_t

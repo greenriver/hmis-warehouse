@@ -251,7 +251,8 @@ module Health
     end
 
     def signed_by?(email)
-      return false if signed_by.nil?
+      return false if signed_by.blank?
+      return false if email.blank?
 
       signed_by.any? { |signer| signer.downcase == email.downcase }
     end
