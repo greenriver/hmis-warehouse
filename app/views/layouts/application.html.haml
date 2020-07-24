@@ -4,7 +4,7 @@
     %meta{name: "openpath-server", content: @op_hostname}
     %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
     - if enable_responsive?
-      %meta{:name=>"viewport", :content=>"width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"}
+      %meta{:name=>"viewport", :content=>"width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"}
     %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
     %title= [(strip_tags content_for(:title)).presence, _('Boston DND Warehouse')].compact.join(' :: ')
     %link{rel: :icon, type: 'image/png', href: 'data:;base64,iVBORw0KGgo='}
