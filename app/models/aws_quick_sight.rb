@@ -22,7 +22,19 @@ class AwsQuickSight
   AWS_FEDERATION_ENDPOINT = 'https://signin.aws.amazon.com/federation?'
   VALID_SESSION_DURATIONS = (1.hours..12.hours)
 
+  # A namespace allows you to isolate the QuickSight users and groups
+  # that are registered for that namespace. Users that access the
+  # namespace can share assets only with other users or groups in the
+  # same namespace. They can't see users and groups in other namespaces.
+  # You can create a namespace after your AWS account is subscribed to
+  # QuickSight. The namespace must be unique within the AWS account. By
+  # default, there is a limit of 100 namespaces per AWS account. To
+  # increase your limit, create a ticket with AWS Support.
+  # - https://docs.aws.amazon.com/quicksight/latest/APIReference/API_CreateNamespace.html
+  QS_NAMESPACE = :default
 
+
+  # the aws_account_id that contains the quicksight ins
   attr_reader :aws_acct_id
 
   # this needs to be unique for each user group
@@ -60,6 +72,18 @@ class AwsQuickSight
     raise 'TODO'
   end
 
+  def qs_users
+    qs_admin.list_users(aws_account_id: aws_acct_id, namespace: :default)
+  end
+
+  def qs_user(user_name)
+    qs_admin.describe_user({
+      user_name: user_name, # required
+      aws_account_id: aws_acct_id, # required
+      namespace: QS_NAMESPACE, # required
+    }).user
+  end
+
   # given a `User` return a time-expiring URL
   # for them to login to QuickSight
   #
@@ -83,7 +107,7 @@ class AwsQuickSight
     }.to_param
   end
 
-  def federation_credentials(user)
+  private def federation_credentials(user)
     credentials = if self.available_to?(user)
       cognito_region = ENV.fetch('AWS_COGNITO_REGION')
       user_pool_id = ENV.fetch('AWS_COGNITO_POOL_ID')
@@ -108,9 +132,9 @@ class AwsQuickSight
     end
 
     {
-      "sessionId": credentials.credentials.access_key_id,
-      "sessionKey": credentials.credentials.secret_key,
-      "sessionToken": credentials.credentials.session_token
+      'sessionId': credentials.credentials.access_key_id,
+      'sessionKey': credentials.credentials.secret_key,
+      'sessionToken': credentials.credentials.session_token
     }
   end
 
@@ -121,6 +145,7 @@ class AwsQuickSight
   # already existed and raises if provisioning is not possible
   # at this time
   def provision_external_user_access(email: )
+    raise 'TODO'
   end
 
   # Given a valid email addresses them up with access
@@ -130,10 +155,11 @@ class AwsQuickSight
   # already existed and raises if provisioning is not possible
   # at this time
   def revoke_external_user_access(email: )
+    raise 'TODO'
   end
 
   # :nodoc:
-  def admin_credentials
+  private def admin_credentials
     Aws::SharedCredentials.new.credentials
   end
 
@@ -143,7 +169,7 @@ class AwsQuickSight
   end
 
   # :nodoc:
-  def warehouse_db_data_source_id
+  private def warehouse_db_data_source_id
     ENV.fetch('AWS_QUICKSIGHT_DATA_SOURCE_ID')
   end
 
@@ -155,7 +181,7 @@ class AwsQuickSight
   # :nodoc:
   def ds_group
     qs_admin.describe_group(
-      namespace: :default,
+      namespace: QS_NAMESPACE,
       aws_account_id: aws_acct_id,
       group_name: ds_group_name
     ).group
@@ -166,16 +192,18 @@ class AwsQuickSight
   # :nodoc:
   def add_ds_group
     qs_admin.create_group(
-      namespace: :default,
+      namespace: QS_NAMESPACE,
       aws_account_id: aws_acct_id,
       group_name: ds_group_name
     ) rescue Aws::QuickSight::Errors::ResourceExistsException
 
     ds_group_arn = ds_group.arn
 
-    use_data_source = ["quicksight:DescribeDataSource",
-          "quicksight:DescribeDataSourcePermissions",
-          "quicksight:PassDataSource"]
+    use_data_source = [
+      'quicksight:DescribeDataSource',
+      'quicksight:DescribeDataSourcePermissions',
+      'quicksight:PassDataSource',
+    ]
 
     qs_admin.update_data_source_permissions(
       aws_account_id: aws_acct_id,
@@ -191,16 +219,31 @@ class AwsQuickSight
   # :nodoc:
   def delete_ds_group
     qs_admin.delete_group(
-      namespace: :default,
+      namespace: QS_NAMESPACE,
       aws_account_id: aws_acct_id,
       group_name: ds_group_name
     )
   end
 
-  def add_user_to_group(user_arn:, group_arn:)
+  # Add a QS user (by their QuickSight username) to a group.
+  # Does nothing
+  def create_group_membership(username:, group_name: ds_group_name)
+    qs_admin.create_group_membership(
+      member_name: username,
+      group_name: ds_group_name,
+      aws_account_id: aws_acct_id,
+      namespace: QS_NAMESPACE,
+    )
   end
 
-  # :nodoc:
-  def remove_user_from_group(user_arn:, group_arn:)
+  # Removes a QS user (by their QuickSight username) to a group.
+  # Ignores if the user is already in the group
+  def delete_group_membership(username:, group_name: ds_group_name)
+    qs_admin.delete_group_membership(
+      member_name: username,
+      group_name: ds_group_name,
+      aws_account_id: aws_acct_id,
+      namespace: QS_NAMESPACE,
+    )
   end
 end
