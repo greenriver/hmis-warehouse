@@ -38,5 +38,19 @@ module GrdaWarehouse::Census
     scope :so, -> do
       joins(:project).merge(GrdaWarehouse::Hud::Project.so)
     end
+
+    def self.view_column_names
+      [
+        'id',
+        'date',
+        'project_id',
+        'veterans',
+        'non_veterans',
+        'children',
+        'adults',
+        'all_clients',
+        'beds',
+      ]
+    end
   end
 end

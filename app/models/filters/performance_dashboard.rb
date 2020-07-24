@@ -115,6 +115,5 @@ module Filters
         [start_date, end_date]
       end
     end
-
   end
 end

@@ -4,7 +4,7 @@
     show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
     show_demographic = @client.show_window_demographic_to?(current_user) rescue false
     @note_count = 0
-    show_notes = can_edit_window_client_notes? || can_see_own_window_client_notes? || can_edit_client_notes?
+    show_notes = can_edit_window_client_notes_or_own_window_client_notes?
     if show_notes
       @note_count = @client.notes.visible_by(current_user, @client).count
     end
@@ -84,6 +84,12 @@
         permission: can_audit_clients?,
       },
     })
+    hmis.merge!({
+      service_scanning_scanner_id_path(@client) => {
+        title: 'Scan Card IDs',
+        permission: can_use_service_register?,
+      },
+    }) if RailsDrivers.loaded.include?(:service_scanning)
     health = {
       # BH CP Pages
       polymorphic_path(health_path_generator + [:patient, :index], client_id: @client) => {
@@ -141,7 +147,5 @@
         permission: show_health_hpc,
       },
     }
-  - if health_emergency?
-    .client-tabs__health-emergency.health-emergency
-      = render "clients/#{health_emergency}", client: @client
+  = render 'clients/pre_navigation_bar'
   = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health

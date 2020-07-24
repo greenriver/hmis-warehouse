@@ -458,7 +458,9 @@ Rails.application.routes.draw do
       post :batch_download, on: :collection
       get :pre_populated, on: :collection
     end
-    resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
+    resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes' do
+      get :alerts, on: :collection
+    end
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
@@ -552,10 +554,17 @@ Rails.application.routes.draw do
     resources :overview, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "overview#section", as: :section
+      get :filters, on: :collection
+    end
+    resources :household, only: [:index] do
+      get :details, on: :collection
+      get 'section/:partial', on: :collection, to: "household#section", as: :section
+      get :filters, on: :collection
     end
     resources :project_type, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "project_type#section", as: :section
+      get :filters, on: :collection
     end
   end
 

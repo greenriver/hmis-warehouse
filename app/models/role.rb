@@ -441,6 +441,13 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
+      can_view_all_window_notes: {
+        description: 'User will be able to see notes for any client they can already see, this includes only notes of type Window Note, Alert, or Emergency Contact',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_manage_cohorts: {
         description: 'Ability to create, edit, add and remove clients, and see changes to cohorts',
         administrative: true,
@@ -762,11 +769,19 @@ class Role < ApplicationRecord
           'Health Emergency',
         ],
       },
+      can_use_service_register: {
+        description: 'Grants the ability to scan individual services for a given program.',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_manage_auto_client_de_duplication: {
         description: 'Ability to see statistics around client de-duplication and set the threshold for probabilistic matching.',
         administrative: true,
         categories: [
           'Administration',
+
         ],
       },
     }
