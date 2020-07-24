@@ -331,7 +331,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         organization_id: project.OrganizationID,
         project_tracking_method: project.TrackingMethod,
         record_type: nil,
-        housing_status_at_entry: self.HousingStatus,
+        housing_status_at_entry: self.LivingSituation,
         housing_status_at_exit: exit&.HousingAssessment,
         other_clients_over_25: other_clients_over_25,
         other_clients_under_18: other_clients_under_18,
