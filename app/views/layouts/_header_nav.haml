@@ -7,7 +7,7 @@
         = render 'layouts/messages'
 
       %li.c-header-nav__mobile-link
-        = link_to '#', class: 'c-header-nav__link js-toggle-menu' do
+        = link_to '#', class: 'c-header-nav__link js-toggle-menu', aria: {label: 'Site Navigation', expanded: false}  do
           %i.icon-menu
     - elsif !@showing_sign_in_form
       %li.c-header-nav__item
