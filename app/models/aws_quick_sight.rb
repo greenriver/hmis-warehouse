@@ -174,6 +174,20 @@ class AwsQuickSight
   end
 
   # :nodoc:
+  #
+  # DANGER: This will remove all users from the group
+  # you will have to delete_group_membership
+  # and create_group_membership with
+  # some unknown delay between them
+  def recreate_group!
+    delete_ds_group
+    # there appears to be some race on the quicksight side
+    # if we call add to quickly after delete
+    sleep(30)
+    add_ds_group
+  end
+
+  # :nodoc:
   def ds_group!
     ds_group || add_ds_group
   end
@@ -194,10 +208,20 @@ class AwsQuickSight
     qs_admin.create_group(
       namespace: QS_NAMESPACE,
       aws_account_id: aws_acct_id,
-      group_name: ds_group_name
+      group_name: ds_group_name,
     ) rescue Aws::QuickSight::Errors::ResourceExistsException
 
-    ds_group_arn = ds_group.arn
+    the_group = nil
+    retries = [1,2,4,8,16]
+    retries.each do |back_off|
+      the_group = ds_group
+      puts the_group
+      break if the_group
+      sleep back_off
+    end
+    raise "After `create_group` succeeded, `describe_group` returned ResourceNotFoundException after #{retries.sum} seconds of retries." unless the_group
+
+    group_arn = the_group.arn
 
     use_data_source = [
       'quicksight:DescribeDataSource',
@@ -209,11 +233,11 @@ class AwsQuickSight
       aws_account_id: aws_acct_id,
       data_source_id: warehouse_db_data_source_id,
       grant_permissions: [
-        { principal: ds_group_arn, actions: use_data_source},
+        { principal: group_arn, actions: use_data_source},
       ],
     )
 
-    ds_group
+    the_group
   end
 
   # :nodoc:
