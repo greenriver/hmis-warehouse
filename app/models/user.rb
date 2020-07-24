@@ -22,7 +22,7 @@ class User < ApplicationRecord
          :lockable,
          :timeoutable,
          :confirmable,
-         :session_limitable,
+         # :session_limitable,
          :pwned_password,
          :expirable,
          :password_expirable,
