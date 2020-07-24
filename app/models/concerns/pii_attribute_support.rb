@@ -12,13 +12,9 @@ module PIIAttributeSupport
       'Reporting::DataQualityReports::Enrollment',
       'GrdaWarehouse::ImportLog',
       'GrdaWarehouse::Upload',
+      'TestPerson',
+      'TestClient',
     ]
-
-    if Rails.env.test?
-      @allowed_pii_class_names << 'TestPerson'
-      @allowed_pii_class_names << 'TestClient'
-    end
-
     @allowed_pii_class_names
   end
 

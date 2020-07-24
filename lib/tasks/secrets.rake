@@ -11,14 +11,25 @@ namespace :secrets do
   desc "copy over cleartext"
   task :copy_cleartext, [] => [:environment] do |t, args|
     PIIAttributeSupport.allowed_pii_classes.each do |klass|
-      klass.find_each do |person|
-        klass.allow_pii!
-        klass.encrypted_attributes.each do |cleartext_column, enc_config|
-          if person.read_attribute(cleartext_column).present? && person.read_attribute(enc_config[:attribute]).blank?
-            person.send("#{cleartext_column}=", person.read_attribute(cleartext_column))
+      scope = klass
+      scope = klass.with_deleted if klass.paranoid?
+      scope.in_batches(of: 10_000).each_with_index do |batch, i|
+        rows = []
+        batch.each do |person|
+          klass.allow_pii!
+          updates = {
+            id: person.id,
+          }
+          klass.encrypted_attributes.each do |cleartext_column, enc_config|
+            if person.read_attribute(cleartext_column).present? && person.read_attribute(enc_config[:attribute]).blank?
+              person.send("#{cleartext_column}=", person.read_attribute(cleartext_column))
+              updates[cleartext_column] = person.send("#{cleartext_column}")
+              rows << updates
+            end
           end
         end
-        person.save!
+        klass.import(updates, on_duplicate_key: encrypted_attributes.keys)
+        # .save!(validate: false)
       end
     end
   end
@@ -32,7 +43,7 @@ namespace :secrets do
           # not doing PII encryption
           person.write_attribute(cleartext_column, nil)
         end
-        person.save!
+        person.save!(validate: false)
       end
     end
   end

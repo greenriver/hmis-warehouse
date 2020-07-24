@@ -227,6 +227,129 @@ ActiveRecord::Schema.define(version: 2020_07_24_180227) do
     t.index ["pending_date_deleted"], name: "index_Client_on_pending_date_deleted"
   end
 
+  create_table "ClientUnencrypted", id: :integer, default: -> { "nextval('\"Client_id_seq\"'::regclass)" }, force: :cascade do |t|
+    t.string "PersonalID"
+    t.string "FirstName", limit: 150
+    t.string "MiddleName", limit: 150
+    t.string "LastName", limit: 150
+    t.string "NameSuffix", limit: 50
+    t.integer "NameDataQuality"
+    t.string "SSN"
+    t.integer "SSNDataQuality"
+    t.date "DOB"
+    t.integer "DOBDataQuality"
+    t.integer "AmIndAKNative"
+    t.integer "Asian"
+    t.integer "BlackAfAmerican"
+    t.integer "NativeHIOtherPacific"
+    t.integer "White"
+    t.integer "RaceNone"
+    t.integer "Ethnicity"
+    t.integer "Gender"
+    t.string "OtherGender", limit: 50
+    t.integer "VeteranStatus"
+    t.integer "YearEnteredService"
+    t.integer "YearSeparated"
+    t.integer "WorldWarII"
+    t.integer "KoreanWar"
+    t.integer "VietnamWar"
+    t.integer "DesertStorm"
+    t.integer "AfghanistanOEF"
+    t.integer "IraqOIF"
+    t.integer "IraqOND"
+    t.integer "OtherTheater"
+    t.integer "MilitaryBranch"
+    t.integer "DischargeStatus"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id"
+    t.datetime "disability_verified_on"
+    t.datetime "housing_assistance_network_released_on"
+    t.boolean "sync_with_cas", default: false, null: false
+    t.boolean "dmh_eligible", default: false, null: false
+    t.boolean "va_eligible", default: false, null: false
+    t.boolean "hues_eligible", default: false, null: false
+    t.boolean "hiv_positive", default: false, null: false
+    t.string "housing_release_status"
+    t.boolean "chronically_homeless_for_cas", default: false, null: false
+    t.boolean "us_citizen", default: false, null: false
+    t.boolean "asylee", default: false, null: false
+    t.boolean "ineligible_immigrant", default: false, null: false
+    t.boolean "lifetime_sex_offender", default: false, null: false
+    t.boolean "meth_production_conviction", default: false, null: false
+    t.boolean "family_member", default: false, null: false
+    t.boolean "child_in_household", default: false, null: false
+    t.boolean "ha_eligible", default: false, null: false
+    t.boolean "api_update_in_process", default: false, null: false
+    t.datetime "api_update_started_at"
+    t.datetime "api_last_updated_at"
+    t.integer "creator_id"
+    t.boolean "cspech_eligible", default: false
+    t.date "consent_form_signed_on"
+    t.integer "vispdat_prioritization_days_homeless"
+    t.boolean "generate_history_pdf", default: false
+    t.boolean "congregate_housing", default: false
+    t.boolean "sober_housing", default: false
+    t.integer "consent_form_id"
+    t.integer "rrh_assessment_score"
+    t.boolean "ssvf_eligible", default: false, null: false
+    t.boolean "rrh_desired", default: false, null: false
+    t.boolean "youth_rrh_desired", default: false, null: false
+    t.string "rrh_assessment_contact_info"
+    t.datetime "rrh_assessment_collected_at"
+    t.string "source_hash"
+    t.boolean "generate_manual_history_pdf", default: false, null: false
+    t.boolean "requires_wheelchair_accessibility", default: false
+    t.integer "required_number_of_bedrooms", default: 1
+    t.integer "required_minimum_occupancy", default: 1
+    t.boolean "requires_elevator_access", default: false
+    t.jsonb "neighborhood_interests", default: [], null: false
+    t.string "verified_veteran_status"
+    t.boolean "interested_in_set_asides", default: false
+    t.date "consent_expires_on"
+    t.datetime "pending_date_deleted"
+    t.date "cas_match_override"
+    t.boolean "vash_eligible", default: false
+    t.jsonb "consented_coc_codes", default: []
+    t.boolean "income_maximization_assistance_requested", default: false, null: false
+    t.integer "income_total_monthly"
+    t.boolean "pending_subsidized_housing_placement", default: false, null: false
+    t.boolean "pathways_domestic_violence", default: false, null: false
+    t.boolean "rrh_th_desired", default: false, null: false
+    t.boolean "sro_ok", default: false, null: false
+    t.boolean "pathways_other_accessibility", default: false, null: false
+    t.boolean "pathways_disabled_housing", default: false, null: false
+    t.boolean "evicted", default: false, null: false
+    t.boolean "dv_rrh_desired", default: false
+    t.string "health_prioritized"
+    t.boolean "demographic_dirty", default: true
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+    t.string "encrypted_MiddleName"
+    t.string "encrypted_MiddleName_iv"
+    t.string "encrypted_LastName"
+    t.string "encrypted_LastName_iv"
+    t.string "encrypted_SSN"
+    t.string "encrypted_SSN_iv"
+    t.string "encrypted_NameSuffix"
+    t.string "encrypted_NameSuffix_iv"
+    t.string "soundex_first"
+    t.string "soundex_last"
+    t.index ["DateCreated"], name: "ClientUnencrypted_DateCreated_idx"
+    t.index ["DateDeleted", "data_source_id"], name: "ClientUnencrypted_DateDeleted_data_source_id_idx"
+    t.index ["DateUpdated"], name: "ClientUnencrypted_DateUpdated_idx"
+    t.index ["ExportID"], name: "ClientUnencrypted_ExportID_idx"
+    t.index ["FirstName"], name: "ClientUnencrypted_FirstName_idx"
+    t.index ["LastName"], name: "ClientUnencrypted_LastName_idx"
+    t.index ["PersonalID"], name: "ClientUnencrypted_PersonalID_idx"
+    t.index ["creator_id"], name: "ClientUnencrypted_creator_id_idx"
+    t.index ["data_source_id"], name: "ClientUnencrypted_data_source_id_idx"
+    t.index ["pending_date_deleted"], name: "ClientUnencrypted_pending_date_deleted_idx"
+  end
+
   create_table "CurrentLivingSituation", id: :serial, force: :cascade do |t|
     t.string "CurrentLivingSitID", limit: 32, null: false
     t.string "EnrollmentID", null: false
