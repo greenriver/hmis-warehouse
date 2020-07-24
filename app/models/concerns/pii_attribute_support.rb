@@ -9,6 +9,9 @@ module PIIAttributeSupport
 
     @allowed_pii_class_names = [
       'GrdaWarehouse::Hud::Client',
+      'Reporting::DataQualityReports::Enrollment',
+      'GrdaWarehouse::ImportLog',
+      'GrdaWarehouse::Upload',
     ]
 
     if Rails.env.test?
@@ -25,6 +28,10 @@ module PIIAttributeSupport
 
   def self.pii_table_names
     allowed_pii_classes.map(&:table_name)
+  end
+
+  def self.allow_all_pii!
+    allowed_pii_classes.each(&:allow_pii!)
   end
 
   # a memoized lookup by class of the columns and attr_encrypted configuration

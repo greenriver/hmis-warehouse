@@ -33,6 +33,10 @@ module Encryption
     end
 
     def self.init!
+      if Encryption::Util.encryption_disabled?
+        Rails.logger.info "[PII] Not initializing encryption, encryption disabled for installation."
+        return
+      end
       if Secret.count > 1
         Rails.logger.info "[PII] Not initializing PII since the secrets table looks initialized already."
         return

@@ -13,8 +13,8 @@ namespace :secrets do
     PIIAttributeSupport.allowed_pii_classes.each do |klass|
       klass.find_each do |person|
         klass.allow_pii!
-        klass.encrypted_attributes.keys.each do |cleartext_column|
-          if person.read_attribute(cleartext_column).present?
+        klass.encrypted_attributes.each do |cleartext_column, enc_config|
+          if person.read_attribute(cleartext_column).present? && person.read_attribute(enc_config[:attribute]).blank?
             person.send("#{cleartext_column}=", person.read_attribute(cleartext_column))
           end
         end

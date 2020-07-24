@@ -8,7 +8,10 @@ module GrdaWarehouse
   class Upload < GrdaWarehouseBase
     require 'csv'
     include ActionView::Helpers::DateHelper
+    include PIIAttributeSupport
     acts_as_paranoid
+
+    attr_pii :content
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
     belongs_to :user

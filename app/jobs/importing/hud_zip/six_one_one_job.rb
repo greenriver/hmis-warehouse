@@ -16,6 +16,7 @@ module Importing::HudZip
     end
 
     def perform
+      PIIAttributeSupport.allow_all_pii!
       importer = Importers::HMISSixOneOne::UploadedZip.new(
         data_source_id: @data_source_id,
         upload_id: @upload_id,
