@@ -12,6 +12,7 @@ namespace :secrets do
   task :copy_cleartext, [] => [:environment] do |t, args|
     PIIAttributeSupport.allowed_pii_classes.each do |klass|
       klass.find_each do |person|
+        klass.allow_pii!
         klass.encrypted_attributes.keys.each do |cleartext_column|
           if person.read_attribute(cleartext_column).present?
             person.send("#{cleartext_column}=", person.read_attribute(cleartext_column))
