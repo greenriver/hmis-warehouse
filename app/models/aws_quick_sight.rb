@@ -108,7 +108,7 @@ class AwsQuickSight
   end
 
   private def federation_credentials(user)
-    credentials = if self.available_to?(user)
+    credentials = if self.class.available_to?(user)
       cognito_region = ENV.fetch('AWS_COGNITO_REGION')
       user_pool_id = ENV.fetch('AWS_COGNITO_POOL_ID')
       identity_pool_id = ENV.fetch('AWS_COGNITO_IDENTITY_POOL_ID')
@@ -179,42 +179,44 @@ class AwsQuickSight
   # you will have to delete_group_membership
   # and create_group_membership with
   # some unknown delay between them
-  def recreate_group!
-    delete_ds_group
+  def recreate_group!(group_name: ds_group_name)
+    delete_group(group_name: group_name)
     # there appears to be some race on the quicksight side
     # if we call add to quickly after delete
-    sleep(30)
-    add_ds_group
+    wait_time = 20
+    Rails.logger.info("waiting #{wait_time}s for delete to complete")
+    sleep wait_time
+    add_group(group_name: group_name)
   end
 
   # :nodoc:
-  def ds_group!
-    ds_group || add_ds_group
+  def group!(group_name: ds_group_name)
+    group(group_name: group_name) || add_group(group_name: group_name)
   end
 
   # :nodoc:
-  def ds_group
+  def group(group_name: ds_group_name)
     qs_admin.describe_group(
       namespace: QS_NAMESPACE,
       aws_account_id: aws_acct_id,
-      group_name: ds_group_name
+      group_name: group_name
     ).group
   rescue Aws::QuickSight::Errors::ResourceNotFoundException
     nil
   end
 
   # :nodoc:
-  def add_ds_group
+  def add_group(group_name: ds_group_name)
     qs_admin.create_group(
       namespace: QS_NAMESPACE,
       aws_account_id: aws_acct_id,
-      group_name: ds_group_name,
+      group_name: group_name,
     ) rescue Aws::QuickSight::Errors::ResourceExistsException
 
     the_group = nil
     retries = [1,2,4,8,16]
     retries.each do |back_off|
-      the_group = ds_group
+      the_group = group(group_name: group_name)
       puts the_group
       break if the_group
       sleep back_off
@@ -241,11 +243,11 @@ class AwsQuickSight
   end
 
   # :nodoc:
-  def delete_ds_group
+  def delete_group(group_name: ds_group_name)
     qs_admin.delete_group(
       namespace: QS_NAMESPACE,
       aws_account_id: aws_acct_id,
-      group_name: ds_group_name
+      group_name: group_name
     )
   end
 

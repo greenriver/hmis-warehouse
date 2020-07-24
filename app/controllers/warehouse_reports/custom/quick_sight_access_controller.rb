@@ -9,6 +9,9 @@ module WarehouseReports::Custom
     include WarehouseReportAuthorization
 
     def index
+      raise 'Access denied' unless AwsQuickSight.available_to?(current_user)
+
+      redirect_to AwsQuickSight.new.sign_in_url(user: current_user, return_to_url: url_for, session_duration: 8.hours)
     end
 
     def create
