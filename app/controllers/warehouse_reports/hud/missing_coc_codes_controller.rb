@@ -31,8 +31,13 @@ module WarehouseReports::Hud
           or(ex_t[:ExitDate].eq(nil)),
         ).
         where(ec_t[:CoCCode].eq(nil)).
-        order(EntryDate: :desc).
-        page(params[:page]).per(50)
+        order(EntryDate: :desc)
+      respond_to do |format|
+        format.html do
+          @enrollments = @enrollments.page(params[:page]).per(50)
+        end
+        format.xlsx {}
+      end
 
       # NoCoC = (select count (distinct n.HouseholdID)
       # from hmis_Enrollment n

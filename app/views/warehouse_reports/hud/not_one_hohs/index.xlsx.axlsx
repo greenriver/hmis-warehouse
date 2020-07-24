@@ -8,9 +8,9 @@ wb.add_worksheet(name: 'Not One Head of Household') do |sheet|
     'Last Name (HMIS)',
     'Project',
     'Entry Date',
-    'Move-in Date',
     'Exit Date',
-    'Destination',
+    'Household ID',
+    'Relationship to HoH'
   ]
   sheet.add_row(headers, :style => title)
   @enrollments.each do |en|
@@ -24,9 +24,9 @@ wb.add_worksheet(name: 'Not One Head of Household') do |sheet|
       c.LastName,
       project.name,
       en.EntryDate,
-      en.MoveInDate,
       en.exit&.ExitDate,
-      HUD.destination(en.exit&.Destination),
+      en.HouseholdID,
+      HUD.relationship_to_hoh(en.RelationshipToHoH),
     ]
     sheet.add_row(values)
   end
