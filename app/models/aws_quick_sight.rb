@@ -4,6 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# As of July 2020 a Enterprise level QuickSight account is required.
+# See https://docs.aws.amazon.com/quicksight/latest/user/managing-users-enterprise.html
+# for background.
+#
+# It may be possible to adapt to use Standard Edition features but would
+# require separate accounts for different user groups since at the time of this
+# writing standard edition does not support groups or access to AWS
+# resources over a VPC
 require 'aws-sdk-quicksight'
 class AwsQuickSight
   attr_reader :aws_acct_id
