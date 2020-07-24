@@ -5,6 +5,7 @@
 ###
 
 require 'restclient'
+require 'soundex'
 module GrdaWarehouse::Hud
   class Client < Base
     self.primary_key = :id
@@ -2295,21 +2296,11 @@ module GrdaWarehouse::Hud
       # skip self and anyone already known to be related
       scope = scope.where.not( id: source_clients.map(&:id) + [ id, destination_client.try(&:id) ] )
 
-      # some convenience stuff to clean the code up
-      at = self.class.arel_table
-
-      diff_full = nf(
-        'DIFFERENCE', [
-          ct( cl( at[:FirstName], '' ), cl( at[:MiddleName], '' ), cl( at[:LastName], '' ) ),
-          name
-        ],
-        'diff_full'
-      )
-      diff_last  = nf( 'DIFFERENCE', [ cl( at[:LastName], '' ), last_name || '' ], 'diff_last' )
-      diff_first = nf( 'DIFFERENCE', [ cl( at[:LastName], '' ), first_name || '' ], 'diff_first' )
+      diff_last  = nf( 'DIFFERENCE', [ cl( c_t[:soundex_last], '' ), soundex_last || '' ], 'diff_last' )
+      diff_first = nf( 'DIFFERENCE', [ cl( c_t[:soundex_first], '' ), soundex_first || '' ], 'diff_first' )
 
       # return a scope return clients plus their "difference" from this client
-      scope.select( Arel.star, diff_full, diff_first, diff_last ).order('diff_full DESC, diff_last DESC, diff_first DESC')
+      scope.select( Arel.star, diff_first, diff_first, diff_last ).order('diff_first DESC, diff_last DESC')
     end
 
     # Move source clients to this destination client
@@ -2383,6 +2374,27 @@ module GrdaWarehouse::Hud
           where(destination_client_id: m.id).destroy_all
       end
       moved
+    end
+
+    def self.update_all_soundex!
+      with_deleted.select(:id, :FirstName, :LastName).
+        order(id: :asc).
+        in_batches(of: 10_000).each_with_index do |batch, i|
+          clients = []
+          puts "Starting batch #{i}"
+          batch.each do |client|
+            clients << client.soundex_hash
+          end
+          self.import(clients, on_duplicate_key_update: [:soundex_first, :soundex_last], batch_size: 1_000)
+        end
+    end
+
+    def soundex_hash
+      {
+        id: self.id,
+        soundex_first: Soundex.new(self.FirstName).to_s,
+        soundex_last: Soundex.new(self.LastName).to_s,
+      }
     end
 
     def move_dependent_items previous_id, new_id

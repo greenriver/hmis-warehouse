@@ -15,6 +15,10 @@ module GrdaWarehouse::Tasks
     end
 
     def run!
+      PIIAttributeSupport.allow_all_pii!
+      # Update soundexes
+      GrdaWarehouse::Hud::Client.update_all_soundex!
+
       Rails.logger.info 'Loading unprocessed clients'
       started_at = DateTime.now
       @unprocessed = load_unprocessed()

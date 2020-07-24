@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_23_204046) do
+ActiveRecord::Schema.define(version: 2020_07_24_180227) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -213,6 +213,8 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "encrypted_SSN_iv"
     t.string "encrypted_NameSuffix"
     t.string "encrypted_NameSuffix_iv"
+    t.string "soundex_first"
+    t.string "soundex_last"
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -1750,18 +1752,6 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "mime_type"
     t.index ["type"], name: "index_document_exports_on_type"
     t.index ["user_id"], name: "index_document_exports_on_user_id"
-  end
-
-  create_table "encryption_secrets", force: :cascade do |t|
-    t.string "version_stage", null: false
-    t.string "version_id", null: false
-    t.boolean "previous", default: true, null: false
-    t.boolean "current", default: true, null: false
-    t.datetime "rotated_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["version_id"], name: "index_encryption_secrets_on_version_id", unique: true
-    t.index ["version_stage"], name: "index_encryption_secrets_on_version_stage", unique: true
   end
 
   create_table "enrollment_change_histories", id: :serial, force: :cascade do |t|
@@ -4074,6 +4064,8 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.datetime "updated_at", null: false
     t.string "zip"
     t.integer "upload_id"
+    t.text "encrypted_import_errors"
+    t.string "encrypted_import_errors_iv"
     t.index ["completed_at"], name: "index_import_logs_on_completed_at"
     t.index ["created_at"], name: "index_import_logs_on_created_at"
     t.index ["data_source_id"], name: "index_import_logs_on_data_source_id"
@@ -6059,6 +6051,8 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.integer "delayed_job_id"
     t.boolean "deidentified", default: false
     t.boolean "project_whitelist", default: false
+    t.text "encrypted_content"
+    t.string "encrypted_content_iv"
     t.index ["deleted_at"], name: "index_uploads_on_deleted_at"
   end
 
