@@ -21,6 +21,9 @@ namespace :secrets do
         person.save!(validate: false)
       end
     end
+
+    Rails.logger.info "Processing: #{GrdaWarehouse::Hud::Client.with_deleted.count} potentially"
+    GrdaWarehouse::Hud::Client.update_all_soundex!
   end
 
   desc "Wipe cleartext"

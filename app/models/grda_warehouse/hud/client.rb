@@ -2379,6 +2379,7 @@ module GrdaWarehouse::Hud
     def self.update_all_soundex!
       allow_pii!
       with_deleted.select(:id, :FirstName, :LastName, :encrypted_FirstName, :encrypted_LastName, :encrypted_FirstName_iv, :encrypted_LastName_iv).
+        where("soundex_first IS NULL OR soundex_last IS NULL").
         order(id: :asc).
         in_batches(of: 10_000).each_with_index do |batch, i|
           clients = []
