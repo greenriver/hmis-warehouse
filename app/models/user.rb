@@ -33,7 +33,9 @@ class User < ApplicationRecord
          otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
          otp_number_of_backup_codes: 10
 
-  devise :omniauthable, omniauth_providers: %i[cognito]
+  if ENV['AWS_COGNITO_APP_ID'].present?
+    devise :omniauthable, omniauth_providers: %i[cognito]
+  end
 
   # has_secure_password # not needed with devise
   # Connect users to login attempts

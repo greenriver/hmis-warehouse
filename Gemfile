@@ -52,11 +52,15 @@ gem 'devise_invitable', '~> 2.0'
 gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
+
+gem 'aws-sdk-quicksight', '~> 1'
+
 gem 'omniauth-cognito-idp'
+gem 'omniauth-rails_csrf_protection', '~> 0.1' #CVE-2015-9284 mitigation
 gem 'aws-sdk-cognitoidentityprovider', '~> 1'
 gem 'aws-sdk-cognitoidentity', '~> 1'
-gem 'aws-sdk-quicksight', '~> 1'
-gem 'omniauth-rails_csrf_protection', '~> 0.1' #CVE-2015-9284 mitigation
+
+
 gem 'pretender'
 gem 'rqrcode-rails3'
 gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3

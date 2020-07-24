@@ -5,5 +5,8 @@
   .col-sm-12
     = render 'accounts/account_info_tabs'
     = render 'form'
-    - if Rais.env.development?
+    - if Rails.env.development?
+      - if AwsQuickSight.available_to?(@user)
+        = link_to 'Quick Sight',  AwsQuickSight.new.sign_in_url(user: @user,
+          return_to_url: url_for, session_duration: 8.hours)
       = debug @user.provider_raw_info

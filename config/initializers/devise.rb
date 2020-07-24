@@ -328,7 +328,7 @@ Devise.setup do |config|
       strategy_class: OmniAuth::Strategies::CognitoIdP,
       aws_region: ENV.fetch('AWS_COGNITO_REGION'),
       client_options: {
-        site: ENV['AWS_COGNITO_USER_POOL_SITE']
+        site: ENV.fetch('AWS_COGNITO_USER_POOL_SITE'),
       },
       user_pool_id: ENV.fetch('AWS_COGNITO_POOL_ID'),
       scope: %i[openid email profile aws.cognito.signin.user.admin]
