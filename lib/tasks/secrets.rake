@@ -44,6 +44,12 @@ namespace :secrets do
     GrdaWarehouse::Hud::Client.allow_pii!
 
     GrdaWarehouse::Hud::Client.find_each do |client|
+      client.write_attribute(:encrypted_FirstName, nil)
+      client.write_attribute(:encrypted_LastName, nil)
+      client.write_attribute(:encrypted_MiddleName, nil)
+      client.write_attribute(:encrypted_SSN, nil)
+      client.write_attribute(:encrypted_NameSuffix, nil)
+
       client.write_attribute(:FirstName, ['Sam', 'Jon', 'Joe', 'Lisa', 'phil'].sample)
       client.write_attribute(:LastName, ['Johnson', 'White', 'McDonald'].sample)
       client.write_attribute(:MiddleName, ['James', 'P', 'K'].sample)
