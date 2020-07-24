@@ -5,3 +5,5 @@
   .col-sm-12
     = render 'accounts/account_info_tabs'
     = render 'form'
+    - if Rais.env.development?
+      = debug @user.provider_raw_info

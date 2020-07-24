@@ -1,7 +1,6 @@
 class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   def cognito
     auth = request.env['omniauth.auth']
-
     user = User.where(provider: auth.provider, uid: auth.uid).first_or_create do |u|
       u.email = auth.info.email
       u.password = Devise.friendly_token[0, 20]
@@ -10,6 +9,9 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       u.phone = auth.extra.raw_info.phone_number
       u.skip_confirmation!
     end
+    user.update_columns(
+      provider_raw_info: auth.extra.raw_info.to_h.merge(auth.credentials.to_h),
+    )
 
     if user.persisted?
       sign_in_and_redirect user, event: :authentication # this will throw if user is not activated
