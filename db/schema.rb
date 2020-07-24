@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_21_151558) do
+ActiveRecord::Schema.define(version: 2020_07_21_153237) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -163,6 +163,18 @@ ActiveRecord::Schema.define(version: 2020_07_21_151558) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.index ["priority", "run_at"], name: "delayed_jobs_priority"
+  end
+
+  create_table "encryption_secrets", force: :cascade do |t|
+    t.string "version_stage", null: false
+    t.string "version_id", null: false
+    t.boolean "previous", default: true, null: false
+    t.boolean "current", default: true, null: false
+    t.datetime "rotated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["version_id"], name: "index_encryption_secrets_on_version_id", unique: true
+    t.index ["version_stage"], name: "index_encryption_secrets_on_version_stage", unique: true
   end
 
   create_table "glacier_archives", id: :serial, force: :cascade do |t|
@@ -477,6 +489,24 @@ ActiveRecord::Schema.define(version: 2020_07_21_151558) do
     t.string "name"
     t.integer "taggings_count", default: 0
     t.index ["name"], name: "index_tags_on_name", unique: true
+  end
+
+  create_table "test_addresses", force: :cascade do |t|
+    t.integer "test_person_id"
+    t.string "street"
+  end
+
+  create_table "test_clients", force: :cascade do |t|
+    t.string "FirstName"
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+  end
+
+  create_table "test_people", force: :cascade do |t|
+    t.string "encrypted_first_name"
+    t.string "encrypted_first_name_iv"
+    t.string "email"
+    t.string "hair"
   end
 
   create_table "tokens", id: :serial, force: :cascade do |t|
