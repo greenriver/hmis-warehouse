@@ -17,7 +17,7 @@ module WarehouseReports::Hud
         where(e_t[:EntryDate].lt(@filter.end)).
         joins(:client, project: :project_cocs).
         left_outer_joins(:enrollment_cocs, :exit).
-        preload(client: :destination_client).
+        preload(:enrollment_cocs, :exit, project: :project_cocs, client: :destination_client).
         merge(
           GrdaWarehouse::Hud::Project.
           viewable_by(current_user).

@@ -1,0 +1,33 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Not One Head of Household') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  headers = [
+    'Warehouse ID',
+    'PersonalID (HMIS)',
+    'First Name (HMIS)',
+    'Last Name (HMIS)',
+    'Project',
+    'Entry Date',
+    'Move-in Date',
+    'Exit Date',
+    'Destination',
+  ]
+  sheet.add_row(headers, :style => title)
+  @enrollments.each do |en|
+    c = en.client
+    dc = c.destination_client
+    project = en.project
+    values = [
+      dc.id,
+      c.PersonalID,
+      c.FirstName,
+      c.LastName,
+      project.name,
+      en.EntryDate,
+      en.MoveInDate,
+      en.exit&.ExitDate,
+      HUD.destination(en.exit&.Destination),
+    ]
+    sheet.add_row(values)
+  end
+end
