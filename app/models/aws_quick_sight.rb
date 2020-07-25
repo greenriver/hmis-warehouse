@@ -254,18 +254,68 @@ class AwsQuickSight
     }
   end
 
-  private def cognito_id_token_based_session(id_token)
+  private def identity_pool(create_if_missing: true)
+    host_name = ENV.fetch('HOSTNAME') #FIXME: cannot be more the 128 chars
+
+    pool = nil
+    existing_pool_id = nil
+    cognito_admin.list_identity_pools(max_results: 50).each do |batch|
+      batch.identity_pools.each do |pool|
+        existing_pool_id = pool.identity_pool_id if pool.identity_pool_name == host_name
+        break if existing_pool_id
+      end
+      break if existing_pool_id
+    end
+
+    if existing_pool_id
+      existing_pool = cognito_admin.describe_identity_pool(
+        identity_pool_id: existing_pool_id,
+      )
+      return existing_pool unless create_if_missing
+    end
+
+    existing_pool ||= if create_if_missing
+      cognito_admin.create_identity_pool(
+        identity_pool_name: host_name, # required
+        developer_provider_name: host_name,
+        allow_unauthenticated_identities: false,
+        cognito_identity_providers: [
+          {
+            provider_name: cognito_idp,
+            client_id: ENV.fetch('AWS_COGNITO_APP_ID'),
+            server_side_token_check: false,
+          }
+        ],
+        identity_pool_tags: {
+          'env' => Rails.env.to_s,
+        }
+      )
+    end
+    existing_pool
+  end
+
+  private def cognito_idp
     cognito_region = ENV.fetch('AWS_COGNITO_REGION')
     user_pool_id = ENV.fetch('AWS_COGNITO_POOL_ID')
-    identity_pool_id = ENV.fetch('AWS_COGNITO_IDENTITY_POOL_ID')
+    "cognito-idp.#{cognito_region}.amazonaws.com/#{user_pool_id}"
+  end
 
-    login_key = "cognito-idp.#{cognito_region}.amazonaws.com/#{user_pool_id}"
+  private def cognito_id_token_based_session(id_token)
+    identity_pool_id = identity_pool(create_if_missing: true).identity_pool_id
     identity_id = Aws::CognitoIdentity::Client.new.get_id(
       identity_pool_id: identity_pool_id,
       logins: {
-        login_key => id_token
+        cognito_idp => id_token
       },
     ).identity_id
+
+    # resp = client.get_open_id_token_for_developer_identity({
+    #   identity_pool_id: "IdentityPoolId", # required
+    #   identity_id: "IdentityId",
+    #   logins: { # required
+    #     "IdentityProviderName" => "IdentityProviderToken",
+    #   },
+    # })
 
     session = Aws::CognitoIdentity::Client.new.get_credentials_for_identity(
       identity_id: identity_id,
@@ -294,6 +344,10 @@ class AwsQuickSight
   # :nodoc:
   def iam_admin
     Aws::IAM::Client.new(credentials: admin_credentials)
+  end
+
+  def cognito_admin
+    Aws::CognitoIdentity::Client.new(credentials: admin_credentials)
   end
 
   # :nodoc:
