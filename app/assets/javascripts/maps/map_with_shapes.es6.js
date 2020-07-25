@@ -16,8 +16,9 @@ App.Maps.MapWithShapes = class MapWithShapes {
     this.shapes = shapes;
     this.showingData = false;
     const mapOptions = {
-      minZoom: 6,
+      minZoom: 5,
       maxZoom: 9,
+      zoomSnap: 0.2,
       zoomControl: false,
       scrollWheelZoom: false,
     };

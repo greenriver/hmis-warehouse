@@ -1,4 +1,5 @@
 :ruby
+  @layout__width = 'lg'
   title = 'Inter-CoC Client Overlap'
   content_for :title, title
   report_id = 'coc-overlap-report'
@@ -18,9 +19,9 @@
     %h2.j-title.d-none Loading &hellip;
     .h5-prs1.j-subtitle
   .row
-    .col-md-6
+    .col-md-4
       = render 'map', map_id: map_id
-    .col-md-6
+    .col-md-8
       %div.o-container--with-loader{id: results_id, style: 'min-height: 600px;'}
         .d-flex
           .mr-2
