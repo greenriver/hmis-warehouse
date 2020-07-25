@@ -14,6 +14,8 @@ module WarehouseReports
       report.parameters = params
 
       @user = User.find(params[:current_user_id])
+      PIIAttributeSupport.allow_all_pii! if @user.can_decrypt_pii?
+      Encryption::SoftFailEncryptor.pii_soft_failure = true
 
       report.user_id = @user.id
       report.parameters[:visible_projects] = if @user.can_edit_anything_super_user?

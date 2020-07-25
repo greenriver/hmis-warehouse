@@ -11,6 +11,7 @@ module Health
     attr_accessor :params, :report_start_date, :report_end_date, :report_id, :current_user_id
 
     def initialize(params)
+      PIIAttributeSupport.allow_all_pii!
       @report_start_date = params[:report_start_date]
       @report_end_date = params[:report_end_date]
       @report_id = params[:report_id]

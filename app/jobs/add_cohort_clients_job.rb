@@ -8,6 +8,7 @@ class AddCohortClientsJob < BaseJob
   queue_as :long_running
 
   def perform(cohort_id, client_ids, user_id)
+    PIIAttributeSupport.allow_all_pii!
     client_ids = client_ids.split(',').map(&:strip).compact.map(&:to_i)
     cohort = cohort_source.find(cohort_id)
     cohort_client_ids = []

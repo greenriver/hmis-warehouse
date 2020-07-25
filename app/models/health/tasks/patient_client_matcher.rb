@@ -8,6 +8,7 @@ module Health::Tasks
   class PatientClientMatcher
     def run!
       Rails.logger.info 'Loading unprocessed patients'
+      PIIAttributeSupport.allow_all_pii!
       started_at = DateTime.now
 
       unprocessed.each do |patient|

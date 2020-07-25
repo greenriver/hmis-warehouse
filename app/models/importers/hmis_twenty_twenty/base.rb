@@ -31,6 +31,7 @@ module Importers::HmisTwentyTwenty
       project_whitelist: false
     )
       setup_notifier('HMIS Importer 2020')
+      PIIAttributeSupport.allow_all_pii!
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @file_path = file_path
       @logger = logger

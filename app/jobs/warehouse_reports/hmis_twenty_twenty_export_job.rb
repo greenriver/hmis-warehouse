@@ -14,6 +14,7 @@ module WarehouseReports
       options = options.with_indifferent_access
       user = User.find(options[:user_id])
       PIIAttributeSupport.allow_all_pii! if options[:hash_status].to_i != 1 || user.can_decrypt_pii?
+      Encryption::SoftFailEncryptor.pii_soft_failure = true
       report = Exporters::HmisTwentyTwenty::Base.new(
         start_date: options[:start_date],
         end_date: options[:end_date],

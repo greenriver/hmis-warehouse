@@ -16,6 +16,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     has_one :report_project_group, class_name: 'Reporting::DataQualityReports::ProjectGroup', foreign_key: :report_id
 
     def run!
+      PIIAttributeSupport.allow_all_pii!
       progress_methods = [
         :start_report,
         :build_report_enrollments,
