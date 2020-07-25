@@ -14,6 +14,9 @@
               %span Concurrent
     %tbody
       = yield
-.text-muted
-  %strong= 'Note: '
-  = '"Asynchronous" means that the client was enrolled in the project type in both CoCs but never on the same day. "Concurrent" means that they were enrolled on the same day.'
+.text-muted.mb-1
+  %strong= 'Note 1:'
+  = %q{This table only show the Project Types (overlapping and non-overlapping) with shared clients. Project Types with 0 shared clients are hidden.}
+.text-muted.mb-1
+  %strong= 'Note 2:'
+  = %q{“Asynchronous” means that the client was enrolled in the project type in both CoCs but never on the same day. “Concurrent” means that they were enrolled on the same day.}
