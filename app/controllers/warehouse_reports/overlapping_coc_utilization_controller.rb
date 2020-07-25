@@ -126,12 +126,13 @@ module WarehouseReports
         map_title: "#{coc1.number_and_name} shared clients with the following CoCs",
         map: map_data,
         html: report_html,
+        title: "Overview of Shared Client by Project Type and CoC",
         subtitle: "Served between #{filters.start_date} - #{filters.end_date}",
       }
       if coc1 && coc2
-        payload[:title] = "Clients served in both #{filters.coc1.number_and_name} and #{filters.coc2.number_and_name}"
+        payload[:subtitle] = "Served in both #{filters.coc1.number_and_name} and #{filters.coc2.number_and_name}, between #{filters.start_date} - #{filters.end_date}"
       else
-        payload[:title] = "Clients in #{filters.coc1.number_and_name} overlapping with other CoCs"
+        payload[:subtitle] = "Served in #{filters.coc1.number_and_name}, between #{filters.start_date} - #{filters.end_date}"
       end
       render json: payload
     end
