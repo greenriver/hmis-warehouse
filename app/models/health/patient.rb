@@ -405,6 +405,10 @@ module Health
       end
     end
 
+    def age(on_date:)
+      GrdaWarehouse::Hud::Client.age(date: on_date, dob: birthdate)
+    end
+
     # Priority:
     # Authoritative: Epic (epic_patient)
     # Updates from MassHealth (patient_referral)

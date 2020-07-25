@@ -56,6 +56,7 @@ class User < ApplicationRecord
 
   has_many :messages
   has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
+  has_one :db_credential
 
   belongs_to :agency, optional: true
 
@@ -302,6 +303,12 @@ class User < ApplicationRecord
       end
     end
   end
+
+  def can_access_report?(url:)
+    GrdaWarehouse::WarehouseReports::ReportDefinition.
+      where(url: url).
+      viewable_by(self).exists?
+   end
 
   def user_care_coordinators
     Health::UserCareCoordinator.where(user_id: id)

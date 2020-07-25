@@ -306,6 +306,11 @@ Rails.application.routes.draw do
     end
     resources :ad_hoc_analysis, only: [:index, :create, :destroy, :show]
     resources :ad_hoc_anon_analysis, only: [:index, :create, :destroy, :show]
+    namespace :custom do
+      resources :db_access, only: [:index] do
+        post :reset, on: :collection
+      end
+    end
     namespace :project do
       resource :data_quality do
         get :download, on: :member
@@ -719,6 +724,7 @@ Rails.application.routes.draw do
         post :unlock
         post :confirm
         post :impersonate
+        delete :revoke_db_access
       end
       collection do
         post :stop_impersonating

@@ -433,7 +433,7 @@ def report_list
       },
       {
         url: 'warehouse_reports/health/aco_performance',
-        name: 'ACO Performance',
+        name: 'CP Engagement (122 days) by ACO',
         description: 'Summary data on ACO performance in the BH CP.',
         limitable: false,
       },
@@ -585,6 +585,14 @@ def report_list
         url: 'warehouse_reports/ad_hoc_anon_analysis',
         name: 'Ad-Hoc Analysis Export (De-identified)',
         description: 'Export data for offline analysis, client names and ids removed',
+        limitable: true,
+      },
+    ],
+    'Custom' => [
+      {
+        url: 'warehouse_reports/custom/db_access',
+        name: 'Direct Database Access (De-identified)',
+        description: 'Access your credentials and connection information for direct Database Access',
         limitable: true,
       },
     ],

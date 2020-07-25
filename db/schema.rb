@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_21_151558) do
+ActiveRecord::Schema.define(version: 2020_07_22_150322) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -150,6 +150,21 @@ ActiveRecord::Schema.define(version: 2020_07_21_151558) do
     t.index ["name"], name: "index_consent_limits_on_name"
   end
 
+  create_table "db_credentials", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "role", null: false
+    t.string "adaptor", null: false
+    t.string "username", null: false
+    t.binary "encrypted_password", null: false
+    t.binary "encrypted_password_iv", null: false
+    t.string "database", null: false
+    t.string "host"
+    t.string "port"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "role"], name: "index_db_credentials_on_user_id_and_role", unique: true
+  end
+
   create_table "delayed_jobs", id: :serial, force: :cascade do |t|
     t.integer "priority", default: 0, null: false
     t.integer "attempts", default: 0, null: false
@@ -163,6 +178,18 @@ ActiveRecord::Schema.define(version: 2020_07_21_151558) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.index ["priority", "run_at"], name: "delayed_jobs_priority"
+  end
+
+  create_table "encryption_secrets", force: :cascade do |t|
+    t.string "version_stage", null: false
+    t.string "version_id", null: false
+    t.boolean "previous", default: true, null: false
+    t.boolean "current", default: true, null: false
+    t.datetime "rotated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["version_id"], name: "index_encryption_secrets_on_version_id", unique: true
+    t.index ["version_stage"], name: "index_encryption_secrets_on_version_stage", unique: true
   end
 
   create_table "glacier_archives", id: :serial, force: :cascade do |t|
@@ -479,6 +506,24 @@ ActiveRecord::Schema.define(version: 2020_07_21_151558) do
     t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
+  create_table "test_addresses", force: :cascade do |t|
+    t.integer "test_person_id"
+    t.string "street"
+  end
+
+  create_table "test_clients", force: :cascade do |t|
+    t.string "FirstName"
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+  end
+
+  create_table "test_people", force: :cascade do |t|
+    t.string "encrypted_first_name"
+    t.string "encrypted_first_name_iv"
+    t.string "email"
+    t.string "hair"
+  end
+
   create_table "tokens", id: :serial, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -593,6 +638,8 @@ ActiveRecord::Schema.define(version: 2020_07_21_151558) do
     t.datetime "password_changed_at"
     t.boolean "training_completed", default: false
     t.date "last_training_completed"
+    t.string "provider"
+    t.string "uid"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -627,6 +674,7 @@ ActiveRecord::Schema.define(version: 2020_07_21_151558) do
     t.datetime "deleted_at"
   end
 
+  add_foreign_key "db_credentials", "users"
   add_foreign_key "glacier_archives", "glacier_vaults"
   add_foreign_key "report_results", "users"
   add_foreign_key "reports", "report_results_summaries"

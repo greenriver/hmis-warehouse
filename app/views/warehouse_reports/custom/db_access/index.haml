@@ -1,0 +1,49 @@
+- content_for :title, 'Direct Database Access (De-identified)'
+%h1= content_for :title
+
+%p You have been granted direct database access to de-identified client and enrollment level data. To access this data, you will need the following information to connect.
+
+SQL connection information for
+%strong= "#{current_user.name}:"
+
+%table.table.table-borderless.db-connection-table.mt-4
+  %tbody
+    %tr
+      %th DB Type:
+      %td
+        .db-connection-info= @credential.adaptor
+      %td
+    %tr
+      %th Host:
+      %td
+        .db-connection-info= @credential.host
+      %td The Host Name or Server Name for the database instance.
+    %tr
+      %th Port:
+      %td
+        .db-connection-info= @credential.port
+      %td The Port on which the database instance is listening.
+    %tr
+      %th Databse:
+      %td
+        .db-connection-info= @credential.database
+      %td
+    %tr
+      %th Username:
+      %td
+        .db-connection-info= @credential.username
+      %td Your username for the database instance
+    %tr
+      %th Password:
+      %td
+        .db-connection-info= @credential.password
+      %td Your initial password for the database instance.
+.row
+  .col-sm-8
+    %p
+      If you have changed your password manually, and don't know the current value, you can reset it here.
+      .text-right
+        = link_to reset_warehouse_reports_custom_db_access_index_path, class: 'btn btn-sm btn-secondary', method: :post, data: { confirm: 'Are you sure you want to reset your database password?'} do
+          %i.icon-settings_backup_restore
+          Reset Database Password
+
