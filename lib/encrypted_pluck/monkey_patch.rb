@@ -43,7 +43,8 @@ module ActiveRecord
 
     def pluck(*column_names)
       if loaded? && (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
-        new_column_names = get_pii_column_names(column_names, relation: relation, simple: true)
+        relation_to_use = relation || spawn
+        new_column_names = get_pii_column_names(column_names, relation: relation_to_use, simple: true)
         return put_pii_values(records.pluck(*new_column_names))
       end
 
