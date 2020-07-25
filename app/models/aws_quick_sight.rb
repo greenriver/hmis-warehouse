@@ -15,12 +15,37 @@
 
 require 'aws-sdk-quicksight'
 require 'aws-sdk-cognitoidentity'
+require 'aws-sdk-iam'
+require 'aws-sdk-sts'
 require 'restclient' #FIXME we use this in only one place HTTP::get would be fine
 
 class AwsQuickSight
   START_URL = 'https://quicksight.aws.amazon.com/'
   AWS_FEDERATION_ENDPOINT = 'https://signin.aws.amazon.com/federation?'
   VALID_SESSION_DURATIONS = (1.hours..12.hours)
+
+
+  # IAM Policy needed for Quick Sight Authors
+  AUTHOR_IAM_POLICY_NAME = 'OpenPath_QuickSight_Author'
+  AUTHOR_IAM_POLICY = IceNine.deep_freeze(
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": "sts:GetFederationToken",
+        "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+            "quicksight:CreateUser",
+        ],
+        "Resource": [
+            "arn:aws:quicksight:*:*:user/*"
+        ]
+      }
+    ]
+  )
 
   # A namespace allows you to isolate the QuickSight users and groups
   # that are registered for that namespace. Users that access the
@@ -45,30 +70,104 @@ class AwsQuickSight
     @ds_group_name = ENV.fetch('AWS_QUICKSIGHT_DS_GROUP_NAME')
   end
 
-
   # Can the user use or request access to QuickSight?
-  def self.available_to?(user)
-    cognito_idp_enabled? && user.provider_raw_info.present?
+  def available_to?(user)
+    cognito_id_token_for_user(user) || aws_credential_for_user(user)
   end
 
-  def self.cognito_idp_enabled?
+  def cognito_idp_enabled?
     ENV['AWS_COGNITO_APP_ID'].present?
   end
 
-  # Given a `User` instance set them up with access
+  def cognito_id_token_for_user(user)
+    cognito_idp_enabled? && user.provider == 'cognito' && user.provider_raw_info&.dig('id_token')
+  end
+
+  def aws_credential_for_user(user, create_if_missing: false)
+    cred = AwsCredential.find_by(user: user, account_id: aws_acct_id)
+    return cred unless create_if_missing
+
+    # now confirm with AWS that the saved key still exists
+    existing_key = if cred
+      begin
+        iam_admin.list_access_keys(
+          user_name: cred.username,
+        ).access_key_metadata.detect{ |k| k.access_key_id == cred.access_key_id}
+      rescue Aws::IAM::Errors::NoSuchEntity
+        existing_cred.destroy # key disappear
+        nil
+      end
+    end
+    cred.destroy if cred && !existing_key # its gone.. remove it so we dont get confused
+
+    unless existing_key
+      # Note, This is a create! since a new key is only
+      # returned once. Should the database save fail
+      # we would need to add logic to remove the orphaned key.
+      # Any given IAM account can have at most 2 keys
+      cred = AwsCredential.where(user: user, account_id: aws_acct_id).first_or_create! do |new_cred|
+        new_cred.default_username!
+        iam_user = iam_admin.get_user(user_name: new_cred.username)
+        iam_user ||= begin
+          new_user = iam_admin.create_user(user_name: cred.username, tags: [{key: 'hmis_warehouse_user_id', value: "#{user.id}"}])
+          iam_admin.wait_until(:user_exists, user_name: new_cred.username)
+        end
+        new_key = iam_admin.create_access_key(user_name: new_cred.username).access_key
+        new_cred.access_key_id = new_key.access_key_id
+        new_cred.secret_access_key = new_key.secret_access_key
+      end
+    end
+    cred
+  end
+
+  def author_policy(create_if_missing: false)
+    # search a potentially long list looking
+    # for or policy by name.
+    # FIXME: we could be stashing the policy arn somewhere
+    existing_policy = iam_admin.get_policy(
+      policy_arn: "arn:aws:iam::#{aws_acct_id}:policy/#{AUTHOR_IAM_POLICY_NAME}"
+    ).policy
+    return existing_policy unless create_if_missing
+
+    existing_policy || iam_admin.create_policy(
+      policy_name: AUTHOR_IAM_POLICY_NAME,
+      policy_document: AUTHOR_IAM_POLICY.to_json,
+      description: 'Allow policy holders to become Authors in Quick Sight.'
+    )
+  end
+
+
+  # Given a `User` instance ensures that they have access
   # to QuickSight as an author with the warehouse database
   # as a pre-approved data source.
   #
-  # returns true of the user was removed, false if they
-  # already existed and raises if provisioning is not possible
-  # at this time
-  def provision_user_access(user: , initial_group: nil)
-    raise 'TODO'
+  # raise if the user cannot be setup
+  def provision_user_access(user)
+    # check that we have some sort of ID we can use with AWS services
+    qs_user = if cognito_id_token_for_user(user)
+      raise 'FIXME'
+    else
+      # make sure the IAM user exists and has the right policy attached
+      cred = aws_credential_for_user(user, create_if_missing: true)
+      policy = author_policy(create_if_missing: true)
+      iam_admin.attach_user_policy(user_name: cred.username, policy_arn: policy.arn)
+
+      # make sure the quick sight user exists
+      qs_user(aws_credential: cred, create_if_missing: true)
+    end
+
+    # make sure the quick sight group exists
+    group!(group_name: ds_group_name)
+
+    # make sure the quick sight group exists
+    create_group_membership(user_name: qs_user.user_name,  group_name: ds_group_name)
+
+    true
   end
 
   # Given a `User` instance revoke their access
   # to Quick Sight.
-  def revoke_user_access(user: )
+  def revoke_user_access(user)
     raise 'TODO'
   end
 
@@ -76,12 +175,30 @@ class AwsQuickSight
     qs_admin.list_users(aws_account_id: aws_acct_id, namespace: :default)
   end
 
-  def qs_user(user_name)
-    qs_admin.describe_user({
-      user_name: user_name, # required
-      aws_account_id: aws_acct_id, # required
-      namespace: QS_NAMESPACE, # required
-    }).user
+  def qs_user(aws_credential:, create_if_missing: true)
+    existing_user = begin
+      qs_admin.describe_user(
+        user_name: aws_credential.username,
+        aws_account_id: aws_acct_id,
+        namespace: QS_NAMESPACE,
+      ).user
+    rescue Aws::QuickSight::Errors::ResourceNotFoundException
+      nil
+    end
+
+    return existing_user unless create_if_missing
+
+    # "Currently, you use the ID for the AWS account that contains your Amazon QuickSight account."
+    # - https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/QuickSight/Client.html#register_user-instance_method
+    # July 25 2020
+    qs_admin.register_user(
+      user_role: "AUTHOR",
+      identity_type: "IAM",
+      email: aws_credential.user.email,
+      iam_arn: aws_credential.arn,
+      namespace: QS_NAMESPACE,
+      aws_account_id: aws_acct_id,
+    ).user
   end
 
   # given a `User` return a time-expiring URL
@@ -107,55 +224,59 @@ class AwsQuickSight
     }.to_param
   end
 
-  private def federation_credentials(user)
-    credentials = if self.class.available_to?(user)
-      cognito_region = ENV.fetch('AWS_COGNITO_REGION')
-      user_pool_id = ENV.fetch('AWS_COGNITO_POOL_ID')
-      identity_pool_id = ENV.fetch('AWS_COGNITO_IDENTITY_POOL_ID')
-
-      login_key = "cognito-idp.#{cognito_region}.amazonaws.com/#{user_pool_id}"
-      identity_id = Aws::CognitoIdentity::Client.new.get_id(
-        identity_pool_id: identity_pool_id,
-        logins: {
-          login_key => user.provider_raw_info['id_token']
-        },
-      ).identity_id
-
-      Aws::CognitoIdentity::Client.new.get_credentials_for_identity(
-        identity_id: identity_id,
-        logins: {
-          login_key => user.provider_raw_info['id_token']
-        },
-      )
+  def federation_credentials(user)
+    # full IAM users are fastest to login
+    if (aws_credential = aws_credential_for_user(user))
+      aws_credential_based_session(aws_credential, user)
+    elsif (id_token = cognito_id_token_for_user(user))
+      cognito_id_token_based_session
     else
-      raise ArgumentError, 'Only supported for users logging in via AWS Cognito'
+      raise ArgumentError, 'User does not support AWS federated login.'
     end
+  end
 
+  private def aws_credential_based_session(aws_credential, user = aws_credential.user)
+    user_sts = Aws::STS::Client.new(
+      access_key_id: aws_credential.access_key_id,
+      secret_access_key: aws_credential.secret_access_key,
+    )
+    session = user_sts.get_federation_token(
+      name: user.email,
+      policy: AUTHOR_IAM_POLICY.to_json,
+      duration_seconds: 8.hour
+    ).credentials
     {
-      'sessionId': credentials.credentials.access_key_id,
-      'sessionKey': credentials.credentials.secret_key,
-      'sessionToken': credentials.credentials.session_token
+      'sessionId': session.access_key_id,
+      'sessionKey': session.secret_access_key,
+      'sessionToken': session.session_token
     }
   end
 
-  # Given a valid email addresses them up with access
-  # to QuickSight as (TODO).
-  #
-  # returns true of the user was removed, false if they
-  # already existed and raises if provisioning is not possible
-  # at this time
-  def provision_external_user_access(email: )
-    raise 'TODO'
-  end
+  private def cognito_id_token_based_session(id_token)
+    cognito_region = ENV.fetch('AWS_COGNITO_REGION')
+    user_pool_id = ENV.fetch('AWS_COGNITO_POOL_ID')
+    identity_pool_id = ENV.fetch('AWS_COGNITO_IDENTITY_POOL_ID')
 
-  # Given a valid email addresses them up with access
-  # to QuickSight as (TODO).
-  #
-  # returns true of the user was removed, false if they
-  # already existed and raises if provisioning is not possible
-  # at this time
-  def revoke_external_user_access(email: )
-    raise 'TODO'
+    login_key = "cognito-idp.#{cognito_region}.amazonaws.com/#{user_pool_id}"
+    identity_id = Aws::CognitoIdentity::Client.new.get_id(
+      identity_pool_id: identity_pool_id,
+      logins: {
+        login_key => id_token
+      },
+    ).identity_id
+
+    session = Aws::CognitoIdentity::Client.new.get_credentials_for_identity(
+      identity_id: identity_id,
+      logins: {
+        login_key => id_token
+      },
+    ).credentials
+
+    {
+      'sessionId': session.access_key_id,
+      'sessionKey': session.secret_key,
+      'sessionToken': session.session_token
+    }
   end
 
   # :nodoc:
@@ -166,6 +287,11 @@ class AwsQuickSight
   # :nodoc:
   def qs_admin
     Aws::QuickSight::Client.new(credentials: admin_credentials)
+  end
+
+  # :nodoc:
+  def iam_admin
+    Aws::IAM::Client.new(credentials: admin_credentials)
   end
 
   # :nodoc:
@@ -253,9 +379,9 @@ class AwsQuickSight
 
   # Add a QS user (by their QuickSight username) to a group.
   # Does nothing
-  def create_group_membership(username:, group_name: ds_group_name)
+  def create_group_membership(user_name:, group_name: ds_group_name)
     qs_admin.create_group_membership(
-      member_name: username,
+      member_name: user_name,
       group_name: ds_group_name,
       aws_account_id: aws_acct_id,
       namespace: QS_NAMESPACE,
@@ -264,9 +390,9 @@ class AwsQuickSight
 
   # Removes a QS user (by their QuickSight username) to a group.
   # Ignores if the user is already in the group
-  def delete_group_membership(username:, group_name: ds_group_name)
+  def delete_group_membership(user_name:, group_name: ds_group_name)
     qs_admin.delete_group_membership(
-      member_name: username,
+      member_name: user_name,
       group_name: ds_group_name,
       aws_account_id: aws_acct_id,
       namespace: QS_NAMESPACE,
