@@ -107,7 +107,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport # rubocop:d
   end
   memoize :overlap_by_project_type
 
-  def service_histories
+  def service_histories(project_type: nil)
     scope = GrdaWarehouse::ServiceHistoryService.joins(
       service_history_enrollment: {
         project: :project_cocs,
@@ -117,7 +117,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport # rubocop:d
       end_date: @end_date,
     )
 
-    if @project_type
+    if project_type
       scope = scope.merge(
         GrdaWarehouse::ServiceHistoryEnrollment.where(computed_project_type: @project_type),
       )
@@ -131,7 +131,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport # rubocop:d
         overlap_by_project_type.each do |p_type, clients|
           dates[p_type] ||= {}
           dates[p_type][coc] ||= []
-          service_histories.
+          service_histories(@project_type).
             where(client_id: clients).
             in_project_type(p_type).
             distinct.
