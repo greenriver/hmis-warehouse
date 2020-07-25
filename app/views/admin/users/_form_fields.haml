@@ -47,5 +47,22 @@
             %i #{@user.training_status}
           - unless @user.last_training_completed.present?
             = f.input :training_completed, label: 'Check to OVERRIDE course completion requirement'
-
+    - if @user&.db_credential&.present?
+      .form--db-credential
+        %h3 Direct Database Access (De-identified)
+        .well
+          %p
+            = "#{@user.name} currently has direct database access to de-identified data."
+          %p
+            - if @user.can_access_report?(url: 'warehouse_reports/custom/db_access')
+              #{@user.name} currently has access to the Direct Database Access report.
+              %br
+              To remove database access, you must first prevent this user from accessing the Direct Database Access report.
+            - else
+              #{@user.name} does not have access to the Direct Database Access report.
+              %br
+              Revoking access below will completely remove DB access
+              = link_to revoke_db_access_admin_user_path(@user), method: :delete, data: { confirm: 'Revoking direct database access will block this user from running queries on the database.' }, class: 'btn btn-danger mt-4' do
+                %i.icon-cross
+                Revoke DB Access
 = render '/users/user_viewable_entities', f: f, roles: Role.editable

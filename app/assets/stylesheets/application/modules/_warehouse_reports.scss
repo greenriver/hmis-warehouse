@@ -139,6 +139,21 @@
 {
   stroke-dasharray: 3 4; stroke-width: 3px;
 }
+.db-connection-table
+{
+  th, td
+  {
+    padding-top: 0;
+    vertical-align: middle;
+  }
+}
+.db-connection-info
+{
+  border: 1px solid $gray-025;
+  background-color: $gray-015;
+  padding: 0.5rem 1rem;
+  min-width: 20rem;
+}
 
 .chunk {
   &:only-child {

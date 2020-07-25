@@ -582,6 +582,14 @@ def report_list
         limitable: true,
       },
     ],
+    'Custom' => [
+      {
+        url: 'warehouse_reports/custom/db_access',
+        name: 'Direct Database Access (De-identified)',
+        description: 'Access your credentials and connection information for direct Database Access',
+        limitable: true,
+      },
+    ],
   }
 end
 

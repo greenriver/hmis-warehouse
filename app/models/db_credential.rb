@@ -2,18 +2,24 @@ class DbCredential < ApplicationRecord
   belongs_to :user
   attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31], encode: false, encode_iv: false
   after_initialize :defaults
+  has_paper_trail
 
   PG_ROLE = 'bi'
   def defaults
     unless persisted?
-      self.username ||= SecureRandom.alphanumeric(16)
-      self.password ||= SecureRandom.alphanumeric(16)
+      self.username ||= secure_value
+      self.password ||= secure_value
       self.database ||= DB_WAREHOUSE['database']
       self.host ||= DB_WAREHOUSE['host']
-      self.port ||= DB_WAREHOUSE['port']
+      self.port ||= DB_WAREHOUSE['port'] || 5432
+      self.role ||= PG_ROLE
+      self.adaptor ||= :postgres
     end
   end
 
+  private def secure_value
+    SecureRandom.alphanumeric(16)
+  end
 
   private def create_role_sql(role: PG_ROLE)
     <<~SQL
@@ -28,16 +34,41 @@ class DbCredential < ApplicationRecord
   end
 
   # raises PG::DuplicateObject if the connection already exists
-  def provision
-    pg_conn.execute create_role_sql(role: role)
+  def provision!
+    pg_conn.execute(create_role_sql(role: role)) unless pg_role_exists?
     pg_conn.execute(
-      "CREATE USER #{pg_ident username} IN ROLE #{pg_ident role} PASSWORD #{pg_conn.quote password} CONNECTION LIMIT 2"
-    )
+      "CREATE USER #{pg_ident self.username} IN ROLE #{pg_ident role} PASSWORD #{pg_conn.quote password} CONNECTION LIMIT 2"
+    ) unless pg_user_exists?
+  end
+
+  def reprovision!
+    revoke_db_user!
+    self.username = secure_value
+    self.password = secure_value
+    save!
+    provision!
   end
 
   # raises PG::UndefinedObject
-  def revoke
-    pg_conn.execute "DROP USER #{pg_ident db_user}"
+  def revoke!
+    revoke_db_user!
+    self.destroy
+  end
+
+  private def revoke_db_user!
+    pg_conn.execute("DROP USER #{pg_ident self.username}") if pg_user_exists?
+  end
+
+  def pg_user_exists?
+    pg_conn.execute(pg_role_exists_sql(self.username)).count&.positive?
+  end
+
+  def pg_role_exists?
+    pg_conn.execute(pg_role_exists_sql(self.role)).count&.positive?
+  end
+
+  private def pg_role_exists_sql(pg_role)
+    "SELECT 1 FROM pg_roles WHERE rolname = #{pg_str(pg_role)}"
   end
 
   private def pg_conn
@@ -49,7 +80,7 @@ class DbCredential < ApplicationRecord
   end
 
   private def pg_str(str)
-    PG::Connection.quote(str)
+    pg_conn.quote(str)
   end
 
 
