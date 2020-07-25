@@ -8,6 +8,9 @@ module WarehouseReports
   class OverlappingCoCUtilizationController < ApplicationController
     include WarehouseReportAuthorization
 
+    CACHE_VERSION = '1aa'.freeze
+    CACHE_LIFETIME = 30.seconds.freeze
+
     RELEVANT_COC_STATE = ENV.fetch('RELEVANT_COC_STATE') do
       GrdaWarehouse::Shape::CoC.order(Arel.sql('random()')).limit(1).pluck(:st)
     rescue StandardError
@@ -65,8 +68,8 @@ module WarehouseReports
     def details
       @report = load_overlapping_coc_by_project_type_report(project_type: params.dig(:project_type))
       @details = Rails.cache.fetch(
-        @report.cache_key.merge(user_id: current_user.id, view: :details_hash),
-        expires_in: 30.minutes,
+        @report.cache_key.merge(user_id: current_user.id, view: :details_hash, rev: CACHE_VERSION),
+        expires_in: CACHE_LIFETIME,
       ) do
         @report.details_hash
       end
@@ -107,8 +110,8 @@ module WarehouseReports
         begin
           report = load_overlapping_coc_by_project_type_report
           Rails.cache.fetch(
-            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.95),
-            expires_in: 30.minutes,
+            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: CACHE_VERSION),
+            expires_in: CACHE_LIFETIME
           ) do
             render_to_string(partial: 'overlap', locals: { report: report })
           end
