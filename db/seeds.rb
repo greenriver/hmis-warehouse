@@ -427,7 +427,7 @@ def report_list
       },
       {
         url: 'warehouse_reports/health/aco_performance',
-        name: 'ACO Performance',
+        name: 'CP Engagement (122 days) by ACO',
         description: 'Summary data on ACO performance in the BH CP.',
         limitable: false,
       },
