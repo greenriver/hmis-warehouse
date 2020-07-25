@@ -21,8 +21,8 @@
       %input.j-project-type-choice.form-check-input{type:'radio', value:'custom', name: ctl_name, id:'custom_project_type', checked: !homeless}
       %label.form-check-label(for='custom_project_type') Custom
 
-  #j-custom-project-type{class: homeless && 'd-none'}
-    = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, required: false, input_html: { multiple: @report.multiple_project_types?, class: klasses, id: 'filters_project_type_codes'}, label: false
+  #j-custom-project-type{class: homeless && 'd-none', aria: {hidden: homeless}}
+    = f.input :project_type_codes, collection: GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.invert, required: false, input_html: { multiple: @report.multiple_project_types?, class: klasses, id: 'filters_project_type_codes'}, label: 'Project Types'
 
 - content_for :page_js do
   :javascript
@@ -38,4 +38,5 @@
         $input.trigger('change');
       }
       $('#j-custom-project-type').toggleClass('d-none', isHomeless);
+      $('#j-custom-project-type').attr('aria-hidden', isHomeless);
     });
