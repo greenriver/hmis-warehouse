@@ -212,7 +212,7 @@ class AwsQuickSight
     sign_in_token_url = AWS_FEDERATION_ENDPOINT+{
       'Action': 'getSigninToken',
       'SessionDuration': session_duration,
-      'Session': federation_credentials(user, session_duration: session_duration).to_json,
+      'Session': federation_session(user, session_duration: session_duration).to_json,
     }.to_param
 
     json = JSON.parse(RestClient.get(sign_in_token_url))
@@ -225,7 +225,7 @@ class AwsQuickSight
     }.to_param
   end
 
-  def federation_credentials(user, session_duration: session_duration)
+  def federation_session(user, session_duration: session_duration)
     # full IAM users are fastest to login
     if (aws_credential = aws_credential_for_user(user))
       aws_credential_based_session(aws_credential, user: user, session_duration: session_duration)
@@ -241,15 +241,16 @@ class AwsQuickSight
       access_key_id: aws_credential.access_key_id,
       secret_access_key: aws_credential.secret_access_key,
     )
-    session = user_sts.get_federation_token(
-      name: aws_credential.username, # docs say this can be up to 32 chars while an AWS IAM is upto 64... odd
+    resp = user_sts.get_federation_token(
+      name: aws_credential.username[0..32], # docs say this can be up to 32 chars while an AWS IAM is up to 64... odd
       policy_arns: [{arn: author_policy.arn}],
       duration_seconds: session_duration,
-    ).credentials
+    )
+    creds = resp.credentials
     {
-      'sessionId': session.access_key_id,
-      'sessionKey': session.secret_access_key,
-      'sessionToken': session.session_token
+      'sessionId': creds.access_key_id,
+      'sessionKey': creds.secret_access_key,
+      'sessionToken': creds.session_token
     }
   end
 
