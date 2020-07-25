@@ -134,6 +134,8 @@ module Encryption
       e_class = model_with_encryption.dup
       ->(encoded_cipher_text, encoded_iv) do
         if e_class.allow_pii?
+          return nil if encoded_cipher_text.blank?
+
           cipher_text = Base64.decode64(encoded_cipher_text)
           iv = Base64.decode64(encoded_iv)
           Encryption::SoftFailEncryptor.decrypt(value: cipher_text, key: e_class.pii_encryption_key, iv: iv)
