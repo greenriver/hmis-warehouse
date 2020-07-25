@@ -80,7 +80,7 @@ module WarehouseReports
         coc_code_2: filters.coc2&.cocnum,
         start_date: filters.start_date,
         end_date: filters.end_date,
-        project_type: project_type
+        project_type: project_type,
       )
     end
 
@@ -125,7 +125,7 @@ module WarehouseReports
         map_title: "#{coc1.number_and_name} shared clients with the following CoCs",
         map: map_data,
         html: report_html,
-        title: "Overview of Shared Client by Project Type and CoC",
+        title: 'Overview of Shared Client by Project Type and CoC',
         subtitle: "Served between #{filters.start_date} - #{filters.end_date}",
       }
       if coc1 && coc2

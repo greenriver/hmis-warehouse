@@ -6,7 +6,7 @@
         %th{style: 'width: 120px'} Shared Clients
         %th{style: 'width: 256px'}
           .d-flex.flex-wrap
-            .c-swatch.mr-2
+            .c-swatch.mr-4
               %span.c-swatch__display.c-swatch__display--map-0{style:'border: 1px solid #ccc'}
               %span Asynchronous
             .c-swatch
@@ -17,7 +17,8 @@
 :ruby
   notes = [
     %q{This table only shows the Project Types (overlapping and non-overlapping) with shared clients. Project Types with 0 shared clients are hidden.},
-    # %q{“Asynchronous” means that the client was enrolled in the project type in both CoCs but never on the same day. “Concurrent” means that they were enrolled on the same day.},
+    %q{“Asynchronous” means that the client was enrolled in the project type in both CoCs but never on the same day. “Concurrent” means that they were enrolled on the same day.},
+    %q{Clients who were enrolled in multiple project types in both CoCs will be counted more than once.},
   ]
 - notes.each.with_index do |note, idx|
   .text-muted.mb-1.gray

@@ -9,21 +9,27 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport # rubocop:d
   VERSION = 3
   class Error < ::StandardError; end
 
-  attr_reader :start_date, :end_date, :project_type
+  attr_reader :start_date, :end_date, :project_type, :non_overlapping
 
   extend Memoist
 
+  NON_OVERLAPPING_PROJECT_TYPE = 'non_overlapping'.freeze
   def initialize(coc_code_1:, coc_code_2:, start_date:, end_date:, project_type: nil)
     @coc_code_1 = coc_code_1
     @coc_code_2 = coc_code_2
     @start_date = start_date
     @end_date = end_date
-    @project_type = project_type.to_i if project_type.present?
 
     raise Error, 'This report requires two different COCs.' if coc1 == coc2
     raise Error, "Start date '#{@start_date}' must be before or before end date '#{@end_date}'." if @start_date > @end_date
     raise Error, 'Report duration cannot exceed 3 years.' unless @start_date >= @end_date.prev_year(3)
-    raise Error, 'Invalid project type' if @project_type.present? && !::HUD.project_types.key?(@project_type)
+
+    if project_type == NON_OVERLAPPING_PROJECT_TYPE
+      @non_overlapping = true
+    elsif project_type.present?
+      @project_type = project_type.to_i
+      raise Error, 'Invalid project type' unless ::HUD.project_types.key?(@project_type)
+    end
 
     # FIXME: there is some sort of schema cache issue in development
     GrdaWarehouse::Hud::Client.primary_key = :id
@@ -147,6 +153,14 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport # rubocop:d
     overlapping_client_ids.size
   end
 
+  def total_non_overlapping_clients
+    non_overlapping_client_ids.size
+  end
+
+  def non_overlapping_client_ids
+    overlapping_client_ids - (concurrent_by_type.values.flatten + async_by_type.values.map(&:to_a).flatten).uniq
+  end
+
   def details_hash
     {
       start_date: start_date.iso8601,
@@ -161,8 +175,9 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport # rubocop:d
   def details_clients
     client_num = 0
     clients_by_id = shared_clients.index_by(&:id)
+    relevant_client_ids = @non_overlapping ? non_overlapping_client_ids : overlapping_client_ids
     service_histories.where(
-      client_id: overlapping_client_ids,
+      client_id: relevant_client_ids,
     ).preload(
       service_history_enrollment: {
         project: :project_cocs,

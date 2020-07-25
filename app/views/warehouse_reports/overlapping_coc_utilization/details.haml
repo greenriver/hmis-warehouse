@@ -10,7 +10,10 @@
 
 .mb-4
   %h1.mb-3
-    = "#{pluralize @details[:clients].size, 'Shared Client'}"
+    - if @report.non_overlapping
+      = "#{pluralize @details[:clients].size, 'Non-Overlapping Shared Client'}"
+    - else
+      = "#{pluralize @details[:clients].size, 'Shared Client'}"
     - if @report.project_type
       in #{::HUD.project_type(@report.project_type)} enrollments
     = "by Demographics and Time"
