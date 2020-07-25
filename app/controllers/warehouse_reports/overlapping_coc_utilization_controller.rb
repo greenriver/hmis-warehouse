@@ -63,13 +63,7 @@ module WarehouseReports
     end
 
     def details
-      @report = WarehouseReport::OverlappingCocByProjectType.new(
-        coc_code_1: filters.coc1&.cocnum,
-        coc_code_2: filters.coc2&.cocnum,
-        start_date: filters.start_date,
-        end_date: filters.end_date,
-        project_type: params.dig(:project_type),
-      )
+      @report = load_overlapping_coc_by_project_type_report(project_type: params.dig(:project_type))
       @details = Rails.cache.fetch(
         @report.cache_key.merge(user_id: current_user.id, view: :details_hash),
         expires_in: 30.minutes,
@@ -78,6 +72,16 @@ module WarehouseReports
       end
     rescue WarehouseReport::OverlappingCocByProjectType::Error => e
       bad_request(e.message)
+    end
+
+    private def load_overlapping_coc_by_project_type_report(project_type: nil)
+      WarehouseReport::OverlappingCocByProjectType.new(
+        coc_code_1: filters.coc1&.cocnum,
+        coc_code_2: filters.coc2&.cocnum,
+        start_date: filters.start_date,
+        end_date: filters.end_date,
+        project_type: project_type
+      )
     end
 
     private def filters
@@ -101,12 +105,7 @@ module WarehouseReports
       coc2 = filters.coc2
       report_html = if coc1 && coc2
         begin
-          report = WarehouseReport::OverlappingCocByProjectType.new(
-            coc_code_1: coc1.cocnum,
-            coc_code_2: coc2&.cocnum,
-            start_date: filters.start_date,
-            end_date: filters.end_date,
-          )
+          report = load_overlapping_coc_by_project_type_report
           Rails.cache.fetch(
             report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.95),
             expires_in: 30.minutes,
