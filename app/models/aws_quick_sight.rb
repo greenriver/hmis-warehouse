@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Wrapper around various AWS APIs to handle our Quick Sight integrations.
+
 # As of July 2020 a Enterprise level QuickSight account is required.
 # See https://docs.aws.amazon.com/quicksight/latest/user/managing-users-enterprise.html
 # for background.
@@ -364,8 +366,11 @@ class AwsQuickSight
   # some unknown delay between them
   def recreate_group!(group_name: ds_group_name)
     delete_group(group_name: group_name)
-    # there appears to be some race on the quicksight side
+    # there appears to be some race on the Quick Sight side
     # if we call add to quickly after delete
+    #
+    # the API doesn't have a waiter for this currently
+    # doing this lame thing for now
     wait_time = 20
     Rails.logger.info("waiting #{wait_time}s for delete to complete")
     sleep wait_time
@@ -396,6 +401,8 @@ class AwsQuickSight
       group_name: group_name,
     ) rescue Aws::QuickSight::Errors::ResourceExistsException
 
+    # TODO: remove this... the race condition her
+    # appears to have been calling create_group too soon after delete_group
     the_group = nil
     retries = [1,2,4,8,16]
     retries.each do |back_off|
