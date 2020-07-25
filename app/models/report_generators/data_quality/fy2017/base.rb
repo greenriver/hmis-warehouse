@@ -93,7 +93,7 @@ module ReportGenerators::DataQuality::Fy2017
         client_id_scope = add_filters(scope: client_id_scope)
 
         leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          ended_between(start_date: @report_start + 1.days,
+          ended_between(start_date: @report_start,
             end_date: @report_end + 1.days).
           where.not(
             client_id: client_id_scope.
@@ -288,7 +288,7 @@ module ReportGenerators::DataQuality::Fy2017
       @household_columns ||= {
         client_id: she_t[:client_id],
         DOB: c_t[:DOB],
-
+        age: she_t[:age],
         project_id: she_t[:project_id],
         data_source_id: she_t[:data_source_id],
         first_date_in_program: she_t[:first_date_in_program],
