@@ -162,7 +162,7 @@ class AwsQuickSight
     # make sure the quick sight group exists
     create_group_membership(user_name: qs_user.user_name,  group_name: ds_group_name)
 
-    true
+    qs_user
   end
 
   # Given a `User` instance revoke their access
@@ -191,13 +191,14 @@ class AwsQuickSight
     # "Currently, you use the ID for the AWS account that contains your Amazon QuickSight account."
     # - https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/QuickSight/Client.html#register_user-instance_method
     # July 25 2020
-    qs_admin.register_user(
-      user_role: "AUTHOR",
-      identity_type: "IAM",
+    existing_user || qs_admin.register_user(
+      identity_type: 'IAM',
       email: aws_credential.user.email,
+      user_role: "AUTHOR",
       iam_arn: aws_credential.arn,
       namespace: QS_NAMESPACE,
       aws_account_id: aws_acct_id,
+      #user_name: aws_credential.username,
     ).user
   end
 
@@ -211,7 +212,7 @@ class AwsQuickSight
     sign_in_token_url = AWS_FEDERATION_ENDPOINT+{
       'Action': 'getSigninToken',
       'SessionDuration': session_duration,
-      'Session': federation_credentials(user).to_json,
+      'Session': federation_credentials(user, session_duration: session_duration).to_json,
     }.to_param
 
     json = JSON.parse(RestClient.get(sign_in_token_url))
@@ -224,10 +225,10 @@ class AwsQuickSight
     }.to_param
   end
 
-  def federation_credentials(user)
+  def federation_credentials(user, session_duration: session_duration)
     # full IAM users are fastest to login
     if (aws_credential = aws_credential_for_user(user))
-      aws_credential_based_session(aws_credential, user)
+      aws_credential_based_session(aws_credential, user: user, session_duration: session_duration)
     elsif (id_token = cognito_id_token_for_user(user))
       cognito_id_token_based_session
     else
@@ -235,15 +236,15 @@ class AwsQuickSight
     end
   end
 
-  private def aws_credential_based_session(aws_credential, user = aws_credential.user)
+  private def aws_credential_based_session(aws_credential, user: aws_credential.user, session_duration: )
     user_sts = Aws::STS::Client.new(
       access_key_id: aws_credential.access_key_id,
       secret_access_key: aws_credential.secret_access_key,
     )
     session = user_sts.get_federation_token(
-      name: user.email,
-      policy: AUTHOR_IAM_POLICY.to_json,
-      duration_seconds: 8.hour
+      name: aws_credential.username, # docs say this can be up to 32 chars while an AWS IAM is upto 64... odd
+      policy_arns: [{arn: author_policy.arn}],
+      duration_seconds: session_duration,
     ).credentials
     {
       'sessionId': session.access_key_id,
