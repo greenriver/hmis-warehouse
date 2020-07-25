@@ -9,7 +9,7 @@ module WarehouseReports
     include WarehouseReportAuthorization
 
     CACHE_VERSION = '1aa'.freeze
-    CACHE_LIFETIME = 30.seconds.freeze
+    CACHE_LIFETIME = 30.minutes.freeze
 
     RELEVANT_COC_STATE = ENV.fetch('RELEVANT_COC_STATE') do
       GrdaWarehouse::Shape::CoC.order(Arel.sql('random()')).limit(1).pluck(:st)
