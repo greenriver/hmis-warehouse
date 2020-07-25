@@ -21,24 +21,24 @@
       "note": ""
     },
     {
-      "warning_type": "Remote Code Execution",
-      "warning_code": 24,
-      "fingerprint": "167d304a2a6e35f5514e9151322701f7330f801e1b29f03e072fadc7e6e35dae",
-      "check_name": "UnsafeReflection",
-      "message": "Unsafe reflection method `constantize` called with model attribute",
-      "file": "app/jobs/warehouse_reports/dashboard_report_job.rb",
-      "line": 16,
-      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
-      "code": "GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym][sub_population.to_sym].constantize",
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "181309531987afc5d7f7a395cd83ff94f2c3a2ccb4032202ac4c819a67266b34",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/warehouse_reports/custom/quick_sight_access_controller.rb",
+      "line": 14,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\"), :session_duration => 8.hours))",
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "WarehouseReports::DashboardReportJob",
-        "method": "perform"
+        "class": "WarehouseReports::Custom::QuickSightAccessController",
+        "method": "index"
       },
-      "user_input": "GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym]",
-      "confidence": "Medium",
-      "note": ""
+      "user_input": "AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\"), :session_duration => 8.hours)",
+      "confidence": "High",
+      "note": "Intentional off-site redirect to an integration"
     },
     {
       "warning_type": "Command Injection",
@@ -98,6 +98,26 @@
       },
       "user_input": "trigger_name",
       "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "2a385d8a0d192abc1021585c43a568dedf8f752a24faeb3fc3361c4e59acff05",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/warehouse_reports/hud_chronics_controller.rb",
+      "line": 45,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "(client_source.arel_table or if chronic_source.column_names.include?((params[:sort] or \"months_in_last_three_years\")) then\n  hc_t\nelse\n  @column = \"months_in_last_three_years\"\n  hc_t\nend)[\"months_in_last_three_years\"].send((params[:direction] or \"desc\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WarehouseReports::HudChronicsController",
+        "method": "set_hud_chronic_sort"
+      },
+      "user_input": "params[:direction]",
+      "confidence": "High",
       "note": ""
     },
     {
@@ -218,7 +238,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 386,
+      "line": 388,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"EXISTS (#{inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")} and \\\"Client\\\".\\\"id\\\" = \\\"inner_clients\\\".\\\"id\\\")\")",
       "render_path": null,
@@ -319,37 +339,6 @@
         "template": "health/goals/edit"
       },
       "user_input": "params[:id]",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "70b70b984f26e96e4c136d1371587575175b3f7e6e7cb0c597f1a73c7cd9f781",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
-      "file": "app/views/warehouse_reports/chronic_housed/index.haml",
-      "line": 42,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "site_chronic_source.where(:date => ::Filters::DateRange.new((params.permit(:range => ([:start, :end]))[:range] or { :start => 3.month.ago.to_date, :end => 1.months.ago.to_date })).range).group_by(&:client_id)[exits.first.client_id].map(&:date).uniq.join(\"<br />\")",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "WarehouseReports::ChronicHousedController",
-          "method": "index",
-          "line": 17,
-          "file": "app/controllers/warehouse_reports/chronic_housed_controller.rb",
-          "rendered": {
-            "name": "warehouse_reports/chronic_housed/index",
-            "file": "app/views/warehouse_reports/chronic_housed/index.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "warehouse_reports/chronic_housed/index"
-      },
-      "user_input": "params.permit(:range => ([:start, :end]))[:range]",
       "confidence": "Weak",
       "note": ""
     },
@@ -525,6 +514,26 @@
       "note": ""
     },
     {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "7cd99df03b101ccd08e0a40f7e1df4136040940cbb42d5f1ec836478b10461e1",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/concerns/chronic.rb",
+      "line": 47,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "(client_source.arel_table or if chronic_source.column_names.include?((params[:sort] or \"homeless_since\")) then\n  chronic_source.arel_table\nelse\n  @column = \"homeless_since\"\n  chronic_source.arel_table\nend)[\"homeless_since\"].send((params[:direction] or \"asc\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Chronic",
+        "method": "set_chronic_sort"
+      },
+      "user_input": "params[:direction]",
+      "confidence": "High",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "850068cbcbd30e554efc5cc597f03ad14dfbd68240142d37a64e9f7a6c53a1a7",
@@ -591,7 +600,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 65,
+      "line": 67,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -611,7 +620,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 296,
+      "line": 307,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -733,6 +742,26 @@
       },
       "user_input": "current_user.messages.find(params.require(:id))",
       "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "b98345f9d85800cf18ad3713adabf2fb3e3d36ddcf921f642f2fc3e6948ccac4",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/warehouse_reports/chronic_controller.rb",
+      "line": 47,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "(client_source.arel_table or if chronic_source.column_names.include?((params[:sort] or \"homeless_since\")) then\n  chronic_source.arel_table\nelse\n  @column = \"homeless_since\"\n  chronic_source.arel_table\nend)[\"homeless_since\"].send((params[:direction] or \"asc\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WarehouseReports::ChronicController",
+        "method": "set_chronic_sort"
+      },
+      "user_input": "params[:direction]",
+      "confidence": "High",
       "note": ""
     },
     {
@@ -971,7 +1000,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/performance_dashboards/base.rb",
-      "line": 158,
+      "line": 295,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[@sub_population].constantize",
       "render_path": null,
@@ -1025,13 +1054,33 @@
       "note": ""
     },
     {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "f70a45f9167f5a43e10418dbc4c6ca4f91d9bffd117a35f225e5d54736352ddb",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/concerns/hud_chronic.rb",
+      "line": 45,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "(client_source.arel_table or if chronic_source.column_names.include?((params[:sort] or \"months_in_last_three_years\")) then\n  hc_t\nelse\n  @column = \"months_in_last_three_years\"\n  hc_t\nend)[\"months_in_last_three_years\"].send((params[:direction] or \"desc\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HudChronic",
+        "method": "set_hud_chronic_sort"
+      },
+      "user_input": "params[:direction]",
+      "confidence": "High",
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "f9e19524fd29723dc3b92ad269438baaefbc7754633219a2aed9d61fb271e4c8",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 481,
+      "line": 505,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql((\"consented_coc_codes='[]'::jsonb OR \" + \"#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map do\n connection.quote(s)\n end.join(\",\")}]\"))",
       "render_path": null,
@@ -1104,6 +1153,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-07-02 08:41:44 -0400",
+  "updated": "2020-07-25 05:01:49 -0400",
   "brakeman_version": "4.8.2"
 }
