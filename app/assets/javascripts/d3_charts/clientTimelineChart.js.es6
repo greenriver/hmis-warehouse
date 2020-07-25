@@ -46,8 +46,10 @@ App.WarehouseReports.clientTimelineChart = (options) => {
   const cocCodes = options.cocs.map((d) => d.code);
 
   const domain = options.domain.map((s) => d3.isoParse(s));
+  const noParens = /\(([^)]+)\)/;
   const enrollments = options.enrollments.map((enrollment, idx) => ({
     ...enrollment,
+    project_name: String(enrollment.project_name).replace(noParens, ''),
     id: idx,
     history: enrollment.history.map((evt) => ({
       cocCode: enrollment.coc,
@@ -97,8 +99,8 @@ App.WarehouseReports.clientTimelineChart = (options) => {
         .tickPadding(10)
         .tickFormat((d, i) => enrollments[i].coc)
         .tickFormat((d, i) => {
-          const { coc, project_name } = enrollments[i];
-          return `${coc}|||${project_name}`;
+          const { coc, project_name, project_type } = enrollments[i];
+          return `${coc}|||[${project_type}] ${project_name}`;
         }),
     );
   yAxis.selectAll('.tick text').call(formatCocLabel, margin.left, 0.025);

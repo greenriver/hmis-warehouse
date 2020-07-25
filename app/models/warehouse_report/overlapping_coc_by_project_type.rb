@@ -131,7 +131,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport # rubocop:d
         overlap_by_project_type.each do |p_type, clients|
           dates[p_type] ||= {}
           dates[p_type][coc] ||= []
-          service_histories(@project_type).
+          service_histories(project_type: @project_type).
             where(client_id: clients).
             in_project_type(p_type).
             distinct.
