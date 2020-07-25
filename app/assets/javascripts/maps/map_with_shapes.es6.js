@@ -22,7 +22,7 @@ App.Maps.MapWithShapes = class MapWithShapes {
       zoomControl: false,
       scrollWheelZoom: false,
     };
-    this.strokeColor = '#d7d7de';
+    this.strokeColor = '#aaa';
 
     this.highlightedFeatures = [];
 
@@ -201,7 +201,7 @@ App.Maps.MapWithShapes = class MapWithShapes {
     if (layer.feature.properties.id != this.secondaryId) {
       this.bringLayerToFront(layer);
       layer.setStyle({
-        color: '#ccc',
+        color: '#888',
         weight: 3,
         opacity: 1,
       });
