@@ -121,19 +121,20 @@ class AwsQuickSight
   end
 
   def author_policy(create_if_missing: false)
-    # search a potentially long list looking
-    # for or policy by name.
-    # FIXME: we could be stashing the policy arn somewhere
-    existing_policy = iam_admin.get_policy(
-      policy_arn: "arn:aws:iam::#{aws_acct_id}:policy/#{AUTHOR_IAM_POLICY_NAME}"
-    ).policy
+    existing_policy = begin
+      iam_admin.get_policy(
+        policy_arn: "arn:aws:iam::#{aws_acct_id}:policy/#{AUTHOR_IAM_POLICY_NAME}"
+      ).policy
+    rescue Aws::IAM::Errors::NoSuchEntity
+      nil
+    end
     return existing_policy unless create_if_missing
 
     existing_policy || iam_admin.create_policy(
       policy_name: AUTHOR_IAM_POLICY_NAME,
       policy_document: AUTHOR_IAM_POLICY.to_json,
       description: 'Allow policy holders to become Authors in Quick Sight.'
-    )
+    ).policy
   end
 
 
