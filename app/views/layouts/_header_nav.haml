@@ -9,7 +9,10 @@
       %li.c-header-nav__mobile-link
         = link_to '#', class: 'c-header-nav__link js-toggle-menu', aria: {label: 'Site Navigation', expanded: false}  do
           %i.icon-menu
+    - elsif lookup_context.exists?('homepage_content', ['root'], true) && !@showing_sign_in_form
+      = render 'layouts/mini_sign_in_form'
     - elsif !@showing_sign_in_form
       %li.c-header-nav__item
         = link_to new_user_session_path, class: 'c-header-nav__link' do
           Sign In
+
