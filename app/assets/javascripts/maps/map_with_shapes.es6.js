@@ -82,7 +82,7 @@ App.Maps.MapWithShapes = class MapWithShapes {
       this._div.hidden = hidden;
     };
 
-    this.info.onAdd = (map) => {
+    this.info.onAdd = () => {
       this._div = L.DomUtil.create('div', 'l-info');
       this.info.update();
       return this._div;
@@ -94,7 +94,7 @@ App.Maps.MapWithShapes = class MapWithShapes {
   initLegend() {
     const legend = L.control({ position: 'bottomleft' });
 
-    legend.onAdd = (map) => {
+    legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'l-info l-legend');
       const metricValues = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
       let i = 0;
@@ -116,10 +116,9 @@ App.Maps.MapWithShapes = class MapWithShapes {
     return legend.addTo(this.map);
   }
 
-  style(feature) {
-    const { metric } = feature.properties;
+  style() {
     return {
-      fillColor: 'white', //@getColor(metric)
+      fillColor: 'white',
       weight: 1,
       opacity: 1,
       color: this.strokeColor,

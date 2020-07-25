@@ -1,9 +1,5 @@
 //= require ./namespace
 
-const truncate = (str, limit) => (str.length > limit ? str.slice(0, 30) + '…' : str);
-
-const barPaddingInner = 0.75;
-const barPaddingOuter = 0.25;
 const plotHeight = 30;
 
 App.WarehouseReports.clientDemographicsRollupChart = (options) => {
