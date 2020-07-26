@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_21_153237) do
+ActiveRecord::Schema.define(version: 2020_07_24_150317) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -148,6 +148,21 @@ ActiveRecord::Schema.define(version: 2020_07_21_153237) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_consent_limits_on_name"
+  end
+
+  create_table "db_credentials", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "role", null: false
+    t.string "adaptor", null: false
+    t.string "username", null: false
+    t.binary "encrypted_password", null: false
+    t.binary "encrypted_password_iv", null: false
+    t.string "database", null: false
+    t.string "host"
+    t.string "port"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "role"], name: "index_db_credentials_on_user_id_and_role", unique: true
   end
 
   create_table "delayed_jobs", id: :serial, force: :cascade do |t|
@@ -623,6 +638,8 @@ ActiveRecord::Schema.define(version: 2020_07_21_153237) do
     t.datetime "password_changed_at"
     t.boolean "training_completed", default: false
     t.date "last_training_completed"
+    t.string "provider"
+    t.string "uid"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -657,6 +674,7 @@ ActiveRecord::Schema.define(version: 2020_07_21_153237) do
     t.datetime "deleted_at"
   end
 
+  add_foreign_key "db_credentials", "users"
   add_foreign_key "glacier_archives", "glacier_vaults"
   add_foreign_key "report_results", "users"
   add_foreign_key "reports", "report_results_summaries"

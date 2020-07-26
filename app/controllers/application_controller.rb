@@ -39,10 +39,12 @@ class ApplicationController < ActionController::Base
   before_action :set_up_pii_access
 
   def set_up_pii_access
+    # Within the UI fail gracefully
+    Encryption::SoftFailEncryptor.pii_soft_failure = true
     if current_user.blank?
       GrdaWarehouse::Hud::Client.deny_pii!
     elsif current_user.can_decrypt_pii?
-      GrdaWarehouse::Hud::Client.allow_pii!
+      PIIAttributeSupport.allow_all_pii!
     else
       GrdaWarehouse::Hud::Client.deny_pii!
     end

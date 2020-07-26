@@ -99,6 +99,8 @@ module ClientController
     end
 
     def create
+      # Allow saving
+      PIIAttributeSupport.allow_all_pii!
       clean_params = client_create_params
       clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
       existing_matches = look_for_existing_match(clean_params)

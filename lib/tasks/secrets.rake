@@ -12,6 +12,7 @@ namespace :secrets do
   task :copy_cleartext, [] => [:environment] do |t, args|
     PIIAttributeSupport.allowed_pii_classes.each do |klass|
       klass.find_each do |person|
+        puts "Encrypting #{klass.name}: #{person.id}"
         klass.allow_pii!
         klass.encrypted_attributes.each do |cleartext_column, enc_config|
           if person.read_attribute(cleartext_column).present? && person.read_attribute(enc_config[:attribute]).blank?

@@ -35,7 +35,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     end
 
     def existing_is_newer
-      existing.to_h.present? && existing.updated_at > self.DateUpdated
+      existing.to_h.present? && self.DateUpdated.present? && existing.updated_at.present? && existing.updated_at > self.DateUpdated
     end
 
     def project_type_unchanged

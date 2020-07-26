@@ -25,6 +25,8 @@ class UploadsController < ApplicationController
 
   def create
     run_import = false
+    # Allow PII writing
+    PIIAttributeSupport.allow_all_pii!
     # Prevent create if user forgot to include file
     unless upload_params[:file]
       @upload = upload_source.new
