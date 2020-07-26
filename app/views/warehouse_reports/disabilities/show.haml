@@ -32,13 +32,15 @@
             %th Head of Household?
             %th Disability
         %tbody
-          - @clients.each do |client|
-            - enrollment = client['enrollment']
+          - @report.data.each do |source_row|
+            - id = source_row['id']
+            - client = @clients[id]
+            - enrollment = source_row['enrollment']
             %tr
               %td
-                %nobr= link_to client['LastName'], client_path(client['id'])
+                %nobr= link_to client.LastName, client_path(client['id'])
               %td
-                %nobr= link_to client['FirstName'], client_path(client['id'])
+                %nobr= link_to client.FirstName, client_path(client['id'])
               %td
                 = enrollment&.[]('age')
               %td
@@ -48,5 +50,5 @@
               %td
                 = checkmark(enrollment&.[]('head_of_household'))
               %td
-                - client['disabilities'].each do |disability|
+                - source_row['disabilities'].each do |disability|
                   %label.label.label-info= disability

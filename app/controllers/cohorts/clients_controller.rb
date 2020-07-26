@@ -92,7 +92,7 @@ module Cohorts
       respond_to do |format|
         format.json do
           set_cohort_clients
-          render json: @client.attributes.merge(updated_at_i: @client.updated_at.to_i)
+          render json: @client.serializable_hash.merge(updated_at_i: @client.updated_at.to_i)
         end
       end
     end

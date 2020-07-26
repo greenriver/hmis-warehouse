@@ -418,11 +418,11 @@ module GrdaWarehouse::Tasks
         batch.each do |dest_id|
           dest = client_source.find(dest_id)
           source_clients = dest.source_clients.
-            pluck(*client_columns.values.map { |column| Arel.sql(column) }).
+            pluck(*client_columns.values).
             map do |row|
               Hash[client_columns.keys.zip(row)]
             end
-          dest_attr = dest.attributes.with_indifferent_access.slice(*client_columns.keys)
+          dest_attr = dest.serializable_hash.with_indifferent_access.slice(*client_columns.keys)
           dest_attr = choose_attributes_from_sources(dest_attr, source_clients)
 
           # invalidate client if DOB has changed
@@ -455,25 +455,25 @@ module GrdaWarehouse::Tasks
 
     def client_columns
       @client_columns ||= {
-        FirstName: c_t[:FirstName].to_sql,
-        LastName: c_t[:LastName].to_sql,
-        SSN: c_t[:SSN].to_sql,
-        DOB: c_t[:DOB].to_sql,
-        Gender: c_t[:Gender].to_sql,
-        VeteranStatus: c_t[:VeteranStatus].to_sql,
-        verified_veteran_status: c_t[:verified_veteran_status].to_sql,
-        NameDataQuality: cl(c_t[:NameDataQuality], 99).as('NameDataQuality').to_sql,
-        SSNDataQuality: cl(c_t[:SSNDataQuality], 99).as('SSNDataQuality').to_sql,
-        DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality').to_sql,
-        DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).as('DateCreated').to_sql,
-        DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).as('DateUpdated').to_sql,
-        AmIndAKNative: cl(c_t[:AmIndAKNative], 99).as('AmIndAKNative').to_sql,
-        Asian: cl(c_t[:Asian], 99).as('Asian').to_sql,
-        BlackAfAmerican: cl(c_t[:BlackAfAmerican], 99).as('BlackAfAmerican').to_sql,
-        NativeHIOtherPacific: cl(c_t[:NativeHIOtherPacific], 99).as('NativeHIOtherPacific').to_sql,
-        White: cl(c_t[:White], 99).as('White').to_sql,
-        RaceNone: cl(c_t[:RaceNone], 99).as('RaceNone').to_sql,
-        Ethnicity: cl(c_t[:Ethnicity], 99).as('Ethnicity').to_sql,
+        FirstName: c_t[:FirstName],
+        LastName: c_t[:LastName],
+        SSN: c_t[:SSN],
+        DOB: c_t[:DOB],
+        Gender: c_t[:Gender],
+        VeteranStatus: c_t[:VeteranStatus],
+        verified_veteran_status: c_t[:verified_veteran_status],
+        NameDataQuality: cl(c_t[:NameDataQuality], 99).as('NameDataQuality'),
+        SSNDataQuality: cl(c_t[:SSNDataQuality], 99).as('SSNDataQuality'),
+        DOBDataQuality: cl(c_t[:DOBDataQuality], 99).as('DOBDataQuality'),
+        DateCreated: cl(c_t[:DateCreated], 10.years.ago.to_date).as('DateCreated'),
+        DateUpdated: cl(c_t[:DateUpdated], 10.years.ago.to_date).as('DateUpdated'),
+        AmIndAKNative: cl(c_t[:AmIndAKNative], 99).as('AmIndAKNative'),
+        Asian: cl(c_t[:Asian], 99).as('Asian'),
+        BlackAfAmerican: cl(c_t[:BlackAfAmerican], 99).as('BlackAfAmerican'),
+        NativeHIOtherPacific: cl(c_t[:NativeHIOtherPacific], 99).as('NativeHIOtherPacific'),
+        White: cl(c_t[:White], 99).as('White'),
+        RaceNone: cl(c_t[:RaceNone], 99).as('RaceNone'),
+        Ethnicity: cl(c_t[:Ethnicity], 99).as('Ethnicity'),
       }
     end
 

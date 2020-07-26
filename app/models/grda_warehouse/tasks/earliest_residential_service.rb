@@ -43,7 +43,7 @@ module GrdaWarehouse::Tasks
             first_entry = service_history_source.entry.in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS).where(client_id: client_id, first_date_in_program: date).first
             first_entry.record_type = 'first'
             first_entry.id = nil
-            new_first_entries << first_entry.attributes.except('id')
+            new_first_entries << first_entry.serializable_hash.except('id')
           end
           columns = new_first_entries.first.keys
           if @dry_run

@@ -233,7 +233,7 @@ module ReportGenerators::Lsa::Fy2019
           csv << klass.attribute_names
           klass.all.each do |item|
             row = []
-            item.attributes.values.each do |m|
+            item.serializable_hash.values.each do |m|
               if m.is_a?(Date)
                 row << m.strftime('%F')
               elsif m.is_a?(Time)

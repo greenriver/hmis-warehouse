@@ -2343,8 +2343,8 @@ module GrdaWarehouse::Hud
         if prev_destination_client
 
           # move any CAS column data
-          previous_cas_columns = prev_destination_client.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
-          current_cas_columns = self.attributes.slice(*self.class.cas_columns.keys.map(&:to_s))
+          previous_cas_columns = prev_destination_client.serializable_hash.slice(*self.class.cas_columns.keys.map(&:to_s))
+          current_cas_columns = self.serializable_hash.slice(*self.class.cas_columns.keys.map(&:to_s))
           current_cas_columns.merge!(previous_cas_columns){ |k, old, new| old.presence || new}
           self.update(current_cas_columns)
           self.save()

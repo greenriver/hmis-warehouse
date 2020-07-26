@@ -39,7 +39,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       export_path = File.join(@path, self.class.file_name)
       CSV.open(export_path, 'wb') do |csv|
         csv << self.hud_csv_headers
-        csv << self.attributes.slice(*hud_csv_headers.map(&:to_s)).values
+        csv << self.serializable_hash.slice(*hud_csv_headers.map(&:to_s)).values
       end
     end
 
