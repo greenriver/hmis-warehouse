@@ -13,6 +13,7 @@
     %tbody
       - @clients.each do |source_client|
         - client = source_client.destination_client
+        - next unless client
         %tr
           %td= client.id
           %td= link_to source_client.name, client_path(client.id)

@@ -19,7 +19,9 @@ module WarehouseReports
     end
 
     def show
-      @clients = @report.data
+      @report_data = @report.data
+      client_ids = @report_data.map { |m| m['id'] }
+      @clients = GrdaWarehouse::Hud::Client.where(id: client_ids).index_by(&:id)
       @sort_options = sort_options
 
       respond_to do |format|
@@ -84,10 +86,11 @@ module WarehouseReports
       option = sort_options.detect do |row, _|
         row[:column] == @column && row[:direction].to_s == @direction
       end.last
-      @clients = @clients.sort_by do |client|
+      @clients = @clients.to_a.sort_by do |_, client|
         client[@column] || option[:default]
       end
       @clients.reverse! if @direction == 'desc'
+      @clients = @clients.to_h
     end
 
     def sort_options

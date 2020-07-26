@@ -28,22 +28,23 @@
       %th{style: 'width: 8em;'} Entry
       %th{style: 'width: 8em;'} Exit
   %tbody
-    - @clients.each do |client|
-      - enrollments = client['enrollments']
+    - @report_data.each do |row|
+      - enrollments = row['enrollments']
+      - client = @clients[row['id']]
       - next unless enrollments.present? # Sometimes the service history is out of sync
       - span = enrollments.size+ 1
       %tr
         %td{rowspan: span}
-          = link_to client_path(id: client['id']) do
-            = client['id']
+          = link_to client_path(id: row['id']) do
+            = row['id']
         %td{rowspan: span}
-          = link_to client_path(id: client['id']) do
-            = client['name']
-        %td{rowspan: span}= client['first_service_history']
-        %td{rowspan: span}= dob_or_age(client['DOB']&.to_date)
-        %td.nobr{rowspan: span}= ssn client['SSN']
+          = link_to client_path(id: row['id']) do
+            = client.name
+        %td{rowspan: span}= row['first_service_history']
+        %td{rowspan: span}= dob_or_age(client.DOB&.to_date)
+        %td.nobr{rowspan: span}= ssn client.SSN
         %td{rowspan: span}
-          - client['data_sources'].each do |ds|
+          - row['data_sources'].each do |ds|
             %em{ class: "ds-#{ds.downcase}"}
               = ds
       - enrollments.each do |enrollment|

@@ -429,7 +429,7 @@ module GrdaWarehouse::Hud
         current_scope
       else
         project_query = exists_with_inner_clients(visible_by_project_to(user))
-        window_query = exists_with_inner_clients(visible_in_window_to(user))
+        win©w_query = exists_with_inner_clients(visible_in_window_to(user))
         active_consent_query = exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
 
         if user.can_view_clients_with_roi_in_own_coc?
