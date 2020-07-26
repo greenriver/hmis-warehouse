@@ -3,4 +3,5 @@
 - labels ||= ['asynchronous', 'concurrent']
 .progress(style='background: #fff; border: 1px solid #ccc;')
   - values.each_with_index do |value, i|
-    .progress-bar{style: "width: #{(value.to_f/relative_total.to_f)*100}%; background: #{colors[i]}", data: {toggle:"tooltip"}, title: "#{value} shared #{labels[i]} clients with #{filters.coc2.cocnum}"}
+    - title = "#{value} #{labels[i]}ly shared clients with #{filters.coc2.cocnum}"
+    .progress-bar{style: "width: #{(value.to_f/relative_total.to_f)*100}%; background: #{colors[i]}", data: {toggle:"tooltip"}, title: title}

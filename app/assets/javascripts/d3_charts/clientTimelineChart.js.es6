@@ -46,8 +46,10 @@ App.WarehouseReports.clientTimelineChart = (options) => {
   const cocCodes = options.cocs.map((d) => d.code);
 
   const domain = options.domain.map((s) => d3.isoParse(s));
+  const noParens = /\(([^)]+)\)/;
   const enrollments = options.enrollments.map((enrollment, idx) => ({
     ...enrollment,
+    project_name_short: String(enrollment.project_name).replace(noParens, ''),
     id: idx,
     history: enrollment.history.map((evt) => ({
       cocCode: enrollment.coc,
@@ -97,8 +99,8 @@ App.WarehouseReports.clientTimelineChart = (options) => {
         .tickPadding(10)
         .tickFormat((d, i) => enrollments[i].coc)
         .tickFormat((d, i) => {
-          const { coc, project_name } = enrollments[i];
-          return `${coc}|||${project_name}`;
+          const { coc, project_name_short, project_type } = enrollments[i];
+          return `${coc}|||[${project_type}] ${project_name_short}`;
         }),
     );
   yAxis.selectAll('.tick text').call(formatCocLabel, margin.left, 0.025);
@@ -107,6 +109,18 @@ App.WarehouseReports.clientTimelineChart = (options) => {
     .attr('transform', `translate(${plotWidth},0)`)
     .attr('x2', -1 * (plotWidth - 1))
     .attr('stroke', '#ccc');
+  yAxis
+    .selectAll('text')
+    .attr('data-toggle', 'tooltip')
+    .attr('data-html', true)
+    .attr('title', (i) => {
+      const { coc, coc_name, project_name, project_type } = enrollments[i];
+      return `<div class="text-left">
+        Project Type: ${project_type}<br />
+        Project Name: ${project_name}<br />
+        CoC : ${coc}
+      </div>`;
+    });
 
   svg
     .append('g')

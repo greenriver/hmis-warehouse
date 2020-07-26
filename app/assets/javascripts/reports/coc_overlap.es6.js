@@ -34,9 +34,13 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
   };
 
   const displayResults = (data) => {
-    $('.coc1-name').html(data.coc1 || `<span class="muted">Primary CoC not selected</span>`);
-    $('.coc2-name').html(data.coc2 || `<span class="muted">Secondary CoC not selected</span>`);
-    $('.j-title').html(data.title);
+    $('.coc1-name').html(data.coc1 || `<span class="text-muted">Primary CoC not selected</span>`);
+    $('.coc2-name').html(data.coc2 || `<span class="text-muted">Secondary CoC not selected</span>`);
+    if (data.title) {
+      $('.j-title')
+        .html(data.title)
+        .removeClass('d-none')
+    }
     $('.j-subtitle').html(data.subtitle);
     $(resultsSelector).html(data.html);
     map.updateShapes({ shapes: data.map, primaryId: data.coc1_id, secondaryId: data.coc2_id });

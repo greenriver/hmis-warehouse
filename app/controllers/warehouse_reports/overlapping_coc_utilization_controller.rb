@@ -8,6 +8,9 @@ module WarehouseReports
   class OverlappingCoCUtilizationController < ApplicationController
     include WarehouseReportAuthorization
 
+    CACHE_VERSION = '1aa'.freeze
+    CACHE_LIFETIME = 30.minutes.freeze
+
     RELEVANT_COC_STATE = ENV.fetch('RELEVANT_COC_STATE') do
       GrdaWarehouse::Shape::CoC.order(Arel.sql('random()')).limit(1).pluck(:st)
     rescue StandardError
@@ -63,21 +66,25 @@ module WarehouseReports
     end
 
     def details
-      @report = WarehouseReport::OverlappingCocByProjectType.new(
-        coc_code_1: filters.coc1&.cocnum,
-        coc_code_2: filters.coc2&.cocnum,
-        start_date: filters.start_date,
-        end_date: filters.end_date,
-        project_type: params.dig(:project_type),
-      )
+      @report = load_overlapping_coc_by_project_type_report(project_type: params.dig(:project_type))
       @details = Rails.cache.fetch(
-        @report.cache_key.merge(user_id: current_user.id, view: :details_hash),
-        expires_in: 30.minutes,
+        @report.cache_key.merge(user_id: current_user.id, view: :details_hash, rev: CACHE_VERSION),
+        expires_in: CACHE_LIFETIME,
       ) do
         @report.details_hash
       end
     rescue WarehouseReport::OverlappingCocByProjectType::Error => e
       bad_request(e.message)
+    end
+
+    private def load_overlapping_coc_by_project_type_report(project_type: nil)
+      WarehouseReport::OverlappingCocByProjectType.new(
+        coc_code_1: filters.coc1&.cocnum,
+        coc_code_2: filters.coc2&.cocnum,
+        start_date: filters.start_date,
+        end_date: filters.end_date,
+        project_type: project_type,
+      )
     end
 
     private def filters
@@ -101,15 +108,10 @@ module WarehouseReports
       coc2 = filters.coc2
       report_html = if coc1 && coc2
         begin
-          report = WarehouseReport::OverlappingCocByProjectType.new(
-            coc_code_1: coc1.cocnum,
-            coc_code_2: coc2&.cocnum,
-            start_date: filters.start_date,
-            end_date: filters.end_date,
-          )
+          report = load_overlapping_coc_by_project_type_report
           Rails.cache.fetch(
-            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: 9.92),
-            expires_in: 30.minutes,
+            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: CACHE_VERSION),
+            expires_in: CACHE_LIFETIME
           ) do
             render_to_string(partial: 'overlap', locals: { report: report })
           end
@@ -126,12 +128,13 @@ module WarehouseReports
         map_title: "#{coc1.number_and_name} shared clients with the following CoCs",
         map: map_data,
         html: report_html,
+        title: 'Overview of Shared Client by Project Type and CoC',
         subtitle: "Served between #{filters.start_date} - #{filters.end_date}",
       }
       if coc1 && coc2
-        payload[:title] = "Clients served in both #{filters.coc1.number_and_name} and #{filters.coc2.number_and_name}"
+        payload[:subtitle] = "Served in both #{filters.coc1.number_and_name} and #{filters.coc2.number_and_name}, between #{filters.start_date} - #{filters.end_date}"
       else
-        payload[:title] = "Clients in #{filters.coc1.number_and_name} overlapping with other CoCs"
+        payload[:subtitle] = "Served in #{filters.coc1.number_and_name}, between #{filters.start_date} - #{filters.end_date}"
       end
       render json: payload
     end

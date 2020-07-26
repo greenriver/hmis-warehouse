@@ -16,12 +16,13 @@ App.Maps.MapWithShapes = class MapWithShapes {
     this.shapes = shapes;
     this.showingData = false;
     const mapOptions = {
-      minZoom: 6,
+      minZoom: 5,
       maxZoom: 9,
+      zoomSnap: 0.2,
       zoomControl: false,
       scrollWheelZoom: false,
     };
-    this.strokeColor = '#d7d7de';
+    this.strokeColor = '#aaa';
 
     this.highlightedFeatures = [];
 
@@ -54,27 +55,34 @@ App.Maps.MapWithShapes = class MapWithShapes {
 
   initInfoBox() {
     this.info = L.control();
-
     this.info.update = (props) => {
+      let innerHTML = '';
+      let hidden = true;
       if (props != null) {
-        this._div.innerHTML = `<h4>${props.name} (${props.cocnum})</h4>`;
-        if (props.id == this.primaryId) {
-          this._div.innerHTML =
-            this._div.innerHTML + '<p>Primary CoC</p>';
-        } else if (props.metric != null) {
-          this._div.innerHTML =
-            this._div.innerHTML + '<p>Shared clients: <strong>' + props.metric + '</p>';
-        } else {
-          this._div.innerHTML =
-            this._div.innerHTML + '<p>Shared clients: <strong>0</p>';
+        const { id, name, cocnum, metric } = props;
+        const { primaryId, secondaryId, primaryName } = this;
+        innerHTML = `<h4>${name} (${cocnum})</h4>`;
+        if (id == primaryId) {
+          innerHTML += '<p>Primary CoC</p>';
+        } else if (primaryId) {
+          if (id == secondaryId) {
+            innerHTML += '<p>Secondary CoC</p>';
+          }
+          if (metric == null) {
+            innerHTML += '<p>No shared clients because data is unavailable for this CoC</p>';
+          } else {
+            innerHTML += `<p><stron>${metric}</strong> shared clients with ${
+              primaryName || 'the primary CoC'
+            }</p>`;
+          }
         }
-        return (this._div.hidden = false);
-      } else {
-        return (this._div.hidden = true);
+        hidden = false;
       }
+      this._div.innerHTML = innerHTML;
+      this._div.hidden = hidden;
     };
 
-    this.info.onAdd = (map) => {
+    this.info.onAdd = () => {
       this._div = L.DomUtil.create('div', 'l-info');
       this.info.update();
       return this._div;
@@ -86,7 +94,7 @@ App.Maps.MapWithShapes = class MapWithShapes {
   initLegend() {
     const legend = L.control({ position: 'bottomleft' });
 
-    legend.onAdd = (map) => {
+    legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'l-info l-legend');
       const metricValues = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
       let i = 0;
@@ -108,10 +116,9 @@ App.Maps.MapWithShapes = class MapWithShapes {
     return legend.addTo(this.map);
   }
 
-  style(feature) {
-    const { metric } = feature.properties;
+  style() {
     return {
-      fillColor: 'white', //@getColor(metric)
+      fillColor: 'white',
       weight: 1,
       opacity: 1,
       color: this.strokeColor,
@@ -145,6 +152,8 @@ App.Maps.MapWithShapes = class MapWithShapes {
     const layer = this.getLayerById(id);
     this.primaryId = id;
     if (layer) {
+      const { name, cocnum } = layer.feature.properties;
+      this.primaryName = `${name} (${cocnum})`;
       layer.setStyle({ fillColor: '#36a4a6', fillOpacity: 1 });
       this.bringLayerToFront(layer);
     }
@@ -191,7 +200,7 @@ App.Maps.MapWithShapes = class MapWithShapes {
     if (layer.feature.properties.id != this.secondaryId) {
       this.bringLayerToFront(layer);
       layer.setStyle({
-        color: '#ccc',
+        color: '#888',
         weight: 3,
         opacity: 1,
       });
