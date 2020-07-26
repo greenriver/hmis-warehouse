@@ -259,8 +259,8 @@ module Import::HmisTwentyTwenty::Shared
       to_add.each_slice(200) do |batch|
         new.insert_batch(self, headers, batch.map(&:values), transaction: false)
         stats[:lines_added] += batch.size
-      rescue Exception
-        message = "Failed to add batch for #{name}, attempting individual inserts"
+      rescue Exception => e1
+        message = "Failed to add batch for #{name}, attempting individual inserts: #{e1.message}}"
         stats[:errors] << { message: message, line: '' }
         Rails.logger.warn(message)
         # Try again to add the individual batch
