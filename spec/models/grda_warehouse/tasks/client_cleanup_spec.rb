@@ -813,6 +813,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
   end
 
   def cleanup_columns
-    @cleanup.client_columns.values.map { |c| Arel.sql(c) }
+    @cleanup.client_columns.values
   end
 end
