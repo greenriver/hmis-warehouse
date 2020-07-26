@@ -40,18 +40,19 @@ class Rds
   def initialize
     self.identifier = Rds.identifier || DEFAULT_IDENTIFIER
 
+    # if environment is set up correctly, this can be
+    # self.client = Aws::RDS::Client.new
     if SECRET_ACCESS_KEY.present? && SECRET_ACCESS_KEY != 'unknown'
-      Aws.config.update(
+      self.client = Aws::RDS::Client.new({
         region: REGION,
-        credentials: Aws::Credentials.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY),
-      )
+        aws_access_key_id: ACCESS_KEY_ID,
+        aws_secret_access_key: SECRET_ACCESS_KEY,
+      })
     else
-      Aws.config.update(
+      self.client = Aws::RDS::Client.new({
         region: REGION,
-      )
+      })
     end
-
-    self.client = Aws::RDS::Client.new(region: REGION)
   end
 
   define_method(:sqlservers) { _list.select { |server| server.engine.match(/sqlserver/) } }

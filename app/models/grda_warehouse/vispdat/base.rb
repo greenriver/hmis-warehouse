@@ -149,8 +149,8 @@ module GrdaWarehouse::Vispdat
     # Callbacks
     ####################
     before_save :calculate_score, :calculate_priority_score, :set_client_housing_release_status
-    after_update :notify_users
-    after_update :add_to_cohorts
+    after_save :notify_users
+    after_save :add_to_cohorts
 
     ####################
     # Access
