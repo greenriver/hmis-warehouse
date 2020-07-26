@@ -12,6 +12,7 @@ module Import::HmisTwentyTwenty::Shared
 
     after_initialize do
       setup_notifier('HMIS Importer 2020')
+      PIIAttributeSupport.allow_all_pii!
     end
     # Provide access to all of the HUD headers with snake case
     # eg: ProjectID is aliased to project_id
