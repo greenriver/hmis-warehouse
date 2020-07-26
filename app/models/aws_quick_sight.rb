@@ -28,7 +28,6 @@ class AwsQuickSight
 
 
   # IAM Policy needed for Quick Sight Authors
-  AUTHOR_IAM_POLICY_NAME = 'OpenPath_QuickSight_Author'
   AUTHOR_IAM_POLICY = IceNine.deep_freeze(
     "Version": "2012-10-17",
     "Statement": [
@@ -74,6 +73,9 @@ class AwsQuickSight
 
   # Can the user use or request access to QuickSight?
   def available_to?(user)
+    return false unless user
+    raise ArgumentError, 'user must be a User' unless user.is_a?(::User)
+
     cognito_id_token_for_user(user) || aws_credential_for_user(user)
   end
 
@@ -82,6 +84,8 @@ class AwsQuickSight
   end
 
   def cognito_id_token_for_user(user)
+    raise ArgumentError, 'user must be a User' unless user.is_a?(::User)
+
     cognito_idp_enabled? && user.provider == 'cognito' && user.provider_raw_info&.dig('id_token')
   end
 
@@ -122,10 +126,15 @@ class AwsQuickSight
     cred
   end
 
+  DEFAULT_IAM_AUTHOR_POLICY_NAME = -'OpenPath_QuickSight_Author'
+  def author_policy_name
+    DEFAULT_IAM_AUTHOR_POLICY_NAME
+  end
+
   def author_policy(create_if_missing: false)
     existing_policy = begin
       iam_admin.get_policy(
-        policy_arn: "arn:aws:iam::#{aws_acct_id}:policy/#{AUTHOR_IAM_POLICY_NAME}"
+        policy_arn: "arn:aws:iam::#{aws_acct_id}:policy/#{author_policy_name}"
       ).policy
     rescue Aws::IAM::Errors::NoSuchEntity
       nil
@@ -133,7 +142,7 @@ class AwsQuickSight
     return existing_policy unless create_if_missing
 
     existing_policy || iam_admin.create_policy(
-      policy_name: AUTHOR_IAM_POLICY_NAME,
+      policy_name: author_policy_name,
       policy_document: AUTHOR_IAM_POLICY.to_json,
       description: 'Allow policy holders to become Authors in Quick Sight.'
     ).policy
@@ -156,7 +165,7 @@ class AwsQuickSight
       iam_admin.attach_user_policy(user_name: cred.username, policy_arn: policy.arn)
 
       # make sure the quick sight user exists
-      qs_user(aws_credential: cred, create_if_missing: true)
+      author_qs_user(aws_credential: cred, create_if_missing: true)
     end
 
     # make sure the quick sight group exists
@@ -178,7 +187,7 @@ class AwsQuickSight
     qs_admin.list_users(aws_account_id: aws_acct_id, namespace: :default)
   end
 
-  def qs_user(aws_credential:, create_if_missing: true)
+  def author_qs_user(aws_credential:, create_if_missing: true)
     existing_user = begin
       qs_admin.describe_user(
         user_name: aws_credential.username,
@@ -205,11 +214,29 @@ class AwsQuickSight
     ).user
   end
 
+  DEFAULT_IAM_AUTHOR_ROLE_NAME = 'OpenPath_QuickSight_Login'
+  def author_iam_role(create_if_missing: true)
+    role_arn = "arn:aws:iam::#{aws_acct_id}:role/#{DEFAULT_IAM_AUTHOR_ROLE_NAME}"
+    role = iam_admin.get_role(role_arn: role_arn).role
+    role ||= if create_if_missing
+      raise 'FIXME'
+    end
+  end
+
+  def valid_return_to?(str)
+     uri = URI.parse(str.to_s)
+     uri.is_a?(URI::HTTP) && uri.host.present?
+  rescue URI::InvalidURIError
+    false
+  end
+
   # given a `User` return a time-expiring URL
   # for them to login to QuickSight
   #
   # this makes and waits on a HTTP get to AWS_FEDERATION_ENDPOINT
   def sign_in_url(user:, return_to_url:, session_duration: 8.hours)
+    raise ArgumentError, 'user must be a User' unless user.is_a?(::User)
+    raise ArgumentError, 'invalid return_to_url' unless valid_return_to?(return_to_url)
     raise ArgumentError, "session duration needs be in the range #{VALID_SESSION_DURATIONS}" unless VALID_SESSION_DURATIONS === session_duration
 
     sign_in_token_url = AWS_FEDERATION_ENDPOINT+{
@@ -233,7 +260,7 @@ class AwsQuickSight
     if (aws_credential = aws_credential_for_user(user))
       aws_credential_based_session(aws_credential, user: user, session_duration: session_duration)
     elsif (id_token = cognito_id_token_for_user(user))
-      cognito_id_token_based_session
+      cognito_id_token_based_session(user.provider_raw_info['id_token'])
     else
       raise ArgumentError, 'User does not support AWS federated login.'
     end
@@ -258,28 +285,22 @@ class AwsQuickSight
   end
 
   private def identity_pool(create_if_missing: true)
-    host_name = ENV.fetch('HOSTNAME') #FIXME: cannot be more the 128 chars
+    pool_name = ENV.fetch('HOSTNAME').split('.').first[0..128]
 
-    pool = nil
-    existing_pool_id = nil
+    # find the existing pool by name
+    existing_pool_id =  nil
     cognito_admin.list_identity_pools(max_results: 50).each do |batch|
       batch.identity_pools.each do |pool|
-        existing_pool_id = pool.identity_pool_id if pool.identity_pool_name == host_name
+        existing_pool_id = pool.identity_pool_id if pool.identity_pool_name == pool_name
         break if existing_pool_id
       end
       break if existing_pool_id
     end
 
-    if existing_pool_id
-      existing_pool = cognito_admin.describe_identity_pool(
-        identity_pool_id: existing_pool_id,
-      )
-      return existing_pool unless create_if_missing
-    end
-
-    existing_pool ||= if create_if_missing
+    pool = cognito_admin.describe_identity_pool(identity_pool_id: existing_pool_id) if existing_pool_id
+    pool ||= if create_if_missing
       cognito_admin.create_identity_pool(
-        identity_pool_name: host_name, # required
+        identity_pool_name: pool_name, # required
         developer_provider_name: host_name,
         allow_unauthenticated_identities: false,
         cognito_identity_providers: [
@@ -291,10 +312,24 @@ class AwsQuickSight
         ],
         identity_pool_tags: {
           'env' => Rails.env.to_s,
+        },
+      )
+    end
+
+    authenticated_role_arn = cognito_admin.get_identity_pool_roles(
+      identity_pool_id: pool.identity_pool_id,
+    ).roles&.dig('authenticated')
+
+    unless authenticated_role_arn
+      cognito_admin.set_identity_pool_roles(
+        identity_pool_id: pool.identity_pool_id,
+        roles: {
+          'authenticated' => author_iam_role.arn
         }
       )
     end
-    existing_pool
+
+    pool
   end
 
   private def cognito_idp
@@ -323,7 +358,7 @@ class AwsQuickSight
     session = Aws::CognitoIdentity::Client.new.get_credentials_for_identity(
       identity_id: identity_id,
       logins: {
-        login_key => id_token
+        cognito_idp => id_token
       },
     ).credentials
 
