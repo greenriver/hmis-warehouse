@@ -44,14 +44,14 @@ class Rds
     # self.client = Aws::RDS::Client.new
     if SECRET_ACCESS_KEY.present? && SECRET_ACCESS_KEY != 'unknown'
       self.client = Aws::RDS::Client.new({
-        region: REGION,
-        aws_access_key_id: ACCESS_KEY_ID,
-        aws_secret_access_key: SECRET_ACCESS_KEY,
-      })
+                                           region: REGION,
+                                           access_key_id: ACCESS_KEY_ID,
+                                           secret_access_key: SECRET_ACCESS_KEY,
+                                         })
     else
       self.client = Aws::RDS::Client.new({
-        region: REGION,
-      })
+                                           region: REGION,
+                                         })
     end
   end
 
