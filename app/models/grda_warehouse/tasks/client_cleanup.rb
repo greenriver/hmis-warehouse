@@ -16,6 +16,7 @@ module GrdaWarehouse::Tasks
     def initialize(max_allowed=1_000, bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false, show_progress: false)
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
+      PIIAttributeSupport.allow_all_pii!
       self.logger = Rails.logger
       @debug = debug
       @soft_delete_date = Time.now
