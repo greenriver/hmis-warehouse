@@ -223,6 +223,26 @@ class AwsQuickSight
     end
   end
 
+  def author_iam_role_statement
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Federated": "cognito-identity.amazonaws.com"
+          },
+          "Action": "sts:AssumeRoleWithWebIdentity",
+          "Condition": {
+            "StringEquals": {
+              "cognito-identity.amazonaws.com:aud": identity_pool.identity_pool_id
+            }
+          }
+        }
+      ]
+    }
+  end
+
   def valid_return_to?(str)
      uri = URI.parse(str.to_s)
      uri.is_a?(URI::HTTP) && uri.host.present?
