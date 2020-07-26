@@ -67,7 +67,7 @@ module Encryption
           # the no-op proc take one argument and returns itself (e.g. ['hello@example.com'] -> 'hello@example.com')
           # the decryption proc takes two arguments and returns the cleartext value
           #    (e.g. ['b0xuGX8Df/g3pBYU7yj1BSgi0ao=', 'N12CmX0LkO3YQhLE'] -> 'John')
-          column_values = Array(record)[i,func.arity]
+          column_values = [record].flatten[i,func.arity]
 
           # This proc "consumed" this many of the raw results in the record.
           # 1 or 2 in practice

@@ -43,9 +43,24 @@ RSpec.describe Encryption::Pluck, :pii, type: :model do
       expect(TestAddress.joins(:test_person).pluck(TestPerson.arel_table[:email].as('the_email'))).to eq(['larry@example.com'])
     end
 
+    it "should work for unencrypted null values" do
+      person.update_attribute(:email, nil)
+      expect(TestPerson.pluck('email')).to eq([nil])
+      expect(TestPerson.pluck(:email)).to eq([nil])
+      expect(TestPerson.pluck([:email])).to eq([nil])
+      expect(TestPerson.pluck(['email'])).to eq([nil])
+    end
+
     it "should work for sets of columns for unencrypted" do
       expect(TestPerson.pluck(:email, :hair)).to eq([['larry@example.com', 'brown']])
     end
+
+    it("should work for null encrypted simple plucks") { person.update_attribute(:first_name, nil);  expect(TestPerson.pluck('first_name')).to eq([nil]) }
+    it("should work for null encrypted simple plucks") { person.update_attribute(:first_name, nil);  expect(TestPerson.pluck(:first_name)).to eq([nil]) }
+    it("should work for null encrypted simple plucks") { person.update_attribute(:first_name, nil);  expect(TestPerson.pluck([:first_name])).to eq([nil]) }
+    it("should work for null encrypted simple plucks") { person.update_attribute(:first_name, nil);  expect(TestPerson.pluck(['first_name'])).to eq([nil]) }
+    it("should work for null encrypted simple plucks") { person.update_attribute(:first_name, nil);  expect(TestPerson.pluck(TestPerson.arel_table[:first_name])).to eq([nil]) }
+    it("should work for null encrypted simple plucks") { person.update_attribute(:first_name, nil);  expect(TestPerson.pluck(TestPerson.arel_table[:first_name].as('the_first_name'))).to eq([nil]) }
 
     it("should work for encrypted simple plucks") { expect(TestPerson.pluck('first_name')).to eq(['Larry']) }
     it("should work for encrypted simple plucks") { expect(TestPerson.pluck(:first_name)).to eq(['Larry']) }
@@ -63,6 +78,14 @@ RSpec.describe Encryption::Pluck, :pii, type: :model do
       expect(TestPerson.pluck(:first_name, :email, :hair)).to eq([['Larry', 'larry@example.com', 'brown']])
       expect(TestPerson.pluck(:email, :first_name, :hair)).to eq([['larry@example.com', 'Larry', 'brown']])
       expect(TestPerson.pluck(:email, :hair, :first_name)).to eq([['larry@example.com', 'brown', 'Larry']])
+
+      person.update_attributes!({
+        email: nil,
+        hair: nil,
+        first_name: nil
+      })
+
+      expect(TestPerson.pluck(:email, :hair, :first_name)).to eq([[nil, nil, nil]])
     end
   end
 
