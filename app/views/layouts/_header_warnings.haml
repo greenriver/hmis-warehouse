@@ -11,7 +11,7 @@
             = link_to stop_impersonating_admin_users_path, method: :post do
               Switch Back
               %i.icon-exit.ml-2
-- unless Rails.env.production?
+- if !Rails.env.production? && !ENV['HIDE_NON_PRODUCTION_WARNING']
   #non-production-warning
     .d-flex.pt-2.pb-2
       - if Rails.env.development?
