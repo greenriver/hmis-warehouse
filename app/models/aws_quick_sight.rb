@@ -205,7 +205,7 @@ class AwsQuickSight
     }.to_param
   end
 
-  def qs_session(user, session_duration: session_duration)
+  def qs_session(user, session_duration: )
     provision_user_access(user)
 
     resp = sts_admin.assume_role(
