@@ -177,8 +177,17 @@ module GrdaWarehouse::WarehouseReports
       if @filter.ethnicities.present?
         scope = scope.joins(:client).where(c_t[:Ethnicity].in(@filter.ethnicities))
       end
+      race_filter = nil
       @filter.races.each do |race|
-        scope = scope.joins(:client).where(c_t[race].eq(1))
+        if race_filter
+          race_filter = race_filter.or(c_t[race].eq(1))
+        else
+          race_filter = c_t[race].eq(1)
+        end
+      end
+      scope = scope.joins(:client).where(race_filter) if race_filter.present?
+      if @filter.genders.present?
+        scope = scope.joins(:client).where(c_t[:Gender].in(@filter.genders))
       end
 
       return scope

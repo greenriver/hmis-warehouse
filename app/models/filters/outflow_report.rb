@@ -13,6 +13,7 @@ module Filters
     attribute :limit_to_vispdats, Boolean, default: false
     attribute :races, Array, default: []
     attribute :ethnicities, Array, default: []
+    attribute :genders, Array, default: []
 
     validates_presence_of :start, :end, :sub_population
 
