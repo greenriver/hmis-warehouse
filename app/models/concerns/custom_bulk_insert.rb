@@ -41,13 +41,20 @@ module CustomBulkInsert
         if column.in?(klass.encrypted_attributes.keys)
           ->(val) do
             # TODO: move to pii concern once working
-            iv = SecureRandom.bytes(12)
-            cipher_text = Encryption::SoftFailEncryptor.encrypt(value: val, key: klass.pii_encryption_key, iv: iv)
+            if val.present?
+              iv = SecureRandom.bytes(12)
+              cipher_text = Encryption::SoftFailEncryptor.encrypt(value: val, key: klass.pii_encryption_key, iv: iv)
 
-            [
-              Base64.encode64(cipher_text),
-              Base64.encode64(iv),
-            ]
+              [
+                Base64.encode64(cipher_text),
+                Base64.encode64(iv),
+              ]
+            else
+              [
+                nil,
+                nil,
+              ]
+            end
           end
         else
           ->(val) { [val] }
