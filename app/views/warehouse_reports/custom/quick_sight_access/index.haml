@@ -1,5 +1,3 @@
 - content_for :title, 'QuickSight Business Intelligence'
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'custom'
-
-= debug current_user.can_access_report?(url: 'warehouse_reports/custom/quick_sight_access')
