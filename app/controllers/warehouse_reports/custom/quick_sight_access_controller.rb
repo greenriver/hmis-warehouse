@@ -14,7 +14,6 @@ module WarehouseReports::Custom
       redirect_to AwsQuickSight.new.sign_in_url(
         user: current_user,
         return_to_url: root_url + '/warehouse_reports/custom/quick_sight_access',
-        session_duration: 8.hours,
       )
     end
 
