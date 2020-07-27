@@ -280,6 +280,8 @@ GEM
       multipart-post (>= 1.2, < 3)
     fast_gettext (2.0.1)
     ffi (1.12.2)
+    ffi-geos (2.1.0)
+      ffi (>= 1.0.0)
     flamegraph (0.9.5)
     foreman (0.86.0)
     formatador (0.2.5)
@@ -546,6 +548,10 @@ GEM
     rgeo-activerecord (6.2.1)
       activerecord (>= 5.0)
       rgeo (>= 1.0.0)
+    rgeo-geojson (2.1.1)
+      rgeo (>= 1.0.0)
+    rgeo-proj4 (2.0.0)
+      rgeo (~> 2.0)
     roo (2.8.2)
       nokogiri (~> 1)
       rubyzip (>= 1.2.1, < 2.0.0)
@@ -781,6 +787,7 @@ DEPENDENCIES
   factory_bot_rails
   faker (>= 1.7.2)
   fast_gettext
+  ffi-geos
   flamegraph
   foreman
   gettext (>= 3.0.2)
@@ -830,6 +837,9 @@ DEPENDENCIES
   redis-rails
   responders
   rest-client (~> 2.0)
+  rgeo
+  rgeo-geojson
+  rgeo-proj4
   roo
   roo-xls
   rqrcode (~> 0.4)
