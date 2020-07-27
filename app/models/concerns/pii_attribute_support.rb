@@ -9,6 +9,8 @@ module PIIAttributeSupport
 
     @allowed_pii_class_names = [
       'GrdaWarehouse::Hud::Client',
+      'GrdaWarehouse::Import::HmisTwentyTwenty::Client',
+      'GrdaWarehouse::Import::HmisSixOneOne::Client',
       'Reporting::DataQualityReports::Enrollment',
       'GrdaWarehouse::ImportLog',
       'GrdaWarehouse::Upload',
@@ -34,11 +36,12 @@ module PIIAttributeSupport
   # used by pluck
   def self.pii_columns
     return @pii_columns unless @pii_columns.nil?
-    keys = self.pii_table_names
+
+    keys = pii_table_names
     values = allowed_pii_classes.map do |klass|
       attrs = klass.encrypted_attributes.dup
       attrs.each_key do |column_name|
-        attrs[column_name][:model_class]  = klass
+        attrs[column_name][:model_class] = klass
       end
       attrs
     end
