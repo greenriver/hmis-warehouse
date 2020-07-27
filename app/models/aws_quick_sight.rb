@@ -250,7 +250,12 @@ class AwsQuickSight
 
   # :nodoc:
   def sts_admin
-    Aws::STS::Client.new
+    Aws::STS::Client.new(
+      credentials: Aws::Credentials.new(
+        ENV.fetch('STS_AWS_ACCESS_KEY_ID'),
+        ENV.fetch('STS_AWS_SECRET_ACCESS_KEY')
+      )
+    )
   end
 
   # :nodoc:
