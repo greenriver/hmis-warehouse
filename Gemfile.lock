@@ -98,6 +98,9 @@ GEM
       aws-partitions (~> 1, >= 1.239.0)
       aws-sigv4 (~> 1.1)
       jmespath (~> 1.0)
+    aws-sdk-ec2 (1.179.0)
+      aws-sdk-core (~> 3, >= 3.99.0)
+      aws-sigv4 (~> 1.1)
     aws-sdk-ecs (1.60.0)
       aws-sdk-core (~> 3, >= 3.71.0)
       aws-sigv4 (~> 1.1)
@@ -740,6 +743,7 @@ DEPENDENCIES
   autoprefixer-rails
   awesome_print
   aws-sdk-cloudwatchevents (~> 1)
+  aws-sdk-ec2 (~> 1)
   aws-sdk-ecs (~> 1)
   aws-sdk-glacier (~> 1)
   aws-sdk-iam (~> 1)
