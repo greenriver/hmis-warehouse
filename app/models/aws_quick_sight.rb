@@ -205,7 +205,7 @@ class AwsQuickSight
     }.to_param
   end
 
-  def qs_session(user, session_duration: session_duration)
+  def qs_session(user, session_duration: )
     provision_user_access(user)
 
     resp = sts_admin.assume_role(
@@ -234,23 +234,23 @@ class AwsQuickSight
   end
 
   # :nodoc:
-  private def admin_credentials
-    Aws::SharedCredentials.new.credentials
-  end
+  # private def admin_credentials
+  #   Aws::SharedCredentials.new.credentials
+  # end
 
   # :nodoc:
   def iam_admin
-    Aws::IAM::Client.new(credentials: admin_credentials)
+    Aws::IAM::Client.new
   end
 
   # :nodoc:
   def qs_admin
-    Aws::QuickSight::Client.new(credentials: admin_credentials)
+    Aws::QuickSight::Client.new
   end
 
   # :nodoc:
   def sts_admin
-    Aws::STS::Client.new(credentials: admin_credentials)
+    Aws::STS::Client.new
   end
 
   # :nodoc:
