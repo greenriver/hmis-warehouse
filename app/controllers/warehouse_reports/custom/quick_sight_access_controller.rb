@@ -9,12 +9,10 @@ module WarehouseReports::Custom
     include WarehouseReportAuthorization
 
     def index
-      raise 'Access denied' unless AwsQuickSight.new.available_to?(current_user)
-
-      redirect_to AwsQuickSight.new.sign_in_url(
+      @quicksight_url = AwsQuickSight.new.sign_in_url( # rubocop:disable Style/RescueModifier
         user: current_user,
         return_to_url: root_url + '/warehouse_reports/custom/quick_sight_access',
-      )
+      ) rescue nil
     end
 
     def create
