@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ActiveRecord::Calculations
+ActiveRecord::Calculations # rubocop:disable Lint/Void
 
 module ActiveRecord
   module Calculations
