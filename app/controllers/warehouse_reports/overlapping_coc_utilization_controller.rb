@@ -61,7 +61,7 @@ module WarehouseReports
     end
 
     def index
-      @cocs = state_coc_shapes.sort_by(&:name)
+      @cocs = state_coc_shapes.sort_by(&:number_and_name)
       @shapes = map_shapes
     end
 
