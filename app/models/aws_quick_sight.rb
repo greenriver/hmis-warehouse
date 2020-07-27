@@ -184,7 +184,7 @@ class AwsQuickSight
   # for them to login to QuickSight
   #
   # this makes and waits on a HTTP get to AWS_FEDERATION_ENDPOINT
-  def sign_in_url(user:, return_to_url:, session_duration: 8.hours)
+  def sign_in_url(user:, return_to_url:, session_duration: 1.hours)
     raise ArgumentError, 'user must be a User' unless user.is_a?(::User)
     raise ArgumentError, 'invalid return_to_url' unless valid_return_to?(return_to_url)
     raise ArgumentError, "session duration needs be in the range #{VALID_SESSION_DURATIONS}" unless VALID_SESSION_DURATIONS === session_duration
