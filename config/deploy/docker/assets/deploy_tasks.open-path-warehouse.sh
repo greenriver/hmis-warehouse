@@ -29,3 +29,4 @@ echo Installing cron
 # keep this always at the end of this file
 echo Making interface aware this script completed
 bundle exec rake deploy:mark_deployment_id
+echo ---DONE---

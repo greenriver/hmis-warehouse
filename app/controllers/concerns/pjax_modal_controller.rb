@@ -17,6 +17,8 @@ module PjaxModalController
         'modal-xl'
       when :lg
         'modal-lg'
+      when :xxl
+        'modal-xxl'
       else
         ''
       end

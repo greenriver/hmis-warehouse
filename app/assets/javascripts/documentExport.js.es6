@@ -38,6 +38,9 @@ $(() => {
   };
 
   const handleSubmission = (postResult) => {
+    if (!postResult || !postResult.pollUrl) {
+      return updateDisplay({ status: 'error' });
+    }
     updateDisplay(postResult);
     const pollTime = 3000;
     const maxPollCount = 400;

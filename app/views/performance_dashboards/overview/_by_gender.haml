@@ -2,17 +2,17 @@
 - sub_keys = @report.gender_bucket_titles.invert
 - options = {gender: :true}
 
-- columns = [@report.entering_by_gender_data_for_chart[:columns]]
-- if @report.include_comparison?
-  - columns << @comparison.entering_by_gender_data_for_chart[:columns]
-- categories = @report.entering_by_gender_data_for_chart[:categories]
-= render 'performance_dashboards/overview/breakdown/entering', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options
-
 - columns = [@report.enrolled_by_gender_data_for_chart[:columns]]
 - if @report.include_comparison?
   - columns << @comparison.enrolled_by_gender_data_for_chart[:columns]
 - categories = @report.enrolled_by_gender_data_for_chart[:categories]
 = render 'performance_dashboards/overview/breakdown/enrolled', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options
+
+- columns = [@report.entering_by_gender_data_for_chart[:columns]]
+- if @report.include_comparison?
+  - columns << @comparison.entering_by_gender_data_for_chart[:columns]
+- categories = @report.entering_by_gender_data_for_chart[:categories]
+= render 'performance_dashboards/overview/breakdown/entering', breakdown: breakdown, columns: columns, categories: categories, sub_keys: sub_keys, options: options
 
 - columns = [@report.exiting_by_gender_data_for_chart[:columns]]
 - if @report.include_comparison?

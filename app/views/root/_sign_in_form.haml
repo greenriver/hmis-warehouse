@@ -1,0 +1,8 @@
+:ruby
+  resource_class = User
+  resource_name = :user
+.well
+  %h2 Sign In
+  = simple_form_for(resource_class.new, as: resource_name, url: session_path(resource_name), wrapper: :vertical_form_hint_first) do |f|
+    = render '/devise/sessions/sign_in_fields', f: f
+  = render "devise/shared/links", resource_name: resource_name, devise_mapping: Devise.mappings[resource_name], resource_class: resource_class

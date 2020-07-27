@@ -1,8 +1,8 @@
 #= require ./namespace
 App.select2 ||= {}
 
-App.select2.init = () =>
-  $('.select2').each () ->
+App.select2.init = (root) =>
+  $(root || document).find('.select2').each () ->
     $select = $(this)
     placeholder = $select.attr('placeholder')
     options = {}
@@ -17,6 +17,7 @@ App.select2.init = () =>
       App.select2.initIdWhenSelected($select)
     if this.classList.contains('select2-parenthetical-when-selected')
       App.select2.initParentheticalWhenSelected($select)
+  $(".select2-search__field").attr("aria-label", 'Search')
 
 App.select2.initToggleSelectAll = ($select) =>
   # If we made any changes manually, and there are any selected, set the link to "select none"
@@ -107,5 +108,3 @@ App.select2.initParentheticalWhenSelected = ($select) =>
         return matched[1]
     }
   )
-
-

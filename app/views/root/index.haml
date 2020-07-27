@@ -5,6 +5,9 @@
   - content_for :title, title
   %h1= content_for :title
   .row
-    .col-sm-8
-      .well
-        = render 'login_form'
+    .col-sm-7
+      %p.home-intro
+        = _('Boston DND Warehouse')
+    - if !user_signed_in?
+      .col-sm-5
+        = render '/root/sign_in_form'

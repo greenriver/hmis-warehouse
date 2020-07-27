@@ -117,6 +117,12 @@ namespace :health do
     )
   end
 
+  desc "Queue Retrieve Enrollments"
+  task queue_retrieve_enrollments: [:environment, "log:info_to_stdout"] do
+    user = User.setup_system_user
+    Health::UpdatePatientEnrollmentsJob.perform_now(user)
+  end
+
   desc "Remove Derived Patient Referrals"
   task remove_derived_patient_referrals: [:environment, 'log:info_to_stdout'] do
     Health::PatientReferral.where(derived_referral: true).destroy_all

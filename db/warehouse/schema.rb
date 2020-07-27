@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_21_190101) do
+ActiveRecord::Schema.define(version: 2020_07_23_204046) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -111,7 +111,7 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
     t.string "LastName", limit: 150
     t.string "NameSuffix", limit: 50
     t.integer "NameDataQuality"
-    t.string "SSN", limit: 9
+    t.string "SSN"
     t.integer "SSNDataQuality"
     t.date "DOB"
     t.integer "DOBDataQuality"
@@ -203,6 +203,16 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
     t.boolean "dv_rrh_desired", default: false
     t.string "health_prioritized"
     t.boolean "demographic_dirty", default: true
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+    t.string "encrypted_MiddleName"
+    t.string "encrypted_MiddleName_iv"
+    t.string "encrypted_LastName"
+    t.string "encrypted_LastName_iv"
+    t.string "encrypted_SSN"
+    t.string "encrypted_SSN_iv"
+    t.string "encrypted_NameSuffix"
+    t.string "encrypted_NameSuffix_iv"
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -6471,6 +6481,7 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
   add_foreign_key "service_history_services_2017", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2018", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2019", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2020", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2021", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2022", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2023", "service_history_enrollments", on_delete: :cascade
@@ -6605,96 +6616,6 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
        LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
        LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
     ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
-  SQL
-  create_view "report_clients", sql_definition: <<-SQL
-      SELECT "Client"."PersonalID",
-      "Client"."FirstName",
-      "Client"."MiddleName",
-      "Client"."LastName",
-      "Client"."NameSuffix",
-      "Client"."NameDataQuality",
-      "Client"."SSN",
-      "Client"."SSNDataQuality",
-      "Client"."DOB",
-      "Client"."DOBDataQuality",
-      "Client"."AmIndAKNative",
-      "Client"."Asian",
-      "Client"."BlackAfAmerican",
-      "Client"."NativeHIOtherPacific",
-      "Client"."White",
-      "Client"."RaceNone",
-      "Client"."Ethnicity",
-      "Client"."Gender",
-      "Client"."OtherGender",
-      "Client"."VeteranStatus",
-      "Client"."YearEnteredService",
-      "Client"."YearSeparated",
-      "Client"."WorldWarII",
-      "Client"."KoreanWar",
-      "Client"."VietnamWar",
-      "Client"."DesertStorm",
-      "Client"."AfghanistanOEF",
-      "Client"."IraqOIF",
-      "Client"."IraqOND",
-      "Client"."OtherTheater",
-      "Client"."MilitaryBranch",
-      "Client"."DischargeStatus",
-      "Client"."DateCreated",
-      "Client"."DateUpdated",
-      "Client"."UserID",
-      "Client"."DateDeleted",
-      "Client"."ExportID",
-      "Client".id
-     FROM "Client"
-    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
-            WHERE (data_sources.source_type IS NULL))));
-  SQL
-  create_view "report_demographics", sql_definition: <<-SQL
-      SELECT "Client"."PersonalID",
-      "Client"."FirstName",
-      "Client"."MiddleName",
-      "Client"."LastName",
-      "Client"."NameSuffix",
-      "Client"."NameDataQuality",
-      "Client"."SSN",
-      "Client"."SSNDataQuality",
-      "Client"."DOB",
-      "Client"."DOBDataQuality",
-      "Client"."AmIndAKNative",
-      "Client"."Asian",
-      "Client"."BlackAfAmerican",
-      "Client"."NativeHIOtherPacific",
-      "Client"."White",
-      "Client"."RaceNone",
-      "Client"."Ethnicity",
-      "Client"."Gender",
-      "Client"."OtherGender",
-      "Client"."VeteranStatus",
-      "Client"."YearEnteredService",
-      "Client"."YearSeparated",
-      "Client"."WorldWarII",
-      "Client"."KoreanWar",
-      "Client"."VietnamWar",
-      "Client"."DesertStorm",
-      "Client"."AfghanistanOEF",
-      "Client"."IraqOIF",
-      "Client"."IraqOND",
-      "Client"."OtherTheater",
-      "Client"."MilitaryBranch",
-      "Client"."DischargeStatus",
-      "Client"."DateCreated",
-      "Client"."DateUpdated",
-      "Client"."UserID",
-      "Client"."DateDeleted",
-      "Client"."ExportID",
-      "Client".data_source_id,
-      "Client".id,
-      report_clients.id AS client_id
-     FROM (("Client"
-       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-       JOIN report_clients ON ((warehouse_clients.destination_id = report_clients.id)))
-    WHERE ("Client"."DateDeleted" IS NULL);
   SQL
   create_view "report_disabilities", sql_definition: <<-SQL
       SELECT "Disabilities"."DisabilitiesID",
@@ -7758,8 +7679,7 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
     WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentResults"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_Client", sql_definition: <<-SQL
-      SELECT "Client".id,
-      "Client"."PersonalID",
+      SELECT "Client".id AS personalid,
       4 AS "HashStatus",
       encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
       encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
@@ -7802,8 +7722,7 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
             WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
   SQL
   create_view "bi_Demographics", sql_definition: <<-SQL
-      SELECT "Client".id,
-      "Client"."PersonalID",
+      SELECT "Client".id AS personalid,
       4 AS "HashStatus",
       encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
       encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
@@ -7840,8 +7759,10 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
       "Client"."UserID",
       "Client"."DateDeleted",
       "Client"."ExportID",
+      warehouse_clients.destination_id AS client_id,
       "Client".data_source_id
-     FROM "Client"
+     FROM ("Client"
+       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
     WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
              FROM data_sources
             WHERE ((data_sources.deleted_at IS NULL) AND ((data_sources.source_type IS NOT NULL) OR (data_sources.authoritative = true))))));
@@ -7934,11 +7855,8 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
       service_history_services.record_type,
       service_history_services.date,
       service_history_services.age,
-      service_history_services.service_type,
       service_history_services.client_id,
-      service_history_services.project_type,
-      service_history_services.homeless,
-      service_history_services.literally_homeless
+      service_history_services.project_type
      FROM (service_history_services
        JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
     WHERE (service_history_services.date >= (CURRENT_DATE - '5 years'::interval));
@@ -7947,7 +7865,6 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
       SELECT service_history_enrollments.id,
       service_history_enrollments.client_id,
       service_history_enrollments.data_source_id,
-      service_history_enrollments.date,
       service_history_enrollments.first_date_in_program,
       service_history_enrollments.last_date_in_program,
       service_history_enrollments.age,
@@ -7955,53 +7872,21 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
       service_history_enrollments.head_of_household_id,
       service_history_enrollments.household_id,
       service_history_enrollments.project_name,
-      service_history_enrollments.project_type,
       service_history_enrollments.project_tracking_method,
-      service_history_enrollments.organization_id,
-      service_history_enrollments.record_type,
-      service_history_enrollments.housing_status_at_entry,
-      service_history_enrollments.housing_status_at_exit,
-      service_history_enrollments.service_type,
       service_history_enrollments.computed_project_type,
-      service_history_enrollments.presented_as_individual,
-      service_history_enrollments.other_clients_over_25,
-      service_history_enrollments.other_clients_under_18,
-      service_history_enrollments.other_clients_between_18_and_25,
-      service_history_enrollments.unaccompanied_youth,
-      service_history_enrollments.parenting_youth,
-      service_history_enrollments.parenting_juvenile,
-      service_history_enrollments.children_only,
-      service_history_enrollments.individual_adult,
-      service_history_enrollments.individual_elder,
-      service_history_enrollments.head_of_household,
       service_history_enrollments.move_in_date,
-      service_history_enrollments.unaccompanied_minor,
       "Project".id AS project_id,
       "Enrollment".id AS enrollment_id
      FROM (((service_history_enrollments
        JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
        JOIN "Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = service_history_enrollments.data_source_id) AND (("Project"."ProjectID")::text = (service_history_enrollments.project_id)::text) AND (("Project"."OrganizationID")::text = (service_history_enrollments.organization_id)::text))))
        JOIN "Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = service_history_enrollments.data_source_id) AND (("Enrollment"."EnrollmentID")::text = (service_history_enrollments.enrollment_group_id)::text) AND (("Enrollment"."ProjectID")::text = (service_history_enrollments.project_id)::text))))
-    WHERE ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval)));
+    WHERE (((service_history_enrollments.record_type)::text = 'entry'::text) AND ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval))));
   SQL
   create_view "bi_data_sources", sql_definition: <<-SQL
       SELECT data_sources.id,
       data_sources.name,
-      data_sources.file_path,
-      data_sources.last_imported_at,
-      data_sources.newest_updated_at,
-      data_sources.created_at,
-      data_sources.updated_at,
-      data_sources.source_type,
-      data_sources.munged_personal_id,
-      data_sources.short_name,
-      data_sources.visible_in_window,
-      data_sources.authoritative,
-      data_sources.after_create_path,
-      data_sources.import_paused,
-      data_sources.authoritative_type,
-      data_sources.source_id,
-      data_sources.deleted_at
+      data_sources.short_name
      FROM data_sources
     WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
   SQL
@@ -8061,19 +7946,8 @@ ActiveRecord::Schema.define(version: 2020_07_21_190101) do
       nightly_census_by_projects.non_veterans,
       nightly_census_by_projects.children,
       nightly_census_by_projects.adults,
-      nightly_census_by_projects.youth,
-      nightly_census_by_projects.families,
-      nightly_census_by_projects.individuals,
-      nightly_census_by_projects.parenting_youth,
-      nightly_census_by_projects.parenting_juveniles,
       nightly_census_by_projects.all_clients,
-      nightly_census_by_projects.beds,
-      nightly_census_by_projects.created_at,
-      nightly_census_by_projects.updated_at,
-      nightly_census_by_projects.juveniles,
-      nightly_census_by_projects.unaccompanied_minors,
-      nightly_census_by_projects.youth_families,
-      nightly_census_by_projects.family_parents
+      nightly_census_by_projects.beds
      FROM nightly_census_by_projects;
   SQL
 end
