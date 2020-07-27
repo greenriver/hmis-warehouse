@@ -441,9 +441,15 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   private def filter_for_projects(scope)
-    return scope if @filter.project_ids.blank?
+    return scope if @filter.project_ids.blank? && @filter.project_group_ids.blank?
 
-    scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+    project_ids = @filter.project_ids || []
+    project_groups = GrdaWarehouse::ProjectGroup.find(@filter.project_group_ids)
+    project_groups.each do |group|
+      project_ids += group.projects.pluck(:id)
+    end
+
+    scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
   end
 
   private def filter_for_funders(scope)
