@@ -33,9 +33,9 @@
             = render 'bars', relative_total: relative_total, values: values
       %tr
         %td{style: 'width: 35%'}
-          - name = "Non-Overlapping &raquo;".html_safe
+          - name = "No Overlapping Project Types &raquo;".html_safe
           = link_to_if total_non_overlapping_clients > 0, name,
             detail_url.(project_type: WarehouseReport::OverlappingCocByProjectType::NON_OVERLAPPING_PROJECT_TYPE),
             class: 'font-weight-bold'
         %td= total_non_overlapping_clients
-        %td= render 'bars', relative_total: relative_total, values: [0, 0]
+        %td
