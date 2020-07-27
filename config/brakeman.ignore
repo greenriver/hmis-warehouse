@@ -21,6 +21,57 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "15c7f77614456a8f5128fd50870ee2eeb42c2e8996b048b379d2e53cea109f97",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "app/views/root/index.haml",
+      "line": 19,
+      "link": "https://brakemanscanner.org/docs/warning_types/link_to_href",
+      "code": "link_to(\"Continue to Quick Sight\", AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\"), :session_duration => 8.hours))",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "RootController",
+          "method": "index",
+          "line": 15,
+          "file": "app/controllers/root_controller.rb",
+          "rendered": {
+            "name": "root/index",
+            "file": "app/views/root/index.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "root/index"
+      },
+      "user_input": "AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\"), :session_duration => 8.hours)",
+      "confidence": "Weak",
+      "note": "This is intentioanlly building a off-site url with user state info. The offsite location is safe"
+    },
+    {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "167d304a2a6e35f5514e9151322701f7330f801e1b29f03e072fadc7e6e35dae",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called with model attribute",
+      "file": "app/jobs/warehouse_reports/dashboard_report_job.rb",
+      "line": 16,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym][sub_population.to_sym].constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WarehouseReports::DashboardReportJob",
+        "method": "perform"
+      },
+      "user_input": "GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym]",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Redirect",
       "warning_code": 18,
       "fingerprint": "181309531987afc5d7f7a395cd83ff94f2c3a2ccb4032202ac4c819a67266b34",
@@ -339,6 +390,37 @@
         "template": "health/goals/edit"
       },
       "user_input": "params[:id]",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "70b70b984f26e96e4c136d1371587575175b3f7e6e7cb0c597f1a73c7cd9f781",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped parameter value",
+      "file": "app/views/warehouse_reports/chronic_housed/index.haml",
+      "line": 42,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "site_chronic_source.where(:date => ::Filters::DateRange.new((params.permit(:range => ([:start, :end]))[:range] or { :start => 3.month.ago.to_date, :end => 1.months.ago.to_date })).range).group_by(&:client_id)[exits.first.client_id].map(&:date).uniq.join(\"<br />\")",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "WarehouseReports::ChronicHousedController",
+          "method": "index",
+          "line": 17,
+          "file": "app/controllers/warehouse_reports/chronic_housed_controller.rb",
+          "rendered": {
+            "name": "warehouse_reports/chronic_housed/index",
+            "file": "app/views/warehouse_reports/chronic_housed/index.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/chronic_housed/index"
+      },
+      "user_input": "params.permit(:range => ([:start, :end]))[:range]",
       "confidence": "Weak",
       "note": ""
     },
@@ -1153,6 +1235,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-07-25 05:01:49 -0400",
+  "updated": "2020-07-27 03:32:17 -0400",
   "brakeman_version": "4.8.2"
 }
