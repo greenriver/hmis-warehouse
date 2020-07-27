@@ -319,6 +319,22 @@ Devise.setup do |config|
   #   manager.default_strategies(scope: :user).unshift :some_external_strategy
   # end
 
+  if ENV['AWS_COGNITO_APP_ID'].present?
+    config.omniauth(
+      :cognito,
+      ENV.fetch('AWS_COGNITO_APP_ID'),
+      ENV.fetch('AWS_COGNITO_APP_SECRET'),
+      name: :cognito,
+      strategy_class: OmniAuth::Strategies::CognitoIdP,
+      aws_region: ENV.fetch('AWS_COGNITO_REGION'),
+      client_options: {
+        site: ENV.fetch('AWS_COGNITO_USER_POOL_SITE'),
+      },
+      user_pool_id: ENV.fetch('AWS_COGNITO_POOL_ID'),
+      scope: %i[openid email profile aws.cognito.signin.user.admin]
+    )
+  end
+
   # ==> Mountable engine configurations
   # When using Devise inside an engine, let's call it `MyEngine`, and this engine
   # is mountable, there are some extra configurations to be taken into account.

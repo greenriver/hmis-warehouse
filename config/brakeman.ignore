@@ -27,7 +27,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 394,
+      "line": 402,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"DROP VIEW IF EXISTS #{name}\")",
       "render_path": null,
@@ -67,7 +67,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 414,
+      "line": 422,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"CREATE OR REPLACE VIEW #{name} AS #{sql_definition}\")",
       "render_path": null,
@@ -79,6 +79,26 @@
       "user_input": "name",
       "confidence": "Medium",
       "note": ""
+    },
+    {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "181309531987afc5d7f7a395cd83ff94f2c3a2ccb4032202ac4c819a67266b34",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/warehouse_reports/custom/quick_sight_access_controller.rb",
+      "line": 14,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\"), :session_duration => 8.hours))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WarehouseReports::Custom::QuickSightAccessController",
+        "method": "index"
+      },
+      "user_input": "AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\"), :session_duration => 8.hours)",
+      "confidence": "High",
+      "note": "Intentional off-site redirect to an integration"
     },
     {
       "warning_type": "Command Injection",
@@ -127,7 +147,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/service_history_service.rb",
-      "line": 128,
+      "line": 136,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'\")",
       "render_path": null,
@@ -258,7 +278,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 386,
+      "line": 388,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"EXISTS (#{inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")} and \\\"Client\\\".\\\"id\\\" = \\\"inner_clients\\\".\\\"id\\\")\")",
       "render_path": null,
@@ -582,7 +602,7 @@
       },
       "user_input": "simplification_distance_in_degrees",
       "confidence": "Medium",
-      "note": "injection is always a number and not from the database or user input"
+      "note": ""
     },
     {
       "warning_type": "Command Injection",
@@ -651,7 +671,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 65,
+      "line": 67,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -671,7 +691,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 298,
+      "line": 307,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -751,7 +771,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 408,
+      "line": 416,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"DO $$\\nBEGIN\\n  CREATE ROLE #{role} WITH NOLOGIN;\\n  EXCEPTION WHEN DUPLICATE_OBJECT THEN\\n  RAISE NOTICE 'not creating role #{role} -- it already exists';\\nEND\\n$$;\\n\")",
       "render_path": null,
@@ -1051,7 +1071,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 417,
+      "line": 425,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"GRANT SELECT ON #{name} TO #{\"bi\"}\")",
       "render_path": null,
@@ -1071,7 +1091,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/performance_dashboards/base.rb",
-      "line": 168,
+      "line": 295,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[@sub_population].constantize",
       "render_path": null,
@@ -1131,7 +1151,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 481,
+      "line": 505,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql((\"consented_coc_codes='[]'::jsonb OR \" + \"#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map do\n connection.quote(s)\n end.join(\",\")}]\"))",
       "render_path": null,
@@ -1204,6 +1224,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-07-14 17:38:38 -0400",
+  "updated": "2020-07-27 09:56:28 -0400",
   "brakeman_version": "4.8.2"
 }

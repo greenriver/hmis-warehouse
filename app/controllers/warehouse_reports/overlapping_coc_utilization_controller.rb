@@ -111,7 +111,7 @@ module WarehouseReports
           report = load_overlapping_coc_by_project_type_report
           Rails.cache.fetch(
             report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: CACHE_VERSION),
-            expires_in: CACHE_LIFETIME
+            expires_in: CACHE_LIFETIME,
           ) do
             render_to_string(partial: 'overlap', locals: { report: report })
           end

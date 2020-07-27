@@ -595,6 +595,12 @@ def report_list
         description: 'Access your credentials and connection information for direct Database Access',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/custom/quick_sight_access',
+        name: 'QuickSight Access',
+        description: 'Setup and login to QuickSight for Business Intelligence reporting.',
+        limitable: true,
+      },
     ],
   }
 end
@@ -890,5 +896,5 @@ setup_fake_user() if Rails.env.development?
 maintain_data_sources()
 maintain_report_definitions()
 maintain_health_seeds()
-maintain_lookups()
 install_shapes()
+maintain_lookups()
