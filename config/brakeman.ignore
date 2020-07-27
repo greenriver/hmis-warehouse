@@ -252,26 +252,6 @@
       "note": ""
     },
     {
-      "warning_type": "Redirect",
-      "warning_code": 18,
-      "fingerprint": "3e1da19aeed44581864ca058cbfd095b5de704b01ab9c78d17adcfabd42ac261",
-      "check_name": "Redirect",
-      "message": "Possible unprotected redirect",
-      "file": "app/controllers/warehouse_reports/custom/quick_sight_access_controller.rb",
-      "line": 14,
-      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
-      "code": "redirect_to(AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\")))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "WarehouseReports::Custom::QuickSightAccessController",
-        "method": "index"
-      },
-      "user_input": "AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\"))",
-      "confidence": "High",
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "3e94c32e2e326e0b24e275e1018e19c8d8e04b138e81da4366a9ab06617bdb85",
@@ -442,6 +422,37 @@
       },
       "user_input": null,
       "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 4,
+      "fingerprint": "7431d1c2a95d4884eb22cfb877ec76acc6f4cf6eb7dd9d4930229d5bbb69d3cb",
+      "check_name": "LinkToHref",
+      "message": "Potentially unsafe model attribute in `link_to` href",
+      "file": "app/views/warehouse_reports/custom/quick_sight_access/index.haml",
+      "line": 9,
+      "link": "https://brakemanscanner.org/docs/warning_types/link_to_href",
+      "code": "link_to(AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\")), :class => \"btn btn-primary\", :target => \"_blank\")",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "WarehouseReports::Custom::QuickSightAccessController",
+          "method": "index",
+          "line": 13,
+          "file": "app/controllers/warehouse_reports/custom/quick_sight_access_controller.rb",
+          "rendered": {
+            "name": "warehouse_reports/custom/quick_sight_access/index",
+            "file": "app/views/warehouse_reports/custom/quick_sight_access/index.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "warehouse_reports/custom/quick_sight_access/index"
+      },
+      "user_input": "AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\"))",
+      "confidence": "Weak",
       "note": ""
     },
     {
@@ -1224,6 +1235,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-07-27 14:32:28 -0400",
+  "updated": "2020-07-27 17:54:17 -0400",
   "brakeman_version": "4.8.2"
 }
