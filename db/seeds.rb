@@ -588,6 +588,14 @@ def report_list
         limitable: true,
       },
     ],
+    'Custom' => [
+      {
+        url: 'warehouse_reports/custom/quick_sight_access',
+        name: 'QuickSight Access',
+        description: 'Setup and login to QuickSight for Business Intelligence reporting.',
+        limitable: true,
+      },
+    ],
   }
 end
 

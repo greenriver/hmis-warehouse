@@ -9,6 +9,8 @@ class AccountEmailsController < ApplicationController
   before_action :set_user
 
   def edit
+    return redirect_to edit_account_path, alert: 'Change email not available for external users' if @user.external_idp?
+
     @user.set_initial_two_factor_secret!
     render 'accounts/edit'
   end
