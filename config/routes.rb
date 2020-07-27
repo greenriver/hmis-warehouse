@@ -737,7 +737,7 @@ Rails.application.routes.draw do
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
     end
-    resources :account_requests, only: [:index, :update, :destroy] do
+    resources :account_requests, only: [:index, :edit, :update, :destroy] do
       post :confirm
     end
 

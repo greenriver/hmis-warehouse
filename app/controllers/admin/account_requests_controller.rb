@@ -6,16 +6,20 @@
 
 module Admin
   class AccountRequestsController < ApplicationController
+    include PjaxModalController
     include ViewableEntities
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!
-    before_action :set_account_request, only: [:update, :destroy]
+    before_action :set_account_request, only: [:edit, :update, :destroy]
 
     def index
-      @agencies = Agency.order(:name)
       @account_requests = account_request_scope.
         page(params[:page]).per(25)
+    end
+
+    def edit
+      @agencies = Agency.order(:name)
     end
 
     def update
@@ -26,7 +30,7 @@ module Admin
         return
       end
 
-      @account_request.convert_to_user!(user: current_user)
+      @account_request.convert_to_user!(user: current_user, role_ids: role_ids, access_group_ids: access_group_ids)
       flash[:notice] = "Account created for #{@account_request.name}"
       redirect_to(action: :index)
     end
@@ -43,7 +47,17 @@ module Admin
     private def account_params
       params.require(:account_request).permit(
         :agency_id,
+        role_ids: [],
+        access_group_ids: [],
       )
+    end
+
+    private def role_ids
+      account_params[:role_ids].select(&:present?).map(&:to_i) || []
+    end
+
+    private def access_group_ids
+      account_params[:access_group_ids].select(&:present?).map(&:to_i) || []
     end
 
     private def confirmation_params
