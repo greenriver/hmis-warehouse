@@ -122,9 +122,9 @@ module Export::HMISSixOneOne::Shared
     @columns_to_pluck = hud_csv_headers.map do |k|
       case k
       when self.class.hud_key.to_sym
-        Arel.sql(self.class.arel_table[:id].as(self.class.connection.quote_column_name(self.class.hud_key)).to_sql)
+        self.class.arel_table[:id].as(self.class.connection.quote_column_name(self.class.hud_key))
       else
-        Arel.sql(self.class.arel_table[k].as("#{k}_".to_s).to_sql)
+        self.class.arel_table[k].as("#{k}_".to_s)
       end
     end
     @columns_to_pluck << :data_source_id

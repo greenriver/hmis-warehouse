@@ -29,8 +29,8 @@ module WarehouseReports
     end
 
     def show
-      @clients = @report.data
-
+      client_ids = @report.data.map { |m| m['id'] }
+      @clients = GrdaWarehouse::Hud::Client.where(id: client_ids).index_by(&:id)
       respond_to do |format|
         format.html
         format.xlsx do

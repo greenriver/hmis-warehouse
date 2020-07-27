@@ -4,7 +4,7 @@ RSpec.describe Clients::VispdatsController, type: :request do
   # This should return the minimal set of attributes required to create a valid
   # Vispdat. As you add validations to Vispdat, be sure to
   # adjust the attributes here as well.
-  let(:valid_attributes) { build(:vispdat).attributes }
+  let(:valid_attributes) { build(:vispdat).serializable_hash }
   let(:warehouse_client) { create :authoritative_warehouse_client }
   let(:client) { warehouse_client.destination }
   let(:vispdat) { create(:vispdat, client: client) }

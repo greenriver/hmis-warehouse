@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HMISSixOneOne
   class EmploymentEducation < GrdaWarehouse::Hud::EmploymentEducation
     include ::Import::HMISSixOneOne::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :EmploymentEducationID
     setup_hud_column_access( GrdaWarehouse::Hud::EmploymentEducation.hud_csv_headers(version: '6.11') )
 

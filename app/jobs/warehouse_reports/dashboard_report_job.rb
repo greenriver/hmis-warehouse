@@ -12,6 +12,7 @@ module WarehouseReports
     queue_as :dashboard_active_report
 
     def perform(report_type, sub_population)
+      PIIAttributeSupport.allow_all_pii!
       klass = GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym][sub_population.to_sym]
       klass.constantize.new.run_and_save!
     end

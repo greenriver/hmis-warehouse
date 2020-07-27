@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HmisTwentyTwenty
   class Organization < GrdaWarehouse::Hud::Organization
     include ::Import::HmisTwentyTwenty::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :OrganizationID
     setup_hud_column_access( GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '2020') )
 

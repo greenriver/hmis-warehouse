@@ -16,7 +16,7 @@ class Object
 end
 module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
   class UpdateClientLookup
-    include TsqlImport
+    include CustomBulkInsert
     attr_accessor :logger
 
     def initialize

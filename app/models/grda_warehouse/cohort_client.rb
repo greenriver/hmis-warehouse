@@ -6,7 +6,7 @@
 
 module GrdaWarehouse
   class CohortClient < GrdaWarehouseBase
-    include TsqlImport
+    include CustomBulkInsert
     acts_as_paranoid
     has_paper_trail
 

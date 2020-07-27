@@ -14,6 +14,7 @@ module Health::Tasks
 
     attr_accessor :directory, :referrals_file
     def initialize(directory: 'var/health/referrals')
+      PIIAttributeSupport.allow_all_pii!
       @directory = directory
       @logger = Rails.logger
     end

@@ -11,7 +11,7 @@ module Reporting
 
     self.table_name = :warehouse_houseds
     include ArelHelper
-    include TsqlImport
+    include CustomBulkInsert
 
     scope :viewable_by, -> (user) do
       # need to pluck project ids from the warehouse database

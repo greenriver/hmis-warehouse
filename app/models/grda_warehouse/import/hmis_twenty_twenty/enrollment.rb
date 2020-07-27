@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HmisTwentyTwenty
   class Enrollment < GrdaWarehouse::Hud::Enrollment
     include ::Import::HmisTwentyTwenty::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :EnrollmentID
     setup_hud_column_access( GrdaWarehouse::Hud::Enrollment.hud_csv_headers(version: '2020') )
     self.hud_key = :EnrollmentID

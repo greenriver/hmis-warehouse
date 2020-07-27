@@ -10,7 +10,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
   # This allows us to invalidate clients and relatively quickly rebuild
   # their service history
   class UpdateAddPatch < Base
-    include TsqlImport
+    include CustomBulkInsert
     include ActiveSupport::Benchmarkable
     require 'ruby-progressbar'
     attr_accessor :logger

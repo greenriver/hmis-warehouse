@@ -25,13 +25,17 @@ module Reporting
 
     def perform
       # Find the associated report generator
+      user_id = ReportResult.where(id: @result_id).pluck(:user_id)&.first
+      user = User.find(user_id)
+      PIIAttributeSupport.allow_all_pii! if user.can_decrypt_pii?
+      Encryption::SoftFailEncryptor.pii_soft_failure = true
+
       if @options.present?
         @report.class.name.gsub('Reports::', 'ReportGenerators::').constantize.new(@options).run!
       else
         @report.class.name.gsub('Reports::', 'ReportGenerators::').constantize.new.run!
       end
 
-      user_id = ReportResult.where(id: @result_id).pluck(:user_id)&.first
       NotifyUser.hud_report_finished(user_id, @report.id, @result_id).deliver_later if user_id
     end
 

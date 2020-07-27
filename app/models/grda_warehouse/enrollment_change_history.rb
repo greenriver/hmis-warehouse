@@ -6,7 +6,7 @@
 
 module GrdaWarehouse
   class EnrollmentChangeHistory < GrdaWarehouseBase
-    include TsqlImport
+    include CustomBulkInsert
     belongs_to :client
     validates_presence_of :on, :client_id
 

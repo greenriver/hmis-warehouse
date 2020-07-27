@@ -8,7 +8,7 @@ require 'csv'
 
 module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
   class UpdateClientLookupViaLocal < UpdateClientLookup
-    include TsqlImport
+    include CustomBulkInsert
     attr_accessor :logger
 
     def initialize(ds_id:, file_path:)

@@ -17,7 +17,7 @@ module WarehouseReports
       @enrollments = service_history_scope.entry.
         open_between(start_date: @filter.start, end_date: @filter.end).
         joins(:client).
-        preload(:client).
+        preload(:client, :processed_service_history).
         distinct.
         select(:client_id)
 

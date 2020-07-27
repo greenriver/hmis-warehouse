@@ -898,3 +898,7 @@ maintain_report_definitions()
 maintain_health_seeds()
 install_shapes()
 maintain_lookups()
+
+if Encryption::Util.encryption_enabled?
+  Rake::Task['secrets:init'].execute
+end

@@ -8,7 +8,7 @@ module Reporting
   class Return < ReportingBase
     self.table_name = :warehouse_returns
     include ArelHelper
-    include TsqlImport
+    include CustomBulkInsert
 
     def populate!
       return unless source_data.present?

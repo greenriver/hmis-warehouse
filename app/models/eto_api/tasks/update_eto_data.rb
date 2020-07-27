@@ -19,6 +19,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       one_off: false,
       client_ids: nil
     )
+      PIIAttributeSupport.allow_all_pii!
       @trace = trace
       @batch_time = batch_time
       @restart = Time.now + @batch_time

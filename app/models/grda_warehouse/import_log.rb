@@ -6,6 +6,10 @@
 
 class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   include ActionView::Helpers::DateHelper
+  include PIIAttributeSupport
+
+  attr_pii :import_errors
+
   serialize :files
   serialize :import_errors
   serialize :summary

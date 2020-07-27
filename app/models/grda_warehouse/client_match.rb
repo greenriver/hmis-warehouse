@@ -99,8 +99,8 @@ module GrdaWarehouse
             m.score = ovarall_score
             m.score_details = {
               threshold: threshold,
-              destination_client: dest.attributes.slice(*relavent_fields),
-              source_client: src.attributes.slice(*relavent_fields),
+              destination_client: dest.serializable_hash.slice(*relavent_fields),
+              source_client: src.serializable_hash.slice(*relavent_fields),
               metrics_with_scores: metrics,
             }
           end

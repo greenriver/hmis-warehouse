@@ -83,6 +83,11 @@
 module Reporting::DataQualityReports
   class Enrollment < ReportingBase
     include ArelHelper
+    include PIIAttributeSupport
+
+    attr_pii :first_name
+    attr_pii :last_name
+    attr_pii :ssn
 
     COMPLETE = [1, 2]
     REFUSED = [8, 9]

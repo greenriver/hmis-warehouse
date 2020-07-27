@@ -5,17 +5,19 @@ require File.expand_path('../config/environment', __dir__)
 abort('The Rails environment is running in production mode!') if Rails.env.production?
 require 'spec_helper'
 require 'rspec/rails'
-require 'simplecov'
-require 'simplecov-console'
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
-  [
-    SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::Console,
-  ],
-)
-# SimpleCov.start 'rails'
-SimpleCov.start
-SimpleCov.add_filter '/test/'
+unless ENV['NO_COV'] == 'true'
+  require 'simplecov'
+  require 'simplecov-console'
+  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
+    [
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCov::Formatter::Console,
+    ],
+  )
+  # SimpleCov.start 'rails'
+  SimpleCov.start
+  SimpleCov.add_filter '/test/'
+end
 
 # Add additional requires below this line. Rails is not loaded until this point!
 

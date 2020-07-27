@@ -20,7 +20,7 @@ wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
   @report.cancels.each do |match|
     previous_step = @report.all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
     row = [ 'Canceled' ]
-    row += match.attributes.values_at(*match.class.reason_attributes.keys.map(&:to_s))
+    row += match.serializable_hash.values_at(*match.class.reason_attributes.keys.map(&:to_s))
     row += [
       @report.clients[match.cas_client_id]&.first_name,
       @report.clients[match.cas_client_id]&.last_name,
@@ -41,7 +41,7 @@ wb.add_worksheet(name: "CAS Decline Reasons") do |sheet|
   @report.declines.each do |match|
     previous_step = @report.all_steps[match.match_id].select{|row|row.decision_order < match.decision_order}.sort_by(&:decision_order).last
     row = [ 'Declined' ]
-    row += match.attributes.values_at(*match.class.reason_attributes.keys.map(&:to_s))
+    row += match.serializable_hash.values_at(*match.class.reason_attributes.keys.map(&:to_s))
     row += [
       @report.clients[match.cas_client_id]&.first_name,
       @report.clients[match.cas_client_id]&.last_name,

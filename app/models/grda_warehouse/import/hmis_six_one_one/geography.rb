@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HMISSixOneOne
   class Geography < GrdaWarehouse::Hud::Geography
     include ::Import::HMISSixOneOne::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :GeographyID
     setup_hud_column_access( GrdaWarehouse::Hud::Geography.hud_csv_headers(version: '6.11') )
 

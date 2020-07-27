@@ -13,6 +13,7 @@ module ServiceHistory
     def initialize(client_id:, years:)
       @client_id = client_id
       @years = years
+      PIIAttributeSupport.allow_all_pii!
     end
 
     def perform

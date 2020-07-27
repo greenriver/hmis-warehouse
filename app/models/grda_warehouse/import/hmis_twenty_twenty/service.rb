@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HmisTwentyTwenty
   class Service < GrdaWarehouse::Hud::Service
     include ::Import::HmisTwentyTwenty::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :ServicesID
     setup_hud_column_access( GrdaWarehouse::Hud::Service.hud_csv_headers(version: '2020') )
 

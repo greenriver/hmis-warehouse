@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HmisTwentyTwenty
   class Event < GrdaWarehouse::Hud::Event
     include ::Import::HmisTwentyTwenty::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :EventID
     setup_hud_column_access( GrdaWarehouse::Hud::Event.hud_csv_headers(version: '2020') )
 

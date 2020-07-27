@@ -14,6 +14,7 @@ module WarehouseReports
     attr_accessor :params
 
     def perform(report_params)
+      Encryption::SoftFailEncryptor.pii_soft_failure = true
       # load_filter expects params from the controller, so we store them in an attribute, and add permit to it
       report_params.define_singleton_method(:permit) { |*args| slice(*args) }
       self.params = report_params
@@ -48,10 +49,10 @@ module WarehouseReports
         end.map(&:disability_type_text).uniq.join('<br />').html_safe
 
         source_clients = client.source_clients.map do |sc|
-          sc.attributes.merge(data_source_short_name: sc.data_source.short_name)
+          sc.serializable_hash.merge(data_source_short_name: sc.data_source.short_name)
         end
 
-        client.attributes.merge(
+        client.serializable_hash.merge(
           hud_chronic: hud_chronic,
           chronic_project_names: hud_chronic.project_names,
           age: client.age,

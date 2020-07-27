@@ -7,7 +7,7 @@
 # require 'newrelic_rpm'
 module GrdaWarehouse::Tasks::ServiceHistory
   class Enrollment < GrdaWarehouse::Hud::Enrollment
-    include TsqlImport
+    include CustomBulkInsert
     include ArelHelper
     include ActiveSupport::Benchmarkable
 
