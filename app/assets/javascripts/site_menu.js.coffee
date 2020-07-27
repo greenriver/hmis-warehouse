@@ -4,6 +4,7 @@ $ ->
     event.preventDefault()
     $('body').toggleClass('menu-open')
     $('.js-menu').toggleClass('off-canvas on-canvas')
+    $('.js-toggle-menu').attr('aria-hidden', $('body').hasClass('menu-open'))
 
   $('.js-back-to-top').on 'click', (event) ->
     event.preventDefault()

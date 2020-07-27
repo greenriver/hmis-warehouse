@@ -8,12 +8,6 @@
     .col-sm-7
       %p.home-intro
         = _('Boston DND Warehouse')
-    .col-sm-5
-      - if AwsQuickSight.new.available_to?(current_user)
-        :ruby
-          expiring_url = AwsQuickSight.new.sign_in_url(
-            user: current_user,
-            return_to_url: root_url + '/warehouse_reports/custom/quick_sight_access',
-            session_duration: 8.hours,
-          )
-        = link_to "Continue to Quick Sight", expiring_url
+    - if !user_signed_in?
+      .col-sm-5
+        = render '/root/sign_in_form'

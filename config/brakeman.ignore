@@ -21,24 +21,24 @@
       "note": ""
     },
     {
-      "warning_type": "Redirect",
-      "warning_code": 18,
-      "fingerprint": "181309531987afc5d7f7a395cd83ff94f2c3a2ccb4032202ac4c819a67266b34",
-      "check_name": "Redirect",
-      "message": "Possible unprotected redirect",
-      "file": "app/controllers/warehouse_reports/custom/quick_sight_access_controller.rb",
-      "line": 14,
-      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
-      "code": "redirect_to(AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\"), :session_duration => 8.hours))",
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "17b51608f07889a142d8f548bbe24583b3bab7d8146caeedc9ad2c7e9ad1d2bf",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/bi/view_maintainer.rb",
+      "line": 376,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.execute(\"CREATE OR REPLACE VIEW #{name} AS #{sql_definition}\")",
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "WarehouseReports::Custom::QuickSightAccessController",
-        "method": "index"
+        "class": "Bi::ViewMaintainer",
+        "method": "safe_create_view"
       },
-      "user_input": "AwsQuickSight.new.sign_in_url(:user => current_user, :return_to_url => (root_url + \"/warehouse_reports/custom/quick_sight_access\"), :session_duration => 8.hours)",
-      "confidence": "High",
-      "note": "Intentional off-site redirect to an integration"
+      "user_input": "name",
+      "confidence": "Medium",
+      "note": ""
     },
     {
       "warning_type": "Command Injection",
@@ -694,6 +694,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "a9040593943192bed3788b5c04a11f50ce20482af33b84ec76b05e8eec6838c8",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/bi/view_maintainer.rb",
+      "line": 370,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.execute(\"DO $$\\nBEGIN\\n  CREATE ROLE #{role} WITH NOLOGIN;\\n  EXCEPTION WHEN DUPLICATE_OBJECT THEN\\n  RAISE NOTICE 'not creating role #{role} -- it already exists';\\nEND\\n$$;\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Bi::ViewMaintainer",
+        "method": "safe_create_role"
+      },
+      "user_input": "role",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "ad042c2ba6d2afb23c6787f70e5955d726e07932c58a8508bb0834a99e207050",
@@ -994,6 +1014,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "e52db9a64ac0bf61e35334f89b7703a1a1df7c9fd84a506e575cbd79816712e4",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/bi/view_maintainer.rb",
+      "line": 379,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.execute(\"GRANT SELECT ON #{name} TO #{\"bi\"}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Bi::ViewMaintainer",
+        "method": "safe_create_view"
+      },
+      "user_input": "name",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "e8363134a72c5ae3f5d9027a26f181923b910359a92ea85fe228e8ae96346dd8",
@@ -1153,6 +1193,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-07-25 05:01:49 -0400",
+  "updated": "2020-07-03 20:12:24 -0400",
   "brakeman_version": "4.8.2"
 }
