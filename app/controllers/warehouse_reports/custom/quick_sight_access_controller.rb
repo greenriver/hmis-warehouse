@@ -9,10 +9,10 @@ module WarehouseReports::Custom
     include WarehouseReportAuthorization
 
     def index
-      @quicksight_url = AwsQuickSight.new.sign_in_url( # rubocop:disable Style/RescueModifier
+      @quicksight_url = AwsQuickSight.new.sign_in_url(
         user: current_user,
         return_to_url: root_url + '/warehouse_reports/custom/quick_sight_access',
-      ) rescue nil
+      )
     end
 
     def create
