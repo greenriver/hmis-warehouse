@@ -234,23 +234,23 @@ class AwsQuickSight
   end
 
   # :nodoc:
-  private def admin_credentials
-    Aws::SharedCredentials.new.credentials
-  end
+  # private def admin_credentials
+  #   Aws::SharedCredentials.new.credentials
+  # end
 
   # :nodoc:
   def iam_admin
-    Aws::IAM::Client.new(credentials: admin_credentials)
+    Aws::IAM::Client.new
   end
 
   # :nodoc:
   def qs_admin
-    Aws::QuickSight::Client.new(credentials: admin_credentials)
+    Aws::QuickSight::Client.new
   end
 
   # :nodoc:
   def sts_admin
-    Aws::STS::Client.new(credentials: admin_credentials)
+    Aws::STS::Client.new
   end
 
   # :nodoc:
