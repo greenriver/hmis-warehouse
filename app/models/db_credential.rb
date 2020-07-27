@@ -10,7 +10,7 @@ class DbCredential < ApplicationRecord
       self.username ||= secure_value
       self.password ||= secure_value
       self.database ||= DB_WAREHOUSE['database']
-      self.host ||= DB_WAREHOUSE['host']
+      self.host ||= ENV['RDS_DIRECT_ACCESS_HOST'].presence || DB_WAREHOUSE['host']
       self.port ||= DB_WAREHOUSE['port'] || 5432
       self.role ||= PG_ROLE
       self.adaptor ||= :postgres
