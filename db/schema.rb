@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_25_034158) do
+ActiveRecord::Schema.define(version: 2020_07_27_061729) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -65,18 +65,6 @@ ActiveRecord::Schema.define(version: 2020_07_25_034158) do
     t.bigint "agency_id", null: false
     t.index ["agency_id"], name: "index_agencies_consent_limits_on_agency_id"
     t.index ["consent_limit_id"], name: "index_agencies_consent_limits_on_consent_limit_id"
-  end
-
-  create_table "aws_credentials", force: :cascade do |t|
-    t.bigint "user_id"
-    t.string "account_id", null: false
-    t.string "username", null: false
-    t.string "access_key_id", null: false
-    t.binary "encrypted_secret_access_key", null: false
-    t.binary "encrypted_secret_access_key_iv", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_aws_credentials_on_user_id"
   end
 
   create_table "client_service_history", id: false, force: :cascade do |t|
@@ -590,6 +578,7 @@ ActiveRecord::Schema.define(version: 2020_07_25_034158) do
     t.datetime "password_changed_at"
     t.boolean "training_completed", default: false
     t.date "last_training_completed"
+    t.string "uuid"
     t.string "provider"
     t.string "uid"
     t.json "provider_raw_info"
@@ -627,7 +616,6 @@ ActiveRecord::Schema.define(version: 2020_07_25_034158) do
     t.datetime "deleted_at"
   end
 
-  add_foreign_key "aws_credentials", "users"
   add_foreign_key "db_credentials", "users"
   add_foreign_key "document_exports", "users"
   add_foreign_key "glacier_archives", "glacier_vaults"
