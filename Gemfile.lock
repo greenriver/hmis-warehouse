@@ -93,9 +93,6 @@ GEM
     aws-sdk-cloudwatchevents (1.27.0)
       aws-sdk-core (~> 3, >= 3.71.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-cognitoidentity (1.22.0)
-      aws-sdk-core (~> 3, >= 3.71.0)
-      aws-sigv4 (~> 1.1)
     aws-sdk-cognitoidentityprovider (1.36.0)
       aws-sdk-core (~> 3, >= 3.71.0)
       aws-sigv4 (~> 1.1)
@@ -764,7 +761,6 @@ DEPENDENCIES
   autoprefixer-rails
   awesome_print
   aws-sdk-cloudwatchevents (~> 1)
-  aws-sdk-cognitoidentity (~> 1)
   aws-sdk-cognitoidentityprovider (~> 1)
   aws-sdk-ecs (~> 1)
   aws-sdk-glacier (~> 1)

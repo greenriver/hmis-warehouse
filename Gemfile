@@ -58,7 +58,6 @@ gem 'aws-sdk-quicksight', '~> 1'
 gem 'omniauth-cognito-idp'
 gem 'omniauth-rails_csrf_protection', '~> 0.1' #CVE-2015-9284 mitigation
 gem 'aws-sdk-cognitoidentityprovider', '~> 1'
-gem 'aws-sdk-cognitoidentity', '~> 1'
 
 
 gem 'pretender'

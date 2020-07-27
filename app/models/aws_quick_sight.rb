@@ -16,7 +16,6 @@
 # resources over a VPC
 
 require 'aws-sdk-quicksight'
-require 'aws-sdk-cognitoidentity'
 require 'aws-sdk-iam'
 require 'aws-sdk-sts'
 require 'restclient' #FIXME we use this in only one place HTTP::get would be fine
