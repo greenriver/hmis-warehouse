@@ -129,6 +129,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
       section.add_control(id: 'data_sources', value: data_source_names)
       section.add_control(id: 'organizations', value: organization_names)
       section.add_control(id: 'projects', value: project_names)
+      section.add_control(id: 'project_groups', value: project_groups)
     end
   end
 
@@ -237,6 +238,14 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
   def project_names
     available_projects_for_select.values.flatten(1).select { |_, id| @filter.project_ids.include?(id) }&.map(&:first)
+  end
+
+  def project_groups
+    available_project_groups_for_select.select { |_, id| @filter.project_group_ids.include?(id) }&.map(&:first)
+  end
+
+  def available_project_groups_for_select
+    GrdaWarehouse::ProjectGroup.options_for_select(user: @filter.user)
   end
 
   def available_cocs_for_select
