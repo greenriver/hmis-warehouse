@@ -5,7 +5,7 @@
 - if !AwsQuickSight.new.available_to?(current_user)
   %p Your account has not been provisioned for QuickSight Access.
 - else
-  %p QuickSight is a hosted business intelligence tool hosted on AWS.  Your account has been provisioned for direct access.
+  %p QuickSight is an AWS hosted business intelligence tool.  Your account has been provisioned for direct access.
   = link_to @quicksight_url, class: 'btn btn-primary', target: '_blank' do
     Open QuickSight
     %i.icon-arrow-right2.ml-2.mr-0
