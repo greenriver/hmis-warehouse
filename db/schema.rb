@@ -30,6 +30,24 @@ ActiveRecord::Schema.define(version: 2020_07_27_061729) do
     t.datetime "deleted_at"
   end
 
+  create_table "account_requests", force: :cascade do |t|
+    t.string "email", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.string "phone"
+    t.string "status", null: false
+    t.text "details"
+    t.datetime "accepted_at"
+    t.integer "accepted_by"
+    t.string "rejection_reason"
+    t.datetime "rejected_at"
+    t.integer "rejected_by"
+    t.bigint "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_account_requests_on_user_id"
+  end
+
   create_table "activity_logs", id: :serial, force: :cascade do |t|
     t.string "item_model"
     t.integer "item_id"
@@ -424,6 +442,7 @@ ActiveRecord::Schema.define(version: 2020_07_27_061729) do
     t.boolean "can_manage_auto_client_de_duplication", default: false
     t.boolean "can_view_all_window_notes", default: false
     t.boolean "can_use_service_register", default: false
+    t.boolean "can_decrypt_pii", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
