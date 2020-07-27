@@ -6,7 +6,7 @@
 
 class AccountRequest < ApplicationRecord
   belongs_to :user, optional: true
-  attr_accessor :agency_id
+  attr_accessor :agency_id, :access_group_ids, :role_ids
 
   validates :email, presence: true, uniqueness: true, email_format: { check_mx: true }, length: { maximum: 250 }, on: :create
   validates :last_name, presence: true, length: { maximum: 40 }
@@ -29,7 +29,7 @@ class AccountRequest < ApplicationRecord
     "#{first_name} #{last_name}"
   end
 
-  def convert_to_user!(user:)
+  def convert_to_user!(user:, role_ids: [], access_group_ids: [])
     options = {
       first_name: first_name,
       last_name: last_name,
@@ -38,6 +38,10 @@ class AccountRequest < ApplicationRecord
       agency_id: agency_id,
     }
     user = User.invite!(options, user)
+    roles = Role.where(id: role_ids)
+    access_groups = AccessGroup.where(id: access_group_ids)
+    user.roles = roles
+    user.access_groups = access_groups
     update(
       status: :accepted,
       accepted_by: user.id,

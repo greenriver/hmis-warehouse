@@ -21,8 +21,7 @@
         %thead
           %tr
             %th Request Date
-            %th Name
-            %th Email
+            %th Requestor
             %th Request Reason
             %th Approve
             %th Reject
@@ -30,13 +29,15 @@
           - @account_requests.each do |req|
             %tr
               %td= req.created_at.to_date
-              %td= req.name
-              %td= req.email
+              %td
+                = req.name
+                %br
+                = req.email
               %td= simple_format req.details
               %td
-                = simple_form_for req, url: admin_account_request_path(req) do |f|
-                  = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id, required: false, include_blank: 'Unknown', input_html: { class: 'select2' }, wrapper_html: { class: 'mb-2' }
-                  = f.submit 'Approve', class: 'btn btn-secondary btn-sm'
+                = link_to edit_admin_account_request_path(req),class: 'btn btn-primary', data: { loads_in_pjax_modal: true } do
+                  %i.icon-user
+                  Approve Request
               %td
                 = link_to admin_account_request_path(req), method: :delete, class: 'btn btn-danger', data: { confirm: "Rejecting this request will not notify #{req.name}" } do
                   %i.icon-cross
