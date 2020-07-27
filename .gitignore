@@ -101,3 +101,14 @@ config/cha_translations.yml
 # Ignore docker certificates
 docker/nginx-proxy/certs/*
 !docker/nginx-proxy/certs/.keep
+
+# Large shape files
+shape_files/**/*
+!/shape_files/sync.from.s3
+!/shape_files/sync.to.s3
+!/shape_files/CoC
+!/shape_files/CoC/README.md
+!/shape_files/CoC/make.inserts
+!/shape_files/zip_codes.census.2018
+!/shape_files/zip_codes.census.2018/README.md
+!/shape_files/zip_codes.census.2018/make.inserts

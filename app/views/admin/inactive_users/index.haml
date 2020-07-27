@@ -14,6 +14,10 @@
     = link_to 'Active Accounts', admin_users_path, class: 'nav-link'
   %li.nav-item.active
     = link_to 'Inactive Accounts', admin_inactive_users_path, class: 'nav-link'
+  - if GrdaWarehouse::Config.get(:request_account_available)
+    %li.nav-item
+      = link_to 'Pending Accounts', admin_account_requests_path, class: 'nav-link'
+
 
 .table-utilities
   %p= page_entries_info @users, entry_name: _('user account')

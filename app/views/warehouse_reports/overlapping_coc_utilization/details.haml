@@ -1,0 +1,30 @@
+:scss
+  [data-toggle="tooltip"] {
+    cursor: pointer
+  }
+
+= content_for :crumbs do
+  = link_to url_for(link_params.merge(action: :index)) do
+    &laquo;
+    Overlapping CoC Utilization
+
+.mb-4
+  %h1.mb-3
+    - if @report.non_overlapping
+      = "#{pluralize @details[:clients].size, 'Non-Overlapping Shared Client'}"
+    - else
+      = "#{pluralize @details[:clients].size, 'Shared Client'}"
+    - if @report.project_type
+      in #{::HUD.project_type(@report.project_type)} enrollments
+    = "by Demographics and Time"
+  %p.text-muted
+    %em= "Served by #{@report.coc1.number_and_name} and #{@report.coc2.number_and_name} between #{@report.start_date} - #{@report.end_date}."
+
+.mb-6
+  %h2 Client Demographic Breakdown
+  = render 'demographics_rollups'
+
+%h2.mb-5 Client Details Over Time
+.mb-5= render 'coc_legend'
+- @details[:clients].each.with_index do |data, idx|
+  = render 'client_card', data: data, id: idx

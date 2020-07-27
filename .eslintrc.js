@@ -16,7 +16,10 @@ module.exports = {
         "setTimeout": true,
         "clearTimeout": true,
         "clearInterval": true,
-        "$": true
+        "$": true,
+        "d3": true,
+        "App": true,
+        "L": true
     },
     'parserOptions': {
         'ecmaVersion': 2018

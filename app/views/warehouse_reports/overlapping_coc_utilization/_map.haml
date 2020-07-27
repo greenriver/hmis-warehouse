@@ -1,0 +1,16 @@
+.mb-3= render 'coc_legend', include_blank: true, outline_secondary: true
+.mb-2.coc-util-legend
+  = render 'common/gradient_legend',
+    labels: ['No Shared Clients','200+ Shared Clients'],
+    colors: ['#DDEAED', '#D17200']
+.coc-util-overlap.o-container--with-loader.overlapping-coc-map{id: map_id}
+
+
+:css
+  .coc-util-legend .c-gradient-legend__label {
+    font-weight: normal !important;
+  }
+  .overlapping-coc-map {
+    min-height: 450px;
+    border: 1px solid #ccc;
+  }

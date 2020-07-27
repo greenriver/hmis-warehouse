@@ -44,7 +44,6 @@ COPY Gemfile Gemfile.lock Rakefile config.ru ./
 COPY bin ./bin
 COPY public ./public
 COPY config/deploy/docker/assets/download_secrets.rb ./bin
-COPY config/deploy/docker/assets/sync_app_assets.rb ./bin
 COPY config/deploy/docker/lib/cron_installer.rb ./bin
 COPY config/deploy/docker/lib/scheduled_task.rb ./bin
 COPY config/deploy/docker/assets/deploy_tasks.open-path-cas.sh ./bin/deploy_tasks.sh

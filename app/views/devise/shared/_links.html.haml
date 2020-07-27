@@ -18,3 +18,5 @@
     - resource_class.omniauth_providers.each do |provider|
       = link_to "Sign in with #{OmniAuth::Utils.camelize(provider)}", omniauth_authorize_path(resource_name, provider)
       %br/
+  - if GrdaWarehouse::Config.get(:request_account_available)
+    = link_to 'Request an account', new_users_account_request_path

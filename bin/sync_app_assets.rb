@@ -16,6 +16,11 @@ begin
     bucket: bucket,
     prefix: prefix,
   })
+  #resp = client.list_objects({ bucket: bucket, prefix: '', })
+
+  if resp.is_truncated
+    puts "Result is truncated. Too many keys. Continuing with what we can get"
+  end
 
   keys = resp.to_h[:contents]&.map { |r| r[:key] }
 
@@ -25,7 +30,11 @@ begin
   end
 
   keys.each do |key|
-    target = key.sub(/#{prefix}/, '.')
+    target = if prefix == ''
+               key.sub(/#{prefix}/, './')
+             else
+               key.sub(/#{prefix}/, '.')
+             end
     puts "#{key} -> #{target}"
 
     if target.end_with?('/')
@@ -34,6 +43,11 @@ begin
     else
       i = target.rindex('/')
       FileUtils.mkdir_p(target[0..i])
+    end
+
+    if File.exists?(target) && ENV['UPDATE_ONLY']=='true'
+      puts "Skipping #{target} which already exists locally"
+      next
     end
 
     resp = client.get_object({

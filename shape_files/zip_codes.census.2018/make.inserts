@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+require 'pathname'
+require 'zip'
+
+FileUtils.chdir(Pathname.new(__FILE__).dirname)
+
+Dir.glob("*.zip").each do |zipfile_path|
+  Zip::File.open(zipfile_path) do |zipfile|
+    zipfile.each do |file|
+      zipfile.extract(file, "#{file.name}") unless File.exist?(file.name)
+    end
+  end
+end
+
+system('shp2pgsql -s 4269:4326 -p -I tl_2018_us_zcta510.shp shape_zip_codes > zip.codes.structure.sql')
+
+system(<<~EOS)
+  shp2pgsql -s 4269:4326 -c -I tl_2018_us_zcta510.shp shape_zip_codes \
+    | sed -e 's/gid/id/' \
+    | grep INSERT \
+    > zip.codes.sql
+EOS

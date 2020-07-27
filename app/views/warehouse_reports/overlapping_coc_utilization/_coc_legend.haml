@@ -1,0 +1,25 @@
+.mb-1
+  .c-swatch
+    %span.c-swatch__display.c-swatch__display--bar-0.mr-2
+    %span.coc1-name
+      - if filters.coc1
+        = filters.coc1.number_and_name
+      -else
+        %span.text-muted Primary CoC not selected
+.mb-1
+  .c-swatch
+    - if local_assigns[:outline_secondary]
+      %span.c-swatch__display.mr-2{style: "border:3px solid #265479; background-color: #fff"}
+    - else
+      %span.c-swatch__display.c-swatch__display--bar-1.mr-2
+    %span.coc2-name
+      - if filters.coc2
+        = filters.coc2.number_and_name
+      -else
+        %span.text-muted Secondary CoC not selected
+- if local_assigns[:include_blank]
+  .mb-1
+    .c-swatch
+      %span.c-swatch__display.mr-2(style='background-color: #fff; border: 1px solid #ccc')
+      %span
+        No Data

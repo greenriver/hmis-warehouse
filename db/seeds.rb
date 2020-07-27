@@ -195,6 +195,12 @@ def report_list
         description: 'Coordinated Entry assessment details.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/overlapping_coc_utilization',
+        name: 'Inter-CoC Client Overlap',
+        description: 'Explore enrollments for CoCs with shared clients',
+        limitable: true,
+      },
     ],
     'Data Quality' => [
       {
@@ -582,6 +588,14 @@ def report_list
         limitable: true,
       },
     ],
+    'Custom' => [
+      {
+        url: 'warehouse_reports/custom/db_access',
+        name: 'Direct Database Access (De-identified)',
+        description: 'Access your credentials and connection information for direct Database Access',
+        limitable: true,
+      },
+    ],
   }
 end
 
@@ -852,6 +866,15 @@ def maintain_lookups
     GrdaWarehouse::Lookups::Relationship.delete_all
     columns = [:value, :text]
     GrdaWarehouse::Lookups::Relationship.import(columns, HUD.relationships_to_hoh.to_a)
+  end
+end
+
+def install_shapes
+  if GrdaWarehouse::Shape::ZipCode.none? || GrdaWarehouse::Shape::CoC.none?
+    begin
+      Rake::Task['grda_warehouse:get_shapes'].invoke
+    rescue Exception
+    end
   end
 end
 

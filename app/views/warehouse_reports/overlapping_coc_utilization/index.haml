@@ -1,0 +1,41 @@
+:ruby
+  @layout__width = 'lg'
+  title = 'Inter-CoC Client Overlap'
+  content_for :title, title
+  report_id = 'coc-overlap-report'
+  map_id = report_id + '-map'
+  results_id = report_id + '-results'
+  form_id = report_id + '-form'
+
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
+
+.l-page-heading.mb-4
+  %h1= title
+
+.warehouse-reports__ad_hoc-export.c-report{id: report_id}
+  .pb-5(style='border-bottom: 1px solid #ccc; margin-bottom: 3em')
+    = render 'form', form_id: form_id
+  .mb-6
+    %h2.j-title Overview of Shared Client by Project Type and CoC
+    .h5-prs1.j-subtitle
+  .row
+    .col-md-4
+      = render 'map', map_id: map_id
+    .col-md-8
+      %div.o-container--with-loader{id: results_id, style: 'min-height: 600px;'}
+        .d-flex
+          .mr-2
+            %i.icon-info
+          .text-lead
+            Select two dfferent CoCs for a breakdown of services provided to shared clients of Primary CoC and Secondary CoC.
+
+= content_for :page_js do
+  :javascript
+    App.Reports.cocOverlap({
+      resultsSelector: '##{results_id}',
+      formSelector: '##{form_id}',
+      mapProps: {
+        elementId: "#{map_id}",
+        shapes: #{@shapes.to_json.html_safe},
+      },
+    })
