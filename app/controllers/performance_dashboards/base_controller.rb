@@ -93,8 +93,8 @@ class PerformanceDashboards::BaseController < ApplicationController
   end
   helper_method :filter_params
 
-  def filter_item_selection_summary(value)
-    render_to_string partial: '/performance_dashboards/filter_controls/helpers/items_selection_summary', locals: { value: value }
+  def filter_item_selection_summary(value, default = 'All')
+    render_to_string partial: '/performance_dashboards/filter_controls/helpers/items_selection_summary', locals: { value: value, default: default }
   end
   helper_method :filter_item_selection_summary
 end
