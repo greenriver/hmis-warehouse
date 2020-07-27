@@ -10,7 +10,7 @@ module PIIAttributeSupport
     @allowed_pii_class_names = [
       'GrdaWarehouse::Hud::Client',
       'GrdaWarehouse::Import::HmisTwentyTwenty::Client',
-      'GrdaWarehouse::Import::HmisSixOneOne::Client',
+      'GrdaWarehouse::Import::HMISSixOneOne::Client',
       'Reporting::DataQualityReports::Enrollment',
       'GrdaWarehouse::ImportLog',
       'GrdaWarehouse::Upload',
