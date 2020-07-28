@@ -94,6 +94,14 @@ class DbFirewallMaintainer
     end
 
     host = ENV.fetch('BOUNCER_HOST') { 'database.example.com' }
+
+    known_hosts = '/root/.ssh/known_hosts'
+    cmd = "ssh-keyscan -H #{host} >> #{known_hosts}"
+    Rails.logger.info "[BOUNCER] #{cmd}"
+    system(cmd)
+    system("cat #{known_hosts} | sort -u > m")
+    system("mv m #{known_hosts}")
+
     user = ENV.fetch('BOUNCER_USER') { 'nobody' }
 
     cmd = "scp -i #{identity_file_path} #{file.path} #{user}@#{host}:./userlist.txt"

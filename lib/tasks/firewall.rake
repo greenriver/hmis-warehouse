@@ -8,7 +8,7 @@ namespace :firewall do
     # puts "------"
     # puts firewall.send(:bouncer_userlist)
     # puts "------"
-    # puts firewall.update!
+    puts firewall.update!
 
     # firewall.add!(
     #   ip: '8.8.8.8/32',
@@ -16,7 +16,7 @@ namespace :firewall do
     # )
 
     #ap firewall.list
-    firewall.push_bouncer_credentials!
+    #firewall.push_bouncer_credentials!
 
     #ap firewall.tags
 
