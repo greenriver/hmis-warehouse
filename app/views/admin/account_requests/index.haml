@@ -2,14 +2,7 @@
 %h1= content_for :title
 = render partial: 'menus/admin_tabs'
 
-%ul.nav.nav-tabs
-  %li.nav-item
-    = link_to 'Active Accounts', admin_users_path, class: 'nav-link'
-  %li.nav-item
-    = link_to 'Inactive Accounts', admin_inactive_users_path, class: 'nav-link'
-  - if GrdaWarehouse::Config.get(:request_account_available)
-    %li.nav-item.active
-      = link_to 'Pending Accounts', admin_account_requests_path, class: 'nav-link'
+= render 'admin/users/tabs', selected_path: admin_account_requests_path
 
 .table-utilities
   %p= page_entries_info @account_requests, entry_name: _('account requests')
