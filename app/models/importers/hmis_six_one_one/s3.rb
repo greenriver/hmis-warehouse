@@ -29,6 +29,7 @@ module Importers::HMISSixOneOne
       @region = region
       @access_key_id = access_key_id
       @secret_access_key = secret_access_key
+      @bucket_name = bucket_name
 
       @s3 = AwsS3.new(
         region: region,
