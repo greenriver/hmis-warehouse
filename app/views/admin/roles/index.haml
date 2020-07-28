@@ -20,10 +20,10 @@
         %th{colspan:@roles.length}
           %div.d-flex.align-items-center
             %span.c-table__header-title.mr-4 Roles
-            .c-table__icon-key= page_entries_info @roles, entry_name: _('role')
-            .d-flex.ml-auto.align-items-center
-              .mr-4.d-flex
-                = paginate @roles
+            .c-table__icon-key
+              Displaying
+              = pluralize(@roles.count, 'role')
+            .d-flex.ml-12.align-items-center
               = link_to new_admin_role_path, class: 'btn btn-secondary btn-sm ml-auto' do
                 %span.icon-plus
                 Add a role

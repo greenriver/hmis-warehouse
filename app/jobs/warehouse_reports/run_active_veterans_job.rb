@@ -14,6 +14,8 @@ module WarehouseReports
       report.parameters = params
 
       user = User.find(params[:current_user_id])
+      # PIIAttributeSupport.allow_all_pii! if user.can_decrypt_pii?
+      # Encryption::SoftFailEncryptor.pii_soft_failure = true
       report.user_id = user.id
       report.parameters[:visible_projects] = if user.can_edit_anything_super_user?
         [:all, 'All']
@@ -39,7 +41,8 @@ module WarehouseReports
       enrollments = scope.entry.open_between(start_date: range.start, end_date: range.end + 1.day).
         includes(:enrollment).
         joins(:data_source, :project).
-        where(client_id: clients.map(&:id)).pluck(*service_history_columns.values).
+        where(client_id: clients.map(&:id)).
+        pluck(*service_history_columns.values).
         map do |row|
           Hash[service_history_columns.keys.zip(row)]
         end.
@@ -48,19 +51,19 @@ module WarehouseReports
 
       # remove anyone who doesn't actually have an open enrollment during the time (these can be added by extrapolated SO or poor data where we have service on the exit date)
       clients = clients.select { |c| enrollments.key?(c.id) }
-
+      # Encryption::SoftFailEncryptor.pii_soft_failure = true
       data = clients.map do |client|
         data_sources = client.source_clients.map do |sc|
           GrdaWarehouse::DataSource.short_name(sc.data_source_id) if sc.VeteranStatus == 1
         end
-        client.attributes.merge(
-          name: client.name,
+        {
+          id: client.id,
           enrollments: enrollments[client.id],
           first_service_history: client.date_of_first_service,
           data_sources: data_sources.uniq.compact,
           days_served: client.processed_service_history.days_served,
           first_date_served: client.processed_service_history.first_date_served,
-        )
+        }
       end
       report.client_count = clients.size
       report.finished_at = DateTime.now

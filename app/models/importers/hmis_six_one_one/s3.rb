@@ -26,6 +26,10 @@ module Importers::HMISSixOneOne
         logger: logger,
         debug: debug
       )
+      @region = region
+      @access_key_id = access_key_id
+      @secret_access_key = secret_access_key
+      @bucket_name = bucket_name
 
       @s3 = AwsS3.new(
         region: region,
@@ -171,10 +175,10 @@ module Importers::HMISSixOneOne
     private def start_next_version!
       options = {
         data_source_id: @data_source.id,
-        region: @s3.region,
-        access_key_id: @s3.access_key_id,
-        secret_access_key: @s3.secret_access_key,
-        bucket_name: @s3.bucket_name,
+        region: @region,
+        access_key_id: @access_key_id,
+        secret_access_key: @secret_access_key,
+        bucket_name: @bucket_name,
         path: @s3_path,
         file_password: @file_password,
       }

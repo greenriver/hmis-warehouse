@@ -14,19 +14,22 @@ wb.add_worksheet(name: "Clients with Disabilities") do |sheet|
       'Disability & Response',
     ],
     :style => title)
-  @clients.each do |client|
-    disabilities = client['disabilities'].join(', ')
-    enrollment = client['enrollment']
-    sheet.add_row [
-      client['id'],
-      client['FirstName'],
-      client['LastName'],
+  @report.data.each do |source_row|
+    id = source_row['id']
+    client = @clients[id]
+    enrollment = source_row['enrollment']
+    disabilities = source_row['disabilities'].join(', ')
+    enrollment = source_row['enrollment']
+    sheet.add_row([
+      client.id,
+      client.FirstName,
+      client.LastName,
       enrollment&.[]('age'),
       yes_no(enrollment&.[]('unaccompanied_youth')),
       yes_no(enrollment&.[]('parenting_youth') || enrollment&.[]('parenting_juvenile')),
       yes_no(enrollment&.[]('head_of_household')),
-      HUD.veteran_status(client['VeteranStatus']),
-      disabilities
-    ]
+      HUD.veteran_status(client.VeteranStatus),
+      disabilities,
+    ])
   end
 end

@@ -15,8 +15,8 @@
           %tr
             %th Files Found
             %td
-              - if @import&.upload&.content.present?
-                = link_to @import.files.try(:count), download_import_path(@import)
+              - if @import&.upload&.encrypted_content.present? || @import&.upload&.content.present?
+                = link_to_if current_user.can_decrypt_pii?, @import.files.try(:count), download_import_path(@import)
               - else
                 = @import.files.try(:count)
           - if @import.summary.present?
@@ -43,14 +43,13 @@
                         %td= v.try(:[], 'lines_restored') || 0
                         %td
                           - if @import.import_errors.is_a?(Hash) && @import.import_errors[filename].is_a?(Array)
-                            = render 'error_modal', modal_slug: filename.downcase.gsub('.', ''), errors: @import.import_errors.with_indifferent_access[filename], total_errors: v['total_errors'] 
+                            = render 'error_modal', modal_slug: filename.downcase.gsub('.', ''), errors: @import.import_errors.with_indifferent_access[filename], total_errors: v['total_errors']
                           - else
                             = v['total_errors']
-                            
+
 - if @import.import_errors.present? && @import.import_errors.is_a?(Array)
   .row
     .col-sm-12
       %h3 Import Errors
       - @import.import_errors.each do |e|
         = render 'error_list', error: e
-          

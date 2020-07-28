@@ -595,6 +595,12 @@ def report_list
         description: 'Access your credentials and connection information for direct Database Access',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/custom/quick_sight_access',
+        name: 'QuickSight Access',
+        description: 'Setup and login to QuickSight for Business Intelligence reporting.',
+        limitable: true,
+      },
     ],
   }
 end
@@ -618,7 +624,7 @@ def maintain_report_definitions
       r.name = report[:name]
       r.description = report[:description]
       r.limitable = report[:limitable]
-      r.save!
+      r.save
     end
   end
 end
@@ -892,3 +898,7 @@ maintain_report_definitions()
 maintain_health_seeds()
 install_shapes()
 maintain_lookups()
+
+if Encryption::Util.encryption_enabled?
+  Rake::Task['secrets:init'].execute
+end

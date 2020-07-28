@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HMISSixOneOne
   class Disability < GrdaWarehouse::Hud::Disability
     include ::Import::HMISSixOneOne::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :DisabilitiesID
     setup_hud_column_access( GrdaWarehouse::Hud::Disability.hud_csv_headers(version: '6.11') )
 

@@ -6,7 +6,7 @@
 
 module GrdaWarehouse::Tasks
   class CensusImport
-    include TsqlImport
+    include CustomBulkInsert
     include ArelHelper
 
     def initialize replace_all = nil

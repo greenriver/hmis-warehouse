@@ -6,7 +6,7 @@
 
 module GrdaWarehouse::Census
   class ByProject < Base
-    include TsqlImport
+    include CustomBulkInsert
     self.table_name = "nightly_census_by_projects"
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'

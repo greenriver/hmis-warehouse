@@ -23,7 +23,7 @@ RSpec.describe Admin::AvailableFileTagsController, type: :request do
   # GrdaWarehouse::AvailableFileTag. As you add validations to GrdaWarehouse::AvailableFileTag, be sure to
   # adjust the attributes here as well.
   let(:valid_attributes) do
-    build(:available_file_tag).attributes.with_indifferent_access
+    build(:available_file_tag).serializable_hash.with_indifferent_access
   end
 
   let(:invalid_attributes) do

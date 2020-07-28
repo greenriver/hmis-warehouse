@@ -14,7 +14,7 @@
 module GrdaWarehouse::Tasks
   require 'ruby-progressbar'
   class DmhChronicallyHomeless < ChronicallyHomeless
-    include TsqlImport
+    include CustomBulkInsert
     CHRONIC_PROJECT_TYPES = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
 

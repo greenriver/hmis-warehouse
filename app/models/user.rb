@@ -32,6 +32,11 @@ class User < ApplicationRecord
          password_length: 10..128,
          otp_secret_encryption_key: ENV['ENCRYPTION_KEY'],
          otp_number_of_backup_codes: 10
+
+  if ENV['AWS_COGNITO_APP_ID'].present?
+    devise :omniauthable, omniauth_providers: %i[cognito]
+  end
+
   # has_secure_password # not needed with devise
   # Connect users to login attempts
   has_many :login_activities, as: :user
@@ -115,6 +120,10 @@ class User < ApplicationRecord
       joins(:roles).
       where(roles: {permission => true})
     end
+  end
+
+  def external_idp?
+    !provider.nil?
   end
 
   def active_for_authentication?
@@ -308,7 +317,7 @@ class User < ApplicationRecord
     GrdaWarehouse::WarehouseReports::ReportDefinition.
       where(url: url).
       viewable_by(self).exists?
-   end
+  end
 
   def user_care_coordinators
     Health::UserCareCoordinator.where(user_id: id)

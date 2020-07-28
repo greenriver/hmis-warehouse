@@ -10,13 +10,14 @@ require 'charlock_holmes'
 
 module Health::Tasks
   class ImportEpic
-    include TsqlImport
+    include CustomBulkInsert
     include NotifierConfig
     attr_accessor :send_notifications, :notifier_config, :logger
 
     # if load_locally, then the files must be in 'var/health'
     def initialize(logger: Rails.logger, load_locally: false, configs: nil, prevent_massive_change: true)
       setup_notifier('HealthImporter')
+      PIIAttributeSupport.allow_all_pii!
 
       @logger = logger
 

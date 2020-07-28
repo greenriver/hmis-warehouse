@@ -7,7 +7,7 @@
 module GrdaWarehouse::WarehouseReports::Project::DataQuality
   class VersionFour < Base
     include ArelHelper
-    include TsqlImport
+    include CustomBulkInsert
     include ::Reporting::ProjectDataQualityReports::VersionFour::Display
     include ::Reporting::ProjectDataQualityReports::VersionFour::Support
 
@@ -16,6 +16,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     has_one :report_project_group, class_name: 'Reporting::DataQualityReports::ProjectGroup', foreign_key: :report_id
 
     def run!
+      PIIAttributeSupport.allow_all_pii!
       progress_methods = [
         :start_report,
         :build_report_enrollments,

@@ -17,7 +17,7 @@ module LsaSqlServer
 
   class LSAReport < SqlServerBase
     self.table_name = :lsa_Report
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       [
@@ -88,7 +88,7 @@ module LsaSqlServer
 
   class LSAHousehold < SqlServerBase
     self.table_name = :lsa_Household
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       [
@@ -164,7 +164,7 @@ module LsaSqlServer
 
   class LSAPerson < SqlServerBase
     self.table_name = :lsa_Person
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       [
@@ -229,7 +229,7 @@ module LsaSqlServer
 
   class LSAExit < SqlServerBase
     self.table_name = :lsa_Exit
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       [
@@ -256,7 +256,7 @@ module LsaSqlServer
 
   class LSACalculated < SqlServerBase
     self.table_name = :lsa_Calculated
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       [
@@ -275,7 +275,7 @@ module LsaSqlServer
 
   class Organization < SqlServerBase
     self.table_name = :lsa_Organization
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '2020')
@@ -284,7 +284,7 @@ module LsaSqlServer
 
   class Project < SqlServerBase
     self.table_name = :lsa_Project
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       GrdaWarehouse::Hud::Project.hud_csv_headers(version: '2020')
@@ -293,7 +293,7 @@ module LsaSqlServer
 
   class Funder < SqlServerBase
     self.table_name = :lsa_Funder
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2020')
@@ -302,7 +302,7 @@ module LsaSqlServer
 
   class Inventory < SqlServerBase
     self.table_name = :lsa_Inventory
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2020')
@@ -311,7 +311,7 @@ module LsaSqlServer
 
   class ProjectCoc < SqlServerBase
     self.table_name = :lsa_ProjectCoC
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2020')
@@ -320,7 +320,7 @@ module LsaSqlServer
 
   class LSAHDXOnly < SqlServerBase
     self.table_name = :LSAHDXOnly
-    include TsqlImport
+    include CustomBulkInsert
 
     def self.csv_columns
       [

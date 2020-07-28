@@ -9,6 +9,7 @@ class UniqueName < ApplicationRecord
   def self.update!
     Rails.logger.info 'Updating the unique names table'
 
+    GrdaWarehouse::Hud::Client.allow_pii!
     # Build double metaphone representations for all names in the database
     names = GrdaWarehouse::Hud::Client.source.select('FirstName').distinct.pluck('FirstName')&.map{ |n| n&.downcase || ''} + GrdaWarehouse::Hud::Client.source.select('LastName').distinct.pluck('LastName')&.map{ |n| n&.downcase || ''}
     names.uniq.each do |name|

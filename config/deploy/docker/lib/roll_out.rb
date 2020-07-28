@@ -237,9 +237,17 @@ class RollOut
 
     soft_mem_limit_mb = (web_options['soft_mem_limit_mb'] || DEFAULT_SOFT_WEB_RAM_MB).to_i
 
+    environment = default_environment.dup
+
+    # We want failed encryption to throw exceptions in general, but on the
+    # front-end we want to show "[REDACTED]" and fail in a human-friendly way.
+    # On the backend, this wouldn't be desired behavior
+    environment << { "name" => "PII_SOFT_FAIL", "value" => 'true' }
+
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
       image: image_base + '--web',
+      environment: environment,
       ports: [{
         "container_port" => 443,
         "host_port" => 0,

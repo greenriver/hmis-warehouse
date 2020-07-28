@@ -14,6 +14,8 @@ module WarehouseReports
       report.parameters = params
 
       @user = User.find(params[:current_user_id])
+      PIIAttributeSupport.allow_all_pii! if @user.can_decrypt_pii?
+      Encryption::SoftFailEncryptor.pii_soft_failure = true
 
       report.user_id = @user.id
       report.parameters[:visible_projects] = if @user.can_edit_anything_super_user?
@@ -52,9 +54,11 @@ module WarehouseReports
           select(*client_columns)
       end
       data = []
+      PIIAttributeSupport.allow_all_pii! if @user.can_decrypt_pii?
+      Encryption::SoftFailEncryptor.pii_soft_failure = true
       clients.find_each do |client|
         disabilities = client.source_disabilities.map(&:disability_type_text).uniq
-        attrs = client.attributes.slice(*client_columns).merge(disabilities: disabilities)
+        attrs = client.serializable_hash.slice(*client_columns).merge(disabilities: disabilities)
 
         enrollments = client.source_enrollments.map(&:service_history_enrollment).compact
         enrollment = enrollments.map { |r| r.attributes.compact }.reduce(&:merge)
@@ -86,8 +90,6 @@ module WarehouseReports
         'id',
         'PersonalID',
         'data_source_id',
-        'FirstName',
-        'LastName',
         'DOB',
         'VeteranStatus',
       ]

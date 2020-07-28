@@ -7,7 +7,7 @@
 module GrdaWarehouse::Import::HmisTwentyTwenty
   class AssessmentResult < GrdaWarehouse::Hud::AssessmentResult
     include ::Import::HmisTwentyTwenty::Shared
-    include TsqlImport
+    include CustomBulkInsert
     self.hud_key = :AssessmentResultID
     setup_hud_column_access( GrdaWarehouse::Hud::AssessmentResult.hud_csv_headers(version: '2020') )
 

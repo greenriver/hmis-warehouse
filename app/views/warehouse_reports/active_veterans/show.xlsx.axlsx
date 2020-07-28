@@ -20,18 +20,20 @@ wb.add_worksheet(name: "Active Veterans") do |sheet|
     'Exit'
   ], :style => title)
 
-  @clients.each do |client|
+  @report_data.each do |source_row|
+    enrollments = source_row['enrollments']
+    client = @clients[source_row['id']]
     row = [
-      client['id'],
-      client['FirstName'],
-      client['LastName'],
-      dob_or_age(client['DOB']&.to_date),
-      client['SSN'],
-      client['data_sources'].join(', '),
-      client['first_date_served'],
-      client['enrollments']&.size
+      client.id,
+      client.FirstName,
+      client.LastName,
+      dob_or_age(client.DOB&.to_date),
+      client.SSN,
+      source_row['data_sources'].join(', '),
+      source_row['first_date_served'],
+      source_row['enrollments']&.size
     ]
-    client['enrollments'].each do |enrollment|
+    enrollments.each do |enrollment|
       row += [
         enrollment['ds_short_name'],
         HUD::project_type_brief(enrollment['project_type']),

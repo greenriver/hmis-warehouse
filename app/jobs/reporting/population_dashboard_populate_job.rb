@@ -17,6 +17,7 @@ module Reporting
     def perform(sub_population:)
       if sub_population == 'all'
         setup_notifier('PopulationDashboardProcessor')
+        PIIAttributeSupport.allow_all_pii!
         Reporting::MonthlyReports::Base.available_types.keys.reverse_each do |sub_pop|
           start_time = Time.now
           send_and_log "*#{sub_pop}* starting..."

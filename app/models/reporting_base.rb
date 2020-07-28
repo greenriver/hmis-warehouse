@@ -8,7 +8,6 @@ class ReportingBase < ActiveRecord::Base
   establish_connection DB_REPORTING
   self.abstract_class = true
 
-
   def self.setup_config
     new_config = {
       'db' => ['db/reporting'],

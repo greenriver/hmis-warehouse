@@ -25,7 +25,7 @@ module HmisSqlServer
   end
 
   class LsaBase < SqlServerBase
-    include TsqlImport
+    include CustomBulkInsert
 
     def clean_row_for_import(row:, headers:)
       # replace blanks with nil

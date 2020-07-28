@@ -16,7 +16,7 @@ class Object
 end
 module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
   class UpdateClientLookupViaMail < UpdateClientLookup
-    include TsqlImport
+    include CustomBulkInsert
     attr_accessor :logger
 
     # Fetch client mapping from Gmail and replace all records for each data source with

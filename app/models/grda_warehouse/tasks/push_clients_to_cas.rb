@@ -11,6 +11,7 @@ module GrdaWarehouse::Tasks
     attr_accessor :logger, :send_notifications, :notifier_config
     def initialize()
       setup_notifier('Warehouse-CAS Sync')
+      PIIAttributeSupport.allow_all_pii!
       self.logger = Rails.logger
     end
 

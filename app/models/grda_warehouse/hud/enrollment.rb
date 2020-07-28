@@ -9,7 +9,7 @@ module GrdaWarehouse::Hud
     include RailsDrivers::Extensions
     include ArelHelper
     include HudSharedScopes
-    include TsqlImport
+    include CustomBulkInsert
     include ::HMIS::Structure::Enrollment
 
     self.table_name = 'Enrollment'

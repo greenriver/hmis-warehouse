@@ -23,6 +23,8 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def run!
+      PIIAttributeSupport.allow_all_pii! if user.can_decrypt_pii?
+      Encryption::SoftFailEncryptor.pii_soft_failure = true
       setup()
       involved_genders()
       involved_project_types()

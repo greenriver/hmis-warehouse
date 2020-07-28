@@ -34,6 +34,10 @@ AllCops:
     - 'script/**/*'
     - 'bin/{rails,rake}'
     - 'app/assets/**/*'
+    - 'spec/models/importers/hmis_twenty_twenty/base_spec.rb'
+    - 'spec/support/pii_encryption.rb'
+    - 'spec/models/encryption/**/*'
+    - 'lib/encrypted_pluck/monkey_patch.rb'
 
 # We don't care about method length, since we check method cyclomatic
 # complexity.

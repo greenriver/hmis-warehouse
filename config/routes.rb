@@ -15,8 +15,9 @@ Rails.application.routes.draw do
   devise_for :users, controllers: {
     invitations: 'users/invitations',
     sessions: 'users/sessions',
+    omniauth_callbacks: ('users/omniauth_callbacks' if Devise.omniauth_providers.any?),
+  }.compact
 
-  }
   devise_scope :user do
     match 'active' => 'users/sessions#active', via: :get
     match 'timeout' => 'users/sessions#timeout', via: :get
@@ -30,6 +31,7 @@ Rails.application.routes.draw do
         post :confirm
       end
     end
+    resources :account_requests, only: [:new, :create]
   end
 
   get '/user_training', to: 'user_training#index'
@@ -314,6 +316,9 @@ Rails.application.routes.draw do
       resource :data_quality do
         get :download, on: :member
       end
+    end
+    namespace :custom do
+      resources :quick_sight_access, only: [:index, :create]
     end
     namespace :health_emergency do
       resources :testing_results, only: [:index]
@@ -731,6 +736,9 @@ Rails.application.routes.draw do
     end
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
+    end
+    resources :account_requests, only: [:index, :edit, :update, :destroy] do
+      post :confirm
     end
 
     resources :roles

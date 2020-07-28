@@ -17,7 +17,7 @@ require 'charlock_holmes'
 
 module Importers::HMISSixOneOne
   class Base
-    include TsqlImport
+    include CustomBulkInsert
     include NotifierConfig
 
     attr_accessor :logger, :notifier_config, :import, :range
@@ -32,6 +32,7 @@ module Importers::HMISSixOneOne
       project_whitelist: false
     )
       setup_notifier('HMIS Importer 6.11')
+      PIIAttributeSupport.allow_all_pii!
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @file_path = file_path
       @logger = logger

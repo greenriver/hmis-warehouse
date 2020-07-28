@@ -17,6 +17,14 @@ module WarehouseReports
     def perform(user_id:, report_class:, report_id:)
       klass = whitelisted_reports[report_class]
       if klass
+
+        # TODO: These reports may move PII to other unencrypted locations,
+        # for now, we'll allow that when the encryption isn't enabled,
+        # but only allow redacted values when it is
+        # user = User.find(:user_id)
+        # PIIAttributeSupport.allow_all_pii! if user.can_decrypt_pii?
+        Encryption::SoftFailEncryptor.pii_soft_failure = true
+
         report = klass.find(report_id)
         report.run_and_save!
 

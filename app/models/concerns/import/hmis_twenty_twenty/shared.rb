@@ -12,6 +12,7 @@ module Import::HmisTwentyTwenty::Shared
 
     after_initialize do
       setup_notifier('HMIS Importer 2020')
+      PIIAttributeSupport.allow_all_pii!
     end
     # Provide access to all of the HUD headers with snake case
     # eg: ProjectID is aliased to project_id
@@ -258,8 +259,8 @@ module Import::HmisTwentyTwenty::Shared
       to_add.each_slice(200) do |batch|
         new.insert_batch(self, headers, batch.map(&:values), transaction: false)
         stats[:lines_added] += batch.size
-      rescue Exception
-        message = "Failed to add batch for #{name}, attempting individual inserts"
+      rescue Exception => e1 # rubocop:disable Naming/RescuedExceptionsVariableName
+        message = "Failed to add batch for #{name}, attempting individual inserts: #{e1.message}}"
         stats[:errors] << { message: message, line: '' }
         Rails.logger.warn(message)
         # Try again to add the individual batch

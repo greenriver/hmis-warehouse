@@ -10,7 +10,7 @@ require 'roo'
 module Health::Claims
   class Base < HealthBase
     self.abstract_class = true
-    include TsqlImport
+    include CustomBulkInsert
     attr_accessor :sheet
 
     def initialize(sheet)

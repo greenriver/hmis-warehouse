@@ -17,7 +17,7 @@ module WarehouseReports
       project_ids = params.dig(:filter, :project_ids) || []
 
       @project_ids = project_ids.reject(&:blank?)
-      @clients = clients.page(params[:page].to_i)
+      @clients = clients.joins(:destination_client).page(params[:page].to_i)
     end
 
     def filtered_project_list
