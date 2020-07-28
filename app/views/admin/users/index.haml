@@ -52,7 +52,7 @@
                 - user.roles.each do |r|
                   .mb-1= r.name
               %td
-                - user.access_groups.each do |g|
+                - user.access_groups.general.each do |g|
                   .mb-1= g.name
               %td= render 'user_invitation_status', user: user
               %td
