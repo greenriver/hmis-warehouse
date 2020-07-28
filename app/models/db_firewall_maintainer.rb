@@ -123,7 +123,9 @@ class DbFirewallMaintainer
   def desired_creds
     @desired_creds ||=
       DbCredential.all.preload(:user).select do |creds|
-        (creds.user.last_activity_at + expiry) > Time.now && creds.user.current_sign_in_ip.present?
+        logged_in_previously = creds.user.last_activity_at.present?
+        ip_on_file = creds.user.current_sign_in_ip.present?
+        logged_in_previously && ip_on_file && (creds.user.last_activity_at + expiry) > Time.current
       end.map do |creds|
         OpenStruct.new({
           username: creds.username,

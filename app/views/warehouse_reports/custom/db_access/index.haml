@@ -46,11 +46,11 @@ SQL connection information for
       %th SSL mode:
       %td
         .db-connection-info require
-      %td encryption must be enabled on the connection
+      %td Encryption must be enabled on the connection.
 .row
   .col-sm-6
     %p
-      If you are unable to login you can reset your acccess here.
+      If you are unable to login you can reset your access here.
       .text-right
         = link_to reset_warehouse_reports_custom_db_access_index_path, class: 'btn btn-sm btn-secondary', method: :post, data: { confirm: 'Are you sure you want to reset your database password?'} do
           %i.icon-settings_backup_restore
