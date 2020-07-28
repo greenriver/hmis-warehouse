@@ -3,7 +3,8 @@
 
 %p You have been granted direct database access to de-identified client and enrollment level data. To access this data, you will need the following information to connect.
 
-%p Please note: access is provisioned for 4 hours at a time.  You can renew access by returning to this page.
+%p
+  Please note: access is provisioned for #{@credential.class.hours_available} hours at a time.  You can renew access by returning to this page.
 
 SQL connection information for
 %strong= "#{current_user.name}:"
@@ -41,11 +42,11 @@ SQL connection information for
         .db-connection-info= @credential.password
       %td Your initial password for the database instance.
 .row
-  .col-sm-8
+  .col-sm-6
     %p
-      If you have changed your password manually, and don't know the current value, you can reset it here.
+      If you are unable to login you can reset your acccess here.
       .text-right
         = link_to reset_warehouse_reports_custom_db_access_index_path, class: 'btn btn-sm btn-secondary', method: :post, data: { confirm: 'Are you sure you want to reset your database password?'} do
           %i.icon-settings_backup_restore
-          Reset Database Password
+          Reset Access
 

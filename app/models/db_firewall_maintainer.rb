@@ -5,11 +5,17 @@ class DbFirewallMaintainer
   attr_accessor :bouncer_security_group_id
 
   def initialize
-    self.expiry = 12.hours
-    self.bouncer_security_group_id = ENV.fetch('BOUNCER_SECURITY_GROUP_ID')
+    self.expiry = DbCredential.hours_available
+    self.bouncer_security_group_id = ENV['BOUNCER_SECURITY_GROUP_ID']
+  end
+
+  def firewall_active?
+    self.bouncer_security_group_id.present?
   end
 
   def remove!(ip:)
+    return unless firewall_active?
+
     self.ip = ip
     self.description = nil
 
@@ -35,6 +41,8 @@ class DbFirewallMaintainer
   end
 
   def add!(ip:, description:)
+    return unless firewall_active?
+
     self.ip = ip
     self.description = description
 
@@ -52,17 +60,21 @@ class DbFirewallMaintainer
   end
 
   def update!
-    security_group.ip_permissions.each do |perm|
-      next unless _relevant_perm?(perm)
+    return unless firewall_active?
 
-      self.ip = perm.ip_ranges.first.cidr_ip
+    GrdaWarehouse::WarehouseReports::ReportDefinition.with_advisory_lock('db_firewall_maintainer') do
+      security_group.ip_permissions.each do |perm|
+        next unless _relevant_perm?(perm)
 
-      remove!(ip: ip) if _needs_removing?
-    end
+        self.ip = perm.ip_ranges.first.cidr_ip
 
-    desired_creds.each do |creds|
-      self.ip =  creds.ip
-      add!(ip: self.ip, description: creds.email)
+        remove!(ip: ip) if _needs_removal?
+      end
+
+      desired_creds.each do |creds|
+        self.ip =  creds.ip
+        add!(ip: self.ip, description: creds.email)
+      end
     end
   end
 
