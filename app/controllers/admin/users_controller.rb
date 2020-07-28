@@ -145,6 +145,7 @@ module Admin
         :notify_on_vispdat_completed,
         :notify_on_client_added,
         :notify_on_anomaly_identified,
+        :receive_account_request_notifications,
         :otp_required_for_login,
         :expired_at,
         :training_completed,
