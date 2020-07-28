@@ -5,7 +5,7 @@ class DbFirewallMaintainer
   attr_accessor :bouncer_security_group_id
 
   def initialize
-    self.expiry = DbCredential.hours_available
+    self.expiry = DbCredential.hours_available.hours
     self.bouncer_security_group_id = ENV['BOUNCER_SECURITY_GROUP_ID']
   end
 
@@ -75,15 +75,33 @@ class DbFirewallMaintainer
         self.ip =  creds.ip
         add!(ip: self.ip, description: creds.email)
       end
+
+      push_bouncer_credentials!
     end
   end
 
-  # def tags
-  #   security_group.tags
-  # end
-
   def push_bouncer_credentials!
-    raise "implement"
+    file = Tempfile.new
+    file.write(bouncer_userlist)
+    file.rewind
+
+    identity_file_path = 'tmp/id_rsa.bouncer'
+    if !File.exists?(identity_file_path)
+      File.open(identity_file_path, 'w') do |fout|
+        fout.write(ENV['BOUNCER_KEY'])
+      end
+      FileUtils.chmod(0600, identity_file_path)
+    end
+
+    host = ENV.fetch('BOUNCER_HOST') { 'database.example.com' }
+    user = ENV.fetch('BOUNCER_USER') { 'nobody' }
+
+    cmd = "scp -i #{identity_file_path} #{file.path} #{user}@#{host}:./userlist.txt"
+    Rails.logger.info "[BOUNCER] #{cmd}"
+    puts cmd
+    system(cmd)
+
+    file.close
   end
 
   def desired_creds
@@ -113,7 +131,7 @@ class DbFirewallMaintainer
     desired_creds.
       sort_by { |creds| creds.username }.
       map { |creds| %<"#{creds.username}" "#{creds.password}"> }.
-      join("\n")
+      join("\n") + " "
   end
 
   def _needs_adding?

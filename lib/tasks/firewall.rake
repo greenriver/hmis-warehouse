@@ -4,18 +4,20 @@ namespace :firewall do
   task :update, [] => [:environment] do |t, args|
     firewall = DbFirewallMaintainer.new
 
-    ap firewall.desired_creds
-    puts "------"
-    puts firewall.send(:bouncer_userlist)
-    puts "------"
-    puts firewall.update!
+    #ap firewall.desired_creds
+    # puts "------"
+    # puts firewall.send(:bouncer_userlist)
+    # puts "------"
+    # puts firewall.update!
 
     # firewall.add!(
     #   ip: '8.8.8.8/32',
     #   description: 'testing',
     # )
 
-    ap firewall.list
+    #ap firewall.list
+    firewall.push_bouncer_credentials!
+
     #ap firewall.tags
 
     #firewall.expire!
