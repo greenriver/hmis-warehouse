@@ -91,7 +91,9 @@ class DbFirewallMaintainer
     identity_file_path = 'tmp/id_rsa.bouncer'
     if !File.exists?(identity_file_path)
       File.open(identity_file_path, 'w') do |fout|
-        fout.write(ENV['BOUNCER_KEY'])
+        fout.puts('-----BEGIN RSA PRIVATE KEY-----')
+        fout.puts(ENV['BOUNCER_KEY'])
+        fout.puts('-----END RSA PRIVATE KEY-----')
       end
       FileUtils.chmod(0600, identity_file_path)
     end
@@ -121,7 +123,7 @@ class DbFirewallMaintainer
   def desired_creds
     @desired_creds ||=
       DbCredential.all.preload(:user).select do |creds|
-        (creds.user.last_activity_at + expiry) > Time.now
+        (creds.user.last_activity_at + expiry) > Time.now && creds.user.current_sign_in_ip.present?
       end.map do |creds|
         OpenStruct.new({
           username: creds.username,
