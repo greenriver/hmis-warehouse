@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::OverlappingCocByFundingSource < WarehouseReport
+class WarehouseReport::OverlappingCocByFundingSource < WarehouseReport # rubocop:disable Style/ClassAndModuleChildren
   include ArelHelper
 
   def initialize(coc_code_1:, coc_code_2:, start_date:, end_date:)
@@ -42,14 +42,14 @@ class WarehouseReport::OverlappingCocByFundingSource < WarehouseReport
         overlap_by_funding_source.each do |funding_source, clients|
           dates[funding_source] ||= {}
           dates[funding_source][coc] ||= []
-          GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: {project: [:project_cocs, :funders]}).
+          GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: { project: [:project_cocs, :funders] }).
             merge(GrdaWarehouse::Hud::Funder.where(Funder: funding_source)).
             service_between(start_date: @start_date, end_date: @end_date).
             where(client_id: clients).
             distinct.
             merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc)).
-            pluck(:client_id, f_t[:Funder], :date).each do |c_id, funding_source, date|
-              dates[funding_source][coc] << [c_id, date]
+            pluck(:client_id, f_t[:Funder], :date).each do |c_id, funding_source_internal, date|
+              dates[funding_source_internal][coc] << [c_id, date]
             end
         end
       end
@@ -67,13 +67,15 @@ class WarehouseReport::OverlappingCocByFundingSource < WarehouseReport
     HUD.funding_sources.keys.map do |funding_source|
       async = async_by_funder[funding_source]&.count || 0
       concurrent = concurrent_by_funder[funding_source]&.count || 0
+      next unless (async + concurrent).positive?
+
       [
         HUD.funding_source(funding_source),
         [
           async,
           concurrent,
-        ]
-      ] if (async + concurrent).positive?
+        ],
+      ]
     end.compact
   end
 
