@@ -195,6 +195,12 @@ def report_list
         description: 'Coordinated Entry assessment details.',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/overlapping_coc_utilization',
+        name: 'Inter-CoC Client Overlap',
+        description: 'Explore enrollments for CoCs with shared clients',
+        limitable: true,
+      },
     ],
     'Data Quality' => [
       {
@@ -427,7 +433,7 @@ def report_list
       },
       {
         url: 'warehouse_reports/health/aco_performance',
-        name: 'ACO Performance',
+        name: 'CP Engagement (122 days) by ACO',
         description: 'Summary data on ACO performance in the BH CP.',
         limitable: false,
       },
@@ -604,7 +610,7 @@ def maintain_report_definitions
       r.name = report[:name]
       r.description = report[:description]
       r.limitable = report[:limitable]
-      r.save
+      r.save!
     end
   end
 end
@@ -808,10 +814,59 @@ def maintain_data_sources
   end
 end
 
-def maintain_coc_codes
+def maintain_lookups
   HUD.cocs.each do |code, name|
     coc = GrdaWarehouse::Lookups::CocCode.where(coc_code: code).first_or_initialize
     coc.update(official_name: name)
+  end
+  GrdaWarehouse::Lookups::YesNoEtc.transaction do
+    GrdaWarehouse::Lookups::YesNoEtc.delete_all
+    columns = [:value, :text]
+    GrdaWarehouse::Lookups::YesNoEtc.import(columns, HUD.no_yes_reasons_for_missing_data_options.to_a)
+  end
+  GrdaWarehouse::Lookups::LivingSituation.transaction do
+    GrdaWarehouse::Lookups::LivingSituation.delete_all
+    columns = [:value, :text]
+    GrdaWarehouse::Lookups::LivingSituation.import(columns, HUD.living_situations.to_a)
+  end
+  GrdaWarehouse::Lookups::ProjectType.transaction do
+    GrdaWarehouse::Lookups::ProjectType.delete_all
+    columns = [:value, :text]
+    GrdaWarehouse::Lookups::ProjectType.import(columns, HUD.project_types.to_a)
+  end
+  GrdaWarehouse::Lookups::Ethnicity.transaction do
+    GrdaWarehouse::Lookups::Ethnicity.delete_all
+    columns = [:value, :text]
+    GrdaWarehouse::Lookups::Ethnicity.import(columns, HUD.no_yes_reasons_for_missing_data_options.to_a)
+  end
+  GrdaWarehouse::Lookups::FundingSource.transaction do
+    GrdaWarehouse::Lookups::FundingSource.delete_all
+    columns = [:value, :text]
+    GrdaWarehouse::Lookups::FundingSource.import(columns, HUD.funding_sources.to_a)
+  end
+  GrdaWarehouse::Lookups::Gender.transaction do
+    GrdaWarehouse::Lookups::Gender.delete_all
+    columns = [:value, :text]
+    GrdaWarehouse::Lookups::Gender.import(columns, HUD.genders.to_a)
+  end
+  GrdaWarehouse::Lookups::TrackingMethod.transaction do
+    GrdaWarehouse::Lookups::TrackingMethod.delete_all
+    columns = [:value, :text]
+    GrdaWarehouse::Lookups::TrackingMethod.import(columns, HUD.tracking_methods.to_a)
+  end
+  GrdaWarehouse::Lookups::Relationship.transaction do
+    GrdaWarehouse::Lookups::Relationship.delete_all
+    columns = [:value, :text]
+    GrdaWarehouse::Lookups::Relationship.import(columns, HUD.relationships_to_hoh.to_a)
+  end
+end
+
+def install_shapes
+  if GrdaWarehouse::Shape::ZipCode.none? || GrdaWarehouse::Shape::CoC.none?
+    begin
+      Rake::Task['grda_warehouse:get_shapes'].invoke
+    rescue Exception
+    end
   end
 end
 
@@ -827,4 +882,5 @@ setup_fake_user() if Rails.env.development?
 maintain_data_sources()
 maintain_report_definitions()
 maintain_health_seeds()
-maintain_coc_codes()
+install_shapes()
+maintain_lookups()

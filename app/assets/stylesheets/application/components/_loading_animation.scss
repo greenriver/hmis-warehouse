@@ -1,3 +1,5 @@
+@import '../helpers';
+
 // https://tobiasahlin.com/spinkit/
 // https://github.com/tobiasahlin/SpinKit
 
@@ -6,6 +8,14 @@
   height: 40px;
   position: relative;
   animation: sk-chase 2.5s infinite linear both;
+}
+
+.c-loading--center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: $zIndex-10;
 }
 
 .c-loading--lg {

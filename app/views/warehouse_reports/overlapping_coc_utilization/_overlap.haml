@@ -1,0 +1,41 @@
+:ruby
+  detail_url = -> (extra_params={}) do
+    details_warehouse_reports_overlapping_coc_utilization_index_path(
+      {compare: filters.to_params}.merge(extra_params)
+    )
+  end
+  project_types = report.chart_by_project_type
+  total_non_overlapping_clients = report.total_non_overlapping_clients
+
+- if project_types.empty? && filters.coc2 && filters.coc1
+  .alert.alert-warning
+    No shared clients between #{filters.coc1.number_and_name} and #{filters.coc2.number_and_name} found.
+- else
+  .font-weight-bold
+    %span{style: 'font-size: 24px; '}
+      = report.total_shared_clients
+    %span Total Unique Shared Clients
+  .mb-4.font-weight-bold
+    = link_to detail_url.() do
+      See client-level details &raquo;
+  .mb-8
+    = render 'table', scope: 'project_type' do
+      - relative_total = project_types.map(&:second).flatten.max
+      - project_types.sort_by{ |s| -s.second.sum }.each do |name, values, id|
+        %tr
+          %td{style: 'width: 35%'}
+            = link_to detail_url.(project_type: id), class: 'font-weight-bold' do
+              = name
+              &raquo;
+          %td
+            = values.sum
+          %td
+            = render 'bars', relative_total: relative_total, values: values
+      %tr
+        %td{style: 'width: 35%'}
+          - name = "No Overlapping Project Types &raquo;".html_safe
+          = link_to_if total_non_overlapping_clients > 0, name,
+            detail_url.(project_type: WarehouseReport::OverlappingCocByProjectType::NON_OVERLAPPING_PROJECT_TYPE),
+            class: 'font-weight-bold'
+        %td= total_non_overlapping_clients
+        %td

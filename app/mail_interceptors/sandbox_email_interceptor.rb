@@ -6,11 +6,11 @@
 
 class SandboxEmailInterceptor
   # TODO: list recipients who will always be BCC'd when application is running in sandbox mode
-  RECIPIENTS = ENV['SANDBOX_RECIPIENTS']&.split(';') || []
+  RECIPIENTS = ENV['SANDBOX_RECIPIENTS']&.split(',') || []
 
   # TODO: list allowlisted email addresses here -- any other emails will only be BCC'd to the above
   # when this intercepter is in place
-  ENV_WHITELIST = ENV['SANDBOX_WHITELIST']&.split(';') || []
+  ENV_WHITELIST = ENV['SANDBOX_WHITELIST']&.split(',') || []
   WHITELIST = (ENV_WHITELIST + RECIPIENTS).compact.map!(&:downcase)
 
   def self.delivering_email(mail)

@@ -111,7 +111,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "LastName", limit: 150
     t.string "NameSuffix", limit: 50
     t.integer "NameDataQuality"
-    t.string "SSN", limit: 9
+    t.string "SSN"
     t.integer "SSNDataQuality"
     t.date "DOB"
     t.integer "DOBDataQuality"
@@ -203,6 +203,16 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.boolean "dv_rrh_desired", default: false
     t.string "health_prioritized"
     t.boolean "demographic_dirty", default: true
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+    t.string "encrypted_MiddleName"
+    t.string "encrypted_MiddleName_iv"
+    t.string "encrypted_LastName"
+    t.string "encrypted_LastName_iv"
+    t.string "encrypted_SSN"
+    t.string "encrypted_SSN_iv"
+    t.string "encrypted_NameSuffix"
+    t.string "encrypted_NameSuffix_iv"
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -1647,6 +1657,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.float "auto_de_duplication_reject_threshold"
     t.string "pii_encryption_type", default: "none"
     t.boolean "auto_de_duplication_enabled", default: false, null: false
+    t.boolean "request_account_available", default: false, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -6814,96 +6825,6 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
        LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
        LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
     ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
-  SQL
-  create_view "report_clients", sql_definition: <<-SQL
-      SELECT "Client"."PersonalID",
-      "Client"."FirstName",
-      "Client"."MiddleName",
-      "Client"."LastName",
-      "Client"."NameSuffix",
-      "Client"."NameDataQuality",
-      "Client"."SSN",
-      "Client"."SSNDataQuality",
-      "Client"."DOB",
-      "Client"."DOBDataQuality",
-      "Client"."AmIndAKNative",
-      "Client"."Asian",
-      "Client"."BlackAfAmerican",
-      "Client"."NativeHIOtherPacific",
-      "Client"."White",
-      "Client"."RaceNone",
-      "Client"."Ethnicity",
-      "Client"."Gender",
-      "Client"."OtherGender",
-      "Client"."VeteranStatus",
-      "Client"."YearEnteredService",
-      "Client"."YearSeparated",
-      "Client"."WorldWarII",
-      "Client"."KoreanWar",
-      "Client"."VietnamWar",
-      "Client"."DesertStorm",
-      "Client"."AfghanistanOEF",
-      "Client"."IraqOIF",
-      "Client"."IraqOND",
-      "Client"."OtherTheater",
-      "Client"."MilitaryBranch",
-      "Client"."DischargeStatus",
-      "Client"."DateCreated",
-      "Client"."DateUpdated",
-      "Client"."UserID",
-      "Client"."DateDeleted",
-      "Client"."ExportID",
-      "Client".id
-     FROM "Client"
-    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
-            WHERE (data_sources.source_type IS NULL))));
-  SQL
-  create_view "report_demographics", sql_definition: <<-SQL
-      SELECT "Client"."PersonalID",
-      "Client"."FirstName",
-      "Client"."MiddleName",
-      "Client"."LastName",
-      "Client"."NameSuffix",
-      "Client"."NameDataQuality",
-      "Client"."SSN",
-      "Client"."SSNDataQuality",
-      "Client"."DOB",
-      "Client"."DOBDataQuality",
-      "Client"."AmIndAKNative",
-      "Client"."Asian",
-      "Client"."BlackAfAmerican",
-      "Client"."NativeHIOtherPacific",
-      "Client"."White",
-      "Client"."RaceNone",
-      "Client"."Ethnicity",
-      "Client"."Gender",
-      "Client"."OtherGender",
-      "Client"."VeteranStatus",
-      "Client"."YearEnteredService",
-      "Client"."YearSeparated",
-      "Client"."WorldWarII",
-      "Client"."KoreanWar",
-      "Client"."VietnamWar",
-      "Client"."DesertStorm",
-      "Client"."AfghanistanOEF",
-      "Client"."IraqOIF",
-      "Client"."IraqOND",
-      "Client"."OtherTheater",
-      "Client"."MilitaryBranch",
-      "Client"."DischargeStatus",
-      "Client"."DateCreated",
-      "Client"."DateUpdated",
-      "Client"."UserID",
-      "Client"."DateDeleted",
-      "Client"."ExportID",
-      "Client".data_source_id,
-      "Client".id,
-      report_clients.id AS client_id
-     FROM (("Client"
-       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-       JOIN report_clients ON ((warehouse_clients.destination_id = report_clients.id)))
-    WHERE ("Client"."DateDeleted" IS NULL);
   SQL
   create_view "report_disabilities", sql_definition: <<-SQL
       SELECT "Disabilities"."DisabilitiesID",

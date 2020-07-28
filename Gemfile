@@ -18,6 +18,10 @@ gem 'activerecord-import'
 
 # spatial manipulations
 gem 'activerecord-postgis-adapter'
+gem 'ffi-geos'
+gem 'rgeo'
+gem 'rgeo-geojson'
+gem 'rgeo-proj4'
 
 # gem 'active_record_distinct_on'
 gem 'charlock_holmes', require: false
