@@ -51,6 +51,8 @@ class DbFirewallMaintainer
     puts "Added #{ip}"
   rescue Aws::EC2::Errors::InvalidPermissionDuplicate
     Rails.logger.warn "Did not add a rule for #{ip}: It already exists"
+  rescue Aws::EC2::Errors::InvalidParameterValue => e
+    Rails.logger.error "invalid param. cannot add #{ip}: #{e.message}"
   end
 
   def list
@@ -80,6 +82,7 @@ class DbFirewallMaintainer
     end
   end
 
+  # FIXME: don't hard-code /root
   def push_bouncer_credentials!
     file = Tempfile.new
     file.write(bouncer_userlist)
@@ -94,6 +97,9 @@ class DbFirewallMaintainer
     end
 
     host = ENV.fetch('BOUNCER_HOST') { 'database.example.com' }
+
+    FileUtils.mkdir_p('/root/.ssh')
+    FileUtils.chmod(0700, '/root/.ssh')
 
     known_hosts = '/root/.ssh/known_hosts'
     cmd = "ssh-keyscan -H #{host} >> #{known_hosts}"
