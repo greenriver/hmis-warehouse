@@ -54,6 +54,7 @@ every 5.minutes do
   # Long-running, but infrequent
   rake 'reporting:run_project_data_quality_reports'
   rake 'reporting:run_ad_hoc_processing'
+  rake 'firewall:update'
 end
 
 every 4.hours do

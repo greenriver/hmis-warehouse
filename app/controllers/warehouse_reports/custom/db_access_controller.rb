@@ -11,6 +11,7 @@ module WarehouseReports::Custom
 
     def index
       @credential.provision!
+      DbFirewallMaintainer.new.update!
     end
 
     def reset

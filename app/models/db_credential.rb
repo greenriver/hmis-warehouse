@@ -5,6 +5,10 @@ class DbCredential < ApplicationRecord
   has_paper_trail
 
   PG_ROLE = 'bi'
+  def self.hours_available
+    4
+  end
+
   def defaults
     unless persisted?
       self.username ||= secure_value
