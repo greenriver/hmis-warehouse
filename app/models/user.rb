@@ -68,6 +68,11 @@ class User < ApplicationRecord
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
   end
+
+  scope :receives_account_request_notifications, -> do
+    where(receive_account_request_notifications: true)
+  end
+
   scope :active, -> do
     where(
       arel_table[:active].eq(true).and(
@@ -76,12 +81,14 @@ class User < ApplicationRecord
       )
     )
   end
+
   scope :inactive, -> do
     where(
      arel_table[:active].eq(false).
      or(arel_table[:expired_at].lteq(Time.current))
     )
   end
+
   scope :not_system, -> { where.not(first_name: 'System') }
 
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
@@ -440,6 +447,7 @@ class User < ApplicationRecord
       'receive_file_upload_notifications',
       'notify_of_vispdat_completed',
       'notify_on_anomaly_identified',
+      'receive_account_request_notifications',
     ].freeze
   end
 

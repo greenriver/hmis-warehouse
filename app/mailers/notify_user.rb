@@ -210,4 +210,11 @@ class NotifyUser < DatabaseMailer
     @report_url = warehouse_reports_health_premium_payments_url
     mail(from: ENV.fetch('HEALTH_FROM'), to: @user.email, subject: 'Premium Payment File Processed')
   end
+
+  def pending_account_submitted
+    @notify = User.active.receives_account_request_notifications
+    @notify.each do |user|
+      mail(to: user.email, subject: 'Account Request Submitted')
+    end
+  end
 end

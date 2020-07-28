@@ -34,6 +34,8 @@
         - if GrdaWarehouse::DataSource.authoritative.exists?
           = f.input :notify_on_client_added, label: "Authoritative clients added", as: :boolean
         = f.input :notify_on_anomaly_identified, label: "Anomalies identified"
+        - if GrdaWarehouse::Config.get(:request_account_available)
+          = f.input :receive_account_request_notifications, label: 'Account requests', as: :boolean
     .form--expiration
       %h3 Account Life-cycle
       .well
