@@ -3,6 +3,26 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
+      "fingerprint": "0ac3efb1d8ecb0b6d45a0f1ac7c8c3de0dba47e320ec12174b8efd1009c23bd5",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/db_firewall_maintainer.rb",
+      "line": 118,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"scp -i #{\"tmp/id_rsa.bouncer\"} #{Tempfile.new.path} #{ENV.fetch(\"BOUNCER_USER\") do\n \"nobody\"\n end}@#{ENV.fetch(\"BOUNCER_HOST\") do\n \"database.example.com\"\n end}:./userlist.txt\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DbFirewallMaintainer",
+        "method": "push_bouncer_credentials!"
+      },
+      "user_input": "Tempfile.new.path",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
       "fingerprint": "0fc8bda3aa0534d15b8341980b3cd903e10cf9bf203e38eb3abbc26ff6b5c0c2",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -47,7 +67,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/jobs/warehouse_reports/dashboard_report_job.rb",
-      "line": 16,
+      "line": 17,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym][sub_population.to_sym].constantize",
       "render_path": null,
@@ -258,7 +278,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 388,
+      "line": 396,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"EXISTS (#{inner_scope.to_sql.gsub(\"\\\"Client\\\".\", \"\\\"inner_clients\\\".\").gsub(\"\\\"Client\\\"\", \"\\\"Client\\\" as \\\"inner_clients\\\"\")} and \\\"Client\\\".\\\"id\\\" = \\\"inner_clients\\\".\\\"id\\\")\")",
       "render_path": null,
@@ -408,7 +428,7 @@
           "type": "controller",
           "class": "Admin::RolesController",
           "method": "index",
-          "line": 19,
+          "line": 17,
           "file": "app/controllers/admin/roles_controller.rb",
           "rendered": {
             "name": "admin/roles/index",
@@ -692,6 +712,26 @@
         "method": null
       },
       "user_input": "has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "9e32f41eaae383678d6aa47686ed23e327e59f180f01dc871d0b7f7c1bc5ce37",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/db_firewall_maintainer.rb",
+      "line": 109,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"ssh-keyscan -H #{ENV.fetch(\"BOUNCER_HOST\") do\n \"database.example.com\"\n end} >> #{\"/root/.ssh/known_hosts\"}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "DbFirewallMaintainer",
+        "method": "push_bouncer_credentials!"
+      },
+      "user_input": "ENV.fetch(\"BOUNCER_HOST\") do\n \"database.example.com\"\n end",
       "confidence": "Medium",
       "note": ""
     },
@@ -1022,7 +1062,7 @@
       "check_name": "MassAssignment",
       "message": "Parameters should be whitelisted for mass assignment",
       "file": "app/controllers/application_controller.rb",
-      "line": 57,
+      "line": 70,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -1162,7 +1202,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 505,
+      "line": 513,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql((\"consented_coc_codes='[]'::jsonb OR \" + \"#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map do\n connection.quote(s)\n end.join(\",\")}]\"))",
       "render_path": null,
@@ -1235,6 +1275,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-07-27 17:54:17 -0400",
+  "updated": "2020-07-28 11:00:20 -0400",
   "brakeman_version": "4.8.2"
 }
