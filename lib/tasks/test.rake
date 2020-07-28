@@ -1,5 +1,0 @@
-namespace :test do
-
-
-
-end

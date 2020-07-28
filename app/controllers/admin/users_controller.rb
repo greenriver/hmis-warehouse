@@ -10,7 +10,7 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
-    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate]
+    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :revoke_db_access]
     before_action :require_can_impersonate_users!, only: [:impersonate]
     after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock]
     helper_method :sort_column, :sort_direction
@@ -91,12 +91,18 @@ module Admin
         render :edit
         return
       end
-      redirect_to({ action: :index }, notice: 'User updated')
+      redirect_to({ action: :edit }, notice: 'User updated')
     end
 
     def destroy
       @user.update(active: false)
       redirect_to({ action: :index }, notice: "User #{@user.name} deactivated")
+    end
+
+    def revoke_db_access
+      @user.db_credential.revoke!
+      flash[:notice] = "Database access for #{@user.name} has been removed"
+      redirect_to(action: :edit)
     end
 
     def title_for_show
