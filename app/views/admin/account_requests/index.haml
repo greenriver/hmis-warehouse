@@ -1,0 +1,39 @@
+- content_for :title, t('.title')
+%h1= content_for :title
+= render partial: 'menus/admin_tabs'
+
+= render 'admin/users/tabs', selected_path: admin_account_requests_path
+
+.table-utilities
+  %p= page_entries_info @account_requests, entry_name: _('account requests')
+
+.row
+  .col-sm-12
+    .table-responsive
+      %table.table.table-sm
+        %thead
+          %tr
+            %th Request Date
+            %th Requestor
+            %th Request Reason
+            %th Approve
+            %th Reject
+        %tbody
+          - @account_requests.each do |req|
+            %tr
+              %td= req.created_at.to_date
+              %td
+                = req.name
+                %br
+                = req.email
+              %td= simple_format req.details
+              %td
+                = link_to edit_admin_account_request_path(req),class: 'btn btn-primary', data: { loads_in_pjax_modal: true } do
+                  %i.icon-user
+                  Approve Request
+              %td
+                = link_to admin_account_request_path(req), method: :delete, class: 'btn btn-danger', data: { confirm: "Rejecting this request will not notify #{req.name}" } do
+                  %i.icon-cross
+                  Reject Request
+
+    %p= paginate @account_requests

@@ -30,6 +30,7 @@ Rails.application.routes.draw do
         post :confirm
       end
     end
+    resources :account_requests, only: [:new, :create]
   end
 
   get '/user_training', to: 'user_training#index'
@@ -173,6 +174,12 @@ Rails.application.routes.draw do
     resources :user_login, only: [:index]
   end
   namespace :warehouse_reports do
+    resources :overlapping_coc_utilization, only: [:index] do
+      collection do
+        get :overlap
+        get :details
+      end
+    end
     resources :ce_assessments, only: [:index]
     resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
@@ -719,6 +726,9 @@ Rails.application.routes.draw do
     end
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
+    end
+    resources :account_requests, only: [:index, :edit, :update, :destroy] do
+      post :confirm
     end
 
     resources :roles
