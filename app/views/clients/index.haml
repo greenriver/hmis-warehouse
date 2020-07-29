@@ -12,12 +12,12 @@
     .row
       .col-sm-8
         %p
-          Search by name, DOB (mm/dd/yyyy), SSN (xxx-yyy-zzzz), warehouse id, or PersonalID.  It is often most efficient to search using the first few characters of the first name and last name, eg. to find
+          Search by name, D.O.B. (mm/dd/yyyy), SSN (xxx-yyy-zzzz), Warehouse ID, or PersonalID.  It is often most efficient to search using the first few characters of the first name and last name, e.g. to find
           %em Jane Smith
           you might search for
           %em ja sm.
     .o-page__search
-      = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', data: {placement: 'bottom'}
+      = render 'search_form', tooltip: 'Search with PersonalID or full or partial "first last" or "last, first" for more specific results', aria: { label: 'Client Search' }, data: {placement: 'bottom'}
     .o-page__sort
       = render 'clients/filter'
       = render 'clients/sort', sort_options: sort_options

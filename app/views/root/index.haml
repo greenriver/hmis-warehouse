@@ -8,4 +8,6 @@
     .col-sm-7
       %p.home-intro
         = _('Boston DND Warehouse')
-    .col-sm-5
+    - if !user_signed_in?
+      .col-sm-5
+        = render '/root/sign_in_form'
