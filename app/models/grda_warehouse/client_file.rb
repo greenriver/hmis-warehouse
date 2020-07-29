@@ -184,6 +184,10 @@ module GrdaWarehouse
       client.consent_form_id == id
     end
 
+    def consent_form?
+      self.class.consent_forms.where(id: id).exists?
+    end
+
     def revoked?
       consent_revoked_at.present?
     end
@@ -233,6 +237,7 @@ module GrdaWarehouse
       #
       # If the consent if valid on the client,
       # remove consent only if the confirmation was also changed and this is the only confirmed consent file
+      return unless consent_form?
 
       if ! client.consent_form_valid?
         if consent_form_signed_on.present? && consent_revoked_at.blank?
