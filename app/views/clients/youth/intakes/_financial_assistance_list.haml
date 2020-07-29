@@ -9,7 +9,7 @@
           = f.input :type_provided, collection: @assistance.available_types, input_html: {class: [:select2, :jOtherTrigger] }
           .jOther.hidden
             = f.input :other
-          = f.input :amount
+          = f.input :amount, input_html: { type: :text, class: 'w-25'}, hint: 'Round to nearest dollar'
           .d-flex
             = f.input :provided_on, as: :date_picker, label: 'On'
             %button.btn.btn-primary.ml-2.mt-no-label.mb-auto
@@ -27,7 +27,7 @@
             %tr
               %td.nobr= dfa.provided_on
               %td= dfa.type_provided
-              %td= number_to_currency(dfa.amount)
+              %td= number_to_currency(dfa.amount, precision: 0)
               %td
                 - if has_some_edit_access_to_youth_intakes?
                   = link_to polymorphic_path(direct_financial_assistance_path_generator, id: dfa.id), method: :delete, data: {confirm: 'Deleting this financial assistance will remove it from any reporting.  Are you sure you\'d like to delete it?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
