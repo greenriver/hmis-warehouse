@@ -129,6 +129,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
       section.add_control(id: 'data_sources', value: data_source_names)
       section.add_control(id: 'organizations', value: organization_names)
       section.add_control(id: 'projects', value: project_names)
+      section.add_control(id: 'project_groups', value: project_groups)
     end
   end
 
@@ -237,6 +238,14 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
   def project_names
     available_projects_for_select.values.flatten(1).select { |_, id| @filter.project_ids.include?(id) }&.map(&:first)
+  end
+
+  def project_groups
+    available_project_groups_for_select.select { |_, id| @filter.project_group_ids.include?(id) }&.map(&:first)
+  end
+
+  def available_project_groups_for_select
+    GrdaWarehouse::ProjectGroup.options_for_select(user: @filter.user)
   end
 
   def available_cocs_for_select
@@ -432,9 +441,15 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   private def filter_for_projects(scope)
-    return scope if @filter.project_ids.blank?
+    return scope if @filter.project_ids.blank? && @filter.project_group_ids.blank?
 
-    scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+    project_ids = @filter.project_ids || []
+    project_groups = GrdaWarehouse::ProjectGroup.find(@filter.project_group_ids)
+    project_groups.each do |group|
+      project_ids += group.projects.pluck(:id)
+    end
+
+    scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
   end
 
   private def filter_for_funders(scope)
