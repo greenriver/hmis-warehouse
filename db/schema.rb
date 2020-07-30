@@ -466,6 +466,7 @@ ActiveRecord::Schema.define(version: 2020_07_28_185654) do
     t.boolean "can_manage_auto_client_de_duplication", default: false
     t.boolean "can_view_all_window_notes", default: false
     t.boolean "can_decrypt_pii", default: false
+    t.boolean "can_delete_youth_intake", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
