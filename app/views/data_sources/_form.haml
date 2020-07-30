@@ -22,6 +22,7 @@
       = f.input :authoritative_type, collection: GrdaWarehouse::DataSource.authoritative_types, input_html: {class: :select2}
 
     = f.input :import_paused, label: 'Pause imports for this data source?'
+    = f.input :service_scannable, label: 'Enable Service Scanning?'
 
 
   .form-actions

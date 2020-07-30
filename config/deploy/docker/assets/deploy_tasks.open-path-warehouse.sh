@@ -14,14 +14,19 @@ bundle exec rake health:db:migrate
 echo Migrating reporting database
 bundle exec rake reporting:db:migrate
 
-echo report seeding
+echo Report seeding
 bundle exec rake reports:seed
 
-echo general seeding
+echo General seeding
 bundle exec rake db:seed
 
-echo translations
+echo Translations
 bundle exec rake gettext:sync_to_po_and_db
 
-echo installing cron
+echo Installing cron
 ./bin/cron_installer.rb
+
+# keep this always at the end of this file
+echo Making interface aware this script completed
+bundle exec rake deploy:mark_deployment_id
+echo ---DONE---

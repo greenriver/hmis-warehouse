@@ -1,0 +1,5 @@
+- if @clients.present?
+  %p= paginate @clients
+  - @clients.each do |client|
+    = render 'client_card', client: client
+  %p= paginate @clients

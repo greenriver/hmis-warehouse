@@ -42,6 +42,11 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :viewable_by, -> (user) do
+      joins(:project).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+    end
+
     def valid_funder_code?
       self.class.valid_funder_code?(self.Funder)
     end
@@ -52,6 +57,19 @@ module GrdaWarehouse::Hud
 
     def operating_year
       "#{self.StartDate} - #{self.EndDate}"
+    end
+
+    def self.options_for_select(user: )
+      viewable_by(user).
+        distinct.
+        order(Funder: :asc).
+        pluck(:Funder).
+        map do |funder_code|
+          [
+            "#{HUD.funding_source(funder_code&.to_i)} (#{funder_code})",
+            funder_code,
+          ]
+        end
     end
 
     def self.related_item_keys

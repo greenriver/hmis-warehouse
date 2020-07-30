@@ -7,6 +7,8 @@
 # For now, this only deals with RRH projects
 module Reporting
   class Housed < ReportingBase
+    include RailsDrivers::Extensions
+
     self.table_name = :warehouse_houseds
     include ArelHelper
     include TsqlImport

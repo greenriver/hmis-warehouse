@@ -18,7 +18,7 @@ FactoryBot.define do
     unaccompanied { 'No' }
     street_outreach_contact { 'No' }
     housing_status { 'Unknown' }
-    other_agency_involvement { 'No' }
+    other_agency_involvements { ['No'] }
     owns_cell_phone { 'No' }
     secondary_education { 'Unknown' }
     attending_college { 'No' }

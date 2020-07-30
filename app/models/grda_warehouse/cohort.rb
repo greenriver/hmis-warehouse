@@ -19,7 +19,7 @@ module GrdaWarehouse
 
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :tags, class_name: Cas::Tag.name, optional: true
+    belongs_to :tags, class_name: 'Cas::Tag', optional: true
 
     has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 

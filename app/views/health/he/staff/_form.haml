@@ -5,6 +5,7 @@
       .c-card__header.c-card__header--external
         %h3 Investigation Information
       .c-card__content
+        = f.input :investigator, label: @staff.label_for(:investigator)
         = f.input :date_interviewed, as: :date_picker
 .row
   .col-md-8

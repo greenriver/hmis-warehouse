@@ -57,6 +57,12 @@ module Admin
         :health_emergency,
         :health_emergency_tracing,
         :health_priority_age,
+        :multi_coc_installation,
+        :auto_de_duplication_accept_threshold,
+        :auto_de_duplication_reject_threshold,
+        :pii_encryption_type,
+        :auto_de_duplication_enabled,
+        :request_account_available,
         client_details: [],
       )
     end

@@ -494,7 +494,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def f_four_f
       @f_four_f ||= get_client_ids(demographics_scope.
-        where(other_agency_involvement: 'Yes'))
+        where.not('other_agency_involvements::jsonb @> ?', ['No', 'Unknown'].to_json))
     end
 
     def f_four_g

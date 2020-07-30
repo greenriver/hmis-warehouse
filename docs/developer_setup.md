@@ -17,12 +17,17 @@ git clone git@github.com:greenriver/hmis-warehouse.git
 
 4. If you have not previously setup [nginx-proxy](https://github.com/jwilder/nginx-proxy) to streamline local development. You should [follow the instructions here](developer-networking.md) before continuing.
 
-5. Run the setup script
+5. Copy in the sample environment variable
+```
+cp sample.env .env.local
+```
+
+6. Run the setup script
 ```
 docker-compose run --rm shell bin/setup
 ```
 
-6. Run the rails server
+7. Run the rails server
 ```
 docker-compose run --rm web
 ```

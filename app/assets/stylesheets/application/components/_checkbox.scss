@@ -21,6 +21,13 @@
   @include checkbox-checked;
 }
 
+.c-checkbox input.dirty:checked + label {
+  @include checkbox-checked-dirty;
+}
+.c-checkbox input.dirty:not(:checked) + label {
+  @include checkbox-not-checked-dirty;
+}
+
 .c-checkbox--round {
   &::before {
     border-radius: 50%;

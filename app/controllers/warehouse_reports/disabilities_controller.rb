@@ -68,6 +68,8 @@ module WarehouseReports
         :start,
         :end,
         :sub_population,
+        :heads_of_household,
+        age_ranges: [],
         disabilities: [],
         project_types: [],
       )
@@ -78,11 +80,14 @@ module WarehouseReports
         :start,
         :end,
         :sub_population,
+        :heads_of_household,
+        age_ranges: [],
         disabilities: [],
         project_types: [],
       )
       f_params[:disabilities] = f_params[:disabilities].select { |m| available_disabilities.value?(m.to_i) }.reject(&:blank?) if f_params[:disabilities].present?
       f_params[:project_types] = f_params[:project_types].reject(&:blank?)
+      f_params[:age_ranges] = f_params[:age_ranges].reject(&:blank?)
       f_params
     rescue StandardError
       {}
@@ -93,11 +98,12 @@ module WarehouseReports
     end
 
     def available_sub_populations
-      {
-        'All Clients' => :all_clients,
-        'Youth' => :youth,
-        'Veterans' => :veteran,
-      }
+      AvailableSubPopulations.available_sub_populations
+      # {
+      #   'All Clients' => :all_clients,
+      #   'Youth' => :youth,
+      #   'Veterans' => :veteran,
+      # }
     end
     helper_method :available_sub_populations
 

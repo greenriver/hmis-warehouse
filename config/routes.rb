@@ -30,6 +30,7 @@ Rails.application.routes.draw do
         post :confirm
       end
     end
+    resources :account_requests, only: [:new, :create]
   end
 
   get '/user_training', to: 'user_training#index'
@@ -129,26 +130,6 @@ Rails.application.routes.draw do
     end
   end
 
-  def sub_populations
-    [
-      :all_clients,
-      :clients,
-      :childrens,
-      :children,
-      :families,
-      :youth_families,
-      :individual_adults,
-      :non_veterans,
-      :family_parents,
-      :parenting_childrens,
-      :parenting_children,
-      :parenting_youths,
-      :unaccompanied_minors,
-      :veterans,
-      :youths,
-    ].freeze
-  end
-
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
@@ -163,13 +144,14 @@ Rails.application.routes.draw do
 
   namespace :reports do
     namespace :hic do
-      resource :export, only: [:show]
+      resource :export, only: [:show, :create]
       resource :organization, only: [:show]
       resource :project, only: [:show]
       resource :inventory, only: [:show]
       resource :site, only: [:show]
       resource :geography, only: [:show]
       resource :funder, only: [:show]
+      resource :project_coc, only: [:show]
     end
   end
   namespace :hud_reports do
@@ -192,6 +174,12 @@ Rails.application.routes.draw do
     resources :user_login, only: [:index]
   end
   namespace :warehouse_reports do
+    resources :overlapping_coc_utilization, only: [:index] do
+      collection do
+        get :overlap
+        get :details
+      end
+    end
     resources :ce_assessments, only: [:index]
     resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
@@ -354,6 +342,7 @@ Rails.application.routes.draw do
     end
     namespace :health do
       resources :overview, only: [:index]
+      resources :aco_performance, only: [:index]
       resources :agency_performance, only: [:index] do
         collection do
           post :detail
@@ -455,6 +444,7 @@ Rails.application.routes.draw do
       end
     end
     resources :coordinated_entry_assessments, controller: 'clients/coordinated_entry_assessments'
+    resource :youth_intake, controller: 'clients/youth/intake'
     resources :youth_intakes, controller: 'clients/youth/intakes'
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
@@ -476,7 +466,9 @@ Rails.application.routes.draw do
       post :batch_download, on: :collection
       get :pre_populated, on: :collection
     end
-    resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
+    resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes' do
+      get :alerts, on: :collection
+    end
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
@@ -563,33 +555,24 @@ Rails.application.routes.draw do
     get :date_range, on: :collection
     get :details, on: :collection
   end
-  namespace :census do
-    resources :project_types, only: [:index] do
-      get :json, on: :collection
-    end
-  end
+
   resources :dashboards, only: [:index]
-  namespace :dashboards do
-    sub_populations.each do |sub_population|
-      resources(sub_population, only: [:index]) do
-        collection do
-          get :active
-          get :housed
-          get :entered
-          get 'section/:partial', to: "#{sub_population}#section", as: :section
-        end
-      end
-    end
-  end
 
   namespace :performance_dashboards do
     resources :overview, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "overview#section", as: :section
+      get :filters, on: :collection
+    end
+    resources :household, only: [:index] do
+      get :details, on: :collection
+      get 'section/:partial', on: :collection, to: "household#section", as: :section
+      get :filters, on: :collection
     end
     resources :project_type, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "project_type#section", as: :section
+      get :filters, on: :collection
     end
   end
 
@@ -745,6 +728,9 @@ Rails.application.routes.draw do
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
     end
+    resources :account_requests, only: [:index, :edit, :update, :destroy] do
+      post :confirm
+    end
 
     resources :roles
     resources :groups
@@ -753,6 +739,11 @@ Rails.application.routes.draw do
     namespace :dashboard do
       resources :imports, only: [:index]
       resources :debug, only: [:index]
+    end
+    resources :de_duplication, only: [:index] do
+      collection do
+        patch :update
+      end
     end
     namespace :health do
       resources :admin, only: [:index]
@@ -813,6 +804,10 @@ Rails.application.routes.draw do
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
+
+  resources :document_exports, only: [:show, :create] do
+    get :download, on: :member
+  end
 
   resources :public_files, only: [:show]
   resources :public_agencies, only: [:index]

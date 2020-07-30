@@ -12,14 +12,14 @@ module GrdaWarehouse
     has_paper_trail
 
     has_and_belongs_to_many :projects,
-      class_name: GrdaWarehouse::Hud::Project.name,
+      class_name: 'GrdaWarehouse::Hud::Project',
       join_table: :project_project_groups
 
     has_many :data_quality_reports,
-      class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
+      class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
     has_one :current_data_quality_report, -> do
       where(processing_errors: nil).where.not(completed_at: nil).order(created_at: :desc).limit(1)
-    end, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
+    end, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
 
     has_many :contacts, through: :projects
     has_many :organization_contacts, through: :projects

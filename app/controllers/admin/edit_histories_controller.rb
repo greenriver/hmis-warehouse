@@ -11,14 +11,20 @@ module Admin
 
     def show
       pt_a = PaperTrail::Version.arel_table
-      edits = PaperTrail::Version.where(pt_a[:item_id].eq(@user_id).and(pt_a[:item_type].eq('User')).
-          or(pt_a[:referenced_user_id].eq(@user_id)))
-      @versions = edits.where.not(whodunnit: nil).order(created_at: :desc).page(params[:page]).per(25)
+      edits = PaperTrail::Version.where(
+        pt_a[:item_id].eq(@user_id).and(pt_a[:item_type].eq('User')).
+        or(pt_a[:referenced_user_id].eq(@user_id)),
+      )
+      @versions = edits.where.not(whodunnit: nil).
+        order(created_at: :desc).
+        page(params[:page]).per(500)
     end
 
     def name_of_whodunnit(version)
       who = version.whodunnit
-      User.find(who).name if who.present?
+      return who unless who&.to_i&.to_s == who
+
+      User.find_by(id: who)&.name
     end
     helper_method :name_of_whodunnit
 
@@ -40,7 +46,10 @@ module Admin
 
     def compute_changes_to(version)
       changed = {}
-      current = version.reify
+
+      current = version.reify rescue nil # rubocop:disable Style/RescueModifier
+      return changed unless current
+
       if current.present? && version.event != 'destroy'
         if version.previous.present? && version.previous.object.present?
           previous = version.previous.reify

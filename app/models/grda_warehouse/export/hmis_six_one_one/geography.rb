@@ -11,7 +11,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     self.hud_key = :GeographyID
 
-    belongs_to :project_with_deleted, class_name: GrdaWarehouse::Hud::WithDeleted::Project.name, primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :geographies
+    belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :geographies
 
     # Geography records should be one per ProjectID per CoCCode
     def export_project_related! project_scope:, path:, export:

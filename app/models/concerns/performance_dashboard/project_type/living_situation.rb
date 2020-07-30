@@ -24,12 +24,15 @@ module PerformanceDashboard::ProjectType::LivingSituation
         counted << c_id
       end
 
-      # expose top 5 plus other
+      # expose top 5 plus other, unless we've specified the situations, then use those.
+      # Specifying the situations allows for comparison to the reporting period
+      # FIXME: the problem is that the counts may differ between current and prior period
+      # So the return order may not match
       top_situations = buckets.
         # Ignore blank, 8, 9, 99
         reject { |k, _| k.in?([nil, 8, 9, 99]) }.
         sort_by { |_, v| v.count }.
-        last(10).to_h
+        last(5).to_h
       top_situations[:other] = buckets.except(*top_situations.keys).
         map do |_, v|
           v

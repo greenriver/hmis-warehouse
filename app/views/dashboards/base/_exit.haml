@@ -8,14 +8,14 @@
       %h4.title
         #{@report.sub_population_title.pluralize} Housed to Date
       .metric
-        = link_to_if can_see_client_details?, pluralize(@report.all_housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(range: {start: Reporting::MonthlyReports::Veteran::LOOKBACK_START.to_date, end: Date.current, sub_population: @report.sub_population}, ph: 'true'), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(@report.all_housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(filter: {start: Reporting::MonthlyReports::Base::LOOKBACK_START.to_date, end: Date.current, sub_population: @report.sub_population, ph: 'true'}), target: :_blank
       .description
         total #{@report.sub_population_title.pluralize.downcase} housed to date
     .rrh__enrolled.chunk
       %h4.title
         #{@report.sub_population_title.pluralize} Housed During Reporting Period
       .metric
-        = link_to_if can_see_client_details?, pluralize(@report.housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(range: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population}, ph: 'true'), target: :_blank
+        = link_to_if can_see_client_details?, pluralize(@report.housed_client_count, @report.sub_population_title), warehouse_reports_client_details_exits_path(filter: {start: @start_date, end: @end_date, project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, ph: 'true'}), target: :_blank
       .description
         number of #{@report.sub_population_title.pluralize.downcase} housed during reporting period
 
@@ -24,7 +24,7 @@
 - if @pdf
   = content_for :page_js do
     - if can_see_client_details?
-      - support_link = "#{warehouse_reports_client_details_exits_path(range: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population}, ph: 'true')}"
+      - support_link = "#{warehouse_reports_client_details_exits_path(filter: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, ph: 'true'})}"
     :javascript
       var support_link = '#{support_link}'
 

@@ -22,9 +22,12 @@ jobs:
    # Service containers to run with job
    services:
      postgres:
-       image: postgres:11-alpine
+       image: kartoza/postgis:12.1
        env:
          POSTGRES_PASSWORD: postgres
+         POSTGRES_USER: postgres
+         POSTGRES_PASS: postgres
+         POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
        # Set health checks to wait until postgres has started
        options: >-
          --health-cmd pg_isready
@@ -60,9 +63,12 @@ jobs:
            imagemagick \
            libc6-dev \
            libcurl4-openssl-dev \
+           libgeos-dev \
            libicu-dev \
            libmagic-dev \
            libpq-dev \
+           libproj-dev \
+           postgis \
            postgresql-client \
            python \
            unzip \
@@ -114,43 +120,44 @@ jobs:
          DATABASE_APP_DB_TEST: boston_hmis_test
          DATABASE_DB_TEST: boston_cas_test
          DATABASE_HOST: postgres
-         HEALTH_DATABASE_HOST: postgres
-         REPORTING_DATABASE_HOST: postgres
-         WAREHOUSE_DATABASE_HOST: postgres
          DATABASE_PASS: postgres
-         HEALTH_DATABASE_PASS: postgres
-         REPORTING_DATABASE_PASS: postgres
-         WAREHOUSE_DATABASE_PASS: postgres
          DATABASE_USER: postgres
-         HEALTH_DATABASE_USER: postgres
-         REPORTING_DATABASE_USER: postgres
-         WAREHOUSE_DATABASE_USER: postgres
          DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
          DEFAULT_FROM: greenriver.testing@mailinator.com
          ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
          FQDN: openpath.host
          HEALTH_DATABASE_ADAPTER: postgresql
          HEALTH_DATABASE_DB_TEST: health_test
+         HEALTH_DATABASE_HOST: postgres
+         HEALTH_DATABASE_PASS: postgres
+         HEALTH_DATABASE_USER: postgres
          HEALTH_FROM: greenriver.testing@mailinator.com
          HOSTNAME: openpath.host
          PORT: 80
          RAILS_ENV: test
          REPORTING_DATABASE_ADAPTER: postgresql
          REPORTING_DATABASE_DB_TEST: test_boston_reporting
-         WAREHOUSE_DATABASE_ADAPTER: postgresql
+         REPORTING_DATABASE_HOST: postgres
+         REPORTING_DATABASE_PASS: postgres
+         REPORTING_DATABASE_USER: postgres
+         WAREHOUSE_DATABASE_ADAPTER: postgis
          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+         WAREHOUSE_DATABASE_HOST: postgres
+         WAREHOUSE_DATABASE_PASS: postgres
+         WAREHOUSE_DATABASE_USER: postgres
        run: |
-         bin/db_prep
+        pg_isready -h postgres -U postgres
+        bin/db_prep
 
-         echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-         chmod 600 ~/.pgpass
+        echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+        chmod 600 ~/.pgpass
 
-         #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f db/make_repair_sequences_script.sql > repair.sql
-         #echo repair.sql
-         #echo repairing sequences
-         #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f repair.sql
+        #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f db/make_repair_sequences_script.sql > repair.sql
+        #echo repair.sql
+        #echo repairing sequences
+        #psql -U postgres -h postgres -d $DATABASE_WAREHOUSE_DB_TEST -f repair.sql
 
-         npm install
+        npm install
 
      - name: Run tests
        env:
@@ -159,31 +166,31 @@ jobs:
          DATABASE_APP_DB_TEST: boston_hmis_test
          DATABASE_DB_TEST: boston_cas_test
          DATABASE_HOST: postgres
-         HEALTH_DATABASE_HOST: postgres
-         REPORTING_DATABASE_HOST: postgres
-         WAREHOUSE_DATABASE_HOST: postgres
          DATABASE_PASS: postgres
-         HEALTH_DATABASE_PASS: postgres
-         REPORTING_DATABASE_PASS: postgres
-         WAREHOUSE_DATABASE_PASS: postgres
          DATABASE_USER: postgres
-         HEALTH_DATABASE_USER: postgres
-         REPORTING_DATABASE_USER: postgres
-         WAREHOUSE_DATABASE_USER: postgres
          DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
          DEFAULT_FROM: greenriver.testing@mailinator.com
          ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
          FQDN: openpath.host
          HEALTH_DATABASE_ADAPTER: postgresql
          HEALTH_DATABASE_DB_TEST: health_test
+         HEALTH_DATABASE_HOST: postgres
+         HEALTH_DATABASE_PASS: postgres
+         HEALTH_DATABASE_USER: postgres
          HEALTH_FROM: greenriver.testing@mailinator.com
          HOSTNAME: openpath.host
          PORT: 80
          RAILS_ENV: test
          REPORTING_DATABASE_ADAPTER: postgresql
          REPORTING_DATABASE_DB_TEST: test_boston_reporting
-         WAREHOUSE_DATABASE_ADAPTER: postgresql
+         REPORTING_DATABASE_HOST: postgres
+         REPORTING_DATABASE_PASS: postgres
+         REPORTING_DATABASE_USER: postgres
+         WAREHOUSE_DATABASE_ADAPTER: postgis
          WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+         WAREHOUSE_DATABASE_HOST: postgres
+         WAREHOUSE_DATABASE_PASS: postgres
+         WAREHOUSE_DATABASE_USER: postgres
          WKHTMLTOPDF_PATH: /usr/bin/wkhtmltopdf
        run: |
          bundle exec rspec --color --format documentation

@@ -59,8 +59,8 @@ module Clients::Youth
     def create
       @intake = intake_source.new(user_id: current_user.id, client_id: @client.id)
       @intake.assign_attributes(intake_params)
-      @intake.client_race = intake_params[:client_race].select(&:present?).to_json
-      @intake.disabilities = intake_params[:disabilities].select(&:present?).to_json
+      @intake.client_race = intake_params[:client_race].select(&:present?)
+      @intake.disabilities = intake_params[:disabilities].select(&:present?)
 
       set_other_options
       @intake.save
@@ -144,7 +144,6 @@ module Clients::Youth
         :unaccompanied,
         :street_outreach_contact,
         :housing_status,
-        :other_agency_involvement,
         :owns_cell_phone,
         :secondary_education,
         :attending_college,
@@ -165,6 +164,7 @@ module Clients::Youth
         :other_language,
         :other_how_hear,
         :turned_away,
+        other_agency_involvements: [],
         client_race: [],
         disabilities: [],
       )

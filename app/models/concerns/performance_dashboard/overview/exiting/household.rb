@@ -11,14 +11,16 @@ module PerformanceDashboard::Overview::Exiting::Household
   def exiting_by_household
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = household_buckets.map { |b| [b, []] }.to_h
-      counted = Set.new
+      counted = {}
       exiting.
         joins(:client).
         order(first_date_in_program: :desc).
-        pluck(:client_id, :individual_adult, :age, :other_clients_under_18, :children_only, :first_date_in_program).each do |id, individual_adult, age, other_clients_under_18, children_only, _| # rubocop:disable Metrics/ParameterLists
-        buckets[household_bucket(individual_adult, age, other_clients_under_18, children_only)] << id unless counted.include?(id)
-        counted << id
-      end
+        select(:client_id, :age, :other_clients_under_18, :other_clients_between_18_and_25, :other_clients_over_25, :first_date_in_program).
+        each do |row|
+          counted[household_bucket(row)] ||= Set.new
+          buckets[household_bucket(row)] << row.client_id unless counted[household_bucket(row)].include?(row.client_id)
+          counted[household_bucket(row)] << row.client_id
+        end
       buckets
     end
   end
@@ -27,18 +29,20 @@ module PerformanceDashboard::Overview::Exiting::Household
     @exiting_by_household_data_for_chart ||= begin
       columns = [date_range_words]
       columns += exiting_by_household.values.map(&:count).drop(1) # ignore :all
-      categories = exiting_by_household.keys.map do |type|
-        household_type(type)
-      end.drop(1) # ignore :all
-      {
-        columns: columns,
-        categories: categories,
-      }
+      categories = exiting_by_household.keys.drop(1) # ignore :all
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, household_type(s)] }.to_h,
+          chosen: [@household_type].compact,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 
   private def exiting_by_household_details(options)
-    sub_key = options[:sub_key]&.to_i
+    sub_key = options[:sub_key]&.to_sym
     ids = if sub_key
       exiting_by_household[sub_key]
     else

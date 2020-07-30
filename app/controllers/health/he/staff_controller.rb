@@ -16,7 +16,7 @@ module Health::He
     end
 
     def new
-      @staff = @case.staffs.build
+      @staff = @case.staffs.build(investigator: @case.investigator)
     end
 
     def create
@@ -39,6 +39,7 @@ module Health::He
 
     def staff_params
       params.require(:health_tracing_staff).permit(
+        :investigator,
         :date_interviewed,
         :first_name,
         :last_name,

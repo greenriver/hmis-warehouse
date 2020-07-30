@@ -9,7 +9,7 @@ module GrdaWarehouse::Census
     include TsqlImport
     self.table_name = "nightly_census_by_projects"
 
-    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
 
     scope :by_project_id, -> (project_id) do
       where(project_id: project_id)
@@ -37,6 +37,20 @@ module GrdaWarehouse::Census
 
     scope :so, -> do
       joins(:project).merge(GrdaWarehouse::Hud::Project.so)
+    end
+
+    def self.view_column_names
+      [
+        'id',
+        'date',
+        'project_id',
+        'veterans',
+        'non_veterans',
+        'children',
+        'adults',
+        'all_clients',
+        'beds',
+      ]
     end
   end
 end

@@ -9,6 +9,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::ProjectCoc
     include ArelHelper
+    require 'csv'
 
     attr_accessor :source_id
 
@@ -20,6 +21,7 @@ module GrdaWarehouse::Hud
     has_many :geographies, class_name: 'GrdaWarehouse::Hud::Geography', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
     has_many :inventories, class_name: 'GrdaWarehouse::Hud::Inventory', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
     belongs_to :data_source
+    has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :project_coc
 
     scope :in_coc, -> (coc_code:) do
       # hud_coc_code overrides CoCCode
@@ -70,6 +72,32 @@ module GrdaWarehouse::Hud
             coc_code,
           ]
         end
+    end
+
+    # when we export, we always need to replace ProjectCoCID with the value of id
+    # and ProjectID with the id of the related project
+    def self.to_csv(scope:)
+      attributes = self.hud_csv_headers.dup
+      headers = attributes.clone
+      attributes[attributes.index(:ProjectCoCID)] = :id
+      attributes[attributes.index(:ProjectID)] = 'project.id'
+
+      CSV.generate(headers: true) do |csv|
+        csv << headers
+
+        scope.each do |i|
+          csv << attributes.map do |attr|
+            attr = attr.to_s
+            # we need to grab the appropriate id from the related project
+            if attr.include?('.')
+              obj, meth = attr.split('.')
+              i.send(obj).send(meth)
+            else
+              i.send(attr)
+            end
+          end
+        end
+      end
     end
   end
 end

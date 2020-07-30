@@ -174,6 +174,21 @@ module GrdaWarehouse::WarehouseReports
       if @filter.limit_to_vispdats
         scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids)
       end
+      if @filter.ethnicities.present?
+        scope = scope.joins(:client).where(c_t[:Ethnicity].in(@filter.ethnicities))
+      end
+      race_filter = nil
+      @filter.races.each do |race|
+        if race_filter
+          race_filter = race_filter.or(c_t[race].eq(1))
+        else
+          race_filter = c_t[race].eq(1)
+        end
+      end
+      scope = scope.joins(:client).where(race_filter) if race_filter.present?
+      if @filter.genders.present?
+        scope = scope.joins(:client).where(c_t[:Gender].in(@filter.genders))
+      end
 
       return scope
     end

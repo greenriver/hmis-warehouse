@@ -1,0 +1,49 @@
+.row
+  .col-12
+    %p
+      Report includes information between
+      %strong
+        #{Date.current.beginning_of_year}
+      and
+      %strong
+        #{Date.current}.
+    %p
+      Patients are included if they are at least 18 y.o. as of #{@report.start_date}, less than 64 y.o. as of
+      #{@report.end_date.end_of_year}, and assigned to the ACO between #{@report.start_date} and #{@report.end_date}.
+
+.row.text-center
+  .col-3.well
+    %strong
+      Total patients
+    %br
+      = @report.patient_referrals.count
+  .col-3.well
+    %strong
+      Patients with Care Plans
+    %br
+      = @report.qa_signature_dates.keys.count
+  .col-3.well
+    %strong
+      Care Plans signed within 122 days
+    %br
+      = @report.with_careplans_in_122_days_status.values.count(true)
+  .col-3.well
+    %strong
+      Percentage of Patients with Care Plans signed within 122 days
+    %br
+      - percent = (@report.patient_referrals.count / @report.with_careplans_in_122_days_status.values.count(true).to_f * 100).round rescue 0
+      = "#{percent}%"
+
+.row.mt-4
+  %table.table
+    %thead
+      %tr
+        %th Patient Name
+        %th Signed Care Plan
+        %th Signed within 122 days
+    %tbody
+      - @report.patients.each do |patient|
+        %tr
+          %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
+          %td= checkmark(@report.qa_signature_dates[patient.id].present?)
+          %td= checkmark(@report.with_careplans_in_122_days_status[patient.id].present?)

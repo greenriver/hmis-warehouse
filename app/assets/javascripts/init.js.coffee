@@ -2,8 +2,12 @@
 App.init = ->
   App.select2.init()
   $('abbr').tooltip();
-  $('[data-toggle="tooltip"]').tooltip();
-  $('[data-toggle="popover"]').popover();
+  $('body').tooltip({
+    selector: '[data-toggle="tooltip"]'
+  });
+  $('body').popover({
+    selector: '[data-toggle="popover"]'
+  });
   $.fn.datepicker.defaults.format = "M d, yyyy";
   $('.nav-tabs .active-tab').on 'click', 'a', (e)->
     e.preventDefault()

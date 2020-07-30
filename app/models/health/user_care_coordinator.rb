@@ -12,7 +12,7 @@ module Health
     phi_attr :care_coordinator_id, Phi::SmallPopulation
 
     belongs_to :user
-    belongs_to :care_coordinator, class_name: User.name
+    belongs_to :care_coordinator, class_name: 'User'
     validates_presence_of :user_id
     validates_presence_of :care_coordinator_id
   end

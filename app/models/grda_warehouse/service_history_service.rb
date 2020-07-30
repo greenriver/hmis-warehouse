@@ -9,7 +9,7 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   include ServiceHistoryServiceConcern
 
   belongs_to :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id], inverse_of: :service_history_services
-  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+  belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   has_one :enrollment, through: :service_history_enrollment
 
   scope :service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
@@ -80,6 +80,14 @@ end
 
   def self.parent_table
     :service_history_services
+  end
+
+  def self.view_column_names
+    column_names - [
+      'service_type',
+      'homeless',
+      'literally_homeless',
+    ]
   end
 
   # schema.rb doesn't include tiggers or functions

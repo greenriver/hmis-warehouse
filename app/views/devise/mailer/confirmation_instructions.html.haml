@@ -1,5 +1,22 @@
-%p
-  Welcome #{@email}!
-%p You can confirm your account email through the link below:
-%p= link_to 'Confirm my account', confirmation_url(@resource, confirmation_token: @token)
-%p= confirmation_url(@resource, confirmation_token: @token)
+%p.content
+  Hello #{@resource.name},
+
+%p.content
+  An account has been created for you for the
+  #{_('City of Boston DND Warehouse')}.
+  Please follow the link below to finish confirming your
+  account:
+  %br
+  %strong
+    = link_to 'Confirm my account', confirmation_url(@resource, confirmation_token: @token)
+
+%p.content
+  If the link doesn't work, you can copy and paste
+  %br
+  = confirmation_url(@resource, confirmation_token: @token)
+  %br
+  into a browser window.
+
+%p.content
+  If you are not #{@resource.name} or do not want to create an account at this
+  time, please ignore this email.

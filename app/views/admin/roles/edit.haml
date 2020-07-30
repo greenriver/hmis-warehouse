@@ -3,8 +3,26 @@
 %h1
   Edit Role:
   = @role.name
-= render 'form'
-.text-right
-  = link_to admin_role_path(@role),  method: :delete, data: {confirm: "Would you really like to delete #{@role.name}?"} do
-    %span.icon-cross
-    Delete
+  = render 'new_form'
+- if @users.count.zero?
+  .mt-6
+    %p No users are assigned to this role, it may be deleted.
+    .text-right
+      = link_to admin_role_path(@role),  method: :delete, data: {confirm: "Would you really like to delete #{@role.name}?"}, class: 'btn btn-danger' do
+        %span.icon-cross
+        Delete Role
+- else
+  %p The following users have this role assigned.
+  .users.table-responsive
+    %table.table.table-condensed
+      %thead
+        %tr
+          %th First Name
+          %th Last Name
+          %th Email
+      %tbody
+        - @users.each do |user|
+          %tr
+            %td= user.first_name
+            %td= user.last_name
+            %td= user.email

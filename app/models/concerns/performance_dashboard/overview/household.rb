@@ -20,10 +20,11 @@ module PerformanceDashboard::Overview::Household
     end.to_h
   end
 
-  def household_bucket(individual_adult, age, other_clients_under_18, children_only)
-    return :without_children if individual_adult
-    return :only_children if children_only
-    return :with_children if age.present? && age > 17 && other_clients_under_18.positive?
+  def household_bucket(enrollment)
+    return :unknown if enrollment.age.blank?
+    return :without_children if enrollment.age > 17 && enrollment.other_clients_under_18.zero?
+    return :only_children if enrollment.age < 18 && enrollment.other_clients_between_18_and_25.zero? && enrollment.other_clients_over_25.zero?
+    return :with_children if (enrollment.age > 17 && enrollment.other_clients_under_18.positive?) || (enrollment.age < 18 && (enrollment.other_clients_between_18_and_25.positive? || enrollment.other_clients_over_25.positive?))
 
     :unknown
   end
@@ -32,9 +33,14 @@ module PerformanceDashboard::Overview::Household
     return '0=1' unless key
 
     @household_queries ||= {
-      without_children: she_t[:individual_adult].eq(true).or(she_t[:age].eq(nil)),
-      with_children: she_t[:age].gt(17).and(she_t[:other_clients_under_18].gt(0)),
-      only_children: she_t[:children_only].eq(true),
+      without_children: she_t[:other_clients_under_18].eq(0).and(she_t[:age].gteq(18).or(she_t[:age].eq(nil))),
+      with_children: she_t[:age].gteq(18).and(she_t[:other_clients_under_18].gt(0)).
+        or(she_t[:age].lt(18).
+            and(
+              she_t[:other_clients_between_18_and_25].gt(0).
+              or(she_t[:other_clients_over_25].gt(0)),
+            )),
+      only_children: she_t[:age].lt(18).and(she_t[:other_clients_between_18_and_25].eq(0)).and(she_t[:other_clients_over_25].eq(0)),
     }
     @household_queries[key.to_sym]
   end

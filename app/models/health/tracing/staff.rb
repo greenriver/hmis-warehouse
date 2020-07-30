@@ -51,6 +51,7 @@ module Health::Tracing
 
     def self.label_for(column_name)
       @label_for ||= {
+        investigator: 'Investigator name',
         first_name: 'First name',
         last_name: 'Last name',
         phone: 'Phone number',

@@ -9,8 +9,8 @@ module GrdaWarehouse::Contact
     self.table_name = :contacts
     acts_as_paranoid
 
-    has_many :data_quality_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
-    has_many :report_tokens, foreign_key: :contact_id, class_name: GrdaWarehouse::ReportToken.name
+    has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
+    has_many :report_tokens, foreign_key: :contact_id, class_name: 'GrdaWarehouse::ReportToken'
 
     validates_email_format_of :email
 

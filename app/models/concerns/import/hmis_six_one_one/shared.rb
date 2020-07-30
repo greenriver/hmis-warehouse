@@ -22,7 +22,11 @@ module Import::HMISSixOneOne::Shared
   end
 
   def log(message)
-    @notifier&.ping message
+    begin
+      @notifier&.ping message
+    rescue Slack::Notifier::APIError
+      sleep(3)
+    end
     logger.info message if @debug
   end
 

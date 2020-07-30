@@ -1,0 +1,36 @@
+%h3 Client Search Results
+- @search_results.each do |client|
+  - if client.alert_notes.exists?
+    .service-scanning__active-alerts.text-center
+      = link_to alerts_client_notes_path(client), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
+        %i.icon-warning
+        #{pluralize(client.alert_notes.count, 'active alert')}
+  .well
+    .row
+      .col-6
+        = render 'clients/search/aliases', client: client
+      .col-6
+        - if client.image
+          .ml-auto.mt-2.client__image{ style: "background-image: url(#{ image_client_path(id: client.id) })" }
+    .row
+      .col-8
+        - ages = client.source_clients.searchable_by(current_user).map{|m| [m.DOB, m.age].compact}.uniq.select(&:present?)
+        - if ages.any?
+          - # Note only show year and age for list
+          .text-bold Year of Birth (age)
+          - ages.each do |dob, age|
+            .no-wrap
+              - if dob.present?
+                #{dob&.year} (#{age})
+      .col-4.text-right.mt-6
+        .view_client_button
+          = link_to client_path(client), class: 'btn btn-secondary btn-sm', target: :_blank do
+            View Client
+            %i.icon-arrow-circled-right.mr-0.ml-2
+        .add_service_button
+          = link_to service_scanning_services_path(service: index_params.merge(client_id: client.id)), class: 'btn btn-primary btn-sm mt-6', method: :post do
+            %i.icon-plus
+            Add Service
+
+
+

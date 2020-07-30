@@ -13,6 +13,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     after_commit :force_validity_calculation
 
+    SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so]
+
     scope :unprocessed, -> do
       where(processed_as: nil)
     end
@@ -221,7 +223,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def calculate_hash
-      @calculate_hash ||= self.class.calculate_hash_for(id)
+      # Use ProjectType to ignore overrides
+      @calculate_hash ||= self.class.calculate_hash_for(id, self.project.ProjectType)
     end
 
     # limit the date range so we can speed up partitioning searches
@@ -299,7 +302,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @date_range = nil
     end
 
-    def self.calculate_hash_for(id)
+    def self.calculate_hash_for(id, project_type)
       # Rails.logger.debug '===RebuildEnrollmentsJob=== Calculating Hash'
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
 
@@ -310,18 +313,18 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # rows = source_rows(id)
       # Digest::SHA256.hexdigest(rows.to_s)
 
-      rows = source_rows(id)
+      rows = source_rows(id, project_type)
       Digest::SHA256.hexdigest rows.join('|')
     end
 
-    def self.source_rows(id)
+    def self.source_rows(id, project_type)
       # This must be explicitly ordered since the database doesn't always
       # return data in the same order
       where(id: id).
-        includes(:exit, :services, :destination_client).
-        references(:exit, :services, :destination_client).
+        includes(:exit, :services, :current_living_situations, :destination_client).
+        references(:exit, :services, :current_living_situations, :destination_client).
         order(*enrollment_column_order).
-        pluck(Arel.sql(nf('CONCAT', hash_columns).to_sql))
+        pluck(Arel.sql(nf('CONCAT', hash_columns(project_type)).to_sql))
     end
 
     def default_day
@@ -344,7 +347,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         organization_id: project.OrganizationID,
         project_tracking_method: project.TrackingMethod,
         record_type: nil,
-        housing_status_at_entry: self.HousingStatus,
+        housing_status_at_entry: self.LivingSituation,
         housing_status_at_exit: exit&.HousingAssessment,
         other_clients_over_25: other_clients_over_25,
         other_clients_under_18: other_clients_under_18,
@@ -689,8 +692,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # Our hash needs to be different if any of the source data has changed,
     # if any of the destination data has changed
     # or if the enrollment has been connected to a new destination client
-    def self.hash_columns
-      @hash_columns ||= begin
+    def self.hash_columns(project_type)
+      @hash_columns = begin
         columns = enrollment_hash_columns.values.map do |col|
           [e_t[col], '_']
         end
@@ -703,12 +706,18 @@ module GrdaWarehouse::Tasks::ServiceHistory
         columns += client_hash_columns.values.map do |col|
           [c_t[col], '_']
         end
+        # Only include living situations in SO, to avoid rebuilding everything
+        if SO.include?(project_type)
+          columns += living_situation_hash_columns.values.map do |col|
+            [cls_t[col], '_']
+          end
+        end
         columns.flatten
       end
     end
 
     def self.enrollment_column_order
-      @enrollment_column_order ||= begin
+      enrollment_column_order = begin
         columns = enrollment_hash_columns.values.map do |col|
           Arel.sql(e_t[col].asc.to_sql + ' NULLS FIRST')
         end
@@ -721,17 +730,28 @@ module GrdaWarehouse::Tasks::ServiceHistory
         columns += client_hash_columns.values.map do |col|
           Arel.sql(c_t[col].asc.to_sql + ' NULLS FIRST')
         end
+        columns += living_situation_hash_columns.values.map do |col|
+          Arel.sql(cls_t[col].asc.to_sql + ' NULLS FIRST')
+        end
         columns
       end
     end
 
+    def self.living_situation_hash_columns
+      {
+        information_date: :InformationDate,
+        deleted_at: :DateDeleted,
+        data_source_id: :data_source_id,
+        updated_at: :DateUpdated,
+      }.freeze
+    end
     def self.client_hash_columns
-       @client_hash_columns ||= {
-          destination_client_id: :id,
-       }
+      {
+        destination_client_id: :id,
+      }.freeze
     end
     def self.enrollment_hash_columns
-      @enrollment_hash_columns ||= {
+      {
         id: :id,
         data_source_id: :data_source_id,
         entry_date: :EntryDate,
@@ -741,26 +761,26 @@ module GrdaWarehouse::Tasks::ServiceHistory
         head_of_household: :RelationshipToHoH,
         move_in_date: :MoveInDate,
         updated_at: :DateUpdated,
-      }
+      }.freeze
     end
 
     def self.exit_hash_columns
-      @exit_hash_columns ||= {
+      {
         exit_date: :ExitDate,
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
         destination: :Destination,
         updated_at: :DateUpdated,
-      }
+      }.freeze
     end
 
     def self.service_hash_columns
-      @service_hash_columns = {
+      {
         date_provided: :DateProvided,
         deleted_at: :DateDeleted,
         data_source_id: :data_source_id,
         updated_at: :DateUpdated,
-      }
+      }.freeze
     end
 
     # def self.service_history_hash_columns

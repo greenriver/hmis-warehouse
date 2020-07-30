@@ -1,0 +1,4 @@
+.d-flex
+  - if health_emergency?
+    .client-tabs__health-emergency.health-emergency
+      = render "clients/#{health_emergency}", client: @client

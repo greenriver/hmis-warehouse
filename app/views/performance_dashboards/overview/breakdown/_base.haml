@@ -1,19 +1,67 @@
-.d-flex.flex-wrap.justify-content-between.align-items-end.mb-2
-  %header.mb-2.mr-4{style: 'flex: 1; min-width: 300px'}
-    %h2= key.to_s.titleize
-    %p.description.mb-0= desc
-  .d-flex.mb-2
-    .report-period.mr-6
-      %h4.m-0 Report Period
-      %p.mb-0 #{@report.date_range_words}
-      - count = @report.enrolled_total_count
-      = link_to_if show_client_details?, "Total Unique #{'Client'.pluralize(count)}: #{count}", details_performance_dashboards_overview_index_path(detail_params), data: {loads_in_pjax_modal: true}
-    - if @report.include_comparison?
-      .comparison-period
-        %h4.m-0 Comparison Period
-        %p.mb-0 #{@comparison.date_range_words}
-        - count = @comparison.enrolled_total_count
-        = link_to_if show_client_details?, "Total Unique #{'Client'.pluralize(count)}: #{count}", details_performance_dashboards_overview_index_path(comparison_params), data: {loads_in_pjax_modal: true}
+:ruby
+  key_title = {
+    enrolled: "Enrolled & Active",
+    entering: "Entering",
+    exiting: "Exiting",
+  }.fetch(key)
+  key_title = "#{key_title} #{@report.performance_type.pluralize}"
+  (_, breakdown_title) = @report.available_breakdowns.detect { |id, _| id == breakdown }
 
+  legend_id = "legend-#{SecureRandom.hex(8)}"
+  excluded_categories = local_assigns[:excluded_categories].presence
+  chart_options = {
+    params: { filters: detail_params },
+    columns: columns,
+    categories: categories,
+    legendBindTo: "##{legend_id}",
+    options: {
+      height: chart_height,
+      follow_link: show_client_details?,
+      link_base: @report.detail_link_base,
+      key: key,
+      sub_keys: sub_keys,
+      date_ranges: {
+        report: {
+          start_date: @report.start_date,
+          end_date: @report.end_date,
+        },
+        comparison: {
+          start_date: @comparison.start_date,
+          end_date: @comparison.end_date,
+        }
+      }
+    }
+  }
+
+%h2.mb-3= [key_title, breakdown_title].compact.join(': ')
+.row
+  .col-md-8
+    .description.mb-5
+      = desc
+      - note_content = '<p>Clients with multiple enrollments may be counted in multiple categories.'
+      - if excluded_categories.present?
+        - note_content += '<br/>Data explicitly excluded from the universe is not shown. </p>'
+        - note_content += '<p class="font-weight-bold mr-2">Currently excluding: <ul class="list-inline d-inline mt-4">'
+        - excluded_categories.each do |cat|
+          - note_content += "<li class='list-inline-item chip-v1-prs1'>#{cat}</li>"
+        - note_content += '</ul></div></div>'
+      - note_content += '</p>'
+      %span.icon-info{data: {toggle: :popover, title: 'Note', placement: :bottom, trigger: :focus, content: note_content, html: :true }}
+    = render 'performance_dashboards/overview/universe_selection'
+  .col-md-4
+    - if @report.include_comparison?
+      .mb-1.h5-prs1 Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}:
+      .mb-1.gray.font-weight-normal
+        Reporting Period:
+        = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
+      .mb-1.gray.font-weight-normal
+        Comparison Period:
+        = link_to_if show_client_details?, number_with_delimiter(client_counts[:comparison]), polymorphic_path(@report.detail_path_array, { filters: comparison_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
+    - else
+      .mb-1.gray.font-weight-normal.text-right
+        Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}:
+        = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
+
+.chart-legend-prs1{id: legend_id}
 .well.mb-6.pt-0
-  .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: { columns: columns, categories: categories, options: { follow_link: show_client_details?, link_base: 'performance_dashboards/overview/details', key: key, breakdown: breakdown, sub_keys: sub_keys, params: detail_params, date_ranges: { report: { start_date: @report.start_date, end_date: @report.end_date, }, comparison: { start_date: @comparison.start_date, end_date: @comparison.end_date, } } } }.to_json.html_safe } }
+  .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: chart_options.to_json.html_safe } }

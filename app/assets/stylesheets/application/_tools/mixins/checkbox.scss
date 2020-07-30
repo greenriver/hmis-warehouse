@@ -94,3 +94,28 @@
     }
   }
 }
+
+@mixin checkbox-checked-dirty() {
+  &::before {
+    background: $brand-warning-l;
+    border-color: $brand-warning;
+  }
+  &::after {
+    color: darken($brand-warning, 10%);
+  }
+  &:hover,
+  &:focus {
+    &::before {
+      background: rgba($brand-warning-l, .5);
+    }
+    &::after {
+      color: lighten(desaturate($brand-warning, 35%), 10%);
+    }
+  }
+}
+
+@mixin checkbox-not-checked-dirty() {
+  &::before {
+    border: 2px solid $brand-warning;
+  }
+}

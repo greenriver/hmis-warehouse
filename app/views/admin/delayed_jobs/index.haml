@@ -7,6 +7,7 @@
   %p Showing #{pluralize(@jobs.count, 'job')}
   %table.table.table-hover.table-responsive
     %thead
+      %th ID
       %th Job
       %th Queue
       %th Run at
@@ -21,6 +22,7 @@
         - handler = YAML::load(job.handler) rescue ''
         - class_name = handler.job_data['job_class'] rescue handler.class.name
         %tr
+          %td= job.id
           %td= class_name
           %td= job.queue
           %td= job.run_at
@@ -34,10 +36,9 @@
                 %i.icon-settings_backup_restore
                 Re-queue
           %td
-            - if job.failed_at
-              = link_to admin_delayed_job_path(job), method: :delete, class: 'btn btn-sm btn-danger', data: { confirm: 'Are you sure you want to DELETE this job?, there is no going back.'} do
-                %i.icon-cross
-                Delete
+            = link_to admin_delayed_job_path(job), method: :delete, class: 'btn btn-sm btn-danger', data: { confirm: 'Are you sure you want to DELETE this job?, there is no going back.'} do
+              %i.icon-cross
+              Delete
 
 - else
   %p No current jobs.

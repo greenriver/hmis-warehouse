@@ -1,0 +1,7 @@
+- content_for :title, 'Non-Veteran Dashboard'
+- @show_census = false
+%h1= content_for :title
+- if @html
+  = render 'dashboards/tabs', active: 'non_veterans'
+%p.text-muted
+  Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is not a veteran.

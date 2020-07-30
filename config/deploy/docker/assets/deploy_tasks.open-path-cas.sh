@@ -25,3 +25,8 @@ bundle exec rake cas_seeds:stalled_reasons
 
 echo installing cron
 ./bin/cron_installer.rb
+
+# keep this always at the end of this file
+echo making interface aware this script completed
+bundle exec rake deploy:mark_deployment_id
+echo ---DONE---

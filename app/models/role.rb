@@ -51,6 +51,10 @@ class Role < ApplicationRecord
     return perms
   end
 
+  def self.permission_categories
+    permissions_with_descriptions.map{|perm_key, perm| perm[:categories]}.flatten.uniq
+  end
+
   def self.health_permissions
     health_permissions_with_descriptions.keys
   end
@@ -59,9 +63,14 @@ class Role < ApplicationRecord
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:description] rescue ''
   end
 
+  def self.category_for permission:
+    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:categories] rescue []
+  end
+
   def self.administrative? permission:
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true
   end
+
 
   def self.permissions_with_descriptions
     {
@@ -309,7 +318,7 @@ class Role < ApplicationRecord
         description: 'Administrative ability to fundamentally change the way various items are calculated and to disable/enable modules',
         administrative: true,
         categories: [
-          'Adminstration',
+          'Administration',
         ],
       },
       # Deprecated TODO: remove references, then remove permission
@@ -317,7 +326,7 @@ class Role < ApplicationRecord
         description: 'Management interface for setup of data quality grading scheme',
         administrative: true,
         categories: [
-          'Adminstration',
+          'Administration',
         ],
       },
       can_view_vspdat: {
@@ -376,6 +385,13 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
+      can_delete_youth_intake: {
+        description: 'The ability to delete a Youth Intake record',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_view_own_agency_youth_intake: {
         description: 'Access to existing Youth Intake records associated with the User\'s agency',
         administrative: false,
@@ -425,6 +441,13 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
+      can_view_all_window_notes: {
+        description: 'User will be able to see notes for any client they can already see, this includes only notes of type Window Note, Alert, or Emergency Contact',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_manage_cohorts: {
         description: 'Ability to create, edit, add and remove clients, and see changes to cohorts',
         administrative: true,
@@ -456,6 +479,7 @@ class Role < ApplicationRecord
       can_download_cohorts: {
         description: 'Ability to download the contents of a cohort',
         administrative: false,
+        categories: [],
       },
       can_assign_users_to_clients: {
         description: 'Ability to setup user-client relationships',
@@ -739,10 +763,25 @@ class Role < ApplicationRecord
         ],
       },
       receives_medical_restriction_notifications: {
-        description: 'Email notifications will be sent whenever a medical restriction or test result is added',
+        description: 'Email notifications will be sent whenever a medical restriction or test result is added.',
         administrative: false,
         categories: [
           'Health Emergency',
+        ],
+      },
+      can_use_service_register: {
+        description: 'Grants the ability to scan individual services for a given program.',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
+      can_manage_auto_client_de_duplication: {
+        description: 'Ability to see statistics around client de-duplication and set the threshold for probabilistic matching.',
+        administrative: true,
+        categories: [
+          'Administration',
+
         ],
       },
     }
