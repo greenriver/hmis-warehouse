@@ -45,7 +45,7 @@ module Reporting::MonthlyReports
     end
 
     def self.lookback_start
-      GrdaWarehouse::Config.get(:dashboard_lookback)
+      GrdaWarehouse::Config.get(:dashboard_lookback)&.to_date
     end
 
     def set_dates

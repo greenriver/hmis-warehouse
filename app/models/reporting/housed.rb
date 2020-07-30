@@ -293,7 +293,7 @@ module Reporting
     end
 
     def lookback_date
-      '2016-01-01'.to_date
+      Reporting::MonthlyReports::Base.lookback_start
     end
 
     def enrollment_data
