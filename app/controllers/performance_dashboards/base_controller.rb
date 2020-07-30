@@ -82,6 +82,7 @@ class PerformanceDashboards::BaseController < ApplicationController
         organization_ids: [],
         project_ids: [],
         funder_ids: [],
+        project_group_ids: [],
       ],
     )
     # project_type_codes exists as both a single and multi, ensure it's always
@@ -92,8 +93,8 @@ class PerformanceDashboards::BaseController < ApplicationController
   end
   helper_method :filter_params
 
-  def filter_item_selection_summary(value)
-    render_to_string partial: '/performance_dashboards/filter_controls/helpers/items_selection_summary', locals: { value: value }
+  def filter_item_selection_summary(value, default = 'All')
+    render_to_string partial: '/performance_dashboards/filter_controls/helpers/items_selection_summary', locals: { value: value, default: default }
   end
   helper_method :filter_item_selection_summary
 end

@@ -62,6 +62,8 @@ module Admin
         :auto_de_duplication_reject_threshold,
         :pii_encryption_type,
         :auto_de_duplication_enabled,
+        :request_account_available,
+        :dashboard_lookback,
         client_details: [],
       )
     end

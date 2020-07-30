@@ -8,30 +8,30 @@
       %strong
         #{Date.current}.
     %p
-      Patients are included if they are at least 18 y.o. as of #{@report.start_date}, less than 64 y.o. as of
+      Patients are included if they are at least 18 years old as of #{@report.start_date}, less than 65 years old as of
       #{@report.end_date.end_of_year}, and assigned to the ACO between #{@report.start_date} and #{@report.end_date}.
 
-.row.text-center
-  .col-3.well
+.d-flex.text-center
+  .mr-4.well
     %strong
       Total patients
-    %br
+    %h3.mt-4
       = @report.patient_referrals.count
-  .col-3.well
+  .mr-4.well
     %strong
       Patients with Care Plans
-    %br
+    %h3.mt-4
       = @report.qa_signature_dates.keys.count
-  .col-3.well
+  .mr-4.well
     %strong
       Care Plans signed within 122 days
-    %br
+    %h3.mt-4
       = @report.with_careplans_in_122_days_status.values.count(true)
-  .col-3.well
+  .mr-4.well
     %strong
       Percentage of Patients with Care Plans signed within 122 days
-    %br
-      - percent = (@report.patient_referrals.count / @report.with_careplans_in_122_days_status.values.count(true).to_f * 100).round rescue 0
+    %h3.mt-4
+      - percent = (@report.with_careplans_in_122_days_status.values.count(true).to_f / @report.patient_referrals.count * 100).round rescue 0
       = "#{percent}%"
 
 .row.mt-4
