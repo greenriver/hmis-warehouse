@@ -41,6 +41,7 @@ module Clients::Youth
         :provided_on,
         :type_provided,
         :other,
+        :amount,
       )
     end
 
