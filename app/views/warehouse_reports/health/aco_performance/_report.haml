@@ -31,7 +31,7 @@
     %strong
       Percentage of Patients with Care Plans signed within 122 days
     %br
-      - percent = (@report.patient_referrals.count / @report.with_careplans_in_122_days_status.values.count(true).to_f * 100).round rescue 0
+      - percent = (@report.with_careplans_in_122_days_status.values.count(true).to_f / @report.patient_referrals.count * 100).round rescue 0
       = "#{percent}%"
 
 .row.mt-4
