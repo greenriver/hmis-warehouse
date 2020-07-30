@@ -32,6 +32,10 @@ module PIIAttributeSupport
     allowed_pii_classes.each(&:allow_pii!)
   end
 
+  def self.deny_all_pii!
+    allowed_pii_classes.each(&:deny_pii!)
+  end
+
   # a memoized lookup by class of the columns and attr_encrypted configuration
   # used by pluck
   def self.pii_columns
