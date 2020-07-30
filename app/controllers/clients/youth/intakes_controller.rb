@@ -144,7 +144,6 @@ module Clients::Youth
         :unaccompanied,
         :street_outreach_contact,
         :housing_status,
-        :other_agency_involvement,
         :owns_cell_phone,
         :secondary_education,
         :attending_college,
@@ -165,6 +164,7 @@ module Clients::Youth
         :other_language,
         :other_how_hear,
         :turned_away,
+        other_agency_involvements: [],
         client_race: [],
         disabilities: [],
       )

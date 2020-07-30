@@ -1,0 +1,16 @@
+%ul.nav.nav-tabs
+  - nav_class = if selected_path == admin_users_path then 'active' else '' end
+  %li.nav-item{class: nav_class}
+    = link_to 'Active Accounts', admin_users_path, class: 'nav-link'
+  - nav_class = if selected_path == admin_inactive_users_path then 'active' else '' end
+  %li.nav-item{class: nav_class}
+    = link_to 'Inactive Accounts', admin_inactive_users_path, class: 'nav-link'
+  - if GrdaWarehouse::Config.get(:request_account_available)
+    - nav_class = if selected_path == admin_account_requests_path then 'active' else '' end
+    %li.nav-item{class: nav_class}
+      = link_to admin_account_requests_path, class: 'nav-link' do
+        - pending_count = AccountRequest.requested.count
+        Pending Accounts
+        - if pending_count.positive?
+          .label.label-info
+            = pending_count

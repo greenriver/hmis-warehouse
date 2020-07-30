@@ -30,6 +30,7 @@ Rails.application.routes.draw do
         post :confirm
       end
     end
+    resources :account_requests, only: [:new, :create]
   end
 
   get '/user_training', to: 'user_training#index'
@@ -443,6 +444,7 @@ Rails.application.routes.draw do
       end
     end
     resources :coordinated_entry_assessments, controller: 'clients/coordinated_entry_assessments'
+    resource :youth_intake, controller: 'clients/youth/intake'
     resources :youth_intakes, controller: 'clients/youth/intakes'
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
@@ -725,6 +727,9 @@ Rails.application.routes.draw do
     end
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
+    end
+    resources :account_requests, only: [:index, :edit, :update, :destroy] do
+      post :confirm
     end
 
     resources :roles

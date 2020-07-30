@@ -385,6 +385,13 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
+      can_delete_youth_intake: {
+        description: 'The ability to delete a Youth Intake record',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_view_own_agency_youth_intake: {
         description: 'Access to existing Youth Intake records associated with the User\'s agency',
         administrative: false,

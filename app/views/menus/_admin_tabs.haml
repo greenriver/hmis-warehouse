@@ -1,7 +1,8 @@
 - if can_see_admin_menu?
   %ul.nav.nav-tabs
     - if can_edit_users?
-      %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_users_path))}
+      - on_user_pages = current_page?(admin_users_path) || current_page?(admin_inactive_users_path) || current_page?(admin_account_requests_path)
+      %li.nav-item{role: 'presentation', class: ('active' if on_user_pages)}
         = link_to 'Users', admin_users_path, class: 'nav-link'
     - if can_edit_roles?
       %li.nav-item{role: 'presentation', class: ('active' if current_page?(admin_roles_path))}
