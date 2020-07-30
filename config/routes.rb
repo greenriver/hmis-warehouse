@@ -444,6 +444,7 @@ Rails.application.routes.draw do
       end
     end
     resources :coordinated_entry_assessments, controller: 'clients/coordinated_entry_assessments'
+    resource :youth_intake, controller: 'clients/youth/intake'
     resources :youth_intakes, controller: 'clients/youth/intakes'
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'

@@ -1602,7 +1602,7 @@ module GrdaWarehouse::Hud
       # if we think we're updating, but we've been at it for more than 15 minutes
       # something probably got stuck
       if updating
-        updating = api_update_started_at > 15.minutes.ago
+        updating = api_update_started_at < 15.minutes.ago
       end
       {
         started_at: api_update_started_at,

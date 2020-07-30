@@ -323,7 +323,7 @@ namespace :youth do
       intake[:youth_experiencing_homelessness_at_start] = row[:youth_experiencing_homelessness_at_start] if row[:youth_experiencing_homelessness_at_start].present? && intake[:youth_experiencing_homelessness_at_start].blank?
       intake[:unaccompanied] = row[:unaccompanied] if row[:unaccompanied].present? && intake[:unaccompanied].blank?
       intake[:street_outreach_contact] = row[:street_outreach_contact] if row[:street_outreach_contact].present? && intake[:street_outreach_contact].blank?
-      intake[:other_agency_involvement] = row[:other_agency_involvement] if row[:other_agency_involvement].present? && intake[:other_agency_involvement].blank?
+      intake[:other_agency_involvements] = [row[:other_agency_involvement]] if row[:other_agency_involvement].present? && intake[:other_agency_involvements].blank?
       intake[:owns_cell_phone] = row[:owns_cell_phone] if row[:owns_cell_phone].present? && intake[:owns_cell_phone].blank?
       intake[:secondary_education] = row[:secondary_education] if row[:secondary_education].present? && intake[:secondary_education].blank?
       intake[:attending_college] = row[:attending_college] if row[:attending_college].present? && intake[:attending_college].blank?
@@ -370,7 +370,7 @@ namespace :youth do
         intake[:youth_experiencing_homelessness_at_start] ||= 'No'
         intake[:unaccompanied] ||= 'No'
         intake[:street_outreach_contact] ||= 'No'
-        intake[:other_agency_involvement] ||= 'No'
+        intake[:other_agency_involvements] ||= ['No']
         intake[:owns_cell_phone] ||= 'No'
         intake[:secondary_education] ||= 'No'
         intake[:attending_college] ||= 'No'

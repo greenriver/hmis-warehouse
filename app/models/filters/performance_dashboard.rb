@@ -41,6 +41,7 @@ module Filters
       self.sub_population = filters.dig(:sub_population)&.to_sym
       self.races = filters.dig(:races)&.select { |race| HUD.races.keys.include?(race) }
       self.ethnicities = filters.dig(:ethnicities)&.reject(&:blank?)&.map { |ethnicity| ethnicity.to_i }
+      self.project_group_ids = filters.dig(:project_group_ids)&.reject(&:blank?)&.map { |group| group.to_i }
 
       ensure_dates_work
     end
