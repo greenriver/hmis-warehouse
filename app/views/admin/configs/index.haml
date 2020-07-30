@@ -35,6 +35,10 @@
           = f.input :infer_family_from_household_id, label: 'Should "presented as an individual" be inferred from the count of matching household ids? (unchecked uses project inventory HouseholdType)'
           = f.input :expose_coc_code, label: 'Expose CoC Code on client dashboard rows?', hint: 'This is most useful if the installation spans multiple CoCs'
 
+      %section.o-section-card
+        %h3 Reporting Options
+        .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :dashboard_lookback, as: :date_picker, label: 'Dashboard Lookback Date'
     .col-sm-4
       %section.o-section-card
         %h3 Connections

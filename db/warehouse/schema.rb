@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_24_180227) do
+ActiveRecord::Schema.define(version: 2020_07_29_203440) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1788,6 +1788,7 @@ ActiveRecord::Schema.define(version: 2020_07_24_180227) do
     t.string "pii_encryption_type", default: "none"
     t.boolean "auto_de_duplication_enabled", default: false, null: false
     t.boolean "request_account_available", default: false, null: false
+    t.date "dashboard_lookback", default: "2014-07-01"
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|

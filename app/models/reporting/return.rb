@@ -25,7 +25,7 @@ module Reporting
         homeless.
         # in_project_type([1,2,4,8]).
         where(client_id: client_ids).
-        where(date: ('2016-10-01'.to_date..Date.current)). # arbitrary cut-off, date of first RRH in Boston
+        where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current)).
         order(service_history_enrollment_id: :asc, date: :asc).
         pluck(*source_columns.values).map do |row|
           Hash[source_columns.keys.zip(row)]

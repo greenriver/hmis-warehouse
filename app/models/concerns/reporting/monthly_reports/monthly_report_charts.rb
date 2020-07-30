@@ -55,7 +55,10 @@ module Reporting::MonthlyReports::MonthlyReportCharts
     end
 
     scope :housed, -> do
-      where(destination_id: ::HUD.permanent_destinations)
+      where(
+        destination_id: ::HUD.permanent_destinations,
+        exit_date: Reporting::MonthlyReports::Base.lookback_start..Date.current,
+      )
     end
 
     scope :for_organizations, ->(organization_ids) do

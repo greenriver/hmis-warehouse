@@ -63,6 +63,7 @@ module Admin
         :pii_encryption_type,
         :auto_de_duplication_enabled,
         :request_account_available,
+        :dashboard_lookback,
         client_details: [],
       )
     end
