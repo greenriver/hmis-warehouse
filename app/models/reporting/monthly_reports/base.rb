@@ -14,8 +14,6 @@ module Reporting::MonthlyReports
 
     self.table_name = :warehouse_partitioned_monthly_reports
 
-    LOOKBACK_START = '2014-07-01'
-
     after_initialize :set_dates
     attr_accessor :date_range
 
@@ -46,8 +44,12 @@ module Reporting::MonthlyReports
       available_types[sub_population.to_sym].constantize
     end
 
+    def self.lookback_start
+      GrdaWarehouse::Config.get(:dashboard_lookback)
+    end
+
     def set_dates
-      @date_range ||= LOOKBACK_START.to_date..Date.yesterday
+      @date_range ||= self.class.lookback_start..Date.yesterday
       @start_date = @date_range.first
       @end_date = @date_range.last
     end
