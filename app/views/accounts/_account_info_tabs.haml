@@ -1,4 +1,4 @@
-%ul.nav.nav-tabs
+%ul.nav.nav-tabs{role: "presentation"}
   %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_path))}
     = link_to 'Accounts Details', edit_account_path, class: 'nav-link'
   %li.nav-item{role: "presentation", class: ('active' if current_page?(edit_account_email_path))}

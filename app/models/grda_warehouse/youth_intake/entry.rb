@@ -13,7 +13,7 @@ module GrdaWarehouse::YouthIntake
       :unaccompanied,
       :street_outreach_contact,
       :housing_status,
-      :other_agency_involvement,
+      :other_agency_involvements,
       :secondary_education,
       :attending_college,
       :health_insurance,

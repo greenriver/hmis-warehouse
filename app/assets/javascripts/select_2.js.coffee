@@ -17,6 +17,7 @@ App.select2.init = (root) =>
       App.select2.initIdWhenSelected($select)
     if this.classList.contains('select2-parenthetical-when-selected')
       App.select2.initParentheticalWhenSelected($select)
+  $(".select2-search__field").attr("aria-label", 'Search')
 
 App.select2.initToggleSelectAll = ($select) =>
   # If we made any changes manually, and there are any selected, set the link to "select none"

@@ -13,8 +13,8 @@
         %th Changes
     %tbody
       - @versions.each do |version|
-        - changes = describe_changes_to version
-        - editor = name_of_whodunnit version
+        - changes = describe_changes_to(version)
+        - editor = name_of_whodunnit(version)
         - if changes.present?
           %tr
             %td= version.created_at

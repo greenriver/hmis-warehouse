@@ -28,7 +28,8 @@ ARG BUILDER
 # START Remove after pre-cache gets rebuilt #
 #############################################
 RUN apk add --no-cache \
-  postgis geos geos-dev
+  postgis geos geos-dev && \
+  mkdir -p shape_files/CoC shape_files/zip_codes.census.2018
 ###########################################
 # END Remove after pre-cache gets rebuilt #
 ###########################################
@@ -46,10 +47,15 @@ COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
 COPY bin ./bin
 COPY public ./public
 COPY config/deploy/docker/assets/download_secrets.rb ./bin
-COPY config/deploy/docker/assets/sync_app_assets.rb ./bin
 COPY config/deploy/docker/lib/cron_installer.rb ./bin
 COPY config/deploy/docker/lib/scheduled_task.rb ./bin
 COPY config/deploy/docker/assets/deploy_tasks.open-path-warehouse.sh ./bin/deploy_tasks.sh
+
+# We don't copy the whole directory so that local developer builds don't pull
+# in all the shape files and zip files
+COPY shape_files/sync.from.s3 ./shape_files
+COPY shape_files/CoC/make.inserts ./shape_files/CoC
+COPY shape_files/zip_codes.census.2018/make.inserts ./shape_files/zip_codes.census.2018
 
 RUN bundle install --without=development
 
