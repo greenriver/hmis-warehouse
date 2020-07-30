@@ -47,24 +47,26 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
     return unless GrdaWarehouse::Config.get(:release_duration) == 'Use Expiration Date'
     GrdaWarehouse::Hud::Client.revoke_expired_consent
     # all active consent gets a full release
-    self.consent_active.preload(:destination_client).find_each do |hmis_client|
-      d_client = hmis_client.destination_client
-      next unless d_client
+    self.consent_active.preload(:destination_client).find_each(&:maintain_client_consent)
+  end
 
-      expiration_present = hmis_client.consent_expires_on.present? && d_client.consent_expires_on.present?
-      expiration_newer = expiration_present && hmis_client.consent_expires_on > d_client.consent_expires_on
-      signature_present = hmis_client.consent_confirmed_on.present? && d_client.consent_form_signed_on.present?
-      signature_newer = signature_present && hmis_client.consent_confirmed_on > d_client.consent_form_signed_on
-      missing_a_date = d_client.consent_form_signed_on.blank? || d_client.consent_expires_on.blank?
+  def maintain_client_consent
+    d_client = destination_client
+    return unless d_client
 
-      # Fill in missing dates, or update newer dates
-      next unless missing_a_date || expiration_present && expiration_newer || signature_present && signature_newer
+    expiration_present = consent_expires_on.present? && d_client.consent_expires_on.present?
+    expiration_newer = expiration_present && consent_expires_on > d_client.consent_expires_on
+    signature_present = consent_confirmed_on.present? && d_client.consent_form_signed_on.present?
+    signature_newer = signature_present && consent_confirmed_on > d_client.consent_form_signed_on
+    missing_a_date = d_client.consent_form_signed_on.blank? || d_client.consent_expires_on.blank?
 
-      d_client.consent_form_signed_on = hmis_client.consent_confirmed_on if signature_newer || d_client.consent_form_signed_on.blank?
-      d_client.consent_expires_on = hmis_client.consent_expires_on if expiration_newer || d_client.consent_expires_on.blank?
-      d_client.housing_release_status = d_client.class.full_release_string
-      d_client.save if d_client.changed?
-    end
+    # Fill in missing dates, or update newer dates
+    return unless missing_a_date || expiration_newer || signature_newer
+
+    d_client.consent_form_signed_on = consent_confirmed_on if signature_newer || d_client.consent_form_signed_on.blank?
+    d_client.consent_expires_on = consent_expires_on if expiration_newer || d_client.consent_expires_on.blank?
+    d_client.housing_release_status = d_client.class.full_release_string
+    d_client.save if d_client.changed?
   end
 
   def self.maintain_sexual_orientation(connection_key:, cdid:, site_id:)
