@@ -8,6 +8,6 @@
 
 - if can_delete_youth_intake?
   .text-right
-    = link_to client_youth_intake_path(@client), method: :delete, class: 'btn btn-danger', data: {confirm: "Are you sure you want to delete this youth information?"} do
+    = link_to client_youth_intake_path(@client), method: :delete, class: 'btn btn-danger', data: {confirm: "Are you sure you want to delete all youth information for #{@client.name}?  Deleting is non-reversible, and will remove all items on this page.  Proceed?"} do
       %i.icon-cross
-      Delete Youth Intake
+      Delete All Youth Data

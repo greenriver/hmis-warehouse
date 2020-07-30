@@ -22,7 +22,8 @@ module Clients::Youth
         @client.youth_follow_ups.destroy_all
         # TODO: This does not remove the client from the Youth DataSource
 
-        redirect_to clients_path
+        flash[:notice] = "All Youth information for #{@client.name} has been removed."
+        redirect_to client_youth_intakes_path(@client)
       else
         not_authorized!
       end
