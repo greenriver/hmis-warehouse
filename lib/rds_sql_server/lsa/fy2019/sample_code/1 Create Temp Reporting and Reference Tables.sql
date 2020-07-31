@@ -9,6 +9,7 @@ Date:  4/17/2020
 					number is followed by a statement number -- e.g., '3.6.1' and '3.6.2', etc.
 	   5/28/2020 -- remove extraneous DQ1Adult and DQ3Adult columns from CREATE tlsa_Enrollment
 	   6/4/2020  -- change ch_Include.chDate column name to ESSHStreetDate per specs
+	   7/30/2020 - corrected name of dq_Enrollment (was dq_Enrollments) in the comments just below. 
 
 This script drops (if tables exist) and creates the following temp reporting tables:
 
@@ -28,7 +29,7 @@ This script drops (if tables exist) and creates the following temp reporting tab
 		sys_Time - used to count dates in ES/SH, TH, RRH/PSH but not housed, housed in RRH/PSH, and ES/SH/StreetDates
 	tlsa_Exit - household-level precursor to LSAExit / households with system exits in exit cohort periods
 
-	dq_Enrollments - Enrollments included in LSAReport data quality reporting 
+	dq_Enrollment - Enrollments included in LSAReport data quality reporting 
 
 This script drops (if tables exist), creates, and populates the following 
 reference tables used in the sample code:  

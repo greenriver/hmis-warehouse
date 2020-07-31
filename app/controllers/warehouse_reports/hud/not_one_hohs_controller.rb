@@ -31,7 +31,7 @@ module WarehouseReports::Hud
         ).
         joins(hoh_count_query).
         where('hoh.hoh_count != 1'). # NOTE: the exporter fixes hoh.HouseholdID is null
-        order(EntryDate: :desc, HouseholdID: :asc, RelationshipToHoH: :asc)
+        order(HouseholdID: :asc, RelationshipToHoH: :asc, EntryDate: :desc)
 
       respond_to do |format|
         format.html do
@@ -55,6 +55,7 @@ module WarehouseReports::Hud
           select en."HouseholdID", en."ProjectID", en."data_source_id", count(distinct(en."EnrollmentID")) as hoh_count
           from "Enrollment" as en
           where en."RelationshipToHoH" = 1
+          and en."EntryDate" < '#{@filter.end.to_formatted_s(:db)}'
           group by en."HouseholdID", en."ProjectID", en."data_source_id"
         ) as hoh
         on hoh."HouseholdID" = "Enrollment"."HouseholdID"
