@@ -9,6 +9,17 @@ Date:  4/20/2020
 	   5/21/2020 - Sections 7.1 - 7.7 - add set of Step column to all INSERT and UPDATE statements	
 	   6/4/2020  - 7.4.1 - corrections to UPDATE statement for HHVet, HHDisability, HHFleeingDV, and HHParent
 	   6/18/2020 - 7.4.1 - join on HouseholdID vs. EnrollmentID for HHDisability, HHFleeingDV, and HHParent
+	   7/9/2020 - 7.1 = correct disqualify.EntryDate <= dateadd(dd, 14, hhid.ExitDate) to remove = sign 
+					7.3 - calculate ReturnTime using the *earliest* EntryDate for a return enrollment 
+					7.4.2 - correct set of HHAdultAge 
+					7.4.3 - correct set of AC3Plus  
+					7.5 - correction to Entry/ExitDate join criteria fcr prior activity
+					7.7.1-7.7.3 - align criteria for identifying PSH in SystemPath with specs
+					7.7.2 - Clarification of rationale for additional step not defined by specs
+	   7/23/2020 - 7.5 - correction to use most recent exit prior to the qualifying exit where the most 
+					recent EnrollmentCoC = ReportCoC (neither were limited to most recent) to determine Stat 
+				   7.8 - modify case statement for Return time to match specs 
+	7/30/2020 -- 7.6.1 -- correct relationship between EntryDate and ExitDate for PRIOR enrollment, not the same one.
 	   
 	7.1 Identify Qualifying Exits in Exit Cohort Periods
 */
@@ -27,7 +38,7 @@ Date:  4/20/2020
 				or (cd.Cohort = 0 and disqualify.ActiveHHType = hhid.ActiveHHType)
 			)
 		and	disqualify.EnrollmentID <> hhid.EnrollmentID 
-		and disqualify.EntryDate <= dateadd(dd, 14, hhid.ExitDate)
+		and disqualify.EntryDate < dateadd(dd, 14, hhid.ExitDate)
 		and (disqualify.ExitDate is null or disqualify.ExitDate > hhid.ExitDate)
 		and (select top 1 CoCCode 
 			 from hmis_EnrollmentCoC 
@@ -96,13 +107,14 @@ Date:  4/20/2020
 	from tlsa_Exit ex 
 	inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	inner join lsa_Report rpt on rpt.ReportEnd >= qx.EntryDate
-	left outer join (select rn.HoHID, rn.EntryDate
+	left outer join (select rn.HoHID, min(rn.EntryDate) as EntryDate
 				, rn.ActiveHHType, rn.Exit1HHType, rn.Exit2HHType
 			from tlsa_HHID rn 
 			inner join lsa_Report rpt on rpt.ReportEnd >= rn.EntryDate
 			inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = rn.EnrollmentID 
 				and coc.InformationDate = rn.EntryDate 
 				and coc.CoCCode = rpt.ReportCoC
+			group by rn.HoHID, rn.ActiveHHType, rn.Exit1HHType, rn.Exit2HHType
 			) later on later.HoHID = qx.HoHID and 
 				case qx.ExitCohort 
 					when -2 then later.Exit2HHType
@@ -110,6 +122,7 @@ Date:  4/20/2020
 					else later.ActiveHHType end
 					= ex.HHType
 				and later.EntryDate between dateadd(dd, 15, qx.ExitDate) and dateadd(dd, 730, qx.ExitDate) 
+
 
 
 /*
@@ -150,10 +163,6 @@ Date:  4/20/2020
 	inner join hmis_Client hoh on hoh.PersonalID = ex.HoHID
 	inner join (
 		select n.HouseholdID, n.PersonalID, n.EnrollmentID, hhid.ExitCohort
-			, case hhid.ExitCohort
-				when -2 then n.Exit2Age
-				when -1 then n.Exit1Age
-				else n.ActiveAge end as Age
 			, n.RelationshipToHoH
 		from tlsa_Enrollment n
 		inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID) hh on hh.HouseholdID = ex.QualifyingExitHHID and hh.ExitCohort = ex.Cohort
@@ -161,7 +170,7 @@ Date:  4/20/2020
 
 update ex
 set ex.HHAdultAge = case when ages.MaxAge not between 18 and 65 then -1
-	when ages.MaxAge = 18 then 18
+	when ages.MaxAge = 21 then 18
 	when ages.MaxAge = 24 then 24
 	when ages.MinAge between 55 and 65 then 55
 	else 25 end
@@ -191,7 +200,11 @@ inner join (select hhid.HoHID, case hhid.ExitCohort
 
 update ex 
 set ex.AC3Plus = 
-		(select count(distinct n.EnrollmentID)
+		(select case count(distinct n.PersonalID)
+			when 0 then 0
+			when 1 then 0
+			when 2 then 0 
+			else 1 end
 		from tlsa_HHID hhid
 		inner join tlsa_Enrollment n on n.HouseholdID = hhid.HouseholdID 
 		where case hhid.ExitCohort 
@@ -221,14 +234,25 @@ from tlsa_Exit ex
 	from tlsa_Exit ex 
 	inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 	left outer join tlsa_HHID prior on prior.HoHID = ex.HoHID 
-		and case qx.ExitCohort when -2 then prior.Exit2HHType
-					when -1 then prior.Exit1HHType
-					else prior.ActiveHHType end
-					= case qx.ExitCohort when -2 then qx.Exit2HHType
-					when -1 then qx.Exit1HHType
-					else qx.ActiveHHType end
-		and prior.ExitDate > dateadd(dd, -730, qx.EntryDate) 
-
+		and (select top 1 last.EnrollmentID 
+			from tlsa_HHID last 
+			where last.ExitCohort = qx.ExitCohort and last.HoHID = qx.HoHID
+				and case last.ExitCohort when -2 then qx.Exit2HHType
+					when -1 then last.Exit1HHType
+					else last.ActiveHHType end
+					= case last.ExitCohort when -2 then last.Exit2HHType
+					when -1 then last.Exit1HHType
+					else last.ActiveHHType end
+				and last.EntryDate < qx.EntryDate
+				and prior.ExitDate between dateadd(dd, -730, qx.EntryDate) and qx.ExitDate
+			order by last.ExitDate desc
+			) = prior.EnrollmentID
+		and (select top 1 coc.CoCCode
+			from hmis_EnrollmentCoC coc
+			where coc.EnrollmentID = prior.EnrollmentID
+				and coc.InformationDate <= (select rpt.ReportEnd from lsa_Report rpt)
+				and coc.DateDeleted is null
+			order by coc.InformationDate desc) = (select rpt.ReportCoC from lsa_Report rpt)
 
 /*
 	7.6  Last Inactive Date for Exit Cohorts
@@ -249,7 +273,7 @@ from tlsa_Exit ex
 				when -2 then prior.Exit2HHType
 				when -1 then prior.Exit1HHType
 				else prior.ActiveHHType end = ex.HHType
-			and dateadd(dd, 6, hhid.ExitDate) >= hhid.EntryDate) is null
+			and dateadd(dd, 6, prior.ExitDate) >= hhid.EntryDate) is null
 
 	delete from sys_TimePadded
 
@@ -322,13 +346,16 @@ set ex.SystemPath = -1
 from tlsa_Exit ex
 inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 inner join tlsa_CohortDates cd on cd.Cohort = ex.Cohort
-where (ex.ExitTo = 6 and qx.MoveInDate < cd.CohortStart) 
-	or (ex.ExitTo in (5,6) and dateadd(dd, 365, qx.MoveInDate) <= qx.ExitDate)
+where (ex.ExitFrom = 6 and qx.MoveInDate < cd.CohortStart) 
+	or (ex.ExitFrom in (5,6) and dateadd(dd, 365, qx.MoveInDate) <= qx.ExitDate)
 
+--  This step is not mandatory and is therefore not defined in the specs -- the same result would be 
+--  achieved by skipping it -- but it saves a lot of unnecessary processing in 7.7.3-7.7.5.
 -- SystemPath can be set directly based on ExitFrom for
 -- -Any first time homeless household (Stat = 1)
 -- -Any household returning/re-engaging after 15-730 days (Stat in (2,3,4))
 -- and any household whose LastInactive date is the day before the EntryDate for the qualifying exit. 
+
 update ex
 set ex.SystemPath = case ex.ExitFrom
 	when 2 then 1
@@ -363,7 +390,7 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 			, case when rrh.HoHID is not null then 100 else 0 end
 				+ case when th.HoHID is not null then 10 else 0 end
 				+ case when es.HoHID is not null then 1 else 0 end
-				+ case when pshpre.HoHID is not null then 1000 else 0 end
+				+ case when psh.HoHID is not null then 1000 else 0 end
 					as summary
 		from tlsa_Exit ex 
 		inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
@@ -376,10 +403,9 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 		left outer join tlsa_HHID rrh on rrh.ProjectType = 13
 			and rrh.HoHID = ex.HoHID and rrh.EntryDate <= qx.ExitDate and rrh.ExitDate > ex.LastInactive
 			and (rrh.ActiveHHType = ex.HHType)
-		left outer join tlsa_HHID pshpre on pshpre.ProjectType = 3
-			and pshpre.EntryDate <= qx.ExitDate and pshpre.HoHID = ex.HoHID 
-			and (pshpre.ActiveHHType = ex.HHType)
-				and coalesce(pshpre.MoveInDate, pshpre.ExitDate) > ex.LastInactive 
+		left outer join tlsa_HHID psh on psh.ProjectType = 3
+			and psh.HoHID = ex.HoHID and psh.EntryDate <= qx.ExitDate and psh.ExitDate > ex.LastInactive
+			and (psh.ActiveHHType = ex.HHType)
 		) ptype on ptype.HoHID = ex.HoHID and ptype.HHType = ex.HHType 
 		and ptype.Cohort = ex.Cohort
 where ex.Cohort = 0 and ex.SystemPath is null
@@ -404,7 +430,7 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 			, case when rrh.HoHID is not null then 100 else 0 end
 				+ case when th.HoHID is not null then 10 else 0 end
 				+ case when es.HoHID is not null then 1 else 0 end
-				+ case when pshpre.HoHID is not null then 1000 else 0 end
+				+ case when psh.HoHID is not null then 1000 else 0 end
 					as summary
 		from tlsa_Exit ex 
 		inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
@@ -417,10 +443,9 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 		left outer join tlsa_HHID rrh on rrh.ProjectType = 13
 			and rrh.HoHID = ex.HoHID and rrh.EntryDate <= qx.ExitDate and rrh.ExitDate > ex.LastInactive
 			and (rrh.Exit1HHType = ex.HHType)
-		left outer join tlsa_HHID pshpre on pshpre.ProjectType = 3
-			and pshpre.EntryDate <= qx.ExitDate and pshpre.HoHID = ex.HoHID 
-			and (pshpre.Exit1HHType = ex.HHType)
-				and coalesce(pshpre.MoveInDate, pshpre.ExitDate) > ex.LastInactive 
+		left outer join tlsa_HHID psh on psh.ProjectType = 3
+			and psh.HoHID = ex.HoHID and psh.EntryDate <= qx.ExitDate and psh.ExitDate > ex.LastInactive
+			and (psh.ActiveHHType = ex.HHType)
 		) ptype on ptype.HoHID = ex.HoHID and ptype.HHType = ex.HHType 
 		and ptype.Cohort = ex.Cohort
 where ex.Cohort = -1 and ex.SystemPath is null
@@ -458,10 +483,9 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 		left outer join tlsa_HHID rrh on rrh.ProjectType = 13
 			and rrh.HoHID = ex.HoHID and rrh.EntryDate <= qx.ExitDate and rrh.ExitDate > ex.LastInactive
 			and (rrh.Exit2HHType = ex.HHType)
-		left outer join tlsa_HHID pshpre on pshpre.ProjectType = 3
-			and pshpre.EntryDate <= qx.ExitDate and pshpre.HoHID = ex.HoHID 
-			and (pshpre.Exit2HHType = ex.HHType)
-				and coalesce(pshpre.MoveInDate, pshpre.ExitDate) > ex.LastInactive 
+		left outer join tlsa_HHID psh on psh.ProjectType = 3
+			and psh.HoHID = ex.HoHID and psh.EntryDate <= qx.ExitDate and psh.ExitDate > ex.LastInactive
+			and (psh.ActiveHHType = ex.HHType)
 		) ptype on ptype.HoHID = ex.HoHID and ptype.HHType = ex.HHType 
 		and ptype.Cohort = ex.Cohort
 where ex.Cohort = -2 and ex.SystemPath is null
@@ -483,7 +507,7 @@ select count (distinct HoHID + cast(HHType as nvarchar))
 		when ReturnTime between 91 and 180 then 180
 		when ReturnTime between 181 and 365 then 365
 		when ReturnTime between 366 and 547 then 547
-		when ReturnTime >= 548 then 730
+		when ReturnTime between 548 and 730 then 730
 		else ReturnTime end
 	, HHType, HHVet, HHDisability, HHFleeingDV, HoHRace, HoHEthnicity
 	, HHAdultAge, HHParent, AC3Plus, SystemPath, ReportID

@@ -4,7 +4,10 @@ LSA FY2019 Sample Code
 Name:  8_9 to 8_21 lsa_Calculated counts (File 9 of 10)
 Date:  4/15/2020   
 	   5/21/2020 - add set of Step column to all INSERT statements
-
+	   7/23/2020 - delete HHChronic criteria from 8.9 -- not relevant
+				Corrections to 8.9-8.18 to consistently reflect that a bednight is counted for RRH when 
+					the MoveInDate occurs on the ExitDate.
+				Corrections to 8.10.2, 8.12.2, 8.14.2 to remove RRH/PSH criteria to counts for ES/SH/TH combined
 
 	8.9 Get Counts of People by Project ID and Household Characteristics
 */
@@ -35,11 +38,10 @@ Date:  4/15/2020
 		and (hhid.HHDisability = pop.HHDisability or pop.HHDisability is null)
 		and (hhid.HHFleeingDV = pop.HHFleeingDV or pop.HHFleeingDV is null)
 		and (hhid.HHParent = pop.HHParent or pop.HHParent is null)
-		and (hhid.HHChronic = pop.HHChronic or pop.HHChronic is null)
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
 		  and (cd.CohortStart < n.ExitDate 
 			or n.ExitDate is null
-			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
+			or (n.ProjectType = 13 and n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
 	where n.Active = 1 and cd.Cohort between 1 and 13
 		and pop.PopID in (0,1,2,3,4,5,7,8,9,10) and pop.PopType = 1 
 		and pop.SystemPath is null
@@ -87,7 +89,7 @@ Date:  4/15/2020
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
 		  and (cd.CohortStart < n.ExitDate 
 			or n.ExitDate is null
-			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
+			or (n.ProjectType = 13 and n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
 	where n.Active = 1 and cd.Cohort between 1 and 13
 		and pop.PopID between 0 and 10 and pop.PopType = 1
 		and pop.SystemPath is null
@@ -129,8 +131,7 @@ Date:  4/15/2020
 		and (hhid.HHChronic = pop.HHChronic or pop.HHChronic is null)
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
 		  and (cd.CohortStart < n.ExitDate 
-			or n.ExitDate is null
-			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
+			or n.ExitDate is null)
 	where n.Active = 1 and cd.Cohort between 1 and 13
 		and pop.PopID between 0 and 10 and pop.PopType = 1
 		and pop.SystemPath is null
@@ -171,7 +172,7 @@ Date:  4/15/2020
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= hhid.EntryDate
 		  and (cd.CohortStart < hhid.ExitDate 
 			or hhid.ExitDate is null
-			or (hhid.ExitDate = cd.CohortStart and hhid.MoveInDate = cd.CohortStart))
+			or (hhid.ProjectType = 13 and hhid.ExitDate = cd.CohortStart and hhid.MoveInDate = cd.CohortStart))
 	where hhid.Active = 1 and cd.Cohort between 1 and 13
 		and pop.PopID in (0,1,2,3,4,5,7,8,9,10) and pop.PopType = 1
 		and pop.SystemPath is null
@@ -220,7 +221,7 @@ Date:  4/15/2020
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= hhid.EntryDate
 		  and (cd.CohortStart < hhid.ExitDate 
 			or hhid.ExitDate is null
-			or (hhid.ExitDate = cd.CohortStart and hhid.MoveInDate = cd.CohortStart))
+			or (hhid.ProjectType = 13 and hhid.ExitDate = cd.CohortStart and hhid.MoveInDate = cd.CohortStart))
 	where hhid.Active = 1 and cd.Cohort between 1 and 13
 		and pop.PopID between 0 and 10 and pop.PopType = 1 
 		and pop.SystemPath is null
@@ -264,8 +265,7 @@ Date:  4/15/2020
 		and (hhid.HHChronic = pop.HHChronic or pop.HHChronic is null)
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= hhid.EntryDate
 		  and (cd.CohortStart < hhid.ExitDate 
-			or hhid.ExitDate is null
-			or (hhid.ExitDate = cd.CohortStart and hhid.MoveInDate = cd.CohortStart))
+			or hhid.ExitDate is null)
 	where hhid.Active = 1 and cd.Cohort between 1 and 13
 		and pop.PopID between 0 and 10 and pop.PopType = 1 and pop.SystemPath is null
 		and pop.SystemPath is null
@@ -314,7 +314,7 @@ Date:  4/15/2020
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
 		  and (cd.CohortStart < n.ExitDate 
 			or n.ExitDate is null
-			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
+			or (n.ProjectType = 13 and n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
 	where n.Active = 1 and cd.Cohort between 1 and 13
 		and (pop.PopID in (3,6) or pop.popID between 145 and 148)
 		and pop.PopType = 3
@@ -381,7 +381,7 @@ Date:  4/15/2020
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
 		  and (cd.CohortStart < n.ExitDate 
 			or n.ExitDate is null
-			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
+			or (n.ProjectType = 13 and n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
 	where n.Active = 1 and cd.Cohort between 1 and 13
 		and pop.PopType = 3 
 		and (
@@ -438,8 +438,7 @@ Date:  4/15/2020
 			and latest.ProjectType = hhid.ProjectType and latest.Age = n.ActiveAge
 	inner join tlsa_CohortDates cd on cd.CohortEnd >= n.EntryDate
 		  and (cd.CohortStart < n.ExitDate 
-			or n.ExitDate is null
-			or (n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
+			or n.ExitDate is null)
 	where n.Active = 1 and cd.Cohort between 1 and 13
 		and pop.PopType = 3 
 		and (
@@ -486,7 +485,8 @@ Date:  4/15/2020
 				or n.ProjectType in (2,8))
 	left outer join ref_Calendar rrhpsh on rrhpsh.theDate >= n.MoveInDate
 		and rrhpsh.theDate >= rpt.ReportStart
-		and rrhpsh.theDate < coalesce(n.ExitDate, dateadd(dd, 1, rpt.ReportEnd))
+		and (rrhpsh.theDate < coalesce(n.ExitDate, dateadd(dd, 1, rpt.ReportEnd))
+				or (n.ProjectType = 13 and rrhpsh.theDate = n.MoveinDate and rrhpsh.theDate = n.ExitDate))
 		and n.ProjectType in (3,13)
 	left outer join ref_Calendar bnd on bnd.theDate = bn.DateProvided
 		and bnd.theDate >= rpt.ReportStart and bnd.theDate <= rpt.ReportEnd
@@ -528,7 +528,8 @@ Date:  4/15/2020
 				or n.ProjectType in (2,8))
 	left outer join ref_Calendar rrhpsh on rrhpsh.theDate >= n.MoveInDate
 		and rrhpsh.theDate >= rpt.ReportStart
-		and rrhpsh.theDate < coalesce(n.ExitDate, dateadd(dd, 1, rpt.ReportEnd))
+		and (rrhpsh.theDate < coalesce(n.ExitDate, dateadd(dd, 1, rpt.ReportEnd))
+				or (n.ProjectType = 13 and rrhpsh.theDate = n.MoveinDate and rrhpsh.theDate = n.ExitDate))
 		and n.ProjectType in (3,13)
 	left outer join ref_Calendar bnd on bnd.theDate = bn.DateProvided
 		and bnd.theDate >= rpt.ReportStart and bnd.theDate <= rpt.ReportEnd
@@ -599,7 +600,8 @@ Date:  4/15/2020
 				or n.ProjectType in (2,8))
 	left outer join ref_Calendar rrhpsh on rrhpsh.theDate >= n.MoveInDate
 		and rrhpsh.theDate >= rpt.ReportStart
-		and rrhpsh.theDate < coalesce(n.ExitDate, dateadd(dd, 1, rpt.ReportEnd))
+		and (rrhpsh.theDate < coalesce(n.ExitDate, dateadd(dd, 1, rpt.ReportEnd))
+				or (n.ProjectType = 13 and rrhpsh.theDate = n.MoveinDate and rrhpsh.theDate = n.ExitDate))
 		and n.ProjectType in (3,13)
 	left outer join ref_Calendar bnd on bnd.theDate = bn.DateProvided
 		and bnd.theDate >= rpt.ReportStart and bnd.theDate <= rpt.ReportEnd
@@ -645,7 +647,8 @@ Date:  4/15/2020
 				or n.ProjectType in (2,8))
 	left outer join ref_Calendar rrhpsh on rrhpsh.theDate >= n.MoveInDate
 		and rrhpsh.theDate >= rpt.ReportStart
-		and rrhpsh.theDate < coalesce(n.ExitDate, dateadd(dd, 1, rpt.ReportEnd))
+		and (rrhpsh.theDate < coalesce(n.ExitDate, dateadd(dd, 1, rpt.ReportEnd))
+				or (n.ProjectType = 13 and rrhpsh.theDate = n.MoveinDate and rrhpsh.theDate = n.ExitDate))
 		and n.ProjectType in (3,13)
 	left outer join ref_Calendar bnd on bnd.theDate = bn.DateProvided
 		and bnd.theDate >= rpt.ReportStart and bnd.theDate <= rpt.ReportEnd
