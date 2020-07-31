@@ -33,4 +33,12 @@ RSpec.describe 'Combine Enrollments', type: :model do
   it 'includes all clients' do
     expect(GrdaWarehouse::Hud::Client.count).to eq(2)
   end
+
+  it 'merges enrollments' do
+    expect(GrdaWarehouse::Hud::Enrollment.count).to eq(10)
+  end
+
+  it 'merges exits' do
+    expect(GrdaWarehouse::Hud::Enrollment.count).to eq(9)
+  end
 end

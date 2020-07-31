@@ -8,15 +8,15 @@ module HmisCsvTwentyTwenty::Aggregated
   class FilterExits
     INSERT_BATCH_SIZE = 2_000
 
-    def self.aggregate!(importer_id)
+    def self.aggregate!(importer_log)
       project_ids = project_source.where(combine_enrollments: true).pluck(:ProjectID)
       batch = []
-      exit_source.where(importer_log_id: importer_id).find_each do |enrollment_exit|
+      exit_source.where(importer_log_id: importer_log.id).find_each do |enrollment_exit|
         # Exits for the projects that combine enrollments are handled in the enrollment processing
         unless project_ids.include?(enrollment_exit.enrollment.ProjectID)
           # Pass the exit through for ingestion
           destination = new_from(enrollment_exit)
-          destination.importer_log_id = importer_id
+          destination.importer_log_id = importer_log.id
           destination.pre_processed_at = Time.current
           destination.set_source_hash
           batch << destination

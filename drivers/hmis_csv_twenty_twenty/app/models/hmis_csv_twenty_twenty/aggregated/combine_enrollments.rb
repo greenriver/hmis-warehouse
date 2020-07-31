@@ -54,6 +54,9 @@ module HmisCsvTwentyTwenty::Aggregated
 
                 new_exit = new_exit_from(enrollment.exit)
                 new_exit.EnrollmentID = active_enrollment.EnrollmentID
+                new_exit.importer_log_id = importer_log.id
+                new_exit.pre_processed_at = Time.current
+                new_exit.set_source_hash
                 exit_batch << new_exit
 
                 active_enrollment = enrollment
