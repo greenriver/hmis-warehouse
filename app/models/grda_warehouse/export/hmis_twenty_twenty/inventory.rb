@@ -13,5 +13,11 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
 
     belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], inverse_of: :inventories
 
+    def apply_overrides row, data_source_id:
+      row[:CoCCode] = enrollment_coc_from_project_coc(row[:ProjectID], data_source_id) if row[:CoCCode].blank?
+
+      return row
+    end
+
   end
 end

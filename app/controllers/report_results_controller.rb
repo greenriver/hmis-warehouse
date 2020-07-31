@@ -209,7 +209,7 @@ class ReportResultsController < ApplicationController
       distinct.
       merge(GrdaWarehouse::Hud::Project.hud_residential).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-      where(Zip: nil)
+      where(Zip: nil, zip_override: nil)
     @missing_data[:missing_zip] = query.pluck(*missing_data_columns.values).
       map do |row|
         row = Hash[missing_data_columns.keys.zip(row)]
