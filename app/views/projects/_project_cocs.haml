@@ -7,6 +7,7 @@
         %th
         %th ProjectCoCID
         %th CoC Code
+        %th Zipcode
         %th Geocode
         %th Geography Type
         %th
@@ -24,6 +25,13 @@
               %em
                 Overridden as
                 = p_coc.hud_coc_code
+          %td
+            = p_coc.Zip
+            - if p_coc.zip_override.present?
+              %br
+              %em
+                Overridden as
+                = p_coc.zip_override
           %td
             = p_coc.Geocode
             - if p_coc.geocode_override.present?

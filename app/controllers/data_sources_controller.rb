@@ -106,6 +106,7 @@ class DataSourcesController < ApplicationController
           :uses_move_in_date,
           :geocode_override,
           :geography_type_override,
+          :zip_override,
           :confidential,
           :after_create_path,
         ],
