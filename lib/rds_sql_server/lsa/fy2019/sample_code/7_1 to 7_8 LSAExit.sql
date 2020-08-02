@@ -470,7 +470,7 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 			, case when rrh.HoHID is not null then 100 else 0 end
 				+ case when th.HoHID is not null then 10 else 0 end
 				+ case when es.HoHID is not null then 1 else 0 end
-				+ case when pshpre.HoHID is not null then 1000 else 0 end
+				+ case when psh.HoHID is not null then 1000 else 0 end
 					as summary
 		from tlsa_Exit ex 
 		inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
@@ -519,7 +519,7 @@ group by Cohort, Stat, ExitFrom, ExitTo
 		when ReturnTime between 91 and 180 then 180
 		when ReturnTime between 181 and 365 then 365
 		when ReturnTime between 366 and 547 then 547
-		when ReturnTime >= 548 then 730
+		when ReturnTime between 548 and 730 then 730
 		else ReturnTime end
 	, HHType, HHVet, HHDisability, HHFleeingDV, HoHRace, HoHEthnicity
 	, HHAdultAge, HHParent, AC3Plus, SystemPath, ReportID
