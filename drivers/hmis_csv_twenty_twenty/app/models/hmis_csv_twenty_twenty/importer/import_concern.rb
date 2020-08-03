@@ -171,7 +171,12 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       # If the year is between 00 and next year, we'll add 2000,
       # otherwise, we'll add 1900
       @next_year ||= Date.current.next_year.strftime('%y').to_i
-      d = DateTime.parse(string, false) # false to not guess at century
+      begin
+        d = DateTime.parse(string, false) # false to not guess at century
+      rescue ArgumentError
+        # If there is still garbage in a date field, return an nil
+        return nil
+      end
       if d.year <= @next_year
         d = d.next_year(2000)
       else

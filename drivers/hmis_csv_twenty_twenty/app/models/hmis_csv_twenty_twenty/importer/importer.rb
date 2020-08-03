@@ -299,7 +299,7 @@ module HmisCsvTwentyTwenty::Importer
       incoming = klass.where(importer_log_id: @importer_log.id).pluck(klass.hud_key, :DateUpdated).to_h
       # if the incoming DateUpdated is strictly less than the existing one
       # trust the warehouse is correct
-      unchanged = existing.select { |k, v| v.present? incoming[k] < v }.keys
+      unchanged = existing.select { |k, v| v.present? && incoming[k] < v }.keys
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
         klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).where(klass.hud_key => batch).update_all(pending_date_deleted: nil)
         note_processed(file_name, batch.count, 'unchanged')
@@ -396,6 +396,10 @@ module HmisCsvTwentyTwenty::Importer
 
     def importable_files
       self.class.importable_files
+    end
+
+    def self.soft_deletable_sources
+      importable_files_map.except('Export.csv').values.map { |name| "GrdaWarehouse::Hud::#{name}".constantize }
     end
 
     def setup_import
