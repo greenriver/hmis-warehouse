@@ -51,6 +51,10 @@ module HmisTwentyTwenty
     end
   end
 
+  def self.clear_look_aside
+    @look_aside = []
+  end
+
   def self.look_aside(klass)
     @look_aside ||= []
     @look_aside << klass.name.split('::').last

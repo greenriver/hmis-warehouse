@@ -39,6 +39,6 @@ RSpec.describe 'Combine Enrollments', type: :model do
   end
 
   it 'merges exits' do
-    expect(GrdaWarehouse::Hud::Enrollment.count).to eq(9)
+    expect(GrdaWarehouse::Hud::Exit.count).to eq(9)
   end
 end

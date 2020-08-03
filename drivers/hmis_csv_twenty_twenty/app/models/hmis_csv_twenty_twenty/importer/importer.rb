@@ -70,6 +70,7 @@ module HmisCsvTwentyTwenty::Importer
     def pre_process!
       importer_log.update(status: :pre_processing)
 
+      # Enable look asides for aggregated classes
       importable_files.each_value do |klass|
         HmisTwentyTwenty.look_aside(klass) if aggregators_from_class(klass, @data_source).present?
       end
@@ -137,6 +138,9 @@ module HmisCsvTwentyTwenty::Importer
     # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
     # In here, add history_generated_on date to enrollment record
     def ingest!
+      # Ingestion should not use the look-aside tables
+      HmisTwentyTwenty.clear_look_aside
+
       # Mark everything that exists in the warehouse, that would be covered by this import
       # as pending deletion.  We'll remove the pending where appropriate
       mark_tree_as_dead(Date.current)
@@ -422,14 +426,14 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def add_error(file:, klass:, source_id:, message:)
+      @loader_log.summary[file]['total_errors'] += 1
+      log(message)
       importer_log.import_errors.build(
         source_type: klass,
         source_id: source_id,
         message: "Error importing #{klass}",
         details: message,
       )
-      @loader_log.summary[file]['total_errors'] += 1
-      log(message)
     end
   end
 end
