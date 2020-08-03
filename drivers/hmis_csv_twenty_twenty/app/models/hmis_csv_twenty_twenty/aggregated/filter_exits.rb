@@ -12,15 +12,9 @@ module HmisCsvTwentyTwenty::Aggregated
       project_ids = project_source.where(combine_enrollments: true).pluck(:ProjectID)
       batch = []
       exit_source.where(importer_log_id: importer_log.id).find_each do |enrollment_exit|
-        # Exits for the projects that combine enrollments are handled in the enrollment processing
-        unless project_ids.include?(enrollment_exit.enrollment.ProjectID)
-          # Pass the exit through for ingestion
-          destination = new_from(enrollment_exit)
-          destination.importer_log_id = importer_log.id
-          destination.pre_processed_at = Time.current
-          destination.set_source_hash
-          batch << destination
-        end
+        # Pass the exits through for ingestion for the projects that don't combine enrollments
+        # The projects that combine enrollments emit exits during enrollment processing
+        batch << new_from(enrollment_exit, importer_log) unless project_ids.include?(enrollment_exit.enrollment.ProjectID)
 
         if batch.count >= INSERT_BATCH_SIZE
           exit_destination.import(batch)
@@ -30,9 +24,20 @@ module HmisCsvTwentyTwenty::Aggregated
       exit_destination.import(batch) if batch.present?
     end
 
-    def self.new_from(source)
+    def self.new_from(source, importer_log)
       source_data = source.slice(exit_source.hmis_structure(version: '2020').keys)
-      exit_destination.new(source_data.merge(source_type: source.class.name, source_id: source.id, data_source_id: source.data_source_id))
+      new_exit = exit_destination.new(
+        source_data.merge(
+          source_type: source.class.name,
+          source_id: source.id,
+          data_source_id: source.data_source_id,
+          importer_log_id: importer_log.id,
+          pre_processed_at: Time.current,
+        ),
+      )
+      new_exit.set_source_hash
+
+      new_exit
     end
 
     def self.project_source
