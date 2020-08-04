@@ -140,13 +140,13 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       # Since we're almost always dealing with dates that are in the past
       # If the year is between 00 and next year, we'll add 2000,
       # otherwise, we'll add 1900
-      @next_year ||= Date.current.next_year.strftime('%y').to_i
+      next_year = Date.current.next_year.strftime('%y').to_i
       begin
         d = Date.parse(string, false) # false to not guess at century
       rescue ArgumentError
         return
       end
-      if d.year <= @next_year
+      if d.year <= next_year
         d = d.next_year(2000)
       else
         d = d.next_year(1900)
@@ -170,14 +170,14 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       # Since we're almost always dealing with dates that are in the past
       # If the year is between 00 and next year, we'll add 2000,
       # otherwise, we'll add 1900
-      @next_year ||= Date.current.next_year.strftime('%y').to_i
+      next_year = Date.current.next_year.strftime('%y').to_i
       begin
         d = DateTime.parse(string, false) # false to not guess at century
       rescue ArgumentError
         # If there is still garbage in a date field, return an nil
         return nil
       end
-      if d.year <= @next_year
+      if d.year <= next_year
         d = d.next_year(2000)
       else
         d = d.next_year(1900)

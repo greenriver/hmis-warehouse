@@ -75,7 +75,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     end
   end
 
-  describe 'When importing enrollments with bad data on 1/1/2021' do
+  describe 'When importing enrollments with bad data on 1/1/2018' do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
