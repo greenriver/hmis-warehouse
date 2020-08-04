@@ -40,14 +40,18 @@ module HmisTwentyTwenty
 
     def self.importable_files
       importable_files_map.transform_values do |name|
-        module_name = if HmisTwentyTwenty.look_aside?(name) && look_aside_scope.present?
-          look_aside_scope
-        else
-          module_scope
-        end
-
-        "#{module_name}::#{name}".constantize
+        importable_file_class(name)
       end
+    end
+
+    def self.importable_file_class(name)
+      module_name = if HmisTwentyTwenty.look_aside?(name) && look_aside_scope.present?
+        look_aside_scope
+      else
+        module_scope
+      end
+
+      "#{module_name}::#{name}".constantize
     end
   end
 

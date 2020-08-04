@@ -154,6 +154,12 @@ module HmisCsvTwentyTwenty::Importer
 
       # Sweep all remaining items in a pending delete state
       remove_pending_deletes
+
+      # Update the effective export end date of the export
+      export_klass = importable_file_class('Export').reflect_on_association(:destination_record).klass
+      export_klass.last.update(effective_export_end_date: (importable_files.except('Export.csv').map do |_, klass|
+        klass.where(importer_log_id: @importer_log.id).maximum(:DateUpdated)
+      end.compact + ['1900-01-01'.to_date]).max)
     end
 
     def aggregators_from_class(klass, data_source)
@@ -396,6 +402,10 @@ module HmisCsvTwentyTwenty::Importer
 
     def importable_files
       self.class.importable_files
+    end
+
+    def importable_file_class(name)
+      self.class.importable_file_class(name)
     end
 
     def self.soft_deletable_sources
