@@ -609,7 +609,7 @@ Rails.application.routes.draw do
     resource :hmis_import_config
   end
   resources :ad_hoc_data_sources do
-    resources :uploads, except: [:update, :edit], controller: 'ad_hoc_data_sources/uploads' do
+    resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
       get :download, on: :member
     end
     get :download, on: :collection
