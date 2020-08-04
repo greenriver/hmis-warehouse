@@ -18,10 +18,10 @@
   - if @upload.completed?
     %dl.mr-auto
       %dt Rows Uploaded
-      %dd= @upload.uploaded_count
+      %dd.text-center= @upload.uploaded_count
     %dl.mr-auto
       %dt Clients Matched
-      %dd= @upload.matched_count
+      %dd.text-center= @upload.matched_count
 %h3 Clients
 = simple_form_for :ad_hoc_clients, as: :clients, url: ad_hoc_data_source_upload_path(@data_source, @upload), method: :patch do |f|
   .row.table-utilities
@@ -36,7 +36,7 @@
               %th SSN
               %th DOB
               %th Possible Matches
-              %th= _('Health Priority')
+              %th.text-center= _('Health Priority')
           %tbody
             - @upload.ad_hoc_clients.find_each.with_index do |client, i|
               - odd_class = if i.even? then 'even' else 'odd' end
@@ -61,9 +61,12 @@
                 %td= ssn(client.ssn)
                 %td= dob_or_age(client.dob)
                 %td
-                  - if client.client_id.blank? && possible_matching_clients.blank?
+                  - if client.client_id
+                    Exact match
+                  - elsif client.client_id.blank? && possible_matching_clients.blank?
                     None found
-                %td
+                  
+                %td.text-center
                   - if matched_client
                     = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized == "t" } if matched_client
               - if client.client_id.blank?
@@ -73,7 +76,7 @@
                     %td
                       = link_to possible.name, client_path(possible), target: :_blank
                       (#{possible.id})
-                    %td
+                    %td.text-center
                       = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized == "t" }
   .text-right
     = f.button :submit, 'Update Health Prioritizations'

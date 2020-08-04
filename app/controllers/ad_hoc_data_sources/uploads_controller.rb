@@ -25,7 +25,7 @@ class AdHocDataSources::UploadsController < ApplicationController
     possible_matches = GrdaWarehouse::Hud::Client.where(id: possible_client_ids).index_by(&:id)
     @possible_matches = {}
     @upload.ad_hoc_clients.each do |ad_hoc_client|
-      @possible_matches[ad_hoc_client.id] = possible_matches.values_at(*ad_hoc_client.matching_client_ids)
+      @possible_matches[ad_hoc_client.id] = possible_matches.values_at(*ad_hoc_client.matching_client_ids).compact
     end
   end
 
@@ -35,7 +35,7 @@ class AdHocDataSources::UploadsController < ApplicationController
   end
 
   def download
-    send_data @upload.content, filename: @upload.name
+    send_data(@upload.content, filename: @upload.name, type: @upload.content_type)
   end
 
   def destroy
@@ -45,7 +45,8 @@ class AdHocDataSources::UploadsController < ApplicationController
 
   def create
     # NOTE: sometimes Excel likes to add BOMs.  We don't need those, and anything else that's in upper ASCII can go too
-    clean_file = upload_params[:file]&.read&.gsub(/[^[:ascii:]]/, '')
+    clean_file = upload_params[:file]&.read
+    clean_file = clean_file&.gsub(/[^[:ascii:]]/, '') if MimeMagic.by_magic(clean_file).blank?
     @upload = upload_source.create(upload_params.merge(ad_hoc_data_source_id: @data_source.id, content: clean_file, user_id: current_user&.id))
     respond_with(@upload, location: ad_hoc_data_source_path(@data_source))
   end
