@@ -116,6 +116,8 @@ namespace :youth do
         'Hotel' => 'Hotel or Motel Stay',
         'Cell Phone Costs' => 'Cell phone costs',
         'Provided a Trac Phone' => 'Cell phone costs',
+        'Emergency Shelter Night Owl Stay' => 'Emergency Shelter Night Owl Stay',
+        'Emergency Shelter' => 'Emergency Shelter Hotel',
       }
     end
 
