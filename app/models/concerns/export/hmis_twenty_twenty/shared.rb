@@ -226,9 +226,9 @@ module Export::HmisTwentyTwenty::Shared
     @project_type_overridden_to_psh[[project_id, data_source_id]]
   end
 
-  # We can only safely override if the project only has one ProjectCoC record
+  # We can only safely override if the project only has one CoCCode
   def enrollment_coc_from_project_coc(project_id, data_source_id)
-    available_overrides = project_cocs_for_project(project_id, data_source_id)
+    available_overrides = project_cocs_for_project(project_id, data_source_id).uniq
     return available_overrides.first if available_overrides.count == 1
 
     nil
@@ -238,10 +238,11 @@ module Export::HmisTwentyTwenty::Shared
     @project_cocs_for_project ||= begin
       cocs = {}
       GrdaWarehouse::Hud::ProjectCoc.
-        pluck(:ProjectID, :CoCCode, :data_source_id).
-        each do |p_id, coc_code, ds_id|
+        pluck(:ProjectID, :CoCCode, :hud_coc_code, :data_source_id).
+        each do |p_id, coc_code, hud_coc_code, ds_id|
         cocs[[p_id, ds_id]] ||= []
-        cocs[[p_id, ds_id]] << coc_code
+        # use the override if set
+        cocs[[p_id, ds_id]] << (hud_coc_code.presence || coc_code)
       end
       cocs
     end
