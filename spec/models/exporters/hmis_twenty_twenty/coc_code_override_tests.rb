@@ -86,11 +86,15 @@ RSpec.shared_context '2020 coc code override tests', shared_context: :metadata d
           before(:each) do
             @exported_class = options[:export_class]
             @exported_class.update_all(CoCCode: nil)
-            # Force project to have multiple CoC Codes
-            GrdaWarehouse::Hud::ProjectCoc.update(
-              ProjectID: projects.first.ProjectID,
-              data_source_id: projects.first.data_source_id,
-            )
+            # Force project to have multiple distinct CoC Codes
+            GrdaWarehouse::Hud::ProjectCoc.
+              joins(:project).
+              merge(GrdaWarehouse::Hud::Project.where.not(id: projects.first.id)).
+              update_all(
+                ProjectID: projects.first.ProjectID,
+                CoCCode: 'XX-505',
+                data_source_id: projects.first.data_source_id,
+              )
             enrollment_exporter.public_send(options[:export_method])
           end
 
