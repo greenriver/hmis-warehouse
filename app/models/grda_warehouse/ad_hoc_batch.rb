@@ -58,17 +58,25 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
     if check_header!
       match_clients!
     else
-      self.import_errors = "CSV headers do not match expected headers: #{self.class.csv_headers.join(',')}; found: #{headers_from_csv.join(',')}"
+      self.import_errors = "Headers do not match expected headers: #{self.class.csv_headers.join(',')}; found: #{headers_from_csv.join(',')}"
     end
     self.completed_at = Time.current
     save(validate: false)
   end
 
   private def csv
+    return nil unless content.length > 10
+
     @csv ||= if content_type.in?(['text/plain', 'text/csv'])
-      ::Roo::CSV.new(StringIO.new(content)).parse(headers: true).drop(1)
+      sheet = ::Roo::CSV.new(StringIO.new(content))
+      @csv_headers = sheet.first
+      sheet.parse(headers: true).drop(1)
     else
-      ::Roo::Excelx.new(StringIO.new(content).binmode).parse(headers: true).drop(1)
+      sheet = ::Roo::Excelx.new(StringIO.new(content).binmode)
+      return nil if sheet&.first_row.blank?
+
+      @csv_headers = sheet.first
+      sheet.parse(headers: true).drop(1)
     end
   end
 
@@ -77,9 +85,9 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   end
 
   private def headers_from_csv
-    return [] unless csv
-
-    csv.first.keys
+    # Force header calculation
+    csv
+    @csv_headers || []
   end
 
   def self.csv_headers
