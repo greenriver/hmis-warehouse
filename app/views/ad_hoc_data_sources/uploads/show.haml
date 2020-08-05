@@ -4,7 +4,7 @@
   .col-sm-8
     %h1= content_for :title
   .col-sm-4.text-right
-    = link_to download_ad_hoc_data_source_upload_path(@data_source, @upload) do
+    = link_to download_ad_hoc_data_source_upload_path(@data_source, @upload), class: 'btn btn-sm btn-secondary' do
       %i.icon-download2
       Download Original
 
@@ -18,48 +18,65 @@
   - if @upload.completed?
     %dl.mr-auto
       %dt Rows Uploaded
-      %dd= @upload.uploaded_count
+      %dd.text-center= @upload.uploaded_count
     %dl.mr-auto
       %dt Clients Matched
-      %dd= @upload.matched_count
+      %dd.text-center= @upload.matched_count
 %h3 Clients
-.row.table-utilities
-  .col-sm-12
-    .table-responsive
-      %table.table.table-sm.table-hover
-        %thead
-          %tr
-            %th First Name
-            %th Middle Name
-            %th Last Name
-            %th SSN
-            %th DOB
-            %th Possible Matches
-        %tbody
-          - @upload.ad_hoc_clients.find_each do |client|
+= simple_form_for :ad_hoc_clients, as: :clients, url: ad_hoc_data_source_upload_path(@data_source, @upload), method: :patch do |f|
+  .row.table-utilities
+    .col-sm-12
+      .table-responsive
+        %table.table.table-sm
+          %thead
             %tr
-              %td
-                - if client.client_id && client.first_name
-                  = link_to client.first_name, client_path(client.client_id)
-                - else
-                  = client.first_name
-              %td
-                - if client.client_id && client.middle_name
-                  = link_to client.middle_name, client_path(client.client_id)
-                - else
-                  = client.middle_name
-              %td
-                - if client.client_id && client.last_name
-                  = link_to client.last_name, client_path(client.client_id)
-                - else
-                  = client.last_name
-              %td= ssn(client.ssn)
-              %td= dob_or_age(client.dob)
-              %td
-                - unless client.client_id
-                  - unique_ids = client.matching_client_ids.uniq
-                  - if unique_ids.count == 0
-                    None found
+              %th First Name
+              %th Middle Name
+              %th Last Name
+              %th SSN
+              %th DOB
+              %th Possible Matches
+              %th.text-center= _('Health Priority')
+          %tbody
+            - @upload.ad_hoc_clients.find_each.with_index do |client, i|
+              - odd_class = if i.even? then 'even' else 'odd' end
+              - matched_client = @found_clients[client.client_id]
+              - possible_matching_clients = @possible_matches[client.id]
+              %tr{class: odd_class}
+                %td
+                  - if client.client_id && client.first_name
+                    = link_to client.first_name, client_path(client.client_id), target: :_blank
                   - else
-                    (#{unique_ids.count})
-                    = unique_ids.join(', ')
+                    = client.first_name
+                %td
+                  - if client.client_id && client.middle_name
+                    = link_to client.middle_name, client_path(client.client_id), target: :_blank
+                  - else
+                    = client.middle_name
+                %td
+                  - if client.client_id && client.last_name
+                    = link_to client.last_name, client_path(client.client_id), target: :_blank
+                  - else
+                    = client.last_name
+                %td= ssn(client.ssn)
+                %td= dob_or_age(client.dob)
+                %td
+                  - if client.client_id
+                    Exact match
+                  - elsif client.client_id.blank? && possible_matching_clients.blank?
+                    None found
+                  
+                %td.text-center
+                  - if matched_client
+                    = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized == "t" } if matched_client
+              - if client.client_id.blank?
+                - possible_matching_clients.each do |possible|
+                  %tr{class: odd_class}
+                    %td{colspan: 5}
+                    %td
+                      = link_to possible.name, client_path(possible), target: :_blank
+                      (#{possible.id})
+                    %td.text-center
+                      = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized == "t" }
+  .text-right
+    = f.button :submit, 'Update Health Prioritizations'
