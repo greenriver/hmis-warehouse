@@ -78,6 +78,29 @@ module GrdaWarehouse::Hud
       @hud_key
     end
 
+    def self.conflict_target=(value)
+      @conflict_target = value
+    end
+
+    def self.conflict_target
+      @conflict_target || [:data_source_id, "\"#{hud_key}\""]
+    end
+
+    def self.additional_upsert_columns=(names)
+      @additional_upsert_columns = names
+    end
+
+    def self.additional_upsert_columns
+      @additional_upsert_columns || []
+    end
+
+    def self.upsert_column_names(version: nil)
+      @upsert_column_names ||= hud_csv_headers(version: version) +
+        [:source_hash, :pending_date_deleted] +
+        additional_upsert_columns -
+        conflict_target
+    end
+
     def self.related_item_keys
       []
     end

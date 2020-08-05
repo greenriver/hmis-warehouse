@@ -98,15 +98,15 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       end
 
       it 'it doesn\'t import enrollments that changed but have an earlier modification date' do
-        expect(GrdaWarehouse::Hud::Enrollment.where(PersonalID: '2f4b963171644a8b9902bdfe79a4b403').pluck(:HouseholdID).compact).to be_empty
+        expect(GrdaWarehouse::Hud::Enrollment.where(PersonalID: '2f4b963171644a8b9902bdfe79a4b403').pluck(:HouseholdID).reject(&:blank?)).to be_empty
       end
 
       it 'it imports enrollments that changed with an unchanged modification date' do
-        expect(GrdaWarehouse::Hud::Enrollment.where(PersonalID: '4c9da990d51b4ed1a2e45b972aeaecee').pluck(:HouseholdID).compact).to eq(['2222'])
+        expect(GrdaWarehouse::Hud::Enrollment.where(PersonalID: '4c9da990d51b4ed1a2e45b972aeaecee').pluck(:HouseholdID).reject(&:blank?)).to eq(['2222'])
       end
 
       it 'it imports enrollments that changed with a later modification date' do
-        expect(GrdaWarehouse::Hud::Enrollment.where(PersonalID: '7b8c1279001142afac2fd0bde7a8f6bf').pluck(:HouseholdID).compact).to eq(['3333'])
+        expect(GrdaWarehouse::Hud::Enrollment.where(PersonalID: '7b8c1279001142afac2fd0bde7a8f6bf').pluck(:HouseholdID).reject(&:blank?)).to eq(['3333'])
       end
     end
   end # end describe enrollments

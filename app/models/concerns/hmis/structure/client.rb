@@ -10,6 +10,7 @@ module HMIS::Structure::Client
 
   included do
     self.hud_key = :PersonalID
+    self.additional_upsert_columns = [:demographic_dirty]
     acts_as_paranoid(column: :DateDeleted)
   end
 

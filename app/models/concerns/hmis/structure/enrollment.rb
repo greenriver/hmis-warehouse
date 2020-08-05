@@ -10,6 +10,8 @@ module HMIS::Structure::Enrollment
 
   included do
     self.hud_key = :EnrollmentID
+    self.conflict_target = [:data_source_id, '"EnrollmentID"', '"PersonalID"']
+    self.additional_upsert_columns = [:processed_as]
     acts_as_paranoid(column: :DateDeleted)
   end
 

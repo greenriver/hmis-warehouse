@@ -256,18 +256,25 @@ module HmisCsvTwentyTwenty::Importer
           when :ExitID
             # These are tracked separately so we can bulk update them at the end
             track_dirty_enrollment(destination.EnrollmentID)
-          else
-            batch << destination
-            if batch.count == INSERT_BATCH_SIZE
-              destination_class.import(batch, on_duplicate_key_update: [destination_class.hud_key])
-              note_processed(file_name, batch.count, 'updated')
-              batch = []
-            end
+          end
+          batch << destination
+          if batch.count == INSERT_BATCH_SIZE
+            destination_class.import(batch, on_duplicate_key_update:
+              {
+                conflict_target: destination_class.conflict_target,
+                columns: destination_class.upsert_column_names(version: '2020'),
+              })
+            note_processed(file_name, batch.count, 'updated')
+            batch = []
           end
         end
       end
       if batch.present? # ensure we get the last batch
-        destination_class.import(batch, on_duplicate_key_update: [destination_class.hud_key])
+        destination_class.import(batch, on_duplicate_key_update:
+          {
+            conflict_target: destination_class.conflict_target,
+            columns: destination_class.upsert_column_names(version: '2020'),
+          })
         note_processed(file_name, batch.count, 'updated')
       end
 
@@ -337,11 +344,19 @@ module HmisCsvTwentyTwenty::Importer
 
     private def bulk_update!(klass, batch, file_name, type:)
       errors = []
-      klass.import(batch, on_duplicate_key_update: [klass.hud_key])
+      klass.import(batch, on_duplicate_key_update:
+        {
+          conflict_target: klass.conflict_target,
+          columns: klass.upsert_column_names(version: '2020'),
+        })
       note_processed(file_name, batch.count, type)
     rescue StandardError => e
       batch.each do |row|
-        klass.import([row], on_duplicate_key_update: [klass.hud_key])
+        klass.import([row], on_duplicate_key_update:
+          {
+            conflict_target: klass.conflict_target,
+            columns: klass.upsert_column_names(version: '2020'),
+          })
         note_processed(file_name, 1, type)
       rescue StandardError => e
         errors << add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
