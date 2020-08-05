@@ -128,7 +128,10 @@ module ReportGenerators::Lsa::Fy2019
         ).
         where("project_ids @> ?", @project_ids.to_json).
         where.not(file: nil)&.first
-      return existing_export if existing_export.present?
+      if existing_export.present?
+        @hmis_export = existing_export
+        return
+      end
 
       @hmis_export = Exporters::HmisTwentyTwenty::Base.new(
         start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
