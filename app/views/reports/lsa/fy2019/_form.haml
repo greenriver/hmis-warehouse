@@ -8,6 +8,7 @@
         %th Project Type
         %th Operating Start Date
         %th HousingType
+        %th CoC Code
         %th Geocode
         %th GeographyType
         %th Funder
@@ -15,10 +16,11 @@
     %tbody
       - @missing_projects.each do |project|
         %tr
-          %td= link_to project[:project], edit_project_path(project[:id])
+          %td= link_to project[:project], project_path(project[:id])
           %th= ::HUD.project_type_brief project[:project_type]
           %td= yes_no(! @missing_data[:missing_operating_start_date].include?(project))
           %td= yes_no(! @missing_data[:missing_housing_type].include?(project))
+          %td= yes_no(! @missing_data[:missing_coc_codes].include?(project))
           %td= yes_no(! @missing_data[:missing_geocode].include?(project))
           %td= yes_no(! @missing_data[:missing_geography_type].include?(project))
           %td= yes_no(! @missing_data[:invalid_funders].include?(project))

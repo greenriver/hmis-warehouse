@@ -252,6 +252,22 @@ class ReportResultsController < ApplicationController
           row[:ds_id]
         }
       end
+    query = GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
+      includes(project: :funders).
+      distinct.
+      merge(GrdaWarehouse::Hud::Project.hud_residential).
+      where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
+      where(CoCCode: nil, hud_coc_code: nil)
+    @missing_data[:missing_coc_codes] = query.pluck(*missing_data_columns.values).
+      map do |row|
+        row = Hash[missing_data_columns.keys.zip(row)]
+        {
+          project: "#{row[:org_name]} - #{row[:project_name]}",
+          project_type: row[:project_type],
+          id: row[:id], data_source_id:
+          row[:ds_id]
+        }
+      end
 
     @missing_projects = @missing_data.values.flatten.uniq.sort_by(&:first)
     @show_missing_data = @missing_projects.any?
