@@ -35,7 +35,7 @@ class InventoriesController < ApplicationController
   end
 
   private def set_inventory
-    @inventory = inventory_source.find(params[:id].to_i)
+    @inventory = inventory_scope.find(params[:id].to_i)
   end
 
   private def set_project
