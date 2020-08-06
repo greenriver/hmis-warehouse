@@ -20,15 +20,18 @@ module HmisCsvTwentyTwenty::Aggregated::AggregatedImportConcern
 
     def self.import(batch)
       updated_batch = []
-      batch.each do |record|
-        matching_record = record.find_matching_record
-        if matching_record.present?
-          updated_batch << record if record.newer_than?(matching_record)
+      batch.each do |incoming|
+        existing = incoming.find_matching_record
+        if existing.present?
+          updated_batch << incoming if incoming.newer_than?(existing)
         else
-          updated_batch << record
+          updated_batch << incoming
         end
       end
-      super(updated_batch, on_duplicate_key_update: [hud_key, :data_source_id])
+      super(updated_batch, on_duplicate_key_update: {
+        conflict_target: conflict_target,
+        columns: upsert_column_names(version: '2020'),
+      })
     end
   end
 end

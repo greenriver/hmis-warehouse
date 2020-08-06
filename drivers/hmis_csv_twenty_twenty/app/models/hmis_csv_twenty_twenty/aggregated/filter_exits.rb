@@ -9,7 +9,10 @@ module HmisCsvTwentyTwenty::Aggregated
     INSERT_BATCH_SIZE = 2_000
 
     def self.aggregate!(importer_log)
-      project_ids = project_source.where(combine_enrollments: true).pluck(:ProjectID)
+      project_ids = project_source.
+        where(combine_enrollments: true, data_source_id: importer_log.data_source_id).
+        pluck(:ProjectID)
+
       batch = []
       exit_source.where(importer_log_id: importer_log.id).find_each do |enrollment_exit|
         # Pass the exits through for ingestion for the projects that don't combine enrollments

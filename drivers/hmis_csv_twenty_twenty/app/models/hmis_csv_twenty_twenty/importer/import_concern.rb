@@ -14,7 +14,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
     # If the model is paranoid, include the deleted rows by default
     default_scope do
-      if methods.include?(:paranoia_scope)
+      if paranoid?
         with_deleted
       else
         all
