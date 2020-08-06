@@ -208,6 +208,13 @@ module GrdaWarehouse::CoordinatedEntryAssessment
       end
     end
 
+    def ensure_active
+      if active?
+        previous_completed = client.ce_assessments.completed.where.not(id: id).order(submitted_at: :desc).first
+        previous_completed.update(active: true) if previous_completed.present?
+      end
+    end
+
     def self.allowed_parameters
       [
         :assessor_id,
