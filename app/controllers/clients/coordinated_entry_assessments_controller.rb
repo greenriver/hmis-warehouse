@@ -41,7 +41,7 @@ module Clients
     def destroy
       @assessment.transaction do
         @assessment.destroy
-        @assessment.ensure_active
+        GrdaWarehouse::CoordinatedEntryAssessment::Base.ensure_active(@assessment.client)
       end
       respond_with(@assessment, location: client_coordinated_entry_assessments_path(@client))
     end
