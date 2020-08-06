@@ -8,20 +8,17 @@ module HmisCsvTwentyTwenty::Aggregated::AggregatedImportConcern
   extend ActiveSupport::Concern
 
   included do
-    def find_matching_record
-      self.class.find_by(self.class.hud_key => self[self.class.hud_key], data_source_id: data_source_id)
-    end
+    def newer_than?(existing)
+      false unless existing.DateUpdated >= self.DateUpdated
 
-    def newer_than?(matching_record)
-      false unless matching_record.DateUpdated >= self.DateUpdated
-
-      source_hash != matching_record.source_hash
+      source_hash != existing.source_hash
     end
 
     def self.import(batch)
       updated_batch = []
+      existing_records = find_matching_records(batch)
       batch.each do |incoming|
-        existing = incoming.find_matching_record
+        existing = existing_records[incoming[hud_key]]
         if existing.present?
           updated_batch << incoming if incoming.newer_than?(existing)
         else
@@ -33,5 +30,11 @@ module HmisCsvTwentyTwenty::Aggregated::AggregatedImportConcern
         columns: upsert_column_names(version: '2020'),
       })
     end
+  end
+
+  def self.find_matching_records(batch)
+    data_source_id = batch.first&.data_source_id # All of the records in an aggregation are in the same data source
+    keys = batch.map(&hud_key)
+    where(hud_key => keys, data_source_id: data_source_id).index_by(&hud_key)
   end
 end
