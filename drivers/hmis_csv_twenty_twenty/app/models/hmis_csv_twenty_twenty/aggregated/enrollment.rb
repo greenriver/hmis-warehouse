@@ -6,9 +6,10 @@
 
 module HmisCsvTwentyTwenty::Aggregated
   class Enrollment < GrdaWarehouse::Hud::Base
+    include ::HMIS::Structure::Enrollment
     include HmisCsvTwentyTwenty::Importer::ImportConcern
     include AggregatedImportConcern
-    include ::HMIS::Structure::Enrollment
+
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_2020_aggregated_enrollments'
 

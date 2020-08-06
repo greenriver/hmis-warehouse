@@ -6,9 +6,10 @@
 
 module HmisCsvTwentyTwenty::Importer
   class Exit < GrdaWarehouse::Hud::Base
+    include ::HMIS::Structure::Exit
     include ImportConcern
     include ArelHelper
-    include ::HMIS::Structure::Exit
+
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_2020_exits'
 

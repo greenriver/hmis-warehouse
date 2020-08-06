@@ -12,6 +12,15 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
   included do
     belongs_to :importer_log
 
+    # If the model is paranoid, include the deleted rows by default
+    default_scope do
+      if methods.include?(:paranoia_scope)
+        with_deleted
+      else
+        all
+      end
+    end
+
     # Override as necessary
     def self.clean_row_for_import(row, deidentified:) # rubocop:disable  Lint/UnusedMethodArgument
       row
