@@ -124,6 +124,53 @@ module Health
       @care_coordinators[@patient_coordinator_lookup[patient_id]]
     end
 
+    def most_recent_housing_status(patient_id)
+      @most_recent_housing_status ||= begin
+        patient_scope = Health::Patient.
+          where(id: patient_ids)
+
+        result = patient_scope.
+          with_housing_status.
+          pluck(:id, :housing_status, :housing_status_timestamp).
+          map { |(id, status, timestamp)| [id, {status: status, timestamp: timestamp}] }.
+          to_h
+
+        patient_scope.
+          joins(:sdh_case_management_notes).
+          merge(Health::SdhCaseManagementNote.with_housing_status).
+          pluck(:id, h_sdhcmn_t[:housing_status].to_sql, h_sdhcmn_t[:date_of_contact].to_sql).
+          each do |(id, status, timestamp)|
+            result[id] ||= {status: status, timestamp: timestamp}
+            result[id][:status] = status if result[id][:timestamp] < timestamp
+          end
+
+        patient_scope.
+          joins(:epic_case_notes).
+          merge(Health::EpicCaseNote.with_housing_status).
+          pluck(:id, h_ecn_t[:homeless_status].to_sql, h_ecn_t[:contact_date].to_sql).
+          each do |(id, status, timestamp)|
+            result[id] ||= {status: status, timestamp: timestamp}
+            result[id][:status] = status if result[id][:timestamp] < timestamp
+          end
+
+        client_to_patient = patient_scope.pluck(:client_id, :id).to_h
+
+        GrdaWarehouse::Hud::Client.
+          where(id: client_to_patient.keys).
+          joins(:source_hmis_forms).
+          merge(GrdaWarehouse::HmisForm.with_housing_status).
+          pluck(:id, hmis_form_t[:housing_status].to_sql, hmis_form_t[:collected_at].to_sql).
+          each do |(client_id, status, timestamp)|
+            id = client_to_patient[client_id]
+            result[id] ||= {status: status, timestamp: timestamp}
+            result[id][:status] = status if result[id][:timestamp] < timestamp
+          end
+
+        result
+      end
+      @most_recent_housing_status[patient_id].try(:[], :status)
+    end
+
     def row patient
       {
         'ID_MEDICAID' => patient.medicaid_id,
@@ -145,8 +192,9 @@ module Health
         'PCTP_RENEWAL_DATE' => care_plan_renewal_date(patient.id),
         'QA_FACE_TO_FACE' => most_recent_face_to_face_qa_date(patient.id),
         'QA_LAST' => most_recent_qa_from_case_note(patient.id),
-        'literally homeless' => patient.client.literally_homeless_last_three_years,
-        'disabled' => patient.client.currently_disabled? ? 'Y' : 'N',
+        'LITERALLY HOMELESS' => patient.client.literally_homeless_last_three_years,
+        'DISABLED' => patient.client.currently_disabled? ? 'Y' : 'N',
+        'HOUSING STATUS' => most_recent_housing_status(patient.id),
         'CAREPLAN SIGNED WITHIN 122 DAYS' => with_careplans_in_122_days?(patient, as: :text),
       }
     end

@@ -9,6 +9,8 @@ Date:  4/7/2020
 				   section 9.2 - correct 24 (deceased) to 25 (LTC/nursing home) in list of institutional 
 								 living situations for HomelessDate1/3, TimesHomeless1/3, MonthsHomeless1/3
 	   5/28/2020 - section 9.2 - add missing PH destinations (HMIS values 33,34) to HoHPermToPH1/3
+	   7/30/2020-  9.1 - join to lsa_Project instead of hmis_Project
+
 	9.1 Get Relevant Enrollments for Data Quality Checks
 */
 
@@ -54,11 +56,13 @@ select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
 						,'555555555','777777777','888888888')
 			then 0 else 1 end 
 		, '9.1'
-from hmis_Enrollment n 
+from hmis_Enrollment n
+inner join lsa_Report rpt on n.EntryDate <= rpt.ReportEnd
+inner join hmis_EnrollmentCoC coc on coc.HouseholdID = n.HouseholdID 
+	and coc.CoCCode = rpt.ReportCoC and coc.InformationDate <= rpt.ReportEnd
 inner join tlsa_CohortDates cd1 on cd1.Cohort = 1
-	and n.EntryDate <= cd1.CohortEnd
 inner join tlsa_CohortDates cd3 on cd3.Cohort = 20
-inner join hmis_Project p on p.ProjectID = n.ProjectID
+inner join lsa_Project p on p.ProjectID = n.ProjectID
 inner join hmis_Client c on c.PersonalID = n.PersonalID
 left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 	and x.DateDeleted is null 

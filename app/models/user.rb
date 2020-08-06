@@ -59,6 +59,10 @@ class User < ApplicationRecord
 
   belongs_to :agency, optional: true
 
+  scope :diet, -> do
+    select(*(column_names - ['provider_raw_info']))
+  end
+
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
   end

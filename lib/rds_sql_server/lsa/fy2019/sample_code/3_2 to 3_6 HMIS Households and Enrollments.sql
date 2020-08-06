@@ -26,6 +26,7 @@ Date:	4/16/2020 -- original
 					3.5.2/3 -- simplified CASE statement/removed redundancies - no change to output
 					3.3.1 - correction so that all enrollments located in ReportCoC at any time are included in tlsa_HHID 
 							instead of limiting it to enrollment in ReportCoC as of the most recent EnrollmentCoC record.
+		7/2/2020 - 3.3.1 - add 'and p.ContinuumProject = 1' -- was inadvertently deleted on a previous update
 
 	3.2 Cohort Dates 
 */
@@ -138,6 +139,7 @@ left outer join (select distinct svc.EnrollmentID, max(svc.DateProvided) as Last
 		) bn on bn.EnrollmentID = hoh.EnrollmentID
 where hoh.RelationshipToHoH = 1
 	and hohCheck.EnrollmentID is null 
+	and p.ContinuumProject = 1 
 	and (p.OperatingEndDate is null 
 		-- 5/14/2020 EntryDate must be prior to OperatingEndDate
 		or (hoh.EntryDate < p.OperatingEndDate and p.OperatingEndDate >= '10/1/2012'))

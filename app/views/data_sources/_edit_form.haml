@@ -54,7 +54,7 @@
           %td= f.input :service_scannable, label: false
       %tr
         %th.pl-2 Viewable by the following users, regardless of visibility in window
-        %td= @data_source.users.joins(:roles).where(roles: {can_see_clients_in_window_for_assigned_data_sources: true}).distinct.map(&:name).join(', ')
+        %td= @data_source.users.joins(:roles).where(roles: {can_see_clients_in_window_for_assigned_data_sources: true}).diet.distinct.map(&:name).join(', ')
     .text-right.m-2.mb-4
       - if can_edit_data_sources?
         = f.button :submit, value: 'Save Data Source', class: 'btn btn-primary'

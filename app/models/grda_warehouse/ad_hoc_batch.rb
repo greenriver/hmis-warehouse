@@ -3,7 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-require 'csv'
+require 'roo'
 class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   acts_as_paranoid
   mount_uploader :file, AdHocDataSourceUploader
@@ -58,18 +58,36 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
     if check_header!
       match_clients!
     else
-      self.import_errors = "CSV headers do not match expected headers: #{self.class.csv_headers.join(',')}; found: #{csv.headers.join(',')}"
+      self.import_errors = "Headers do not match expected headers: #{self.class.csv_headers.join(',')}; found: #{headers_from_csv.join(',')}"
     end
     self.completed_at = Time.current
     save(validate: false)
   end
 
   private def csv
-    @csv ||= CSV.parse(content, headers: true)
+    return nil unless content.length > 10
+
+    @csv ||= if content_type.in?(['text/plain', 'text/csv'])
+      sheet = ::Roo::CSV.new(StringIO.new(content))
+      @csv_headers = sheet.first
+      sheet.parse(headers: true).drop(1)
+    else
+      sheet = ::Roo::Excelx.new(StringIO.new(content).binmode)
+      return nil if sheet&.first_row.blank?
+
+      @csv_headers = sheet.first
+      sheet.parse(headers: true).drop(1)
+    end
   end
 
   private def check_header!
-    csv.headers == self.class.csv_headers
+    headers_from_csv == self.class.csv_headers
+  end
+
+  private def headers_from_csv
+    # Force header calculation
+    csv
+    @csv_headers || []
   end
 
   def self.csv_headers

@@ -24,13 +24,14 @@ module ServiceScanning
       options = {}
       project_scope = ::GrdaWarehouse::Hud::Project.joins(:data_source).
         merge(::GrdaWarehouse::DataSource.scannable)
+      project_scope = project_scope.viewable_by(user)
       project_scope.
         joins(:organization).
         order(o_t[:OrganizationName].asc, ProjectName: :asc).
         pluck(o_t[:OrganizationName].as('org_name'), :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|
-          options[org] ||= []
-          options[org] << ["#{project_name} (#{HUD.project_type_brief(project_type)})", id]
-        end
+        options[org] ||= []
+        options[org] << ["#{project_name} (#{HUD.project_type_brief(project_type)})", id]
+      end
       options
     end
 
