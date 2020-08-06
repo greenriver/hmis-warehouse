@@ -40,6 +40,10 @@ module Clients
 
     def destroy
       @assessment.destroy
+      if @assessment.active?
+        previous_completed = @client.ce_assessments.completed.order(submitted_at: :desc).first
+        previous_completed.update(active: true) if previous_completed.present?
+      end
       respond_with(@assessment, location: client_coordinated_entry_assessments_path(@client))
     end
 
