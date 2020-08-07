@@ -13,12 +13,12 @@
 
 - if @file.processing_errors.present?
   %h2 Processing Errors
-  %ul
-    - @file.errors.each do |error|
+  %ol
+    - @file.processing_errors.each do |error|
       %li= error
 
   %h2 Transactions
-  q
+
 %p= paginate @transactions
 - @transactions.each do |transaction|
   .panel-group.panel-collapsible
