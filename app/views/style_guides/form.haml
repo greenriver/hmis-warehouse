@@ -51,8 +51,24 @@
           %h4 "Pretty" boolean
           = f.input :is_currently_youth, as: :pretty_boolean, wrapper: :custom_boolean, disabled: false
 
-          -# %h4 Select 2
-          -# = f.input :select2, as: :select2, collection: ['Choice 1', 'Choice 2']
+          %section.my-6.mb-8
+            %h3 Select 2 Inputs
+            %hr
+
+            - collection = ['Choice 1', 'Choice 2', 'Choice 3', 'Choice 4']
+            %h4 Select 2 - Default
+            = f.input :select2, collection: collection, input_html: { class: :select2 }
+
+            %h4 Select 2 - Multiselect (with select all/none)
+            = f.input :select2_multi, collection: collection, input_html: { class: :select2, multiple: true }
+
+            %h4 Select 2 - CoC special behavior
+            %p.font-italic Select inputs have class name: <strong>.select2-id-when-selected</strong>
+            = f.input :select2_coc_behavior, collection: collection, input_html: { class: [:select2, 'select2-id-when-selected'] }
+
+            %h4 Select 2 - Parenthetical
+            %p.font-italic Select inputs have class name: <strong>.select2-parenthetical-when-selected</strong>
+            = f.input :select2_parenthetical, collection: collection, input_html: { class: [:select2, 'select2-parenthetical-when-selected'] }
 
           %h4 Password
           = f.input :password, as: :password, required: true, **validate_html
