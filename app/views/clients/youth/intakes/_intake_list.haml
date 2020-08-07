@@ -13,6 +13,7 @@
             %th Engagement Date
             %th Agency
             %th Exit Date
+            %th
         %tbody
           - @intakes.ordered.each do |intake|
             %tr
@@ -21,5 +22,9 @@
                   = intake.engagement_date
               %td= intake.user&.agency&.name
               %td= intake.exit_date
+              %td
+                - if has_some_edit_access_to_youth_intakes?
+                  = link_to polymorphic_path(youth_intake_path_generator, id: intake.id), method: :delete, data: {confirm: 'Deleting this intake will remove it from any reporting.  Are you sure you\'d like to delete it?'}, class: 'btn btn-danger btn-sm btn-icon-only' do
+                    %i.icon-cross
     - else
       %p.pt-2.text-center None on file

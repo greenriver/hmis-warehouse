@@ -13,6 +13,7 @@
         %th Child Bed Inventory
         %th Veteran Bed Inventory
         %th CoC Code
+        %th
 
     %tbody
       - inventories.all.each do |inventory|
@@ -30,6 +31,17 @@
           %td= inventory.HMISParticipatingBeds
           %td= inventory.CHBedInventory
           %td= inventory.VetBedInventory
-          %td= inventory.CoCCode
+          %td
+            = inventory.CoCCode
+            - if inventory.coc_code_override.present?
+              %br
+              %em
+                Overridden as
+                = inventory.coc_code_override
+          %td
+            - if can_edit_projects?
+              = link_to edit_inventory_path(inventory), class: ['btn', 'btn-sm', 'btn-secondary'] do
+                %i.icon-pencil
+                Edit
 - else
   %p.text-center No inventory

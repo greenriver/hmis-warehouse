@@ -84,6 +84,7 @@ module WarehouseReports::Hud
       params.require(:filter).permit(
         :start,
         :end,
+        project_ids: [],
         coc_codes: [],
       )
     end
