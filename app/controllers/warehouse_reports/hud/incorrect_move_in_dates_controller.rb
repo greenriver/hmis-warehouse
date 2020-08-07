@@ -14,7 +14,7 @@ module WarehouseReports::Hud
     def index
       @enrollments = GrdaWarehouse::Hud::Enrollment.
         where(e_t[:EntryDate].lt(@filter.end)).
-        joins(:client, project: :project_cocs).
+        joins(project: :project_cocs, client: :destination_client).
         left_outer_joins(:exit).
         preload(:exit, project: :project_cocs, client: :destination_client).
         merge(
@@ -76,6 +76,7 @@ module WarehouseReports::Hud
       params.require(:filter).permit(
         :start,
         :end,
+        project_ids: [],
         coc_codes: [],
       )
     end
