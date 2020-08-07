@@ -10,7 +10,7 @@
 = content_for :page_js do
   :javascript
     (function($) {
-      if ($('.spinner').length > 0) {
+      if ($('.spinner:visible').length > 0) {
         // Refresh page every 30 seconds since a delayed job should be running
         var timeoutPeriod = 30000
         setTimeout("location.reload(true);", timeoutPeriod);
