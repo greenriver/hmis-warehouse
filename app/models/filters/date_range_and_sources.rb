@@ -37,6 +37,34 @@ module Filters
       ]
     end
 
+    def project_ids
+      @project_ids.reject(&:blank?)
+    end
+
+    def coc_codes
+      @coc_codes.reject(&:blank?)
+    end
+
+    def project_group_ids
+      @project_group_ids.reject(&:blank?)
+    end
+
+    def organization_ids
+      @organization_ids.reject(&:blank?)
+    end
+
+    def data_source_ids
+      @data_source_ids.reject(&:blank?)
+    end
+
+    def funder_ids
+      @funder_ids.reject(&:blank?)
+    end
+
+    def cohort_ids
+      @cohort_ids.reject(&:blank?)
+    end
+
     def effective_project_ids
       @effective_project_ids = effective_project_ids_from_projects
       @effective_project_ids += effective_project_ids_from_project_groups
@@ -46,7 +74,7 @@ module Filters
       if @effective_project_ids.empty?
         @effective_project_ids = all_project_ids
       end
-      return @effective_project_ids.uniq
+      return @effective_project_ids.uniq.reject(&:blank?)
     end
 
     def all_projects?
