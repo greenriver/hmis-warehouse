@@ -34,7 +34,7 @@ module HmisCsvTwentyTwenty::Aggregated::AggregatedImportConcern
 
   def self.find_matching_records(batch)
     data_source_id = batch.first&.data_source_id # All of the records in an aggregation are in the same data source
-    keys = batch.map(&hud_key)
-    where(hud_key => keys, data_source_id: data_source_id).index_by(&hud_key)
+    keys = batch.map(&hud_key.to_sym)
+    where(hud_key => keys, data_source_id: data_source_id).index_by(&hud_key.to_sym)
   end
 end
