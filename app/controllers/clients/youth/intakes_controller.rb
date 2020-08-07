@@ -70,6 +70,8 @@ module Clients::Youth
     end
 
     def destroy
+      @intake.destroy
+      respond_with(@intake, location: polymorphic_path(youth_intakes_path_generator))
     end
 
     def remove_all_youth_data
