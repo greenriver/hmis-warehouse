@@ -73,7 +73,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.coc_code_coalesce
-      cl(pc_t[:hud_coc_code], pc_t[:CoCCode]).as('CoCCode')
+      cl(pc_t[:hud_coc_code], pc_t[:CoCCode])
     end
 
     # when we export, we always need to replace ProjectCoCID with the value of id
