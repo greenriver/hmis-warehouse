@@ -626,7 +626,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :inventory, only: [:edit, :update]
+  resources :inventories, only: [:edit, :update]
   resources :geography, only: [:edit, :update]
   resources :project_cocs, only: [:edit, :update]
 

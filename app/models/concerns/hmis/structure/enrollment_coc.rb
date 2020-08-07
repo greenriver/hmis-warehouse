@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HMIS::Structure::EnrollmentCoC
+module HMIS::Structure::EnrollmentCoc
   extend ActiveSupport::Concern
   include ::HMIS::Structure::Base
 
