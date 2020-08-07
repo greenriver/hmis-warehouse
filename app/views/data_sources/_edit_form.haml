@@ -9,7 +9,7 @@
         %th.pl-2 Date Span
         %td
           - if data_span = @data_source.data_span
-            = "#{data_span[:start_date]}-#{data_span[:end_date]}"
+            = "#{data_span[:start_date]} - #{data_span[:end_date]}"
       -if ! @data_source.authoritative? && @data_source.uploads.any? && can_view_imports?
         %tr
           %th.pl-2 Uploads
