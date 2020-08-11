@@ -20,7 +20,9 @@ module Importers::HmisAutoDetect
       expand_upload
       importer = Importers::HmisAutoDetect.available_importers.detect{ |importer| importer.constantize.matches(@local_path) }
       if importer
+        @upload.update(percent_complete: 1)
         importer.constantize.import!(@file_path, @data_source_id, deidentified: @deidentified, allowed_projects: @allowed_projects)
+        @upload.update(percent_complete: 100, completed_at: Time.current)
       else
         # TODO: no compatible importer
       end
