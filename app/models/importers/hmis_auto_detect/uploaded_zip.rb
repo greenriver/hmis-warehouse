@@ -17,17 +17,23 @@ module Importers::HmisAutoDetect
     end
 
     def import!
+      @import_log = GrdaWarehouse::ImportLog.new(upload_id: @upload.id, data_source_id: @data_source_id, summary: {}, import_errors: {}, files: [])
       expand_upload
       importer = Importers::HmisAutoDetect.available_importers.detect{ |importer| importer.constantize.matches(@local_path) }
       if importer
         @upload.update(percent_complete: 1)
-        importer.constantize.import!(@file_path, @data_source_id, deidentified: @deidentified, allowed_projects: @allowed_projects)
+        importer.constantize.import!(@file_path, @data_source_id, @import_log, deidentified: @deidentified, allowed_projects: @allowed_projects)
         @upload.update(percent_complete: 100, completed_at: Time.current)
       else
-        # TODO: no compatible importer
+        raise 'Unrecognized HMIS export format'
       end
+    rescue Exception => e
+      @import_log.import_errors = [{'message' => "#{e}"}]
+      raise
     ensure
       FileUtils.rm_rf(@local_path) if File.exists?(@local_path)
+      @import_log.completed_at = Time.current
+      @import_log.save!
     end
 
     private def expand_upload

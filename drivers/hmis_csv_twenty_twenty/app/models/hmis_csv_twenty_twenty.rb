@@ -10,7 +10,7 @@ module HmisCsvTwentyTwenty
     File.exist?("#{file_path}/Assessment.csv")
   end
 
-  def self.import!(file_path, data_source_id, deidentified:, allowed_projects:) # rubocop:disable Lint/UnusedMethodArgument
+  def self.import!(file_path, data_source_id, import_log, deidentified:, allowed_projects:) # rubocop:disable Lint/UnusedMethodArgument
     loader = HmisCsvTwentyTwenty::Loader::Loader.new(
       file_path: file_path,
       data_source_id: data_source_id,
