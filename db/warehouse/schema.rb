@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_31_181511) do
+ActiveRecord::Schema.define(version: 2020_08_12_144640) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -820,6 +820,7 @@ ActiveRecord::Schema.define(version: 2020_07_31_181511) do
     t.integer "OtherBedInventory"
     t.integer "TargetPopulation"
     t.integer "ESBedType"
+    t.string "coc_code_override"
     t.index ["DateCreated"], name: "inventory_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Inventory_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "inventory_date_updated"
@@ -4279,6 +4280,7 @@ ActiveRecord::Schema.define(version: 2020_07_31_181511) do
     t.datetime "updated_at", null: false
     t.string "zip"
     t.integer "upload_id"
+    t.string "type", default: "GrdaWarehouse::ImportLog"
     t.index ["completed_at"], name: "index_import_logs_on_completed_at"
     t.index ["created_at"], name: "index_import_logs_on_created_at"
     t.index ["data_source_id"], name: "index_import_logs_on_data_source_id"
