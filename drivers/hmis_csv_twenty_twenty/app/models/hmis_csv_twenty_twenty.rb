@@ -11,6 +11,11 @@ module HmisCsvTwentyTwenty
   end
 
   def self.import!(file_path, data_source_id, upload, deidentified:, allowed_projects:) # rubocop:disable Lint/UnusedMethodArgument
+    log = HmisCsvTwentyTwenty::ImportLog.new(
+      created_at: Time.current,
+      upload_id: upload.id,
+      data_source_id: data_source_id,
+    )
     loader = HmisCsvTwentyTwenty::Loader::Loader.new(
       file_path: file_path,
       data_source_id: data_source_id,
@@ -19,12 +24,11 @@ module HmisCsvTwentyTwenty
     loader.load!
     loader.import!
 
-    HmisCsvTwentyTwenty::ImportLog.new(
-      upload_id: upload.id,
-      data_source_id: data_source_id,
-      summary: {},
-      import_errors: {},
-      files: loader.importable_files.importable_files.transform_values(&:name).invert.to_a,
+    log.assign_attributes(
+      loader_log: loader.loader_log,
+      importer_log: loader.importer_log,
+      files: loader.importable_files.transform_values(&:name).invert.to_a,
     )
+    log
   end
 end

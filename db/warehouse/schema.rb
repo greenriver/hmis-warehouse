@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_12_144640) do
+ActiveRecord::Schema.define(version: 2020_08_12_153339) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4281,9 +4281,13 @@ ActiveRecord::Schema.define(version: 2020_08_12_144640) do
     t.string "zip"
     t.integer "upload_id"
     t.string "type", default: "GrdaWarehouse::ImportLog"
+    t.bigint "loader_log_id"
+    t.bigint "importer_log_id"
     t.index ["completed_at"], name: "index_import_logs_on_completed_at"
     t.index ["created_at"], name: "index_import_logs_on_created_at"
     t.index ["data_source_id"], name: "index_import_logs_on_data_source_id"
+    t.index ["importer_log_id"], name: "index_import_logs_on_importer_log_id"
+    t.index ["loader_log_id"], name: "index_import_logs_on_loader_log_id"
     t.index ["updated_at"], name: "index_import_logs_on_updated_at"
   end
 
