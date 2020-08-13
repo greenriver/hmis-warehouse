@@ -5,7 +5,7 @@ const initialState = {
 };
 
 $(() => {
-  const $modal = $('#j-document-export-modal');
+  const $modal = $('#pjax-modal');
 
   let state = { ...initialState };
   const setState = (newState) => {
@@ -21,10 +21,14 @@ $(() => {
 
   const updateDisplay = (newState) => {
     setState(newState);
-    //console.info('set state display', state);
+    // console.info('set state display', state);
     if (state.open) {
       $modal.modal('show');
     }
+    let title = $('.j-document-export-title').text();
+    $modal.find('.modal-title').text(title);
+    let body = $('.j-document-export-body').html();
+    $modal.find('.modal-body').html(body);
     $modal.attr('data-status', state.status);
     $modal.find('.j-download-link').attr('href', state.downloadUrl);
   };
@@ -70,7 +74,7 @@ $(() => {
     };
 
     const xhr = $.ajax({
-      url: $modal.data('url'),
+      url: $('.j-document-export-body').data('url'),
       type: 'POST',
       data: formData,
     });
