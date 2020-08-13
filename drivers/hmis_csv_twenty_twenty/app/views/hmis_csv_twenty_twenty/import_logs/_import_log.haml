@@ -36,7 +36,7 @@
                         %td= filename
                         %td= v['total_lines']
                         %td= v['lines_loaded']
-                        %td= v['total_errors']
+                        %td= link_to_unless v['total_errors'] == 0, v['total_errors'], hmis_csv_twenty_twenty_loader_error_path(@import.loader_log, file: filename)
 
           - if @import.importer_log.present?
             %tr

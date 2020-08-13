@@ -1,0 +1,15 @@
+= content_for :crumbs do
+  = link_to import_path(@import) do
+    &laquo; Import Log
+
+%h1 Loader Errors
+%table.table
+  %thead
+    %tr
+      %th Error
+      %th Line
+  %tbody
+    - @errors.each do |error|
+      %tr
+        %td= error.details
+        %td= error.source

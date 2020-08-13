@@ -1,7 +1,5 @@
 BostonHmis::Application.routes.draw do
-  scope :hmis_csv_twenty_twenty do
-    resources :loads
+  namespace :hmis_csv_twenty_twenty do
+    resources :loader_errors, only: [:show]
   end
-  # TODO
-  # get '/my_path', to: 'hmis_csv_twenty_twenty/my_controller'
 end
