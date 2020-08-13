@@ -223,7 +223,9 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
           failures << check[:class].check_validity!(self, column, arguments)
         end
       end
-      failures.compact
+      failures.compact!
+      @loader_log.summary[file]['total_flags'] += failures.count
+      failures
     end
   end
 end
