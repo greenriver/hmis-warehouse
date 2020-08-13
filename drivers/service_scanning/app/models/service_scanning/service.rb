@@ -12,6 +12,18 @@ module ServiceScanning
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
     belongs_to :user
 
+    scope :bed_night, -> do
+      where(type: 'ServiceScanning::BedNight')
+    end
+
+    scope :outreach, -> do
+      where(type: 'ServiceScanning::Outreach')
+    end
+
+    scope :bed_nights_or_outreach, -> do
+      where(type: ['ServiceScanning::BedNight', 'ServiceScanning::Outreach'])
+    end
+
     attr_accessor :scanner_id, :slug
 
     validates_presence_of :project_id

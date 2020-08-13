@@ -19,15 +19,40 @@
         %ul
           - @organization_counts.each do |org_name, count|
             %li
-              = "#{org_name}: #{pluralize count, 'days'}"
+              #{org_name}: #{pluralize count, 'days'}
       .history__counts-by-type
         %strong Total number of Bed Nights across all Residential Programs in each project type
         %ul
           - @project_type_counts.each do |type, count|
             %li
-              = "#{type}: #{pluralize count, 'days'}"
+              #{type}: #{pluralize(count, 'days')}
+      - if RailsDrivers.loaded.include?(:service_scanning)
+        - if @client.service_scanning_bed_nights_or_outreach?
+          .history__counts-for-service_scanning
+            %strong Total number of bed nights and outreach contacts recorded during the #{_('HMIS Blackout')}.
+            %ul
+              %li Bed nights: #{pluralize(@client.unique_service_scanning_bed_nights.count, 'days')}
+              %li Outreach: #{pluralize(@client.unique_service_scanning_outreach.count, 'days')}
 
   .history__dates
+    - if RailsDrivers.loaded.include?(:service_scanning)
+      - if @client.service_scanning_bed_nights_or_outreach?
+        %h3 #{_('HMIS Blackout')} Bed Nights and Outreach
+        %table.history__dates-table
+          %thead
+            %tr
+              %th Organization
+              %th Project Name
+              %th Project Type
+              %th Date
+          %tbody
+            - @client.service_scanning_services.bed_nights_or_outreach.order(provided_at: :asc).preload(project: :organization).find_each do |service|
+              %tr
+                %td= service.project.organization.OrganizationName
+                %td= service.project.safe_project_name
+                %td= service.project.human_readable_project_type
+                %td= service.provided_at.to_date
+        %h3 HMIS Records
     - if @dates.present?
       %table.history__dates-table
         %thead
