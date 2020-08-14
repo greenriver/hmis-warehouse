@@ -24,7 +24,7 @@ module ServiceScanning
       where(type: ['ServiceScanning::BedNight', 'ServiceScanning::Outreach'])
     end
 
-    attr_accessor :scanner_id, :slug
+    attr_accessor :scanner_id, :slug, :service_note
 
     validates_presence_of :project_id
 
