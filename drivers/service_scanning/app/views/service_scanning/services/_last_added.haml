@@ -1,9 +1,5 @@
 - if @last_service && @last_client
-  - if @last_client.alert_notes.exists?
-    .service-scanning__active-alerts.text-center
-      = link_to alerts_client_notes_path(@last_client), class: 'btn btn-secondary btn-sm', data: { loads_in_pjax_modal: true } do
-        %i.icon-warning
-        #{pluralize(@last_client.alert_notes.count, 'active alert')}
+  = render 'client_alerts', client: @last_client
   .well
     .d-flex
       %h3 Added #{@last_service.title}
@@ -19,3 +15,10 @@
         %dd= @last_service.provided_at
       - if @last_client.image
         .ml-auto.mt-2.client__image{ style: "background-image: url(#{ image_client_path(id: @last_client.id) })" }
+    = simple_form_for @last_service, as: :note, url: service_scanning_service_path(@last_service, service: index_params) do |f|
+      .d-flex
+        .justify-content-center.w-100
+          = f.input :service_note, as: :text
+      .d-flex
+        = f.button :submit, value: 'Add Service Note', class: 'btn-secondary btn-sm'
+
