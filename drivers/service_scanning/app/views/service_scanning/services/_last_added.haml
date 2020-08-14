@@ -17,7 +17,7 @@
         .ml-auto.mt-2.client__image{ style: "background-image: url(#{ image_client_path(id: @last_client.id) })" }
     = simple_form_for @last_service, as: :note, url: service_scanning_service_path(@last_service, service: index_params) do |f|
       .d-flex
-        .justify-content-center
+        .justify-content-center.w-100
           = f.input :service_note, as: :text
       .d-flex
         = f.button :submit, value: 'Add Service Note', class: 'btn-secondary btn-sm'
