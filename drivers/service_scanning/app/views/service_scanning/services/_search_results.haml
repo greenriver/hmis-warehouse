@@ -1,13 +1,6 @@
 %h3 Client Search Results
 - @search_results.each do |client|
-  - if client.alert_notes.exists? || (health_emergency? && client.health_emergency_ama_restriction_status.present? && can_see_health_emergency_medical_restriction?)
-    .service-scanning__active-alerts
-      - if client.alert_notes.exists?
-        = link_to alerts_client_notes_path(client), class: 'btn btn-secondary btn-sm mr-4', data: { loads_in_pjax_modal: true } do
-          %i.icon-warning
-          #{pluralize(client.alert_notes.count, 'active alert')}
-      - if health_emergency? && client.health_emergency_ama_restriction_status.present? && can_see_health_emergency_medical_restriction?
-        = pill_badge labels: [GrdaWarehouse::HealthEmergency::AmaRestriction.new.pill_title, client.health_emergency_ama_restriction_status], wrapper_classes: ['badge-danger']
+  = render 'client_alerts', client: client
   .well
     .row
       .col-6
