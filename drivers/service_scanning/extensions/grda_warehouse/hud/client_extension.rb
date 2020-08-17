@@ -18,9 +18,17 @@ module ServiceScanning::GrdaWarehouse::Hud
         service_scanning_services.bed_night.distinct.pluck(nf('DATE_TRUNC', ['day', ss_t[:provided_at]]))
       end
 
-      def unique_service_scanning_outreach
+      def unique_service_scanning_outreach(include_extrapolated: false)
         ss_t = ServiceScanning::Service.arel_table
-        service_scanning_services.outreach.distinct.pluck(nf('DATE_TRUNC', ['day', ss_t[:provided_at]]))
+        scanned_dates = service_scanning_services.outreach.distinct.pluck(nf('DATE_TRUNC', ['day', ss_t[:provided_at]]))
+        return scanned_dates unless include_extrapolated
+
+        all_dates = Set.new
+        scanned_dates.each do |date|
+          date = date.to_date
+          all_dates += (date.beginning_of_month..date.end_of_month).to_a
+        end
+        all_dates
       end
     end
   end

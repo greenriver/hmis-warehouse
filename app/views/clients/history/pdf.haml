@@ -32,7 +32,7 @@
             %strong Total number of bed nights and outreach contacts recorded during the #{_('HMIS Blackout')}.
             %ul
               %li Bed nights: #{pluralize(@client.unique_service_scanning_bed_nights.count, 'days')}
-              %li Outreach: #{pluralize(@client.unique_service_scanning_outreach.count, 'days')}
+              %li Outreach: #{pluralize(@client.unique_service_scanning_outreach(include_extrapolated: true).count, 'days')}
 
   .history__dates
     - if RailsDrivers.loaded.include?(:service_scanning)
@@ -46,12 +46,12 @@
               %th Project Type
               %th Date
           %tbody
-            - @client.service_scanning_services.bed_nights_or_outreach.order(provided_at: :asc).preload(project: :organization).find_each do |service|
+            - @client.service_scanning_services.bed_nights_or_outreach_with_extrapolated.values.flatten.each do |service|
               %tr
-                %td= service.project.organization.OrganizationName
-                %td= service.project.safe_project_name
-                %td= service.project.human_readable_project_type
-                %td= service.provided_at.to_date
+                %td= service.project&.organization&.OrganizationName || 'Extrapolated'
+                %td= service.project&.safe_project_name || 'Extrapolated'
+                %td= service.project&.human_readable_project_type || 'Street Outreach'
+                %td= Time.zone.local_to_utc(service.provided_at).to_date
         %h3 HMIS Records
     - if @dates.present?
       %table.history__dates-table
