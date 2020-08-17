@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_29_205716) do
+ActiveRecord::Schema.define(version: 2020_08_07_203051) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -487,6 +487,7 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer "updated_patients"
+    t.jsonb "processing_errors", default: []
   end
 
   create_table "epic_careplans", id: :serial, force: :cascade do |t|
@@ -539,7 +540,6 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -583,7 +583,6 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
@@ -958,8 +957,10 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.string "aco_name"
     t.string "previous_aco_name"
     t.boolean "invalid_id", default: false
+    t.bigint "nurse_care_manager_id"
     t.index ["client_id"], name: "patients_client_id_constraint", unique: true, where: "(deleted_at IS NULL)"
     t.index ["medicaid_id"], name: "index_patients_on_medicaid_id"
+    t.index ["nurse_care_manager_id"], name: "index_patients_on_nurse_care_manager_id"
   end
 
   create_table "premium_payments", id: :serial, force: :cascade do |t|
