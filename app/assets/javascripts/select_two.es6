@@ -15,8 +15,8 @@ App.Form.Select2Input = class Select2Input {
       this.$select2Container = this.$select.next('.select2-container')
 
       // Add options based on use-case
-      // CoCs get special functionality
-      if (field.classList.contains('select2-id-when-selected')) {
+      // CoCs get special functionality "My Coc (MA-500)" becomes MA-500 when selected
+      if (field.classList.contains('select2-parenthetical-when-selected')) {
         options.templateSelection = (selected) => {
           if (!selected.id) {
             return selected.text
@@ -27,11 +27,13 @@ App.Form.Select2Input = class Select2Input {
             return selected.text
           } else if (matched && matched.length) {
             return matched[1]
+          } else {
+            return selected.text
           }
         }
       }
 
-      if (field.classList.contains('select2-parenthetical-when-selected')) {
+      if (field.classList.contains('select2-id-when-selected')) {
         options.templateSelection = (selected) => {
           if (!selected.id) {
             return selected.text

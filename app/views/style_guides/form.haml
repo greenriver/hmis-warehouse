@@ -55,7 +55,7 @@
             %h3 Select 2 Inputs
             %hr
 
-            - collection = ['Choice 1', 'Choice 2', 'Choice 3', 'Choice 4']
+            - collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
             %h4 Select 2 - Default
             = f.input :select2, collection: collection, input_html: { class: :select2 }
 
@@ -64,11 +64,11 @@
 
             %h4 Select 2 - CoC special behavior
             %p.font-italic Select inputs have class name: <strong>.select2-id-when-selected</strong>
-            = f.input :select2_coc_behavior, collection: collection, input_html: { class: [:select2, 'select2-id-when-selected'] }
+            = f.input :select2_coc_behavior, collection: collection, input_html: { class: [:select2, 'select2-id-when-selected'] }, hint: 'Show value instead of label when selected'
 
             %h4 Select 2 - Parenthetical
             %p.font-italic Select inputs have class name: <strong>.select2-parenthetical-when-selected</strong>
-            = f.input :select2_parenthetical, collection: collection, input_html: { class: [:select2, 'select2-parenthetical-when-selected'] }
+            = f.input :select2_parenthetical, collection: collection, input_html: { class: [:select2, 'select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
 
           %h4 Password
           = f.input :password, as: :password, required: true, **validate_html
