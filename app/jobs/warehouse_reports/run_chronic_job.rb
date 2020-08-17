@@ -40,7 +40,6 @@ module WarehouseReports
       end
       report_params.define_singleton_method(:permit) { |*args| deep_slice(*args) }
       self.params = report_params
-      self.params = report_params
 
       load_filter
       report = GrdaWarehouse::WarehouseReports::ChronicReport.new
