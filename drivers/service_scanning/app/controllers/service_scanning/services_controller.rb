@@ -84,17 +84,17 @@ module ServiceScanning
     def update
       service = ServiceScanning::Service.find(params[:id].to_i)
       service_note = note_params[:service_note]
-      if service_note.present?
-        ::GrdaWarehouse::ClientNotes::ServiceNote.create!(
-          client_id: service.client_id,
-          user_id: current_user.id,
-          note: service_note,
-          service_id: service.id,
-          project_id: service.project_id,
-        )
-        respond_with(@service, location: service_scanning_services_path(service: index_params.merge(client_id: service.client_id, service_id: service.id)))
+      @note = ::GrdaWarehouse::ClientNotes::ServiceNote.create(
+        client_id: service.client_id,
+        user_id: current_user.id,
+        note: service_note,
+        service_id: service.id,
+        project_id: service.project_id,
+      )
+      if @note.valid?
+        respond_with(@note, location: service_scanning_services_path(service: index_params.merge(client_id: service.client_id, service_id: service.id)))
       else
-        flash[:error] = 'Cannot Add Empty Notes'
+        flash[:error] = "Note can't be empty"
         redirect_to(service_scanning_services_path(service: index_params.merge(client_id: service.client_id, service_id: service.id)))
       end
     end
