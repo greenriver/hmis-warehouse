@@ -989,14 +989,16 @@ module GrdaWarehouse::Hud
     # Define a bunch of disability methods we can use to get the response needed
     # for CAS integration
     # This generates methods like: substance_response()
-    GrdaWarehouse::Hud::Disability.disability_types.each do |hud_key, disability_type|
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
       define_method "#{disability_type}_response".to_sym do
         disability_check = "#{disability_type}?".to_sym
-        source_disabilities.detect(&disability_check).try(:response)
+        source_disabilities.response_present.
+          newest_first.
+          detect(&disability_check).try(:response)
       end
     end
 
-    GrdaWarehouse::Hud::Disability.disability_types.each do |hud_key, disability_type|
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
       define_method "#{disability_type}_response?".to_sym do
         self.send("#{disability_type}_response".to_sym) == 'Yes'
       end

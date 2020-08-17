@@ -81,6 +81,19 @@ module ServiceScanning
       end
     end
 
+    def update
+      service = ServiceScanning::Service.find(params[:id].to_i)
+      service_note = note_params[:service_note]
+      ::GrdaWarehouse::ClientNotes::ServiceNote.create!(
+        client_id: service.client_id,
+        user_id: current_user.id,
+        note: service_note,
+        service_id: service.id,
+        project_id: service.project_id,
+      )
+      respond_with(@service, location: service_scanning_services_path(service: index_params.merge(client_id: service.client_id, service_id: service.id)))
+    end
+
     def new_client
       @client = client_source.new
     end
@@ -214,6 +227,14 @@ module ServiceScanning
       )
     end
     helper_method :index_params
+
+    private def note_params
+      return {} unless params[:note]
+
+      params.require(:note).permit(
+        :service_note,
+      )
+    end
 
     def client_create_params
       params.require(:client).

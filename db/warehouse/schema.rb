@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_06_183758) do
+ActiveRecord::Schema.define(version: 2020_08_14_173200) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1528,7 +1528,11 @@ ActiveRecord::Schema.define(version: 2020_08_06_183758) do
     t.jsonb "recipients"
     t.datetime "sent_at"
     t.boolean "alert_active", default: true, null: false
+    t.bigint "service_id"
+    t.bigint "project_id"
     t.index ["client_id"], name: "index_client_notes_on_client_id"
+    t.index ["project_id"], name: "index_client_notes_on_project_id"
+    t.index ["service_id"], name: "index_client_notes_on_service_id"
     t.index ["user_id"], name: "index_client_notes_on_user_id"
   end
 
