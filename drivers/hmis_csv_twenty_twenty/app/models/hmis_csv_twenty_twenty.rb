@@ -6,6 +6,7 @@
 
 module HmisCsvTwentyTwenty
   def self.matches(file_path)
+    # FIXME: Check all the file headers instead of just this one file
     # The 2020 spec added the assessments csv
     File.exist?("#{file_path}/Assessment.csv")
   end

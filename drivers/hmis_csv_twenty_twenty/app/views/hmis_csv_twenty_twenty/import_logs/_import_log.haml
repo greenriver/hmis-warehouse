@@ -62,9 +62,9 @@
                         %td= v['removed']
                         %td= v['updated']
                         %td= v['unchanged']
-                        %td= link_to_unless v['total_errors'] == 0 && v['total_flags'] == 0, v['total_flags'] || '0', hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: filename)
+                        %td= link_to_unless v['total_errors'] == 0 && (v['total_flags'].blank? || v['total_flags'] == 0), v['total_flags'] || '0', hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: filename)
 
-                        %td= link_to_unless v['total_errors'] == 0 && v['total_flags'] == 0, v['total_errors'], hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: filename)
+                        %td= link_to_unless v['total_errors'] == 0 && (v['total_flags'].blank? || v['total_flags'] == 0), v['total_errors'], hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: filename)
 
 - if @import.import_errors.present? && @import.import_errors.is_a?(Array)
   .row
