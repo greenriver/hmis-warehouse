@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # ### HIPPA Risk Assessment
@@ -24,7 +24,7 @@ module Health
 
     belongs_to :signable_document, optional: true
     belongs_to :careplan
-    has_one :team_member, required: false, class_name: Health::Team::Member.name, primary_key: [:patient_id, :to_email], foreign_key: [:patient_id, :email]
+    has_one :team_member, required: false, class_name: 'Health::Team::Member', primary_key: [:patient_id, :to_email], foreign_key: [:patient_id, :email]
 
     validates_presence_of :patient_id, :careplan_id, :to_email, :to_name, :requestor_email, :requestor_name, :expires_at
     attr_accessor :team_member_id

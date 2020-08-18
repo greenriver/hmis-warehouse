@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Clients
@@ -39,7 +39,10 @@ module Clients
     end
 
     def destroy
-      @assessment.destroy
+      @assessment.transaction do
+        @assessment.destroy
+        GrdaWarehouse::CoordinatedEntryAssessment::Base.ensure_active(@assessment.client)
+      end
       respond_with(@assessment, location: client_coordinated_entry_assessments_path(@client))
     end
 

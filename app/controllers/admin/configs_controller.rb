@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Admin
@@ -57,6 +57,13 @@ module Admin
         :health_emergency,
         :health_emergency_tracing,
         :health_priority_age,
+        :multi_coc_installation,
+        :auto_de_duplication_accept_threshold,
+        :auto_de_duplication_reject_threshold,
+        :pii_encryption_type,
+        :auto_de_duplication_enabled,
+        :request_account_available,
+        :dashboard_lookback,
         client_details: [],
       )
     end

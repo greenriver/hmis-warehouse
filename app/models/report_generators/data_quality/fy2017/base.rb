@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # require 'newrelic_rpm'
@@ -93,7 +93,7 @@ module ReportGenerators::DataQuality::Fy2017
         client_id_scope = add_filters(scope: client_id_scope)
 
         leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          ended_between(start_date: @report_start + 1.days,
+          ended_between(start_date: @report_start,
             end_date: @report_end + 1.days).
           where.not(
             client_id: client_id_scope.
@@ -288,7 +288,7 @@ module ReportGenerators::DataQuality::Fy2017
       @household_columns ||= {
         client_id: she_t[:client_id],
         DOB: c_t[:DOB],
-
+        age: she_t[:age],
         project_id: she_t[:project_id],
         data_source_id: she_t[:data_source_id],
         first_date_in_program: she_t[:first_date_in_program],
@@ -496,6 +496,14 @@ module ReportGenerators::DataQuality::Fy2017
       homeless_for_one_year?(enrollment: enrollment) ||
       enrollment[:TimesHomelessPastThreeYears].present? && enrollment[:TimesHomelessPastThreeYears] >= 4 &&
        enrollment[:MonthsHomelessPastThreeYears].present? && enrollment[:MonthsHomelessPastThreeYears] >= 12
+    end
+
+    def personal_ids(destination_ids)
+      GrdaWarehouse::WarehouseClient.
+        where(destination_id: destination_ids).
+        distinct.
+        pluck(:destination_id, :id_in_source).
+        group_by(&:first).transform_values{ |v| v.map(&:last).uniq }
     end
 
     def debug

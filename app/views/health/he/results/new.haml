@@ -1,0 +1,5 @@
+- content_for :modal_title, 'Add Test Result'
+
+= simple_form_for @result, url: health_he_case_contact_results_path, remote: request.xhr?, class: 'result-form' do |f|
+  = render 'form', f: f
+  = f.submit 'Add Result'

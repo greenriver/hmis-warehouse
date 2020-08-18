@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # Testing:
@@ -123,12 +123,15 @@ module ReportGenerators::Lsa::Fy2019
           start_date: '2012-10-01',
           period_type: 3,
           directive: 2,
-          hash_status:1,
+          hash_status: 1,
           include_deleted: false,
         ).
         where("project_ids @> ?", @project_ids.to_json).
         where.not(file: nil)&.first
-      return existing_export if existing_export.present?
+      if existing_export.present?
+        @hmis_export = existing_export
+        return
+      end
 
       @hmis_export = Exporters::HmisTwentyTwenty::Base.new(
         start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
@@ -136,7 +139,7 @@ module ReportGenerators::Lsa::Fy2019
         projects: @project_ids,
         period_type: 3,
         directive: 2,
-        hash_status:1,
+        hash_status: 1,
         include_deleted: false,
         user_id: @report.user_id,
       ).export!
@@ -485,9 +488,9 @@ module ReportGenerators::Lsa::Fy2019
         begin
           CREATE INDEX [IX_tlsa_Person_CHTime] ON [tlsa_Person] ([CHTime]) INCLUDE ([LastActive])
         end
-        if not exists(select * from sys.indexes where name = 'IX_ch_Include_chDate')
+        if not exists(select * from sys.indexes where name = 'IX_ch_Include_ESSHStreetDate')
         begin
-          CREATE INDEX [IX_ch_Include_chDate] ON [ch_Include] ([chDate])
+          CREATE INDEX [IX_ch_Include_ESSHStreetDate] ON [ch_Include] ([ESSHStreetDate])
         end
 
         if not exists(select * from sys.indexes where name = 'IX_tlsa_HHID_TrackingMethod')

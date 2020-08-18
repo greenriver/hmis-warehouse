@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # Tool to update data via the ETO API based on results from QaaWS via Bo::ClientIdLookup
@@ -421,8 +421,10 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
       end
 
       staff = api.staff(site_id: site_id, id: api_response['AuditStaffID'])
-      hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
-      hmis_form.staff_email = staff['Email']
+      if staff
+        hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
+        hmis_form.staff_email = staff['Email']
+      end
       # Add email
       hmis_form.collected_at = api.parse_date(api_response['ResponseCreatedDate'])
       hmis_form.name = assessment_name

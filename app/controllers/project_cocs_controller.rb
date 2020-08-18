@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class ProjectCocsController < ApplicationController
@@ -24,6 +24,7 @@ class ProjectCocsController < ApplicationController
     params.require(:project_coc).permit(
       :hud_coc_code,
       :geocode_override,
+      :zip_override,
       :geography_type_override,
     )
   end

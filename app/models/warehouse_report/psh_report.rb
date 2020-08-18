@@ -1,12 +1,12 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # dev projects -- with affiliation: 61; single RRH: 44
 
-class WarehouseReport::PshReport < WarehouseReport::RrhReport
+class WarehouseReport::PshReport < WarehouseReport::RrhReport # rubocop:disable Style/ClassAndModuleChildren
   include ArelHelper
 
   def default_support_columns

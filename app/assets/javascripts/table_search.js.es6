@@ -5,16 +5,26 @@ window.App.TableSearch = class TableSearch {
   }
 
   registerEvents() {
-    $(this.props.inputClass).on('input', (event) => {
-      this.search(event.target.value)
+    $(this.props.inputClass).on('input select2:select select2:unselect', (event) => {
+      this.search(event.target.value, event)
     })
   }
 
-  search(term) {
+  search(term, event) {
     $(this.props.rowClass).each(function() {
-      if ($(this).data('title').indexOf(term.toLowerCase()) < 0) {
+      let match = false
+      let searchCategories = []
+      const itemCategories = $(this).data('categories')
+      const title = $(this).data('title')
+
+      if (event.target.nodeName === 'SELECT') {
+        searchCategories =
+          [...event.target.querySelectorAll('option:checked')]
+            .map( (el) => el.getAttribute('value') )
+      }
+      match = title.match(term, 'i') || searchCategories.some(cat=> itemCategories.includes(cat))
+      if (!match) {
         $(this).addClass('hide')
-        console.log('not a match')
       } else {
         $(this).removeClass('hide')
       }

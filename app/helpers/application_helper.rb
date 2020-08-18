@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module ApplicationHelper
@@ -143,6 +143,7 @@ module ApplicationHelper
       result << params[:controller]
       result << params[:action]
       result << 'not-signed-in' if current_user.blank?
+      result << (@layout__width == 'lg' ? 'l-content-width-lg' : 'l-content-width-md')
     end
   end
 

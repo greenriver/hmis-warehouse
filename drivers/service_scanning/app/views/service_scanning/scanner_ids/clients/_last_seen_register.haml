@@ -1,0 +1,10 @@
+- service = ServiceScanning::Service.where(client_id: @client.id).order(provided_at: :desc).first
+- if service.present?
+  .w-50
+    %ul.client__summary-details.list-unstyled
+      %li
+        %h4 Last Seen (HMIS Blackout)
+        %span= "#{time_ago_in_words(service.provided_at)} ago"
+      %li
+        %h4 Last Seen Location (HMIS Blackout)
+        %span=service.project.name

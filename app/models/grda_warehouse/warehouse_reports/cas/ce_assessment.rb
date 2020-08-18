@@ -1,19 +1,20 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   include ArelHelper
+  include AvailableSubPopulations
 
   def initialize filter:
     @filter = filter
     @filter.days_homeless = (@filter.days_homeless.presence || 270).to_i
     @filter.no_assessment_in = (@filter.no_assessment_in.presence || 180).to_i
-    @filter.sub_population = available_sub_populations.values.detect do |m|
+    @filter.sub_population = self.class.available_sub_populations.values.detect do |m|
       m == @filter.sub_population&.to_sym
-    end || :individual_adults
+    end || :adult
     if project_id_missing?
       @filter.project_id = default_project_id
     else
@@ -146,23 +147,6 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   private def filter_for_sub_population scope
     scope.joins(:service_history_enrollments).
       merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.send(@filter.sub_population))
-  end
-
-  def available_sub_populations
-    {
-      'All Clients' => :all_clients,
-      'Veterans' => :veteran,
-      'Youth' => :youth,
-      'Family' => :family,
-      'Youth Family' => :youth_families,
-      'Children' => :children,
-      'Parents' => :family_parents,
-      'Parenting Youth' => :parenting_youth,
-      'Parenting Juveniles' => :parenting_children,
-      'Unaccompanied Minors' => :unaccompanied_minors,
-      'Individual Adults' => :individual_adults,
-      'Non-Veterans' => :non_veteran,
-    }.sort.to_h.freeze
   end
 
   def available_days_since_last_assessment

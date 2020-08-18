@@ -1,16 +1,16 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::WarehouseReports
   class ProjectContact < GrdaWarehouseBase
     acts_as_paranoid
 
-    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
-    has_many :data_quality_reports, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name
-    has_many :report_tokens, foreign_key: :contact_id, class_name: GrdaWarehouse::ReportToken.name
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
+    has_many :data_quality_reports, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base'
+    has_many :report_tokens, foreign_key: :contact_id, class_name: 'GrdaWarehouse::ReportToken'
 
     validates_email_format_of :email
 

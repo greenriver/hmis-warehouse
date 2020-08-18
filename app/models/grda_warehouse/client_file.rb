@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse
@@ -184,6 +184,10 @@ module GrdaWarehouse
       client.consent_form_id == id
     end
 
+    def consent_form?
+      self.class.consent_forms.where(id: id).exists?
+    end
+
     def revoked?
       consent_revoked_at.present?
     end
@@ -233,6 +237,7 @@ module GrdaWarehouse
       #
       # If the consent if valid on the client,
       # remove consent only if the confirmation was also changed and this is the only confirmed consent file
+      return unless consent_form?
 
       if ! client.consent_form_valid?
         if consent_form_signed_on.present? && consent_revoked_at.blank?

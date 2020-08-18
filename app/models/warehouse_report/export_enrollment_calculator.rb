@@ -1,10 +1,10 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
+class WarehouseReport::ExportEnrollmentCalculator < OpenStruct # rubocop:disable Style/ClassAndModuleChildren
   include ArelHelper
   attr_accessor :batch_scope
   attr_accessor :filter
@@ -41,19 +41,15 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         find_each do |client_record|
           first_exit = client_record.source_exits.min_by(&:ExitDate)
           first_permanent_exit = client_record.source_exits.
-            select{|e| HUD.permanent_destinations.include?(e.Destination)}.
+            select { |e| HUD.permanent_destinations.include?(e.Destination) }.
             min_by(&:ExitDate)
-          exits[client_record.id] = if first_permanent_exit
-            first_permanent_exit
-          else
-            first_exit
-          end
+          exits[client_record.id] = (first_permanent_exit || first_exit)
         end
       exits
     end
     @exits[client.id]
   end
-  
+
   def most_recent_exit_with_destination_for_client(client)
     @most_recent_exit_with_destination_for_client ||= begin
       exits = {}
@@ -62,7 +58,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         merge(enrollment_universe).
         merge(
           GrdaWarehouse::Hud::Exit.where(ex_t[:ExitDate].lteq(filter.last)).
-            where.not(Destination: nil)
+            where.not(Destination: nil),
         ).
         find_each do |client_record|
           exits[client_record.id] = client_record.source_exits.max_by(&:ExitDate)
@@ -128,9 +124,9 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         merge(enrollment_universe).
         find_each do |client_record|
           developmental_disabilities[client_record.id] = client_record.source_disabilities.
-          merge(enrollment_universe).
-          developmental.
-          max_by(&:InformationDate)
+            merge(enrollment_universe).
+            developmental.
+            max_by(&:InformationDate)
         end
       developmental_disabilities
     end
@@ -145,9 +141,9 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         merge(enrollment_universe).
         find_each do |client_record|
           chronic_disabilities[client_record.id] = client_record.source_disabilities.
-          merge(enrollment_universe).
-          chronic.
-          max_by(&:InformationDate)
+            merge(enrollment_universe).
+            chronic.
+            max_by(&:InformationDate)
         end
       chronic_disabilities
     end
@@ -162,9 +158,9 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         merge(enrollment_universe).
         find_each do |client_record|
           hiv_disabilities[client_record.id] = client_record.source_disabilities.
-          merge(enrollment_universe).
-          hiv.
-          max_by(&:InformationDate)
+            merge(enrollment_universe).
+            hiv.
+            max_by(&:InformationDate)
         end
       hiv_disabilities
     end
@@ -179,9 +175,9 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         merge(enrollment_universe).
         find_each do |client_record|
           mental_disabilities[client_record.id] = client_record.source_disabilities.
-          merge(enrollment_universe).
-          mental.
-          max_by(&:InformationDate)
+            merge(enrollment_universe).
+            mental.
+            max_by(&:InformationDate)
         end
       mental_disabilities
     end
@@ -196,9 +192,9 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         merge(enrollment_universe).
         find_each do |client_record|
           substance_disabilities[client_record.id] = client_record.source_disabilities.
-          merge(enrollment_universe).
-          substance.
-          max_by(&:InformationDate)
+            merge(enrollment_universe).
+            substance.
+            max_by(&:InformationDate)
         end
       substance_disabilities
     end
@@ -274,7 +270,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
 
   def disabled_and_imparing?(client)
     @disabled_and_impairing ||= begin
-      disabled_client_ids = clients.chronically_disabled(filter.end).pluck(:id)
+      clients.chronically_disabled(filter.end).pluck(:id)
     end
     @disabled_and_impairing.include?(client.id)
   end
@@ -310,7 +306,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     return 0 unless episodes.present?
     return 0 if episodes.count.zero?
 
-    total_months = episodes.map{|e| e[:months]}&.sum
+    total_months = episodes.map { |e| e[:months] }&.sum
     return 0 unless total_months
 
     total_months / episodes.count
@@ -319,12 +315,12 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   def residential_enrollments_for(client)
     @residential_enrollments_for ||= begin
       GrdaWarehouse::ServiceHistoryEnrollment.residential.
-      entry.
-      preload(:service_history_services).
-      open_between(start_date: filter.start, end_date: filter.end).
-      where(client_id: clients.select(:id)).
-      order(first_date_in_program: :asc).
-      group_by(&:client_id)
+        entry.
+        preload(:service_history_services).
+        open_between(start_date: filter.start, end_date: filter.end).
+        where(client_id: clients.select(:id)).
+        order(first_date_in_program: :asc).
+        group_by(&:client_id)
     end
     @residential_enrollments_for[client.id]
   end
@@ -332,13 +328,13 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   def chronic_enrollments_for(client)
     @chronic_enrollments_for ||= begin
       GrdaWarehouse::ServiceHistoryEnrollment.
-      hud_homeless(chronic_types_only: true).
-      entry.
-      preload(:service_history_services).
-      open_between(start_date: filter.start, end_date: filter.end).
-      where(client_id: clients.select(:id)).
-      order(first_date_in_program: :asc).
-      group_by(&:client_id)
+        hud_homeless(chronic_types_only: true).
+        entry.
+        preload(:service_history_services).
+        open_between(start_date: filter.start, end_date: filter.end).
+        where(client_id: clients.select(:id)).
+        order(first_date_in_program: :asc).
+        group_by(&:client_id)
     end
     @chronic_enrollments_for[client.id]
   end
@@ -364,10 +360,11 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     exit_enrollment = exit_for_client(client)
     return false unless exit_enrollment
     return false unless HUD.permanent_destinations.include?(exit_enrollment.Destination)
+
     chronic_enrollments = chronic_enrollments_for(client)
     return false unless chronic_enrollments.present?
 
     return_date = exit_enrollment.ExitDate + 7.days
-    chronic_enrollments.select{|e| return_date < e.first_date_in_program}&.any?
+    chronic_enrollments.select { |e| return_date < e.first_date_in_program }&.any?
   end
 end

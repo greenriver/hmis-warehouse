@@ -1,23 +1,19 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Admin
   class RolesController < ApplicationController
     before_action :require_can_edit_roles!
-    helper_method :sort_column, :sort_direction
     before_action :set_role, only: [:edit, :update, :destroy]
 
     require 'active_support'
     require 'active_support/core_ext/string/inflections'
 
     def index
-      # sort / paginate
-      @roles = role_scope.
-        order(sort_column => sort_direction).
-        page(params[:page]).per(25)
+      @roles = role_scope.order(name: :asc)
     end
 
     def new
@@ -25,11 +21,20 @@ module Admin
     end
 
     def edit
+      @users = User.joins(:roles).merge(Role.where(id: @role.id))
     end
 
     def update
       @role.update role_params
-      respond_with(@role, location: admin_roles_path)
+      respond_to do |format|
+        format.html do
+          respond_with(@role, location: admin_roles_path)
+        end
+        format.json do
+          render(json: nil, status: :ok) if @role.errors.none?
+          return
+        end
+      end
     end
 
     def create
@@ -69,14 +74,6 @@ module Admin
           :name,
           Role.permissions(exclude_health: true),
         )
-    end
-
-    def sort_column
-      role_scope.column_names.include?(params[:sort]) ? params[:sort] : 'name'
-    end
-
-    def sort_direction
-      ['asc', 'desc'].include?(params[:direction]) ? params[:direction] : 'asc'
     end
   end
 end

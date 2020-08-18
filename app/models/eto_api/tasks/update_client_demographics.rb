@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # Fetch client demographics via the ETO API for clients
@@ -125,6 +125,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
                 notifier.ping msg if send_notifications
                 return # rubocop:disable Lint/NonLocalExitFromIterator
               end
+              found.maintain_client_consent if @one_off && found.present?
             rescue Exception => e
               notifier.ping "ERROR #{e.message} for api client #{client.id}, source_client: #{client.client_id} in data source #{@data_source_id}"
             end

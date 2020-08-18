@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboard::Overview::Entering::Race
@@ -9,29 +9,34 @@ module PerformanceDashboard::Overview::Entering::Race
 
   # NOTE: always count the most-recently started enrollment within the range
   def entering_by_race
-    buckets = race_buckets.map { |b| [b, []] }.to_h
-    counted = Set.new
-    entering.
-      joins(:client).
-      order(first_date_in_program: :desc).
-      pluck(:client_id, :AmIndAKNative, :Asian, :BlackAfAmerican, :NativeHIOtherPacific, :White, :RaceNone, :first_date_in_program).each do |id, am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none, _| # rubocop:disable Metrics/ParameterLists
-        buckets[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)] << id unless counted.include?(id)
-        counted << id
-      end
-    buckets
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      buckets = race_buckets.map { |b| [b, []] }.to_h
+      counted = {}
+      entering.
+        joins(:client).
+        order(first_date_in_program: :desc).
+        pluck(:client_id, :AmIndAKNative, :Asian, :BlackAfAmerican, :NativeHIOtherPacific, :White, :RaceNone, :first_date_in_program).each do |id, am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none, _| # rubocop:disable Metrics/ParameterLists
+          counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)] ||= Set.new
+          buckets[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)] << id unless counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)].include?(id)
+          counted[race_bucket(am_ind_ak_native, asian, black_af_american, native_hi_other_pacific, white, race_none)] << id
+        end
+      buckets
+    end
   end
 
   def entering_by_race_data_for_chart
     @entering_by_race_data_for_chart ||= begin
       columns = [date_range_words]
       columns += entering_by_race.values.map(&:count)
-      categories = entering_by_race.keys.map do |type|
-        HUD.race(type)
-      end
-      {
-        columns: columns, # ignore :all
-        categories: categories, # ignore :all
-      }
+      categories = entering_by_race.keys
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.race(s)] }.to_h,
+          chosen: @races,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 

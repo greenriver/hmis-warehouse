@@ -1,14 +1,14 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse
   class CombinedCohortClientChange < GrdaWarehouseBase
     belongs_to :cohort
     belongs_to :cohort_client, -> { with_deleted }
-    has_one :client, class_name: GrdaWarehouse::Hud::Client.name, primary_key: :client_id, foreign_key: :id
+    has_one :client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :client_id, foreign_key: :id
     belongs_to :user
 
     scope :on_cohort_between, -> (start_date:, end_date:) do

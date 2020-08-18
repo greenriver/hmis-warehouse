@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Health
@@ -11,6 +11,7 @@ module Health
 
     before_action :require_some_patient_access!
     before_action :set_hpc_patient
+    before_action :set_client
 
     def index
       @patient_referrals = @patient.patient_referrals.

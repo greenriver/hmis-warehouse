@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class DatePickerInput < SimpleForm::Inputs::StringInput
@@ -35,7 +35,7 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
 
   def input_button
     template.content_tag :div, class: 'input-group-append' do
-      template.content_tag :button, class: 'btn btn-secondary', type: 'button' do
+      template.content_tag :button, class: 'btn btn-secondary', type: 'button', aria: { label: 'Open Date Picker' } do
         template.content_tag :span, '', class: 'icon-calendar mr-0'
       end
     end

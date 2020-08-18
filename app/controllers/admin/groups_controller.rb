@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Admin
@@ -92,7 +92,7 @@ module Admin
         collection: GrdaWarehouse::Hud::Organization.
           order(:name).
           preload(:data_source).
-          group_by { |o| o.data_source.name },
+          group_by { |o| o.data_source&.name },
         placeholder: 'Organization',
         multiple: true,
         input_html: {

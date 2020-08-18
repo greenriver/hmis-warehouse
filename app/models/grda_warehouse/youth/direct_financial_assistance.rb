@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Youth
@@ -54,6 +54,8 @@ module GrdaWarehouse::Youth
         'Rent',
         'Rent arrears',
         'Utilities',
+        'Emergency Shelter Night Owl Stay',
+        'Emergency Shelter Hotel',
         'Transportation-related costs',
         'Education-related costs',
         'Legal costs',
@@ -63,6 +65,10 @@ module GrdaWarehouse::Youth
         'Cell phone costs',
         'Food / Groceries (including our drop-in food pantries)',
       ].sort + ['Other']
+    end
+
+    def self.report_columns
+      column_names - [:user_id, :deleted_at]
     end
   end
 end

@@ -3,9 +3,24 @@ LSA FY2019 Sample Code
 
 Name:  6_1 to 6_19 LSAHousehold.sql  (File 6 of 10)
 Date:  4/20/2020
-	   5/14/2022 -  section 6.12 - correct "DateDeleted = 0" to "DateDeleted is null"
+	   5/14/2020 -  section 6.12 - correct "DateDeleted = 0" to "DateDeleted is null"
 	   				section 6.14 - correct 24 (deceased) to 25 (LTC/nursing home) 
 								   in list of institutional living situations
+	   5/21/2020 -  section 6.12.2.a and b - add parentheses to join to tlsa_HHID
+				    section 6.14 - correct second instance of 24 (deceased) to 25 (LTC/nursing home) 
+								   in list of institutional living situations
+					Sections 6.1-6.18 - add set of Step column to all insert and update statements
+	   5/28/2020 -  section 6.5 - add host home (HMIS value = 32) to living situation case statements
+	   6/18/2020 - 6.4.1 and 6.4.2 -- correct RRH/PSHMoveIn values from 10 and 20 to 1 and 2
+				   6.9.3 - add note to explain a sequence difference between code and specs
+							and correct criteria for setting Stat = 5 and ReturnTime = -1
+				   6.10 - correct criteria for RRHPreMoveInDays to include ExitDate instead of 
+				          stopping at ExitDate - 1 day
+				   6.18 - remove 2 extraneous < signs (was <= 0, but < 0 is impossible)
+						  correct SystemPath 4 criteria from RRHStatus >= 2 to RRHStatus >= 11
+	   7/9/2020 -  6.12.1 - Set LastInactive to 9/30/2012 if the calculated date is earlier
+				   6.12.2.b - Only use bednights that are valid (fall during the period of the enrollment)
+						  and relevant to LastInactive (>= 10/1/2012)
 
 	6.1 Get Unique Households and Population Identifiers for tlsa_Household
 */
@@ -14,7 +29,7 @@ Date:  4/20/2020
 	insert into tlsa_Household (HoHID, HHType
 		, HHChronic, HHVet, HHDisability, HHFleeingDV
 		, HoHRace, HoHEthnicity
-		, HHParent, ReportID)
+		, HHParent, ReportID, Step)
 	select distinct hhid.HoHID, hhid.ActiveHHType
 		, max(hhid.HHChronic)
 		, max(hhid.HHVet)
@@ -23,6 +38,7 @@ Date:  4/20/2020
 		, lp.Race, lp.Ethnicity
 		, max(hhid.HHParent)
 		, lp.ReportID
+		, '6.1'
 	from tlsa_HHID hhid
 	inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
 	inner join tlsa_Person lp on lp.PersonalID = hhid.HoHID 
@@ -58,12 +74,15 @@ Date:  4/20/2020
 				inner join tlsa_Enrollment n on n.HouseholdID = hhid.HouseholdID and n.Active = 1
 				where n.ActiveAge in (98,99)
 				and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID)
+		, hh.Step = '6.2.1'
 	from tlsa_Household hh
 
-	update hh set hh.HHAdultAge = null from tlsa_Household hh
+	update hh 
+	set hh.HHAdultAge = null, hh.Step = '6.2.2'
+	from tlsa_Household hh
 
 	update hh
-	set hh.HHAdultAge = hhid.HHAdultAge 
+	set hh.HHAdultAge = hhid.HHAdultAge, hh.Step = '6.2.3' 
 	from tlsa_Household hh
 	inner join tlsa_HHID hhid
 		on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
@@ -71,7 +90,7 @@ Date:  4/20/2020
 	where hhid.HHAdultAge = 18
 
 	update hh
-	set hh.HHAdultAge = hhid.HHAdultAge 
+	set hh.HHAdultAge = hhid.HHAdultAge, hh.Step = '6.2.4' 
 	from tlsa_Household hh
 	inner join tlsa_HHID hhid
 		on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
@@ -79,7 +98,7 @@ Date:  4/20/2020
 	where hhid.HHAdultAge = 24 and hh.HHAdultAge is null
 
 	update hh
-	set hh.HHAdultAge = hhid.HHAdultAge 
+	set hh.HHAdultAge = hhid.HHAdultAge, hh.Step = '6.2.5' 
 	from tlsa_Household hh
 	inner join tlsa_HHID hhid
 		on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
@@ -87,7 +106,7 @@ Date:  4/20/2020
 	where hhid.HHAdultAge = 55 and hh.HHAdultAge is null
 
 	update hh
-	set hh.HHAdultAge = hhid.HHAdultAge 
+	set hh.HHAdultAge = hhid.HHAdultAge, hh.Step = '6.2.6' 
 	from tlsa_Household hh
 	inner join tlsa_HHID hhid
 		on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
@@ -95,7 +114,7 @@ Date:  4/20/2020
 	where hhid.HHAdultAge = 25 and hh.HHAdultAge is null
 
 	update hh 
-	set hh.HHAdultAge = -1 
+	set hh.HHAdultAge = -1, hh.Step = '6.2.7' 
 	from tlsa_Household hh
 	where hh.HHAdultAge is null
 
@@ -106,6 +125,7 @@ Date:  4/20/2020
 	update hh
 	set ESTStatus = case when n.nStat is null then 0 
 			else n.nStat + n.xStat end
+		, hh.Step = '6.3.1'
 	from tlsa_Household hh
 	left outer join 
 		(select hhid.HoHID, hhid.ActiveHHType as HHType
@@ -120,6 +140,7 @@ Date:  4/20/2020
 	update hh
 	set hh.RRHStatus = case when n.nStat is null then 0 
 			else n.nStat + n.xStat end
+		, hh.Step = '6.3.2'
 	from tlsa_Household hh
 	left outer join 
 		(select hhid.HoHID, hhid.ActiveHHType as HHType
@@ -134,6 +155,7 @@ Date:  4/20/2020
 	update hh
 	set hh.PSHStatus = case when n.nStat is null then 0 
 			else n.nStat + n.xStat end
+		, hh.Step = '6.3.3'
 	from tlsa_Household hh
 	left outer join 
 		(select hhid.HoHID, hhid.ActiveHHType as HHType
@@ -153,10 +175,11 @@ Date:  4/20/2020
 	set hh.RRHMoveIn = case when hh.RRHStatus = 0 then -1
 		when n.MoveInStat is null then 0 
 		else n.MoveInStat end
+		, hh.Step = '6.4.1'
 	from tlsa_Household hh
 	left outer join 
 		(select hhid.HoHID, hhid.ActiveHHType as HHType
-			, min(case when hhid.MoveInDate >= rpt.ReportStart then 10 else 20 end) as MoveInStat
+			, min(case when hhid.MoveInDate >= rpt.ReportStart then 1 else 2 end) as MoveInStat
 		from tlsa_HHID hhid
 		inner join lsa_Report rpt on hhid.EntryDate <= rpt.ReportEnd
 		where hhid.Active = 1 and hhid.MoveInDate is not null and hhid.ProjectType = 13
@@ -167,10 +190,11 @@ Date:  4/20/2020
 	set hh.PSHMoveIn = case when hh.RRHStatus = 0 then -1
 		when n.MoveInStat is null then 0 
 		else n.MoveInStat end
+		, hh.Step = '6.4.2'
 	from tlsa_Household hh
 	left outer join 
 		(select hhid.HoHID, hhid.ActiveHHType as HHType
-			, min(case when hhid.MoveInDate >= rpt.ReportStart then 10 else 20 end) as MoveInStat
+			, min(case when hhid.MoveInDate >= rpt.ReportStart then 1 else 2 end) as MoveInStat
 		from tlsa_HHID hhid
 		inner join lsa_Report rpt on hhid.EntryDate <= rpt.ReportEnd
 		where hhid.Active = 1 and hhid.MoveInDate is not null and hhid.ProjectType = 3
@@ -195,6 +219,7 @@ Date:  4/20/2020
 				order by case when hhid.ExitDate is null then rpt.ReportEnd else hhid.ExitDate end desc
 					, hhid.EntryDate desc)
 				, 99) end
+		, hh.Step = '6.5.1'
 	from tlsa_Household hh 
 
 	update hh
@@ -209,6 +234,7 @@ Date:  4/20/2020
 				order by case when hhid.ExitDate is null then rpt.ReportEnd else hhid.ExitDate end desc
 					, hhid.EntryDate desc)
 				, 99) end
+		, hh.Step = '6.5.2'
 	from tlsa_Household hh 
 
 	update hh
@@ -223,6 +249,7 @@ Date:  4/20/2020
 				order by case when hhid.ExitDate is null then rpt.ReportEnd else hhid.ExitDate end desc
 					, hhid.EntryDate desc)
 				, 99) end
+		, hh.Step = '6.5.3'
 	from tlsa_Household hh 
 
 /*
@@ -236,7 +263,7 @@ Date:  4/20/2020
 			when hn.LivingSituation = 16 then 1 --Homeless - Street
 			when hn.LivingSituation in (1,18) then 2	--Homeless - ES/SH
 			when hn.LivingSituation = 27 then 3	--Interim Housing
-			when hn.LivingSituation = 2 then 4	--Homeless - TH
+			when hn.LivingSituation in (2,32) then 4	--Homeless - TH or host home
 			when hn.LivingSituation = 14 then 5	--Hotel/Motel - no voucher
 			when hn.LivingSituation = 29 then 6	--Residential project
 			when hn.LivingSituation = 35 then 7	--Family		
@@ -250,6 +277,7 @@ Date:  4/20/2020
 			when hn.LivingSituation = 7 then 15	--Institutions - incarceration
 			when hn.LivingSituation in (4,5,6) then 16	--Institutions - medical
 			else 99	end
+		, hh.Step = '6.6.1'
 	from tlsa_Household hh
 	inner join hmis_Enrollment hn on hn.PersonalID = hh.HoHID
 	where hh.ESTStatus = 0 
@@ -267,7 +295,7 @@ Date:  4/20/2020
 			when hn.LivingSituation = 16 then 1 --Homeless - Street
 			when hn.LivingSituation in (1,18) then 2	--Homeless - ES/SH
 			when hn.LivingSituation = 27 then 3	--Interim Housing
-			when hn.LivingSituation = 2 then 4	--Homeless - TH
+			when hn.LivingSituation in (2,32) then 4	--Homeless - TH or host home
 			when hn.LivingSituation = 14 then 5	--Hotel/Motel - no voucher
 			when hn.LivingSituation = 29 then 6	--Residential project
 			when hn.LivingSituation = 35 then 7	--Family		
@@ -281,6 +309,7 @@ Date:  4/20/2020
 			when hn.LivingSituation = 7 then 15	--Institutions - incarceration
 			when hn.LivingSituation in (4,5,6) then 16	--Institutions - medical
 			else 99	end	
+		, hh.Step = '6.6.2'
 	from tlsa_Household hh
 	inner join hmis_Enrollment hn on hn.PersonalID = hh.HoHID
 	where hh.RRHStatus = 0  
@@ -298,7 +327,7 @@ Date:  4/20/2020
 			when hn.LivingSituation = 16 then 1 --Homeless - Street
 			when hn.LivingSituation in (1,18) then 2	--Homeless - ES/SH
 			when hn.LivingSituation = 27 then 3	--Interim Housing
-			when hn.LivingSituation = 2 then 4	--Homeless - TH
+			when hn.LivingSituation in (2,32) then 4	--Homeless - TH or host home
 			when hn.LivingSituation = 14 then 5	--Hotel/Motel - no voucher
 			when hn.LivingSituation = 29 then 6	--Residential project
 			when hn.LivingSituation = 35 then 7	--Family		
@@ -312,6 +341,7 @@ Date:  4/20/2020
 			when hn.LivingSituation = 7 then 15	--Institutions - incarceration
 			when hn.LivingSituation in (4,5,6) then 16	--Institutions - medical
 			else 99	end	
+		, hh.Step = '6.6.3'
 	from tlsa_Household hh
 	inner join hmis_Enrollment hn on hn.PersonalID = hh.HoHID
 	where hh.PSHStatus = 0  
@@ -332,6 +362,7 @@ Date:  4/20/2020
 	set ESTDestination = 
 		case when hh.ESTStatus not in (12,22) then -1
 			 else hhid.ExitDest end
+		, hh.Step = '6.7.1'
 	from tlsa_Household hh 
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID
 		and hhid.ActiveHHType = hh.HHType and hhid.Active = 1
@@ -348,6 +379,7 @@ Date:  4/20/2020
 	set RRHDestination = 
 		case when hh.RRHStatus not in (12,22) then -1
 			 else hhid.ExitDest end
+		, hh.Step = '6.7.2'
 	from tlsa_Household hh 
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID
 		and hhid.ActiveHHType = hh.HHType and hhid.Active = 1
@@ -364,6 +396,7 @@ Date:  4/20/2020
 	set PSHDestination = 
 		case when hh.PSHStatus not in (12,22) then -1
 			 else hhid.ExitDest end
+		, hh.Step = '6.7.3'
 	from tlsa_Household hh 
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID
 		and hhid.ActiveHHType = hh.HHType and hhid.Active = 1
@@ -416,6 +449,7 @@ Date:  4/20/2020
 			hh55.HHAdultAge,
 			hh25.HHAdultAge,
 			-1)
+		, hh.Step = '6.8.1'
 	from tlsa_Household hh
 	left outer join tlsa_HHID hh18 on hh18.HHAdultAge = 18 
 		and hh18.HoHID = hh.HoHID and hh18.ActiveHHType = hh.HHType
@@ -467,6 +501,7 @@ Date:  4/20/2020
 			hh55.HHAdultAge,
 			hh25.HHAdultAge,
 			-1)
+		, hh.Step = '6.8.2'
 	from tlsa_Household hh
 	left outer join tlsa_HHID hh18 on hh18.HHAdultAge = 18 
 		and hh18.HoHID = hh.HoHID and hh18.ActiveHHType = hh.HHType
@@ -517,6 +552,7 @@ Date:  4/20/2020
 			hh55.HHAdultAge,
 			hh25.HHAdultAge,
 			-1)
+		, hh.Step = '6.8.3'
 	from tlsa_Household hh
 	left outer join tlsa_HHID hh18 on hh18.HHAdultAge = 18 
 		and hh18.HoHID = hh.HoHID and hh18.ActiveHHType = hh.HHType
@@ -539,6 +575,7 @@ Date:  4/20/2020
 	set hh.FirstEntry = (select min(hhid.EntryDate)
 		from tlsa_HHID hhid
 		where hhid.Active = 1 and hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType)
+		, hh.Step = '6.9.1'
 	from tlsa_Household hh
 
 	update hh
@@ -549,6 +586,7 @@ Date:  4/20/2020
 		where prior.ExitDate >= dateadd (dd,-730,hh.FirstEntry) 
 			and prior.HoHID = hh.HoHID and prior.ActiveHHType = hh.HHType
 		order by prior.ExitDate desc)
+		, hh.Step = '6.9.2'
 	from tlsa_Household hh  
 	
 	update hh
@@ -556,15 +594,20 @@ Date:  4/20/2020
 			when PSHStatus in (11,12) or RRHStatus in (11,12) or ESTStatus in (11,12)
 				then 5
 			when hh.StatEnrollmentID is null then 1
-			when dateadd(dd, 15, prior.ExitDate) >= hh.FirstEntry then 5 
+			--correction to line below from >= to just >
+			when dateadd(dd, 15, prior.ExitDate) > hh.FirstEntry then 5 
 			when prior.ExitDest between 1 and 6 then 2
 			when prior.ExitDest between 7 and 14 then 3
 			else 4 end  
+		--Note:  ReturnTime is set to the actual number of days here and grouped into LSA categories
+		--       in 6.19 like other counts of days
 		, hh.ReturnTime = case 
 			when PSHStatus in (11,12) or RRHStatus in (11,12) or ESTStatus in (11,12) 
 				or hh.StatEnrollmentID is null 
-				or dateadd(dd, 15, prior.ExitDate) >= hh.FirstEntry then -1
+				-- The line below has been corrected from >= to just >  
+				or dateadd(dd, 15, prior.ExitDate) > hh.FirstEntry then -1
 			else datediff(dd, prior.ExitDate, hh.FirstEntry) end
+		, hh.Step = '6.9.3'
 	from tlsa_Household hh
 	left outer join tlsa_HHID prior on prior.EnrollmentID = hh.StatEnrollmentID 
 
@@ -579,11 +622,13 @@ Date:  4/20/2020
 			inner join ref_Calendar cal on cal.theDate >= hhid.EntryDate
 				and cal.theDate <= coalesce(
 						  dateadd(dd, -1, hhid.MoveInDate)
-						, dateadd(dd, -1, hhid.ExitDate)
+						-- line below corrected to use the ExitDate and not ExitDate - 1
+						, hhid.ExitDate
 						, rpt.ReportEnd)
 			where hhid.ProjectType = 13 
 				and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
 				and hhid.Active = 1) 
+		, hh.Step = '6.10'
 	from tlsa_Household hh
 
 /*
@@ -591,11 +636,12 @@ Date:  4/20/2020
 */
 	delete from sys_Time
 
-	insert into sys_Time (HoHID, HHType, sysDate, sysStatus)
+	insert into sys_Time (HoHID, HHType, sysDate, sysStatus, Step)
 	select distinct hhid.HoHID, hhid.ActiveHHType, cal.theDate
 		, min(case hhid.ProjectType
 				when 3 then 1
 				else 2 end)
+		, '6.11'
 	from tlsa_HHID hhid
 	inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
 	inner join ref_Calendar cal on cal.theDate >= hhid.MoveInDate
@@ -611,7 +657,10 @@ Date:  4/20/2020
 	--  and for any household where Stat = 5 but there is no enrollment for the HoHID/HHType
 	--  active in the six days prior to First Entry. 
 	update hh
-	set hh.LastInactive = dateadd(dd, -1, hh.FirstEntry)
+	set hh.LastInactive = case 
+			when dateadd(dd, -1, hh.FirstEntry) < '9/30/2012' then '9/30/2012'
+			else dateadd(dd, -1, hh.FirstEntry) end
+		, hh.Step = '6.12.1'
 	from tlsa_Household hh 
 	where hh.Stat <> 5 
 		or (select top 1 hhid.EnrollmentID 
@@ -620,28 +669,32 @@ Date:  4/20/2020
 			where hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType 
 			and dateadd(dd, 6, hhid.ExitDate) >= hh.FirstEntry) is null
 
-	insert into sys_TimePadded (HoHID, HHType, Cohort, StartDate, EndDate)
+	insert into sys_TimePadded (HoHID, HHType, Cohort, StartDate, EndDate, Step)
 	select distinct hh.HoHID, hh.HHType, 1
 		, hhid.EntryDate	
 		, case when hhid.ExitDate is null then rpt.ReportEnd 
 			else dateadd(dd, 6, hhid.ExitDate) end
+		, '6.12.2.a'
 	from tlsa_Household hh
 	inner join lsa_Report rpt on rpt.ReportStart >= hh.FirstEntry
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-		and hhid.Active = 1 or hhid.ExitDate < rpt.ReportStart 
+		and (hhid.Active = 1 or hhid.ExitDate < rpt.ReportStart) 
 	where hh.LastInactive is null 
 		and hh.PSHMoveIn <> 2
 		and hhid.TrackingMethod <> 3
 	union
 	select distinct hh.HoHID, hh.HHType, 1
 		, bn.DateProvided	
-		, dateadd(dd, 6, bn.DateProvided) 
+		, dateadd(dd, 6, bn.DateProvided)
+		, '6.12.2.b'
 	from tlsa_Household hh
 	inner join lsa_Report rpt on rpt.ReportStart >= hh.FirstEntry
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-		and hhid.Active = 1 or hhid.ExitDate < rpt.ReportStart 
+		and (hhid.Active = 1 or hhid.ExitDate < rpt.ReportStart) 
 	inner join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID 
-		and bn.DateProvided <= rpt.ReportEnd
+		and bn.DateProvided between '10/1/2012' and rpt.ReportEnd
+		and bn.DateProvided >= hhid.EntryDate
+		and (bn.DateProvided < hhid.ExitDate or hhid.ExitDate is null)
 		-- 5/14/2020 correct "DateDeleted = 0" to "DateDeleted is null"
 		and bn.RecordType = 200 and bn.DateDeleted is null
 	where hh.LastInactive is null 
@@ -650,6 +703,7 @@ Date:  4/20/2020
 		
 	update hh
 	set hh.LastInactive = coalesce(lastDay.inactive, '9/30/2012')
+		, hh.Step = '6.12.3'
 	from tlsa_Household hh
 	left outer join 
 		(select hh.HoHID, hh.HHType, max(cal.theDate) as inactive
@@ -670,9 +724,10 @@ Date:  4/20/2020
 	6.13 Get Dates of Other System Use
 */
 	--Transitional Housing and Entry/Exit ES (sysStatus = 3 and 4)
-	insert into sys_Time (HoHID, HHType, sysDate, sysStatus)
+	insert into sys_Time (HoHID, HHType, sysDate, sysStatus, Step)
 	select distinct hh.HoHID, hh.HHType, cal.theDate
 		, min(case when hhid.ProjectType = 2 then 3 else 4 end)
+		, '6.13.1'
 	from tlsa_Household hh 
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
 		and hhid.EntryDate > hh.LastInactive 
@@ -687,8 +742,9 @@ Date:  4/20/2020
 	group by hh.HoHID, hh.HHType, cal.theDate
 
 	--Emergency Shelter (Night-by-Night) (sysStatus = 4)
-	insert into sys_Time (HoHID, HHType, sysDate, sysStatus)
+	insert into sys_Time (HoHID, HHType, sysDate, sysStatus, Step)
 	select distinct hh.HoHID, hh.HHType, cal.theDate, 4
+		, '6.13.2'
 	from tlsa_Household hh 
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
 		and hhid.EntryDate > hh.LastInactive 
@@ -703,9 +759,10 @@ Date:  4/20/2020
 	where other.sysDate is null and hhid.ProjectType = 1 and hhid.TrackingMethod = 3
 	
 	--Homeless (Time prior to Move-In) in PSH and RRH (sysStatus = 5 and 6)
-	insert into sys_Time (HoHID, HHType, sysDate, sysStatus)
+	insert into sys_Time (HoHID, HHType, sysDate, sysStatus, Step)
 	select distinct hh.HoHID, hh.HHType, cal.theDate
 		, min (case when hhid.ProjectType = 3 then 5 else 6 end)
+		, '6.13.3'
 	from tlsa_Household hh 
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
 		and hhid.EntryDate > hh.LastInactive 
@@ -748,10 +805,12 @@ Date:  4/20/2020
 						and hn.LengthOfStay in (2,3) and hn.PreviousStreetESSH = 1))
 			order by hn.DateToStreetESSH asc)
 		, hh.LastInactive)) + 1
+		, hh.Step = '6.14.1'
 	from tlsa_Household hh
 
-	insert into sys_Time (HoHID, HHType, sysDate, sysStatus)
+	insert into sys_Time (HoHID, HHType, sysDate, sysStatus, Step)
 	select distinct hh.HoHID, hh.HHType, cal.theDate, 7
+		, '6.14.2'
 	from tlsa_Household hh 
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
 		and hhid.EntryDate > hh.LastInactive 
@@ -772,7 +831,8 @@ Date:  4/20/2020
 				and (hhid.ProjectType in (1,8)
 					or hn.LivingSituation in (1,18,16)
 					or (hn.LengthOfStay in (10,11) and hn.PreviousStreetESSH = 1)
-					or (hn.LivingSituation in (4,5,6,7,15,24) 
+					--5/21/2020 - correct 24 (deceased) to 25 (LTC/nursing home) 
+					or (hn.LivingSituation in (4,5,6,7,15,25) 
 						and hn.LengthOfStay in (2,3) and hn.PreviousStreetESSH = 1))
 			order by hn.DateToStreetESSH asc)
 
@@ -825,6 +885,7 @@ Date:  4/20/2020
 			from sys_Time st 
 			where st.sysStatus = 1
 			and st.HoHID = hh.HoHID and st.HHType = hh.HHType)
+		, Step = '6.15'
 	from tlsa_Household hh
 
 /*
@@ -833,6 +894,7 @@ Date:  4/20/2020
 
 	update hh
 	set hh.ESTStatus = 2
+		, hh.Step = '6.16.1'
 	from tlsa_Household hh
 	inner join sys_Time st on st.HoHID = hh.HoHID and st.HHType = hh.HHType
 	where hh.ESTStatus = 0 
@@ -840,6 +902,7 @@ Date:  4/20/2020
 
 	update hh
 	set hh.RRHStatus = 2
+		, hh.Step = '6.16.2'
 	from tlsa_Household hh
 	inner join sys_Time st on st.HoHID = hh.HoHID and st.HHType = hh.HHType
 	where hh.RRHStatus = 0 
@@ -847,6 +910,7 @@ Date:  4/20/2020
 
 	update hh
 	set hh.PSHStatus = 2
+		, hh.Step = '6.16.3'
 	from tlsa_Household hh
 	inner join sys_Time st on st.HoHID = hh.HoHID and st.HHType = hh.HHType
 	where hh.PSHStatus = 0 
@@ -857,10 +921,12 @@ Date:  4/20/2020
 */
 	update hh
 	set ESTAHAR = 0, RRHAHAR = 0, PSHAHAR = 0
+		, hh.Step = '6.17.1'
 	from tlsa_Household hh
 
 	update hh
 	set hh.ESTAHAR = 1
+		, hh.Step = '6.17.2'
 	from tlsa_Household hh
 	inner join sys_Time st on st.HoHID = hh.HoHID and st.HHType = hh.HHType
 	inner join lsa_Report rpt on st.sysDate between rpt.ReportStart and rpt.ReportEnd 
@@ -868,6 +934,7 @@ Date:  4/20/2020
 
 	update hh
 	set hh.RRHAHAR = 1
+		, hh.Step = '6.17.3'
 	from tlsa_Household hh
 	inner join sys_Time st on st.HoHID = hh.HoHID and st.HHType = hh.HHType
 	inner join lsa_Report rpt on st.sysDate between rpt.ReportStart and rpt.ReportEnd 
@@ -875,6 +942,7 @@ Date:  4/20/2020
 
 	update hh
 	set hh.PSHAHAR = 1
+		, hh.Step = '6.17.4'
 	from tlsa_Household hh
 	inner join sys_Time st on st.HoHID = hh.HoHID and st.HHType = hh.HHType
 	inner join lsa_Report rpt on st.sysDate between rpt.ReportStart and rpt.ReportEnd 
@@ -888,13 +956,14 @@ update hh
 set hh.SystemPath = 
 	case when hh.ESTStatus not in (21,22) and hh.RRHStatus not in (21,22) and hh.PSHMoveIn = 2 
 		then -1
-	when hh.ESDays >= 1 and hh.THDays <= 0 and hh.RRHStatus = 0 and hh.PSHStatus = 0 
+	when hh.ESDays >= 1 and hh.THDays = 0 and hh.RRHStatus = 0 and hh.PSHStatus = 0 
 		then 1
 	when hh.ESDays = 0 and hh.THDays >= 1 and hh.RRHStatus = 0 and hh.PSHStatus = 0 
 		then 2
 	when hh.ESDays >= 1 and hh.THDays >= 1 and hh.RRHStatus = 0 and hh.PSHStatus = 0 
 		then 3
-	when hh.ESTStatus = 0 and hh.RRHStatus >= 2 and hh.PSHStatus = 0 
+	-- correction from hh.RRHStatus >= 2 to hh.RRHStatus >= 11
+	when hh.ESTStatus = 0 and hh.RRHStatus >= 11 and hh.PSHStatus = 0 
 		then 4
 	when hh.ESDays >= 1 and hh.THDays = 0 and hh.RRHStatus >= 2 and hh.PSHStatus = 0 
 		then 5
@@ -908,7 +977,7 @@ set hh.SystemPath =
 		then 9
 	when hh.ESTStatus in (21,22) and hh.ESDays >= 1 and hh.THDays = 0 and hh.RRHStatus = 0 and hh.PSHStatus >= 11 and hh.PSHMoveIn = 2
 		then 9
-	when hh.ESDays >= 1 and hh.THDays <= 0 and hh.RRHStatus >= 2 and hh.PSHStatus >= 11 and hh.PSHMoveIn <> 2
+	when hh.ESDays >= 1 and hh.THDays = 0 and hh.RRHStatus >= 2 and hh.PSHStatus >= 11 and hh.PSHMoveIn <> 2
 		then 10
 	when hh.ESTStatus in (21,22) and hh.ESDays >= 1 and hh.THDays = 0 and hh.RRHStatus in (21,22) and hh.PSHStatus >= 11 and hh.PSHMoveIn = 2
 		then 10
@@ -917,6 +986,7 @@ set hh.SystemPath =
 	when hh.ESTStatus = 0 and hh.RRHStatus in (21,22) and hh.PSHStatus >= 11 and hh.PSHMoveIn = 2
 		then 11
 	else 12 end
+	, hh.Step = '6.18'
 from tlsa_Household hh
 
 /*

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::YouthIntake
@@ -13,7 +13,7 @@ module GrdaWarehouse::YouthIntake
       :unaccompanied,
       :street_outreach_contact,
       :housing_status,
-      :other_agency_involvement,
+      :other_agency_involvements,
       :secondary_education,
       :attending_college,
       :health_insurance,

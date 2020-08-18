@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse
@@ -73,6 +73,17 @@ module GrdaWarehouse
       {
         'COVID-19' => :covid_19,
       }
+    end
+
+    def self.available_encryption_types
+      {
+        'None' => :none,
+        'PII Encrypted' => :pii,
+      }
+    end
+
+    def self.client_search_available?
+      get(:pii_encryption_type).to_sym.in?([:none])
     end
 
     def self.currrent_health_emergency_tracing_title

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PjaxModalController
@@ -17,6 +17,8 @@ module PjaxModalController
         'modal-xl'
       when :lg
         'modal-lg'
+      when :xxl
+        'modal-xxl'
       else
         ''
       end

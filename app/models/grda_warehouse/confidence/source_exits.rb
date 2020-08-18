@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # Record the number of source exits for all homeless clients
@@ -9,7 +9,7 @@
 # we had on a given day, so we'll just look for spikes
 module GrdaWarehouse::Confidence
   class SourceExits < Base
-    belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name, foreign_key: :resource_id
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :resource_id
 
     attr_accessor :notifier
     after_initialize :add_notifier

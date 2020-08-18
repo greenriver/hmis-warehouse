@@ -1,0 +1,24 @@
+- if @last_service && @last_client
+  = render 'client_alerts', client: @last_client
+  .well
+    .d-flex
+      %h3 Added #{@last_service.title}
+      .ml-auto
+        = link_to service_scanning_service_path(@last_service), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: "Are you sure you want to remove this service from #{@last_client.name}"} do
+          %i.icon-cross.mr-2
+          Remove this service?
+    .d-flex
+      %dl
+        %dt Client
+        %dd= link_to @last_client.name, client_path(@last_client.id), target: :_blank
+        %dt Provided At
+        %dd= @last_service.provided_at
+      - if @last_client.image
+        .ml-auto.mt-2.client__image{ style: "background-image: url(#{ image_client_path(id: @last_client.id) })" }
+    = simple_form_for @last_service, as: :note, url: service_scanning_service_path(@last_service, service: index_params) do |f|
+      .d-flex
+        .justify-content-center.w-100
+          = f.input :service_note, as: :text
+      .d-flex
+        = f.button :submit, value: 'Add Service Note', class: 'btn-secondary btn-sm'
+

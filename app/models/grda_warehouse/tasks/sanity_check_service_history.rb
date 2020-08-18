@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Tasks
@@ -30,7 +30,6 @@ module GrdaWarehouse::Tasks
     def run!
       logger.info "Sanity checking #{@sample_size} random clients..."
       choose_sample()
-      # load_personal_ids()
       # Load all of the data in batches, sometimes the massive queries are slow
       @destinations.keys.each_slice(@batch_size) do |batch|
         load_service_history_enrollments(batch)
@@ -115,24 +114,6 @@ module GrdaWarehouse::Tasks
           source_personal_ids: []
         }]
       end.to_h
-    end
-
-    def load_personal_ids
-      # This is brittle, if active record decides to change the name of the joined table, it won't work
-      # source_client_table = Arel::Table.new 'source_clients_Client'
-      source_client_table = GrdaWarehouse::Hud::Client.arel_table
-      source_client_table.table_alias = 'source_clients_Client'
-
-      client_source.joins(:source_clients).
-        where(id: @destinations.keys).
-        select(:id, source_client_table[:PersonalID], source_client_table[:data_source_id]).
-        pluck(:id, source_client_table[:PersonalID], source_client_table[:data_source_id]).
-        group_by(&:first)
-
-      @destinations.each do |id, _|
-        client = client_source.find(id)
-        @destinations[id][:source_personal_ids] = client.source_clients.pluck(:PersonalID, :data_source_id)
-      end
     end
 
     def load_service_history_enrollments(batch)

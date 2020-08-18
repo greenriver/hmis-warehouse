@@ -1,11 +1,12 @@
 /*
 LSA FY2019 Sample Code
 
-Name:  2_1 to 2_10 create output tables.sql (File 2 of 10)
+Name:  2_1 to 2_10 Create Output Tables.sql 
 Date:  4/7/2020  
 	   5/14/2020 - lsa_Report - allow NULL value in ReportDate because it isn't set until the end
 				 - lsa_ProjectCoC - allow NULL values for GeographyType and ZIP in the table -- they are still required 
 						by the HDX 
+       5/21/2020 -- add column Step (nvarchar(10) not NULL) to lsa_Calculated.
 
 There are some deliberate differences from data typing and nullability as defined by 
 the HMIS CSV/LSA specs and the CREATE statements here. 
@@ -412,6 +413,7 @@ create table lsa_Calculated(
 	SystemPath int not NULL,
 	ProjectID nvarchar(32),
 	ReportRow int not NULL,
-	ReportID int not NULL
+	ReportID int not NULL,
+	Step nvarchar(10) not NULL
 	)
 

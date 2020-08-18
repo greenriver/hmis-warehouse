@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # NOTE: this has been removed from use around 12/2018
@@ -9,7 +9,7 @@ module GrdaWarehouse::Census
   class ByProjectClient < Base
     self.table_name = "nightly_census_by_project_clients"
 
-    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
 
     scope :by_project_id, -> (project_id) do
       where(project_id: project_id)

@@ -1,21 +1,24 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   include ArelHelper
   include ServiceHistoryServiceConcern
 
-  belongs_to :service_history_enrollment, inverse_of: :service_history_services
-  belongs_to :client, class_name: GrdaWarehouse::Hud::Client.name
+  belongs_to :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id], inverse_of: :service_history_services
+  belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   has_one :enrollment, through: :service_history_enrollment
 
   scope :service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
-    # FIXME is all the right choice if service_scope returns nil?
-    (send(service_scope) || all).
+    if service_scope.is_a?(ActiveRecord::Relation)
+      merge(service_scope).where(date: start_date..end_date)
+    else
+      (send(service_scope) || all).
       where(date: start_date..end_date)
+    end
   end
 
   scope :hud_project_type, -> (project_types) do
@@ -24,6 +27,10 @@ class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
 
   scope :permanent_housing, -> do
     in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
+  end
+
+  scope :transitional_housing, -> do
+    in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th])
   end
 
   scope :homeless_sheltered, -> do
@@ -73,6 +80,14 @@ end
 
   def self.parent_table
     :service_history_services
+  end
+
+  def self.view_column_names
+    column_names - [
+      'service_type',
+      'homeless',
+      'literally_homeless',
+    ]
   end
 
   # schema.rb doesn't include tiggers or functions

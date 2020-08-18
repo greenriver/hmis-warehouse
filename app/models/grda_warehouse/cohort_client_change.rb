@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse
@@ -21,7 +21,7 @@ module GrdaWarehouse
       where(change: ['destroy', 'deactivate'])
     end
 
-    # has_one :cohort_exit, -> { where("id > " ).order(id: :asc) }, class_name: GrdaWarehouse::CohortClientChange.name, primary_key: [:cohort_id, :cohort_client_id], foreign_key: [:cohort_id, :cohort_client_id]
+    # has_one :cohort_exit, -> { where("id > " ).order(id: :asc) }, class_name: 'GrdaWarehouse::CohortClientChange', primary_key: [:cohort_id, :cohort_client_id], foreign_key: [:cohort_id, :cohort_client_id]
 
     def associated_exit
       a_t = self.class.arel_table

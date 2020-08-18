@@ -19,7 +19,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ```
 
-A copy of the license is available in [LICENSE.md](https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md)
+A copy of the license is available in [LICENSE.md](https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md)
 
 ## Vision
 

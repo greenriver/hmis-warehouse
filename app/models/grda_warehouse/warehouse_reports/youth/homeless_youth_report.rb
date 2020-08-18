@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::WarehouseReports::Youth
@@ -494,7 +494,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def f_four_f
       @f_four_f ||= get_client_ids(demographics_scope.
-        where(other_agency_involvement: 'Yes'))
+        where.not('other_agency_involvements::jsonb @> ?', ['No', 'Unknown'].to_json))
     end
 
     def f_four_g

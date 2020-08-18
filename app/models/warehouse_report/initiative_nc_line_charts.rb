@@ -1,15 +1,14 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::InitiativeNcLineCharts
-
+class WarehouseReport::InitiativeNcLineCharts # rubocop:disable Style/ClassAndModuleChildren
   PERIODS = [
     :report,
-    :comparison
-  ]
+    :comparison,
+  ].freeze
 
   def initialize(data, report_range, comparison_range)
     @data = data
@@ -24,7 +23,7 @@ class WarehouseReport::InitiativeNcLineCharts
   end
 
   def table_rows(by)
-    by == :project_type ? @project_types : @projects.map{|p_id, p_name| p_name}
+    by == :project_type ? @project_types : @projects.map { |_p_id, p_name| p_name }
   end
 
   def charts(data_type, by)
@@ -32,31 +31,29 @@ class WarehouseReport::InitiativeNcLineCharts
   end
 
   def chart_data(data_type, by)
-    m = "build_data_by_#{by.to_s}".to_sym
+    m = "build_data_by_#{by}".to_sym
     send(m, data_type)
   end
 
   def chart_id(by, period)
-    "d3-nc-by-#{by.to_s}__#{period.to_s}__chart"
+    "d3-nc-by-#{by}__#{period}__chart"
   end
 
   def legend_id(by, period)
-    "d3-nc-by-#{by.to_s}-#{period.to_s}__legend"
+    "d3-nc-by-#{by}-#{period}__legend"
   end
 
   def collapse_id(by, period)
-    "nc-by-#{by.to_s}-#{period.to_s}__collapse"
+    "nc-by-#{by}-#{period}__collapse"
   end
 
   def table_id(by, period)
-    "d3-nc-by-#{by.to_s}-#{period.to_s}__table"
+    "d3-nc-by-#{by}-#{period}__table"
   end
 
   def select_data(data_type, by, period)
-    m = "#{data_type.to_s}_by_#{by.to_s}"
-    if period == :comparison
-      m = "comparison_#{m}"
-    end
+    m = "#{data_type}_by_#{by}"
+    m = "comparison_#{m}" if period == :comparison
     @data.send(m.to_sym) || {}
   end
 
@@ -65,7 +62,7 @@ class WarehouseReport::InitiativeNcLineCharts
   end
 
   def chart_data_template
-    {report: [], comparison: []}
+    { report: [], comparison: [] }
   end
 
   def build_data_by_project_type(data_type)
@@ -97,5 +94,4 @@ class WarehouseReport::InitiativeNcLineCharts
     end
     chart_data
   end
-
 end

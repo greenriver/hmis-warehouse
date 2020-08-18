@@ -1,0 +1,31 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Missing CoC Codes') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  headers = [
+    'Warehouse ID',
+    'PersonalID (HMIS)',
+    'First Name (HMIS)',
+    'Last Name (HMIS)',
+    'Project',
+    'Project CoC Codes',
+    'Entry Date',
+    'Exit Date',
+  ]
+  sheet.add_row(headers, :style => title)
+  @enrollments.each do |en|
+    c = en.client
+    dc = c.destination_client
+    project = en.project
+    values = [
+      dc.id,
+      c.PersonalID,
+      c.FirstName,
+      c.LastName,
+      project.name,
+      project.project_cocs&.map(&:effective_coc_code)&.join(', '),
+      en.EntryDate,
+      en.exit&.ExitDate,
+    ]
+    sheet.add_row(values)
+  end
+end

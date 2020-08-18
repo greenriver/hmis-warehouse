@@ -1,43 +1,38 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 require 'aws-sdk-s3'
 class AwsS3
-  attr_accessor :region, :bucket_name, :access_key_id, :secret_access_key
+  attr_accessor :region, :bucket_name, :access_key_id, :secret_access_key, :client
   def initialize(
     region:,
     bucket_name:,
     access_key_id: nil,
     secret_access_key: nil
   )
-    @region = region
     @bucket_name = bucket_name
-    @access_key_id = access_key_id
-    @secret_access_key = secret_access_key
-    connect()
-    @s3 = Aws::S3::Resource.new
+
+    # if environment is set up right, this can all be:
+    # self.client = Aws::S3::Client.new
+    if secret_access_key.present? && secret_access_key != 'unknown'
+      self.client = Aws::S3::Client.new({
+        region: region,
+        access_key_id: access_key_id,
+        secret_access_key: secret_access_key,
+      })
+    else
+      self.client = Aws::S3::Client.new({
+        region: region,
+      })
+    end
+
+    @s3 = Aws::S3::Resource.new(client: self.client)
     @bucket = @s3.bucket(@bucket_name)
   end
 
-  def connect
-    cred = Aws::Credentials.new(
-      @access_key_id,
-      @secret_access_key
-    )
-    if @secret_access_key.present? && @secret_access_key != 'unknown'
-      Aws.config.update({
-        region: @region,
-        credentials: cred
-      })
-    else
-       Aws.config.update({
-        region: @region,
-      })
-    end
-  end
 
   def exists?
     return @bucket.exists? rescue false

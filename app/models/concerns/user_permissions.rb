@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module UserPermissions
@@ -121,7 +121,7 @@ module UserPermissions
     end
 
     def can_edit_window_client_notes_or_own_window_client_notes
-      can_edit_window_client_notes? || can_see_own_window_client_notes? || can_edit_client_notes?
+      can_edit_window_client_notes? || can_see_own_window_client_notes? || can_edit_client_notes? || can_view_all_window_notes?
     end
 
     def can_view_any_reports

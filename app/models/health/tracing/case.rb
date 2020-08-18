@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # ### HIPAA Risk Assessment
@@ -41,6 +41,14 @@ module Health::Tracing
       }
     end
 
+    def symptom_options
+      {
+        'Coughing' => 'Coughing',
+        'Fever' => 'Fever',
+        'Shortness of breath' => 'Shortness of breath'
+      }
+    end
+
     def self.label_for(column_name)
       @label_for ||= {
         investigator: 'Investigator name',
@@ -50,6 +58,8 @@ module Health::Tracing
         date_interviewed: 'Date interviewed',
         infectious_start_date: 'Infectious start date',
         day_two: 'Infectious start date + 14 days',
+        symptoms: 'Symptoms',
+        other_symptoms: 'Other Symptoms',
         testing_date: 'Testing Date',
         isolation_start_date: 'Isolation start date',
         first_name: 'First name',
@@ -61,7 +71,7 @@ module Health::Tracing
         race: 'Race',
         ethnicity: 'Ethnicity',
         preferred_language: 'Preferred language',
-        occupation: 'Occupation',
+        occupation: 'Occupation (if applicable)/Where do they work',
         recent_incarceration: 'Recent incarceration',
         notes: 'Notes',
       }

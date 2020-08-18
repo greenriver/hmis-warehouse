@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PerformanceDashboard::ProjectType::LivingSituation
@@ -13,7 +13,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
 
   # Fetch first prior living situation for each client
   def prior_living_situations
-    @prior_living_situations ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = HUD.living_situations.keys.map { |b| [b, []] }.to_h
       counted = Set.new
       enrolled.order(first_date_in_program: :desc).
@@ -24,12 +24,15 @@ module PerformanceDashboard::ProjectType::LivingSituation
         counted << c_id
       end
 
-      # expose top 5 plus other
+      # expose top 5 plus other, unless we've specified the situations, then use those.
+      # Specifying the situations allows for comparison to the reporting period
+      # FIXME: the problem is that the counts may differ between current and prior period
+      # So the return order may not match
       top_situations = buckets.
         # Ignore blank, 8, 9, 99
         reject { |k, _| k.in?([nil, 8, 9, 99]) }.
         sort_by { |_, v| v.count }.
-        last(10).to_h
+        last(5).to_h
       top_situations[:other] = buckets.except(*top_situations.keys).
         map do |_, v|
           v
@@ -39,7 +42,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
   end
 
   def prior_living_situations_data_for_chart
-    @prior_living_situations_data_for_chart ||= begin
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]
       columns += prior_living_situations.values.map(&:count).reverse
       categories = prior_living_situations.keys.reverse.map do |k|

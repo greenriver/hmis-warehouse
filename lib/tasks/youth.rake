@@ -4,7 +4,7 @@ require 'faker'
 namespace :youth do
   desc 'Import youth data (client specific)'
   task :import, [:file_path] => [:environment, 'log:info_to_stdout'] do |_task, args|
-    file_path = args.file_path || 'var/youth.xlsx'
+    file_path = args.file_path || 'tmp/youth.xlsx'
     puts "Importing #{file_path}"
 
     # Some notes:
@@ -116,6 +116,8 @@ namespace :youth do
         'Hotel' => 'Hotel or Motel Stay',
         'Cell Phone Costs' => 'Cell phone costs',
         'Provided a Trac Phone' => 'Cell phone costs',
+        'Emergency Shelter Night Owl Stay' => 'Emergency Shelter Night Owl Stay',
+        'Emergency Shelter' => 'Emergency Shelter Hotel',
       }
     end
 
@@ -194,14 +196,16 @@ namespace :youth do
       }
     end
 
+    prior_import_date = '2020-06-20'.to_date
+
     data_source = GrdaWarehouse::DataSource.authoritative.youth.first_or_create do |ds|
       ds.name = 'DIAL/SELF Youth'
       ds.short_name = 'Youth'
     end
-    GrdaWarehouse::Youth::YouthReferral.where(imported: true).destroy_all
-    GrdaWarehouse::Youth::YouthCaseManagement.where(imported: true).destroy_all
-    GrdaWarehouse::Youth::DirectFinancialAssistance.where(imported: true).destroy_all
-    GrdaWarehouse::YouthIntake::Base.where(imported: true).destroy_all
+    # GrdaWarehouse::Youth::YouthReferral.where(imported: true).destroy_all
+    # GrdaWarehouse::Youth::YouthCaseManagement.where(imported: true).destroy_all
+    # GrdaWarehouse::Youth::DirectFinancialAssistance.where(imported: true).destroy_all
+    # GrdaWarehouse::YouthIntake::Base.where(imported: true).destroy_all
     # Faker leaves a mess behind, so we'll clean this up for development runs
     GrdaWarehouse::Hud::Client.where(data_source_id: data_source.id).destroy_all if Rails.env.development?
 
@@ -270,7 +274,7 @@ namespace :youth do
       if row[:referred_to].present?
         # this is ugly, but some of the referrals have commas in them
         referrals = row[:referred_to].split(', Re')
-        referrals = referrals.map { |r| r = "Re#{r}" unless r.starts_with?('Re') }
+        referrals = referrals.map { |r| r = if r&.starts_with?('Re') then r else "Re#{r}" end }
         referrals.compact.each do |referred_to|
           clean_referred_to = available_referrals[referred_to]
           raise "Missing referral type: #{referred_to.inspect}" unless clean_referred_to.present?
@@ -323,7 +327,7 @@ namespace :youth do
       intake[:youth_experiencing_homelessness_at_start] = row[:youth_experiencing_homelessness_at_start] if row[:youth_experiencing_homelessness_at_start].present? && intake[:youth_experiencing_homelessness_at_start].blank?
       intake[:unaccompanied] = row[:unaccompanied] if row[:unaccompanied].present? && intake[:unaccompanied].blank?
       intake[:street_outreach_contact] = row[:street_outreach_contact] if row[:street_outreach_contact].present? && intake[:street_outreach_contact].blank?
-      intake[:other_agency_involvement] = row[:other_agency_involvement] if row[:other_agency_involvement].present? && intake[:other_agency_involvement].blank?
+      intake[:other_agency_involvements] = [row[:other_agency_involvement]] if row[:other_agency_involvement].present? && intake[:other_agency_involvements].blank?
       intake[:owns_cell_phone] = row[:owns_cell_phone] if row[:owns_cell_phone].present? && intake[:owns_cell_phone].blank?
       intake[:secondary_education] = row[:secondary_education] if row[:secondary_education].present? && intake[:secondary_education].blank?
       intake[:attending_college] = row[:attending_college] if row[:attending_college].present? && intake[:attending_college].blank?
@@ -356,7 +360,8 @@ namespace :youth do
 
       # NOTE: this process assumes intakes are in chronological order for each client
       clients.each do |_personal_id, data|
-        destination_client_id = data[:client][:source_client].destination_client.id
+        destination_client = data[:client][:source_client].destination_client
+        destination_client_id = destination_client.id
         # Make a single intake with the most recent data
         intake = {}
         data[:intakes].each_with_index do |int, i|
@@ -370,7 +375,7 @@ namespace :youth do
         intake[:youth_experiencing_homelessness_at_start] ||= 'No'
         intake[:unaccompanied] ||= 'No'
         intake[:street_outreach_contact] ||= 'No'
-        intake[:other_agency_involvement] ||= 'No'
+        intake[:other_agency_involvements] ||= ['No']
         intake[:owns_cell_phone] ||= 'No'
         intake[:secondary_education] ||= 'No'
         intake[:attending_college] ||= 'No'
@@ -408,21 +413,44 @@ namespace :youth do
           intakes_failed += 1
           # puts "Invalid record #{intake.inspect} #{entry.errors.full_messages.inspect}"
         end
-        entry.save(validate: false)
-
-        data[:referrals].each do |ref|
-          ref[:client_id] = destination_client_id
-          GrdaWarehouse::Youth::YouthReferral.create!(ref)
+        # Identify if we have an existing Intake based on the date and client
+        existing_intake = destination_client.youth_intakes.where(engagement_date: intake[:engagement_date]).first
+        # if we don’t, we’ll simply add the new intake
+        if existing_intake.blank?
+          entry.save(validate: false)
+        # if we do, and it unchanged since the prior import, replace it with the incoming data
+        elsif existing_intake.imported?
+          if existing_intake.created_at == existing_intake.updated_at && existing_intake.created_at.to_date <= prior_import_date
+            existing_intake.destroy
+            entry.save(validate: false)
+          end
         end
 
         data[:case_managements].each do |ref|
           ref[:client_id] = destination_client_id
-          GrdaWarehouse::Youth::YouthCaseManagement.create!(ref)
+          existing_note = destination_client.case_managements.where(imported: true, engaged_on: ref[:engaged_on]).first
+          if existing_note.blank?
+            GrdaWarehouse::Youth::YouthCaseManagement.create!(ref)
+          elsif existing_note.created_at == existing_note.updated_at && existing_note.created_at.to_date <= prior_import_date
+            existing_note.destroy
+            GrdaWarehouse::Youth::YouthCaseManagement.create!(ref)
+          end
+        end
+
+        data[:referrals].each do |ref|
+          ref[:client_id] = destination_client_id
+          GrdaWarehouse::Youth::YouthReferral.create!(ref) unless destination_client.youth_referrals.where(
+            referred_on: ref[:referred_on],
+            referred_to: ref[:referred_to],
+          ).exists?
         end
 
         data[:financials].each do |ref|
           ref[:client_id] = destination_client_id
-          GrdaWarehouse::Youth::DirectFinancialAssistance.create!(ref)
+          GrdaWarehouse::Youth::DirectFinancialAssistance.create!(ref) unless destination_client.direct_financial_assistances.where(
+            provided_on: ref[:provided_on],
+            type_provided: ref[:type_provided],
+          ).exists?
         end
       end
     end # end transaction

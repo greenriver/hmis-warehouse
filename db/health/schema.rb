@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_20_192050) do
+ActiveRecord::Schema.define(version: 2020_08_07_203051) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -487,6 +487,7 @@ ActiveRecord::Schema.define(version: 2020_05_20_192050) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer "updated_patients"
+    t.jsonb "processing_errors", default: []
   end
 
   create_table "epic_careplans", id: :serial, force: :cascade do |t|
@@ -956,8 +957,10 @@ ActiveRecord::Schema.define(version: 2020_05_20_192050) do
     t.string "aco_name"
     t.string "previous_aco_name"
     t.boolean "invalid_id", default: false
+    t.bigint "nurse_care_manager_id"
     t.index ["client_id"], name: "patients_client_id_constraint", unique: true, where: "(deleted_at IS NULL)"
     t.index ["medicaid_id"], name: "index_patients_on_medicaid_id"
+    t.index ["nurse_care_manager_id"], name: "index_patients_on_nurse_care_manager_id"
   end
 
   create_table "premium_payments", id: :serial, force: :cascade do |t|
@@ -1293,6 +1296,8 @@ ActiveRecord::Schema.define(version: 2020_05_20_192050) do
     t.datetime "updated_at", null: false
     t.date "day_two"
     t.string "phone"
+    t.jsonb "symptoms"
+    t.string "other_symptoms"
     t.index ["aliases"], name: "index_tracing_cases_on_aliases"
     t.index ["client_id"], name: "index_tracing_cases_on_client_id"
     t.index ["first_name", "last_name"], name: "index_tracing_cases_on_first_name_and_last_name"
@@ -1332,6 +1337,8 @@ ActiveRecord::Schema.define(version: 2020_05_20_192050) do
     t.string "investigator"
     t.string "alert_in_epic"
     t.string "notified"
+    t.jsonb "symptoms"
+    t.string "other_symptoms"
     t.index ["aliases"], name: "index_tracing_contacts_on_aliases"
     t.index ["case_id"], name: "index_tracing_contacts_on_case_id"
     t.index ["first_name", "last_name"], name: "index_tracing_contacts_on_first_name_and_last_name"
@@ -1346,6 +1353,19 @@ ActiveRecord::Schema.define(version: 2020_05_20_192050) do
     t.index ["case_id"], name: "index_tracing_locations_on_case_id"
   end
 
+  create_table "tracing_results", force: :cascade do |t|
+    t.bigint "contact_id"
+    t.string "test_result"
+    t.string "isolated"
+    t.string "isolation_location"
+    t.string "quarantine"
+    t.string "quarantine_location"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contact_id"], name: "index_tracing_results_on_contact_id"
+  end
+
   create_table "tracing_site_leaders", force: :cascade do |t|
     t.bigint "case_id"
     t.string "site_name"
@@ -1354,6 +1374,7 @@ ActiveRecord::Schema.define(version: 2020_05_20_192050) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "investigator"
     t.index ["case_id"], name: "index_tracing_site_leaders_on_case_id"
   end
 
@@ -1372,6 +1393,14 @@ ActiveRecord::Schema.define(version: 2020_05_20_192050) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "notified"
+    t.date "dob"
+    t.string "estimated_age"
+    t.integer "gender"
+    t.string "address"
+    t.string "phone_number"
+    t.jsonb "symptoms"
+    t.string "other_symptoms"
+    t.string "investigator"
     t.index ["case_id"], name: "index_tracing_staffs_on_case_id"
   end
 

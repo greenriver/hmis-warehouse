@@ -1,0 +1,84 @@
+@import '../helpers';
+
+.c-save-table {
+  .c-checkbox {
+    font-size: 18px;
+  }
+  select.select2 {
+    max-height: 45px;
+  }
+}
+
+.c-save-table__loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(white, .6);
+  z-index: 1000;
+  pointer-events: none;
+  > div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  span {
+    font-weight: bold;
+    font-size: 50px;
+    text-transform: uppercase;
+    margin-bottom: space(2);
+  }
+}
+
+.c-save-table__submit-container {
+  overflow: hidden;
+  max-height: 0;
+  position: fixed;
+  bottom: 0;
+  left: 15px;
+  right: 15px;
+  text-align: center;
+  background: rgba($brand-warning-l, .85);
+  z-index: $zIndex-2;
+  transition: .25s ease-in-out;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: space(4);
+  @include media-breakpoint-up(md) {
+    left: 30px;
+    right: calc(#{$nav-side-width} + 30px);
+  }
+  &.show {
+    max-height: 100px;
+  }
+  a {
+    color: $black;
+    &:focus,
+    &:hover {
+      color: rgba($black, .8);
+    }
+  }
+  &.has-error {
+    background: rgba($brand-danger-l, .95);
+  }
+}
+
+.c-save-table__submit-container-error-text {
+  color: rgba($black, .9);
+  font-weight: bold;
+  flex: 1 0 auto;
+  padding-left: space(4);
+  text-align: left;
+}
+
+.c-save-table__submit-changes {
+  margin: 15px;
+}

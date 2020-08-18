@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # ### HIPPA Risk Assessment
@@ -108,6 +108,7 @@ module Health
     scope :rejection_confirmed, -> { current.where(removal_acknowledged: true) }
     scope :not_confirmed_rejected, -> { current.where(removal_acknowledged: false) }
     scope :pending_disenrollment, -> { current.where.not(pending_disenrollment_date: nil) }
+    scope :not_disenrolled, -> { current.where(pending_disenrollment_date: nil, disenrollment_date: nil)}
 
     scope :active_within_range, -> (start_date:, end_date:) do
       at = arel_table
@@ -148,21 +149,23 @@ module Health
         # Re-enrollment
         referral_args.merge!(patient: patient)
         current_referral = patient.patient_referral
+        patient.patient_referrals.contributing.update_all(current: false)
+
         enrollment_start_date = referral_args[:enrollment_start_date]
         last_enrollment_date = current_referral.disenrollment_date
         if last_enrollment_date.nil?
           # Last referral was not disenrolled. For record keeping, close the last enrollment, and immediately open a new one
-          current_referral.update(disenrollment_date: enrollment_start_date, current: false)
+          current_referral.update(disenrollment_date: enrollment_start_date)
           referral = create(referral_args)
         else
           if (enrollment_start_date - last_enrollment_date).to_i > 90
             # It has been more than 90 days, so this is a "reenrollment"
-            patient.patient_referrals.contributing.update_all(current: false, contributing: false)
+            patient.patient_referrals.contributing.update_all(contributing: false)
             referral = create(referral_args)
             patient.reenroll!(referral)
           else
             # This is an "auto-reenrollment"
-            current_referral.update(current: false, contributing: true)
+            current_referral.update(contributing: true)
             referral = create(referral_args)
           end
         end
@@ -388,7 +391,7 @@ module Health
     end
 
     def create_patient destination_client
-      patient = Health::Patient.where(medicaid_id: medicaid_id).first_or_initialize
+      patient = Health::Patient.with_deleted.where(medicaid_id: medicaid_id).first_or_initialize
       patient.assign_attributes(
         id_in_source: id,
         first_name: first_name,
@@ -399,14 +402,11 @@ module Health
         medicaid_id: medicaid_id,
         pilot: false,
         # engagement_date: engagement_date,
-        data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first
+        data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first,
+        deleted_at: nil,
       )
       patient.save!
       patient.import_epic_team_members
-      if rejected?
-        # soft delete
-        patient.destroy
-      end
       update(patient_id: patient.id)
     end
 

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # encoding: utf-8
@@ -64,7 +64,7 @@ class AdHocDataSourceUploader < CarrierWave::Uploader::Base
   process :extract_file_metadata!
 
   # NOTE if you make changes here it would be a good idea to update test/uploaders/attachment_uploader_test.rb
-  WHITELIST = IceNine.deep_freeze(['text/csv', 'text/plain'])
+  WHITELIST = IceNine.deep_freeze(['text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
 
   # normal content_type handling uses this
   # this is mostly to provide user feedback if they send

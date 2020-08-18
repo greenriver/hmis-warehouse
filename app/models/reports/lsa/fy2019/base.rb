@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Reports::Lsa::Fy2019
@@ -44,20 +44,20 @@ module Reports::Lsa::Fy2019
       GrdaWarehouse::DataSource.importable
     end
 
-    def self.available_sub_populations
-      [
-        ['All Clients', :all_clients],
-        ['Veteran', :veteran],
-        ['Youth', :youth],
-        ['Parenting Youth', :parenting_youth],
-        ['Parenting Children', :parenting_children],
-        ['Individual Adults', :individual_adults],
-        ['Non Veteran', :non_veteran],
-        ['Family', :family],
-        ['Children', :children],
-        ['Unaccompanied Minors', :unaccompanied_minors],
-      ]
-    end
+    # def self.available_sub_populations
+    #   [
+    #     ['All Clients', :all_clients],
+    #     ['Veteran', :veteran],
+    #     ['Youth', :youth],
+    #     ['Parenting Youth', :parenting_youth],
+    #     ['Parenting Children', :parenting_children],
+    #     ['Individual Adults', :individual_adults],
+    #     ['Non Veteran', :non_veteran],
+    #     ['Family', :family],
+    #     ['Children', :children],
+    #     ['Unaccompanied Minors', :unaccompanied_minors],
+    #   ]
+    # end
 
     def value_for_options options
       return '' unless options.present?

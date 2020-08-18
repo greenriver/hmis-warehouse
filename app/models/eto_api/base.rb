@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # see https://services.etosoftware.com
@@ -66,6 +66,8 @@ module EtoApi
       sso = _api_post_json(
         "#{@endpoints[:security]}/SSOAuthenticate/", @credentials, content_type: :json, accept: :json
       )
+      raise('not connected') if sso == false
+
       (sso_result = sso['SSOAuthenticateResult']) || raise('cant sso')
       @auth_token = sso_result['SSOAuthToken']
       @tz_offset = sso_result['TimeZoneOffset'].to_i.to_s # null => 0

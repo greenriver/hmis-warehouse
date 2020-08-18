@@ -1,12 +1,12 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Contact
   class Organization < Base
-    belongs_to :Organization, class_name: GrdaWarehouse::Hud::Organization.name, foreign_key: :entity_id
+    belongs_to :Organization, class_name: 'GrdaWarehouse::Hud::Organization', foreign_key: :entity_id
 
   end
 end

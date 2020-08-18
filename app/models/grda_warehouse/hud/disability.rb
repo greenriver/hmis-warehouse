@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Hud
@@ -25,6 +25,10 @@ module GrdaWarehouse::Hud
       where(DisabilityResponse: [1, 2, 3])
     end
 
+    scope :response_present, -> do
+      where(DisabilityResponse: [0, 1, 2, 3])
+    end
+
     scope :chronically_disabled, -> do
       disabled.where(IndefiniteAndImpairs: 1)
     end
@@ -44,6 +48,10 @@ module GrdaWarehouse::Hud
 
     scope :sorted_entry_date_information_date, -> do
       order(e_t[:EntryDate].desc,d_t[:InformationDate].desc)
+    end
+
+    scope :newest_first, -> do
+      order(InformationDate: :desc)
     end
 
     scope :physical, -> do

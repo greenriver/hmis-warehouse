@@ -61,7 +61,7 @@
                 = checkmark cohort.visible_in_cas?
               %td= cohort.cas_tag_name
               %td.text-center
-                = cohort.cohort_clients.count
+                = cohort.cohort_clients.joins(:client).count
   #inactive-cohorts.tab-pane{role: :tabpanel}
     .o-page
       .o-page__controls

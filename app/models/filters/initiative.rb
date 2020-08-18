@@ -1,14 +1,14 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # provides validation for date ranges
 module Filters
   class Initiative < DateRange
     include ArelHelper
-    attribute :sub_population, Symbol, default: :all_clients
+    attribute :sub_population, Symbol, default: :clients
     attribute :comparison_start, Date, lazy: true, default: -> (r,_) { r.default_comparison_start }
     attribute :comparison_end, Date, lazy: true, default: -> (r,_) { r.default_comparison_end }
     attribute :initiative_name, String, default: nil

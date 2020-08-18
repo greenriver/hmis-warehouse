@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Health
@@ -234,7 +234,6 @@ module Health
     # Qualifying  Activities
     def qualifying_activity_dates
       @qualifying_activity_dates ||= Health::QualifyingActivity.submittable.
-        not_valid_unpayable.
         distinct.
         where(patient_id: patient_referrals.keys). # limit to patients in scope
         where(date_of_activity: @range).

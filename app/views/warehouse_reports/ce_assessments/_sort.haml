@@ -1,0 +1,13 @@
+.btn-group.client__sort
+  %button.btn.btn-sm.btn-default.dropdown-toggle{data: {toggle: 'dropdown'}}
+    Sort
+    %span.caret
+  .dropdown-menu.options
+    %ul.mb-0.list-unstyled
+      - sort_options.each do |opt|
+        - if @column == opt[:column] && @direction.to_sym == opt[:direction]
+          - title = "<span class='icon-checkbox-checked'></span> #{opt[:title]}".html_safe
+        - else
+          - title = "<span class='icon-checkbox-unchecked'></span> #{opt[:title]}".html_safe
+        %li
+          = link_to title, report_params.merge!(direction: opt[:direction], column: opt[:column])

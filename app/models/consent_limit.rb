@@ -1,10 +1,10 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class ConsentLimit < ActiveRecord::Base
+class ConsentLimit < ApplicationRecord
   has_paper_trail
   acts_as_paranoid
 

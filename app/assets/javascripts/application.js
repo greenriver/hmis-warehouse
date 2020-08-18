@@ -41,6 +41,7 @@
 //= require billboard.js/dist/billboard.min
 //= require moment.min.js
 //= require bootstrap-datetimepicker
+//= require promise-polyfill/dist/polyfill.min.js
 
 
 //////////////////////////
@@ -55,13 +56,14 @@
 //= require cha
 //= require vispdats
 //= require files
-//= require table_search
 //= require selectable_list
 //= require viewable_entities
 //= require select_2
+//= require_directory ./admin/client_matches
 //= require_directory ./census
 //= require_directory ./filter
 //= require_directory ./maps
+//= require_directory ./reports
 //= require_directory ./rollups
 //= require_directory ./sections
 //= require_directory ./health
@@ -82,6 +84,9 @@
 //= require_directory ./cohorts/editors
 //= require_directory ./data_quality_reports
 //= require affix
+//= require table_search
 //= require TableWithToggleRows
+//= require role_table
+//= require documentExport.js
 
 //= require init

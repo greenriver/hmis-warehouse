@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Youth
@@ -11,6 +11,10 @@ module GrdaWarehouse::Youth
     acts_as_paranoid
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_follow_ups
+
+    scope :ordered, -> do
+      order(contacted_on: :desc)
+    end
 
     scope :between, -> (start_date:, end_date:) do
       at = arel_table
@@ -56,6 +60,10 @@ module GrdaWarehouse::Youth
         'Yes, in transitional housing',
         'Yes, with family',
       ]
+    end
+
+    def self.report_columns
+      column_names - [:user_id, :deleted_at]
     end
   end
 end

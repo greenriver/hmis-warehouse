@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module WarehouseReports
@@ -15,7 +15,30 @@ module WarehouseReports
 
     def perform(report_params)
       # load_filter expects params from the controller, so we store them in an attribute, and add permit to it
-      report_params.define_singleton_method(:permit) { |*args| slice(*args) }
+      report_params.define_singleton_method(:deep_slice) do |*args|
+        result = {}
+        args.each do |arg|
+          if arg.is_a?(Hash)
+            arg.each do |key, value|
+              hash = {}
+              if value.is_a?(Array)
+                value.each do |elem|
+                  hash[elem] = self[key][elem]
+                end
+              elsif value.is_a?(Hash)
+                raise 'Unsupported nesting'
+              else
+                hash[value] = self[key][value]
+              end
+              result[key] = hash
+            end
+          else
+            result[arg] = self[arg]
+          end
+        end
+        result
+      end
+      report_params.define_singleton_method(:permit) { |*args| deep_slice(*args) }
       self.params = report_params
 
       load_filter

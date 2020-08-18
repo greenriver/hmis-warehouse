@@ -17,6 +17,8 @@
         = f.input :date_interviewed, as: :date_picker
         = f.input :infectious_start_date, as: :date_picker, hint: 'Day 1 Infectious Period = Date of Sx start minus 2 days', input_html: {class: 'jInfectiousStartDate'}
         = f.input :day_two, as: :date_picker, label: @case.label_for(:day_two), input_html: {class: 'jDayTwo'}
+        = f.input :symptoms, as: :check_boxes, collection: @case.symptom_options, wrapper: radio_wrapper_class
+        = f.input :other_symptoms, label: @case.label_for(:other_symptoms)
         = f.input :testing_date, as: :date_picker
         = f.input :isolation_start_date, as: :date_picker
     .c-card.mb-4
@@ -34,7 +36,7 @@
         = f.input :preferred_language
         .jLocations
           = render 'health/he/locations/table', readonly: f.options[:wrapper] == :readonly
-        = f.input :occupation
+        = f.input :occupation, label: @case.label_for(:occupation)
         = f.input :recent_incarceration
         = f.input :notes, as: :text
 

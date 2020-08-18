@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class ReportResultsController < ApplicationController
@@ -209,7 +209,7 @@ class ReportResultsController < ApplicationController
       distinct.
       merge(GrdaWarehouse::Hud::Project.hud_residential).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-      where(Zip: nil)
+      where(Zip: nil, zip_override: nil)
     @missing_data[:missing_zip] = query.pluck(*missing_data_columns.values).
       map do |row|
         row = Hash[missing_data_columns.keys.zip(row)]
@@ -243,6 +243,22 @@ class ReportResultsController < ApplicationController
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)).
       where(f_t[:Funder].not_in(::HUD.funding_sources.keys)).
       pluck(*missing_data_columns.values).
+      map do |row|
+        row = Hash[missing_data_columns.keys.zip(row)]
+        {
+          project: "#{row[:org_name]} - #{row[:project_name]}",
+          project_type: row[:project_type],
+          id: row[:id], data_source_id:
+          row[:ds_id]
+        }
+      end
+    query = GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
+      includes(project: :funders).
+      distinct.
+      merge(GrdaWarehouse::Hud::Project.hud_residential).
+      where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
+      where(CoCCode: nil, hud_coc_code: nil)
+    @missing_data[:missing_coc_codes] = query.pluck(*missing_data_columns.values).
       map do |row|
         row = Hash[missing_data_columns.keys.zip(row)]
         {

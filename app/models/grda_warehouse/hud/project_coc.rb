@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::Hud
@@ -9,6 +9,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::ProjectCoc
     include ArelHelper
+    require 'csv'
 
     self.table_name = 'ProjectCoC'
     self.hud_key = :ProjectCoCID
@@ -19,6 +20,7 @@ module GrdaWarehouse::Hud
     has_many :geographies, class_name: 'GrdaWarehouse::Hud::Geography', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
     has_many :inventories, class_name: 'GrdaWarehouse::Hud::Inventory', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
     belongs_to :data_source
+    has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :project_coc
 
     scope :in_coc, -> (coc_code:) do
       # hud_coc_code overrides CoCCode
@@ -44,9 +46,7 @@ module GrdaWarehouse::Hud
     end
 
     def effective_coc_code
-      return hud_coc_code if hud_coc_code.present?
-
-      self.CoCCode
+      hud_coc_code.presence || self.CoCCode
     end
 
     def self.related_item_keys
@@ -54,21 +54,52 @@ module GrdaWarehouse::Hud
     end
 
     def self.available_coc_codes
-      distinct.order(:CoCCode).pluck(:CoCCode)
+      distinct.pluck(coc_code_coalesce).reject(&:blank?).sort
     end
 
-    def self.options_for_select user:
+    def self.options_for_select(user:)
       # don't cache this, it's a class method
       viewable_by(user).
         distinct.
-        order(CoCCode: :asc).
-        pluck(:CoCCode).
+        pluck(coc_code_coalesce).
+        reject(&:blank?).
+        sort.
         map do |coc_code|
           [
             coc_code,
             coc_code,
           ]
         end
+    end
+
+    def self.coc_code_coalesce
+      cl(pc_t[:hud_coc_code], pc_t[:CoCCode])
+    end
+
+    # when we export, we always need to replace ProjectCoCID with the value of id
+    # and ProjectID with the id of the related project
+    def self.to_csv(scope:)
+      attributes = self.hud_csv_headers.dup
+      headers = attributes.clone
+      attributes[attributes.index(:ProjectCoCID)] = :id
+      attributes[attributes.index(:ProjectID)] = 'project.id'
+
+      CSV.generate(headers: true) do |csv|
+        csv << headers
+
+        scope.each do |i|
+          csv << attributes.map do |attr|
+            attr = attr.to_s
+            # we need to grab the appropriate id from the related project
+            if attr.include?('.')
+              obj, meth = attr.split('.')
+              i.send(obj).send(meth)
+            else
+              i.send(attr)
+            end
+          end
+        end
+      end
     end
   end
 end

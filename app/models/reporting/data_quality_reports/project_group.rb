@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Reporting::DataQualityReports
@@ -10,7 +10,7 @@ module Reporting::DataQualityReports
 
     self.table_name = :warehouse_data_quality_report_project_groups
 
-    belongs_to :report, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name, foreign_key: :report_id
+    belongs_to :report, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base', foreign_key: :report_id
 
     def calculate_unit_inventory project_ids:, report_range:
       GrdaWarehouse::Hud::Inventory.within_range(report_range).joins(:project).

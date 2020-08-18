@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module WarehouseReports
@@ -35,12 +35,16 @@ module WarehouseReports
           open_between(start_date: start_date, end_date: end_date).
           in_project_type(filter_params[:project_types])
 
-        population = service_history_enrollment_source.know_standard_cohorts.detect { |m| m.to_s == filter_params[:sub_population] }
+        population = service_history_enrollment_source.known_standard_cohorts.detect { |m| m.to_s == filter_params[:sub_population] }
         enrollment_scope = enrollment_scope.send(population) if population.present?
 
+        enrollment_scope = enrollment_scope.heads_of_households if filter_params[:heads_of_household]
+
+        enrollment_scope = enrollment_scope.in_age_ranges(filter_params[:age_ranges])
+
         clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_history_enrollment).
-          merge(GrdaWarehouse::Hud::Disability.where(DisabilityType: filter_params[:disabilities], DisabilityResponse: [1, 2, 3])).
-          merge(GrdaWarehouse::Hud::Project.with_project_type(filter_params[:project_types])).
+          merge(GrdaWarehouse::Hud::Disability.where(DisabilityType: filter_params[:disabilities].reject(&:blank?), DisabilityResponse: [1, 2, 3])).
+          merge(GrdaWarehouse::Hud::Project.with_project_type(filter_params[:project_types].reject(&:blank?))).
           merge(GrdaWarehouse::Hud::Project.viewable_by(@user)).
           merge(enrollment_scope).
           distinct.

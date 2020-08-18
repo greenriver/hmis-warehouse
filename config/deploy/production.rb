@@ -4,7 +4,7 @@ set :rails_env, "production"
 raise "You must specify DEPLOY_USER" if ENV['DEPLOY_USER'].to_s == ''
 
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
-set :branch, 'master'
+set :branch, 'production'
 
 if !ENV['HOSTS'].nil?
   puts "Allowable hosts: #{ENV['HOSTS']}"

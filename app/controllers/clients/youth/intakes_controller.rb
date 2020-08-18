@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Clients::Youth
@@ -15,6 +15,7 @@ module Clients::Youth
 
     before_action :set_client
     before_action :set_intake, only: [:show, :edit, :update, :destroy]
+    before_action :require_can_delete_youth_intake!, only: [:remove_all_youth_data]
 
     after_action :log_client
 
@@ -59,8 +60,8 @@ module Clients::Youth
     def create
       @intake = intake_source.new(user_id: current_user.id, client_id: @client.id)
       @intake.assign_attributes(intake_params)
-      @intake.client_race = intake_params[:client_race].select(&:present?).to_json
-      @intake.disabilities = intake_params[:disabilities].select(&:present?).to_json
+      @intake.client_race = intake_params[:client_race].select(&:present?)
+      @intake.disabilities = intake_params[:disabilities].select(&:present?)
 
       set_other_options
       @intake.save
@@ -69,6 +70,25 @@ module Clients::Youth
     end
 
     def destroy
+      @intake.destroy
+      respond_with(@intake, location: polymorphic_path(youth_intakes_path_generator))
+    end
+
+    def remove_all_youth_data
+      @client = searchable_client_scope.find(params[:client_id].to_i)
+      if @client.present?
+        @client.youth_intakes.destroy_all
+        @client.case_managements.destroy_all
+        @client.direct_financial_assistances.destroy_all
+        @client.youth_referrals.destroy_all
+        @client.youth_follow_ups.destroy_all
+        # TODO: This does not remove the client from the Youth DataSource
+
+        flash[:notice] = "All Youth information for #{@client.name} has been removed."
+        redirect_to client_youth_intakes_path(@client)
+      else
+        not_authorized!
+      end
     end
 
     def edit
@@ -144,7 +164,6 @@ module Clients::Youth
         :unaccompanied,
         :street_outreach_contact,
         :housing_status,
-        :other_agency_involvement,
         :owns_cell_phone,
         :secondary_education,
         :attending_college,
@@ -165,6 +184,7 @@ module Clients::Youth
         :other_language,
         :other_how_hear,
         :turned_away,
+        other_agency_involvements: [],
         client_race: [],
         disabilities: [],
       )

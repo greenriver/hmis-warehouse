@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module WarehouseReports
@@ -13,7 +13,7 @@ module WarehouseReports
 
     def perform(report_type, sub_population)
       klass = GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym][sub_population.to_sym]
-      klass.new.run_and_save!
+      klass.constantize.new.run_and_save!
     end
 
     def log(msg, underline: false)

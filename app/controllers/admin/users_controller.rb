@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Admin
@@ -145,6 +145,7 @@ module Admin
         :notify_on_vispdat_completed,
         :notify_on_client_added,
         :notify_on_anomaly_identified,
+        :receive_account_request_notifications,
         :otp_required_for_login,
         :expired_at,
         :training_completed,

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class ClientsController < ApplicationController
@@ -252,27 +252,7 @@ class ClientsController < ApplicationController
   # should always return a destination client, but some visibility
   # is governed by the source client, some by the destination
   private def client_scope(id: nil)
-    client_source.destination.where(
-      Arel.sql(
-        client_source.arel_table[:id].in(visible_by_source(id: id)).
-        or(client_source.arel_table[:id].in(visible_by_destination(id: id))).to_sql,
-      ),
-    )
-  end
-
-  private def visible_by_source(id: nil)
-    query = GrdaWarehouse::WarehouseClient.joins(:source).
-      merge(GrdaWarehouse::Hud::Client.viewable_by(current_user))
-    query = query.where(destination_id: id) if id.present?
-
-    Arel.sql(query.select(:destination_id).to_sql)
-  end
-
-  private def visible_by_destination(id: nil)
-    query = GrdaWarehouse::Hud::Client.viewable_by(current_user)
-    query = query.where(id: id) if id.present?
-
-    Arel.sql(query.select(:id).to_sql)
+    client_source.destination_client_viewable_by_user(client_id: id, user: current_user)
   end
 
   # Should always return any clients, source or destination that match

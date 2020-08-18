@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Reporting::DataQualityReports
@@ -10,8 +10,8 @@ module Reporting::DataQualityReports
 
     self.table_name = :warehouse_data_quality_report_projects
 
-    belongs_to :report, class_name: GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.name, foreign_key: :report_id
-    belongs_to :project, class_name: GrdaWarehouse::Hud::Project.name
+    belongs_to :report, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base', foreign_key: :report_id
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
 
     def calculate_coc_code project:
       project.project_cocs.map(&:CoCCode).uniq.join(', ')

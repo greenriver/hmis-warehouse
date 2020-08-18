@@ -1,11 +1,10 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::InitiativeIncomePieCharts
-
+class WarehouseReport::InitiativeIncomePieCharts # rubocop:disable Style/ClassAndModuleChildren
   attr_accessor :projects, :project_types
 
   def initialize(data, report_range, comparison_range)
@@ -21,33 +20,33 @@ class WarehouseReport::InitiativeIncomePieCharts
     }
   end
 
-  def chart_data(data_type, by, period)
-    m = "build_by_#{by.to_s}_data".to_sym
+  def chart_data(data_type, by, _period)
+    m = "build_by_#{by}_data".to_sym
     d = send(m, data_type)
-    keys = by == :project_type ? @project_types : @projects.map{|id, name| name}
-    {data: d, keys: keys}
+    keys = by == :project_type ? @project_types : @projects.map { |_id, name| name }
+    { data: d, keys: keys }
   end
 
   def chart_id(data_type, by, period)
-    "d3-#{data_type.to_s}-by-#{by.to_s}-for-#{period.to_s}__chart"
+    "d3-#{data_type}-by-#{by}-for-#{period}__chart"
   end
 
   def table_id(data_type, by, period)
-    "d3-#{data_type.to_s}-by-#{by.to_s}-for-#{period.to_s}__table"
+    "d3-#{data_type}-by-#{by}-for-#{period}__table"
   end
 
   def legend_id(data_type, by, period)
-    "d3-#{data_type.to_s}-by-#{by.to_s}-for-#{period.to_s}__legend"
+    "d3-#{data_type}-by-#{by}-for-#{period}__legend"
   end
 
   def collapse_id(data_type, by, period)
-    "d3-#{data_type.to_s}-by-#{by.to_s}-for-#{period.to_s}__collapse"
+    "d3-#{data_type}-by-#{by}-for-#{period}__collapse"
   end
 
   def bucket_template
     template = {}
-    @income_buckets.each do |id, values|
-      template[values[:name]] = {total: 0}
+    @income_buckets.each do |_id, values|
+      template[values[:name]] = { total: 0 }
     end
     template
   end
@@ -55,7 +54,7 @@ class WarehouseReport::InitiativeIncomePieCharts
   def select_data(data_type, period)
     m = "#{data_type}_by_#{period}"
     m = (period == :comparison ? "comparison_#{m}" : m).to_sym
-    data = @data[m] || {}
+    @data[m] || {}
   end
 
   def build_by_project_type_data(data_type)
@@ -65,7 +64,7 @@ class WarehouseReport::InitiativeIncomePieCharts
       @income_buckets.each do |id, income|
         data_key = "#{p_type}__#{id}"
         buckets[income[:name]][p_type] = data[data_key]
-        buckets[income[:name]][:total] += (data[data_key]||0)
+        buckets[income[:name]][:total] += (data[data_key] || 0)
       end
     end
     buckets
@@ -78,10 +77,9 @@ class WarehouseReport::InitiativeIncomePieCharts
       @income_buckets.each do |id, income|
         data_key = "#{p_id}__#{id}"
         buckets[income[:name]][p_name] = data[data_key]
-        buckets[income[:name]][:total] += (data[data_key]||0)
+        buckets[income[:name]][:total] += (data[data_key] || 0)
       end
     end
     buckets
   end
-
 end

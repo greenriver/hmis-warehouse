@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Health::He
@@ -16,7 +16,7 @@ module Health::He
     end
 
     def new
-      @manager = @case.site_leaders.build
+      @manager = @case.site_leaders.build(investigator: @case.investigator)
     end
 
     def create
@@ -39,6 +39,7 @@ module Health::He
 
     def site_manager_params
       params.require(:health_tracing_site_leader).permit(
+        :investigator,
         :site_name,
         :site_leader_name,
         :contacted_on,

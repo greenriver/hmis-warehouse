@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module WarehouseReports
@@ -51,6 +51,9 @@ module WarehouseReports
           :sub_population,
           :no_service_after_date,
           :limit_to_vispdats,
+          genders: [],
+          races: [],
+          ethnicities: [],
           organization_ids: [],
           project_ids: [],
           no_recent_service_project_ids: [],
@@ -63,6 +66,9 @@ module WarehouseReports
         opts[:project_ids] = cleanup_ids(opts[:project_ids])
         opts[:organization_ids] = cleanup_ids(opts[:organization_ids])
         opts[:no_recent_service_project_ids] = cleanup_ids(opts[:no_recent_service_project_ids])
+        opts[:races] = opts[:races].select { |r| ::HUD.races.include?(r) } if opts[:races].present?
+        opts[:ethnicities] = opts[:ethnicities].reject(&:blank?).map(&:to_i) if opts[:ethnicities].present?
+        opts[:genders] = opts[:genders].reject(&:blank?).map(&:to_i) if opts[:genders].present?
         opts
       else
         {

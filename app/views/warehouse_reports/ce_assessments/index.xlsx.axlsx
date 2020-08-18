@@ -1,0 +1,21 @@
+wb = xlsx_package.workbook
+detail_columns = GrdaWarehouse::CoordinatedEntryAssessment::Base.detail_columns
+
+wb.add_worksheet(name: "CE Assessment Details") do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  row = detail_columns.keys.map { |name| _(name) }
+  sheet.add_row(row, :style => title)
+
+  @clients.each do |client|
+    row = detail_columns.values.map do |(location, field)|
+      if location == :client
+        client.public_send(field)
+      elsif location == :assessor
+        client.ce_assessment.assessor.public_send(field)
+      else
+        client.ce_assessment.public_send(field)
+      end
+    end
+    sheet.add_row(row)
+  end
+end

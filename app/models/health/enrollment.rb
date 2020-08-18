@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # ### HIPAA Risk Assessment
@@ -71,6 +71,12 @@ module Health
       )
     end
 
+    def self.gender(transaction)
+      member(transaction).
+        detect{|h| h.keys.include? :DMG}[:DMG].
+        detect{|h| h.keys.include? :E1068}[:E1068][:value][:raw]
+    end
+
     def self.SSN(transaction)
       NM1(transaction).detect{|h| h.keys.include? :E67}[:E67][:value][:raw]
     end
@@ -88,7 +94,13 @@ module Health
       transaction.select{|h| h.keys.include? :DTP}.
         map{|h| h[:DTP]}.each do |dtp|
         if dtp.detect{|h| h.keys.include? :E374}[:E374][:value][:raw] == '357'
-          return Date.parse(dtp.detect{|h| h.keys.include? :E1251}[:E1251][:value][:raw])
+          date = Date.parse(dtp.detect{|h| h.keys.include? :E1251}[:E1251][:value][:raw])
+          # MassHealth will send a date far in the future if there is no disenrollment date
+          if date < Date.current + 1.year
+            return date
+          else
+            return nil
+          end
         end
       end
     end

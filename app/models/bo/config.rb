@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Bo
@@ -10,6 +10,6 @@ module Bo
 
     attr_encrypted :pass, key: ENV['ENCRYPTION_KEY'][0..31]
 
-    belongs_to :data_source, class_name: GrdaWarehouse::DataSource.name
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   end
 end

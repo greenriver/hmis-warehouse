@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse
@@ -13,6 +13,7 @@ module GrdaWarehouse
     belongs_to :cohort
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     has_many :cohort_client_notes
+    has_many :cohort_client_changes, class_name: 'GrdaWarehouse::CohortClientChange'
 
     validates_presence_of :cohort, :client
 

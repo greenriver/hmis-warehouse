@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module ReportGenerators::DataQuality::Fy2017
@@ -61,11 +61,13 @@ module ReportGenerators::DataQuality::Fy2017
       end
       @answers[:q7_b2][:value] = adult_or_hoh_client_ids.size
       @answers[:q7_c2][:value] = inactive.size
+      client_personal_ids = personal_ids(inactive.map { |id, _| id })
       @support[:q7_c2][:support] = add_support(
-        headers: ['Client ID', 'Project', 'Entry', 'Exit'],
+        headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit'],
         data: inactive.map do |id, enrollment|
           [
             id,
+            client_personal_ids[id],join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -98,11 +100,13 @@ module ReportGenerators::DataQuality::Fy2017
       end
       @answers[:q7_b3][:value] = clients.size
       @answers[:q7_c3][:value] = inactive.size
+      client_personal_ids = personal_ids(inactive.map { |id, _| id })
       @support[:q7_c3][:support] = add_support(
-        headers: ['Client ID', 'Project', 'Entry', 'Exit'],
+        headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit'],
         data: inactive.map do |id, enrollment|
           [
             id,
+            client_personal_ids[id].join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],

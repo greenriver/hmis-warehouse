@@ -6,6 +6,7 @@ Date:	4/2/2020 -- original
 					 - 4_1 Get Project Records for Export.sql
 				     - 4_2 to 4_6 Other PDDEs for Export.sql
 				  -- correct all date formatting from yyyy-mm-dd to yyyy-MM-dd
+		5/21/2020 -- add 'and coc.ProjectID = hp.ProjectID' to hmis_ProjectCoC join
 
 	4.1 Get Project Records for Export
 		Export records for continuum ES (1), SH (8), TH (2), RRH (13), PSH (3), and OPH (9 or 10)
@@ -36,6 +37,7 @@ Date:	4/2/2020 -- original
 	from hmis_Project hp
 	inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd
 	inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC
+		and coc.ProjectID = hp.ProjectID
 	where hp.DateDeleted is null
 		and hp.ContinuumProject = 1 
 		and hp.ProjectType in (1,2,3,8,9,10,13)

@@ -1,25 +1,14 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::ClientNotes
   class WindowNote < Base
     def self.type_name
-      "Window Note"
+      'Window Note'
     end
-
-    scope :visible_by, -> (user, client) do
-      # If the client has a release and we have permission, show everything
-      if client.release_valid? && user.can_edit_window_client_notes?
-        current_scope
-      else
-        # otherwise, only show those we created
-        where(user_id: user.id)
-      end
-    end
-
 
     after_create :notify_users
 
@@ -28,6 +17,12 @@ module GrdaWarehouse::ClientNotes
       if client.present? && client.release_valid?
         NotifyUser.note_added( id ).deliver_later
       end
+    end
+
+    def destroyable_by(user)
+      return true if user_id == user.id
+
+      user.can_edit_client_notes? || user.can_edit_window_client_notes?
     end
   end
 end

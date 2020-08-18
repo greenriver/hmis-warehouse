@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Health
@@ -14,6 +14,7 @@ module Health
     before_action :set_qualifying_activities, only: [:index]
     before_action :require_can_unsubmit_submitted_claims!, only: [:destroy]
     before_action :set_qualifying_activity, only: [:destroy]
+    before_action :set_client
 
     def index
       @start_date = params[:start_date]

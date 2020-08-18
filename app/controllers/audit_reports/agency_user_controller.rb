@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module AuditReports
@@ -133,7 +133,7 @@ module AuditReports
           ).
             where(
               user_id: batch,
-              item_model: GrdaWarehouse::Hud::Client.name,
+              item_model: 'GrdaWarehouse::Hud::Client',
             ).
             group(:user_id, datepart(ActivityLog, 'month', al_t[:created_at]).to_sql).
             distinct.

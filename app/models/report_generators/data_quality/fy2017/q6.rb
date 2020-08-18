@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module ReportGenerators::DataQuality::Fy2017
@@ -59,14 +59,17 @@ module ReportGenerators::DataQuality::Fy2017
           end
         end
       end
+
       buckets.each do |k,bucket|
         clients = bucket[:clients]
+        client_personal_ids = personal_ids(clients.keys)
         @answers[k][:value] = clients.size
         @support[k][:support] = add_support(
-          headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Created Date', 'Elapsed'],
+          headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit', 'Created Date', 'Elapsed'],
           data: clients.map do |id, enrollment|
             [
               id,
+              client_personal_ids[id].join(', '),
               enrollment[:project_name],
               enrollment[:first_date_in_program],
               enrollment[:last_date_in_program],
@@ -119,12 +122,14 @@ module ReportGenerators::DataQuality::Fy2017
 
       buckets.each do |k,bucket|
         clients = bucket[:clients]
+        client_personal_ids = personal_ids(clients.keys)
         @answers[k][:value] = clients.size
         @support[k][:support] = add_support(
-          headers: ['Client ID', 'Project', 'Entry', 'Exit', 'Created Date', 'Elapsed'],
+          headers: ['Client ID', 'Personal IDs', 'Project', 'Entry', 'Exit', 'Created Date', 'Elapsed'],
           data: clients.map do |id, enrollment|
             [
               id,
+              client_personal_ids[id].join(', '),
               enrollment[:project_name],
               enrollment[:first_date_in_program],
               enrollment[:last_date_in_program],

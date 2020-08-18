@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class NotifyUser < DatabaseMailer
@@ -209,5 +209,12 @@ class NotifyUser < DatabaseMailer
 
     @report_url = warehouse_reports_health_premium_payments_url
     mail(from: ENV.fetch('HEALTH_FROM'), to: @user.email, subject: 'Premium Payment File Processed')
+  end
+
+  def pending_account_submitted
+    @notify = User.active.receives_account_request_notifications
+    @notify.each do |user|
+      mail(to: user.email, subject: 'Account Request Submitted')
+    end
   end
 end

@@ -8,6 +8,10 @@ Date:	4/2/2020 -- original
 				  -- correct all date formatting from yyyy-mm-dd to yyyy-MM-dd
 		5/14/2020 -- section 4.3 - include OtherFunder column
 				  -- section 4.5 - include 'future' inventory records
+		6/11/2020 -- sections 4.2-4.5 - correct time format for DateCreated and DateUpdated to 24-hour 
+						(HH:mm:ss instead of hh:mm:ss)
+				  -- section 4.5 - format InventoryStartDate and InventoryEndDate
+		6/18/2020 -- section 4.5 - cast InventoryEndDate as datetime (required to use ISDATE() function).					    
 
 	4.2 Get Organization Records for Export
 		Export organization records for all projects selected in 4.2.
@@ -24,8 +28,8 @@ Date:	4/2/2020 -- original
 	select distinct ho.OrganizationID
 		, left(ho.OrganizationName, 50)
 		, ho.VictimServicesProvider	
-		, format(ho.DateCreated, 'yyyy-MM-dd hh:mm:ss')
-		, format(ho.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
+		, format(ho.DateCreated, 'yyyy-MM-dd HH:mm:ss')
+		, format(ho.DateUpdated, 'yyyy-MM-dd HH:mm:ss')
 		, lp.ExportID
 	from hmis_Organization ho
 	inner join lsa_Project lp on lp.OrganizationID = ho.OrganizationID
@@ -47,8 +51,8 @@ Date:	4/2/2020 -- original
 	select distinct hf.FunderID, hf.ProjectID, hf.Funder, hf.OtherFunder
 		, format(hf.StartDate, 'yyyy-MM-dd')
 		, case when hf.EndDate is not null then format(hf.EndDate, 'yyyy-MM-dd') else null end
-		, format(hf.DateCreated, 'yyyy-MM-dd hh:mm:ss')
-		, format(hf.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
+		, format(hf.DateCreated, 'yyyy-MM-dd HH:mm:ss')
+		, format(hf.DateUpdated, 'yyyy-MM-dd HH:mm:ss')
 		, lp.ExportID
 	from hmis_Funder hf
 	inner join lsa_Project lp on lp.ProjectID = hf.ProjectID
@@ -77,8 +81,8 @@ Date:	4/2/2020 -- original
 		, hcoc.Geocode
 		, left(hcoc.Address1, 100), left(hcoc.Address2, 100), left(hcoc.City, 50), hcoc.State
 		, left(hcoc.ZIP, 5), hcoc.GeographyType
-		, format(hcoc.DateCreated, 'yyyy-MM-dd hh:mm:ss')
-		, format(hcoc.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
+		, format(hcoc.DateCreated, 'yyyy-MM-dd HH:mm:ss')
+		, format(hcoc.DateUpdated, 'yyyy-MM-dd HH:mm:ss')
 		, lp.ExportID
 	from hmis_ProjectCoC hcoc
 	inner join lsa_Project lp on lp.ProjectID = hcoc.ProjectID
@@ -112,9 +116,10 @@ Date:	4/2/2020 -- original
 		, hi.CHYouthBedInventory, hi.YouthBedInventory
 		, hi.CHBedInventory, hi.OtherBedInventory
 		, case when lp.ProjectType = 1 then hi.ESBedType else null end
-		, hi.InventoryStartDate, hi.InventoryEndDate
-		, format(hi.DateCreated, 'yyyy-MM-dd hh:mm:ss')
-		, format(hi.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
+		, format(hi.InventoryStartDate, 'yyyy-MM-dd')
+		, case when isdate(cast(hi.InventoryEndDate as datetime)) = 1 then format(hi.InventoryEndDate, 'yyyy-MM-dd') else null end
+		, format(hi.DateCreated, 'yyyy-MM-dd HH:mm:ss')
+		, format(hi.DateUpdated, 'yyyy-MM-dd HH:mm:ss')
 		, lp.ExportID	
 	from hmis_Inventory hi
 	inner join lsa_Project lp on lp.ProjectID = hi.ProjectID

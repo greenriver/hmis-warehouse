@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module GrdaWarehouse::YouthIntake
@@ -202,6 +202,20 @@ module GrdaWarehouse::YouthIntake
       ]
     end
 
+    def state_agencies
+      @state_agencies ||= {
+        'DCF' => 'Department of Children and Families (DCF)',
+        'DDS' => 'Department of Developmental Services (DDS)',
+        'DMH' => 'Department of Mental Health (DMH)',
+        'DTA' => 'Department of Transitional Assistance (DTA)',
+        'DYS' => 'Department of Youth Services (DYS)',
+        'MRC' => 'Massachusetts Rehabilitation Commission (MRC)',
+        'Yes' => 'Yes, but the agency name is unspecified',
+        'No' => 'No',
+        'Unknown' => 'Unknown',
+      }
+    end
+
     def update_destination_client
       authoritative_clients = client.source_clients.joins(:data_source).merge(GrdaWarehouse::DataSource.authoritative.youth)
       return unless authoritative_clients.exists?
@@ -230,6 +244,10 @@ module GrdaWarehouse::YouthIntake
       return 9 if client_race.include?('RaceNone')
       return 99 if client_race.select { |race| ! race&.empty? }&.empty?
       return nil
+    end
+
+    def self.report_columns
+      column_names - [:user_id, :deleted_at, :other_agency_involvement]
     end
 
   end

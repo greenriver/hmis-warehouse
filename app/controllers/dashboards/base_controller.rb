@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Dashboards
@@ -12,7 +12,7 @@ module Dashboards
     CACHE_EXPIRY = Rails.env.production? ? 8.hours : 20.seconds
 
     before_action :require_can_view_censuses!
-    before_action :set_available_months
+    before_action :available_months
     before_action :set_chosen_months
     before_action :set_report_months
     before_action :set_project_types
@@ -20,6 +20,8 @@ module Dashboards
     before_action :set_start_date
     before_action :set_end_date
     before_action :set_limit_to_vispdat
+    before_action :set_limit_to_heads_of_household
+    before_action :set_age_ranges
 
     def index
       @report = active_report_class.new(
@@ -27,7 +29,11 @@ module Dashboards
         organization_ids: @organization_ids,
         project_ids: @project_ids,
         project_types: @project_type_codes,
-        filter: { vispdat: @limit_to_vispdat },
+        filter: {
+          vispdat: @limit_to_vispdat,
+          heads_of_household: @heads_of_household,
+          age_ranges: @age_ranges,
+        },
       )
 
       respond_to do |format|
@@ -60,13 +66,17 @@ module Dashboards
         organization_ids: @organization_ids,
         project_ids: @project_ids,
         project_types: @project_type_codes,
-        filter: { vispdat: @limit_to_vispdat },
+        filter: {
+          vispdat: @limit_to_vispdat,
+          heads_of_household: @heads_of_household,
+          age_ranges: @age_ranges,
+        },
       )
       section = allowed_sections.detect do |m|
         m == params.require(:partial).underscore
       end
 
-      raise 'Rollup not in whitelist' unless section.present?
+      raise 'Rollup not in allowlist' unless section.present?
 
       section = 'dashboards/base/' + section
       render partial: section, layout: false if request.xhr?
@@ -144,16 +154,17 @@ module Dashboards
           :start_month,
           :end_month,
           :limit_to_vispdat,
+          :heads_of_household,
           organization_ids: [],
           project_ids: [],
           project_types: [],
+          age_ranges: [],
         )
     end
     helper_method :report_params
 
-    def set_available_months
-      @available_months ||= active_report_class. # rubocop:disable Naming/MemoizedInstanceVariableName
-        available_months
+    def available_months
+      @available_months ||= active_report_class.available_months
     end
 
     # to_i.to_s to ensure end result is an integer
@@ -240,6 +251,14 @@ module Dashboards
       rescue StandardError
         :all_clients
       end
+    end
+
+    def set_limit_to_heads_of_household
+      @heads_of_household = report_params[:heads_of_household].to_s == '1'
+    end
+
+    def set_age_ranges
+      @age_ranges = report_params[:age_ranges]&.reject(&:blank?)&.map(&:to_sym)
     end
   end
 end

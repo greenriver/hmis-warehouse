@@ -117,6 +117,12 @@ namespace :health do
     )
   end
 
+  desc "Queue Retrieve Enrollments"
+  task queue_retrieve_enrollments: [:environment, "log:info_to_stdout"] do
+    user = User.setup_system_user
+    Health::UpdatePatientEnrollmentsJob.perform_now(user)
+  end
+
   desc "Remove Derived Patient Referrals"
   task remove_derived_patient_referrals: [:environment, 'log:info_to_stdout'] do
     Health::PatientReferral.where(derived_referral: true).destroy_all
@@ -203,6 +209,15 @@ namespace :health do
 
       task :dump do
         Rake::Task["db:structure:dump"].invoke
+      end
+
+      desc "Conditionally load the database structure"
+      task :conditional_load, [] => [:environment] do |t, args|
+        if HealthBase.connection.tables.length == 0
+          HealthBase.connection.execute(File.read('db/health/structure.sql'))
+        else
+          puts "Refusing to load the health database structure since there are tables present. This is not an error."
+        end
       end
     end
 
