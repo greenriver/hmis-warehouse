@@ -37,6 +37,7 @@ module Health
     phi_attr :care_coordinator_id, Phi::SmallPopulation
     phi_attr :coverage_level, Phi::SmallPopulation
     phi_attr :coverage_inquiry_date, Phi::Date
+    phi_attr :nurse_care_manager_id, Phi::SmallPopulation
 
     has_many :epic_patients, primary_key: :medicaid_id, foreign_key: :medicaid_id, inverse_of: :patient
     has_many :appointments, through: :epic_patients
@@ -104,6 +105,7 @@ module Health
     has_many :patient_referrals
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
     belongs_to :care_coordinator, class_name: 'User'
+    belongs_to :nurse_care_manager, class_name: 'User'
     has_many :qualifying_activities
 
     scope :pilot, -> { where pilot: true }
@@ -913,9 +915,9 @@ module Health
       return full_name
     end
 
-    def build_team_memeber!(care_coordinator_id, current_user)
-      user = User.find(care_coordinator_id)
-      team_member = Health::Team::CareCoordinator.where(patient_id: id, email: user.email).first_or_initialize
+    def build_team_member!(team_member_class, team_member_user_id, current_user)
+      user = User.find(team_member_user_id)
+      team_member = team_member_class.where(patient_id: id, email: user.email).first_or_initialize
       team_member.assign_attributes(
         patient_id: id,
         first_name: user.first_name,
@@ -928,6 +930,12 @@ module Health
     end
 
     def available_care_coordinators
+      return [] unless health_agency.present?
+      user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
+      User.where(id: user_ids)
+    end
+
+    def available_nurse_care_managers
       return [] unless health_agency.present?
       user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
       User.where(id: user_ids)
