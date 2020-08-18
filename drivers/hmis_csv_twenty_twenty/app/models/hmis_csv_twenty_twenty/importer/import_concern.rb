@@ -213,7 +213,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       self.source_hash = calculate_source_hash
     end
 
-    def run_row_validations
+    def run_row_validations(filename, importer_log)
       failures = []
       self.class.hmis_validations.each do |column, checks|
         next unless checks.present?
@@ -224,7 +224,8 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         end
       end
       failures.compact!
-      @loader_log.summary[file]['total_flags'] += failures.count
+      importer_log.summary[filename]['total_flags'] ||= 0
+      importer_log.summary[filename]['total_flags'] += failures.count
       failures
     end
   end

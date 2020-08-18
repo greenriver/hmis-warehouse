@@ -23,5 +23,14 @@ module HmisCsvTwentyTwenty::Importer
     # Don't ever mark these for deletion
     def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
     end
+
+    # We don't mark these as dead, so the existing data is just those that match the appropriate scope
+    def self.existing_destination_data(data_source_id:, project_ids:, date_range:)
+      involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      )
+    end
   end
 end

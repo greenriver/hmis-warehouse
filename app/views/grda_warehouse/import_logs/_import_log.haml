@@ -15,10 +15,7 @@
           %tr
             %th Files Found
             %td
-              - if @import&.upload&.content.present?
-                = link_to @import.files.try(:count), download_import_path(@import)
-              - else
-                = @import.files.try(:count)
+              = link_to_if @import&.upload&.content.present?, "#{@import.files.try(:count)} in #{@import.upload.file.to_s.split('/').last}", download_import_path(@import)
           - if @import.summary.present?
             %tr
               %th Import Summary
@@ -33,24 +30,23 @@
                       %th Restored (Deleted)
                       %th Errors
                   %tbody
-                    - @import.summary.with_indifferent_access.each do |k,v|
+                    - @import.summary.with_indifferent_access.sort_by{|f,_| f}.each do |k,v|
                       - filename = k.split('/')[-1]
                       %tr
                         %td= filename
-                        %td= v['total_lines']
-                        %td= v['lines_added']
-                        %td= v['lines_updated']
-                        %td= v.try(:[], 'lines_restored') || 0
+                        %td= number_with_delimiter(v['total_lines'])
+                        %td= number_with_delimiter(v['lines_added'])
+                        %td= number_with_delimiter(v['lines_updated'])
+                        %td= number_with_delimiter(v.try(:[], 'lines_restored') || 0)
                         %td
                           - if @import.import_errors.is_a?(Hash) && @import.import_errors[filename].is_a?(Array)
-                            = render 'error_modal', modal_slug: filename.downcase.gsub('.', ''), errors: @import.import_errors.with_indifferent_access[filename], total_errors: v['total_errors'] 
+                            = render 'error_modal', modal_slug: filename.downcase.gsub('.', ''), errors: @import.import_errors.with_indifferent_access[filename], total_errors: v['total_errors']
                           - else
-                            = v['total_errors']
-                            
+                            = number_with_delimiter(v['total_errors'])
+
 - if @import.import_errors.present? && @import.import_errors.is_a?(Array)
   .row
     .col-sm-12
       %h3 Import Errors
       - @import.import_errors.each do |e|
         = render 'error_list', error: e
-          

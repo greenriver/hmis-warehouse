@@ -43,6 +43,7 @@ module HmisCsvTwentyTwenty::Importer
       }
     end
 
+    # We never delete clients during the import, so make sure we find all existing clients in this data source
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable  Lint/UnusedMethodArgument
       return none unless project_ids.present?
 
@@ -50,7 +51,18 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     # Don't ever mark these for deletion, these get cleaned up if they don't have any source enrollments
-    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
-    end
+    # def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
+    # end
+
+    # We don't mark these as dead, so the existing data is just those that match the appropriate scope
+    # def self.existing_destination_data(data_source_id:, project_ids:, date_range:)
+    #   involved_warehouse_scope(
+    #     data_source_id: data_source_id,
+    #     project_ids: project_ids,
+    #     date_range: date_range,
+    #   ).joins(enrollments: :project).
+    #     merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
+    #     merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range))
+    # end
   end
 end

@@ -21,7 +21,7 @@ module SimilarityMetric::Tasks
       # Find clients who don't have a match in the matches table
       scope = clients_source.
         destination.
-        where( matches_source.where( mt[:destination_client_id].eq ct[:id] ).exists.not ).
+        where( matches_source.where( mt[:destination_client_id].eq ct[:id] ).arel.exists.not ).
         preload(:source_clients).
         order( id: :desc ).
         limit(@opts[:batch_size])
