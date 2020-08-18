@@ -171,7 +171,7 @@ module Health
         end
       else
         referral = create(referral_args)
-        return false unless referral.convert_to_patient
+        referral.convert_to_patient
       end
 
       referral.patient.update(engagement_date: referral.engagement_date) unless referral.keep_engagement_date?
@@ -396,7 +396,7 @@ module Health
       patient = Health::Patient.with_deleted.where(medicaid_id: medicaid_id).first_or_initialize
       if linked_patient.present? && patient.client_id != linked_patient.id
         # The medicaid id has changed, or points to a different client!
-        return false
+        raise MedicaidIdConflict, "Patient: #{patient.client_id}, linked_patient: #{linked_patient.id}"
       else
         patient.assign_attributes(
           id_in_source: id,
@@ -489,4 +489,6 @@ module Health
       pending_disenrollment_date.present? || disenrollment_date.present?
     end
   end
+
+  class MedicaidIdConflict < StandardError ; end
 end
