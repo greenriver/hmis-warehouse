@@ -219,7 +219,7 @@ module HmisCsvTwentyTwenty::Importer
 
         # Never delete Projects, Organizations, or Clients, but cleanup any pending deletions
         if klass.hud_key.in?([:ProjectID, :OrganizationID, :PersonalID])
-          klass.where(data_source_id: data_source.id).update_all(pending_date_deleted: nil)
+          klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil)
         else
           delete_count = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, DateDeleted: Time.current)
           note_processed(file_name, delete_count, 'removed')
