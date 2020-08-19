@@ -54,7 +54,7 @@ module Health
           merge(Health::PatientReferral.not_confirmed_rejected)
       else
         patient_source.where(care_coordinator_id: current_user.id).
-          or(patient_source.where(nurse_care_manager_id: ids)).
+          or(patient_source.where(nurse_care_manager_id: current_user.id)).
           joins(:patient_referral).
           merge(Health::PatientReferral.not_confirmed_rejected)
       end
