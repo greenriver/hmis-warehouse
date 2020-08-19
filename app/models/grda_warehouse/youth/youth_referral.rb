@@ -11,6 +11,7 @@ module GrdaWarehouse::Youth
     acts_as_paranoid
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_referrals
+    belongs_to :user
 
     validates_presence_of :referred_on, :referred_to
 
