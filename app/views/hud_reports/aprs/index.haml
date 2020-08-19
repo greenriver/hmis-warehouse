@@ -28,3 +28,11 @@
           %td= answer&.created_at
           %td= answer&.status
           %td= answer&.completed_in
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      // Refresh page every 30 seconds
+      var timeoutPeriod = 30000
+      setTimeout("location.reload(true);", timeoutPeriod);
+    })(jQuery);

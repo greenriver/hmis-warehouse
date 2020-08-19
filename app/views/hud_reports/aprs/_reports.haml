@@ -2,6 +2,7 @@
 %table.table
   %thead
     %tr
+      %th
       %th Status
       %th Started
       %th Limits
@@ -11,7 +12,11 @@
   %tbody
     - @reports.each do |report|
       %tr
-        %td= link_to_if report.completed?, report.state, hud_reports_apr_path(report)
+        %td
+          - unless report.completed?
+            = render 'spinner'
+        %td
+          = link_to_if report.completed?, report.state, hud_reports_apr_path(report)
         %td= report.started_at
         %td= render 'parameters', report: report
         %td= report.user.name
