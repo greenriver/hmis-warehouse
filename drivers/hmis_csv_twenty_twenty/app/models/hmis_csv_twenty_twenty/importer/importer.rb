@@ -38,7 +38,7 @@ module HmisCsvTwentyTwenty::Importer
       @debug = debug
 
       @deidentified = deidentified
-      @importer_log = setup_import
+      self.importer_log = setup_import
       importable_files.each_key do |file_name|
         setup_summary(file_name)
       end
@@ -90,11 +90,12 @@ module HmisCsvTwentyTwenty::Importer
         destination.importer_log_id = importer_log.id
         destination.pre_processed_at = Time.current
         destination.set_source_hash
-        failures += destination.run_row_validations
+        failures += destination.run_row_validations(file_name, importer_log)
         batch << destination
         if batch.count == INSERT_BATCH_SIZE
           process_batch!(klass, batch, file_name, type: 'pre_processed')
           batch = []
+          importer_log.save
         end
         if failures.count == INSERT_BATCH_SIZE
           HmisCsvValidation::Base.import(failures.compact)
@@ -104,6 +105,7 @@ module HmisCsvTwentyTwenty::Importer
 
       process_batch!(klass, batch, file_name, type: 'pre_processed') if batch.present? # ensure we get the last batch
       HmisCsvValidation::Base.import(failures.compact) if failures.present?
+      importer_log.save
     end
 
     def aggregate!
@@ -212,11 +214,16 @@ module HmisCsvTwentyTwenty::Importer
 
     def remove_pending_deletes
       importable_files.each do |file_name, klass|
-        # Never delete Exports, Projects, or Organizations
-        next if klass.hud_key.in?([:ExportID, :ProjectID, :OrganizationID])
+        # Never delete Exports
+        next if klass.hud_key == :ExportID
 
-        delete_count = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, DateDeleted: Time.current)
-        note_processed(file_name, delete_count, 'removed')
+        # Never delete Projects, Organizations, or Clients, but cleanup any pending deletions
+        if klass.hud_key.in?([:ProjectID, :OrganizationID, :PersonalID])
+          klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil)
+        else
+          delete_count = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, DateDeleted: Time.current)
+          note_processed(file_name, delete_count, 'removed')
+        end
       end
     end
 
@@ -241,6 +248,8 @@ module HmisCsvTwentyTwenty::Importer
 
       log("Updating #{klass.name}")
       # NOTE, we may need to incorporate with_deleted if we run into duplicate key problems
+      # FIXME: This needs adjustment for Client, Project, Organization, since those are never set for pending deleted.
+
       existing = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).pluck(klass.hud_key)
       destination_class = klass.reflect_on_association(:destination_record).klass
       batch = []
@@ -259,22 +268,46 @@ module HmisCsvTwentyTwenty::Importer
           end
           batch << destination
           if batch.count == INSERT_BATCH_SIZE
-            destination_class.import(batch, on_duplicate_key_update:
-              {
-                conflict_target: destination_class.conflict_target,
-                columns: destination_class.upsert_column_names(version: '2020'),
-              })
+            # Client model doesn't have a uniqueness constraint because of the warehouse data source
+            # so these must be processed more slowly
+            if klass.hud_key == :PersonalID
+              batch.each do |incoming|
+                destination_class.where(
+                  data_source_id: incoming.data_source_id,
+                  PersonalID: incoming.PersonalID,
+                ).update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+              end
+            else
+              destination_class.import(
+                batch,
+                on_duplicate_key_update: {
+                  conflict_target: destination_class.conflict_target,
+                  columns: destination_class.upsert_column_names(version: '2020'),
+                },
+              )
+            end
             note_processed(file_name, batch.count, 'updated')
             batch = []
           end
         end
       end
       if batch.present? # ensure we get the last batch
-        destination_class.import(batch, on_duplicate_key_update:
-          {
-            conflict_target: destination_class.conflict_target,
-            columns: destination_class.upsert_column_names(version: '2020'),
-          })
+        if klass.hud_key == :PersonalID
+          batch.each do |incoming|
+            destination_class.where(
+              data_source_id: incoming.data_source_id,
+              PersonalID: incoming.PersonalID,
+            ).update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+          end
+        else
+          destination_class.import(
+            batch,
+            on_duplicate_key_update: {
+              conflict_target: destination_class.conflict_target,
+              columns: destination_class.upsert_column_names(version: '2020'),
+            },
+          )
+        end
         note_processed(file_name, batch.count, 'updated')
       end
 
@@ -310,9 +343,14 @@ module HmisCsvTwentyTwenty::Importer
 
       existing = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).pluck(klass.hud_key, :DateUpdated).to_h
       incoming = klass.where(importer_log_id: @importer_log.id).pluck(klass.hud_key, :DateUpdated).to_h
+
+      # ignore any where we don't have a DateUpdated,
+      # or we don't have a matching incoming record
+      existing.reject! { |k, v| v.blank? || incoming[k].blank? }
+
       # if the incoming DateUpdated is strictly less than the existing one
       # trust the warehouse is correct
-      unchanged = existing.select { |k, v| v.present? && incoming[k] < v }.keys
+      unchanged = existing.select { |k, v| incoming[k] < v }.keys
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
         klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).where(klass.hud_key => batch).update_all(pending_date_deleted: nil)
         note_processed(file_name, batch.count, 'unchanged')
@@ -455,7 +493,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def add_error(file:, klass:, source_id:, message:)
-      @loader_log.summary[file]['total_errors'] += 1
+      importer_log.summary[file]['total_errors'] += 1
       log(message)
       importer_log.import_errors.build(
         source_type: klass,

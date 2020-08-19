@@ -70,6 +70,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         project_ids: project_ids,
         date_range: date_range,
       ).select(hud_key)
+      existing_keys = existing_keys.with_deleted if paranoid?
       where(importer_log_id: importer_log_id).where.not(hud_key => existing_keys)
     end
 
@@ -78,7 +79,9 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         data_source_id: data_source_id,
         project_ids: project_ids,
         date_range: date_range,
-      ).delete_pending
+      ).
+        with_deleted.
+        delete_pending
     end
 
     def as_destination_record
@@ -89,7 +92,11 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         attributes.slice(*self.class.create_columns),
       )
       record.source_hash = source_hash
-      record.source_id = id # Note which record we're sending this from for error checking
+      # Note which record we're sending this from for error checking
+      record.source_id = id
+      # If we're creating a new record from a previously deleted
+      # record, make sure we bring it back to life
+      record.DateDeleted = nil if klass.paranoid?
       record
     end
 
@@ -213,7 +220,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       self.source_hash = calculate_source_hash
     end
 
-    def run_row_validations
+    def run_row_validations(filename, importer_log)
       failures = []
       self.class.hmis_validations.each do |column, checks|
         next unless checks.present?
@@ -223,7 +230,10 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
           failures << check[:class].check_validity!(self, column, arguments)
         end
       end
-      failures.compact
+      failures.compact!
+      importer_log.summary[filename]['total_flags'] ||= 0
+      importer_log.summary[filename]['total_flags'] += failures.count
+      failures
     end
   end
 end

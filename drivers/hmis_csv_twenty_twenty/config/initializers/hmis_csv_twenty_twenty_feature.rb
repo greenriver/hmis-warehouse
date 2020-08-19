@@ -5,3 +5,5 @@
 #
 # use with caution!
 RailsDrivers.loaded << :hmis_csv_twenty_twenty
+
+Importers::HmisAutoDetect.add_importer('HmisCsvTwentyTwenty')

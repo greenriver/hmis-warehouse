@@ -25,7 +25,7 @@ module HmisCsvTwentyTwenty::Loader
     # The HMIS spec limits the field to 50 characters
     EXPORT_ID_FIELD_WIDTH = 50
 
-    attr_accessor :logger, :notifier_config, :import, :range, :data_source
+    attr_accessor :logger, :notifier_config, :import, :range, :data_source, :loader_log
 
     def initialize(
       file_path: File.join('tmp', 'hmis_import'),
@@ -40,7 +40,7 @@ module HmisCsvTwentyTwenty::Loader
       @logger = logger
       @debug = debug
       @remove_files = remove_files
-      @loader_log = loader_log(data_source: data_source)
+      @loader_log = build_loader_log(data_source: data_source)
       importable_files.each_key do |file_name|
         setup_summary(file_name)
       end
@@ -67,10 +67,16 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     def import!
-      HmisCsvTwentyTwenty::Importer::Importer.new(
+      @importer = HmisCsvTwentyTwenty::Importer::Importer.new(
         loader_id: @loader_log.id,
         data_source_id: data_source.id, debug: @debug
-      ).import!
+      )
+
+      @importer.import!
+    end
+
+    def importer_log
+      @importer&.importer_log
     end
 
     def load_export_file
@@ -303,7 +309,7 @@ module HmisCsvTwentyTwenty::Loader
       @import_file_path ||= File.join(@file_path, data_source.id.to_s)
     end
 
-    def loader_log(data_source:)
+    def build_loader_log(data_source:)
       HmisCsvTwentyTwenty::Loader::LoaderLog.create(
         data_source_id: data_source.id,
         started_at: Time.current,

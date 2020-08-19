@@ -291,17 +291,17 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     Rails.cache.fetch('data_source_date_spans_by_id', expires_in: CACHE_EXPIRY) do
       spans_by_id = GrdaWarehouse::DataSource.pluck(:id).map do |id| [id, {}] end.to_h
 
-      GrdaWarehouse::Hud::Enrollment.group(:data_source_id).
+      GrdaWarehouse::Hud::Enrollment.joins(:data_source).group(:data_source_id).
         pluck(:data_source_id, nf('MIN', [e_t[:EntryDate]])).each do |ds, date|
           spans_by_id[ds][:start_date] = date
         end
 
-      GrdaWarehouse::Hud::Service.group(:data_source_id).
+      GrdaWarehouse::Hud::Service.joins(:data_source).group(:data_source_id).
         pluck(:data_source_id, nf('MAX', [s_t[:DateProvided]])).each do |ds, date|
           spans_by_id[ds][:end_date] = date
         end
 
-      GrdaWarehouse::Hud::Exit.group(:data_source_id).
+      GrdaWarehouse::Hud::Exit.joins(:data_source).group(:data_source_id).
         pluck(:data_source_id, nf('MAX', [ex_t[:ExitDate]])).each do |ds, date|
           if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
             spans_by_id[ds][:end_date] = date
