@@ -21,5 +21,13 @@ module HmisCsvTwentyTwenty::Importer
         merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
         open_during_range(date_range.range)
     end
+
+    def self.complex_validations
+      [
+        {
+          class: HmisCsvValidation::OneHeadOfHousehold,
+        },
+      ]
+    end
   end
 end

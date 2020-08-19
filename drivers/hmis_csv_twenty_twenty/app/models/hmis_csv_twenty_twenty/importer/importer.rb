@@ -60,6 +60,7 @@ module HmisCsvTwentyTwenty::Importer
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
         start_import
         pre_process!
+        validate_data_set!
         aggregate!
         ingest!
         complete_import
@@ -90,8 +91,10 @@ module HmisCsvTwentyTwenty::Importer
         destination.importer_log_id = importer_log.id
         destination.pre_processed_at = Time.current
         destination.set_source_hash
-        failures += destination.run_row_validations(file_name, importer_log)
-        batch << destination
+        row_failures = destination.run_row_validations(file_name, importer_log)
+        failures += row_failures
+        # Don't insert any where we have actual errors
+        batch << destination unless validation_failures_contain_errors?(row_failures)
         if batch.count == INSERT_BATCH_SIZE
           process_batch!(klass, batch, file_name, type: 'pre_processed')
           batch = []
@@ -108,19 +111,29 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.save
     end
 
+    private def validation_failures_contain_errors?(failures)
+      failures.any?(&:skip_row?)
+    end
+
     def aggregate!
       importer_log.update(status: :aggregating)
 
       # TODO: This could be parallelized
       importable_files.each_value do |klass|
-        # TODO: Apply whole table validations
-
         aggregators = aggregators_from_class(klass, @data_source)
         next unless aggregators.present?
 
         log("Aggregating #{klass.name}")
         aggregators.each { |a| a.aggregate!(@importer_log) }
         HmisTwentyTwenty.look_aside(klass)
+      end
+    end
+
+    def validate_data_set!
+      # TODO: Apply whole table validations
+      importable_files.each do |filename, klass|
+        failures = klass.run_complex_validations!(importer_log, filename)
+        HmisCsvValidation::Base.import(failures) if failures.any?
       end
     end
 
@@ -250,11 +263,18 @@ module HmisCsvTwentyTwenty::Importer
       # NOTE, we may need to incorporate with_deleted if we run into duplicate key problems
       # FIXME: This needs adjustment for Client, Project, Organization, since those are never set for pending deleted.
 
-      existing = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).pluck(klass.hud_key)
+      existing = klass.existing_destination_data(
+        data_source_id: data_source.id,
+        project_ids: involved_project_ids,
+        date_range: date_range,
+      ).pluck(klass.hud_key)
       destination_class = klass.reflect_on_association(:destination_record).klass
       batch = []
       existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
-        klass.where(importer_log_id: @importer_log.id, klass.hud_key => hud_keys).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+        klass.where(
+          importer_log_id: @importer_log.id,
+          klass.hud_key => hud_keys,
+        ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
           destination = source.as_destination_record
           destination.pending_date_deleted = nil
           case klass.hud_key

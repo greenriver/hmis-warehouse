@@ -205,6 +205,10 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       []
     end
 
+    def self.complex_validations
+      []
+    end
+
     def calculate_source_hash
       keys = self.class.hmis_structure(version: '2020').keys - [:ExportID]
       Digest::SHA256.hexdigest(slice(keys).to_s)
@@ -229,6 +233,18 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
           arguments = check.dig(:arguments)
           failures << check[:class].check_validity!(self, column, arguments)
         end
+      end
+      failures.compact!
+      importer_log.summary[filename]['total_flags'] ||= 0
+      importer_log.summary[filename]['total_flags'] += failures.count
+      failures
+    end
+
+    def self.run_complex_validations!(importer_log, filename)
+      failures = []
+      complex_validations.each do |check|
+        arguments = check.dig(:arguments)
+        failures += check[:class].check_validity!(self, importer_log, arguments)
       end
       failures.compact!
       importer_log.summary[filename]['total_flags'] ||= 0
