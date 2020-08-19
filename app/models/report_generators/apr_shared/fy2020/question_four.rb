@@ -8,9 +8,9 @@ module ReportGenerators::AprShared::Fy2020
   class QuestionFour < HudReports::QuestionBase
     attr_accessor :report
 
-    def initialize(generator)
+    def initialize(generator, report)
       @generator = generator
-      @report = generator.report
+      @report = report
     end
 
     QUESTION_NUMBER = 'Q4'

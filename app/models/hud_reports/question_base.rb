@@ -6,20 +6,12 @@
 
 module HudReports
   class QuestionBase
-    def self.last_run(generator, user)
-      last_answer(generator, user)&.created_at
-    end
-
-    def self.status(generator, user)
-      last_answer(generator, user)&.status
-    end
-
-    def self.completed_in(generator, user)
-      last_answer(generator, user)&.completed_in
-    end
-
     def self.last_answer(generator, user)
-      reports(generator, user).last&.answer(question: question_number)
+      reports(generator, user).order(created_at: :desc).each do |report|
+        answer = report.answer(question: question_number)
+        return answer if answer.completed?
+      end
+      nil
     end
 
     def self.reports(generator, user)

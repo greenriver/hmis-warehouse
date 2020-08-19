@@ -164,7 +164,7 @@ Rails.application.routes.draw do
         get :support
       end
     end
-    resources :aprs, only: [:index, :show, :edit, :update] do
+    resources :aprs do
       resources :questions, only: [:show, :update]
     end
   end

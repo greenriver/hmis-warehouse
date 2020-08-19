@@ -9,6 +9,6 @@ module HudReports
   class ReportClientBase < GrdaWarehouseBase
     self.abstract_class = true
 
-    has_many :report_clients, as: :universe_membership
+    has_many :report_clients, as: :universe_membership, dependent: :destroy
   end
 end

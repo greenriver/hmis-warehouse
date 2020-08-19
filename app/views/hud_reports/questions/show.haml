@@ -8,8 +8,8 @@
 
 = render 'form'
 
-- if @report.present?
-  - metadata = @report.answer(question: @question).metadata
+- metadata = @report&.answer(question: @question)&.metadata
+- if metadata.present?
   - metadata['tables'].each do |table|
     %h2= table
     - exporter = HudReports::CsvExporter.new(@report, table)

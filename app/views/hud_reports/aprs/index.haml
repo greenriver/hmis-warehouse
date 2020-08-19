@@ -23,7 +23,8 @@
     %tbody
       - generator.questions.each do |name, clazz|
         %tr
-          %td= link_to name, hud_reports_apr_question_path(index, name)
-          %td= clazz.last_run(generator, current_user)
-          %td= clazz.status(generator, current_user)
-          %td= clazz.completed_in(generator, current_user)
+          - answer = clazz.last_answer(generator, current_user)
+          %td= link_to name, hud_reports_apr_question_path(answer&.report_instance || 0, name)
+          %td= answer&.created_at
+          %td= answer&.status
+          %td= answer&.completed_in

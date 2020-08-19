@@ -11,9 +11,12 @@
   %tbody
     - @reports.each do |report|
       %tr
-        %td= report.state
+        %td= link_to_if report.completed?, report.state, hud_reports_apr_path(report)
         %td= report.started_at
         %td= render 'parameters', report: report
         %td= report.user.name
-        %td= report.completed_at
-        %td
+        %td= distance_of_time_in_words(report.started_at, report.completed_at) rescue ''
+        - if report.completed_at.present?
+          %td
+            = link_to hud_reports_apr_path(report), method: :delete, class: 'btn btn-link btn-link--danger' do
+              %i.icon-cross

@@ -31,9 +31,9 @@ module ReportGenerators::Apr::Fy2020
       'Heads of households and adult stayers in the project 365 days or more',
     ]
 
-    def initialize(generator)
+    def initialize(generator, report)
       @generator = generator
-      @report = generator.report
+      @report = report
     end
 
 

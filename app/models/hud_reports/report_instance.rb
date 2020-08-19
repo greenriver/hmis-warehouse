@@ -10,7 +10,7 @@ module HudReports
     self.table_name = 'hud_report_instances'
 
     belongs_to :user
-    has_many :report_cells
+    has_many :report_cells, dependent: :destroy
 
     # Mark a question as started
     #
@@ -31,6 +31,10 @@ module HudReports
       report_cells.where(status: 'Completed').pluck(:question)
     end
 
+    def completed?
+      state == 'Completed'
+    end
+
     # An answer cell in a question
     #
     # @param question [String] the question name (e.g., 'Q1')
@@ -39,7 +43,7 @@ module HudReports
     def answer(question:, cell: nil)
       report_cells.
         where(question: question, cell_name: cell, universe: false).
-        first_or_initialize
+        first_or_create
     end
 
     # The universe of clients for a question

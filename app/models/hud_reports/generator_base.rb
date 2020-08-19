@@ -13,11 +13,12 @@ module HudReports
     COMPLETED = 'completed'
 
     def initialize(options)
-      @user_id = options[:user_id]
-      @start_date = options[:start_date].to_date
-      @end_date = options[:end_date].to_date
-      @coc_code = options[:coc_code]
-      @project_ids = options[:project_ids]
+      # Strings for keys because of how the options come back out of the DB
+      @user_id = options['user_id']
+      @start_date = options['start_date'].to_date
+      @end_date = options['end_date'].to_date
+      @coc_code = options['coc_code']
+      @project_ids = options['project_ids']
       @options = options.to_h
     end
 
@@ -25,31 +26,20 @@ module HudReports
       HudReports::ReportInstance.where(user_id: user.id, report_name: title).last
     end
 
-    def report
-      @report ||= HudReports::ReportInstance.create(
+    def run!(questions: nil)
+      @report = HudReports::ReportInstance.create(
         user_id: @user_id,
         coc_code: @coc_code,
         start_date: @start_date,
         end_date: @end_date,
         project_ids: @project_ids,
-        state: 'Running',
+        state: 'Waiting',
         options: @options,
         report_name: self.class.title,
         question_names: self.class.questions.keys,
       )
-    end
-
-    def run!
       # TODO: Rework to parallelize questions?
-      Reporting::RunHudReportJob.perform_later(self.class.name, @options)
-    end
-
-    def finish
-      @report.update(state: 'Completed')
-    end
-
-    def update_state(state)
-      @report.update(state: state)
+      Reporting::RunHudReportJob.perform_later(self.class.name, questions, @report.id)
     end
 
     def client_scope
