@@ -17,6 +17,9 @@ module Filters
     attribute :genders, Array, default: []
     attribute :races, Array, default: []
     attribute :ethnicities, Array, default: []
+    attribute :length_of_times, Array, default: []
+    attribute :destinations, Array, default: []
+    attribute :prior_living_situations, Array, default: []
 
     # NOTE: params[:filters][:project_types] will be 'es', 'th', etc.
     # the report expects @filter.project_types to be an array of integers 1, 2 etc.

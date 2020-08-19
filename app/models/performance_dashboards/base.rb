@@ -211,7 +211,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     {
       under_eighteen: '< 18',
       eighteen_to_twenty_four: '18 - 24',
-      twenty_five_to_sixty_one: '25 - 61',
+      twenty_five_to_twenty_nine: '25 - 29',
+      thirty_to_thirty_nine: '30 - 39',
+      forty_to_forty_nine: '40 - 49',
+      fifty_to_fifty_nine: '50 - 59',
+      sixty_to_sixty_one: '60 - 61',
       over_sixty_one: '62+',
     }.invert.freeze
   end
@@ -396,7 +400,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     ages = []
     ages += (0..17).to_a if @age_ranges.include?(:under_eighteen)
     ages += (18..24).to_a if @age_ranges.include?(:eighteen_to_twenty_four)
-    ages += (25..61).to_a if @age_ranges.include?(:twenty_five_to_sixty_one)
+    ages += (25..29).to_a if @age_ranges.include?(:twenty_five_to_twenty_nine)
+    ages += (30..39).to_a if @age_ranges.include?(:thirty_to_thirty_nine)
+    ages += (40..49).to_a if @age_ranges.include?(:forty_to_forty_nine)
+    ages += (50..59).to_a if @age_ranges.include?(:fifty_to_fifty_nine)
+    ages += (60..61).to_a if @age_ranges.include?(:sixty_to_sixty_one)
     ages += (62..110).to_a if @age_ranges.include?(:over_sixty_one)
     scope.where(she_t[:age].in(ages))
   end
