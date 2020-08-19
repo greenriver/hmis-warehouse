@@ -83,6 +83,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
       build_coc_control_section,
       build_household_control_section,
       build_demographics_control_section,
+      build_enrollment_control_section,
     ]
   end
 
@@ -173,6 +174,15 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     end
   end
 
+  protected def build_enrollment_control_section
+    return if multiple_project_types?
+
+    ::Filters::UiControlSection.new(id: 'enrollment').tap do |section|
+      section.add_control(id: 'prior_living_situations', value: chosen_prior_living_situations)
+      section.add_control(id: 'destinations', value: chosen_destinations)
+    end
+  end
+
   private def cache_slug
     @filter.attributes
   end
@@ -218,6 +228,14 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
       sixty_to_sixty_one: '60 - 61',
       over_sixty_one: '62+',
     }.invert.freeze
+  end
+
+  def available_prior_living_situations
+    HUD.living_situations.invert
+  end
+
+  def available_destinations
+    HUD.valid_destinations.invert
   end
 
   def available_data_sources_for_select
@@ -320,6 +338,18 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     end
   end
 
+  def chosen_prior_living_situations
+    @filter.prior_living_situation_ids.map do |id|
+      available_prior_living_situations.invert[id]
+    end.join(', ')
+  end
+
+  def chosen_destinations
+    @filter.destination_ids.map do |id|
+      available_destinations.invert[id]
+    end.join(', ')
+  end
+
   def self.comparison_patterns
     {
       no_comparison_period: 'None',
@@ -358,6 +388,8 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     scope = filter_for_organizations(scope)
     scope = filter_for_projects(scope)
     scope = filter_for_funders(scope)
+    scope = filter_for_prior_living_situation(scope)
+    scope = filter_for_destination(scope)
     scope
   end
 
@@ -484,6 +516,18 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
   private def filter_for_sub_population(scope)
     scope.public_send(@sub_population)
+  end
+
+  private def filter_for_prior_living_situation(scope)
+    return scope if @filter.prior_living_situation_ids.blank?
+
+    scope.where(housing_status_at_entry: @filter.prior_living_situation_ids)
+  end
+
+  private def filter_for_destination(scope)
+    return scope if @filter.destination_ids.blank?
+
+    scope.where(destination: @filter.destination_ids)
   end
 
   def date_range_words

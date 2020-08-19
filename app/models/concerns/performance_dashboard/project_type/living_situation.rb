@@ -17,7 +17,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
       buckets = HUD.living_situations.keys.map { |b| [b, []] }.to_h
       counted = Set.new
       enrolled.order(first_date_in_program: :desc).
-        pluck(:client_id, she_t[:id], e_t[:LivingSituation], :first_date_in_program).each do |c_id, en_id, situation, _|
+        pluck(:client_id, she_t[:id], she_t[:housing_status_at_entry], :first_date_in_program).each do |c_id, en_id, situation, _|
         buckets[situation] ||= []
         # Store enrollment id so we can fetch details later, unique on client id
         buckets[situation] << en_id unless counted.include?(c_id)
