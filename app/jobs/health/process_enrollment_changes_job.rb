@@ -32,11 +32,15 @@ module Health
           referral = referral(transaction)
           if referral.present?
             if referral.disenrolled?
-              begin
-                re_enroll_patient(referral, transaction)
-                returning_patients += 1
-              rescue Health::MedicaidIdConflict
-                errors << conflict_message(transaction)
+              if referral.re_enrollment_blackout?(file_date)
+                errors << blackout_message(transaction)
+              else
+                begin
+                  re_enroll_patient(referral, transaction)
+                  returning_patients += 1
+                rescue Health::MedicaidIdConflict # rubocop:disable Metrics/BlockNesting
+                  errors << conflict_message(transaction)
+                end
               end
             else
               begin
@@ -97,11 +101,15 @@ module Health
 
           elsif referral.disenrolled?
             # This is a missed re-enrollment
-            begin
-              re_enroll_patient(referral, transaction)
-              returning_patients += 1
-            rescue Health::MedicaidIdConflict
-              errors << conflict_message(transaction)
+            if referral.re_enrollment_blackout?(file_date)
+              errors << blackout_message(transaction)
+            else
+              begin
+                re_enroll_patient(referral, transaction)
+                returning_patients += 1
+              rescue Health::MedicaidIdConflict
+                errors << conflict_message(transaction)
+              end
             end
           else
             # This is just an update
@@ -135,6 +143,11 @@ module Health
     def conflict_message(transaction)
       medicaid_id = Health::Enrollment.subscriber_id(transaction)
       "ID #{medicaid_id} in 834 conflicts with existing patient records"
+    end
+
+    def blackout_message(transaction)
+      medicaid_id = Health::Enrollment.subscriber_id(transaction)
+      "ID #{medicaid_id} not re-enrolled, in re-enrollment blackout period"
     end
 
     def referral(transaction)
