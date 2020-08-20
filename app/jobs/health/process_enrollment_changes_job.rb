@@ -24,6 +24,7 @@ module Health
         returning_patients = 0
         disenrolled_patients = 0
         updated_patients = 0
+        errors = []
 
         file_date = enrollment.file_date
 
@@ -31,15 +32,27 @@ module Health
           referral = referral(transaction)
           if referral.present?
             if referral.disenrolled?
-              re_enroll_patient(referral, transaction)
-              returning_patients += 1
+              begin
+                re_enroll_patient(referral, transaction)
+                returning_patients += 1
+              rescue Health::MedicaidIdConflict
+                errors << conflict_message(transaction)
+              end
             else
-              update_patient_referrals(referral.patient, transaction)
-              updated_patients += 1
+              begin
+                update_patient_referrals(referral.patient, transaction)
+                updated_patients += 1
+              rescue Health::MedicaidIdConflict
+                errors << conflict_message(transaction)
+              end
             end
           else
-            enroll_patient(transaction)
-            new_patients += 1
+            begin
+              enroll_patient(transaction)
+              new_patients += 1
+            rescue Health::MedicaidIdConflict
+              errors << conflict_message(transaction)
+            end
           end
         end
 
@@ -53,10 +66,12 @@ module Health
 
         enrollment.changes.each do |transaction|
           referral = referral(transaction)
-          if referral.present?
-            update_patient_referrals(referral.patient, transaction)
-            updated_patients += 1
-          end
+          next unless referral.present?
+
+          update_patient_referrals(referral.patient, transaction)
+          updated_patients += 1
+        rescue Health::MedicaidIdConflict
+          errors << conflict_message(transaction)
         end
 
         enrollment.audits.each do |transaction|
@@ -73,19 +88,29 @@ module Health
 
           elsif referral.nil?
             # This is a missed enrollment
-            enroll_patient(transaction)
-            new_patients += 1
+            begin
+              enroll_patient(transaction)
+              new_patients += 1
+            rescue Health::MedicaidIdConflict
+              errors << conflict_message(transaction)
+            end
 
           elsif referral.disenrolled?
             # This is a missed re-enrollment
-
-            re_enroll_patient(referral, transaction)
-            update_patient_referrals(referral.patient, transaction)
-            returning_patients += 1
+            begin
+              re_enroll_patient(referral, transaction)
+              returning_patients += 1
+            rescue Health::MedicaidIdConflict
+              errors << conflict_message(transaction)
+            end
           else
             # This is just an update
-            update_patient_referrals(referral.patient, transaction)
-            updated_patients += 1
+            begin
+              update_patient_referrals(referral.patient, transaction)
+              updated_patients += 1
+            rescue Health::MedicaidIdConflict
+              errors << conflict_message(transaction)
+            end
           end
         end
 
@@ -94,13 +119,22 @@ module Health
           returning_patients: returning_patients,
           disenrolled_patients: disenrolled_patients,
           updated_patients: updated_patients,
+          processing_errors: errors,
           status: 'complete',
         )
 
         Health::Tasks::CalculateValidUnpayableQas.new.run!
       rescue Exception => e
-        enrollment.update(status: e)
+        enrollment.update(
+          processing_errors: errors,
+          status: e,
+        )
       end
+    end
+
+    def conflict_message(transaction)
+      medicaid_id = Health::Enrollment.subscriber_id(transaction)
+      "ID #{medicaid_id} in 834 conflicts with existing patient records"
     end
 
     def referral(transaction)

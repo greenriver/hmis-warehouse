@@ -79,6 +79,16 @@ RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
     expect(Health::PatientReferral.find_by(medicaid_id: '100000000999', current: true).agency_id).to eq(nil)
   end
 
+  describe 'conflicting medicaid ids' do
+    let!(:existing_patient) { create :patient, medicaid_id: '100000000999' }
+
+    it 'identifies conflicting medicaid ids' do
+      process('enrollment.txt')
+
+      expect(Health::Enrollment.last.processing_errors.length).to be > 0
+    end
+  end
+
   def process(fixture)
     file = Health::Enrollment.create(
       content: File.read("spec/fixtures/files/health/eight_thirty_four/#{fixture}"),
