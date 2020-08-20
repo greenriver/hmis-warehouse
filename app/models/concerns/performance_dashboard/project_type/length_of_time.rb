@@ -38,18 +38,6 @@ module PerformanceDashboard::ProjectType::LengthOfTime
     end
   end
 
-  private def time_buckets
-    [
-      :less_than_thirty,
-      :thirty_to_sixty,
-      :sixty_to_ninety,
-      :ninety_to_one_twenty,
-      :one_twenty_to_one_eighty,
-      :one_eighty_to_one_year,
-      :more_than_a_year,
-    ].freeze
-  end
-
   def time_bucket_titles
     {
       less_than_thirty: '< 30 days',
@@ -60,6 +48,10 @@ module PerformanceDashboard::ProjectType::LengthOfTime
       one_eighty_to_one_year: '181 to 365 days',
       more_than_a_year: '> 1 year',
     }.freeze
+  end
+
+  private def time_buckets
+    time_bucket_titles.keys
   end
 
   def time_bucket(time)
