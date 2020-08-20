@@ -604,6 +604,9 @@ $file-thumbnail-size: 75px;
 
 }
 .service-scanning__active-alerts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   padding: space(4);
   background-color: $brand-warning-l;
 }
