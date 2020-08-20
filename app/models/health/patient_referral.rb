@@ -292,7 +292,7 @@ module Health
     end
 
     def re_enrollment_blackout?(on_date)
-      removal_acknowledged? && disenrollment_date + 30.days < on_date
+      removal_acknowledged? && on_date < disenrollment_date + 30.days
     end
 
     def display_claimed_by_other(agencies)
