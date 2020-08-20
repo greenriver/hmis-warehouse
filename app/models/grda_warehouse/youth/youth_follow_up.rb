@@ -11,6 +11,7 @@ module GrdaWarehouse::Youth
     acts_as_paranoid
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_follow_ups
+    belongs_to :user
 
     scope :ordered, -> do
       order(contacted_on: :desc)
