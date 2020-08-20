@@ -11,6 +11,7 @@ module GrdaWarehouse::Youth
     acts_as_paranoid
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :case_managements
+    belongs_to :user
 
     validates_presence_of :engaged_on, :activity
 
