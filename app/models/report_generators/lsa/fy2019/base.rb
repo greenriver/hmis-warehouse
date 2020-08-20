@@ -47,6 +47,7 @@ module ReportGenerators::Lsa::Fy2019
     def system_wide_project_ids
       @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(@user).in_coc(coc_code: @coc_code).
         with_hud_project_type([1, 2, 3, 8, 9, 10, 13]).
+        coc_funded.
         pluck(:id).sort
     end
 
