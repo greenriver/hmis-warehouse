@@ -11,8 +11,8 @@ module Reporting
       report.update(state: 'Started', started_at: Time.current)
 
       @generator = class_name.constantize.new(report.options)
-      @generator.class.questions.each do |name, clazz|
-        clazz.new(@generator, report).run! unless questions.present? && questions.exclude?(name)
+      @generator.class.questions.each do |name, klass|
+        klass.new(@generator, report).run! unless questions.present? && questions.exclude?(name)
       end
 
       report.update(state: 'Completed', completed_at: Time.current)
