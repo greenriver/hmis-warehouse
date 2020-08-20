@@ -11,6 +11,7 @@ module GrdaWarehouse::Youth
     acts_as_paranoid
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :direct_financial_assistances
+    belongs_to :user
     validates_presence_of :provided_on, :type_provided
 
     attr_accessor :other

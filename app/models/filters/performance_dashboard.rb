@@ -17,6 +17,9 @@ module Filters
     attribute :genders, Array, default: []
     attribute :races, Array, default: []
     attribute :ethnicities, Array, default: []
+    attribute :length_of_times, Array, default: []
+    attribute :destination_ids, Array, default: []
+    attribute :prior_living_situation_ids, Array, default: []
 
     # NOTE: params[:filters][:project_types] will be 'es', 'th', etc.
     # the report expects @filter.project_types to be an array of integers 1, 2 etc.
@@ -42,7 +45,9 @@ module Filters
       self.races = filters.dig(:races)&.select { |race| HUD.races.keys.include?(race) }
       self.ethnicities = filters.dig(:ethnicities)&.reject(&:blank?)&.map { |ethnicity| ethnicity.to_i }
       self.project_group_ids = filters.dig(:project_group_ids)&.reject(&:blank?)&.map { |group| group.to_i }
-
+      self.prior_living_situation_ids = filters.dig(:prior_living_situation_ids)&.reject(&:blank?)&.map { |m| m.to_i }
+      self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map { |m| m.to_i }
+      self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map { |m| m.to_sym }
       ensure_dates_work
     end
 

@@ -154,6 +154,12 @@ def report_list
         limitable: true,
       },
       {
+        url: 'warehouse_reports/youth_activity',
+        name: 'Youth Activity',
+        description: 'Review data youth entered within a selected time period.',
+        limitable: true,
+      },
+      {
         url: 'warehouse_reports/client_details/last_permanent_zips',
         name: 'Last Permanent Zip Report',
         description: 'List open enrollments within a date range and the zip codes of last permanent residence.',

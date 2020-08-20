@@ -165,14 +165,14 @@ module GrdaWarehouse::Hud
       where(self.project_type_override.in(r_non_homeless))
     end
 
-    scope :with_hud_project_type, -> (project_types) do
+    scope :with_hud_project_type, ->(project_types) do
       where(self.project_type_override.in(project_types))
     end
-    scope :with_project_type, -> (project_types) do
+    scope :with_project_type, ->(project_types) do
       where(project_type_column => project_types)
     end
 
-    scope :in_coc, -> (coc_code:) do
+    scope :in_coc, ->(coc_code:) do
       joins(:project_cocs).
         merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
     end
@@ -188,8 +188,9 @@ module GrdaWarehouse::Hud
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
       where(
-        arel_table[:ContinuumProject].eq(1).and(arel_table[:hud_continuum_funded].eq(nil).or(arel_table[:hud_continuum_funded].eq(true))).
-        or(arel_table[:hud_continuum_funded].eq(true).and(arel_table[:ContinuumProject].eq(0)))
+        arel_table[:ContinuumProject].eq(1).
+        and(arel_table[:hud_continuum_funded].eq(nil))
+        .or(arel_table[:hud_continuum_funded].eq(true)),
       )
     end
 
@@ -198,12 +199,13 @@ module GrdaWarehouse::Hud
         p_t[:OperatingEndDate].gteq(date).or(p_t[:OperatingEndDate].eq(nil)).
           and(p_t[:OperatingStartDate].eq(nil).and(p_t[:operating_start_date_override].eq(nil)).
             or(p_t[:OperatingStartDate].lteq(date).and(p_t[:operating_start_date_override].eq(nil))).
-            or(p_t[:operating_start_date_override].lteq(date)))
+            or(p_t[:operating_start_date_override].lteq(date))),
       )
     end
 
     def coc_funded?
       return self.ContinuumProject == 1 if hud_continuum_funded.nil?
+
       hud_continuum_funded
     end
 
@@ -213,7 +215,7 @@ module GrdaWarehouse::Hud
       where(
         id: GrdaWarehouse::Hud::Project.joins(:inventories).
           merge(GrdaWarehouse::Hud::Inventory.serves_families).
-          distinct.select(:id)
+          distinct.select(:id),
       )
 
     end
@@ -228,9 +230,7 @@ module GrdaWarehouse::Hud
     scope :serves_individuals, -> do
       where(
         p_t[:id].in(lit(GrdaWarehouse::Hud::Project.joins(:inventories).merge(GrdaWarehouse::Hud::Inventory.serves_individuals).select(:id).to_sql)).
-          or(
-            p_t[:id].not_in(lit(GrdaWarehouse::Hud::Project.serves_families.select(:id).to_sql))
-          )
+          or(p_t[:id].not_in(lit(GrdaWarehouse::Hud::Project.serves_families.select(:id).to_sql)))
       )
     end
     def serves_individuals?
