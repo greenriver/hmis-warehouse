@@ -4,11 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module HudReports
-  class AprsController < ApplicationController
-    before_action :set_generator, except: [:index]
+module HudApr
+  class AprsController < BaseController
+    before_action -> { set_generator(param_name: :generator) }, except: [:index]
+    before_action -> { set_report(param_name: :id) }, only: [:show, :edit, :destroy]
     before_action :set_reports, except: [:index]
-    before_action :set_report, only: [:show, :edit, :destroy]
 
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq
@@ -56,53 +56,15 @@ module HudReports
       )
     end
 
-    def filter_options
-      filter = params.require(:filter).
-        permit(
-          :start_date,
-          :end_date,
-          :coc_code,
-          project_ids: [],
-        )
-      filter[:user_id] = current_user.id
-      filter[:project_ids] = filter[:project_ids].reject(&:blank?).map(&:to_i)
-      filter
-    end
-
-    def set_generator
-      @generator_id = params[:generator].to_i
-      @generator = generators[@generator_id]
-    end
-
-    def set_report
-      report_id = params[:id].to_i
-      # APR 0 is the most recent report for the current user
-      if report_id.zero?
-        @report = @generator.find_report(current_user)
-      else
-        @report = report_source.find(report_id)
-      end
-    end
-
     def set_reports
       titles = generators.map(&:title)
       @reports = report_source.where(report_name: titles).order(created_at: :desc)
-    end
-
-    def generators
-      [
-        ReportGenerators::Apr::Fy2020::Generator,
-      ]
     end
 
     def report_urls
       [
         ['Annual Performance Report', hud_reports_aprs_path],
       ]
-    end
-
-    def report_source
-      HudReports::ReportInstance
     end
   end
 end

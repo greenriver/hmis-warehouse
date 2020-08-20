@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module ReportGenerators::AprShared::Fy2020
+module HudApr::Generators::Shared::Fy2020
   class QuestionFour < HudReports::QuestionBase
     attr_accessor :report
 

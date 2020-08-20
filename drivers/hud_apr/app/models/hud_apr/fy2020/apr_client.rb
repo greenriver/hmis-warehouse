@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module HudReports
-  class AprClient < ReportClientBase
+module HudApr::Fy2020
+  class AprClient < HudReports::ReportClientBase
     self.table_name = 'hud_report_apr_clients'
   end
 end

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module ReportGenerators::Apr::Fy2020
+module HudApr::Generators::Apr::Fy2020
   class QuestionFive < HudReports::QuestionBase
     include ArelHelper
 
@@ -233,8 +233,7 @@ module ReportGenerators::Apr::Fy2020
     end
 
     private def report_client_universe
-      HudReports::AprClient
+      HudApr::Fy2020::AprClient
     end
-
   end
 end
