@@ -1,0 +1,7 @@
+
+- metadata = report&.answer(question: question)&.metadata
+- if metadata.present?
+  - metadata['tables'].each do |table|
+    %h2= table
+    - exporter = HudReports::CsvExporter.new(@report, table)
+    = render 'hud_reports/table', columns: exporter.display_column_names, rows: exporter.as_array
