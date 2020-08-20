@@ -291,6 +291,10 @@ module Health
       disenrollment_date.present? || pending_disenrollment_date.present? || removal_acknowledged? || rejected?
     end
 
+    def re_enrollment_blackout?(on_date)
+      removal_acknowledged? && on_date < disenrollment_date + 30.days
+    end
+
     def display_claimed_by_other(agencies)
       cb = display_claimed_by
       other_size = cb.select{|c| c != 'Unknown'}.size

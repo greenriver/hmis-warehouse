@@ -48,6 +48,24 @@ RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
     expect(Health::PatientReferral.pending_disenrollment.count).to eq(pending - 1)
   end
 
+  it 'ignores a re-enrollment that is too soon' do
+    process('enrollment.txt')
+    process('disenrollment.txt')
+
+    Health::PatientReferral.pending_disenrollment.each do |referral|
+      referral.update(
+        removal_acknowledged: true,
+        disenrollment_date: referral.pending_disenrollment_date,
+        pending_disenrollment_date: nil,
+      )
+    end
+
+    process('reenrollment.txt')
+
+    expect(Health::PatientReferral.rejection_confirmed.count).to eq(1)
+    expect(Health::Enrollment.last.processing_errors.length).to be > 0
+  end
+
   it 'updates a patient' do
     process('enrollment.txt')
     process('update_name.txt')
