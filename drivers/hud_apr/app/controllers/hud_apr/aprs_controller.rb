@@ -62,9 +62,7 @@ module HudApr
     end
 
     def report_urls
-      [
-        ['Annual Performance Report', hud_reports_aprs_path],
-      ]
+      @report_urls ||= Rails.application.config.hud_reports.map { |title, helper| [title, public_send(helper)] }
     end
   end
 end

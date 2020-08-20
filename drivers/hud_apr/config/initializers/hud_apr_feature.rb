@@ -5,3 +5,5 @@
 #
 # use with caution!
 RailsDrivers.loaded << :hud_apr
+
+Rails.application.config.hud_reports << ['Annual Performance Report', 'hud_reports_aprs_path']
