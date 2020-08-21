@@ -6,14 +6,8 @@
 
 module HudApr::Generators::Shared::Fy2020
   class QuestionFour < HudReports::QuestionBase
-    attr_accessor :report
-
-    def initialize(generator, report)
-      @generator = generator
-      @report = report
-    end
-
     QUESTION_NUMBER = 'Q4'
+
     QUESTION_TABLE_NUMBER = 'Q4a'
 
     TABLE_HEADER = [
@@ -34,10 +28,6 @@ module HudApr::Generators::Shared::Fy2020
     ].freeze
 
     HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'.freeze
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
 
     def run!
       @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])

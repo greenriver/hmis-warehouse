@@ -6,6 +6,11 @@
 
 module HudReports
   class QuestionBase
+    def initialize(generator, report)
+      @generator = generator
+      @report = report
+    end
+    
     def self.last_answer(generator, user)
       reports(generator, user).order(created_at: :desc).each do |report|
         answer = report.answer(question: question_number)
@@ -19,6 +24,10 @@ module HudReports
         report_name: generator.title,
         user_id: user.id,
       )
+    end
+
+    def self.question_number
+      self::QUESTION_NUMBER
     end
   end
 end

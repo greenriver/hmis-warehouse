@@ -31,16 +31,6 @@ module HudApr::Generators::Shared::Fy2020
       'Heads of households and adult stayers in the project 365 days or more',
     ]
 
-    def initialize(generator, report)
-      @generator = generator
-      @report = report
-    end
-
-
-    def self.question_number
-      QUESTION_NUMBER
-    end
-
     def run!
       @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
 
