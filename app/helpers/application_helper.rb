@@ -180,7 +180,7 @@ module ApplicationHelper
       sn = name[:ds]
       id = name[:ds_id]
       full_name = name[:name]
-      content_tag(:em, sn, class: "ds-#{id}") + " #{full_name}"
+      content_tag(:em, sn, class: "ds-color-#{id}") + " #{full_name}"
     end.uniq
   end
 

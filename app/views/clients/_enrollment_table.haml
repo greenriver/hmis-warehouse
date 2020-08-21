@@ -43,7 +43,7 @@
         - episode_class = 'enrollment__new-episode'
       %tr{class: episode_class}
         %td.nobr
-          %span.id-sqr{ 'data-id' => e[:client_source_id]}
+          .ds.jClickToCopy{class: "ds-color-#{e[:data_source_id]}", data: {toggle: :tooltip, title: ds_tooltip_content(e[:client_source_id], e[:data_source_id]), html: 'true'}}= ds_short_name_for(e[:client_source_id])
           .enrollment__project_type{class: e[:class]}
             %span.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
               = e[:project_type]

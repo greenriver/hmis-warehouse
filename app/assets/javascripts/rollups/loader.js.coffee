@@ -39,10 +39,9 @@ class App.Rollups.Loader
                 $org.text organization
               else
                 $org.remove()
-              $square.tooltip html: true, title: $html.html()
-              $id.append $square
-              $square.click ->
-                App.util.copyToClipboard $('div.tooltip:visible .pid')
+              # $square.tooltip html: true, title: $html.html()
+              # $id.append $square
+
             $e.find('.rollup-container').siblings('.jRemoveWhenComplete').remove()
             $(document).dequeue("fx")
           .fail ()->

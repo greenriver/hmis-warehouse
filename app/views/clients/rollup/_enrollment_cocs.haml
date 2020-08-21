@@ -22,7 +22,8 @@
         - enrollment_cocs.each do |enrollment_coc|
           - project = enrollment_coc.enrollment.project
           %tr
-            %td.id-sqr{ 'data-id' => enrollment_coc.enrollment.client.id }
+            %td
+              .ds{class: "ds-color-#{enrollment_coc.data_source_id}"}= ds_short_name_for(enrollment_coc.enrollment.client.id)
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
             %td.date-cell= enrollment_coc.enrollment.EntryDate
             %td= enrollment_coc.InformationDate

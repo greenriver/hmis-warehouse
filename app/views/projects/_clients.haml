@@ -1,19 +1,23 @@
 %h2 Clients
-%p= page_entries_info(@clients, entry_name: _('client'))
-%table.table.table-sm.table-hover
-  %thead
-    %tr
-      %th Client
-      %th Entry Date
-      %th Exit Date
-  %tbody
-    - @clients.each do |service|
+.well
+  .d-flex
+    %p= page_entries_info(@clients, entry_name: _('client'))
+    %p.ml-auto= paginate @clients
+  %table.table.table-sm.table-hover
+    %thead
       %tr
-        %td
-          - if ! @project.confidential? || can_edit_projects? || can_view_confidential_enrollment_details?
-            = link_to_if can_view_clients_or_window?, service.client.name, client_path(service.client)
-          - else
-            Confidential Client
-        %td= service.first_date_in_program
-        %td= service.last_date_in_program
-%p= paginate @clients
+        %th Client
+        %th Entry Date
+        %th Exit Date
+    %tbody
+      - @clients.each do |service|
+        %tr
+          %td
+            - if ! @project.confidential? || can_edit_projects? || can_view_confidential_enrollment_details?
+              = link_to_if can_view_clients_or_window?, service.client.name, client_path(service.client)
+            - else
+              Confidential Client
+          %td= service.first_date_in_program
+          %td= service.last_date_in_program
+  .d-flex
+    %p.ml-auto= paginate @clients

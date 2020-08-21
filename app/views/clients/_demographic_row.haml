@@ -1,5 +1,6 @@
 %tr
-  %td.id-sqr{ data: { id: client.id, always: 1 } }
+  %td
+    .ds{class: "ds-color-#{client.data_source_id}"}= ds_short_name_for(client.id)
   %td.client-name
     = client.name
     - image_exists = client.image_for_source_client.length > 100 rescue false
