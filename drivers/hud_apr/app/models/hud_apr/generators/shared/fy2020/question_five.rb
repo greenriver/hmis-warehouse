@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module HudApr::Generators::Apr::Fy2020
+module HudApr::Generators::Shared::Fy2020
   class QuestionFive < HudReports::QuestionBase
     include ArelHelper
 
