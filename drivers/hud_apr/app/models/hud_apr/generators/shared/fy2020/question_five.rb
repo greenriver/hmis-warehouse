@@ -89,8 +89,8 @@ module HudApr::Generators::Shared::Fy2020
       answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B7')
       members = universe.members.where(
         a_t[:last_date_in_program].lteq(@report.end_date).
-          and(a_t[:age].gteq(18)).
-          and(a_t[:head_of_household].eq(true)),
+          and(a_t[:age].gteq(18).
+            or(a_t[:head_of_household].eq(true))),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
@@ -112,7 +112,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # Number of veterans
       answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B10')
-      members = universe.members.where(a_t[:veteran].eq(true))
+      members = universe.members.where(a_t[:veteran_status].eq(1))
       answer.add_members(members)
       answer.update(summary: members.count)
 
@@ -165,7 +165,7 @@ module HudApr::Generators::Shared::Fy2020
       members = universe.members.where(
         a_t[:age].gteq(18).
         and(a_t[:head_of_household].eq(true)).
-        and(a_t[:longest_stay].gteq(365)),
+        and(a_t[:length_of_stay].gteq(365)),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
@@ -183,27 +183,20 @@ module HudApr::Generators::Shared::Fy2020
           clients_with_enrollments = clients_with_enrollments(batch)
 
           batch.each do |client|
-            service_history_enrollments = clients_with_enrollments[client.id]
-
-            earliest_start = service_history_enrollments.min { |x, y| x.first_date_in_program <=> y.first_date_in_program }
-            latest_end_date = service_history_enrollments.map { |e| e.last_date_in_program || @report.end_date + 1.day }.max
-            client_start_date = [@report.start_date, earliest_start.first_date_in_program].max
-            head_of_household = service_history_enrollments.any? { |e| e.head_of_household }
-            parenting_youth = service_history_enrollments.any? { |e| e.parenting_youth }
-            veteran = client.veteran?
-            longest_stay = service_history_enrollments.map do |e|
-              ((e.last_date_in_program || @report.end_date + 1.day )- e.first_date_in_program).to_i
-            end.max
+            last_service_history_enrollment = clients_with_enrollments[client.id].last
+            source_client = last_service_history_enrollment.source_client
+            client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
             pending_associations[client] = report_client_universe.new(
-              age: client.age_on(client_start_date),
-              head_of_household: head_of_household,
-              parenting_youth: parenting_youth,
-              first_date_in_program: earliest_start.first_date_in_program,
-              last_date_in_program: latest_end_date,
-              veteran: veteran,
-              longest_stay: longest_stay,
-              chronically_homeless: earliest_start.enrollment.chronically_homeless_at_start?,
+              age: source_client.age_on(client_start_date),
+              head_of_household: last_service_history_enrollment.head_of_household,
+              parenting_youth: last_service_history_enrollment.parenting_youth,
+              first_date_in_program: last_service_history_enrollment.first_date_in_program,
+              last_date_in_program: last_service_history_enrollment.last_date_in_program,
+              veteran_status: source_client.VeteranStatus,
+              length_of_stay: ((last_service_history_enrollment.last_date_in_program || @report.end_date + 1.day ) -
+                last_service_history_enrollment.first_date_in_program).to_i,
+              chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
             )
           end
           report_client_universe.import(pending_associations.values)

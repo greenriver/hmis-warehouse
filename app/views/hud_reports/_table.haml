@@ -1,4 +1,4 @@
-%table.table.table-bordered
+%table.table.table-sm.table-bordered
   %thead.thead-dark
     %tr
       %th
@@ -9,4 +9,5 @@
       %tr
         %th= index + 1
         - row.each do |value|
-          %td= value
+          - cell_color = 'table-primary' if value.nil?
+          %td{class: cell_color}= value
