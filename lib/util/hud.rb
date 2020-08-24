@@ -13,12 +13,21 @@ module HUD
     group_number = ssn[3..4]
     serial_number = ssn.last(4)
 
+    # Fields can't be all zeros
     return false if area_number.to_i.zero? || group_number.to_i.zero? || serial_number.to_i.zero?
+    # Fields must be numbers
+    return false unless digits?(area_number) && digits?(group_number) && digits?(serial_number)
+    # 900+ are not assigned, and 666 is excluded
     return false if area_number.to_i >= 900 || area_number == '666'
+    # Published IDs are not valid
     return false if ['219099999', '078051120', '123456789'].include?(ssn)
     return false if ssn.split('').uniq.count == 1 # all the same number
 
     true
+  end
+
+  private def digits?(value)
+    value == value.to_i.to_s
   end
 
   def fiscal_year_start

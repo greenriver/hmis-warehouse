@@ -8,6 +8,7 @@ class AddDqToAprClients < ActiveRecord::Migration[5.2]
       t.integer :ssn_quality
       t.date :dob
       t.integer :dob_quality
+      t.date :enrollment_created
       t.jsonb :race
       t.integer :ethnicity
       t.integer :gender
