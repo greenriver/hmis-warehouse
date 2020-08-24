@@ -140,6 +140,19 @@ module HmisSqlServer
   class User < LsaBase
     self.table_name = :hmis_User
     include ::HMIS::Structure::User
+
+    def clean_row_for_import(row:, headers:)
+      # Fixes for LSA idiosyncracies
+      [
+        'DateCreated',
+        'DateUpdated',
+      ].each do |k|
+        field_index = headers.index(k)
+        row[field_index] = row[field_index].presence || Time.current
+      end
+
+      super(row: row, headers: headers)
+    end
   end
   class CurrentLivingSituation < LsaBase
     self.table_name = :hmis_CurrentLivingSituation
