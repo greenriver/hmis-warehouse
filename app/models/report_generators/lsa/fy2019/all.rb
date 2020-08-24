@@ -518,6 +518,7 @@ module ReportGenerators::Lsa::Fy2019
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
       rep = LsaSqlServer::LSAQueries.new
+      rep.test_run = test?
       rep.project_ids = @project_ids unless @lsa_scope == 1 # Non-System wide
 
       # some setup

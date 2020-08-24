@@ -705,11 +705,18 @@ module GrdaWarehouse::Hud
         project_scope = project_scope.merge(scope) if scope.present?
 
         project_scope.
-          joins(:organization).
+          joins(:organization, :data_source).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).
-            pluck(o_t[:OrganizationName].as('org_name'), :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|
-            options[org] ||= []
-            options[org] << ["#{project_name} (#{HUD::project_type_brief(project_type)})", id]
+          each do |project|
+            org_name = project.organization.OrganizationName
+            org_name += " at #{project.data_source.short_name}" if Rails.env.development?
+            options[org_name] ||= []
+            text = "#{project.ProjectName} (#{HUD.project_type_brief(project.computed_project_type)})"
+            # text += "#{project.ContinuumProject.inspect} #{project.hud_continuum_funded.inspect}"
+            options[org_name] << [
+              text,
+              project.id,
+            ]
           end
         options
       end
