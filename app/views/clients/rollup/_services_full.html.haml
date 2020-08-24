@@ -18,7 +18,8 @@
                 - services.each do |service|
                   - project = service.project
                   .client__full-service-project
-                    %span.id-sqr.br{ 'data-id' => service.client.id }
+                    %span
+                      .ds{class: "ds-color-#{service.data_source_id}"}= ds_short_name_for(service.client.id)
                     %span{ data: { toggle: 'tooltip', title: project&.organization_and_name(include_confidential_names: show_confidential_programs), project: projects[project] } }
                       = GrdaWarehouse::Hud::Project.confidentialize(name: project&.name) || 'Unable to determine project name'
                   .text-right

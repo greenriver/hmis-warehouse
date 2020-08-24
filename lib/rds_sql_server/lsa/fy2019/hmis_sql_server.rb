@@ -4,7 +4,14 @@ module HmisSqlServer
   module_function def models_by_hud_filename
     # use an explict whitelist as a security measure
     {
+      'Export.csv' => HmisSqlServer::Export,
+      'Funder.csv' => HmisSqlServer::Funder,
       'Affiliation.csv' => HmisSqlServer::Affiliation,
+      'Inventory.csv' => HmisSqlServer::Inventory,
+      'Organization.csv' => HmisSqlServer::Organization,
+      'Project.csv' => HmisSqlServer::Project,
+      'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
+      'User.csv' => HmisSqlServer::User,
       'Client.csv' => HmisSqlServer::Client,
       'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
       'Disabilities.csv' => HmisSqlServer::Disability,
@@ -13,20 +20,12 @@ module HmisSqlServer
       'EnrollmentCoC.csv' => HmisSqlServer::EnrollmentCoc,
       'Event.csv' => HmisSqlServer::Event,
       'Exit.csv' => HmisSqlServer::Exit,
-      'Export.csv' => HmisSqlServer::Export,
-      'Funder.csv' => HmisSqlServer::Funder,
       'HealthAndDV.csv' => HmisSqlServer::HealthAndDv,
       'IncomeBenefits.csv' => HmisSqlServer::IncomeBenefit,
-      'Inventory.csv' => HmisSqlServer::Inventory,
-      'Organization.csv' => HmisSqlServer::Organization,
-      'Project.csv' => HmisSqlServer::Project,
-      'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
       'Services.csv' => HmisSqlServer::Service,
-      'User.csv' => HmisSqlServer::User,
       'Assessment.csv' => HmisSqlServer::Assessment,
       'AssessmentQuestions.csv' => HmisSqlServer::AssessmentQuestion,
       'AssessmentResults.csv' => HmisSqlServer::AssessmentResult,
-
     }.freeze
   end
 
@@ -90,6 +89,8 @@ module HmisSqlServer
     include ::HMIS::Structure::Inventory
 
     def clean_row_for_import(row:, headers:)
+      return nil unless row[headers.index('InventoryStartDate')].present?
+
       # Fixes for LSA idiosyncracies
       [
         'CHVetBedInventory',

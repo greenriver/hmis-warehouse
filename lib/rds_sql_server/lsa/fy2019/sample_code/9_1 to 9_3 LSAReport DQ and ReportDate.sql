@@ -9,7 +9,13 @@ Date:  4/7/2020
 				   section 9.2 - correct 24 (deceased) to 25 (LTC/nursing home) in list of institutional 
 								 living situations for HomelessDate1/3, TimesHomeless1/3, MonthsHomeless1/3
 	   5/28/2020 - section 9.2 - add missing PH destinations (HMIS values 33,34) to HoHPermToPH1/3
-	   7/30/2020-  9.1 - join to lsa_Project instead of hmis_Project
+	   7/30/2020 -  9.1 - join to lsa_Project instead of hmis_Project
+	   8/6/2020  - 9.1 -- streamline case statement for Status1 and Status3 (no change to output, just elimination of redundancies)
+						- compare DOB to both EntryDate and CohortStart to check for ages >= 105 years (possible change to output 
+								for clients who were <= 104 years old as of entry but >= 105 by CohortStart)
+				   9.2 - correct criteria for counting DQ issues in DateToStreetESSH for cohort 20 / LSA column HomelessDate3 
+					   - use Status1 consistently / remove superfluous joins to lsa_Report for DisablingCond1, LivingSituation1, 
+							LengthOfStay1, HomelessDate1, TimesHomeless1, MonthsHomeless1, DV1, Destination1, NotOneHoH1, and MoveInDate1
 
 	9.1 Get Relevant Enrollments for Data Quality Checks
 */
@@ -20,25 +26,27 @@ insert into dq_Enrollment (EnrollmentID, PersonalID, HouseholdID, RelationshipTo
 select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
 	, p.ProjectType, n.EntryDate, hhinfo.MoveInDate, ExitDate
 	, case when x.ExitDate < cd1.CohortStart then null
-			when c.DOBDataQuality in (8,9) 
-			or c.DOB is null 
-			or c.DOB = '1/1/1900'
-			or c.DOB > n.EntryDate
-			or (c.DOB = n.EntryDate and n.RelationshipToHoH = 1)
-			or dateadd(yy, 105, c.DOB) <= n.EntryDate 
-			or c.DOBDataQuality is null
-			or c.DOBDataQuality not in (1,2) then 99
-		when dateadd(yy, 18, c.DOB) <= n.EntryDate 
-			or dateadd(yy, 18, c.DOB) <= cd1.CohortStart then 1
-		else 0 end
-	, case when c.DOBDataQuality in (8,9) 
+		when c.DOBDataQuality not in (1,2)
+				or c.DOBDataQuality is null 
 				or c.DOB is null 
 				or c.DOB = '1/1/1900'
 				or c.DOB > n.EntryDate
 				or (c.DOB = n.EntryDate and n.RelationshipToHoH = 1)
 				or dateadd(yy, 105, c.DOB) <= n.EntryDate 
-				or c.DOBDataQuality is null
-				or c.DOBDataQuality not in (1,2) then 99
+				or dateadd(yy, 105, c.DOB) <= cd1.CohortStart 
+			then 99
+		when dateadd(yy, 18, c.DOB) <= n.EntryDate 
+			or dateadd(yy, 18, c.DOB) <= cd1.CohortStart then 1
+		else 0 end
+	, case when c.DOBDataQuality not in (1,2)
+				or c.DOBDataQuality is null 
+				or c.DOB is null 
+				or c.DOB = '1/1/1900'
+				or c.DOB > n.EntryDate
+				or (c.DOB = n.EntryDate and n.RelationshipToHoH = 1)
+				or dateadd(yy, 105, c.DOB) <= n.EntryDate 
+				or dateadd(yy, 105, c.DOB) <= cd1.CohortStart 
+			then 99
 		when dateadd(yy, 18, c.DOB) <= n.EntryDate 
 			or dateadd(yy, 18, c.DOB) <= cd3.CohortStart  then 1
 		else 0 end
@@ -229,7 +237,6 @@ update rpt
 			where  (n.RelationshipToHoH not in (1,2,3,4,5) or n.RelationshipToHoH is null))
 	,	DisablingCond1 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
-			inner join lsa_Report rpt on rpt.ReportStart >= n.ExitDate or n.ExitDate is null
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
 			--5/14/2020 - add check for Status1 not null
 			where n.Status1 is not null 
@@ -240,7 +247,6 @@ update rpt
 			where (hn.DisablingCondition not in (0,1) or hn.DisablingCondition is null))
 	,	LivingSituation1 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
-			inner join lsa_Report rpt on rpt.ReportStart >= n.ExitDate or n.ExitDate is null
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
 			where (n.Status1 = 1 or (n.RelationshipToHoH = 1 and n.Status1 is not null))
 				and (hn.LivingSituation in (8,9,99) or hn.LivingSituation is null))
@@ -251,7 +257,6 @@ update rpt
 				and (hn.LivingSituation in (8,9,99) or hn.LivingSituation is null))
 	,	LengthOfStay1 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
-			inner join lsa_Report rpt on rpt.ReportStart >= n.ExitDate or n.ExitDate is null
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
 			where (n.Status1 = 1 or (n.RelationshipToHoH = 1 and n.Status1 is not null))
 				and (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null))
@@ -262,7 +267,6 @@ update rpt
 				and (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is null))
 	,	HomelessDate1 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
-			inner join lsa_Report rpt on rpt.ReportStart >= n.ExitDate or n.ExitDate is null
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
 			where (n.Status1 = 1 or (n.RelationshipToHoH = 1 and n.Status1 is not null))
 				-- DateToStreetESSH may not be after hn.EntryDate...
@@ -284,8 +288,10 @@ update rpt
 			from dq_Enrollment n
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
 			where (n.RelationshipToHoH = 1 or n.Status3 = 1)
-				-- DateToStreetESSH is required and may not be after hn.EntryDate if...
-				and (hn.DateToStreetESSH is null or hn.DateToStreetESSH > hn.EntryDate) 
+				-- DateToStreetESSH may not be after hn.EntryDate...
+				and (hn.DateToStreetESSH > hn.EntryDate
+				-- ...and may not be null if...
+				or (hn.DateToStreetESSH is null 
 				-- ...ProjectType is ES/SH...
 				and (n.ProjectType in (1,8)
 						-- ... or when LivingSituation is ES/SH/street/interim housing
@@ -296,10 +302,9 @@ update rpt
 							-- and PreviousStreetESSH = 1 
 						or ((hn.PreviousStreetESSH = 1 or hn.PreviousStreetESSH is NULL) and hn.LengthOfStay in (2,3)
 							and hn.LivingSituation in (4,5,6,7,15,25))
-					))
+					))))
 	,	TimesHomeless1 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
-			inner join lsa_Report rpt on rpt.ReportStart >= n.ExitDate or n.ExitDate is null
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
 			where (n.Status1 = 1 or (n.RelationshipToHoH = 1 and n.Status1 is not null))
 				--TimesHomelessPastThreeYears is required and must be a valid value if...
@@ -336,7 +341,6 @@ update rpt
 					))
 	,	MonthsHomeless1 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
-			inner join lsa_Report rpt on rpt.ReportStart >= n.ExitDate or n.ExitDate is null
 			inner join hmis_Enrollment hn on hn.EnrollmentID = n.EnrollmentID
 			where (n.Status1 = 1 or (n.RelationshipToHoH = 1 and n.Status1 is not null))
 				--MonthsHomelessPastThreeYears is required and must be a valid value if...
@@ -373,7 +377,6 @@ update rpt
 					))
 	,	DV1 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
-			inner join lsa_Report rpt on rpt.ReportStart >= n.ExitDate or n.ExitDate is null
 			left outer join hmis_HealthAndDV dv on dv.EnrollmentID = n.EnrollmentID
 				and dv.DataCollectionStage = 1
 				and dv.DateDeleted is null 
@@ -398,22 +401,22 @@ update rpt
 			from dq_Enrollment n
 			inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 				and x.DateDeleted is null 
-			inner join lsa_Report rpt on x.ExitDate > rpt.ReportStart
-			where (x.Destination in (8,9,17,30,99) or x.Destination is null))
+			where n.Status1 is not null and n.ExitDate is not null 
+				and (x.Destination in (8,9,17,30,99) or x.Destination is null))
 	,	Destination3 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
 			inner join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 				and x.DateDeleted is null 
-			where n.ExitDate is not null and (x.Destination in (8,9,17,30,99) or x.Destination is null))
+			where n.ExitDate is not null 
+				and (x.Destination in (8,9,17,30,99) or x.Destination is null))
 	,	NotOneHoH1 = (select count(distinct n.HouseholdID)
 			from dq_Enrollment n
-			inner join lsa_Report rpt on rpt.ReportEnd >= n.ExitDate or n.ExitDate is null
 			left outer join (select hn.HouseholdID, count(distinct hn.EnrollmentID) as hoh
 				from hmis_Enrollment hn
 				where hn.RelationshipToHoH = 1
 				group by hn.HouseholdID
-			) hoh on hoh.HouseholdID = n.HouseholdID
-			where hoh.hoh <> 1 or hoh.HouseholdID is null)
+				) hoh on hoh.HouseholdID = n.HouseholdID
+			where n.Status1 is not null and (hoh.hoh <> 1 or hoh.HouseholdID is null))
 	,	NotOneHoH3 = (select count(distinct n.HouseholdID)
 			from dq_Enrollment n
 			left outer join (select hn.HouseholdID, count(distinct hn.EnrollmentID) as hoh
@@ -424,13 +427,11 @@ update rpt
 			where hoh.hoh <> 1 or hoh.HouseholdID is null)
 	,	MoveInDate1 = coalesce((select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
-			inner join lsa_Report rpt on rpt.ReportEnd >= n.EntryDate
 			left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 				and x.DateDeleted is null 
-			where n.RelationshipToHoH = 1
+			where n.Status1 is not null and n.RelationshipToHoH = 1
 				and n.ProjectType in (3,13)
-				and (x.ExitDate is null or x.ExitDate >= rpt.ReportStart)
-				and ((n.MoveInDate < n.EntryDate or n.MoveInDate > x.ExitDate)
+				and ((n.MoveInDate < n.EntryDate or n.MoveInDate > n.ExitDate)
 					or (x.Destination in (3,31,19,20,21,26,28,10,11,22,23,33,34) 
 						and n.MoveInDate is null))), 0)
 	,	MoveInDate3 = coalesce((select count(distinct n.EnrollmentID)

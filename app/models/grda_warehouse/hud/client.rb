@@ -789,7 +789,7 @@ module GrdaWarehouse::Hud
         }
       end
       if health && patient.present? && names.detect { |name| name[:health] }.blank?
-        names << { ds: 'Health', ds_id: 'health', name: patient.name }
+        names << { ds: 'Health', ds_id: GrdaWarehouse::DataSource.health_authoritative_id, name: patient.name }
       end
       return names
     end

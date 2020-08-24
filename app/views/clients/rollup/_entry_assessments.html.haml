@@ -25,9 +25,11 @@
         - else
           - capture do
             %em no date available
-      - assessment_to_date = assessments.zip(date_for_assessment).to_h          
+      - assessment_to_date = assessments.zip(date_for_assessment).to_h
       %tr
-        %td.id-sqr{ 'data-id' => ( client.id if client.source? ), rowspan: assessments.size }
+        %td{ rowspan: assessments.size }
+          - if client.source?
+            .ds{class: "ds-color-#{assessments.first.data_source_id}"}= ds_short_name_for(client.id)
         - assessment = assessments.first
         %td= assessment_to_date[assessment]
         %td= assessment.staff.try(:name)
