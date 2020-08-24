@@ -233,10 +233,10 @@ module ReportGenerators::Lsa::Fy2019
         # for some reason the example files are quoted, except the LSA files, which are not
         force_quotes = ! klass.name.include?('LSA')
         CSV.open(path, "wb", force_quotes: force_quotes) do |csv|
-          csv << klass.attribute_names
+          csv << klass.csv_columns.map{ |m| if m == :Zip then :ZIP else m end }
           klass.all.each do |item|
             row = []
-            item.attributes.values.each do |m|
+            item.attributes.slice(*klass.csv_columns.map(&:to_s)).values.each do |m|
               if m.is_a?(Date)
                 row << m.strftime('%F')
               elsif m.is_a?(Time)
