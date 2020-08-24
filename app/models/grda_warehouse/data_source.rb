@@ -95,7 +95,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
     ds_ids = user.data_sources.pluck(:id)
 
-    if user&.can_edit_anything_super_user?
+    if user.can_edit_anything_super_user? || user.can_view_clients? || user.can_edit_clients?
       current_scope
     elsif user&.can_view_clients_with_roi_in_own_coc?
       if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
@@ -106,7 +106,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         end
         where(sql)
       else
-        current_scope # this will get limited by client visibility
+        # this will get limited by client visibility, but force window acces only
+        where(visible_in_window: true)
       end
     elsif user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
       # some users can see all clients for a specific data source,

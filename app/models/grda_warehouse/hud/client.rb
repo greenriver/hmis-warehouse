@@ -966,7 +966,10 @@ module GrdaWarehouse::Hud
 
     def visible_because_of_release?(user)
       user.can_view_client_window? &&
-      (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release))
+      (
+        release_valid? ||
+        ! GrdaWarehouse::Config.get(:window_access_requires_release) && data_source.visible_in_window?
+      )
     end
 
     def visible_because_of_assigned_data_source?(user)
