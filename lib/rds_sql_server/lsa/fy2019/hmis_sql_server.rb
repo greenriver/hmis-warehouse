@@ -90,6 +90,8 @@ module HmisSqlServer
     include ::HMIS::Structure::Inventory
 
     def clean_row_for_import(row:, headers:)
+      return nil unless row['InventoryStartDate'].present?
+
       # Fixes for LSA idiosyncracies
       [
         'CHVetBedInventory',

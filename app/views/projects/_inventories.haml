@@ -25,8 +25,8 @@
             %td= inventory.InventoryID
             %td= HUD.availability inventory.Availability
             %td
-              - if inventory.InventoryStartDate.present?
-                = "#{inventory.InventoryStartDate} - #{inventory.InventoryEndDate || 'ongoing'}"
+              - if inventory.computed_start_date.present?
+                = "#{inventory.computed_start_date} - #{inventory.InventoryEndDate || 'ongoing'}"
             %td= inventory.UnitInventory
             %td= inventory.BedInventory
             %td= inventory.HMISParticipatingBeds

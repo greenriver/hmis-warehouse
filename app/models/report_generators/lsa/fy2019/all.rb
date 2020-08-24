@@ -211,7 +211,7 @@ module ReportGenerators::Lsa::Fy2019
               # this fixes dates that default to 1900-01-01 if you send an empty string
               content = content.map do |row|
                 row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
-              end
+              end.compact
               insert_batch(klass, import_headers, content, batch_size: 1_000)
             end
           end
