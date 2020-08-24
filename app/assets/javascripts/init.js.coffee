@@ -18,7 +18,6 @@ App.init = ->
     $('input.' + id).prop('checked', checked)
   return true
 
-
 # TODO may also need to do on pjax_modal change
 $ ->
   App.init()
@@ -41,3 +40,6 @@ $ ->
     setInterval ->
       poller.click()
     , poller.data('poll-every')*1000
+  # setup click copies
+  $('body').on 'click', '.jClickToCopy', ->
+    App.util.copyToClipboard $('div.tooltip:visible .pid')

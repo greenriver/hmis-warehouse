@@ -293,24 +293,28 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
       GrdaWarehouse::Hud::Enrollment.group(:data_source_id).
         pluck(:data_source_id, nf('MIN', [e_t[:EntryDate]])).each do |ds, date|
+          next unless spans_by_id[ds]
+
           spans_by_id[ds][:start_date] = date
         end
 
       GrdaWarehouse::Hud::Service.group(:data_source_id).
         pluck(:data_source_id, nf('MAX', [s_t[:DateProvided]])).each do |ds, date|
+          next unless spans_by_id[ds]
+
           spans_by_id[ds][:end_date] = date
         end
 
       GrdaWarehouse::Hud::Exit.group(:data_source_id).
         pluck(:data_source_id, nf('MAX', [ex_t[:ExitDate]])).each do |ds, date|
-          if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
-            spans_by_id[ds][:end_date] = date
-          end
+          next unless spans_by_id[ds]
+
+          spans_by_id[ds][:end_date] = date if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
         end
       spans_by_id.each do |ds, dates|
-        if dates[:start_date].present? && dates[:end_date].blank?
-          spans_by_id[ds][:end_date] = Date.current
-        end
+        next unless spans_by_id[ds]
+
+        spans_by_id[ds][:end_date] = Date.current if dates[:start_date].present? && dates[:end_date].blank?
       end
       spans_by_id
     end
@@ -407,11 +411,24 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     organizations.update_all(DateDeleted: Time.current)
   end
 
+  def client_count
+    clients.count
+  end
+
+  def project_count
+    projects.count
+  end
+
   class << self
     extend Memoist
     def health_authoritative_id
       authoritative.where(short_name: 'Health')&.first&.id
     end
     memoize :health_authoritative_id
+
+    def warehouse_id
+      destination.first.id
+    end
+    memoize :warehouse_id
   end
 end

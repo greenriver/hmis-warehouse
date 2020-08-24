@@ -15,88 +15,89 @@
           Delete Project
 .row
   .col-sm-8
-    %table.table.table-sm.table-hover
-      %tr
-        %th Project Type
-        %td
-          = HUD.project_type @project.ProjectType
-          - if @project.act_as_project_type.present?
-            %br
-            %em
-              Acts as:
-              = HUD.project_type @project.act_as_project_type
-            for HUD Reports
-          - if @project.active_homeless_status_override.present?
-            %br
-            %em
-              Enrolled clients are actively homeless for CAS and Cohorts
-          - if @project.include_in_days_homeless_override.present?
-            %br
-            %em
-              Days served are included in verified additional days
-      %tr
-        %th Operating Start Date
-        %td.d-flex
-          .project__operating-start-date
-            = @project.OperatingStartDate&.to_date
-          - if @project.operating_start_date_override.present?
-            .ml-2
-              %em
-                Overridden as
-                = @project.operating_start_date_override.to_date
-      %tr
-        %th Continuum Project
-        %td.d-flex
-          .project__continuum-project
-            = checkmark(@project.ContinuumProject == 1)
-          - if ! @project.hud_continuum_funded.nil?
-            .ml-2
-              %em
-                Overridden
-                = checkmark_or_x @project.hud_continuum_funded
-      %tr
-        %th Housing Type
-        %td.d-flex
-          .project__housing-type
-            - if @project.HousingType.present?
-              = HUD.housing_type(@project.HousingType)
-              (#{@project.HousingType})
-          - if @project.housing_type_override
-            .ml-2
-              %em
-                Overridden as
-                = HUD.housing_type(@project.housing_type_override)
-      %tr
-        %th
-          %span{data: {toggle: :tooltip, title: 'This has no affect currently'}}
-            Uses Move-in Date
-        %td= checkmark(@project.uses_move_in_date)
-      - if can_view_imports?
+    .card
+      %table.table.table-sm.table-hover
         %tr
-          %th Project Contacts
-          %td= link_to 'View/Edit', project_contacts_path(@project)
-      %tr
-        %th
-          %span{data: {toggle: :tooltip, title: @project.confidential_hint}} Confidential Project?
-        %td= checkmark @project.confidential?
-      - if @project.data_quality_reports.any?
-        %tr
-          %th Project Data Quality Reports
-          %td= link_to 'View Reports', project_data_quality_reports_path(@project)
-      - if @project.affiliated_projects.any?
-        %tr
-          %th Affiliated Projects
+          %th Project Type
           %td
-            - @project.affiliated_projects.each do |project|
-              = link_to project_path(project) do
-                = project.ProjectName
-      - if @project.residential_projects.any?
+            = HUD.project_type @project.ProjectType
+            - if @project.act_as_project_type.present?
+              %br
+              %em
+                Acts as:
+                = HUD.project_type @project.act_as_project_type
+              for HUD Reports
+            - if @project.active_homeless_status_override.present?
+              %br
+              %em
+                Enrolled clients are actively homeless for CAS and Cohorts
+            - if @project.include_in_days_homeless_override.present?
+              %br
+              %em
+                Days served are included in verified additional days
         %tr
-          %th Affiliated Residential Projects
-          %td
-            - @project.residential_projects.each do |project|
-              = link_to project_path(project) do
-                = project.ProjectName
+          %th Operating Start Date
+          %td.d-flex
+            .project__operating-start-date
+              = @project.OperatingStartDate&.to_date
+            - if @project.operating_start_date_override.present?
+              .ml-2
+                %em
+                  Overridden as
+                  = @project.operating_start_date_override.to_date
+        %tr
+          %th Continuum Project
+          %td.d-flex
+            .project__continuum-project
+              = checkmark(@project.ContinuumProject == 1)
+            - if ! @project.hud_continuum_funded.nil?
+              .ml-2
+                %em
+                  Overridden
+                  = checkmark_or_x @project.hud_continuum_funded
+        %tr
+          %th Housing Type
+          %td.d-flex
+            .project__housing-type
+              - if @project.HousingType.present?
+                = HUD.housing_type(@project.HousingType)
+                (#{@project.HousingType})
+            - if @project.housing_type_override
+              .ml-2
+                %em
+                  Overridden as
+                  = HUD.housing_type(@project.housing_type_override)
+        %tr
+          %th
+            %span{data: {toggle: :tooltip, title: 'This has no affect currently'}}
+              Uses Move-in Date
+          %td= checkmark(@project.uses_move_in_date)
+        - if can_view_imports?
+          %tr
+            %th Project Contacts
+            %td= link_to 'View/Edit', project_contacts_path(@project)
+        %tr
+          %th
+            %span{data: {toggle: :tooltip, title: @project.confidential_hint}} Confidential Project?
+          %td= checkmark @project.confidential?
+        - if @project.data_quality_reports.any?
+          %tr
+            %th Project Data Quality Reports
+            %td= link_to 'View Reports', project_data_quality_reports_path(@project)
+        - if @project.affiliated_projects.any?
+          %tr
+            %th Affiliated Projects
+            %td
+              - @project.affiliated_projects.each do |project|
+                = link_to project_path(project) do
+                  = project.ProjectName
+        - if @project.residential_projects.any?
+          %tr
+            %th Affiliated Residential Projects
+            %td
+              - @project.residential_projects.each do |project|
+                = link_to project_path(project) do
+                  = project.ProjectName
 
   .col-sm-4
     .d-flex.mt-4
@@ -104,30 +105,31 @@
       .ml-auto
         - if can_see_raw_hmis_data?
           = link_to 'HMIS', hmi_path(@project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
-    %table.table.table-sm.table-hover
-      %tr
-        %th Project ID
-        %td= @project.ProjectID
-      %tr
-        %th Organization ID
-        %td= @project.OrganizationID
-      %tr
-        %th Data Source
-        %td= @project.data_source.short_name
-      %tr
-        %th Tracking Method
-        %td= HUD.tracking_method(@project.TrackingMethod || 0)
-      %tr
-        %th Target Population
-        %td= HUD.target_population @project.TargetPopulation
-      %tr
-        %th Household Type
-        %td
-          %span{data: {toggle: :tooltip, title: 'Determined based on related inventory files'}}
-            = @project.main_population
-      %tr
-        %th PIT Count
-        %td= @project.PITCount
+    .card
+      %table.table.table-sm.table-hover
+        %tr
+          %th Project ID
+          %td= @project.ProjectID
+        %tr
+          %th Organization ID
+          %td= @project.OrganizationID
+        %tr
+          %th Data Source
+          %td= @project.data_source.short_name
+        %tr
+          %th Tracking Method
+          %td= HUD.tracking_method(@project.TrackingMethod || 0)
+        %tr
+          %th Target Population
+          %td= HUD.target_population @project.TargetPopulation
+        %tr
+          %th Household Type
+          %td
+            %span{data: {toggle: :tooltip, title: 'Determined based on related inventory files'}}
+              = @project.main_population
+        %tr
+          %th PIT Count
+          %td= @project.PITCount
 
 = render 'census'
 = render 'funders', funders: @project.funders
