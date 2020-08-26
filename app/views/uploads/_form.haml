@@ -4,10 +4,10 @@
       - content_for :panel_collapse_content, flush: true do
         %p
           Use this form to upload a zip file of HUD HMIS CSV files.  These need to be in a
-          valid HMIS CSV format, and must include at a minimum a valid
+          valid HMIS CSV format, and must include at a minimum valid
           %strong
-            Export.csv
-          file.
+            Export.csv and Project.csv
+          files.
         = simple_form_for @upload, url: data_source_uploads_path(@data_source) do |f|
           = f.error_notification
           .form-inputs
