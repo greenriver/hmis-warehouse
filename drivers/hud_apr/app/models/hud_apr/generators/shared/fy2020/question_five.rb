@@ -188,6 +188,8 @@ module HudApr::Generators::Shared::Fy2020
             client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
             pending_associations[client] = report_client_universe.new(
+              client_id: source_client.id,
+              data_source_id: source_client.data_source_id,
               age: source_client.age_on(client_start_date),
               head_of_household: last_service_history_enrollment.head_of_household,
               parenting_youth: last_service_history_enrollment.parenting_youth,
@@ -199,7 +201,22 @@ module HudApr::Generators::Shared::Fy2020
               chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
             )
           end
-          report_client_universe.import(pending_associations.values)
+          report_client_universe.import(
+            pending_associations.values,
+            on_duplicate_key_update: {
+              conflict_target: [:client_id, :data_source_id],
+              columns: [
+                :age,
+                :head_of_household,
+                :parenting_youth,
+                :first_date_in_program,
+                :last_date_in_program,
+                :veteran_status,
+                :length_of_stay,
+                :chronically_homeless,
+              ]
+            }
+          )
           universe_cell.add_universe_members(pending_associations)
         end
         universe_cell

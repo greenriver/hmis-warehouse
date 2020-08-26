@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_21_185026) do
+ActiveRecord::Schema.define(version: 2020_08_26_165713) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4222,6 +4222,10 @@ ActiveRecord::Schema.define(version: 2020_08_21_185026) do
     t.jsonb "race"
     t.integer "ethnicity"
     t.integer "gender"
+    t.bigint "client_id"
+    t.integer "data_source_id"
+    t.index ["client_id", "data_source_id"], name: "index_hud_report_apr_clients_on_client_id_and_data_source_id", unique: true
+    t.index ["client_id"], name: "index_hud_report_apr_clients_on_client_id"
   end
 
   create_table "hud_report_cells", force: :cascade do |t|

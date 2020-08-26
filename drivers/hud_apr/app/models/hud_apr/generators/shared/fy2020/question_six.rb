@@ -303,6 +303,8 @@ module HudApr::Generators::Shared::Fy2020
             source_client = last_service_history_enrollment.source_client
             client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
             pending_associations[client] = report_client_universe.new(
+              client_id: source_client.id,
+              data_source_id: source_client.data_source_id,
               first_name: source_client.FirstName,
               last_name: source_client.LastName,
               name_quality: source_client.NameDataQuality,
@@ -319,7 +321,28 @@ module HudApr::Generators::Shared::Fy2020
               gender: source_client.Gender,
             )
           end
-          report_client_universe.import(pending_associations.values)
+          report_client_universe.import(
+            pending_associations.values,
+            on_duplicate_key_update: {
+              conflict_target: [:client_id, :data_source_id],
+              columns: [
+                :first_name,
+                :last_name,
+                :name_quality,
+                :ssn,
+                :ssn_quality,
+                :dob,
+                :dob_quality,
+                :age,
+                :head_of_household,
+                :first_date_in_program,
+                :enrollment_created,
+                :race,
+                :ethnicity,
+                :gender,
+              ]
+            }
+          )
           universe_cell.add_universe_members(pending_associations)
         end
 
