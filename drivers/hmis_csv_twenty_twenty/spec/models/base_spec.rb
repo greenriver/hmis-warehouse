@@ -296,7 +296,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     @delete_later << import_path unless import_path == source_file_path
 
     loader = HmisCsvTwentyTwenty::Loader::Loader.new(
-      file_path: file_path,
+      file_path: import_path,
       data_source_id: data_source.id,
       remove_files: false,
     )

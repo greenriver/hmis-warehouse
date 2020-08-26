@@ -15,7 +15,7 @@ RSpec.describe 'Combine Enrollments', type: :model do
     FileUtils.cp_r(source_file_path, @import_path)
 
     @loader = HmisCsvTwentyTwenty::Loader::Loader.new(
-      file_path: file_path,
+      file_path: @import_path,
       data_source_id: @data_source.id,
       remove_files: false,
     )

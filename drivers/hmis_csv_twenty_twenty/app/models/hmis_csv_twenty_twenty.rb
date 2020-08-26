@@ -7,11 +7,12 @@
 module HmisCsvTwentyTwenty
   def self.matches(file_path)
     # FIXME: Check all the file headers instead of just this one file
-    # The 2020 spec added the assessments csv
-    File.exist?("#{file_path}/Assessment.csv")
+    expected_project_header = HmisCsvTwentyTwenty::Loader::Project.hmis_structure(version: '2020').keys.map { |m| m.to_s.downcase }.sort
+    project_file_header = CSV.parse_line(File.open("#{file_path}/Project.csv", &:readline).downcase).sort
+    expected_project_header == project_file_header
   end
 
-  def self.import!(file_path, data_source_id, upload, deidentified:, allowed_projects:) # rubocop:disable Lint/UnusedMethodArgument
+  def self.import!(file_path, data_source_id, upload, deidentified:)
     log = HmisCsvTwentyTwenty::ImportLog.new(
       created_at: Time.current,
       upload_id: upload.id,
@@ -20,6 +21,7 @@ module HmisCsvTwentyTwenty
     loader = HmisCsvTwentyTwenty::Loader::Loader.new(
       file_path: file_path,
       data_source_id: data_source_id,
+      deidentified: deidentified,
     )
 
     loader.load!
@@ -31,5 +33,28 @@ module HmisCsvTwentyTwenty
       files: loader.importable_files.transform_values(&:name).invert.to_a,
     )
     log
+  end
+
+  def self.enrollment_file_name
+    'Enrollment.csv'
+  end
+
+  def self.client_related_file_names
+    [
+      'Client.csv',
+      'Disabilities.csv',
+      'EmploymentEducation.csv',
+      'Enrollment.csv',
+      'EnrollmentCoC.csv',
+      'Exit.csv',
+      'HealthAndDV.csv',
+      'IncomeBenefits.csv',
+      'Services.csv',
+      'CurrentLivingSituation.csv',
+      'Assessment.csv',
+      'AssessmentQuestions.csv',
+      'AssessmentResults.csv',
+      'Event.csv',
+    ]
   end
 end

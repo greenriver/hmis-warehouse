@@ -14,5 +14,9 @@ module HmisCsvTwentyTwenty::Loader
     def self.module_scope
       'HmisCsvTwentyTwenty::Loader'
     end
+
+    def successfully_loaded?
+      status == 'loaded'
+    end
   end
 end

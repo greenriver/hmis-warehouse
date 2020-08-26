@@ -95,10 +95,10 @@ module GrdaWarehouse::Hud
     end
 
     def self.upsert_column_names(version: nil)
-      @upsert_column_names ||= hud_csv_headers(version: version) +
+      @upsert_column_names ||= (hud_csv_headers(version: version) +
         [:source_hash, :pending_date_deleted] +
         additional_upsert_columns -
-        conflict_target
+        conflict_target).uniq
     end
 
     def self.related_item_keys

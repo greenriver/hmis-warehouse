@@ -25,10 +25,13 @@ module HmisCsvTwentyTwenty::Aggregated::AggregatedImportConcern
           updated_batch << incoming
         end
       end
-      super(updated_batch, on_duplicate_key_update: {
-        conflict_target: conflict_target,
-        columns: upsert_column_names(version: '2020'),
-      })
+      super(
+        updated_batch,
+        on_duplicate_key_update: {
+          conflict_target: conflict_target,
+          columns: upsert_column_names(version: '2020'),
+        }
+      )
     end
   end
 

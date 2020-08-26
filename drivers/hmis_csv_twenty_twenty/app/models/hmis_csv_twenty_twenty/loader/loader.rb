@@ -27,12 +27,13 @@ module HmisCsvTwentyTwenty::Loader
 
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :loader_log
 
-    def initialize(
+    def initialize( # rubocop:disable Metrics/ParameterLists
       file_path: File.join('tmp', 'hmis_import'),
       data_source_id:,
       logger: Rails.logger,
       debug: true,
-      remove_files: true
+      remove_files: true,
+      deidentified: false
     )
       setup_notifier('HMIS CSV Loader 2020')
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
@@ -40,6 +41,7 @@ module HmisCsvTwentyTwenty::Loader
       @logger = logger
       @debug = debug
       @remove_files = remove_files
+      @deidentified = deidentified
       @loader_log = build_loader_log(data_source: data_source)
       importable_files.each_key do |file_name|
         setup_summary(file_name)
@@ -55,21 +57,27 @@ module HmisCsvTwentyTwenty::Loader
       begin
         ensure_file_naming
         @export = load_export_file
-        return unless export_file_valid?
+        export_valid = export_file_valid?
+        return unless export_valid
 
-        load_source_files!
+        load_source_files! if export_valid
         complete_load(status: :loaded)
-      # rescue StandardError
-      #   complete_load(status: :failed)
+      rescue StandardError
+        complete_load(status: :failed)
       ensure
         remove_import_files if @remove_files
       end
     end
 
     def import!
+      return unless @loader_log.successfully_loaded?
+
       @importer = HmisCsvTwentyTwenty::Importer::Importer.new(
         loader_id: @loader_log.id,
-        data_source_id: data_source.id, debug: @debug
+        data_source_id: data_source.id,
+        logger: @logger,
+        debug: @debug,
+        deidentified: @deidentified,
       )
 
       @importer.import!
@@ -150,7 +158,7 @@ module HmisCsvTwentyTwenty::Loader
     def load_source_files!
       @loader_log.update(status: :loading)
       importable_files.each do |file_name, klass|
-        source_file_path = File.join(@file_path, data_source.id.to_s, file_name)
+        source_file_path = File.join(@file_path, file_name)
         next unless File.file?(source_file_path)
 
         file = open_csv_file(source_file_path)
@@ -301,12 +309,8 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     def remove_import_files
-      Rails.logger.info "Removing #{import_file_path}"
-      FileUtils.rm_rf(import_file_path) if File.exist?(import_file_path)
-    end
-
-    def import_file_path
-      @import_file_path ||= File.join(@file_path, data_source.id.to_s)
+      Rails.logger.info "Removing #{@file_path}"
+      FileUtils.rm_rf(@file_path) if File.exist?(@file_path)
     end
 
     def build_loader_log(data_source:)
@@ -326,7 +330,7 @@ module HmisCsvTwentyTwenty::Loader
       return true if data_source.source_id.blank? || data_source.source_id.casecmp(source_id)&.zero?
 
       # Construct a valid file_path for add_error
-      file_path = File.join(@file_path, data_source.id.to_s, 'Export.csv')
+      file_path = File.join(@file_path, 'Export.csv')
       msg = "SourceID '#{source_id}' from Export.csv does not match '#{data_source.source_id}' specified in the data source"
 
       add_error(file_path: file_path, message: msg, line: '')
@@ -341,7 +345,7 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     private def ensure_file_naming
-      file_path = "#{@file_path}/#{data_source.id}"
+      file_path = @file_path
       Dir.each_child(file_path) do |filename|
         correct_file_name = correct_file_names.detect { |f, _| f == filename.downcase }&.last
         next unless correct_file_name.present? && correct_file_name != filename

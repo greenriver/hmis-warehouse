@@ -20,11 +20,25 @@ module HmisCsvTwentyTwenty::Aggregated
         batch << new_from(enrollment_exit, importer_log) unless project_ids.include?(enrollment_exit.enrollment.ProjectID)
 
         if batch.count >= INSERT_BATCH_SIZE
-          exit_destination.import(batch)
+          exit_destination.import(
+            batch,
+            on_duplicate_key_update: {
+              conflict_target: exit_destination.conflict_target,
+              columns: exit_destination.upsert_column_names(version: '2020'),
+            },
+          )
           batch = []
         end
       end
-      exit_destination.import(batch) if batch.present?
+      return unless batch.present?
+
+      exit_destination.import(
+        batch,
+        on_duplicate_key_update: {
+          conflict_target: exit_destination.conflict_target,
+          columns: exit_destination.upsert_column_names(version: '2020'),
+        },
+      )
     end
 
     def self.new_from(source, importer_log)

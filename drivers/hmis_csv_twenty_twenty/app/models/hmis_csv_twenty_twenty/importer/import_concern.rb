@@ -26,6 +26,10 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       row
     end
 
+    def self.upsert_column_names(version: nil)
+      @upsert_column_names ||= (hud_csv_headers(version: version) + conflict_target).uniq
+    end
+
     def self.date_columns
       hmis_columns = hmis_structure(version: '2020').keys
       content_columns.select do |c|
