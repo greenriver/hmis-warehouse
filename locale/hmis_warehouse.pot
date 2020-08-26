@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-22 15:54+0000\n"
-"PO-Revision-Date: 2020-07-22 15:54+0000\n"
+"POT-Creation-Date: 2020-08-05 18:28+0000\n"
+"PO-Revision-Date: 2020-08-05 18:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3534,6 +3534,9 @@ msgstr ""
 msgid "HIV+"
 msgstr ""
 
+msgid "HMIS Blackout"
+msgstr ""
+
 msgid "HMIS Data Sources"
 msgstr ""
 
@@ -3741,6 +3744,9 @@ msgstr ""
 msgid "Requires wheelchair accessible unit"
 msgstr ""
 
+msgid "Scan Card Services"
+msgstr ""
+
 msgid "Search"
 msgstr ""
 
@@ -3868,9 +3874,6 @@ msgid "qualifying activities"
 msgstr ""
 
 msgid "report"
-msgstr ""
-
-msgid "role"
 msgstr ""
 
 msgid "search"

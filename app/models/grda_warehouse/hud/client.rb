@@ -791,7 +791,7 @@ module GrdaWarehouse::Hud
         }
       end
       if health && patient.present? && names.detect { |name| name[:health] }.blank?
-        names << { ds: 'Health', ds_id: 'health', name: patient.name }
+        names << { ds: 'Health', ds_id: GrdaWarehouse::DataSource.health_authoritative_id, name: patient.name }
       end
       return names
     end
@@ -968,7 +968,10 @@ module GrdaWarehouse::Hud
 
     def visible_because_of_release?(user)
       user.can_view_client_window? &&
-      (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release))
+      (
+        release_valid? ||
+        ! GrdaWarehouse::Config.get(:window_access_requires_release) && data_source.visible_in_window?
+      )
     end
 
     def visible_because_of_assigned_data_source?(user)
@@ -991,14 +994,16 @@ module GrdaWarehouse::Hud
     # Define a bunch of disability methods we can use to get the response needed
     # for CAS integration
     # This generates methods like: substance_response()
-    GrdaWarehouse::Hud::Disability.disability_types.each do |hud_key, disability_type|
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
       define_method "#{disability_type}_response".to_sym do
         disability_check = "#{disability_type}?".to_sym
-        source_disabilities.detect(&disability_check).try(:response)
+        source_disabilities.response_present.
+          newest_first.
+          detect(&disability_check).try(:response)
       end
     end
 
-    GrdaWarehouse::Hud::Disability.disability_types.each do |hud_key, disability_type|
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
       define_method "#{disability_type}_response?".to_sym do
         self.send("#{disability_type}_response".to_sym) == 'Yes'
       end

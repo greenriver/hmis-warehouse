@@ -8,7 +8,6 @@ module GrdaWarehouse::Hud
   class EnrollmentCoc < Base
     include HudSharedScopes
     include ::HMIS::Structure::EnrollmentCoc
-
     attr_accessor :source_id
 
     self.table_name = 'EnrollmentCoC'

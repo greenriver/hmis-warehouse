@@ -3,10 +3,10 @@
     %p
       Report includes information between
       %strong
-        #{Date.current.beginning_of_year}
+        #{@report.start_date}
       and
       %strong
-        #{Date.current}.
+        #{@report.end_date}.
     %p
       Patients are included if they are at least 18 years old as of #{@report.start_date}, less than 65 years old as of
       #{@report.end_date.end_of_year}, and assigned to the ACO between #{@report.start_date} and #{@report.end_date}.

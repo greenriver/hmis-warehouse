@@ -3533,6 +3533,9 @@ msgstr ""
 msgid "HIV+"
 msgstr ""
 
+msgid "HMIS Blackout"
+msgstr ""
+
 msgid "HMIS Data Sources"
 msgstr ""
 
@@ -3740,6 +3743,9 @@ msgstr ""
 msgid "Requires wheelchair accessible unit"
 msgstr ""
 
+msgid "Scan Card Services"
+msgstr ""
+
 msgid "Search"
 msgstr ""
 
@@ -3867,9 +3873,6 @@ msgid "qualifying activities"
 msgstr ""
 
 msgid "report"
-msgstr ""
-
-msgid "role"
 msgstr ""
 
 msgid "search"

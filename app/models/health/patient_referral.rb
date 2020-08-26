@@ -291,6 +291,10 @@ module Health
       disenrollment_date.present? || pending_disenrollment_date.present? || removal_acknowledged? || rejected?
     end
 
+    def re_enrollment_blackout?(on_date)
+      removal_acknowledged? && on_date < disenrollment_date + 30.days
+    end
+
     def display_claimed_by_other(agencies)
       cb = display_claimed_by
       other_size = cb.select{|c| c != 'Unknown'}.size
@@ -324,7 +328,8 @@ module Health
 
     def convert_to_patient
       # nothing to do if we have a client already
-      return if client.present?
+      return true if client.present?
+
       update(effective_date: Date.current)
       # look for an existing patient
       if Health::Patient.where(medicaid_id: medicaid_id).exists?
@@ -391,23 +396,29 @@ module Health
     end
 
     def create_patient destination_client
+      linked_patient = Health::Patient.with_deleted.find_by(client_id: destination_client.id)
       patient = Health::Patient.with_deleted.where(medicaid_id: medicaid_id).first_or_initialize
-      patient.assign_attributes(
-        id_in_source: id,
-        first_name: first_name,
-        last_name: last_name,
-        birthdate: birthdate,
-        ssn: ssn,
-        client_id: destination_client.id,
-        medicaid_id: medicaid_id,
-        pilot: false,
-        # engagement_date: engagement_date,
-        data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first,
-        deleted_at: nil,
-      )
-      patient.save!
-      patient.import_epic_team_members
-      update(patient_id: patient.id)
+      if linked_patient.present? && patient.client_id != linked_patient.id
+        # The medicaid id has changed, or points to a different client!
+        raise MedicaidIdConflict, "Patient: #{patient.client_id}, linked_patient: #{linked_patient.id}"
+      else
+        patient.assign_attributes(
+          id_in_source: id,
+          first_name: first_name,
+          last_name: last_name,
+          birthdate: birthdate,
+          ssn: ssn,
+          client_id: destination_client.id,
+          medicaid_id: medicaid_id,
+          pilot: false,
+          # engagement_date: engagement_date,
+          data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first,
+          deleted_at: nil,
+        )
+        patient.save!
+        patient.import_epic_team_members
+        update(patient_id: patient.id)
+      end
     end
 
     def self.text_search(text)
@@ -482,4 +493,6 @@ module Health
       pending_disenrollment_date.present? || disenrollment_date.present?
     end
   end
+
+  class MedicaidIdConflict < StandardError ; end
 end

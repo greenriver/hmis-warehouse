@@ -78,6 +78,7 @@ module WarehouseReports::Hud
         :start,
         :end,
         coc_codes: [],
+        project_ids: [],
       )
     end
   end

@@ -26,7 +26,7 @@
 
 - validate_html = { input_html: {class: 'validate'}}
 - form_defaults = { required: false }
-
+- collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
 .container.py-4
   %h1 Form
   %section
@@ -46,13 +46,42 @@
           = f.input :random_number, as: :numeric, required: true, **validate_html
 
           %h4 Normal Select
-          = f.input :sel,  collection: ['Choice 1', 'Choice 2']
+          = f.input :sel,  collection: collection
 
           %h4 "Pretty" boolean
           = f.input :is_currently_youth, as: :pretty_boolean, wrapper: :custom_boolean, disabled: false
 
-          -# %h4 Select 2
-          -# = f.input :select2, as: :select2, collection: ['Choice 1', 'Choice 2']
+          %section.my-6.mb-8
+            %h3 Select 2 Inputs
+            %hr
+
+            %h4 Select 2 - Default
+            = f.input :select2, collection: collection, input_html: { class: :select2 }
+
+            %h4 Select 2 - Multiselect (with select all/none)
+            = f.input :select2_multi, collection: collection, input_html: { class: :select2, multiple: true }
+
+            %h4 Select 2 - CoC special behavior
+            %p.font-italic Select inputs have class name: <strong>.select2-id-when-selected</strong>
+            = f.input :select2_coc_behavior, collection: collection, input_html: { class: [:select2, 'select2-id-when-selected'] }, hint: 'Show value instead of label when selected'
+
+            %h4 Select 2 - Parenthetical
+            %p.font-italic Select inputs have class name: <strong>.select2-parenthetical-when-selected</strong>
+            = f.input :select2_parenthetical, collection: collection, input_html: { class: [:select2, 'select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
+
+            %h4 Select 2 - simple form input - Default
+            = f.input :select2_simple_form, collection: collection, as: :select_two
+
+            %h4 Select 2 - simple form input - Multiselect (with select all/none)
+            = f.input :select2_multi_simple_form, collection: collection, as: :select_two, input_html: { multiple: true }
+
+            %h4 Select 2 - simple form input - CoC special behavior
+            %p.font-italic Select inputs have class name: <strong>.select2-id-when-selected</strong>
+            = f.input :select2_coc_behavior_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-id-when-selected'] }, hint: 'Show value instead of label when selected'
+
+            %h4 Select 2 - simple form input - Parenthetical
+            %p.font-italic Select inputs have class name: <strong>.select2-parenthetical-when-selected</strong>
+            = f.input :select2_parenthetical_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
 
           %h4 Password
           = f.input :password, as: :password, required: true, **validate_html
@@ -69,7 +98,11 @@
             %h4 Submit
             = f.submit value: 'Create', class: 'btn btn-primary'
             = f.submit value: 'Cancel', class: 'btn btn-secondary'
-            = f.submit value: 'Breaking Change', class: 'btn btn-warning'
-            = f.submit value: 'Delete (Descructive)', class: 'btn btn-danger'
+            = link_to root_path, class: 'btn btn-warning ml-1' do
+              %i.icon-warning
+              Breaking Change
+            = link_to root_path, class: 'btn btn-danger ml-1' do
+              %i.icon-cross
+              Delete (Destructive)
 
           %section

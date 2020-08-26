@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_14_173200) do
+ActiveRecord::Schema.define(version: 2020_08_24_174347) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -962,6 +962,7 @@ ActiveRecord::Schema.define(version: 2020_08_14_173200) do
     t.integer "TargetPopulation"
     t.integer "ESBedType"
     t.string "coc_code_override"
+    t.date "inventory_start_date_override"
     t.index ["DateCreated"], name: "inventory_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Inventory_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "inventory_date_updated"
@@ -4933,6 +4934,7 @@ ActiveRecord::Schema.define(version: 2020_08_14_173200) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.string "SexualOrientationOther", limit: 100
+    t.date "history_generated_on"
     t.integer "demographic_id"
     t.integer "client_id"
     t.index ["EntryDate"], name: "entrydate_ret_index"

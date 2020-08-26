@@ -107,12 +107,16 @@ module GrdaWarehouse::Hud
       [:ProjectID]
     end
 
+    def computed_start_date
+      inventory_start_date_override.presence || self.InventoryStartDate
+    end
+
     # field is usually :UnitInventory or :BedInventory
     # range must be of type Filters::DateRange
     def average_daily_inventory range:, field:
       count = self[field]
       return 0 if count.blank? || count < 1
-      start_date = [range.start, self.InventoryStartDate].compact.max
+      start_date = [range.start, computed_start_date].compact.max
       end_date = [range.end, self.InventoryEndDate].compact.min
       days = (end_date - start_date).to_i
       (days.to_f * count / range.length).to_i rescue 0

@@ -12,7 +12,44 @@ module ServiceScanning
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
     belongs_to :user
 
-    attr_accessor :scanner_id, :slug
+    scope :bed_night, -> do
+      where(type: 'ServiceScanning::BedNight')
+    end
+
+    scope :outreach, -> do
+      where(type: 'ServiceScanning::Outreach')
+    end
+
+    scope :bed_nights_or_outreach, -> do
+      where(type: ['ServiceScanning::BedNight', 'ServiceScanning::Outreach'])
+    end
+
+    def self.bed_nights_or_outreach_with_extrapolated
+      bed_nights = bed_night.preload(project: :organization).group_by { |m| m.provided_at.to_date }
+      outreach = outreach.preload(project: :organization).group_by { |m| m.provided_at.to_date }
+      extrapolated_dates = Set.new
+      outreach.each_key do |date|
+        extrapolated_dates += (date.beginning_of_month..date.end_of_month).to_a
+      end
+      extrapolated_dates -= outreach.keys
+      extrapolated = extrapolated_dates.map do |date|
+        [
+          date,
+          [ServiceScanning::ExtrapolatedOutreach.new(provided_at: date.to_time)],
+        ]
+      end.to_h
+      all_dates = {}
+      (bed_nights.keys + outreach.keys + extrapolated_dates.to_a).uniq.sort.each do |date|
+        records = []
+        records += bed_nights[date] if bed_nights[date]
+        records += outreach[date] if outreach[date]
+        records += extrapolated[date] if extrapolated[date]
+        all_dates[date] = records.compact
+      end
+      all_dates
+    end
+
+    attr_accessor :scanner_id, :slug, :service_note
 
     validates_presence_of :project_id
 

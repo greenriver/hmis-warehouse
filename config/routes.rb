@@ -191,6 +191,7 @@ Rails.application.routes.draw do
     resources :youth_follow_ups, only: [:index]
     resources :youth_export, only: [:index, :show, :create, :destroy]
     resources :youth_intake_export, only: [:index, :create]
+    resources :youth_activity, only: [:index]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
@@ -626,7 +627,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :inventory, only: [:edit, :update]
+  resources :inventories, only: [:edit, :update]
   resources :geography, only: [:edit, :update]
   resources :project_cocs, only: [:edit, :update]
 

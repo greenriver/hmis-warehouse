@@ -45,7 +45,7 @@ class WarehouseReport::OverlappingCoc < WarehouseReport # rubocop:disable Style/
     ).where.not(
       id: my_enrollments.select(:id),
     ).joins(project: :project_cocs).group(
-      pc_t[:CoCCode],
+      GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce.to_sql,
     ).distinct.count(:client_id)
 
     other_client_counts

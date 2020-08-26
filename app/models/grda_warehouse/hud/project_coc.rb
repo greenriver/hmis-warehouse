@@ -47,9 +47,7 @@ module GrdaWarehouse::Hud
     end
 
     def effective_coc_code
-      return hud_coc_code if hud_coc_code.present?
-
-      self.CoCCode
+      hud_coc_code.presence || self.CoCCode
     end
 
     def self.related_item_keys
@@ -57,21 +55,26 @@ module GrdaWarehouse::Hud
     end
 
     def self.available_coc_codes
-      distinct.order(:CoCCode).pluck(:CoCCode)
+      distinct.pluck(coc_code_coalesce).reject(&:blank?).sort
     end
 
-    def self.options_for_select user:
+    def self.options_for_select(user:)
       # don't cache this, it's a class method
       viewable_by(user).
         distinct.
-        order(CoCCode: :asc).
-        pluck(:CoCCode).
+        pluck(coc_code_coalesce).
+        reject(&:blank?).
+        sort.
         map do |coc_code|
           [
             coc_code,
             coc_code,
           ]
         end
+    end
+
+    def self.coc_code_coalesce
+      cl(pc_t[:hud_coc_code], pc_t[:CoCCode])
     end
 
     # when we export, we always need to replace ProjectCoCID with the value of id

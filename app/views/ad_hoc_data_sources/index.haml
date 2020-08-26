@@ -14,19 +14,18 @@
       Add Ad-Hoc Data Source
 
 %p= paginate(@data_sources)
-.row.table-utilities
-  .col-sm-12
-    .table-responsive
-      %table.table.table-sm.table-hover
-        %thead
+.card
+  .table-responsive
+    %table.table
+      %thead
+        %tr
+          %th Name
+          %th Short Name
+          %th Last Upload
+          %th
+      %tbody
+        - @data_sources.each do |data_source|
           %tr
-            %th Name
-            %th Short Name
-            %th Last Upload
-            %th
-        %tbody
-          - @data_sources.each do |data_source|
-            %tr
-              %td= link_to data_source.name, ad_hoc_data_source_path(data_source)
-              %td= data_source.short_name
-              %td= data_source.ad_hoc_batches.maximum(:created_at)
+            %td= link_to data_source.name, ad_hoc_data_source_path(data_source)
+            %td= data_source.short_name
+            %td= data_source.ad_hoc_batches.maximum(:created_at)

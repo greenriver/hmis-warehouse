@@ -7,6 +7,7 @@
 module WarehouseReports
   class OverlappingCoCUtilizationController < ApplicationController
     include WarehouseReportAuthorization
+    include ArelHelper
 
     CACHE_VERSION = '1aa'.freeze
     CACHE_LIFETIME = 30.minutes.freeze
@@ -25,11 +26,17 @@ module WarehouseReports
 
     private def coc_shapes_with_data
       state_coc_shapes.where(
-        cocnum: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode),
+        cocnum: available_cocs,
       )
     end
 
-    include ArelHelper
+    private def available_cocs
+      project_coc_scope.available_coc_codes
+    end
+
+    private def project_coc_scope
+      GrdaWarehouse::Hud::ProjectCoc.viewable_by(current_user)
+    end
 
     private def overlap_by_coc_code
       ::WarehouseReport::OverlappingCoc.new(
