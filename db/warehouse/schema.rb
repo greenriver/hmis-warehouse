@@ -4203,6 +4203,7 @@ ActiveRecord::Schema.define(version: 2020_08_26_165713) do
   create_table "hud_report_apr_clients", force: :cascade do |t|
     t.integer "age"
     t.boolean "head_of_household"
+    t.string "head_of_household_id"
     t.boolean "parenting_youth"
     t.date "first_date_in_program"
     t.date "last_date_in_program"
@@ -4222,10 +4223,10 @@ ActiveRecord::Schema.define(version: 2020_08_26_165713) do
     t.jsonb "race"
     t.integer "ethnicity"
     t.integer "gender"
-    t.bigint "client_id"
+    t.integer "client_id"
     t.integer "data_source_id"
-    t.index ["client_id", "data_source_id"], name: "index_hud_report_apr_clients_on_client_id_and_data_source_id", unique: true
-    t.index ["client_id"], name: "index_hud_report_apr_clients_on_client_id"
+    t.integer "report_instance_id"
+    t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
   end
 
   create_table "hud_report_cells", force: :cascade do |t|

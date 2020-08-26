@@ -161,11 +161,17 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       # HoH and adult stayers in project 365 days or more
+      # "...any adult stayer present when the head of household’s stay is 365 days or more,
+      # even if that adult has not been in the household that long"
       answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B16')
-      members = universe.members.where(
-        a_t[:age].gteq(18).
-        and(a_t[:head_of_household].eq(true)).
+      hoh_ids = universe.members.where(
+        a_t[:head_of_household].eq(true).
         and(a_t[:length_of_stay].gteq(365)),
+      ).pluck(:head_of_household_id)
+      members = universe.members.where(
+        a_t[:head_of_household_id].in(hoh_ids).
+          and(a_t[:age].gteq(18).
+            or(a_t[:head_of_household].eq(true))),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
@@ -190,8 +196,11 @@ module HudApr::Generators::Shared::Fy2020
             pending_associations[client] = report_client_universe.new(
               client_id: source_client.id,
               data_source_id: source_client.data_source_id,
+              report_instance_id: @report.id,
+
               age: source_client.age_on(client_start_date),
               head_of_household: last_service_history_enrollment.head_of_household,
+              head_of_household_id: last_service_history_enrollment.head_of_household_id,
               parenting_youth: last_service_history_enrollment.parenting_youth,
               first_date_in_program: last_service_history_enrollment.first_date_in_program,
               last_date_in_program: last_service_history_enrollment.last_date_in_program,
@@ -204,7 +213,7 @@ module HudApr::Generators::Shared::Fy2020
           report_client_universe.import(
             pending_associations.values,
             on_duplicate_key_update: {
-              conflict_target: [:client_id, :data_source_id],
+              conflict_target: [:client_id, :data_source_id, :report_instance_id],
               columns: [
                 :age,
                 :head_of_household,

@@ -305,6 +305,8 @@ module HudApr::Generators::Shared::Fy2020
             pending_associations[client] = report_client_universe.new(
               client_id: source_client.id,
               data_source_id: source_client.data_source_id,
+              report_instance_id: @report.id,
+
               first_name: source_client.FirstName,
               last_name: source_client.LastName,
               name_quality: source_client.NameDataQuality,
@@ -324,7 +326,7 @@ module HudApr::Generators::Shared::Fy2020
           report_client_universe.import(
             pending_associations.values,
             on_duplicate_key_update: {
-              conflict_target: [:client_id, :data_source_id],
+              conflict_target: [:client_id, :data_source_id, :report_instance_id],
               columns: [
                 :first_name,
                 :last_name,
