@@ -7,24 +7,34 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       GrdaWarehouse::Utility.clear!
       @delete_later = []
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-      file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_test_files'
+      GrdaWarehouse::WhitelistedProjectsForClients.create(ProjectID: 'ALLOW', data_source_id: @data_source.id)
+      file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/allowed_projects'
       import(file_path, @data_source)
     end
 
     after(:all) do
       # Because we are only running the import once, we have to do our own DB and file cleanup
+      GrdaWarehouse::WhitelistedProjectsForClients.delete_all
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
       cleanup_files
     end
 
-    it 'the database will have three source clients' do
-      expect(GrdaWarehouse::Hud::Client.source.count).to eq(3)
+    it 'the database will have two source clients' do
+      expect(GrdaWarehouse::Hud::Client.source.count).to eq(2)
+    end
+
+    it 'the database will have fourteen enrollments' do
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(14)
+    end
+
+    it 'the database will not include third client' do
+      expect(GrdaWarehouse::Hud::Client.source.pluck(:PersonalID)).not_to include('C-3')
     end
 
     describe 'when importing updated enrollment data with an allowlist' do
       before(:all) do
-        file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_change_files'
+        file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/allowed_projects'
         import(file_path, @data_source)
       end
 
@@ -33,7 +43,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       end
 
       it 'it doesn\'t add additional clients' do
-        expect(GrdaWarehouse::Hud::Enrollment.where(PersonalID: '2f4b963171644a8b9902bdfe79a4b403').pluck(:HouseholdID).reject(&:blank?)).to be_empty
+        expect(GrdaWarehouse::Hud::Client.source.count).to eq(2)
       end
     end
   end # end describe enrollments
@@ -45,13 +55,12 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     FileUtils.cp_r(source_file_path, import_path)
     @delete_later << import_path unless import_path == source_file_path
 
-    loader = HmisCsvTwentyTwenty::Loader::Loader.new(
+    Importers::HmisAutoDetect::Local.new(
+      data_source_id: @data_source.id,
+      deidentified: false,
+      allowed_projects: true,
       file_path: import_path,
-      data_source_id: data_source.id,
-      remove_files: false,
-    )
-    loader.load!
-    loader.import!
+    ).import!
   end
 
   def cleanup_files

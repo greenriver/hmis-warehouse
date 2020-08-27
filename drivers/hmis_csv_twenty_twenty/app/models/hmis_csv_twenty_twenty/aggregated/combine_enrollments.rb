@@ -33,13 +33,13 @@ module HmisCsvTwentyTwenty::Aggregated
             find_each do |enrollment|
               if enrollment.exit.blank?
                 # Pass through any open enrollments
-                enrollment_batch << enrollment
+                enrollment_batch << enrollment.dup
               elsif last_enrollment.blank?
                 # First enrollment enrollment with an exit
                 active_enrollment = enrollment
               elsif enrollment.EntryDate != last_enrollment.exit.ExitDate
                 # Non-contiguous enrollment, so close the current active enrollment, and start a new one
-                enrollment_batch << active_enrollment
+                enrollment_batch << active_enrollment.dup
                 exit_batch << new_exit_from(last_enrollment.exit, active_enrollment, importer_log)
 
                 active_enrollment = enrollment
@@ -48,24 +48,22 @@ module HmisCsvTwentyTwenty::Aggregated
               last_enrollment = enrollment
             end
           # Emit the remaining in-process enrollment
-          enrollment_batch << active_enrollment
+          enrollment_batch << active_enrollment.dup
           exit_batch << new_exit_from(last_enrollment.exit, active_enrollment, importer_log)
         end
 
-        enrollment_destination.import(
-          enrollment_batch,
-          on_duplicate_key_update: {
-            conflict_target: enrollment_destination.conflict_target,
-            columns: enrollment_destination.upsert_column_names(version: '2020'),
-          },
-        )
-        exit_destination.import(
-          exit_batch,
-          on_duplicate_key_update: {
-            conflict_target: exit_destination.conflict_target,
-            columns: exit_destination.upsert_column_names(version: '2020'),
-          },
-        )
+        # These are imported into the staging table, there is no uniqueness constraint, and no existing data
+        # thus no need to check conflict targets
+        if enrollment_destination.respond_to?(:import_aggregated)
+          enrollment_destination.import_aggregated(enrollment_batch)
+        else
+          enrollment_destination.import(enrollment_batch)
+        end
+        if exit_destination.respond_to?(:import_aggregated)
+          exit_destination.import_aggregated(exit_batch)
+        else
+          exit_destination.import(exit_batch)
+        end
       end
     end
 
@@ -80,25 +78,25 @@ module HmisCsvTwentyTwenty::Aggregated
         batch << destination
 
         if batch.count >= INSERT_BATCH_SIZE
-          enrollment_destination.import(
-            batch,
-            on_duplicate_key_update: {
-              conflict_target: enrollment_destination.conflict_target,
-              columns: enrollment_destination.upsert_column_names(version: '2020'),
-            },
-          )
+          # These are imported into the staging table, there is no uniqueness constraint, and no existing data
+          # thus no need to check conflict targets
+          if enrollment_destination.respond_to?(:import_aggregated)
+            enrollment_destination.import_aggregated(batch)
+          else
+            enrollment_destination.import(batch)
+          end
           batch = []
         end
       end
       return unless batch.present?
 
-      enrollment_destination.import(
-        batch,
-        on_duplicate_key_update: {
-          conflict_target: enrollment_destination.conflict_target,
-          columns: enrollment_destination.upsert_column_names(version: '2020'),
-        },
-      )
+      # These are imported into the staging table, there is no uniqueness constraint, and no existing data
+      # thus no need to check conflict targets
+      if enrollment_destination.respond_to?(:import_aggregated)
+        enrollment_destination.import_aggregated(batch)
+      else
+        enrollment_destination.import(batch)
+      end
     end
 
     def self.new_enrollment_from(source, importer_log)

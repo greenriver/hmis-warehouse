@@ -14,7 +14,7 @@ module HmisCsvTwentyTwenty::Aggregated::AggregatedImportConcern
       source_hash != existing.source_hash
     end
 
-    def self.import(batch)
+    def self.import_aggregated(batch)
       updated_batch = []
       existing_records = find_matching_records(batch)
       batch.each do |incoming|

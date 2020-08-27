@@ -11,6 +11,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ProjectReport
     include ::HMIS::Structure::Project
+    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 

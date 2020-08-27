@@ -87,7 +87,7 @@ module Importers::HmisAutoDetect
       user = User.setup_system_user()
       @upload = GrdaWarehouse::Upload.new(
         percent_complete: 0.0,
-        data_source_id: @data_source.id,
+        data_source_id: @data_source_id,
         user_id: user.id,
       )
       add_content_to_upload_and_save(file_path: file_path)

@@ -219,72 +219,7 @@ module HmisCsvTwentyTwenty::Loader
       rescue Errno::ENOENT
         # FIXME
       end
-
-      # NOTE: move to importing
-      # # note date columns for cleanup
-      # date_columns = klass.date_columns
-      # # Reopen the file with corrected headers
-      # csv = CSV.new(read_from, headers: header, liberal_parsing: true)
-      # # since we're providing headers, skip the header row
-      # csv.drop(1).each do |row|
-      #   # remove any internal newlines
-      #   row.each { |k, v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
-      #   row = klass.clean_row_for_import(row, deidentified: @deidentified)
-
-      #   date_columns.each do |col|
-      #     next if row[col].blank? || correct_date_format?(row[col])
-
-      #     row[col] = fix_date_format(row[col])
-      #   end
-      # if row.count == header.count
-      #   row = set_useful_export_id(row: row, export_id: export_id_addition)
-      #   write_to << row
-      # else
-      #   msg = 'Line length is incorrect, unable to import:'
-      #   add_error(file_path: read_from.path, message: msg, line: row.to_s)
-      # end
-      # rescue Exception => e
-      #   message = "Failed while processing #{read_from.path}, #{e.message}:"
-      #   add_error(file_path: read_from.path, message: message, line: row.to_s)
-      # end
     end
-
-    # NOTE: move to processing
-    # # We sometimes see very odd dates, this will attempt to make them sane.
-    # # Since most dates should be not too far in the future, we'll check for anything less
-    # # Than a year out
-    # private def fix_date_format(string)
-    #   return unless string
-    #   # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
-    #   return string if /\d{4}-\d{1,2}-\d{1,2}/.match?(string)
-
-    #   # Sometimes dates come in mm-dd-yyyy and Ruby Date really doesn't like that.
-    #   if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
-    #     month, day, year = string.split('-')
-    #     return "#{year}-#{month}-#{day}"
-    #   end
-    #   # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
-    #   # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
-    #   # Since we're almost always dealing with dates that are in the past
-    #   # If the year is between 00 and next year, we'll add 2000,
-    #   # otherwise, we'll add 1900
-    #   @next_year ||= Date.current.next_year.strftime('%y').to_i
-    #   d = Date.parse(string, false) # false to not guess at century
-    #   if d.year <= @next_year
-    #     d = d.next_year(2000)
-    #   else
-    #     d = d.next_year(1900)
-    #   end
-    #   d.strftime('%Y-%m-%d')
-    # end
-
-    # private def correct_date_format?(string)
-    #   accepted_date_pattern.match?(string)
-    # end
-
-    # private def accepted_date_pattern
-    #   @accepted_date_pattern ||= /\d{4}-\d{2}-\d{2}/.freeze
-    # end
 
     # Headers need to match our style
     def clean_header_row(source_headers, klass)

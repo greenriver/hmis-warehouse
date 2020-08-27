@@ -260,8 +260,6 @@ module HmisCsvTwentyTwenty::Importer
       return if klass.hud_key == :ExportID
 
       log("Updating #{klass.name}")
-      # NOTE, we may need to incorporate with_deleted if we run into duplicate key problems
-      # FIXME: This needs adjustment for Client, Project, Organization, since those are never set for pending deleted.
 
       existing = klass.existing_destination_data(
         data_source_id: data_source.id,
@@ -501,14 +499,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def log(message)
-      # Slack really doesn't like it when you send too many message in a row
-      sleep(1)
-      begin
-        @notifier&.ping message
-      rescue Slack::Notifier::APIError
-        sleep(3)
-        logger.error 'Failed to send slack'
-      end
+      @notifier&.ping message
       logger.info message if @debug
     end
 

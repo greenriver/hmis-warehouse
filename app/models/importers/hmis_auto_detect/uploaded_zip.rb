@@ -99,14 +99,18 @@ module Importers::HmisAutoDetect
           log "Removing un-white-listed rows from #{filename}"
           file = File.join(@local_path, filename)
           clean_file = File.join(@local_path, "clean_#{filename}")
-          CSV.open(clean_file, 'wb') do |csv|
-            line = File.open(file).readline
-            # Make sure header is in our format
-            csv << CSV.parse(line)[0].map {|k| k.downcase.to_sym}
-            CSV.foreach(file, headers: true) do |row|
-              # only keep row if PersonalID is in allowed clients
-              csv << row if @allowed_personal_ids.include?(row['PersonalID'])
+          begin
+            CSV.open(clean_file, 'wb') do |csv|
+              line = File.open(file).readline
+              # Make sure header is in our format
+              csv << CSV.parse(line)[0].map {|k| k.downcase.to_sym}
+              CSV.foreach(file, headers: true) do |row|
+                # only keep row if PersonalID is in allowed clients
+                csv << row if @allowed_personal_ids.include?(row['PersonalID'])
+              end
             end
+          rescue CSV::MalformedCSVError => e
+            raise e unless CSV.read(clean_file).count == 1
           end
           FileUtils.mv(clean_file, file)
         end
