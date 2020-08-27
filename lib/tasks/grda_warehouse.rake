@@ -123,56 +123,21 @@ namespace :grda_warehouse do
     GrdaWarehouse::Grades::Base.install_default_grades!
   end
 
-  desc "SFTP Import HUD Zips from all Data Sources"
-  task :import_data_sources, [:hmis_version] => [:environment] do |t, args|
-    hmis_version = args.hmis_version || 'hmis_51'
-    case hmis_version
-    when 'hmis_611'
-      Importers::HMISSixOneOne::Sftp.available_connections.each do |key, conf|
-        ds = GrdaWarehouse::DataSource.find_by_short_name(key)
-        options = {
-          data_source_id: ds.id,
-          host: conf['host'],
-          username: conf['username'],
-          password: conf['password'],
-          path: conf['path'],
-        }
-        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HMISSixOneOne::Sftp', options: options)
-      end
-    end
-  end
-
   desc "S3 Import HUD Zips from all Data Sources"
-  task :import_data_sources_s3, [:hmis_version] => [:environment] do |t, args|
-    hmis_version = args.hmis_version || 'hmis_2020'
+  task import_data_sources_s3: [:environment, "log:info_to_stdout"] do
+    Importers::HmisAutoDetect::S3.available_connections.each do |conf|
+      next unless conf.active?
 
-    case hmis_version
-    when 'hmis_611'
-      Importers::HMISSixOneOne::S3.available_connections.each do |conf|
-        options = {
-          data_source_id: conf.data_source_id,
-          region: conf.s3_region,
-          access_key_id: conf.s3_access_key_id,
-          secret_access_key: conf.s3_secret_access_key,
-          bucket_name: conf.s3_bucket_name,
-          path: conf.s3_path,
-          file_password: conf.zip_file_password
-        }
-        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HMISSixOneOne::S3', options: options)
-      end
-    when 'hmis_2020'
-      Importers::HmisTwentyTwenty::S3.available_connections.each do |conf|
-        options = {
-          data_source_id: conf.data_source_id,
-          region: conf.s3_region,
-          access_key_id: conf.s3_access_key_id,
-          secret_access_key: conf.s3_secret_access_key,
-          bucket_name: conf.s3_bucket_name,
-          path: conf.s3_path,
-          file_password: conf.zip_file_password
-        }
-        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisTwentyTwenty::S3', options: options)
-      end
+      options = {
+        data_source_id: conf.data_source_id,
+        region: conf.s3_region,
+        access_key_id: conf.s3_access_key_id,
+        secret_access_key: conf.s3_secret_access_key,
+        bucket_name: conf.s3_bucket_name,
+        path: conf.s3_path,
+        file_password: conf.zip_file_password
+      }
+      Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisAutoDetect::S3', options: options)
     end
   end
 

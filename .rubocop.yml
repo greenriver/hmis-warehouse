@@ -35,6 +35,7 @@ AllCops:
     - 'script/**/*'
     - 'bin/{rails,rake}'
     - 'app/assets/**/*'
+    - 'bin/db_prep'
 
 # We don't care about method length, since we check method cyclomatic
 # complexity.

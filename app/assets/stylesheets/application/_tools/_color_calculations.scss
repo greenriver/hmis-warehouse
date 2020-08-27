@@ -45,7 +45,7 @@
     @for $h from 1 through $n_hues {
       $i: ($s - 1 ) * $n_hues + $h;
       .#{ $scope }-#{ map-get($color-lookup, $i) } {
-        $color: hsl( ($h / $n_hues * 360) % 360, (50% - $s * 10), 75%);
+        $color: hsl( ($h / $n_hues * 360) % 360, (50% - $s * 10), 55%);
         background-color: $color;
         color: choose-contrast-color($color);
       }

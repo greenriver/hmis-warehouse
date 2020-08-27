@@ -23,8 +23,9 @@ module Importers::HmisAutoDetect
     end
 
     def import!
+      upload_id = @upload&.id || 0
       import_log = GrdaWarehouse::ImportLog.new(
-        upload_id: @upload.id,
+        upload_id: upload_id,
         data_source_id: @data_source_id,
         summary: {},
         import_errors: {},
@@ -52,14 +53,7 @@ module Importers::HmisAutoDetect
     end
 
     def log(message)
-      # Slack really doesn't like it when you send too many message in a row
-      sleep(1)
-      begin
-        @notifier.ping(message) if @notifier
-      rescue Slack::Notifier::APIError => e
-        sleep(3)
-        Rails.logger.error "Failed to send slack"
-      end
+      @notifier.ping(message) if @notifier
       Rails.logger.info(message)
     end
 

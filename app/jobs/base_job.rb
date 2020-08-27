@@ -77,12 +77,7 @@ class BaseJob < ApplicationJob
     else
       "*#{self.class.name}* `FAILED` with the following error: \n ```#{exception.inspect}```"
     end
-    sleep(1)
-    begin
-      @notifier.ping(msg) if @send_notifications
-    rescue Slack::Notifier::APIError
-      sleep(3)
-    end
+    @notifier.ping(msg) if @send_notifications
     ExceptionNotifier.notify_exception(exception) if @send_notifications
   end
 

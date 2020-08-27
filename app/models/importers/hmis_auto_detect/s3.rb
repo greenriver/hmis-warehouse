@@ -45,7 +45,7 @@ module Importers::HmisAutoDetect
     end
 
     def self.available_connections
-      GrdaWarehouse::HmisImportConfig.all.select do |conn|
+      GrdaWarehouse::HmisImportConfig.active.select do |conn|
         conn.s3_access_key_id.present? && conn.data_source.import_paused == false
       end
     end
