@@ -14,7 +14,7 @@ module GrdaWarehouse::Hud
     self.table_name = :CurrentLivingSituation
     self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :current_living_situation, optional: true
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :current_living_situations, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs
     has_one :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_current_living_situations
     has_one :client, through: :enrollment, inverse_of: :current_living_situations
