@@ -25,7 +25,7 @@ end
 
 # Reports
 def report_list
-  {
+  r_list = {
     'Operational' => [
       {
         url: 'warehouse_reports/chronic',
@@ -595,14 +595,25 @@ def report_list
       },
     ],
   }
+  if RailsDrivers.loaded.include?(:service_scanning)
+    r_list['Operational'] << {
+      url: 'service_scanning/warehouse_reports/scanned_services',
+      name: _('Scanned Services'),
+      description: 'Pull a list of services added within a date range',
+      limitable: true,
+    }
+  end
+  r_list
 end
 
 def cleanup_unused_reports
-  [
+  cleanup = [
     'warehouse_reports/veteran_details/actives',
     'warehouse_reports/veteran_details/entries',
     'warehouse_reports/veteran_details/exits',
-  ].each do |url|
+  ]
+  cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
+  cleanup.each do |url|
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
   end
 end

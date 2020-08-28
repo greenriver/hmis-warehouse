@@ -11,6 +11,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ProjectReport
     include ::HMIS::Structure::Project
+    include RailsDrivers::Extensions
 
     self.table_name = :Project
     self.hud_key = :ProjectID
@@ -706,6 +707,7 @@ module GrdaWarehouse::Hud
 
         project_scope.
           joins(:organization, :data_source).
+          preload(:organization, :data_source).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).
           each do |project|
             org_name = project.organization.OrganizationName
