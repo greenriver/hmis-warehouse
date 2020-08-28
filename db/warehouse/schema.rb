@@ -372,7 +372,7 @@ ActiveRecord::Schema.define(version: 2020_08_27_224602) do
     t.datetime "pending_date_deleted"
     t.string "source_hash"
     t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_cur_id_ds_id"
-    t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_sit_id_ds_id", unique: true, where: "(\"DateDeleted\" IS NULL)"
+    t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_sit_id_ds_id", unique: true
     t.index ["PersonalID", "EnrollmentID", "data_source_id", "CurrentLivingSitID"], name: "cur_liv_sit_p_id_en_id_ds_id_cur_id"
     t.index ["pending_date_deleted"], name: "index_CurrentLivingSituation_on_pending_date_deleted"
   end
@@ -634,8 +634,7 @@ ActiveRecord::Schema.define(version: 2020_08_27_224602) do
     t.integer "data_source_id"
     t.datetime "pending_date_deleted"
     t.string "source_hash"
-    t.index ["EventID", "data_source_id"], name: "event_ev_id_ds_id"
-    t.index ["EventID", "data_source_id"], name: "index_Event_on_EventID_and_data_source_id", unique: true
+    t.index ["EventID", "data_source_id"], name: "ev_ev_id_ds_id", unique: true
     t.index ["data_source_id", "PersonalID", "EnrollmentID", "EventID"], name: "event_ds_id_p_id_en_id_ev_id"
     t.index ["pending_date_deleted"], name: "index_Event_on_pending_date_deleted"
   end
