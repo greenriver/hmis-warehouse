@@ -12,6 +12,22 @@ Date:  4/20/2020
 					Sections 6.1-6.18 - add set of Step column to all insert and update statements
 	   5/28/2020 -  section 6.5 - add host home (HMIS value = 32) to living situation case statements
 	   6/18/2020 - 6.4.1 and 6.4.2 -- correct RRH/PSHMoveIn values from 10 and 20 to 1 and 2
+				   6.9.3 - add note to explain a sequence difference between code and specs
+							and correct criteria for setting Stat = 5 and ReturnTime = -1
+				   6.10 - correct criteria for RRHPreMoveInDays to include ExitDate instead of 
+				          stopping at ExitDate - 1 day
+				   6.18 - remove 2 extraneous < signs (was <= 0, but < 0 is impossible)
+						  correct SystemPath 4 criteria from RRHStatus >= 2 to RRHStatus >= 11
+	   7/9/2020 -  6.12.1 - Set LastInactive to 9/30/2012 if the calculated date is earlier
+				   6.12.2.b - Only use bednights that are valid (fall during the period of the enrollment)
+						  and relevant to LastInactive (>= 10/1/2012)
+	   8/11/2020 - 6.13.1 - Include days in Safe Haven projects for sysStatus = 4
+	   8/13/2020 - 6.9.2 - correct prior.ExitDate comparisons to FirstEntry 
+				   6.11 - add join to tlsa_Household on HoHID and HHType 
+				   6.12.2(a and b) - delete PSHMoveIn <> 2 from WHERE clause
+				   6.12.2.a - correct TrackingMethod <> 3 to (ProjectType <> 1 or TrackingMethod = 0)
+	   8/19/2020 - 6.9.2 - per specs, correct so prior.ExitDate >= dateadd (dd,-730,hh.FirstEntry) (was just >) 
+
 
 	6.1 Get Unique Households and Population Identifiers for tlsa_Household
 */
@@ -573,8 +589,8 @@ Date:  4/20/2020
 	set hh.StatEnrollmentID = 
 	  (select top 1 prior.EnrollmentID
 		from tlsa_HHID prior 
-		inner join lsa_Report rpt on rpt.ReportStart > prior.ExitDate
-		where prior.ExitDate >= dateadd (dd,-730,hh.FirstEntry) 
+		where prior.ExitDate >= dateadd (dd,-730,hh.FirstEntry)
+			and prior.ExitDate < hh.FirstEntry
 			and prior.HoHID = hh.HoHID and prior.ActiveHHType = hh.HHType
 		order by prior.ExitDate desc)
 		, hh.Step = '6.9.2'
@@ -585,14 +601,18 @@ Date:  4/20/2020
 			when PSHStatus in (11,12) or RRHStatus in (11,12) or ESTStatus in (11,12)
 				then 5
 			when hh.StatEnrollmentID is null then 1
-			when dateadd(dd, 15, prior.ExitDate) >= hh.FirstEntry then 5 
+			--correction to line below from >= to just >
+			when dateadd(dd, 15, prior.ExitDate) > hh.FirstEntry then 5 
 			when prior.ExitDest between 1 and 6 then 2
 			when prior.ExitDest between 7 and 14 then 3
 			else 4 end  
+		--Note:  ReturnTime is set to the actual number of days here and grouped into LSA categories
+		--       in 6.19 like other counts of days
 		, hh.ReturnTime = case 
 			when PSHStatus in (11,12) or RRHStatus in (11,12) or ESTStatus in (11,12) 
 				or hh.StatEnrollmentID is null 
-				or dateadd(dd, 15, prior.ExitDate) >= hh.FirstEntry then -1
+				-- The line below has been corrected from >= to just >  
+				or dateadd(dd, 15, prior.ExitDate) > hh.FirstEntry then -1
 			else datediff(dd, prior.ExitDate, hh.FirstEntry) end
 		, hh.Step = '6.9.3'
 	from tlsa_Household hh
@@ -609,7 +629,8 @@ Date:  4/20/2020
 			inner join ref_Calendar cal on cal.theDate >= hhid.EntryDate
 				and cal.theDate <= coalesce(
 						  dateadd(dd, -1, hhid.MoveInDate)
-						, dateadd(dd, -1, hhid.ExitDate)
+						-- line below corrected to use the ExitDate and not ExitDate - 1
+						, hhid.ExitDate
 						, rpt.ReportEnd)
 			where hhid.ProjectType = 13 
 				and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
@@ -629,6 +650,7 @@ Date:  4/20/2020
 				else 2 end)
 		, '6.11'
 	from tlsa_HHID hhid
+	inner join tlsa_Household hh on hh.HoHID = hhid.HoHID and hh.HHType = hhid.ActiveHHType
 	inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
 	inner join ref_Calendar cal on cal.theDate >= hhid.MoveInDate
 		and (cal.theDate < hhid.ExitDate 
@@ -643,7 +665,9 @@ Date:  4/20/2020
 	--  and for any household where Stat = 5 but there is no enrollment for the HoHID/HHType
 	--  active in the six days prior to First Entry. 
 	update hh
-	set hh.LastInactive = dateadd(dd, -1, hh.FirstEntry)
+	set hh.LastInactive = case 
+			when dateadd(dd, -1, hh.FirstEntry) < '9/30/2012' then '9/30/2012'
+			else dateadd(dd, -1, hh.FirstEntry) end
 		, hh.Step = '6.12.1'
 	from tlsa_Household hh 
 	where hh.Stat <> 5 
@@ -664,8 +688,7 @@ Date:  4/20/2020
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
 		and (hhid.Active = 1 or hhid.ExitDate < rpt.ReportStart) 
 	where hh.LastInactive is null 
-		and hh.PSHMoveIn <> 2
-		and hhid.TrackingMethod <> 3
+		and (hhid.ProjectType <> 1 or hhid.TrackingMethod = 0)
 	union
 	select distinct hh.HoHID, hh.HHType, 1
 		, bn.DateProvided	
@@ -676,11 +699,11 @@ Date:  4/20/2020
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
 		and (hhid.Active = 1 or hhid.ExitDate < rpt.ReportStart) 
 	inner join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID 
-		and bn.DateProvided <= rpt.ReportEnd
+		and bn.DateProvided between '10/1/2012' and rpt.ReportEnd
+		and bn.DateProvided >= hhid.EntryDate
+		and (bn.DateProvided < hhid.ExitDate or hhid.ExitDate is null)
 		-- 5/14/2020 correct "DateDeleted = 0" to "DateDeleted is null"
 		and bn.RecordType = 200 and bn.DateDeleted is null
-	where hh.LastInactive is null 
-		and hh.PSHMoveIn <> 2
 		and hhid.TrackingMethod = 3
 		
 	update hh
@@ -705,7 +728,7 @@ Date:  4/20/2020
 /*
 	6.13 Get Dates of Other System Use
 */
-	--Transitional Housing and Entry/Exit ES (sysStatus = 3 and 4)
+	--Transitional Housing (sysStatus = 3) and SafeHaven/Entry-Exit ES (sysStatus = 4)
 	insert into sys_Time (HoHID, HHType, sysDate, sysStatus, Step)
 	select distinct hh.HoHID, hh.HHType, cal.theDate
 		, min(case when hhid.ProjectType = 2 then 3 else 4 end)
@@ -720,7 +743,7 @@ Date:  4/20/2020
 	left outer join sys_Time housed on housed.HoHID = hh.HoHID and housed.HHType = hh.HHType
 		and housed.sysDate = cal.theDate
 	where housed.sysDate is null 
-		and (hhid.ProjectType = 2 or (hhid.ProjectType = 1 and hhid.TrackingMethod = 0))
+		and (hhid.ProjectType in (2,8) or (hhid.ProjectType = 1 and hhid.TrackingMethod = 0))
 	group by hh.HoHID, hh.HHType, cal.theDate
 
 	--Emergency Shelter (Night-by-Night) (sysStatus = 4)
@@ -938,13 +961,14 @@ update hh
 set hh.SystemPath = 
 	case when hh.ESTStatus not in (21,22) and hh.RRHStatus not in (21,22) and hh.PSHMoveIn = 2 
 		then -1
-	when hh.ESDays >= 1 and hh.THDays <= 0 and hh.RRHStatus = 0 and hh.PSHStatus = 0 
+	when hh.ESDays >= 1 and hh.THDays = 0 and hh.RRHStatus = 0 and hh.PSHStatus = 0 
 		then 1
 	when hh.ESDays = 0 and hh.THDays >= 1 and hh.RRHStatus = 0 and hh.PSHStatus = 0 
 		then 2
 	when hh.ESDays >= 1 and hh.THDays >= 1 and hh.RRHStatus = 0 and hh.PSHStatus = 0 
 		then 3
-	when hh.ESTStatus = 0 and hh.RRHStatus >= 2 and hh.PSHStatus = 0 
+	-- correction from hh.RRHStatus >= 2 to hh.RRHStatus >= 11
+	when hh.ESTStatus = 0 and hh.RRHStatus >= 11 and hh.PSHStatus = 0 
 		then 4
 	when hh.ESDays >= 1 and hh.THDays = 0 and hh.RRHStatus >= 2 and hh.PSHStatus = 0 
 		then 5
@@ -958,7 +982,7 @@ set hh.SystemPath =
 		then 9
 	when hh.ESTStatus in (21,22) and hh.ESDays >= 1 and hh.THDays = 0 and hh.RRHStatus = 0 and hh.PSHStatus >= 11 and hh.PSHMoveIn = 2
 		then 9
-	when hh.ESDays >= 1 and hh.THDays <= 0 and hh.RRHStatus >= 2 and hh.PSHStatus >= 11 and hh.PSHMoveIn <> 2
+	when hh.ESDays >= 1 and hh.THDays = 0 and hh.RRHStatus >= 2 and hh.PSHStatus >= 11 and hh.PSHMoveIn <> 2
 		then 10
 	when hh.ESTStatus in (21,22) and hh.ESDays >= 1 and hh.THDays = 0 and hh.RRHStatus in (21,22) and hh.PSHStatus >= 11 and hh.PSHMoveIn = 2
 		then 10

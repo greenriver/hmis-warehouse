@@ -7,16 +7,19 @@
       %p.alert.alert-danger
         This Ad-Hoc Data Source is inactive.
     = simple_format(@data_source.description)
-  .col-sm-4.text-right.mb-4
-    = link_to new_ad_hoc_data_source_upload_path(@data_source), class: 'btn btn-primary mt-4' do
-      %span.icon-plus
-      Upload Batch
-    = link_to edit_ad_hoc_data_source_path(@data_source), class: 'btn btn-secondary mt-4 ml-2' do
-      %span.icon-pencil
-      Edit Data Source
-    = link_to download_ad_hoc_data_sources_path(), class: 'btn btn-secondary mt-4 ml-2' do
-      %span.icon-download2
-      Download Template
+  .col-sm-4
+    .text-right
+      = link_to edit_ad_hoc_data_source_path(@data_source), class: 'btn btn-secondary btn-sm mt-4 ml-auto' do
+        %span.icon-pencil
+        Edit Data Source
+    .text-right
+      = link_to download_ad_hoc_data_sources_path(), class: 'btn btn-secondary btn-sm mt-4 ml-auto' do
+        %span.icon-download2
+        Download Template
+    .text-right
+      = link_to new_ad_hoc_data_source_upload_path(@data_source), class: 'btn btn-primary btn-sm mt-4' do
+        %span.icon-plus
+        Upload Batch
 
 %p= paginate(@uploads)
 .row.table-utilities
@@ -29,7 +32,7 @@
             %th Uploaded On
             %th Uploaded By
             %th Status
-            %th Download Original
+            %th.text-center Download Original
             %th
         %tbody
           - @uploads.each do |upload|
@@ -38,8 +41,8 @@
               %td= upload.created_at.to_date
               %td= upload.user&.name
               %td= upload.status
-              %td
-                = link_to download_ad_hoc_data_source_upload_path(@data_source, upload) do
+              %td.text-center
+                = link_to download_ad_hoc_data_source_upload_path(@data_source, upload), class: 'btn btn-secondary btn-sm btn-icon-only' do
                   %i.icon-download2
               %td
                 = link_to ad_hoc_data_source_upload_path(@data_source, upload), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only', data: { confirm: 'Are you sure you want to delete this upload?' } do

@@ -66,6 +66,8 @@ module EtoApi
       sso = _api_post_json(
         "#{@endpoints[:security]}/SSOAuthenticate/", @credentials, content_type: :json, accept: :json
       )
+      raise('not connected') if sso == false
+
       (sso_result = sso['SSOAuthenticateResult']) || raise('cant sso')
       @auth_token = sso_result['SSOAuthToken']
       @tz_offset = sso_result['TimeZoneOffset'].to_i.to_s # null => 0

@@ -1,6 +1,6 @@
 - if @files.any?
   %h2 Previous 834 Files
-  %table.table.table-hover
+  %table.table
     %thead
       %tr
         %th Upload Date
@@ -12,13 +12,14 @@
     %tbody
       - @files.each do |file|
         %tr
+          - label = file.status == 'processing' ? 'processing...' : ''
           %td= link_to file.created_at, warehouse_reports_health_enrollment_path(file)
           %td
             - if file.status == 'processing'
               = render 'spinner'
             - else
-              = checkmark_or_x(file.status == 'complete')
-          %td= link_to (file.new_patients || 'processing...'), review_admin_health_patient_referrals_path
+              = checkmark_or_x(file.status == 'complete', file.status)
+          %td= link_to (file.new_patients || label), review_admin_health_patient_referrals_path
           %td= file.updated_patients
           %td= file.returning_patients
-          %td= link_to (file.disenrolled_patients || 'processing...'), disenrolled_admin_health_patient_referrals_path
+          %td= link_to (file.disenrolled_patients || label), disenrolled_admin_health_patient_referrals_path

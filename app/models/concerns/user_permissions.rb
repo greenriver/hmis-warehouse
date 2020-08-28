@@ -61,7 +61,7 @@ module UserPermissions
 
     # You must have permission to upload, and access to at least one Data Source
     def can_see_raw_hmis_data
-      can_upload_hud_zips? && GrdaWarehouse::DataSource.editable_by(self).exists?
+      @can_see_raw_hmis_data ||= can_upload_hud_zips? && GrdaWarehouse::DataSource.editable_by(self).exists?
     end
 
     def can_receive_secure_files
@@ -121,7 +121,7 @@ module UserPermissions
     end
 
     def can_edit_window_client_notes_or_own_window_client_notes
-      can_edit_window_client_notes? || can_see_own_window_client_notes? || can_edit_client_notes?
+      can_edit_window_client_notes? || can_see_own_window_client_notes? || can_edit_client_notes? || can_view_all_window_notes?
     end
 
     def can_view_any_reports

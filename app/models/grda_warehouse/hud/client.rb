@@ -7,6 +7,7 @@
 require 'restclient'
 module GrdaWarehouse::Hud
   class Client < Base
+    self.primary_key = :id
     include RailsDrivers::Extensions
     include Rails.application.routes.url_helpers
     include RandomScope
@@ -151,6 +152,7 @@ module GrdaWarehouse::Hud
     has_many :window_notes, class_name: 'GrdaWarehouse::ClientNotes::WindowNote'
     has_many :anomaly_notes, class_name: 'GrdaWarehouse::ClientNotes::AnomalyNote'
     has_many :cohort_notes, class_name: 'GrdaWarehouse::ClientNotes::CohortNote'
+    has_many :alert_notes, class_name: 'GrdaWarehouse::ClientNotes::Alert'
 
     has_many :anomalies, class_name: 'GrdaWarehouse::Anomaly'
     has_many :cas_houseds, class_name: 'GrdaWarehouse::CasHoused'
@@ -473,6 +475,28 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # should always return a destination client, but some visibility
+    # is governed by the source client, some by the destination
+    def self.destination_client_viewable_by_user(client_id:, user:)
+      destination.where(
+        Arel.sql(
+          arel_table[:id].in(visible_by_source(id: client_id, user: user)).
+          or(arel_table[:id].in(visible_by_destination(id: client_id, user: user))).to_sql,
+        ),
+      )
+    end
+
+    def self.visible_by_source(id:, user:)
+      query = GrdaWarehouse::WarehouseClient.joins(:source).merge(viewable_by(user))
+      query = query.where(destination_id: id) if id.present?
+      Arel.sql(query.select(:destination_id).to_sql)
+    end
+
+    def self.visible_by_destination(id:, user:)
+      query = viewable_by(user)
+      query = query.where(id: id) if id.present?
+      Arel.sql(query.select(:id).to_sql)
+    end
 
     scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
       if coc_codes.present?
@@ -765,7 +789,7 @@ module GrdaWarehouse::Hud
         }
       end
       if health && patient.present? && names.detect { |name| name[:health] }.blank?
-        names << { ds: 'Health', ds_id: 'health', name: patient.name }
+        names << { ds: 'Health', ds_id: GrdaWarehouse::DataSource.health_authoritative_id, name: patient.name }
       end
       return names
     end
@@ -934,15 +958,19 @@ module GrdaWarehouse::Hud
     end
 
     def visible_because_of_permission?(user)
-        user.can_view_clients? ||
-        visible_because_of_release?(user) ||
-        visible_because_of_assigned_data_source?(user) ||
-        visible_because_of_coc_association?(user)
+      user.can_view_clients? ||
+      visible_because_of_release?(user) ||
+      visible_because_of_assigned_data_source?(user) ||
+      visible_because_of_coc_association?(user)
     end
 
     def visible_because_of_release?(user)
+      any_window_clients = source_clients.map { |sc| sc.data_source.visible_in_window? }.any?
       user.can_view_client_window? &&
-      (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release))
+      (
+        release_valid? ||
+        ! GrdaWarehouse::Config.get(:window_access_requires_release) && any_window_clients
+      )
     end
 
     def visible_because_of_assigned_data_source?(user)
@@ -965,14 +993,16 @@ module GrdaWarehouse::Hud
     # Define a bunch of disability methods we can use to get the response needed
     # for CAS integration
     # This generates methods like: substance_response()
-    GrdaWarehouse::Hud::Disability.disability_types.each do |hud_key, disability_type|
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
       define_method "#{disability_type}_response".to_sym do
         disability_check = "#{disability_type}?".to_sym
-        source_disabilities.detect(&disability_check).try(:response)
+        source_disabilities.response_present.
+          newest_first.
+          detect(&disability_check).try(:response)
       end
     end
 
-    GrdaWarehouse::Hud::Disability.disability_types.each do |hud_key, disability_type|
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
       define_method "#{disability_type}_response?".to_sym do
         self.send("#{disability_type}_response".to_sym) == 'Yes'
       end
@@ -1578,7 +1608,7 @@ module GrdaWarehouse::Hud
       # if we think we're updating, but we've been at it for more than 15 minutes
       # something probably got stuck
       if updating
-        updating = api_update_started_at > 15.minutes.ago
+        updating = api_update_started_at < 15.minutes.ago
       end
       {
         started_at: api_update_started_at,

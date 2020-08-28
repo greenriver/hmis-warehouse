@@ -8,7 +8,7 @@
       .col-3
         = f.input :project_id, collection: @report.available_projects(), as: :grouped_select, group_method: :last, label: 'Project', include_blank: false, input_html: {class: 'select2'}
       .col-3
-        = f.input :sub_population, collection: @report.available_sub_populations, include_blank: false, input_html: {class: 'select2'}
+        = f.input :sub_population, collection: @report.class.available_sub_populations, include_blank: false, input_html: {class: 'select2'}
 
   - content_for :filter_actions do
     .row

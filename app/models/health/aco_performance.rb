@@ -8,17 +8,30 @@ module Health
   class AcoPerformance
     include ArelHelper
 
+    attr_reader :start_date, :end_date
+
     attr_accessor :range
     def initialize(aco)
       @aco = aco
+      @start_date = Date.new(Date.current.prev_year.year, 9, 2) # MassHealth measurement period start
+      @end_date = Date.new(Date.current.year, 9, 1) # MassHealth measurement period end
     end
 
     def patient_referrals
-      @patient_referrals ||= referral_scope.group(:patient_id).minimum(:enrollment_start_date)
+      @patient_referrals ||= referral_scope.
+        group(:patient_id).
+        minimum(:enrollment_start_date).
+        select { |_id, date| date >= @start_date && date <= @end_date }
     end
 
     def patients
-      Health::Patient.where(id: patient_referrals.keys).order(:last_name, :first_name)
+      Health::Patient.
+        where(id: patient_referrals.keys).
+        order(:last_name, :first_name).
+        select do |patient|
+          patient.age(on_date: @end_date.end_of_year) <= 64 &&
+            patient.age(on_date: @start_date) >= 18
+        end
     end
 
     def qa_signature_dates

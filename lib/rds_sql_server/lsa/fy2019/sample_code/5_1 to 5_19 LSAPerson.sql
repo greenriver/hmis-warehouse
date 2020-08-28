@@ -18,7 +18,16 @@ Date:  4/7/2020
 						and MoveInDate are on ReportStart for AHARRRH, AdultRRH, AHARHoHRRH.
 		6/18/2020 - 5.17.2 - correct step number (was 5.17.1)
 					5.18.8 - correct to set values for AC3PlusEST/RRH/PSH to 0 or 1 (was -1 or 1)
-
+		7/2/2020 -  5.14.2, 5.15.2, 5.16.2 -- add requirement that MoveInDate is not null in order to count
+						RRH households for AHAR
+				 -  5.15.1-5.15.3 - remove extraneous check for CO HHType when setting AHAR Adult identifiers
+		7/30/2020 - 5.8.3 - correct join criteria for tlsa_Enrollment chn to include CH = 1
+					5.8.3 and 5.8.4 - correct join criteria to ref_Calendar to use tlsa_Enrollment.EntryDate vs hmis_Enrollment
+					5.8.4 - correct criteria to include LastActive in ESSHStreetDates (was excluding)
+		8/11/2020 - 5.8.3-4 - rewrite to correspond more closely to the way the business logic is expressed in the specs.
+						All dates are inserted in 5.8.3; 5.8.4 has been deleted.
+		8/13/2020 - 5.7 - Exclude RRH ExitDates from count of ESSHStreetDates if MoveInDate = ExitDate (GitHub #436)
+				
 	5.1 Get Active HMIS HouseholdIDs
 */
 
@@ -183,8 +192,10 @@ Date:  4/7/2020
 	inner join ref_Calendar cal on cal.theDate >=
 			case when chn.ProjectType in (3,13) then chn.MoveInDate  
 				else chn.EntryDate end
-		and (cal.theDate < chn.ExitDate or chn.ExitDate is null)
-		and cal.theDate between lp.CHStart and lp.LastActive
+		and ((cal.theDate < chn.ExitDate 
+			or (chn.ProjectType = 13 and chn.MoveInDate = chn.ExitDate and cal.theDate = chn.MoveInDate)
+			or chn.ExitDate is null))
+			and cal.theDate between lp.CHStart and lp.LastActive
 	where chn.ProjectType in (2,3,13)
 
 /*
@@ -231,48 +242,41 @@ Date:  4/7/2020
 	where chn.ProjectType = 1 and chn.TrackingMethod = 3 and chx.excludeDate is null
 		and chi.ESSHStreetDate is null
 
-	--ES/SH/Street dates from 3.917 DateToStreetESSH to the day prior to 
-	--  EntryDates > CHStart.
+	--ES/SH/Street dates from 3.917 DateToStreetESSH when EntryDates > CHStart.
+
 	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
 	select distinct lp.PersonalID, cal.theDate, '5.8.3'
 	from tlsa_Person lp
 		inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID
-			and chn.EntryDate > lp.CHStart
+			and chn.EntryDate > lp.CHStart and chn.CH = 1
 		inner join hmis_Enrollment hn on hn.EnrollmentID = chn.EnrollmentID
 		inner join ref_Calendar cal on 
 			cal.theDate >= hn.DateToStreetESSH
 			and cal.theDate between lp.CHStart and lp.LastActive
-			and cal.theDate < hn.EntryDate
 		left outer join ch_Exclude chx on chx.excludeDate = cal.theDate
 			and chx.PersonalID = chn.PersonalID
 		left outer join ch_Include chi on chi.ESSHStreetDate = cal.theDate 
 			and chi.PersonalID = chn.PersonalID
 	where chx.excludeDate is null
 		and chi.ESSHStreetDate is null
-			and (chn.ProjectType in (1,8)
-				or hn.LivingSituation in (1,18,16)		
-				or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11))
-				or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
-					and hn.LivingSituation in (4,5,6,7,15,25) ) 
+		and (hn.LivingSituation in (1,18,16)
+			or	(chn.ProjectType not in (1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11))
+			or (chn.ProjectType not in (1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
+					and hn.LivingSituation in (4,5,6,7,15,25)) 
+			)
+		and ( 
+			
+			(-- for ES/SH/TH, count dates prior to EntryDate
+				chn.ProjectType in (1,2,8) and cal.theDate < chn.EntryDate)
+			or (-- for PSH/RRH, dates prior to and after EntryDate are counted for 
+				-- as long as the client remains homeless in the project  
+				chn.ProjectType in (3,13)
+				and (cal.theDate < chn.MoveInDate
+					 or (chn.MoveInDate is NULL and cal.theDate < chn.ExitDate)
+					 or (chn.MoveInDate is NULL and chn.ExitDate is NULL and cal.theDate <= lp.LastActive)
+					)
 				)
-
-	--	For RRH/PSH, dates from entry to the earlier of move-in or exit are counted
-	--   when LivingSituation at entry is ES/SH/Street.
-	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
-	select distinct lp.PersonalID, cal.theDate, '5.8.4'
-	from tlsa_Person lp
-	inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
-	inner join hmis_Enrollment hn on hn.EnrollmentID = chn.EnrollmentID 
-	inner join ref_Calendar cal on cal.theDate >= hn.EntryDate
-		and cal.theDate >= lp.CHStart 
-		and cal.theDate < coalesce(chn.MoveInDate, chn.ExitDate, lp.LastActive)
-	left outer join ch_Exclude chx on chx.excludeDate = cal.theDate
-		and chx.PersonalID = chn.PersonalID
-	left outer join ch_Include chi on chi.ESSHStreetDate = cal.theDate 
-		and chi.PersonalID = chn.PersonalID
-	where chx.excludeDate is null
-		and chi.ESSHStreetDate is null
-			and hn.LivingSituation in (1,18,16)		
+			)						
 
 	--Gaps of less than 7 nights between two ESSHStreet dates are counted
 	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
@@ -652,6 +656,7 @@ Date:  4/7/2020
 						inner join lsa_Report rpt on n.Active = 1
 						inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 						where n.ProjectType = 13
+							and n.MoveInDate is not null
 							and 
 							(n.ExitDate is null 
 							 or n.ExitDate > rpt.ReportStart
@@ -698,7 +703,6 @@ Date:  4/7/2020
 					 (select distinct n.PersonalID
 						, case when hhid.ActiveHHType = 1 then 1000
 							when hhid.ActiveHHType = 2 then 200
-							when hhid.ActiveHHType = 3 then 30
 							else 9 end as HHTypeEach
 						from tlsa_Enrollment n
 						inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
@@ -720,12 +724,12 @@ Date:  4/7/2020
 					 (select distinct n.PersonalID
 						, case when hhid.ActiveHHType = 1 then 1000
 							when hhid.ActiveHHType = 2 then 200
-							when hhid.ActiveHHType = 3 then 30
 							else 9 end as HHTypeEach
 						from tlsa_Enrollment n
 						inner join lsa_Report rpt on n.Active = 1
 						inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 						where n.ProjectType = 13
+							and n.MoveInDate is not null
 							and n.ActiveAge between 18 and 65
 							and 
 							(n.ExitDate is null 
@@ -748,7 +752,6 @@ Date:  4/7/2020
 					 (select distinct n.PersonalID
 						, case when hhid.ActiveHHType = 1 then 1000
 							when hhid.ActiveHHType = 2 then 200
-							when hhid.ActiveHHType = 3 then 30
 							else 9 end as HHTypeEach
 						from tlsa_Enrollment n
 						inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
@@ -803,6 +806,7 @@ Date:  4/7/2020
 						inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 						where n.ProjectType = 13
 							and n.RelationshipToHoH = 1
+							and n.MoveInDate is not null
 							and 
 							(n.ExitDate is null 
 							 or n.ExitDate > rpt.ReportStart

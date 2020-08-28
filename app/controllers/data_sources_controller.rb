@@ -19,6 +19,8 @@ class DataSourcesController < ApplicationController
     end
     @data_sources = @data_sources.order(name: :asc).page(params[:page]).per(25)
     # @data_spans_by_id = GrdaWarehouse::DataSource.data_spans_by_id
+    @client_counts = @data_sources.map { |ds| [ds.id, ds.client_count] }.to_h
+    @project_counts = @data_sources.map { |ds| [ds.id, ds.project_count] }.to_h
   end
 
   def show
@@ -26,10 +28,9 @@ class DataSourcesController < ApplicationController
     p_t = GrdaWarehouse::Hud::Project.arel_table
     o_t = GrdaWarehouse::Hud::Organization.arel_table
     @organizations = @data_source.organizations.
-      joins(:projects).
+      includes(:projects).
       merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
-      includes(projects: [:project_cocs, :geographies, :inventories]).
-      references(projects: [:project_cocs, :geographies, :inventories]).
+      references(:projects).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
   end
 
@@ -58,11 +59,13 @@ class DataSourcesController < ApplicationController
         import_paused = data_source_params[:import_paused] || false
         source_id = data_source_params[:source_id]
         munged_personal_id = data_source_params[:munged_personal_id] || false
+        service_scannable = data_source_params[:service_scannable] || false
         changes = {
           visible_in_window: visible_in_window,
           import_paused: import_paused,
           source_id: source_id,
           munged_personal_id: munged_personal_id,
+          service_scannable: service_scannable,
         }
         @data_source.update!(changes)
       end
@@ -93,6 +96,7 @@ class DataSourcesController < ApplicationController
         :import_paused,
         :source_id,
         :munged_personal_id,
+        :service_scannable,
         projects_attributes:
         [
           :id,
@@ -103,6 +107,7 @@ class DataSourcesController < ApplicationController
           :uses_move_in_date,
           :geocode_override,
           :geography_type_override,
+          :zip_override,
           :confidential,
           :after_create_path,
         ],
@@ -122,6 +127,7 @@ class DataSourcesController < ApplicationController
         :after_create_path,
         :import_paused,
         :source_id,
+        :service_scannable,
       )
   end
 

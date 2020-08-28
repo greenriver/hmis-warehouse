@@ -21,7 +21,8 @@
         - current_living_situations.each do |situation|
           - project = situation.enrollment.project
           %tr
-            %td.id-sqr{ 'data-id' => situation.enrollment.client.id }
+            %td
+              .ds{class: "ds-color-#{situation.data_source_id}"}= ds_short_name_for(situation.enrollment.client.id)
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
             %td.date-cell= situation.enrollment.EntryDate
             %td= situation.InformationDate

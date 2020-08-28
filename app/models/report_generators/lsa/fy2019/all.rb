@@ -123,12 +123,15 @@ module ReportGenerators::Lsa::Fy2019
           start_date: '2012-10-01',
           period_type: 3,
           directive: 2,
-          hash_status:1,
+          hash_status: 1,
           include_deleted: false,
         ).
         where("project_ids @> ?", @project_ids.to_json).
         where.not(file: nil)&.first
-      return existing_export if existing_export.present?
+      if existing_export.present?
+        @hmis_export = existing_export
+        return
+      end
 
       @hmis_export = Exporters::HmisTwentyTwenty::Base.new(
         start_date: '2012-10-01', # using 10/1/2012 so we can determine continuous homelessness
@@ -136,7 +139,7 @@ module ReportGenerators::Lsa::Fy2019
         projects: @project_ids,
         period_type: 3,
         directive: 2,
-        hash_status:1,
+        hash_status: 1,
         include_deleted: false,
         user_id: @report.user_id,
       ).export!
@@ -208,7 +211,7 @@ module ReportGenerators::Lsa::Fy2019
               # this fixes dates that default to 1900-01-01 if you send an empty string
               content = content.map do |row|
                 row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
-              end
+              end.compact
               insert_batch(klass, import_headers, content, batch_size: 1_000)
             end
           end
@@ -230,10 +233,10 @@ module ReportGenerators::Lsa::Fy2019
         # for some reason the example files are quoted, except the LSA files, which are not
         force_quotes = ! klass.name.include?('LSA')
         CSV.open(path, "wb", force_quotes: force_quotes) do |csv|
-          csv << klass.attribute_names
+          csv << klass.csv_columns.map{ |m| if m == :Zip then :ZIP else m end }
           klass.all.each do |item|
             row = []
-            item.attributes.values.each do |m|
+            item.attributes.slice(*klass.csv_columns.map(&:to_s)).values.each do |m|
               if m.is_a?(Date)
                 row << m.strftime('%F')
               elsif m.is_a?(Time)
@@ -515,6 +518,7 @@ module ReportGenerators::Lsa::Fy2019
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
       rep = LsaSqlServer::LSAQueries.new
+      rep.test_run = test?
       rep.project_ids = @project_ids unless @lsa_scope == 1 # Non-System wide
 
       # some setup

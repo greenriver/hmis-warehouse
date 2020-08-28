@@ -5,6 +5,8 @@
 ###
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
+  include RailsDrivers::Extensions
+  self.primary_key = :id
   require 'memoist'
   include ArelHelper
   acts_as_paranoid
@@ -84,12 +86,16 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative: true)
   end
 
+  scope :scannable, -> do
+    where(service_scannable: true)
+  end
+
   scope :visible_in_window_to, -> (user) do
     return none unless user
 
     ds_ids = user.data_sources.pluck(:id)
 
-    if user&.can_edit_anything_super_user?
+    if user.can_edit_anything_super_user? || user.can_view_clients? || user.can_edit_clients?
       current_scope
     elsif user&.can_view_clients_with_roi_in_own_coc?
       if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
@@ -100,7 +106,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         end
         where(sql)
       else
-        current_scope # this will get limited by client visibility
+        # this will get limited by client visibility, but force window acces only
+        where(visible_in_window: true)
       end
     elsif user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
       # some users can see all clients for a specific data source,
@@ -141,12 +148,21 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(authoritative_type: 'coordinated_assessment')
   end
 
+  def self.view_column_names
+    [
+      'id',
+      'name',
+      'short_name',
+    ]
+  end
+
   def self.authoritative_types
     {
       'Youth' => :youth,
       'VI-SPDAT' => :vispdat,
       'Health' => :health,
       'Coordinated Assessment' => :coordinated_assessment,
+      'Other' => :other,
     }
   end
 
@@ -278,24 +294,28 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
       GrdaWarehouse::Hud::Enrollment.group(:data_source_id).
         pluck(:data_source_id, nf('MIN', [e_t[:EntryDate]])).each do |ds, date|
+          next unless spans_by_id[ds]
+
           spans_by_id[ds][:start_date] = date
         end
 
       GrdaWarehouse::Hud::Service.group(:data_source_id).
         pluck(:data_source_id, nf('MAX', [s_t[:DateProvided]])).each do |ds, date|
+          next unless spans_by_id[ds]
+
           spans_by_id[ds][:end_date] = date
         end
 
       GrdaWarehouse::Hud::Exit.group(:data_source_id).
         pluck(:data_source_id, nf('MAX', [ex_t[:ExitDate]])).each do |ds, date|
-          if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
-            spans_by_id[ds][:end_date] = date
-          end
+          next unless spans_by_id[ds]
+
+          spans_by_id[ds][:end_date] = date if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
         end
       spans_by_id.each do |ds, dates|
-        if dates[:start_date].present? && dates[:end_date].blank?
-          spans_by_id[ds][:end_date] = Date.current
-        end
+        next unless spans_by_id[ds]
+
+        spans_by_id[ds][:end_date] = Date.current if dates[:start_date].present? && dates[:end_date].blank?
       end
       spans_by_id
     end
@@ -392,11 +412,24 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     organizations.update_all(DateDeleted: Time.current)
   end
 
+  def client_count
+    clients.count
+  end
+
+  def project_count
+    projects.count
+  end
+
   class << self
     extend Memoist
     def health_authoritative_id
       authoritative.where(short_name: 'Health')&.first&.id
     end
     memoize :health_authoritative_id
+
+    def warehouse_id
+      destination.first.id
+    end
+    memoize :warehouse_id
   end
 end

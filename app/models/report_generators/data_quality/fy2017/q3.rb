@@ -13,6 +13,7 @@ module ReportGenerators::DataQuality::Fy2017
         @answers = setup_questions()
         @support = @answers.deep_dup
         @all_client_ids = fetch_all_client_ids()
+        @client_personal_ids = personal_ids(@all_client_ids)
         if @all_client_ids.any?
           setup_age_categories(@all_client_ids)
           update_report_progress(percent: 5)
@@ -99,10 +100,11 @@ module ReportGenerators::DataQuality::Fy2017
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b2][:value] = poor_quality.size
       @support[:q3_b2][:support] = add_support(
-        headers: ['Client ID', 'Vetetan Status', 'Age'],
+        headers: ['Client ID', 'Personal IDs', 'Vetetan Status', 'Age'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             HUD.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
             enrollment[:age]
           ]
@@ -136,10 +138,11 @@ module ReportGenerators::DataQuality::Fy2017
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b3][:value] = poor_quality.size
       @support[:q3_b3][:support] = add_support(
-        headers: ['Client ID', 'Most Recent Project', 'Entry Date', 'Exit Date'],
+        headers: ['Client ID', 'Personal IDs', 'Most Recent Project', 'Entry Date', 'Exit Date'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             enrollment[:project_name].to_sym,
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
@@ -190,10 +193,11 @@ module ReportGenerators::DataQuality::Fy2017
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b4][:value] = poor_quality.size
       @support[:q3_b4][:support] = add_support(
-        headers: ['Client ID', 'Relationship to HoH', 'Project', 'Entry Date', 'Exit Date'],
+        headers: ['Client ID', 'Personal IDs', 'Relationship to HoH', 'Project', 'Entry Date', 'Exit Date'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             enrollment[:RelationshipToHoH],
             enrollment[:project_name].to_sym,
             enrollment[:first_date_in_program],
@@ -224,10 +228,11 @@ module ReportGenerators::DataQuality::Fy2017
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b5][:value] = poor_quality.size
       @support[:q3_b5][:support] = add_support(
-        headers: ['Client ID', 'CoC Code', 'Project'],
+        headers: ['Client ID', 'Personal IDs', 'CoC Code', 'Project'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             enrollment[:CoCCode],
             enrollment[:project_name]
           ]
@@ -256,10 +261,11 @@ module ReportGenerators::DataQuality::Fy2017
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b6][:value] = poor_quality.size
       @support[:q3_b6][:support] = add_support(
-        headers: ['Client ID', 'Disabling Condition'],
+        headers: ['Client ID', 'Personal IDs', 'Disabling Condition'],
         data: poor_quality.map do |id, enrollment|
           [
             id,
+            @client_personal_ids[id].join(', '),
             HUD.disability_type(enrollment[:DisablingCondition]),
           ]
         end

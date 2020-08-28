@@ -26,7 +26,18 @@ Date:	4/16/2020 -- original
 					3.5.2/3 -- simplified CASE statement/removed redundancies - no change to output
 					3.3.1 - correction so that all enrollments located in ReportCoC at any time are included in tlsa_HHID 
 							instead of limiting it to enrollment in ReportCoC as of the most recent EnrollmentCoC record.
-
+		7/2/2020 - 3.3.1 - add 'and p.ContinuumProject = 1' -- was inadvertently deleted on a previous update
+		8/6/2020 - 3.5.2 and 3.5.3 - align Exit1/Exit2Age calculation to specs
+					3.3.1, 3.4.1, 3.4.2 - specify DateDeleted is null 
+		8/13/2020 - 3.3.1 - Project's operating end date must be null or after start date in order to include in LSA
+					3.4.1 - if HH member EntryDate < HoH EntryDate, insert enrollment to tlsa_Enrollment w/ HoH EntryDate
+						(required per specs section 3.3 -- code was omitting these enrollments altogether)
+					3.5.2 and 3.5.3 - use EntryAge when ExitDate is NULL (case statement) 
+		8/19/2020 - 3.4.1 - specify DateDeleted is NULL for hmis_Exit join
+						  - remove EntryAge calculation from INSERT to tlsa_Enrollment 
+					3.4.2 - calculate EntryAge based on tlsa_Enrollment.EntryDate instead of hmis_Enrollment
+							(values may differ since 8/13/2020 change to 3.4.1)
+					3.4.3 - re-number step from 3.4.2
 	3.2 Cohort Dates 
 */
 	delete from tlsa_CohortDates
@@ -136,8 +147,10 @@ left outer join (select distinct svc.EnrollmentID, max(svc.DateProvided) as Last
 			and (nbnx.ExitDate is null or svc.DateProvided < nbnx.ExitDate)
 		group by svc.EnrollmentID
 		) bn on bn.EnrollmentID = hoh.EnrollmentID
-where hoh.RelationshipToHoH = 1
+where hoh.DateDeleted is null
+	and hoh.RelationshipToHoH = 1
 	and hohCheck.EnrollmentID is null 
+	and p.ContinuumProject = 1 
 	and (p.OperatingEndDate is null 
 		-- 5/14/2020 EntryDate must be prior to OperatingEndDate
 		or (hoh.EntryDate < p.OperatingEndDate and p.OperatingEndDate >= '10/1/2012'))
@@ -185,13 +198,12 @@ where hoh.RelationshipToHoH = 1
 		, RelationshipToHoH
 		, ProjectID, ProjectType, TrackingMethod
 		, EntryDate, MoveInDate, ExitDate
-		, EntryAge
 		, DisabilityStatus
 		, Step)
 	select distinct hn.EnrollmentID, hn.PersonalID, hn.HouseholdID
 		, hn.RelationshipToHoH
 		, hhid.ProjectID, hhid.ProjectType, hhid.TrackingMethod
-		, hn.EntryDate
+		, case when hhid.EntryDate > hn.EntryDate then hhid.EntryDate else hn.EntryDate end
 		, case when hhid.MoveInDate < hn.EntryDate then hn.EntryDate
 			when hhid.MoveInDate > hx.ExitDate then NULL
 			when hhid.MoveInDate = hx.ExitDate and 
@@ -200,39 +212,45 @@ where hoh.RelationshipToHoH = 1
 		, case when hx.ExitDate >= hhid.ExitDate then hhid.ExitDate
 			when hx.ExitDate is NULL and hhid.ExitDate is not NULL then hhid.ExitDate
 			else hx.ExitDate end
-		, case when c.DOBDataQuality in (8,9) then 98
-			when c.DOB is null 
-				or c.DOB = '1/1/1900'
-				or c.DOB > hn.EntryDate
-				or (hn.RelationshipToHoH = 1 and c.DOB = hn.EntryDate)
-				or DATEADD(yy, 105, c.DOB) <= hn.EntryDate 
-				or c.DOBDataQuality is null
-				or c.DOBDataQuality not in (1,2) then 99
-			when DATEADD(yy, 65, c.DOB) <= hn.EntryDate then 65
-			when DATEADD(yy, 55, c.DOB) <= hn.EntryDate then 64
-			when DATEADD(yy, 45, c.DOB) <= hn.EntryDate then 54
-			when DATEADD(yy, 35, c.DOB) <= hn.EntryDate then 44
-			when DATEADD(yy, 25, c.DOB) <= hn.EntryDate then 34
-			when DATEADD(yy, 22, c.DOB) <= hn.EntryDate then 24
-			when DATEADD(yy, 18, c.DOB) <= hn.EntryDate then 21
-			when DATEADD(yy, 6, c.DOB) <= hn.EntryDate then 17
-			when DATEADD(yy, 3, c.DOB) <= hn.EntryDate then 5
-			when DATEADD(yy, 1, c.DOB) <= hn.EntryDate then 2
-			else 0 end 	
 		, case when hn.DisablingCondition in (0,1) then hn.DisablingCondition 
 			else null end
 		, '3.4.1'
 	from tlsa_HHID hhid
 	inner join hmis_Enrollment hn on hn.HouseholdID = hhid.HouseholdID
-	inner join hmis_Client c on c.PersonalID = hn.PersonalID 
+		and hn.DateDeleted is NULL
 	inner join lsa_Report rpt on rpt.ReportEnd >= hn.EntryDate
 	left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID	
 		and hx.ExitDate <= rpt.ReportEnd
+		and hx.DateDeleted is null
 	where hn.RelationshipToHoH in (1,2,3,4,5)
-		and hn.EntryDate between hhid.EntryDate and isnull(hhid.ExitDate, rpt.ReportEnd)
+		and hn.EntryDate <= isnull(hhid.ExitDate, rpt.ReportEnd)
 		and (hx.ExitDate is null or 
 				(hx.ExitDate > hhid.EntryDate and hx.ExitDate >= '10/1/2012'
 					and hx.ExitDate > hn.EntryDate)) 
+
+update n
+set n.EntryAge = case when c.DOBDataQuality in (8,9) then 98
+			when c.DOB is null 
+				or c.DOB = '1/1/1900'
+				or c.DOB > n.EntryDate
+				or (n.RelationshipToHoH = 1 and c.DOB = n.EntryDate)
+				or DATEADD(yy, 105, c.DOB) <= n.EntryDate 
+				or c.DOBDataQuality is null
+				or c.DOBDataQuality not in (1,2) then 99
+			when DATEADD(yy, 65, c.DOB) <= n.EntryDate then 65
+			when DATEADD(yy, 55, c.DOB) <= n.EntryDate then 64
+			when DATEADD(yy, 45, c.DOB) <= n.EntryDate then 54
+			when DATEADD(yy, 35, c.DOB) <= n.EntryDate then 44
+			when DATEADD(yy, 25, c.DOB) <= n.EntryDate then 34
+			when DATEADD(yy, 22, c.DOB) <= n.EntryDate then 24
+			when DATEADD(yy, 18, c.DOB) <= n.EntryDate then 21
+			when DATEADD(yy, 6, c.DOB) <= n.EntryDate then 17
+			when DATEADD(yy, 3, c.DOB) <= n.EntryDate then 5
+			when DATEADD(yy, 1, c.DOB) <= n.EntryDate then 2
+			else 0 end 	
+	, n.Step = '3.4.2'
+from tlsa_Enrollment n
+inner join hmis_Client c on c.PersonalID = n.PersonalID
 
 	update n
 	set n.DVStatus = (select min(case when dv.DomesticViolenceVictim = 1 and dv.CurrentlyFleeing = 1 then 1
@@ -243,9 +261,10 @@ where hoh.RelationshipToHoH = 1
 				else null end) 
 			from lsa_Report rpt 
 			inner join hmis_HealthAndDV dv on dv.EnrollmentID = n.EnrollmentID 
+				 and dv.DateDeleted is null
 				 and dv.InformationDate <= rpt.ReportEnd
 				 and (dv.InformationDate <= n.ExitDate or n.ExitDate is null))
-		, n.Step = '3.4.2'
+		, n.Step = '3.4.3'
 	from tlsa_Enrollment n
 
 /*
@@ -276,8 +295,8 @@ where hoh.RelationshipToHoH = 1
 	inner join hmis_Client c on c.PersonalID = n.PersonalID
 
 	update n
-	set n.Exit1Age = case when n.ExitDate < cd.CohortStart
-				or n.EntryDate >= cd.CohortStart
+	set n.Exit1Age = case when (n.ExitDate not between cd.CohortStart and cd.CohortEnd or n.ExitDate is null)
+				or (n.ExitDate between cd.CohortStart and cd.CohortEnd and n.EntryDate >= cd.CohortStart)
 				or n.EntryAge in (98,99) then n.EntryAge
 			--  If exit is prior to cohort start, age is unknown, 
 			--		or entry is in or after cohort period, use EntryAge; 
@@ -299,8 +318,8 @@ where hoh.RelationshipToHoH = 1
 	inner join hmis_Client c on c.PersonalID = n.PersonalID
 
 	update n
-	set n.Exit2Age = case when n.ExitDate < cd.CohortStart
-				or n.EntryDate >= cd.CohortStart
+	set n.Exit2Age = case when (n.ExitDate not between cd.CohortStart and cd.CohortEnd or n.ExitDate is null)
+				or (n.ExitDate between cd.CohortStart and cd.CohortEnd and n.EntryDate >= cd.CohortStart)
 				or n.EntryAge in (98,99) then n.EntryAge
 			--  If exit is prior to cohort start, age is unknown, 
 			--		or entry is in or after cohort period, use EntryAge; 

@@ -61,14 +61,14 @@ every 4.hours do
   rake "grda_warehouse:save_service_history_snapshots"
 end
 
-every 1.day, at: '4:00 am' do
+every 1.day, at: '4:02 am' do
   # FIXME May need to be back-grounded?
   rake "messages:daily"
 end
 
 # These only happen in some scenarios
 if ENV['ETO_API_SITE1'] != 'unknown'
-  every 1.day, at: '6:00 am' do
+  every 1.day, at: '6:04 am' do
     # Defers to delayed jobs
     rake "eto:import:demographics_and_touch_points"
   end
@@ -87,12 +87,13 @@ end
 
 
 if ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
-  every 1.day, at: '11:00 am' do
+  every 1.day, at: '11:03 am' do
     # Defers to delayed jobs
     rake "health:daily"
   end
-  every 1.day, at: '6am' do
+  every 1.day, at: '6:01 am' do
     rake "health:queue_eligibility_determination"
+    rake "health:queue_retrieve_enrollments"
   end
 end
 
@@ -105,7 +106,7 @@ if ENV['GLACIER_NEEDS_BACKUP']=='true'
   end
 
   if ENV['ECS'] != 'true' # Files are for the logs, these end up in CloudWatch for ECS deployments
-    every :month, at: database_backup_time-1.hour do
+    every :month, at: database_backup_time-1.hours do
       rake "glacier:backup:files"
     end
   end

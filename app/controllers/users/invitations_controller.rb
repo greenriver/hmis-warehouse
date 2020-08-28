@@ -68,6 +68,7 @@ class Users::InvitationsController < Devise::InvitationsController
       :phone,
       :agency_id,
       :receive_file_upload_notifications,
+      :receive_account_request_notifications,
       :notify_on_vispdat_completed,
       :notify_on_client_added,
       :notify_on_anomaly_identified,

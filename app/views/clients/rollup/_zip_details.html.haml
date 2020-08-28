@@ -5,7 +5,6 @@
       %thead
         %tr
           %th Program Entry Year
-          %th
           %th{ data: { field: 'LastPermanentCity' } } Primary City
           %th{ data: { field: 'LastPermanentState' } } State
           %th{ data: { field: 'LastPermanentZIP' } } Last Permanenent Zip
@@ -14,7 +13,6 @@
         - addresses.each do |address|
           %tr
             %td= address[:year]
-            %td.id-sqr{ 'data-id' => address[:client_id] }
             %td= address[:city]
             %td= address[:state]
             %td= address[:zip]

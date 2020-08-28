@@ -229,7 +229,7 @@ class App.Cohorts.Cohort
 
   save_batch: (data, status) =>
     $.merge @raw_data, data
-    percent_complete = Math.round(@current_page/@pages*100)
+    percent_complete = Math.round((@current_page - 1)/@pages*100)
     $(@loading_selector).find('.percent-loaded').text("#{percent_complete}%")
 
   set_rank_order: () =>

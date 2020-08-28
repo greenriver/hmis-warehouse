@@ -10,13 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_03_234840) do
+ActiveRecord::Schema.define(version: 2020_08_24_174347) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
   enable_extension "hstore"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
+  enable_extension "postgis"
 
   create_table "Affiliation", id: :serial, force: :cascade do |t|
     t.string "AffiliationID"
@@ -110,7 +111,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "LastName", limit: 150
     t.string "NameSuffix", limit: 50
     t.integer "NameDataQuality"
-    t.string "SSN", limit: 9
+    t.string "SSN"
     t.integer "SSNDataQuality"
     t.date "DOB"
     t.integer "DOBDataQuality"
@@ -202,6 +203,18 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.boolean "dv_rrh_desired", default: false
     t.string "health_prioritized"
     t.boolean "demographic_dirty", default: true
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+    t.string "encrypted_MiddleName"
+    t.string "encrypted_MiddleName_iv"
+    t.string "encrypted_LastName"
+    t.string "encrypted_LastName_iv"
+    t.string "encrypted_SSN"
+    t.string "encrypted_SSN_iv"
+    t.string "encrypted_NameSuffix"
+    t.string "encrypted_NameSuffix_iv"
+    t.string "soundex_first"
+    t.string "soundex_last"
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -212,6 +225,129 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.index ["creator_id"], name: "index_Client_on_creator_id"
     t.index ["data_source_id"], name: "index_Client_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Client_on_pending_date_deleted"
+  end
+
+  create_table "ClientUnencrypted", id: :integer, default: -> { "nextval('\"Client_id_seq\"'::regclass)" }, force: :cascade do |t|
+    t.string "PersonalID"
+    t.string "FirstName", limit: 150
+    t.string "MiddleName", limit: 150
+    t.string "LastName", limit: 150
+    t.string "NameSuffix", limit: 50
+    t.integer "NameDataQuality"
+    t.string "SSN"
+    t.integer "SSNDataQuality"
+    t.date "DOB"
+    t.integer "DOBDataQuality"
+    t.integer "AmIndAKNative"
+    t.integer "Asian"
+    t.integer "BlackAfAmerican"
+    t.integer "NativeHIOtherPacific"
+    t.integer "White"
+    t.integer "RaceNone"
+    t.integer "Ethnicity"
+    t.integer "Gender"
+    t.string "OtherGender", limit: 50
+    t.integer "VeteranStatus"
+    t.integer "YearEnteredService"
+    t.integer "YearSeparated"
+    t.integer "WorldWarII"
+    t.integer "KoreanWar"
+    t.integer "VietnamWar"
+    t.integer "DesertStorm"
+    t.integer "AfghanistanOEF"
+    t.integer "IraqOIF"
+    t.integer "IraqOND"
+    t.integer "OtherTheater"
+    t.integer "MilitaryBranch"
+    t.integer "DischargeStatus"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id"
+    t.datetime "disability_verified_on"
+    t.datetime "housing_assistance_network_released_on"
+    t.boolean "sync_with_cas", default: false, null: false
+    t.boolean "dmh_eligible", default: false, null: false
+    t.boolean "va_eligible", default: false, null: false
+    t.boolean "hues_eligible", default: false, null: false
+    t.boolean "hiv_positive", default: false, null: false
+    t.string "housing_release_status"
+    t.boolean "chronically_homeless_for_cas", default: false, null: false
+    t.boolean "us_citizen", default: false, null: false
+    t.boolean "asylee", default: false, null: false
+    t.boolean "ineligible_immigrant", default: false, null: false
+    t.boolean "lifetime_sex_offender", default: false, null: false
+    t.boolean "meth_production_conviction", default: false, null: false
+    t.boolean "family_member", default: false, null: false
+    t.boolean "child_in_household", default: false, null: false
+    t.boolean "ha_eligible", default: false, null: false
+    t.boolean "api_update_in_process", default: false, null: false
+    t.datetime "api_update_started_at"
+    t.datetime "api_last_updated_at"
+    t.integer "creator_id"
+    t.boolean "cspech_eligible", default: false
+    t.date "consent_form_signed_on"
+    t.integer "vispdat_prioritization_days_homeless"
+    t.boolean "generate_history_pdf", default: false
+    t.boolean "congregate_housing", default: false
+    t.boolean "sober_housing", default: false
+    t.integer "consent_form_id"
+    t.integer "rrh_assessment_score"
+    t.boolean "ssvf_eligible", default: false, null: false
+    t.boolean "rrh_desired", default: false, null: false
+    t.boolean "youth_rrh_desired", default: false, null: false
+    t.string "rrh_assessment_contact_info"
+    t.datetime "rrh_assessment_collected_at"
+    t.string "source_hash"
+    t.boolean "generate_manual_history_pdf", default: false, null: false
+    t.boolean "requires_wheelchair_accessibility", default: false
+    t.integer "required_number_of_bedrooms", default: 1
+    t.integer "required_minimum_occupancy", default: 1
+    t.boolean "requires_elevator_access", default: false
+    t.jsonb "neighborhood_interests", default: [], null: false
+    t.string "verified_veteran_status"
+    t.boolean "interested_in_set_asides", default: false
+    t.date "consent_expires_on"
+    t.datetime "pending_date_deleted"
+    t.date "cas_match_override"
+    t.boolean "vash_eligible", default: false
+    t.jsonb "consented_coc_codes", default: []
+    t.boolean "income_maximization_assistance_requested", default: false, null: false
+    t.integer "income_total_monthly"
+    t.boolean "pending_subsidized_housing_placement", default: false, null: false
+    t.boolean "pathways_domestic_violence", default: false, null: false
+    t.boolean "rrh_th_desired", default: false, null: false
+    t.boolean "sro_ok", default: false, null: false
+    t.boolean "pathways_other_accessibility", default: false, null: false
+    t.boolean "pathways_disabled_housing", default: false, null: false
+    t.boolean "evicted", default: false, null: false
+    t.boolean "dv_rrh_desired", default: false
+    t.string "health_prioritized"
+    t.boolean "demographic_dirty", default: true
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+    t.string "encrypted_MiddleName"
+    t.string "encrypted_MiddleName_iv"
+    t.string "encrypted_LastName"
+    t.string "encrypted_LastName_iv"
+    t.string "encrypted_SSN"
+    t.string "encrypted_SSN_iv"
+    t.string "encrypted_NameSuffix"
+    t.string "encrypted_NameSuffix_iv"
+    t.string "soundex_first"
+    t.string "soundex_last"
+    t.index ["DateCreated"], name: "ClientUnencrypted_DateCreated_idx"
+    t.index ["DateDeleted", "data_source_id"], name: "ClientUnencrypted_DateDeleted_data_source_id_idx"
+    t.index ["DateUpdated"], name: "ClientUnencrypted_DateUpdated_idx"
+    t.index ["ExportID"], name: "ClientUnencrypted_ExportID_idx"
+    t.index ["FirstName"], name: "ClientUnencrypted_FirstName_idx"
+    t.index ["LastName"], name: "ClientUnencrypted_LastName_idx"
+    t.index ["PersonalID"], name: "ClientUnencrypted_PersonalID_idx"
+    t.index ["creator_id"], name: "ClientUnencrypted_creator_id_idx"
+    t.index ["data_source_id"], name: "ClientUnencrypted_data_source_id_idx"
+    t.index ["pending_date_deleted"], name: "ClientUnencrypted_pending_date_deleted_idx"
   end
 
   create_table "CurrentLivingSituation", id: :serial, force: :cascade do |t|
@@ -432,6 +568,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.string "SexualOrientationOther", limit: 100
+    t.date "history_generated_on"
     t.index ["DateCreated"], name: "enrollment_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Enrollment_on_DateDeleted_and_data_source_id"
     t.index ["DateDeleted"], name: "index_Enrollment_on_DateDeleted"
@@ -824,6 +961,8 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.integer "OtherBedInventory"
     t.integer "TargetPopulation"
     t.integer "ESBedType"
+    t.string "coc_code_override"
+    t.date "inventory_start_date_override"
     t.index ["DateCreated"], name: "inventory_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Inventory_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "inventory_date_updated"
@@ -890,6 +1029,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.boolean "active_homeless_status_override", default: false
     t.boolean "include_in_days_homeless_override", default: false
     t.boolean "extrapolate_contacts", default: false, null: false
+    t.boolean "combine_enrollments", default: false
     t.index "COALESCE(act_as_project_type, \"ProjectType\")", name: "project_project_override_index"
     t.index ["DateCreated"], name: "project_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id"
@@ -925,6 +1065,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "Zip", limit: 5
     t.integer "geography_type_override"
     t.string "geocode_override", limit: 6
+    t.string "zip_override"
     t.index ["DateCreated"], name: "project_coc_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_ProjectCoC_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "project_coc_date_updated"
@@ -1390,7 +1531,11 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.jsonb "recipients"
     t.datetime "sent_at"
     t.boolean "alert_active", default: true, null: false
+    t.bigint "service_id"
+    t.bigint "project_id"
     t.index ["client_id"], name: "index_client_notes_on_client_id"
+    t.index ["project_id"], name: "index_client_notes_on_project_id"
+    t.index ["service_id"], name: "index_client_notes_on_service_id"
     t.index ["user_id"], name: "index_client_notes_on_user_id"
   end
 
@@ -1647,6 +1792,12 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "health_emergency_tracing"
     t.integer "health_priority_age"
     t.boolean "multi_coc_installation", default: false, null: false
+    t.float "auto_de_duplication_accept_threshold"
+    t.float "auto_de_duplication_reject_threshold"
+    t.string "pii_encryption_type", default: "none"
+    t.boolean "auto_de_duplication_enabled", default: false, null: false
+    t.boolean "request_account_available", default: false, null: false
+    t.date "dashboard_lookback", default: "2014-07-01"
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1706,6 +1857,8 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "authoritative_type"
     t.string "source_id"
     t.datetime "deleted_at"
+    t.boolean "service_scannable", default: false, null: false
+    t.jsonb "import_aggregators", default: {}
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
@@ -1717,6 +1870,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.boolean "imported", default: false
+    t.integer "amount"
     t.index ["deleted_at"], name: "index_direct_financial_assistances_on_deleted_at"
   end
 
@@ -2128,6 +2282,169 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.index ["AffiliationID", "data_source_id"], name: "hmis_2020_affiliations-lZaj"
     t.index ["ExportID"], name: "hmis_2020_affiliations-qycr"
     t.index ["source_type", "source_id"], name: "hmis_2020_affiliations-jXFa"
+  end
+
+  create_table "hmis_2020_aggregated_enrollments", force: :cascade do |t|
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "ProjectID"
+    t.date "EntryDate"
+    t.string "HouseholdID"
+    t.integer "RelationshipToHoH"
+    t.integer "LivingSituation"
+    t.integer "LengthOfStay"
+    t.integer "LOSUnderThreshold"
+    t.integer "PreviousStreetESSH"
+    t.date "DateToStreetESSH"
+    t.integer "TimesHomelessPastThreeYears"
+    t.integer "MonthsHomelessPastThreeYears"
+    t.integer "DisablingCondition"
+    t.date "DateOfEngagement"
+    t.date "MoveInDate"
+    t.date "DateOfPATHStatus"
+    t.integer "ClientEnrolledInPATH"
+    t.integer "ReasonNotEnrolled"
+    t.integer "WorstHousingSituation"
+    t.integer "PercentAMI"
+    t.string "LastPermanentStreet"
+    t.string "LastPermanentCity"
+    t.string "LastPermanentState"
+    t.string "LastPermanentZIP"
+    t.integer "AddressDataQuality"
+    t.date "DateOfBCPStatus"
+    t.integer "EligibleForRHY"
+    t.integer "ReasonNoServices"
+    t.integer "RunawayYouth"
+    t.integer "SexualOrientation"
+    t.string "SexualOrientationOther"
+    t.integer "FormerWardChildWelfare"
+    t.integer "ChildWelfareYears"
+    t.integer "ChildWelfareMonths"
+    t.integer "FormerWardJuvenileJustice"
+    t.integer "JuvenileJusticeYears"
+    t.integer "JuvenileJusticeMonths"
+    t.integer "UnemploymentFam"
+    t.integer "MentalHealthIssuesFam"
+    t.integer "PhysicalDisabilityFam"
+    t.integer "AlcoholDrugAbuseFam"
+    t.integer "InsufficientIncome"
+    t.integer "IncarceratedParent"
+    t.integer "ReferralSource"
+    t.integer "CountOutreachReferralApproaches"
+    t.integer "UrgentReferral"
+    t.integer "TimeToHousingLoss"
+    t.integer "ZeroIncome"
+    t.integer "AnnualPercentAMI"
+    t.integer "FinancialChange"
+    t.integer "HouseholdChange"
+    t.integer "EvictionHistory"
+    t.integer "SubsidyAtRisk"
+    t.integer "LiteralHomelessHistory"
+    t.integer "DisabledHoH"
+    t.integer "CriminalRecord"
+    t.integer "SexOffender"
+    t.integer "DependentUnder6"
+    t.integer "SingleParent"
+    t.integer "HH5Plus"
+    t.integer "IraqAfghanistan"
+    t.integer "FemVet"
+    t.integer "HPScreeningScore"
+    t.integer "ThresholdScore"
+    t.string "VAMCStation"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_aggregated_enrollments-Jmkq"
+    t.index ["DateDeleted"], name: "hmis_2020_aggregated_enrollments-6wqk"
+    t.index ["DateUpdated"], name: "hmis_2020_aggregated_enrollments-4L8g"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_aggregated_enrollments-ocKA"
+    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_aggregated_enrollments-zNVo"
+    t.index ["EnrollmentID"], name: "hmis_2020_aggregated_enrollments-RNSl"
+    t.index ["EntryDate"], name: "hmis_2020_aggregated_enrollments-oiEU"
+    t.index ["ExportID"], name: "hmis_2020_aggregated_enrollments-fXAB"
+    t.index ["HouseholdID"], name: "hmis_2020_aggregated_enrollments-QV2G"
+    t.index ["LivingSituation"], name: "hmis_2020_aggregated_enrollments-ysoO"
+    t.index ["PersonalID"], name: "hmis_2020_aggregated_enrollments-wnDD"
+    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_2020_aggregated_enrollments-Xqsk"
+    t.index ["ProjectID", "HouseholdID"], name: "hmis_2020_aggregated_enrollments-BMfj"
+    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-RJNU"
+    t.index ["ProjectID"], name: "hmis_2020_aggregated_enrollments-CpSq"
+    t.index ["RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-E6ih"
+    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_2020_aggregated_enrollments-ZGm4"
+    t.index ["source_type", "source_id"], name: "hmis_2020_aggregated_enrollments-G7U1"
+  end
+
+  create_table "hmis_2020_aggregated_exits", force: :cascade do |t|
+    t.string "ExitID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "ExitDate"
+    t.integer "Destination"
+    t.string "OtherDestination"
+    t.integer "HousingAssessment"
+    t.integer "SubsidyInformation"
+    t.integer "ProjectCompletionStatus"
+    t.integer "EarlyExitReason"
+    t.integer "ExchangeForSex"
+    t.integer "ExchangeForSexPastThreeMonths"
+    t.integer "CountOfExchangeForSex"
+    t.integer "AskedOrForcedToExchangeForSex"
+    t.integer "AskedOrForcedToExchangeForSexPastThreeMonths"
+    t.integer "WorkPlaceViolenceThreats"
+    t.integer "WorkplacePromiseDifference"
+    t.integer "CoercedToContinueWork"
+    t.integer "LaborExploitPastThreeMonths"
+    t.integer "CounselingReceived"
+    t.integer "IndividualCounseling"
+    t.integer "FamilyCounseling"
+    t.integer "GroupCounseling"
+    t.integer "SessionCountAtExit"
+    t.integer "PostExitCounselingPlan"
+    t.integer "SessionsInPlan"
+    t.integer "DestinationSafeClient"
+    t.integer "DestinationSafeWorker"
+    t.integer "PosAdultConnections"
+    t.integer "PosPeerConnections"
+    t.integer "PosCommunityConnections"
+    t.date "AftercareDate"
+    t.integer "AftercareProvided"
+    t.integer "EmailSocialMedia"
+    t.integer "Telephone"
+    t.integer "InPersonIndividual"
+    t.integer "InPersonGroup"
+    t.integer "CMExitReason"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_aggregated_exits-2lOR"
+    t.index ["DateDeleted"], name: "hmis_2020_aggregated_exits-cduB"
+    t.index ["DateUpdated"], name: "hmis_2020_aggregated_exits-VRGa"
+    t.index ["EnrollmentID"], name: "hmis_2020_aggregated_exits-BwSf"
+    t.index ["ExitDate"], name: "hmis_2020_aggregated_exits-GBBG"
+    t.index ["ExitID"], name: "hmis_2020_aggregated_exits-g6y1"
+    t.index ["ExportID"], name: "hmis_2020_aggregated_exits-auds"
+    t.index ["PersonalID"], name: "hmis_2020_aggregated_exits-EPOP"
+    t.index ["source_type", "source_id"], name: "hmis_2020_aggregated_exits-SgMf"
   end
 
   create_table "hmis_2020_assessment_questions", force: :cascade do |t|
@@ -4045,9 +4362,16 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.datetime "updated_at", null: false
     t.string "zip"
     t.integer "upload_id"
+    t.text "encrypted_import_errors"
+    t.string "encrypted_import_errors_iv"
+    t.string "type", default: "GrdaWarehouse::ImportLog"
+    t.bigint "loader_log_id"
+    t.bigint "importer_log_id"
     t.index ["completed_at"], name: "index_import_logs_on_completed_at"
     t.index ["created_at"], name: "index_import_logs_on_created_at"
     t.index ["data_source_id"], name: "index_import_logs_on_data_source_id"
+    t.index ["importer_log_id"], name: "index_import_logs_on_importer_log_id"
+    t.index ["loader_log_id"], name: "index_import_logs_on_loader_log_id"
     t.index ["updated_at"], name: "index_import_logs_on_updated_at"
   end
 
@@ -4610,6 +4934,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.string "SexualOrientationOther", limit: 100
+    t.date "history_generated_on"
     t.integer "demographic_id"
     t.integer "client_id"
     t.index ["EntryDate"], name: "entrydate_ret_index"
@@ -5898,6 +6223,78 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.index ["user_id"], name: "index_service_scanning_services_on_user_id"
   end
 
+  create_table "shape_cocs", force: :cascade do |t|
+    t.string "st"
+    t.string "state_name"
+    t.string "cocnum"
+    t.string "cocname"
+    t.decimal "ard"
+    t.decimal "pprn"
+    t.decimal "fprn"
+    t.string "fprn_statu"
+    t.decimal "es_c_hwac"
+    t.decimal "es_c_hwoa_"
+    t.decimal "es_c_hwoc"
+    t.decimal "es_vso_tot"
+    t.decimal "th_c_hwac_"
+    t.decimal "th_c_hwoa"
+    t.decimal "th_c_hwoc"
+    t.decimal "th_c_vet"
+    t.decimal "rrh_c_hwac"
+    t.decimal "rrh_c_hwoa"
+    t.decimal "rrh_c_hwoc"
+    t.decimal "rrh_c_vet"
+    t.decimal "psh_c_hwac"
+    t.decimal "psh_c_hwoa"
+    t.decimal "psh_c_hwoc"
+    t.decimal "psh_c_vet"
+    t.decimal "psh_c_ch"
+    t.string "psh_u_hwac"
+    t.string "psh_u_hwoa"
+    t.string "psh_u_hwoc"
+    t.string "psh_u_vet"
+    t.string "psh_u_ch"
+    t.decimal "sh_c_hwoa"
+    t.decimal "sh_c_vet"
+    t.decimal "sh_pers_hw"
+    t.decimal "unsh_pers_"
+    t.decimal "sh_pers__1"
+    t.decimal "unsh_pers1"
+    t.decimal "sh_pers__2"
+    t.decimal "unsh_per_1"
+    t.decimal "sh_ch"
+    t.decimal "unsh_ch"
+    t.decimal "sh_youth_u"
+    t.decimal "unsh_youth"
+    t.decimal "sh_vets"
+    t.decimal "unsh_vets"
+    t.decimal "shape_leng"
+    t.decimal "shape_area"
+    t.geometry "orig_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.index ["cocname"], name: "index_shape_cocs_on_cocname"
+    t.index ["geom"], name: "index_shape_cocs_on_geom", using: :gist
+    t.index ["orig_geom"], name: "index_shape_cocs_on_orig_geom", using: :gist
+    t.index ["st"], name: "index_shape_cocs_on_st"
+  end
+
+  create_table "shape_zip_codes", force: :cascade do |t|
+    t.string "zcta5ce10", limit: 5
+    t.string "geoid10", limit: 5
+    t.string "classfp10", limit: 2
+    t.string "mtfcc10", limit: 5
+    t.string "funcstat10", limit: 1
+    t.float "aland10"
+    t.float "awater10"
+    t.string "intptlat10", limit: 11
+    t.string "intptlon10", limit: 12
+    t.geometry "orig_geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.geometry "geom", limit: {:srid=>4326, :type=>"multi_polygon"}
+    t.index ["geom"], name: "index_shape_zip_codes_on_geom", using: :gist
+    t.index ["orig_geom"], name: "index_shape_zip_codes_on_orig_geom", using: :gist
+    t.index ["zcta5ce10"], name: "index_shape_zip_codes_on_zcta5ce10", unique: true
+  end
+
   create_table "taggings", id: :serial, force: :cascade do |t|
     t.integer "tag_id"
     t.integer "taggable_id"
@@ -5958,6 +6355,8 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.integer "delayed_job_id"
     t.boolean "deidentified", default: false
     t.boolean "project_whitelist", default: false
+    t.text "encrypted_content"
+    t.string "encrypted_content_iv"
     t.index ["deleted_at"], name: "index_uploads_on_deleted_at"
   end
 
@@ -6306,7 +6705,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "unaccompanied", null: false
     t.string "street_outreach_contact", null: false
     t.string "housing_status", null: false
-    t.string "other_agency_involvement", null: false
+    t.string "other_agency_involvement"
     t.string "owns_cell_phone"
     t.string "secondary_education", null: false
     t.string "attending_college", null: false
@@ -6336,6 +6735,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     t.string "first_name"
     t.string "last_name"
     t.string "ssn"
+    t.json "other_agency_involvements", default: []
     t.index ["created_at"], name: "index_youth_intakes_on_created_at"
     t.index ["deleted_at"], name: "index_youth_intakes_on_deleted_at"
     t.index ["updated_at"], name: "index_youth_intakes_on_updated_at"
@@ -6392,6 +6792,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
   add_foreign_key "service_history_services_2017", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2018", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2019", "service_history_enrollments", on_delete: :cascade
+  add_foreign_key "service_history_services_2020", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2021", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2022", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2023", "service_history_enrollments", on_delete: :cascade
@@ -6526,96 +6927,6 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
        LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
        LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
     ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
-  SQL
-  create_view "report_clients", sql_definition: <<-SQL
-      SELECT "Client"."PersonalID",
-      "Client"."FirstName",
-      "Client"."MiddleName",
-      "Client"."LastName",
-      "Client"."NameSuffix",
-      "Client"."NameDataQuality",
-      "Client"."SSN",
-      "Client"."SSNDataQuality",
-      "Client"."DOB",
-      "Client"."DOBDataQuality",
-      "Client"."AmIndAKNative",
-      "Client"."Asian",
-      "Client"."BlackAfAmerican",
-      "Client"."NativeHIOtherPacific",
-      "Client"."White",
-      "Client"."RaceNone",
-      "Client"."Ethnicity",
-      "Client"."Gender",
-      "Client"."OtherGender",
-      "Client"."VeteranStatus",
-      "Client"."YearEnteredService",
-      "Client"."YearSeparated",
-      "Client"."WorldWarII",
-      "Client"."KoreanWar",
-      "Client"."VietnamWar",
-      "Client"."DesertStorm",
-      "Client"."AfghanistanOEF",
-      "Client"."IraqOIF",
-      "Client"."IraqOND",
-      "Client"."OtherTheater",
-      "Client"."MilitaryBranch",
-      "Client"."DischargeStatus",
-      "Client"."DateCreated",
-      "Client"."DateUpdated",
-      "Client"."UserID",
-      "Client"."DateDeleted",
-      "Client"."ExportID",
-      "Client".id
-     FROM "Client"
-    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
-             FROM data_sources
-            WHERE (data_sources.source_type IS NULL))));
-  SQL
-  create_view "report_demographics", sql_definition: <<-SQL
-      SELECT "Client"."PersonalID",
-      "Client"."FirstName",
-      "Client"."MiddleName",
-      "Client"."LastName",
-      "Client"."NameSuffix",
-      "Client"."NameDataQuality",
-      "Client"."SSN",
-      "Client"."SSNDataQuality",
-      "Client"."DOB",
-      "Client"."DOBDataQuality",
-      "Client"."AmIndAKNative",
-      "Client"."Asian",
-      "Client"."BlackAfAmerican",
-      "Client"."NativeHIOtherPacific",
-      "Client"."White",
-      "Client"."RaceNone",
-      "Client"."Ethnicity",
-      "Client"."Gender",
-      "Client"."OtherGender",
-      "Client"."VeteranStatus",
-      "Client"."YearEnteredService",
-      "Client"."YearSeparated",
-      "Client"."WorldWarII",
-      "Client"."KoreanWar",
-      "Client"."VietnamWar",
-      "Client"."DesertStorm",
-      "Client"."AfghanistanOEF",
-      "Client"."IraqOIF",
-      "Client"."IraqOND",
-      "Client"."OtherTheater",
-      "Client"."MilitaryBranch",
-      "Client"."DischargeStatus",
-      "Client"."DateCreated",
-      "Client"."DateUpdated",
-      "Client"."UserID",
-      "Client"."DateDeleted",
-      "Client"."ExportID",
-      "Client".data_source_id,
-      "Client".id,
-      report_clients.id AS client_id
-     FROM (("Client"
-       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-       JOIN report_clients ON ((warehouse_clients.destination_id = report_clients.id)))
-    WHERE ("Client"."DateDeleted" IS NULL);
   SQL
   create_view "report_disabilities", sql_definition: <<-SQL
       SELECT "Disabilities"."DisabilitiesID",
@@ -7679,8 +7990,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
     WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentResults"."DateDeleted" IS NULL)));
   SQL
   create_view "bi_Client", sql_definition: <<-SQL
-      SELECT "Client".id,
-      "Client"."PersonalID",
+      SELECT "Client".id AS personalid,
       4 AS "HashStatus",
       encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
       encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
@@ -7723,8 +8033,7 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
             WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
   SQL
   create_view "bi_Demographics", sql_definition: <<-SQL
-      SELECT "Client".id,
-      "Client"."PersonalID",
+      SELECT "Client".id AS personalid,
       4 AS "HashStatus",
       encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
       encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
@@ -7761,8 +8070,10 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       "Client"."UserID",
       "Client"."DateDeleted",
       "Client"."ExportID",
+      warehouse_clients.destination_id AS client_id,
       "Client".data_source_id
-     FROM "Client"
+     FROM ("Client"
+       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
     WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
              FROM data_sources
             WHERE ((data_sources.deleted_at IS NULL) AND ((data_sources.source_type IS NOT NULL) OR (data_sources.authoritative = true))))));
@@ -7855,11 +8166,8 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       service_history_services.record_type,
       service_history_services.date,
       service_history_services.age,
-      service_history_services.service_type,
       service_history_services.client_id,
-      service_history_services.project_type,
-      service_history_services.homeless,
-      service_history_services.literally_homeless
+      service_history_services.project_type
      FROM (service_history_services
        JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
     WHERE (service_history_services.date >= (CURRENT_DATE - '5 years'::interval));
@@ -7868,7 +8176,6 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       SELECT service_history_enrollments.id,
       service_history_enrollments.client_id,
       service_history_enrollments.data_source_id,
-      service_history_enrollments.date,
       service_history_enrollments.first_date_in_program,
       service_history_enrollments.last_date_in_program,
       service_history_enrollments.age,
@@ -7876,53 +8183,21 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       service_history_enrollments.head_of_household_id,
       service_history_enrollments.household_id,
       service_history_enrollments.project_name,
-      service_history_enrollments.project_type,
       service_history_enrollments.project_tracking_method,
-      service_history_enrollments.organization_id,
-      service_history_enrollments.record_type,
-      service_history_enrollments.housing_status_at_entry,
-      service_history_enrollments.housing_status_at_exit,
-      service_history_enrollments.service_type,
       service_history_enrollments.computed_project_type,
-      service_history_enrollments.presented_as_individual,
-      service_history_enrollments.other_clients_over_25,
-      service_history_enrollments.other_clients_under_18,
-      service_history_enrollments.other_clients_between_18_and_25,
-      service_history_enrollments.unaccompanied_youth,
-      service_history_enrollments.parenting_youth,
-      service_history_enrollments.parenting_juvenile,
-      service_history_enrollments.children_only,
-      service_history_enrollments.individual_adult,
-      service_history_enrollments.individual_elder,
-      service_history_enrollments.head_of_household,
       service_history_enrollments.move_in_date,
-      service_history_enrollments.unaccompanied_minor,
       "Project".id AS project_id,
       "Enrollment".id AS enrollment_id
      FROM (((service_history_enrollments
        JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
        JOIN "Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = service_history_enrollments.data_source_id) AND (("Project"."ProjectID")::text = (service_history_enrollments.project_id)::text) AND (("Project"."OrganizationID")::text = (service_history_enrollments.organization_id)::text))))
        JOIN "Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = service_history_enrollments.data_source_id) AND (("Enrollment"."EnrollmentID")::text = (service_history_enrollments.enrollment_group_id)::text) AND (("Enrollment"."ProjectID")::text = (service_history_enrollments.project_id)::text))))
-    WHERE ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval)));
+    WHERE (((service_history_enrollments.record_type)::text = 'entry'::text) AND ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval))));
   SQL
   create_view "bi_data_sources", sql_definition: <<-SQL
       SELECT data_sources.id,
       data_sources.name,
-      data_sources.file_path,
-      data_sources.last_imported_at,
-      data_sources.newest_updated_at,
-      data_sources.created_at,
-      data_sources.updated_at,
-      data_sources.source_type,
-      data_sources.munged_personal_id,
-      data_sources.short_name,
-      data_sources.visible_in_window,
-      data_sources.authoritative,
-      data_sources.after_create_path,
-      data_sources.import_paused,
-      data_sources.authoritative_type,
-      data_sources.source_id,
-      data_sources.deleted_at
+      data_sources.short_name
      FROM data_sources
     WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
   SQL
@@ -7982,19 +8257,8 @@ ActiveRecord::Schema.define(version: 2020_07_03_234840) do
       nightly_census_by_projects.non_veterans,
       nightly_census_by_projects.children,
       nightly_census_by_projects.adults,
-      nightly_census_by_projects.youth,
-      nightly_census_by_projects.families,
-      nightly_census_by_projects.individuals,
-      nightly_census_by_projects.parenting_youth,
-      nightly_census_by_projects.parenting_juveniles,
       nightly_census_by_projects.all_clients,
-      nightly_census_by_projects.beds,
-      nightly_census_by_projects.created_at,
-      nightly_census_by_projects.updated_at,
-      nightly_census_by_projects.juveniles,
-      nightly_census_by_projects.unaccompanied_minors,
-      nightly_census_by_projects.youth_families,
-      nightly_census_by_projects.family_parents
+      nightly_census_by_projects.beds
      FROM nightly_census_by_projects;
   SQL
 end

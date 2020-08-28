@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-06 20:05+0000\n"
-"PO-Revision-Date: 2020-05-06 20:05+0000\n"
+"POT-Creation-Date: 2020-08-05 18:28+0000\n"
+"PO-Revision-Date: 2020-08-05 18:28+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -3459,6 +3459,9 @@ msgstr ""
 msgid "City of Boston DND Warehouse"
 msgstr ""
 
+msgid "Client Notes"
+msgstr ""
+
 msgid "Client Search"
 msgstr ""
 
@@ -3529,6 +3532,9 @@ msgid "Fully signed data sharing agreement"
 msgstr ""
 
 msgid "HIV+"
+msgstr ""
+
+msgid "HMIS Blackout"
 msgstr ""
 
 msgid "HMIS Data Sources"
@@ -3699,6 +3705,9 @@ msgstr ""
 msgid "Pre-Placement Project"
 msgstr ""
 
+msgid "Previous Removal Reason"
+msgstr ""
+
 msgid "Process Duplicates"
 msgstr ""
 
@@ -3726,10 +3735,16 @@ msgstr ""
 msgid "Reports"
 msgstr ""
 
+msgid "Request access to the HMIS Warehouse"
+msgstr ""
+
 msgid "Requires ground floor unit or elevator access"
 msgstr ""
 
 msgid "Requires wheelchair accessible unit"
+msgstr ""
+
+msgid "Scan Card Services"
 msgstr ""
 
 msgid "Search"
@@ -3739,6 +3754,12 @@ msgid "Search End"
 msgstr ""
 
 msgid "Search Start"
+msgstr ""
+
+msgid "Set Automated HMIS CSV Loads"
+msgstr ""
+
+msgid "Set ETO API Configuration"
 msgstr ""
 
 msgid "Shelter Agency Contacts"
@@ -3751,6 +3772,9 @@ msgid "Stabilization Project"
 msgstr ""
 
 msgid "The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care."
+msgstr ""
+
+msgid "The HMIS Warehouse can be used for homeless client care coordination and reporting."
 msgstr ""
 
 msgid "This is a Family VI-SPDAT"
@@ -3819,6 +3843,9 @@ msgstr ""
 msgid "You must attach a file in the form."
 msgstr ""
 
+msgid "account requests"
+msgstr ""
+
 msgid "client"
 msgstr ""
 
@@ -3826,6 +3853,9 @@ msgid "clients"
 msgstr ""
 
 msgid "cohort enrollment"
+msgstr ""
+
+msgid "enrollment"
 msgstr ""
 
 msgid "groups"
@@ -3844,9 +3874,6 @@ msgid "qualifying activities"
 msgstr ""
 
 msgid "report"
-msgstr ""
-
-msgid "role"
 msgstr ""
 
 msgid "search"

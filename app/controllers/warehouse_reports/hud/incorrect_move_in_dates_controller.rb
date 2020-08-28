@@ -14,9 +14,9 @@ module WarehouseReports::Hud
     def index
       @enrollments = GrdaWarehouse::Hud::Enrollment.
         where(e_t[:EntryDate].lt(@filter.end)).
-        joins(:client, project: :project_cocs).
+        joins(project: :project_cocs, client: :destination_client).
         left_outer_joins(:exit).
-        preload(client: :destination_client).
+        preload(:exit, project: :project_cocs, client: :destination_client).
         merge(
           GrdaWarehouse::Hud::Project.
           viewable_by(current_user).
@@ -34,8 +34,13 @@ module WarehouseReports::Hud
           or(ex_t[:ExitDate].lt(e_t[:MoveInDate])).
           or(ex_t[:Destination].in(HUD.permanent_destinations).and(e_t[:MoveInDate].eq(nil))),
         ).
-        order(EntryDate: :desc).
-        page(params[:page]).per(50)
+        order(EntryDate: :desc)
+      respond_to do |format|
+        format.html do
+          @enrollments = @enrollments.page(params[:page]).per(50)
+        end
+        format.xlsx {}
+      end
 
       # MoveInDate3 = coalesce((select count(distinct n.EnrollmentID)
       # from dq_Enrollment n
@@ -71,6 +76,7 @@ module WarehouseReports::Hud
       params.require(:filter).permit(
         :start,
         :end,
+        project_ids: [],
         coc_codes: [],
       )
     end

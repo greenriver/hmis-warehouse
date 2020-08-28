@@ -1,0 +1,54 @@
+- title = 'Youth Activity'
+- content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
+
+.row
+  .col-sm-8
+    %h1= title
+
+= render 'filter'
+- if @clients.exists?
+  %p The following #{@clients.count} youth had data entered or updated between #{@filter.start} and #{@filter.end}. Dates shown are modification dates and may differ from the date the item was added to the youth's record.
+- else
+  %p No modifications were made to youth records between #{@filter.start} and #{@filter.end}.
+- @clients.find_each do |client|
+  %h3= client.name
+  .c-card
+    .c-card__content
+      - # We've preloaded all, use ruby select to pick those in range
+      - intakes = client.youth_intakes.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
+      - case_notes = client.case_managements.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
+      - referrals = client.direct_financial_assistances.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
+      - dfas = client.youth_referrals.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
+      - follow_ups = client.youth_follow_ups.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
+      .row
+        - if intakes
+          .col-sm-4
+            %h4 Intakes
+            - intakes.each do |item|
+              .item
+                #{link_to item.updated_at, client_youth_intakes_path(client)} by #{item.user.name}
+        - if case_notes
+          .col-sm-4
+            %h4 Case Management
+            - case_notes.each do |item|
+              .item
+                #{link_to item.updated_at, client_youth_intakes_path(client)} by #{item.user.name}
+        - if referrals
+          .col-sm-4
+            %h4 Referrals
+            - referrals.each do |item|
+              .item
+                #{link_to item.updated_at, client_youth_intakes_path(client)} by #{item.user.name}
+        - if dfas
+          .col-sm-4
+            %h4 Direct Financial Assistance
+            - dfas.each do |item|
+              .item
+                #{link_to item.updated_at, client_youth_intakes_path(client)} by #{item.user.name}
+        - if follow_ups
+          .col-sm-4
+            %h4 3-month Follow Ups
+            - follow_ups.each do |item|
+              .item
+                #{link_to item.updated_at, client_youth_intakes_path(client)} by #{item.user.name}

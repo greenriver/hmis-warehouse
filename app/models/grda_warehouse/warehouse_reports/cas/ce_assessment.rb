@@ -12,9 +12,9 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
     @filter = filter
     @filter.days_homeless = (@filter.days_homeless.presence || 270).to_i
     @filter.no_assessment_in = (@filter.no_assessment_in.presence || 180).to_i
-    @filter.sub_population = available_sub_populations.values.detect do |m|
+    @filter.sub_population = self.class.available_sub_populations.values.detect do |m|
       m == @filter.sub_population&.to_sym
-    end || :individual_adults
+    end || :adult
     if project_id_missing?
       @filter.project_id = default_project_id
     else

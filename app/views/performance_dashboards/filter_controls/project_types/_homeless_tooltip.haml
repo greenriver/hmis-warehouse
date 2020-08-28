@@ -1,0 +1,10 @@
+:ruby
+  names = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.map do |id|
+    name = HUD::project_type(id)
+  end.sort
+  items = names.map do |name|
+    "<li class='list-inline-item chip-v1-prs1'>#{CGI.escapeHTML name}</li>"
+  end
+  content = %Q{<p><ul class="list-inline d-inline mt-4">#{items.join.html_safe}</ul></p>}
+
+%i.icon-info{data: {toggle: :popover, title: "Project Types classified as Homeless", trigger: :focus, content: content, html: :true }}

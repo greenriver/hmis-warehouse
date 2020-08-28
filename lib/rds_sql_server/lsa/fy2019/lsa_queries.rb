@@ -3,7 +3,7 @@ require_relative '../../sql_server_base' unless ENV['NO_LSA_RDS'].present?
 require_relative 'lsa_sql_server' unless ENV['NO_LSA_RDS'].present?
 module LsaSqlServer
   class LSAQueries
-    attr_accessor :project_ids
+    attr_accessor :project_ids, :test_run
 
     def steps
       @steps ||= [
@@ -72,7 +72,7 @@ module LsaSqlServer
               and hp.OperatingEndDate > hp.OperatingStartDate)
             )
       SQL
-      query += "and hp.ProjectID in(#{project_ids.join(',')})" if project_ids.present? && ! test?
+      query += "and hp.ProjectID in(#{project_ids.join(',')})" if project_ids.present? && ! test_run
       SqlServerBase.connection.execute(query)
     end
   end

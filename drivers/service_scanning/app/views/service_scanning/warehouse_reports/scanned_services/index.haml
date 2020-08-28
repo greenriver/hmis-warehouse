@@ -1,0 +1,10 @@
+- title = _('Scanned Services')
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
+
+= render 'filter'
+- if @dates.any?
+  = render 'table'
+- else
+  %p.well.none-found No services found

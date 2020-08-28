@@ -30,6 +30,7 @@ Rails.application.routes.draw do
         post :confirm
       end
     end
+    resources :account_requests, only: [:new, :create]
   end
 
   get '/user_training', to: 'user_training#index'
@@ -143,13 +144,14 @@ Rails.application.routes.draw do
 
   namespace :reports do
     namespace :hic do
-      resource :export, only: [:show]
+      resource :export, only: [:show, :create]
       resource :organization, only: [:show]
       resource :project, only: [:show]
       resource :inventory, only: [:show]
       resource :site, only: [:show]
       resource :geography, only: [:show]
       resource :funder, only: [:show]
+      resource :project_coc, only: [:show]
     end
   end
   namespace :hud_reports do
@@ -172,6 +174,12 @@ Rails.application.routes.draw do
     resources :user_login, only: [:index]
   end
   namespace :warehouse_reports do
+    resources :overlapping_coc_utilization, only: [:index] do
+      collection do
+        get :overlap
+        get :details
+      end
+    end
     resources :ce_assessments, only: [:index]
     resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
@@ -183,6 +191,7 @@ Rails.application.routes.draw do
     resources :youth_follow_ups, only: [:index]
     resources :youth_export, only: [:index, :show, :create, :destroy]
     resources :youth_intake_export, only: [:index, :create]
+    resources :youth_activity, only: [:index]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
@@ -379,7 +388,11 @@ Rails.application.routes.draw do
       resources :housing_status, only: [:index] do
         get :details, on: :collection
       end
-      resources :housing_status_changes, only: [:index]
+      resources :housing_status_changes, only: [:index] do
+        collection do
+          get :detail
+        end
+      end
       resources :cp_roster, only: [:index, :show, :destroy] do
         collection do
           post :roster
@@ -436,7 +449,9 @@ Rails.application.routes.draw do
       end
     end
     resources :coordinated_entry_assessments, controller: 'clients/coordinated_entry_assessments'
-    resources :youth_intakes, controller: 'clients/youth/intakes'
+    resources :youth_intakes, controller: 'clients/youth/intakes' do
+      delete :remove_all_youth_data, on: :collection
+    end
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
     resources :youth_referrals, only: [:create, :destroy], controller: 'clients/youth/referrals'
@@ -457,7 +472,9 @@ Rails.application.routes.draw do
       post :batch_download, on: :collection
       get :pre_populated, on: :collection
     end
-    resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes'
+    resources :notes, only: [:index, :destroy, :create], controller: 'clients/notes' do
+      get :alerts, on: :collection
+    end
     resource :eto_api, only: [:show, :update], controller: 'clients/eto_api'
     resources :users, only: [:index, :create, :update, :destroy], controller: 'clients/users'
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
@@ -551,10 +568,17 @@ Rails.application.routes.draw do
     resources :overview, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "overview#section", as: :section
+      get :filters, on: :collection
+    end
+    resources :household, only: [:index] do
+      get :details, on: :collection
+      get 'section/:partial', on: :collection, to: "household#section", as: :section
+      get :filters, on: :collection
     end
     resources :project_type, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "project_type#section", as: :section
+      get :filters, on: :collection
     end
   end
 
@@ -590,7 +614,7 @@ Rails.application.routes.draw do
     resource :hmis_import_config
   end
   resources :ad_hoc_data_sources do
-    resources :uploads, except: [:update, :edit], controller: 'ad_hoc_data_sources/uploads' do
+    resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
       get :download, on: :member
     end
     get :download, on: :collection
@@ -607,7 +631,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :inventory, only: [:edit, :update]
+  resources :inventories, only: [:edit, :update]
   resources :geography, only: [:edit, :update]
   resources :project_cocs, only: [:edit, :update]
 
@@ -710,6 +734,9 @@ Rails.application.routes.draw do
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
     end
+    resources :account_requests, only: [:index, :edit, :update, :destroy] do
+      post :confirm
+    end
 
     resources :roles
     resources :groups
@@ -718,6 +745,11 @@ Rails.application.routes.draw do
     namespace :dashboard do
       resources :imports, only: [:index]
       resources :debug, only: [:index]
+    end
+    resources :de_duplication, only: [:index] do
+      collection do
+        patch :update
+      end
     end
     namespace :health do
       resources :admin, only: [:index]

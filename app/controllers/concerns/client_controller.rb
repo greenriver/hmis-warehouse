@@ -6,6 +6,8 @@
 
 module ClientController
   extend ActiveSupport::Concern
+  include ActionView::Helpers::TagHelper
+  include ActionView::Context
 
   included do
     include ArelHelper
@@ -13,7 +15,7 @@ module ClientController
     def sort_filter_index
       # sort / paginate
       default_sort = c_t[:LastName].asc
-      nulls_last = ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+      nulls_last = ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name.in?(['PostgreSQL', 'PostGIS'])
       sort = if client_processed_sort_columns.include?(sort_column)
         @clients = @clients.joins(:processed_service_history).includes(:processed_service_history)
         [wcp_t[sort_column.to_sym].send(sort_direction).to_sql + nulls_last.to_s, default_sort]
@@ -265,6 +267,53 @@ module ClientController
 
       render partial: rollup, layout: false if request.xhr?
     end
+
+    def js_clients
+      @js_clients ||= if can_view_confidential_enrollment_details?
+        source_clients.each_with_index.map { |c, i| [c.id, [i, c.uuid, c.data_source&.short_name, c.organizations.map(&:name).to_sentence]] }.to_h
+      else
+        source_clients.each_with_index.map { |c, i| [c.id, [i, c.uuid, c.data_source&.short_name, c.organizations.map { |o| o.name unless source_clients.joins(enrollments: :project).where(Project: { OrganizationID: o.OrganizationID, data_source_id: o.data_source_id }).where(Project: { confidential: true }).any? }.compact.to_sentence]] }.to_h
+      end
+    end
+    helper_method :js_clients
+
+    def source_clients
+      @source_clients ||= @client.source_clients.preload(:data_source, :organizations)
+    end
+    helper_method :source_clients
+
+    def ds_short_name_for(source_client_id)
+      js_clients[source_client_id][2]
+    end
+    helper_method :ds_short_name_for
+
+    private def source_client_personal_id_from(source_client_id)
+      js_clients[source_client_id][1]
+    end
+
+    private def org_name_for(source_client_id)
+      js_clients[source_client_id][3]
+    end
+
+    def ds_tooltip_content(source_client_id, ds_id)
+      content_tag(:div) do
+        content_tag(:div, org_name_for(source_client_id), class: :org) +
+        content_tag(:div) do
+          'PersonalID: ' +
+          content_tag(:span, source_client_personal_id_from(source_client_id), class: :pid)
+        end +
+        content_tag(:div, "Data source: #{ds_id}", class: :data_source_id) +
+        content_tag(:div, "Source Client ID: #{source_client_id}", class: :source_client_id) +
+        content_tag(:span) do
+          content_tag(:i) do
+            'click to copy personal id'
+          end
+        end
+      end
+
+      # <div><div class="org"/>PersonalID: <span class="pid"/><br>Data source: <span class="data_source_id"/><br>Source Client ID: <span class="source_client_id"/><br><i>click to copy personal id</i></div>
+    end
+    helper_method :ds_tooltip_content
 
     protected def set_client
       # Do we have this client?
