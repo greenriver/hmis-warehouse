@@ -90,6 +90,8 @@ class CronInstaller
     # https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
     if day_of_month == '*' && day_of_week == '*'
       day_of_week = '?'
+    elsif day_of_month != '*'
+      day_of_week = '?'
     end
 
     # This isn't strictly correct, but hopefully good enough
