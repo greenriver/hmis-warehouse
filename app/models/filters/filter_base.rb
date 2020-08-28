@@ -16,8 +16,6 @@ module Filters
     attribute :comparison_pattern, Symbol, default: -> (r,_) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
-    # NOTE: params[:filters][:project_types] will be 'es', 'th', etc.
-    # the report expects @filter.project_types to be an array of integers 1, 2 etc.
     attribute :project_type_codes, Array, default: -> (r,_) { r.default_project_type_codes }
     attribute :veteran_statuses, Array, default: []
     attribute :age_ranges, Array, default: []
@@ -63,16 +61,13 @@ module Filters
       ]
     end
 
-    # NOTE: params[:filters][:project_types] will be 'es', 'th', etc.
-    # the report expects @filter.project_types to be an array of integers 1, 2 etc.
     def set_from_params(filters)
       return unless filters.present?
 
       self.start = filters.dig(:start)&.to_date
       self.end = filters.dig(:end)&.to_date
-      pattern = filters.dig(:comparison_pattern)&.to_sym
-      self.comparison_pattern = pattern if PerformanceDashboards::Overview.valid_comparison_pattern?(pattern)
-      self.coc_codes = filters.dig(:coc_codes)&.select { |code| PerformanceDashboards::Overview.coc_codes.include?(code) }
+      self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
+      self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }
       self.household_type = filters.dig(:household_type)&.to_sym
       self.hoh_only = filters.dig(:hoh_only) == '1'
       self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject { |type| type.blank? }.presence
@@ -328,6 +323,22 @@ module Filters
         twenty_five_to_sixty_one: '25 - 61',
         over_sixty_one: '62+',
       }.invert.freeze
+    end
+
+    def comparison_patterns
+      {
+        no_comparison_period: 'None',
+        prior_year: 'Same period, prior year',
+        prior_period: 'Prior Period',
+      }.invert.freeze
+    end
+
+    def clean_comparison_pattern(pattern)
+      comparison_patterns.values.detect { |m| m == pattern&.to_sym } || default_comparison_pattern
+    end
+
+    def available_coc_codes
+      GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode)
     end
 
     # disallow selection > 1 year, and reverse dates
