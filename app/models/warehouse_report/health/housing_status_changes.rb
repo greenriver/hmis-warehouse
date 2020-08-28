@@ -28,23 +28,31 @@ class WarehouseReport::Health::HousingStatusChanges # rubocop:disable Style/Clas
 
   def data_for_housing_type_chart
     @data_for_housing_type_chart ||= [
-      ['x', 'Permanent', 'Shelter', 'Doubled Up', 'Street', 'Temporary', 'Unknown'],
+      [
+        'x',
+        'Permanent',
+        'Temporary',
+        'Doubled Up',
+        'Shelter',
+        'Street',
+        'Unknown',
+      ],
       [
         'Starting',
         group_count(group: :starting, status: :permanent),
-        group_count(group: :starting, status: :shelter),
-        group_count(group: :starting, status: :doubling_up),
-        group_count(group: :starting, status: :street),
         group_count(group: :starting, status: :temporary),
+        group_count(group: :starting, status: :doubling_up),
+        group_count(group: :starting, status: :shelter),
+        group_count(group: :starting, status: :street),
         group_count(group: :starting, status: :unknown),
       ],
       [
         'Ending',
         group_count(group: :ending, status: :permanent),
-        group_count(group: :ending, status: :shelter),
-        group_count(group: :ending, status: :doubling_up),
-        group_count(group: :ending, status: :street),
         group_count(group: :ending, status: :temporary),
+        group_count(group: :ending, status: :doubling_up),
+        group_count(group: :ending, status: :shelter),
+        group_count(group: :ending, status: :street),
         group_count(group: :ending, status: :unknown),
       ],
     ]
@@ -54,16 +62,16 @@ class WarehouseReport::Health::HousingStatusChanges # rubocop:disable Style/Clas
     @data_for_housing_trend_chart ||= [
       [
         'x',
-        'Started housed, ended housed',
         'Started unhoused, ended housed',
         'Started housed, ended unhoused',
+        'Started housed, ended housed',
         'Started unhoused, ended unhoused',
       ],
       [
         'Patients',
-        count_trend_group(starting_status: housed_statuses, ending_status: housed_statuses),
         count_trend_group(starting_status: unhoused_statuses, ending_status: housed_statuses),
         count_trend_group(starting_status: housed_statuses, ending_status: unhoused_statuses),
+        count_trend_group(starting_status: housed_statuses, ending_status: housed_statuses),
         count_trend_group(starting_status: unhoused_statuses, ending_status: unhoused_statuses),
       ],
     ]
