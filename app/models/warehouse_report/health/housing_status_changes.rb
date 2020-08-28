@@ -8,6 +8,8 @@ class WarehouseReport::Health::HousingStatusChanges # rubocop:disable Style/Clas
   include ArelHelper
   include HealthCharts
 
+  attr_accessor :start_date, :end_date
+
   def initialize(start_date, end_date, acos = nil, user:)
     @start_date = start_date
     @end_date = end_date
@@ -28,23 +30,31 @@ class WarehouseReport::Health::HousingStatusChanges # rubocop:disable Style/Clas
 
   def data_for_housing_type_chart
     @data_for_housing_type_chart ||= [
-      ['x', 'Permanent', 'Shelter', 'Doubled Up', 'Street', 'Temporary', 'Unknown'],
+      [
+        'x',
+        'Permanent',
+        'Temporary',
+        'Doubled Up',
+        'Shelter',
+        'Street',
+        'Unknown',
+      ],
       [
         'Starting',
         group_count(group: :starting, status: :permanent),
-        group_count(group: :starting, status: :shelter),
-        group_count(group: :starting, status: :doubling_up),
-        group_count(group: :starting, status: :street),
         group_count(group: :starting, status: :temporary),
+        group_count(group: :starting, status: :doubling_up),
+        group_count(group: :starting, status: :shelter),
+        group_count(group: :starting, status: :street),
         group_count(group: :starting, status: :unknown),
       ],
       [
         'Ending',
         group_count(group: :ending, status: :permanent),
-        group_count(group: :ending, status: :shelter),
-        group_count(group: :ending, status: :doubling_up),
-        group_count(group: :ending, status: :street),
         group_count(group: :ending, status: :temporary),
+        group_count(group: :ending, status: :doubling_up),
+        group_count(group: :ending, status: :shelter),
+        group_count(group: :ending, status: :street),
         group_count(group: :ending, status: :unknown),
       ],
     ]
@@ -54,19 +64,36 @@ class WarehouseReport::Health::HousingStatusChanges # rubocop:disable Style/Clas
     @data_for_housing_trend_chart ||= [
       [
         'x',
-        'Started housed, ended housed',
-        'Started unhoused, ended housed',
-        'Started housed, ended unhoused',
-        'Started unhoused, ended unhoused',
-      ],
+      ] + trend_categories.keys,
       [
         'Patients',
-        count_trend_group(starting_status: housed_statuses, ending_status: housed_statuses),
-        count_trend_group(starting_status: unhoused_statuses, ending_status: housed_statuses),
-        count_trend_group(starting_status: housed_statuses, ending_status: unhoused_statuses),
-        count_trend_group(starting_status: unhoused_statuses, ending_status: unhoused_statuses),
-      ],
+      ] + trend_group_counts,
     ]
+  end
+
+  private def trend_categories
+    {
+      'Started unhoused, ended housed' => {
+        starting_status: unhoused_statuses,
+        ending_status: housed_statuses,
+      },
+      'Started housed, ended unhoused' => {
+        starting_status: housed_statuses,
+        ending_status: unhoused_statuses,
+      },
+      'Started housed, ended housed' => {
+        starting_status: housed_statuses,
+        ending_status: housed_statuses,
+      },
+      'Started unhoused, ended unhoused' => {
+        starting_status: unhoused_statuses,
+        ending_status: unhoused_statuses,
+      },
+    }
+  end
+
+  private def trend_group_counts
+    trend_categories.values.map { |opts| count_trend_group(opts) }
   end
 
   private def housed_statuses
@@ -83,11 +110,35 @@ class WarehouseReport::Health::HousingStatusChanges # rubocop:disable Style/Clas
     end.count
   end
 
-  private def count_trend_group(starting_status:, ending_status:)
+  private def trend_group(starting_status:, ending_status:)
     unique_client_data.map(&:values).flatten.select do |c|
       c[:starting].clean_housing_status.in?(starting_status) &&
       c[:ending].clean_housing_status.in?(ending_status)
-    end.count
+    end
+  end
+
+  private def clients_in_trend_group(starting_status:, ending_status:)
+    unique_client_data.select do |row|
+      _, data = row.first
+      data[:starting].clean_housing_status.in?(starting_status) &&
+      data[:ending].clean_housing_status.in?(ending_status)
+    end.map(&:to_a).flatten(1).to_h
+  end
+
+  private def count_trend_group(starting_status:, ending_status:)
+    trend_group(starting_status: starting_status, ending_status: ending_status).count
+  end
+
+  def allowed_status(params)
+    trend_categories.keys.detect { |m| m == params.dig(:filter, :status) } || 'Unknown'
+  end
+
+  def selected_trend_category(params)
+    trend_categories[allowed_status(params)]
+  end
+
+  def details_for(params)
+    clients_in_trend_group(selected_trend_category(params))
   end
 
   def populate_report_data
