@@ -5,5 +5,12 @@ Rails.application.routes.draw do
       post :create_client, on: :collection
     end
     resources :scanner_ids
+    namespace :warehouse_reports do
+      resources :scanned_services, only: [:index] do
+        get :detail, on: :collection
+      end
+    end
   end
+
+
 end

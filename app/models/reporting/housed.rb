@@ -399,18 +399,18 @@ module Reporting
 
     def two_project_residential_columns
       @two_project_residential_columns ||= {
-        residential_project_id: p_t[:id].as('residential_project_id').to_sql,
-        housed_date: she_t[:first_date_in_program].as('housed_date').to_sql,
-        housing_exit: she_t[:last_date_in_program].to_sql,
-        project_type: she_t[GrdaWarehouse::ServiceHistoryEnrollment.project_type_column].to_sql,
-        destination: she_t[:destination].to_sql,
-        residential_project: she_t[:project_name].as('residential_project').to_sql,
-        client_id: she_t[:client_id].to_sql,
-        presented_as_individual: she_t[:presented_as_individual].to_sql,
-        children_only: she_t[:children_only].to_sql,
-        individual_adult: she_t[:individual_adult].to_sql,
-        project_id: p_t[:id].to_sql,
-        head_of_household: she_t[:head_of_household].to_sql,
+        residential_project_id: p_t[:id].as('residential_project_id'),
+        housed_date: she_t[:first_date_in_program].as('housed_date'),
+        housing_exit: she_t[:last_date_in_program],
+        project_type: she_t[GrdaWarehouse::ServiceHistoryEnrollment.project_type_column],
+        destination: she_t[:destination],
+        residential_project: she_t[:project_name].as('residential_project'),
+        client_id: she_t[:client_id],
+        presented_as_individual: she_t[:presented_as_individual],
+        children_only: she_t[:children_only],
+        individual_adult: she_t[:individual_adult],
+        project_id: p_t[:id],
+        head_of_household: she_t[:head_of_household],
       }
     end
 

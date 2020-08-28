@@ -106,5 +106,9 @@ module ServiceScanning
         to_a.
         group_by(&:type)
     end
+
+    def title_only
+      title
+    end
   end
 end

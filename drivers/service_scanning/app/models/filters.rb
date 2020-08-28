@@ -4,10 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+module ServiceScanning::Filters
+end
 module Filters
-  class PerformanceDashboard < FilterBase
-    def default_project_type_codes
-      GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
-    end
-  end
 end
