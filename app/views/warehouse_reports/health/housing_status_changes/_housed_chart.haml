@@ -1,7 +1,8 @@
 .row.mb-6
   .col
     %h3 Starting / Ending Housing Status (#{pluralize(@report.unique_client_data.count, 'ACO')})
-    .jHousingChart
+    .well
+      .jHousingChart
   .col
     %h3 Housing Status Key
     .well
