@@ -388,7 +388,11 @@ Rails.application.routes.draw do
       resources :housing_status, only: [:index] do
         get :details, on: :collection
       end
-      resources :housing_status_changes, only: [:index]
+      resources :housing_status_changes, only: [:index] do
+        collection do
+          get :detail
+        end
+      end
       resources :cp_roster, only: [:index, :show, :destroy] do
         collection do
           post :roster

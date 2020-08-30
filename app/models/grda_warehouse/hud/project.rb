@@ -12,7 +12,7 @@ module GrdaWarehouse::Hud
     include ProjectReport
     include ::HMIS::Structure::Project
     include RailsDrivers::Extensions
-
+    
     attr_accessor :source_id
 
     self.table_name = :Project
@@ -709,6 +709,7 @@ module GrdaWarehouse::Hud
 
         project_scope.
           joins(:organization, :data_source).
+          preload(:organization, :data_source).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).
           each do |project|
             org_name = project.organization.OrganizationName

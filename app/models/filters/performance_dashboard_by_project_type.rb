@@ -5,7 +5,7 @@
 ###
 
 module Filters
-  class PerformanceDashboardByProjectType < PerformanceDashboard
+  class PerformanceDashboardByProjectType < FilterBase
     def default_project_type_codes
       [:es]
     end

@@ -10,6 +10,10 @@ module ServiceScanning
       "Other Service: #{other_type}"
     end
 
+    def title_only
+      'Other Service'
+    end
+
     def slug
       :other
     end

@@ -960,17 +960,18 @@ module GrdaWarehouse::Hud
     end
 
     def visible_because_of_permission?(user)
-        user.can_view_clients? ||
-        visible_because_of_release?(user) ||
-        visible_because_of_assigned_data_source?(user) ||
-        visible_because_of_coc_association?(user)
+      user.can_view_clients? ||
+      visible_because_of_release?(user) ||
+      visible_because_of_assigned_data_source?(user) ||
+      visible_because_of_coc_association?(user)
     end
 
     def visible_because_of_release?(user)
+      any_window_clients = source_clients.map { |sc| sc.data_source.visible_in_window? }.any?
       user.can_view_client_window? &&
       (
         release_valid? ||
-        ! GrdaWarehouse::Config.get(:window_access_requires_release) && data_source.visible_in_window?
+        ! GrdaWarehouse::Config.get(:window_access_requires_release) && any_window_clients
       )
     end
 
