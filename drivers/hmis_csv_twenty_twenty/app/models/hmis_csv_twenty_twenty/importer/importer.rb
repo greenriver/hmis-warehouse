@@ -334,7 +334,7 @@ module HmisCsvTwentyTwenty::Importer
         GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
           update_all(processed_as: nil)
       end
-      log("Updated #{summary_for(file_name, 'updated')} new #{klass.name}")
+      log("Updated #{summary_for(file_name, 'updated')} existing #{klass.name}")
     end
 
     private def mark_unchanged(klass, file_name)
