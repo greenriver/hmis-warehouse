@@ -347,10 +347,14 @@ module HmisCsvTwentyTwenty::Importer
         date_range: date_range,
       ).where.not(DateUpdated: nil). # A bad import can sometimes cause this
         pluck(klass.hud_key, :source_hash)
-      incoming = klass.where(importer_log_id: @importer_log.id).pluck(klass.hud_key, :source_hash)
+      incoming = klass.where(importer_log_id: @importer_log.id).
+        pluck(klass.hud_key, :source_hash)
       unchanged = (existing & incoming).map(&:first)
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
-        klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).where(klass.hud_key => batch).update_all(pending_date_deleted: nil)
+        klass.where(
+          data_source_id: data_source.id,
+          klass.hud_key => batch,
+        ).update_all(pending_date_deleted: nil)
         note_processed(file_name, batch.count, 'unchanged')
       end
     end
@@ -359,8 +363,13 @@ module HmisCsvTwentyTwenty::Importer
       # Doesn't apply to Exports
       return if klass.hud_key == :ExportID
 
-      existing = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).pluck(klass.hud_key, :DateUpdated).to_h
-      incoming = klass.where(importer_log_id: @importer_log.id).pluck(klass.hud_key, :DateUpdated).to_h
+      existing = klass.existing_destination_data(
+        data_source_id: data_source.id,
+        project_ids: involved_project_ids,
+        date_range: date_range,
+      ).pluck(klass.hud_key, :DateUpdated).to_h
+      incoming = klass.where(importer_log_id: @importer_log.id).
+        pluck(klass.hud_key, :DateUpdated).to_h
 
       # ignore any where we don't have a DateUpdated,
       # or we don't have a matching incoming record
@@ -370,7 +379,10 @@ module HmisCsvTwentyTwenty::Importer
       # trust the warehouse is correct
       unchanged = existing.select { |k, v| incoming[k] < v }.keys
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
-        klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).where(klass.hud_key => batch).update_all(pending_date_deleted: nil)
+        klass.where(
+          data_source_id: data_source.id,
+          klass.hud_key => batch,
+        ).update_all(pending_date_deleted: nil)
         note_processed(file_name, batch.count, 'unchanged')
       end
     end
