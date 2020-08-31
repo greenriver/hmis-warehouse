@@ -234,6 +234,7 @@ module HudApr::Generators::Shared::Fy2020
 
     private def clients_with_enrollments(batch)
       GrdaWarehouse::ServiceHistoryEnrollment.
+        entry
         in_project(@report.project_ids).
         joins(:enrollment).
         preload(enrollment: [:client, :disabilities, :current_living_situations]).

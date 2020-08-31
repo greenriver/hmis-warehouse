@@ -14,19 +14,8 @@ module HudApr::Generators::Shared::Fy2020
     def run!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
-      q6a_data_quality
-
-      # Q6b
-      metadata = {
-        header_row: ['Data Element', 'Error Count', '% of Error Rate'],
-        row_labels: [ 'Veteran Status (3.07)', 'Project Start Date (3.10)', 'Relationship to Head of Household (3.15)',
-          'Client Location (3.16)', 'Disabling Condition (3.08)'],
-        first_column: 'B',
-        last_column: 'C',
-        first_row: 2,
-        last_row: 6,
-      }
-      @report.answer(question: 'Q6b').update(metadata: metadata)
+      q6a_pii
+      q6b_universal_data_elements
 
       # Q6c
       metadata = {
@@ -84,7 +73,7 @@ module HudApr::Generators::Shared::Fy2020
       @a_t ||= report_client_universe.arel_table
     end
 
-    private def q6a_data_quality
+    private def q6a_pii
       table_name = 'Q6a'
       metadata = {
         header_row: ['Data Element', 'Client Doesn’t Know/Refused', 'Information Missing',
@@ -290,6 +279,99 @@ module HudApr::Generators::Shared::Fy2020
       total_members
     end
 
+    private def q6b_universal_data_elements
+      table_name = 'Q6b'
+      metadata = {
+        header_row: ['Data Element', 'Error Count', '% of Error Rate'],
+        row_labels: [ 'Veteran Status (3.07)', 'Project Start Date (3.10)', 'Relationship to Head of Household (3.15)',
+          'Client Location (3.16)', 'Disabling Condition (3.08)'],
+        first_column: 'B',
+        last_column: 'C',
+        first_row: 2,
+        last_row: 6,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      # veteran status
+      answer = @report.answer(question: table_name, cell: 'B2')
+      members = universe.members.where(
+        a_t[:veteran_status].in([nil, 8, 9]).
+          or(a_t[:veteran_status].eq(1).
+            and(a_t[:age].lt(18)))
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C2')
+      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f ))
+
+      # project start date
+      answer = @report.answer(question: table_name, cell: 'B3')
+      members = universe.members.where(a_t[:overlapping_enrollments].not_eq([]))
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C3')
+      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f ))
+
+      # relationship to head of household
+      answer = @report.answer(question: table_name, cell: 'B4')
+      households_with_multiple_hohs = universe.members.
+        where(a_t[:relationship_to_hoh].eq(1)).
+        group(a_t[:household_id]).
+        count.
+        select{ |_, v| v > 1 }.
+        keys
+      households_with_no_hoh = universe.members.pluck(:household_id) -
+        universe.members.where(a_t[:relationship_to_hoh].eq(1)).pluck(:household_id)
+      members = universe.members.where(
+        a_t[:relationship_to_hoh].not_in((1..5).to_a).
+          or(a_t[:household_id].in(households_with_multiple_hohs)).
+          or(a_t[:household_id].in(households_with_no_hoh)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C4')
+      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f ))
+
+      # client location
+      answer = @report.answer(question: table_name, cell: 'B5')
+      members = universe.members.where(
+        a_t[:enrollment_coc].eq(nil).
+          or(a_t[:enrollment_coc].not_in(HUD.cocs.keys)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C5')
+      hoh_denominator = universe.members.where(a_t[:head_of_household].eq(true))
+      answer.update(summary: format('%1.4f', members.count / hoh_denominator.count.to_f ))
+
+      # disabling condition
+      answer = @report.answer(question: table_name, cell: 'B6')
+      members = universe.members.where(
+        a_t[:disabling_condition].in([8, 9, nil]).
+          or(a_t[:disabling_condition].eq(0).
+            and(a_t[:indefinite_and_impairs].eq(true).
+              and(a_t[:developmental_disability].eq(true).
+                or(a_t[:hiv_aids].eq(true)).
+                or(a_t[:physical_disability].eq(true)).
+                or(a_t[:chronic_disability].eq(true)).
+                or(a_t[:mental_health_problem].eq(true)).
+                or(a_t[:substance_abuse].eq(true)).
+                or(a_t[:indefinite_and_impairs].eq(true)),
+              ),
+            ),
+          ),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C6')
+      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f ))
+    end
+
     private def universe
       @universe ||= begin
         universe_cell = @report.universe(QUESTION_NUMBER)
@@ -300,6 +382,7 @@ module HudApr::Generators::Shared::Fy2020
 
           batch.each do |client|
             last_service_history_enrollment = clients_with_enrollments[client.id].last
+            enrollment = last_service_history_enrollment.enrollment
             source_client = last_service_history_enrollment.source_client
             client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
             pending_associations[client] = report_client_universe.new(
@@ -317,10 +400,24 @@ module HudApr::Generators::Shared::Fy2020
               age: source_client.age_on(client_start_date),
               head_of_household: last_service_history_enrollment.head_of_household,
               first_date_in_program: last_service_history_enrollment.first_date_in_program,
-              enrollment_created: last_service_history_enrollment.enrollment.DateCreated,
+              enrollment_created: enrollment.DateCreated,
               race: HUD.races.keys.map { |key| source_client.public_send(key) },
               ethnicity: source_client.Ethnicity,
               gender: source_client.Gender,
+              veteran_status: source_client.VeteranStatus,
+              overlapping_enrollments: overlapping_enrollments(clients_with_enrollments[client.id],
+                                                               last_service_history_enrollment),
+              relationship_to_hoh: enrollment.RelationshipToHoH,
+              household_id: last_service_history_enrollment.household_id,
+              enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
+              disabling_condition: enrollment.DisablingCondition,
+              developmental_disability: enrollment.disabilities.developmental.disabled.exists?,
+              hiv_aids: enrollment.disabilities.hiv.disabled.exists?,
+              physical_disability: enrollment.disabilities.physical.disabled.exists?,
+              chronic_disability: enrollment.disabilities.chronic.disabled.exists?,
+              mental_health_problem: enrollment.disabilities.mental.disabled.exists?,
+              substance_abuse: enrollment.disabilities.substance.disabled.exists?,
+              indefinite_and_impairs: enrollment.disabilities.chronically_disabled.exists?,
             )
           end
           report_client_universe.import(
@@ -342,6 +439,19 @@ module HudApr::Generators::Shared::Fy2020
                 :race,
                 :ethnicity,
                 :gender,
+                :veteran_status,
+                :overlapping_enrollments,
+                :relationship_to_hoh,
+                :household_id,
+                :enrollment_coc,
+                :disabling_condition,
+                :developmental_disability,
+                :hiv_aids,
+                :physical_disability,
+                :chronic_disability,
+                :mental_health_problem,
+                :substance_abuse,
+                :indefinite_and_impairs,
               ]
             }
           )
@@ -352,8 +462,22 @@ module HudApr::Generators::Shared::Fy2020
       end
     end
 
+    private def overlapping_enrollments(enrollments, last_enrollment)
+      last_enrollment_end = last_enrollment.last_date_in_program || Date.tomorrow
+      enrollments.select do |enrollment|
+        enrollment_end = enrollment.last_date_in_program || Date.tomorrow
+
+        enrollment.id != last_enrollment.id && # Don't include the last enrollment
+          enrollment.data_source_id == last_enrollment.data_source_id &&
+          enrollment.project_id == last_enrollment.project_id &&
+          enrollment.first_date_in_program < last_enrollment_end &&
+          enrollment_end > last_enrollment.first_date_in_program
+      end.map(&:enrollment_group_id).uniq
+    end
+
     private def clients_with_enrollments(batch)
       GrdaWarehouse::ServiceHistoryEnrollment.
+        entry.
         in_project(@report.project_ids).
         joins(:enrollment).
         preload(enrollment: [:client, :disabilities, :current_living_situations]).
