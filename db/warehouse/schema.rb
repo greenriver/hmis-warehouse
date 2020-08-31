@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_24_174347) do
+ActiveRecord::Schema.define(version: 2020_08_31_193024) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -31,11 +31,11 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.integer "data_source_id"
     t.string "source_hash"
     t.datetime "pending_date_deleted"
+    t.index ["AffiliationID", "data_source_id"], name: "index_Affiliation_on_AffiliationID_and_data_source_id", unique: true
     t.index ["DateCreated"], name: "affiliation_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Affiliation_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "affiliation_date_updated"
     t.index ["ExportID"], name: "affiliation_export_id"
-    t.index ["data_source_id", "AffiliationID"], name: "unk_Affiliation", unique: true
     t.index ["data_source_id"], name: "index_Affiliation_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Affiliation_on_pending_date_deleted"
   end
@@ -57,7 +57,7 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.integer "data_source_id"
     t.datetime "pending_date_deleted"
     t.string "source_hash"
-    t.index ["AssessmentID", "data_source_id"], name: "assessment_a_id_ds_id"
+    t.index ["AssessmentID", "data_source_id"], name: "index_Assessment_on_AssessmentID_and_data_source_id", unique: true
     t.index ["PersonalID", "EnrollmentID", "data_source_id", "AssessmentID"], name: "assessment_p_id_en_id_ds_id_a_id"
     t.index ["pending_date_deleted"], name: "index_Assessment_on_pending_date_deleted"
   end
@@ -80,7 +80,7 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.datetime "pending_date_deleted"
     t.string "source_hash"
     t.index ["AssessmentID", "data_source_id", "PersonalID", "EnrollmentID", "AssessmentQuestionID"], name: "assessment_q_a_id_ds_id_p_id_en_id_aq_id"
-    t.index ["AssessmentQuestionID", "data_source_id"], name: "assessment_q_aq_id_ds_id"
+    t.index ["AssessmentQuestionID", "data_source_id"], name: "aq_aq_id_ds_id", unique: true
     t.index ["pending_date_deleted"], name: "index_AssessmentQuestions_on_pending_date_deleted"
   end
 
@@ -100,7 +100,7 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.datetime "pending_date_deleted"
     t.string "source_hash"
     t.index ["AssessmentID", "data_source_id", "PersonalID", "EnrollmentID", "AssessmentResultID"], name: "assessment_r_a_id_ds_id_p_id_en_id_ar_id"
-    t.index ["AssessmentResultID", "data_source_id"], name: "assessment_r_ar_id_ds_id"
+    t.index ["AssessmentResultID", "data_source_id"], name: "ar_ar_id_ds_id", unique: true
     t.index ["pending_date_deleted"], name: "index_AssessmentResults_on_pending_date_deleted"
   end
 
@@ -372,6 +372,7 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.datetime "pending_date_deleted"
     t.string "source_hash"
     t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_cur_id_ds_id"
+    t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_sit_id_ds_id", unique: true
     t.index ["PersonalID", "EnrollmentID", "data_source_id", "CurrentLivingSitID"], name: "cur_liv_sit_p_id_en_id_ds_id_cur_id"
     t.index ["pending_date_deleted"], name: "index_CurrentLivingSituation_on_pending_date_deleted"
   end
@@ -409,11 +410,11 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id"
     t.index ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateUpdated"], name: "disabilities_date_updated"
+    t.index ["DisabilitiesID", "data_source_id"], name: "index_Disabilities_on_DisabilitiesID_and_data_source_id", unique: true
     t.index ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx"
     t.index ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID"
     t.index ["ExportID"], name: "disabilities_export_id"
     t.index ["PersonalID"], name: "index_Disabilities_on_PersonalID"
-    t.index ["data_source_id", "DisabilitiesID"], name: "unk_Disabilities", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_Disabilities_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Disabilities_on_pending_date_deleted"
@@ -441,10 +442,10 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateCreated"], name: "employment_education_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_EmploymentEducation_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "employment_education_date_updated"
+    t.index ["EmploymentEducationID", "data_source_id"], name: "ee_ee_id_ds_id", unique: true
     t.index ["EnrollmentID"], name: "index_EmploymentEducation_on_EnrollmentID"
     t.index ["ExportID"], name: "employment_education_export_id"
     t.index ["PersonalID"], name: "index_EmploymentEducation_on_PersonalID"
-    t.index ["data_source_id", "EmploymentEducationID"], name: "unk_EmploymentEducation", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_EmploymentEducation_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_EmploymentEducation_on_pending_date_deleted"
@@ -573,13 +574,13 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateDeleted", "data_source_id"], name: "index_Enrollment_on_DateDeleted_and_data_source_id"
     t.index ["DateDeleted"], name: "index_Enrollment_on_DateDeleted"
     t.index ["DateUpdated"], name: "enrollment_date_updated"
+    t.index ["EnrollmentID", "PersonalID", "data_source_id"], name: "en_en_id_p_id_ds_id", unique: true
     t.index ["EnrollmentID"], name: "index_Enrollment_on_EnrollmentID"
     t.index ["EntryDate"], name: "index_Enrollment_on_EntryDate"
     t.index ["ExportID"], name: "enrollment_export_id"
     t.index ["MoveInDate"], name: "index_Enrollment_on_MoveInDate"
     t.index ["PersonalID"], name: "index_Enrollment_on_PersonalID"
     t.index ["ProjectID"], name: "index_Enrollment_on_ProjectID"
-    t.index ["data_source_id", "EnrollmentID", "PersonalID"], name: "unk_Enrollment", unique: true
     t.index ["data_source_id", "HouseholdID", "ProjectID"], name: "idx_enrollment_ds_id_hh_id_p_id"
     t.index ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_Enrollment_on_data_source_id"
@@ -606,9 +607,9 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateCreated"], name: "enrollment_coc_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_EnrollmentCoC_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "enrollment_coc_date_updated"
+    t.index ["EnrollmentCoCID", "data_source_id"], name: "index_EnrollmentCoC_on_EnrollmentCoCID_and_data_source_id", unique: true
     t.index ["EnrollmentCoCID"], name: "index_EnrollmentCoC_on_EnrollmentCoCID"
     t.index ["ExportID"], name: "enrollment_coc_export_id"
-    t.index ["data_source_id", "EnrollmentCoCID"], name: "unk_EnrollmentCoC", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_EnrollmentCoC_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_EnrollmentCoC_on_pending_date_deleted"
@@ -633,7 +634,7 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.integer "data_source_id"
     t.datetime "pending_date_deleted"
     t.string "source_hash"
-    t.index ["EventID", "data_source_id"], name: "event_ev_id_ds_id"
+    t.index ["EventID", "data_source_id"], name: "ev_ev_id_ds_id", unique: true
     t.index ["data_source_id", "PersonalID", "EnrollmentID", "EventID"], name: "event_ds_id_p_id_en_id_ev_id"
     t.index ["pending_date_deleted"], name: "index_Event_on_pending_date_deleted"
   end
@@ -704,9 +705,9 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateUpdated"], name: "exit_date_updated"
     t.index ["EnrollmentID"], name: "index_Exit_on_EnrollmentID"
     t.index ["ExitDate"], name: "index_Exit_on_ExitDate"
+    t.index ["ExitID", "data_source_id"], name: "index_Exit_on_ExitID_and_data_source_id", unique: true
     t.index ["ExportID"], name: "exit_export_id"
     t.index ["PersonalID"], name: "index_Exit_on_PersonalID"
-    t.index ["data_source_id", "ExitID"], name: "unk_Exit", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_Exit_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Exit_on_pending_date_deleted"
@@ -733,8 +734,8 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.integer "SourceType"
     t.date "effective_export_end_date"
     t.string "source_hash"
+    t.index ["ExportID", "data_source_id"], name: "index_Export_on_ExportID_and_data_source_id", unique: true
     t.index ["ExportID"], name: "export_export_id"
-    t.index ["data_source_id", "ExportID"], name: "unk_Export", unique: true
     t.index ["data_source_id"], name: "index_Export_on_data_source_id"
   end
 
@@ -758,8 +759,8 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateDeleted", "data_source_id"], name: "index_Funder_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "funder_date_updated"
     t.index ["ExportID"], name: "funder_export_id"
+    t.index ["FunderID", "data_source_id"], name: "index_Funder_on_FunderID_and_data_source_id", unique: true
     t.index ["ProjectID", "Funder"], name: "index_Funder_on_ProjectID_and_Funder"
-    t.index ["data_source_id", "FunderID"], name: "unk_Funder", unique: true
     t.index ["data_source_id"], name: "index_Funder_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Funder_on_pending_date_deleted"
   end
@@ -825,8 +826,8 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateUpdated"], name: "health_and_dv_date_updated"
     t.index ["EnrollmentID"], name: "index_HealthAndDV_on_EnrollmentID"
     t.index ["ExportID"], name: "health_and_dv_export_id"
+    t.index ["HealthAndDVID", "data_source_id"], name: "index_HealthAndDV_on_HealthAndDVID_and_data_source_id", unique: true
     t.index ["PersonalID"], name: "index_HealthAndDV_on_PersonalID"
-    t.index ["data_source_id", "HealthAndDVID"], name: "unk_HealthAndDV", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_HealthAndDV_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_HealthAndDV_on_pending_date_deleted"
@@ -922,9 +923,9 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateUpdated"], name: "income_benefits_date_updated"
     t.index ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID"
     t.index ["ExportID"], name: "income_benefits_export_id"
+    t.index ["IncomeBenefitsID", "data_source_id"], name: "index_IncomeBenefits_on_IncomeBenefitsID_and_data_source_id", unique: true
     t.index ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID"
     t.index ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
-    t.index ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_IncomeBenefits_on_pending_date_deleted"
@@ -967,8 +968,8 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateDeleted", "data_source_id"], name: "index_Inventory_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "inventory_date_updated"
     t.index ["ExportID"], name: "inventory_export_id"
+    t.index ["InventoryID", "data_source_id"], name: "index_Inventory_on_InventoryID_and_data_source_id", unique: true
     t.index ["ProjectID", "CoCCode", "data_source_id"], name: "index_Inventory_on_ProjectID_and_CoCCode_and_data_source_id"
-    t.index ["data_source_id", "InventoryID"], name: "unk_Inventory", unique: true
     t.index ["data_source_id"], name: "index_Inventory_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Inventory_on_pending_date_deleted"
   end
@@ -1070,7 +1071,7 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateDeleted", "data_source_id"], name: "index_ProjectCoC_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "project_coc_date_updated"
     t.index ["ExportID"], name: "project_coc_export_id"
-    t.index ["data_source_id", "ProjectCoCID"], name: "unk_ProjectCoC", unique: true
+    t.index ["ProjectCoCID", "data_source_id"], name: "index_ProjectCoC_on_ProjectCoCID_and_data_source_id", unique: true
     t.index ["data_source_id", "ProjectID", "CoCCode"], name: "index_ProjectCoC_on_data_source_id_and_ProjectID_and_CoCCode"
     t.index ["data_source_id"], name: "index_ProjectCoC_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_ProjectCoC_on_pending_date_deleted"
@@ -1103,8 +1104,8 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["EnrollmentID", "PersonalID", "data_source_id"], name: "index_serv_on_proj_entry_per_id_ds_id"
     t.index ["ExportID"], name: "services_export_id"
     t.index ["PersonalID"], name: "index_Services_on_PersonalID"
+    t.index ["ServicesID", "data_source_id"], name: "index_Services_on_ServicesID_and_data_source_id", unique: true
     t.index ["data_source_id", "PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "index_services_ds_id_p_id_type_entry_id_date"
-    t.index ["data_source_id", "ServicesID"], name: "unk_Services", unique: true
     t.index ["data_source_id"], name: "index_Services_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Services_on_pending_date_deleted"
   end
@@ -1123,7 +1124,7 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.integer "data_source_id"
     t.datetime "pending_date_deleted"
     t.string "source_hash"
-    t.index ["UserID", "data_source_id"], name: "index_User_on_UserID_and_data_source_id"
+    t.index ["UserID", "data_source_id"], name: "index_User_on_UserID_and_data_source_id", unique: true
     t.index ["pending_date_deleted"], name: "index_User_on_pending_date_deleted"
   end
 
@@ -1798,6 +1799,7 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.boolean "auto_de_duplication_enabled", default: false, null: false
     t.boolean "request_account_available", default: false, null: false
     t.date "dashboard_lookback", default: "2014-07-01"
+    t.integer "domestic_violence_lookback_days", default: 0, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -2369,6 +2371,7 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateUpdated"], name: "hmis_2020_aggregated_enrollments-4L8g"
     t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_aggregated_enrollments-ocKA"
     t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_aggregated_enrollments-zNVo"
+    t.index ["EnrollmentID", "data_source_id"], name: "hmis_2020_aggregated_enrollments-ESQV", unique: true
     t.index ["EnrollmentID"], name: "hmis_2020_aggregated_enrollments-RNSl"
     t.index ["EntryDate"], name: "hmis_2020_aggregated_enrollments-oiEU"
     t.index ["ExportID"], name: "hmis_2020_aggregated_enrollments-fXAB"
@@ -2441,6 +2444,7 @@ ActiveRecord::Schema.define(version: 2020_08_24_174347) do
     t.index ["DateUpdated"], name: "hmis_2020_aggregated_exits-VRGa"
     t.index ["EnrollmentID"], name: "hmis_2020_aggregated_exits-BwSf"
     t.index ["ExitDate"], name: "hmis_2020_aggregated_exits-GBBG"
+    t.index ["ExitID", "data_source_id"], name: "hmis_2020_aggregated_exits-l9Zs", unique: true
     t.index ["ExitID"], name: "hmis_2020_aggregated_exits-g6y1"
     t.index ["ExportID"], name: "hmis_2020_aggregated_exits-auds"
     t.index ["PersonalID"], name: "hmis_2020_aggregated_exits-EPOP"
