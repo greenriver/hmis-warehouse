@@ -5,7 +5,7 @@
 ###
 
 module HudApr::Generators::Shared::Fy2020
-  class QuestionSix < HudReports::QuestionBase
+  class QuestionSix < Base
     include ArelHelper
 
     QUESTION_NUMBER = 'Q6'
@@ -373,92 +373,45 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def universe
-      @universe ||= begin
-        universe_cell = @report.universe(QUESTION_NUMBER)
+      @universe ||= build_universe(QUESTION_NUMBER) do |client, enrollments|
+        last_service_history_enrollment = enrollments.last
+        enrollment = last_service_history_enrollment.enrollment
+        source_client = last_service_history_enrollment.source_client
+        client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
-        @generator.client_scope.find_in_batches do |batch|
-          pending_associations = {}
-          clients_with_enrollments = clients_with_enrollments(batch)
+        report_client_universe.new(
+          client_id: source_client.id,
+          data_source_id: source_client.data_source_id,
+          report_instance_id: @report.id,
 
-          batch.each do |client|
-            last_service_history_enrollment = clients_with_enrollments[client.id].last
-            enrollment = last_service_history_enrollment.enrollment
-            source_client = last_service_history_enrollment.source_client
-            client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
-            pending_associations[client] = report_client_universe.new(
-              client_id: source_client.id,
-              data_source_id: source_client.data_source_id,
-              report_instance_id: @report.id,
-
-              first_name: source_client.FirstName,
-              last_name: source_client.LastName,
-              name_quality: source_client.NameDataQuality,
-              ssn: source_client.SSN,
-              ssn_quality: source_client.SSNDataQuality,
-              dob: source_client.DOB,
-              dob_quality: source_client.DOBDataQuality,
-              age: source_client.age_on(client_start_date),
-              head_of_household: last_service_history_enrollment.head_of_household,
-              first_date_in_program: last_service_history_enrollment.first_date_in_program,
-              enrollment_created: enrollment.DateCreated,
-              race: HUD.races.keys.map { |key| source_client.public_send(key) },
-              ethnicity: source_client.Ethnicity,
-              gender: source_client.Gender,
-              veteran_status: source_client.VeteranStatus,
-              overlapping_enrollments: overlapping_enrollments(clients_with_enrollments[client.id],
-                                                               last_service_history_enrollment),
-              relationship_to_hoh: enrollment.RelationshipToHoH,
-              household_id: last_service_history_enrollment.household_id,
-              enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
-              disabling_condition: enrollment.DisablingCondition,
-              developmental_disability: enrollment.disabilities.developmental.disabled.exists?,
-              hiv_aids: enrollment.disabilities.hiv.disabled.exists?,
-              physical_disability: enrollment.disabilities.physical.disabled.exists?,
-              chronic_disability: enrollment.disabilities.chronic.disabled.exists?,
-              mental_health_problem: enrollment.disabilities.mental.disabled.exists?,
-              substance_abuse: enrollment.disabilities.substance.disabled.exists?,
-              indefinite_and_impairs: enrollment.disabilities.chronically_disabled.exists?,
-            )
-          end
-          report_client_universe.import(
-            pending_associations.values,
-            on_duplicate_key_update: {
-              conflict_target: [:client_id, :data_source_id, :report_instance_id],
-              columns: [
-                :first_name,
-                :last_name,
-                :name_quality,
-                :ssn,
-                :ssn_quality,
-                :dob,
-                :dob_quality,
-                :age,
-                :head_of_household,
-                :first_date_in_program,
-                :enrollment_created,
-                :race,
-                :ethnicity,
-                :gender,
-                :veteran_status,
-                :overlapping_enrollments,
-                :relationship_to_hoh,
-                :household_id,
-                :enrollment_coc,
-                :disabling_condition,
-                :developmental_disability,
-                :hiv_aids,
-                :physical_disability,
-                :chronic_disability,
-                :mental_health_problem,
-                :substance_abuse,
-                :indefinite_and_impairs,
-              ]
-            }
-          )
-          universe_cell.add_universe_members(pending_associations)
-        end
-
-        universe_cell
+          first_name: source_client.FirstName,
+          last_name: source_client.LastName,
+          name_quality: source_client.NameDataQuality,
+          ssn: source_client.SSN,
+          ssn_quality: source_client.SSNDataQuality,
+          dob: source_client.DOB,
+          dob_quality: source_client.DOBDataQuality,
+          age: source_client.age_on(client_start_date),
+          head_of_household: last_service_history_enrollment.head_of_household,
+          first_date_in_program: last_service_history_enrollment.first_date_in_program,
+          enrollment_created: enrollment.DateCreated,
+          race: HUD.races.keys.map { |key| source_client.public_send(key) },
+          ethnicity: source_client.Ethnicity,
+          gender: source_client.Gender,
+          veteran_status: source_client.VeteranStatus,
+          overlapping_enrollments: overlapping_enrollments(enrollments, last_service_history_enrollment),
+          relationship_to_hoh: enrollment.RelationshipToHoH,
+          household_id: last_service_history_enrollment.household_id,
+          enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
+          disabling_condition: enrollment.DisablingCondition,
+          developmental_disability: enrollment.disabilities.developmental.disabled.exists?,
+          hiv_aids: enrollment.disabilities.hiv.disabled.exists?,
+          physical_disability: enrollment.disabilities.physical.disabled.exists?,
+          chronic_disability: enrollment.disabilities.chronic.disabled.exists?,
+          mental_health_problem: enrollment.disabilities.mental.disabled.exists?,
+          substance_abuse: enrollment.disabilities.substance.disabled.exists?,
+          indefinite_and_impairs: enrollment.disabilities.chronically_disabled.exists?,
+        )
       end
     end
 
@@ -473,21 +426,6 @@ module HudApr::Generators::Shared::Fy2020
           enrollment.first_date_in_program < last_enrollment_end &&
           enrollment_end > last_enrollment.first_date_in_program
       end.map(&:enrollment_group_id).uniq
-    end
-
-    private def clients_with_enrollments(batch)
-      GrdaWarehouse::ServiceHistoryEnrollment.
-        entry.
-        in_project(@report.project_ids).
-        joins(:enrollment).
-        preload(enrollment: [:client, :disabilities, :current_living_situations]).
-        where(client_id: batch.map(&:id)).
-        order(first_date_in_program: :asc).
-        group_by(&:client_id)
-    end
-
-    private def report_client_universe
-      HudApr::Fy2020::AprClient
     end
   end
 end

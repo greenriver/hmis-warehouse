@@ -5,7 +5,7 @@
 ###
 
 module HudApr::Generators::Shared::Fy2020
-  class QuestionFive < HudReports::QuestionBase
+  class QuestionFive < Base
     include ArelHelper
 
     QUESTION_NUMBER = 'Q5'
@@ -180,70 +180,28 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def universe
-      @universe ||= begin
-        universe_cell = @report.universe(QUESTION_NUMBER)
+      @universe ||= build_universe(QUESTION_NUMBER) do |client, enrollments|
+        last_service_history_enrollment = enrollments.last
+        source_client = last_service_history_enrollment.source_client
+        client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
-        @generator.client_scope.find_in_batches do |batch|
-          pending_associations = {}
+        report_client_universe.new(
+          client_id: source_client.id,
+          data_source_id: source_client.data_source_id,
+          report_instance_id: @report.id,
 
-          clients_with_enrollments = clients_with_enrollments(batch)
-
-          batch.each do |client|
-            last_service_history_enrollment = clients_with_enrollments[client.id].last
-            source_client = last_service_history_enrollment.source_client
-            client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
-
-            pending_associations[client] = report_client_universe.new(
-              client_id: source_client.id,
-              data_source_id: source_client.data_source_id,
-              report_instance_id: @report.id,
-
-              age: source_client.age_on(client_start_date),
-              head_of_household: last_service_history_enrollment.head_of_household,
-              head_of_household_id: last_service_history_enrollment.head_of_household_id,
-              parenting_youth: last_service_history_enrollment.parenting_youth,
-              first_date_in_program: last_service_history_enrollment.first_date_in_program,
-              last_date_in_program: last_service_history_enrollment.last_date_in_program,
-              veteran_status: source_client.VeteranStatus,
-              length_of_stay: ((last_service_history_enrollment.last_date_in_program || @report.end_date + 1.day ) -
-                last_service_history_enrollment.first_date_in_program).to_i,
-              chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
-            )
-          end
-          report_client_universe.import(
-            pending_associations.values,
-            on_duplicate_key_update: {
-              conflict_target: [:client_id, :data_source_id, :report_instance_id],
-              columns: [
-                :age,
-                :head_of_household,
-                :parenting_youth,
-                :first_date_in_program,
-                :last_date_in_program,
-                :veteran_status,
-                :length_of_stay,
-                :chronically_homeless,
-              ]
-            }
-          )
-          universe_cell.add_universe_members(pending_associations)
-        end
-        universe_cell
+          age: source_client.age_on(client_start_date),
+          head_of_household: last_service_history_enrollment.head_of_household,
+          head_of_household_id: last_service_history_enrollment.head_of_household_id,
+          parenting_youth: last_service_history_enrollment.parenting_youth,
+          first_date_in_program: last_service_history_enrollment.first_date_in_program,
+          last_date_in_program: last_service_history_enrollment.last_date_in_program,
+          veteran_status: source_client.VeteranStatus,
+          length_of_stay: ((last_service_history_enrollment.last_date_in_program || @report.end_date + 1.day ) -
+            last_service_history_enrollment.first_date_in_program).to_i,
+          chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
+        )
       end
-    end
-
-    private def clients_with_enrollments(batch)
-      GrdaWarehouse::ServiceHistoryEnrollment.
-        entry
-        in_project(@report.project_ids).
-        joins(:enrollment).
-        preload(enrollment: [:client, :disabilities, :current_living_situations]).
-        where(client_id: batch.map(&:id)).
-        group_by(&:client_id)
-    end
-
-    private def report_client_universe
-      HudApr::Fy2020::AprClient
     end
   end
 end
