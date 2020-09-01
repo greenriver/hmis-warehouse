@@ -379,8 +379,7 @@ module HmisCsvTwentyTwenty::Importer
       # trust the warehouse is correct
       unchanged = existing.select { |k, v| incoming[k] < v }.keys
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
-        # klass.warehouse_class.where(
-        klass.where(
+        klass.warehouse_class.where(
           data_source_id: data_source.id,
           klass.hud_key => batch,
         ).update_all(pending_date_deleted: nil)
