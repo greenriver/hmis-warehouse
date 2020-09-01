@@ -17,9 +17,13 @@ module HmisCsvTwentyTwenty::Importer
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
       return none unless project_ids.present?
 
-      GrdaWarehouse::Hud::Disability.joins(enrollment: :project).
+      warehouse_class.joins(enrollment: :project).
         merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
         merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range))
+    end
+
+    def self.warehouse_class
+      GrdaWarehouse::Hud::Disability
     end
   end
 end

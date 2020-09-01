@@ -15,7 +15,11 @@ module HmisCsvTwentyTwenty::Importer
     has_one :destination_record, **hud_assoc(:ExportID, 'Export')
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable  Lint/UnusedMethodArgument
-      GrdaWarehouse::Hud::Export.where(data_source_id: data_source_id)
+      warehouse_class.where(data_source_id: data_source_id)
+    end
+
+    def self.warehouse_class
+      GrdaWarehouse::Hud::Export
     end
 
     # Don't ever mark these for deletion

@@ -17,7 +17,11 @@ module HmisCsvTwentyTwenty::Importer
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable  Lint/UnusedMethodArgument
       return none unless project_ids.present?
 
-      GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)
+      warehouse_class.where(data_source_id: data_source_id, ProjectID: project_ids)
+    end
+
+    def self.warehouse_class
+      GrdaWarehouse::Hud::Project
     end
 
     # Don't ever mark these for deletion

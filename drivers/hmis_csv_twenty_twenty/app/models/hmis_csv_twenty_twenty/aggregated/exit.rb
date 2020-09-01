@@ -21,12 +21,16 @@ module HmisCsvTwentyTwenty::Aggregated
       return none unless project_ids.present?
 
       # this has to be a bit convoluted because active record doesn't rename the exit joins appropriately
-      GrdaWarehouse::Hud::Exit.where(
+      warehouse_class.where(
         id: GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range).
           joins(:project).
           merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
           select(ex_t[:id]),
       )
+    end
+
+    def self.warehouse_class
+      GrdaWarehouse::Hud::Exit
     end
   end
 end
