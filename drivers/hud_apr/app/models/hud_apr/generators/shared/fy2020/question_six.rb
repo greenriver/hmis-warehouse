@@ -448,7 +448,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      answer = @report.answer(question: table_name, cell: 'B5')
+      answer = @report.answer(question: table_name, cell: 'C5')
       answer.update(summary: format('%1.4f', members.count / leavers.count.to_f ))
     end
 
