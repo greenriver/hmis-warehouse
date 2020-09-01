@@ -724,6 +724,7 @@ Rails.application.routes.draw do
       patch :reactivate, on: :member
       member do
         post :unlock
+        post :un_expire
         post :confirm
         post :impersonate
       end
