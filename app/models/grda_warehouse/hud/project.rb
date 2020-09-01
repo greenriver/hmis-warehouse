@@ -197,6 +197,10 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :enrollments_combined, -> do
+      where(combine_enrollments: true)
+    end
+
     scope :active_on, ->(date) do
       where(
         p_t[:OperatingEndDate].gteq(date).or(p_t[:OperatingEndDate].eq(nil)).
@@ -222,6 +226,7 @@ module GrdaWarehouse::Hud
       )
 
     end
+
     def serves_families?
       if @serves_families.nil?
         @serves_families = self.class.serves_families.exists?(id)
@@ -236,6 +241,7 @@ module GrdaWarehouse::Hud
           or(p_t[:id].not_in(lit(GrdaWarehouse::Hud::Project.serves_families.select(:id).to_sql)))
       )
     end
+
     def serves_individuals?
       if @serves_individuals.nil?
         @serves_individuals = self.class.serves_individuals.exists?(id)
@@ -630,6 +636,10 @@ module GrdaWarehouse::Hud
 
     def confidential_hint
       'If marked as confidential, the project name will be replaced with "Confidential Project" within individual client pages. Users with the "Can view confidential enrollment details" will still see the project name.'
+    end
+
+    def combine_enrollments_hint
+      'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
     end
 
     def safe_project_name
