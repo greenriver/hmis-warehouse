@@ -64,6 +64,7 @@ module Admin
         :auto_de_duplication_enabled,
         :request_account_available,
         :dashboard_lookback,
+        :domestic_violence_lookback_days,
         client_details: [],
       )
     end

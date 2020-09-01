@@ -1217,7 +1217,13 @@ module GrdaWarehouse::Hud
     def domestic_violence?
       return pathways_domestic_violence if pathways_domestic_violence
 
-      source_health_and_dvs.where(DomesticViolenceVictim: 1).exists?
+      dv_scope = source_health_and_dvs.where(DomesticViolenceVictim: 1)
+      lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
+      if lookback_days&.positive?
+        dv_scope.where(hdv_t[:InformationDate].gt(lookback_days.days.ago.to_date)).exists?
+      else
+        dv_scope.exists?
+      end
     end
 
     def chronic?(on: nil)
