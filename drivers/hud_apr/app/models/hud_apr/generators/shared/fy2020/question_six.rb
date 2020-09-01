@@ -16,18 +16,7 @@ module HudApr::Generators::Shared::Fy2020
 
       q6a_pii
       q6b_universal_data_elements
-
-      # Q6c
-      metadata = {
-        header_row: ['Data Element', 'Error Count', '% of Error Rate'],
-        row_labels: [ 'Destination (3.12)', 'Income and Sources (4.02) at Start',
-          'Income and Sources (4.02) at Annual Assessment', 'Income and Sources (4.02) at Exit'],
-        first_column: 'B',
-        last_column: 'C',
-        first_row: 2,
-        last_row: 5,
-      }
-      @report.answer(question: 'Q6c').update(metadata: metadata)
+      q6c_income_and_housing
 
       # Q6d
       metadata = {
@@ -372,12 +361,107 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f ))
     end
 
+    private def q6c_income_and_housing
+      table_name = 'Q6c'
+      metadata = {
+        header_row: ['Data Element', 'Error Count', '% of Error Rate'],
+        row_labels: [ 'Destination (3.12)', 'Income and Sources (4.02) at Start',
+          'Income and Sources (4.02) at Annual Assessment', 'Income and Sources (4.02) at Exit'],
+        first_column: 'B',
+        last_column: 'C',
+        first_row: 2,
+        last_row: 5,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      # destinations
+      answer = @report.answer(question: table_name, cell: 'B2')
+      members = universe.members.where(
+        a_t[:destination].in([nil, 8, 9, 30])
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C2')
+      leavers_denominator = universe.members.where(a_t[:last_date_in_program].lteq(@report.end_date))
+      answer.update(summary: format('%1.4f', members.count / leavers_denominator.count.to_f ))
+
+      # incomes
+      adults_and_hohs = universe.members.where(
+        a_t[:age].gteq(18).
+          or(a_t[:head_of_household].eq(true).
+            and(a_t[:age].lt(18).
+              or(a_t[:age].eq(nil)))),
+      )
+      # income at start
+      answer = @report.answer(question: table_name, cell: 'B3')
+      members = adults_and_hohs.where(
+        a_t[:income_date_at_start].eq(nil).
+          or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
+          or(a_t[:income_from_any_source_at_start].in([nil, 8, 9])).
+          or(a_t[:income_from_any_source_at_start].eq(0).
+            and(a_t[:income_sources_at_start].not_eq([]))).
+          or(a_t[:income_from_any_source_at_start].eq(1).
+            and(a_t[:income_sources_at_start].eq([]))),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C3')
+      answer.update(summary: format('%1.4f', members.count / adults_and_hohs.count.to_f ))
+
+      # income at anniversary
+      stayers_with_anniversary = adults_and_hohs.where(
+        a_t[:annual_assessment_expected].eq(true).
+          and(a_t[:last_date_in_program].gt(@report.end_date))
+      )
+
+      answer = @report.answer(question: table_name, cell: 'B4')
+      members = stayers_with_anniversary.where(
+        a_t[:income_date_at_start].eq(nil).
+          or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
+          or(a_t[:income_from_any_source_at_start].in([nil, 8, 9])).
+          or(a_t[:income_from_any_source_at_start].eq(0).
+            and(a_t[:income_sources_at_start].not_eq([]))).
+          or(a_t[:income_from_any_source_at_start].eq(1).
+            and(a_t[:income_sources_at_start].eq([]))),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C4')
+      answer.update(summary: format('%1.4f', members.count / stayers_with_anniversary.count.to_f ))
+
+      # income at exit
+      leavers = adults_and_hohs.where(a_t[:last_date_in_program].lteq(@report.end_date))
+
+      answer = @report.answer(question: table_name, cell: 'B5')
+      members = leavers.where(
+        a_t[:income_date_at_exit].eq(nil).
+          or(a_t[:income_date_at_exit].not_eq(a_t[:last_date_in_program])).
+          or(a_t[:income_from_any_source_at_exit].in([nil, 8, 9])).
+          or(a_t[:income_from_any_source_at_exit].eq(0).
+            and(a_t[:income_sources_at_exit].not_eq([]))).
+          or(a_t[:income_from_any_source_at_exit].eq(1).
+            and(a_t[:income_sources_at_exit].eq([]))),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'B5')
+      answer.update(summary: format('%1.4f', members.count / leavers.count.to_f ))
+    end
+
     private def universe
       @universe ||= build_universe(QUESTION_NUMBER) do |client, enrollments|
         last_service_history_enrollment = enrollments.last
         enrollment = last_service_history_enrollment.enrollment
         source_client = last_service_history_enrollment.source_client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
+
+        income_at_start = enrollment.income_benefits_at_entry
+        income_at_annual_assessment = annual_assessment(enrollment)
+        income_at_exit = last_service_history_enrollment.service_history_exit&.enrollment&.income_benefits_at_exit
 
         report_client_universe.new(
           client_id: source_client.id,
@@ -394,6 +478,7 @@ module HudApr::Generators::Shared::Fy2020
           age: source_client.age_on(client_start_date),
           head_of_household: last_service_history_enrollment.head_of_household,
           first_date_in_program: last_service_history_enrollment.first_date_in_program,
+          last_date_in_program: last_service_history_enrollment.last_date_in_program,
           enrollment_created: enrollment.DateCreated,
           race: HUD.races.keys.map { |key| source_client.public_send(key) },
           ethnicity: source_client.Ethnicity,
@@ -411,8 +496,55 @@ module HudApr::Generators::Shared::Fy2020
           mental_health_problem: enrollment.disabilities.mental.disabled.exists?,
           substance_abuse: enrollment.disabilities.substance.disabled.exists?,
           indefinite_and_impairs: enrollment.disabilities.chronically_disabled.exists?,
+          destination: last_service_history_enrollment.destination,
+          income_date_at_start: income_at_start&.InformationDate,
+          income_from_any_source_at_start: income_at_start&.IncomeFromAnySource,
+          income_sources_at_start: income_sources(income_at_start),
+          annual_assessment_expected: annual_assessment_expected?(last_service_history_enrollment),
+          income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,
+          income_from_any_source_at_annual_assessment: income_at_annual_assessment&.IncomeFromAnySource,
+          income_sources_at_annual_assessment: income_sources(income_at_annual_assessment),
+          income_date_at_exit: income_at_exit&.InformationDate,
+          income_from_any_source_at_exit: income_at_exit&.IncomeFromAnySource,
+          income_sources_at_exit: income_sources(income_at_annual_assessment),
         )
       end
+    end
+
+    private def annual_assessment(enrollment)
+      enrollment.income_benefits_annual_update.
+        where(ib_t[:InformationDate].lt(@report.end_date)).
+        order(ib_t[:InformationDate].to_sql => :desc).
+        first
+    end
+
+    private def income_sources(income)
+      income&.slice(
+        :Earned,
+        :Unemployment,
+        :SSI,
+        :SSDI,
+        :VADisabilityService,
+        :VADisabilityNonService,
+        :PrivateDisability,
+        :WorkersComp,
+        :TANF,
+        :GA,
+        :SocSecRetirement,
+        :Pension,
+        :ChildSupport,
+        :Alimony,
+        :OtherIncomeSource,
+      )&.values || []
+    end
+
+    private def annual_assessment_expected?(enrollment)
+      elapsed_years = @report.end_date.year - enrollment.first_date_in_program.year
+      elapsed_years = if enrollment.first_date_in_program + elapsed_years.year > @report.end_date
+        elapsed_years - 1
+      end
+
+      enrollment.head_of_household? && elapsed_years.positive?
     end
 
     private def overlapping_enrollments(enrollments, last_enrollment)
