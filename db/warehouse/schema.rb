@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_27_224602) do
+ActiveRecord::Schema.define(version: 2020_09_01_201024) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1799,6 +1799,7 @@ ActiveRecord::Schema.define(version: 2020_08_27_224602) do
     t.boolean "auto_de_duplication_enabled", default: false, null: false
     t.boolean "request_account_available", default: false, null: false
     t.date "dashboard_lookback", default: "2014-07-01"
+    t.integer "domestic_violence_lookback_days", default: 0, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -2368,9 +2369,9 @@ ActiveRecord::Schema.define(version: 2020_08_27_224602) do
     t.index ["DateCreated"], name: "hmis_2020_aggregated_enrollments-Jmkq"
     t.index ["DateDeleted"], name: "hmis_2020_aggregated_enrollments-6wqk"
     t.index ["DateUpdated"], name: "hmis_2020_aggregated_enrollments-4L8g"
+    t.index ["EnrollmentID", "PersonalID", "data_source_id"], name: "hmis_2020_aggregated_enrollments-YK99", unique: true
     t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_aggregated_enrollments-ocKA"
     t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_aggregated_enrollments-zNVo"
-    t.index ["EnrollmentID", "data_source_id"], name: "hmis_2020_aggregated_enrollments-ESQV", unique: true
     t.index ["EnrollmentID"], name: "hmis_2020_aggregated_enrollments-RNSl"
     t.index ["EntryDate"], name: "hmis_2020_aggregated_enrollments-oiEU"
     t.index ["ExportID"], name: "hmis_2020_aggregated_enrollments-fXAB"

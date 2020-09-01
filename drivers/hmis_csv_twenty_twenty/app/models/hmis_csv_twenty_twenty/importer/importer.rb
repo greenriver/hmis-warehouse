@@ -398,7 +398,11 @@ module HmisCsvTwentyTwenty::Importer
 
     private def process_batch!(klass, batch, file_name, type:)
       errors = []
-      klass.import(batch)
+      klass.import(batch, on_duplicate_key_update:
+        {
+          conflict_target: klass.conflict_target,
+          columns: klass.upsert_column_names(version: '2020'),
+        })
       note_processed(file_name, batch.count, type)
       rescue StandardError => e
         batch.each do |row|
