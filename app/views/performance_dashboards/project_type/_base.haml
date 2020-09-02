@@ -1,7 +1,8 @@
-- chart_height ||= 400
-- chart_class = "#{key}-chart"
-- title ||= ''
 :ruby
+  chart_height ||= 400
+  chart_class = "#{key}-chart"
+  title ||= ''
+  excluded_categories = local_assigns[:excluded_categories].presence
   chart_options = {
     params: detail_params,
     columns: columns,
@@ -24,11 +25,26 @@
       }
     }
   }
+.row
+  .col-md-8
+    .d-flex.flex-wrap.justify-content-between.align-items-end.mb-2
+      %header.mb-2.mr-4{style: 'flex: 1; min-width: 300px'}
+        %h2= title || key.to_s.titleize
+        %p.description.mb-0= desc
 
-.d-flex.flex-wrap.justify-content-between.align-items-end.mb-2
-  %header.mb-2.mr-4{style: 'flex: 1; min-width: 300px'}
-    %h2= title || key.to_s.titleize
-    %p.description.mb-0= desc
+  .col-md-4
+    - if @report.include_comparison?
+      .mb-1.h5-prs1 Unique #{count_type.to_s.titleize} #{@report.performance_type.pluralize}:
+      .mb-1.gray.font-weight-normal
+        Reporting Period:
+        = number_with_delimiter(client_counts[:report])
+      .mb-1.gray.font-weight-normal
+        Comparison Period:
+        = number_with_delimiter(client_counts[:comparison])
+    - else
+      .mb-1.gray.font-weight-normal.text-right
+        Unique #{count_type.to_s.titleize} #{@report.performance_type.pluralize}:
+        = number_with_delimiter(client_counts[:report])
 
 .well.mb-6.pt-0
   .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: chart_options.to_json.html_safe } }
