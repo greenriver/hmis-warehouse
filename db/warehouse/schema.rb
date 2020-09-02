@@ -4256,6 +4256,7 @@ ActiveRecord::Schema.define(version: 2020_08_31_151807) do
     t.integer "times_homeless"
     t.integer "months_homeless"
     t.integer "came_from_street_last_night"
+    t.date "exit_created"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
   end
 

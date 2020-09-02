@@ -18,17 +18,7 @@ module HudApr::Generators::Shared::Fy2020
       q6b_universal_data_elements
       q6c_income_and_housing
       q6d_chronic_homelessness
-
-      # Q6e
-      metadata = {
-        header_row: ['Time for Record Entry', 'Number of Project Start Records', 'Number of Project Exit Records'],
-        row_labels: [ '0 days', '1-3 days', '4-6 days', '7-10 days', '11+ days'],
-        first_column: 'B',
-        last_column: 'C',
-        first_row: 2,
-        last_row: 6,
-      }
-      @report.answer(question: 'Q6e').update(metadata: metadata)
+      q6e_timeliness
 
       # Q6f
       metadata = {
@@ -481,7 +471,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: format('%1.4f', total_members.count / adults_and_hohs.count.to_f ))
     end
 
-    def es_sh_so(table_name, adults_and_hohs)
+    private def es_sh_so(table_name, adults_and_hohs)
       es_sh_so = adults_and_hohs.where(a_t[:project_type].in([1, 4, 8]))
 
       # count
@@ -519,7 +509,7 @@ module HudApr::Generators::Shared::Fy2020
       es_sh_so
     end
 
-    def th(table_name, adults_and_hohs)
+    private def th(table_name, adults_and_hohs)
       th = adults_and_hohs.where(a_t[:project_type].eq(2))
 
       # count
@@ -577,7 +567,7 @@ module HudApr::Generators::Shared::Fy2020
       th
     end
 
-    def ph(table_name, adults_and_hohs)
+    private def ph(table_name, adults_and_hohs)
       ph = adults_and_hohs.where(a_t[:project_type].eq([3, 9, 10, 13]))
 
       # count
@@ -635,16 +625,114 @@ module HudApr::Generators::Shared::Fy2020
       ph
     end
 
+    private def q6e_timeliness
+      table_name = 'Q6e'
+      metadata = {
+        header_row: ['Time for Record Entry', 'Number of Project Start Records', 'Number of Project Exit Records'],
+        row_labels: [ '0 days', '1-3 days', '4-6 days', '7-10 days', '11+ days'],
+        first_column: 'B',
+        last_column: 'C',
+        first_row: 2,
+        last_row: 6,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      # entry on date
+      answer = @report.answer(question: table_name, cell: 'B2')
+      members = universe.members.where(a_t[:first_date_in_program].eq(a_t[:enrollment_created]))
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # entry 1..3 days
+      answer = @report.answer(question: table_name, cell: 'B3')
+      members = universe.members.where(
+        datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(1).
+          and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(3)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # entry 4..6 days
+      answer = @report.answer(question: table_name, cell: 'B4')
+      members = universe.members.where(
+        datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(4).
+          and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(6)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # entry 7..10 days
+      answer = @report.answer(question: table_name, cell: 'B5')
+      members = universe.members.where(
+        datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(7).
+          and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(10)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # entry 11+ days
+      answer = @report.answer(question: table_name, cell: 'B6')
+      members = universe.members.where(
+        datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(11),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      leavers = universe.members.where.not(a_t[:last_date_in_program].eq(nil))
+
+      # exit on date
+      answer = @report.answer(question: table_name, cell: 'C2')
+      members = leavers.where(a_t[:last_date_in_program].eq(a_t[:exit_created]))
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # exit 1..3 days
+      answer = @report.answer(question: table_name, cell: 'C3')
+      members = leavers.where(
+        datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(1).
+          and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(3)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # exit 4..6 days
+      answer = @report.answer(question: table_name, cell: 'C4')
+      members = leavers.where(
+        datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(4).
+          and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(6)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # entry 7..10 days
+      answer = @report.answer(question: table_name, cell: 'C5')
+      members = leavers.where(
+        datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(7).
+          and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(10)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # entry 11+ days
+      answer = @report.answer(question: table_name, cell: 'C6')
+      members = leavers.where(
+        datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(11),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+    end
+
     private def universe
       @universe ||= build_universe(QUESTION_NUMBER) do |client, enrollments|
         last_service_history_enrollment = enrollments.last
         enrollment = last_service_history_enrollment.enrollment
+        exit_record = last_service_history_enrollment.service_history_exit&.enrollment
         source_client = last_service_history_enrollment.source_client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
         income_at_start = enrollment.income_benefits_at_entry
         income_at_annual_assessment = annual_assessment(enrollment)
-        income_at_exit = last_service_history_enrollment.service_history_exit&.enrollment&.income_benefits_at_exit
+        income_at_exit = exit_record&.income_benefits_at_exit
 
         report_client_universe.new(
           client_id: source_client.id,
@@ -697,6 +785,7 @@ module HudApr::Generators::Shared::Fy2020
           times_homeless: enrollment.TimesHomelessPastThreeYears,
           months_homeless: enrollment.MonthsHomelessPastThreeYears,
           came_from_street_last_night: enrollment.PreviousStreetESSH,
+          exit_created: exit_record&.DateCreated
         )
       end
     end

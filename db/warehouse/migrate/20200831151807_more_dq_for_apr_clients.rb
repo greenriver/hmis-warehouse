@@ -19,6 +19,7 @@ class MoreDqForAprClients < ActiveRecord::Migration[5.2]
       t.integer :times_homeless
       t.integer :months_homeless
       t.integer :came_from_street_last_night
+      t.date :exit_created
     end
   end
 end
