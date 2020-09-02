@@ -1,6 +1,6 @@
 :ruby
   key = :destination
-  detail_params = @report.detail_params.merge({ key: key, destination: true })
+  detail_params = @report.detail_params.deep_merge(filters: { key: key, destination: true })
   columns = [@report.destinations_data_for_chart[:columns]]
   if @report.include_comparison?
     columns << @comparison.destinations_data_for_chart[:columns]

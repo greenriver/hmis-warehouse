@@ -10,7 +10,7 @@
   legend_id = "legend-#{SecureRandom.hex(8)}"
   excluded_categories = local_assigns[:excluded_categories].presence
   chart_options = {
-    params: { filters: detail_params },
+    params: detail_params,
     columns: columns,
     categories: categories,
     legendBindTo: "##{legend_id}",
@@ -53,14 +53,14 @@
       .mb-1.h5-prs1 Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}:
       .mb-1.gray.font-weight-normal
         Reporting Period:
-        = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
+        = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, detail_params), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
       .mb-1.gray.font-weight-normal
         Comparison Period:
-        = link_to_if show_client_details?, number_with_delimiter(client_counts[:comparison]), polymorphic_path(@report.detail_path_array, { filters: comparison_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
+        = link_to_if show_client_details?, number_with_delimiter(client_counts[:comparison]), polymorphic_path(@report.detail_path_array, comparison_params), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
     - else
       .mb-1.gray.font-weight-normal.text-right
         Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}:
-        = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, { filters: detail_params }), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
+        = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, detail_params), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
 
 .chart-legend-prs1{id: legend_id}
 .well.mb-6.pt-0

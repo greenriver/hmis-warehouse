@@ -1,6 +1,6 @@
 :ruby
   key = :length_of_time
-  detail_params = @report.detail_params.merge({ key: key, length_of_time: true })
+  detail_params = @report.detail_params.deep_merge(filters: { key: key, length_of_time: true })
   columns = [@report.lengths_of_time_data_for_chart[:columns]]
   if @report.include_comparison?
     columns << @comparison.lengths_of_time_data_for_chart[:columns]

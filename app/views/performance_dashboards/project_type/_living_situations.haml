@@ -1,6 +1,6 @@
 :ruby
   key = :living_situation
-  detail_params = @report.detail_params.merge({ living_situation: true, key: key })
+  detail_params = @report.detail_params.deep_merge(filters: { living_situation: true, key: key })
   columns = [@report.prior_living_situations_data_for_chart[:columns]]
   if @report.include_comparison?
     columns << @comparison.prior_living_situations_data_for_chart[:columns]
