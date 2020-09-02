@@ -24,6 +24,10 @@ module HmisCsvTwentyTwenty::Aggregated
         open_during_range(date_range.range)
     end
 
+    def self.upsert_column_names(version: '2020')
+      super(version: version) - [:pending_date_deleted, :processed_as]
+    end
+
     def self.warehouse_class
       GrdaWarehouse::Hud::Enrollment
     end
