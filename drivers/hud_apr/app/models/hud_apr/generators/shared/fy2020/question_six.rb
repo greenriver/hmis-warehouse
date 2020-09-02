@@ -17,20 +17,7 @@ module HudApr::Generators::Shared::Fy2020
       q6a_pii
       q6b_universal_data_elements
       q6c_income_and_housing
-
-      # Q6d
-      metadata = {
-        header_row: ['Entering into project type', 'Count of total records', 'Missing time in institution (3.917.2)',
-          'Missing time in housing (3.917.2)', 'Approximate Date started (3.917.3) DK/R/missing',
-          'Number of times (3.917.4) DK/R/missing', 'Number of months (3.917.5) DK/R/missing',
-          '% of records unable to calculate'],
-        row_labels: [ 'ES, SH, Street Outreach', 'TH', 'PH (all)', 'Total'],
-        first_column: 'B',
-        last_column: 'H',
-        first_row: 2,
-        last_row: 5,
-      }
-      @report.answer(question: 'Q6d').update(metadata: metadata)
+      q6d_chronic_homelessness
 
       # Q6e
       metadata = {
@@ -375,16 +362,17 @@ module HudApr::Generators::Shared::Fy2020
       @report.answer(question: table_name).update(metadata: metadata)
 
       # destinations
+      leavers = universe.members.where(a_t[:last_date_in_program].lteq(@report.end_date))
+
       answer = @report.answer(question: table_name, cell: 'B2')
-      members = universe.members.where(
+      members = leavers.where(
         a_t[:destination].in([nil, 8, 9, 30])
       )
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C2')
-      leavers_denominator = universe.members.where(a_t[:last_date_in_program].lteq(@report.end_date))
-      answer.update(summary: format('%1.4f', members.count / leavers_denominator.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / leavers.count.to_f ))
 
       # incomes
       adults_and_hohs = universe.members.where(
@@ -452,6 +440,201 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: format('%1.4f', members.count / leavers.count.to_f ))
     end
 
+    private def q6d_chronic_homelessness
+      table_name = 'Q6d'
+      metadata = {
+        header_row: ['Entering into project type', 'Count of total records', 'Missing time in institution (3.917.2)',
+          'Missing time in housing (3.917.2)', 'Approximate Date started (3.917.3) DK/R/missing',
+          'Number of times (3.917.4) DK/R/missing', 'Number of months (3.917.5) DK/R/missing',
+          '% of records unable to calculate'],
+        row_labels: [ 'ES, SH, Street Outreach', 'TH', 'PH (all)', 'Total'],
+        first_column: 'B',
+        last_column: 'H',
+        first_row: 2,
+        last_row: 5,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      adults_and_hohs = universe.members.where(
+        a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
+          and(a_t[:age].gteq(18).
+            or(a_t[:head_of_household].eq(true).
+              and(a_t[:age].lt(18).
+                or(a_t[:age].eq(nil)))),
+          ),
+      )
+
+      es_sh_so_clients = es_sh_so(table_name, adults_and_hohs)
+      th_clients = th(table_name, adults_and_hohs)
+      ph_clients = ph(table_name, adults_and_hohs)
+
+      # totals
+      answer = @report.answer(question: table_name, cell: 'B5')
+      total_members = es_sh_so_clients.
+        or(th_clients).
+        or(ph_clients)
+      answer.add_members(total_members)
+      answer.update(summary: total_members.count)
+
+      # percent
+      answer = @report.answer(question: table_name, cell: 'H5')
+      answer.update(summary: format('%1.4f', total_members.count / adults_and_hohs.count.to_f ))
+    end
+
+    def es_sh_so(table_name, adults_and_hohs)
+      es_sh_so = adults_and_hohs.where(a_t[:project_type].in([1, 4, 8]))
+
+      # count
+      answer = @report.answer(question: table_name, cell: 'B2')
+      members = es_sh_so
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # date homeless missing
+      answer = @report.answer(question: table_name, cell: 'E2')
+      date_homeless_members = es_sh_so.where(a_t[:date_homeless].eq(nil))
+      answer.add_members(date_homeless_members)
+      answer.update(summary: date_homeless_members.count)
+
+      # times homeless dk/r/missing
+      answer = @report.answer(question: table_name, cell: 'F2')
+      times_homeless_members = es_sh_so.where(a_t[:times_homeless].in([nil, 8, 9]))
+      answer.add_members(times_homeless_members)
+      answer.update(summary: times_homeless_members.count)
+
+      # months homeless dk/r/missing
+      answer = @report.answer(question: table_name, cell: 'G2')
+      months_homeless_members = es_sh_so.where(a_t[:months_homeless].in([nil, 8, 9]))
+      answer.add_members(months_homeless_members)
+      answer.update(summary: months_homeless_members.count)
+
+      # percent
+      answer = @report.answer(question: table_name, cell: 'H2')
+      members = date_homeless_members.
+        or(times_homeless_members).
+        or(months_homeless_members)
+      answer.add_members(members)
+      answer.update(summary: format('%1.4f', members.count / es_sh_so.count.to_f ))
+
+      es_sh_so
+    end
+
+    def th(table_name, adults_and_hohs)
+      th = adults_and_hohs.where(a_t[:project_type].eq(2))
+
+      # count
+      answer = @report.answer(question: table_name, cell: 'B3')
+      members = th
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # date homeless missing
+      answer = @report.answer(question: table_name, cell: 'C3')
+      date_homeless_members = th.where(a_t[:date_homeless].eq(nil))
+      answer.add_members(date_homeless_members)
+      answer.update(summary: date_homeless_members.count)
+
+      # missing time in institution
+      answer = @report.answer(question: table_name, cell: 'D3')
+      missing_institution = th.where(
+        a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
+          and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+      )
+      answer.add_members(missing_institution)
+      answer.update(summary: missing_institution.count)
+
+      # missing time in housing
+      answer = @report.answer(question: table_name, cell: 'E3')
+      missing_housing = th.where(
+        a_t[:prior_living_situation].in([nil, 29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
+          and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+      )
+      answer.add_members(missing_housing)
+      answer.update(summary: missing_housing.count)
+
+      # times homeless dk/r/missing
+      answer = @report.answer(question: table_name, cell: 'F3')
+      times_homeless_members = th.where(a_t[:times_homeless].in([nil, 8, 9]))
+      answer.add_members(times_homeless_members)
+      answer.update(summary: times_homeless_members.count)
+
+      # months homeless dk/r/missing
+      answer = @report.answer(question: table_name, cell: 'G3')
+      months_homeless_members = th.where(a_t[:months_homeless].in([nil, 8, 9]))
+      answer.add_members(months_homeless_members)
+      answer.update(summary: months_homeless_members.count)
+
+      # percent
+      answer = @report.answer(question: table_name, cell: 'H3')
+      members = date_homeless_members.
+        or(missing_institution).
+        or(missing_housing).
+        or(times_homeless_members).
+        or(months_homeless_members)
+      answer.add_members(members)
+      answer.update(summary: format('%1.4f', members.count / th.count.to_f ))
+
+      th
+    end
+
+    def ph(table_name, adults_and_hohs)
+      ph = adults_and_hohs.where(a_t[:project_type].eq([3, 9, 10, 13]))
+
+      # count
+      answer = @report.answer(question: table_name, cell: 'B4')
+      members = ph
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # date homeless missing
+      answer = @report.answer(question: table_name, cell: 'C4')
+      date_homeless_members = ph.where(a_t[:date_homeless].eq(nil))
+      answer.add_members(date_homeless_members)
+      answer.update(summary: date_homeless_members.count)
+
+      # missing time in institution
+      answer = @report.answer(question: table_name, cell: 'D4')
+      missing_institution = ph.where(
+        a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
+          and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+      )
+      answer.add_members(missing_institution)
+      answer.update(summary: missing_institution.count)
+
+      # missing time in housing
+      answer = @report.answer(question: table_name, cell: 'E4')
+      missing_housing = ph.where(
+        a_t[:prior_living_situation].in([nil, 29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
+          and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+      )
+      answer.add_members(missing_housing)
+      answer.update(summary: missing_housing.count)
+
+      # times homeless dk/r/missing
+      answer = @report.answer(question: table_name, cell: 'F4')
+      times_homeless_members = ph.where(a_t[:times_homeless].in([nil, 8, 9]))
+      answer.add_members(times_homeless_members)
+      answer.update(summary: times_homeless_members.count)
+
+      # months homeless dk/r/missing
+      answer = @report.answer(question: table_name, cell: 'G4')
+      months_homeless_members = ph.where(a_t[:months_homeless].in([nil, 8, 9]))
+      answer.add_members(months_homeless_members)
+      answer.update(summary: months_homeless_members.count)
+
+      # percent
+      answer = @report.answer(question: table_name, cell: 'H4')
+      members = date_homeless_members.
+        or(missing_institution).
+        or(missing_housing).
+        or(times_homeless_members).
+        or(months_homeless_members)
+      answer.add_members(members)
+      answer.update(summary: format('%1.4f', members.count / ph.count.to_f ))
+
+      ph
+    end
+
     private def universe
       @universe ||= build_universe(QUESTION_NUMBER) do |client, enrollments|
         last_service_history_enrollment = enrollments.last
@@ -507,6 +690,13 @@ module HudApr::Generators::Shared::Fy2020
           income_date_at_exit: income_at_exit&.InformationDate,
           income_from_any_source_at_exit: income_at_exit&.IncomeFromAnySource,
           income_sources_at_exit: income_sources(income_at_annual_assessment),
+          project_type: last_service_history_enrollment.project_type,
+          prior_living_situation: enrollment.LivingSituation,
+          prior_length_of_stay: enrollment.LengthOfStay,
+          date_homeless: enrollment.DateToStreetESSH,
+          times_homeless: enrollment.TimesHomelessPastThreeYears,
+          months_homeless: enrollment.MonthsHomelessPastThreeYears,
+          came_from_street_last_night: enrollment.PreviousStreetESSH,
         )
       end
     end

@@ -9,6 +9,6 @@
       %tr
         %th= index + 1
         - row.each do |value|
-          - cell_color = 'table-primary' if value.nil?
+          - cell_color = 'table-primary' if value.nil? || value == ''
           - value = '0.0000' if value == 'NaN'
           %td{class: cell_color}= value
