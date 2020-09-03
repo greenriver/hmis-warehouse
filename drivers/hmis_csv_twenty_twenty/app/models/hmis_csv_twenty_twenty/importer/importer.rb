@@ -430,7 +430,7 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.upload_id = @upload.id if @upload.present?
       importer_log.save
       elapsed = Time.current - @started_at
-      log("Import Completed in #{distance_of_time_in_words(elapsed)}")
+      log("Import Completed in #{distance_of_time_in_words(elapsed)} data_source: #{data_source.id} importer log: #{importer_log.id}")
     end
 
     def note_processed(file, line_count, type)
