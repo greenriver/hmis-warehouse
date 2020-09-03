@@ -201,12 +201,15 @@ module HmisCsvTwentyTwenty::Importer
         ).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
           batch << row.as_destination_record
           if batch.count == INSERT_BATCH_SIZE
-            process_batch!(destination_class, batch, file_name, type: 'added', upsert: false)
+            # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
+            # for whatever reason doesn't fall within the involved scop
+            process_batch!(destination_class, batch, file_name, type: 'added', upsert: true)
             batch = []
           end
         end
-
-        process_batch!(destination_class, batch, file_name, type: 'added', upsert: false) if batch.present? # ensure we get the last batch
+        # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
+        # for whatever reason doesn't fall within the involved scop
+        process_batch!(destination_class, batch, file_name, type: 'added', upsert: true) if batch.present? # ensure we get the last batch
         log("Added #{summary_for(file_name, 'added')} new #{destination_class.name}")
       end
     end
