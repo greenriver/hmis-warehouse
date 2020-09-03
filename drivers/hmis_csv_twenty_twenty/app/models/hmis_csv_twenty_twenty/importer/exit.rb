@@ -14,17 +14,22 @@ module HmisCsvTwentyTwenty::Importer
     self.table_name = 'hmis_2020_exits'
 
     has_one :destination_record, **hud_assoc(:ExitID, 'Exit')
+    belongs_to :enrollment, primary_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwenty::Importer::Enrollment', autosave: false
 
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
       return none unless project_ids.present?
 
       # this has to be a bit convoluted because active record doesn't rename the exit joins appropriately
-      warehouse_class.where(
-        id: GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range).
-          joins(:project).
-          merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
-          select(ex_t[:id]),
-      )
+      ids = HmisCsvTwentyTwenty::Importer::Enrollment.involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      ).with_deleted.
+        joins(:exit).
+        pluck(ex_t[:id])
+      return none unless ids
+
+      warehouse_class.where(id: ids)
     end
 
     def self.warehouse_class

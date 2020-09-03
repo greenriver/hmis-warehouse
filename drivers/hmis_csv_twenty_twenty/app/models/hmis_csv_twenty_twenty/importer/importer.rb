@@ -50,10 +50,6 @@ module HmisCsvTwentyTwenty::Importer
       'HmisCsvTwentyTwenty::Importer'
     end
 
-    def self.look_aside_scope
-      'HmisCsvTwentyTwenty::Aggregated'
-    end
-
     def import!
       return if already_running_for_data_source?
 
@@ -71,16 +67,14 @@ module HmisCsvTwentyTwenty::Importer
     def pre_process!
       importer_log.update(status: :pre_processing)
 
-      # Enable look asides for aggregated classes
-      importable_files.each_value do |klass|
-        HmisTwentyTwenty.look_aside(klass) if aggregators_from_class(klass, @data_source).present?
-      end
-
-      # TODO: This could be parallelized
       importable_files.each do |file_name, klass|
         log("Pre-processing #{klass.name}")
         pre_process_class!(file_name, klass)
       end
+    end
+
+    private def required_file_names
+      ['Export.csv', 'Project.csv']
     end
 
     def pre_process_class!(file_name, klass)
@@ -96,7 +90,7 @@ module HmisCsvTwentyTwenty::Importer
         # Don't insert any where we have actual errors
         batch << destination unless validation_failures_contain_errors?(row_failures)
         if batch.count == INSERT_BATCH_SIZE
-          process_batch!(klass, batch, file_name, type: 'pre_processed')
+          process_batch!(klass, batch, file_name, type: 'pre_processed', upsert: klass.upsert?)
           batch = []
           importer_log.save
         end
@@ -106,7 +100,7 @@ module HmisCsvTwentyTwenty::Importer
         end
       end
 
-      process_batch!(klass, batch, file_name, type: 'pre_processed') if batch.present? # ensure we get the last batch
+      process_batch!(klass, batch, file_name, type: 'pre_processed', upsert: klass.upsert?) if batch.present? # ensure we get the last batch
       HmisCsvValidation::Base.import(failures.compact) if failures.present?
       importer_log.save
     end
@@ -117,15 +111,19 @@ module HmisCsvTwentyTwenty::Importer
 
     def aggregate!
       importer_log.update(status: :aggregating)
-
-      # TODO: This could be parallelized
       importable_files.each_value do |klass|
         aggregators = aggregators_from_class(klass, @data_source)
         next unless aggregators.present?
 
         log("Aggregating #{klass.name}")
-        aggregators.each { |a| a.aggregate!(@importer_log) }
-        HmisTwentyTwenty.look_aside(klass)
+        aggregators.each do |a|
+          a.remove_deleted_overlapping_data!(
+            importer_log: @importer_log,
+            date_range: date_range,
+          )
+          a.copy_incoming_data!(importer_log: @importer_log)
+          a.aggregate!(@importer_log)
+        end
       end
     end
 
@@ -153,9 +151,6 @@ module HmisCsvTwentyTwenty::Importer
     # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
     # In here, add history_generated_on date to enrollment record
     def ingest!
-      # Ingestion should not use the look-aside tables
-      HmisTwentyTwenty.clear_look_aside
-
       # Mark everything that exists in the warehouse, that would be covered by this import
       # as pending deletion.  We'll remove the pending where appropriate
       mark_tree_as_dead(Date.current)
@@ -195,8 +190,8 @@ module HmisCsvTwentyTwenty::Importer
 
     def add_new_data
       importable_files.each do |file_name, klass|
-        log("Adding new #{klass.name}")
         destination_class = klass.reflect_on_association(:destination_record).klass
+        log("Adding new #{destination_class.name}")
         batch = []
         klass.new_data(
           data_source_id: data_source.id,
@@ -206,13 +201,13 @@ module HmisCsvTwentyTwenty::Importer
         ).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
           batch << row.as_destination_record
           if batch.count == INSERT_BATCH_SIZE
-            process_batch!(destination_class, batch, file_name, type: 'added')
+            process_batch!(destination_class, batch, file_name, type: 'added', upsert: false)
             batch = []
           end
         end
 
-        process_batch!(destination_class, batch, file_name, type: 'added') if batch.present? # ensure we get the last batch
-        log("Added #{summary_for(file_name, 'added')} new #{klass.name}")
+        process_batch!(destination_class, batch, file_name, type: 'added', upsert: false) if batch.present? # ensure we get the last batch
+        log("Added #{summary_for(file_name, 'added')} new #{destination_class.name}")
       end
     end
 
@@ -259,17 +254,16 @@ module HmisCsvTwentyTwenty::Importer
       # Exports are always inserts, never updates
       return if klass.hud_key == :ExportID
 
-      log("Updating #{klass.name}")
-
       existing = klass.existing_destination_data(
         data_source_id: data_source.id,
         project_ids: involved_project_ids,
         date_range: date_range,
       ).pluck(klass.hud_key)
       destination_class = klass.reflect_on_association(:destination_record).klass
+      log("Updating #{destination_class.name}")
       batch = []
       existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
-        klass.where(
+        klass.should_import.where(
           importer_log_id: @importer_log.id,
           klass.hud_key => hud_keys,
         ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
@@ -295,16 +289,10 @@ module HmisCsvTwentyTwenty::Importer
                   PersonalID: incoming.PersonalID,
                 ).update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
               end
+              note_processed(file_name, batch.count, 'updated')
             else
-              destination_class.import(
-                batch,
-                on_duplicate_key_update: {
-                  conflict_target: destination_class.conflict_target,
-                  columns: destination_class.upsert_column_names(version: '2020'),
-                },
-              )
+              process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
             end
-            note_processed(file_name, batch.count, 'updated')
             batch = []
           end
         end
@@ -317,16 +305,10 @@ module HmisCsvTwentyTwenty::Importer
               PersonalID: incoming.PersonalID,
             ).update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
           end
+          note_processed(file_name, batch.count, 'updated')
         else
-          destination_class.import(
-            batch,
-            on_duplicate_key_update: {
-              conflict_target: destination_class.conflict_target,
-              columns: destination_class.upsert_column_names(version: '2020'),
-            },
-          )
+          process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
         end
-        note_processed(file_name, batch.count, 'updated')
       end
 
       # If we tracked any dirty enrollments, we can mark them all dirty now
@@ -334,7 +316,7 @@ module HmisCsvTwentyTwenty::Importer
         GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
           update_all(processed_as: nil)
       end
-      log("Updated #{summary_for(file_name, 'updated')} existing #{klass.name}")
+      log("Updated #{summary_for(file_name, 'updated')} existing #{destination_class.name}")
     end
 
     private def mark_unchanged(klass, file_name)
@@ -347,7 +329,7 @@ module HmisCsvTwentyTwenty::Importer
         date_range: date_range,
       ).where.not(DateUpdated: nil). # A bad import can sometimes cause this
         pluck(klass.hud_key, :source_hash)
-      incoming = klass.where(importer_log_id: @importer_log.id).
+      incoming = klass.should_import.where(importer_log_id: @importer_log.id).
         pluck(klass.hud_key, :source_hash)
       unchanged = (existing & incoming).map(&:first)
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
@@ -367,8 +349,9 @@ module HmisCsvTwentyTwenty::Importer
         data_source_id: data_source.id,
         project_ids: involved_project_ids,
         date_range: date_range,
-      ).pluck(klass.hud_key, :DateUpdated).to_h
-      incoming = klass.where(importer_log_id: @importer_log.id).
+      ).
+        pluck(klass.hud_key, :DateUpdated).to_h
+      incoming = klass.should_import.where(importer_log_id: @importer_log.id).
         pluck(klass.hud_key, :DateUpdated).to_h
 
       # ignore any where we don't have a DateUpdated,
@@ -396,15 +379,20 @@ module HmisCsvTwentyTwenty::Importer
       @track_dirty_enrollment
     end
 
-    private def process_batch!(klass, batch, file_name, type:)
+    private def process_batch!(klass, batch, file_name, type:, upsert:)
       errors = []
-      klass.import(batch, on_duplicate_key_update:
-        {
-          conflict_target: klass.conflict_target,
-          columns: klass.upsert_column_names(version: '2020'),
-        })
+      if upsert
+        klass.import(batch, on_duplicate_key_update:
+          {
+            conflict_target: klass.conflict_target,
+            columns: klass.upsert_column_names(version: '2020'),
+          })
+      else
+        klass.import(batch)
+      end
       note_processed(file_name, batch.count, type)
       rescue StandardError => e
+        log("process failed: #{e.message} #{e.backtrace}")
         batch.each do |row|
           row.save!
           note_processed(file_name, 1, type)
@@ -412,28 +400,6 @@ module HmisCsvTwentyTwenty::Importer
           errors << add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
         end
         @importer_log.import_errors.import(errors)
-    end
-
-    private def bulk_update!(klass, batch, file_name, type:)
-      errors = []
-      klass.import(batch, on_duplicate_key_update:
-        {
-          conflict_target: klass.conflict_target,
-          columns: klass.upsert_column_names(version: '2020'),
-        })
-      note_processed(file_name, batch.count, type)
-    rescue StandardError => e
-      batch.each do |row|
-        klass.import([row], on_duplicate_key_update:
-          {
-            conflict_target: klass.conflict_target,
-            columns: klass.upsert_column_names(version: '2020'),
-          })
-        note_processed(file_name, 1, type)
-      rescue StandardError => e
-        errors << add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
-      end
-      @importer_log.import_errors.import(errors)
     end
 
     private def source_data_scope_for(file_name)
@@ -512,6 +478,7 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.update(status: :started)
       @loader_log.update(importer_log_id: importer_log.id)
       @started_at = Time.current
+      log("Starting import for data source: #{@data_source.id} importer log: #{importer_log.id}")
     end
 
     def log(message)

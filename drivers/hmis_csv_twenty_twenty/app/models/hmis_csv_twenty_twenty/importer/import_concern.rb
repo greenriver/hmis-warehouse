@@ -21,9 +21,21 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       end
     end
 
+    scope :should_import, -> do
+      where(should_import: true)
+    end
+
     # Override as necessary
     def self.clean_row_for_import(row, deidentified:) # rubocop:disable  Lint/UnusedMethodArgument
       row
+    end
+
+    def self.upsert_column_names(version: '2020')
+      super(version: version) - [:pending_date_deleted, :processed_as, :demographic_dirty]
+    end
+
+    def self.upsert?
+      false
     end
 
     def self.date_columns
@@ -71,7 +83,8 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         date_range: date_range,
       ).select(hud_key)
       existing_keys = existing_keys.with_deleted if paranoid?
-      where(importer_log_id: importer_log_id).where.not(hud_key => existing_keys)
+
+      where(importer_log_id: importer_log_id).should_import.where.not(hud_key => existing_keys)
     end
 
     def self.existing_destination_data(data_source_id:, project_ids:, date_range:)

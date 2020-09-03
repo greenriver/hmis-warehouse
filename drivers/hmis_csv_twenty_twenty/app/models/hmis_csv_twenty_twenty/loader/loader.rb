@@ -294,7 +294,7 @@ module HmisCsvTwentyTwenty::Loader
 
     def start_load
       @loaded_at = Time.current
-      log("Starting HMIS CSV Data Load for data source: #{data_source.id}")
+      log("Starting HMIS CSV Data Load for data source: #{data_source.id} loader log: #{@loader_log.id}")
     end
 
     def complete_load(status:)

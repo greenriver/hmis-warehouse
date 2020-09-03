@@ -9,28 +9,12 @@ module HmisCsvTwentyTwenty::Aggregated
     INSERT_BATCH_SIZE = 2_000
 
     def self.aggregate!(importer_log)
-      project_ids = project_source.
-        where(combine_enrollments: true, data_source_id: importer_log.data_source_id).
-        pluck(:ProjectID)
+    end
 
-      batch = []
-      exit_source.where(importer_log_id: importer_log.id).find_each do |enrollment_exit|
-        # Pass the exits through for ingestion for the projects that don't combine enrollments
-        # The projects that combine enrollments emit exits during enrollment processing
-        batch << new_from(enrollment_exit, importer_log) unless project_ids.include?(enrollment_exit.enrollment.ProjectID)
+    def self.remove_deleted_overlapping_data!(importer_log:, date_range:)
+    end
 
-        if batch.count >= INSERT_BATCH_SIZE
-          # These are imported into the staging table, there is no uniqueness constraint, and no existing data
-          # thus no need to check conflict targets
-          exit_destination.import(batch)
-          batch = []
-        end
-      end
-      return unless batch.present?
-
-      # These are imported into the staging table, there is no uniqueness constraint, and no existing data
-      # thus no need to check conflict targets
-      exit_destination.import(batch)
+    def self.copy_incoming_data!(importer_log:)
     end
 
     def self.new_from(source, importer_log)

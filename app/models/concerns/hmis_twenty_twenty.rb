@@ -33,11 +33,6 @@ module HmisTwentyTwenty
       }.freeze
     end
 
-    def self.look_aside_scope
-      # Default to no look aside module
-      nil
-    end
-
     def self.importable_files
       importable_files_map.transform_values do |name|
         importable_file_class(name)
@@ -45,27 +40,7 @@ module HmisTwentyTwenty
     end
 
     def self.importable_file_class(name)
-      module_name = if HmisTwentyTwenty.look_aside?(name) && look_aside_scope.present?
-        look_aside_scope
-      else
-        module_scope
-      end
-
-      "#{module_name}::#{name}".constantize
+      "#{module_scope}::#{name}".constantize
     end
-  end
-
-  def self.clear_look_aside
-    @look_aside = []
-  end
-
-  def self.look_aside(klass)
-    @look_aside ||= []
-    @look_aside << klass.name.split('::').last
-  end
-
-  def self.look_aside?(name)
-    @look_aside ||= []
-    @look_aside.include?(name)
   end
 end

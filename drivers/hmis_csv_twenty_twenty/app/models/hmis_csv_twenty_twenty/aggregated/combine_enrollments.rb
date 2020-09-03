@@ -9,38 +9,35 @@ module HmisCsvTwentyTwenty::Aggregated
     INSERT_BATCH_SIZE = 2_000
 
     def self.aggregate!(importer_log)
-      project_ids = project_source.
-        where(combine_enrollments: true, data_source_id: importer_log.data_source_id).
-        pluck(:ProjectID)
+      project_ids = combined_project_ids(importer_log: importer_log)
+      return unless project_ids.any?
 
-      # Pass through the enrollments from this import that aren't related to the projects requiring combining enrollments
-      emit_unrelated_enrollments(project_ids, importer_log)
+      mark_incoming_data_as_do_not_import(importer_log: importer_log)
 
       # Combine enrollments from the import data source
-      enrollment_scope = enrollment_source.where(data_source_id: importer_log.data_source_id)
-
+      # NOTE: this operates on a single client at a single project, so there should be no overlapping enrollments
       project_ids.each do |project_id|
         enrollment_batch = []
         exit_batch = []
         # Process the clients in the project
-        personal_ids = enrollment_scope.where(ProjectID: project_id).distinct.pluck(:PersonalID)
+        personal_ids = enrollment_scope(importer_log: importer_log, project_id: project_id).distinct.pluck(:PersonalID)
         personal_ids.each do |personal_id|
           last_enrollment = nil # The enrollment from the previous iteration of the find_each (or nil for the first)
           active_enrollment = nil # The first enrollment in the current set pf contiguous enrollments
-          enrollment_scope.
-            where(ProjectID: project_id, PersonalID: personal_id).
+          enrollment_scope(importer_log: importer_log, project_id: project_id).
+            where(PersonalID: personal_id).
             order(EntryDate: :asc).
             find_each do |enrollment|
               if enrollment.exit.blank?
                 # Pass through any open enrollments
-                enrollment_batch << enrollment.dup
+                enrollment_batch << new_enrollment_from_enrollment(enrollment, importer_log)
               elsif last_enrollment.blank?
                 # First enrollment enrollment with an exit
                 active_enrollment = enrollment
               elsif enrollment.EntryDate != last_enrollment.exit.ExitDate
                 # Non-contiguous enrollment, so close the current active enrollment, and start a new one
-                enrollment_batch << active_enrollment.dup
-                exit_batch << new_exit_from(last_enrollment.exit, active_enrollment, importer_log)
+                enrollment_batch << new_enrollment_from_enrollment(active_enrollment, importer_log)
+                exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment, importer_log)
 
                 active_enrollment = enrollment
                 # else Contiguous enrollment, nothing to do
@@ -48,58 +45,22 @@ module HmisCsvTwentyTwenty::Aggregated
               last_enrollment = enrollment
             end
           # Emit the remaining in-process enrollment
-          enrollment_batch << active_enrollment.dup
-          exit_batch << new_exit_from(last_enrollment.exit, active_enrollment, importer_log)
+          enrollment_batch << new_enrollment_from_enrollment(active_enrollment, importer_log)
+          exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment, importer_log) if last_enrollment.exit
         end
 
-        # These are imported into the staging table, there is no uniqueness constraint, and no existing data
+        # These are imported into the staging table, there is no uniqueness constraint, and existing data is marked as don't import
         # thus no need to check conflict targets
-        if enrollment_destination.respond_to?(:import_aggregated)
-          enrollment_destination.import_aggregated(enrollment_batch)
-        else
-          enrollment_destination.import(enrollment_batch)
-        end
-        if exit_destination.respond_to?(:import_aggregated)
-          exit_destination.import_aggregated(exit_batch)
-        else
-          exit_destination.import(exit_batch)
-        end
+        enrollment_destination.import(enrollment_batch)
+        exit_destination.import(exit_batch)
       end
     end
 
-    def self.emit_unrelated_enrollments(project_ids, importer_log)
-      batch = []
-      enrollment_source.
-        where(importer_log_id: importer_log.id).
-        where.not(ProjectID: project_ids).
-        find_each do |enrollment|
-        destination = new_enrollment_from(enrollment, importer_log)
-
-        batch << destination
-
-        if batch.count >= INSERT_BATCH_SIZE
-          # These are imported into the staging table, there is no uniqueness constraint, and no existing data
-          # thus no need to check conflict targets
-          if enrollment_destination.respond_to?(:import_aggregated)
-            enrollment_destination.import_aggregated(batch)
-          else
-            enrollment_destination.import(batch)
-          end
-          batch = []
-        end
-      end
-      return unless batch.present?
-
-      # These are imported into the staging table, there is no uniqueness constraint, and no existing data
-      # thus no need to check conflict targets
-      if enrollment_destination.respond_to?(:import_aggregated)
-        enrollment_destination.import_aggregated(batch)
-      else
-        enrollment_destination.import(batch)
-      end
+    def self.enrollment_scope(importer_log:, project_id:)
+      enrollment_source.where(data_source_id: importer_log.data_source_id, ProjectID: project_id)
     end
 
-    def self.new_enrollment_from(source, importer_log)
+    def self.new_enrollment_from_enrollment(source, importer_log)
       source_data = source.slice(enrollment_source.hmis_structure(version: '2020').keys)
       new_enrollment = enrollment_destination.new(
         source_data.merge(
@@ -115,7 +76,7 @@ module HmisCsvTwentyTwenty::Aggregated
       new_enrollment
     end
 
-    def self.new_exit_from(source, enrollment, importer_log)
+    def self.new_exit_for_enrollment(source, enrollment, importer_log)
       source_data = source.slice(exit_source.hmis_structure(version: '2020').keys)
       new_exit = exit_destination.new(
         source_data.merge(
@@ -130,6 +91,81 @@ module HmisCsvTwentyTwenty::Aggregated
       new_exit.set_source_hash
 
       new_exit
+    end
+
+    def self.mark_incoming_data_as_do_not_import(importer_log:)
+      project_ids = combined_project_ids(importer_log: importer_log)
+      enrollment_destination.where(ProjectID: project_ids, importer_log_id: importer_log.id).
+        update_all(should_import: false)
+
+      e_t = enrollment_destination.arel_table
+      exit_destination.joins(:enrollment).where(
+        e_t[:ProjectID].in(project_ids),
+        importer_log_id: importer_log.id,
+      ).update_all(should_import: false)
+    end
+
+    # Remove any existing data that is covered by this import, but not included in the incoming data
+    def self.remove_deleted_overlapping_data!(importer_log:, date_range:)
+      project_ids = combined_project_ids(importer_log: importer_log)
+
+      ex_t = exit_source.arel_table
+
+      incoming_enrollment_ids = enrollment_destination.where(
+        ProjectID: project_ids,
+        data_source_id: importer_log.data_source_id,
+        importer_log_id: importer_log.id,
+      ).pluck(:EnrollmentID)
+      incoming_exit_ids = exit_destination.where(
+        EnrollmentID: incoming_enrollment_ids,
+        data_source_id: importer_log.data_source_id,
+        importer_log_id: importer_log.id,
+      ).pluck(:ExitID)
+
+      enrollments_to_delete = enrollment_source.where(
+        ProjectID: project_ids,
+        data_source_id: importer_log.data_source_id,
+      ).open_during_range(date_range.range).
+        where.not(EnrollmentID: incoming_enrollment_ids).
+        pluck(:id)
+      exits_to_delete = enrollment_source.where(
+        ProjectID: project_ids,
+        data_source_id: importer_log.data_source_id,
+      ).open_during_range(date_range.range).
+        where.not(ex_t[:ExitID].in(incoming_exit_ids)).
+        references(:exit).
+        pluck(ex_t[:id]).compact
+
+      enrollment_source.where(id: enrollments_to_delete).delete_all if enrollments_to_delete.any?
+      exit_source.where(id: exits_to_delete).delete_all if exits_to_delete.any?
+    end
+
+    def self.copy_incoming_data!(importer_log:)
+      project_ids = combined_project_ids(importer_log: importer_log)
+      enrollment_destination.where(ProjectID: project_ids, importer_log_id: importer_log.id).
+        find_in_batches do |batch|
+          enrollments_batch = []
+          batch.each do |enrollment|
+            enrollments_batch << enrollment_source.new_from(enrollment)
+          end
+          enrollment_source.import_aggregated(enrollments_batch) if enrollments_batch.any?
+        end
+
+      exit_destination.joins(:enrollment).where(importer_log_id: importer_log.id).
+        merge(enrollment_destination.where(ProjectID: project_ids, importer_log_id: importer_log.id)).
+        find_in_batches do |batch|
+          exits_batch = []
+          batch.each do |exit_row|
+            exits_batch << exit_source.new_from(exit_row)
+          end
+          exit_source.import_aggregated(exits_batch) if exits_batch.any?
+        end
+    end
+
+    def self.combined_project_ids(importer_log:)
+      project_source.enrollments_combined.
+        where(data_source_id: importer_log.data_source_id).
+        pluck(:ProjectID)
     end
 
     def self.project_source
