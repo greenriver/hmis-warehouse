@@ -45,7 +45,7 @@ module HmisCsvTwentyTwenty::Aggregated
               last_enrollment = enrollment
             end
           # Emit the remaining in-process enrollment
-          enrollment_batch << new_enrollment_from_enrollment(active_enrollment, importer_log)
+          enrollment_batch << new_enrollment_from_enrollment(active_enrollment, importer_log) if active_enrollment
           exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment, importer_log) if last_enrollment.exit
         end
 
