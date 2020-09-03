@@ -19,18 +19,7 @@ module HudApr::Generators::Shared::Fy2020
       q6c_income_and_housing
       q6d_chronic_homelessness
       q6e_timeliness
-
-      # Q6f
-      metadata = {
-        header_row: ['Data Element', '# of Records', '# of Inactive Records', ' # % of Inactive Records'],
-        row_labels: [ 'Contact (Adults and Heads of Household in Street Outreach or ES – NBN)',
-          'Bed Night (All clients in ES – NBN)'],
-        first_column: 'B',
-        last_column: 'D',
-        first_row: 2,
-        last_row: 3,
-      }
-      @report.answer(question: 'Q6f').update(metadata: metadata)
+      q6f_inactive_records
 
       @report.complete(QUESTION_NUMBER)
     end
@@ -722,8 +711,125 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
     end
 
+    private def q6f_inactive_records
+      table_name = 'Q6f'
+      metadata = {
+        header_row: ['Data Element', '# of Records', '# of Inactive Records', ' # % of Inactive Records'],
+        row_labels: [ 'Contact (Adults and Heads of Household in Street Outreach or ES – NBN)',
+          'Bed Night (All clients in ES – NBN)'],
+        first_column: 'B',
+        last_column: 'D',
+        first_row: 2,
+        last_row: 3,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      relevant_clients = universe.members.
+        joins(report_cell: :report_instance)
+        .where(
+          datediff(report_client_universe, 'day', a_t[:first_date_in_program], hr_ri_t[:end_date]).lt(90).
+            and(a_t[:last_date_in_program].eq(nil).
+              or(a_t[:last_date_in_program].gt(@report.end_date)),
+            ),
+        ).
+        distinct
+
+      # Relevant Adults and HoH ES-NBN or SO
+      answer = @report.answer(question: table_name, cell: 'B2')
+      adults_and_hohs = relevant_clients.where(
+        a_t[:age].gteq(18).
+          or(a_t[:head_of_household].eq(true).
+            and(a_t[:age].lt(18).
+              or(a_t[:age].eq(nil)))),
+      )
+      es_so_members = relevant_clients.where(
+        a_t[:project_type].eq(4).
+          or(a_t[:project_type].eq(1).
+            and(a_t[:project_tracking_method].eq(3))),
+      )
+      answer.add_members(es_so_members)
+      answer.update(summary: es_so_members.count)
+
+      # Inactive ES or SO
+      answer = @report.answer(question: table_name, cell: 'C2')
+
+      # inactive_es_so_members is based on ids so that 'or' works.
+      es_so_member_ids = []
+      es_so_members.find_each do |member|
+        dates = member.universe_membership.first_date_in_program
+        dates << member.universe_membership.
+          joins(:hud_report_apr_living_situations).
+          pluck(:information_date)
+        dates.sort!
+        dates.each_with_index do |date, index|
+          next if index.zero? # Skip the first date
+
+          es_so_member_ids << member.id if (date - dates[index - 1]).to_i > 90 # A gap of more than 90 days
+        end
+      end
+
+      inactive_es_so_members = es_so_members.where(id: es_so_member_ids)
+      answer.add_members(inactive_es_so_members)
+      answer.update(summary: inactive_es_so_members.count)
+
+      # percent inactive ES or SO
+      answer = @report.answer(question: table_name, cell: 'D2')
+      answer.add_members(inactive_es_so_members)
+      answer.update(summary: format('%1.4f', inactive_es_so_members.count / es_so_members.count.to_f ))
+
+      # Relevant ES-NBN
+      answer = @report.answer(question: table_name, cell: 'B3')
+      es_members = relevant_clients.where(
+        a_t[:project_type].eq(1).
+          and(a_t[:project_tracking_method].eq(3)),
+      )
+      answer.add_members(es_so_members)
+      answer.update(summary: es_so_members.count)
+
+      # Inactive ES
+      answer = @report.answer(question: table_name, cell: 'C3')
+      inactive_es_members = es_members.where(
+        datediff(report_client_universe, 'day', a_t[:date_of_last_bed_night], hr_ri_t[:end_date]).lteq(90),
+      )
+      answer.add_members(inactive_es_so_members)
+      answer.update(summary: inactive_es_so_members.count)
+
+      # percent inactive ES
+      answer = @report.answer(question: table_name, cell: 'D3')
+      answer.add_members(inactive_es_so_members)
+      answer.update(summary: format('%1.4f', inactive_es_members.count / es_members.count.to_f ))
+    end
+
     private def universe
-      @universe ||= build_universe(QUESTION_NUMBER) do |client, enrollments|
+      batch_initializer = ->(clients) do
+      end
+
+      batch_finalizer = ->(clients_with_enrollments, report_clients) do
+        living_situations = []
+
+        report_clients.each do |client, apr_client|
+          last_enrollment = clients_with_enrollments[client.id].last.enrollment
+          last_enrollment.current_living_situations.each do |living_situation|
+            living_situations << apr_client.hud_report_apr_living_situations.build(
+              information_date: living_situation.InformationDate,
+            )
+          end
+        end
+
+        report_living_situation_universe.import(
+          living_situations,
+          on_duplicate_key_update: {
+            conflict_target: [:apr_client_id],
+            columns: living_situations.first&.changed || []
+          }
+        )
+      end
+
+      @universe ||= build_universe(
+        QUESTION_NUMBER,
+        before_block: batch_initializer,
+        after_block: batch_finalizer,
+      ) do |client, enrollments|
         last_service_history_enrollment = enrollments.last
         enrollment = last_service_history_enrollment.enrollment
         exit_record = last_service_history_enrollment.service_history_exit&.enrollment
@@ -733,6 +839,7 @@ module HudApr::Generators::Shared::Fy2020
         income_at_start = enrollment.income_benefits_at_entry
         income_at_annual_assessment = annual_assessment(enrollment)
         income_at_exit = exit_record&.income_benefits_at_exit
+        last_bed_night = enrollment.services.bed_night.order(:DateProvided).last
 
         report_client_universe.new(
           client_id: source_client.id,
@@ -785,7 +892,9 @@ module HudApr::Generators::Shared::Fy2020
           times_homeless: enrollment.TimesHomelessPastThreeYears,
           months_homeless: enrollment.MonthsHomelessPastThreeYears,
           came_from_street_last_night: enrollment.PreviousStreetESSH,
-          exit_created: exit_record&.DateCreated
+          exit_created: exit_record&.DateCreated,
+          project_tracking_method: last_service_history_enrollment.project_tracking_method,
+          date_of_last_bed_night: last_bed_night&.DateProvided,
         )
       end
     end

@@ -4257,7 +4257,17 @@ ActiveRecord::Schema.define(version: 2020_08_31_151807) do
     t.integer "months_homeless"
     t.integer "came_from_street_last_night"
     t.date "exit_created"
+    t.integer "project_tracking_method"
+    t.date "date_of_last_bed_night"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
+  end
+
+  create_table "hud_report_apr_living_situations", force: :cascade do |t|
+    t.bigint "hud_report_apr_client_id"
+    t.date "information_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hud_report_apr_client_id"], name: "index_hud_apr_client_liv_sit", unique: true
   end
 
   create_table "hud_report_cells", force: :cascade do |t|
