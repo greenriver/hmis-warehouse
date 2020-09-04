@@ -24,6 +24,8 @@ module HmisCsvTwentyTwenty::Loader
     include ActionView::Helpers::DateHelper
     # The HMIS spec limits the field to 50 characters
     EXPORT_ID_FIELD_WIDTH = 50
+    SELECT_BATCH_SIZE = 10_000
+    INSERT_BATCH_SIZE = 5_000
 
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :loader_log
 
@@ -201,7 +203,7 @@ module HmisCsvTwentyTwenty::Loader
           row.each { |k, v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
           if row.count == csv_headers.count
             batch << row.fields + [data_source.id, @loader_log.id, @loaded_at]
-            if batch.count == 2_000
+            if batch.count == INSERT_BATCH_SIZE
               klass.import(headers, batch)
               loaded_lines(file_name, batch.count)
               batch = []

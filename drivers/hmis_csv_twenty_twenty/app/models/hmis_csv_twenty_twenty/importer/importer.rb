@@ -22,7 +22,7 @@ module HmisCsvTwentyTwenty::Importer
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :importer_log
 
     SELECT_BATCH_SIZE = 10_000
-    INSERT_BATCH_SIZE = 2_000
+    INSERT_BATCH_SIZE = 5_000
 
     def initialize(
       loader_id:,

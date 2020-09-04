@@ -31,6 +31,7 @@ module HmisCsvTwentyTwenty::Aggregated
               if enrollment.exit.blank?
                 # Pass through any open enrollments
                 enrollment_batch << new_enrollment_from_enrollment(enrollment, importer_log)
+                next
               elsif last_enrollment.blank?
                 # First enrollment enrollment with an exit
                 active_enrollment = enrollment
