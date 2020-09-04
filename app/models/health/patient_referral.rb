@@ -152,20 +152,20 @@ module Health
         patient.patient_referrals.contributing.update_all(current: false)
 
         enrollment_start_date = referral_args[:enrollment_start_date]
-        last_enrollment_date = current_referral.disenrollment_date
-        if last_enrollment_date.nil?
+        last_disenrollment_date = current_referral.disenrollment_date || current_referral.pending_disenrollment_date
+        if last_disenrollment_date.nil?
           # Last referral was not disenrolled. For record keeping, close the last enrollment, and immediately open a new one
           current_referral.update(disenrollment_date: enrollment_start_date)
           referral = create(referral_args)
         else
-          if (enrollment_start_date - last_enrollment_date).to_i > 90
-            # It has been more than 90 days, so this is a "reenrollment"
+          if (enrollment_start_date - last_disenrollment_date).to_i > 90
+            # It has been more than 90 days, so this is a "reenrollment", so close the contributing range
             patient.patient_referrals.contributing.update_all(contributing: false)
             referral = create(referral_args)
             patient.reenroll!(referral)
           else
             # This is an "auto-reenrollment"
-            current_referral.update(contributing: true)
+            # current was set to false above, remains contributing...
             referral = create(referral_args)
           end
         end
