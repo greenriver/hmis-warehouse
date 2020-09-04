@@ -298,6 +298,7 @@ module GrdaWarehouse
         ::CohortColumns::DaysOnCohort.new(),
         ::CohortColumns::CasVashEligible.new(),
         ::CohortColumns::PreviousRemovalReason.new(),
+        ::CohortColumns::HealthPrioritized.new(),
         ::CohortColumns::UserString1.new(),
         ::CohortColumns::UserString2.new(),
         ::CohortColumns::UserString3.new(),

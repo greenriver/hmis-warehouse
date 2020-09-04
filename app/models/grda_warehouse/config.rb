@@ -82,6 +82,17 @@ module GrdaWarehouse
       }
     end
 
+    def self.dv_days
+      {
+        'Indefinite' => 0,
+        'Three Years' => 1095,
+        'One Year' => 365,
+        'Six months' => 180,
+        'Three months' => 90,
+        'One month' => 30,
+      }
+    end
+
     def self.client_search_available?
       get(:pii_encryption_type).to_sym.in?([:none])
     end

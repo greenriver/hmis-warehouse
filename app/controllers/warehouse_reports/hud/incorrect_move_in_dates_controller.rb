@@ -12,7 +12,7 @@ module WarehouseReports::Hud
 
     # This logic is based on 9.2 from the 2020 LSA
     def index
-      @enrollments = GrdaWarehouse::Hud::Enrollment.
+      @enrollments = GrdaWarehouse::Hud::Enrollment.heads_of_households.
         where(e_t[:EntryDate].lt(@filter.end)).
         joins(project: :project_cocs, client: :destination_client).
         left_outer_joins(:exit).

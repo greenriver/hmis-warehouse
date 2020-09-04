@@ -11,7 +11,7 @@
         = f.input :coc_codes, label: 'CoC Codes', collection: @filter.coc_code_options_for_select(user: current_user), input_html: {class: :select2, multiple: true}, include_blank: false
 
   - content_for :filter_actions do
-    %p.w-100 Report will find any enrollment open at a project in a given CoC where the move-in date falls outside of the enrollment, or is blank but a permanent destination has been specified.  These are checked for enrollments in project types #{project_types_requiring_move_in.to_sentence}.
+    %p.w-100 Report will find any enrollment open for heads-of-households at a project where the move-in date falls outside of the enrollment, or is blank but a permanent destination has been specified.  These are checked for enrollments in #{project_types_requiring_move_in.map{|id| "#{HUD.project_type_brief(id)} (#{id})"}.to_sentence}.
     .row
       .col-sm-2
         = f.button :submit, value: 'Update View'

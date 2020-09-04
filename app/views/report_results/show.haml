@@ -43,7 +43,9 @@
         Download
 - if @result.job_status.present?
   .alert.alert-danger
-    = @result.job_status
+    .error-note
+      %p.mb-6 The report failed to run with an unexpected error.  A notification has been sent to #{_('Green River')}.  If this is time-critical, you may want to #{_('contact us')} directly.  The details of the error are listed here:
+      = @result.job_status
 - if @result.validations.present?
   - error_count = @result.validations.map{|section, errs| errs.size}.sum
   - if error_count > 0

@@ -230,13 +230,14 @@ module ReportGenerators::Lsa::Fy2019
       LsaSqlServer::LSAReport.update_all(ReportDate: Time.now)
       LsaSqlServer.models_by_filename.each do |filename, klass|
         path = File.join(unzip_path, filename)
-        # for some reason the example files are quoted, except the LSA files, which are not
+        # Sample files are not quoted when the columns are integers or dates regardless of if there is data
         force_quotes = ! klass.name.include?('LSA')
         CSV.open(path, "wb", force_quotes: force_quotes) do |csv|
-          csv << klass.csv_columns.map{ |m| if m == :Zip then :ZIP else m end }
+          headers = klass.csv_columns.map{ |m| if m == :Zip then :ZIP else m end }.map(&:to_s)
+          csv << headers
           klass.all.each do |item|
             row = []
-            item.attributes.slice(*klass.csv_columns.map(&:to_s)).values.each do |m|
+            item.attributes.slice(*headers).each_value do |m|
               if m.is_a?(Date)
                 row << m.strftime('%F')
               elsif m.is_a?(Time)

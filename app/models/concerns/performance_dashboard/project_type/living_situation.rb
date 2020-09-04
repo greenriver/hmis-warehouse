@@ -63,6 +63,12 @@ module PerformanceDashboard::ProjectType::LivingSituation
     HUD.living_situations
   end
 
+  def enrolled_total_count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      prior_living_situations.values.flatten.count
+    end
+  end
+
   private def living_situation_details(options)
     sub_key = if options[:sub_key].present?
       options[:sub_key]&.to_i
