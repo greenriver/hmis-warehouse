@@ -2829,7 +2829,7 @@ module GrdaWarehouse::Hud
           else
             cocs = ''
             if GrdaWarehouse::Config.get(:expose_coc_code)
-              cocs = entry.enrollment.enrollment_cocs.map(&:CoCCode).uniq.join(', ')
+              cocs = entry.enrollment&.enrollment_cocs&.map(&:CoCCode)&.uniq&.join(', ')
               cocs = " (#{cocs})" if cocs.present?
             end
             "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"
