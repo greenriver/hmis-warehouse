@@ -1,0 +1,125 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Projects') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+      'Warehouse ID',
+      'HMIS ProjectID',
+      'ProjectName',
+      'HMIS OrganizationID',
+      'OrganizationName',
+      'Data Source',
+    ],
+    style: title,
+  )
+  @projects.preload(:organization, :data_source).find_each do |row|
+    sheet.add_row(
+      [
+        row.id,
+        row.ProjectID,
+        row.ProjectName,
+        row.organization&.OrganizationID,
+        row.organization&.OrganizationName,
+        row.data_source&.short_name,
+      ],
+    )
+  end
+end
+
+wb.add_worksheet(name: 'Organizations') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+      'Warehouse ID',
+      'HMIS OrganizationID',
+      'OrganizationName',
+      'Data Source',
+    ],
+    style: title,
+  )
+  @organizations.preload(:data_source).find_each do |row|
+    sheet.add_row(
+      [
+        row.id,
+        row.OrganizationID,
+        row.OrganizationName,
+        row.data_source&.short_name,
+      ],
+    )
+  end
+end
+
+wb.add_worksheet(name: 'Inventory') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+      'Warehouse ID',
+      'HMIS InventoryID',
+      'HMIS ProjectID',
+      'ProjectName',
+      'Data Source',
+    ],
+    style: title,
+  )
+  @inventories.preload(:project, :data_source).find_each do |row|
+    sheet.add_row(
+      [
+        row.id,
+        row.InventoryID,
+        row.project.ProjectID,
+        row.project.ProjectName,
+        row.data_source&.short_name,
+      ],
+    )
+  end
+end
+
+wb.add_worksheet(name: 'Funders') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+      'Warehouse ID',
+      'HMIS FunderID',
+      'HMIS ProjectID',
+      'ProjectName',
+      'Data Source',
+    ],
+    style: title,
+  )
+  @funders.preload(:project, :data_source).find_each do |row|
+    sheet.add_row(
+      [
+        row.id,
+        row.FunderID,
+        row.project.ProjectID,
+        row.project.ProjectName,
+        row.data_source&.short_name,
+      ],
+    )
+  end
+end
+
+wb.add_worksheet(name: 'ProjectCoCs') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row(
+    [
+      'Warehouse ID',
+      'HMIS ProjectCoCid',
+      'HMIS ProjectID',
+      'ProjectName',
+      'Data Source',
+    ],
+    style: title,
+  )
+  @project_cocs.preload(:project, :data_source).find_each do |row|
+    sheet.add_row(
+      [
+        row.id,
+        row.ProjectCoCID,
+        row.project.ProjectID,
+        row.project.ProjectName,
+        row.data_source&.short_name,
+      ],
+    )
+  end
+end
