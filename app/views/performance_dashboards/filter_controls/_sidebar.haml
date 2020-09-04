@@ -7,6 +7,7 @@
       Edit
 
 - @report.control_sections.each do |section|
+  - next unless section
   - section_url = polymorphic_path(@report.filter_path_array, *(link_params.except(:action).merge(filter_section_id: section.id)))
   .sb-filter-section-prs1
     %h4.mb-2.gray= section.title

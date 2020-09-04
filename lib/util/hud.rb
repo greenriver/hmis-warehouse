@@ -467,6 +467,8 @@ module HUD
       44 => 'HUD: CoC - Joint Component TH/RRH',
       45 => 'VA: Grant Per Diem - Case Management/Housing Retention',
       46 => 'Local or Other Funding Source',
+      47 => 'HUD: ESG – CV',
+      48 => 'HUD: HOPWA – CV',
     }
   end
 

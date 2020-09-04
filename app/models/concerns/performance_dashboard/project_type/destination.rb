@@ -35,6 +35,12 @@ module PerformanceDashboard::ProjectType::Destination
     end
   end
 
+  def exiting_total_count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      destinations.values.flatten.count
+    end
+  end
+
   def destinations_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]

@@ -20,6 +20,9 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       # Apply default value from project coc if not set
       row[:CoCCode] = enrollment_coc_from_project_coc(row[:ProjectID], data_source_id) if row[:CoCCode].blank?
 
+      override = inventory_start_date_override_for(inventory_id: row[:InventoryID].to_i, data_source_id: data_source_id)
+      row[:InventoryStartDate] = override if override
+
       return row
     end
 
@@ -34,6 +37,19 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
           end
         end.compact.to_h
       @coc_code_overrides[[data_source_id, inventory_id]]
+    end
+
+    def inventory_start_date_override_for(inventory_id:, data_source_id:)
+      @inventory_start_date_overrides ||= self.class.where.not(inventory_start_date_override: nil).
+        pluck(:data_source_id, :id, :inventory_start_date_override).
+        map do |ds_id, i_id, inventory_start_date_override|
+          if inventory_start_date_override.present?
+            [[ds_id, i_id], inventory_start_date_override]
+          else
+            nil
+          end
+        end.compact.to_h
+      @inventory_start_date_overrides[[data_source_id, inventory_id]]
     end
   end
 end

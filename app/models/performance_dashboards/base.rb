@@ -83,6 +83,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
       build_coc_control_section,
       build_household_control_section,
       build_demographics_control_section,
+      build_enrollment_control_section,
     ]
   end
 
@@ -173,13 +174,22 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     end
   end
 
+  protected def build_enrollment_control_section
+    return if multiple_project_types?
+
+    ::Filters::UiControlSection.new(id: 'enrollment').tap do |section|
+      section.add_control(id: 'prior_living_situations', value: chosen_prior_living_situations)
+      section.add_control(id: 'destinations', value: chosen_destinations)
+    end
+  end
+
   private def cache_slug
     @filter.attributes
   end
 
   def detail_params
-    @filter.to_h.except(:user).
-      merge(comparison_pattern: :no_comparison_period)
+    @filter.for_params.
+      deep_merge(filters: { comparison_pattern: :no_comparison_period })
   end
 
   def self.detail_method(key)
@@ -211,9 +221,21 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     {
       under_eighteen: '< 18',
       eighteen_to_twenty_four: '18 - 24',
-      twenty_five_to_sixty_one: '25 - 61',
+      twenty_five_to_twenty_nine: '25 - 29',
+      thirty_to_thirty_nine: '30 - 39',
+      forty_to_forty_nine: '40 - 49',
+      fifty_to_fifty_nine: '50 - 59',
+      sixty_to_sixty_one: '60 - 61',
       over_sixty_one: '62+',
     }.invert.freeze
+  end
+
+  def available_prior_living_situations
+    HUD.living_situations.invert
+  end
+
+  def available_destinations
+    HUD.valid_destinations.invert
   end
 
   def available_data_sources_for_select
@@ -316,6 +338,18 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     end
   end
 
+  def chosen_prior_living_situations
+    @filter.prior_living_situation_ids.map do |id|
+      available_prior_living_situations.invert[id]
+    end.join(', ')
+  end
+
+  def chosen_destinations
+    @filter.destination_ids.map do |id|
+      available_destinations.invert[id]
+    end.join(', ')
+  end
+
   def self.comparison_patterns
     {
       no_comparison_period: 'None',
@@ -354,6 +388,8 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     scope = filter_for_organizations(scope)
     scope = filter_for_projects(scope)
     scope = filter_for_funders(scope)
+    scope = filter_for_prior_living_situation(scope)
+    scope = filter_for_destination(scope)
     scope
   end
 
@@ -396,7 +432,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     ages = []
     ages += (0..17).to_a if @age_ranges.include?(:under_eighteen)
     ages += (18..24).to_a if @age_ranges.include?(:eighteen_to_twenty_four)
-    ages += (25..61).to_a if @age_ranges.include?(:twenty_five_to_sixty_one)
+    ages += (25..29).to_a if @age_ranges.include?(:twenty_five_to_twenty_nine)
+    ages += (30..39).to_a if @age_ranges.include?(:thirty_to_thirty_nine)
+    ages += (40..49).to_a if @age_ranges.include?(:forty_to_forty_nine)
+    ages += (50..59).to_a if @age_ranges.include?(:fifty_to_fifty_nine)
+    ages += (60..61).to_a if @age_ranges.include?(:sixty_to_sixty_one)
     ages += (62..110).to_a if @age_ranges.include?(:over_sixty_one)
     scope.where(she_t[:age].in(ages))
   end
@@ -476,6 +516,18 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
   private def filter_for_sub_population(scope)
     scope.public_send(@sub_population)
+  end
+
+  private def filter_for_prior_living_situation(scope)
+    return scope if @filter.prior_living_situation_ids.blank?
+
+    scope.where(housing_status_at_entry: @filter.prior_living_situation_ids)
+  end
+
+  private def filter_for_destination(scope)
+    return scope if @filter.destination_ids.blank?
+
+    scope.where(destination: @filter.destination_ids)
   end
 
   def date_range_words

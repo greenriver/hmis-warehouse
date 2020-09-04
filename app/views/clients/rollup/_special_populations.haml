@@ -22,7 +22,8 @@
         - special_populations.each do |h|
           - project = h.project
           %tr
-            %td.id-sqr{ 'data-id' => h.enrollment.client.id }
+            %td
+              .ds{class: "ds-color-#{h.data_source_id}"}= ds_short_name_for(h.enrollment.client.id)
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
             %td.date-cell= h.enrollment.EntryDate
             %td= h.InformationDate

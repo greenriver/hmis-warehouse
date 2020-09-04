@@ -66,6 +66,12 @@ module PerformanceDashboard::ProjectType::Returns
     end
   end
 
+  def returned_total_count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      homeless_re_entries.values.flatten.count
+    end
+  end
+
   def returns_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]

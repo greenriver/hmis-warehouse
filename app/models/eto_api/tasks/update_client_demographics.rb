@@ -343,8 +343,12 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
           answers[:sections] << s_section
         end
 
-        staff = @api.staff(site_id: site_id, id: api_response['AuditStaffID'])
-        hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
+        staff = @api.staff(site_id: site_id, id: api_response['AuditStaffID']) # Returns nil if it can't be found
+        if staff.present?
+          hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
+        else
+          hmis_form.staff = "ETO Staff ID: #{api_response['AuditStaffID']}"
+        end
         hmis_form.staff_email = staff['Email']
         # Add email
         hmis_form.collected_at = @api.parse_date(api_response['ResponseCreatedDate'])

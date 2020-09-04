@@ -17,7 +17,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
       buckets = HUD.living_situations.keys.map { |b| [b, []] }.to_h
       counted = Set.new
       enrolled.order(first_date_in_program: :desc).
-        pluck(:client_id, she_t[:id], e_t[:LivingSituation], :first_date_in_program).each do |c_id, en_id, situation, _|
+        pluck(:client_id, she_t[:id], she_t[:housing_status_at_entry], :first_date_in_program).each do |c_id, en_id, situation, _|
         buckets[situation] ||= []
         # Store enrollment id so we can fetch details later, unique on client id
         buckets[situation] << en_id unless counted.include?(c_id)
@@ -61,6 +61,12 @@ module PerformanceDashboard::ProjectType::LivingSituation
 
   def living_situation_bucket_titles
     HUD.living_situations
+  end
+
+  def enrolled_total_count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      prior_living_situations.values.flatten.count
+    end
   end
 
   private def living_situation_details(options)

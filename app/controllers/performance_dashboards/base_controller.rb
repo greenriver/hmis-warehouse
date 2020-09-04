@@ -83,6 +83,8 @@ class PerformanceDashboards::BaseController < ApplicationController
         project_ids: [],
         funder_ids: [],
         project_group_ids: [],
+        prior_living_situation_ids: [],
+        destination_ids: [],
       ],
     )
     # project_type_codes exists as both a single and multi, ensure it's always

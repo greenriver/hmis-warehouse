@@ -191,6 +191,7 @@ Rails.application.routes.draw do
     resources :youth_follow_ups, only: [:index]
     resources :youth_export, only: [:index, :show, :create, :destroy]
     resources :youth_intake_export, only: [:index, :create]
+    resources :youth_activity, only: [:index]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
@@ -387,7 +388,11 @@ Rails.application.routes.draw do
       resources :housing_status, only: [:index] do
         get :details, on: :collection
       end
-      resources :housing_status_changes, only: [:index]
+      resources :housing_status_changes, only: [:index] do
+        collection do
+          get :detail
+        end
+      end
       resources :cp_roster, only: [:index, :show, :destroy] do
         collection do
           post :roster
@@ -719,6 +724,7 @@ Rails.application.routes.draw do
       patch :reactivate, on: :member
       member do
         post :unlock
+        post :un_expire
         post :confirm
         post :impersonate
       end

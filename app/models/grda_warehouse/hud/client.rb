@@ -789,7 +789,7 @@ module GrdaWarehouse::Hud
         }
       end
       if health && patient.present? && names.detect { |name| name[:health] }.blank?
-        names << { ds: 'Health', ds_id: 'health', name: patient.name }
+        names << { ds: 'Health', ds_id: GrdaWarehouse::DataSource.health_authoritative_id, name: patient.name }
       end
       return names
     end
@@ -958,15 +958,19 @@ module GrdaWarehouse::Hud
     end
 
     def visible_because_of_permission?(user)
-        user.can_view_clients? ||
-        visible_because_of_release?(user) ||
-        visible_because_of_assigned_data_source?(user) ||
-        visible_because_of_coc_association?(user)
+      user.can_view_clients? ||
+      visible_because_of_release?(user) ||
+      visible_because_of_assigned_data_source?(user) ||
+      visible_because_of_coc_association?(user)
     end
 
     def visible_because_of_release?(user)
+      any_window_clients = source_clients.map { |sc| sc.data_source.visible_in_window? }.any?
       user.can_view_client_window? &&
-      (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release))
+      (
+        release_valid? ||
+        ! GrdaWarehouse::Config.get(:window_access_requires_release) && any_window_clients
+      )
     end
 
     def visible_because_of_assigned_data_source?(user)
@@ -1213,7 +1217,13 @@ module GrdaWarehouse::Hud
     def domestic_violence?
       return pathways_domestic_violence if pathways_domestic_violence
 
-      source_health_and_dvs.where(DomesticViolenceVictim: 1).exists?
+      dv_scope = source_health_and_dvs.where(DomesticViolenceVictim: 1)
+      lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
+      if lookback_days&.positive?
+        dv_scope.where(hdv_t[:InformationDate].gt(lookback_days.days.ago.to_date)).exists?
+      else
+        dv_scope.exists?
+      end
     end
 
     def chronic?(on: nil)

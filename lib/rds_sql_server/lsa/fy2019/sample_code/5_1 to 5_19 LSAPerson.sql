@@ -24,6 +24,9 @@ Date:  4/7/2020
 		7/30/2020 - 5.8.3 - correct join criteria for tlsa_Enrollment chn to include CH = 1
 					5.8.3 and 5.8.4 - correct join criteria to ref_Calendar to use tlsa_Enrollment.EntryDate vs hmis_Enrollment
 					5.8.4 - correct criteria to include LastActive in ESSHStreetDates (was excluding)
+		8/11/2020 - 5.8.3-4 - rewrite to correspond more closely to the way the business logic is expressed in the specs.
+						All dates are inserted in 5.8.3; 5.8.4 has been deleted.
+		8/13/2020 - 5.7 - Exclude RRH ExitDates from count of ESSHStreetDates if MoveInDate = ExitDate (GitHub #436)
 				
 	5.1 Get Active HMIS HouseholdIDs
 */
@@ -189,8 +192,10 @@ Date:  4/7/2020
 	inner join ref_Calendar cal on cal.theDate >=
 			case when chn.ProjectType in (3,13) then chn.MoveInDate  
 				else chn.EntryDate end
-		and (cal.theDate < chn.ExitDate or chn.ExitDate is null)
-		and cal.theDate between lp.CHStart and lp.LastActive
+		and ((cal.theDate < chn.ExitDate 
+			or (chn.ProjectType = 13 and chn.MoveInDate = chn.ExitDate and cal.theDate = chn.MoveInDate)
+			or chn.ExitDate is null))
+			and cal.theDate between lp.CHStart and lp.LastActive
 	where chn.ProjectType in (2,3,13)
 
 /*
@@ -237,8 +242,8 @@ Date:  4/7/2020
 	where chn.ProjectType = 1 and chn.TrackingMethod = 3 and chx.excludeDate is null
 		and chi.ESSHStreetDate is null
 
-	--ES/SH/Street dates from 3.917 DateToStreetESSH to the day prior to 
-	--  EntryDates > CHStart.
+	--ES/SH/Street dates from 3.917 DateToStreetESSH when EntryDates > CHStart.
+
 	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
 	select distinct lp.PersonalID, cal.theDate, '5.8.3'
 	from tlsa_Person lp
@@ -248,38 +253,30 @@ Date:  4/7/2020
 		inner join ref_Calendar cal on 
 			cal.theDate >= hn.DateToStreetESSH
 			and cal.theDate between lp.CHStart and lp.LastActive
-			and cal.theDate < chn.EntryDate
 		left outer join ch_Exclude chx on chx.excludeDate = cal.theDate
 			and chx.PersonalID = chn.PersonalID
 		left outer join ch_Include chi on chi.ESSHStreetDate = cal.theDate 
 			and chi.PersonalID = chn.PersonalID
 	where chx.excludeDate is null
 		and chi.ESSHStreetDate is null
-			and (chn.ProjectType in (1,8)
-				or hn.LivingSituation in (1,18,16)		
-				or (chn.ProjectType not in (1,8)
-						and ((hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11))
-							or (hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
-					and hn.LivingSituation in (4,5,6,7,15,25)) ) 
-				))
-
-	--	For RRH/PSH, dates from entry to the earlier of move-in or exit are counted
-	--   when LivingSituation at entry is ES/SH/Street.
-	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
-	select distinct lp.PersonalID, cal.theDate, '5.8.4'
-	from tlsa_Person lp
-	inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
-	inner join hmis_Enrollment hn on hn.EnrollmentID = chn.EnrollmentID 
-	inner join ref_Calendar cal on cal.theDate >= chn.EntryDate
-		and cal.theDate >= lp.CHStart 
-		and cal.theDate < coalesce(chn.MoveInDate, chn.ExitDate, dateadd(dd, 1, lp.LastActive))
-	left outer join ch_Exclude chx on chx.excludeDate = cal.theDate
-		and chx.PersonalID = chn.PersonalID
-	left outer join ch_Include chi on chi.ESSHStreetDate = cal.theDate 
-		and chi.PersonalID = chn.PersonalID
-	where chx.excludeDate is null
-		and chi.ESSHStreetDate is null
-			and hn.LivingSituation in (1,18,16)		
+		and (hn.LivingSituation in (1,18,16)
+			or	(chn.ProjectType not in (1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (10,11))
+			or (chn.ProjectType not in (1,8) and hn.PreviousStreetESSH = 1 and hn.LengthOfStay in (2,3)
+					and hn.LivingSituation in (4,5,6,7,15,25)) 
+			)
+		and ( 
+			
+			(-- for ES/SH/TH, count dates prior to EntryDate
+				chn.ProjectType in (1,2,8) and cal.theDate < chn.EntryDate)
+			or (-- for PSH/RRH, dates prior to and after EntryDate are counted for 
+				-- as long as the client remains homeless in the project  
+				chn.ProjectType in (3,13)
+				and (cal.theDate < chn.MoveInDate
+					 or (chn.MoveInDate is NULL and cal.theDate < chn.ExitDate)
+					 or (chn.MoveInDate is NULL and chn.ExitDate is NULL and cal.theDate <= lp.LastActive)
+					)
+				)
+			)						
 
 	--Gaps of less than 7 nights between two ESSHStreet dates are counted
 	insert into ch_Include (PersonalID, ESSHStreetDate, Step)
