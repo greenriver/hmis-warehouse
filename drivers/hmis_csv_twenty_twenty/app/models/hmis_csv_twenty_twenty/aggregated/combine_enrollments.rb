@@ -178,6 +178,7 @@ module HmisCsvTwentyTwenty::Aggregated
     def self.combined_project_ids(importer_log:)
       project_source.enrollments_combined.
         where(data_source_id: importer_log.data_source_id).
+        where(ProjectID: enrollment_destination.where(importer_log_id: importer_log.id).select(:ProjectID)).
         pluck(:ProjectID)
     end
 
