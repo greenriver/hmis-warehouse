@@ -36,13 +36,14 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     protected def clients_with_enrollments(batch)
-      GrdaWarehouse::ServiceHistoryEnrollment.
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
-        in_project(@report.project_ids).
         joins(:enrollment).
         preload(enrollment: [:client, :disabilities, :current_living_situations]).
         where(client_id: batch.map(&:id)).
         group_by(&:client_id)
+      scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
+      scope
     end
 
     protected def report_client_universe
