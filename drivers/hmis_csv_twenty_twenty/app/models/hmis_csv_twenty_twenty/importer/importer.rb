@@ -59,6 +59,7 @@ module HmisCsvTwentyTwenty::Importer
         validate_data_set!
         aggregate!
         ingest!
+        invalidate_aggregated_enrollments!
         complete_import
       end
     end
@@ -107,6 +108,18 @@ module HmisCsvTwentyTwenty::Importer
 
     private def validation_failures_contain_errors?(failures)
       failures.any?(&:skip_row?)
+    end
+
+    def invalidate_aggregated_enrollments!
+      importable_files.each_value do |klass|
+        aggregators = aggregators_from_class(klass, @data_source)
+        next unless aggregators.present?
+
+        log("Aggregating #{klass.name}")
+        aggregators.each do |a|
+          a.rebuild_warehouse_data(importer_log: @importer_log)
+        end
+      end
     end
 
     def aggregate!
@@ -203,13 +216,17 @@ module HmisCsvTwentyTwenty::Importer
           if batch.count == INSERT_BATCH_SIZE
             # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
             # for whatever reason doesn't fall within the involved scop
-            process_batch!(destination_class, batch, file_name, type: 'added', upsert: true)
+            upsert = ! destination_class.name.include?('Export')
+            columns = batch.first.attributes.keys - ['id']
+            process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
             batch = []
           end
         end
         # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
         # for whatever reason doesn't fall within the involved scop
-        process_batch!(destination_class, batch, file_name, type: 'added', upsert: true) if batch.present? # ensure we get the last batch
+        upsert = ! destination_class.name.include?('Export')
+        columns = batch.first.attributes.keys - ['id']
+        process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) if batch.present? # ensure we get the last batch
         log("Added #{summary_for(file_name, 'added')} new #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
       end
     end
@@ -382,13 +399,13 @@ module HmisCsvTwentyTwenty::Importer
       @track_dirty_enrollment
     end
 
-    private def process_batch!(klass, batch, file_name, type:, upsert:)
+    private def process_batch!(klass, batch, file_name, columns: klass.upsert_column_names(version: '2020'), type:, upsert:) # rubocop:disable Metrics/ParameterLists
       errors = []
       if upsert
         klass.import(batch, on_duplicate_key_update:
           {
             conflict_target: klass.conflict_target,
-            columns: klass.upsert_column_names(version: '2020'),
+            columns: columns,
           })
       else
         klass.import(batch)

@@ -26,6 +26,7 @@ module HmisCsvTwentyTwenty::Aggregated
           active_enrollment = nil # The first enrollment in the current set pf contiguous enrollments
           enrollment_scope(importer_log: importer_log, project_id: project_id).
             where(PersonalID: personal_id).
+            preload(:exit).
             order(EntryDate: :asc).
             find_each do |enrollment|
               if enrollment.exit.blank?
@@ -161,6 +162,17 @@ module HmisCsvTwentyTwenty::Aggregated
           end
           exit_source.import_aggregated(exits_batch) if exits_batch.any?
         end
+    end
+
+    def self.rebuild_warehouse_data(importer_log:)
+      dest_clients = GrdaWarehouse::Hud::Client.destination.joins(:source_enrollments).
+        merge(
+          GrdaWarehouse::Hud::Enrollment.where(
+            data_source_id: importer_log.data_source_id,
+            ProjectID: combined_project_ids(importer_log: importer_log),
+          ),
+        ).distinct.pluck(:id)
+      GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(dest_clients.size, dest_clients).run!
     end
 
     def self.combined_project_ids(importer_log:)

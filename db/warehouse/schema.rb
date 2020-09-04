@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_03_133437) do
+ActiveRecord::Schema.define(version: 2020_09_04_191736) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -2379,6 +2379,7 @@ ActiveRecord::Schema.define(version: 2020_09_03_133437) do
     t.index ["ExportID"], name: "hmis_2020_aggregated_enrollments-fXAB"
     t.index ["HouseholdID"], name: "hmis_2020_aggregated_enrollments-QV2G"
     t.index ["LivingSituation"], name: "hmis_2020_aggregated_enrollments-ysoO"
+    t.index ["PersonalID", "ProjectID", "data_source_id"], name: "hmis_2020_agg_enrollments_p_id_p_id_ds_id"
     t.index ["PersonalID"], name: "hmis_2020_aggregated_enrollments-wnDD"
     t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_2020_aggregated_enrollments-Xqsk"
     t.index ["ProjectID", "HouseholdID"], name: "hmis_2020_aggregated_enrollments-BMfj"
