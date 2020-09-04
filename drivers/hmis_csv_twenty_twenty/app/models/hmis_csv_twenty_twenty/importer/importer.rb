@@ -204,7 +204,7 @@ module HmisCsvTwentyTwenty::Importer
     def add_new_data
       importable_files.each do |file_name, klass|
         destination_class = klass.reflect_on_association(:destination_record).klass
-        log("Adding new #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
+        # log("Adding new #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
         batch = []
         klass.new_data(
           data_source_id: data_source.id,
@@ -215,7 +215,7 @@ module HmisCsvTwentyTwenty::Importer
           batch << row.as_destination_record
           if batch.count == INSERT_BATCH_SIZE
             # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
-            # for whatever reason doesn't fall within the involved scop
+            # for whatever reason doesn't fall within the involved scope
             upsert = ! destination_class.name.include?('Export')
             columns = batch.first.attributes.keys - ['id']
             process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
@@ -223,10 +223,12 @@ module HmisCsvTwentyTwenty::Importer
           end
         end
         # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
-        # for whatever reason doesn't fall within the involved scop
-        upsert = ! destination_class.name.include?('Export')
-        columns = batch.first.attributes.keys - ['id']
-        process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) if batch.present? # ensure we get the last batch
+        # for whatever reason doesn't fall within the involved scope
+        if batch.present?
+          upsert = ! destination_class.name.include?('Export')
+          columns = batch.first.attributes.keys - ['id']
+          process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
+        end
         log("Added #{summary_for(file_name, 'added')} new #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
       end
     end
@@ -280,7 +282,7 @@ module HmisCsvTwentyTwenty::Importer
         date_range: date_range,
       ).pluck(klass.hud_key)
       destination_class = klass.reflect_on_association(:destination_record).klass
-      log("Updating #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
+      # log("Updating #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
       batch = []
       existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
         klass.should_import.where(
