@@ -39,7 +39,12 @@ module GrdaWarehouse::Hud
     scope :within_range, -> (range) do
       i_start = cl(i_t[:inventory_start_date_override], i_t[:InventoryStartDate])
       i_end = i_t[:InventoryEndDate]
-      where(i_end.gteq(range.first).or(i_end.eq(nil)).and(i_start.lteq(range.last)))
+      where(
+        i_end.gteq(range.first).
+        or(i_end.eq(nil)).
+        and(i_start.lteq(range.last).
+        or(i_start.eq(nil)))
+      )
     end
 
     scope :serves_families, -> do
