@@ -115,7 +115,7 @@ module HmisCsvTwentyTwenty::Importer
         aggregators = aggregators_from_class(klass, @data_source)
         next unless aggregators.present?
 
-        log("Aggregating #{klass.name}")
+        log("Rebuilding aggregated enrollments with #{klass.name}")
         aggregators.each do |a|
           a.rebuild_warehouse_data(importer_log: @importer_log)
         end
