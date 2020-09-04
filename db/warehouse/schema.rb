@@ -4248,6 +4248,7 @@ ActiveRecord::Schema.define(version: 2020_08_31_193024) do
     t.date "exit_created"
     t.integer "project_tracking_method"
     t.date "date_of_last_bed_night"
+    t.boolean "other_clients_over_25"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
   end
 

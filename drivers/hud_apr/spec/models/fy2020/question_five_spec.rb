@@ -57,7 +57,7 @@ RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionFive, type: :model do
     end
 
     it 'counts adult head of household leavers' do
-      expect(report_result.answer(question: 'Q5a', cell: 'B7').summary).to eq(2) # should eq 0, leaving so I can write more tests
+      expect(report_result.answer(question: 'Q5a', cell: 'B7').summary).to eq(2)
     end
 
     it 'counts stayers' do
@@ -77,7 +77,7 @@ RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionFive, type: :model do
     end
 
     it 'counts under 25' do
-      expect(report_result.answer(question: 'Q5a', cell: 'B12').summary).to eq(0)
+      expect(report_result.answer(question: 'Q5a', cell: 'B12').summary).to eq(1)
     end
 
     it 'counts under 25 with children' do
@@ -85,7 +85,7 @@ RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionFive, type: :model do
     end
 
     it 'counts adult heads of household' do
-      expect(report_result.answer(question: 'Q5a', cell: 'B14').summary).to eq(0)
+      expect(report_result.answer(question: 'Q5a', cell: 'B14').summary).to eq(2)
     end
 
     it 'counts child and unknown age heads of household' do
@@ -93,7 +93,7 @@ RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionFive, type: :model do
     end
 
     it 'counts heads of household and stayers over 365 days' do
-      expect(report_result.answer(question: 'Q5a', cell: 'B16').summary).to eq(1)
+      expect(report_result.answer(question: 'Q5a', cell: 'B16').summary).to eq(2)
     end
   end
 

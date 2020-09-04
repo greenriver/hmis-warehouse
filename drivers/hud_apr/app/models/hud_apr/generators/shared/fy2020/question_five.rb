@@ -126,7 +126,8 @@ module HudApr::Generators::Shared::Fy2020
       answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B12')
       members = universe.members.where(
         a_t[:age].lt(25).
-        and(a_t[:age].gteq(12)),
+        and(a_t[:age].gteq(12)).
+        and(a_t[:other_clients_over_25].eq(false)),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
@@ -166,7 +167,8 @@ module HudApr::Generators::Shared::Fy2020
       answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B16')
       hoh_ids = universe.members.where(
         a_t[:head_of_household].eq(true).
-        and(a_t[:length_of_stay].gteq(365)),
+        and(a_t[:length_of_stay].gteq(365)).
+        and(a_t[:last_date_in_program].gt(@report.end_date)),
       ).pluck(:head_of_household_id)
       members = universe.members.where(
         a_t[:head_of_household_id].in(hoh_ids).
@@ -194,6 +196,7 @@ module HudApr::Generators::Shared::Fy2020
           head_of_household: last_service_history_enrollment.head_of_household,
           head_of_household_id: last_service_history_enrollment.head_of_household_id,
           parenting_youth: last_service_history_enrollment.parenting_youth,
+          other_clients_over_25: last_service_history_enrollment.other_clients_over_25,
           first_date_in_program: last_service_history_enrollment.first_date_in_program,
           last_date_in_program: last_service_history_enrollment.last_date_in_program,
           veteran_status: source_client.VeteranStatus,

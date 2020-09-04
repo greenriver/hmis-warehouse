@@ -22,6 +22,7 @@ class MoreDqForAprClients < ActiveRecord::Migration[5.2]
       t.date :exit_created
       t.integer :project_tracking_method
       t.date :date_of_last_bed_night
+      t.boolean :other_clients_over_25
     end
 
     create_table :hud_report_apr_living_situations do |t|
