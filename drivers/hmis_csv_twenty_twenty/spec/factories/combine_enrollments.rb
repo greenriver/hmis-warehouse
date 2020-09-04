@@ -5,7 +5,6 @@ FactoryBot.define do
     source_type { :sftp }
     import_aggregators do
       {
-        'Exit': ['HmisCsvTwentyTwenty::Aggregated::FilterExits'],
         'Enrollment': ['HmisCsvTwentyTwenty::Aggregated::CombineEnrollments'],
       }
     end
