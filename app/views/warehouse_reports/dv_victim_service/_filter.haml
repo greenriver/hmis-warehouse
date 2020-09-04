@@ -6,7 +6,7 @@
       .col-3
         = f.input :end, label: 'End Date', as: :date_picker, input_html: {value: @end_date}
       .col-3
-        = f.input :project_types, collection: HUD.project_types.invert, as: :select_two, input_html: { multiple: true, class: :select2 }
+        = f.input :project_types, collection: HUD.project_types.invert, as: :select_two, input_html: { multiple: true }
       .col-3
         = f.input :project_ids, collection: filtered_project_list, as: :grouped_select, group_method: :last, input_html: {multiple: true, class: ['select2', 'jProjects'] }, selected: @project_ids, label: 'Projects', required: false
     .row

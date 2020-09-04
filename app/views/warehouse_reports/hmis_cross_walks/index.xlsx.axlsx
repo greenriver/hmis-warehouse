@@ -104,7 +104,7 @@ wb.add_worksheet(name: 'ProjectCoCs') do |sheet|
   sheet.add_row(
     [
       'Warehouse ID',
-      'HMIS ProjectCoCid',
+      'HMIS ProjectCoCID',
       'HMIS ProjectID',
       'ProjectName',
       'Data Source',
