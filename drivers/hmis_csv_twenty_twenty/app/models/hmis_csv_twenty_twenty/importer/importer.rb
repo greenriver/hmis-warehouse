@@ -116,8 +116,8 @@ module HmisCsvTwentyTwenty::Importer
         next unless aggregators.present?
 
         log("Rebuilding aggregated enrollments with #{klass.name}")
-        aggregators.each do |a|
-          a.rebuild_warehouse_data(importer_log: @importer_log)
+        aggregators.each do |aggregator_klass|
+          aggregator_klass.new(importer_log: @importer_log, date_range: date_range).rebuild_warehouse_data
         end
       end
     end
@@ -129,13 +129,14 @@ module HmisCsvTwentyTwenty::Importer
         next unless aggregators.present?
 
         log("Aggregating #{klass.name}")
-        aggregators.each do |a|
-          a.remove_deleted_overlapping_data!(
+        aggregators.each do |aggregator_klass|
+          aggregator = aggregator_klass.new(
             importer_log: @importer_log,
             date_range: date_range,
           )
-          a.copy_incoming_data!(importer_log: @importer_log)
-          a.aggregate!(@importer_log)
+          aggregator.remove_deleted_overlapping_data!
+          aggregator.copy_incoming_data!
+          aggregator.aggregate!
         end
       end
     end
