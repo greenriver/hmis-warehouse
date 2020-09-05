@@ -216,7 +216,10 @@ module HmisCsvTwentyTwenty::Importer
           if batch.count == INSERT_BATCH_SIZE
             # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
             # for whatever reason doesn't fall within the involved scope
-            upsert = ! destination_class.name.include?('Export')
+            # also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect the
+            # entire history of enrollments for aggregated projects because some of the existing enrollments fall
+            # outside of the range, but are necessary to calculate the correctly aggregated set
+            upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
             columns = batch.first.attributes.keys - ['id']
             process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
             batch = []
@@ -224,13 +227,23 @@ module HmisCsvTwentyTwenty::Importer
         end
         # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
         # for whatever reason doesn't fall within the involved scope
+        # also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect the
+        # entire history of enrollments for aggregated projects because some of the existing enrollments fall
+        # outside of the range, but are necessary to calculate the correctly aggregated set
         if batch.present?
-          upsert = ! destination_class.name.include?('Export')
+          upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
           columns = batch.first.attributes.keys - ['id']
           process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
         end
         log("Added #{summary_for(file_name, 'added')} new #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
       end
+    end
+
+    def un_updateable_warehouse_classes
+      [
+        'GrdaWarehouse::Hud::Export',
+        'GrdaWarehouse::Hud::Client',
+      ]
     end
 
     def process_existing
