@@ -294,7 +294,7 @@ module HmisCsvTwentyTwenty::Importer
         data_source_id: data_source.id,
         project_ids: involved_project_ids,
         date_range: date_range,
-      ).pluck(klass.hud_key)
+      ).distinct.pluck(klass.hud_key)
       destination_class = klass.reflect_on_association(:destination_record).klass
       # log("Updating #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
       batch = []
@@ -323,7 +323,7 @@ module HmisCsvTwentyTwenty::Importer
                 destination_class.where(
                   data_source_id: incoming.data_source_id,
                   PersonalID: incoming.PersonalID,
-                ).update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+                ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
               end
               note_processed(file_name, batch.count, 'updated')
             else
@@ -339,7 +339,7 @@ module HmisCsvTwentyTwenty::Importer
             destination_class.where(
               data_source_id: incoming.data_source_id,
               PersonalID: incoming.PersonalID,
-            ).update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+            ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
           end
           note_processed(file_name, batch.count, 'updated')
         else
@@ -369,10 +369,12 @@ module HmisCsvTwentyTwenty::Importer
         pluck(klass.hud_key, :source_hash)
       unchanged = (existing & incoming).map(&:first)
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
-        klass.warehouse_class.where(
+        query = klass.warehouse_class.where(
           data_source_id: data_source.id,
           klass.hud_key => batch,
-        ).update_all(pending_date_deleted: nil)
+        )
+        query = query.with_deleted if klass.warehouse_class.paranoid?
+        query.update_all(pending_date_deleted: nil)
         note_processed(file_name, batch.count, 'unchanged')
       end
     end
@@ -385,8 +387,7 @@ module HmisCsvTwentyTwenty::Importer
         data_source_id: data_source.id,
         project_ids: involved_project_ids,
         date_range: date_range,
-      ).
-        pluck(klass.hud_key, :DateUpdated).to_h
+      ).pluck(klass.hud_key, :DateUpdated).to_h
       incoming = klass.should_import.where(importer_log_id: @importer_log.id).
         pluck(klass.hud_key, :DateUpdated).to_h
 
@@ -398,10 +399,12 @@ module HmisCsvTwentyTwenty::Importer
       # trust the warehouse is correct
       unchanged = existing.select { |k, v| incoming[k] < v }.keys
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
-        klass.warehouse_class.where(
+        query = klass.warehouse_class.where(
           data_source_id: data_source.id,
           klass.hud_key => batch,
-        ).update_all(pending_date_deleted: nil)
+        )
+        query = query.with_deleted if klass.warehouse_class.paranoid?
+        query.update_all(pending_date_deleted: nil)
         note_processed(file_name, batch.count, 'unchanged')
       end
     end

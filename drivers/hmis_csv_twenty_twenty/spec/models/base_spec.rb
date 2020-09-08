@@ -266,13 +266,11 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     end
   end # End describe projects
 
-  describe 'When importing enrollments with restores' do
+  describe 'When importing enrollments and clients with restores' do
     before(:all) do
       @delete_later = []
-      data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
+      data_source = GrdaWarehouse::DataSource.where(name: 'Green River', short_name: 'GR', source_type: :sftp).first_or_create
       file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_test_with_restores_initial_files'
-      import(file_path, data_source)
-      file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_test_with_restores_update_files'
       import(file_path, data_source)
     end
 
@@ -283,8 +281,74 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
       cleanup_files
     end
 
-    it 'has two enrollments' do
-      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(2)
+    it 'has no enrollments' do
+      expect(GrdaWarehouse::Hud::Enrollment.count).to eq(0)
+    end
+
+    it 'has one deleted enrollments' do
+      expect(GrdaWarehouse::Hud::Enrollment.only_deleted.count).to eq(1)
+    end
+
+    it 'has no clients' do
+      expect(GrdaWarehouse::Hud::Client.count).to eq(0)
+    end
+
+    it 'has one deleted clients' do
+      expect(GrdaWarehouse::Hud::Client.only_deleted.count).to eq(1)
+    end
+
+    it 'import log summary counts are as expected' do
+      log = HmisCsvTwentyTwenty::Importer::ImporterLog.last
+      aggregate_failures 'checking enrollment counts' do
+        expect(log.summary['Enrollment.csv']['added']).to eq(1)
+        expect(log.summary['Enrollment.csv']['updated']).to eq(0)
+        expect(log.summary['Enrollment.csv']['unchanged']).to eq(0)
+      end
+
+      aggregate_failures 'checking client counts' do
+        expect(log.summary['Client.csv']['added']).to eq(1)
+        expect(log.summary['Client.csv']['updated']).to eq(0)
+        expect(log.summary['Client.csv']['unchanged']).to eq(0)
+      end
+    end
+
+    describe 'after second import' do
+      before(:all) do
+        data_source = GrdaWarehouse::DataSource.where(name: 'Green River', short_name: 'GR', source_type: :sftp).first_or_create
+        file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_test_with_restores_update_files'
+        import(file_path, data_source)
+      end
+
+      it 'has two enrollments' do
+        expect(GrdaWarehouse::Hud::Enrollment.count).to eq(2)
+      end
+
+      it 'has no deleted enrollments' do
+        expect(GrdaWarehouse::Hud::Enrollment.only_deleted.count).to eq(0)
+      end
+
+      it 'has two clients' do
+        expect(GrdaWarehouse::Hud::Client.count).to eq(2)
+      end
+
+      it 'has no deleted clients' do
+        expect(GrdaWarehouse::Hud::Client.only_deleted.count).to eq(0)
+      end
+
+      it 'import log summary counts are as expected' do
+        log = HmisCsvTwentyTwenty::Importer::ImporterLog.last
+        aggregate_failures 'checking enrollment counts' do
+          expect(log.summary['Enrollment.csv']['added']).to eq(1)
+          expect(log.summary['Enrollment.csv']['updated']).to eq(1)
+          expect(log.summary['Enrollment.csv']['unchanged']).to eq(0)
+        end
+
+        aggregate_failures 'checking client counts' do
+          expect(log.summary['Client.csv']['added']).to eq(1)
+          expect(log.summary['Client.csv']['updated']).to eq(1)
+          expect(log.summary['Client.csv']['unchanged']).to eq(0)
+        end
+      end
     end
   end
 

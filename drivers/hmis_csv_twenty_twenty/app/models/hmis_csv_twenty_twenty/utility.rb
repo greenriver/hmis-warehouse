@@ -16,7 +16,13 @@ class HmisCsvTwentyTwenty::Utility
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
     end
 
-    [HmisCsvTwentyTwenty::Aggregated::Enrollment, HmisCsvTwentyTwenty::Aggregated::Exit].each do |klass|
+    [
+      HmisCsvTwentyTwenty::Aggregated::Enrollment,
+      HmisCsvTwentyTwenty::Aggregated::Exit,
+      HmisCsvTwentyTwenty::Loader::LoaderLog,
+      HmisCsvTwentyTwenty::Importer::ImporterLog,
+      HmisCsvValidation::Base,
+    ].each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
     end
   end

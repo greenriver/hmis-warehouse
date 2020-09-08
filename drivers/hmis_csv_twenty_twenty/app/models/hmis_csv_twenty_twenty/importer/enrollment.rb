@@ -51,6 +51,9 @@ module HmisCsvTwentyTwenty::Importer
         {
           class: HmisCsvValidation::OneHeadOfHousehold,
         },
+        {
+          class: HmisCsvValidation::EntryAfterExit,
+        },
       ]
     end
   end

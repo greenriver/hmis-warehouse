@@ -53,20 +53,5 @@ module HmisCsvTwentyTwenty::Importer
     def self.warehouse_class
       GrdaWarehouse::Hud::Client
     end
-
-    # Don't ever mark these for deletion, these get cleaned up if they don't have any source enrollments
-    # def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
-    # end
-
-    # We don't mark these as dead, so the existing data is just those that match the appropriate scope
-    # def self.existing_destination_data(data_source_id:, project_ids:, date_range:)
-    #   involved_warehouse_scope(
-    #     data_source_id: data_source_id,
-    #     project_ids: project_ids,
-    #     date_range: date_range,
-    #   ).joins(enrollments: :project).
-    #     merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
-    #     merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range))
-    # end
   end
 end

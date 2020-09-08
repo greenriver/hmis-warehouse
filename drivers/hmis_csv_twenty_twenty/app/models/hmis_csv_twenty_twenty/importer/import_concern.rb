@@ -73,7 +73,8 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         data_source_id: data_source_id,
         project_ids: project_ids,
         date_range: date_range,
-      ).update_all(pending_date_deleted: pending_date_deleted)
+      ).with_deleted.
+        update_all(pending_date_deleted: pending_date_deleted)
     end
 
     def self.new_data(data_source_id:, project_ids:, date_range:, importer_log_id:)
@@ -92,8 +93,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         data_source_id: data_source_id,
         project_ids: project_ids,
         date_range: date_range,
-      ).
-        with_deleted.
+      ).with_deleted.
         delete_pending
     end
 
