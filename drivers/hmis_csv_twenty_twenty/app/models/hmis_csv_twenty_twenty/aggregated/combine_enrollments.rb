@@ -24,6 +24,13 @@ module HmisCsvTwentyTwenty::Aggregated
       # NOTE: this operates on a single client at a single project, so there should be no overlapping enrollments
       # This will loop through all enrollments for a client and send back to the import tables any that overlap the import range
       # in an aggregated form.
+      # NOTE: associated assessments (HealthAndDV, IncomeBenefit, etc.) will be imported for all enrollments
+      # but won't be accessible via the UI.  The Exit assessment associated data will be from the initial exit
+      # (tied to the initial enrollment) while the exit record will come from the final enrollment in the group.
+      # In the future we may want to include associated data that is flagged as
+      # DataCollectionStage 3 (Project exit) that comes specifically from the Exit record included.
+      # If this is implemented, we would also need to exclude the associated data flagged as
+      # DataCollectionStage 3 that previously was associated with the initial enrollment.
       project_ids.each do |project_id|
         enrollment_batch = []
         exit_batch = []
