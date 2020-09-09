@@ -8,7 +8,8 @@ module PerformanceDashboard::Overview::ProjectType
   extend ActiveSupport::Concern
 
   private def project_type_buckets
-    HUD.project_types.keys
+    buckets = HUD.project_types.keys
+    buckets & GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten
   end
 
   def project_type_bucket_titles
