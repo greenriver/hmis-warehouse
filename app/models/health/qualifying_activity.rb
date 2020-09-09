@@ -418,13 +418,13 @@ module Health
       return false if modifiers.include?('U2') && modifiers.include?('U3') # Marked as both f2f and indirect
       return false if modifiers.include?('U1') && modifiers.include?('HQ') # Marked as both individual and group
       if procedure_code.to_s == 'T2024' && modifiers.include?('U4') || procedure_code.to_s == 'T2024>U4'
-        procedure_code = 'T2024>U4'
+        procedure_code = :'T2024>U4'
         modifiers = modifiers.uniq - ['U4']
       elsif procedure_code.to_s == 'G9007' && modifiers.include?('U5') || procedure_code.to_s == 'G9007>U5'
-        procedure_code = 'G9007>U5'
+        procedure_code = :'G9007>U5'
         modifiers = modifiers.uniq - ['U5']
       elsif procedure_code.to_s == 'T1023' && modifiers.include?('U6') || procedure_code.to_s == 'T1023>U6'
-        procedure_code = 'T1023>U6'
+        procedure_code = :'T1023>U6'
         modifiers = modifiers.uniq - ['U6']
       else
         procedure_code = procedure_code&.to_sym
@@ -679,7 +679,7 @@ module Health
           'U3',
           'UK',
         ],
-        'T2024>U4' => [
+        :'T2024>U4' => [
           'U1',
           'U2',
           'UK',
@@ -696,7 +696,7 @@ module Health
           'U3',
           'UK',
         ],
-        'G9007>U5' => [
+        :'G9007>U5' => [
           'U1',
           'U2',
         ],
@@ -722,7 +722,7 @@ module Health
           'U2',
           'U3',
         ],
-        'T1023>U6' => [
+        :'T1023>U6' => [
           'U1',
           'U2',
           'U3',
