@@ -1,0 +1,18 @@
+- title = 'HMIS Cross-Walk Export'
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs', tab: 'exports'
+%p This report will export an Excel cross-walk for warehouse internal IDs to HMIS source ids.  This is mostly useful for LSA QC flag follow-up.
+= render 'filter'
+
+%h2 Found
+%ul
+  %li #{pluralize(@projects.count, 'Project')}
+  %li #{pluralize(@organizations.count, 'Organization')}
+  %li #{pluralize(@inventories.count, 'Inventory record')}
+  %li #{pluralize(@funders.count, 'Funder')}
+  %li #{pluralize(@project_cocs.count, 'Project CoC')}
+
+= link_to warehouse_reports_hmis_cross_walks_path(@filter.for_params.merge(format: :xlsx)), class: 'btn btn-primary' do
+  %i.icon-download2
+  Download Excel
