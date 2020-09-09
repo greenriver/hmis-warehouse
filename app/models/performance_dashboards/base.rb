@@ -188,8 +188,8 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def detail_params
-    @filter.to_h.except(:user).
-      merge(comparison_pattern: :no_comparison_period)
+    @filter.for_params.
+      deep_merge(filters: { comparison_pattern: :no_comparison_period })
   end
 
   def self.detail_method(key)

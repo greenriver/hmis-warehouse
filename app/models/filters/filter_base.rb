@@ -69,7 +69,7 @@ module Filters
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }
       self.household_type = filters.dig(:household_type)&.to_sym
-      self.hoh_only = filters.dig(:hoh_only) == '1'
+      self.heads_of_household = self.hoh_only = filters.dig(:hoh_only).in?(['1', 'true', true])
       self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject { |type| type.blank? }.presence
       self.data_source_ids = filters.dig(:data_source_ids)&.reject(&:blank?)&.map(&:to_i)
       self.organization_ids = filters.dig(:organization_ids)&.reject(&:blank?)&.map(&:to_i)

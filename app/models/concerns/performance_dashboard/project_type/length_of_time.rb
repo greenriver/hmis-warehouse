@@ -38,6 +38,12 @@ module PerformanceDashboard::ProjectType::LengthOfTime
     end
   end
 
+  def enrolled_total_count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      lengths_of_time.values.flatten.count
+    end
+  end
+
   def time_bucket_titles
     {
       less_than_thirty: '< 30 days',

@@ -38,6 +38,9 @@ Date:	4/16/2020 -- original
 					3.4.2 - calculate EntryAge based on tlsa_Enrollment.EntryDate instead of hmis_Enrollment
 							(values may differ since 8/13/2020 change to 3.4.1)
 					3.4.3 - re-number step from 3.4.2
+		8/27/2020 - 3.4 -- use the effective EntryDate as the basis for comparisons to/setting of MoveInDate rather 
+							than the raw HMIS value.  Split set of MoveInDate in tlsa_Enrollment into a separate step AFTER 
+							insert of records to simplify this and re-numbered steps.  
 	3.2 Cohort Dates 
 */
 	delete from tlsa_CohortDates
@@ -197,18 +200,13 @@ where hoh.DateDeleted is null
 		(EnrollmentID, PersonalID, HouseholdID
 		, RelationshipToHoH
 		, ProjectID, ProjectType, TrackingMethod
-		, EntryDate, MoveInDate, ExitDate
+		, EntryDate, ExitDate
 		, DisabilityStatus
 		, Step)
 	select distinct hn.EnrollmentID, hn.PersonalID, hn.HouseholdID
 		, hn.RelationshipToHoH
 		, hhid.ProjectID, hhid.ProjectType, hhid.TrackingMethod
 		, case when hhid.EntryDate > hn.EntryDate then hhid.EntryDate else hn.EntryDate end
-		, case when hhid.MoveInDate < hn.EntryDate then hn.EntryDate
-			when hhid.MoveInDate > hx.ExitDate then NULL
-			when hhid.MoveInDate = hx.ExitDate and 
-				(hhid.ExitDate is NULL or hhid.ExitDate > hx.ExitDate) then NULL
-			else hhid.MoveInDate end 
 		, case when hx.ExitDate >= hhid.ExitDate then hhid.ExitDate
 			when hx.ExitDate is NULL and hhid.ExitDate is not NULL then hhid.ExitDate
 			else hx.ExitDate end
@@ -227,6 +225,16 @@ where hoh.DateDeleted is null
 		and (hx.ExitDate is null or 
 				(hx.ExitDate > hhid.EntryDate and hx.ExitDate >= '10/1/2012'
 					and hx.ExitDate > hn.EntryDate)) 
+
+	update n 
+	set n.MoveInDate = 	case when hhid.MoveInDate < n.EntryDate then n.EntryDate
+			when hhid.MoveInDate > n.ExitDate then NULL
+			when hhid.MoveInDate = n.ExitDate and 
+				(hhid.ExitDate is NULL or hhid.ExitDate > n.ExitDate) then NULL
+			else hhid.MoveInDate end 
+		, Step = '3.4.2'
+	from tlsa_Enrollment n
+	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 
 update n
 set n.EntryAge = case when c.DOBDataQuality in (8,9) then 98
@@ -248,7 +256,7 @@ set n.EntryAge = case when c.DOBDataQuality in (8,9) then 98
 			when DATEADD(yy, 3, c.DOB) <= n.EntryDate then 5
 			when DATEADD(yy, 1, c.DOB) <= n.EntryDate then 2
 			else 0 end 	
-	, n.Step = '3.4.2'
+	, n.Step = '3.4.3'
 from tlsa_Enrollment n
 inner join hmis_Client c on c.PersonalID = n.PersonalID
 
@@ -264,7 +272,7 @@ inner join hmis_Client c on c.PersonalID = n.PersonalID
 				 and dv.DateDeleted is null
 				 and dv.InformationDate <= rpt.ReportEnd
 				 and (dv.InformationDate <= n.ExitDate or n.ExitDate is null))
-		, n.Step = '3.4.3'
+		, n.Step = '3.4.4'
 	from tlsa_Enrollment n
 
 /*
