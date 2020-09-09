@@ -1,0 +1,27 @@
+= simple_form_for @filter, as: :filters, url: warehouse_reports_hmis_cross_walks_path, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-3
+        = f.input :start, label: 'Start Date', as: :date_picker
+      .col-3
+        = f.input :end, label: 'End Date', as: :date_picker
+      .col-3
+        = f.input :project_type_numbers, collection: @filter.available_project_type_numbers, as: :select_two, required: false, input_html: { multiple: true }, label: 'Project Types'
+      .col-3
+        = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: ['select2'] }, label: 'Projects', required: false
+    .row
+      .col-3
+        = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, required: false, input_html: { multiple: true }, label: 'Project Groups'
+      .col-3
+        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: ['select2'] }, label: 'Organizations', required: false
+      .col-3
+        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, group_method: :last, input_html: {multiple: true }, label: 'Data Sources', required: false
+      .col-3
+        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, group_method: :last, input_html: {multiple: true }, label: 'Data Sources', required: false
+  - content_for :filter_actions do
+    .row
+      .col-sm-2.mt-no-label
+        = f.button :submit, value: 'Update Filter'
+
+
+  = render 'warehouse_reports/filters', f:f

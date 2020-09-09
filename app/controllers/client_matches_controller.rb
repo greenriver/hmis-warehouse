@@ -29,7 +29,7 @@ class ClientMatchesController < ApplicationController
       group(:status).count
 
     @matches = client_match_scope.where(status: @status).
-      joins(:source_client, :destination_client).
+      joins(source_client: :destination_client, destination_client: :destination_client).
       preload(
         destination_client: [
           :data_source,
@@ -41,7 +41,12 @@ class ClientMatchesController < ApplicationController
         ],
       ).order(ordering).page(params[:page])
 
-    client_ids = @matches.map { |m| [m.destination_client.destination_client.id, m.source_client.destination_client.id] }.flatten
+    client_ids = @matches.map do |m|
+      [
+        m.destination_client.destination_client&.id,
+        m.source_client.destination_client&.id,
+      ]
+    end.flatten.compact
     @ongoing_enrollments = client_ids.map { |id| [id, []] }.to_h
     GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_ids).entry.ongoing.
       pluck(:client_id, :project_name).each do |row|

@@ -593,6 +593,12 @@ def report_list
         description: 'Export data for offline analysis, client names and ids removed',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/hmis_cross_walks',
+        name: 'HMIS Cross-walk',
+        description: 'Export lookup tables for warehouse record ids to HMIS ids.',
+        limitable: true,
+      },
     ],
   }
   if RailsDrivers.loaded.include?(:service_scanning)
