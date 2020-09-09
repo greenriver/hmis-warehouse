@@ -36,6 +36,9 @@
     %li= link_to 'Incorrect Head of Household Counts', warehouse_reports_hud_not_one_hohs_path
     %li= link_to 'Incorrect Move-in Dates', warehouse_reports_hud_incorrect_move_in_dates_path
     %li= link_to 'Clients Enrolled in Multiple Projects of the Same Type', warehouse_reports_double_enrollments_path
+  %p When investigating LSA QC flags, HUD will reference the internal warehouse IDs for various inventory-related items.  The following export can help track down the HMIS source IDs.
+  %ul
+    %li= link_to 'HMIS Cross-Walk', warehouse_reports_hmis_cross_walks_path
 %h3 Queue Report
 = simple_form_for :report_result do |f|
   - year = if Date.current.month >= 10 then Date.current.year else Date.current.year - 1 end
