@@ -282,7 +282,7 @@ module Filters
     end
 
     def coc_code_options_for_select(user: )
-      all_coc_code_scope.options_for_select(user: user)
+      GrdaWarehouse::Lookups::CocCode.options_for_select(user: user)
     end
 
     def project_groups_options_for_select(user: )

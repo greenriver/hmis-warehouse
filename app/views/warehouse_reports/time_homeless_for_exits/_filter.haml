@@ -1,0 +1,24 @@
+= simple_form_for @filter, as: :filters, url: warehouse_reports_time_homeless_for_exits_path, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col-sm-6
+        = render 'warehouse_reports/date_range_filters', f:f
+      - if GrdaWarehouse::Config.get(:multi_coc_installation)
+        .col-sm-6
+          = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, label: 'CoCs', input_html: { multiple: true, class: [:select2, 'select2-id-when-selected'] }
+    .row.mt-4
+      .col-sm-6.mb-4
+        = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects'
+      .col-sm-6.mb-4
+        = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true}, label: 'Project Groups'
+    .row
+      .col-sm-6.mb-4
+        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Organizations'
+
+      .col-sm-6.mb-4
+        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true}, label: 'Data Sources'
+
+  - content_for :filter_actions do
+    = f.button :submit, value: 'Update Report'
+
+  = render 'warehouse_reports/filters', f:f, submit_button: nil
