@@ -283,16 +283,16 @@ module ClientController
     helper_method :source_clients
 
     def ds_short_name_for(source_client_id)
-      js_clients[source_client_id][2]
+      js_clients.dig(source_client_id, 2)
     end
     helper_method :ds_short_name_for
 
     private def source_client_personal_id_from(source_client_id)
-      js_clients[source_client_id][1]
+      js_clients.dig(source_client_id, 1)
     end
 
     private def org_name_for(source_client_id)
-      js_clients[source_client_id][3]
+      js_clients.dig(source_client_id, 3)
     end
 
     def ds_tooltip_content(source_client_id, ds_id)
