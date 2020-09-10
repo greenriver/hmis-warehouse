@@ -32,6 +32,8 @@ module WarehouseReports
         filters: [
           :start,
           :end,
+          :sub_population,
+          cohort_ids: [],
           data_source_ids: [],
           organization_ids: [],
           project_ids: [],

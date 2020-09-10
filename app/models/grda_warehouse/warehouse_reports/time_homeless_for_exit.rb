@@ -128,8 +128,15 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def apply_filters(scope)
-      scope.joins(source_enrollments: :project).
+      scope = scope.send(filter.sub_population).
+        joins(source_enrollments: :project).
         merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
+      scope = scope.where(id: cohort_client_scope.select(:client_id)) if filter.cohort_ids.any?
+      scope
+    end
+
+    private def cohort_client_scope
+      GrdaWarehouse::CohortClient.where(cohort_id: filter.cohort_ids)
     end
   end
 end
