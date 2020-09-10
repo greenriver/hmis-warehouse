@@ -417,14 +417,15 @@ module Health
       # Some special cases
       return false if modifiers.include?('U2') && modifiers.include?('U3') # Marked as both f2f and indirect
       return false if modifiers.include?('U1') && modifiers.include?('HQ') # Marked as both individual and group
+
       if procedure_code.to_s == 'T2024' && modifiers.include?('U4') || procedure_code.to_s == 'T2024>U4'
-        procedure_code = 'T2024>U4'
+        procedure_code = 'T2024>U4'.to_sym
         modifiers = modifiers.uniq - ['U4']
       elsif procedure_code.to_s == 'G9007' && modifiers.include?('U5') || procedure_code.to_s == 'G9007>U5'
-        procedure_code = 'G9007>U5'
+        procedure_code = 'G9007>U5'.to_sym
         modifiers = modifiers.uniq - ['U5']
       elsif procedure_code.to_s == 'T1023' && modifiers.include?('U6') || procedure_code.to_s == 'T1023>U6'
-        procedure_code = 'T1023>U6'
+        procedure_code = 'T1023>U6'.to_sym
         modifiers = modifiers.uniq - ['U6']
       else
         procedure_code = procedure_code&.to_sym
@@ -453,7 +454,8 @@ module Health
     def first_of_type_for_day_for_patient_not_self
       min_id = same_of_type_for_day_for_patient.minimum(:id)
       return nil if min_id == id
-      return min_id
+
+      min_id
     end
 
     def first_outreach_of_month_for_patient?
@@ -522,7 +524,7 @@ module Health
       # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
       # will still be submitted
       self.naturally_payable = compute_procedure_valid?
-      if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code)
+      if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code.to_s)
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
         self.duplicate_id = first_of_type_for_day_for_patient_not_self
       else
@@ -579,17 +581,14 @@ module Health
         end
       end
 
-      return false;
+      false
     end
 
     def validity_class
-      if valid_unpayable?
-        return 'qa-valid-unpayable'
-      elsif procedure_valid?
-        return 'qa-valid'
-      else
-        return 'qa-invalid'
-      end
+      return 'qa-valid-unpayable'if valid_unpayable?
+      return 'qa-valid' if procedure_valid?
+
+      'qa-invalid'
     end
 
     def procedure_with_modifiers
@@ -652,13 +651,13 @@ module Health
 
     def self.in_first_three_months_activities
       activities.select do |_, act|
-        in_first_three_months_procedure_codes.include? act[:code]
+        in_first_three_months_procedure_codes.include?(act[:code].to_s)
       end.keys
     end
 
-    def restricted_procedure_codes
-      once_per_day_procedure_codes + in_first_three_months_procedure_codes
-    end
+    # def restricted_procedure_codes
+    #   once_per_day_procedure_codes + in_first_three_months_procedure_codes
+    # end
 
     def valid_options
       @valid_options ||= {
@@ -679,7 +678,7 @@ module Health
           'U3',
           'UK',
         ],
-        'T2024>U4' => [
+        'T2024>U4'.to_sym => [
           'U1',
           'U2',
           'UK',
@@ -696,7 +695,7 @@ module Health
           'U3',
           'UK',
         ],
-        'G9007>U5' => [
+        'G9007>U5'.to_sym => [
           'U1',
           'U2',
         ],
@@ -722,7 +721,7 @@ module Health
           'U2',
           'U3',
         ],
-        'T1023>U6' => [
+        'T1023>U6'.to_sym => [
           'U1',
           'U2',
           'U3',

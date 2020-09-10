@@ -28,6 +28,11 @@ module Health
         when 'engagement_ending'
           @patients = @patients.engagement_ending
         end
+
+        if params[:filter][:user].present?
+          @active_filter = true
+          @patients = @patients.where(care_coordinator_id: params[:filter][:user].to_i)
+        end
       end
 
       @report = Health::AgencyPerformance.new(range: (@start_date..@end_date), agency_scope: Health::Agency.where(id: @active_agency.id))
