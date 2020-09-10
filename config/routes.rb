@@ -308,6 +308,7 @@ Rails.application.routes.draw do
     resources :ad_hoc_analysis, only: [:index, :create, :destroy, :show]
     resources :ad_hoc_anon_analysis, only: [:index, :create, :destroy, :show]
     resources :hmis_cross_walks, only: [:index]
+    resources :time_homeless_for_exits, only: [:index]
     namespace :project do
       resource :data_quality do
         get :download, on: :member
