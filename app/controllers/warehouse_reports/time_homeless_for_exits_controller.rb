@@ -24,7 +24,7 @@ module WarehouseReports
     end
 
     private def set_report
-      report_class.new(@filter)
+      @report = report_class.new(@filter)
     end
 
     def filter_params
