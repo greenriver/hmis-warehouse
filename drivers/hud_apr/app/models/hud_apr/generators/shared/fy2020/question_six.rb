@@ -801,7 +801,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def universe
-      batch_initializer = ->(clients) do
+      batch_initializer = ->(clients_with_enrollments) do
       end
 
       batch_finalizer = ->(clients_with_enrollments, report_clients) do
@@ -832,6 +832,7 @@ module HudApr::Generators::Shared::Fy2020
       ) do |client, enrollments|
         last_service_history_enrollment = enrollments.last
         enrollment = last_service_history_enrollment.enrollment
+        disabilities = enrollment.disabilities.select{ |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
         exit_record = last_service_history_enrollment.service_history_exit&.enrollment
         source_client = last_service_history_enrollment.source_client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
@@ -867,13 +868,13 @@ module HudApr::Generators::Shared::Fy2020
           household_id: last_service_history_enrollment.household_id,
           enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
           disabling_condition: enrollment.DisablingCondition,
-          developmental_disability: enrollment.disabilities.developmental.disabled.exists?,
-          hiv_aids: enrollment.disabilities.hiv.disabled.exists?,
-          physical_disability: enrollment.disabilities.physical.disabled.exists?,
-          chronic_disability: enrollment.disabilities.chronic.disabled.exists?,
-          mental_health_problem: enrollment.disabilities.mental.disabled.exists?,
-          substance_abuse: enrollment.disabilities.substance.disabled.exists?,
-          indefinite_and_impairs: enrollment.disabilities.chronically_disabled.exists?,
+          developmental_disability: disabilities.detect(&:developmental?).present?,
+          hiv_aids: disabilities.detect(&:hiv?).present?,
+          physical_disability: disabilities.detect(&:physical?).present?,
+          chronic_disability: disabilities.detect(&:chronic?).present?,
+          mental_health_problem: disabilities.detect(&:mental?).present?,
+          substance_abuse: disabilities.detect(&:substance).present?,
+          indefinite_and_impairs: disabilities.detect(&:indefinite_and_impairs?).present?,
           destination: last_service_history_enrollment.destination,
           income_date_at_start: income_at_start&.InformationDate,
           income_from_any_source_at_start: income_at_start&.IncomeFromAnySource,
