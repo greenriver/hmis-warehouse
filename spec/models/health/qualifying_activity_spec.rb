@@ -265,4 +265,29 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       end
     end
   end
+
+  describe 'Outreach QA' do
+    let(:qa) { create :valid_qa }
+
+    it 'has a valid procedure code' do
+      qa.calculate_payability!
+      qa.maintain_procedure_valid
+
+      expect(qa.naturally_payable).to be true
+      expect(qa.procedure_valid?).to be true
+      expect(qa.procedure_code).to eq 'G9011'
+    end
+  end
+  describe 'PCTP QA' do
+    let(:qa) { create :pctp_signed_qa }
+
+    it 'has a valid procedure code' do
+      qa.calculate_payability!
+      qa.maintain_procedure_valid
+
+      expect(qa.naturally_payable).to be true
+      expect(qa.procedure_valid?).to be true
+      expect(qa.procedure_code).to eq 'T2024>U4'
+    end
+  end
 end

@@ -11,9 +11,12 @@ module Health
     def perform(enrollment_id)
       enrollment = Health::Enrollment.find(enrollment_id)
 
-      pidsls = Health::Cp.all.map { |cp| cp.pid + cp.sl }
       receiver_id = enrollment.receiver_id
-      unless pidsls.include?(receiver_id)
+      @receiver = Health::Cp.find_by(
+        pid: receiver_id[0...-1],
+        sl: receiver_id.last,
+      )
+      unless @receiver.present?
         enrollment.update(status: "Unexpected receiver ID #{receiver_id}")
         return
       end
@@ -161,21 +164,39 @@ module Health
       data = {
         first_name: Health::Enrollment.first_name(transaction),
         last_name: Health::Enrollment.last_name(transaction),
+        middle_initial: Health::Enrollment.middle_initial(transaction),
+        suffix: Health::Enrollment.name_suffix(transaction),
         birthdate: Health::Enrollment.DOB(transaction),
         ssn: Health::Enrollment.SSN(transaction),
         gender: Health::Enrollment.gender(transaction),
         medicaid_id: Health::Enrollment.subscriber_id(transaction),
         enrollment_start_date: Health::Enrollment.enrollment_date(transaction),
+        cp_name_official: @receiver.mmis_enrollment_name,
+        cp_pid: @receiver.pid,
+        cp_sl: @receiver.sl,
+        record_status: 'A', # default to active
       }
 
       health_enrollment_aco_pid_sl = Health::Enrollment.aco_pid_sl(transaction)
       if health_enrollment_aco_pid_sl
         pid_sl = Health::AccountableCareOrganization.split_pid_sl(health_enrollment_aco_pid_sl)
+        if pid_sl.present?
+          data.merge!(
+            aco_mco_pid: pid_sl[:pid],
+            aco_mco_sl: pid_sl[:sl],
+          )
+        end
+
         aco = Health::AccountableCareOrganization.active.find_by(
           mco_pid: pid_sl[:pid],
           mco_sl: pid_sl[:sl],
         )
-        data[:aco] = aco if aco.present?
+        if aco.present?
+          data.merge!(
+            aco_name: aco.name,
+            accountable_care_organization_id: aco.id,
+          )
+        end
       end
 
       data
@@ -196,6 +217,7 @@ module Health
       code = Health::Enrollment.disenrollment_reason_code(transaction)
 
       referral.update(
+        record_status: 'I', # Mark disenrolled patients as inactive
         pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction) || file_date,
         stop_reason_description: disenrollment_reason_description(code),
       )
