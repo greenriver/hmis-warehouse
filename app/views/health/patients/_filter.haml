@@ -39,7 +39,8 @@
           Engagement Period Ending
 
       %label Care Coordinator
-      = select_tag('filter[user]', options_from_collection_for_select(current_user.care_coordinators, :id, :name, params.dig(:filter, :user)), include_blank: 'All', class: 'select2', style: 'width: 100%;')
+      - selection_candidates = [current_user] + current_user.care_coordinators
+      = select_tag('filter[user]', options_from_collection_for_select(selection_candidates, :id, :name, params.dig(:filter, :user)), include_blank: 'All', class: 'select2', style: 'width: 100%;')
 
       .o-filtration__actions.form__actions
         = link_to health_patients_path, class:'btn btn-secondary' do
