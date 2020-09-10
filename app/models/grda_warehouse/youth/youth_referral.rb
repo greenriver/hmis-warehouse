@@ -73,5 +73,14 @@ module GrdaWarehouse::Youth
     def self.report_columns
       column_names - [:user_id, :deleted_at]
     end
+
+    def self.client_data
+      {
+        name: :name,
+        gender: :gender,
+        race: :race_description,
+        ethnicity: :ethnicity_description,
+      }
+    end
   end
 end

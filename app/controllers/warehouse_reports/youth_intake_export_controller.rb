@@ -17,15 +17,19 @@ module WarehouseReports
         visible_by?(current_user).
         open_between(start_date: @filter.start, end_date: @filter.end)
       @referrals = GrdaWarehouse::Youth::YouthReferral.ordered.
+        joins(:client).
         visible_by?(current_user).
         between(start_date: @filter.start, end_date: @filter.end)
       @dfas = GrdaWarehouse::Youth::DirectFinancialAssistance.ordered.
+        joins(:client).
         visible_by?(current_user).
         between(start_date: @filter.start, end_date: @filter.end)
       @case_managements = GrdaWarehouse::Youth::YouthCaseManagement.ordered.
+        joins(:client).
         visible_by?(current_user).
         between(start_date: @filter.start, end_date: @filter.end)
       @follow_ups = GrdaWarehouse::Youth::YouthFollowUp.ordered.
+        joins(:client).
         visible_by?(current_user).
         between(start_date: @filter.start, end_date: @filter.end)
       respond_to do |format|
