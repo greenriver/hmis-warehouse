@@ -6,7 +6,7 @@
 = simple_form_for :history, method: :get do |f|
   .row
     .col-sm-4
-      = f.input :date, collection: @available_dates, label: false, selected: @date, include_blank: false
+      = f.input :date, collection: @available_dates, label: false, selected: @date, include_blank: false, as: :select_two
     .col-sm-2
       = f.submit 'Update View', class: ['btn', 'btn-secondary']
 
