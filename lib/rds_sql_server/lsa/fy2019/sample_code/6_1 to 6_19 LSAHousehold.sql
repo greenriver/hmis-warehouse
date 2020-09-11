@@ -27,6 +27,7 @@ Date:  4/20/2020
 				   6.12.2(a and b) - delete PSHMoveIn <> 2 from WHERE clause
 				   6.12.2.a - correct TrackingMethod <> 3 to (ProjectType <> 1 or TrackingMethod = 0)
 	   8/19/2020 - 6.9.2 - per specs, correct so prior.ExitDate >= dateadd (dd,-730,hh.FirstEntry) (was just >) 
+	   9/10/2020 - 6.4.2 - update case statement for PSHMoveIn to use PSHStatus (was RRHStatus)
 
 
 	6.1 Get Unique Households and Population Identifiers for tlsa_Household
@@ -194,7 +195,7 @@ Date:  4/20/2020
 		) n on n.HoHID = hh.HoHID and n.HHType = hh.HHType
 
 	update hh
-	set hh.PSHMoveIn = case when hh.RRHStatus = 0 then -1
+	set hh.PSHMoveIn = case when hh.PSHStatus = 0 then -1
 		when n.MoveInStat is null then 0 
 		else n.MoveInStat end
 		, hh.Step = '6.4.2'

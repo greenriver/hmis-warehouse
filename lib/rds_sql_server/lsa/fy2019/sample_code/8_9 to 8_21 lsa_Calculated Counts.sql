@@ -29,6 +29,7 @@ Date:  4/15/2020
 		8/27/2020 - 8.9 - include HHChronic criteria in join to ref_Populations
 					8.21 - correct exit date criteria in WHERE clause
 		9/3/2020 -  8.21 - limit count to projects in lsa_Project
+		9/10/2020 - 8.14.1 and .3 -- correction in WHERE clause re: latest age and popIDs
 
 	8.9 Get Counts of People by Project ID and Household Characteristics
 */
@@ -406,8 +407,8 @@ Date:  4/15/2020
 			or (n.ProjectType in (2,8))
 			)
 		and 
-			(pop.PopID not between 24 and 34 
-				or pop.PopID not between 145 and 148
+			(
+				(pop.PopID not between 24 and 34 and pop.PopID not between 145 and 148)
 				or latest.Age is not null
 			)
 	group by cd.Cohort, pop.PopID, n.ProjectType, cd.ReportID
@@ -526,8 +527,8 @@ Date:  4/15/2020
 			or (n.ProjectType in (2,8))
 			)
 		and 
-			(pop.PopID not between 24 and 34 
-				or pop.PopID not between 145 and 148
+			(
+				(pop.PopID not between 24 and 34 and pop.PopID not between 145 and 148)
 				or latest.Age is not null
 			)
 	group by cd.Cohort, pop.PopID, cd.ReportID

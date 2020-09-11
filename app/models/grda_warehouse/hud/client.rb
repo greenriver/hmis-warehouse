@@ -1222,7 +1222,9 @@ module GrdaWarehouse::Hud
       dv_scope = source_health_and_dvs.where(DomesticViolenceVictim: 1)
       lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
       if lookback_days&.positive?
-        dv_scope.where(hdv_t[:InformationDate].gt(lookback_days.days.ago.to_date)).exists?
+        dv_scope.where(hdv_t[:InformationDate].gt(lookback_days.days.ago.to_date)). # Limit report date to a reasonable range
+          where(hdv_t[:WhenOccurred].eq(1)). # Limit to within 3 months of report date
+          exists?
       else
         dv_scope.exists?
       end
@@ -2123,6 +2125,10 @@ module GrdaWarehouse::Hud
 
     def race_description
       race_fields.map{ |f| ::HUD::race f }.join ', '
+    end
+
+    def ethnicity_description
+      ::HUD.ethnicity(self.Ethnicity)
     end
 
     def cas_primary_race_code

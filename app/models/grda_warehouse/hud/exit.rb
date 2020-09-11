@@ -26,6 +26,10 @@ module GrdaWarehouse::Hud
       where(Destination: ::HUD.permanent_destinations)
     end
 
+    scope :closed_within_range, ->(range) do
+      where(ExitDate: range)
+    end
+
     def self.related_item_keys
       [
         :PersonalID,

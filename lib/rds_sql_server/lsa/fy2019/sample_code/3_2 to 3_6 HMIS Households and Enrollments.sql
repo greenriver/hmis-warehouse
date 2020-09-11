@@ -41,6 +41,8 @@ Date:	4/16/2020 -- original
 		8/27/2020 - 3.4 -- use the effective EntryDate as the basis for comparisons to/setting of MoveInDate rather 
 							than the raw HMIS value.  Split set of MoveInDate in tlsa_Enrollment into a separate step AFTER 
 							insert of records to simplify this and re-numbered steps.  
+		9/10/2020 - 3.5.1 - if a person's DOB is invalidated for any enrollment, age is considered unknown for all.
+
 	3.2 Cohort Dates 
 */
 	delete from tlsa_CohortDates
@@ -279,6 +281,13 @@ inner join hmis_Client c on c.PersonalID = n.PersonalID
 	3.5 Enrollment Ages - Active and Exit
 		NOTE:  EntryAge is included in the 3.4 insert statement
 */
+
+	update n
+	set n.EntryAge = 99, n.Step = '3.5.1'
+	from tlsa_Enrollment n
+	inner join tlsa_Enrollment DOBIssue on DOBIssue.PersonalID = n.PersonalID
+		and DOBIssue.EntryAge = 99
+
 	update n
 	set n.ActiveAge = case when n.ExitDate < rpt.ReportStart
 				or n.EntryDate >= rpt.ReportStart 
@@ -297,7 +306,7 @@ inner join hmis_Client c on c.PersonalID = n.PersonalID
 			when DATEADD(yy, 3, c.DOB) <= rpt.ReportStart then 5
 			when DATEADD(yy, 1, c.DOB) <= rpt.ReportStart then 2
 			else 0 end 		
-		, n.Step = '3.5.1'
+		, n.Step = '3.5.2'
 	from lsa_Report rpt
 	inner join tlsa_Enrollment n on n.EntryDate <= rpt.ReportEnd 
 	inner join hmis_Client c on c.PersonalID = n.PersonalID
@@ -320,7 +329,7 @@ inner join hmis_Client c on c.PersonalID = n.PersonalID
 			when DATEADD(yy, 3, c.DOB) <= cd.CohortStart then 5
 			when DATEADD(yy, 1, c.DOB) <= cd.CohortStart then 2
 			else 0 end 				
-		, n.Step = '3.5.2'
+		, n.Step = '3.5.3'
 	from  tlsa_Enrollment n
 	inner join tlsa_CohortDates cd on cd.Cohort = -1 
 	inner join hmis_Client c on c.PersonalID = n.PersonalID
@@ -343,7 +352,7 @@ inner join hmis_Client c on c.PersonalID = n.PersonalID
 			when DATEADD(yy, 3, c.DOB) <= cd.CohortStart then 5
 			when DATEADD(yy, 1, c.DOB) <= cd.CohortStart then 2
 			else 0 end 				
-		, n.Step = '3.5.3'
+		, n.Step = '3.5.4'
 	from  tlsa_Enrollment n
 	inner join tlsa_CohortDates cd on cd.Cohort = -2 
 	inner join hmis_Client c on c.PersonalID = n.PersonalID

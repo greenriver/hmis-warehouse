@@ -37,6 +37,8 @@ AllCops:
     - 'app/assets/**/*'
     - 'bin/db_prep'
 
+  NewCops: disable
+
 # We don't care about method length, since we check method cyclomatic
 # complexity.
 Metrics/MethodLength:
@@ -179,10 +181,6 @@ Style/AsciiComments:
 
 Style/OneLineConditional:
   Enabled: false
-
-# After 1.0 this will just be
-# AllCops:
-#   NewCops: enable
 
 Layout/EmptyLinesAroundAttributeAccessor:
   Enabled: true

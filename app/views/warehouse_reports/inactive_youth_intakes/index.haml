@@ -1,0 +1,11 @@
+- title = 'Inactive Youth Intakes'
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs'
+= render 'filter'
+%p
+  This report includes clients who have an open youth intake, but have not received any youth related activity within the date range specified.
+- if @report.clients.present?
+  = render 'table'
+- else
+  %p.well.none-found No clients found.

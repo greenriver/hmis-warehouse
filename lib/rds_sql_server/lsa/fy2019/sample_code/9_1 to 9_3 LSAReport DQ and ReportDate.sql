@@ -165,7 +165,7 @@ update rpt
 			left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 				and x.DateDeleted is null
 			where n.EntryDate <= rpt.ReportEnd 
-				and (x.ExitDate is null or x.ExitDate >= dateadd(yy, -2, rpt.ReportStart))
+				and (x.ExitDate is null or x.ExitDate >= (select CohortStart from tlsa_CohortDates where Cohort = 20))
 				and n.RelationshipToHoH = 1 
 				and coc.CoCCode is null
 				and n.DateDeleted is null)

@@ -394,7 +394,7 @@ module Health
         user = User.setup_system_user
         qualifying_activities.create(
           activity: :pctp_signed,
-          date_of_activity: enrollment_start_date,
+          date_of_activity: referral.enrollment_start_date,
 
           user_id: user.id,
           user_full_name: user.name,
