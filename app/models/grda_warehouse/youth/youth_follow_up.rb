@@ -7,11 +7,13 @@
 module GrdaWarehouse::Youth
   class YouthFollowUp < GrdaWarehouseBase
     include ArelHelper
+    include YouthExport
     has_paper_trail
     acts_as_paranoid
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_follow_ups
     belongs_to :user
+    has_many :youth_intakes, through: :client
 
     scope :ordered, -> do
       order(contacted_on: :desc)
@@ -61,10 +63,6 @@ module GrdaWarehouse::Youth
         'Yes, in transitional housing',
         'Yes, with family',
       ]
-    end
-
-    def self.report_columns
-      column_names - [:user_id, :deleted_at]
     end
   end
 end

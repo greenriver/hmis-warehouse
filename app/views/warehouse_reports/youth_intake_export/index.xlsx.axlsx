@@ -4,57 +4,45 @@ wb.add_worksheet(name: 'Youth Intakes') do |sheet|
   row = ["Youth Intakes and associated data between #{@filter.start} and #{@filter.end}"]
   sheet.add_row(row, style: title)
   sheet.merge_cells 'A1:H1'
-  row = GrdaWarehouse::YouthIntake::Base.report_columns.map(&:humanize)
+  row = GrdaWarehouse::YouthIntake::Base.export_headers.map(&:titleize)
   sheet.add_row(row, style: title)
-  @intakes.pluck(*GrdaWarehouse::YouthIntake::Base.report_columns).each do |row|
-    row.map! do |value|
-      binding.pry if value == '[]'
-      value = value.map(&:presence).compact.to_sentence if value.is_a?(Array)
-      value
-    end
-    sheet.add_row(row)
+  @intakes.find_each do |record|
+    sheet.add_row(record.for_export)
   end
 end
 
 wb.add_worksheet(name: 'Referrals') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  row = GrdaWarehouse::Youth::YouthReferral.report_columns.map(&:humanize)
-  row += GrdaWarehouse::Youth::YouthReferral.client_data.keys.map(&:to_s).map(&:humanize)
+  row = GrdaWarehouse::Youth::YouthReferral.export_headers.map(&:titleize)
   sheet.add_row(row, style: title)
   @referrals.find_each do |record|
-    row = GrdaWarehouse::Youth::YouthReferral.report_columns.map do |method|
-      record.public_send(method)
-    end
-    GrdaWarehouse::Youth::YouthReferral.client_data.each_value do |method|
-      row << record.client.public_send(method)
-    end
-    sheet.add_row(row)
+    sheet.add_row(record.for_export)
   end
 end
 
 wb.add_worksheet(name: 'Case Management') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  row = GrdaWarehouse::Youth::YouthCaseManagement.report_columns.map(&:humanize)
+  row = GrdaWarehouse::Youth::YouthCaseManagement.export_headers.map(&:titleize)
   sheet.add_row(row, style: title)
-  @case_managements.pluck(*GrdaWarehouse::Youth::YouthCaseManagement.report_columns).each do |row|
-    sheet.add_row(row)
+  @case_managements.find_each do |record|
+    sheet.add_row(record.for_export)
   end
 end
 
 wb.add_worksheet(name: 'Direct Financial Assistance') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  row = GrdaWarehouse::Youth::DirectFinancialAssistance.report_columns.map(&:humanize)
+  row = GrdaWarehouse::Youth::DirectFinancialAssistance.export_headers.map(&:titleize)
   sheet.add_row(row, style: title)
-  @dfas.pluck(*GrdaWarehouse::Youth::DirectFinancialAssistance.report_columns).each do |row|
-    sheet.add_row(row)
+  @dfas.find_each do |record|
+    sheet.add_row(record.for_export)
   end
 end
 
 wb.add_worksheet(name: '3-Month Follow-ups') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
-  row = GrdaWarehouse::Youth::YouthFollowUp.report_columns.map(&:humanize)
+  row = GrdaWarehouse::Youth::YouthFollowUp.export_headers.map(&:titleize)
   sheet.add_row(row, style: title)
-  @follow_ups.pluck(*GrdaWarehouse::Youth::YouthFollowUp.report_columns).each do |row|
-    sheet.add_row(row)
+  @follow_ups.find_each do |record|
+    sheet.add_row(record.for_export)
   end
 end

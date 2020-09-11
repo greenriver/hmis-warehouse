@@ -7,11 +7,13 @@
 module GrdaWarehouse::Youth
   class YouthReferral < GrdaWarehouseBase
     include ArelHelper
+    include YouthExport
     has_paper_trail
     acts_as_paranoid
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_referrals
     belongs_to :user
+    has_many :youth_intakes, through: :client
 
     validates_presence_of :referred_on, :referred_to
 
@@ -68,19 +70,6 @@ module GrdaWarehouse::Youth
         'Referred to cultural / recreational activities',
         'Referred to other services / activities not listed above',
       ].sort.freeze + ['Other']
-    end
-
-    def self.report_columns
-      column_names - [:user_id, :deleted_at]
-    end
-
-    def self.client_data
-      {
-        name: :name,
-        gender: :gender,
-        race: :race_description,
-        ethnicity: :ethnicity_description,
-      }
     end
   end
 end
