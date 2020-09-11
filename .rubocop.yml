@@ -179,10 +179,6 @@ Style/AsciiComments:
 Style/OneLineConditional:
   Enabled: false
 
-# After 1.0 this will just be
-# AllCops:
-#   NewCops: enable
-
 Layout/EmptyLinesAroundAttributeAccessor:
   Enabled: true
 

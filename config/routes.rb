@@ -183,6 +183,7 @@ Rails.application.routes.draw do
     resources :ce_assessments, only: [:index]
     resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
+    resources :inactive_youth_intakes, only: [:index]
     resources :youth_intakes, only: [:index] do
       collection do
         get :details
