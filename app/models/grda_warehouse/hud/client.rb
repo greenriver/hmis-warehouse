@@ -2125,6 +2125,10 @@ module GrdaWarehouse::Hud
       race_fields.map{ |f| ::HUD::race f }.join ', '
     end
 
+    def ethnicity_description
+      ::HUD.ethnicity(self.Ethnicity)
+    end
+
     def cas_primary_race_code
       race_text = ::HUD::race(race_fields.first)
       Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
