@@ -534,7 +534,7 @@ Date:  4/7/2020
 		and (lx.SystemPath = pop.SystemPath or pop.SystemPath is null)
 	where lx.ReturnTime > 0 
 	    and lx.SystemPath <> -1 --290
-		and pop.ReturnSummary = 1 and pop.PopID between 0 and 4
+		and pop.PopID between 0 and 4
 	group by pop.PopID, lx.ReportID
 		, lx.Cohort
 		, case when lx.ExitTo between 1 and 6 then 2

@@ -7,6 +7,7 @@
 # NOTE: This should be updated and added to for any functionality or additional attributes and only overridden where the defaults are different or where the options are incompatible with this base class.
 module Filters
   class FilterBase < ::ModelForm
+    include AvailableSubPopulations
     include ArelHelper
 
     attribute :start, Date, lazy: true, default: -> (r,_) { r.default_start }
@@ -87,6 +88,7 @@ module Filters
       self.prior_living_situation_ids = filters.dig(:prior_living_situation_ids)&.reject(&:blank?)&.map { |m| m.to_i }
       self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map { |m| m.to_i }
       self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map { |m| m.to_sym }
+      self.cohort_ids = filters.dig(:cohort_ids)&.reject(&:blank?)&.map { |m| m.to_i }
       ensure_dates_work
     end
 
@@ -282,11 +284,15 @@ module Filters
     end
 
     def coc_code_options_for_select(user: )
-      all_coc_code_scope.options_for_select(user: user)
+      GrdaWarehouse::Lookups::CocCode.options_for_select(user: user)
     end
 
     def project_groups_options_for_select(user: )
       all_project_group_scope.options_for_select(user: user)
+    end
+
+    def cohorts_for_select(user: )
+      GrdaWarehouse::Cohort.viewable_by(user)
     end
     # End Select display options
 
