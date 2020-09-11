@@ -6,7 +6,6 @@
 
 module ChildOnlyHouseholdsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::ChildOnlyHouseholds
   class EnteredClients < GrdaWarehouse::WarehouseReports::Dashboard::Entered
-
     def history_scope(scope)
       scope.child_only_households
     end

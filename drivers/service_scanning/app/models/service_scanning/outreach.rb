@@ -6,7 +6,6 @@
 
 module ServiceScanning
   class Outreach < Service
-
     def title
       'Outreach Contact'
     end

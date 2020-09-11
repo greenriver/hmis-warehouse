@@ -53,9 +53,10 @@ module GrdaWarehouse::Tasks
     def rebuild_service_history_for_incorrect_clients
       return if @dry_run
 
-      adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true)
+      adder = GrdaWarehouse::Tasks::ServiceHistory::Add.new
       debug_log "Rebuilding service history for #{adder.clients_needing_update_count} clients"
       adder.run!
+      adder.class.wait_for_processing
     end
 
     # Find any clients at data sources that come from HMIS systems

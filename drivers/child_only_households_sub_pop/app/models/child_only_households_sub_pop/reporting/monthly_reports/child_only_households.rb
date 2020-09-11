@@ -6,9 +6,7 @@
 
 module ChildOnlyHouseholdsSubPop::Reporting::MonthlyReports
   class ChildOnlyHouseholds < ::Reporting::MonthlyReports::Base
-
-
-    def enrollment_scope start_date:, end_date:
+    def enrollment_scope(start_date:, end_date:)
       enrollment_source.child_only_households.entry.
         open_between(start_date: start_date, end_date: end_date)
     end

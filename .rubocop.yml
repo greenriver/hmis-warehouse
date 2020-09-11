@@ -26,6 +26,7 @@ AllCops:
     - 'app/models/weather/**/*.rb'
     - 'app/renderers/**/*.rb'
     - 'app/uploaders/**/*.rb'
+    - 'drivers/**/*.rb'
     - 'lib/**/*.rb'
 
   Exclude:
@@ -34,6 +35,7 @@ AllCops:
     - 'script/**/*'
     - 'bin/{rails,rake}'
     - 'app/assets/**/*'
+    - 'bin/db_prep'
 
   NewCops: disable
 
@@ -80,6 +82,7 @@ Style/ClassAndModuleChildren:
     - 'app/models/concerns/**/*'
     - 'app/controllers/**/*'
     - 'app/jobs/**/*'
+    - 'drivers/**/*'
 
 Style/ConditionalAssignment:
   Enabled: false

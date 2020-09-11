@@ -80,6 +80,11 @@
           %th
             %span{data: {toggle: :tooltip, title: @project.confidential_hint}} Confidential Project?
           %td= checkmark @project.confidential?
+        - if @project.combine_enrollments
+          %tr
+            %th
+              %span{data: {toggle: :tooltip, title: @project.combine_enrollments_hint}} Combine enrollments?
+            %td= checkmark @project.combine_enrollments?
         - if @project.data_quality_reports.any?
           %tr
             %th Project Data Quality Reports

@@ -27,14 +27,15 @@ module GrdaWarehouse::Tasks
 
       @projects.each do |project|
         if should_update_type?(project)
-          debug_log("Updating type for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}...#{project.ProjectType} #{project.act_as_project_type} #{sh_project_types(project).inspect}")
+          blank_initial_computed_project_type = project.computed_project_type.blank?
+          debug_log("Updating type for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}...#{project.ProjectType} #{project.act_as_project_type} #{sh_project_types(project).inspect}") unless blank_initial_computed_project_type
           project_type = project.compute_project_type()
           # Force a rebuild of all related enrollments
           project_source.transaction do
             project.enrollments.invalidate_processing!
             project.update(computed_project_type: project_type)
           end
-          debug_log("done invalidating enrollments for #{project.ProjectName}")
+          debug_log("done invalidating enrollments for #{project.ProjectName}") unless blank_initial_computed_project_type
         elsif homeless_mismatch?(project) # if should_update_type? returned true, these have been fixed
           debug_log("Rebuilding enrollments for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}")
           project_source.transaction do
@@ -152,12 +153,7 @@ module GrdaWarehouse::Tasks
     end
 
     def debug_log message
-      begin
-        @notifier.ping message if @notifier
-      rescue Slack::Notifier::APIError => e
-        sleep(3)
-        logger.error "Failed to send slack"
-      end
+      @notifier.ping message if @notifier
       logger.info message if @debug
     end
   end

@@ -6,7 +6,6 @@
 
 module NonVeteransSubPop::GrdaWarehouse::WarehouseReports::Dashboard::NonVeterans
   class EnteredClients < GrdaWarehouse::WarehouseReports::Dashboard::Entered
-
     def history_scope(scope)
       scope.non_veterans
     end

@@ -78,7 +78,7 @@ end
 import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
 every 1.day, at: import_schedule do
   # Defers to delayed jobs
-  rake "grda_warehouse:import_data_sources_s3[hmis_611]"
+  rake "grda_warehouse:import_data_sources_s3"
 end
 shifted_time = Time.parse(import_schedule) - 4.hours
 every 1.day, at: shifted_time.strftime('%H:%M %P') do

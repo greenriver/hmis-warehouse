@@ -9,9 +9,10 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::User
 
+    attr_accessor :source_id
+
     self.table_name = :User
-    self.hud_key = :UserID
-    acts_as_paranoid column: :DateDeleted
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     has_many :affiliations, **hud_assoc(:UserID, 'Affiliation')
     has_many :clients, **hud_assoc(:PersonalID, 'Client')

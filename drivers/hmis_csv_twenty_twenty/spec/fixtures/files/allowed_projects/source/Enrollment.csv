@@ -1,0 +1,16 @@
+EnrollmentID,PersonalID,ProjectID,EntryDate,HouseholdID,RelationshipToHoH,LivingSituation,LengthOfStay,LOSUnderThreshold,PreviousStreetESSH,DateToStreetESSH,TimesHomelessPastThreeYears,MonthsHomelessPastThreeYears,DisablingCondition,DateOfEngagement,MoveInDate,DateOfPATHStatus,ClientEnrolledInPATH,ReasonNotEnrolled,WorstHousingSituation,PercentAMI,LastPermanentStreet,LastPermanentCity,LastPermanentState,LastPermanentZIP,AddressDataQuality,DateOfBCPStatus,EligibleForRHY,ReasonNoServices,RunawayYouth,SexualOrientation,SexualOrientationOther,FormerWardChildWelfare,ChildWelfareYears,ChildWelfareMonths,FormerWardJuvenileJustice,JuvenileJusticeYears,JuvenileJusticeMonths,UnemploymentFam,MentalHealthIssuesFam,PhysicalDisabilityFam,AlcoholDrugAbuseFam,InsufficientIncome,IncarceratedParent,ReferralSource,CountOutreachReferralApproaches,UrgentReferral,TimeToHousingLoss,ZeroIncome,AnnualPercentAMI,FinancialChange,HouseholdChange,EvictionHistory,SubsidyAtRisk,LiteralHomelessHistory,DisabledHoH,CriminalRecord,SexOffender,DependentUnder6,SingleParent,HH5Plus,IraqAfghanistan,FemVet,HPScreeningScore,ThresholdScore,VAMCStation,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+E-1,C-1,ALLOW,2019-12-31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-2,C-1,ALLOW,2020-01-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-3,C-1,ALLOW,2020-01-02,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-4,C-1,ALLOW,2020-01-04,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-5,C-1,ALLOW,2020-01-05,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-6,C-2,ALLOW,2020-01-02,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-7,C-2,ALLOW,2020-01-03,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-8,C-2,ALLOW,2020-01-05,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-9,C-2,ALLOW,2020-01-07,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-10,C-1,DENY,2019-12-31,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-11,C-1,DENY,2020-01-01,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-12,C-1,DENY,2020-01-02,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-13,C-1,DENY,2020-01-04,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-14,C-1,DENY,2020-01-05,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST
+E-15,C-3,DENY,2020-01-05,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2019-12-01 00:00:00,2019-12-01 00:00:00,user,,ALLOW-TEST

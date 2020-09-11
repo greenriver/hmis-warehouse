@@ -3,7 +3,7 @@ module AdultsWithChildrenSubPop::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      scope :adults_with_children, ->  do
+      scope :adults_with_children, -> do
         joins(:service_history_enrollment).
           merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.adults_with_children)
       end

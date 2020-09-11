@@ -25,10 +25,10 @@ module ServiceScanning
     end
 
     def self.bed_nights_or_outreach_with_extrapolated
-      bed_nights = self.bed_night.preload(project: :organization).group_by { |m| m.provided_at.to_date }
-      outreach = self.outreach.preload(project: :organization).group_by { |m| m.provided_at.to_date }
+      bed_nights = bed_night.preload(project: :organization).group_by { |m| m.provided_at.to_date }
+      outreach = outreach.preload(project: :organization).group_by { |m| m.provided_at.to_date }
       extrapolated_dates = Set.new
-      outreach.keys.each do |date|
+      outreach.each_key do |date|
         extrapolated_dates += (date.beginning_of_month..date.end_of_month).to_a
       end
       extrapolated_dates -= outreach.keys
@@ -53,23 +53,23 @@ module ServiceScanning
 
     validates_presence_of :project_id
 
-    def self.project_options_for_select(user:)
+    def self.project_options_for_select(_user:)
       # ::GrdaWarehouse::Hud::Project.options_for_select(user: user)
       # Don't delegate this to project since we want a limited set and
       # the user may not have "access" to the project
       project_type_column = ::GrdaWarehouse::Hud::Project.project_type_column
       options = {}
-        project_scope = ::GrdaWarehouse::Hud::Project.joins(:data_source).
-          merge(::GrdaWarehouse::DataSource.scannable)
-        project_scope = project_scope.viewable_by(user)
-        project_scope.
-          joins(:organization).
-          order(o_t[:OrganizationName].asc, ProjectName: :asc).
-            pluck(o_t[:OrganizationName].as('org_name'), :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|
-            options[org] ||= []
-            options[org] << ["#{project_name} (#{HUD::project_type_brief(project_type)})", id]
-          end
-        options
+      project_scope = ::GrdaWarehouse::Hud::Project.joins(:data_source).
+        merge(::GrdaWarehouse::DataSource.scannable)
+      project_scope = project_scope.viewable_by(user)
+      project_scope.
+        joins(:organization).
+        order(o_t[:OrganizationName].asc, ProjectName: :asc).
+        pluck(o_t[:OrganizationName].as('org_name'), :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|
+        options[org] ||= []
+        options[org] << ["#{project_name} (#{HUD.project_type_brief(project_type)})", id]
+      end
+      options
     end
 
     def self.available_types

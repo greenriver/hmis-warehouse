@@ -6,7 +6,6 @@
 
 module ChildOnlyHouseholdsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::ChildOnlyHouseholds
   class HousedClients < ::GrdaWarehouse::WarehouseReports::Dashboard::Housed
-
     def client_source
       GrdaWarehouse::Hud::Client.destination.child_only_households
     end

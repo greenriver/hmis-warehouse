@@ -6,7 +6,6 @@
 
 module ClientsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::Clients
   class EnteredClients < GrdaWarehouse::WarehouseReports::Dashboard::Entered
-
     def history_scope(scope)
       scope.clients
     end

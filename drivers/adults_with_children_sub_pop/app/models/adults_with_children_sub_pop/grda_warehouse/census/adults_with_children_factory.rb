@@ -14,7 +14,7 @@ module AdultsWithChildrenSubPop::GrdaWarehouse::Census
       batch.get_aggregate_client_counts(
         joins: :service_history_enrollment,
         client_scope: GrdaWarehouse::ServiceHistoryEnrollment.adults_with_children,
-        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date)
+        second_scope: GrdaWarehouse::ServiceHistoryService.homeless_between(start_date: @start_date, end_date: @end_date),
       )
     end
 
@@ -22,14 +22,14 @@ module AdultsWithChildrenSubPop::GrdaWarehouse::Census
       batch.get_aggregate_client_counts(
         joins: :service_history_enrollment,
         client_scope: GrdaWarehouse::ServiceHistoryEnrollment.adults_with_children,
-        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date)
+        second_scope: GrdaWarehouse::ServiceHistoryService.literally_homeless_between(start_date: @start_date, end_date: @end_date),
       )
     end
 
     def self.get_system_client_counts(batch)
       batch.get_aggregate_client_counts(
         joins: :service_history_enrollment,
-        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.adults_with_children
+        client_scope: GrdaWarehouse::ServiceHistoryEnrollment.adults_with_children,
       )
     end
   end

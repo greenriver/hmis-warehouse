@@ -707,13 +707,13 @@ module Importers::HmisTwentyTwenty
     end
 
     private def correct_file_names
-      @correct_file_names ||= importable_files.keys.map{|m| [m.downcase, m]}
+      @correct_file_names ||= importable_files.keys.map { |m| [m.downcase, m] }
     end
 
     private def ensure_file_naming
       file_path = "#{@file_path}/#{@data_source.id}"
       Dir.each_child(file_path) do |filename|
-        correct_file_name = correct_file_names.detect{|f, _| f == filename.downcase}&.last
+        correct_file_name = correct_file_names.detect { |f, _| f == filename.downcase }&.last
         if correct_file_name.present? && correct_file_name != filename
           # Ruby complains if the files only differ by case, so we'll move it twice
           tmp_name = "tmp_#{filename}"
@@ -888,14 +888,7 @@ module Importers::HmisTwentyTwenty
     end
 
     def log(message)
-      # Slack really doesn't like it when you send too many message in a row
-      sleep(1)
-      begin
-        @notifier.ping message if @notifier
-      rescue Slack::Notifier::APIError => e
-        sleep(3)
-        logger.error "Failed to send slack"
-      end
+      @notifier.ping message if @notifier
       logger.info message if @debug
     end
 

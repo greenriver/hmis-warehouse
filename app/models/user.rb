@@ -249,14 +249,13 @@ class User < ApplicationRecord
   def self.setup_system_user
     user = User.find_by(email: 'noreply@greenriver.com')
     return user if user.present?
+
     user = User.with_deleted.find_by(email: 'noreply@greenriver.com')
-    if user.present?
-      user.restore
-    end
+    user.restore if user.present?
     user = User.invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User') do |u|
       u.skip_invitation = true
     end
-    return user
+    user
   end
 
   def data_sources

@@ -3,7 +3,7 @@ module ChildOnlyHouseholdsSubPop::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      scope :child_only_households, ->  do
+      scope :child_only_households, -> do
         joins(:service_history_enrollment).
           merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.child_only_households)
       end
