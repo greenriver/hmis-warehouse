@@ -49,13 +49,13 @@ module Importers::HmisAutoDetect
       options = {}
       options = { password: @file_password } if @file_password.present?
 
-      File.open(file_path, 'rb') do |seven_zip|
+      File.open(zip_file, 'rb') do |seven_zip|
         SevenZipRuby::Reader.open(seven_zip, options) do |szr|
           szr.extract_all(tmp_folder)
         end
       end
       # Cleanup original file
-      FileUtils.rm(file_path)
+      FileUtils.rm(zip_file)
       # Make sure we don't have any old zip files around
       FileUtils.rm(dest_file) if File.exist? dest_file
 
