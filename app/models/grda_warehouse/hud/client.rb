@@ -21,9 +21,11 @@ module GrdaWarehouse::Hud
     include ClientHealthEmergency
     has_paper_trail
 
+    attr_accessor :source_id
+
     self.table_name = :Client
-    self.hud_key = :PersonalID
-    acts_as_paranoid(column: :DateDeleted)
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
+
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
 
     has_many :client_files
@@ -2125,6 +2127,10 @@ module GrdaWarehouse::Hud
       race_fields.map{ |f| ::HUD::race f }.join ', '
     end
 
+    def ethnicity_description
+      ::HUD.ethnicity(self.Ethnicity)
+    end
+
     def cas_primary_race_code
       race_text = ::HUD::race(race_fields.first)
       Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
@@ -2829,7 +2835,7 @@ module GrdaWarehouse::Hud
           else
             cocs = ''
             if GrdaWarehouse::Config.get(:expose_coc_code)
-              cocs = entry.enrollment.enrollment_cocs.map(&:CoCCode).uniq.join(', ')
+              cocs = entry.enrollment&.enrollment_cocs&.map(&:CoCCode)&.uniq&.join(', ')
               cocs = " (#{cocs})" if cocs.present?
             end
             "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"

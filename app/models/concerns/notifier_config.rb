@@ -17,7 +17,7 @@ module NotifierConfig
 
       slack_url = notifier_config['webhook_url']
       channel   = notifier_config['channel']
-      @notifier = Slack::Notifier.new slack_url, channel: channel, username: username
+      @notifier = ApplicationNotifier.new(slack_url, channel: channel, username: username)
     end
   end
 end

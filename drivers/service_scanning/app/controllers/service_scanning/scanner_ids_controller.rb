@@ -14,14 +14,15 @@ module ServiceScanning
     before_action :set_client, only: [:show, :destroy]
 
     def index
-      if params[:q].present?
-        @clients = client_source.text_search(
+      return unless params[:q].present?
+
+      @clients = client_source.
+        text_search(
           params[:q],
-          client_scope: client_search_scope
+          client_scope: client_search_scope,
         ).
         order(LastName: :asc, FirstName: :asc).
         page(params[:page]).per(20)
-      end
     end
 
     def show

@@ -4,7 +4,7 @@ module AdultOnlyHouseholdsSubPop::GrdaWarehouse
 
     included do
       scope :adult_only_households, -> do
-         where(she_t[:age].gteq(18).and(she_t[:other_clients_under_18].eq(0)))
+        where(she_t[:age].gteq(18).and(she_t[:other_clients_under_18].eq(0)))
       end
 
       scope :individual_adult, -> do

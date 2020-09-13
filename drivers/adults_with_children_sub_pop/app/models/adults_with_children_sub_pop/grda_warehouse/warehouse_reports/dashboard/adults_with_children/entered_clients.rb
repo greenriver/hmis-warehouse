@@ -6,7 +6,6 @@
 
 module AdultsWithChildrenSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultsWithChildren
   class EnteredClients < GrdaWarehouse::WarehouseReports::Dashboard::Entered
-
     def history_scope(scope)
       scope.adults_with_children
     end

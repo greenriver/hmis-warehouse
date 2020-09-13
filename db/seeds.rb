@@ -213,7 +213,12 @@ def report_list
         description: 'Time spent homeless for clients exiting homeless within a date range.',
         limitable: true,
       },
-
+      {
+        url: 'warehouse_reports/inactive_youth_intakes',
+        name: 'Inactive Youth',
+        description: 'Youth with an open intake and no case management activity in the given date range.',
+        limitable: true,
+      },
     ],
     'Data Quality' => [
       {

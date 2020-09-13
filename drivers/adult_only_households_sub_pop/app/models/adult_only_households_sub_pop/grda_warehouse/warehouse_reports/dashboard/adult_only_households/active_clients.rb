@@ -6,7 +6,6 @@
 
 module AdultOnlyHouseholdsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultOnlyHouseholds
   class ActiveClients < GrdaWarehouse::WarehouseReports::Dashboard::Active
-
     def history_scope(scope)
       scope.adult_only_households
     end

@@ -9,9 +9,10 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Event
 
+    attr_accessor :source_id
+
     self.table_name = :Event
-    self.hud_key = :EventID
-    acts_as_paranoid column: :DateDeleted
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :events, optional: true
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :events

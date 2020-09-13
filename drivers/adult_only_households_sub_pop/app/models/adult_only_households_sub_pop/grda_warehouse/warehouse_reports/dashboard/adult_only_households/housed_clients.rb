@@ -6,7 +6,6 @@
 
 module AdultOnlyHouseholdsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultOnlyHouseholds
   class HousedClients < ::GrdaWarehouse::WarehouseReports::Dashboard::Housed
-
     def client_source
       GrdaWarehouse::Hud::Client.destination.adult_only_households
     end

@@ -6,7 +6,6 @@
 
 module ServiceScanning
   class ExtrapolatedOutreach < Service
-
     def title
       'Extrapolated Outreach Contact'
     end

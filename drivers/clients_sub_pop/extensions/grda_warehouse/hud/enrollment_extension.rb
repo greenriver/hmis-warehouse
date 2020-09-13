@@ -3,7 +3,7 @@ module ClientsSubPop::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      scope :clients, ->  do
+      scope :clients, -> do
         current_scope
       end
 
