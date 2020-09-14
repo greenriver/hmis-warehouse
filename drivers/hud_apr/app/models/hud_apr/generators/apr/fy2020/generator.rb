@@ -19,7 +19,8 @@ module HudApr::Generators::Apr::Fy2020
         'Q4' => HudApr::Generators::Shared::Fy2020::QuestionFour, # Project Identifiers in HMIS
         'Q5' => HudApr::Generators::Shared::Fy2020::QuestionFive, # Report Validations Table
         'Q6' => HudApr::Generators::Shared::Fy2020::QuestionSix, # Data Quality
-        'Q7' => HudApr::Generators::Shared::Fy2020::QuestionSeven, # Persons Served
+        'Q7' => HudApr::Generators::Apr::Fy2020::QuestionSeven, # Persons Served
+        'Q8' => HudApr::Generators::Shared::Fy2020::QuestionEight, # Households Served
       }.freeze
     end
   end
