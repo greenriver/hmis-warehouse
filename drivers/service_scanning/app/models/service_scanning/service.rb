@@ -25,25 +25,30 @@ module ServiceScanning
     end
 
     def self.bed_nights_or_outreach_with_extrapolated
-      bed_nights = bed_night.preload(project: :organization).group_by { |m| m.provided_at.to_date }
-      outreach = outreach.preload(project: :organization).group_by { |m| m.provided_at.to_date }
+      bed_nights = bed_night&.preload(project: :organization)&.group_by { |m| m.provided_at.to_date }
+      outreach = outreach&.preload(project: :organization)&.group_by { |m| m.provided_at.to_date }
       extrapolated_dates = Set.new
-      outreach.each_key do |date|
-        extrapolated_dates += (date.beginning_of_month..date.end_of_month).to_a
+      if outreach
+        outreach.each_key do |date|
+          extrapolated_dates += (date.beginning_of_month..date.end_of_month).to_a
+        end
+        extrapolated_dates -= outreach.keys if outreach
+        extrapolated = extrapolated_dates.map do |date|
+          [
+            date,
+            [ServiceScanning::ExtrapolatedOutreach.new(provided_at: date.to_time)],
+          ]
+        end.to_h
       end
-      extrapolated_dates -= outreach.keys
-      extrapolated = extrapolated_dates.map do |date|
-        [
-          date,
-          [ServiceScanning::ExtrapolatedOutreach.new(provided_at: date.to_time)],
-        ]
-      end.to_h
       all_dates = {}
-      (bed_nights.keys + outreach.keys + extrapolated_dates.to_a).uniq.sort.each do |date|
+      days = bed_nights.keys if bed_nights
+      days += outreach.keys if outreach
+      days += extrapolated_dates.to_a if extrapolated_dates
+      days.uniq.sort.each do |date|
         records = []
-        records += bed_nights[date] if bed_nights[date]
-        records += outreach[date] if outreach[date]
-        records += extrapolated[date] if extrapolated[date]
+        records += bed_nights[date] if bed_nights && bed_nights[date]
+        records += outreach[date] if outreach && outreach[date]
+        records += extrapolated[date] if extrapolated && extrapolated[date]
         all_dates[date] = records.compact
       end
       all_dates

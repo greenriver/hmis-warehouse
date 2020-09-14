@@ -5,8 +5,7 @@
     - if can_see_health_emergency_contact_tracing
       %li.o-menu__item
         = link_to health_he_search_path, class: 'o-menu__link' do
-          = GrdaWarehouse::Config.currrent_health_emergency_tracing_title
-          = _('Contact Tracing')
+          #{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} #{_('Contact Tracing')}
     - if can_view_patients_for_own_agency? && current_user.health_agencies.any?
       %li.o-menu__item
         = link_to health_patients_path, class: 'o-menu__link' do
