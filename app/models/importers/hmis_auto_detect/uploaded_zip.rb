@@ -41,8 +41,8 @@ module Importers::HmisAutoDetect
       zip_file = reconstitute_upload
       return unless File.extname(zip_file) == '.7z'
 
-      dest_file = zip_file.gsub('.7z', '.zip')
       tmp_folder = zip_file.gsub('.7z', '')
+      dest_file = zip_file.gsub('.7z', '.zip')
       FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
       FileUtils.mkdir_p(tmp_folder)
 
@@ -58,7 +58,6 @@ module Importers::HmisAutoDetect
       FileUtils.rm(zip_file)
       # Make sure we don't have any old zip files around
       FileUtils.rm(dest_file) if File.exist? dest_file
-
       files = Dir.glob(File.join(tmp_folder, '*')).map { |f| File.basename(f) }
       Zip::File.open(dest_file, Zip::File::CREATE) do |zipfile|
         files.each do |filename|
@@ -67,8 +66,9 @@ module Importers::HmisAutoDetect
             File.join(tmp_folder, filename),
           )
         end
-        FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
       end
+      FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder
+
       add_content_to_upload_and_save(file_path: dest_file)
     end
 

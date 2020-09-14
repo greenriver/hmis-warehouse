@@ -69,7 +69,7 @@ module Importers::HmisAutoDetect
     end
 
     private def reconstitute_upload
-      reconstitute_zip_file = File.join(@local_path, @upload.file.file.filename)
+      reconstitute_zip_file = File.join(@local_path, @upload.reload.file.file.filename)
       FileUtils.mkdir_p(@local_path) unless File.directory?(@local_path)
       File.open(reconstitute_zip_file, 'w+b') do |file|
         file.write(@upload.content)
@@ -91,7 +91,7 @@ module Importers::HmisAutoDetect
       @upload.file = Pathname.new(file_path).open
       @upload.content_type = @upload.file.content_type
       @upload.content = @upload.file.read
-      @upload.save
+      @upload.save!
       @upload.id
     end
   end
