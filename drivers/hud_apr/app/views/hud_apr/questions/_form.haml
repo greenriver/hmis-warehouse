@@ -7,7 +7,7 @@
       .col-sm-4
         = f.input :end_date, as: :date_picker, label: 'End Date', required: true
       .col-sm-4
-        = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), selected: default_coc_code, input_html: {class: 'select2'}, label: 'CoC Code', hint: default_coc_code, required: true
+        = f.input :coc_code, collection: GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode), input_html: {class: 'select2'}, label: 'CoC Code', hint: default_coc_code, required: true
     .row
       .col-sm-12
         = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'},label: 'Projects', required: true

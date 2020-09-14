@@ -16,7 +16,7 @@ module HudApr::Generators::Apr::Fy2020
 
     def self.questions
       {
-        'Q4' => HudApr::Generators::Shared::Fy2020::QuestionFour,  # Project Identifiers in HMIS
+        'Q4' => HudApr::Generators::Shared::Fy2020::QuestionFour, # Project Identifiers in HMIS
         'Q5' => HudApr::Generators::Shared::Fy2020::QuestionFive, # Report Validations Table
         'Q6' => HudApr::Generators::Shared::Fy2020::QuestionSix, # Data Quality
         'Q7' => HudApr::Generators::Shared::Fy2020::QuestionSeven, # Persons Served

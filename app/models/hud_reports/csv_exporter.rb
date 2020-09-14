@@ -44,6 +44,8 @@ module HudReports
     end
 
     def answer_table
+      return [] unless @metadata
+
       row = @metadata['header_row']
       if row.present?
         [ row ]
@@ -53,6 +55,8 @@ module HudReports
     end
 
     def row_names
+      return [] unless @metadata
+
       (@metadata['first_row']..@metadata['last_row'])
     end
 
@@ -70,6 +74,8 @@ module HudReports
     end
 
     def display_column_names
+      return [] unless @metadata
+
       ('A'..@metadata['last_column'])
     end
   end

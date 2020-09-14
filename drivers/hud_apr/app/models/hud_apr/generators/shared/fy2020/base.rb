@@ -6,6 +6,13 @@
 
 module HudApr::Generators::Shared::Fy2020
   class Base < HudReports::QuestionBase
+    def run!
+      run_question!
+    rescue Exception => e
+      @report.answer(question: self.class.question_number).update(error_messages: e.full_message)
+      raise e
+    end
+
     protected def build_universe(question_number, before_block: nil, after_block: nil)
       universe_cell = @report.universe(question_number)
 
@@ -24,8 +31,8 @@ module HudApr::Generators::Shared::Fy2020
           pending_associations.values,
           on_duplicate_key_update: {
             conflict_target: [:client_id, :data_source_id, :report_instance_id],
-            columns: pending_associations.values.first&.changes&.keys || []
-          }
+            columns: pending_associations.values.first&.changes&.keys || [],
+          },
         )
 
         after_block.call(clients_with_enrollments, pending_associations) if after_block.present?

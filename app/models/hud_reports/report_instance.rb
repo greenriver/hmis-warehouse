@@ -7,10 +7,28 @@
 # A HUD Report instance, identified by report name (e.g., report_name: 'CE APR - 2020')
 module HudReports
   class ReportInstance < GrdaWarehouseBase
+    include ActionView::Helpers::DateHelper
     self.table_name = 'hud_report_instances'
 
     belongs_to :user
     has_many :report_cells, dependent: :destroy
+
+    def current_status
+      case state
+      when 'Waiting'
+        'Queued to start'
+      when 'Started'
+        if started_at < 24.hours.ago
+          'Failed'
+        else
+          "#{state} at #{started_at}"
+        end
+      when 'Completed'
+        "#{state} at #{completed_at} in #{distance_of_time_in_words(started_at, completed_at)}"
+      else
+        'Failed'
+      end
+    end
 
     # Mark a question as started
     #

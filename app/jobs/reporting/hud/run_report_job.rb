@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module Reporting
-  class RunHudReportJob < BaseJob
+module Reporting::Hud
+  class RunReportJob < BaseJob
     def perform(class_name, questions, report_id)
       report = HudReports::ReportInstance.find(report_id)
       report.update(state: 'Started', started_at: Time.current)

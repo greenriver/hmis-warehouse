@@ -8,8 +8,8 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionSeven < Base
     include ArelHelper
 
-    QUESTION_NUMBER = 'Q7'
-    QUESTION_TABLE_NUMBERS = ['Q7a', 'Q7b']
+    QUESTION_NUMBER = 'Q7'.freeze
+    QUESTION_TABLE_NUMBERS = ['Q7a', 'Q7b'].freeze
 
     HEADER_ROW = [
       ' ',
@@ -18,9 +18,13 @@ module HudApr::Generators::Shared::Fy2020
       'With Children and Adults',
       'With Only Children',
       'Unknown Household Type',
-    ]
+    ].freeze
 
-    def run!
+    def self.question_number
+      QUESTION_NUMBER
+    end
+
+    def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
       q7a_persons_served
@@ -29,7 +33,7 @@ module HudApr::Generators::Shared::Fy2020
       @report.complete(QUESTION_NUMBER)
     end
 
-    private def q7a_persons_served
+    private def q7a_persons_served # rubocop:disable Metrics/AbcSize
       a_t = report_client_universe.arel_table
 
       table_name = 'Q7a'
@@ -190,7 +194,6 @@ module HudApr::Generators::Shared::Fy2020
       )
       answer.add_members(members)
       answer.update(summary: members.count)
-
 
       # Number of NC in unknown household type
       answer = @report.answer(question: table_name, cell: 'F5')
@@ -353,39 +356,39 @@ module HudApr::Generators::Shared::Fy2020
 
     private def pit_date(month:, before:)
       year = before.year if month < before.month
-      year = before.year if month == before.month && before.day >= last_wednesday_of(month: before.month, year: before.year )
+      year = before.year if month == before.month && before.day >= last_wednesday_of(month: before.month, year: before.year)
       year = before.year - 1 if month > before.month
-      year = before.year - 1 if month == before.month && before.day < last_wednesday_of(month: before.month, year: before.year )
+      year = before.year - 1 if month == before.month && before.day < last_wednesday_of(month: before.month, year: before.year)
 
       last_wednesday_of(month: month, year: year)
     end
 
     private def last_wednesday_of(month:, year:)
       date = Date.new(year, month, -1) # end of the month
-      until date.wednesday? do
-        date = date.prev_day
-      end
+      date = date.prev_day until date.wednesday?
+
       date
     end
 
     private def universe
       batch_initializer = ->(clients_with_enrollments) do
         household_members = {}
-        clients_with_enrollments.each do |client_id, enrollments|
+        clients_with_enrollments.each do |_, enrollments|
           last_service_history_enrollment = enrollments.last
           household_members[last_service_history_enrollment.household_id] ||= []
           household_members[last_service_history_enrollment.household_id] << last_service_history_enrollment
         end
 
         @household_types = household_members.transform_values do |enrollments|
-          next :adults_and_children if has_adults?(enrollments) && has_children?(enrollments)
-          next :adults_only if has_adults?(enrollments) && ! has_children?(enrollments) && ! has_unknown_ages?(enrollments)
-          next :children_only if has_children?(enrollments) && ! has_adults?(enrollments) && ! has_unknown_ages?(enrollments)
+          next :adults_and_children if adults?(enrollments) && children?(enrollments)
+          next :adults_only if adults?(enrollments) && ! children?(enrollments) && ! unknown_ages?(enrollments)
+          next :children_only if children?(enrollments) && ! adults?(enrollments) && ! unknown_ages?(enrollments)
+
           :unknown
         end
       end
 
-      @universe ||= build_universe(QUESTION_NUMBER, before_block: batch_initializer) do |client, enrollments|
+      @universe ||= build_universe(QUESTION_NUMBER, before_block: batch_initializer) do |_, enrollments|
         last_service_history_enrollment = enrollments.last
         source_client = last_service_history_enrollment.source_client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
@@ -409,25 +412,31 @@ module HudApr::Generators::Shared::Fy2020
       end
     end
 
-    private def has_adults?(enrollments)
+    private def adults?(enrollments)
       enrollments.any? do |enrollment|
         source_client = enrollment.source_client
         client_start_date = [@report.start_date, enrollment.first_date_in_program].max
-        source_client.age_on(client_start_date) >= 18
+        age = source_client.age_on(client_start_date)
+        next false if age.blank?
+
+        age >= 18
       end
     end
 
-    private def has_children?(enrollments)
+    private def children?(enrollments)
       enrollments.any? do |enrollment|
         source_client = enrollment.source_client
         client_start_date = [@report.start_date, enrollment.first_date_in_program].max
-        source_client.age_on(client_start_date) < 18
+        age = source_client.age_on(client_start_date)
+        next false if age.blank?
+
+        age < 18
       end
     end
 
-    private def has_unknown_ages?(enrollments)
+    private def unknown_ages?(enrollments)
       enrollments.any? do |enrollment|
-        source_client = enrollment.source_client.DOB.blank?
+        enrollment.source_client.DOB.blank?
       end
     end
   end

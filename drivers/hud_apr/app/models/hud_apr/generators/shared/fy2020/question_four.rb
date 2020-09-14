@@ -5,10 +5,9 @@
 ###
 
 module HudApr::Generators::Shared::Fy2020
-  class QuestionFour < HudReports::QuestionBase
-    QUESTION_NUMBER = 'Q4'
-
-    QUESTION_TABLE_NUMBER = 'Q4a'
+  class QuestionFour < Base
+    QUESTION_NUMBER = 'Q4'.freeze
+    QUESTION_TABLE_NUMBER = 'Q4a'.freeze
 
     TABLE_HEADER = [
       'Organization Name',
@@ -29,24 +28,28 @@ module HudApr::Generators::Shared::Fy2020
 
     HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'.freeze
 
-    def run!
+    def self.question_number
+      QUESTION_NUMBER
+    end
+
+    def run_question!
       @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
 
       project_rows = []
 
-      GrdaWarehouse::Hud::Project.find(@report.project_ids). each do |project|
+      GrdaWarehouse::Hud::Project.find(@report.project_ids).each do |project|
         project_row = [
           project.organization.OrganizationName,
           project.OrganizationID,
           project.ProjectName,
           project.ProjectID,
           project.ProjectType,
-          (project.ProjectType == 1)? project.TrackingMethod : 0,
-          (project.ProjectType == 6)? project.ResidentialAffiliation : 0,
-          (project.ProjectType == 6 && project.ResidentialAffiliation == 1)? project.residential_affiliations.map(&:ProjectID).join(', ') : '',
+          if project.ProjectType == 1 then project.TrackingMethod else 0 end,
+          if project.ProjectType == 6 then project.ResidentialAffiliation else 0 end,
+          if project.ProjectType == 6 && project.ResidentialAffiliation == 1 then project.residential_affiliations.map(&:ProjectID).join(', ') else ' ' end,
           project.project_cocs.map(&:CoCCode).join(', '),
           project.project_cocs.map(&:Geocode).join(', '),
-          (project.VictimServicesProvider.present?)? project.VictimServicesProvider : 0,
+          if project.VictimServicesProvider.present? then project.VictimServicesProvider else 0 end,
           HMIS_SOFTWARE_NAME,
           @report.start_date,
           @report.end_date,

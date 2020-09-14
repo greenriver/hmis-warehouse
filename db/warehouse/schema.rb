@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_10_142617) do
+ActiveRecord::Schema.define(version: 2020_09_14_190210) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4454,6 +4454,7 @@ ActiveRecord::Schema.define(version: 2020_09_10_142617) do
     t.datetime "updated_at", null: false
     t.json "summary"
     t.string "status"
+    t.text "error_messages"
     t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
   end
 

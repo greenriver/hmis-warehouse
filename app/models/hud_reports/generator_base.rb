@@ -8,9 +8,9 @@ module HudReports
   class GeneratorBase
     include ArelHelper
 
-    PENDING = 'pending'
-    STARTED = 'started'
-    COMPLETED = 'completed'
+    PENDING = 'pending'.freeze
+    STARTED = 'started'.freeze
+    COMPLETED = 'completed'.freeze
 
     def initialize(options)
       # Strings for keys because of how the options come back out of the DB
@@ -39,7 +39,7 @@ module HudReports
         question_names: self.class.questions.keys,
       )
       # TODO: Rework to parallelize questions?
-      Reporting::RunHudReportJob.perform_later(self.class.name, questions, @report.id)
+      Reporting::Hud::RunReportJob.perform_later(self.class.name, questions, @report.id)
     end
 
     def client_scope

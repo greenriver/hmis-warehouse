@@ -51,7 +51,7 @@ module HudApr
       @options = OpenStruct.new(
         start_date: options['start_date']&.to_date || Date.current.last_month.beginning_of_month.last_year,
         end_date: options['end_date']&.to_date || Date.current.last_month.end_of_month,
-        coc_code: options['coc_code'],
+        coc_code: options['coc_code'] || GrdaWarehouse::Config.get(:site_coc_codes),
         project_ids: options['project_ids']&.map(&:to_i),
       )
     end

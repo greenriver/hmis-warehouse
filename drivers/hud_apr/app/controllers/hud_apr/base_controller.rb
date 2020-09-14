@@ -6,12 +6,12 @@
 
 module HudApr
   class BaseController < ApplicationController
-    def set_generator(param_name:)
+    def set_generator(param_name:) # rubocop:disable Naming/AccessorMethodName
       @generator_id = params[param_name].to_i
       @generator = generators[@generator_id]
     end
 
-    def set_report(param_name:)
+    def set_report(param_name:) # rubocop:disable Naming/AccessorMethodName
       report_id = params[param_name].to_i
       # APR 0 is the most recent report for the current user
       if report_id.zero?

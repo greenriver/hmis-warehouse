@@ -8,10 +8,10 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionFive < Base
     include ArelHelper
 
-    QUESTION_NUMBER = 'Q5'
-    QUESTION_TABLE_NUMBER = 'Q5a'
+    QUESTION_NUMBER = 'Q5'.freeze
+    QUESTION_TABLE_NUMBER = 'Q5a'.freeze
 
-    TABLE_HEADER = []
+    TABLE_HEADER = [].freeze
     ROW_LABELS = [
       'Total number of persons served',
       'Number of adults (age 18 or over)',
@@ -29,9 +29,13 @@ module HudApr::Generators::Shared::Fy2020
       'Number of adult heads of household',
       'Number of child and unknown-age heads of household',
       'Heads of households and adult stayers in the project 365 days or more',
-    ]
+    ].freeze
 
-    def run!
+    def self.question_number
+      QUESTION_NUMBER
+    end
+
+    def run_question! # rubocop:disable Metrics/AbcSize
       @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
 
       a_t = report_client_universe.arel_table
@@ -182,7 +186,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def universe
-      @universe ||= build_universe(QUESTION_NUMBER) do |client, enrollments|
+      @universe ||= build_universe(QUESTION_NUMBER) do |_, enrollments|
         last_service_history_enrollment = enrollments.last
         source_client = last_service_history_enrollment.source_client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
@@ -200,7 +204,7 @@ module HudApr::Generators::Shared::Fy2020
           first_date_in_program: last_service_history_enrollment.first_date_in_program,
           last_date_in_program: last_service_history_enrollment.last_date_in_program,
           veteran_status: source_client.VeteranStatus,
-          length_of_stay: ((last_service_history_enrollment.last_date_in_program || @report.end_date + 1.day ) -
+          length_of_stay: ((last_service_history_enrollment.last_date_in_program || @report.end_date + 1.day) -
             last_service_history_enrollment.first_date_in_program).to_i,
           chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
         )

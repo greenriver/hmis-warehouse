@@ -8,10 +8,14 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionSix < Base
     include ArelHelper
 
-    QUESTION_NUMBER = 'Q6'
-    QUESTION_TABLE_NUMBERS = ('Q6a'..'Q6f').to_a
+    QUESTION_NUMBER = 'Q6'.freeze
+    QUESTION_TABLE_NUMBERS = ('Q6a'..'Q6f').to_a.freeze
 
-    def run!
+    def self.question_number
+      QUESTION_NUMBER
+    end
+
+    def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
       q6a_pii
@@ -32,9 +36,9 @@ module HudApr::Generators::Shared::Fy2020
       table_name = 'Q6a'
       metadata = {
         header_row: ['Data Element', 'Client Doesn’t Know/Refused', 'Information Missing',
-          'Data Issues', 'Total', '% of Error Rate'],
+                     'Data Issues', 'Total', '% of Error Rate'],
         row_labels: ['Name (3.01)', 'Social Security Number (3.02)', 'Date of Birth (3.03)', 'Race (3.04)',
-          'Ethnicity (3.05)', 'Gender (3.06)', 'Overall Score'],
+                     'Ethnicity (3.05)', 'Gender (3.06)', 'Overall Score'],
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
@@ -52,7 +56,7 @@ module HudApr::Generators::Shared::Fy2020
 
       count = clients.distinct.count
       @report.answer(question: table_name, cell: 'E8').update(summary: count)
-      @report.answer(question: table_name, cell: 'F8').update(summary: format('%1.4f', count / universe.members.count.to_f ))
+      @report.answer(question: table_name, cell: 'F8').update(summary: format('%1.4f', count / universe.members.count.to_f))
     end
 
     private def name_quality(table_name:)
@@ -85,7 +89,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F2')
-      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f ))
+      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f))
 
       total_members
     end
@@ -122,7 +126,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F3')
-      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f ))
+      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f))
 
       total_members
     end
@@ -159,7 +163,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F4')
-      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f ))
+      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f))
 
       total_members
     end
@@ -202,7 +206,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F5')
-      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f ))
+      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f))
 
       total_members
     end
@@ -229,17 +233,26 @@ module HudApr::Generators::Shared::Fy2020
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F' + row_label)
-      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f ))
+      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f))
 
       total_members
     end
 
-    private def q6b_universal_data_elements
+    private def q6b_universal_data_elements # rubocop:disable Metrics/AbcSize
       table_name = 'Q6b'
       metadata = {
-        header_row: ['Data Element', 'Error Count', '% of Error Rate'],
-        row_labels: [ 'Veteran Status (3.07)', 'Project Start Date (3.10)', 'Relationship to Head of Household (3.15)',
-          'Client Location (3.16)', 'Disabling Condition (3.08)'],
+        header_row: [
+          'Data Element',
+          'Error Count',
+          '% of Error Rate',
+        ],
+        row_labels: [
+          'Veteran Status (3.07)',
+          'Project Start Date (3.10)',
+          'Relationship to Head of Household (3.15)',
+          'Client Location (3.16)',
+          'Disabling Condition (3.08)',
+        ],
         first_column: 'B',
         last_column: 'C',
         first_row: 2,
@@ -252,13 +265,13 @@ module HudApr::Generators::Shared::Fy2020
       members = universe.members.where(
         a_t[:veteran_status].in([nil, 8, 9]).
           or(a_t[:veteran_status].eq(1).
-            and(a_t[:age].lt(18)))
+            and(a_t[:age].lt(18))),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C2')
-      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f))
 
       # project start date
       answer = @report.answer(question: table_name, cell: 'B3')
@@ -267,7 +280,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C3')
-      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f))
 
       # relationship to head of household
       answer = @report.answer(question: table_name, cell: 'B4')
@@ -275,7 +288,7 @@ module HudApr::Generators::Shared::Fy2020
         where(a_t[:relationship_to_hoh].eq(1)).
         group(a_t[:household_id]).
         count.
-        select{ |_, v| v > 1 }.
+        select { |_, v| v > 1 }.
         keys
       households_with_no_hoh = universe.members.pluck(:household_id) -
         universe.members.where(a_t[:relationship_to_hoh].eq(1)).pluck(:household_id)
@@ -288,7 +301,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C4')
-      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f))
 
       # client location
       answer = @report.answer(question: table_name, cell: 'B5')
@@ -301,7 +314,7 @@ module HudApr::Generators::Shared::Fy2020
 
       answer = @report.answer(question: table_name, cell: 'C5')
       hoh_denominator = universe.members.where(a_t[:head_of_household].eq(true))
-      answer.update(summary: format('%1.4f', members.count / hoh_denominator.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / hoh_denominator.count.to_f))
 
       # disabling condition
       answer = @report.answer(question: table_name, cell: 'B6')
@@ -315,24 +328,29 @@ module HudApr::Generators::Shared::Fy2020
                 or(a_t[:chronic_disability].eq(true)).
                 or(a_t[:mental_health_problem].eq(true)).
                 or(a_t[:substance_abuse].eq(true)).
-                or(a_t[:indefinite_and_impairs].eq(true)),
-              ),
-            ),
-          ),
+                or(a_t[:indefinite_and_impairs].eq(true))))),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C6')
-      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f))
     end
 
-    private def q6c_income_and_housing
+    private def q6c_income_and_housing # rubocop:disable Metrics/AbcSize
       table_name = 'Q6c'
       metadata = {
-        header_row: ['Data Element', 'Error Count', '% of Error Rate'],
-        row_labels: [ 'Destination (3.12)', 'Income and Sources (4.02) at Start',
-          'Income and Sources (4.02) at Annual Assessment', 'Income and Sources (4.02) at Exit'],
+        header_row: [
+          'Data Element',
+          'Error Count',
+          '% of Error Rate',
+        ],
+        row_labels: [
+          'Destination (3.12)',
+          'Income and Sources (4.02) at Start',
+          'Income and Sources (4.02) at Annual Assessment',
+          'Income and Sources (4.02) at Exit',
+        ],
         first_column: 'B',
         last_column: 'C',
         first_row: 2,
@@ -344,14 +362,12 @@ module HudApr::Generators::Shared::Fy2020
       leavers = universe.members.where(a_t[:last_date_in_program].lteq(@report.end_date))
 
       answer = @report.answer(question: table_name, cell: 'B2')
-      members = leavers.where(
-        a_t[:destination].in([nil, 8, 9, 30])
-      )
+      members = leavers.where(a_t[:destination].in([nil, 8, 9, 30]))
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C2')
-      answer.update(summary: format('%1.4f', members.count / leavers.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / leavers.count.to_f))
 
       # incomes
       adults_and_hohs = universe.members.where(
@@ -375,12 +391,12 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C3')
-      answer.update(summary: format('%1.4f', members.count / adults_and_hohs.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / adults_and_hohs.count.to_f))
 
       # income at anniversary
       stayers_with_anniversary = adults_and_hohs.where(
         a_t[:annual_assessment_expected].eq(true).
-          and(a_t[:last_date_in_program].gt(@report.end_date))
+          and(a_t[:last_date_in_program].gt(@report.end_date)),
       )
 
       answer = @report.answer(question: table_name, cell: 'B4')
@@ -397,7 +413,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C4')
-      answer.update(summary: format('%1.4f', members.count / stayers_with_anniversary.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / stayers_with_anniversary.count.to_f))
 
       # income at exit
       leavers = adults_and_hohs.where(a_t[:last_date_in_program].lteq(@report.end_date))
@@ -416,17 +432,17 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C5')
-      answer.update(summary: format('%1.4f', members.count / leavers.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / leavers.count.to_f))
     end
 
     private def q6d_chronic_homelessness
       table_name = 'Q6d'
       metadata = {
         header_row: ['Entering into project type', 'Count of total records', 'Missing time in institution (3.917.2)',
-          'Missing time in housing (3.917.2)', 'Approximate Date started (3.917.3) DK/R/missing',
-          'Number of times (3.917.4) DK/R/missing', 'Number of months (3.917.5) DK/R/missing',
-          '% of records unable to calculate'],
-        row_labels: [ 'ES, SH, Street Outreach', 'TH', 'PH (all)', 'Total'],
+                     'Missing time in housing (3.917.2)', 'Approximate Date started (3.917.3) DK/R/missing',
+                     'Number of times (3.917.4) DK/R/missing', 'Number of months (3.917.5) DK/R/missing',
+                     '% of records unable to calculate'],
+        row_labels: ['ES, SH, Street Outreach', 'TH', 'PH (all)', 'Total'],
         first_column: 'B',
         last_column: 'H',
         first_row: 2,
@@ -439,8 +455,7 @@ module HudApr::Generators::Shared::Fy2020
           and(a_t[:age].gteq(18).
             or(a_t[:head_of_household].eq(true).
               and(a_t[:age].lt(18).
-                or(a_t[:age].eq(nil)))),
-          ),
+                or(a_t[:age].eq(nil))))),
       )
 
       es_sh_so_clients = es_sh_so(table_name, adults_and_hohs)
@@ -457,7 +472,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # percent
       answer = @report.answer(question: table_name, cell: 'H5')
-      answer.update(summary: format('%1.4f', total_members.count / adults_and_hohs.count.to_f ))
+      answer.update(summary: format('%1.4f', total_members.count / adults_and_hohs.count.to_f))
     end
 
     private def es_sh_so(table_name, adults_and_hohs)
@@ -493,7 +508,7 @@ module HudApr::Generators::Shared::Fy2020
         or(times_homeless_members).
         or(months_homeless_members)
       answer.add_members(members)
-      answer.update(summary: format('%1.4f', members.count / es_sh_so.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / es_sh_so.count.to_f))
 
       es_sh_so
     end
@@ -551,7 +566,7 @@ module HudApr::Generators::Shared::Fy2020
         or(times_homeless_members).
         or(months_homeless_members)
       answer.add_members(members)
-      answer.update(summary: format('%1.4f', members.count / th.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / th.count.to_f))
 
       th
     end
@@ -609,16 +624,16 @@ module HudApr::Generators::Shared::Fy2020
         or(times_homeless_members).
         or(months_homeless_members)
       answer.add_members(members)
-      answer.update(summary: format('%1.4f', members.count / ph.count.to_f ))
+      answer.update(summary: format('%1.4f', members.count / ph.count.to_f))
 
       ph
     end
 
-    private def q6e_timeliness
+    private def q6e_timeliness # rubocop:disable Metrics/AbcSize
       table_name = 'Q6e'
       metadata = {
         header_row: ['Time for Record Entry', 'Number of Project Start Records', 'Number of Project Exit Records'],
-        row_labels: [ '0 days', '1-3 days', '4-6 days', '7-10 days', '11+ days'],
+        row_labels: ['0 days', '1-3 days', '4-6 days', '7-10 days', '11+ days'],
         first_column: 'B',
         last_column: 'C',
         first_row: 2,
@@ -715,8 +730,8 @@ module HudApr::Generators::Shared::Fy2020
       table_name = 'Q6f'
       metadata = {
         header_row: ['Data Element', '# of Records', '# of Inactive Records', ' # % of Inactive Records'],
-        row_labels: [ 'Contact (Adults and Heads of Household in Street Outreach or ES – NBN)',
-          'Bed Night (All clients in ES – NBN)'],
+        row_labels: ['Contact (Adults and Heads of Household in Street Outreach or ES – NBN)',
+                     'Bed Night (All clients in ES – NBN)'],
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
@@ -725,10 +740,13 @@ module HudApr::Generators::Shared::Fy2020
       @report.answer(question: table_name).update(metadata: metadata)
 
       relevant_clients = universe.members.
-        joins(report_cell: :report_instance)
-        .where(
-          datediff(report_client_universe, 'day', a_t[:first_date_in_program], hr_ri_t[:end_date]).lt(90).
-            and(a_t[:last_date_in_program].eq(nil).
+        joins(report_cell: :report_instance).
+        where(
+          datediff(
+            report_client_universe, 'day', a_t[:first_date_in_program], hr_ri_t[:end_date]
+          ).lt(90).
+            and(
+              a_t[:last_date_in_program].eq(nil).
               or(a_t[:last_date_in_program].gt(@report.end_date)),
             ),
         ).
@@ -742,7 +760,7 @@ module HudApr::Generators::Shared::Fy2020
             and(a_t[:age].lt(18).
               or(a_t[:age].eq(nil)))),
       )
-      es_so_members = relevant_clients.where(
+      es_so_members = adults_and_hohs.where(
         a_t[:project_type].eq(4).
           or(a_t[:project_type].eq(1).
             and(a_t[:project_tracking_method].eq(3))),
@@ -756,9 +774,8 @@ module HudApr::Generators::Shared::Fy2020
       # inactive_es_so_members is based on ids so that 'or' works.
       es_so_member_ids = []
       es_so_members.find_each do |member|
-        dates = member.universe_membership.first_date_in_program
-        dates << member.universe_membership.
-          joins(:hud_report_apr_living_situations).
+        dates = [member.universe_membership.first_date_in_program]
+        dates += member.universe_membership.hud_report_apr_living_situations.
           pluck(:information_date)
         dates.sort!
         dates.each_with_index do |date, index|
@@ -775,7 +792,7 @@ module HudApr::Generators::Shared::Fy2020
       # percent inactive ES or SO
       answer = @report.answer(question: table_name, cell: 'D2')
       answer.add_members(inactive_es_so_members)
-      answer.update(summary: format('%1.4f', inactive_es_so_members.count / es_so_members.count.to_f ))
+      answer.update(summary: format('%1.4f', inactive_es_so_members.count / es_so_members.count.to_f))
 
       # Relevant ES-NBN
       answer = @report.answer(question: table_name, cell: 'B3')
@@ -797,7 +814,7 @@ module HudApr::Generators::Shared::Fy2020
       # percent inactive ES
       answer = @report.answer(question: table_name, cell: 'D3')
       answer.add_members(inactive_es_so_members)
-      answer.update(summary: format('%1.4f', inactive_es_members.count / es_members.count.to_f ))
+      answer.update(summary: format('%1.4f', inactive_es_members.count / es_members.count.to_f))
     end
 
     private def universe
@@ -820,8 +837,8 @@ module HudApr::Generators::Shared::Fy2020
           living_situations,
           on_duplicate_key_update: {
             conflict_target: [:apr_client_id],
-            columns: living_situations.first&.changed || []
-          }
+            columns: living_situations.first&.changed || [],
+          },
         )
       end
 
@@ -829,10 +846,10 @@ module HudApr::Generators::Shared::Fy2020
         QUESTION_NUMBER,
         before_block: batch_initializer,
         after_block: batch_finalizer,
-      ) do |client, enrollments|
+      ) do |_, enrollments|
         last_service_history_enrollment = enrollments.last
         enrollment = last_service_history_enrollment.enrollment
-        disabilities = enrollment.disabilities.select{ |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
+        disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
         exit_record = last_service_history_enrollment.service_history_exit&.enrollment
         source_client = last_service_history_enrollment.source_client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
@@ -873,7 +890,7 @@ module HudApr::Generators::Shared::Fy2020
           physical_disability: disabilities.detect(&:physical?).present?,
           chronic_disability: disabilities.detect(&:chronic?).present?,
           mental_health_problem: disabilities.detect(&:mental?).present?,
-          substance_abuse: disabilities.detect(&:substance).present?,
+          substance_abuse: disabilities.detect(&:substance?).present?,
           indefinite_and_impairs: disabilities.detect(&:indefinite_and_impairs?).present?,
           destination: last_service_history_enrollment.destination,
           income_date_at_start: income_at_start&.InformationDate,
@@ -929,11 +946,8 @@ module HudApr::Generators::Shared::Fy2020
 
     private def annual_assessment_expected?(enrollment)
       elapsed_years = @report.end_date.year - enrollment.first_date_in_program.year
-      elapsed_years = if enrollment.first_date_in_program + elapsed_years.year > @report.end_date
-        elapsed_years - 1
-      end
-
-      enrollment.head_of_household? && elapsed_years.positive?
+      elapsed_years -= 1 if enrollment.first_date_in_program + elapsed_years.year > @report.end_date
+      enrollment.head_of_household? && elapsed_years&.positive?
     end
 
     private def overlapping_enrollments(enrollments, last_enrollment)

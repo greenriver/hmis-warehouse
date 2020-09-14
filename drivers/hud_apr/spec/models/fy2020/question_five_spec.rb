@@ -10,7 +10,7 @@ RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionFive, type: :model do
         'end_date' => Date.parse('2015-12-31'),
         'coc_code' => 'MA-500',
         'user_id' => user.id,
-      }
+      },
     )
   end
 
