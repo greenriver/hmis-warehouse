@@ -63,6 +63,7 @@ module ServiceScanning
           flash[:error] = 'Unable to add service.'
           redirect_to(service_scanning_services_path(service: index_params.merge(autofocus: :project_id)))
         end
+        return
       end
 
       scanner_id = options[:scanner_id]
