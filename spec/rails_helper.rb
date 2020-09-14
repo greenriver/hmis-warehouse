@@ -74,6 +74,7 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
 end
 
+# Drivers
 Dir[Rails.root.join('drivers/*/spec/support/*.rb')].sort.each { |f| require f }
 
 RSpec.configure do |config|

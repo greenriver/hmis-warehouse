@@ -126,7 +126,7 @@ def report_list
       {
         url: 'warehouse_reports/rrh',
         name: 'Rapid Rehousing Dashboard',
-        description: '',
+        description: 'Overview of RRH performance and data exploration.',
         limitable: true,
       },
       {
@@ -144,13 +144,13 @@ def report_list
       {
         url: 'warehouse_reports/psh',
         name: 'Permanent Supportive Housing Dashboard',
-        description: '',
+        description: 'Overview of PSH performance and data exploration.',
         limitable: true,
       },
       {
         url: 'warehouse_reports/youth_intakes',
         name: 'Homeless Youth Program Report',
-        description: '',
+        description: 'Summary counts of youth activity for state reporting.',
         limitable: true,
       },
       {
@@ -174,7 +174,7 @@ def report_list
       {
         url: 'warehouse_reports/re_entry',
         name: 'Homelessness Re-Entry',
-        description: 'Details on clients who returned to homelessness after a 60 day break',
+        description: 'Details on clients who returned to homelessness after a 60 day break.',
         limitable: true,
       },
       {
@@ -186,7 +186,7 @@ def report_list
       {
         url: 'warehouse_reports/youth_follow_ups',
         name: 'Homeless Youth Follow Up Report',
-        description: 'Youth who require a three month follow up',
+        description: 'Youth who require a three month follow up.',
         limitable: true,
       },
       {
@@ -204,7 +204,19 @@ def report_list
       {
         url: 'warehouse_reports/overlapping_coc_utilization',
         name: 'Inter-CoC Client Overlap',
-        description: 'Explore enrollments for CoCs with shared clients',
+        description: 'Explore enrollments for CoCs with shared clients.',
+        limitable: true,
+      },
+      {
+        url: 'warehouse_reports/time_homeless_for_exits',
+        name: 'Average Length of Time Homeless for Housed Clients',
+        description: 'Time spent homeless for clients exiting homeless within a date range.',
+        limitable: true,
+      },
+      {
+        url: 'warehouse_reports/inactive_youth_intakes',
+        name: 'Inactive Youth',
+        description: 'Youth with an open intake and no case management activity in the given date range.',
         limitable: true,
       },
     ],
@@ -591,6 +603,12 @@ def report_list
         url: 'warehouse_reports/ad_hoc_anon_analysis',
         name: 'Ad-Hoc Analysis Export (De-identified)',
         description: 'Export data for offline analysis, client names and ids removed',
+        limitable: true,
+      },
+      {
+        url: 'warehouse_reports/hmis_cross_walks',
+        name: 'HMIS Cross-walk',
+        description: 'Export lookup tables for warehouse record ids to HMIS ids.',
         limitable: true,
       },
     ],

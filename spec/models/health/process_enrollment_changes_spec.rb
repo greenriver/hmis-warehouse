@@ -12,6 +12,7 @@ RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
     process('enrollment.txt')
 
     expect(Health::PatientReferral.current.count).to eq(referrals + 1)
+    expect(Health::PatientReferral.current.where(record_status: 'A').count).to eq(referrals + 1)
   end
 
   it 'does not duplicate enrollments' do
@@ -35,6 +36,7 @@ RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
     process('disenrollment.txt')
 
     expect(Health::PatientReferral.pending_disenrollment.count).to eq(pending + 1)
+    expect(Health::PatientReferral.pending_disenrollment.where(record_status: 'I').count).to eq(pending + 1)
   end
 
   it 're-enrolls a disenrolled patient' do

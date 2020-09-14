@@ -1,11 +1,11 @@
-require 'rails_drivers/routes'
-RailsDrivers::Routes.load_driver_routes
-
 Rails.application.routes.draw do
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   match "/404", to: "errors#not_found", via: :all
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
+
+  require 'rails_drivers/routes'
+  RailsDrivers::Routes.load_driver_routes
 
   class OnlyXhrRequest
     def matches?(request)
@@ -183,6 +183,7 @@ Rails.application.routes.draw do
     resources :ce_assessments, only: [:index]
     resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
+    resources :inactive_youth_intakes, only: [:index]
     resources :youth_intakes, only: [:index] do
       collection do
         get :details
@@ -307,6 +308,8 @@ Rails.application.routes.draw do
     end
     resources :ad_hoc_analysis, only: [:index, :create, :destroy, :show]
     resources :ad_hoc_anon_analysis, only: [:index, :create, :destroy, :show]
+    resources :hmis_cross_walks, only: [:index]
+    resources :time_homeless_for_exits, only: [:index]
     namespace :project do
       resource :data_quality do
         get :download, on: :member

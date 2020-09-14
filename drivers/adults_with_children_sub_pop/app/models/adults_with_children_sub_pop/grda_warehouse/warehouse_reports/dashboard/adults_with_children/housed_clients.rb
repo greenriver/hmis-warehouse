@@ -6,7 +6,6 @@
 
 module AdultsWithChildrenSubPop::GrdaWarehouse::WarehouseReports::Dashboard::AdultsWithChildren
   class HousedClients < ::GrdaWarehouse::WarehouseReports::Dashboard::Housed
-
     def client_source
       GrdaWarehouse::Hud::Client.destination.adults_with_children
     end

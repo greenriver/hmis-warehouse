@@ -7,6 +7,7 @@
 # NOTE: This should be updated and added to for any functionality or additional attributes and only overridden where the defaults are different or where the options are incompatible with this base class.
 module Filters
   class FilterBase < ::ModelForm
+    include AvailableSubPopulations
     include ArelHelper
 
     attribute :start, Date, lazy: true, default: -> (r,_) { r.default_start }
@@ -17,6 +18,7 @@ module Filters
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
     attribute :project_type_codes, Array, default: -> (r,_) { r.default_project_type_codes }
+    attribute :project_type_numbers, Array, default: -> (r,_) { [] }
     attribute :veteran_statuses, Array, default: []
     attribute :age_ranges, Array, default: []
     attribute :genders, Array, default: []
@@ -71,6 +73,7 @@ module Filters
       self.household_type = filters.dig(:household_type)&.to_sym
       self.heads_of_household = self.hoh_only = filters.dig(:hoh_only).in?(['1', 'true', true])
       self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject { |type| type.blank? }.presence
+      self.project_type_numbers = filters.dig(:project_type_numbers)&.reject(&:blank?)&.map(&:to_i)
       self.data_source_ids = filters.dig(:data_source_ids)&.reject(&:blank?)&.map(&:to_i)
       self.organization_ids = filters.dig(:organization_ids)&.reject(&:blank?)&.map(&:to_i)
       self.project_ids = filters.dig(:project_ids)&.reject(&:blank?)&.map(&:to_i)
@@ -85,6 +88,7 @@ module Filters
       self.prior_living_situation_ids = filters.dig(:prior_living_situation_ids)&.reject(&:blank?)&.map { |m| m.to_i }
       self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map { |m| m.to_i }
       self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map { |m| m.to_sym }
+      self.cohort_ids = filters.dig(:cohort_ids)&.reject(&:blank?)&.map { |m| m.to_i }
       ensure_dates_work
     end
 
@@ -97,6 +101,7 @@ module Filters
           coc_codes: coc_codes,
           household_type: household_type,
           project_type_codes: project_type_codes,
+          project_type_numbers: project_type_numbers,
           data_source_ids: data_source_ids,
           organization_ids: organization_ids,
           project_ids: project_ids,
@@ -151,10 +156,9 @@ module Filters
       @effective_project_ids += effective_project_ids_from_organizations
       @effective_project_ids += effective_project_ids_from_data_sources
       @effective_project_ids += effective_project_ids_from_coc_codes
-      if @effective_project_ids.empty?
-        @effective_project_ids = all_project_ids
-      end
-      return @effective_project_ids.uniq.reject(&:blank?)
+      @effective_project_ids = all_project_ids if @effective_project_ids.empty?
+
+      @effective_project_ids.uniq.reject(&:blank?)
     end
 
     def all_projects?
@@ -199,8 +203,8 @@ module Filters
 
       GrdaWarehouse::ProjectGroup.joins(:projects).
         merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
-          where(id: projects).
-          pluck(p_t[:id].as('project_id'))
+        where(id: projects).
+        pluck(p_t[:id].as('project_id'))
     end
 
     def effective_project_ids_from_organizations
@@ -268,7 +272,7 @@ module Filters
     end
 
     def organization_options_for_select(user: )
-      all_organizations_scope.options_for_select(user: user)
+      all_organizations_scope.distinct.options_for_select(user: user)
     end
 
     def data_source_options_for_select(user: )
@@ -280,11 +284,15 @@ module Filters
     end
 
     def coc_code_options_for_select(user: )
-      all_coc_code_scope.options_for_select(user: user)
+      GrdaWarehouse::Lookups::CocCode.options_for_select(user: user)
     end
 
     def project_groups_options_for_select(user: )
       all_project_group_scope.options_for_select(user: user)
+    end
+
+    def cohorts_for_select(user: )
+      GrdaWarehouse::Cohort.viewable_by(user)
     end
     # End Select display options
 
@@ -302,10 +310,16 @@ module Filters
       GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.invert
     end
 
+    def available_project_type_numbers
+      ::HUD.project_types.invert
+    end
+
     def project_type_ids
-      GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
+      ids = GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
         *project_type_codes.reject(&:blank?).map(&:to_sym)
       ).flatten
+      ids += project_type_numbers if project_type_numbers.any?
+      ids
     end
 
     def selected_project_type_names
@@ -367,6 +381,10 @@ module Filters
 
     def default_project_type_codes
       GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
+    end
+
+    def default_project_type_numbers
+      GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
     def to_comparison

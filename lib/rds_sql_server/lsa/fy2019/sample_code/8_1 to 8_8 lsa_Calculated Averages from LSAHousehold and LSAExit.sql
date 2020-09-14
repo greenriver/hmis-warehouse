@@ -9,7 +9,8 @@ Date:  4/7/2020
 					- Split 8.6 and 8.7 into separate statements to produce appropriate ReportRow and SystemPath values
 					  (see GitHub issue #290)
 		7/30/2020 - step 8.1/2.9 - correct criteria for SystemPath consistent with specs
-
+		9/2/2020 - remove 'pop.PopID between 0 and 4' from the WHERE clause in 8.6, add it to 8.7 (where it belongs), 
+					 and add SystemPath criteria to join to ref_Populations in 8.7
 
 	8.1 and 8.2 Average Days for Length of Time Homeless 
 */
@@ -392,8 +393,7 @@ Date:  4/7/2020
 		and (lh.HoHRace = pop.HoHRace or pop.HoHRace is null)
 		and (lh.HoHEthnicity = pop.HoHEthnicity or pop.HoHEthnicity is null)
 		and (lh.SystemPath = pop.SystemPath or pop.SystemPath is null)
-	where lh.RRHStatus > 2 
-		and pop.Core = 1
+	where lh.RRHStatus > 2 and pop.Core = 1
 	group by pop.PopID
 		, pop.HHType
 		, case when lh.RRHMoveIn in (1,2) then 14
@@ -502,7 +502,7 @@ Date:  4/7/2020
 		and (lx.HoHEthnicity = pop.HoHEthnicity or pop.HoHEthnicity is null)
 		and (lx.SystemPath = pop.SystemPath or pop.SystemPath is null)
 	where lx.ReturnTime > 0 
-		and pop.ReturnSummary = 1 and pop.PopID between 0 and 4 
+		and pop.ReturnSummary = 1 
 		and pop.SystemPath is null
 	group by pop.PopID, lx.ReportID
 		, lx.Cohort
@@ -530,9 +530,11 @@ Date:  4/7/2020
 	inner join ref_Populations pop on
 		(lx.HHType = pop.HHType or pop.HHType is null)
 		and (lx.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
-		and (lx.HHVet = pop.HHVet or pop.HHVet is null)	where lx.ReturnTime > 0 
+		and (lx.HHVet = pop.HHVet or pop.HHVet is null)
+		and (lx.SystemPath = pop.SystemPath or pop.SystemPath is null)
+	where lx.ReturnTime > 0 
 	    and lx.SystemPath <> -1 --290
-		and pop.ReturnSummary = 1
+		and pop.PopID between 0 and 4
 	group by pop.PopID, lx.ReportID
 		, lx.Cohort
 		, case when lx.ExitTo between 1 and 6 then 2

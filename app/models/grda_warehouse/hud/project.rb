@@ -12,10 +12,12 @@ module GrdaWarehouse::Hud
     include ProjectReport
     include ::HMIS::Structure::Project
     include RailsDrivers::Extensions
+    
+    attr_accessor :source_id
 
     self.table_name = :Project
-    self.hud_key = :ProjectID
-    acts_as_paranoid column: :DateDeleted
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
+
     has_paper_trail
 
    include Filterable
@@ -195,6 +197,10 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :enrollments_combined, -> do
+      where(combine_enrollments: true)
+    end
+
     scope :active_on, ->(date) do
       where(
         p_t[:OperatingEndDate].gteq(date).or(p_t[:OperatingEndDate].eq(nil)).
@@ -202,6 +208,12 @@ module GrdaWarehouse::Hud
             or(p_t[:OperatingStartDate].lteq(date).and(p_t[:operating_start_date_override].eq(nil))).
             or(p_t[:operating_start_date_override].lteq(date))),
       )
+    end
+
+    scope :active_during, ->(range) do
+      p_start = cl(p_t[:operating_start_date_override], p_t[:OperatingStartDate])
+      p_end = p_t[:OperatingEndDate]
+      where(p_end.gteq(range.first).or(p_end.eq(nil)).and(p_start.lteq(range.last)))
     end
 
     def coc_funded?
@@ -220,6 +232,7 @@ module GrdaWarehouse::Hud
       )
 
     end
+
     def serves_families?
       if @serves_families.nil?
         @serves_families = self.class.serves_families.exists?(id)
@@ -234,6 +247,7 @@ module GrdaWarehouse::Hud
           or(p_t[:id].not_in(lit(GrdaWarehouse::Hud::Project.serves_families.select(:id).to_sql)))
       )
     end
+
     def serves_individuals?
       if @serves_individuals.nil?
         @serves_individuals = self.class.serves_individuals.exists?(id)
@@ -628,6 +642,10 @@ module GrdaWarehouse::Hud
 
     def confidential_hint
       'If marked as confidential, the project name will be replaced with "Confidential Project" within individual client pages. Users with the "Can view confidential enrollment details" will still see the project name.'
+    end
+
+    def combine_enrollments_hint
+      'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
     end
 
     def safe_project_name

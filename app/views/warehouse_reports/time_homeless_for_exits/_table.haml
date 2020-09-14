@@ -1,0 +1,23 @@
+.text-right.mb-4
+  = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+    %i.icon-download2
+    Download Excel
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Client
+        %th Days Homeless
+        %th Entry Date
+        %th Exit Date/Move-in-Date
+        %th Destination/PH Project
+        %th Homeless Project
+    %tbody
+      - @report.data.each do |client|
+        %tr
+          %td= link_to client.client.name, client_path(client.client)
+          %td= client.days
+          %td= client.entry_date
+          %td= client.exit_date
+          %td= client.destination
+          %td= link_to client.project_name, project_path(client.project_id)

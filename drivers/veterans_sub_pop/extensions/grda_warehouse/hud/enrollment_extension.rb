@@ -3,7 +3,7 @@ module VeteransSubPop::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
-      scope :veterans, ->  do
+      scope :veterans, -> do
         joins(:client).merge(GrdaWarehouse::Hud::Client.veterans)
       end
 

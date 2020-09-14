@@ -81,5 +81,6 @@ module BostonHmis
     config.census = {}
     config.monthly_reports = {}
     config.hud_reports = []
+    config.hmis_importers = []
   end
 end

@@ -25,6 +25,7 @@ module Importing::HudZip
         'Importers::HmisTwentyTwenty::Sftp',
         'Importers::HMISSixOneOne::S3',
         'Importers::HmisTwentyTwenty::S3',
+        'Importers::HmisAutoDetect::S3',
       ].freeze
     end
   end

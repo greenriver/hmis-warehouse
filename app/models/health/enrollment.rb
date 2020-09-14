@@ -63,6 +63,14 @@ module Health
       NM1(transaction).detect{|h| h.keys.include? :E1035}[:E1035][:value][:raw]
     end
 
+    def self.middle_initial(transaction)
+      NM1(transaction).detect{|h| h.keys.include? :E1037}[:E1037][:value][:raw]
+    end
+
+    def self.name_suffix(transaction)
+      NM1(transaction).detect{|h| h.keys.include? :E1039}[:E1039][:value][:raw]
+    end
+
     def self.DOB(transaction)
       Date.parse(
         member(transaction).

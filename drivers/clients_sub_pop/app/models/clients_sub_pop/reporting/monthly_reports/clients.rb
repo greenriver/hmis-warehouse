@@ -6,9 +6,7 @@
 
 module ClientsSubPop::Reporting::MonthlyReports
   class Clients < ::Reporting::MonthlyReports::Base
-
-
-    def enrollment_scope start_date:, end_date:
+    def enrollment_scope(start_date:, end_date:)
       enrollment_source.clients.entry.
         open_between(start_date: start_date, end_date: end_date)
     end

@@ -6,7 +6,6 @@
 
 module NonVeteransSubPop::GrdaWarehouse::WarehouseReports::Dashboard::NonVeterans
   class HousedClients < ::GrdaWarehouse::WarehouseReports::Dashboard::Housed
-
     def client_source
       GrdaWarehouse::Hud::Client.destination.non_veterans
     end

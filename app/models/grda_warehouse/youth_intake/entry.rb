@@ -31,5 +31,9 @@ module GrdaWarehouse::YouthIntake
       :requesting_financial_assistance,
       :referred_to_shelter
 
+    def title
+      'Entry Intake'
+    end
+
   end
 end

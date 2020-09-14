@@ -15,12 +15,13 @@ module GrdaWarehouse::Hud
   class Inventory < Base
     include HudSharedScopes
     include ::HMIS::Structure::Inventory
-
-    self.table_name = 'Inventory'
-    self.hud_key = :InventoryID
-    acts_as_paranoid column: :DateDeleted
     include ArelHelper
     require 'csv'
+
+    attr_accessor :source_id
+
+    self.table_name = 'Inventory'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     FAMILY_HOUSEHOLD_TYPE = 3
     INDIVIDUAL_HOUSEHOLD_TYPE = 1
@@ -37,12 +38,13 @@ module GrdaWarehouse::Hud
     alias_attribute :beds, :BedInventory
 
     scope :within_range, -> (range) do
+      i_start = cl(i_t[:inventory_start_date_override], i_t[:InventoryStartDate])
+      i_end = i_t[:InventoryEndDate]
       where(
-        i_t[:InventoryEndDate].gteq(range.first).
-        or(i_t[:InventoryEndDate].eq(nil)).
-        and(i_t[:InventoryStartDate].lteq(range.last).
-          or(i_t[:InventoryStartDate].eq(nil))
-        )
+        i_end.gteq(range.first).
+        or(i_end.eq(nil)).
+        and(i_start.lteq(range.last).
+        or(i_start.eq(nil)))
       )
     end
 

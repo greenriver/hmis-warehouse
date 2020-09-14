@@ -16,6 +16,10 @@ Date:  4/7/2020
 				   9.2 - correct criteria for counting DQ issues in DateToStreetESSH for cohort 20 / LSA column HomelessDate3 
 					   - use Status1 consistently / remove superfluous joins to lsa_Report for DisablingCond1, LivingSituation1, 
 							LengthOfStay1, HomelessDate1, TimesHomeless1, MonthsHomeless1, DV1, Destination1, NotOneHoH1, and MoveInDate1
+	   9/2/2020 - 9.1 and 9.2 - add more DateDeleted restrictions
+				  9.2 - use dq_Enrollment and not hmis_Enrollment for ExitDate 
+	   9/3/2020 - 9.2 - correct criteria for NoCoC counts
+				  9.1 - compare DOB to CohortStart for the 3 year DQ period for Status3 (was using value for cohort 1)
 
 	9.1 Get Relevant Enrollments for Data Quality Checks
 */
@@ -45,7 +49,7 @@ select distinct n.EnrollmentID, n.PersonalID, n.HouseholdID, n.RelationshipToHoH
 				or c.DOB > n.EntryDate
 				or (c.DOB = n.EntryDate and n.RelationshipToHoH = 1)
 				or dateadd(yy, 105, c.DOB) <= n.EntryDate 
-				or dateadd(yy, 105, c.DOB) <= cd1.CohortStart 
+				or dateadd(yy, 105, c.DOB) <= cd3.CohortStart 
 			then 99
 		when dateadd(yy, 18, c.DOB) <= n.EntryDate 
 			or dateadd(yy, 18, c.DOB) <= cd3.CohortStart  then 1
@@ -68,9 +72,10 @@ from hmis_Enrollment n
 inner join lsa_Report rpt on n.EntryDate <= rpt.ReportEnd
 inner join hmis_EnrollmentCoC coc on coc.HouseholdID = n.HouseholdID 
 	and coc.CoCCode = rpt.ReportCoC and coc.InformationDate <= rpt.ReportEnd
+	and coc.DateDeleted is null
 inner join tlsa_CohortDates cd1 on cd1.Cohort = 1
 inner join tlsa_CohortDates cd3 on cd3.Cohort = 20
-inner join lsa_Project p on p.ProjectID = n.ProjectID
+inner join lsa_Project p on p.ProjectID = n.ProjectID 
 inner join hmis_Client c on c.PersonalID = n.PersonalID
 left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 	and x.DateDeleted is null 
@@ -81,10 +86,12 @@ left outer join (select distinct hh.HouseholdID, min(hh.MoveInDate) as MoveInDat
 	inner join hmis_Project p on p.ProjectID = hh.ProjectID
 	inner join hmis_EnrollmentCoC coc on coc.EnrollmentID = hh.EnrollmentID
 		and coc.CoCCode = rpt.ReportCoC
+		and coc.InformationDate <= rpt.ReportEnd
 		and coc.DateDeleted is null 
 	where p.ProjectType in (3,13) 
 		and hh.MoveInDate <= rpt.ReportEnd 
 		and p.ContinuumProject = 1
+		and hh.DateDeleted is null
 	group by hh.HouseholdID
 	) hhinfo on hhinfo.HouseholdID = n.HouseholdID
 --5/14/2020 add parentheses to WHERE clause 
@@ -148,19 +155,20 @@ update rpt
 	,   NoCoC = (select count (distinct n.HouseholdID)
 			from hmis_Enrollment n 
 			left outer join hmis_EnrollmentCoC coc on 
-				coc.EnrollmentID = n.EnrollmentID 
+				coc.EnrollmentID = n.EnrollmentID
+				and coc.InformationDate <= rpt.ReportEnd
 				and coc.DateDeleted is null 
 			inner join hmis_Project p on p.ProjectID = n.ProjectID
 				and p.ContinuumProject = 1 and p.ProjectType in (1,2,3,8,13)
 			inner join hmis_ProjectCoC pcoc on pcoc.CoCCode = rpt.ReportCoC
 				and pcoc.DateDeleted is null 
 			left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
-				and x.ExitDate >= dateadd(yy, -3, rpt.ReportStart)
-				and x.DateDeleted is null 
+				and x.DateDeleted is null
 			where n.EntryDate <= rpt.ReportEnd 
+				and (x.ExitDate is null or x.ExitDate >= (select CohortStart from tlsa_CohortDates where Cohort = 20))
 				and n.RelationshipToHoH = 1 
 				and coc.CoCCode is null
-				and coc.DateDeleted is null)
+				and n.DateDeleted is null)
 	,	SSNNotProvided = (select count(distinct n.PersonalID)
 			from dq_Enrollment n
 			where n.SSNValid is null)
@@ -413,7 +421,7 @@ update rpt
 			from dq_Enrollment n
 			left outer join (select hn.HouseholdID, count(distinct hn.EnrollmentID) as hoh
 				from hmis_Enrollment hn
-				where hn.RelationshipToHoH = 1
+				where hn.RelationshipToHoH = 1 and hn.DateDeleted is null 
 				group by hn.HouseholdID
 				) hoh on hoh.HouseholdID = n.HouseholdID
 			where n.Status1 is not null and (hoh.hoh <> 1 or hoh.HouseholdID is null))
@@ -421,7 +429,7 @@ update rpt
 			from dq_Enrollment n
 			left outer join (select hn.HouseholdID, count(distinct hn.EnrollmentID) as hoh
 				from hmis_Enrollment hn
-				where hn.RelationshipToHoH = 1
+				where hn.RelationshipToHoH = 1 and hn.DateDeleted is null
 				group by hn.HouseholdID
 			) hoh on hoh.HouseholdID = n.HouseholdID
 			where hoh.hoh <> 1 or hoh.HouseholdID is null)
@@ -442,8 +450,8 @@ update rpt
 				and x.DateDeleted is null 
 			where n.RelationshipToHoH = 1
 				and n.ProjectType in (3,13)
-				and (x.ExitDate is null or x.ExitDate >= rpt.ReportStart)
-				and ((n.MoveInDate < n.EntryDate or n.MoveInDate > x.ExitDate)
+				and (n.ExitDate is null or n.ExitDate >= rpt.ReportStart)
+				and ((n.MoveInDate < n.EntryDate or n.MoveInDate > n.ExitDate)
 					or (x.Destination in (3,31,19,20,21,26,28,10,11,22,23,33,34) 
 						and n.MoveInDate is null))), 0)
 from lsa_Report rpt
