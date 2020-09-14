@@ -1,5 +1,5 @@
 # Developer Data Loading
-This document should give you some very basic developer data to work with.  If you haven't already, follow [follow the developer setup instructions here](developer_setup.md).  There is an assumption that you are running the warehouse in docker, and that it will be accessible via https://hmis-warehouse.dev.test.  You may need to adjust to your environment.
+This document should give you some very basic developer data to work with.  If you haven't already, [follow the developer setup instructions here](developer_setup.md).  There is an assumption that you are running the warehouse in docker, and that it will be accessible via https://hmis-warehouse.dev.test.  You may need to adjust to your environment.
 
 1. Start a few delayed job workers.  Depending on your development machine capacity, you may want to start anywhere between one and five.  Having more than one will speed up the initial data load process.  In individual terminals run:
   ```
