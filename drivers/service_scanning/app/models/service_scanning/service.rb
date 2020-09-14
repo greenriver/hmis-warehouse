@@ -53,7 +53,7 @@ module ServiceScanning
 
     validates_presence_of :project_id
 
-    def self.project_options_for_select(_user:)
+    def self.project_options_for_select(user:)
       # ::GrdaWarehouse::Hud::Project.options_for_select(user: user)
       # Don't delegate this to project since we want a limited set and
       # the user may not have "access" to the project
