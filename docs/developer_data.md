@@ -5,8 +5,8 @@ This document should give you some very basic developer data to work with.  If y
   ```
   docker-compose run --rm shell bin/rake jobs:work
   ```
-2. Setup a new data source to hold the data. Visit https://hmis-warehouse.dev.test/data_sources, click *Add Data Source* and give it a Name and Short Name.
-3. Manually load an initial test HMIS CSV data set.  You can find a reasonable zip file to load in `spec/fixtures/files/lsa/fy2019/sample_hmis_export.zip`.  Visit your new data source and click *Upload HUD HMIS ZIP*. Upload the sample zip file and wait for the delayed job to finish processing.
+2. Setup a new data source to hold the data. Visit https://hmis-warehouse.dev.test/data_sources, click **Add Data Source** and give it a Name and Short Name.
+3. Manually load an initial test HMIS CSV data set.  You can find a reasonable zip file to load in `spec/fixtures/files/lsa/fy2019/sample_hmis_export.zip`.  Visit your new data source and click **Upload HUD HMIS ZIP**. Upload the sample zip file and wait for the delayed job to finish processing.
 4. Once the delayed job has finished, run the similarity metric initialization
   ```
   docker-compose run --rm shell bin/rake similarity:initialize
