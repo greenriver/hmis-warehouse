@@ -10,6 +10,8 @@ module Reporting::Hud
       report = HudReports::ReportInstance.find(report_id)
       report.update(state: 'Started', started_at: Time.current)
 
+      raise 'Unknown HUD Report class' unless Rails.application.config.hud_reports[options[:generator_class]].present?
+
       @generator = class_name.constantize.new(report.options)
       @generator.class.questions.each do |name, klass|
         klass.new(@generator, report).run! unless questions.present? && questions.exclude?(name)

@@ -58,29 +58,33 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      # Number of households w/ no children
-      answer = @report.answer(question: table_name, cell: 'C2')
-      members = heads_of_household.where(a_t[:household_type].eq(:adults_only))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of households w/ children
-      answer = @report.answer(question: table_name, cell: 'D2')
-      members = heads_of_household.where(a_t[:household_type].eq(:adults_and_children))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of households w/ only children
-      answer = @report.answer(question: table_name, cell: 'E2')
-      members = heads_of_household.where(a_t[:household_type].eq(:only_children))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of households in unknown household type
-      answer = @report.answer(question: table_name, cell: 'F2')
-      members = heads_of_household.where(a_t[:household_type].eq(:unknown))
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      [
+        {
+          # Number of households w/ no children
+          cell: 'C2',
+          household_type: :adults_only,
+        },
+        {
+          # Number of households w/ children
+          cell: 'D2',
+          household_type: :adults_and_children,
+        },
+        {
+          # Number of households w/ only children
+          cell: 'E2',
+          household_type: :only_children,
+        },
+        {
+          # Number of households in unknown household type
+          cell: 'F2',
+          household_type: :unknown,
+        },
+      ].each do |col|
+        answer = @report.answer(question: table_name, cell: col[:cell])
+        members = heads_of_household.where(a_t[:household_type].eq(col[:household_type]))
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
 
       # PSH/RRH w/ move in date
       ps_rrh_w_move_in = universe.members.where(
@@ -93,29 +97,33 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      # w/ no children
-      answer = @report.answer(question: table_name, cell: 'C3')
-      members = ps_rrh_w_move_in.where(a_t[:household_type].eq(:adults_only))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # w/ children
-      answer = @report.answer(question: table_name, cell: 'D3')
-      members = ps_rrh_w_move_in.where(a_t[:household_type].eq(:adults_and_children))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # w/ no adults
-      answer = @report.answer(question: table_name, cell: 'E3')
-      members = ps_rrh_w_move_in.where(a_t[:household_type].eq(:children_only))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # in unknown household type
-      answer = @report.answer(question: table_name, cell: 'F3')
-      members = ps_rrh_w_move_in.where(a_t[:household_type].eq(:unknown))
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      [
+        {
+          # w/ no children
+          cell: 'C3',
+          household_type: :adults_only,
+        },
+        {
+          # w/ children
+          cell: 'D3',
+          household_type: :adults_and_children,
+        },
+        {
+          # w/ no adults
+          cell: 'E3',
+          household_type: :only_children,
+        },
+        {
+          # in unknown household type
+          cell: 'F3',
+          household_type: :unknown,
+        },
+      ].each do |col|
+        answer = @report.answer(question: table_name, cell: col[:cell])
+        members = ps_rrh_w_move_in.where(a_t[:household_type].eq(col[:household_type]))
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
     end
 
     private def q8b_pit_count
@@ -151,29 +159,33 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      # Without children
-      answer = @report.answer(question: table_name, cell: 'C' + row.to_s)
-      members = row_universe.where(a_t[:household_type].eq(:adults_only))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      #  Adults and children
-      answer = @report.answer(question: table_name, cell: 'D' + row.to_s)
-      members = row_universe.where(a_t[:household_type].eq(:adults_and_children))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Without adults
-      answer = @report.answer(question: table_name, cell: 'E' + row.to_s)
-      members = row_universe.where(a_t[:household_type].eq(:children_only))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Unknown family type
-      answer = @report.answer(question: table_name, cell: 'F' + row.to_s)
-      members = row_universe.where(a_t[:household_type].eq(:unknown))
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      [
+        {
+          # Without children
+          cell: 'C' + row.to_s,
+          household_type: :adults_only,
+        },
+        {
+          #  Adults and children
+          cell: 'D' + row.to_s,
+          household_type: :adults_and_children,
+        },
+        {
+          # Without adults
+          cell: 'E' + row.to_s,
+          household_type: :only_children,
+        },
+        {
+          # Unknown family type
+          cell: 'F' + row.to_s,
+          household_type: :unknown,
+        },
+      ].each do |col|
+        answer = @report.answer(question: table_name, cell: col[:cell])
+        members = row_universe.where(a_t[:household_type].eq(col[:household_type]))
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
     end
 
     private def pit_universe(month:)
@@ -252,7 +264,7 @@ module HudApr::Generators::Shared::Fy2020
           age: source_client.age_on(client_start_date),
           dob: source_client.DOB,
           dob_quality: source_client.DOBDataQuality,
-          head_of_household: last_service_history_enrollment.head_of_household,
+          head_of_household: last_service_history_enrollment[:head_of_household],
           household_id: last_service_history_enrollment.household_id,
           project_type: last_service_history_enrollment.project_type,
           move_in_date: last_service_history_enrollment.move_in_date,

@@ -97,6 +97,6 @@ class ReportsController < ApplicationController
   end
 
   def report_urls
-    @report_urls ||= Rails.application.config.hud_reports.map { |title, helper| [title, public_send(helper)] }
+    @report_urls ||= Rails.application.config.hud_reports.map { |_, report| [report[:title], public_send(report[:helper])] }
   end
 end

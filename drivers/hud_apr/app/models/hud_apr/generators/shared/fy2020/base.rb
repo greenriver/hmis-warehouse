@@ -6,6 +6,10 @@
 
 module HudApr::Generators::Shared::Fy2020
   class Base < HudReports::QuestionBase
+    # DEV NOTES: These can be run like so:
+    # options = {user_id: 1, coc_code: 'KY-500', start_date: '2018-10-01', end_date: '2019-09-30', project_ids: [1797], generator_class: 'HudApr::Generators::Apr::Fy2020::Generator'}
+    # HudApr::Generators::Shared::Fy2020::QuestionFour.new(options: options).run!
+
     def run!
       run_question!
     rescue Exception => e
