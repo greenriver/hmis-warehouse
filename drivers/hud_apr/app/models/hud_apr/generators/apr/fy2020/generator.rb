@@ -21,6 +21,8 @@ module HudApr::Generators::Apr::Fy2020
         'Q6' => HudApr::Generators::Shared::Fy2020::QuestionSix, # Data Quality
         'Q7' => HudApr::Generators::Apr::Fy2020::QuestionSeven, # Persons Served
         'Q8' => HudApr::Generators::Shared::Fy2020::QuestionEight, # Households Served
+
+        'Q11' => HudApr::Generators::Shared::Fy2020::QuestionEleven, # Age-Household Breakdown
       }.freeze
     end
   end
