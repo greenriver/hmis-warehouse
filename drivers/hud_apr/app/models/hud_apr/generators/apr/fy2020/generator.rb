@@ -16,13 +16,13 @@ module HudApr::Generators::Apr::Fy2020
 
     def self.questions
       {
-        'Q4' => HudApr::Generators::Shared::Fy2020::QuestionFour, # Project Identifiers in HMIS
-        'Q5' => HudApr::Generators::Shared::Fy2020::QuestionFive, # Report Validations Table
-        'Q6' => HudApr::Generators::Shared::Fy2020::QuestionSix, # Data Quality
-        'Q7' => HudApr::Generators::Apr::Fy2020::QuestionSeven, # Persons Served
-        'Q8' => HudApr::Generators::Shared::Fy2020::QuestionEight, # Households Served
+        'Question 4' => HudApr::Generators::Shared::Fy2020::QuestionFour, # Project Identifiers in HMIS
+        'Question 5' => HudApr::Generators::Shared::Fy2020::QuestionFive, # Report Validations Table
+        'Question 6' => HudApr::Generators::Shared::Fy2020::QuestionSix, # Data Quality
+        'Question 7' => HudApr::Generators::Apr::Fy2020::QuestionSeven, # Persons Served
+        'Question 8' => HudApr::Generators::Shared::Fy2020::QuestionEight, # Households Served
 
-        'Q11' => HudApr::Generators::Shared::Fy2020::QuestionEleven, # Age-Household Breakdown
+        'Question 11' => HudApr::Generators::Shared::Fy2020::QuestionEleven, # Age-Household Breakdown
       }.freeze
     end
   end

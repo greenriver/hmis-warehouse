@@ -63,5 +63,64 @@ module HudApr::Generators::Shared::Fy2020
     protected def report_living_situation_universe
       HudApr::Fy2020::AprLivingSituation
     end
+
+    private def a_t
+      @a_t ||= report_client_universe.arel_table
+    end
+
+    private def age_ranges
+      {
+        'Under 5' => a_t[:age].between(0..4),
+        '5-12' => a_t[:age].between(5..12),
+        '13-17' => a_t[:age].between(13..17),
+        '18-24' => a_t[:age].between(18..24),
+        '25-34' => a_t[:age].between(25..34),
+        '35-44' => a_t[:age].between(35..44),
+        '45-54' => a_t[:age].between(45..54),
+        '55-61' => a_t[:age].between(55..61),
+        '62+' => a_t[:age].gteq(62),
+        "Client Doesn't Know/Client Refused" => a_t[:dob_quality].in([8, 9]),
+        'Data Not Collected' => a_t[:dob_quality].not_in([8, 9]).and(a_t[:dob_quality].eq(99).or(a_t[:dob_quality].eq(nil)).or(a_t[:age].lt(0)).or(a_t[:age].eq(nil))),
+        'Total' => Arel.sql('1=1'), # include everyone
+      }
+    end
+
+    private def sub_populations
+      {
+        'Total' => Arel.sql('1=1'), # include everyone
+        'Without Children' => a_t[:household_type].eq(:adults_only),
+        'With Children and Adults' => a_t[:household_type].eq(:adults_and_children),
+        'With Only Children' => a_t[:household_type].eq(:children_only),
+        'Unknown Household Type' => a_t[:household_type].eq(:unknown),
+      }
+    end
+
+    private def adults?(enrollments)
+      enrollments.any? do |enrollment|
+        source_client = enrollment.source_client
+        client_start_date = [@report.start_date, enrollment.first_date_in_program].max
+        age = source_client.age_on(client_start_date)
+        next false if age.blank?
+
+        age >= 18
+      end
+    end
+
+    private def children?(enrollments)
+      enrollments.any? do |enrollment|
+        source_client = enrollment.source_client
+        client_start_date = [@report.start_date, enrollment.first_date_in_program].max
+        age = source_client.age_on(client_start_date)
+        next false if age.blank?
+
+        age < 18
+      end
+    end
+
+    private def unknown_ages?(enrollments)
+      enrollments.any? do |enrollment|
+        enrollment.source_client.DOB.blank?
+      end
+    end
   end
 end

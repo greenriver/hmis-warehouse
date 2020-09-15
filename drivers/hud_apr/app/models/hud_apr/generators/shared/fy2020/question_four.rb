@@ -6,7 +6,7 @@
 
 module HudApr::Generators::Shared::Fy2020
   class QuestionFour < Base
-    QUESTION_NUMBER = 'Q4'.freeze
+    QUESTION_NUMBER = 'Question 4'.freeze
     QUESTION_TABLE_NUMBER = 'Q4a'.freeze
 
     TABLE_HEADER = [

@@ -8,7 +8,7 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionEight < Base
     include ArelHelper
 
-    QUESTION_NUMBER = 'Q8'.freeze
+    QUESTION_NUMBER = 'Question 8'.freeze
     QUESTION_TABLE_NUMBERS = ['Q8a', 'Q8b'].freeze
 
     HEADER_ROW = [
@@ -34,8 +34,6 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q8a_persons_served
-      a_t = report_client_universe.arel_table
-
       table_name = 'Q8a'
       metadata = {
         header_row: HEADER_ROW,
@@ -72,7 +70,7 @@ module HudApr::Generators::Shared::Fy2020
         {
           # Number of households w/ only children
           cell: 'E2',
-          household_type: :only_children,
+          household_type: :children_only,
         },
         {
           # Number of households in unknown household type
@@ -111,7 +109,7 @@ module HudApr::Generators::Shared::Fy2020
         {
           # w/ no adults
           cell: 'E3',
-          household_type: :only_children,
+          household_type: :children_only,
         },
         {
           # in unknown household type
@@ -150,7 +148,6 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def pit_row(month:, table_name:, row:)
-      a_t = report_client_universe.arel_table
       row_universe = pit_universe(month: month)
 
       # Total
@@ -173,7 +170,7 @@ module HudApr::Generators::Shared::Fy2020
         {
           # Without adults
           cell: 'E' + row.to_s,
-          household_type: :only_children,
+          household_type: :children_only,
         },
         {
           # Unknown family type
@@ -189,8 +186,6 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def pit_universe(month:)
-      a_t = report_client_universe.arel_table
-
       heads_of_household = universe.members.where(a_t[:head_of_household].eq(true))
 
       pit_date = pit_date(month: month, before: @report.end_date)
@@ -272,34 +267,6 @@ module HudApr::Generators::Shared::Fy2020
           first_date_in_program: last_service_history_enrollment.first_date_in_program,
           last_date_in_program: last_service_history_enrollment.last_date_in_program,
         )
-      end
-    end
-
-    private def adults?(enrollments)
-      enrollments.any? do |enrollment|
-        source_client = enrollment.source_client
-        client_start_date = [@report.start_date, enrollment.first_date_in_program].max
-        age = source_client.age_on(client_start_date)
-        next false if age.blank?
-
-        age >= 18
-      end
-    end
-
-    private def children?(enrollments)
-      enrollments.any? do |enrollment|
-        source_client = enrollment.source_client
-        client_start_date = [@report.start_date, enrollment.first_date_in_program].max
-        age = source_client.age_on(client_start_date)
-        next false if age.blank?
-
-        age < 18
-      end
-    end
-
-    private def unknown_ages?(enrollments)
-      enrollments.any? do |enrollment|
-        enrollment.source_client.DOB.blank?
       end
     end
   end

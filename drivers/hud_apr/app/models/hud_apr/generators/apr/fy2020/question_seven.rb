@@ -43,7 +43,6 @@ module HudApr::Generators::Apr::Fy2020
     end
 
     private def pit_row(month:, table_name:, row:)
-      a_t = report_client_universe.arel_table
       row_universe = pit_universe(month: month)
 
       # Total
@@ -78,8 +77,6 @@ module HudApr::Generators::Apr::Fy2020
     end
 
     private def pit_universe(month:)
-      a_t = report_client_universe.arel_table
-
       pit_date = pit_date(month: month, before: @report.end_date)
       psh_rrh_universe = universe.members.where(
         a_t[:first_date_in_program].lteq(pit_date).

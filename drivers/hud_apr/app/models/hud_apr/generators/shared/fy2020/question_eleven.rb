@@ -6,17 +6,8 @@
 
 module HudApr::Generators::Shared::Fy2020
   class QuestionEleven < Base
-    QUESTION_NUMBER = 'Q11'.freeze
+    QUESTION_NUMBER = 'Question 11'.freeze
     QUESTION_TABLE_NUMBER = 'Q11'.freeze
-
-    TABLE_HEADER = [
-      ' ',
-      'Total',
-      'Without Children',
-      'With Children and Adults',
-      'With Only Children',
-      'Unknown Household Type',
-    ].freeze
 
     def self.question_number
       QUESTION_NUMBER
@@ -25,29 +16,68 @@ module HudApr::Generators::Shared::Fy2020
     def run_question!
       @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
 
-      # cell_columns = ('A'..'N').to_a
-      # project_rows.each_with_index do |row, row_index|
-      #   row.each_with_index do |value, column_index|
-      #     cell_name = cell_columns[column_index] + (row_index + 2).to_s
-      #     @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell_name).update(summary: value)
-      #   end
-      # end
+      metadata = {
+        header_row: [' '] + sub_populations.keys,
+        row_labels: age_ranges.keys,
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 13,
+      }
+      @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
 
-      # metadata = {
-      #   header_row: TABLE_HEADER,
-      #   row_labels: [],
-      #   first_column: 'A',
-      #   last_column: 'N',
-      #   first_row: 2,
-      #   last_row: project_rows.size + 1,
-      # }
-      # @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      sub_populations.each_with_index do |(_, population_clause), col_index|
+        age_ranges.to_a.each_with_index do |(_, age_clause), row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
 
-      # @report.complete(QUESTION_NUMBER)
+          answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell)
+          members = universe.members.
+            where(population_clause).
+            where(age_clause)
+          answer.add_members(members)
+          answer.update(summary: members.count)
+        end
+      end
+
+      @report.complete(QUESTION_NUMBER)
+    end
+
+    private def intentionally_blank
+      [
+        'C2',
+        'C3',
+        'C4',
+        'E5',
+        'E6',
+        'E7',
+        'E8',
+        'E9',
+        'E10',
+      ].freeze
     end
 
     private def universe
-      @universe ||= build_universe(QUESTION_NUMBER) do |_, enrollments|
+      batch_initializer = ->(clients_with_enrollments) do
+        household_members = {}
+        clients_with_enrollments.each do |_, enrollments|
+          last_service_history_enrollment = enrollments.last
+          household_members[last_service_history_enrollment.household_id] ||= []
+          household_members[last_service_history_enrollment.household_id] << last_service_history_enrollment
+        end
+
+        @household_types = household_members.transform_values do |enrollments|
+          next :adults_and_children if adults?(enrollments) && children?(enrollments)
+          next :adults_only if adults?(enrollments) && ! children?(enrollments) && ! unknown_ages?(enrollments)
+          next :children_only if children?(enrollments) && ! adults?(enrollments) && ! unknown_ages?(enrollments)
+
+          :unknown
+        end
+      end
+
+      @universe ||= build_universe(QUESTION_NUMBER, before_block: batch_initializer) do |_, enrollments|
         last_service_history_enrollment = enrollments.last
         source_client = last_service_history_enrollment.source_client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
@@ -58,12 +88,7 @@ module HudApr::Generators::Shared::Fy2020
           report_instance_id: @report.id,
 
           age: source_client.age_on(client_start_date),
-          dob: source_client.DOB,
           dob_quality: source_client.DOBDataQuality,
-          head_of_household: last_service_history_enrollment.head_of_household,
-          household_id: last_service_history_enrollment.household_id,
-          project_type: last_service_history_enrollment.project_type,
-          move_in_date: last_service_history_enrollment.move_in_date,
           household_type: @household_types[last_service_history_enrollment.household_id],
           first_date_in_program: last_service_history_enrollment.first_date_in_program,
           last_date_in_program: last_service_history_enrollment.last_date_in_program,

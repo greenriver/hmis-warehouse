@@ -8,7 +8,7 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionSix < Base
     include ArelHelper
 
-    QUESTION_NUMBER = 'Q6'.freeze
+    QUESTION_NUMBER = 'Question 6'.freeze
     QUESTION_TABLE_NUMBERS = ('Q6a'..'Q6f').to_a.freeze
 
     def self.question_number

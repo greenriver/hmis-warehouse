@@ -8,7 +8,7 @@ module HudApr::Generators::Shared::Fy2020
   class QuestionFive < Base
     include ArelHelper
 
-    QUESTION_NUMBER = 'Q5'.freeze
+    QUESTION_NUMBER = 'Question 5'.freeze
     QUESTION_TABLE_NUMBER = 'Q5a'.freeze
 
     TABLE_HEADER = [].freeze
@@ -37,8 +37,6 @@ module HudApr::Generators::Shared::Fy2020
 
     def run_question! # rubocop:disable Metrics/AbcSize
       @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
-
-      a_t = report_client_universe.arel_table
 
       metadata = {
         header_row: TABLE_HEADER,
