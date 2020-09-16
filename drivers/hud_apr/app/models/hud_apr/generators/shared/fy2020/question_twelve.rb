@@ -5,58 +5,77 @@
 ###
 
 module HudApr::Generators::Shared::Fy2020
-  class QuestionEleven < Base
-    QUESTION_NUMBER = 'Question 11'.freeze
-    QUESTION_TABLE_NUMBER = 'Q11'.freeze
+  class QuestionTwelve < Base
+    QUESTION_NUMBER = 'Question 12'.freeze
+    QUESTION_TABLE_NUMBERS = ['Q12a', 'Q12b'].freeze
 
     def self.question_number
       QUESTION_NUMBER
     end
 
     def run_question!
-      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
+      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
-      metadata = {
-        header_row: [' '] + sub_populations.keys,
-        row_labels: age_ranges.keys,
-        first_column: 'B',
-        last_column: 'F',
-        first_row: 2,
-        last_row: 13,
-      }
-      @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      sub_populations.each_with_index do |(_, population_clause), col_index|
-        age_ranges.to_a.each_with_index do |(_, age_clause), row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
-
-          answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell)
-          members = universe.members.
-            where(population_clause).
-            where(age_clause)
-          answer.add_members(members)
-          answer.update(summary: members.count)
-        end
-      end
+      q12a_race
+      q12b_ethnicity
 
       @report.complete(QUESTION_NUMBER)
     end
 
-    private def intentionally_blank
-      [
-        'C2',
-        'C3',
-        'C4',
-        'E5',
-        'E6',
-        'E7',
-        'E8',
-        'E9',
-        'E10',
-      ].freeze
+    private def q12a_race
+      table_name = 'Q12a'
+      metadata = {
+        header_row: [' '] + sub_populations.keys,
+        row_labels: races.map { |_, m| m[:label] },
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 10,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      sub_populations.each_with_index do |(_, population_clause), col_index|
+        races.each_with_index do |(_, race), row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+
+          answer = @report.answer(question: table_name, cell: cell)
+          members = universe.members.
+            where(population_clause).
+            where(race[:clause])
+          answer.add_members(members)
+          answer.update(summary: members.count)
+        end
+      end
+    end
+
+    private def q12b_ethnicity
+      table_name = 'Q12b'
+      metadata = {
+        header_row: [' '] + sub_populations.keys,
+        row_labels: ethnicities.map { |_, m| m[:label] },
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 6,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      sub_populations.each_with_index do |(_, population_clause), col_index|
+        ethnicities.each_with_index do |(_, ethnicity), row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+
+          answer = @report.answer(question: table_name, cell: cell)
+          members = universe.members.
+            where(population_clause).
+            where(ethnicity[:clause])
+          answer.add_members(members)
+          answer.update(summary: members.count)
+        end
+      end
     end
 
     private def universe
@@ -72,15 +91,14 @@ module HudApr::Generators::Shared::Fy2020
       @universe ||= build_universe(QUESTION_NUMBER, before_block: batch_initializer) do |_, enrollments|
         last_service_history_enrollment = enrollments.last
         source_client = last_service_history_enrollment.source_client
-        client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
         report_client_universe.new(
           client_id: source_client.id,
           data_source_id: source_client.data_source_id,
           report_instance_id: @report.id,
 
-          age: source_client.age_on(client_start_date),
-          dob_quality: source_client.DOBDataQuality,
+          race: calculate_race(source_client),
+          ethnicity: source_client.Ethnicity,
           household_type: @household_types[last_service_history_enrollment.household_id],
           first_date_in_program: last_service_history_enrollment.first_date_in_program,
           last_date_in_program: last_service_history_enrollment.last_date_in_program,

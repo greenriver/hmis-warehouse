@@ -89,14 +89,15 @@ module HUD
     _translate map, field, reverse
   end
 
+  # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
   def races
     {
-      'AmIndAKNative' => 'American Indian or Alaska Native',
-      'Asian' => 'Asian',
-      'BlackAfAmerican' => 'Black or African American',
-      'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander',
-      'White' => 'White',
-      'RaceNone' => 'None',
+      'AmIndAKNative' => 'American Indian or Alaska Native', # 1
+      'Asian' => 'Asian', # 2
+      'BlackAfAmerican' => 'Black or African American', # 3
+      'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander', # 4
+      'White' => 'White', # 5
+      'RaceNone' => 'None', # 6 (can be 99, 8, 9, null only if all other race fields are 99 or 0)
     }
   end
 

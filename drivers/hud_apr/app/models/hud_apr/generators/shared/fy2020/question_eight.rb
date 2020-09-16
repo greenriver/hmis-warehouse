@@ -230,19 +230,11 @@ module HudApr::Generators::Shared::Fy2020
 
     private def universe
       batch_initializer = ->(clients_with_enrollments) do
-        household_members = {}
+        @household_types = {}
         clients_with_enrollments.each do |_, enrollments|
           last_service_history_enrollment = enrollments.last
-          household_members[last_service_history_enrollment.household_id] ||= []
-          household_members[last_service_history_enrollment.household_id] << last_service_history_enrollment
-        end
-
-        @household_types = household_members.transform_values do |enrollments|
-          next :adults_and_children if adults?(enrollments) && children?(enrollments)
-          next :adults_only if adults?(enrollments) && ! children?(enrollments) && ! unknown_ages?(enrollments)
-          next :children_only if children?(enrollments) && ! adults?(enrollments) && ! unknown_ages?(enrollments)
-
-          :unknown
+          hh_id = last_service_history_enrollment.household_id
+          @household_types[hh_id] = household_makeup(hh_id, [@report.start_date, last_service_history_enrollment.first_date_in_program].max)
         end
       end
 

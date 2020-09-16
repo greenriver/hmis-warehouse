@@ -46,21 +46,38 @@ module HudApr::Generators::Shared::Fy2020
       universe_cell
     end
 
-    protected def clients_with_enrollments(batch)
+    private def clients_with_enrollments(batch)
+      enrollment_scope.where(client_id: batch.map(&:id)).group_by(&:client_id)
+    end
+
+    private def enrollment_scope
+      # FIXME: shouldn't this be limited to enrollments open during the range?
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         joins(:enrollment).
-        preload(enrollment: [:client, :disabilities, :current_living_situations, :services]).
-        where(client_id: batch.map(&:id))
+        preload(enrollment: [:client, :disabilities, :current_living_situations, :services])
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
-      scope.group_by(&:client_id)
+      scope
     end
 
-    protected def report_client_universe
+    private def ages_for(household_id, date)
+      households[household_id].map { |dob| GrdaWarehouse::Hud::Client.age(date: date, dob: dob) }
+    end
+
+    private def households
+      @households ||= {}.tap do |hh|
+        enrollment_scope.where(client_id: @generator.client_scope.select(:id)).find_each do |enrollment|
+          hh[enrollment.household_id] ||= []
+          hh[enrollment.household_id] << enrollment.enrollment.client.DOB
+        end
+      end
+    end
+
+    private def report_client_universe
       HudApr::Fy2020::AprClient
     end
 
-    protected def report_living_situation_universe
+    private def report_living_situation_universe
       HudApr::Fy2020::AprLivingSituation
     end
 
@@ -95,31 +112,140 @@ module HudApr::Generators::Shared::Fy2020
       }
     end
 
-    private def adults?(enrollments)
-      enrollments.any? do |enrollment|
-        source_client = enrollment.source_client
-        client_start_date = [@report.start_date, enrollment.first_date_in_program].max
-        age = source_client.age_on(client_start_date)
+    # NOTE: HUD, in the APR specifies these by order ID
+    # this practice is very brittle, so we'll copy those here and hard code those relationships
+    private def races
+      {
+        'AmIndAKNative' => {
+          order: 1,
+          label: 'American Indian or Alaska Native',
+          clause: a_t[:race].eq(race_number('AmIndAKNative')),
+        },
+        'Asian' => {
+          order: 2,
+          label: 'Asian',
+          clause: a_t[:race].eq(race_number('Asian')),
+        },
+        'BlackAfAmerican' => {
+          order: 3,
+          label: 'Black or African American',
+          clause: a_t[:race].eq(race_number('BlackAfAmerican')),
+        },
+        'NativeHIOtherPacific' => {
+          order: 4,
+          label: 'Native Hawaiian or Other Pacific Islander',
+          clause: a_t[:race].eq(race_number('NativeHIOtherPacific')),
+        },
+        'White' => {
+          order: 5,
+          label: 'White',
+          clause: a_t[:race].eq(race_number('White')),
+        },
+        'Multiple' => {
+          order: 7,
+          label: 'Multiple Races',
+          clause: a_t[:race].eq(6),
+        },
+        'Unknown' => {
+          order: 7,
+          label: "Client Doesn't Know/Client Refused",
+          clause: a_t[:race].in([8, 9]),
+        },
+        'Data Not Collected' => {
+          order: 8,
+          label: 'Data Not Collected',
+          clause: a_t[:race].eq(99),
+        },
+        'Total' => {
+          order: 9,
+          label: 'Total',
+          clause: Arel.sql('1=1'),
+        },
+      }.sort_by { |_, m| m[:order] }.freeze
+    end
+
+    private def race_fields
+      {
+        'AmIndAKNative' => 1,
+        'Asian' => 2,
+        'BlackAfAmerican' => 3,
+        'NativeHIOtherPacific' => 4,
+        'White' => 5,
+      }.freeze
+    end
+
+    private def race_number(code)
+      race_fields[code]
+    end
+
+    def calculate_race(client)
+      return client.RaceNone if client.RaceNone.in?([8, 9, 99]) # bad data
+      return 6 if client.race_fields.count > 1 # multi-racial
+      return 99 if client.race_fields.empty?
+
+      race_number(client.race_fields.first) # return the HUD numeral equivalent
+    end
+
+    private def ethnicities
+      {
+        '0' => {
+          order: 1,
+          label: 'Non-Hispanic/Non-Latino',
+          clause: a_t[:ethnicity].eq(0),
+        },
+        '1' => {
+          order: 2,
+          label: 'Hispanic/Latino',
+          clause: a_t[:ethnicity].eq(1),
+        },
+        '8 or 9' => {
+          order: 3,
+          label: 'Client Doesn’t Know/Client Refused',
+          clause: a_t[:ethnicity].in([8, 9]),
+        },
+        '99' => {
+          order: 4,
+          label: 'Data Not Collected',
+          clause: a_t[:ethnicity].eq(99).or(a_t[:ethnicity].eq(nil)),
+        },
+        'Total' => {
+          order: 5,
+          label: 'Total',
+          clause: Arel.sql('1=1'),
+        },
+      }.sort_by { |_, m| m[:order] }.freeze
+    end
+
+    private def household_makeup(household_id, date)
+      return :adults_and_children if adults?(ages_for(household_id, date)) && children?(ages_for(household_id, date))
+      return :adults_only if adults?(ages_for(household_id, date)) && ! children?(ages_for(household_id, date)) && ! unknown_ages?(ages_for(household_id, date))
+      return :children_only if children?(ages_for(household_id, date)) && ! adults?(ages_for(household_id, date)) && ! unknown_ages?(ages_for(household_id, date))
+
+      :unknown
+    end
+
+    private def adults?(ages)
+      ages.any? do |age|
         next false if age.blank?
 
         age >= 18
       end
     end
 
-    private def children?(enrollments)
-      enrollments.any? do |enrollment|
-        source_client = enrollment.source_client
-        client_start_date = [@report.start_date, enrollment.first_date_in_program].max
-        age = source_client.age_on(client_start_date)
+    private def children?(ages)
+      ages.any? do |age|
         next false if age.blank?
 
         age < 18
       end
     end
 
-    private def unknown_ages?(enrollments)
-      enrollments.any? do |enrollment|
-        enrollment.source_client.DOB.blank?
+    private def unknown_ages?(ages)
+      ages.any? do |age|
+        next true if age.blank?
+        next true if age < 1
+
+        false
       end
     end
   end

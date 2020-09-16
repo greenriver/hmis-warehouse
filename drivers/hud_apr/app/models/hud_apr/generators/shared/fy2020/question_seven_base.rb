@@ -261,19 +261,11 @@ module HudApr::Generators::Shared::Fy2020
 
     private def universe
       batch_initializer = ->(clients_with_enrollments) do
-        household_members = {}
+        @household_types = {}
         clients_with_enrollments.each do |_, enrollments|
           last_service_history_enrollment = enrollments.last
-          household_members[last_service_history_enrollment.household_id] ||= []
-          household_members[last_service_history_enrollment.household_id] << last_service_history_enrollment
-        end
-
-        @household_types = household_members.transform_values do |enrollments|
-          next :adults_and_children if adults?(enrollments) && children?(enrollments)
-          next :adults_only if adults?(enrollments) && ! children?(enrollments) && ! unknown_ages?(enrollments)
-          next :children_only if children?(enrollments) && ! adults?(enrollments) && ! unknown_ages?(enrollments)
-
-          :unknown
+          hh_id = last_service_history_enrollment.household_id
+          @household_types[hh_id] = household_makeup(hh_id, [@report.start_date, last_service_history_enrollment.first_date_in_program].max)
         end
       end
 
@@ -298,34 +290,6 @@ module HudApr::Generators::Shared::Fy2020
           first_date_in_program: last_service_history_enrollment.first_date_in_program,
           last_date_in_program: last_service_history_enrollment.last_date_in_program,
         )
-      end
-    end
-
-    private def adults?(enrollments)
-      enrollments.any? do |enrollment|
-        source_client = enrollment.source_client
-        client_start_date = [@report.start_date, enrollment.first_date_in_program].max
-        age = source_client.age_on(client_start_date)
-        next false if age.blank?
-
-        age >= 18
-      end
-    end
-
-    private def children?(enrollments)
-      enrollments.any? do |enrollment|
-        source_client = enrollment.source_client
-        client_start_date = [@report.start_date, enrollment.first_date_in_program].max
-        age = source_client.age_on(client_start_date)
-        next false if age.blank?
-
-        age < 18
-      end
-    end
-
-    private def unknown_ages?(enrollments)
-      enrollments.any? do |enrollment|
-        enrollment.source_client.DOB.blank?
       end
     end
   end

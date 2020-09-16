@@ -23,6 +23,7 @@ module HudApr::Generators::Apr::Fy2020
         'Question 8' => HudApr::Generators::Shared::Fy2020::QuestionEight, # Households Served
 
         'Question 11' => HudApr::Generators::Shared::Fy2020::QuestionEleven, # Age-Household Breakdown
+        'Question 12' => HudApr::Generators::Shared::Fy2020::QuestionTwelve, # Race & Ethnicity
       }.freeze
     end
   end

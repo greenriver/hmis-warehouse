@@ -181,20 +181,15 @@ module HudApr::Generators::Shared::Fy2020
     private def race_quality(table_name:)
       # Race DK/R / compute missing
       answer = @report.answer(question: table_name, cell: 'B5')
-      dkr_member_ids = []
-      m_member_ids = []
-      universe.members.find_each do |u_member|
-        member = u_member.universe_membership
-        dkr_member_ids << u_member.id if member.race.any?(8) || member.race.any?(9)
-        m_member_ids << u_member.id if member.race.all?(nil)
-      end
-      dkr_members = universe.members.where(id: dkr_member_ids)
+
+      dkr_members = universe.members.where(a_t[:race].in([8, 9]))
       answer.add_members(dkr_members)
       answer.update(summary: dkr_members.count)
 
       # Race missing
       answer = @report.answer(question: table_name, cell: 'C5')
-      m_members = universe.members.where(id: m_member_ids)
+      # m_members = universe.members.where(id: m_member_ids)
+      m_members = universe.members.where(a_t[:race].eq(99))
       answer.add_members(m_members)
       answer.update(summary: m_members.count)
 
@@ -876,7 +871,7 @@ module HudApr::Generators::Shared::Fy2020
           first_date_in_program: last_service_history_enrollment.first_date_in_program,
           last_date_in_program: last_service_history_enrollment.last_date_in_program,
           enrollment_created: enrollment.DateCreated,
-          race: HUD.races.keys.map { |key| source_client.public_send(key) },
+          race: calculate_race(source_client),
           ethnicity: source_client.Ethnicity,
           gender: source_client.Gender,
           veteran_status: source_client.VeteranStatus,
