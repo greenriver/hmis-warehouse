@@ -25,7 +25,7 @@ module HudApr::Generators::Shared::Fy2020
       ].freeze
     end
 
-    private def q7a_persons_served # rubocop:disable Metrics/AbcSize
+    private def q7a_persons_served
       table_name = 'Q7a'
       metadata = {
         header_row: header_row,
@@ -44,219 +44,187 @@ module HudApr::Generators::Shared::Fy2020
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      # Number of adults
-      answer = @report.answer(question: table_name, cell: 'B2')
-      members = universe.members.where(a_t[:age].gteq(18))
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      [
+        # Number of adults
+        {
+          cell: 'B2',
+          clause: adult_clause,
+        },
+        # Number of adults w/ no children
+        {
+          cell: 'C2',
+          clause: adult_clause.
+            and(a_t[:household_type].eq(:adults_only)),
+        },
+        # Number of adults w/ children
+        {
+          cell: 'D2',
+          clause: adult_clause.
+            and(a_t[:household_type].eq(:adults_and_children)),
+        },
+        # Number of adults in unknown household type
+        {
+          cell: 'F2',
+          clause: adult_clause.
+            and(a_t[:household_type].eq(:unknown)),
+        },
+        # Number of children
+        {
+          cell: 'B3',
+          clause: child_clause,
+        },
+        # Number of children w/ adults
+        {
+          cell: 'D3',
+          clause: child_clause.
+            and(a_t[:household_type].eq(:adults_and_children)),
+        },
+        # Number of children w/ no adults
+        {
+          cell: 'E3',
+          clause: child_clause.
+            and(a_t[:household_type].eq(:children_only)),
+        },
+        # Number of children in unknown household type
+        {
+          cell: 'F3',
+          clause: child_clause.
+            and(a_t[:household_type].eq(:unknown)),
+        },
+        # Number of DK/R
+        {
+          cell: 'B4',
+          clause: a_t[:dob_quality].in([8, 9]),
+        },
+        # Number of DK/R w/ no children
+        {
+          cell: 'C4',
+          clause: a_t[:dob_quality].in([8, 9]).
+            and(a_t[:household_type].eq(:adults_only)),
+        },
+        # Number of DK/R w/ children
+        {
+          cell: 'D4',
+          clause: a_t[:dob_quality].in([8, 9]).
+            and(a_t[:household_type].eq(:adults_and_children)),
+        },
+        # Number of DK/R w/ no adults
+        {
+          cell: 'E4',
+          clause: a_t[:dob_quality].in([8, 9]).
+            and(a_t[:household_type].eq(:children_only)),
+        },
+        # Number of DK/R in unknown household type
+        {
+          cell: 'F4',
+          clause: a_t[:dob_quality].in([8, 9]).
+            and(a_t[:household_type].eq(:unknown)),
+        },
+        # Number of NC
+        {
+          cell: 'B5',
+          clause: a_t[:dob_quality].eq(99),
+        },
+        # Number of NC w/ no children
+        {
+          cell: 'C5',
+          clause: a_t[:dob_quality].eq(99).
+            and(a_t[:household_type].eq(:adults_only)),
+        },
+        # Number of NC w/ children
+        {
+          cell: 'D5',
+          clause: a_t[:dob_quality].eq(99).
+            and(a_t[:household_type].eq(:adults_and_children)),
+        },
+        # Number of NC w/ no adults
+        {
+          cell: 'E5',
+          clause: a_t[:dob_quality].eq(99).
+            and(a_t[:household_type].eq(:children_only)),
+        },
+        # Number of NC in unknown household type
+        {
+          cell: 'F5',
+          clause: a_t[:dob_quality].eq(99).
+            and(a_t[:household_type].eq(:unknown)),
+        },
+        # Total
+        {
+          cell: 'B6',
+          clause: Arel.sql('1=1'),
+        },
+        # Total w/ no children
+        {
+          cell: 'C6',
+          clause: a_t[:household_type].eq(:adults_only),
+        },
+        # Total w/ children
+        {
+          cell: 'D6',
+          clause: a_t[:household_type].eq(:adults_and_children),
+        },
+        # Total w/ no adults
+        {
+          cell: 'E6',
+          clause: a_t[:household_type].eq(:children_only),
+        },
+        # Total in unknown household type
+        {
+          cell: 'F6',
+          clause: a_t[:household_type].eq(:unknown),
+        },
+        {
+          cell: 'B5',
+          clause: a_t[:dob_quality].eq(99),
+        },
+        {
+          cell: 'B5',
+          clause: a_t[:dob_quality].eq(99),
+        },
+      ].each do |cell|
+        answer = @report.answer(question: table_name, cell: cell[:cell])
+        members = universe.members.where(cell[:clause])
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
 
-      # Number of adults w/ no children
-      answer = @report.answer(question: table_name, cell: 'C2')
-      members = universe.members.where(
-        a_t[:age].gteq(18).
-          and(a_t[:household_type].eq(:adults_only)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of adults w/ children
-      answer = @report.answer(question: table_name, cell: 'D2')
-      members = universe.members.where(
-        a_t[:age].gteq(18).
-          and(a_t[:household_type].eq(:adults_and_children)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of adults in unknown household type
-      answer = @report.answer(question: table_name, cell: 'F2')
-      members = universe.members.where(
-        a_t[:age].gteq(18).
-          and(a_t[:household_type].eq(:unknown)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of children
-      answer = @report.answer(question: table_name, cell: 'B3')
-      members = universe.members.where(a_t[:age].lt(18))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of children w/ adults
-      answer = @report.answer(question: table_name, cell: 'D3')
-      members = universe.members.where(
-        a_t[:age].lt(18).
-          and(a_t[:household_type].eq(:adults_and_children)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of children w/ no adults
-      answer = @report.answer(question: table_name, cell: 'E3')
-      members = universe.members.where(
-        a_t[:age].lt(18).
-          and(a_t[:household_type].eq(:children_only)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of children in unknown household type
-      answer = @report.answer(question: table_name, cell: 'F3')
-      members = universe.members.where(
-        a_t[:age].lt(18).
-          and(a_t[:household_type].eq(:unknown)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of DK/R
-      answer = @report.answer(question: table_name, cell: 'B4')
-      members = universe.members.where(a_t[:dob_quality].in([8, 9]))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of DK/R w/ no children
-      answer = @report.answer(question: table_name, cell: 'C4')
-      members = universe.members.where(
-        a_t[:dob_quality].in([8, 9]).
-          and(a_t[:household_type].eq(:adults_only)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of DK/R w/ children
-      answer = @report.answer(question: table_name, cell: 'D4')
-      members = universe.members.where(
-        a_t[:dob_quality].in([8, 9]).
-          and(a_t[:household_type].eq(:adults_and_children)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of DK/R w/ no adults
-      answer = @report.answer(question: table_name, cell: 'E4')
-      members = universe.members.where(
-        a_t[:dob_quality].in([8, 9]).
-          and(a_t[:household_type].eq(:children_only)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of DK/R in unknown household type
-      answer = @report.answer(question: table_name, cell: 'F4')
-      members = universe.members.where(
-        a_t[:dob_quality].in([8, 9]).
-          and(a_t[:household_type].eq(:unknown)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of NC
-      answer = @report.answer(question: table_name, cell: 'B5')
-      members = universe.members.where(a_t[:dob_quality].eq(99))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of NC w/ no children
-      answer = @report.answer(question: table_name, cell: 'C5')
-      members = universe.members.where(
-        a_t[:dob_quality].eq(99).
-          and(a_t[:household_type].eq(:adults_only)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of NC w/ children
-      answer = @report.answer(question: table_name, cell: 'D5')
-      members = universe.members.where(
-        a_t[:dob_quality].eq(99).
-          and(a_t[:household_type].eq(:adults_and_children)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of NC w/ no adults
-      answer = @report.answer(question: table_name, cell: 'E5')
-      members = universe.members.where(
-        a_t[:dob_quality].eq(99).
-          and(a_t[:household_type].eq(:children_only)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of NC in unknown household type
-      answer = @report.answer(question: table_name, cell: 'F5')
-      members = universe.members.where(
-        a_t[:dob_quality].eq(99).
-          and(a_t[:household_type].eq(:unknown)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Total
-      answer = @report.answer(question: table_name, cell: 'B6')
-      members = universe.members
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Total w/ no children
-      answer = @report.answer(question: table_name, cell: 'C6')
-      members = universe.members.where(a_t[:household_type].eq(:adults_only))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Total w/ children
-      answer = @report.answer(question: table_name, cell: 'D6')
-      members = universe.members.where(a_t[:household_type].eq(:adults_and_children))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Total w/ no adults
-      answer = @report.answer(question: table_name, cell: 'E6')
-      members = universe.members.where(a_t[:household_type].eq(:children_only))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Total in unknown household type
-      answer = @report.answer(question: table_name, cell: 'F6')
-      members = universe.members.where(a_t[:household_type].eq(:unknown))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # PSH/RRH w/ move in date
       ps_rrh_w_move_in = universe.members.where(
         a_t[:project_type].in([3, 13]).
           and(a_t[:move_in_date].not_eq(nil)),
       )
-      answer = @report.answer(question: table_name, cell: 'B7')
-      members = ps_rrh_w_move_in
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # w/ no children
-      answer = @report.answer(question: table_name, cell: 'C7')
-      members = ps_rrh_w_move_in.where(a_t[:household_type].eq(:adults_only))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # w/ children
-      answer = @report.answer(question: table_name, cell: 'D7')
-      members = ps_rrh_w_move_in.where(a_t[:household_type].eq(:adults_and_children))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # w/ no adults
-      answer = @report.answer(question: table_name, cell: 'E7')
-      members = ps_rrh_w_move_in.where(a_t[:household_type].eq(:children_only))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # in unknown household type
-      answer = @report.answer(question: table_name, cell: 'F7')
-      members = ps_rrh_w_move_in.where(a_t[:household_type].eq(:unknown))
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      [
+        # PSH/RRH w/ move in date
+        {
+          cell: 'B7',
+          clause: Arel.sql('1=1'),
+        },
+        # w/ no children
+        {
+          cell: 'C7',
+          clause: a_t[:household_type].eq(:adults_only),
+        },
+        # w/ children
+        {
+          cell: 'D7',
+          clause: a_t[:household_type].eq(:adults_and_children),
+        },
+        # w/ no adults
+        {
+          cell: 'E7',
+          clause: a_t[:household_type].eq(:children_only),
+        },
+        # in unknown household type
+        {
+          cell: 'F7',
+          clause: a_t[:household_type].eq(:unknown),
+        },
+      ].each do |cell|
+        answer = @report.answer(question: table_name, cell: cell[:cell])
+        members = ps_rrh_w_move_in.where(cell[:clause])
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
     end
 
     private def universe

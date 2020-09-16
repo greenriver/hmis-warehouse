@@ -85,6 +85,14 @@ module HudApr::Generators::Shared::Fy2020
       @a_t ||= report_client_universe.arel_table
     end
 
+    private def child_clause
+      a_t[:age].between(0..17)
+    end
+
+    private def adult_clause
+      a_t[:age].gteq(18)
+    end
+
     private def age_ranges
       {
         'Under 5' => a_t[:age].between(0..4),

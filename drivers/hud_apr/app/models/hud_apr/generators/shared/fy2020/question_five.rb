@@ -35,7 +35,7 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question! # rubocop:disable Metrics/AbcSize
+    def run_question!
       @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
 
       metadata = {
@@ -54,114 +54,93 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      # Number of adults
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B2')
-      members = universe.members.where(a_t[:age].gteq(18))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of children
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B3')
-      members = universe.members.where(a_t[:age].lt(18))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of unknown ages
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B4')
-      members = universe.members.where(a_t[:age].eq(nil))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of leavers
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B5')
-      members = universe.members.where(a_t[:last_date_in_program].lteq(@report.end_date))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of adult leavers
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B6')
-      members = universe.members.where(
-        a_t[:last_date_in_program].lteq(@report.end_date).
-          and(a_t[:age].gteq(18)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of adult and HoH leavers
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B7')
-      members = universe.members.where(
-        a_t[:last_date_in_program].lteq(@report.end_date).
-          and(a_t[:age].gteq(18).
-            or(a_t[:head_of_household].eq(true))),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of stayers
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B8')
-      members = universe.members.where(a_t[:last_date_in_program].gt(@report.end_date))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of adult stayers
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B9')
-      members = universe.members.where(
-        a_t[:last_date_in_program].gt(@report.end_date).
-          and(a_t[:age].gteq(18)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of veterans
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B10')
-      members = universe.members.where(a_t[:veteran_status].eq(1))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of chronically homeless
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B11')
-      members = universe.members.where(a_t[:chronically_homeless].eq(true))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of youth under 25
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B12')
-      members = universe.members.where(
-        a_t[:age].lt(25).
-        and(a_t[:age].gteq(12)).
-        and(a_t[:other_clients_over_25].eq(false)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of parenting youth under 25 with children
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B13')
-      members = universe.members.where(
-        a_t[:age].lt(25).
-        and(a_t[:age].gteq(12)).
-        and(a_t[:parenting_youth].eq(true)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of adult HoH
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B14')
-      members = universe.members.where(
-        a_t[:age].gteq(18).
-        and(a_t[:head_of_household].eq(true)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # Number of child and unknown age HoH
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B15')
-      members = universe.members.where(
-        a_t[:age].lt(18).
-        or(a_t[:age].eq(nil)).
-        and(a_t[:head_of_household].eq(true)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      [
+        # Number of adults
+        {
+          cell: 'B2',
+          clause: adult_clause,
+        },
+        # Number of children
+        {
+          cell: 'B3',
+          clause: child_clause,
+        },
+        # Number of unknown ages
+        {
+          cell: 'B4',
+          clause: a_t[:age].eq(nil).or(a_t[:age].lt(0)),
+        },
+        # Number of leavers
+        {
+          cell: 'B5',
+          clause: a_t[:last_date_in_program].lteq(@report.end_date),
+        },
+        # Number of adult leavers
+        {
+          cell: 'B6',
+          clause: a_t[:last_date_in_program].lteq(@report.end_date).and(adult_clause),
+        },
+        # Number of adult and HoH leavers
+        {
+          cell: 'B7',
+          clause: a_t[:last_date_in_program].lteq(@report.end_date).
+            and(adult_clause.
+              or(a_t[:head_of_household].eq(true))),
+        },
+        # Number of stayers
+        {
+          cell: 'B8',
+          clause: a_t[:last_date_in_program].gt(@report.end_date),
+        },
+        # Number of adult stayers
+        {
+          cell: 'B9',
+          clause: a_t[:last_date_in_program].gt(@report.end_date).
+            and(adult_clause),
+        },
+        # Number of veterans
+        {
+          cell: 'B10',
+          clause: a_t[:veteran_status].eq(1),
+        },
+        # Number of chronically homeless
+        {
+          cell: 'B11',
+          clause: a_t[:chronically_homeless].eq(true),
+        },
+        # Number of youth under 25
+        {
+          cell: 'B12',
+          clause: a_t[:age].lt(25).
+            and(a_t[:age].gteq(12)).
+            and(a_t[:other_clients_over_25].eq(false)),
+        },
+        # Number of parenting youth under 25 with children
+        {
+          cell: 'B13',
+          clause: a_t[:age].lt(25).
+            and(a_t[:age].gteq(12)).
+            and(a_t[:parenting_youth].eq(true)),
+        },
+        # Number of adult HoH
+        {
+          cell: 'B14',
+          clause: adult_clause.
+            and(a_t[:head_of_household].eq(true)),
+        },
+        # Number of child and unknown age HoH
+        {
+          cell: 'B15',
+          clause: a_t[:age].lt(18).
+            or(a_t[:age].eq(nil)).
+            and(a_t[:head_of_household].eq(true)),
+        },
+      ].each do |cell|
+        answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell[:cell])
+        members = universe.members.where(cell[:clause])
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
 
       # HoH and adult stayers in project 365 days or more
       # "...any adult stayer present when the head of household’s stay is 365 days or more,
@@ -174,7 +153,7 @@ module HudApr::Generators::Shared::Fy2020
       ).pluck(:head_of_household_id)
       members = universe.members.where(
         a_t[:head_of_household_id].in(hoh_ids).
-          and(a_t[:age].gteq(18).
+          and(adult_clause.
             or(a_t[:head_of_household].eq(true))),
       )
       answer.add_members(members)

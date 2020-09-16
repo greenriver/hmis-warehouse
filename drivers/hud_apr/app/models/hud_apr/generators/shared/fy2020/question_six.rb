@@ -35,10 +35,23 @@ module HudApr::Generators::Shared::Fy2020
     private def q6a_pii
       table_name = 'Q6a'
       metadata = {
-        header_row: ['Data Element', 'Client Doesn’t Know/Refused', 'Information Missing',
-                     'Data Issues', 'Total', '% of Error Rate'],
-        row_labels: ['Name (3.01)', 'Social Security Number (3.02)', 'Date of Birth (3.03)', 'Race (3.04)',
-                     'Ethnicity (3.05)', 'Gender (3.06)', 'Overall Score'],
+        header_row: [
+          'Data Element',
+          'Client Doesn’t Know/Refused',
+          'Information Missing',
+          'Data Issues',
+          'Total',
+          '% of Error Rate',
+        ],
+        row_labels: [
+          'Name (3.01)',
+          'Social Security Number (3.02)',
+          'Date of Birth (3.03)',
+          'Race (3.04)',
+          'Ethnicity (3.05)',
+          'Gender (3.06)',
+          'Overall Score',
+        ],
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
@@ -433,11 +446,22 @@ module HudApr::Generators::Shared::Fy2020
     private def q6d_chronic_homelessness
       table_name = 'Q6d'
       metadata = {
-        header_row: ['Entering into project type', 'Count of total records', 'Missing time in institution (3.917.2)',
-                     'Missing time in housing (3.917.2)', 'Approximate Date started (3.917.3) DK/R/missing',
-                     'Number of times (3.917.4) DK/R/missing', 'Number of months (3.917.5) DK/R/missing',
-                     '% of records unable to calculate'],
-        row_labels: ['ES, SH, Street Outreach', 'TH', 'PH (all)', 'Total'],
+        header_row: [
+          'Entering into project type',
+          'Count of total records',
+          'Missing time in institution (3.917.2)',
+          'Missing time in housing (3.917.2)',
+          'Approximate Date started (3.917.3) DK/R/missing',
+          'Number of times (3.917.4) DK/R/missing',
+          'Number of months (3.917.5) DK/R/missing',
+          '% of records unable to calculate',
+        ],
+        row_labels: [
+          'ES, SH, Street Outreach',
+          'TH',
+          'PH (all)',
+          'Total',
+        ],
         first_column: 'B',
         last_column: 'H',
         first_row: 2,
@@ -510,56 +534,64 @@ module HudApr::Generators::Shared::Fy2020
 
     private def th(table_name, adults_and_hohs)
       th = adults_and_hohs.where(a_t[:project_type].eq(2))
-
-      # count
-      answer = @report.answer(question: table_name, cell: 'B3')
-      members = th
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # date homeless missing
-      answer = @report.answer(question: table_name, cell: 'C3')
-      date_homeless_members = th.where(a_t[:date_homeless].eq(nil))
-      answer.add_members(date_homeless_members)
-      answer.update(summary: date_homeless_members.count)
-
-      # missing time in institution
-      answer = @report.answer(question: table_name, cell: 'D3')
-      missing_institution = th.where(
-        a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-          and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
-      )
-      answer.add_members(missing_institution)
-      answer.update(summary: missing_institution.count)
-
-      # missing time in housing
-      answer = @report.answer(question: table_name, cell: 'E3')
-      missing_housing = th.where(
-        a_t[:prior_living_situation].in([nil, 29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
-          and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
-      )
-      answer.add_members(missing_housing)
-      answer.update(summary: missing_housing.count)
-
-      # times homeless dk/r/missing
-      answer = @report.answer(question: table_name, cell: 'F3')
-      times_homeless_members = th.where(a_t[:times_homeless].in([nil, 8, 9]))
-      answer.add_members(times_homeless_members)
-      answer.update(summary: times_homeless_members.count)
-
-      # months homeless dk/r/missing
-      answer = @report.answer(question: table_name, cell: 'G3')
-      months_homeless_members = th.where(a_t[:months_homeless].in([nil, 8, 9]))
-      answer.add_members(months_homeless_members)
-      answer.update(summary: months_homeless_members.count)
+      th_buckets = [
+        # count
+        {
+          cell: 'B3',
+          clause: Arel.sql('1=1'),
+          include_in_percent: false,
+        },
+        # date homeless missing
+        {
+          cell: 'C3',
+          clause: a_t[:date_homeless].eq(nil),
+          include_in_percent: true,
+        },
+        # missing time in institution
+        {
+          cell: 'D3',
+          clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
+            and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+          include_in_percent: true,
+        },
+        # missing time in housing
+        {
+          cell: 'E3',
+          clause: a_t[:prior_living_situation].in([nil, 29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
+            and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+          include_in_percent: true,
+        },
+        # times homeless dk/r/missing
+        {
+          cell: 'F3',
+          clause: a_t[:times_homeless].in([nil, 8, 9]),
+          include_in_percent: true,
+        },
+        # months homeless dk/r/missing
+        {
+          cell: 'G3',
+          clause: a_t[:months_homeless].in([nil, 8, 9]),
+          include_in_percent: true,
+        },
+      ]
+      th_buckets.each do |cell|
+        answer = @report.answer(question: table_name, cell: cell[:cell])
+        members = th.where(cell[:clause])
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
 
       # percent
       answer = @report.answer(question: table_name, cell: 'H3')
-      members = date_homeless_members.
-        or(missing_institution).
-        or(missing_housing).
-        or(times_homeless_members).
-        or(months_homeless_members)
+      # members = date_homeless_members.
+      #   or(missing_institution).
+      #   or(missing_housing).
+      #   or(times_homeless_members).
+      #   or(months_homeless_members)
+      ors = th_buckets.select { |m| m[:include_in_percent] }.map do |cell|
+        cell[:clause].to_sql
+      end
+      members = th.where(Arel.sql(ors.join(' or ')))
       answer.add_members(members)
       answer.update(summary: format('%1.4f', members.count / th.count.to_f))
 
@@ -569,66 +601,85 @@ module HudApr::Generators::Shared::Fy2020
     private def ph(table_name, adults_and_hohs)
       ph = adults_and_hohs.where(a_t[:project_type].eq([3, 9, 10, 13]))
 
-      # count
-      answer = @report.answer(question: table_name, cell: 'B4')
-      members = ph
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # date homeless missing
-      answer = @report.answer(question: table_name, cell: 'C4')
-      date_homeless_members = ph.where(a_t[:date_homeless].eq(nil))
-      answer.add_members(date_homeless_members)
-      answer.update(summary: date_homeless_members.count)
-
-      # missing time in institution
-      answer = @report.answer(question: table_name, cell: 'D4')
-      missing_institution = ph.where(
-        a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
-          and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
-      )
-      answer.add_members(missing_institution)
-      answer.update(summary: missing_institution.count)
-
-      # missing time in housing
-      answer = @report.answer(question: table_name, cell: 'E4')
-      missing_housing = ph.where(
-        a_t[:prior_living_situation].in([nil, 29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
-          and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
-      )
-      answer.add_members(missing_housing)
-      answer.update(summary: missing_housing.count)
-
-      # times homeless dk/r/missing
-      answer = @report.answer(question: table_name, cell: 'F4')
-      times_homeless_members = ph.where(a_t[:times_homeless].in([nil, 8, 9]))
-      answer.add_members(times_homeless_members)
-      answer.update(summary: times_homeless_members.count)
-
-      # months homeless dk/r/missing
-      answer = @report.answer(question: table_name, cell: 'G4')
-      months_homeless_members = ph.where(a_t[:months_homeless].in([nil, 8, 9]))
-      answer.add_members(months_homeless_members)
-      answer.update(summary: months_homeless_members.count)
+      ph_buckets = [
+        # count
+        {
+          cell: 'B4',
+          clause: Arel.sql('1=1'),
+          include_in_percent: false,
+        },
+        # date homeless missing
+        {
+          cell: 'C4',
+          clause: a_t[:date_homeless].eq(nil),
+          include_in_percent: true,
+        },
+        # missing time in institution
+        {
+          cell: 'D4',
+          clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
+            and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+          include_in_percent: true,
+        },
+        # missing time in housing
+        {
+          cell: 'E4',
+          clause: a_t[:prior_living_situation].in([nil, 29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9]).
+            and(a_t[:prior_length_of_stay].in([nil, 8, 9])),
+          include_in_percent: true,
+        },
+        # times homeless dk/r/missing
+        {
+          cell: 'F4',
+          clause: a_t[:times_homeless].in([nil, 8, 9]),
+          include_in_percent: true,
+        },
+        # months homeless dk/r/missing
+        {
+          cell: 'G4',
+          clause: a_t[:months_homeless].in([nil, 8, 9]),
+          include_in_percent: true,
+        },
+      ]
+      ph_buckets.each do |cell|
+        answer = @report.answer(question: table_name, cell: cell[:cell])
+        members = ph.where(cell[:clause])
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
 
       # percent
       answer = @report.answer(question: table_name, cell: 'H4')
-      members = date_homeless_members.
-        or(missing_institution).
-        or(missing_housing).
-        or(times_homeless_members).
-        or(months_homeless_members)
+      ors = ph_buckets.select { |m| m[:include_in_percent] }.map do |cell|
+        cell[:clause].to_sql
+      end
+      members = ph.where(Arel.sql(ors.join(' or ')))
+      # date_homeless_members.
+      #   or(missing_institution).
+      #   or(missing_housing).
+      #   or(times_homeless_members).
+      #   or(months_homeless_members)
       answer.add_members(members)
       answer.update(summary: format('%1.4f', members.count / ph.count.to_f))
 
       ph
     end
 
-    private def q6e_timeliness # rubocop:disable Metrics/AbcSize
+    private def q6e_timeliness
       table_name = 'Q6e'
       metadata = {
-        header_row: ['Time for Record Entry', 'Number of Project Start Records', 'Number of Project Exit Records'],
-        row_labels: ['0 days', '1-3 days', '4-6 days', '7-10 days', '11+ days'],
+        header_row: [
+          'Time for Record Entry',
+          'Number of Project Start Records',
+          'Number of Project Exit Records',
+        ],
+        row_labels: [
+          '0 days',
+          '1-3 days',
+          '4-6 days',
+          '7-10 days',
+          '11+ days',
+        ],
         first_column: 'B',
         last_column: 'C',
         first_row: 2,
@@ -636,97 +687,94 @@ module HudApr::Generators::Shared::Fy2020
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      # entry on date
-      answer = @report.answer(question: table_name, cell: 'B2')
-      members = universe.members.where(a_t[:first_date_in_program].eq(a_t[:enrollment_created]))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # entry 1..3 days
-      answer = @report.answer(question: table_name, cell: 'B3')
-      members = universe.members.where(
-        datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(1).
-          and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(3)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # entry 4..6 days
-      answer = @report.answer(question: table_name, cell: 'B4')
-      members = universe.members.where(
-        datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(4).
-          and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(6)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # entry 7..10 days
-      answer = @report.answer(question: table_name, cell: 'B5')
-      members = universe.members.where(
-        datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(7).
-          and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(10)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # entry 11+ days
-      answer = @report.answer(question: table_name, cell: 'B6')
-      members = universe.members.where(
-        datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(11),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      [
+        # entry on date
+        {
+          cell: 'B2',
+          clause: a_t[:first_date_in_program].eq(a_t[:enrollment_created]),
+        },
+        # entry 1..3 days
+        {
+          cell: 'B3',
+          clause: datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(1).
+            and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(3)),
+        },
+        # entry 4..6 days
+        {
+          cell: 'B4',
+          clause: datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(4).
+            and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(6)),
+        },
+        # entry 7..10 days
+        {
+          cell: 'B5',
+          clause: datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(7).
+            and(datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).lteq(10)),
+        },
+        # entry 11+ days
+        {
+          cell: 'B6',
+          clause: datediff(report_client_universe, 'day', a_t[:enrollment_created], a_t[:first_date_in_program]).gteq(11),
+        },
+      ].each do |cell|
+        answer = @report.answer(question: table_name, cell: cell[:cell])
+        members = universe.members.where(cell[:clause])
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
 
       leavers = universe.members.where.not(a_t[:last_date_in_program].eq(nil))
 
-      # exit on date
-      answer = @report.answer(question: table_name, cell: 'C2')
-      members = leavers.where(a_t[:last_date_in_program].eq(a_t[:exit_created]))
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # exit 1..3 days
-      answer = @report.answer(question: table_name, cell: 'C3')
-      members = leavers.where(
-        datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(1).
-          and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(3)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # exit 4..6 days
-      answer = @report.answer(question: table_name, cell: 'C4')
-      members = leavers.where(
-        datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(4).
-          and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(6)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # entry 7..10 days
-      answer = @report.answer(question: table_name, cell: 'C5')
-      members = leavers.where(
-        datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(7).
-          and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(10)),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
-
-      # entry 11+ days
-      answer = @report.answer(question: table_name, cell: 'C6')
-      members = leavers.where(
-        datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(11),
-      )
-      answer.add_members(members)
-      answer.update(summary: members.count)
+      [
+        # exit on date
+        {
+          cell: 'C2',
+          clause: a_t[:last_date_in_program].eq(a_t[:exit_created]),
+        },
+        # exit 1..3 days
+        {
+          cell: 'C3',
+          clause: datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(1).
+            and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(3)),
+        },
+        # exit 4..6 days
+        {
+          cell: 'C4',
+          clause: datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(4).
+            and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(6)),
+        },
+        # entry 7..10 days
+        {
+          cell: 'C5',
+          clause: datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(7).
+            and(datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).lteq(10)),
+        },
+        # entry 11+ days
+        {
+          cell: 'C6',
+          clause: datediff(report_client_universe, 'day', a_t[:exit_created], a_t[:last_date_in_program]).gteq(11),
+        },
+      ].each do |cell|
+        answer = @report.answer(question: table_name, cell: cell[:cell])
+        members = leavers.where(cell[:clause])
+        answer.add_members(members)
+        answer.update(summary: members.count)
+      end
     end
 
     private def q6f_inactive_records
       table_name = 'Q6f'
       metadata = {
-        header_row: ['Data Element', '# of Records', '# of Inactive Records', ' # % of Inactive Records'],
-        row_labels: ['Contact (Adults and Heads of Household in Street Outreach or ES – NBN)',
-                     'Bed Night (All clients in ES – NBN)'],
+        header_row: [
+          'Data Element',
+          '# of Records',
+          '# of Inactive Records',
+          '# % of Inactive Records',
+        ],
+        row_labels: [
+          'Contact (Adults and Heads of Household in Street Outreach or ES – NBN)',
+          'Bed Night (All clients in ES – NBN)',
+        ],
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
