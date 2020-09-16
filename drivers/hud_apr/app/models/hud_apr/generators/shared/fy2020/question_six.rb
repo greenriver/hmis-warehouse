@@ -345,7 +345,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f))
     end
 
-    private def q6c_income_and_housing # rubocop:disable Metrics/AbcSize
+    private def q6c_income_and_housing
       table_name = 'Q6c'
       metadata = {
         header_row: [
@@ -378,12 +378,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: format('%1.4f', members.count / leavers.count.to_f))
 
       # incomes
-      adults_and_hohs = universe.members.where(
-        a_t[:age].gteq(18).
-          or(a_t[:head_of_household].eq(true).
-            and(a_t[:age].lt(18).
-              or(a_t[:age].eq(nil)))),
-      )
+      adults_and_hohs = universe.members.where(adult_or_hoh_clause)
       # income at start
       answer = @report.answer(question: table_name, cell: 'B3')
       members = adults_and_hohs.where(
@@ -894,7 +889,8 @@ module HudApr::Generators::Shared::Fy2020
         enrollment = last_service_history_enrollment.enrollment
         disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
         exit_record = last_service_history_enrollment.service_history_exit&.enrollment
-        source_client = last_service_history_enrollment.source_client
+        enrollment = last_service_history_enrollment.enrollment
+        source_client = enrollment.client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
         income_at_start = enrollment.income_benefits_at_entry

@@ -17,13 +17,13 @@ module HudApr::Generators::Shared::Fy2020
       raise e
     end
 
-    protected def build_universe(question_number, before_block: nil, after_block: nil)
+    protected def build_universe(question_number, preloads: {}, before_block: nil, after_block: nil)
       universe_cell = @report.universe(question_number)
 
       @generator.client_scope.find_in_batches do |batch|
         pending_associations = {}
 
-        clients_with_enrollments = clients_with_enrollments(batch)
+        clients_with_enrollments = clients_with_enrollments(batch, preloads: preloads)
 
         before_block.call(clients_with_enrollments) if before_block.present?
 
@@ -46,17 +46,24 @@ module HudApr::Generators::Shared::Fy2020
       universe_cell
     end
 
-    private def clients_with_enrollments(batch)
-      enrollment_scope.where(client_id: batch.map(&:id)).group_by(&:client_id)
+    private def clients_with_enrollments(batch, preloads: {})
+      enrollment_scope(preloads: preloads).where(client_id: batch.map(&:id)).group_by(&:client_id)
     end
 
-    private def enrollment_scope
-      # FIXME: shouldn't this be limited to enrollments open during the range?
+    private def enrollment_scope(preloads: {})
+      preloads = {
+        enrollment: [
+          :client,
+          :disabilities,
+          :current_living_situations,
+          :services,
+        ],
+      }.deep_merge(preloads)
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
         joins(:enrollment).
-        preload(enrollment: [:client, :disabilities, :current_living_situations, :services])
+        preload(preloads)
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
     end
@@ -92,6 +99,14 @@ module HudApr::Generators::Shared::Fy2020
 
     private def adult_clause
       a_t[:age].gteq(18)
+    end
+
+    private def hoh_clause
+      a_t[:head_of_household].eq(true)
+    end
+
+    private def adult_or_hoh_clause
+      adult_clause.or(a_t[:head_of_household].eq(true))
     end
 
     private def stayers_clause
@@ -189,6 +204,16 @@ module HudApr::Generators::Shared::Fy2020
 
     private def race_number(code)
       race_fields[code]
+    end
+
+    private def yes_know_dkn_clauses(column)
+      {
+        'Yes' => column.eq(1),
+        'No' => column.eq(0),
+        'Client Doesn’t Know/Client Refused' => column.in([8, 9]),
+        'Data Not Collected' => column.eq(99).or(column.eq(nil)),
+        'Total' => Arel.sql('1=1'),
+      }
     end
 
     def calculate_race(client)

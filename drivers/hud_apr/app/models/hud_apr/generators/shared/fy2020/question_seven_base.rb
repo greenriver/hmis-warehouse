@@ -239,7 +239,8 @@ module HudApr::Generators::Shared::Fy2020
 
       @universe ||= build_universe(QUESTION_NUMBER, before_block: batch_initializer) do |_, enrollments|
         last_service_history_enrollment = enrollments.last
-        source_client = last_service_history_enrollment.source_client
+        enrollment = last_service_history_enrollment.enrollment
+        source_client = enrollment.client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
         report_client_universe.new(

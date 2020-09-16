@@ -25,6 +25,7 @@ module HudApr::Generators::Apr::Fy2020
         'Question 11' => HudApr::Generators::Shared::Fy2020::QuestionEleven, # Age-Household Breakdown
         'Question 12' => HudApr::Generators::Shared::Fy2020::QuestionTwelve, # Race & Ethnicity
         'Question 13' => HudApr::Generators::Shared::Fy2020::QuestionThirteen, # Health
+        'Question 14' => HudApr::Generators::Shared::Fy2020::QuestionFourteen, # Domestic Violence
       }.freeze
     end
   end
