@@ -404,7 +404,7 @@ module HudApr::Generators::Shared::Fy2020
       # income at anniversary
       stayers_with_anniversary = adults_and_hohs.where(
         a_t[:annual_assessment_expected].eq(true).
-          and(a_t[:last_date_in_program].gt(@report.end_date)),
+          and(stayers_clause),
       )
 
       answer = @report.answer(question: table_name, cell: 'B4')
@@ -963,7 +963,7 @@ module HudApr::Generators::Shared::Fy2020
     private def annual_assessment(enrollment)
       enrollment.income_benefits_annual_update.
         where(ib_t[:InformationDate].lt(@report.end_date)).
-        order(ib_t[:InformationDate].to_sql => :desc).
+        order(ib_t[:InformationDate].desc).
         first
     end
 

@@ -54,6 +54,7 @@ module HudApr::Generators::Shared::Fy2020
       # FIXME: shouldn't this be limited to enrollments open during the range?
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
+        open_between(start_date: @report.start_date, end_date: @report.end_date).
         joins(:enrollment).
         preload(enrollment: [:client, :disabilities, :current_living_situations, :services])
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
@@ -91,6 +92,10 @@ module HudApr::Generators::Shared::Fy2020
 
     private def adult_clause
       a_t[:age].gteq(18)
+    end
+
+    private def stayers_clause
+      a_t[:last_date_in_program].eq(nil).or(a_t[:last_date_in_program].gt(@report.end_date))
     end
 
     private def age_ranges

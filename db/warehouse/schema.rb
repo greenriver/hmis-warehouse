@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_15_230624) do
+ActiveRecord::Schema.define(version: 2020_09_16_144557) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4433,6 +4433,30 @@ ActiveRecord::Schema.define(version: 2020_09_15_230624) do
     t.date "move_in_date"
     t.string "household_type"
     t.integer "race"
+    t.integer "developmental_disability_entry"
+    t.integer "hiv_aids_entry"
+    t.integer "physical_disability_entry"
+    t.integer "chronic_disability_entry"
+    t.integer "mental_health_problem_entry"
+    t.integer "substance_abuse_entry"
+    t.boolean "alcohol_abuse_entry"
+    t.boolean "drug_abuse_entry"
+    t.integer "developmental_disability_exit"
+    t.integer "hiv_aids_exit"
+    t.integer "physical_disability_exit"
+    t.integer "chronic_disability_exit"
+    t.integer "mental_health_problem_exit"
+    t.integer "substance_abuse_exit"
+    t.boolean "alcohol_abuse_exit"
+    t.boolean "drug_abuse_exit"
+    t.integer "developmental_disability_latest"
+    t.integer "hiv_aids_latest"
+    t.integer "physical_disability_latest"
+    t.integer "chronic_disability_latest"
+    t.integer "mental_health_problem_latest"
+    t.integer "substance_abuse_latest"
+    t.boolean "alcohol_abuse_latest"
+    t.boolean "drug_abuse_latest"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
   end
 
