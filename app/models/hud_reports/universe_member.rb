@@ -7,10 +7,12 @@
 # Polymorphic join to connect report cells, to a particular report type's clients
 module HudReports
   class UniverseMember < GrdaWarehouseBase
+    include RailsDrivers::Extensions
+
     self.table_name = 'hud_report_universe_members'
 
     belongs_to :report_cell, class_name: 'HudReports::ReportCell'
-    belongs_to :universe_membership, polymorphic: true
+    belongs_to :universe_membership, polymorphic: true, inverse_of: :hud_reports_universe_members
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   end

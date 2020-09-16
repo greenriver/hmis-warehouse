@@ -782,7 +782,7 @@ module HudApr::Generators::Shared::Fy2020
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      relevant_clients = universe.members.
+      relevant_clients = universe.members.where(id: universe.universe_members.joins(:apr_client).
         joins(report_cell: :report_instance).
         where(
           datediff(
@@ -790,10 +790,10 @@ module HudApr::Generators::Shared::Fy2020
           ).lt(90).
             and(
               a_t[:last_date_in_program].eq(nil).
-              or(a_t[:last_date_in_program].gt(@report.end_date)),
+                or(a_t[:last_date_in_program].gt(@report.end_date)),
             ),
         ).
-        distinct
+        select(:id))
 
       # Relevant Adults and HoH ES-NBN or SO
       answer = @report.answer(question: table_name, cell: 'B2')

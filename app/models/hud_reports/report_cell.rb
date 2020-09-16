@@ -14,6 +14,10 @@ module HudReports
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     has_many :universe_members, dependent: :destroy
 
+    scope :universe, -> do
+      where(universe: true)
+    end
+
     def members
       @members ||= join_universe
     end
@@ -70,7 +74,7 @@ module HudReports
     end
 
     private def join_universe
-      none if count.zero?
+      return self.class.none if count.zero?
 
       # joins don't work for polymorphic associations since it could join multiple tables.
       # However, for a given report cell, all of the universe members must be in the same table
