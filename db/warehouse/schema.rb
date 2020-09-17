@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_16_195351) do
+ActiveRecord::Schema.define(version: 2020_09_17_193037) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4459,6 +4459,9 @@ ActiveRecord::Schema.define(version: 2020_09_16_195351) do
     t.boolean "drug_abuse_latest"
     t.integer "domestic_violence"
     t.integer "currently_fleeing"
+    t.integer "income_total_at_start"
+    t.integer "income_total_at_annual_assessment"
+    t.integer "income_total_at_exit"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
   end
 

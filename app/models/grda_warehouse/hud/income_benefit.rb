@@ -114,7 +114,7 @@ module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
     # This is the logic described in "Determining Total Income and Earned Income on a Specific Record"
     # in the APR spec
     def hud_total_monthly_income
-      return self.TotalMonthlyIncome if self.TotalMonthlyIncome.postive?
+      return self.TotalMonthlyIncome if self.TotalMonthlyIncome&.positive?
 
       calculated = amounts.sum
       return calculated if calculated.positive?

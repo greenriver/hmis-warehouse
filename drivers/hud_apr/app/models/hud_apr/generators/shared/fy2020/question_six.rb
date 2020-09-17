@@ -966,22 +966,6 @@ module HudApr::Generators::Shared::Fy2020
       end
     end
 
-    private def annual_assessment(enrollment)
-      enrollment.income_benefits_annual_update.select do |i|
-        i.InformationDate < @report.end_date
-      end.max_by(&:InformationDate)
-    end
-
-    private def income_sources(income)
-      income&.attributes&.slice(*income.class::SOURCES.keys.map(&:to_s)) || {}
-    end
-
-    private def annual_assessment_expected?(enrollment)
-      elapsed_years = @report.end_date.year - enrollment.first_date_in_program.year
-      elapsed_years -= 1 if enrollment.first_date_in_program + elapsed_years.year > @report.end_date
-      enrollment.head_of_household? && elapsed_years&.positive?
-    end
-
     private def overlapping_enrollments(enrollments, last_enrollment)
       last_enrollment_end = last_enrollment.last_date_in_program || Date.tomorrow
       enrollments.select do |enrollment|

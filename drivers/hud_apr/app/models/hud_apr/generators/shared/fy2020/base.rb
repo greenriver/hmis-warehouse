@@ -112,6 +112,10 @@ module HudApr::Generators::Shared::Fy2020
       a_t[:last_date_in_program].eq(nil).or(a_t[:last_date_in_program].gt(@report.end_date))
     end
 
+    private def leavers_clause
+      a_t[:last_date_in_program].lteq(@report.end_date)
+    end
+
     # Returns a sql query clause appropriate to see if a value exists or doesn't exist in a
     # jsonb hash
     # EX: 1 in (coalesce(data->>'a', '99'), coalesce(data->>'b', '99'))
@@ -300,6 +304,22 @@ module HudApr::Generators::Shared::Fy2020
 
         false
       end
+    end
+
+    private def annual_assessment(enrollment)
+      enrollment.income_benefits_annual_update.select do |i|
+        i.InformationDate < @report.end_date
+      end.max_by(&:InformationDate)
+    end
+
+    private def income_sources(income)
+      income&.attributes&.slice(*income.class::SOURCES.keys.map(&:to_s)) || {}
+    end
+
+    private def annual_assessment_expected?(enrollment)
+      elapsed_years = @report.end_date.year - enrollment.first_date_in_program.year
+      elapsed_years -= 1 if enrollment.first_date_in_program + elapsed_years.year > @report.end_date
+      enrollment.head_of_household? && elapsed_years&.positive?
     end
   end
 end
