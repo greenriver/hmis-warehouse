@@ -123,7 +123,7 @@ module HudApr::Generators::Shared::Fy2020
       # SSN quality
       answer = @report.answer(question: table_name, cell: 'D3')
       q_member_ids = []
-      universe.members.find_each do |u_member|
+      universe.members.preload(:universe_membership).find_each do |u_member|
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.ssn_quality == 2 || !HUD.valid_social?(member.ssn)
       end
@@ -882,21 +882,36 @@ module HudApr::Generators::Shared::Fy2020
 
       @universe ||= build_universe(
         QUESTION_NUMBER,
+        preloads: {
+          enrollment: [
+            :services,
+            :client,
+            :income_benefits,
+            :disabilities,
+            :income_benefits_at_exit,
+            :income_benefits_at_entry,
+            :enrollment_coc_at_entry,
+            :current_living_situations,
+            :income_benefits_annual_update,
+          ],
+        },
         before_block: batch_initializer,
         after_block: batch_finalizer,
       ) do |_, enrollments|
         last_service_history_enrollment = enrollments.last
         enrollment = last_service_history_enrollment.enrollment
         disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
-        exit_record = last_service_history_enrollment.service_history_exit&.enrollment
-        enrollment = last_service_history_enrollment.enrollment
+        exit_date = last_service_history_enrollment.last_date_in_program
+        exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date < @report.end_date
         source_client = enrollment.client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
         income_at_start = enrollment.income_benefits_at_entry
         income_at_annual_assessment = annual_assessment(enrollment)
         income_at_exit = exit_record&.income_benefits_at_exit
-        last_bed_night = enrollment.services.bed_night.order(:DateProvided).last
+        last_bed_night = enrollment.services.select do |s|
+          s.RecordType == 200 && s.DateProvided < @report.end_date
+        end.max_by(&:DateProvided)
 
         report_client_universe.new(
           client_id: source_client.id,
@@ -911,7 +926,7 @@ module HudApr::Generators::Shared::Fy2020
           dob: source_client.DOB,
           dob_quality: source_client.DOBDataQuality,
           age: source_client.age_on(client_start_date),
-          head_of_household: last_service_history_enrollment.head_of_household,
+          head_of_household: last_service_history_enrollment[:head_of_household],
           first_date_in_program: last_service_history_enrollment.first_date_in_program,
           last_date_in_program: last_service_history_enrollment.last_date_in_program,
           enrollment_created: enrollment.DateCreated,
@@ -957,10 +972,9 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def annual_assessment(enrollment)
-      enrollment.income_benefits_annual_update.
-        where(ib_t[:InformationDate].lt(@report.end_date)).
-        order(ib_t[:InformationDate].desc).
-        first
+      enrollment.income_benefits_annual_update.select do |i|
+        i.InformationDate < @report.end_date
+      end.max_by(&:InformationDate)
     end
 
     private def income_sources(income)

@@ -56,7 +56,6 @@ module HudApr::Generators::Shared::Fy2020
           :client,
           :disabilities,
           :current_living_situations,
-          :services,
         ],
       }.deep_merge(preloads)
       scope = GrdaWarehouse::ServiceHistoryEnrollment.

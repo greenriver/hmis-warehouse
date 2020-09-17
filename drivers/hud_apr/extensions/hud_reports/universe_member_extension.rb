@@ -3,8 +3,15 @@ module HudApr::HudReports
     extend ActiveSupport::Concern
 
     included do
-      belongs_to :apr_client, -> { where(universe_membership_type: 'HudApr::Fy2020::AprClient') },
-                 class_name: 'HudApr::Fy2020::AprClient', foreign_key: :universe_membership_id, inverse_of: :hud_reports_universe_members
+      belongs_to(
+        :apr_client,
+        -> do
+          where(universe_membership_type: 'HudApr::Fy2020::AprClient')
+        end,
+        class_name: 'HudApr::Fy2020::AprClient',
+        foreign_key: :universe_membership_id,
+        inverse_of: :hud_reports_universe_members,
+      )
     end
   end
 end
