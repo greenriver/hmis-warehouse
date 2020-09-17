@@ -1,24 +1,13 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS103: Rewrite code to no longer use __guard__, or convert again using --optional-chaining
- * DS205: Consider reworking code to avoid use of IIFEs
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 //= require ./namespace
 
-window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class HorizontalBar {
+window.App.WarehouseReports.PerformanceDashboards.Pie = class Pie {
   constructor(chart_selector, options) {
     this._build_chart = this._build_chart.bind(this);
     this._colors = this._colors.bind(this);
-    this._follow_link = this._follow_link.bind(this);
     this._observe = this._observe.bind(this);
     this._selector_exists = this._selector_exists.bind(this);
     this._selector_unprocessed = this._selector_unprocessed.bind(this);
     this.chart_selector = chart_selector;
-    window.Chart.defaults.global.defaultFontSize = 10;
     this.color_map = {};
     this.next_color = 0;
     if ((options != null ? options.remote : undefined) === true) {
@@ -33,15 +22,14 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
       this.options = $(this.chart_selector).data('chart').options;
       this.categories = $(this.chart_selector).data('chart').categories;
       this.link_params = $(this.chart_selector).data('chart').params;
-      const { legendBindTo } = $(this.chart_selector).data('chart');
 
+      const legendPosition = this.options.legendPosition || 'bottom'
       this.padding = this.options.padding || {};
       this.height = this.options.height || 400;
       const data = {
         columns: $(this.chart_selector).data('chart').columns,
-        type: 'bar',
+        type: 'pie',
         color: this._colors,
-        labels: true,
         onclick: this._follow_link,
       };
       const config = {
@@ -50,35 +38,8 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
         size: {
           height: this.height,
         },
-        axis: {
-          rotated: true,
-          y: {
-            outer: false,
-            tick: {
-              rotate: -35,
-              autorotate: true,
-            },
-          },
-          x: {
-            height: 100,
-            type: 'category',
-            categories: this.categories,
-            outer: false,
-            tick: {
-              rotate: -35,
-              autorotate: true,
-              fit: true,
-              culling: false,
-            },
-          },
-        },
-        grid: {
-          y: {
-            show: true,
-          },
-        },
-        bar: {
-          width: 30,
+        legend: {
+          position: legendPosition,
         },
         padding: {
           left: this.padding.left || 150,
@@ -86,17 +47,6 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
           bottom: 20,
         },
       };
-      if (legendBindTo) {
-        config.legend = {
-          contents: {
-            bindto: legendBindTo,
-            template: (title, color) => {
-              const swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
-              return `<div class="chart-legend-item-prs1">${swatch}<div class="chart-legend-item-label-prs1">${title}</div></div>`;
-            },
-          },
-        };
-      }
       return (this.chart = window.bb.generate(config));
     } else {
       return console.log(`${this.chart_selector} not found on page`);
@@ -130,9 +80,6 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
 
     const bucket_title = this.chart.categories()[d.index];
     const bucket = this.options.sub_keys[bucket_title];
-    // console.log(d, @chart, @chart.categories(), @options.sub_keys, @options, bucket_title, bucket)
-    // return
-    // console.log(d, @chart.data(), bucket_title, bucket, @options)
     const report = 'report';
     if (__guard__(this.chart.data()[1], (x) => x.id) === d.id) {
       this.link_params.filters.start_date = this.options.date_ranges.comparison.start_date;

@@ -3,7 +3,7 @@
   chart_class = "#{key}-chart"
   title ||= ''
   excluded_categories = local_assigns[:excluded_categories].presence
-  chart_options = {
+  bar_chart_options = {
     params: detail_params,
     columns: columns,
     categories: categories,
@@ -25,6 +25,8 @@
       }
     }
   }
+  pie_chart_options ||= nil
+
 .row
   .col-md-8
     .d-flex.flex-wrap.justify-content-between.align-items-end.mb-2
@@ -46,5 +48,9 @@
         Unique #{count_type.to_s.titleize} #{@report.performance_type.pluralize}:
         = number_with_delimiter(client_counts[:report])
 
-.well.mb-6.pt-0
-  .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: chart_options.to_json.html_safe } }
+.well.mb-6.pt-2
+  .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: bar_chart_options.to_json.html_safe } }
+  - if pie_chart_options
+    .mt-6
+      %h4 Category averages
+      .jChart.c-chart.c-chart--pie{ class: chart_class+'-pie', data: { chart: pie_chart_options.to_json.html_safe } }
