@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse::Hud
+module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
   class IncomeBenefit < Base
     include HudSharedScopes
     include ::HMIS::Structure::IncomeBenefit
@@ -23,10 +23,10 @@ module GrdaWarehouse::Hud
 
     scope :any_benefits, -> {
       at = arel_table
-      conditions = SOURCES.keys.map{ |k| at[k].eq 1 }
+      conditions = SOURCES.keys.map { |k| at[k].eq 1 }
       condition = conditions.shift
-      condition = condition.or( conditions.shift ) while conditions.any?
-      where( condition )
+      condition = condition.or(conditions.shift) while conditions.any?
+      where(condition)
     }
 
     scope :at_entry, -> do
@@ -51,8 +51,7 @@ module GrdaWarehouse::Hud
       where(
         ib_t[:IncomeFromAnySource].in([99, nil, '']).
         or(ib_t[:TotalMonthlyIncome].eq(nil).
-          and(ib_t[:IncomeFromAnySource].in([0, 1]))
-        )
+          and(ib_t[:IncomeFromAnySource].in([0, 1]))),
       )
     end
 
@@ -62,29 +61,29 @@ module GrdaWarehouse::Hud
 
     # produced by eliminating those columns matching /id|date|amount|reason|stage/i
     SOURCES = {
-      Alimony:                :AlimonyAmount,
-      ChildSupport:           :ChildSupportAmount,
-      Earned:                 :EarnedAmount,
-      GA:                     :GAAmount,
-      OtherIncomeSource:      :OtherIncomeAmount,
-      Pension:                :PensionAmount,
-      PrivateDisability:      :PrivateDisabilityAmount,
-      SSDI:                   :SSDIAmount,
-      SSI:                    :SSIAmount,
-      SocSecRetirement:       :SocSecRetirementAmount,
-      TANF:                   :TANFAmount,
-      Unemployment:           :UnemploymentAmount,
+      Alimony: :AlimonyAmount,
+      ChildSupport: :ChildSupportAmount,
+      Earned: :EarnedAmount,
+      GA: :GAAmount,
+      OtherIncomeSource: :OtherIncomeAmount,
+      Pension: :PensionAmount,
+      PrivateDisability: :PrivateDisabilityAmount,
+      SSDI: :SSDIAmount,
+      SSI: :SSIAmount,
+      SocSecRetirement: :SocSecRetirementAmount,
+      TANF: :TANFAmount,
+      Unemployment: :UnemploymentAmount,
       VADisabilityNonService: :VADisabilityNonServiceAmount,
-      VADisabilityService:    :VADisabilityServiceAmount,
-      WorkersComp:            :WorkersCompAmount,
+      VADisabilityService: :VADisabilityServiceAmount,
+      WorkersComp: :WorkersCompAmount,
     }.freeze
 
     def sources
-      @sources ||= SOURCES.keys.select{ |c| send(c) == 1 }
+      @sources ||= SOURCES.keys.select { |c| send(c) == 1 }
     end
 
     def sources_and_amounts
-      @sources_and_amounts ||= sources.map{ |s| [ s, send(SOURCES[s]) ] }.to_h
+      @sources_and_amounts ||= sources.map { |s| [s, send(SOURCES[s])] }.to_h
     end
 
     def amounts
@@ -112,5 +111,17 @@ module GrdaWarehouse::Hud
       ]
     end
 
+    # This is the logic described in "Determining Total Income and Earned Income on a Specific Record"
+    # in the APR spec
+    def hud_total_monthly_income
+      return self.TotalMonthlyIncome if self.TotalMonthlyIncome.postive?
+
+      calculated = amounts.sum
+      return calculated if calculated.positive?
+      return 0.0 if self.IncomeFromAnySource.zero?
+      return 0.0 if self.IncomeFromAnySource.in?([1, nil])
+
+      nil
+    end
   end
 end

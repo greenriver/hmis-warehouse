@@ -112,6 +112,22 @@ module HudApr::Generators::Shared::Fy2020
       a_t[:last_date_in_program].eq(nil).or(a_t[:last_date_in_program].gt(@report.end_date))
     end
 
+    # Returns a sql query clause appropriate to see if a value exists or doesn't exist in a
+    # jsonb hash
+    # EX: 1 in (coalesce(data->>'a', '99'), coalesce(data->>'b', '99'))
+    private def income_jsonb_clause(value, column, negation: false, coalesce_value: 99)
+      if negation
+        query = "'#{value}' not in ("
+      else
+        query = "'#{value}' in ("
+      end
+      measures = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.keys.map do |income_measure|
+        "coalesce(#{column}->>'#{income_measure}', '#{coalesce_value}')"
+      end
+      query += measures.join(', ') + ')'
+      Arel.sql(query)
+    end
+
     private def age_ranges
       {
         'Under 5' => a_t[:age].between(0..4),

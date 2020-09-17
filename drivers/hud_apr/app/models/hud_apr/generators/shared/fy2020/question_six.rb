@@ -386,9 +386,9 @@ module HudApr::Generators::Shared::Fy2020
           or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
           or(a_t[:income_from_any_source_at_start].in([nil, 8, 9])).
           or(a_t[:income_from_any_source_at_start].eq(0).
-            and(a_t[:income_sources_at_start].not_eq([]))).
+            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql))).
           or(a_t[:income_from_any_source_at_start].eq(1).
-            and(a_t[:income_sources_at_start].eq([]))),
+            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql, negation: true))),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
@@ -408,9 +408,9 @@ module HudApr::Generators::Shared::Fy2020
           or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
           or(a_t[:income_from_any_source_at_start].in([nil, 8, 9])).
           or(a_t[:income_from_any_source_at_start].eq(0).
-            and(a_t[:income_sources_at_start].not_eq([]))).
+            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql))).
           or(a_t[:income_from_any_source_at_start].eq(1).
-            and(a_t[:income_sources_at_start].eq([]))),
+            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql, negation: true))),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
@@ -427,9 +427,9 @@ module HudApr::Generators::Shared::Fy2020
           or(a_t[:income_date_at_exit].not_eq(a_t[:last_date_in_program])).
           or(a_t[:income_from_any_source_at_exit].in([nil, 8, 9])).
           or(a_t[:income_from_any_source_at_exit].eq(0).
-            and(a_t[:income_sources_at_exit].not_eq([]))).
+            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql))).
           or(a_t[:income_from_any_source_at_exit].eq(1).
-            and(a_t[:income_sources_at_exit].eq([]))),
+            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql, negation: true))),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
@@ -951,7 +951,7 @@ module HudApr::Generators::Shared::Fy2020
           income_sources_at_annual_assessment: income_sources(income_at_annual_assessment),
           income_date_at_exit: income_at_exit&.InformationDate,
           income_from_any_source_at_exit: income_at_exit&.IncomeFromAnySource,
-          income_sources_at_exit: income_sources(income_at_annual_assessment),
+          income_sources_at_exit: income_sources(income_at_exit),
           project_type: last_service_history_enrollment.project_type,
           prior_living_situation: enrollment.LivingSituation,
           prior_length_of_stay: enrollment.LengthOfStay,
@@ -973,23 +973,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def income_sources(income)
-      income&.slice(
-        :Earned,
-        :Unemployment,
-        :SSI,
-        :SSDI,
-        :VADisabilityService,
-        :VADisabilityNonService,
-        :PrivateDisability,
-        :WorkersComp,
-        :TANF,
-        :GA,
-        :SocSecRetirement,
-        :Pension,
-        :ChildSupport,
-        :Alimony,
-        :OtherIncomeSource,
-      )&.values || []
+      income&.attributes&.slice(*income.class::SOURCES.keys.map(&:to_s)) || {}
     end
 
     private def annual_assessment_expected?(enrollment)
