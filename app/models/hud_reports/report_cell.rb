@@ -79,9 +79,11 @@ module HudReports
       # joins don't work for polymorphic associations since it could join multiple tables.
       # However, for a given report cell, all of the universe members must be in the same table
       # and we can compute the name based on a single member.
-      universe_table_name = universe_members.first.universe_membership.class.table_name
+      universe_table_name = universe_members.first.universe_membership.class.arel_table
+      members_table = universe_members.arel_table
 
-      universe_members.joins("JOIN #{universe_table_name} ON #{universe_table_name}.id = universe_membership_id")
+      table_join = members_table.join(universe_table_name).on(members_table[:universe_membership_id].eq(universe_table_name[:id]))
+      universe_members.joins(table_join.join_sources)
     end
   end
 end

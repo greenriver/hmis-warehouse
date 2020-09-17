@@ -6,7 +6,7 @@ module HudApr::HudReports
       belongs_to(
         :apr_client,
         -> do
-          where(universe_membership_type: 'HudApr::Fy2020::AprClient')
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudApr::Fy2020::AprClient'))
         end,
         class_name: 'HudApr::Fy2020::AprClient',
         foreign_key: :universe_membership_id,

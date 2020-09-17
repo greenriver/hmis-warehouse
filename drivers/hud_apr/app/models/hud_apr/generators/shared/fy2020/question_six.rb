@@ -777,7 +777,7 @@ module HudApr::Generators::Shared::Fy2020
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
-      relevant_clients = universe.members.where(id: universe.universe_members.joins(:apr_client).
+      relevant_clients = universe.universe_members.joins(:apr_client).
         joins(report_cell: :report_instance).
         where(
           datediff(
@@ -787,17 +787,12 @@ module HudApr::Generators::Shared::Fy2020
               a_t[:last_date_in_program].eq(nil).
                 or(a_t[:last_date_in_program].gt(@report.end_date)),
             ),
-        ).
-        select(:id))
+        )
 
       # Relevant Adults and HoH ES-NBN or SO
       answer = @report.answer(question: table_name, cell: 'B2')
-      adults_and_hohs = relevant_clients.where(
-        a_t[:age].gteq(18).
-          or(a_t[:head_of_household].eq(true).
-            and(a_t[:age].lt(18).
-              or(a_t[:age].eq(nil)))),
-      )
+      adults_and_hohs = relevant_clients.where(adult_or_hoh_clause)
+
       es_so_members = adults_and_hohs.where(
         a_t[:project_type].eq(4).
           or(a_t[:project_type].eq(1).
