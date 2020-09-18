@@ -28,7 +28,8 @@ module HudApr::Generators::Apr::Fy2020
         'Question 14' => HudApr::Generators::Shared::Fy2020::QuestionFourteen, # Domestic Violence
         'Question 15' => HudApr::Generators::Shared::Fy2020::QuestionFifteen, # Living Situation
         'Question 16' => HudApr::Generators::Shared::Fy2020::QuestionSixteen, #  Cash Income - Ranges
-        'Question 17' => HudApr::Generators::Shared::Fy2020::QuestionSeventeen, #  Cash Income - Sources
+        'Question 17' => HudApr::Generators::Shared::Fy2020::QuestionSeventeen, # Cash Income - Sources
+        'Question 18' => HudApr::Generators::Apr::Fy2020::QuestionEighteen, # Client Cash Income Category - Earned/Other Income Category - by Start and Annual Assessment/Exit Status
       }.freeze
     end
   end

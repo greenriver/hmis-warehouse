@@ -314,7 +314,8 @@ module HudApr::Generators::Shared::Fy2020
 
     private def income_sources(income)
       sources = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.keys.map(&:to_s)
-      income&.attributes&.slice(*sources) || sources.map { |k| [k, 99] }.to_h
+      amounts = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.values.map(&:to_s)
+      income&.attributes&.slice(*(sources + amounts)) || sources.map { |k| [k, 99] }.to_h.merge(amounts.map { |k| [k, nil] }.to_h)
     end
 
     private def annual_assessment_expected?(enrollment)
