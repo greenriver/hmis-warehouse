@@ -74,6 +74,7 @@ module Health
         enrollment.changes.each do |transaction|
           referral = referral(transaction)
           next unless referral.present?
+          next if referral.disenrolled? # Ignore changes if the patient is disenrolled
 
           update_patient_referrals(referral.patient, transaction)
           updated_patients += 1
