@@ -28,6 +28,7 @@ module HudApr::Generators::Apr::Fy2020
         'Question 14' => HudApr::Generators::Shared::Fy2020::QuestionFourteen, # Domestic Violence
         'Question 15' => HudApr::Generators::Shared::Fy2020::QuestionFifteen, # Living Situation
         'Question 16' => HudApr::Generators::Shared::Fy2020::QuestionSixteen, #  Cash Income - Ranges
+        'Question 17' => HudApr::Generators::Shared::Fy2020::QuestionSeventeen, #  Cash Income - Sources
       }.freeze
     end
   end

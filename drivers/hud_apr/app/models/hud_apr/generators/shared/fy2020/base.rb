@@ -313,7 +313,8 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def income_sources(income)
-      income&.attributes&.slice(*income.class::SOURCES.keys.map(&:to_s)) || {}
+      sources = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.keys.map(&:to_s)
+      income&.attributes&.slice(*sources) || sources.map { |k| [k, 99] }.to_h
     end
 
     private def annual_assessment_expected?(enrollment)

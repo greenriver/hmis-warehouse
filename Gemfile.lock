@@ -32,6 +32,10 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
+    active_record_extended (1.4.0)
+      activerecord (>= 5.0, < 6.1)
+      ar_outer_joins (~> 0.2)
+      pg (< 2.0)
     active_record_query_trace (1.7)
     activejob (5.2.4.4)
       activesupport (= 5.2.4.4)
@@ -74,6 +78,8 @@ GEM
     airbrussh (1.4.0)
       sshkit (>= 1.6.1, != 1.7.0)
     ansi (1.5.0)
+    ar_outer_joins (0.2.0)
+      activerecord (>= 3.2)
     arel (9.0.0)
     ast (2.4.1)
     attr_encrypted (3.1.0)
@@ -727,6 +733,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  active_record_extended
   active_record_query_trace
   activerecord-import
   activerecord-postgis-adapter
