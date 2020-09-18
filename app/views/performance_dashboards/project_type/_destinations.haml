@@ -3,26 +3,24 @@
   detail_params = @report.detail_params.deep_merge(filters: { key: key, destination: true })
   client_counts = { report: @report.exiting_total_count, comparison: @comparison.exiting_total_count}
   columns = [@report.destinations_data_for_chart[:columns]]
-  avg_columns = [
-    ['Permanent', 35],
-    ['Temporary', 55],
-    ['Unsheltered', 15],
-    ['Unknown/Other', 5],
-  ]
+  avg_columns = [@report.destinations_data_for_chart[:avg_columns]]
   if @report.include_comparison?
     columns << @comparison.destinations_data_for_chart[:columns]
+    avg_columns << @comparison.destinations_data_for_chart[:avg_columns]
   end
   categories = @report.destinations_data_for_chart[:categories]
   chart_class = "#{key}-chart"
-  pie_chart_options = {
-    params: detail_params,
-    columns: avg_columns,
-    options: {
-      height: 400,
-      follow_link: show_client_details?,
-      legendPosition: 'right',
+  pie_chart_options = avg_columns.map do |avg_column|
+    {
+      params: detail_params,
+      columns: avg_column,
+      options: {
+        height: 400,
+        follow_link: show_client_details?,
+        legendPosition: 'right',
+      }
     }
-  }
+  end
 
   locals = {
     key: key,

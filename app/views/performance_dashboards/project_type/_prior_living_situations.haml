@@ -3,25 +3,23 @@
   detail_params = @report.detail_params.deep_merge(filters: { living_situation: true, key: key })
   client_counts = { report: @report.enrolled_total_count, comparison: @comparison.enrolled_total_count}
   columns = [@report.prior_living_situations_data_for_chart[:columns]]
+  avg_columns = [@report.prior_living_situations_data_for_chart[:avg_columns]]
   if @report.include_comparison?
     columns << @comparison.prior_living_situations_data_for_chart[:columns]
+    avg_columns << @comparison.prior_living_situations_data_for_chart[:avg_columns]
   end
   categories = @report.prior_living_situations_data_for_chart[:categories]
-  avg_columns = [
-    ['Permanent', 35],
-    ['Temporary', 55],
-    ['Unsheltered', 15],
-    ['Unknown/Other', 5],
-  ]
-  pie_chart_options = {
-    params: detail_params,
-    columns: avg_columns,
-    options: {
-      height: 400,
-      follow_link: show_client_details?,
-      legendPosition: 'right',
+  pie_chart_options = avg_columns.map do |avg_column|
+    {
+      params: detail_params,
+      columns: avg_column,
+      options: {
+        height: 400,
+        follow_link: show_client_details?,
+        legendPosition: 'right',
+      }
     }
-  }
+  end
 
   locals = {
     title: "Prior Living Situation",

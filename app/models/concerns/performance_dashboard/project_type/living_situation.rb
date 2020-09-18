@@ -55,6 +55,12 @@ module PerformanceDashboard::ProjectType::LivingSituation
       {
         columns: columns,
         categories: categories,
+        avg_columns: [
+          ['Permanent', 5],
+          ['Temporary', 55],
+          ['Unsheltered', 15],
+          ['Unknown/Other', 5],
+        ]
       }
     end
   end

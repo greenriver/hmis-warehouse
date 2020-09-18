@@ -82,6 +82,14 @@ module PerformanceDashboard::ProjectType::Returns
       {
         columns: columns,
         categories: categories,
+        avg_columns: [
+          ['Returned', 150],
+          ['Did not Return', 50],
+        ],
+        summary_datum: [
+          {name: 'Returned', value: returned_total_count},
+          {name: 'Did not Return', value: returned_total_count},
+        ]
       }
     end
   end
