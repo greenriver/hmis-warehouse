@@ -290,7 +290,9 @@ from tlsa_Exit ex
 	--  and for any household where Stat = 5 but there is no enrollment for the HoHID/HHType
 	--  active in the six days prior to the qualifying exit EntryDate. 
 	update ex
-	set ex.LastInactive = dateadd(dd, -1, hhid.EntryDate)
+	set ex.LastInactive = case 
+		when dateadd(dd, -1, hhid.EntryDate) < '9/30/2012' then '9/30/2012' 
+		else dateadd(dd, -1, hhid.EntryDate) end
 		, ex.Step = '7.6.1'
 	from tlsa_Exit ex
 	inner join tlsa_HHID hhid on hhid.HouseholdID = ex.QualifyingExitHHID
