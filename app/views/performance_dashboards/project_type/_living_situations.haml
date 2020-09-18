@@ -7,5 +7,20 @@
     columns << @comparison.prior_living_situations_data_for_chart[:columns]
   end
   categories = @report.prior_living_situations_data_for_chart[:categories]
+  avg_columns = [
+    ['Permanent', 35],
+    ['Temporary', 55],
+    ['Unsheltered', 15],
+    ['Unknown/Other', 5],
+  ]
+  pie_chart_options = {
+    params: detail_params,
+    columns: avg_columns,
+    options: {
+      height: 400,
+      follow_link: show_client_details?,
+      legendPosition: 'right',
+    }
+  }
 
-= render 'performance_dashboards/project_type/base', title: "Prior Living Situation", key: key, sub_keys: @report.living_situation_bucket_titles.invert, chart_height: 700, desc: 'Prior living situation provided at entry for the most-recently started enrollment for each client.', detail_params: detail_params, comparison_params: nil, columns: columns, categories: categories, client_counts: client_counts, count_type: :enrolled
+= render 'performance_dashboards/project_type/base', title: "Prior Living Situation", key: key, sub_keys: @report.living_situation_bucket_titles.invert, chart_height: 700, desc: 'Prior living situation provided at entry for the most-recently started enrollment for each client.', detail_params: detail_params, comparison_params: nil, columns: columns, categories: categories, client_counts: client_counts, count_type: :enrolled, pie_chart_options: pie_chart_options
