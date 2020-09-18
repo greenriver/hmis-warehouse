@@ -12,7 +12,7 @@
         .mr-auto
           %h1 #{@report.project_type_title} Performance
         .ml-3
-          = render 'performance_dashboards/report_download', export: @pdf_export
+          = render 'performance_dashboards/report_download', export: @pdf_export, excel_download_path: download_performance_dashboards_project_type_index_path
       .mb-5= render 'performance_dashboards/overview/hero_counts'
       %div
         %div(style='margin-bottom: 2em')= render 'performance_dashboards/overview/universe_selection'

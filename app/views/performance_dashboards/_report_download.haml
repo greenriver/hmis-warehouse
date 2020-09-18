@@ -27,6 +27,6 @@
     %a.dropdown-item.d-flex.align-items-center.mb-1.j-document-exports.py-1{href: "#", data: data}
       %i.icon-file-pdf.icon-lg.mr-2
       %span PDF
-    %a.dropdown-item.d-flex.align-items-center.py-1.disabled{href: "#"}
+    = link_to excel_download_path, class: 'dropdown-item d-flex align-items-center py-1' do
       %i.icon-file-excel.icon-lg.mr-2
       %span Excel or CSV

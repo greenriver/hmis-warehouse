@@ -30,6 +30,10 @@ module PerformanceDashboards
       end
     end
 
+    def download
+      render xlsx: 'xlsx_download', filename: "Client Performance.xlsx"
+    end
+
     private def option_params
       params.permit(
         filters: [

@@ -1,0 +1,6 @@
+wb = xlsx_package.workbook
+@report.class.available_chart_types.each do |sheet_name|
+  wb.add_worksheet(name: sheet_name.titleize) do |sheet|
+    title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  end
+end
