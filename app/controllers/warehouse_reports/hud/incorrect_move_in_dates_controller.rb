@@ -34,6 +34,7 @@ module WarehouseReports::Hud
           or(ex_t[:ExitDate].lt(e_t[:MoveInDate])).
           or(ex_t[:Destination].in(HUD.permanent_destinations).and(e_t[:MoveInDate].eq(nil))),
         ).
+        distinct.
         order(EntryDate: :desc)
       respond_to do |format|
         format.html do
