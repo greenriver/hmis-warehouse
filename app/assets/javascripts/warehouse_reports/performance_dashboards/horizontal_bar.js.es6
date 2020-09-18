@@ -66,7 +66,6 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
         },
         onclick: this._follow_link,
       };
-      console.log({data})
       const config = {
         data,
         bindto: this.chart_selector,

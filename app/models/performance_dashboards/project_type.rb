@@ -10,6 +10,7 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
   include PerformanceDashboard::ProjectType::LengthOfTime
   include PerformanceDashboard::ProjectType::Returns
   include PerformanceDashboard::ProjectType::Detail
+  include PerformanceDashboard::Overview::Entering
 
   def self.url
     'performance_dashboards/project_type'
