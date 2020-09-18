@@ -179,7 +179,7 @@ module HmisCsvTwentyTwenty::Importer
       # determine which records have changed and are newer
       process_existing
 
-      # Update all ExportIDs
+      # Update all ExportIDs for corresponding existing warehouse records
       update_export_ids
 
       # Sweep all remaining items in a pending delete state
