@@ -8,5 +8,18 @@
   end
   categories = @report.returns_data_for_chart[:categories]
 
+  locals = {
+    title: "Returns to Homelessness",
+    key: key,
+    sub_keys: @report.returns_bucket_titles.invert,
+    chart_height: 500,
+    desc: "Lenth of time between a client's first exit during the period to a permanent destination and the next entry into ES, SH, or SO that occurred at least 7 days after the exit. Re-entry looks forward to the current date regardless of chosen periods.",
+    detail_params: detail_params,
+    comparison_params: nil,
+    columns: columns,
+    categories: categories,
+    client_counts: client_counts,
+    count_type: :returned
+  }
 
-= render 'performance_dashboards/project_type/base', title: "Returns to Homelessness", key: key, sub_keys: @report.returns_bucket_titles.invert, chart_height: 500, desc: "Lenth of time between a client's first exit during the period to a permanent destination and the next entry into ES, SH, or SO that occurred at least 7 days after the exit. Re-entry looks forward to the current date regardless of chosen periods.", detail_params: detail_params, comparison_params: nil, columns: columns, categories: categories, client_counts: client_counts, count_type: :returned
+= render 'performance_dashboards/project_type/base', locals

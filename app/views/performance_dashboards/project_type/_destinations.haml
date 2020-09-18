@@ -24,4 +24,19 @@
     }
   }
 
-= render 'performance_dashboards/project_type/base', key: key, sub_keys: @report.destination_bucket_titles.invert, title: 'Destinations', chart_height: 600, desc: 'Destination provided at exit for the most-recent exit occuring within the period for each client. Clients may have subsequent enrollments, and therefore the count may be greater than the number of clients leaving during the range.', detail_params: detail_params, comparison_params: nil, columns: columns, categories: categories, client_counts: client_counts, count_type: :exited, pie_chart_options: pie_chart_options
+  locals = {
+    key: key,
+    sub_keys: @report.destination_bucket_titles.invert,
+    title: 'Destinations',
+    chart_height: 600,
+    desc: 'Destination provided at exit for the most-recent exit occuring within the period for each client. Clients may have subsequent enrollments, and therefore the count may be greater than the number of clients leaving during the range.',
+    detail_params: detail_params,
+    comparison_params: nil,
+    columns: columns,
+    categories: categories,
+    client_counts: client_counts,
+    count_type: :exited,
+    pie_chart_options: pie_chart_options
+  }
+
+= render 'performance_dashboards/project_type/base', locals

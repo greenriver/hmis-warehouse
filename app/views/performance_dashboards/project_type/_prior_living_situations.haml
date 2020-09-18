@@ -23,4 +23,19 @@
     }
   }
 
-= render 'performance_dashboards/project_type/base', title: "Prior Living Situation", key: key, sub_keys: @report.living_situation_bucket_titles.invert, chart_height: 700, desc: 'Prior living situation provided at entry for the most-recently started enrollment for each client.', detail_params: detail_params, comparison_params: nil, columns: columns, categories: categories, client_counts: client_counts, count_type: :enrolled, pie_chart_options: pie_chart_options
+  locals = {
+    title: "Prior Living Situation",
+    key: key,
+    sub_keys: @report.living_situation_bucket_titles.invert,
+    chart_height: 700,
+    desc: 'Prior living situation provided at entry for the most-recently started enrollment for each client.',
+    detail_params: detail_params,
+    comparison_params: nil,
+    columns: columns,
+    categories: categories,
+    client_counts: client_counts,
+    count_type: :enrolled,
+    pie_chart_options: pie_chart_options
+  }
+
+= render 'performance_dashboards/project_type/base', locals

@@ -2,6 +2,7 @@
   chart_height ||= 400
   chart_class = "#{key}-chart"
   title ||= ''
+  summary_datum ||= []
   excluded_categories = local_assigns[:excluded_categories].presence
   bar_chart_options = {
     params: detail_params,
@@ -48,6 +49,17 @@
       .mb-1.gray.font-weight-normal.text-right
         Unique #{count_type.to_s.titleize} #{@report.performance_type.pluralize}:
         = number_with_delimiter(client_counts[:report])
+
+- if summary_datum.any?
+  .d-flex.flex-wrap.mb-2
+    - summary_datum.each_with_index do |datum, i|
+      .d-flex.flex-wrap.mb-2.flex-column.mr-4
+        %h3=columns[i].first
+        .d-flex.flex-wrap.mb-2
+          - datum.each do |data|
+            .hero-prs1
+              .hero-label-prs1.h5-prs1= data[:name].capitalize
+              .h1.hero-value-prs1.mr-3= data[:value]
 
 .well.mb-6.pt-2
   .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: bar_chart_options.to_json.html_safe } }

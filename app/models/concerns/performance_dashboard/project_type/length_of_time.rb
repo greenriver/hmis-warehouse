@@ -81,15 +81,37 @@ module PerformanceDashboard::ProjectType::LengthOfTime
   def lengths_of_time_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]
-      columns += lengths_of_time.values.map(&:count)
+      counts = lengths_of_time.values.map(&:count)
+      columns += counts
       categories = lengths_of_time.keys.map do |k|
         time_bucket_titles[k]
       end
       {
         columns: columns,
         categories: categories,
+        summary_datum: [
+          {name: 'Max', value: "#{counts.max} days"},
+          {name: 'Average', value: "#{mean(counts)} days"},
+          {name: 'Median', value: "#{median(counts)} days"},
+        ]
       }
     end
+  end
+
+  def mean(values)
+    values = values.map(&:to_f)
+    begin
+      (values.sum.to_f / values.length).round
+    rescue StandardError
+      0
+    end
+  end
+
+  def median(values)
+    values = values.map(&:to_f)
+    mid = values.size / 2
+    sorted = values.sort
+    values.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2
   end
 
   private def length_of_time_details(options)
