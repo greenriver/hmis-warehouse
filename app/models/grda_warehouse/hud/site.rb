@@ -7,6 +7,7 @@
 module GrdaWarehouse::Hud
   class Site < Base
     include HudSharedScopes
+    include ::HMIS::Structure::Base
     acts_as_paranoid column: :DateDeleted
 
     attr_accessor :source_id
