@@ -42,6 +42,7 @@ Date:	4/16/2020 -- original
 							than the raw HMIS value.  Split set of MoveInDate in tlsa_Enrollment into a separate step AFTER 
 							insert of records to simplify this and re-numbered steps.  
 		9/10/2020 - 3.5.1 - if a person's DOB is invalidated for any enrollment, age is considered unknown for all.
+		9/17/2020 - 3.3.1 - project's operating end date must be after its start date in order to include in LSA
 
 	3.2 Cohort Dates 
 */
@@ -157,8 +158,8 @@ where hoh.DateDeleted is null
 	and hohCheck.EnrollmentID is null 
 	and p.ContinuumProject = 1 
 	and (p.OperatingEndDate is null 
-		-- 5/14/2020 EntryDate must be prior to OperatingEndDate
-		or (hoh.EntryDate < p.OperatingEndDate and p.OperatingEndDate >= '10/1/2012'))
+		or (p.OperatingEndDate > p.OperatingStartDate 
+			and hoh.EntryDate < p.OperatingEndDate and p.OperatingEndDate >= '10/1/2012'))
 	and	(hx.ExitDate is null or 
 			(hx.ExitDate >= '10/1/2012' and hx.ExitDate > hoh.EntryDate) 
 		)
