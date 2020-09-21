@@ -169,12 +169,18 @@ module HmisCsvTwentyTwenty::Importer
       # as pending deletion.  We'll remove the pending where appropriate
       mark_tree_as_dead(Date.current)
 
+      # Add Export row
+      add_export_row
+
       # Add any records we don't have
       add_new_data
 
       # Process existing records,
       # determine which records have changed and are newer
       process_existing
+
+      # Update all ExportIDs for corresponding existing warehouse records
+      update_export_ids
 
       # Sweep all remaining items in a pending delete state
       remove_pending_deletes
@@ -199,6 +205,28 @@ module HmisCsvTwentyTwenty::Importer
           date_range: date_range,
           pending_date_deleted: pending_date_deleted,
         )
+      end
+    end
+
+    def add_export_row
+      destination_class = export_record.class.reflect_on_association(:destination_record).klass
+      destination_export = destination_class.where(
+        data_source_id: data_source.id,
+        ExportID: export_record.ExportID,
+      ).first_or_create
+      destination_export.update(export_record.as_destination_record.attributes.except('id'))
+    end
+
+    def update_export_ids
+      importable_files.each do |_, klass|
+        # Export has already been processed
+        next if klass.hud_key == :ExportID
+
+        klass.involved_warehouse_scope(
+          data_source_id: data_source.id,
+          project_ids: involved_project_ids,
+          date_range: date_range,
+        ).update_all(ExportID: export_record.ExportID)
       end
     end
 
