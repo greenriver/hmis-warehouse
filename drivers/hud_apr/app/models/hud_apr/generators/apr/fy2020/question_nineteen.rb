@@ -146,15 +146,9 @@ module HudApr::Generators::Apr::Fy2020
             amounts << income_difference
           end
         when 'C'
-          if income_for_category?(
-            apr_client,
-            category: income_category,
-            suffix: :start,
-          ) && income_for_category?(
-            apr_client,
-            category: income_category,
-            suffix: suffix,
-          ) && income_difference&.negative?
+          if income_for_category?(apr_client, category: income_category, suffix: :start) &&
+          income_for_category?(apr_client, category: income_category, suffix: suffix) &&
+          income_difference&.negative?
             ids << member.id
             amounts << income_difference
           end

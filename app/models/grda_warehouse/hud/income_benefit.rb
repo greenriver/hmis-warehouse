@@ -78,6 +78,28 @@ module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
       WorkersComp: :WorkersCompAmount,
     }.freeze
 
+    NON_CASH_BENEFIT_TYPES = [
+      :SNAP,
+      :WIC,
+      :TANFChildCare,
+      :TANFTransportation,
+      :OtherTANF,
+      :OtherBenefitsSource,
+    ]
+
+    INSURANCE_TYPES = [
+      :Medicaid,
+      :Medicare,
+      :SCHIP,
+      :VAMedicalServices,
+      :EmployerProvided,
+      :COBRA,
+      :PrivatePay,
+      :StateHealthIns,
+      :IndianHealthServices,
+      :OtherInsurance,
+    ]
+
     def sources
       @sources ||= SOURCES.keys.select { |c| send(c) == 1 }
     end

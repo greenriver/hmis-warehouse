@@ -105,7 +105,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def adult_or_hoh_clause
-      adult_clause.or(a_t[:head_of_household].eq(true))
+      adult_clause.or(hoh_clause)
     end
 
     private def stayers_clause
@@ -119,10 +119,14 @@ module HudApr::Generators::Shared::Fy2020
     # Heads of Household who have been enrolled for at least 365 days
     private def hoh_lts_stayer_ids
       @hoh_lts_stayer_ids ||= universe.members.where(
-        a_t[:head_of_household].eq(true).
+        hoh_clause.
         and(a_t[:length_of_stay].gteq(365)).
         and(stayers_clause),
       ).pluck(:head_of_household_id)
+    end
+
+    private def hoh_exit_dates
+      @hoh_exit_dates ||= universe.members.where(hoh_clause).pluck(:head_of_household_id, :last_date).to_h
     end
 
     # Returns a sql query clause appropriate to see if a value exists or doesn't exist in a
@@ -136,6 +140,32 @@ module HudApr::Generators::Shared::Fy2020
       end
       measures = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.keys.map do |income_measure|
         "coalesce(#{column}->>'#{income_measure}', '#{coalesce_value}')"
+      end
+      query += measures.join(', ') + ')'
+      Arel.sql(query)
+    end
+
+    private def benefit_jsonb_clause(value, column, negation: false, coalesce_value: 99)
+      if negation
+        query = "'#{value}' not in ("
+      else
+        query = "'#{value}' in ("
+      end
+      measures = GrdaWarehouse::Hud::IncomeBenefit::NON_CASH_BENEFIT_TYPES.map do |measure|
+        "coalesce(#{column}->>'#{measure}', '#{coalesce_value}')"
+      end
+      query += measures.join(', ') + ')'
+      Arel.sql(query)
+    end
+
+    private def insurance_jsonb_clause(value, column, negation: false, coalesce_value: 99)
+      if negation
+        query = "'#{value}' not in ("
+      else
+        query = "'#{value}' in ("
+      end
+      measures = GrdaWarehouse::Hud::IncomeBenefit::INSURANCE_TYPES.map do |measure|
+        "coalesce(#{column}->>'#{measure}', '#{coalesce_value}')"
       end
       query += measures.join(', ') + ')'
       Arel.sql(query)
@@ -332,6 +362,8 @@ module HudApr::Generators::Shared::Fy2020
 
     private def income_sources(income)
       sources = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.keys.map(&:to_s)
+      sources += GrdaWarehouse::Hud::IncomeBenefit::NON_CASH_BENEFIT_TYPES.map(&:to_s)
+      sources += GrdaWarehouse::Hud::IncomeBenefit::INSURANCE_TYPES.map(&:to_s)
       amounts = GrdaWarehouse::Hud::IncomeBenefit::SOURCES.values.map(&:to_s)
       income&.attributes&.slice(*(sources + amounts)) || sources.map { |k| [k, 99] }.to_h.merge(amounts.map { |k| [k, nil] }.to_h)
     end
