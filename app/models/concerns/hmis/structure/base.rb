@@ -30,7 +30,7 @@ module HMIS::Structure::Base
 
     ## convenience methods to DRY up some association definitions
 
-    def bipartite_keys(col, model_name)
+    def bipartite_keys(col, model_name = nil)
       h = {
         primary_key: [
           :data_source_id,
