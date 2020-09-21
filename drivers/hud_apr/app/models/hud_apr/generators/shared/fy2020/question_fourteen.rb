@@ -110,7 +110,7 @@ module HudApr::Generators::Shared::Fy2020
           data_source_id: source_client.data_source_id,
           report_instance_id: @report.id,
 
-          head_of_household: last_service_history_enrollment.head_of_household,
+          head_of_household: last_service_history_enrollment[:head_of_household],
           domestic_violence: health_and_dv.DomesticViolenceVictim,
           currently_fleeing: health_and_dv.CurrentlyFleeing,
           household_type: @household_types[last_service_history_enrollment.household_id],

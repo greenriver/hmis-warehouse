@@ -320,7 +320,7 @@ module HudApr::Generators::Shared::Fy2020
       end_date = [
         enrollment.last_date_in_program,
         @report.end_date + 1.day,
-      ].comact.min
+      ].compact.min
       (end_date - enrollment.first_date_in_program).to_i
     end
 
@@ -351,7 +351,7 @@ module HudApr::Generators::Shared::Fy2020
       return 0 unless total_amount.present? && total_amount.positive?
 
       earned = earned_amount(apr_client, suffix).presence || 0
-      total_amount - earned
+      total_amount.to_i - earned.to_i
     end
 
     private def total_amount(apr_client, suffix)
@@ -376,7 +376,7 @@ module HudApr::Generators::Shared::Fy2020
       total_amount != earned_amount(apr_client, suffix)
     end
 
-    private def total_income?(apr_client)
+    private def total_income?(apr_client, suffix)
       total_amount = total_amount(apr_client, suffix)
       total_amount.present? && total_amount.positive?
     end
@@ -417,7 +417,7 @@ module HudApr::Generators::Shared::Fy2020
       end
       return unless initial_amount && subsequent_amount
 
-      subsequent_amount - initial_amount
+      subsequent_amount.to_f - initial_amount.to_f
     end
   end
 end

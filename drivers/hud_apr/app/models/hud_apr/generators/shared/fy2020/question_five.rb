@@ -169,7 +169,7 @@ module HudApr::Generators::Shared::Fy2020
           report_instance_id: @report.id,
 
           age: source_client.age_on(client_start_date),
-          head_of_household: last_service_history_enrollment.head_of_household,
+          head_of_household: last_service_history_enrollment[:head_of_household],
           head_of_household_id: last_service_history_enrollment.head_of_household_id,
           parenting_youth: last_service_history_enrollment.parenting_youth,
           other_clients_over_25: last_service_history_enrollment.other_clients_over_25,

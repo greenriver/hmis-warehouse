@@ -251,7 +251,7 @@ module HudApr::Generators::Shared::Fy2020
           age: source_client.age_on(client_start_date),
           dob: source_client.DOB,
           dob_quality: source_client.DOBDataQuality,
-          head_of_household: last_service_history_enrollment.head_of_household,
+          head_of_household: last_service_history_enrollment[:head_of_household],
           household_id: last_service_history_enrollment.household_id,
           project_type: last_service_history_enrollment.project_type,
           move_in_date: last_service_history_enrollment.move_in_date,
