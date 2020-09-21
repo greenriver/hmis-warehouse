@@ -146,15 +146,9 @@ module HudApr::Generators::Shared::Fy2020
       # "...any adult stayer present when the head of household’s stay is 365 days or more,
       # even if that adult has not been in the household that long"
       answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B16')
-      hoh_ids = universe.members.where(
-        a_t[:head_of_household].eq(true).
-        and(a_t[:length_of_stay].gteq(365)).
-        and(a_t[:last_date_in_program].gt(@report.end_date)),
-      ).pluck(:head_of_household_id)
       members = universe.members.where(
-        a_t[:head_of_household_id].in(hoh_ids).
-          and(adult_clause.
-            or(a_t[:head_of_household].eq(true))),
+        a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
+        and(adult_clause.or(a_t[:head_of_household].eq(true))),
       )
       answer.add_members(members)
       answer.update(summary: members.count)
@@ -182,8 +176,7 @@ module HudApr::Generators::Shared::Fy2020
           first_date_in_program: last_service_history_enrollment.first_date_in_program,
           last_date_in_program: last_service_history_enrollment.last_date_in_program,
           veteran_status: source_client.VeteranStatus,
-          length_of_stay: ((last_service_history_enrollment.last_date_in_program || @report.end_date + 1.day) -
-            last_service_history_enrollment.first_date_in_program).to_i,
+          length_of_stay: stay_length(last_service_history_enrollment),
           chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
         )
       end

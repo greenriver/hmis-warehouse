@@ -116,6 +116,15 @@ module HudApr::Generators::Shared::Fy2020
       a_t[:last_date_in_program].lteq(@report.end_date)
     end
 
+    # Heads of Household who have been enrolled for at least 365 days
+    private def hoh_lts_stayer_ids
+      @hoh_lts_stayer_ids ||= universe.members.where(
+        a_t[:head_of_household].eq(true).
+        and(a_t[:length_of_stay].gteq(365)).
+        and(stayers_clause),
+      ).pluck(:head_of_household_id)
+    end
+
     # Returns a sql query clause appropriate to see if a value exists or doesn't exist in a
     # jsonb hash
     # EX: 1 in (coalesce(data->>'a', '99'), coalesce(data->>'b', '99'))
@@ -306,6 +315,15 @@ module HudApr::Generators::Shared::Fy2020
       end
     end
 
+    # Given the reporting period, how long has the client been in the enrollment
+    private def stay_length(enrollment)
+      end_date = [
+        enrollment.last_date_in_program,
+        @report.end_date + 1.day,
+      ].comact.min
+      (end_date - enrollment.first_date_in_program).to_i
+    end
+
     private def annual_assessment(enrollment)
       enrollment.income_benefits_annual_update.select do |i|
         i.InformationDate < @report.end_date
@@ -322,6 +340,84 @@ module HudApr::Generators::Shared::Fy2020
       elapsed_years = @report.end_date.year - enrollment.first_date_in_program.year
       elapsed_years -= 1 if enrollment.first_date_in_program + elapsed_years.year > @report.end_date
       enrollment.head_of_household? && elapsed_years&.positive?
+    end
+
+    private def earned_amount(apr_client, suffix)
+      apr_client["income_sources_at_#{suffix}"]['EarnedAmount']
+    end
+
+    private def other_amount(apr_client, suffix)
+      total_amount = total_amount(apr_client, suffix)
+      return 0 unless total_amount.present? && total_amount.positive?
+
+      earned = earned_amount(apr_client, suffix).presence || 0
+      total_amount - earned
+    end
+
+    private def total_amount(apr_client, suffix)
+      apr_client["income_total_at_#{suffix}"]
+    end
+
+    # We have earned income if we said we had earned income and the amount is positive
+    private def earned_income?(apr_client, suffix)
+      return false unless apr_client["income_sources_at_#{suffix}"]['Earned'] == 1
+
+      earned_amt = earned_amount(apr_client, suffix)
+      return false unless earned_amt.blank?
+
+      earned_amt.positive?
+    end
+
+    # We have other income if the total is positive and not equal to the earned amount
+    private def other_income?(apr_client, suffix)
+      total_amount = total_amount(apr_client, suffix)
+      return false unless total_amount.present? && total_amount.positive?
+
+      total_amount != earned_amount(apr_client, suffix)
+    end
+
+    private def total_income?(apr_client)
+      total_amount = total_amount(apr_client, suffix)
+      total_amount.present? && total_amount.positive?
+    end
+
+    private def income_for_category?(apr_client, category:, suffix:)
+      case category
+      when :earned
+        earned_income?(apr_client, suffix)
+      when :other
+        other_income?(apr_client, suffix)
+      when :total
+        total_income?(apr_client, suffix)
+      end
+    end
+
+    private def both_income_types?(apr_client, suffix)
+      earned_income?(apr_client, suffix) && other_income?(apr_client, suffix)
+    end
+
+    private def no_income?(apr_client, suffix)
+      [
+        earned_income?(apr_client, suffix),
+        other_income?(apr_client, suffix),
+      ].none?
+    end
+
+    private def income_change(apr_client, category:, initial:, subsequent:)
+      case category
+      when :total
+        initial_amount = apr_client["income_total_at_#{initial}"]
+        subsequent_amount = apr_client["income_total_at_#{subsequent}"]
+      when :earned
+        initial_amount = earned_amount(apr_client, initial)
+        subsequent_amount = earned_amount(apr_client, subsequent)
+      when :other
+        initial_amount = other_amount(apr_client, initial)
+        subsequent_amount = other_amount(apr_client, subsequent)
+      end
+      return unless initial_amount && subsequent_amount
+
+      subsequent_amount - initial_amount
     end
   end
 end

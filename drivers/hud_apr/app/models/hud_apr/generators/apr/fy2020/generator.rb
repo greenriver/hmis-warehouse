@@ -30,6 +30,7 @@ module HudApr::Generators::Apr::Fy2020
         'Question 16' => HudApr::Generators::Shared::Fy2020::QuestionSixteen, #  Cash Income - Ranges
         'Question 17' => HudApr::Generators::Shared::Fy2020::QuestionSeventeen, # Cash Income - Sources
         'Question 18' => HudApr::Generators::Apr::Fy2020::QuestionEighteen, # Client Cash Income Category - Earned/Other Income Category - by Start and Annual Assessment/Exit Status
+        'Question 19' => HudApr::Generators::Apr::Fy2020::QuestionNineteen, # Cash Income – Changes over Time
       }.freeze
     end
   end

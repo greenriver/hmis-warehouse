@@ -48,7 +48,7 @@ module HudApr::Generators::Apr::Fy2020
               when :other
                 ids << member.id if other_income?(apr_client, suffix) && ! earned_income?(apr_client, suffix)
               when :both
-                ids << member.id if both_incomes?(apr_client, suffix)
+                ids << member.id if both_income_types?(apr_client, suffix)
               when :none
                 ids << member.id if no_income?(apr_client, suffix)
               end
@@ -109,39 +109,6 @@ module HudApr::Generators::Apr::Fy2020
         'D8',
         'D9',
       ].freeze
-    end
-
-    private def earned_amount(apr_client, suffix)
-      apr_client["income_sources_at_#{suffix}"]['EarnedAmount']
-    end
-
-    # We have earned income if we said we had earned income and the amount is positive
-    private def earned_income?(apr_client, suffix)
-      return false unless apr_client["income_sources_at_#{suffix}"]['Earned'] == 1
-
-      earned_amt = earned_amount(apr_client, suffix)
-      return false unless earned_amt.blank?
-
-      earned_amt.positive?
-    end
-
-    # We have other income if the total is positive and not equal to the earned amount
-    private def other_income?(apr_client, suffix)
-      total_amount = apr_client["income_total_at_#{suffix}"]
-      return false if total_amount.blank? || total_amount.zero? || total_amount.negative?
-
-      total_amount != earned_amount(apr_client, suffix)
-    end
-
-    private def both_incomes?(apr_client, suffix)
-      earned_income?(apr_client, suffix) && other_income?(apr_client, suffix)
-    end
-
-    private def no_income?(apr_client, suffix)
-      [
-        earned_income?(apr_client, suffix),
-        other_income?(apr_client, suffix),
-      ].none?
     end
 
     private def universe
