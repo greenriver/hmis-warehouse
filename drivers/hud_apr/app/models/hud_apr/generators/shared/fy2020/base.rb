@@ -134,7 +134,25 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def hoh_exit_dates
-      @hoh_exit_dates ||= universe.members.where(hoh_clause).pluck(:head_of_household_id, :last_date).to_h
+      @hoh_exit_dates ||= universe.members.where(hoh_clause).pluck(a_t[:head_of_household_id], a_t[:last_date_in_program]).to_h
+    end
+
+    private def hoh_entry_dates
+      @hoh_entry_dates ||= {}.tap do |entries|
+        enrollment_scope.where(client_id: @generator.client_scope.select(:id)).heads_of_households.
+          find_each do |enrollment|
+            entries[enrollment[:head_of_household_id]] ||= enrollment.first_date_in_program
+          end
+      end
+    end
+
+    private def hoh_move_in_dates
+      @hoh_move_in_dates ||= {}.tap do |entries|
+        enrollment_scope.where(client_id: @generator.client_scope.select(:id)).heads_of_households.
+          find_each do |enrollment|
+            entries[enrollment[:head_of_household_id]] ||= enrollment.move_in_date
+          end
+      end
     end
 
     # Returns a sql query clause appropriate to see if a value exists or doesn't exist in a
@@ -360,6 +378,26 @@ module HudApr::Generators::Shared::Fy2020
         @report.end_date + 1.day,
       ].compact.min
       (end_date - enrollment.first_date_in_program).to_i
+    end
+
+    private def time_to_move_in(enrollment)
+      move_in_date = appropriate_move_in_date(enrollment)
+      return nil unless move_in_date.present?
+
+      (move_in_date - enrollment.first_date_in_program).to_i
+    end
+
+    # Household members already in the household when the head of household moves into housing have the same [housing move-in date] as the head of household. For household members joining the household after it is already in housing, use the person’s [project start date] as their [housing move-in date].
+    private def appropriate_move_in_date(enrollment)
+      # Use the move-in-date if provided
+      move_in_date = enrollment.move_in_date
+      return move_in_date if move_in_date.present?
+
+      hoh_move_in_date = hoh_entry_dates[enrollment[:head_of_household]]
+      return nil unless hoh_move_in_date.present?
+      return hoh_move_in_date if enrollment.first_date_in_program < hoh_move_in_date
+
+      enrollment.first_date_in_program
     end
 
     private def annual_assessment(enrollment)

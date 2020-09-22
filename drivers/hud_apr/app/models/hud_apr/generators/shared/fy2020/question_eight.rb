@@ -254,7 +254,7 @@ module HudApr::Generators::Shared::Fy2020
           dob_quality: source_client.DOBDataQuality,
           head_of_household: last_service_history_enrollment[:head_of_household],
           household_id: last_service_history_enrollment.household_id,
-          project_type: last_service_history_enrollment.project_type,
+          project_type: last_service_history_enrollment.computed_project_type,
           move_in_date: last_service_history_enrollment.move_in_date,
           household_type: @household_types[last_service_history_enrollment.household_id],
           first_date_in_program: last_service_history_enrollment.first_date_in_program,

@@ -13,6 +13,7 @@ module HudApr::Generators::Caper::Fy2020
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
       q22a2_length_of_participation
+      q22c_start_to_move_in
 
       @report.complete(QUESTION_NUMBER)
     end

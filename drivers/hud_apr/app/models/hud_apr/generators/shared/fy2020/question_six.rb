@@ -952,7 +952,7 @@ module HudApr::Generators::Shared::Fy2020
           income_date_at_exit: income_at_exit&.InformationDate,
           income_from_any_source_at_exit: income_at_exit&.IncomeFromAnySource,
           income_sources_at_exit: income_sources(income_at_exit),
-          project_type: last_service_history_enrollment.project_type,
+          project_type: last_service_history_enrollment.computed_project_type,
           prior_living_situation: enrollment.LivingSituation,
           prior_length_of_stay: enrollment.LengthOfStay,
           date_homeless: enrollment.DateToStreetESSH,
