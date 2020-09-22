@@ -109,7 +109,6 @@ module HudApr::Generators::Shared::Fy2020
         'Data not Collected' => a_t["insurance_from_any_source_at_#{suffix}"].eq(99).
           and(insurance_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)),
         'Number of Stayers not yet Required To Have an Annual Assessment' => a_t[:annual_assessment_expected].eq(false),
-        #### FIXME
         '1 Source of Health Insurance' => :one,
         'More than 1 Source of Health Insurance' => :more_than_one,
       }

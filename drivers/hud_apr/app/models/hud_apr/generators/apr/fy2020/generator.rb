@@ -32,6 +32,7 @@ module HudApr::Generators::Apr::Fy2020
         HudApr::Generators::Apr::Fy2020::QuestionNineteen, # Cash Income – Changes over Time
         HudApr::Generators::Shared::Fy2020::QuestionTwenty, # Non-Cash Benefits
         HudApr::Generators::Shared::Fy2020::QuestionTwentyOne, # Health Insurance
+        HudApr::Generators::Apr::Fy2020::QuestionTwentyTwo, # Length of participation
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
