@@ -7,7 +7,7 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionFour < Base
     QUESTION_NUMBER = 'Question 4'.freeze
-    QUESTION_TABLE_NUMBER = 'Q4a'.freeze
+    QUESTION_TABLE_NUMBERS = ['Q4a'].freeze
 
     TABLE_HEADER = [
       'Organization Name',
@@ -33,7 +33,9 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     def run_question!
-      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
+      table_name = 'Q4a'
+      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
+      @report.universe(QUESTION_NUMBER)
 
       project_rows = []
 
@@ -61,7 +63,7 @@ module HudApr::Generators::Shared::Fy2020
       project_rows.each_with_index do |row, row_index|
         row.each_with_index do |value, column_index|
           cell_name = cell_columns[column_index] + (row_index + 2).to_s
-          @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell_name).update(summary: value)
+          @report.answer(question: table_name, cell: cell_name).update(summary: value)
         end
       end
 
@@ -73,7 +75,7 @@ module HudApr::Generators::Shared::Fy2020
         first_row: 2,
         last_row: project_rows.size + 1,
       }
-      @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
+      @report.answer(question: table_name).update(metadata: metadata)
 
       @report.complete(QUESTION_NUMBER)
     end

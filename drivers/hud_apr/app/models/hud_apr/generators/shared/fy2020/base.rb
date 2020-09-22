@@ -17,6 +17,14 @@ module HudApr::Generators::Shared::Fy2020
       raise e
     end
 
+    def self.most_recent_answer(user_id:)
+      HudReports::ReportCell.universe.where(question: question_number).
+        joins(:report_instance).
+        merge(HudReports::ReportInstance.where(user_id: user_id)).
+        order(created_at: :desc).
+        first
+    end
+
     protected def build_universe(question_number, preloads: {}, before_block: nil, after_block: nil)
       universe_cell = @report.universe(question_number)
 

@@ -15,24 +15,26 @@ module HudApr::Generators::Apr::Fy2020
     end
 
     def self.questions
-      {
-        'Question 4' => HudApr::Generators::Shared::Fy2020::QuestionFour, # Project Identifiers in HMIS
-        'Question 5' => HudApr::Generators::Shared::Fy2020::QuestionFive, # Report Validations Table
-        'Question 6' => HudApr::Generators::Shared::Fy2020::QuestionSix, # Data Quality
-        'Question 7' => HudApr::Generators::Apr::Fy2020::QuestionSeven, # Persons Served
-        'Question 8' => HudApr::Generators::Shared::Fy2020::QuestionEight, # Households Served
-
-        'Question 11' => HudApr::Generators::Shared::Fy2020::QuestionEleven, # Age-Household Breakdown
-        'Question 12' => HudApr::Generators::Shared::Fy2020::QuestionTwelve, # Race & Ethnicity
-        'Question 13' => HudApr::Generators::Shared::Fy2020::QuestionThirteen, # Health
-        'Question 14' => HudApr::Generators::Shared::Fy2020::QuestionFourteen, # Domestic Violence
-        'Question 15' => HudApr::Generators::Shared::Fy2020::QuestionFifteen, # Living Situation
-        'Question 16' => HudApr::Generators::Shared::Fy2020::QuestionSixteen, #  Cash Income - Ranges
-        'Question 17' => HudApr::Generators::Shared::Fy2020::QuestionSeventeen, # Cash Income - Sources
-        'Question 18' => HudApr::Generators::Apr::Fy2020::QuestionEighteen, # Client Cash Income Category - Earned/Other Income Category - by Start and Annual Assessment/Exit Status
-        'Question 19' => HudApr::Generators::Apr::Fy2020::QuestionNineteen, # Cash Income – Changes over Time
-        'Question 20' => HudApr::Generators::Shared::Fy2020::QuestionTwenty, # Non-Cash Benefits
-      }.freeze
+      [
+        HudApr::Generators::Shared::Fy2020::QuestionFour, # Project Identifiers in HMIS
+        HudApr::Generators::Shared::Fy2020::QuestionFive, # Report Validations Table
+        HudApr::Generators::Shared::Fy2020::QuestionSix, # Data Quality
+        HudApr::Generators::Apr::Fy2020::QuestionSeven, # Persons Served
+        HudApr::Generators::Shared::Fy2020::QuestionEight, # Households Served
+        HudApr::Generators::Shared::Fy2020::QuestionEleven, # Age-Household Breakdown
+        HudApr::Generators::Shared::Fy2020::QuestionTwelve, # Race & Ethnicity
+        HudApr::Generators::Shared::Fy2020::QuestionThirteen, # Health
+        HudApr::Generators::Shared::Fy2020::QuestionFourteen, # Domestic Violence
+        HudApr::Generators::Shared::Fy2020::QuestionFifteen, # Living Situation
+        HudApr::Generators::Shared::Fy2020::QuestionSixteen, #  Cash Income - Ranges
+        HudApr::Generators::Shared::Fy2020::QuestionSeventeen, # Cash Income - Sources
+        HudApr::Generators::Apr::Fy2020::QuestionEighteen, # Client Cash Income Category - Earned/Other Income Category - by Start and t/Exit Status
+        HudApr::Generators::Apr::Fy2020::QuestionNineteen, # Cash Income – Changes over Time
+        HudApr::Generators::Shared::Fy2020::QuestionTwenty, # Non-Cash Benefits
+        HudApr::Generators::Shared::Fy2020::QuestionTwentyOne, # Health Insurance
+      ].map do |q|
+        [q.question_number, q]
+      end.to_h.freeze
     end
   end
 end

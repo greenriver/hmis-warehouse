@@ -82,6 +82,7 @@ module HudApr::Generators::Shared::Fy2020
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
       income_stage.each_with_index do |(_, suffix), col_index|
+        counted = Set.new
         income_counts(suffix).to_a.each_with_index do |(_, income_clause), row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
@@ -105,7 +106,13 @@ module HudApr::Generators::Shared::Fy2020
             members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
           end
 
-          members = members.where(income_clause)
+          # Row 5 is everyone not counted in 2, 3, or 4
+          if rows[row_index] == 5
+            members = members.where(a_t[:id].not_in(counted))
+          else
+            members = members.where(income_clause)
+            counted += members.pluck(a_t[:id])
+          end
           answer.add_members(members)
           answer.update(summary: members.count)
         end
@@ -127,8 +134,8 @@ module HudApr::Generators::Shared::Fy2020
           and(benefit_jsonb_clause(99, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)),
         '1 + Source(s)' => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].eq(1).
           and(benefit_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql)),
-        'Client Doesn’t Know/Client Refused' => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].in([8, 9]),
-        # FIXME: this needs to also include to those who have non_cash_benefits_from_any_source_at_ == 0 but also have 1s or 99s in the sources
+        "Client Doesn't Know/Client Refused" => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].in([8, 9]),
+        # This needs to also include to those who have non_cash_benefits_from_any_source_at_ == 0 but also have 1s or 99s in the sources
         # and those who have non_cash_benefits_from_any_source_at_ == 1 but don't have any 1s in the sources
         'Data Not Collected/Not stayed long enough for Annual Assessment' => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].not_in([0, 1, 8, 9]),
         'Total' => Arel.sql('1=1'),

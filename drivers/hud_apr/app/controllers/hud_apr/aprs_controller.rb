@@ -58,7 +58,10 @@ module HudApr
 
     def set_reports
       titles = generators.map(&:title)
-      @reports = report_source.where(report_name: titles).order(created_at: :desc)
+      @reports = report_source.where(report_name: titles).
+        preload(:user).
+        order(created_at: :desc).
+        page(params[:page]).per(50)
     end
 
     def report_urls
