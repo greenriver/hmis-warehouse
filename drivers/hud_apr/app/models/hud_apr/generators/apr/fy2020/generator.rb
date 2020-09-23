@@ -33,6 +33,7 @@ module HudApr::Generators::Apr::Fy2020
         HudApr::Generators::Apr::Fy2020::QuestionTwenty, # Non-Cash Benefits
         HudApr::Generators::Apr::Fy2020::QuestionTwentyOne, # Health Insurance
         HudApr::Generators::Apr::Fy2020::QuestionTwentyTwo, # Length of participation
+        HudApr::Generators::Apr::Fy2020::QuestionTwentyThree, # Destination
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
