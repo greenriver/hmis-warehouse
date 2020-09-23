@@ -74,10 +74,10 @@ module PerformanceDashboard::ProjectType::Destination
   private def destination_avg_columns
     destinations.summary.map do |label, count|
       [
-        "#{label} (#{count})",
+        "#{label} (#{number_with_delimiter(count)})",
         count,
       ]
-    end
+    end.sort
   end
 
   def destination_bucket_titles

@@ -59,9 +59,9 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
               if (columnTotals[setIndex] > v) {
                 percentage = (v/columnTotals[setIndex])*100
               }
-              return `${v} (${percentage.toFixed(1)}%)`;
+              return `${d3.format(",")(v)} (${percentage.toFixed(1)}%)`;
             }
-            return v;
+            return d3.format(",")(v);
           }
         },
         onclick: this._follow_link,

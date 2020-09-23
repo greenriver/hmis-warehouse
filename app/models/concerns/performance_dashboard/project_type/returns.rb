@@ -92,7 +92,7 @@ module PerformanceDashboard::ProjectType::Returns
     returned_count = homeless_re_entries.count - did_not_return_count
     [
       [
-        "Returned (#{returned_count})",
+        "Returned (#{number_with_delimiter(returned_count)})",
         returned_count,
       ],
       [

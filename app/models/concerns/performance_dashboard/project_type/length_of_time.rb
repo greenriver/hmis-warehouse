@@ -91,8 +91,8 @@ module PerformanceDashboard::ProjectType::LengthOfTime
         categories: categories,
         summary_datum: [
           { name: 'Max', value: "#{counts.max} days" },
-          { name: 'Average', value: "#{mean(counts)} days" },
-          { name: 'Median', value: "#{median(counts)} days" },
+          { name: 'Average', value: "#{number_with_delimiter(mean(counts))} days" },
+          { name: 'Median', value: "#{number_with_delimiter(median(counts))} days" },
         ],
       }
     end

@@ -6,6 +6,7 @@
 
 class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   include ArelHelper
+  include ActionView::Helpers::NumberHelper
 
   # Initialize dashboard model.
   #
