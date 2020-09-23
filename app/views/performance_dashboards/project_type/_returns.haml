@@ -4,11 +4,10 @@
   client_counts = { report: @report.returned_total_count, comparison: @comparison.returned_total_count}
   columns = [@report.returns_data_for_chart[:columns]]
   avg_columns = [@report.returns_data_for_chart[:avg_columns]]
-  summary_datum = [@report.returns_data_for_chart[:summary_datum]]
+
   if @report.include_comparison?
     columns << @comparison.returns_data_for_chart[:columns]
-    avg_columns << [@comparison.returns_data_for_chart[:avg_columns]]
-    summary_datum << [@comparison.returns_data_for_chart[:summary_datum]]
+    avg_columns << @comparison.returns_data_for_chart[:avg_columns]
   end
   categories = @report.returns_data_for_chart[:categories]
 
@@ -20,7 +19,7 @@
       options: {
         height: 400,
         follow_link: show_client_details?,
-        legendPosition: 'right',
+        legendPosition: 'bottom',
       }
     }
   end
@@ -38,6 +37,6 @@
     client_counts: client_counts,
     count_type: :returned,
     pie_chart_options: pie_chart_options,
-    summary_datum: summary_datum,
   }
+
 = render 'performance_dashboards/project_type/base', locals

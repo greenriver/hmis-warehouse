@@ -3,5 +3,4 @@
   $('.jSwitcher').trigger('change');
 <% else %>
   $('#pjax-modal').modal('hide')
-  window.location.reload()
 <% end %>

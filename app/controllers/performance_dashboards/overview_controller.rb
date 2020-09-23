@@ -31,7 +31,7 @@ module PerformanceDashboards
     end
 
     def download
-      render xlsx: 'xlsx_download', filename: "Client Performance.xlsx"
+      render xlsx: 'xlsx_download', filename: "#{@report.performance_type} Performance.xlsx"
     end
 
     private def option_params

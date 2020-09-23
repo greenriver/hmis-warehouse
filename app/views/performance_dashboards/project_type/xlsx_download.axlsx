@@ -6,18 +6,20 @@ wb = xlsx_package.workbook
     headers = ['Category', 'Count', 'Percentage']
     sheet_title_style = sheet.styles.add_style(sz: 16, b: true)
     title_style = sheet.styles.add_style(sz: 12, b: true)
-    sheet.add_row([sheet_name.titleize], :style => sheet_title_style)
+    sheet.add_row([sheet_name.titleize], style: sheet_title_style)
     sheet.add_row([])
-    sheet.add_row(headers, :style => title_style)
+    sheet.add_row(headers, style: title_style)
     row_names.each_with_index do |row_name, i|
       value = data[i+1] # first index value of data is name of set
       percentage = 0
       total = data.drop(1).sum.to_f
-      if total.nonzero?
-        percentage = value/total
-      end
+      percentage = (value / total) * 100 if total.nonzero?
       sheet.add_row(
-        [row_name, value, number_to_percentage(percentage)]
+        [
+          row_name,
+          value,
+          number_to_percentage(percentage),
+        ],
       )
     end
   end

@@ -12,7 +12,7 @@
         .mr-auto
           %h1 #{@report.project_type_title} Performance
         .ml-3
-          = render 'performance_dashboards/report_download', export: @pdf_export, excel_download_path: download_performance_dashboards_project_type_index_path
+          = render 'performance_dashboards/report_download', export: @pdf_export, excel_download_path: download_performance_dashboards_project_type_index_path({filters: filter_params})
       .mb-5= render 'performance_dashboards/overview/hero_counts'
       %div
         %div(style='margin-bottom: 2em')= render 'performance_dashboards/overview/universe_selection'
@@ -36,4 +36,5 @@
     new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.destination-chart-pie-1', {remote: true});
     new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.returns-chart', {remote: true});
     new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.returns-chart-pie-0', {remote: true});
+    new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.returns-chart-pie-1', {remote: true});
     new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.length_of_time-chart', {remote: true});

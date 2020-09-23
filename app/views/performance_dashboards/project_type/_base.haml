@@ -4,10 +4,12 @@
   title ||= ''
   summary_datum ||= []
   excluded_categories = local_assigns[:excluded_categories].presence
+  legend_id = "legend-#{SecureRandom.hex(8)}"
   bar_chart_options = {
     params: detail_params,
     columns: columns,
     categories: categories,
+    legendBindTo: "##{legend_id}",
     options: {
       height: chart_height,
       follow_link: show_client_details?,
@@ -62,6 +64,7 @@
               .h1.hero-value-prs2.mr-3= data[:value]
 
 .well.mb-6.pt-2
+  .chart-legend-prs1{id: legend_id}
   .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: bar_chart_options.to_json.html_safe } }
   - if pie_chart_options.any?
     .mt-6.row

@@ -6,7 +6,7 @@
   avg_columns = [@report.prior_living_situations_data_for_chart[:avg_columns]]
   if @report.include_comparison?
     columns << @comparison.prior_living_situations_data_for_chart[:columns]
-    avg_columns << @comparison.prior_living_situations_data_for_chart[:avg_columns]
+    avg_columns += @comparison.prior_living_situations_data_for_chart[:avg_columns]
   end
   categories = @report.prior_living_situations_data_for_chart[:categories]
   pie_chart_options = avg_columns.map do |avg_column|
@@ -16,7 +16,7 @@
       options: {
         height: 400,
         follow_link: show_client_details?,
-        legendPosition: 'right',
+        legendPosition: 'bottom',
       }
     }
   end

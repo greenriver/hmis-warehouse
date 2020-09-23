@@ -2,6 +2,30 @@ wb = xlsx_package.workbook
 @report.class.available_chart_types.each do |sheet_name|
   wb.add_worksheet(name: sheet_name.titleize) do |sheet|
     sheet_title_style = sheet.styles.add_style(sz: 16, b: true)
-    sheet.add_row(["Client Performance #{sheet_name.titleize}"], :style => sheet_title_style)
+    sheet.add_row(["#{@report.performance_type} Performance"], style: sheet_title_style)
+    sheet.add_row([])
+    ['enrolled', 'entering', 'exiting'].each do |stage|
+      data = @report.send("#{stage}_#{sheet_name}_data_for_chart")[:columns]
+      row_names = @report.send("#{stage}_#{sheet_name}_data_for_chart")[:categories].select { |d| d.is_a?(String)}
+      headers = ['Category', 'Count', 'Percentage']
+      sheet_title_style = sheet.styles.add_style(sz: 14, b: true)
+      title_style = sheet.styles.add_style(sz: 12, b: true)
+      sheet.add_row(["#{stage.titleize} #{sheet_name.titleize}"], style: sheet_title_style)
+      sheet.add_row(headers, style: title_style)
+      row_names.each_with_index do |row_name, i|
+        value = data[i+1] # first index value of data is name of set
+        percentage = 0
+        total = data.drop(1).sum.to_f
+        percentage = (value / total) * 100 if total.nonzero?
+        sheet.add_row(
+          [
+            row_name,
+            value,
+            number_to_percentage(percentage),
+          ],
+        )
+      end
+      sheet.add_row([])
+    end
   end
 end

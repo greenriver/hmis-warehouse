@@ -83,21 +83,22 @@ module PerformanceDashboard::ProjectType::Returns
         columns: columns,
         categories: categories,
         avg_columns: returns_avg_columns,
-        summary_datum: returns_avg_columns,
       }
     end
   end
 
   private def returns_avg_columns
+    did_not_return_count = homeless_re_entries.count { |_, d| d[:returns_bucket] == :did_not_return }
+    returned_count = homeless_re_entries.count - did_not_return_count
     [
-      {
-        name: 'Returned',
-        value: homeless_re_entries.count { |_, d| d[:returns_bucket] != :did_not_return },
-      },
-      {
-        name: 'Did not Return',
-        value: homeless_re_entries.count { |_, d| d[:returns_bucket] == :did_not_return },
-      },
+      [
+        "Returned (#{returned_count})",
+        returned_count,
+      ],
+      [
+        "Did not Return (#{did_not_return_count})",
+        did_not_return_count,
+      ],
     ]
   end
 
