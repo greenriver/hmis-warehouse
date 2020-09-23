@@ -91,7 +91,7 @@ class SourceClientsController < ApplicationController
 
   private def validate_new_client_params(clean_params)
     valid = true
-    unless [0, 9].include?(clean_params[:SSN].length)
+    unless [0, 9].include?(clean_params[:SSN].to_s.length)
       @client.errors[:SSN] = 'SSN must contain 9 digits'
       valid = false
     end
