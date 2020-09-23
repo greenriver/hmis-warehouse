@@ -14,7 +14,6 @@ module PerformanceDashboard::ProjectType::Returns
   def permanent_exits
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       @permanent_exits ||= {}.tap do |exits|
-        puts 'testing'
         exits_current_period.
           order(last_date_in_program: :asc).
           pluck(:client_id, she_t[:id], she_t[:destination], :last_date_in_program).
@@ -38,21 +37,21 @@ module PerformanceDashboard::ProjectType::Returns
   def homeless_re_entries
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       @homeless_re_entries ||= {}.tap do |entries|
+        p_exits = permanent_exits
         entries_current_period.where(first_date_in_program: (@start_date..Date.current)).
           hud_homeless.
-          where(client_id: permanent_exits.keys). # limit to those with an exit
+          where(client_id: p_exits.keys). # limit to those with an exit
           order(first_date_in_program: :asc).
           pluck(:client_id, she_t[:id], :first_date_in_program).
           each do |c_id, en_id, first_date_in_program|
-            permanent_exit = permanent_exits[c_id]
+            permanent_exit = p_exits[c_id]
             permanent_exit_date = permanent_exit[:exit_date]
             # Collect enrollments where the client is returning after 7 days or more
             # Find the first entry after the permanent exit
             next if first_date_in_program < permanent_exit_date
-
-            days_to_return = (first_date_in_program - permanent_exit_date).to_i
             next unless permanent_exit_date + 7.days < first_date_in_program
 
+            days_to_return = (first_date_in_program - permanent_exit_date).to_i
             entries[c_id] ||= {
               entry_id: en_id,
               entry_date: first_date_in_program,
@@ -60,7 +59,7 @@ module PerformanceDashboard::ProjectType::Returns
               returns_bucket: returns_bucket(days_to_return),
             }.merge(permanent_exit)
           end
-        permanent_exits.reject { |c_id, _| entries.key?(c_id) }.each do |c_id, permanent_exit|
+        p_exits.reject { |c_id, _| entries.key?(c_id) }.each do |c_id, permanent_exit|
           entries[c_id] ||= permanent_exit.merge(returns_bucket: :did_not_return)
         end
       end
