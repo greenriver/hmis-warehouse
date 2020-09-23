@@ -13,19 +13,20 @@ module PerformanceDashboard::ProjectType::Returns
   # Find the first exit to a permanent destination
   def permanent_exits
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      exits = {}
-      exits_current_period.
-        order(last_date_in_program: :asc).
-        pluck(:client_id, she_t[:id], she_t[:destination], :last_date_in_program).
-        each do |c_id, en_id, destination, last_date_in_program|
-          next unless HUD.permanent_destinations.include?(destination)
+      @permanent_exits ||= {}.tap do |exits|
+        puts 'testing'
+        exits_current_period.
+          order(last_date_in_program: :asc).
+          pluck(:client_id, she_t[:id], she_t[:destination], :last_date_in_program).
+          each do |c_id, en_id, destination, last_date_in_program|
+            next unless HUD.permanent_destinations.include?(destination)
 
-          exits[c_id] = {
-            exit_id: en_id,
-            exit_date: last_date_in_program,
-          }
-        end
-      exits
+            exits[c_id] = {
+              exit_id: en_id,
+              exit_date: last_date_in_program,
+            }
+          end
+      end
     end
   end
 
@@ -36,33 +37,33 @@ module PerformanceDashboard::ProjectType::Returns
   # and returned from that enrollment...
   def homeless_re_entries
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      entries = {}
-      entries_current_period.where(first_date_in_program: (@start_date..Date.current)).
-        hud_homeless.
-        where(client_id: permanent_exits.keys). # limit to those with an exit
-        order(first_date_in_program: :asc).
-        pluck(:client_id, she_t[:id], :first_date_in_program).
-        each do |c_id, en_id, first_date_in_program|
-          permanent_exit = permanent_exits[c_id]
-          permanent_exit_date = permanent_exit[:exit_date]
-          # Collect enrollments where the client is returning after 7 days or more
-          # Find the first entry after the permanent exit
-          next if first_date_in_program < permanent_exit_date
+      @homeless_re_entries ||= {}.tap do |entries|
+        entries_current_period.where(first_date_in_program: (@start_date..Date.current)).
+          hud_homeless.
+          where(client_id: permanent_exits.keys). # limit to those with an exit
+          order(first_date_in_program: :asc).
+          pluck(:client_id, she_t[:id], :first_date_in_program).
+          each do |c_id, en_id, first_date_in_program|
+            permanent_exit = permanent_exits[c_id]
+            permanent_exit_date = permanent_exit[:exit_date]
+            # Collect enrollments where the client is returning after 7 days or more
+            # Find the first entry after the permanent exit
+            next if first_date_in_program < permanent_exit_date
 
-          days_to_return = (first_date_in_program - permanent_exit_date).to_i
-          next unless permanent_exit_date + 7.days < first_date_in_program
+            days_to_return = (first_date_in_program - permanent_exit_date).to_i
+            next unless permanent_exit_date + 7.days < first_date_in_program
 
-          entries[c_id] ||= {
-            entry_id: en_id,
-            entry_date: first_date_in_program,
-            days_to_return: days_to_return,
-            returns_bucket: returns_bucket(days_to_return),
-          }.merge(permanent_exit)
+            entries[c_id] ||= {
+              entry_id: en_id,
+              entry_date: first_date_in_program,
+              days_to_return: days_to_return,
+              returns_bucket: returns_bucket(days_to_return),
+            }.merge(permanent_exit)
+          end
+        permanent_exits.reject { |c_id, _| entries.key?(c_id) }.each do |c_id, permanent_exit|
+          entries[c_id] ||= permanent_exit.merge(returns_bucket: :did_not_return)
         end
-      permanent_exits.reject { |c_id, _| entries.key?(c_id) }.each do |c_id, permanent_exit|
-        entries[c_id] ||= permanent_exit.merge(returns_bucket: :did_not_return)
       end
-      entries
     end
   end
 
