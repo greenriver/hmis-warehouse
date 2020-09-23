@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_22_192121) do
+ActiveRecord::Schema.define(version: 2020_09_23_184619) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4473,6 +4473,7 @@ ActiveRecord::Schema.define(version: 2020_09_22_192121) do
     t.integer "approximate_time_to_move_in"
     t.date "date_to_street"
     t.integer "housing_assessment"
+    t.integer "subsidy_information"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
   end
 
