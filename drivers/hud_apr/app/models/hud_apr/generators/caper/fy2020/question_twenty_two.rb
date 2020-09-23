@@ -14,6 +14,8 @@ module HudApr::Generators::Caper::Fy2020
 
       q22a2_length_of_participation
       q22c_start_to_move_in
+      q22d_participation_by_household_type
+      q22e_time_prior_to_housing
 
       @report.complete(QUESTION_NUMBER)
     end

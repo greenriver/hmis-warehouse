@@ -4470,6 +4470,7 @@ ActiveRecord::Schema.define(version: 2020_09_22_192121) do
     t.integer "insurance_from_any_source_at_exit"
     t.integer "time_to_move_in"
     t.integer "approximate_length_of_stay"
+    t.integer "approximate_time_to_move_in"
     t.date "date_to_street"
     t.integer "housing_assessment"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true

@@ -387,6 +387,18 @@ module HudApr::Generators::Shared::Fy2020
       (move_in_date - enrollment.first_date_in_program).to_i
     end
 
+    private def approximate_time_to_move_in(enrollment)
+      move_in_date = if enrollment.computed_project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])
+        appropriate_move_in_date(enrollment) || enrollment.first_date_in_program
+      else
+        enrollment.first_date_in_program
+      end
+      date_to_street = enrollment.enrollment.DateToStreetESSH
+      return nil if date_to_street.blank? || date_to_street > move_in_date
+
+      (move_in_date - date_to_street).to_i
+    end
+
     # Household members already in the household when the head of household moves into housing have the same [housing move-in date] as the head of household. For household members joining the household after it is already in housing, use the person’s [project start date] as their [housing move-in date].
     private def appropriate_move_in_date(enrollment)
       # Use the move-in-date if provided
