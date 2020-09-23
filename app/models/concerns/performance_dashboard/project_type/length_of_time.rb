@@ -24,21 +24,19 @@ module PerformanceDashboard::ProjectType::LengthOfTime
 
   # Fetch service during range, sum unique days within 3 years of end date
   def lengths_of_time
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      @lengths_of_time ||= begin
-        buckets = time_buckets.map { |b| [b, []] }.to_h
-        counted = Set.new
-        services.
-          distinct.
-          select(shs_t[:date]).
-          group(:client_id).
-          count.
-          each do |c_id, date_count|
-          buckets[time_bucket(date_count)] << c_id unless counted.include?(c_id)
-          counted << c_id
-        end
-        buckets
+    @lengths_of_time ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      buckets = time_buckets.map { |b| [b, []] }.to_h
+      counted = Set.new
+      services.
+        distinct.
+        select(shs_t[:date]).
+        group(:client_id).
+        count.
+        each do |c_id, date_count|
+        buckets[time_bucket(date_count)] << c_id unless counted.include?(c_id)
+        counted << c_id
       end
+      buckets
     end
   end
 

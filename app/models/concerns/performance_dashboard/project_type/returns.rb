@@ -12,8 +12,8 @@ module PerformanceDashboard::ProjectType::Returns
 
   # Find the first exit to a permanent destination
   def permanent_exits
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      @permanent_exits ||= {}.tap do |exits|
+    @permanent_exits ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      {}.tap do |exits|
         exits_current_period.
           order(last_date_in_program: :asc).
           pluck(:client_id, she_t[:id], she_t[:destination], :last_date_in_program).
@@ -35,8 +35,8 @@ module PerformanceDashboard::ProjectType::Returns
   # destination, potentially someone exited more than once within the report range
   # and returned from that enrollment...
   def homeless_re_entries
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      @homeless_re_entries ||= {}.tap do |entries|
+    @homeless_re_entries ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      {}.tap do |entries|
         p_exits = permanent_exits
         entries_current_period.where(first_date_in_program: (@start_date..Date.current)).
           hud_homeless.
