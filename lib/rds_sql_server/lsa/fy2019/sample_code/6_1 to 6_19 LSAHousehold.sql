@@ -28,6 +28,7 @@ Date:  4/20/2020
 				   6.12.2.a - correct TrackingMethod <> 3 to (ProjectType <> 1 or TrackingMethod = 0)
 	   8/19/2020 - 6.9.2 - per specs, correct so prior.ExitDate >= dateadd (dd,-730,hh.FirstEntry) (was just >) 
 	   9/10/2020 - 6.4.2 - update case statement for PSHMoveIn to use PSHStatus (was RRHStatus)
+	   9/17/2020 - 6.12.2.b - only update LastInactive if it is NULL
 
 
 	6.1 Get Unique Households and Population Identifiers for tlsa_Household
@@ -706,6 +707,7 @@ Date:  4/20/2020
 		-- 5/14/2020 correct "DateDeleted = 0" to "DateDeleted is null"
 		and bn.RecordType = 200 and bn.DateDeleted is null
 		and hhid.TrackingMethod = 3
+	where hh.LastInactive is null
 		
 	update hh
 	set hh.LastInactive = coalesce(lastDay.inactive, '9/30/2012')

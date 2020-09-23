@@ -180,7 +180,7 @@ module Health
     end
 
     def should_clear_assignment?
-      enrollment_start_date_changed? || accountable_care_organization_id_changed?
+      enrollment_start_date_changed?
     end
 
     def client
