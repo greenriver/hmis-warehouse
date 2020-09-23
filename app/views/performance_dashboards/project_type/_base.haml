@@ -56,7 +56,7 @@
       .d-flex.flex-wrap.mb-2.flex-column.mr-4
         %h3=columns[i].first
         .d-flex.flex-wrap.mb-2
-          - datum.each do |data|
+          - datum.flatten.each do |data|
             .hero-prs1
               .hero-label-prs1.h5-prs1= data[:name].capitalize
               .h1.hero-value-prs2.mr-3= data[:value]
@@ -67,5 +67,5 @@
     .mt-6.row
       - pie_chart_options.each_with_index do |pie_opts, i|
         .col-sm-6
-          %h4="#{pie_opts[:title] || 'Category averages'} (#{columns[i].first})"
+          %h4="#{pie_opts[:title] || 'By Category'} (#{columns[i].first})"
           .jChart.c-chart.c-chart--pie{ class: "#{chart_class}-pie-#{i}", data: { chart: pie_opts.to_json.html_safe } }

@@ -28,24 +28,35 @@ module PerformanceDashboard::ProjectType::LivingSituation
       # Specifying the situations allows for comparison to the reporting period
       # FIXME: the problem is that the counts may differ between current and prior period
       # So the return order may not match
-      top_situations = buckets.
+      all_situations = buckets.
         # Ignore blank, 8, 9, 99
         reject { |k, _| k.in?([nil, 8, 9, 99]) }.
-        sort_by { |_, v| v.count }.
-        last(5).to_h
+        sort_by { |_, v| v.count }
+      top_situations = all_situations.last(5).to_h
+      summary = {}
+      all_situations.each do |id, situation|
+        type = ::HUD.situation_type(id)
+        summary[type] ||= 0
+        summary[type] += situation.count
+      end
       top_situations[:other] = buckets.except(*top_situations.keys).
         map do |_, v|
           v
         end.flatten
-      top_situations
+      OpenStruct.new(
+        {
+          top: top_situations,
+          summary: summary,
+        },
+      )
     end
   end
 
   def prior_living_situations_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]
-      columns += prior_living_situations.values.map(&:count).reverse
-      categories = prior_living_situations.keys.reverse.map do |k|
+      columns += prior_living_situations.top.values.map(&:count).reverse
+      categories = prior_living_situations.top.keys.reverse.map do |k|
         if k == :other
           'All others'
         else
@@ -55,13 +66,17 @@ module PerformanceDashboard::ProjectType::LivingSituation
       {
         columns: columns,
         categories: categories,
-        avg_columns: [
-          ['Permanent', 5],
-          ['Temporary', 55],
-          ['Unsheltered', 15],
-          ['Unknown/Other', 5],
-        ]
+        avg_columns: living_situation_avg_columns,
       }
+    end
+  end
+
+  private def living_situation_avg_columns
+    prior_living_situations.summary.map do |label, count|
+      [
+        "#{label} (#{count})",
+        count,
+      ]
     end
   end
 
@@ -71,7 +86,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
 
   def enrolled_total_count
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      prior_living_situations.values.flatten.count
+      prior_living_situations.top.values.flatten.count
     end
   end
 
@@ -82,7 +97,7 @@ module PerformanceDashboard::ProjectType::LivingSituation
       :other
     end
 
-    ids = prior_living_situations[sub_key]
+    ids = prior_living_situations.top[sub_key]
     details = enrolled.joins(:client, :enrollment).
       where(id: ids).
       order(first_date_in_program: :desc)

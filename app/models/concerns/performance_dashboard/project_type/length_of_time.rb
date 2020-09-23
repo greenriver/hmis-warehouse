@@ -90,24 +90,24 @@ module PerformanceDashboard::ProjectType::LengthOfTime
         columns: columns,
         categories: categories,
         summary_datum: [
-          {name: 'Max', value: "#{counts.max} days"},
-          {name: 'Average', value: "#{mean(counts)} days"},
-          {name: 'Median', value: "#{median(counts)} days"},
-        ]
+          { name: 'Max', value: "#{counts.max} days" },
+          { name: 'Average', value: "#{mean(counts)} days" },
+          { name: 'Median', value: "#{median(counts)} days" },
+        ],
       }
     end
   end
 
   def mean(values)
+    return 0 unless values.any?
+
     values = values.map(&:to_f)
-    begin
-      (values.sum.to_f / values.length).round
-    rescue StandardError
-      0
-    end
+    (values.sum.to_f / values.length).round
   end
 
   def median(values)
+    return 0 unless values.any?
+
     values = values.map(&:to_f)
     mid = values.size / 2
     sorted = values.sort
