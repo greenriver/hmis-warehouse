@@ -35,9 +35,7 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
-      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
-
+    private def q5_validations
       metadata = {
         header_row: TABLE_HEADER,
         row_labels: ROW_LABELS,
@@ -152,8 +150,6 @@ module HudApr::Generators::Shared::Fy2020
       )
       answer.add_members(members)
       answer.update(summary: members.count)
-
-      @report.complete(QUESTION_NUMBER)
     end
 
     private def universe

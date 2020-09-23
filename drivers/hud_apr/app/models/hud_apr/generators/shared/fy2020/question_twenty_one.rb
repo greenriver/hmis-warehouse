@@ -13,14 +13,6 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q21_health_insurance
-
-      @report.complete(QUESTION_NUMBER)
-    end
-
     private def q21_health_insurance
       table_name = 'Q21'
       metadata = {

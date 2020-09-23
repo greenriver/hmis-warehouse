@@ -5,19 +5,18 @@
 ###
 
 module HudApr::Generators::Apr::Fy2020
-  class QuestionNineteen < HudApr::Generators::Shared::Fy2020::QuestionNineteen
-    QUESTION_NUMBER = 'Question 19'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q19a1', 'Q19a2'].freeze
+  class QuestionSixteen < HudApr::Generators::Shared::Fy2020::QuestionSixteen
+    QUESTION_NUMBER = 'Question 16'.freeze
+    QUESTION_TABLE_NUMBER = 'Q16'.freeze
 
     def self.question_number
       QUESTION_NUMBER
     end
 
     def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
+      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
 
-      q19a_stayers
-      q19a_leavers
+      q16_cash_ranges
 
       @report.complete(QUESTION_NUMBER)
     end

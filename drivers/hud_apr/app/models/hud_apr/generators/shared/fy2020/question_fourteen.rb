@@ -13,15 +13,6 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q14a_dv_history
-      q14b_dv_fleeing
-
-      @report.complete(QUESTION_NUMBER)
-    end
-
     private def q14a_dv_history
       table_name = 'Q14a'
       metadata = {

@@ -15,19 +15,6 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q6a_pii
-      q6b_universal_data_elements
-      q6c_income_and_housing
-      q6d_chronic_homelessness
-      q6e_timeliness
-      q6f_inactive_records
-
-      @report.complete(QUESTION_NUMBER)
-    end
-
     private def a_t
       @a_t ||= report_client_universe.arel_table
     end

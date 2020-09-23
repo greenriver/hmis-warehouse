@@ -13,9 +13,7 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
-      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
-
+    private def q11_ages
       metadata = {
         header_row: [' '] + sub_populations.keys,
         row_labels: age_ranges.keys,
@@ -41,8 +39,6 @@ module HudApr::Generators::Shared::Fy2020
           answer.update(summary: members.count)
         end
       end
-
-      @report.complete(QUESTION_NUMBER)
     end
 
     private def intentionally_blank

@@ -32,9 +32,8 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
+    private def q4_project_identifiers
       table_name = 'Q4a'
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
       @report.universe(QUESTION_NUMBER)
 
       project_rows = []
@@ -76,8 +75,6 @@ module HudApr::Generators::Shared::Fy2020
         last_row: project_rows.size + 1,
       }
       @report.answer(question: table_name).update(metadata: metadata)
-
-      @report.complete(QUESTION_NUMBER)
     end
   end
 end

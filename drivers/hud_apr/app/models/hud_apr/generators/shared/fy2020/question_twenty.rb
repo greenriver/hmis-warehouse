@@ -13,15 +13,6 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q20a_types
-      q20b_sources
-
-      @report.complete(QUESTION_NUMBER)
-    end
-
     private def q20a_types
       table_name = 'Q20a'
       metadata = {

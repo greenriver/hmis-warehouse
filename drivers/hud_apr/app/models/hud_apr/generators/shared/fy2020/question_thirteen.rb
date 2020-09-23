@@ -20,15 +20,6 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      q13x1_conditions
-      q13x2_condition_counts
-
-      @report.complete(QUESTION_NUMBER)
-    end
-
     private def disability_stages
       [
         {

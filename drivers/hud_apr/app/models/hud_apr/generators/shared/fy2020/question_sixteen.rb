@@ -13,9 +13,7 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
-      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
-
+    private def q16_cash_ranges
       metadata = {
         header_row: [' '] + income_stages.keys,
         row_labels: income_headers,
@@ -43,8 +41,6 @@ module HudApr::Generators::Shared::Fy2020
           answer.update(summary: members.count)
         end
       end
-
-      @report.complete(QUESTION_NUMBER)
     end
 
     private def income_headers

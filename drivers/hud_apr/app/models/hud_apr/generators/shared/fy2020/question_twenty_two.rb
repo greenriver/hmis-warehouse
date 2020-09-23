@@ -5,7 +5,7 @@
 ###
 
 module HudApr::Generators::Shared::Fy2020
-  class QuestionTwentyTwoBase < Base
+  class QuestionTwentyTwo < Base
     QUESTION_NUMBER = 'Question 22'.freeze
     QUESTION_TABLE_NUMBERS = ['Q22a1', 'Q22a2', 'Q22b', 'Q22c', 'Q22d', 'Q22e'].freeze
 
