@@ -10,6 +10,12 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
     }.freeze
   end
 
+  def night_by_night_shelter
+    {
+      project_ids: ['882'],
+    }
+  end
+
   def default_setup_path
     'drivers/hud_apr/spec/fixtures/files/hud_hmis_export'
   end
