@@ -103,10 +103,6 @@ class SourceClientsController < ApplicationController
       @client.errors[:LastName] = 'Last name is required'
       valid = false
     end
-    if clean_params[:DOB].blank?
-      @client.errors[:DOB] = 'Date of birth is required'
-      valid = false
-    end
     valid
   end
 end
