@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_04_191736) do
+ActiveRecord::Schema.define(version: 2020_09_22_192121) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4369,6 +4369,163 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.index ["effective_date"], name: "index_hud_create_logs_on_effective_date"
     t.index ["imported_at"], name: "index_hud_create_logs_on_imported_at"
+  end
+
+  create_table "hud_report_apr_clients", force: :cascade do |t|
+    t.integer "age"
+    t.boolean "head_of_household"
+    t.string "head_of_household_id"
+    t.boolean "parenting_youth"
+    t.date "first_date_in_program"
+    t.date "last_date_in_program"
+    t.integer "veteran_status"
+    t.integer "length_of_stay"
+    t.boolean "chronically_homeless"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "name_quality"
+    t.string "ssn"
+    t.integer "ssn_quality"
+    t.date "dob"
+    t.integer "dob_quality"
+    t.date "enrollment_created"
+    t.integer "ethnicity"
+    t.integer "gender"
+    t.jsonb "overlapping_enrollments"
+    t.integer "relationship_to_hoh"
+    t.string "household_id"
+    t.string "enrollment_coc"
+    t.integer "disabling_condition"
+    t.boolean "developmental_disability"
+    t.boolean "hiv_aids"
+    t.boolean "physical_disability"
+    t.boolean "chronic_disability"
+    t.boolean "mental_health_problem"
+    t.boolean "substance_abuse"
+    t.boolean "indefinite_and_impairs"
+    t.integer "client_id"
+    t.integer "data_source_id"
+    t.integer "report_instance_id"
+    t.integer "destination"
+    t.date "income_date_at_start"
+    t.integer "income_from_any_source_at_start"
+    t.jsonb "income_sources_at_start"
+    t.boolean "annual_assessment_expected"
+    t.date "income_date_at_annual_assessment"
+    t.integer "income_from_any_source_at_annual_assessment"
+    t.jsonb "income_sources_at_annual_assessment"
+    t.date "income_date_at_exit"
+    t.integer "income_from_any_source_at_exit"
+    t.jsonb "income_sources_at_exit"
+    t.integer "project_type"
+    t.integer "prior_living_situation"
+    t.integer "prior_length_of_stay"
+    t.date "date_homeless"
+    t.integer "times_homeless"
+    t.integer "months_homeless"
+    t.integer "came_from_street_last_night"
+    t.date "exit_created"
+    t.integer "project_tracking_method"
+    t.date "date_of_last_bed_night"
+    t.boolean "other_clients_over_25"
+    t.date "move_in_date"
+    t.string "household_type"
+    t.integer "race"
+    t.integer "developmental_disability_entry"
+    t.integer "hiv_aids_entry"
+    t.integer "physical_disability_entry"
+    t.integer "chronic_disability_entry"
+    t.integer "mental_health_problem_entry"
+    t.integer "substance_abuse_entry"
+    t.boolean "alcohol_abuse_entry"
+    t.boolean "drug_abuse_entry"
+    t.integer "developmental_disability_exit"
+    t.integer "hiv_aids_exit"
+    t.integer "physical_disability_exit"
+    t.integer "chronic_disability_exit"
+    t.integer "mental_health_problem_exit"
+    t.integer "substance_abuse_exit"
+    t.boolean "alcohol_abuse_exit"
+    t.boolean "drug_abuse_exit"
+    t.integer "developmental_disability_latest"
+    t.integer "hiv_aids_latest"
+    t.integer "physical_disability_latest"
+    t.integer "chronic_disability_latest"
+    t.integer "mental_health_problem_latest"
+    t.integer "substance_abuse_latest"
+    t.boolean "alcohol_abuse_latest"
+    t.boolean "drug_abuse_latest"
+    t.integer "domestic_violence"
+    t.integer "currently_fleeing"
+    t.integer "income_total_at_start"
+    t.integer "income_total_at_annual_assessment"
+    t.integer "income_total_at_exit"
+    t.integer "non_cash_benefits_from_any_source_at_start"
+    t.integer "non_cash_benefits_from_any_source_at_annual_assessment"
+    t.integer "non_cash_benefits_from_any_source_at_exit"
+    t.integer "insurance_from_any_source_at_start"
+    t.integer "insurance_from_any_source_at_annual_assessment"
+    t.integer "insurance_from_any_source_at_exit"
+    t.integer "time_to_move_in"
+    t.integer "approximate_length_of_stay"
+    t.integer "approximate_time_to_move_in"
+    t.date "date_to_street"
+    t.integer "housing_assessment"
+    t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
+  end
+
+  create_table "hud_report_apr_living_situations", force: :cascade do |t|
+    t.bigint "hud_report_apr_client_id"
+    t.date "information_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hud_report_apr_client_id"], name: "index_hud_apr_client_liv_sit", unique: true
+  end
+
+  create_table "hud_report_cells", force: :cascade do |t|
+    t.bigint "report_instance_id"
+    t.string "question", null: false
+    t.string "cell_name"
+    t.boolean "universe", default: false
+    t.json "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.json "summary"
+    t.string "status"
+    t.text "error_messages"
+    t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
+  end
+
+  create_table "hud_report_instances", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "coc_code"
+    t.string "report_name"
+    t.date "start_date"
+    t.date "end_date"
+    t.json "options"
+    t.string "state"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.json "project_ids"
+    t.json "question_names", null: false
+    t.binary "zip_file"
+    t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
+  end
+
+  create_table "hud_report_universe_members", force: :cascade do |t|
+    t.bigint "report_cell_id"
+    t.string "universe_membership_type"
+    t.bigint "universe_membership_id"
+    t.bigint "client_id"
+    t.string "first_name"
+    t.string "last_name"
+    t.index ["client_id"], name: "index_hud_report_universe_members_on_client_id"
+    t.index ["report_cell_id"], name: "index_hud_report_universe_members_on_report_cell_id"
+    t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"
   end
 
   create_table "identify_duplicates_log", id: :serial, force: :cascade do |t|

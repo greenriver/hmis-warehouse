@@ -9,10 +9,12 @@ module PerformanceDashboard::ProjectType::LengthOfTime
 
   def services
     open_enrollments.joins(:service_history_services).
-      merge(GrdaWarehouse::ServiceHistoryService.service_between(
-              start_date: @end_date - 3.years,
-              end_date: @end_date,
-            ))
+      merge(
+        GrdaWarehouse::ServiceHistoryService.service_between(
+          start_date: @end_date - 3.years,
+          end_date: @end_date,
+        ),
+      )
   end
 
   # Note Handle PH differently
@@ -22,7 +24,7 @@ module PerformanceDashboard::ProjectType::LengthOfTime
 
   # Fetch service during range, sum unique days within 3 years of end date
   def lengths_of_time
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @lengths_of_time ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = time_buckets.map { |b| [b, []] }.to_h
       counted = Set.new
       services.
@@ -81,15 +83,37 @@ module PerformanceDashboard::ProjectType::LengthOfTime
   def lengths_of_time_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]
-      columns += lengths_of_time.values.map(&:count)
+      counts = lengths_of_time.values.map(&:count)
+      columns += counts
       categories = lengths_of_time.keys.map do |k|
         time_bucket_titles[k]
       end
       {
         columns: columns,
         categories: categories,
+        summary_datum: [
+          { name: 'Max', value: "#{counts.max} days" },
+          { name: 'Average', value: "#{number_with_delimiter(mean(counts))} days" },
+          { name: 'Median', value: "#{number_with_delimiter(median(counts))} days" },
+        ],
       }
     end
+  end
+
+  def mean(values)
+    return 0 unless values.any?
+
+    values = values.map(&:to_f)
+    (values.sum.to_f / values.length).round
+  end
+
+  def median(values)
+    return 0 unless values.any?
+
+    values = values.map(&:to_f)
+    mid = values.size / 2
+    sorted = values.sort
+    values.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2
   end
 
   private def length_of_time_details(options)
