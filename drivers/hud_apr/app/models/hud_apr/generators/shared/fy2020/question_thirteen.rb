@@ -67,20 +67,6 @@ module HudApr::Generators::Shared::Fy2020
       end
     end
 
-    private def disability_clauses(suffix)
-      {
-        'Mental Health Problem' => a_t["mental_health_problem_#{suffix}".to_sym].eq(1),
-        'Alcohol Abuse' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true),
-        'Drug Abuse' => a_t["drug_abuse_#{suffix}".to_sym].eq(true),
-        'Both Alcohol and Drug Abuse' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true).
-          and(a_t["drug_abuse_#{suffix}".to_sym].eq(true)),
-        'Chronic Health Condition' => a_t["chronic_disability_#{suffix}".to_sym].eq(1),
-        'HIV/AIDS' => a_t["hiv_aids_#{suffix}".to_sym].eq(1),
-        'Developmental Disability' => a_t["developmental_disability_#{suffix}".to_sym].eq(1),
-        'Physical Disability' => a_t["physical_disability_#{suffix}".to_sym].eq(1),
-      }
-    end
-
     private def disability_count_clauses
       {
         'None' => :none,

@@ -111,24 +111,24 @@ module HudApr::Generators::Shared::Fy2020
       table_name = 'Q25d'
       metadata = {
         header_row: [' '] + q25_populations.keys,
-        row_labels: age_ranges.keys,
+        row_labels: veteran_age_ranges.keys,
         first_column: 'B',
         last_column: 'E',
         first_row: 2,
-        last_row: 9,
+        last_row: 10,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
       q25_populations.each_with_index do |(_, population_clause), col_index|
-        age_ranges.to_a.each_with_index do |(_, response_clause), row_index|
+        veteran_age_ranges.to_a.each_with_index do |(_, response_clause), row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(a_t[:veteran_status].eq(1)).
+          members = universe.members.where(veteran_clause).
             where(population_clause).
             where(response_clause)
           value = members.count
@@ -137,6 +137,238 @@ module HudApr::Generators::Shared::Fy2020
           answer.update(summary: value)
         end
       end
+    end
+
+    private def q25e_health_conditions
+      table_name = 'Q25e'
+      metadata = {
+        header_row: [' '] + q25e_populations.keys,
+        row_labels: disability_clauses(:entry).keys,
+        first_column: 'B',
+        last_column: 'D',
+        first_row: 2,
+        last_row: 9,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q25e_populations.values.each_with_index do |suffix, col_index|
+        disability_clauses(suffix).values.each_with_index do |response_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
+
+          answer = @report.answer(question: table_name, cell: cell)
+
+          members = universe.members.where(veteran_clause).
+            where(response_clause)
+          case suffix
+          when :entry
+            members = members
+          when :exit
+            members = members.where(stayers_clause)
+          when :latest
+            members = members.where(leavers_clause)
+          end
+
+          value = members.count
+
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
+
+    private def q25f_income
+      table_name = 'Q25f'
+      metadata = {
+        header_row: [' '] + q25f_populations.keys,
+        row_labels: veteran_income_types(:entry).keys,
+        first_column: 'B',
+        last_column: 'D',
+        first_row: 2,
+        last_row: 10,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q25f_populations.values.each_with_index do |suffix, col_index|
+        veteran_income_types(suffix).values.each_with_index do |income_case, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
+
+          answer = @report.answer(question: table_name, cell: cell)
+          adults = universe.members.where(veteran_clause)
+          adults = adults.where(stayers_clause) if suffix == :annual_assessment
+          adults = adults.where(leavers_clause) if suffix == :exit
+
+          ids = Set.new
+          if income_case.is_a?(Symbol)
+            adults.preload(:universe_membership).find_each do |member|
+              apr_client = member.universe_membership
+              case income_case
+              when :earned
+                ids << member.id if earned_income?(apr_client, suffix) && ! other_income?(apr_client, suffix)
+              when :other
+                ids << member.id if other_income?(apr_client, suffix) && ! earned_income?(apr_client, suffix)
+              when :both
+                ids << member.id if both_income_types?(apr_client, suffix)
+              when :none
+                ids << member.id if no_income?(apr_client, suffix)
+              end
+            end
+            members = adults.where(id: ids)
+          else
+            members = adults.where(income_case)
+          end
+
+          value = members.count
+
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
+
+    private def q25g_income_sources
+      table_name = 'Q25g'
+      metadata = {
+        header_row: [' '] + q25g_populations.keys,
+        row_labels: veteran_income_sources(:entry).keys,
+        first_column: 'B',
+        last_column: 'D',
+        first_row: 2,
+        last_row: 17,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q25g_populations.values.each_with_index do |suffix, col_index|
+        veteran_income_sources(suffix).values.each_with_index do |income_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank_25g.include?(cell)
+
+          answer = @report.answer(question: table_name, cell: cell)
+          members = universe.members.where(veteran_clause)
+
+          if income_clause.is_a?(Hash)
+            members = members.where.contains(income_clause)
+          else
+            # The final question doesn't require accessing the jsonb column
+            members = members.where(income_clause)
+          end
+          members = members.where(stayers_clause) if suffix == :annual_assessment
+          members = members.where(leavers_clause) if suffix == :exit
+
+          value = members.count
+
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
+
+    private def q25h_non_cash_benefits
+      table_name = 'Q25h'
+      metadata = {
+        header_row: [' '] + q25h_populations.keys,
+        row_labels: non_cash_benefit_types(:entry).keys,
+        first_column: 'B',
+        last_column: 'D',
+        first_row: 2,
+        last_row: 7,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+
+      q25h_populations.values.each_with_index do |suffix, col_index|
+        non_cash_benefit_types(suffix).values.each_with_index do |income_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
+
+          answer = @report.answer(question: table_name, cell: cell)
+
+          members = universe.members.where(veteran_clause)
+          case suffix
+          when :annual_assessment
+            members = members.where(stayers_clause).
+              where(a_t[:annual_assessment_expected].eq(true))
+          when :exit
+            # non-HoH clients are limited to those who exited on or after the HoH
+            # For leavers, report only heads of households who left plus other adult household members who left at the same time as the head of household. Do not include household members who left prior to the head of household even though that person is otherwise considered a “leaver” in other report questions.
+            additional_leaver_ids = Set.new
+            members.where(leavers_clause).where(a_t[:head_of_household].eq(false)).
+              pluck(a_t[:id], a_t[:head_of_household_id], a_t[:last_date_in_program]).each do |id, hoh_id, exit_date|
+                hoh_exit_date = hoh_exit_dates[hoh_id]
+                additional_leaver_ids << id if exit_date.blank? || hoh_exit_date.blank? || exit_date >= hoh_exit_date
+              end
+            members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
+          end
+
+          members = members.where.contains(income_clause)
+          value = members.count
+
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
+
+    private def q25i_destination
+      table_name = 'Q25i'
+      metadata = {
+        header_row: [' '] + q25i_populations.keys,
+        row_labels: q25i_destinations_headers,
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 46,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q25i_populations.values.each_with_index do |population_clause, col_index|
+        q25i_destinations.values.each_with_index do |destination_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank_25i.include?(cell)
+
+          answer = @report.answer(question: table_name, cell: cell)
+          value = 0
+
+          if destination_clause.is_a?(Symbol)
+            case destination_clause
+            when :percentage
+              members = universe.members.where(population_clause)
+              positive = members.where(q25i_destinations['Total persons exiting to positive housing destinations']).count
+              total = members.count
+              excluded = members.where(q25i_destinations['Total persons whose destinations excluded them from the calculation']).count
+              value = (positive.to_f / (total - excluded) * 100).round(4) if total.positive? && excluded != total
+            end
+          else
+            members = universe.members.where(population_clause).where(destination_clause)
+            value = members.count
+          end
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
+
+    private def veteran_age_ranges
+      age_ranges.except('Under 5', '5-12', '13-17')
+    end
+
+    private def q25e_populations
+      {
+        'Conditions At Start' => :entry,
+        'Conditions at Latest Assessment for Stayers' => :latest,
+        'Conditions at Exit for Leavers' => :exit,
+      }
     end
 
     private def q25_populations
@@ -167,11 +399,94 @@ module HudApr::Generators::Shared::Fy2020
       }.freeze
     end
 
+    private def veteran_income_types(suffix)
+      income_responses(suffix).transform_keys do |k|
+        k.sub('Adults', 'Veterans').sub('adult stayers', 'veterans')
+      end.except('1 or more source of income', 'Adults with Income Information at Start and Annual Assessment/Exit')
+    end
+
+    private def veteran_income_sources(suffix)
+      income_types(suffix).transform_keys do |k|
+        k.sub('Adults', 'Veterans')
+      end
+    end
+
+    private def q25f_populations
+      {
+        'Number of Veterans at Start' => :start,
+        'Number of Veterans at Annual Assessment (Stayers)' => :annual_assessment,
+        'Number of Veterans at Exit (Leavers)' => :exit,
+      }
+    end
+
+    private def q25g_populations
+      {
+        'Income at Start' => :start,
+        'Income at Latest Annual Assessment for Stayers' => :annual_assessment,
+        'Income at Exit for Leavers' => :exit,
+      }
+    end
+
+    private def q25h_populations
+      {
+        'Benefit at Start' => :start,
+        'Benefit at Latest Annual Assessment for Stayers' => :annual_assessment,
+        'Benefit at Exit for Leavers' => :exit,
+      }
+    end
+
+    private def q25i_destinations
+      destination_clauses
+    end
+
+    private def q25i_populations
+      @q25i_populations ||= sub_populations
+    end
+
+    private def q25i_destinations_headers
+      q25i_destinations.keys.map do |label|
+        next 'Subtotal' if label.include?('Subtotal')
+
+        label
+      end
+    end
+
     private def intentionally_blank
       [].freeze
     end
 
-    private def universe
+    private def intentionally_blank_25g
+      [
+        'B17',
+      ].freeze
+    end
+
+    private def intentionally_blank_25i
+      [
+        'B2',
+        'C2',
+        'D2',
+        'E2',
+        'F2',
+        'B17',
+        'C17',
+        'D17',
+        'E17',
+        'F17',
+        'B28',
+        'C28',
+        'D28',
+        'E28',
+        'F28',
+        'B36',
+        'C36',
+        'D36',
+        'E36',
+        'F36',
+      ].freeze
+    end
+
+    private def universe # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       batch_initializer = ->(clients_with_enrollments) do
         @household_types = {}
         clients_with_enrollments.each do |_, enrollments|
@@ -184,11 +499,34 @@ module HudApr::Generators::Shared::Fy2020
       @universe ||= build_universe(
         QUESTION_NUMBER,
         before_block: batch_initializer,
+        preloads: {
+          enrollment: [
+            :client,
+            :income_benefits,
+            :income_benefits_at_exit,
+            :income_benefits_at_entry,
+            :income_benefits_annual_update,
+            :disabilities,
+          ],
+        },
       ) do |_, enrollments|
         last_service_history_enrollment = enrollments.last
         enrollment = last_service_history_enrollment.enrollment
         source_client = enrollment.client
         client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
+
+        disabilities_at_entry = enrollment.disabilities.select { |d| d.DataCollectionStage == 1 }
+        disabilities_at_exit = enrollment.disabilities.select { |d| d.DataCollectionStage == 3 }
+        max_disability_date = enrollment.disabilities.select { |d| d.InformationDate <= @report.end_date }.
+          map(&:InformationDate).max
+        disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
+
+        exit_date = last_service_history_enrollment.last_date_in_program
+        exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date < @report.end_date
+
+        income_at_start = enrollment.income_benefits_at_entry
+        income_at_annual_assessment = annual_assessment(enrollment)
+        income_at_exit = exit_record&.income_benefits_at_exit
 
         report_client_universe.new(
           client_id: source_client.id,
@@ -204,6 +542,47 @@ module HudApr::Generators::Shared::Fy2020
           project_type: last_service_history_enrollment.computed_project_type,
           veteran_status: source_client.VeteranStatus,
           chronically_homeless: enrollment.chronically_homeless_at_start?,
+          destination: last_service_history_enrollment.destination,
+
+          disabling_condition: enrollment.DisablingCondition,
+          developmental_disability_entry: disabilities_at_entry.detect(&:developmental?)&.DisabilityResponse,
+          hiv_aids_entry: disabilities_at_entry.detect(&:hiv?)&.DisabilityResponse,
+          physical_disability_entry: disabilities_at_entry.detect(&:physical?)&.DisabilityResponse,
+          chronic_disability_entry: disabilities_at_entry.detect(&:chronic?)&.DisabilityResponse,
+          mental_health_problem_entry: disabilities_at_entry.detect(&:mental?)&.DisabilityResponse,
+          substance_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse,
+          alcohol_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse == 1,
+          drug_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse == 2,
+          developmental_disability_exit: disabilities_at_exit.detect(&:developmental?)&.DisabilityResponse,
+          hiv_aids_exit: disabilities_at_exit.detect(&:hiv?)&.DisabilityResponse,
+          physical_disability_exit: disabilities_at_exit.detect(&:physical?)&.DisabilityResponse,
+          chronic_disability_exit: disabilities_at_exit.detect(&:chronic?)&.DisabilityResponse,
+          mental_health_problem_exit: disabilities_at_exit.detect(&:mental?)&.DisabilityResponse,
+          substance_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse,
+          alcohol_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse == 1,
+          drug_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse == 2,
+          developmental_disability_latest: disabilities_latest.detect(&:developmental?)&.DisabilityResponse,
+          hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
+          physical_disability_latest: disabilities_latest.detect(&:physical?)&.DisabilityResponse,
+          chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
+          mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
+          substance_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse,
+          alcohol_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse == 1,
+          drug_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse == 2,
+
+          annual_assessment_expected: annual_assessment_expected?(last_service_history_enrollment),
+          income_from_any_source_at_start: income_at_start&.IncomeFromAnySource,
+          income_from_any_source_at_annual_assessment: income_at_annual_assessment&.IncomeFromAnySource,
+          income_from_any_source_at_exit: income_at_exit&.IncomeFromAnySource,
+          income_total_at_start: income_at_start&.hud_total_monthly_income,
+          income_total_at_annual_assessment: income_at_annual_assessment&.hud_total_monthly_income,
+          income_total_at_exit: income_at_exit&.hud_total_monthly_income,
+          income_sources_at_start: income_sources(income_at_start),
+          income_sources_at_annual_assessment: income_sources(income_at_annual_assessment),
+          income_sources_at_exit: income_sources(income_at_exit),
+          non_cash_benefits_from_any_source_at_start: income_at_start&.BenefitsFromAnySource,
+          non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
+          non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
         )
       end
     end

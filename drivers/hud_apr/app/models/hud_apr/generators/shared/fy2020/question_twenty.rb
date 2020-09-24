@@ -17,7 +17,7 @@ module HudApr::Generators::Shared::Fy2020
       table_name = 'Q20a'
       metadata = {
         header_row: [' '] + income_stage.keys,
-        row_labels: income_types(:start).keys,
+        row_labels: non_cash_benefit_types(:start).keys,
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
@@ -28,7 +28,7 @@ module HudApr::Generators::Shared::Fy2020
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
       income_stage.each_with_index do |(_, suffix), col_index|
-        income_types(suffix).to_a.each_with_index do |(_, income_clause), row_index|
+        non_cash_benefit_types(suffix).to_a.each_with_index do |(_, income_clause), row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -130,17 +130,6 @@ module HudApr::Generators::Shared::Fy2020
         # and those who have non_cash_benefits_from_any_source_at_ == 1 but don't have any 1s in the sources
         'Data Not Collected/Not stayed long enough for Annual Assessment' => a_t["non_cash_benefits_from_any_source_at_#{suffix}"].not_in([0, 1, 8, 9]),
         'Total' => Arel.sql('1=1'),
-      }
-    end
-
-    private def income_types(suffix)
-      {
-        'Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { SNAP: 1 } } },
-        'Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { WIC: 1 } } },
-        'TANF Child Care Services' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { TANFChildCare: 1 } } },
-        'TANF Transportation Services' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { TANFTransportation: 1 } } },
-        'Other TANF-Funded Services' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { OtherTANF: 1 } } },
-        'Other Source' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { OtherBenefitsSource: 1 } } },
       }
     end
 

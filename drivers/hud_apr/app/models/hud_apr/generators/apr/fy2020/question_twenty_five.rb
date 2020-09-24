@@ -16,6 +16,11 @@ module HudApr::Generators::Apr::Fy2020
       q25b_number_of_households
       q25c_veteran_gender
       q25d_veteran_age
+      q25e_health_conditions
+      q25f_income
+      q25g_income_sources
+      q25h_non_cash_benefits
+      q25i_destination
 
       @report.complete(QUESTION_NUMBER)
     end
