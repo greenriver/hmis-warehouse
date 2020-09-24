@@ -23,15 +23,6 @@ module HudApr::Generators::Shared::Fy2020
       QUESTION_NUMBER
     end
 
-    def run_question!
-      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
-
-      contact_counts = q9a_contacted
-      q9b_engaged(contact_counts)
-
-      @report.complete(QUESTION_NUMBER)
-    end
-
     private def a_t
       @a_t ||= report_client_universe.arel_table
     end
