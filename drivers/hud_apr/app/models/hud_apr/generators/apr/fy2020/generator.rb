@@ -21,6 +21,7 @@ module HudApr::Generators::Apr::Fy2020
         'Question 6' => HudApr::Generators::Shared::Fy2020::QuestionSix, # Data Quality
         'Question 7' => HudApr::Generators::Apr::Fy2020::QuestionSeven, # Persons Served
         'Question 8' => HudApr::Generators::Shared::Fy2020::QuestionEight, # Households Served
+        'Question 9' => HudApr::Generators::Shared::Fy2020::QuestionNine, # Contacts and Engagements
 
         'Question 11' => HudApr::Generators::Shared::Fy2020::QuestionEleven, # Age-Household Breakdown
         'Question 12' => HudApr::Generators::Shared::Fy2020::QuestionTwelve, # Race & Ethnicity

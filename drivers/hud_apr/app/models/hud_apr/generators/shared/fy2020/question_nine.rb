@@ -41,54 +41,92 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q9a_contacted
-      metadata = {
-        header_row: HEADER_ROW,
-        row_labels: [
-          'Once',
-          '2-5 Times',
-          '6-9 Times',
-          '10+ Times',
-          'Total Persons Contacted',
-        ],
-        first_column: 'B',
-        last_column: 'E',
-        first_row: 2,
-        last_row: 6,
-      }
-      @report.answer(question: 'Q9a').update(metadata: metadata)
+      table_name = 'Q9a'
 
-      adults_and_hohs =  universe.universe_members.where(adult_or_hoh_clause)
-      binding.pry
-      contacts = adults_and_hohs.joins(apr_client: :hud_report_apr_living_situations).
+      adults_and_hohs =  universe.members.where(adult_or_hoh_clause)
+      contacted_ids = adults_and_hohs.joins(apr_client: :hud_report_apr_living_situations).
         where(
           ls_t[:information_date].between(@report.start_date..@report.end_date).
             and(a_t[:date_of_engagement].gteq(ls_t[:information_date]).
               or(a_t[:date_of_engagement].eq(nil))).
             or(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)),
-        )
-      binding.pry
+        ).
+        pluck(a_t[:id])
+
+      populate_table(table_name, 6, 'Contacted', contacted_ids)
     end
 
     private  def q9b_engaged(contact_counts)
+      table_name = 'Q9b'
+
+      adults_and_hohs =  universe.members.where(adult_or_hoh_clause)
+      engaged_ids = adults_and_hohs.where(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)).pluck(:id)
+
+      engaged_counts = populate_table(table_name, 7, 'Engaged', engaged_ids)
+      engaged_counts.each do |col, count|
+        ratio = format('%1.4f', count / contact_counts[col].to_f)
+        @report.answer(question: table_name, cell: "#{col}").update(summary: ratio)
+      end
+    end
+
+    private def populate_table(table_name, table_rows, label, client_ids)
+      buckets = {
+        2 => ['Once', (1..1)],
+        3 => ['2-5 Times', (2..5)],
+        4 => ['6-9 Times', (6..9)],
+        5 => ['10+ Times', (10..)],
+        6 => ["Total Persons #{label}", (1..)],
+      }
+
+      last_row = {}
+
       metadata = {
-        header_row: TABLE_HEADER,
-        row_labels: [
-          'Once',
-          '2-5 Contacts',
-          '6-9 Contacts',
-          '10+ Contacts',
-          'Total Persons Engaged',
-          'Rate of Engagement',
-        ],
+        header_row: HEADER_ROW,
+        row_labels: buckets.values.map(&:first),
         first_column: 'B',
         last_column: 'E',
         first_row: 2,
-        last_row: 7,
+        last_row: table_rows,
       }
-      @report.answer(question: 'Q9b').update(metadata: metadata)
+      @report.answer(question: table_name).update(metadata: metadata)
 
-      adults_and_hohs =  universe.universe_members.where(adult_or_hoh_clause)
-      engaged = adults_and_hohs.where(a_t[:date_of_engagement].between(@report.start_date..@report.end_date))
+      situations = report_living_situation_universe.
+        where(hud_report_apr_client_id: client_ids).
+        order(information_date: :asc).
+        group_by(&:hud_report_apr_client_id)
+
+      [
+        {
+          column: 'B',
+          situations: HUD.living_situations.keys,
+        },
+        {
+          column: 'C',
+          situations: HUD.living_situations.keys - [16, 1, 18, 37, 8, 9, 99],
+        },
+        {
+          column: 'D',
+          situations: [16, 1, 18],
+        },
+        {
+          column: 'E',
+          situations: [37, 8, 9, 99],
+        }
+      ].each do |col|
+        clients = situations.select { |k, v| (v.living_situation & col[:situations]).present? }
+        buckets.each do |row, (_, range)|
+          cell = "#{col[:columm]}#{row}"
+          answer = @report.answer(question: table_name, cell: cell)
+          member_ids = clients.select { |k, v| range.cover?(v.length) }.keys
+          members = universe.members.where(a_t[:id].in(member_ids))
+          answer.add_members(members)
+          count = members.count
+          answer.update(summary: count)
+          last_row[col[:column]] = count
+        end
+      end
+
+      last_row
     end
 
     private def universe

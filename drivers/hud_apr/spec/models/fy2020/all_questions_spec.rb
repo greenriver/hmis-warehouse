@@ -2,6 +2,7 @@ require 'rails_helper'
 require_relative 'apr_context'
 require_relative 'examples/question_six'
 require_relative 'examples/question_seven'
+require_relative 'examples/question_nine'
 
 RSpec.describe 'HudApr 2020' do
   include_context 'apr context'
@@ -16,4 +17,5 @@ RSpec.describe 'HudApr 2020' do
 
   include_examples 'question six'
   include_examples 'question seven'
+  include_examples 'question nine'
 end

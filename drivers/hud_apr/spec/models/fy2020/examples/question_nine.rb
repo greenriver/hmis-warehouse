@@ -6,9 +6,6 @@ RSpec.shared_examples 'question nine' do
     end
 
     describe 'Q9a: Number of Persons Contacted' do
-      it 'runs' do
-        binding.pry
-      end
     end
 
     describe 'Q9b: Number of Persons Engaged' do
