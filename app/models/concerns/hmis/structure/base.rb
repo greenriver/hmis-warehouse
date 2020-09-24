@@ -111,7 +111,15 @@ module HMIS::Structure::Base
     def hmis_table_create!(version: nil, constraints: true, types: true)
       return if connection.table_exists?(table_name)
 
-      connection.create_table table_name do |t|
+      db_result = connection.create_table(table_name)
+
+      if !db_result
+        message = "Failed to create #{table_name} for an unknown reason"
+        Rails.logger.fatal message
+        raise message
+      end
+
+      db_result do |t|
         hmis_structure(version: version).each do |column, options|
           type = if types
             options[:type]

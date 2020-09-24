@@ -19,7 +19,7 @@ class Rds
   RDS_KMS_KEY_ID     = ENV.fetch('RDS_KMS_KEY_ID')
   DB_NAME            = 'sql_server_openpath'.freeze
   DB_SUBNET_GROUP    = ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
-  MAX_WAIT_TIME      = 1.hour
+  MAX_WAIT_TIME      = 2.hours
 
   class << self
     attr_writer :identifier
@@ -146,6 +146,12 @@ class Rds
         # puts "No DB yet" if db_exists == 0
         sleep 5
       end
+    end
+
+    if !db_exists?
+      message = "No DB after #{MAX_WAIT_TIME}"
+      Rails.logger.fatal message
+      raise message
     end
   end
 
