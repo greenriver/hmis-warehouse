@@ -46,35 +46,72 @@ module HudApr::Generators::Shared::Fy2020
     private def q25b_number_of_households
       # NOTE: CH Status == prior_living_situation in respect to 8, 9, 99
 
-      # table_name = 'Q25b'
-      # metadata = {
-      #   header_row: [' '] + q25_populations.keys,
-      #   row_labels: q25a_responses.keys,
-      #   first_column: 'B',
-      #   last_column: 'E',
-      #   first_row: 2,
-      #   last_row: 7,
-      # }
-      # @report.answer(question: table_name).update(metadata: metadata)
+      table_name = 'Q25b'
+      metadata = {
+        header_row: [' '] + q25_populations.keys,
+        row_labels: q25b_responses.keys,
+        first_column: 'B',
+        last_column: 'E',
+        first_row: 2,
+        last_row: 7,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
 
-      # cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      # rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      # q25_populations.each_with_index do |(_, population_clause), col_index|
-      #   q25a_responses.to_a.each_with_index do |(_, response_clause), row_index|
-      #     cell = "#{cols[col_index]}#{rows[row_index]}"
-      #     next if intentionally_blank.include?(cell)
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q25_populations.each_with_index do |(_, population_clause), col_index|
+        households = Set.new # only count each household once
+        q25b_responses.to_a.each_with_index do |(_, response_clause), row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
 
-      #     answer = @report.answer(question: table_name, cell: cell)
+          answer = @report.answer(question: table_name, cell: cell)
+          members = universe.members.where(hoh_clause).where(population_clause)
 
-      #     members = universe.members.where(adult_or_hoh_clause).
-      #       where(population_clause).
-      #       where(response_clause)
-      #     value = members.count
+          ids = Set.new
+          if response_clause.is_a?(Symbol)
+            # Count any households where any adult or HoH in the household
+            members.preload(:universe_membership).find_each do |member|
+              apr_client = member.universe_membership
+              case response_clause
+              when :chronic
+                if ! households.include?(apr_client.household_id) && household_veterans_chronically_homeless?(apr_client)
+                  ids << member.id
+                  households << apr_client.household_id
+                end
+              when :not_chronic
+                if ! households.include?(apr_client.household_id) && household_veterans_non_chronically_homeless?(apr_client)
+                  ids << member.id
+                  households << apr_client.household_id
+                end
+              when :veteran
+                if ! households.include?(apr_client.household_id) && all_household_adults_non_veterans?(apr_client)
+                  ids << member.id
+                  households << apr_client.household_id
+                end
+              when :refused
+                if ! households.include?(apr_client.household_id) && household_adults_refused_veterans(apr_client).any?
+                  ids << member.id
+                  households << apr_client.household_id
+                end
+              when :not_collected
+                if ! households.include?(apr_client.household_id) && household_adults_missing_veterans(apr_client).any?
+                  ids << member.id
+                  households << apr_client.household_id
+                end
+              end
+            end
+            members = members.where(id: ids)
+          else
+            members = members.where(a_t[:household_id].in(households.to_a))
+          end
 
-      #     answer.add_members(members)
-      #     answer.update(summary: value)
-      #   end
-      # end
+          value = members.count
+
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
     end
 
     private def q25c_veteran_gender
@@ -388,6 +425,17 @@ module HudApr::Generators::Shared::Fy2020
       }.freeze
     end
 
+    private def q25b_responses
+      {
+        'Chronically Homeless Veteran' => :chronic,
+        'Non-Chronically Homeless Veteran' => :not_chronic,
+        'Not a Veteran' => :veteran,
+        "Client Doesn't Know/Client Refused" => :refused,
+        'Data Not Collected' => :not_collected,
+        'Total' => Arel.sql('1=1'),
+      }.freeze
+    end
+
     private def q25c_responses
       {
         'Male' => a_t[:gender].eq(1),
@@ -509,6 +557,7 @@ module HudApr::Generators::Shared::Fy2020
             :income_benefits_at_entry,
             :income_benefits_annual_update,
             :disabilities,
+            :project,
           ],
         },
       ) do |_, enrollments|
@@ -545,6 +594,7 @@ module HudApr::Generators::Shared::Fy2020
           veteran_status: source_client.VeteranStatus,
           chronically_homeless: enrollment.chronically_homeless_at_start?,
           destination: last_service_history_enrollment.destination,
+          household_id: last_service_history_enrollment.household_id,
 
           disabling_condition: enrollment.DisablingCondition,
           developmental_disability_entry: disabilities_at_entry.detect(&:developmental?)&.DisabilityResponse,

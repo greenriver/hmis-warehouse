@@ -37,6 +37,7 @@ module HudApr::Generators::Apr::Fy2020
         HudApr::Generators::Apr::Fy2020::QuestionTwentyThree, # Destination
         HudApr::Generators::Apr::Fy2020::QuestionTwentyFour, # Homeless Prevention
         HudApr::Generators::Apr::Fy2020::QuestionTwentyFive, # Veterans
+        HudApr::Generators::Apr::Fy2020::QuestionTwentySix, # Chronically Homeless
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze

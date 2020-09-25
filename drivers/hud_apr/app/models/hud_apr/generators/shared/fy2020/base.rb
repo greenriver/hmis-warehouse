@@ -64,6 +64,7 @@ module HudApr::Generators::Shared::Fy2020
           :client,
           :disabilities,
           :current_living_situations,
+          :project,
         ],
       }.deep_merge(preloads)
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
@@ -82,13 +83,13 @@ module HudApr::Generators::Shared::Fy2020
     private def households
       @households ||= {}.tap do |hh|
         enrollment_scope.where(client_id: @generator.client_scope.select(:id)).find_each do |enrollment|
-          hh[enrollment.household_id] ||= {}
-          hh[enrollment.household_id] = {
+          hh[enrollment.household_id] ||= []
+          hh[enrollment.household_id] << {
             source_client_id: enrollment.enrollment.client.id,
             dob: enrollment.enrollment.client.DOB,
             veteran_status: enrollment.enrollment.client.VeteranStatus,
             chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
-            relationship_to_hoh: enrollment.enrollmentRelationshipToHoH,
+            relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
           }
         end
       end
@@ -98,6 +99,78 @@ module HudApr::Generators::Shared::Fy2020
       return nil unless enrollment[:head_of_household]
 
       households[enrollment.household_id]
+    end
+
+    private def household_veterans_chronically_homeless?(apr_client)
+      adults = household_adults(apr_client)
+      veterans = household_veterans(adults)
+      household_chronically_homeless_clients(veterans).any?
+    end
+
+    private def household_veterans_non_chronically_homeless?(apr_client)
+      adults = household_adults(apr_client)
+      veterans = household_veterans(adults)
+      household_non_chronically_homeless_clients(veterans).any?
+    end
+
+    # Note, you need to pass in an apr client because the date needs to be calculated
+    private def household_adults(apr_client)
+      date = [apr_client.first_date_in_program, @report.start_date].max
+      apr_client.household_members.select do |member|
+        next false if member['dob'].blank?
+
+        age = GrdaWarehouse::Hud::Client.age(date: date, dob: member['dob'].to_date)
+        age.present? && age >= 18
+      end
+    end
+
+    private def all_household_adults_veterans?(apr_client)
+      household_adults(apr_client).all? do |member|
+        member['veteran_status'] == 1
+      end
+    end
+
+    private def all_household_adults_non_veterans?(apr_client)
+      household_adults(apr_client).all? do |member|
+        member['veteran_status'].zero?
+      end
+    end
+
+    # accepts a household_members cell from apr_clients
+    private def household_veterans(household_members)
+      household_members.select do |member|
+        member['veteran_status'] == 1
+      end
+    end
+
+    private def household_non_veterans(household_members)
+      household_members.select do |member|
+        member['veteran_status'].zero?
+      end
+    end
+
+    private def household_adults_refused_veterans(apr_client)
+      household_adults(apr_client).select do |member|
+        member['veteran_status'].in?([8, 9])
+      end
+    end
+
+    private def household_adults_missing_veterans(apr_client)
+      household_adults(apr_client).select do |member|
+        member['veteran_status'] == 99
+      end
+    end
+
+    private def household_chronically_homeless_clients(household_members)
+      household_members.select do |member|
+        member['chronic_status'] == true
+      end
+    end
+
+    private def household_non_chronically_homeless_clients(household_members)
+      household_members.select do |member|
+        member['chronic_status'] == false
+      end
     end
 
     private def report_client_universe
