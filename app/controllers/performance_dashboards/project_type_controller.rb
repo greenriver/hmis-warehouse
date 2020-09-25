@@ -35,6 +35,10 @@ module PerformanceDashboards
       end
     end
 
+    def download
+      render xlsx: 'xlsx_download', filename: "#{@report.project_type_title} Performance".truncate(31)
+    end
+
     private def option_params
       params.permit(
         filters: [

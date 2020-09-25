@@ -932,6 +932,23 @@ module HUD
     end
   end
 
+  def situation_type(id)
+    return 'Temporary or Permanent' if temporary_and_permanent_housing_situations(as: :prior).include?(id)
+    return 'Institutional' if institutional_situations(as: :prior).include?(id)
+    return 'Other' if homeless_situations(as: :prior).include?(id)
+
+    'Other'
+  end
+
+  def destination_type(id)
+    return 'Permanent' if permanent_destinations.include?(id)
+    return 'Temporary' if temporary_destinations.include?(id)
+    return 'Institutional' if institutional_destinations.include?(id)
+    return 'Homeless' if homeless_destinations.include?(id)
+
+    'Other'
+  end
+
   def permanent_destinations(version: nil)
     case version
     when '2020', nil # From SPM 3.1 definition
@@ -969,6 +986,7 @@ module HUD
         2,
         25,
         32,
+        29,
       ]
     end
   end
@@ -979,6 +997,10 @@ module HUD
 
   def other_destinations(version: nil)
     other_situations(as: :destination, version: version)
+  end
+
+  def homeless_destinations(version: nil)
+    homeless_situations(as: :destination, version: version)
   end
 
   # 3.15.1
