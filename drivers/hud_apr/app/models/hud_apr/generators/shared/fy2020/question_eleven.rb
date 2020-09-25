@@ -26,8 +26,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      sub_populations.each_with_index do |(_, population_clause), col_index|
-        age_ranges.to_a.each_with_index do |(_, age_clause), row_index|
+      sub_populations.values.each_with_index do |population_clause, col_index|
+        age_ranges.values.each_with_index do |age_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 

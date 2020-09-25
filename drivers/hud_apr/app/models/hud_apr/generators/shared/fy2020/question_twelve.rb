@@ -27,8 +27,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      sub_populations.each_with_index do |(_, population_clause), col_index|
-        races.each_with_index do |(_, race), row_index|
+      sub_populations.values.each_with_index do |population_clause, col_index|
+        races.values.each_with_index do |race, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
 
           answer = @report.answer(question: table_name, cell: cell)
@@ -55,8 +55,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      sub_populations.each_with_index do |(_, population_clause), col_index|
-        ethnicities.each_with_index do |(_, ethnicity), row_index|
+      sub_populations.values.each_with_index do |population_clause, col_index|
+        ethnicities.values.each_with_index do |ethnicity, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
 
           answer = @report.answer(question: table_name, cell: cell)

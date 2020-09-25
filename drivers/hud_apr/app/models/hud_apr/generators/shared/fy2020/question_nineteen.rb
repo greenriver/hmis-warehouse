@@ -16,8 +16,8 @@ module HudApr::Generators::Shared::Fy2020
     private def q19a(table_name, metadata, income_status_method:, suffix:, inclusion_clause:)
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      send(income_status_method).each_with_index do |(_, column), col_index|
-        income_counts.to_a.each_with_index do |(_, income_options), row_index|
+      send(income_status_method).values.each_with_index do |column, col_index|
+        income_counts.values.each_with_index do |income_options, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 

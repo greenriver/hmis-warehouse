@@ -27,8 +27,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q_22a_populations.each_with_index do |(_, population_clause), col_index|
-        q22a1_lengths.to_a.each_with_index do |(_, length_clause), row_index|
+      q_22a_populations.values.each_with_index do |population_clause, col_index|
+        q22a1_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -56,8 +56,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q_22a_populations.each_with_index do |(_, population_clause), col_index|
-        q22b1_lengths.to_a.each_with_index do |(_, length_clause), row_index|
+      q_22a_populations.values.each_with_index do |population_clause, col_index|
+        q22b1_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -85,8 +85,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q22b_populations.each_with_index do |(_, population_clause), col_index|
-        q22b_lengths.to_a.each_with_index do |(_, method), row_index|
+      q22b_populations.values.each_with_index do |population_clause, col_index|
+        q22b_lengths.values.each_with_index do |method, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -126,8 +126,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q22c_populations.each_with_index do |(_, population_clause), col_index|
-        q22c_lengths.to_a.each_with_index do |(_, length_clause), row_index|
+      q22c_populations.values.each_with_index do |population_clause, col_index|
+        q22c_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -173,8 +173,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q22d_populations.each_with_index do |(_, population_clause), col_index|
-        q22d_lengths.to_a.each_with_index do |(_, length_clause), row_index|
+      q22d_populations.values.each_with_index do |population_clause, col_index|
+        q22d_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -202,8 +202,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q22e_populations.each_with_index do |(_, population_clause), col_index|
-        q22e_lengths.to_a.each_with_index do |(_, length_clause), row_index|
+      q22e_populations.values.each_with_index do |population_clause, col_index|
+        q22e_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 

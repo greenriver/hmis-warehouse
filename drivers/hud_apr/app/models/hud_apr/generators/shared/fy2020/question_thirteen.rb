@@ -97,8 +97,8 @@ module HudApr::Generators::Shared::Fy2020
 
         cols = (metadata[:first_column]..metadata[:last_column]).to_a
         rows = (metadata[:first_row]..metadata[:last_row]).to_a
-        adjusted_sub_populations.each_with_index do |(_, population_clause), col_index|
-          disability_clauses(suffix).each_with_index do |(_, disability_clause), row_index|
+        adjusted_sub_populations.values.each_with_index do |population_clause, col_index|
+          disability_clauses(suffix).values.each_with_index do |disability_clause, row_index|
             cell = "#{cols[col_index]}#{rows[row_index]}"
 
             answer = @report.answer(question: table_name, cell: cell)
@@ -130,8 +130,8 @@ module HudApr::Generators::Shared::Fy2020
 
         cols = (metadata[:first_column]..metadata[:last_column]).to_a
         rows = (metadata[:first_row]..metadata[:last_row]).to_a
-        adjusted_sub_populations.each_with_index do |(_, population_clause), col_index|
-          disability_count_clauses.each_with_index do |(_, method), row_index|
+        adjusted_sub_populations.values.each_with_index do |population_clause, col_index|
+          disability_count_clauses.values.each_with_index do |method, row_index|
             cell = "#{cols[col_index]}#{rows[row_index]}"
 
             answer = @report.answer(question: table_name, cell: cell)

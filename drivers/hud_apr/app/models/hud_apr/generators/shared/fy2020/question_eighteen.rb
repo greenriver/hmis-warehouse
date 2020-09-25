@@ -26,8 +26,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      income_stages.each_with_index do |(_, suffix), col_index|
-        income_responses(suffix).to_a.each_with_index do |(_, income_case), row_index|
+      income_stages.values.each_with_index do |suffix, col_index|
+        income_responses(suffix).values.each_with_index do |income_case, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 

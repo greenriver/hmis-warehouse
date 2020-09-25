@@ -27,10 +27,10 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      health_insurance_stage.each_with_index do |(_, stage), col_index|
+      health_insurance_stage.values.each_with_index do |stage, col_index|
         suffix = stage[:stage]
         stage_clause = stage[:clause]
-        health_insurance_counts(suffix).to_a.each_with_index do |(_, income_clause), row_index|
+        health_insurance_counts(suffix).values.each_with_index do |income_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
