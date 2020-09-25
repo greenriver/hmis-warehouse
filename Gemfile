@@ -225,6 +225,7 @@ end
 
 group :test do
   gem "capybara"
+  gem 'fixpoints'
   gem "launchy"
   gem 'minitest-reporters'
   gem 'rspec-mocks'
