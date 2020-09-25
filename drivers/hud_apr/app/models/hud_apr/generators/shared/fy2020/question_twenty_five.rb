@@ -44,6 +44,8 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q25b_number_of_households
+      # NOTE: CH Status == prior_living_situation in respect to 8, 9, 99
+
       # table_name = 'Q25b'
       # metadata = {
       #   header_row: [' '] + q25_populations.keys,
@@ -583,6 +585,8 @@ module HudApr::Generators::Shared::Fy2020
           non_cash_benefits_from_any_source_at_start: income_at_start&.BenefitsFromAnySource,
           non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
           non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
+
+          household_members: household_member_data(last_service_history_enrollment),
         )
       end
     end

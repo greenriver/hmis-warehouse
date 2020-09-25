@@ -76,16 +76,28 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def ages_for(household_id, date)
-      households[household_id].map { |dob| GrdaWarehouse::Hud::Client.age(date: date, dob: dob) }
+      households[household_id].map { |client| GrdaWarehouse::Hud::Client.age(date: date, dob: client[:dob]) }
     end
 
     private def households
       @households ||= {}.tap do |hh|
         enrollment_scope.where(client_id: @generator.client_scope.select(:id)).find_each do |enrollment|
-          hh[enrollment.household_id] ||= []
-          hh[enrollment.household_id] << enrollment.enrollment.client.DOB
+          hh[enrollment.household_id] ||= {}
+          hh[enrollment.household_id] = {
+            source_client_id: enrollment.enrollment.client.id,
+            dob: enrollment.enrollment.client.DOB,
+            veteran_status: enrollment.enrollment.client.VeteranStatus,
+            chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
+            relationship_to_hoh: enrollment.enrollmentRelationshipToHoH,
+          }
         end
       end
+    end
+
+    private def household_member_data(enrollment)
+      return nil unless enrollment[:head_of_household]
+
+      households[enrollment.household_id]
     end
 
     private def report_client_universe
