@@ -1,7 +1,7 @@
 require 'rails_helper'
 require_relative 'apr_context'
 
-RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionSix, type: :model do
+RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSix, type: :model do
   include_context 'apr context'
 
   before(:all) do
@@ -10,7 +10,7 @@ RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionSix, type: :model do
     store_fixpoint_unless_present :hud_hmis_export
     restore_fixpoint :hud_hmis_export
 
-    HudApr::Generators::Shared::Fy2020::QuestionSix.new(options: default_options).run!
+    HudApr::Generators::Apr::Fy2020::QuestionSix.new(options: default_options).run!
   end
 
   after(:all) do

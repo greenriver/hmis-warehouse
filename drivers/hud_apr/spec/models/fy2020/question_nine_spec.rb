@@ -1,7 +1,7 @@
 require 'rails_helper'
 require_relative 'apr_context'
 
-RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionNine, type: :model do
+RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionNine, type: :model do
   include_context 'apr context'
 
   before(:all) do
@@ -11,7 +11,7 @@ RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionNine, type: :model do
     restore_fixpoint :hud_hmis_export
 
     options = default_options.merge(night_by_night_shelter)
-    HudApr::Generators::Shared::Fy2020::QuestionNine.new(options: options).run!
+    HudApr::Generators::Apr::Fy2020::QuestionNine.new(options: options).run!
   end
 
   after(:all) do
