@@ -6,9 +6,9 @@
 
 module HudApr::Generators::Apr::Fy2020
   class Generator < HudReports::GeneratorBase
-    def initialize(options)
-      super(options)
-    end
+    # def initialize(options)
+    #   super(options)
+    # end
 
     def self.title
       'Annual Performance Report - FY 2020'
@@ -39,6 +39,7 @@ module HudApr::Generators::Apr::Fy2020
         HudApr::Generators::Apr::Fy2020::QuestionTwentyFour, # Homeless Prevention
         HudApr::Generators::Apr::Fy2020::QuestionTwentyFive, # Veterans
         HudApr::Generators::Apr::Fy2020::QuestionTwentySix, # Chronically Homeless
+        HudApr::Generators::Apr::Fy2020::QuestionTwentySeven, # Youth
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze

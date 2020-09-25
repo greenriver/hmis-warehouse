@@ -17,7 +17,7 @@ module HudApr::Generators::Apr::Fy2020
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
       q26a_chronic_households
-      q26b_chronic_households
+      q26b_chronic_people
       q26c_ch_gender
       q26d_ch_age
       q26e_health_conditions

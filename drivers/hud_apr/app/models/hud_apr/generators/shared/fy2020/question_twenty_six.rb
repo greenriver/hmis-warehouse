@@ -50,7 +50,7 @@ module HudApr::Generators::Shared::Fy2020
       end
     end
 
-    private def q26b_chronic_households
+    private def q26b_chronic_people
       table_name = 'Q26b'
       metadata = {
         header_row: [' '] + q26_populations.keys,
