@@ -22,6 +22,7 @@ module HudApr::Generators::Apr::Fy2020
         HudApr::Generators::Apr::Fy2020::QuestionSeven, # Persons Served
         HudApr::Generators::Apr::Fy2020::QuestionEight, # Households Served
         HudApr::Generators::Apr::Fy2020::QuestionNine, # Contacts and Engagements
+        HudApr::Generators::Apr::Fy2020::QuestionTen, # Gender
         HudApr::Generators::Apr::Fy2020::QuestionEleven, # Age-Household Breakdown
         HudApr::Generators::Apr::Fy2020::QuestionTwelve, # Race & Ethnicity
         HudApr::Generators::Apr::Fy2020::QuestionThirteen, # Health

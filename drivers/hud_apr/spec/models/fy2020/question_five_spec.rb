@@ -1,7 +1,7 @@
 require 'rails_helper'
 require_relative 'apr_context.rb'
 
-RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionFive, type: :model do
+RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionFive, type: :model do
   include_context 'apr context'
 
   before(:all) do
@@ -13,7 +13,7 @@ RSpec.describe HudApr::Generators::Shared::Fy2020::QuestionFive, type: :model do
       coc_code: 'MA-500',
       user_id: 0,
     }
-    HudApr::Generators::Shared::Fy2020::QuestionFive.new(options: options).run!
+    HudApr::Generators::Apr::Fy2020::QuestionFive.new(options: options).run!
   end
 
   after(:all) do

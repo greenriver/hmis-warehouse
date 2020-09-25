@@ -1,3 +1,7 @@
+RSpec.configure do |config|
+  RSpec.configuration.fixpoints_path = 'drivers/hud_apr/spec/fixpoints'
+end
+
 RSpec.shared_context 'apr context', shared_context: :metadata do
   def default_options
     {
@@ -52,8 +56,10 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
   def cleanup
     # Because we are only running the import once, we have to do our own DB and file cleanup
     GrdaWarehouse::Utility.clear!
-    @delete_later.each do |path|
-      FileUtils.rm_rf(path)
+    if @delete_later
+      @delete_later.each do |path|
+        FileUtils.rm_rf(path)
+      end
     end
     Delayed::Job.delete_all
   end
