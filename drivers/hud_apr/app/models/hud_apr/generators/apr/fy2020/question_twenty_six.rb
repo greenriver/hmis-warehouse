@@ -19,6 +19,11 @@ module HudApr::Generators::Apr::Fy2020
       q26a_chronic_households
       q26b_chronic_households
       q26c_ch_gender
+      q26d_ch_age
+      q26e_health_conditions
+      q26f_income
+      q26g_income_sources
+      q26h_non_cash_benefits
 
       @report.complete(QUESTION_NUMBER)
     end
