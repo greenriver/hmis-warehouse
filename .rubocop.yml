@@ -37,7 +37,7 @@ AllCops:
     - 'app/assets/**/*'
     - 'bin/db_prep'
 
-  NewCops: disable
+  # NewCops: disable
 
 # We don't care about method length, since we check method cyclomatic
 # complexity.
@@ -182,32 +182,32 @@ Style/AsciiComments:
 Style/OneLineConditional:
   Enabled: false
 
-Layout/EmptyLinesAroundAttributeAccessor:
-  Enabled: true
+# Layout/EmptyLinesAroundAttributeAccessor:
+#   Enabled: true
 
-Layout/SpaceAroundMethodCallOperator:
-  Enabled: true
+# Layout/SpaceAroundMethodCallOperator:
+#   Enabled: true
 
-Lint/DeprecatedOpenSSLConstant:
-  Enabled: true
+# Lint/DeprecatedOpenSSLConstant:
+#   Enabled: true
 
-Lint/RaiseException:
-  Enabled: true
+# Lint/RaiseException:
+#   Enabled: true
 
-Lint/StructNewOverride:
-  Enabled: true
+# Lint/StructNewOverride:
+#   Enabled: true
 
-Style/ExponentialNotation:
-  Enabled: true
+# Style/ExponentialNotation:
+#   Enabled: true
 
-Style/HashEachMethods:
-  Enabled: true
+# Style/HashEachMethods:
+#   Enabled: true
 
-Style/HashTransformKeys:
-  Enabled: true
+# Style/HashTransformKeys:
+#   Enabled: true
 
-Style/HashTransformValues:
-  Enabled: true
+# Style/HashTransformValues:
+#   Enabled: true
 
-Style/SlicingWithRange:
-  Enabled: true
+# Style/SlicingWithRange:
+#   Enabled: true
