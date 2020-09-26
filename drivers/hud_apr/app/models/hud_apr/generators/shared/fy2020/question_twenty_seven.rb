@@ -124,74 +124,6 @@ module HudApr::Generators::Shared::Fy2020
       end
     end
 
-    # private def q27a_chronic_households
-    #   table_name = 'Q27a'
-    #   metadata = {
-    #     header_row: [' '] + q27_populations.keys,
-    #     row_labels: ch_categories.keys,
-    #     first_column: 'B',
-    #     last_column: 'F',
-    #     first_row: 2,
-    #     last_row: 6,
-    #   }
-    #   @report.answer(question: table_name).update(metadata: metadata)
-
-    #   cols = (metadata[:first_column]..metadata[:last_column]).to_a
-    #   rows = (metadata[:first_row]..metadata[:last_row]).to_a
-    #   q27_populations.values.each_with_index do |population_clause, col_index|
-    #     households = Set.new
-    #     ch_categories.values.each_with_index do |ch_clause, row_index|
-    #       cell = "#{cols[col_index]}#{rows[row_index]}"
-    #       next if intentionally_blank.include?(cell)
-
-    #       answer = @report.answer(question: table_name, cell: cell)
-
-    #       household_ids = universe.members.where(population_clause).
-    #         where(ch_clause).
-    #         distinct.pluck(a_t[:household_id])
-    #       # ignore previously counted households
-    #       household_ids -= households.to_a
-    #       members = universe.members.where(hoh_clause).where(a_t[:household_id].in(household_ids))
-
-    #       value = members.count
-
-    #       answer.add_members(members)
-    #       answer.update(summary: value)
-    #     end
-    #   end
-    # end
-
-    # private def q27b_chronic_households
-    #   table_name = 'Q27b'
-    #   metadata = {
-    #     header_row: [' '] + q27_populations.keys,
-    #     row_labels: ch_categories.keys,
-    #     first_column: 'B',
-    #     last_column: 'F',
-    #     first_row: 2,
-    #     last_row: 6,
-    #   }
-    #   @report.answer(question: table_name).update(metadata: metadata)
-
-    #   cols = (metadata[:first_column]..metadata[:last_column]).to_a
-    #   rows = (metadata[:first_row]..metadata[:last_row]).to_a
-    #   q27_populations.values.each_with_index do |population_clause, col_index|
-    #     ch_categories.values.each_with_index do |ch_clause, row_index|
-    #       cell = "#{cols[col_index]}#{rows[row_index]}"
-    #       next if intentionally_blank.include?(cell)
-
-    #       answer = @report.answer(question: table_name, cell: cell)
-
-    #       members = universe.members.where(population_clause).where(ch_clause)
-
-    #       value = members.count
-
-    #       answer.add_members(members)
-    #       answer.update(summary: value)
-    #     end
-    #   end
-    # end
-
     private def q27c_youth_gender
       table_name = 'Q27c'
       metadata = {
@@ -213,7 +145,7 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(a_t[:age].between(0..24)).
+          members = universe.members.where(a_t[:age].between(18..24)).
             where(population_clause).
             where(response_clause)
           value = members.count
@@ -245,7 +177,7 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
-            where(hoh_clause.and(a_t[:age].in(0..24))).
+            where(hoh_clause.and(a_t[:age].in(18..24))).
             where(population_clause).
             where(situation_clause)
           answer.add_members(members)
@@ -275,7 +207,7 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(a_t[:age].between(0..24)).
+          members = universe.members.where(a_t[:age].between(18..24)).
             where(population_clause).
             where(length_clause)
 
@@ -310,7 +242,7 @@ module HudApr::Generators::Shared::Fy2020
           if destination_clause.is_a?(Symbol)
             case destination_clause
             when :percentage
-              members = universe.members.where(population_clause)
+              members = universe.members.where(population_clause).where(a_t[:age].between(18..24))
               positive = members.where(q27f_destinations['Total persons exiting to positive housing destinations']).count
               total = members.count
               excluded = members.where(q27f_destinations['Total persons whose destinations excluded them from the calculation']).count
@@ -384,13 +316,14 @@ module HudApr::Generators::Shared::Fy2020
           next if intentionally_blank_27h.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          adults = universe.members.where(adult_clause)
-          adults = adults.where(stayers_clause) if suffix == :annual_assessment
-          adults = adults.where(leavers_clause) if suffix == :exit
+          youth = universe.members.
+            where(hoh_clause.and(a_t[:age].between(0..24)).or(a_t[:age].between(18..24)))
+          youth = youth.where(stayers_clause) if suffix == :annual_assessment
+          youth = youth.where(leavers_clause) if suffix == :exit
 
           ids = Set.new
           if income_case.is_a?(Symbol)
-            adults.preload(:universe_membership).find_each do |member|
+            youth.preload(:universe_membership).find_each do |member|
               apr_client = member.universe_membership
               case income_case
               when :earned
@@ -403,9 +336,9 @@ module HudApr::Generators::Shared::Fy2020
                 ids << member.id if no_income?(apr_client, suffix)
               end
             end
-            members = adults.where(id: ids)
+            members = youth.where(id: ids)
           else
-            members = adults.where(income_case)
+            members = youth.where(income_case)
           end
 
           answer.add_members(members)
@@ -413,9 +346,108 @@ module HudApr::Generators::Shared::Fy2020
         end
       end
     end
-
     private def q27i_youth_disabling_conditions
-      # FIXME
+      table_name = 'Q27i'
+      metadata = {
+        header_row: [' '] + q27i_disabilities.keys,
+        row_labels: q27i_income_sources.keys,
+        first_column: 'B',
+        last_column: 'Q',
+        first_row: 2,
+        last_row: 14,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q27i_disabilities.values.each_with_index do |disabilities_clause, col_index|
+        q27i_income_sources.values.each_with_index do |income_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank_q27i.include?(cell)
+
+          answer = @report.answer(question: table_name, cell: cell)
+          members = universe.members.
+            # Only relevant to youth or < 24 HoH leavers with answers for income at exit and disability
+            where(hoh_clause.and(a_t[:age].between(0..24)).or(a_t[:age].between(18..24))).
+            where(leavers_clause).
+            where(a_t[:disabling_condition].in([0, 1])).
+            where(a_t[:income_from_any_source_at_exit].in([0, 1]))
+          if income_clause.is_a?(Hash)
+            members = members.where.contains(income_clause)
+          else
+            # The final question doesn't require accessing the jsonb column
+            members = members.where(income_clause)
+          end
+          value = 0
+          if disabilities_clause.is_a?(Hash)
+            disabled_count = members.where(disabilities_clause[:household]).
+              where(a_t[:disabling_condition].eq(1)).count
+            total_count = members.where(disabilities_clause[:household]).count
+            value = (disabled_count.to_f / total_count).round(4) if total_count.positive?
+          else
+            members = members.where(disabilities_clause)
+            value = members.count
+          end
+
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
+
+    private def q27i_disabilities
+      {
+        'AO: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
+          and(a_t[:household_type].eq(:adults_only)),
+        'AO: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
+          and(a_t[:household_type].eq(:adults_only)),
+        'AO: Total Adults' => a_t[:household_type].eq(:adults_only),
+        'AO: % with Disabling Condition by Source' => {
+          calculation: :percent,
+          household: a_t[:household_type].eq(:adults_only),
+        },
+        'AC: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
+          and(a_t[:household_type].eq(:children_only)),
+        'AC: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
+          and(a_t[:household_type].eq(:children_only)),
+        'AC: Total Adults' => a_t[:household_type].eq(:children_only),
+        'AC: % with Disabling Condition by Source' => {
+          calculation: :percent,
+          household: a_t[:household_type].eq(:children_only),
+        },
+        'CO: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
+          and(a_t[:household_type].eq(:adults_and_children)),
+        'CO: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
+          and(a_t[:household_type].eq(:adults_and_children)),
+        'CO: Total Adults' => a_t[:household_type].eq(:adults_and_children),
+        'CO: % with Disabling Condition by Source' => {
+          calculation: :percent,
+          household: a_t[:household_type].eq(:adults_and_children),
+        },
+        'UK: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
+          and(a_t[:household_type].eq(:unknown)),
+        'UK: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
+          and(a_t[:household_type].eq(:unknown)),
+        'UK: Total Adults' => a_t[:household_type].eq(:unknown),
+        'UK: % with Disabling Condition by Source' => {
+          calculation: :percent,
+          household: a_t[:household_type].eq(:unknown),
+        },
+      }
+    end
+
+    private def q27i_income_sources
+      income_types(:exit).except(
+        'Unemployment Insurance',
+        'VA Non-Service Connected Disability Pension',
+        'General Assistance (GA)',
+        'Alimony and other spousal support',
+      ).merge(
+        {
+          'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
+          'Unduplicated Total Adults' => Arel.sql('1=1'),
+        },
+      )
     end
 
     private def q27_populations
@@ -632,6 +664,15 @@ module HudApr::Generators::Shared::Fy2020
         'B12',
         'D8',
         'D9',
+      ].freeze
+    end
+
+    private def intentionally_blank_q27i
+      [
+        'E14',
+        'I14',
+        'M14',
+        'Q14',
       ].freeze
     end
 
