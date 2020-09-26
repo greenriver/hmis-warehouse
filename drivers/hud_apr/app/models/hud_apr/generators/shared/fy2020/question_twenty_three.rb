@@ -63,7 +63,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q23c_populations
-      @q23c_populations ||= sub_populations
+      sub_populations
     end
 
     private def q23c_destinations

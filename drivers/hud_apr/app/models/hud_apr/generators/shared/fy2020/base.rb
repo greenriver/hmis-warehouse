@@ -463,6 +463,64 @@ module HudApr::Generators::Shared::Fy2020
       }.sort_by { |_, m| m[:order] }.freeze
     end
 
+    private def living_situations
+      {
+        'Homeless Situations' => nil,
+        'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter' => a_t[:prior_living_situation].eq(1),
+        'Transitional housing for homeless persons (including homeless youth)' => a_t[:prior_living_situation].eq(2),
+        'Place not meant for habitation' => a_t[:prior_living_situation].eq(16),
+        'Safe Haven' => a_t[:prior_living_situation].eq(18),
+        'Host Home (non-crisis)' => a_t[:prior_living_situation].eq(32),
+        'Subtotal - Homeless' => a_t[:prior_living_situation].in([1, 2, 16, 18, 32]),
+        'Institutional Settings' => nil,
+        'Psychiatric hospital or other psychiatric facility' => a_t[:prior_living_situation].eq(4),
+        'Substance abuse treatment facility or detox center' => a_t[:prior_living_situation].eq(5),
+        'Hospital or other residential non-psychiatric medical facility' => a_t[:prior_living_situation].eq(6),
+        'Jail, prison or juvenile detention facility' => a_t[:prior_living_situation].eq(7),
+        'Foster care home or foster care group home' => a_t[:prior_living_situation].eq(15),
+        'Long-term care facility or nursing home' => a_t[:prior_living_situation].eq(25),
+        'Residential project or halfway house with no homeless criteria' => a_t[:prior_living_situation].eq(29),
+        'Subtotal - Institutional' => a_t[:prior_living_situation].in([4, 5, 6, 7, 15, 25, 29]),
+        'Other Locations' => nil,
+        'Permanent housing (other than RRH) for formerly homeless persons' => a_t[:prior_living_situation].eq(3),
+        'Owned by client, no ongoing housing subsidy' => a_t[:prior_living_situation].eq(11),
+        'Owned by client, with ongoing housing subsidy' => a_t[:prior_living_situation].eq(21),
+        'Rental by client, with RRH or equivalent subsidy' => a_t[:prior_living_situation].eq(31),
+        'Rental by client, with HCV voucher (tenant or project based)' => a_t[:prior_living_situation].eq(33),
+        'Rental by client in a public housing unit' => a_t[:prior_living_situation].eq(34),
+        'Rental by client, no ongoing housing subsidy' => a_t[:prior_living_situation].eq(10),
+        'Rental by client, with VASH housing subsidy' => a_t[:prior_living_situation].eq(19),
+        'Rental by client, with GPD TIP housing subsidy' => a_t[:prior_living_situation].eq(28),
+        'Rental by client, with other ongoing housing subsidy' => a_t[:prior_living_situation].eq(20),
+        'Hotel or motel paid for without emergency shelter voucher' => a_t[:prior_living_situation].eq(14),
+        "Staying or living in a friend's room, apartment or house" => a_t[:prior_living_situation].eq(36),
+        "Staying or living in a family member's room, apartment or house" => a_t[:prior_living_situation].eq(35),
+        'Client Doesn’t Know/Client Refused' => a_t[:prior_living_situation].in([8, 9]),
+        'Data Not Collected' => a_t[:prior_living_situation].eq(99).or(a_t[:prior_living_situation].eq(nil)),
+        'Subtotal - Other' => a_t[:prior_living_situation].in(
+          [
+            3,
+            11,
+            21,
+            31,
+            33,
+            34,
+            10,
+            19,
+            28,
+            20,
+            14,
+            36,
+            35,
+            8,
+            9,
+            99,
+          ],
+        ).or(a_t[:prior_living_situation].eq(nil)),
+        'Total' => Arel.sql('1=1'),
+      }
+    end
+
     private def household_makeup(household_id, date)
       return :adults_and_children if adults?(ages_for(household_id, date)) && children?(ages_for(household_id, date))
       return :adults_only if adults?(ages_for(household_id, date)) && ! children?(ages_for(household_id, date)) && ! unknown_ages?(ages_for(household_id, date))
@@ -647,6 +705,29 @@ module HudApr::Generators::Shared::Fy2020
         'Developmental Disability' => a_t["developmental_disability_#{suffix}".to_sym].eq(1),
         'Physical Disability' => a_t["physical_disability_#{suffix}".to_sym].eq(1),
       }
+    end
+
+    private def lengths
+      {
+        '0 to 7 days' => a_t[:length_of_stay].between(0..7),
+        '8 to 14 days' => a_t[:length_of_stay].between(8..14),
+        '15 to 21 days' => a_t[:length_of_stay].between(15..21),
+        '22 to 30 days' => a_t[:length_of_stay].between(22..30),
+        '30 days or less' => a_t[:length_of_stay].lteq(30),
+        '31 to 60 days' => a_t[:length_of_stay].between(31..60),
+        '61 to 90 days' => a_t[:length_of_stay].between(61..90),
+        '61 to 180 days' => a_t[:length_of_stay].between(61..180),
+        '91 to 180 days' => a_t[:length_of_stay].between(91..180),
+        '181 to 365 days' => a_t[:length_of_stay].between(181..365),
+        '366 to 730 days (1-2 Yrs)' => a_t[:length_of_stay].between(366..730),
+        '731 to 1,095 days (2-3 Yrs)' => a_t[:length_of_stay].between(731..1_095),
+        '731 days or more' => a_t[:length_of_stay].gteq(731),
+        '1,096 to 1,460 days (3-4 Yrs)' => a_t[:length_of_stay].between(1_096..1_460),
+        '1,461 to 1,825 days (4-5 Yrs)' => a_t[:length_of_stay].between(1_461..1_825),
+        'More than 1,825 days (> 5 Yrs)' => a_t[:length_of_stay].gteq(1_825),
+        'Data Not Collected' => a_t[:length_of_stay].eq(nil),
+        'Total' => Arel.sql('1=1'),
+      }.freeze
     end
 
     private def income_responses(suffix)

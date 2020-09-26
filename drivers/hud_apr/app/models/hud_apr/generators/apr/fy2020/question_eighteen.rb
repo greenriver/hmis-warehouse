@@ -5,7 +5,7 @@
 ###
 
 module HudApr::Generators::Apr::Fy2020
-  class QuestionEighteen < HudApr::Generators::Shared::Fy2020::Base
+  class QuestionEighteen < HudApr::Generators::Shared::Fy2020::QuestionEighteen
     QUESTION_NUMBER = 'Question 18'.freeze
     QUESTION_TABLE_NUMBER = 'Q18'.freeze
 

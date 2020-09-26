@@ -7,13 +7,14 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionSeventeen < Base
     QUESTION_NUMBER = 'Question 17'.freeze
-    QUESTION_TABLE_NUMBER = 'Q17'.freeze
+    QUESTION_TABLE_NUMBERS = ['Q17'].freeze
 
     def self.question_number
       QUESTION_NUMBER
     end
 
     private def q17_cash_sources
+      table_name = 'Q17'
       metadata = {
         header_row: [' '] + income_stages.keys,
         row_labels: income_headers,
@@ -22,7 +23,7 @@ module HudApr::Generators::Shared::Fy2020
         first_row: 2,
         last_row: 17,
       }
-      @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
+      @report.answer(question: table_name).update(metadata: metadata)
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
@@ -31,7 +32,7 @@ module HudApr::Generators::Shared::Fy2020
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
-          answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell)
+          answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
             where(adult_clause)
           if income_clause.is_a?(Hash)

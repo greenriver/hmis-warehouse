@@ -9,7 +9,7 @@ module HudApr::Generators::Shared::Fy2020
     include ArelHelper
 
     QUESTION_NUMBER = 'Question 5'.freeze
-    QUESTION_TABLE_NUMBER = 'Q5a'.freeze
+    QUESTION_TABLE_NUMBERS = ['Q5a'].freeze
 
     TABLE_HEADER = [].freeze
     ROW_LABELS = [
@@ -36,6 +36,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q5_validations
+      table_name = 'Q5'
       metadata = {
         header_row: TABLE_HEADER,
         row_labels: ROW_LABELS,
@@ -44,10 +45,10 @@ module HudApr::Generators::Shared::Fy2020
         first_row: 1,
         last_row: 16,
       }
-      @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
+      @report.answer(question: table_name).update(metadata: metadata)
 
       # Total clients
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B1')
+      answer = @report.answer(question: table_name, cell: 'B1')
       members = universe.universe_members
       answer.add_members(members)
       answer.update(summary: members.count)
@@ -134,7 +135,7 @@ module HudApr::Generators::Shared::Fy2020
             and(a_t[:head_of_household].eq(true)),
         },
       ].each do |cell|
-        answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell[:cell])
+        answer = @report.answer(question: table_name, cell: cell[:cell])
         members = universe.members.where(cell[:clause])
         answer.add_members(members)
         answer.update(summary: members.count)
@@ -143,7 +144,7 @@ module HudApr::Generators::Shared::Fy2020
       # HoH and adult stayers in project 365 days or more
       # "...any adult stayer present when the head of household’s stay is 365 days or more,
       # even if that adult has not been in the household that long"
-      answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: 'B16')
+      answer = @report.answer(question: table_name, cell: 'B16')
       members = universe.members.where(
         a_t[:head_of_household_id].in(hoh_lts_stayer_ids).
         and(adult_clause.or(a_t[:head_of_household].eq(true))),

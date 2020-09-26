@@ -225,15 +225,15 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q22c_populations
-      @q22c_populations ||= sub_populations
+      sub_populations
     end
 
     private def q22d_populations
-      @q22d_populations ||= sub_populations
+      sub_populations
     end
 
     private def q22e_populations
-      @q22e_populations ||= sub_populations
+      sub_populations
     end
 
     private def q22b_lengths
@@ -361,29 +361,6 @@ module HudApr::Generators::Shared::Fy2020
         'Not yet moved into housing' => a_t[:move_in_date].eq(nil).and(a_t[:date_to_street].not_eq(nil)),
         'Data not collected' => a_t[:approximate_time_to_move_in].eq(nil),
         'Total persons' => Arel.sql('1=1'),
-      }.freeze
-    end
-
-    private def lengths
-      {
-        '0 to 7 days' => a_t[:length_of_stay].between(0..7),
-        '8 to 14 days' => a_t[:length_of_stay].between(8..14),
-        '15 to 21 days' => a_t[:length_of_stay].between(15..21),
-        '22 to 30 days' => a_t[:length_of_stay].between(22..30),
-        '30 days or less' => a_t[:length_of_stay].lteq(30),
-        '31 to 60 days' => a_t[:length_of_stay].between(31..60),
-        '61 to 90 days' => a_t[:length_of_stay].between(61..90),
-        '61 to 180 days' => a_t[:length_of_stay].between(61..180),
-        '91 to 180 days' => a_t[:length_of_stay].between(91..180),
-        '181 to 365 days' => a_t[:length_of_stay].between(181..365),
-        '366 to 730 days (1-2 Yrs)' => a_t[:length_of_stay].between(366..730),
-        '731 to 1,095 days (2-3 Yrs)' => a_t[:length_of_stay].between(731..1_095),
-        '731 days or more' => a_t[:length_of_stay].gteq(731),
-        '1,096 to 1,460 days (3-4 Yrs)' => a_t[:length_of_stay].between(1_096..1_460),
-        '1,461 to 1,825 days (4-5 Yrs)' => a_t[:length_of_stay].between(1_461..1_825),
-        'More than 1,825 days (> 5 Yrs)' => a_t[:length_of_stay].gteq(1_825),
-        'Data Not Collected' => a_t[:length_of_stay].eq(nil),
-        'Total' => Arel.sql('1=1'),
       }.freeze
     end
 

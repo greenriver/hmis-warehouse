@@ -18,6 +18,7 @@ module HudApr::Generators::Apr::Fy2020
 
       q19a_stayers
       q19a_leavers
+      q19b_disabling_conditions
 
       @report.complete(QUESTION_NUMBER)
     end

@@ -7,7 +7,7 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionNineteen < Base
     QUESTION_NUMBER = 'Question 19'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q19a1', 'Q19a2'].freeze
+    QUESTION_TABLE_NUMBERS = ['Q19a1', 'Q19a2', 'Q19b'].freeze
 
     def self.question_number
       QUESTION_NUMBER
@@ -109,6 +109,10 @@ module HudApr::Generators::Shared::Fy2020
         suffix: suffix,
         inclusion_clause: inclusion_clause,
       )
+    end
+
+    private def q19b_disabling_conditions
+      # FIXME
     end
 
     private def ids_and_amounts(adults, column:, income_category:, suffix:)

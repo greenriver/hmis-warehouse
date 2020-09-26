@@ -18,13 +18,13 @@ module HudApr::Generators::Apr::Fy2020
 
       q27a_youth_age
       q27b_parenting_youth
-      # q27c_youth_gender
-      # q27d_youth_prior_living
-      # q27e_youth_length_of_participation
-      # q27f_youth_destination
-      # q27g_youth_income_sources
-      # q27h_youth_earned_income
-      # q27i_youth_disabling_conditions
+      q27c_youth_gender
+      q27d_youth_living_situation
+      q27e_youth_length_of_participation
+      q27f_youth_destination
+      q27g_youth_income_sources
+      q27h_youth_earned_income
+      q27i_youth_disabling_conditions
 
       @report.complete(QUESTION_NUMBER)
     end

@@ -323,7 +323,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q26_populations
-      @q26_populations ||= sub_populations
+      sub_populations
     end
 
     private def ch_categories
@@ -404,7 +404,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q26i_populations
-      @q26i_populations ||= sub_populations
+      sub_populations
     end
 
     private def intentionally_blank

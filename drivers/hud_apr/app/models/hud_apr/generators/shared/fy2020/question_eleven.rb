@@ -7,13 +7,14 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionEleven < Base
     QUESTION_NUMBER = 'Question 11'.freeze
-    QUESTION_TABLE_NUMBER = 'Q11'.freeze
+    QUESTION_TABLE_NUMBERS = ['Q11'].freeze
 
     def self.question_number
       QUESTION_NUMBER
     end
 
     private def q11_ages
+      table_name = 'Q11'
       metadata = {
         header_row: [' '] + sub_populations.keys,
         row_labels: age_ranges.keys,
@@ -22,7 +23,7 @@ module HudApr::Generators::Shared::Fy2020
         first_row: 2,
         last_row: 13,
       }
-      @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
+      @report.answer(question: table_name).update(metadata: metadata)
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
@@ -31,7 +32,7 @@ module HudApr::Generators::Shared::Fy2020
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
-          answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell)
+          answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
             where(population_clause).
             where(age_clause)

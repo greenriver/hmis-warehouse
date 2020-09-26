@@ -202,8 +202,6 @@ module HudApr::Generators::Shared::Fy2020
           members = universe.members.where(veteran_clause).
             where(response_clause)
           case suffix
-          when :entry
-            members = members
           when :exit
             members = members.where(stayers_clause)
           when :latest
@@ -411,7 +409,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q25_populations
-      @q25_populations ||= sub_populations.except('With Only Children')
+      sub_populations.except('With Only Children')
     end
 
     private def q25a_responses
@@ -490,7 +488,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q25i_populations
-      @q25i_populations ||= sub_populations
+      sub_populations
     end
 
     private def q25i_destinations_headers

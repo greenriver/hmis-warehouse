@@ -30,7 +30,7 @@ module HudApr::Generators::Shared::Fy2020
       q27_populations.values.each_with_index do |population_clause, col_index|
         youth_age_ranges.values.each_with_index do |response_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank_27d.include?(cell)
+          next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
 
@@ -192,217 +192,234 @@ module HudApr::Generators::Shared::Fy2020
     #   end
     # end
 
-    # private def q27c_ch_gender
-    #   table_name = 'Q27c'
-    #   metadata = {
-    #     header_row: [' '] + q27_populations.keys,
-    #     row_labels: q27c_responses.keys,
-    #     first_column: 'B',
-    #     last_column: 'F',
-    #     first_row: 2,
-    #     last_row: 9,
-    #   }
-    #   @report.answer(question: table_name).update(metadata: metadata)
+    private def q27c_youth_gender
+      table_name = 'Q27c'
+      metadata = {
+        header_row: [' '] + q27_populations.keys,
+        row_labels: q27c_responses.keys,
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 9,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
 
-    #   cols = (metadata[:first_column]..metadata[:last_column]).to_a
-    #   rows = (metadata[:first_row]..metadata[:last_row]).to_a
-    #   q27_populations.values.each_with_index do |population_clause, col_index|
-    #     q27c_responses.values.each_with_index do |response_clause, row_index|
-    #       cell = "#{cols[col_index]}#{rows[row_index]}"
-    #       next if intentionally_blank.include?(cell)
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q27_populations.values.each_with_index do |population_clause, col_index|
+        q27c_responses.values.each_with_index do |response_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
 
-    #       answer = @report.answer(question: table_name, cell: cell)
+          answer = @report.answer(question: table_name, cell: cell)
 
-    #       members = universe.members.where(a_t[:chronically_homeless].eq(true)).
-    #         where(population_clause).
-    #         where(response_clause)
-    #       value = members.count
+          members = universe.members.where(a_t[:age].between(0..24)).
+            where(population_clause).
+            where(response_clause)
+          value = members.count
 
-    #       answer.add_members(members)
-    #       answer.update(summary: value)
-    #     end
-    #   end
-    # end
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
 
-    # private def q27e_health_conditions
-    #   table_name = 'Q27e'
-    #   metadata = {
-    #     header_row: [' '] + q27e_populations.keys,
-    #     row_labels: disability_clauses(:entry).keys,
-    #     first_column: 'B',
-    #     last_column: 'D',
-    #     first_row: 2,
-    #     last_row: 9,
-    #   }
-    #   @report.answer(question: table_name).update(metadata: metadata)
+    private def q27d_youth_living_situation
+      table_name = 'Q27d'
+      metadata = {
+        header_row: [' '] + q27_populations.keys,
+        row_labels: living_situation_headers,
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 35,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
 
-    #   cols = (metadata[:first_column]..metadata[:last_column]).to_a
-    #   rows = (metadata[:first_row]..metadata[:last_row]).to_a
-    #   q27e_populations.values.each_with_index do |suffix, col_index|
-    #     disability_clauses(suffix).values.each_with_index do |response_clause, row_index|
-    #       cell = "#{cols[col_index]}#{rows[row_index]}"
-    #       next if intentionally_blank.include?(cell)
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q27_populations.values.each_with_index do |population_clause, col_index|
+        living_situations.values.each_with_index do |situation_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank_27d.include?(cell)
 
-    #       answer = @report.answer(question: table_name, cell: cell)
+          answer = @report.answer(question: table_name, cell: cell)
+          members = universe.members.
+            where(hoh_clause.and(a_t[:age].in(0..24))).
+            where(population_clause).
+            where(situation_clause)
+          answer.add_members(members)
+          answer.update(summary: members.count)
+        end
+      end
+    end
 
-    #       members = universe.members.where(a_t[:chronically_homeless].eq(true)).
-    #         where(response_clause)
-    #       case suffix
-    #       when :exit
-    #         members = members.where(stayers_clause)
-    #       when :latest
-    #         members = members.where(leavers_clause)
-    #       end
+    private def q27e_youth_length_of_participation
+      table_name = 'Q27e'
+      metadata = {
+        header_row: [' '] + q27e_populations.keys,
+        row_labels: q27e_lengths.keys,
+        first_column: 'B',
+        last_column: 'D',
+        first_row: 2,
+        last_row: 13,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
 
-    #       value = members.count
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q27e_populations.values.each_with_index do |population_clause, col_index|
+        q27e_lengths.values.each_with_index do |length_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
 
-    #       answer.add_members(members)
-    #       answer.update(summary: value)
-    #     end
-    #   end
-    # end
+          answer = @report.answer(question: table_name, cell: cell)
 
-    # private def q27f_income
-    #   table_name = 'Q27f'
-    #   metadata = {
-    #     header_row: ['Number of Chronically Homeless Persons By Income Category'] + q27f_populations.keys,
-    #     row_labels: ch_income_types(:entry).keys,
-    #     first_column: 'B',
-    #     last_column: 'D',
-    #     first_row: 2,
-    #     last_row: 10,
-    #   }
-    #   @report.answer(question: table_name).update(metadata: metadata)
+          members = universe.members.where(a_t[:age].between(0..24)).
+            where(population_clause).
+            where(length_clause)
 
-    #   cols = (metadata[:first_column]..metadata[:last_column]).to_a
-    #   rows = (metadata[:first_row]..metadata[:last_row]).to_a
-    #   q27f_populations.values.each_with_index do |suffix, col_index|
-    #     ch_income_types(suffix).values.each_with_index do |income_case, row_index|
-    #       cell = "#{cols[col_index]}#{rows[row_index]}"
-    #       next if intentionally_blank_27f.include?(cell)
+          answer.add_members(members)
+          answer.update(summary: members.count)
+        end
+      end
+    end
 
-    #       answer = @report.answer(question: table_name, cell: cell)
-    #       adults = universe.members.where(a_t[:chronically_homeless].eq(true))
-    #       adults = adults.where(stayers_clause) if suffix == :annual_assessment
-    #       adults = adults.where(leavers_clause) if suffix == :exit
+    private def q27f_youth_destination
+      table_name = 'Q27f'
+      metadata = {
+        header_row: [' '] + q27_populations.keys,
+        row_labels: q27f_destinations_headers,
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 46,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
 
-    #       ids = Set.new
-    #       if income_case.is_a?(Symbol)
-    #         adults.preload(:universe_membership).find_each do |member|
-    #           apr_client = member.universe_membership
-    #           case income_case
-    #           when :earned
-    #             ids << member.id if earned_income?(apr_client, suffix) && ! other_income?(apr_client, suffix)
-    #           when :other
-    #             ids << member.id if other_income?(apr_client, suffix) && ! earned_income?(apr_client, suffix)
-    #           when :both
-    #             ids << member.id if both_income_types?(apr_client, suffix)
-    #           when :none
-    #             ids << member.id if no_income?(apr_client, suffix)
-    #           end
-    #         end
-    #         members = adults.where(id: ids)
-    #       else
-    #         members = adults.where(income_case)
-    #       end
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q27_populations.values.each_with_index do |population_clause, col_index|
+        q27f_destinations.values.each_with_index do |destination_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank_27f.include?(cell)
 
-    #       value = members.count
+          answer = @report.answer(question: table_name, cell: cell)
+          value = 0
 
-    #       answer.add_members(members)
-    #       answer.update(summary: value)
-    #     end
-    #   end
-    # end
+          if destination_clause.is_a?(Symbol)
+            case destination_clause
+            when :percentage
+              members = universe.members.where(population_clause)
+              positive = members.where(q27f_destinations['Total persons exiting to positive housing destinations']).count
+              total = members.count
+              excluded = members.where(q27f_destinations['Total persons whose destinations excluded them from the calculation']).count
+              value = (positive.to_f / (total - excluded) * 100).round(4) if total.positive? && excluded != total
+            end
+          else
+            members = universe.members.where(population_clause).where(destination_clause)
+            value = members.count
+          end
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
 
-    # private def q27g_income_sources
-    #   table_name = 'Q27g'
-    #   metadata = {
-    #     header_row: [' '] + q27g_populations.keys,
-    #     row_labels: ch_income_sources(:entry).keys,
-    #     first_column: 'B',
-    #     last_column: 'D',
-    #     first_row: 2,
-    #     last_row: 17,
-    #   }
-    #   @report.answer(question: table_name).update(metadata: metadata)
+    private def q27g_youth_income_sources
+      table_name = 'Q27g'
+      metadata = {
+        header_row: [' '] + income_stages.keys,
+        row_labels: income_headers_27g,
+        first_column: 'B',
+        last_column: 'D',
+        first_row: 2,
+        last_row: 17,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
 
-    #   cols = (metadata[:first_column]..metadata[:last_column]).to_a
-    #   rows = (metadata[:first_row]..metadata[:last_row]).to_a
-    #   q27g_populations.values.each_with_index do |suffix, col_index|
-    #     ch_income_sources(suffix).values.each_with_index do |income_clause, row_index|
-    #       cell = "#{cols[col_index]}#{rows[row_index]}"
-    #       next if intentionally_blank_27g.include?(cell)
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      income_stages.values.each_with_index do |suffix, col_index|
+        income_types(suffix).values.each_with_index do |income_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank_27g.include?(cell)
 
-    #       answer = @report.answer(question: table_name, cell: cell)
-    #       members = universe.members.where(a_t[:chronically_homeless].eq(true))
+          answer = @report.answer(question: table_name, cell: cell)
+          members = universe.members.
+            # Add youth filter to Q17, but expand universe to include youth adults AND youth
+            # heads of household even if they are not adults.
+            where(hoh_clause.and(a_t[:age].between(0..24)).or(a_t[:age].between(18..24)))
+          if income_clause.is_a?(Hash)
+            members = members.where.contains(income_clause)
+          else
+            # The final question doesn't require accessing the jsonb column
+            members = members.where(income_clause)
+          end
+          members = members.where(stayers_clause) if suffix == :annual_assessment
+          members = members.where(leavers_clause) if suffix == :exit
+          answer.add_members(members)
+          answer.update(summary: members.count)
+        end
+      end
+    end
 
-    #       if income_clause.is_a?(Hash)
-    #         members = members.where.contains(income_clause)
-    #       else
-    #         # The final question doesn't require accessing the jsonb column
-    #         members = members.where(income_clause)
-    #       end
-    #       members = members.where(stayers_clause) if suffix == :annual_assessment
-    #       members = members.where(leavers_clause) if suffix == :exit
+    private def q27h_youth_earned_income
+      table_name = 'Q27h'
+      metadata = {
+        header_row: ['Number of Youth By Income Category'] + q27h_populations.keys,
+        row_labels: income_headers_27h,
+        first_column: 'B',
+        last_column: 'D',
+        first_row: 2,
+        last_row: 12,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
 
-    #       value = members.count
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      q27h_populations.values.each_with_index do |suffix, col_index|
+        income_responses(suffix).values.each_with_index do |income_case, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank_27h.include?(cell)
 
-    #       answer.add_members(members)
-    #       answer.update(summary: value)
-    #     end
-    #   end
-    # end
+          answer = @report.answer(question: table_name, cell: cell)
+          adults = universe.members.where(adult_clause)
+          adults = adults.where(stayers_clause) if suffix == :annual_assessment
+          adults = adults.where(leavers_clause) if suffix == :exit
 
-    # private def q27h_non_cash_benefits
-    #   table_name = 'Q27h'
-    #   metadata = {
-    #     header_row: [' '] + q27h_populations.keys,
-    #     row_labels: non_cash_benefit_types(:entry).keys,
-    #     first_column: 'B',
-    #     last_column: 'D',
-    #     first_row: 2,
-    #     last_row: 7,
-    #   }
-    #   @report.answer(question: table_name).update(metadata: metadata)
+          ids = Set.new
+          if income_case.is_a?(Symbol)
+            adults.preload(:universe_membership).find_each do |member|
+              apr_client = member.universe_membership
+              case income_case
+              when :earned
+                ids << member.id if earned_income?(apr_client, suffix) && ! other_income?(apr_client, suffix)
+              when :other
+                ids << member.id if other_income?(apr_client, suffix) && ! earned_income?(apr_client, suffix)
+              when :both
+                ids << member.id if both_income_types?(apr_client, suffix)
+              when :none
+                ids << member.id if no_income?(apr_client, suffix)
+              end
+            end
+            members = adults.where(id: ids)
+          else
+            members = adults.where(income_case)
+          end
 
-    #   cols = (metadata[:first_column]..metadata[:last_column]).to_a
-    #   rows = (metadata[:first_row]..metadata[:last_row]).to_a
+          answer.add_members(members)
+          answer.update(summary: members.count)
+        end
+      end
+    end
 
-    #   q27h_populations.values.each_with_index do |suffix, col_index|
-    #     non_cash_benefit_types(suffix).values.each_with_index do |income_clause, row_index|
-    #       cell = "#{cols[col_index]}#{rows[row_index]}"
-    #       next if intentionally_blank.include?(cell)
-
-    #       answer = @report.answer(question: table_name, cell: cell)
-
-    #       members = universe.members.where(a_t[:chronically_homeless].eq(true))
-    #       case suffix
-    #       when :annual_assessment
-    #         members = members.where(stayers_clause).
-    #           where(a_t[:annual_assessment_expected].eq(true))
-    #       when :exit
-    #         # non-HoH clients are limited to those who exited on or after the HoH
-    #         # For leavers, report only heads of households who left plus other adult household members who left at the same time as the head of household. Do not include household members who left prior to the head of household even though that person is otherwise considered a “leaver” in other report questions.
-    #         additional_leaver_ids = Set.new
-    #         members.where(leavers_clause).where(a_t[:head_of_household].eq(false)).
-    #           pluck(a_t[:id], a_t[:head_of_household_id], a_t[:last_date_in_program]).each do |id, hoh_id, exit_date|
-    #             hoh_exit_date = hoh_exit_dates[hoh_id]
-    #             additional_leaver_ids << id if exit_date.blank? || hoh_exit_date.blank? || exit_date >= hoh_exit_date
-    #           end
-    #         members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
-    #       end
-
-    #       members = members.where.contains(income_clause)
-    #       value = members.count
-
-    #       answer.add_members(members)
-    #       answer.update(summary: value)
-    #     end
-    #   end
-    # end
+    private def q27i_youth_disabling_conditions
+      # FIXME
+    end
 
     private def q27_populations
-      @q27_populations ||= sub_populations
+      sub_populations
     end
 
     private def q27b_populations
@@ -421,14 +438,30 @@ module HudApr::Generators::Shared::Fy2020
       }
     end
 
-    private def ch_categories
+    private def living_situation_headers
+      living_situations.keys.map do |label|
+        next 'Subtotal' if label.include?('Subtotal')
+
+        label
+      end
+    end
+
+    private def income_headers_27g
+      income_types('').keys
+    end
+
+    private def income_headers_27h
+      income_responses('').keys.map do |text|
+        text.gsub('Adults', 'Youth').gsub('adults', 'youth')
+      end
+    end
+
+    private def income_stages
       {
-        'Chronically Homeless' => a_t[:chronically_homeless].eq(true),
-        'Not Chronically Homeless' => a_t[:chronically_homeless].eq(false),
-        'Client Doesn’t Know/Client Refused' => a_t[:prior_living_situation].in([8, 9]),
-        'Data Not Collected' => a_t[:prior_living_situation].eq(99),
-        'Total' => Arel.sql('1=1'),
-      }.freeze
+        'Income at Start' => :start,
+        'Income at Latest Annual Assessment for Stayers' => :annual_assessment,
+        'Income at Exit for Leavers' => :exit,
+      }
     end
 
     private def q27c_responses
@@ -454,6 +487,37 @@ module HudApr::Generators::Shared::Fy2020
       }
     end
 
+    private def q27e_lengths
+      {
+        '30 days or less' => '30 days or less',
+        '31 to 60 days' => '31 to 60 days',
+        '61 to 90 days' => '61 to 90 days',
+        '91 to 180 days' => '91 to 180 days',
+        '181 to 365 days' => '181 to 365 days',
+        '366 to 730 days (1-2 Yrs)' => '366 to 730 days (1-2 Yrs)',
+        '731 to 1,095 days (2-3 Yrs)' => '731 to 1,095 days (2-3 Yrs)',
+        '1,096 to 1,460 days (3-4 Yrs)' => '1,096 to 1,460 days (3-4 Yrs)',
+        '1,461 to 1,825 days (4-5 Yrs)' => '1,461 to 1,825 days (4-5 Yrs)',
+        'More than 1,825 days (> 5 Yrs)' => 'More than 1,825 days (> 5 Yrs)',
+        'Data Not Collected' => 'Data Not Collected',
+        'Total' => 'Total',
+      }.map do |k, label|
+        [label, lengths[k]]
+      end.to_h
+    end
+
+    private def q27f_destinations_headers
+      q27f_destinations.keys.map do |label|
+        next 'Subtotal' if label.include?('Subtotal')
+
+        label
+      end
+    end
+
+    private def q27f_destinations
+      destination_clauses
+    end
+
     private def ch_income_types(suffix)
       income_responses(suffix).transform_keys do |k|
         k.sub('Adults', 'Chronically Homeless Persons').sub('adult stayers', 'Chronically Homeless Persons')
@@ -468,9 +532,9 @@ module HudApr::Generators::Shared::Fy2020
 
     private def q27e_populations
       {
-        'Conditions At Start' => :entry,
-        'Conditions at Latest Assessment for Stayers' => :latest,
-        'Conditions at Exit for Leavers' => :exit,
+        'Total' => Arel.sql('1=1'),
+        'Leavers' => leavers_clause,
+        'Stayers' => stayers_clause,
       }
     end
 
@@ -492,9 +556,9 @@ module HudApr::Generators::Shared::Fy2020
 
     private def q27h_populations
       {
-        'Benefit at Start' => :start,
-        'Benefit at Latest Annual Assessment for Stayers' => :annual_assessment,
-        'Benefit at Exit for Leavers' => :exit,
+        'Number of Youth at Start' => :start,
+        'Number of Youth at Annual Assessment (Stayers)' => :annual_assessment,
+        'Number of Youth at Exit (Leavers)' => :exit,
       }
     end
 
@@ -503,7 +567,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q27i_populations
-      @q27i_populations ||= sub_populations
+      sub_populations
     end
 
     private def intentionally_blank
@@ -512,23 +576,62 @@ module HudApr::Generators::Shared::Fy2020
 
     private def intentionally_blank_27d
       [
+        'B2',
         'C2',
-        'E3',
+        'D2',
+        'E2',
+        'F2',
+        'B9',
+        'C9',
+        'D9',
+        'E9',
+        'F9',
+        'B18',
+        'C18',
+        'D18',
+        'E18',
+        'F18',
       ].freeze
     end
 
     private def intentionally_blank_27f
       [
-        'B8',
-        'B9',
-        'D8',
-        'D9',
+        'B2',
+        'C2',
+        'D2',
+        'E2',
+        'F2',
+        'B17',
+        'C17',
+        'D17',
+        'E17',
+        'F17',
+        'B28',
+        'C28',
+        'D28',
+        'E28',
+        'F28',
+        'B36',
+        'C36',
+        'D36',
+        'E36',
+        'F36',
       ].freeze
     end
 
     private def intentionally_blank_27g
       [
         'B17',
+      ].freeze
+    end
+
+    private def intentionally_blank_27h
+      [
+        'B8',
+        'B9',
+        'B12',
+        'D8',
+        'D9',
       ].freeze
     end
 

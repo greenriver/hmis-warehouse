@@ -44,7 +44,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q24_populations
-      @q24_populations ||= sub_populations
+      sub_populations
     end
 
     private def q24_assessment
