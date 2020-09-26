@@ -34,9 +34,16 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(only_youth_clause).
-            where(population_clause).
+          members = universe.members.where(population_clause).
             where(response_clause)
+          # because we need to use the age for the given enrollment within the context of the report
+          # we need to further limit this to only clients who are in households with only youth
+          ids = Set.new
+          members.preload(:universe_membership).find_each do |member|
+            apr_client = member.universe_membership
+            ids << member.id if only_youth?(apr_client)
+          end
+          members = members.where(id: ids)
           value = members.count
 
           answer.add_members(members)
@@ -60,48 +67,54 @@ module HudApr::Generators::Shared::Fy2020
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
       q27b_populations.values.each_with_index do |population_clause, col_index|
+        households = Set.new
         youth_parent_age_ranges.values.each_with_index do |response_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
-          # FIXME: we can't use parenting youth because we need age based
-          # on reporting date
-          # need to use household_members
           answer = @report.answer(question: table_name, cell: cell)
+          # Scope initially to anyone in a family with a youth head of household of the appropriate age
+          members = universe.members.where(
+            a_t[:household_id].in(universe.members.where(response_clause).select(a_t[:household_id])),
+          )
 
-          population_clause.present?
-
+          source_client_ids = Set.new
           members.preload(:universe_membership).find_each do |member|
             apr_client = member.universe_membership
-            case response_clause
-            when :chronic
-              if ! households.include?(apr_client.household_id) && household_veterans_chronically_homeless?(apr_client)
-                ids << member.id
+            case population_clause
+            when :parenting_youth
+              # We haven't already counted this household, the client is an HoH and all members are youth
+              # report HoH and adults (18-24)
+              if ! households.include?(apr_client.household_id) && youth_parent?(apr_client)
+                # since apr_client is the HoH and we've already limited to only youth households,
+                # we can safely return the adults and the source client id of the apr_client
+                adult_ids = adult_source_client_ids(apr_client)
+                adult_ids << apr_client.client_id
+                source_client_ids += adult_ids
                 households << apr_client.household_id
               end
-            when :not_chronic
-              if ! households.include?(apr_client.household_id) && household_veterans_non_chronically_homeless?(apr_client)
-                ids << member.id
+            when :children_of_youth_parents
+              # Find source client ids where the HoH is a youth and the members are RelationshipToHoH == 2
+              if ! households.include?(apr_client.household_id) && youth_parent?(apr_client)
+                source_client_ids += youth_child_source_client_ids(apr_client)
                 households << apr_client.household_id
               end
-            when :veteran
-              if ! households.include?(apr_client.household_id) && all_household_adults_non_veterans?(apr_client)
-                ids << member.id
+            when :members_youth_households
+              # Return all clients within the household, regardless of relationship
+              if ! households.include?(apr_client.household_id) && youth_parent?(apr_client)
+                source_client_ids += apr_client.household_members.map { |m| m['source_client_id'] }
                 households << apr_client.household_id
               end
-            when :refused
-              if ! households.include?(apr_client.household_id) && household_adults_refused_veterans(apr_client).any?
-                ids << member.id
-                households << apr_client.household_id
-              end
-            when :not_collected
-              if ! households.include?(apr_client.household_id) && household_adults_missing_veterans(apr_client).any?
-                ids << member.id
+            when :youth_households
+              # Use the HoH as a proxy for household
+              if ! households.include?(apr_client.household_id) && youth_parent?(apr_client)
+                source_client_ids += apr_client.client_id
                 households << apr_client.household_id
               end
             end
           end
-          members = members.where(id: ids)
+
+          members = members.where(client_id: source_client_ids) if source_client_ids.any?
 
           value = members.count
 
@@ -388,45 +401,23 @@ module HudApr::Generators::Shared::Fy2020
     #   end
     # end
 
-    private def only_youth_clause
-      a_t[:age].between(12..24).and(a_t[:other_clients_over_25].eq(0))
-    end
-
-    private def parenting_non_adult_clause
-      hoh_clause.and(a_t[:parenting_youth].eq(true).or(a_t[:parenting_juvenile].eq(true)))
-    end
-
-    private def member_of_youth_parent_household
-      a_t[:parenting_youth].eq(false).
-        and(a_t[:parenting_juvenile].eq(false)).
-        and(
-          a_t[:household_id].in(
-            HudApr::Fy2020::AprClient.where(parenting_non_adult_clause).select(:household_id),
-          ),
-        )
-    end
-
-    private def child_of_youth_clause
-      member_of_youth_parent_household.and(a_t[:relationship_to_hoh].eq(2))
-    end
-
     private def q27_populations
       @q27_populations ||= sub_populations
     end
 
     private def q27b_populations
       {
-        'Total parenting youth' => parenting_non_adult_clause,
-        'Total children of parenting youth' => child_of_youth_clause,
+        'Total parenting youth' => :parenting_youth,
+        'Total children of parenting youth' => :children_of_youth_parents,
+        'Total persons' => :members_youth_households,
+        'Total Households' => :youth_households,
       }
     end
 
     private def youth_parent_age_ranges
       {
-        'Parent youth < 18' => a_t[:parenting_juvenile].eq(true),
-        'Parent youth 18 to 24' => a_t[:parenting_youth].eq(true),
-        'Total persons' => parenting_non_adult_clause.or(member_of_youth_parent_household),
-        'Total Households' => :household_count,
+        'Parent youth < 18' => hoh_clause.and(a_t[:age].between(0..17)),
+        'Parent youth 18 to 24' => hoh_clause.and(a_t[:age].between(18..24)),
       }
     end
 

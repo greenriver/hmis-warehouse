@@ -189,3 +189,6 @@ Style/AsciiComments:
 
 Style/OneLineConditional:
   Enabled: false
+
+Style/StringConcatenation:
+  Enabled: false

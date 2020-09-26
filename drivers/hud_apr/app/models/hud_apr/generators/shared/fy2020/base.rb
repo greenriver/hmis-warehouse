@@ -173,6 +173,42 @@ module HudApr::Generators::Shared::Fy2020
       end
     end
 
+    private def only_youth?(apr_client)
+      youth_household_members(apr_client).count == apr_client.household_members.count
+    end
+
+    private def youth_household_members(apr_client)
+      date = [apr_client.first_date_in_program, @report.start_date].max
+      apr_client.household_members.select do |member|
+        next false if member['dob'].blank?
+
+        age = GrdaWarehouse::Hud::Client.age(date: date, dob: member['dob'].to_date)
+        age.present? && age >= 24
+      end
+    end
+
+    private def youth_child_members(apr_client)
+      youth_household_members(apr_client).select do |member|
+        member['relationship_to_hoh'] == 2
+      end
+    end
+
+    private def youth_children?(apr_client)
+      youth_child_members(apr_client).any?
+    end
+
+    private def youth_child_source_client_ids(apr_client)
+      youth_child_members(apr_client).map { |member| member['source_client_id'] }
+    end
+
+    private def adult_source_client_ids(apr_client)
+      household_adults(apr_client).map { |member| member['source_client_id'] }
+    end
+
+    private def youth_parent?(apr_client)
+      apr_client.head_of_household && only_youth?(apr_client) && youth_children?(apr_client)
+    end
+
     private def report_client_universe
       HudApr::Fy2020::AprClient
     end
