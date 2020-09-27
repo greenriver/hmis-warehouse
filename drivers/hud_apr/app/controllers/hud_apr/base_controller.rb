@@ -6,6 +6,8 @@
 
 module HudApr
   class BaseController < ApplicationController
+    before_action :require_can_view_hud_reports!
+
     def set_generator(param_name:) # rubocop:disable Naming/AccessorMethodName
       @generator_id = params[param_name].to_i
       @generator = generators[@generator_id]
@@ -17,7 +19,11 @@ module HudApr
       if report_id.zero?
         @report = @generator.find_report(current_user)
       else
-        @report = report_source.find(report_id)
+        @report = if can_view_all_hud_reports?
+          report_source.find(report_id)
+        else
+          report_source.where(user_id: current_user.id).find(report_id)
+        end
       end
     end
 
@@ -42,6 +48,10 @@ module HudApr
 
     def report_source
       HudReports::ReportInstance
+    end
+
+    def report_cell_source
+      HudReports::ReportCell
     end
   end
 end

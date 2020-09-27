@@ -1,24 +1,27 @@
 - if @reports.present?
+  %h2 Previous Results
   %p= paginate @reports
-  %table.table
-    %thead
-      %tr
-        %th
-        %th Status
-        %th Limits
-        %th Delete
-    %tbody
-      - @reports.each do |report|
+  .card
+    %table.table.table-striped
+      %thead
         %tr
-          %td
-            - unless report.completed?
-              - # FIXME: this is refreshing the entire page, but needs to only refresh the partial
-              = render 'spinner'
-          %td
-            = link_to_if report.completed?, report.current_status, hud_reports_apr_path(report)
-            .text-muted.description Run by: #{report.user.name}
-          %td= render 'parameters', report: report
-          %td
-            - if report.completed_at.present?
-              = link_to hud_reports_apr_path(report), method: :delete, class: 'btn btn-link btn-link--danger' do
-                %i.icon-cross
+          %th
+          %th Status
+          %th Limits
+          %th Included Questions
+          %th Delete
+      %tbody
+        - @reports.each do |report|
+          %tr
+            %td
+              - if report.running?
+                = render 'hud_apr/aprs/spinner'
+            %td
+              = link_to_if report.completed?, report.current_status, hud_reports_apr_path(report)
+              .text-muted.description Run by: #{report.user.name}
+            %td= render 'hud_apr/aprs/parameters', report: report
+            %td= report.included_questions.to_sentence
+            %td
+              - unless report.running?
+                = link_to hud_reports_apr_path(report), method: :delete, class: 'btn btn-sm btn-danger btn-icon-only' do
+                  %i.icon-cross

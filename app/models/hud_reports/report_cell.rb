@@ -18,6 +18,10 @@ module HudReports
       where(universe: true)
     end
 
+    def user
+      report_instance.user
+    end
+
     def members
       @members ||= join_universe
     end

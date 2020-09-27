@@ -44,5 +44,9 @@ module HudApr::Generators::Apr::Fy2020
         [q.question_number, q]
       end.to_h.freeze
     end
+
+    def self.valid_question_number(question_number)
+      questions.keys.detect { |q| q == question_number } || 'Question 4'
+    end
   end
 end

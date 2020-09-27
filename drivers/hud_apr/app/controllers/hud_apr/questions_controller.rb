@@ -8,9 +8,10 @@ module HudApr
   class QuestionsController < BaseController
     before_action -> { set_generator(param_name: :id) }
     before_action -> { set_report(param_name: :apr_id) }
+    before_action :set_question, only: [:show]
+    before_action :set_reports, only: [:show]
 
     def show
-      @question = params[:id]
       options = @report&.options || {}
       @options = OpenStruct.new(
         start_date: options['start_date']&.to_date || Date.current.beginning_of_month,
@@ -25,6 +26,19 @@ module HudApr
       question = params[:id]
       gen.run!(questions: [question])
       redirect_to hud_reports_apr_path(0, generator: @generator_id)
+    end
+
+    private def set_question
+      @question = @generator.valid_question_number(params[:id])
+    end
+
+    private def set_reports
+      @reports = report_source.joins(:report_cells).
+        preload(:universe_cells).
+        merge(report_cell_source.universe.where(question: @question))
+      @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
+      @reports = @reports.order(created_at: :desc).
+        page(params[:page]).per(10)
     end
   end
 end

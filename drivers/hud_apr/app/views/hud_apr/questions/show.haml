@@ -7,5 +7,9 @@
 %h1= content_for :title
 
 = render 'form'
+- if @report.completed?
+  %h2 Most Recent Result
+  .well
+    = render 'hud_reports/tables', report: @report, question: @question
 
-= render 'hud_reports/tables', report: @report, question: @question
+= render 'hud_apr/aprs/reports'
