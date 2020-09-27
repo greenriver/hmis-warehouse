@@ -5,13 +5,6 @@
 = render "hud_apr/shared/tabs", tab_name: 'Annual Performance Report'
 = render 'beta_warning'
 
-= render 'all_questions'
-
-= content_for :page_js do
-  :javascript
-    (function($) {
-      // FIXME: this resets form on the page and needs to be run for partials only
-      // Refresh page every 30 seconds
-      // var timeoutPeriod = 30000
-      // setTimeout("location.reload(true);", timeoutPeriod);
-    })(jQuery);
+.jReportListing
+  = render 'all_questions'
+= render 'hud_apr/shared/list_refresher'

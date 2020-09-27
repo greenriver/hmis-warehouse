@@ -15,6 +15,10 @@
     = render 'questions'
 .text-right
   = link_to 'Generate New Full APR', edit_hud_reports_apr_path(@report, generator: @generator_id), class: 'btn btn-secondary'
-.row
-  .col-12
-    = render 'reports'
+
+- if @reports.present?
+  %p= paginate @reports
+.jReportListing
+  = render 'reports'
+
+= render 'hud_apr/shared/list_refresher'

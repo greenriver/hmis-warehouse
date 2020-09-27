@@ -8,11 +8,15 @@ module HudApr
   class QuestionsController < BaseController
     before_action -> { set_generator(param_name: :id) }
     before_action -> { set_report(param_name: :apr_id) }
-    before_action :set_question, only: [:show, :result]
-    before_action :set_reports, only: [:show, :result]
-    before_action :set_options, only: [:show, :result]
+    before_action :set_question, only: [:show, :result, :running]
+    before_action :set_reports, only: [:show, :result, :running]
+    before_action :set_options, only: [:show, :result, :running]
 
     def show
+      @path_for_running = running_hud_reports_apr_question_path(link_params.except('action', 'controller'))
+    end
+
+    def running
     end
 
     def result

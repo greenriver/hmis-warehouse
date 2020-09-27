@@ -8,4 +8,8 @@
 = render 'hud_apr/aprs/beta_warning'
 = render 'form'
 
-= render 'hud_apr/aprs/reports'
+- if @reports.present?
+  %p= paginate @reports
+.jReportListing
+  = render 'hud_apr/aprs/reports'
+= render 'hud_apr/shared/list_refresher'
