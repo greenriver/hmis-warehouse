@@ -8,17 +8,14 @@ module HudApr
   class QuestionsController < BaseController
     before_action -> { set_generator(param_name: :id) }
     before_action -> { set_report(param_name: :apr_id) }
-    before_action :set_question, only: [:show]
-    before_action :set_reports, only: [:show]
+    before_action :set_question, only: [:show, :result]
+    before_action :set_reports, only: [:show, :result]
+    before_action :set_options, only: [:show, :result]
 
     def show
-      options = @report&.options || {}
-      @options = OpenStruct.new(
-        start_date: options['start_date']&.to_date || Date.current.beginning_of_month,
-        end_date: options['end_date']&.to_date || Date.current.end_of_month,
-        coc_code: options['coc_code'] || GrdaWarehouse::Config.get(:site_coc_codes),
-        project_ids: options['project_ids']&.map(&:to_i),
-      )
+    end
+
+    def result
     end
 
     def update
@@ -39,6 +36,16 @@ module HudApr
       @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
       @reports = @reports.order(created_at: :desc).
         page(params[:page]).per(10)
+    end
+
+    private def set_options
+      options = @report&.options || {}
+      @options = OpenStruct.new(
+        start_date: options['start_date']&.to_date || Date.current.beginning_of_month,
+        end_date: options['end_date']&.to_date || Date.current.end_of_month,
+        coc_code: options['coc_code'] || GrdaWarehouse::Config.get(:site_coc_codes),
+        project_ids: options['project_ids']&.map(&:to_i),
+      )
     end
   end
 end

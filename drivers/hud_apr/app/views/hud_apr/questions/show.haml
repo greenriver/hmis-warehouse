@@ -2,14 +2,10 @@
   = link_to hud_reports_aprs_path do
     = "« APR Reports"
 - content_for :title do
-  = "APR Question #{@question}"
+  = "APR #{@question}"
 
 %h1= content_for :title
-
+= render 'hud_apr/aprs/beta_warning'
 = render 'form'
-- if @report.completed?
-  %h2 Most Recent Result
-  .well
-    = render 'hud_reports/tables', report: @report, question: @question
 
 = render 'hud_apr/aprs/reports'

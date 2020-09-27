@@ -13,6 +13,6 @@
         = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects', required: true
 
   - content_for :filter_actions do
-    = f.button :submit, value: 'Queue Report'
+    = f.button :submit, value: 'Queue Full APR'
 
   = render 'warehouse_reports/filters', f: f

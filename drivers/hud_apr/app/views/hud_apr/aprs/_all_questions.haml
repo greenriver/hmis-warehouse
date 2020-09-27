@@ -1,0 +1,31 @@
+.well
+  %p
+    The APR contains 24 questions, labeled 4 through 27.  Each question contains one or more tables of data.  Questions can be run individually below, or can be run all together.  Each report run can be downloaded as a zip file suitable for upload to HUD by following the link in the
+    %strong Status
+    column.
+    All questions can be run as one report by using the following link.
+  %p
+    = link_to hud_reports_apr_path(0, generator: 0), class: 'btn btn-secondary' do
+      All Questions - APR FY 2020
+
+%table.table.table-hover.table-striped
+  - @generators.each do |generator|
+    %thead
+      %th Question
+      %th Last Run
+      %th Status
+      %th
+    %tbody
+      - generator.questions.each do |name, klass|
+        %tr
+          - answer = klass.most_recent_answer(user: current_user)
+          %td
+            = link_to name, hud_reports_apr_question_path(answer&.report_instance || 0, name)
+          %td
+            = answer&.created_at
+            by #{answer.user.name}
+          %td
+            = answer&.status
+            - if answer.completed?
+              in #{answer&.completed_in}
+          %td

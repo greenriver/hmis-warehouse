@@ -3,38 +3,9 @@
   %h1= content_for :title
 
 = render "hud_apr/shared/tabs", tab_name: 'Annual Performance Report'
-.alert.alert-warning
-  %p
-    %strong Please Note:
-    the APR is still under development.  The following questions should run, but have not been fully checked for accuracy and lack some features that will be available when complete.
-%p
-%table.table.table-hover.table-striped
-  - @generators.each do |generator|
-    %thead
-      %th Question
-      - # = link_to generator.title, hud_reports_apr_path(0, generator: index) # 0 is a special id meaning current
-      %th Last Run
-      %th Status
-      %th
-    %tbody
-      %tr
-        %td{colspan: 4}
-          = link_to hud_reports_apr_path(0, generator: 0) do
-            All Questions - APR FY 2020
+= render 'beta_warning'
 
-      - generator.questions.each do |name, klass|
-        %tr
-          - answer = klass.most_recent_answer(user: current_user)
-          %td
-            = link_to name, hud_reports_apr_question_path(answer&.report_instance || 0, name)
-          %td
-            = answer&.created_at
-            by #{answer.user.name}
-          %td
-            = answer&.status
-            - if answer.completed?
-              in #{answer&.completed_in}
-          %td
+= render 'all_questions'
 
 = content_for :page_js do
   :javascript
