@@ -7,11 +7,12 @@
 # A HUD Report instance, identified by report name (e.g., report_name: 'CE APR - 2020')
 module HudReports
   class ReportInstance < GrdaWarehouseBase
+    acts_as_paranoid
     include ActionView::Helpers::DateHelper
     self.table_name = 'hud_report_instances'
 
     belongs_to :user
-    has_many :report_cells, dependent: :destroy
+    has_many :report_cells # , dependent: :destroy # for the moment, this is too slow
     has_many :universe_cells, -> do
       universe
     end, class_name: 'ReportCell'

@@ -1,9 +1,9 @@
 = content_for :crumbs do
-  = link_to hud_reports_apr_question_path(@report, @question) do
+  = link_to path_for_question(report_id: @report, id: @question) do
     = "« #{@question}"
 - content_for :title do
-  = "APR Question #{@question}"
+  = "#{@report.type} #{@question}"
 
 %h1= content_for :title
-= render 'hud_apr/aprs/beta_warning'
+= render 'hud_apr/shared/beta_warning'
 = render 'hud_reports/tables', report: @report, question: @question

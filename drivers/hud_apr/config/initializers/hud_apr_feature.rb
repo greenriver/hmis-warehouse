@@ -10,3 +10,8 @@ Rails.application.config.hud_reports['HudApr::Generators::Apr::Fy2020::Generator
   title: 'Annual Performance Report',
   helper: 'hud_reports_aprs_path',
 }
+
+Rails.application.config.hud_reports['HudApr::Generators::Caper::Fy2020::Generator'] = {
+  title: 'Consolidated Annual Performance and Evaluation Report',
+  helper: 'hud_reports_capers_path',
+}

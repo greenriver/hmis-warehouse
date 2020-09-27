@@ -6,7 +6,7 @@
 - if @show_recent
   .well
     .d-flex
-      %h2 APR Report
+      %h2 CAPER Report
       .ml-auto
         = link_to({format: :zip},{class: 'btn btn-primary'}) do
           %span.icon-download2
@@ -14,7 +14,7 @@
 
     = render 'questions'
 .text-right
-  = link_to 'Generate New Full APR', edit_hud_reports_apr_path(@report, generator: @generator_id), class: 'btn btn-secondary'
+  = link_to 'Generate New Full CAPER', edit_hud_reports_caper_path(@report, generator: @generator_id), class: 'btn btn-secondary'
 
 - if @reports.present?
   %p= paginate @reports

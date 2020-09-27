@@ -8,11 +8,12 @@
 module HudReports
   class ReportCell < GrdaWarehouseBase
     include ActionView::Helpers::DateHelper
+    acts_as_paranoid
 
     self.table_name = 'hud_report_cells'
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
-    has_many :universe_members, dependent: :destroy
+    has_many :universe_members # , dependent: :destroy # for the moment this is too slow
 
     scope :universe, -> do
       where(universe: true)

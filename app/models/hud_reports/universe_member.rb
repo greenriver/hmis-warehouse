@@ -7,6 +7,7 @@
 # Polymorphic join to connect report cells, to a particular report type's clients
 module HudReports
   class UniverseMember < GrdaWarehouseBase
+    acts_as_paranoid
     include RailsDrivers::Extensions
 
     self.table_name = 'hud_report_universe_members'

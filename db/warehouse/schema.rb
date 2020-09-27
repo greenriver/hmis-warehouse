@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_25_201420) do
+ActiveRecord::Schema.define(version: 2020_09_27_201419) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4477,6 +4477,7 @@ ActiveRecord::Schema.define(version: 2020_09_25_201420) do
     t.date "date_of_engagement"
     t.jsonb "household_members"
     t.boolean "parenting_juvenile"
+    t.datetime "deleted_at"
     t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
   end
 
@@ -4486,6 +4487,7 @@ ActiveRecord::Schema.define(version: 2020_09_25_201420) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "living_situation"
+    t.datetime "deleted_at"
     t.index ["hud_report_apr_client_id"], name: "index_hud_apr_client_liv_sit", unique: true
   end
 
@@ -4500,6 +4502,7 @@ ActiveRecord::Schema.define(version: 2020_09_25_201420) do
     t.json "summary"
     t.string "status"
     t.text "error_messages"
+    t.datetime "deleted_at"
     t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
   end
 
@@ -4518,6 +4521,7 @@ ActiveRecord::Schema.define(version: 2020_09_25_201420) do
     t.json "project_ids"
     t.json "question_names", null: false
     t.binary "zip_file"
+    t.datetime "deleted_at"
     t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
   end
 
@@ -4528,6 +4532,7 @@ ActiveRecord::Schema.define(version: 2020_09_25_201420) do
     t.bigint "client_id"
     t.string "first_name"
     t.string "last_name"
+    t.datetime "deleted_at"
     t.index ["client_id"], name: "index_hud_report_universe_members_on_client_id"
     t.index ["report_cell_id"], name: "index_hud_report_universe_members_on_report_cell_id"
     t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"

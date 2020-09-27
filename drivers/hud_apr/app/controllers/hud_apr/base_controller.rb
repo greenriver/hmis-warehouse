@@ -43,6 +43,7 @@ module HudApr
     def generators
       [
         HudApr::Generators::Apr::Fy2020::Generator,
+        HudApr::Generators::Caper::Fy2020::Generator,
       ]
     end
 
@@ -53,5 +54,25 @@ module HudApr
     def report_cell_source
       HudReports::ReportCell
     end
+
+    private def path_for_question_result(report_id:, id:)
+      result_hud_reports_apr_question_path(apr_id: report_id, id: id)
+    end
+    helper_method :path_for_question_result
+
+    private def path_for_question(report_id:, id:)
+      hud_reports_apr_question_path(apr_id: report_id, id: id)
+    end
+    helper_method :path_for_question
+
+    private def path_for_report(*options)
+      hud_reports_apr_path(options)
+    end
+    helper_method :path_for_report
+
+    private def path_for_reports(*options)
+      hud_reports_aprs_path(options)
+    end
+    helper_method :path_for_reports
   end
 end

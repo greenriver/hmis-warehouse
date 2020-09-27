@@ -1,15 +1,15 @@
 = content_for :crumbs do
-  = link_to hud_reports_aprs_path do
-    = "« APR Reports"
+  = link_to path_for_reports do
+    = "« #{@report.type} Reports"
 - content_for :title do
-  = "APR #{@question}"
+  = "#{@report.type} #{@question}"
 
 %h1= content_for :title
-= render 'hud_apr/aprs/beta_warning'
+= render 'hud_apr/shared/beta_warning'
 = render 'form'
 
 - if @reports.present?
   %p= paginate @reports
 .jReportListing
-  = render 'hud_apr/aprs/reports'
+  = render 'hud_apr/shared/reports'
 = render 'hud_apr/shared/list_refresher'
