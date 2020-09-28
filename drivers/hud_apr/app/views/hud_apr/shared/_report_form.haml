@@ -1,5 +1,5 @@
 - default_coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
-= simple_form_for @options, as: :filter, method: :patch, url: hud_reports_apr_path(generator: @generator_id) do |f|
+= simple_form_for @options, as: :filter, method: :patch, url: path_for_report(generator: @generator_id) do |f|
   - content_for :filters_col_full do
     .row
       .col-sm-4
@@ -13,6 +13,6 @@
         = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'}, label: 'Projects', required: true
 
   - content_for :filter_actions do
-    = f.button :submit, value: 'Queue Full APR'
+    = f.button :submit, value: 'Queue Full CAPER'
 
   = render 'warehouse_reports/filters', f: f

@@ -14,11 +14,6 @@
 
     = render 'questions'
 .text-right
-  = link_to 'Generate New Full CAPER', edit_hud_reports_caper_path(@report, generator: @generator_id), class: 'btn btn-secondary'
+  = link_to 'Generate New Full CAPER', edit_hud_reports_caper_path(@report.id || 0, generator: @generator_id), class: 'btn btn-secondary'
 
-- if @reports.present?
-  %p= paginate @reports
-.jReportListing
-  = render 'hud_apr/shared/reports'
-
-= render 'hud_apr/shared/list_refresher'
+= render 'hud_apr/shared/reports_wrapper'

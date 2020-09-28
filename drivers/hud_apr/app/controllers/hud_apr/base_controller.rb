@@ -15,16 +15,40 @@ module HudApr
 
     def set_report(param_name:) # rubocop:disable Naming/AccessorMethodName
       report_id = params[param_name].to_i
-      # APR 0 is the most recent report for the current user
+      # id: 0 is the most recent report for the current user
+      # or a new report if there are none
       if report_id.zero?
         @report = @generator.find_report(current_user)
       else
         @report = if can_view_all_hud_reports?
-          report_source.find(report_id)
+          report_scope.find(report_id)
         else
-          report_source.where(user_id: current_user.id).find(report_id)
+          report_scope.where(user_id: current_user.id).find(report_id)
         end
       end
+    end
+
+    def options_struct
+      options = @report&.options || {}
+      @options = OpenStruct.new(
+        start_date: options['start_date']&.to_date || Date.current.last_month.beginning_of_month.last_year,
+        end_date: options['end_date']&.to_date || Date.current.last_month.end_of_month,
+        coc_code: options['coc_code'] || GrdaWarehouse::Config.get(:site_coc_codes),
+        project_ids: options['project_ids']&.map(&:to_i),
+      )
+    end
+
+    def set_reports
+      titles = generators.map(&:title)
+      @reports = report_scope.where(report_name: titles).
+        preload(:user, :universe_cells)
+      @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
+      @reports = @reports.order(created_at: :desc).
+        page(params[:page]).per(25)
+    end
+
+    def report_urls
+      @report_urls ||= Rails.application.config.hud_reports.map { |_, report| [report[:title], public_send(report[:helper])] }
     end
 
     def filter_options
@@ -40,11 +64,8 @@ module HudApr
       filter
     end
 
-    def generators
-      [
-        HudApr::Generators::Apr::Fy2020::Generator,
-        HudApr::Generators::Caper::Fy2020::Generator,
-      ]
+    private def report_scope
+      report_source.where(report_name: report_name)
     end
 
     def report_source
@@ -54,25 +75,5 @@ module HudApr
     def report_cell_source
       HudReports::ReportCell
     end
-
-    private def path_for_question_result(report_id:, id:)
-      result_hud_reports_apr_question_path(apr_id: report_id, id: id)
-    end
-    helper_method :path_for_question_result
-
-    private def path_for_question(report_id:, id:)
-      hud_reports_apr_question_path(apr_id: report_id, id: id)
-    end
-    helper_method :path_for_question
-
-    private def path_for_report(*options)
-      hud_reports_apr_path(options)
-    end
-    helper_method :path_for_report
-
-    private def path_for_reports(*options)
-      hud_reports_aprs_path(options)
-    end
-    helper_method :path_for_reports
   end
 end

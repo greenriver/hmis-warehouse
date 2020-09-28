@@ -1,8 +1,8 @@
 = content_for :crumbs do
   = link_to path_for_reports do
-    = "« #{@report.type} Reports"
+    = "« #{report_short_name} Reports"
 - content_for :title do
-  = "#{@report.type} #{@question}"
+  = "#{report_short_name} #{@question}"
 
 %h1= content_for :title
 = render 'hud_apr/shared/beta_warning'

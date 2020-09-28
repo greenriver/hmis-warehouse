@@ -6,6 +6,7 @@
 
 module HudApr
   class AprsController < BaseController
+    include Apr::AprConcern
     before_action -> { set_generator(param_name: :generator) }, except: [:index, :running_all_questions]
     before_action -> { set_report(param_name: :id) }, only: [:show, :edit, :destroy, :running]
     before_action :set_reports, except: [:index, :running_all_questions]
@@ -59,29 +60,6 @@ module HudApr
       @report.destroy
       flash[:notice] = 'Report removed'
       redirect_to hud_reports_apr_path(0, generator: @generator_id)
-    end
-
-    def options_struct
-      options = @report&.options || {}
-      @options = OpenStruct.new(
-        start_date: options['start_date']&.to_date || Date.current.last_month.beginning_of_month.last_year,
-        end_date: options['end_date']&.to_date || Date.current.last_month.end_of_month,
-        coc_code: options['coc_code'] || GrdaWarehouse::Config.get(:site_coc_codes),
-        project_ids: options['project_ids']&.map(&:to_i),
-      )
-    end
-
-    def set_reports
-      titles = generators.map(&:title)
-      @reports = report_source.where(report_name: titles).
-        preload(:user, :universe_cells)
-      @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
-      @reports = @reports.order(created_at: :desc).
-        page(params[:page]).per(25)
-    end
-
-    def report_urls
-      @report_urls ||= Rails.application.config.hud_reports.map { |_, report| [report[:title], public_send(report[:helper])] }
     end
   end
 end

@@ -23,7 +23,7 @@ module HudReports
     end
 
     def self.find_report(user)
-      HudReports::ReportInstance.where(user_id: user.id, report_name: title).last
+      HudReports::ReportInstance.where(user_id: user.id, report_name: title).last || HudReports::ReportInstance.new(user_id: user.id, report_name: title)
     end
 
     def run!(questions: nil)

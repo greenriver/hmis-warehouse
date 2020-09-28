@@ -18,9 +18,10 @@ module HudApr::Generators::Shared::Fy2020
       raise e
     end
 
-    def self.most_recent_answer(user:)
+    def self.most_recent_answer(user:, report_name:)
       answer = HudReports::ReportCell.universe.where(question: question_number).
-        joins(:report_instance)
+        joins(:report_instance).
+        merge(HudReports::ReportInstance.where(report_name: report_name))
       answer = answer.merge(HudReports::ReportInstance.where(user_id: user.id)) unless user.can_view_all_hud_reports?
       answer.order(created_at: :desc).first
     end

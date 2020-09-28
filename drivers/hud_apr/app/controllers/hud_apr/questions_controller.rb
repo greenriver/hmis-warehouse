@@ -34,7 +34,7 @@ module HudApr
     end
 
     private def set_reports
-      @reports = report_source.joins(:report_cells).
+      @reports = report_scope.joins(:report_cells).
         preload(:universe_cells).
         merge(report_cell_source.universe.where(question: @question))
       @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
