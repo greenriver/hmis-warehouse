@@ -257,6 +257,8 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.where(a_t[:chronically_homeless].eq(true))
 
+          answer.update(summary: 0) and next if members.count.zero?
+
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
           else
@@ -312,6 +314,8 @@ module HudApr::Generators::Shared::Fy2020
               end
             members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
           end
+
+          answer.update(summary: 0) and next if members.count.zero?
 
           members = members.where.contains(income_clause)
           value = members.count

@@ -39,7 +39,9 @@ module HudApr::Generators::Shared::Fy2020
           members = universe.members.where(adult_clause).
             where(stage_clause)
 
-          if income_clause.is_a?(Hash)
+          answer.update(summary: 0) and next if members.count.zero?
+
+          if income_clause.is_a?(Hash) # rubocop:disable Style/CaseLikeIf
             members = members.where.contains(income_clause)
           elsif income_clause.is_a?(Symbol)
             ids = Set.new

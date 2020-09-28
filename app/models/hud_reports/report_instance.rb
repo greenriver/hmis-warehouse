@@ -46,6 +46,8 @@ module HudReports
     #
     # @param question [String] the question name (e.g., 'Q1')
     # @param tables [Array<String>] the names of the tables in a question
+    # FIXME: maybe a single question column on report_instance to track if this is a single
+    # question run or all questions.... Need bater start/complete logic
     def start(question, tables)
       universe(question).update(status: 'Started', metadata: {tables: tables})
       update(state: 'Started', started_at: Time.current) if state.blank?
@@ -90,9 +92,15 @@ module HudReports
     # @param question [String] the question name (e.g., 'Q1')
     # @return [ReportCell] the universe cell
     def universe(question)
-      report_cells.
-        where(question: question, universe: true).
-        first_or_create
+      universe_scope(question).first_or_create
+    end
+
+    def existing_universe(question)
+      report_cells.find_by(question: question, universe: true)
+    end
+
+    private def universe_scope(question)
+      report_cells.where(question: question, universe: true)
     end
 
     def included_questions

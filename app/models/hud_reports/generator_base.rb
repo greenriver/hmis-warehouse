@@ -12,14 +12,16 @@ module HudReports
     STARTED = 'started'.freeze
     COMPLETED = 'completed'.freeze
 
-    def initialize(options)
+    def initialize(filter)
       # Strings for keys because of how the options come back out of the DB
-      @user_id = options['user_id']
-      @start_date = options['start_date'].to_date
-      @end_date = options['end_date'].to_date
-      @coc_code = options['coc_code']
-      @project_ids = options['project_ids']
-      @options = options.to_h
+      @user_id = filter.user_id
+      @start_date = filter.start.to_date
+      @end_date = filter.end.to_date
+      @coc_code = filter.coc_code
+      # Convert project groups into project ids for computation
+      @project_ids = filter.effective_project_ids
+      binding.pry
+      @options = filter.for_params[:filters].slice(:start, :end, :coc_code, :project_ids, :project_group_ids, :user_id)
     end
 
     def self.find_report(user)
@@ -38,7 +40,6 @@ module HudReports
         report_name: self.class.title,
         question_names: self.class.questions.keys,
       )
-      # TODO: Rework to parallelize questions?
       Reporting::Hud::RunReportJob.perform_later(self.class.name, questions, @report.id)
     end
 

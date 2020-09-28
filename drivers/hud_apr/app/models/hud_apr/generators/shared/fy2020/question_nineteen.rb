@@ -137,6 +137,9 @@ module HudApr::Generators::Shared::Fy2020
             where(leavers_clause).
             where(a_t[:disabling_condition].in([0, 1])).
             where(a_t[:income_from_any_source_at_exit].in([0, 1]))
+
+          answer.update(summary: 0) and next if members.count.zero?
+
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
           else

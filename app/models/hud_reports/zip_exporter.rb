@@ -16,8 +16,8 @@ module HudReports
       create_export_directory
       begin
         @report.question_names.each do |question_name|
-          question = @report.answer(question: question_name)
-          next unless question.status == 'Completed'
+          question = @report.existing_universe(question_name)
+          next unless question.present? && question.completed?
 
           metadata = question.metadata
           metadata['tables'].each do |table|
@@ -35,12 +35,12 @@ module HudReports
 
     def create_export_directory
       # Remove any old export
-      FileUtils.rmtree(@file_path) if File.exists? @file_path
+      FileUtils.rmtree(@file_path) if File.exist?(@file_path)
       FileUtils.mkdir_p(@file_path)
     end
 
     def zip_path
-      zip_path = "#{@file_path}/#{@report.report_name}.zip"
+      File.join(@file_path, @report.report_name) + '.zip'
     end
 
     def create_zip_file
@@ -49,7 +49,7 @@ module HudReports
         files.each do |file_name|
           zip_file.add(
             file_name,
-            File.join(@file_path, file_name)
+            File.join(@file_path, file_name),
           )
         end
       end
@@ -62,7 +62,7 @@ module HudReports
     end
 
     def remove_export_directory
-      FileUtils.rmtree(@file_path) if File.exists? @file_path
+      FileUtils.rmtree(@file_path) if File.exist?(@file_path)
     end
   end
 end

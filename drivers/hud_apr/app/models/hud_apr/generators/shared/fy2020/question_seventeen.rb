@@ -33,8 +33,10 @@ module HudApr::Generators::Shared::Fy2020
           next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          members = universe.members.
-            where(adult_clause)
+          members = universe.members.where(adult_clause)
+
+          answer.update(summary: 0) and next if members.count.zero?
+
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
           else

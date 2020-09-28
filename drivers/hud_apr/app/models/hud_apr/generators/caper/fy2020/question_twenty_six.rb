@@ -7,7 +7,7 @@
 module HudApr::Generators::Caper::Fy2020
   class QuestionTwentySix < HudApr::Generators::Shared::Fy2020::QuestionTwentySix
     QUESTION_NUMBER = 'Question 26'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q26a', 'Q26b', 'Q26c', 'Q26d', 'Q26e', 'Q26f', 'Q26g', 'Q26h'].freeze
+    QUESTION_TABLE_NUMBERS = ['Q26b'].freeze
 
     def self.question_number
       QUESTION_NUMBER

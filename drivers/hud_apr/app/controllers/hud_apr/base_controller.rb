@@ -28,16 +28,6 @@ module HudApr
       end
     end
 
-    def options_struct
-      options = @report&.options || {}
-      @options = OpenStruct.new(
-        start_date: options['start_date']&.to_date || Date.current.last_month.beginning_of_month.last_year,
-        end_date: options['end_date']&.to_date || Date.current.last_month.end_of_month,
-        coc_code: options['coc_code'] || GrdaWarehouse::Config.get(:site_coc_codes),
-        project_ids: options['project_ids']&.map(&:to_i),
-      )
-    end
-
     def set_reports
       titles = generators.map(&:title)
       @reports = report_scope.where(report_name: titles).
@@ -51,17 +41,47 @@ module HudApr
       @report_urls ||= Rails.application.config.hud_reports.map { |_, report| [report[:title], public_send(report[:helper])] }
     end
 
-    def filter_options
+    def filter_params
+      return {} unless params[:filter]
+
       filter = params.require(:filter).
         permit(
-          :start_date,
-          :end_date,
+          :start,
+          :end,
           :coc_code,
           project_ids: [],
+          project_group_ids: [],
         )
       filter[:user_id] = current_user.id
-      filter[:project_ids] = filter[:project_ids].reject(&:blank?).map(&:to_i)
+      # filter[:project_ids] = filter[:project_ids].reject(&:blank?).map(&:to_i)
+      # filter[:project_group_ids] = filter[:project_group_ids].reject(&:blank?).map(&:to_i)
       filter
+    end
+
+    private def filter
+      year = if Date.current.month >= 10
+        Date.current.year
+      else
+        Date.current.year - 1
+      end
+      # Some sane defaults, using the previous report if available
+      @filter = filter_class.new(user_id: current_user.id)
+      if filter_params.blank?
+        options = @report&.options
+        if options.present?
+          @filter.start = options['start'].presence || Date.new(year - 1, 10, 1)
+          @filter.end = options['end'].presence || Date.new(year, 9, 30)
+          @filter.coc_code = options['coc_code']
+          @filter.project_ids = options['project_ids']
+          @filter.project_group_ids = options['project_group_ids']
+        else
+          @filter.start = Date.new(year - 1, 10, 1)
+          @filter.end = Date.new(year, 9, 30)
+          @filter.coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
+        end
+      end
+      # Override with params if set
+      @filter.set_from_params(filter_params) if filter_params.present?
     end
 
     private def report_scope
@@ -74,6 +94,10 @@ module HudApr
 
     def report_cell_source
       HudReports::ReportCell
+    end
+
+    private def filter_class
+      ::Filters::FilterBase
     end
   end
 end

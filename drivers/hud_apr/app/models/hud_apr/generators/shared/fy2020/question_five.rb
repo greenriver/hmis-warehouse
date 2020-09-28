@@ -36,7 +36,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q5_validations
-      table_name = 'Q5'
+      table_name = 'Q5a'
       metadata = {
         header_row: TABLE_HEADER,
         row_labels: ROW_LABELS,

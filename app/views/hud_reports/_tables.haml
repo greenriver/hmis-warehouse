@@ -1,4 +1,4 @@
-- metadata = report&.universe(question)&.metadata
+- metadata = report&.existing_universe(question)&.metadata
 - if metadata.present?
   - metadata['tables'].each do |table|
     %h3= table

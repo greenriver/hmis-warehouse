@@ -51,6 +51,8 @@ module HudApr::Generators::Shared::Fy2020
             members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
           end
 
+          answer.update(summary: 0) and next if members.count.zero?
+
           members = members.where.contains(income_clause)
           answer.add_members(members)
           answer.update(summary: members.count)

@@ -282,6 +282,9 @@ module HudApr::Generators::Shared::Fy2020
             # Add youth filter to Q17, but expand universe to include youth adults AND youth
             # heads of household even if they are not adults.
             where(hoh_clause.and(a_t[:age].between(0..24)).or(a_t[:age].between(18..24)))
+
+          answer.update(summary: 0) and next if members.count.zero?
+
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
           else
@@ -372,6 +375,9 @@ module HudApr::Generators::Shared::Fy2020
             where(leavers_clause).
             where(a_t[:disabling_condition].in([0, 1])).
             where(a_t[:income_from_any_source_at_exit].in([0, 1]))
+
+          answer.update(summary: 0) and next if members.count.zero?
+
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
           else

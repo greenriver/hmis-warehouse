@@ -38,6 +38,7 @@ module Filters
     attribute :funder_ids, Array, default: []
     attribute :cohort_ids, Array, default: []
     attribute :coc_codes, Array, default: []
+    attribute :coc_code, String, default: GrdaWarehouse::Config.get(:site_coc_codes)
     attribute :sub_population, Symbol, default: :clients
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
@@ -57,6 +58,7 @@ module Filters
         effective_project_ids,
         cohort_ids,
         coc_codes,
+        coc_code,
         sub_population,
         start_age,
         end_age,
@@ -70,6 +72,7 @@ module Filters
       self.end = filters.dig(:end)&.to_date
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }
+      self.coc_code = filters.dig(:coc_code) if available_coc_codes.include?(filters.dig(:coc_code))
       self.household_type = filters.dig(:household_type)&.to_sym
       self.heads_of_household = self.hoh_only = filters.dig(:hoh_only).in?(['1', 'true', true])
       self.project_type_codes = Array.wrap(filters.dig(:project_type_codes))&.reject { |type| type.blank? }.presence
@@ -99,6 +102,7 @@ module Filters
           end: self.end,
           comparison_pattern: comparison_pattern,
           coc_codes: coc_codes,
+          coc_code: coc_code,
           household_type: household_type,
           project_type_codes: project_type_codes,
           project_type_numbers: project_type_numbers,
@@ -225,6 +229,7 @@ module Filters
         pluck(p_t[:id].as('project_id'))
     end
 
+    # NOTE: singular CoC Code is only used to limit CoC Code, whereas CoC Codes is used to limit projects
     def effective_project_ids_from_coc_codes
       codes = coc_codes.reject(&:blank?)
       return [] if codes.empty?

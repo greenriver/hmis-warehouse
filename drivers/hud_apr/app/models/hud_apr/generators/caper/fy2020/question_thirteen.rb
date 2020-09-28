@@ -11,9 +11,6 @@ module HudApr::Generators::Caper::Fy2020
       'Q13a1',
       'Q13b1',
       'Q13c1',
-      'Q13a2',
-      'Q13b2',
-      'Q13c2',
     ].freeze
 
     def self.question_number
