@@ -152,31 +152,5 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: members.count)
     end
-
-    private def universe
-      @universe ||= build_universe(QUESTION_NUMBER) do |_, enrollments|
-        last_service_history_enrollment = enrollments.last
-        enrollment = last_service_history_enrollment.enrollment
-        source_client = enrollment.client
-        client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
-
-        report_client_universe.new(
-          client_id: source_client.id,
-          data_source_id: source_client.data_source_id,
-          report_instance_id: @report.id,
-
-          age: source_client.age_on(client_start_date),
-          head_of_household: last_service_history_enrollment[:head_of_household],
-          head_of_household_id: last_service_history_enrollment.head_of_household_id,
-          parenting_youth: last_service_history_enrollment.parenting_youth,
-          other_clients_over_25: last_service_history_enrollment.other_clients_over_25,
-          first_date_in_program: last_service_history_enrollment.first_date_in_program,
-          last_date_in_program: last_service_history_enrollment.last_date_in_program,
-          veteran_status: source_client.VeteranStatus,
-          length_of_stay: stay_length(last_service_history_enrollment),
-          chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
-        )
-      end
-    end
   end
 end

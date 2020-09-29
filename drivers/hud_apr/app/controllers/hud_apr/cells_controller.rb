@@ -13,8 +13,10 @@ module HudApr
     def show
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
-      report_cell = @report.report_cells.for_table(@table).for_cell(@cell).first
-      @clients = report_cell.universe_members
+      @clients = HudApr::Fy2020::AprClient.
+        joins(hud_reports_universe_members: { report_cell: :report_instance }).
+        merge(HudReports::ReportCell.for_table(@table).for_cell(@cell)).
+        merge(HudReports::ReportInstance.where(id: @report.id))
     end
   end
 end

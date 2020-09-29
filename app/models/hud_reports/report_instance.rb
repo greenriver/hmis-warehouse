@@ -127,12 +127,14 @@ module HudReports
       universe_cells.map(&:question)
     end
 
+    # only allow alpha numeric
     def valid_cell_name(cell_name)
-      cell_name.match(/\w{1,2}\d{1,2}/).to_s
+      cell_name.match(/[A-Z0-9]+/i).to_s
     end
 
+    # only allow alpha numeric
     def valid_table_name(table)
-      table.match(/\w{1,2}\d{1,2}\w{0,1}/).to_s
+      table.match(/[A-Z0-9]+/i).to_s
     end
   end
 end

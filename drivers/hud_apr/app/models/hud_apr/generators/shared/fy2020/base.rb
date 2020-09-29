@@ -28,48 +28,237 @@ module HudApr::Generators::Shared::Fy2020
       answer.order(created_at: :desc).first
     end
 
-    protected def build_universe(question_number, preloads: {}, before_block: nil, after_block: nil)
-      universe_cell = @report.universe(question_number)
+    private def universe
+      add_apr_clients unless apr_clients_populated?
+      @universe ||= @report.universe(self.class.question_number)
+    end
 
+    private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
       @generator.client_scope.find_in_batches do |batch|
-        pending_associations = {}
+        clients_with_enrollments = clients_with_enrollments(batch)
 
-        clients_with_enrollments = clients_with_enrollments(batch, preloads: preloads)
-
-        before_block.call(clients_with_enrollments) if before_block.present?
-
-        batch.each do |client|
-          pending_associations[client] = yield(client, clients_with_enrollments[client.id])
+        # Pre-calculate some values
+        household_types = {}
+        times_to_move_in = {}
+        move_in_dates = {}
+        approximate_move_in_dates = {}
+        clients_with_enrollments.each do |_, enrollments|
+          last_service_history_enrollment = enrollments.last
+          hh_id = last_service_history_enrollment.household_id
+          date = [
+            @report.start_date,
+            last_service_history_enrollment.first_date_in_program,
+          ].max
+          household_types[hh_id] = household_makeup(hh_id, date)
+          times_to_move_in[last_service_history_enrollment.client_id] = time_to_move_in(last_service_history_enrollment)
+          move_in_dates[last_service_history_enrollment.client_id] = appropriate_move_in_date(last_service_history_enrollment)
+          approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment)
         end
 
-        report_client_universe.import(
+        pending_associations = {}
+        # Re-shape client to APR Client shape
+        batch.each do |client|
+          # Fetch enrollments for destination client
+          enrollments = clients_with_enrollments[client.id]
+
+          last_service_history_enrollment = enrollments.last
+          enrollment = last_service_history_enrollment.enrollment
+          source_client = enrollment.client
+          client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
+
+          exit_date = last_service_history_enrollment.last_date_in_program
+          exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date < @report.end_date
+
+          income_at_start = enrollment.income_benefits_at_entry
+          income_at_annual_assessment = annual_assessment(enrollment)
+          income_at_exit = exit_record&.income_benefits_at_exit
+
+          disabilities = enrollment.disabilities.select { |disability| [1, 2, 3].include?(disability.DisabilityResponse) }
+
+          disabilities_at_entry = enrollment.disabilities.select { |d| d.DataCollectionStage == 1 }
+          disabilities_at_exit = enrollment.disabilities.select { |d| d.DataCollectionStage == 3 }
+          max_disability_date = enrollment.disabilities.select { |d| d.InformationDate <= @report.end_date }.
+            map(&:InformationDate).max
+          disabilities_latest = enrollment.disabilities.select { |d| d.InformationDate == max_disability_date }
+
+          health_and_dv = enrollment.health_and_dvs.
+            select { |h| h.InformationDate <= @report.end_date }.
+            max_by(&:InformationDate)
+
+          last_bed_night = enrollment.services.select do |s|
+            s.RecordType == 200 && s.DateProvided < @report.end_date
+          end.max_by(&:DateProvided)
+
+          pending_associations[client] = report_client_universe.new(
+            client_id: source_client.id,
+            destination_client_id: last_service_history_enrollment.client_id,
+            data_source_id: source_client.data_source_id,
+            report_instance_id: @report.id,
+
+            age: source_client.age_on(client_start_date),
+            alcohol_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse == 1,
+            alcohol_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse == 1,
+            alcohol_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse == 1,
+            annual_assessment_expected: annual_assessment_expected?(last_service_history_enrollment),
+            approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
+            came_from_street_last_night: enrollment.PreviousStreetESSH,
+            chronic_disability_entry: disabilities_at_entry.detect(&:chronic?)&.DisabilityResponse,
+            chronic_disability_exit: disabilities_at_exit.detect(&:chronic?)&.DisabilityResponse,
+            chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
+            chronic_disability: disabilities.detect(&:chronic?).present?,
+            chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
+            currently_fleeing: health_and_dv.CurrentlyFleeing,
+            date_homeless: enrollment.DateToStreetESSH,
+            date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
+            date_of_last_bed_night: last_bed_night&.DateProvided,
+            date_to_street: last_service_history_enrollment.enrollment.DateToStreetESSH,
+            destination: last_service_history_enrollment.destination,
+            developmental_disability_entry: disabilities_at_entry.detect(&:developmental?)&.DisabilityResponse,
+            developmental_disability_exit: disabilities_at_exit.detect(&:developmental?)&.DisabilityResponse,
+            developmental_disability_latest: disabilities_latest.detect(&:developmental?)&.DisabilityResponse,
+            developmental_disability: disabilities.detect(&:developmental?).present?,
+            disabling_condition: enrollment.DisablingCondition,
+            dob_quality: source_client.DOBDataQuality,
+            dob: source_client.DOB,
+            domestic_violence: health_and_dv.DomesticViolenceVictim,
+            drug_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse == 2,
+            drug_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse == 2,
+            drug_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse == 2,
+            enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
+            enrollment_created: enrollment.DateCreated,
+            ethnicity: source_client.Ethnicity,
+            exit_created: exit_record&.DateCreated,
+            first_date_in_program: last_service_history_enrollment.first_date_in_program,
+            first_name: source_client.FirstName,
+            gender: source_client.Gender,
+            head_of_household_id: last_service_history_enrollment.head_of_household_id,
+            head_of_household: last_service_history_enrollment[:head_of_household],
+            hiv_aids_entry: disabilities_at_entry.detect(&:hiv?)&.DisabilityResponse,
+            hiv_aids_exit: disabilities_at_exit.detect(&:hiv?)&.DisabilityResponse,
+            hiv_aids_latest: disabilities_latest.detect(&:hiv?)&.DisabilityResponse,
+            hiv_aids: disabilities.detect(&:hiv?).present?,
+            household_id: last_service_history_enrollment.household_id,
+            household_members: household_member_data(last_service_history_enrollment),
+            household_type: household_types[last_service_history_enrollment.household_id],
+            housing_assessment: last_service_history_enrollment.enrollment.exit&.HousingAssessment,
+            income_date_at_annual_assessment: income_at_annual_assessment&.InformationDate,
+            income_date_at_exit: income_at_exit&.InformationDate,
+            income_date_at_start: income_at_start&.InformationDate,
+            income_from_any_source_at_annual_assessment: income_at_annual_assessment&.IncomeFromAnySource,
+            income_from_any_source_at_exit: income_at_exit&.IncomeFromAnySource,
+            income_from_any_source_at_start: income_at_start&.IncomeFromAnySource,
+            income_sources_at_annual_assessment: income_sources(income_at_annual_assessment),
+            income_sources_at_exit: income_sources(income_at_exit),
+            income_sources_at_start: income_sources(income_at_start),
+            income_total_at_annual_assessment: income_at_annual_assessment&.hud_total_monthly_income,
+            income_total_at_exit: income_at_exit&.hud_total_monthly_income,
+            income_total_at_start: income_at_start&.hud_total_monthly_income,
+            indefinite_and_impairs: disabilities.detect(&:indefinite_and_impairs?).present?,
+            insurance_from_any_source_at_annual_assessment: income_at_annual_assessment&.InsuranceFromAnySource,
+            insurance_from_any_source_at_exit: income_at_exit&.InsuranceFromAnySource,
+            insurance_from_any_source_at_start: income_at_start&.InsuranceFromAnySource,
+            last_date_in_program: last_service_history_enrollment.last_date_in_program,
+            last_name: source_client.LastName,
+            length_of_stay: stay_length(last_service_history_enrollment),
+            mental_health_problem_entry: disabilities_at_entry.detect(&:mental?)&.DisabilityResponse,
+            mental_health_problem_exit: disabilities_at_exit.detect(&:mental?)&.DisabilityResponse,
+            mental_health_problem_latest: disabilities_latest.detect(&:mental?)&.DisabilityResponse,
+            mental_health_problem: disabilities.detect(&:mental?).present?,
+            months_homeless: enrollment.MonthsHomelessPastThreeYears,
+            move_in_date: last_service_history_enrollment.move_in_date,
+            name_quality: source_client.NameDataQuality,
+            non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
+            non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
+            non_cash_benefits_from_any_source_at_start: income_at_start&.BenefitsFromAnySource,
+            other_clients_over_25: last_service_history_enrollment.other_clients_over_25,
+            overlapping_enrollments: overlapping_enrollments(enrollments, last_service_history_enrollment),
+            parenting_youth: last_service_history_enrollment.parenting_youth,
+            physical_disability_entry: disabilities_at_entry.detect(&:physical?)&.DisabilityResponse,
+            physical_disability_exit: disabilities_at_exit.detect(&:physical?)&.DisabilityResponse,
+            physical_disability_latest: disabilities_latest.detect(&:physical?)&.DisabilityResponse,
+            physical_disability: disabilities.detect(&:physical?).present?,
+            prior_length_of_stay: enrollment.LengthOfStay,
+            prior_living_situation: enrollment.LivingSituation,
+            project_tracking_method: last_service_history_enrollment.project_tracking_method,
+            project_type: last_service_history_enrollment.computed_project_type,
+            race: calculate_race(source_client),
+            relationship_to_hoh: enrollment.RelationshipToHoH,
+            ssn_quality: source_client.SSNDataQuality,
+            ssn: source_client.SSN,
+            subsidy_information: last_service_history_enrollment.enrollment.exit&.SubsidyInformation,
+            substance_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse,
+            substance_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse,
+            substance_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse,
+            substance_abuse: disabilities.detect(&:substance?).present?,
+            time_to_move_in: times_to_move_in[last_service_history_enrollment.client_id],
+            times_homeless: enrollment.TimesHomelessPastThreeYears,
+            veteran_status: source_client.VeteranStatus,
+          )
+        end
+
+        # Import APR clients
+        result = report_client_universe.import(
           pending_associations.values,
           on_duplicate_key_update: {
             conflict_target: [:client_id, :data_source_id, :report_instance_id],
             columns: pending_associations.values.first&.changes&.keys || [],
           },
         )
+        apr_clients = report_client_universe.where(id: result.ids)
 
-        after_block.call(clients_with_enrollments, pending_associations) if after_block.present?
+        # Attach APR Clients to relevant questions
+        @report.build_for_questions.each do |question_number|
+          universe_cell = @report.universe(question_number)
+          universe_cell.add_universe_members(pending_associations)
+        end
 
-        universe_cell.add_universe_members(pending_associations)
+        # Add any associated data that needs to be linked back to the apr clients
+        # FIXME: need to reload apr clients before we call this
+        client_living_situations = []
+        apr_clients.each do |apr_client|
+          last_enrollment = clients_with_enrollments[apr_client.destination_client_id].last.enrollment
+          last_enrollment.current_living_situations.each do |living_situation|
+            client_living_situations << apr_client.hud_report_apr_living_situations.build(
+              information_date: living_situation.InformationDate,
+              living_situation: living_situation.CurrentLivingSituation,
+            )
+          end
+        end
+
+        report_living_situation_universe.import(
+          client_living_situations,
+          on_duplicate_key_update: {
+            conflict_target: [:apr_client_id],
+            columns: client_living_situations.first&.changed || [],
+          },
+        )
       end
-      universe_cell
     end
 
-    private def clients_with_enrollments(batch, preloads: {})
-      enrollment_scope(preloads: preloads).where(client_id: batch.map(&:id)).group_by(&:client_id)
+    private def apr_clients_populated?
+      @report.report_cells.joins(universe_members: :apr_client).exists?
     end
 
-    private def enrollment_scope(preloads: {})
+    private def clients_with_enrollments(batch)
+      enrollment_scope.where(client_id: batch.map(&:id)).group_by(&:client_id)
+    end
+
+    private def enrollment_scope
       preloads = {
         enrollment: [
           :client,
           :disabilities,
           :current_living_situations,
           :project,
+          :services,
+          :income_benefits,
+          :income_benefits_at_exit,
+          :income_benefits_at_entry,
+          :income_benefits_annual_update,
+          :enrollment_coc_at_entry,
+          :health_and_dvs,
         ],
-      }.deep_merge(preloads)
+      }
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
@@ -77,6 +266,19 @@ module HudApr::Generators::Shared::Fy2020
         preload(preloads)
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
+    end
+
+    private def overlapping_enrollments(enrollments, last_enrollment)
+      last_enrollment_end = last_enrollment.last_date_in_program || Date.tomorrow
+      enrollments.select do |enrollment|
+        enrollment_end = enrollment.last_date_in_program || Date.tomorrow
+
+        enrollment.id != last_enrollment.id && # Don't include the last enrollment
+          enrollment.data_source_id == last_enrollment.data_source_id &&
+          enrollment.project_id == last_enrollment.project_id &&
+          enrollment.first_date_in_program < last_enrollment_end &&
+          enrollment_end > last_enrollment.first_date_in_program
+      end.map(&:enrollment_group_id).uniq
     end
 
     private def ages_for(household_id, date)

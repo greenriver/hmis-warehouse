@@ -367,52 +367,5 @@ module HudApr::Generators::Shared::Fy2020
     private def intentionally_blank
       [].freeze
     end
-
-    private def universe
-      batch_initializer = ->(clients_with_enrollments) do
-        @household_types = {}
-        @times_to_move_in = {}
-        @move_in_dates = {}
-        @approximate_move_in_dates = {}
-        clients_with_enrollments.each do |_, enrollments|
-          last_service_history_enrollment = enrollments.last
-          hh_id = last_service_history_enrollment.household_id
-          @household_types[hh_id] = household_makeup(hh_id, [@report.start_date, last_service_history_enrollment.first_date_in_program].max)
-
-          @times_to_move_in[last_service_history_enrollment.client_id] = time_to_move_in(last_service_history_enrollment)
-          @move_in_dates[last_service_history_enrollment.client_id] = appropriate_move_in_date(last_service_history_enrollment)
-          @approximate_move_in_dates[last_service_history_enrollment.client_id] = approximate_time_to_move_in(last_service_history_enrollment)
-        end
-      end
-
-      @universe ||= build_universe(
-        QUESTION_NUMBER,
-        before_block: batch_initializer,
-      ) do |_, enrollments|
-        last_service_history_enrollment = enrollments.last
-        enrollment = last_service_history_enrollment.enrollment
-        source_client = enrollment.client
-        client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
-
-        report_client_universe.new(
-          client_id: source_client.id,
-          data_source_id: source_client.data_source_id,
-          report_instance_id: @report.id,
-
-          age: source_client.age_on(client_start_date),
-          first_date_in_program: last_service_history_enrollment.first_date_in_program,
-          last_date_in_program: last_service_history_enrollment.last_date_in_program,
-          head_of_household: last_service_history_enrollment[:head_of_household],
-          head_of_household_id: last_service_history_enrollment.head_of_household_id,
-          length_of_stay: stay_length(last_service_history_enrollment),
-          time_to_move_in: @times_to_move_in[last_service_history_enrollment.client_id],
-          household_type: @household_types[last_service_history_enrollment.household_id],
-          project_type: last_service_history_enrollment.computed_project_type,
-          move_in_date: @move_in_dates[last_service_history_enrollment.client_id],
-          date_to_street: last_service_history_enrollment.enrollment.DateToStreetESSH,
-          approximate_time_to_move_in: @approximate_move_in_dates[last_service_history_enrollment.client_id],
-        )
-      end
-    end
   end
 end

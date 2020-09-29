@@ -11,7 +11,7 @@ module HudApr::Apr
     before_action :set_question
     before_action :set_reports
 
-    def report_param_name
+    private def report_param_name
       :apr_id
     end
 

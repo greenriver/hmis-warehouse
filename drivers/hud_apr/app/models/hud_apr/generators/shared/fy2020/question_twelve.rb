@@ -68,34 +68,5 @@ module HudApr::Generators::Shared::Fy2020
         end
       end
     end
-
-    private def universe
-      batch_initializer = ->(clients_with_enrollments) do
-        @household_types = {}
-        clients_with_enrollments.each do |_, enrollments|
-          last_service_history_enrollment = enrollments.last
-          hh_id = last_service_history_enrollment.household_id
-          @household_types[hh_id] = household_makeup(hh_id, [@report.start_date, last_service_history_enrollment.first_date_in_program].max)
-        end
-      end
-
-      @universe ||= build_universe(QUESTION_NUMBER, before_block: batch_initializer) do |_, enrollments|
-        last_service_history_enrollment = enrollments.last
-        enrollment = last_service_history_enrollment.enrollment
-        source_client = enrollment.client
-
-        report_client_universe.new(
-          client_id: source_client.id,
-          data_source_id: source_client.data_source_id,
-          report_instance_id: @report.id,
-
-          race: calculate_race(source_client),
-          ethnicity: source_client.Ethnicity,
-          household_type: @household_types[last_service_history_enrollment.household_id],
-          first_date_in_program: last_service_history_enrollment.first_date_in_program,
-          last_date_in_program: last_service_history_enrollment.last_date_in_program,
-        )
-      end
-    end
   end
 end

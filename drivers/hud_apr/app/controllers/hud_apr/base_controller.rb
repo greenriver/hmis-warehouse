@@ -66,7 +66,11 @@ module HudApr
       @filter.set_from_params(filter_params) if filter_params.present?
     end
 
-    def set_report
+    private def report_param_name
+      :id
+    end
+
+    private def set_report
       report_id = params[report_param_name].to_i
       return if report_id.zero?
 

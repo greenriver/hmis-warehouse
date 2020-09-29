@@ -76,42 +76,5 @@ module HudApr::Generators::Shared::Fy2020
     private def intentionally_blank
       [].freeze
     end
-
-    private def universe
-      batch_initializer = ->(clients_with_enrollments) do
-        @household_types = {}
-        clients_with_enrollments.each do |_, enrollments|
-          last_service_history_enrollment = enrollments.last
-          hh_id = last_service_history_enrollment.household_id
-          @household_types[hh_id] = household_makeup(hh_id, [@report.start_date, last_service_history_enrollment.first_date_in_program].max)
-        end
-      end
-
-      @universe ||= build_universe(
-        QUESTION_NUMBER,
-        before_block: batch_initializer,
-      ) do |_, enrollments|
-        last_service_history_enrollment = enrollments.last
-        enrollment = last_service_history_enrollment.enrollment
-        source_client = enrollment.client
-        client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
-
-        report_client_universe.new(
-          client_id: source_client.id,
-          data_source_id: source_client.data_source_id,
-          report_instance_id: @report.id,
-
-          age: source_client.age_on(client_start_date),
-          first_date_in_program: last_service_history_enrollment.first_date_in_program,
-          last_date_in_program: last_service_history_enrollment.last_date_in_program,
-          head_of_household: last_service_history_enrollment[:head_of_household],
-          head_of_household_id: last_service_history_enrollment.head_of_household_id,
-          household_type: @household_types[last_service_history_enrollment.household_id],
-          project_type: last_service_history_enrollment.computed_project_type,
-          housing_assessment: last_service_history_enrollment.enrollment.exit&.HousingAssessment,
-          subsidy_information: last_service_history_enrollment.enrollment.exit&.SubsidyInformation,
-        )
-      end
-    end
   end
 end

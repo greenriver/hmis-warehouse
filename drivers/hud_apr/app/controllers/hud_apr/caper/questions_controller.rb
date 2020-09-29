@@ -11,7 +11,7 @@ module HudApr::Caper
     before_action :set_question
     before_action :set_reports
 
-    def report_param_name
+    private def report_param_name
       :caper_id
     end
 

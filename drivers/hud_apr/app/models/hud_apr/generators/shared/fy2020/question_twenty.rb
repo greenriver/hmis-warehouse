@@ -138,57 +138,5 @@ module HudApr::Generators::Shared::Fy2020
     private def intentionally_blank
       [].freeze
     end
-
-    private def universe
-      @universe ||= build_universe(
-        QUESTION_NUMBER,
-        preloads: {
-          enrollment: [
-            :client,
-            :income_benefits,
-            :income_benefits_at_exit,
-            :income_benefits_at_entry,
-            :income_benefits_annual_update,
-          ],
-        },
-      ) do |_, enrollments|
-        last_service_history_enrollment = enrollments.last
-        enrollment = last_service_history_enrollment.enrollment
-        source_client = enrollment.client
-        client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
-        exit_date = last_service_history_enrollment.last_date_in_program
-        exit_record = last_service_history_enrollment.enrollment if exit_date.present? && exit_date < @report.end_date
-
-        income_at_start = enrollment.income_benefits_at_entry
-        income_at_annual_assessment = annual_assessment(enrollment)
-        income_at_exit = exit_record&.income_benefits_at_exit
-
-        report_client_universe.new(
-          client_id: source_client.id,
-          data_source_id: source_client.data_source_id,
-          report_instance_id: @report.id,
-
-          age: source_client.age_on(client_start_date),
-          first_date_in_program: last_service_history_enrollment.first_date_in_program,
-          last_date_in_program: last_service_history_enrollment.last_date_in_program,
-          head_of_household: last_service_history_enrollment[:head_of_household],
-          head_of_household_id: last_service_history_enrollment.head_of_household_id,
-          length_of_stay: stay_length(last_service_history_enrollment),
-          annual_assessment_expected: annual_assessment_expected?(last_service_history_enrollment),
-          income_from_any_source_at_start: income_at_start&.IncomeFromAnySource,
-          income_from_any_source_at_annual_assessment: income_at_annual_assessment&.IncomeFromAnySource,
-          income_from_any_source_at_exit: income_at_exit&.IncomeFromAnySource,
-          income_total_at_start: income_at_start&.hud_total_monthly_income&.to_i,
-          income_total_at_annual_assessment: income_at_annual_assessment&.hud_total_monthly_income&.to_i,
-          income_total_at_exit: income_at_exit&.hud_total_monthly_income&.to_i,
-          income_sources_at_start: income_sources(income_at_start),
-          income_sources_at_annual_assessment: income_sources(income_at_annual_assessment),
-          income_sources_at_exit: income_sources(income_at_exit),
-          non_cash_benefits_from_any_source_at_start: income_at_start&.BenefitsFromAnySource,
-          non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
-          non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
-        )
-      end
-    end
   end
 end

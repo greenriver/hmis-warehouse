@@ -72,43 +72,5 @@ module HudApr::Generators::Shared::Fy2020
         end
       end
     end
-
-    private def universe
-      batch_initializer = ->(clients_with_enrollments) do
-        @household_types = {}
-        clients_with_enrollments.each do |_, enrollments|
-          last_service_history_enrollment = enrollments.last
-          hh_id = last_service_history_enrollment.household_id
-          date = [
-            @report.start_date,
-            last_service_history_enrollment.first_date_in_program,
-          ].max
-          @household_types[hh_id] = household_makeup(hh_id, date)
-        end
-      end
-
-      @universe ||= build_universe(QUESTION_NUMBER, preloads: { enrollment: :health_and_dvs }, before_block: batch_initializer) do |_, enrollments|
-        last_service_history_enrollment = enrollments.last
-        enrollment = last_service_history_enrollment.enrollment
-        source_client = enrollment.client
-
-        health_and_dv = enrollment.health_and_dvs.
-          select { |h| h.InformationDate <= @report.end_date }.
-          max_by(&:InformationDate)
-
-        report_client_universe.new(
-          client_id: source_client.id,
-          data_source_id: source_client.data_source_id,
-          report_instance_id: @report.id,
-
-          head_of_household: last_service_history_enrollment[:head_of_household],
-          domestic_violence: health_and_dv.DomesticViolenceVictim,
-          currently_fleeing: health_and_dv.CurrentlyFleeing,
-          household_type: @household_types[last_service_history_enrollment.household_id],
-          first_date_in_program: last_service_history_enrollment.first_date_in_program,
-          last_date_in_program: last_service_history_enrollment.last_date_in_program,
-        )
-      end
-    end
   end
 end
