@@ -82,11 +82,11 @@ module HudApr
     end
 
     def report_source
-      HudReports::ReportInstance
+      ::HudReports::ReportInstance
     end
 
     def report_cell_source
-      HudReports::ReportCell
+      ::HudReports::ReportCell
     end
 
     private def filter_class

@@ -29,7 +29,7 @@ module HudApr
           @path_for_running = running_hud_reports_capers_path(link_params.except('action', 'controller'))
         end
         format.zip do
-          exporter = HudReports::ZipExporter.new(@report)
+          exporter = ::HudReports::ZipExporter.new(@report)
           date = Date.current.strftime('%Y-%m-%d')
           send_data(exporter.export!, filename: "caper-#{date}.zip")
         end

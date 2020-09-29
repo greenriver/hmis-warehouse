@@ -5,7 +5,7 @@
 ###
 
 module HudApr::Fy2020
-  class AprClient < HudReports::ReportClientBase
+  class AprClient < ::HudReports::ReportClientBase
     self.table_name = 'hud_report_apr_clients'
     acts_as_paranoid
 

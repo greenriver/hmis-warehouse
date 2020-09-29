@@ -5,7 +5,7 @@
 ###
 
 module HudApr::Generators::Caper::Fy2020
-  class Generator < HudReports::GeneratorBase
+  class Generator < ::HudReports::GeneratorBase
     def self.title
       'Consolidated Annual Performance and Evaluation Report - FY 2020'
     end
