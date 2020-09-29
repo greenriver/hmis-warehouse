@@ -476,26 +476,6 @@
       "note": ""
     },
     {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "790477292660a06a9b81f72646e0d8a2815c73e1dec388ad502c1625fb3fb9f8",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/hud_reports/report_cell.rb",
-      "line": 80,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "universe_members.joins(\"JOIN #{universe_table_name} ON #{universe_table_name}.id = universe_membership_id\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "HudReports::ReportCell",
-        "method": "join_universe"
-      },
-      "user_input": "universe_table_name",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "Dangerous Send",
       "warning_code": 23,
       "fingerprint": "7a87a8ece6dac658be70ca85c449e50f155b51fc3241caf4afb2c908a25f37f1",
@@ -1222,7 +1202,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/performance_dashboards/base.rb",
-      "line": 326,
+      "line": 327,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[@sub_population].constantize",
       "render_path": null,
@@ -1355,6 +1335,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-09-14 15:36:34 +0000",
-  "brakeman_version": "4.9.1"
+  "updated": "2020-09-29 14:55:29 +0000",
+  "brakeman_version": "4.10.0"
 }
