@@ -8,7 +8,7 @@ GIT
 
 GIT
   remote: https://github.com/greenriver/fixpoints.git
-  revision: 9031f6b3165d50311ad9934d92ddadb27bb96e31
+  revision: 5a53528c6de8fef9d79ad447067907c09de99e0e
   branch: master
   specs:
     fixpoints (0.2.0)

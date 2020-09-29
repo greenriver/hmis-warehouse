@@ -5,10 +5,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionNine, type: :model do
   include_context 'apr context'
 
   before(:all) do
-    # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
-    setup(default_setup_path) unless Fixpoint.exists? :hud_hmis_export
-    store_fixpoint_unless_present :hud_hmis_export
-    restore_fixpoint :hud_hmis_export
+    default_setup
 
     options = default_options.merge(night_by_night_shelter)
     HudApr::Generators::Apr::Fy2020::QuestionNine.new(options: options).run!
