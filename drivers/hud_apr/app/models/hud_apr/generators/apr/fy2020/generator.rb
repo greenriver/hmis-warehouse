@@ -10,6 +10,10 @@ module HudApr::Generators::Apr::Fy2020
       'Annual Performance Report - FY 2020'
     end
 
+    def self.short_name
+      'APR'
+    end
+
     def self.questions
       [
         HudApr::Generators::Apr::Fy2020::QuestionFour, # Project Identifiers in HMIS

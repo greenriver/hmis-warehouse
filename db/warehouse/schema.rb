@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_27_201419) do
+ActiveRecord::Schema.define(version: 2020_09_28_194005) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4522,6 +4522,8 @@ ActiveRecord::Schema.define(version: 2020_09_27_201419) do
     t.json "question_names", null: false
     t.binary "zip_file"
     t.datetime "deleted_at"
+    t.jsonb "build_for_questions"
+    t.jsonb "remaining_questions"
     t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
   end
 

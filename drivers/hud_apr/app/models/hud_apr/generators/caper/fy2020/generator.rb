@@ -10,6 +10,10 @@ module HudApr::Generators::Caper::Fy2020
       'Consolidated Annual Performance and Evaluation Report - FY 2020'
     end
 
+    def self.short_name
+      'CAPER'
+    end
+
     def self.questions
       [
         HudApr::Generators::Caper::Fy2020::QuestionFour, # Project Identifiers in HMIS

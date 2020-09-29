@@ -7,30 +7,11 @@
 module HudApr
   class BaseController < ApplicationController
     before_action :require_can_view_hud_reports!
-
-    def set_generator(param_name:) # rubocop:disable Naming/AccessorMethodName
-      @generator_id = params[param_name].to_i
-      @generator = generators[@generator_id]
-    end
-
-    def set_report(param_name:) # rubocop:disable Naming/AccessorMethodName
-      report_id = params[param_name].to_i
-      # id: 0 is the most recent report for the current user
-      # or a new report if there are none
-      if report_id.zero?
-        @report = @generator.find_report(current_user)
-      else
-        @report = if can_view_all_hud_reports?
-          report_scope.find(report_id)
-        else
-          report_scope.where(user_id: current_user.id).find(report_id)
-        end
-      end
-    end
+    before_action :filter
 
     def set_reports
-      titles = generators.map(&:title)
-      @reports = report_scope.where(report_name: titles).
+      title = generator.title
+      @reports = report_scope.where(report_name: title).
         preload(:user, :universe_cells)
       @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
       @reports = @reports.order(created_at: :desc).
@@ -44,7 +25,7 @@ module HudApr
     def filter_params
       return {} unless params[:filter]
 
-      filter = params.require(:filter).
+      filter_p = params.require(:filter).
         permit(
           :start,
           :end,
@@ -52,10 +33,10 @@ module HudApr
           project_ids: [],
           project_group_ids: [],
         )
-      filter[:user_id] = current_user.id
+      filter_p[:user_id] = current_user.id
       # filter[:project_ids] = filter[:project_ids].reject(&:blank?).map(&:to_i)
       # filter[:project_group_ids] = filter[:project_group_ids].reject(&:blank?).map(&:to_i)
-      filter
+      filter_p
     end
 
     private def filter
@@ -67,7 +48,8 @@ module HudApr
       # Some sane defaults, using the previous report if available
       @filter = filter_class.new(user_id: current_user.id)
       if filter_params.blank?
-        options = @report&.options
+        prior_report = generator.find_report(current_user)
+        options = prior_report&.options
         if options.present?
           @filter.start = options['start'].presence || Date.new(year - 1, 10, 1)
           @filter.end = options['end'].presence || Date.new(year, 9, 30)
@@ -82,6 +64,17 @@ module HudApr
       end
       # Override with params if set
       @filter.set_from_params(filter_params) if filter_params.present?
+    end
+
+    def set_report
+      report_id = params[:id].to_i
+      return if report_id.zero?
+
+      @report = if can_view_all_hud_reports?
+        report_scope.find(report_id)
+      else
+        report_scope.where(user_id: current_user.id).find(report_id)
+      end
     end
 
     private def report_scope

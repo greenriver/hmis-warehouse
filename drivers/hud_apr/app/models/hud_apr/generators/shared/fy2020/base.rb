@@ -12,6 +12,8 @@ module HudApr::Generators::Shared::Fy2020
 
     def run!
       run_question!
+      remaining_questions = @report.remaining_questions - [self.class.question_number]
+      @report.update(remaining_questions: remaining_questions)
     rescue Exception => e
       @report.answer(question: self.class.question_number).update(error_messages: e.full_message, status: 'Failed')
       @report.update(state: 'Failed')

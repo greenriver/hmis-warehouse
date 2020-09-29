@@ -17,6 +17,20 @@ module HudReports
       universe
     end, class_name: 'ReportCell'
 
+    def self.from_filter(filter, report_name, build_for_questions:)
+      new(
+        report_name: report_name,
+        build_for_questions: build_for_questions,
+        remaining_questions: build_for_questions,
+        user_id: filter.user_id,
+        project_ids: filter.effective_project_ids,
+        start_date: filter.start.to_date,
+        end_date: filter.end.to_date,
+        coc_code: filter.coc_code,
+        options: filter.for_params[:filters].slice(:start, :end, :coc_code, :project_ids, :project_group_ids, :user_id),
+      )
+    end
+
     def current_status
       case state
       when 'Waiting'
@@ -24,12 +38,10 @@ module HudReports
       when 'Started'
         if started_at.present? && started_at < 24.hours.ago
           'Failed'
+        elsif started_at.present?
+          "#{state} at #{started_at}"
         else
-          if started_at.present?
-            "#{state} at #{started_at}"
-          else
-            state
-          end
+          state
         end
       when 'Completed'
         if started_at.present? && completed_at.present?
@@ -50,7 +62,11 @@ module HudReports
     # question run or all questions.... Need bater start/complete logic
     def start(question, tables)
       universe(question).update(status: 'Started', metadata: {tables: tables})
-      update(state: 'Started', started_at: Time.current) if state.blank?
+      start_report if build_for_questions.count == remaining_questions.count
+    end
+
+    def start_report
+      update(state: 'Started', started_at: Time.current)
     end
 
     # Mark a question as completed
@@ -58,7 +74,11 @@ module HudReports
     # @param question [String] the question name (e.g., 'Question 1')
     def complete(question)
       universe(question).update(status: 'Completed')
-      update(state: 'Completed', completed_at: Time.current) if running?
+      complete_report if remaining_questions.empty?
+    end
+
+    def complete_report
+      update(state: 'Completed', completed_at: Time.current)
     end
 
     def completed_questions

@@ -3,7 +3,7 @@ BostonHmis::Application.routes.draw do
     resources :aprs do
       get :running, on: :collection
       get :running_all_questions, on: :collection
-      resources :questions, only: [:show, :update], controller: 'apr/questions' do
+      resources :questions, only: [:show, :create], controller: 'apr/questions' do
         get :result, on: :member
         get :running, on: :member
       end
@@ -12,7 +12,7 @@ BostonHmis::Application.routes.draw do
     resources :capers do
       get :running, on: :collection
       get :running_all_questions, on: :collection
-      resources :questions, only: [:show, :update], controller: 'caper/questions' do
+      resources :questions, only: [:show, :create], controller: 'caper/questions' do
         get :result, on: :member
         get :running, on: :member
       end

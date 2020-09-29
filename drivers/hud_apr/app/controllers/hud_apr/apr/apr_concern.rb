@@ -8,19 +8,18 @@ module HudApr::Apr::AprConcern
   extend ActiveSupport::Concern
 
   included do
-    def generators
-      [
-        HudApr::Generators::Apr::Fy2020::Generator,
-      ]
+    def generator
+      @generator ||= HudApr::Generators::Apr::Fy2020::Generator
     end
+    helper_method :generator
 
     private def report_short_name
-      'APR'
+      generator.short_name
     end
     helper_method :report_short_name
 
     private def report_name
-      'Annual Performance Report - FY 2020'
+      generator.title
     end
     helper_method :report_name
 
@@ -29,10 +28,15 @@ module HudApr::Apr::AprConcern
     end
     helper_method :path_for_question_result
 
-    private def path_for_question(report_id:, id:)
-      hud_reports_apr_question_path(apr_id: report_id, id: id)
+    private def path_for_question(report_id:, question:)
+      hud_reports_apr_question_path(apr_id: report_id, id: question)
     end
     helper_method :path_for_question
+
+    private def path_for_questions(report_id:, question:)
+      hud_reports_apr_questions_path(apr_id: report_id, question: question)
+    end
+    helper_method :path_for_questions
 
     private def path_for_report(*options)
       hud_reports_apr_path(options)

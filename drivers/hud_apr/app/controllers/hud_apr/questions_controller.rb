@@ -6,27 +6,21 @@
 
 module HudApr
   class QuestionsController < BaseController
-    before_action -> { set_generator(param_name: :id) }
-    before_action -> { set_report(param_name: :apr_id) }
-    before_action :set_question
-    before_action :set_reports
-    before_action :filter
-
     def running
     end
 
     def result
     end
 
-    def update
-      gen = @generator.new(filter_params)
-      question = params[:id]
-      gen.run!(questions: [question])
-      redirect_to path_for_report(0, generator: @generator_id)
+    def create
+      question = params[:question]
+      @report = report_source.from_filter(@filter, report_name, build_for_questions: [question])
+      generator.new(@report).queue
+      redirect_to path_for_report(0)
     end
 
     private def set_question
-      @question = @generator.valid_question_number(params[:id])
+      @question = generator.valid_question_number(params[:question] || params[:id])
     end
 
     private def set_reports

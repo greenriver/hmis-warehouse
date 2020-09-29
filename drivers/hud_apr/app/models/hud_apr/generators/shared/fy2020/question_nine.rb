@@ -34,7 +34,7 @@ module HudApr::Generators::Shared::Fy2020
     private def q9a_contacted
       table_name = 'Q9a'
 
-      adults_and_hohs =  universe.members.where(adult_or_hoh_clause)
+      adults_and_hohs = universe.members.where(adult_or_hoh_clause)
       contacted_ids = adults_and_hohs.joins(apr_client: :hud_report_apr_living_situations).
         where(
           ls_t[:information_date].between(@report.start_date..@report.end_date).
@@ -47,16 +47,16 @@ module HudApr::Generators::Shared::Fy2020
       populate_table(table_name, 6, 'Contacted', contacted_ids)
     end
 
-    private  def q9b_engaged(contact_counts)
+    private def q9b_engaged(contact_counts)
       table_name = 'Q9b'
 
-      adults_and_hohs =  universe.members.where(adult_or_hoh_clause)
+      adults_and_hohs = universe.members.where(adult_or_hoh_clause)
       engaged_ids = adults_and_hohs.where(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)).pluck(:id)
 
       engaged_counts = populate_table(table_name, 7, 'Engaged', engaged_ids)
       engaged_counts.each do |col, count|
         ratio = format('%1.4f', count / contact_counts[col].to_f)
-        @report.answer(question: table_name, cell: "#{col}").update(summary: ratio)
+        @report.answer(question: table_name, cell: col).update(summary: ratio)
       end
     end
 
@@ -102,13 +102,13 @@ module HudApr::Generators::Shared::Fy2020
         {
           column: 'E',
           situations: [37, 8, 9, 99],
-        }
+        },
       ].each do |col|
-        clients = situations.select { |k, v| (v.living_situation & col[:situations]).present? }
+        clients = situations.select { |_, v| (v.living_situation & col[:situations]).present? }
         buckets.each do |row, (_, range)|
           cell = "#{col[:columm]}#{row}"
           answer = @report.answer(question: table_name, cell: cell)
-          member_ids = clients.select { |k, v| range.cover?(v.length) }.keys
+          member_ids = clients.select { |_, v| range.cover?(v.length) }.keys
           members = universe.members.where(a_t[:id].in(member_ids))
           answer.add_members(members)
           count = members.count
@@ -125,12 +125,12 @@ module HudApr::Generators::Shared::Fy2020
       end
 
       batch_finalizer = ->(clients_with_enrollments, report_clients) do
-        living_situations = []
+        client_living_situations = []
 
         report_clients.each do |client, apr_client|
           last_enrollment = clients_with_enrollments[client.id].last.enrollment
           last_enrollment.current_living_situations.each do |living_situation|
-            living_situations << apr_client.hud_report_apr_living_situations.build(
+            client_living_situations << apr_client.hud_report_apr_living_situations.build(
               information_date: living_situation.InformationDate,
               living_situation: living_situation.CurrentLivingSituation,
             )
@@ -138,10 +138,10 @@ module HudApr::Generators::Shared::Fy2020
         end
 
         report_living_situation_universe.import(
-          living_situations,
+          client_living_situations,
           on_duplicate_key_update: {
             conflict_target: [:apr_client_id],
-            columns: living_situations.first&.changed || [],
+            columns: client_living_situations.first&.changed || [],
           },
         )
       end
@@ -160,12 +160,14 @@ module HudApr::Generators::Shared::Fy2020
         last_service_history_enrollment = enrollments.last
         enrollment = last_service_history_enrollment.enrollment
         source_client = enrollment.client
+        client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
 
         report_client_universe.new(
           client_id: source_client.id,
           data_source_id: source_client.data_source_id,
           report_instance_id: @report.id,
 
+          age: source_client.age_on(client_start_date),
           project_type: last_service_history_enrollment.project_type,
           project_tracking_method: last_service_history_enrollment.project_tracking_method,
           date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,

@@ -4,9 +4,9 @@
     %strong Status
     column on subsequent pages.
   %p
-    = link_to hud_reports_apr_path(0, generator: 0) do
+    = link_to hud_reports_apr_path(0) do
       See the history of all report runs and download zip files
   %p
-    = link_to edit_hud_reports_apr_path(0, generator: 0) do
+    = link_to new_hud_reports_apr_path do
       Generate New Full APR
 = render 'hud_apr/shared/all_questions_table'

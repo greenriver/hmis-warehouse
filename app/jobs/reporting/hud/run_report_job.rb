@@ -6,18 +6,18 @@
 
 module Reporting::Hud
   class RunReportJob < BaseJob
-    def perform(class_name, questions, report_id)
+    def perform(class_name, report_id)
       report = HudReports::ReportInstance.find(report_id)
-      report.update(state: 'Started', started_at: Time.current)
+      report.start_report
 
       raise 'Unknown HUD Report class' unless Rails.application.config.hud_reports[class_name].present?
 
-      @generator = class_name.constantize.new(report.options)
-      @generator.class.questions.each do |name, klass|
-        klass.new(@generator, report).run! unless questions.present? && questions.exclude?(name)
+      @generator = class_name.constantize.new(report)
+      @generator.class.questions.each do |q, klass|
+        klass.new(@generator, report).run! if report.build_for_questions.include?(q)
       end
 
-      report.update(state: 'Completed', completed_at: Time.current)
+      report.complete_report
     end
   end
 end
