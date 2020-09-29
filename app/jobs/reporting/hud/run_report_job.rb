@@ -18,6 +18,7 @@ module Reporting::Hud
       end
 
       report.complete_report
+      NotifyUser.driver_hud_report_finished(@generator).deliver_now if report.user_id
     end
   end
 end

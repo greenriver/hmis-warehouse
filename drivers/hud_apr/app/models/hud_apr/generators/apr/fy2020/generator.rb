@@ -14,6 +14,10 @@ module HudApr::Generators::Apr::Fy2020
       'APR'
     end
 
+    def url
+      hud_reports_apr_url(report, { host: ENV['FQDN'], protocol: 'https' })
+    end
+
     def self.questions
       [
         HudApr::Generators::Apr::Fy2020::QuestionFour, # Project Identifiers in HMIS

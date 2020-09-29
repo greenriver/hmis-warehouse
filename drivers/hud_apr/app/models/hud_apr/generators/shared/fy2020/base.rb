@@ -257,6 +257,7 @@ module HudApr::Generators::Shared::Fy2020
           :income_benefits_annual_update,
           :enrollment_coc_at_entry,
           :health_and_dvs,
+          :exit,
         ],
       }
       scope = GrdaWarehouse::ServiceHistoryEnrollment.

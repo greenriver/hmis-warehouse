@@ -7,10 +7,13 @@
 module HudReports
   class GeneratorBase
     include ArelHelper
+    include Rails.application.routes.url_helpers
 
     PENDING = 'pending'.freeze
     STARTED = 'started'.freeze
     COMPLETED = 'completed'.freeze
+
+    attr_reader :report
 
     # Takes a report instance (usually unsaved)
     def initialize(report)
