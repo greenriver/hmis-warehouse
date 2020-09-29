@@ -19,6 +19,18 @@ module HudReports
       where(universe: true)
     end
 
+    scope :for_question, ->(question) do
+      where(question: question)
+    end
+
+    scope :for_table, ->(table) do
+      where(question: table)
+    end
+
+    scope :for_cell, ->(cell) do
+      where(cell_name: cell)
+    end
+
     def user
       report_instance.user
     end

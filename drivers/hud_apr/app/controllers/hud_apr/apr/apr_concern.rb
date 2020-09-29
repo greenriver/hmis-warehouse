@@ -47,5 +47,10 @@ module HudApr::Apr::AprConcern
       hud_reports_aprs_path(options)
     end
     helper_method :path_for_reports
+
+    def path_for_cell(report_id:, question_id:, cell_id:, table:)
+      hud_reports_apr_question_cell_path(apr_id: report_id, question_id: question_id, id: cell_id, table: table)
+    end
+    helper_method :path_for_cell
   end
 end

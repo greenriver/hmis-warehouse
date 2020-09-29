@@ -1,0 +1,25 @@
+= content_for :crumbs do
+  = link_to path_for_question_result(report_id: @report, id: @question) do
+    = "« #{report_short_name} #{@question} Results"
+- content_for :title do
+  = "#{report_short_name} #{@question} #{@cell}"
+
+%h1= content_for :title
+= render 'hud_apr/shared/beta_warning'
+
+- if @clients.blank?
+  %p.none-found
+    No records found.
+- else
+  .card
+    .table-responsive
+      %table.table.table-striped
+        %thead
+          %tr
+            - HudApr::Fy2020::AprClient.detail_headers.each_value do |header|
+              %th= header
+        %tbody
+          - @clients.each do |client|
+            %tr
+              - HudApr::Fy2020::AprClient.detail_headers.each_key do |k|
+                %td= client[k]

@@ -11,5 +11,15 @@ module HudApr::Fy2020
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership
     has_many :hud_report_apr_living_situations, class_name: 'HudApr::Fy2020::AprLivingSituation', foreign_key: :hud_report_apr_client_id, inverse_of: :apr_client
+
+    # Hide ID, move client_id, and name to the front
+    def self.detail_headers
+      special = ['client_id', 'first_name', 'last_name']
+      remove = ['id', 'created_at', 'updated_at']
+      cols = special + (column_names - special - remove)
+      cols.map do |h|
+        [h, h.humanize]
+      end.to_h
+    end
   end
 end

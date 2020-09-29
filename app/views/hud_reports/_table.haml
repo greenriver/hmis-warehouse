@@ -1,3 +1,5 @@
+- columns = exporter.display_column_names
+- rows = exporter.as_array
 .table-responsive
   %table.table.table-sm.table-bordered
     %thead.thead-dark
@@ -6,10 +8,14 @@
         - columns.each do |label|
           %th= label
     %tbody.thead-dark
-      - rows.each_with_index do |row, index|
+      - rows.each_with_index do |row, row_index|
         %tr
-          %th= index + 1
-          - row.each do |value|
+          - row_num = row_index + 1
+          %th= row_num
+          - row.each_with_index do |value, col_index|
+            - column_letter = ('A'..'ZZ').to_a[col_index]
+            - cell = "#{column_letter}#{row_num}"
             - cell_color = 'table-primary' if value.nil? || value == ''
             - value = '0.0000' if value == 'NaN'
-            %td{class: cell_color}= value
+            %td{class: cell_color}
+              = link_to_if value.is_a?(Integer) && value.positive?, value, path_for_cell(report_id: @report.id, question_id: @question, cell_id: cell, table: exporter.table)

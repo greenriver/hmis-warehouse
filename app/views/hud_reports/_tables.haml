@@ -3,4 +3,4 @@
   - metadata['tables'].each do |table|
     %h3= table
     - exporter = HudReports::CsvExporter.new(@report, table)
-    = render 'hud_reports/table', columns: exporter.display_column_names, rows: exporter.as_array
+    = render 'hud_reports/table', exporter: exporter

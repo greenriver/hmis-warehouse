@@ -8,6 +8,8 @@ require 'csv'
 
 module HudReports
   class CsvExporter
+    attr_accessor :report, :table, :metadata
+
     def initialize(report, table)
       @report = report
       @table = table
@@ -22,7 +24,7 @@ module HudReports
     end
 
     def as_array
-      @array_table ||= begin
+      @as_array ||= begin
         table = answer_table
 
         row_names.each do |row_name|
@@ -48,7 +50,7 @@ module HudReports
 
       row = @metadata['header_row']
       if row.present?
-        [ row ]
+        [row]
       else
         []
       end
@@ -63,7 +65,7 @@ module HudReports
     def row_with_label(row_name)
       label = @metadata['row_labels'][row_name.to_i - @metadata['first_row']] # Table rows are 1 based
       if label.present?
-        [ label ]
+        [label]
       else
         []
       end

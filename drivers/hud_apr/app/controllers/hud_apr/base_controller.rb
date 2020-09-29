@@ -67,7 +67,7 @@ module HudApr
     end
 
     def set_report
-      report_id = params[:id].to_i
+      report_id = params[report_param_name].to_i
       return if report_id.zero?
 
       @report = if can_view_all_hud_reports?

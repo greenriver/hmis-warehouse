@@ -47,5 +47,10 @@ module HudApr::Caper::CaperConcern
       hud_reports_capers_path(options)
     end
     helper_method :path_for_reports
+
+    def path_for_cell(report_id:, question_id:, cell_id:, table:)
+      hud_reports_caper_question_cell_path(caper_id: report_id, question_id: question_id, id: cell_id, table: table)
+    end
+    helper_method :path_for_cell
   end
 end

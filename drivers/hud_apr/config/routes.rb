@@ -6,6 +6,7 @@ BostonHmis::Application.routes.draw do
       resources :questions, only: [:show, :create], controller: 'apr/questions' do
         get :result, on: :member
         get :running, on: :member
+        resources :cells, only: :show, controller: 'apr/cells'
       end
     end
 
@@ -15,6 +16,7 @@ BostonHmis::Application.routes.draw do
       resources :questions, only: [:show, :create], controller: 'caper/questions' do
         get :result, on: :member
         get :running, on: :member
+        resources :cells, only: :show, controller: 'caper/cells'
       end
     end
   end
