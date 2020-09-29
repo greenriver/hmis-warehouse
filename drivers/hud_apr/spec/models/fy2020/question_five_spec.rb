@@ -5,15 +5,9 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionFive, type: :model do
   include_context 'apr context'
 
   before(:all) do
-    setup('drivers/hud_apr/spec/fixtures/files/fy2020/q5')
-    options = {
-      generator_class: 'HudApr::Generators::Apr::Fy2020::Generator',
-      start_date: Date.parse('2015-1-1'),
-      end_date: Date.parse('2015-12-31'),
-      coc_code: 'MA-500',
-      user_id: 0,
-    }
-    HudApr::Generators::Apr::Fy2020::QuestionFive.new(options: options).run!
+    default_setup
+
+    HudApr::Generators::Apr::Fy2020::QuestionFive.new(options: default_options).run!
   end
 
   after(:all) do

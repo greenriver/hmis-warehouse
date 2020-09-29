@@ -28,6 +28,20 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
     HudReports::ReportInstance.last
   end
 
+  def default_setup
+    # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
+    warehouse = GrdaWarehouseBase.connection
+
+    if Fixpoint.exists? :hud_hmis_export_app
+      restore_fixpoint :hud_hmis_export_app
+      restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+    else
+      setup(default_setup_path)
+      store_fixpoint :hud_hmis_export_app
+      store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+    end
+  end
+
   def setup(file_path)
     @delete_later = []
     GrdaWarehouse::Utility.clear!
