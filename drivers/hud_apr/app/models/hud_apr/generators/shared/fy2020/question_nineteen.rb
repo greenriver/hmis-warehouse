@@ -7,7 +7,7 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionNineteen < Base
     QUESTION_NUMBER = 'Question 19'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q19a1', 'Q19a2'].freeze
+    QUESTION_TABLE_NUMBERS = ['Q19a1', 'Q19a2', 'Q19b'].freeze
 
     def self.question_number
       QUESTION_NUMBER
@@ -16,10 +16,10 @@ module HudApr::Generators::Shared::Fy2020
     private def q19a(table_name, metadata, income_status_method:, suffix:, inclusion_clause:)
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      send(income_status_method).each_with_index do |(_, column), col_index|
-        income_counts.to_a.each_with_index do |(_, income_options), row_index|
+      send(income_status_method).values.each_with_index do |column, col_index|
+        income_counts.values.each_with_index do |income_options, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
+          next if intentionally_blank_q19a.include?(cell)
 
           income_category = income_options[:category]
           calculation = income_options[:calculation]
@@ -108,6 +108,104 @@ module HudApr::Generators::Shared::Fy2020
         income_status_method: :income_stati_stayers,
         suffix: suffix,
         inclusion_clause: inclusion_clause,
+      )
+    end
+
+    private def q19b_disabling_conditions
+      table_name = 'Q19b'
+      metadata = {
+        header_row: [' '] + adult_disabilities.keys,
+        row_labels: q19b_income_sources.keys,
+        first_column: 'B',
+        last_column: 'M',
+        first_row: 2,
+        last_row: 14,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      adult_disabilities.values.each_with_index do |disabilities_clause, col_index|
+        q19b_income_sources.values.each_with_index do |income_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank_q19b.include?(cell)
+
+          answer = @report.answer(question: table_name, cell: cell)
+          members = universe.members.
+            # Only relevant to adult leavers with answers for income at exit and disability
+            where(adult_clause).
+            where(leavers_clause).
+            where(a_t[:disabling_condition].in([0, 1])).
+            where(a_t[:income_from_any_source_at_exit].in([0, 1]))
+
+          answer.update(summary: 0) and next if members.count.zero?
+
+          if income_clause.is_a?(Hash)
+            members = members.where.contains(income_clause)
+          else
+            # The final question doesn't require accessing the jsonb column
+            members = members.where(income_clause)
+          end
+          value = 0
+          if disabilities_clause.is_a?(Hash)
+            disabled_count = members.where(disabilities_clause[:household]).
+              where(a_t[:disabling_condition].eq(1)).count
+            total_count = members.where(disabilities_clause[:household]).count
+            value = (disabled_count.to_f / total_count).round(4) if total_count.positive?
+          else
+            members = members.where(disabilities_clause)
+            value = members.count
+          end
+
+          answer.add_members(members)
+          answer.update(summary: value)
+        end
+      end
+    end
+
+    private def adult_disabilities
+      {
+        'AO: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
+          and(a_t[:household_type].eq(:adults_only)),
+        'AO: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
+          and(a_t[:household_type].eq(:adults_only)),
+        'AO: Total Adults' => a_t[:household_type].eq(:adults_only),
+        'AO: % with Disabling Condition by Source' => {
+          calculation: :percent,
+          household: a_t[:household_type].eq(:adults_only),
+        },
+        'AC: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
+          and(a_t[:household_type].eq(:adults_and_children)),
+        'AC: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
+          and(a_t[:household_type].eq(:adults_and_children)),
+        'AC: Total Adults' => a_t[:household_type].eq(:adults_and_children),
+        'AC: % with Disabling Condition by Source' => {
+          calculation: :percent,
+          household: a_t[:household_type].eq(:adults_and_children),
+        },
+        'UK: Adult with Disabling Condition' => a_t[:disabling_condition].eq(1).
+          and(a_t[:household_type].eq(:unknown)),
+        'UK: Adult without Disabling Condition' => a_t[:disabling_condition].eq(0).
+          and(a_t[:household_type].eq(:unknown)),
+        'UK: Total Adults' => a_t[:household_type].eq(:unknown),
+        'UK: % with Disabling Condition by Source' => {
+          calculation: :percent,
+          household: a_t[:household_type].eq(:unknown),
+        },
+      }
+    end
+
+    private def q19b_income_sources
+      income_types(:exit).except(
+        'Unemployment Insurance',
+        'VA Non-Service Connected Disability Pension',
+        'General Assistance (GA)',
+        'Alimony and other spousal support',
+      ).merge(
+        {
+          'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
+          'Unduplicated Total Adults' => Arel.sql('1=1'),
+        },
       )
     end
 
@@ -301,7 +399,7 @@ module HudApr::Generators::Shared::Fy2020
       }
     end
 
-    private def intentionally_blank
+    private def intentionally_blank_q19a
       [
         'D3',
         'G3',
@@ -317,9 +415,27 @@ module HudApr::Generators::Shared::Fy2020
       ].freeze
     end
 
+    private def intentionally_blank_q19b
+      [
+        'E14',
+        'I14',
+        'M14',
+      ].freeze
+    end
+
     private def universe
+      batch_initializer = ->(clients_with_enrollments) do
+        @household_types = {}
+        clients_with_enrollments.each do |_, enrollments|
+          last_service_history_enrollment = enrollments.last
+          hh_id = last_service_history_enrollment.household_id
+          @household_types[hh_id] = household_makeup(hh_id, [@report.start_date, last_service_history_enrollment.first_date_in_program].max)
+        end
+      end
+
       @universe ||= build_universe(
         QUESTION_NUMBER,
+        before_block: batch_initializer,
         preloads: {
           enrollment: [
             :client,
@@ -362,6 +478,8 @@ module HudApr::Generators::Shared::Fy2020
           income_sources_at_start: income_sources(income_at_start),
           income_sources_at_annual_assessment: income_sources(income_at_annual_assessment),
           income_sources_at_exit: income_sources(income_at_exit),
+          household_type: @household_types[last_service_history_enrollment.household_id],
+          disabling_condition: enrollment.DisablingCondition,
         )
       end
     end

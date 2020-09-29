@@ -6,42 +6,91 @@
 
 module HudApr
   class BaseController < ApplicationController
-    def set_generator(param_name:) # rubocop:disable Naming/AccessorMethodName
-      @generator_id = params[param_name].to_i
-      @generator = generators[@generator_id]
+    before_action :require_can_view_hud_reports!
+    before_action :filter
+
+    def set_reports
+      title = generator.title
+      @reports = report_scope.where(report_name: title).
+        preload(:user, :universe_cells)
+      @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
+      @reports = @reports.order(created_at: :desc).
+        page(params[:page]).per(25)
     end
 
-    def set_report(param_name:) # rubocop:disable Naming/AccessorMethodName
-      report_id = params[param_name].to_i
-      # APR 0 is the most recent report for the current user
-      if report_id.zero?
-        @report = @generator.find_report(current_user)
+    def report_urls
+      @report_urls ||= Rails.application.config.hud_reports.map { |_, report| [report[:title], public_send(report[:helper])] }
+    end
+
+    def filter_params
+      return {} unless params[:filter]
+
+      filter_p = params.require(:filter).
+        permit(
+          :start,
+          :end,
+          :coc_code,
+          project_ids: [],
+          project_group_ids: [],
+        )
+      filter_p[:user_id] = current_user.id
+      # filter[:project_ids] = filter[:project_ids].reject(&:blank?).map(&:to_i)
+      # filter[:project_group_ids] = filter[:project_group_ids].reject(&:blank?).map(&:to_i)
+      filter_p
+    end
+
+    private def filter
+      year = if Date.current.month >= 10
+        Date.current.year
       else
-        @report = report_source.find(report_id)
+        Date.current.year - 1
+      end
+      # Some sane defaults, using the previous report if available
+      @filter = filter_class.new(user_id: current_user.id)
+      if filter_params.blank?
+        prior_report = generator.find_report(current_user)
+        options = prior_report&.options
+        if options.present?
+          @filter.start = options['start'].presence || Date.new(year - 1, 10, 1)
+          @filter.end = options['end'].presence || Date.new(year, 9, 30)
+          @filter.coc_code = options['coc_code']
+          @filter.project_ids = options['project_ids']
+          @filter.project_group_ids = options['project_group_ids']
+        else
+          @filter.start = Date.new(year - 1, 10, 1)
+          @filter.end = Date.new(year, 9, 30)
+          @filter.coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
+        end
+      end
+      # Override with params if set
+      @filter.set_from_params(filter_params) if filter_params.present?
+    end
+
+    def set_report
+      report_id = params[:id].to_i
+      return if report_id.zero?
+
+      @report = if can_view_all_hud_reports?
+        report_scope.find(report_id)
+      else
+        report_scope.where(user_id: current_user.id).find(report_id)
       end
     end
 
-    def filter_options
-      filter = params.require(:filter).
-        permit(
-          :start_date,
-          :end_date,
-          :coc_code,
-          project_ids: [],
-        )
-      filter[:user_id] = current_user.id
-      filter[:project_ids] = filter[:project_ids].reject(&:blank?).map(&:to_i)
-      filter
-    end
-
-    def generators
-      [
-        HudApr::Generators::Apr::Fy2020::Generator,
-      ]
+    private def report_scope
+      report_source.where(report_name: report_name)
     end
 
     def report_source
-      HudReports::ReportInstance
+      ::HudReports::ReportInstance
+    end
+
+    def report_cell_source
+      ::HudReports::ReportCell
+    end
+
+    private def filter_class
+      ::Filters::FilterBase
     end
   end
 end

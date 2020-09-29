@@ -6,66 +6,55 @@
 
 module HudApr
   class AprsController < BaseController
-    before_action -> { set_generator(param_name: :generator) }, except: [:index]
-    before_action -> { set_report(param_name: :id) }, only: [:show, :edit, :destroy]
-    before_action :set_reports, except: [:index]
+    include Apr::AprConcern
+    before_action :set_report, only: [:show, :destroy, :running]
+    before_action :set_reports, except: [:index, :running_all_questions]
 
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq
       @report_urls = report_urls
-      @generators = generators
+      @path_for_running = running_all_questions_hud_reports_aprs_path
+    end
+
+    def running_all_questions
+      index
     end
 
     def show
       respond_to do |format|
         format.html do
-          @questions = @generator.questions.keys
+          @show_recent = params[:id].to_i.positive?
+          @questions = generator.questions.keys
           @contents = @report&.completed_questions
-          @options = options_struct
+          @path_for_running = running_hud_reports_aprs_path(link_params.except('action', 'controller'))
         end
         format.zip do
-          exporter = HudReports::ZipExporter.new(@report)
+          exporter = ::HudReports::ZipExporter.new(@report)
           date = Date.current.strftime('%Y-%m-%d')
           send_data exporter.export!, filename: "apr-#{date}.zip"
         end
       end
     end
 
-    def edit
-      @options = options_struct
+    def running
+      @questions = generator.questions.keys
+      @contents = @report&.completed_questions
+      @path_for_running = running_hud_reports_aprs_path(link_params.except('action', 'controller'))
     end
 
-    def update
-      gen = @generator.new(filter_options)
-      gen.run!
-      redirect_to hud_reports_apr_path(0, generator: @generator_id)
+    def new
+    end
+
+    def create
+      @report = report_source.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
+      generator.new(@report).queue
+      redirect_to hud_reports_apr_path(0)
     end
 
     def destroy
       @report.destroy
-      redirect_to hud_reports_apr_path(0, generator: @generator_id)
-    end
-
-    def options_struct
-      options = @report&.options || {}
-      @options = OpenStruct.new(
-        start_date: options['start_date']&.to_date || Date.current.last_month.beginning_of_month.last_year,
-        end_date: options['end_date']&.to_date || Date.current.last_month.end_of_month,
-        coc_code: options['coc_code'] || GrdaWarehouse::Config.get(:site_coc_codes),
-        project_ids: options['project_ids']&.map(&:to_i),
-      )
-    end
-
-    def set_reports
-      titles = generators.map(&:title)
-      @reports = report_source.where(report_name: titles).
-        preload(:user).
-        order(created_at: :desc).
-        page(params[:page]).per(50)
-    end
-
-    def report_urls
-      @report_urls ||= Rails.application.config.hud_reports.map { |_, report| [report[:title], public_send(report[:helper])] }
+      flash[:notice] = 'Report removed'
+      redirect_to hud_reports_apr_path(0)
     end
   end
 end

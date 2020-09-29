@@ -16,8 +16,14 @@ module HudApr::Generators::Apr::Fy2020
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
-      q20a_types
-      q20b_sources
+      q26a_chronic_households
+      q26b_chronic_people
+      q26c_ch_gender
+      q26d_ch_age
+      q26e_health_conditions
+      q26f_income
+      q26g_income_sources
+      q26h_non_cash_benefits
 
       @report.complete(QUESTION_NUMBER)
     end

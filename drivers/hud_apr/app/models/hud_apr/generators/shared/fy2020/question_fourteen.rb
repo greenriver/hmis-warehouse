@@ -27,8 +27,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      sub_populations.each_with_index do |(_, population_clause), col_index|
-        yes_know_dkn_clauses(a_t[:domestic_violence]).each_with_index do |(_, dv_clause), row_index|
+      sub_populations.values.each_with_index do |population_clause, col_index|
+        yes_know_dkn_clauses(a_t[:domestic_violence]).values.each_with_index do |dv_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
 
           answer = @report.answer(question: table_name, cell: cell)
@@ -57,8 +57,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      sub_populations.each_with_index do |(_, population_clause), col_index|
-        yes_know_dkn_clauses(a_t[:domestic_violence]).each_with_index do |(_, dv_clause), row_index|
+      sub_populations.values.each_with_index do |population_clause, col_index|
+        yes_know_dkn_clauses(a_t[:domestic_violence]).values.each_with_index do |dv_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
 
           answer = @report.answer(question: table_name, cell: cell)

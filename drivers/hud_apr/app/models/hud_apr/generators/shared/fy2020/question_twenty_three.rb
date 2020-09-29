@@ -27,8 +27,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q23c_populations.each_with_index do |(_, population_clause), col_index|
-        q23c_destinations.to_a.each_with_index do |(_, destination_clause), row_index|
+      q23c_populations.values.each_with_index do |population_clause, col_index|
+        q23c_destinations.values.each_with_index do |destination_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -63,7 +63,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q23c_populations
-      @q23c_populations ||= sub_populations
+      sub_populations
     end
 
     private def q23c_destinations

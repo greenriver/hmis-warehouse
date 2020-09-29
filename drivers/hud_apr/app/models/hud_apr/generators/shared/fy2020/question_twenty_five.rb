@@ -27,8 +27,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q25_populations.each_with_index do |(_, population_clause), col_index|
-        q25a_responses.to_a.each_with_index do |(_, response_clause), row_index|
+      q25_populations.values.each_with_index do |population_clause, col_index|
+        q25a_responses.values.each_with_index do |response_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -59,9 +59,9 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q25_populations.each_with_index do |(_, population_clause), col_index|
+      q25_populations.values.each_with_index do |population_clause, col_index|
         households = Set.new # only count each household once
-        q25b_responses.to_a.each_with_index do |(_, response_clause), row_index|
+        q25b_responses.values.each_with_index do |response_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -128,8 +128,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q25_populations.each_with_index do |(_, population_clause), col_index|
-        q25c_responses.to_a.each_with_index do |(_, response_clause), row_index|
+      q25_populations.values.each_with_index do |population_clause, col_index|
+        q25c_responses.values.each_with_index do |response_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -160,8 +160,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q25_populations.each_with_index do |(_, population_clause), col_index|
-        veteran_age_ranges.to_a.each_with_index do |(_, response_clause), row_index|
+      q25_populations.values.each_with_index do |population_clause, col_index|
+        veteran_age_ranges.values.each_with_index do |response_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -202,8 +202,6 @@ module HudApr::Generators::Shared::Fy2020
           members = universe.members.where(veteran_clause).
             where(response_clause)
           case suffix
-          when :entry
-            members = members
           when :exit
             members = members.where(stayers_clause)
           when :latest
@@ -292,6 +290,8 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.where(veteran_clause)
 
+          answer.update(summary: 0) and next if members.count.zero?
+
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
           else
@@ -347,6 +347,8 @@ module HudApr::Generators::Shared::Fy2020
               end
             members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
           end
+
+          answer.update(summary: 0) and next if members.count.zero?
 
           members = members.where.contains(income_clause)
           value = members.count
@@ -411,7 +413,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q25_populations
-      @q25_populations ||= sub_populations.except('With Only Children')
+      sub_populations.except('With Only Children')
     end
 
     private def q25a_responses
@@ -490,7 +492,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q25i_populations
-      @q25i_populations ||= sub_populations
+      sub_populations
     end
 
     private def q25i_destinations_headers

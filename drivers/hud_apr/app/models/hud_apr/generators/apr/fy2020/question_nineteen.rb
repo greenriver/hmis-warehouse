@@ -7,7 +7,7 @@
 module HudApr::Generators::Apr::Fy2020
   class QuestionNineteen < HudApr::Generators::Shared::Fy2020::QuestionNineteen
     QUESTION_NUMBER = 'Question 19'.freeze
-    QUESTION_TABLE_NUMBERS = ['Q19a1', 'Q19a2'].freeze
+    QUESTION_TABLE_NUMBERS = ['Q19a1', 'Q19a2', 'Q19b'].freeze
 
     def self.question_number
       QUESTION_NUMBER
@@ -18,6 +18,7 @@ module HudApr::Generators::Apr::Fy2020
 
       q19a_stayers
       q19a_leavers
+      q19b_disabling_conditions
 
       @report.complete(QUESTION_NUMBER)
     end

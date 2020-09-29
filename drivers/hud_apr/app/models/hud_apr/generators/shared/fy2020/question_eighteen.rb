@@ -7,13 +7,14 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionEighteen < Base
     QUESTION_NUMBER = 'Question 18'.freeze
-    QUESTION_TABLE_NUMBER = 'Q18'.freeze
+    QUESTION_TABLE_NUMBERS = ['Q18'].freeze
 
     def self.question_number
       QUESTION_NUMBER
     end
 
     private def q18_income
+      table_name = 'Q18'
       metadata = {
         header_row: [' '] + income_stages.keys,
         row_labels: income_headers,
@@ -22,16 +23,16 @@ module HudApr::Generators::Shared::Fy2020
         first_row: 2,
         last_row: 12,
       }
-      @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
+      @report.answer(question: table_name).update(metadata: metadata)
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      income_stages.each_with_index do |(_, suffix), col_index|
-        income_responses(suffix).to_a.each_with_index do |(_, income_case), row_index|
+      income_stages.values.each_with_index do |suffix, col_index|
+        income_responses(suffix).values.each_with_index do |income_case, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
-          answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell)
+          answer = @report.answer(question: table_name, cell: cell)
           adults = universe.members.where(adult_clause)
           adults = adults.where(stayers_clause) if suffix == :annual_assessment
           adults = adults.where(leavers_clause) if suffix == :exit

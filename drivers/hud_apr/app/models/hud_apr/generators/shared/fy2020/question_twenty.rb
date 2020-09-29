@@ -27,8 +27,8 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      income_stage.each_with_index do |(_, suffix), col_index|
-        non_cash_benefit_types(suffix).to_a.each_with_index do |(_, income_clause), row_index|
+      income_stage.values.each_with_index do |suffix, col_index|
+        non_cash_benefit_types(suffix).values.each_with_index do |income_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -51,6 +51,8 @@ module HudApr::Generators::Shared::Fy2020
             members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
           end
 
+          answer.update(summary: 0) and next if members.count.zero?
+
           members = members.where.contains(income_clause)
           answer.add_members(members)
           answer.update(summary: members.count)
@@ -72,9 +74,9 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      income_stage.each_with_index do |(_, suffix), col_index|
+      income_stage.values.each_with_index do |suffix, col_index|
         counted = Set.new
-        income_counts(suffix).to_a.each_with_index do |(_, income_clause), row_index|
+        income_counts(suffix).values.each_with_index do |income_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 

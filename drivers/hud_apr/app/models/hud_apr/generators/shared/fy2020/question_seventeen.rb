@@ -7,13 +7,14 @@
 module HudApr::Generators::Shared::Fy2020
   class QuestionSeventeen < Base
     QUESTION_NUMBER = 'Question 17'.freeze
-    QUESTION_TABLE_NUMBER = 'Q17'.freeze
+    QUESTION_TABLE_NUMBERS = ['Q17'].freeze
 
     def self.question_number
       QUESTION_NUMBER
     end
 
     private def q17_cash_sources
+      table_name = 'Q17'
       metadata = {
         header_row: [' '] + income_stages.keys,
         row_labels: income_headers,
@@ -22,18 +23,20 @@ module HudApr::Generators::Shared::Fy2020
         first_row: 2,
         last_row: 17,
       }
-      @report.answer(question: QUESTION_TABLE_NUMBER).update(metadata: metadata)
+      @report.answer(question: table_name).update(metadata: metadata)
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      income_stages.each_with_index do |(_, suffix), col_index|
-        income_types(suffix).to_a.each_with_index do |(_, income_clause), row_index|
+      income_stages.values.each_with_index do |suffix, col_index|
+        income_types(suffix).values.each_with_index do |income_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
-          answer = @report.answer(question: QUESTION_TABLE_NUMBER, cell: cell)
-          members = universe.members.
-            where(adult_clause)
+          answer = @report.answer(question: table_name, cell: cell)
+          members = universe.members.where(adult_clause)
+
+          answer.update(summary: 0) and next if members.count.zero?
+
           if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
           else

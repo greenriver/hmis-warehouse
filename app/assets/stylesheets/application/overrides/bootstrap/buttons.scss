@@ -366,6 +366,33 @@ input[type=submit].btn-secondary,
   }
 }
 
+input[type=submit].btn-disabled,
+.btn-disabled {
+  background: $white;
+  border-color: desaturate($brand-primary-l, 80%);
+  color: rgba($black, .55);
+  [class^="icon-"],
+  [class*=" icon-"] {
+    color: rgba($black, .55);
+  }
+  &:hover,
+  &:disabled,
+  &.disabled,
+  &.active,
+  &:active,
+  &:focus,
+  &:focus:active,
+  &--outline {
+    background: $white;
+    border-color: desaturate($brand-primary-l, 80%);
+    color: rgba($black, .55);
+    [class^="icon-"],
+    [class*=" icon-"] {
+      color: rgba($black, .55);
+    }
+  }
+}
+
 .btn[class*='--outline'] {
   background: none;
   border-width: 2px;

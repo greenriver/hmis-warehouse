@@ -67,6 +67,8 @@ $icons: (
   list: '\e9ba',
   check-circle: '\e915',
   times-circle-o: '\e914',
+  file-pdf: '\f1c1',
+  file-excel: '\f1c3',
 );
 
 @function get-icon-code($name) {

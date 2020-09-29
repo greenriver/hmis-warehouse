@@ -1,0 +1,19 @@
+%table.table.table-hover.table-striped
+  %thead
+    %th Question
+    %th Last Run
+    %th Status
+  %tbody
+    - generator.questions.each do |name, klass|
+      %tr
+        - answer = klass.most_recent_answer(user: current_user, report_name: report_name)
+        %td
+          = link_to name, path_for_question(report_id: answer&.report_instance&.id || 0, question: name)
+        %td
+          = answer&.created_at
+          - if answer&.user
+            by #{answer.user.name}
+        %td
+          = answer&.status
+          - if answer&.completed?
+            in #{answer&.completed_in}

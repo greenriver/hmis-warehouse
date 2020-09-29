@@ -5,13 +5,13 @@
 ###
 
 module HudApr::Generators::Apr::Fy2020
-  class Generator < HudReports::GeneratorBase
-    def initialize(options)
-      super(options)
-    end
-
+  class Generator < ::HudReports::GeneratorBase
     def self.title
       'Annual Performance Report - FY 2020'
+    end
+
+    def self.short_name
+      'APR'
     end
 
     def self.questions
@@ -39,9 +39,14 @@ module HudApr::Generators::Apr::Fy2020
         HudApr::Generators::Apr::Fy2020::QuestionTwentyFour, # Homeless Prevention
         HudApr::Generators::Apr::Fy2020::QuestionTwentyFive, # Veterans
         HudApr::Generators::Apr::Fy2020::QuestionTwentySix, # Chronically Homeless
+        HudApr::Generators::Apr::Fy2020::QuestionTwentySeven, # Youth
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
+    end
+
+    def self.valid_question_number(question_number)
+      questions.keys.detect { |q| q == question_number } || 'Question 4'
     end
   end
 end

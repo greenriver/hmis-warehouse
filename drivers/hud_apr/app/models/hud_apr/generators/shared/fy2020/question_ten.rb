@@ -77,7 +77,7 @@ module HudApr::Generators::Shared::Fy2020
         'Total',
         'Without Children',
         'With Children and Adults',
-        "With Only Children",
+        'With Only Children',
         'Unknown Household Type',
       ]
       columns = {
@@ -93,6 +93,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q10d_gender_by_age_range
+      table_name = 'Q10d'
       header_row = [
         ' ',
         'Total',
@@ -129,7 +130,7 @@ module HudApr::Generators::Shared::Fy2020
       @report.answer(question: table_name).update(metadata: metadata)
 
       columns.each do |col, columns_clause|
-        table_rows.values.each do |row, row_clause|
+        table_rows.each_value do |row, row_clause|
           cell = "#{col}#{row}"
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
