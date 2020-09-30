@@ -19,20 +19,19 @@ module GrdaWarehouse::Tasks::ServiceHistory
       where(processed_as: nil)
     end
 
-    def self.batch_process_unprocessed!(max_wait_seconds: 21600)
+    def self.batch_process_unprocessed!(max_wait_seconds: 21_600)
       queue_batch_process_unprocessed!
-      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing(max_wait_seconds: max_wait_seconds)
+      GrdaWarehouse::Tasks::ServiceHistory::Base.
+        wait_for_processing(max_wait_seconds: max_wait_seconds)
     end
 
     def self.queue_batch_process_unprocessed!
       unprocessed.joins(:project, :destination_client).
         pluck_in_batches(:id, batch_size: 250) do |batch|
-          Delayed::Job.enqueue(
-            ::ServiceHistory::RebuildEnrollmentsByBatchJob.new(
-              enrollment_ids: batch
-            ),
-            queue: :long_running
-          )
+        Delayed::Job.enqueue(
+          ::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch),
+          queue: :long_running,
+        )
       end
     end
 
@@ -44,9 +43,14 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
+    def invalidate_source_data!
+      update(processed_as: nil)
+    end
+
     def service_history_valid?
       processed_as.present? && processed_as == calculate_hash && service_history_enrollment.present?
     end
+
     def source_data_changed?
       ! service_history_valid?
     end
@@ -66,7 +70,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def should_patch?
       return true if entry_exit_tracking? && exit.blank?
-      
+
       build_for_dates.keys.sort != service_dates_from_service_history_for_enrollment().sort
     end
 
@@ -74,7 +78,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # should patch or rebuild, or do nothing.  If you need more fine grained control
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
-      action = false
       return false if destination_client.blank? || project.blank?
       return false if already_processed?
 
@@ -85,14 +88,14 @@ module GrdaWarehouse::Tasks::ServiceHistory
         patch_service_history!
       end
 
-      return action
+      action
     end
 
     def patch_service_history!
       days = []
       # load the associated service history enrollment to get the id
       build_for_dates.except(
-        *service_dates_from_service_history_for_enrollment()
+        *service_dates_from_service_history_for_enrollment,
       ).each do |date, type_provided|
         days << service_record(date, type_provided)
       end
@@ -108,6 +111,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # Rails.logger.debug '===RebuildEnrollmentsJob=== Initiating create_service_history'
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       return false unless force || source_data_changed?
+
       # Rails.logger.debug '===RebuildEnrollmentsJob=== Checked for changes'
       # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
       days = []
@@ -120,8 +124,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
           @entry_record_id = service_history_enrollment_source.connection.insert(insert.to_sql)
           # Rails.logger.debug '===RebuildEnrollmentsJob=== Building days'
           # Rails.logger.debug ::NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
-          build_for_dates.each do |date, type_provided|
-            days << service_record(date, type_provided)
+          build_for_dates.each do |d, type_provided|
+            days << service_record(d, type_provided)
           end
           if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month) || project_extrapolates_contacts?
             type_provided = build_for_dates.values.last
@@ -137,9 +141,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         end
         # sometimes we have enrollments for projects that no longer exist
         return false unless project.present?
-        if days.any?
-          insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false, batch_size: 1000)
-        end
+
+        insert_batch(service_history_service_source, days.first.keys, days.map(&:values), transaction: false, batch_size: 1000) if days.any?
       end
       update(processed_as: calculate_hash)
 
@@ -155,51 +158,51 @@ module GrdaWarehouse::Tasks::ServiceHistory
       insert.relation = she_t
       insert.columns = day.keys.map{|k| she_t[k]}
       insert.values = Arel::Nodes::Values.new(day.values, insert.columns)
-      return insert
+      insert
     end
 
-    def entry_record date
-      default_day.merge({
+    def entry_record(date)
+      default_day.merge(
         date: date,
         age: client_age_at(date),
         record_type: :entry,
-      })
+      )
     end
 
-    def exit_record date
-      default_day.merge({
+    def exit_record(date)
+      default_day.merge(
         date: date,
         age: client_age_at(date),
         record_type: :exit,
-      })
+      )
     end
 
-    def service_record date, type_provided
-      default_service_day.merge({
+    def service_record(date, type_provided)
+      default_service_day.merge(
         date: date,
         age: client_age_at(date),
         service_type: type_provided,
         record_type: :service,
         homeless: homeless?(date),
         literally_homeless: literally_homeless?(date),
-      })
+      )
     end
 
-    def extrapolated_record date, type_provided
-      default_service_day.merge({
+    def extrapolated_record(date, type_provided)
+      default_service_day.merge(
         date: date,
         age: client_age_at(date),
         service_type: type_provided,
         record_type: :extrapolated,
         homeless: homeless?(date),
         literally_homeless: literally_homeless?(date),
-      })
+      )
     end
 
     # build out all days within the month
     # don't build for any dates we already have
     # never build past today, it makes counts and display very odd
-    def add_extrapolated_days dates, type_provided
+    def add_extrapolated_days(dates, type_provided)
       extrapolated_dates = dates.map do |date|
         stop_on = [date.end_of_month, Date.current].min
         (date.beginning_of_month .. stop_on).to_a
@@ -214,7 +217,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
     end
 
-    def client_age_at date
+    def client_age_at(date)
       destination_client.age_on(date)
     end
 
@@ -244,7 +247,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       @service_dates_from_service_history_for_enrollment ||= service_history_service_source.
         where(
           record_type: :service,
-          service_history_enrollment_id: entry_record_id()
+          service_history_enrollment_id: entry_record_id,
         ).where(date_range).
         order(date: :asc).
         pluck(:date)
@@ -255,7 +258,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
       @extrapolated_dates_from_service_history_for_enrollment ||= service_history_service_source.
         extrapolated.where(
-          service_history_enrollment_id: entry_record_id()
+          service_history_enrollment_id: entry_record_id,
         ).where(date_range).
         order(date: :asc).
         pluck(:date)
@@ -271,7 +274,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         project_id: self.ProjectID,
         record_type: [:entry, :exit, :first],
       ).delete_all
-      reset_instance_variables()
+      reset_instance_variables
     end
 
     def reset_instance_variables
@@ -309,7 +312,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # Break this into two queries to speed it up and keep RAM usage in check
       #
       # Ignore service history side, these should always be invalidated if clients are merged
-      #rows = source_rows(id) + service_history_rows(id)
+      # rows = source_rows(id) + service_history_rows(id)
       # rows = source_rows(id)
       # Digest::SHA256.hexdigest(rows.to_s)
 
@@ -367,7 +370,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def default_service_day
       @default_service_day ||= {
-        service_history_enrollment_id: entry_record_id(),
+        service_history_enrollment_id: entry_record_id,
         date: nil,
         service_type: nil,
         age: nil,
@@ -384,11 +387,12 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # All other service, Services Only, Other, Days Shelter, Coordinated Assessment, and PH pre-move-in date is
     # neither homeless nor not homeless and receives a nil value and will neither show up in homeless,
     # or non_homeless scopes"?
-    def homeless? date
+    def homeless?(date)
       return true if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
       return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
         (self.MoveInDate.present? && date > self.MoveInDate)
-      return nil
+
+      nil
     end
 
     # The day only counts as literally homeless if it's in ES, SO, SH.
@@ -399,7 +403,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
       return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
         (self.MoveInDate.present? && date > self.MoveInDate)
       return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th].include?(project.computed_project_type)
-      return nil
+
+      nil
     end
 
     def household_birthdates
@@ -408,9 +413,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
           where(
             HouseholdID: self.HouseholdID,
             ProjectID: self.ProjectID,
-            data_source_id: self.data_source_id
+            data_source_id: self.data_source_id,
           ).where.not(
-            PersonalID: self.PersonalID
+            PersonalID: self.PersonalID,
           ).pluck(Arel.sql(c_t[:DOB].as('dob').to_sql))
       end
     end
@@ -423,7 +428,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     def other_clients_over_25
       @other_clients_over_25 ||= if self.HouseholdID.blank?
-         0
+        0
       else
         household_ages_at_entry.count do |age|
           age.present? && age > 24
@@ -474,42 +479,42 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # only 18-24 aged clients in the enrollment
     def unaccompanied_youth?
       @unaccompanied_youth ||= begin
-        youth?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_under_18 == 0
+        youth?(client_age_at_entry) && other_clients_over_25.zero? && other_clients_under_18.zero?
       end
     end
 
     # client is a youth and presents with someone under 18, no other adults over 25 present
     def parenting_youth?
       @parenting_youth ||= begin
-        youth?(client_age_at_entry) && head_of_household? && other_clients_over_25 == 0 && other_clients_under_18 > 0
+        youth?(client_age_at_entry) && head_of_household? && other_clients_over_25.zero? && other_clients_under_18.positive?
       end
     end
 
     # client is under 18 and head of household and has at least one other client under 18 in enrollment
     def parenting_juvenile?
       @parenting_juvenile ||= begin
-        child?(client_age_at_entry) && head_of_household? && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0 && other_clients_under_18 > 0
+        child?(client_age_at_entry) && head_of_household? && other_clients_over_25.zero? && other_clients_between_18_and_25.zero? && other_clients_under_18.positive?
       end
     end
 
     # client is 13 - 17 and there are no adults in the household
     def unaccompanied_minor?
       @unaccompanied_minor ||= begin
-        minor?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0
+        minor?(client_age_at_entry) && other_clients_over_25.zero? && other_clients_between_18_and_25.zero?
       end
     end
 
     # everyone involved is under 18
     def children_only?
       @children_only ||= begin
-        child?(client_age_at_entry) && other_clients_over_25 == 0 && other_clients_between_18_and_25 == 0
+        child?(client_age_at_entry) && other_clients_over_25.zero? && other_clients_between_18_and_25.zero?
       end
     end
 
     # Everyone is over 18
     def individual_adult?
       @individual_adult ||= begin
-        adult?(client_age_at_entry) && other_clients_under_18 == 0
+        adult?(client_age_at_entry) && other_clients_under_18.zero?
       end
     end
 
@@ -541,12 +546,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # Client is over 65 and everyone else is an adult
     def individual_elder?
       @individual_elder ||= begin
-        elder?(client_age_at_entry) && other_clients_under_18 == 0
+        elder?(client_age_at_entry) && other_clients_under_18.zero?
       end
     end
 
-
-    def service_type_from_project_type project_type
+    def service_type_from_project_type(project_type)
       # ProjectType
       # 1 Emergency Shelter
       # 2 Transitional Housing
@@ -575,8 +579,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
       # 200 Bed night   (none)
 
       # We will infer a bed night if the project type is housing related, everything else is nil for now
-      housing_related = [1,2,3,4,8,9,10,13]
+      housing_related = [1, 2, 3, 4, 8, 9, 10, 13]
       return 200 if housing_related.include?(project_type)
+
       nil
     end
 
@@ -588,25 +593,34 @@ module GrdaWarehouse::Tasks::ServiceHistory
           data_source_id: data_source_id,
           HouseholdID: self.HouseholdID,
           ProjectID: self.ProjectID,
-          RelationshipToHoH: [1, nil]
+          RelationshipToHoH: 1,
         ).
-        order(Arel.sql(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST')).
-        pluck(:PersonalID)&.first || self.PersonalID
+          where.not(HouseholdID: nil).
+          order(Arel.sql(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST')).
+          pluck(:PersonalID)&.first || self.PersonalID
       end
     end
 
     def move_in_date
-      @move_in_date ||= if head_of_household?
+      @move_in_date ||= if head_of_household? || self.MoveInDate.present?
         self.MoveInDate
       else
-        self.class.where(
+        hoh_move_in_date = self.class.where(
           data_source_id: data_source_id,
           HouseholdID: self.HouseholdID,
           ProjectID: self.ProjectID,
-          RelationshipToHoH: [nil, 1]
+          RelationshipToHoH: 1,
         ).
-        order(Arel.sql(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST')).
-        pluck(:MoveInDate)&.first || self.MoveInDate
+          where.not(HouseholdID: nil).
+          order(Arel.sql(e_t[:RelationshipToHoH].asc.to_sql + ' NULLS LAST')).
+          pluck(:MoveInDate)&.first
+        if hoh_move_in_date.present?
+          [
+            hoh_move_in_date,
+            self.EntryDate,
+          ].max
+        end
+        # No HoH move-in-date, don't add a move-in-date
       end
     end
 
@@ -615,7 +629,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def head_of_household?
-      @hoh ||= (self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1) # 1 = Self
+      @head_of_household ||= (self.RelationshipToHoH.blank? || self.RelationshipToHoH == 1) # 1 = Self
     end
 
     def entry_exit_tracking?
@@ -645,7 +659,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
           # Find all contacts for SO.  Pretend like they are bed-nights
           living_situations = current_living_situations.where(InformationDate: (self.EntryDate..build_until)).
             order(InformationDate: :asc).
-            pluck(:InformationDate).map{ |d| [d, 200] }.to_h
+            pluck(:InformationDate).map { |d| [d, 200] }.to_h
           service_records.merge!(living_situations)
         end
         service_records
@@ -665,7 +679,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # NOTE: this is limited to the end of next year, sometimes we get exit dates that are *very* far in the future.  This will preserve the ability to set future end dates and prevent extra rebuilds, but will continue extending the days into the future.
         [
           exit_date,
-          (Date.current + 1.year).end_of_year
+          (Date.current + 1.year).end_of_year,
         ].min
       else
         [
@@ -717,24 +731,22 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def self.enrollment_column_order
-      enrollment_column_order = begin
-        columns = enrollment_hash_columns.values.map do |col|
-          Arel.sql(e_t[col].asc.to_sql + ' NULLS FIRST')
-        end
-        columns += exit_hash_columns.values.map do |col|
-          Arel.sql(ex_t[col].asc.to_sql + ' NULLS FIRST')
-        end
-        columns += service_hash_columns.values.map do |col|
-          Arel.sql(s_t[col].asc.to_sql + ' NULLS FIRST')
-        end
-        columns += client_hash_columns.values.map do |col|
-          Arel.sql(c_t[col].asc.to_sql + ' NULLS FIRST')
-        end
-        columns += living_situation_hash_columns.values.map do |col|
-          Arel.sql(cls_t[col].asc.to_sql + ' NULLS FIRST')
-        end
-        columns
+      columns = enrollment_hash_columns.values.map do |col|
+        Arel.sql(e_t[col].asc.to_sql + ' NULLS FIRST')
       end
+      columns += exit_hash_columns.values.map do |col|
+        Arel.sql(ex_t[col].asc.to_sql + ' NULLS FIRST')
+      end
+      columns += service_hash_columns.values.map do |col|
+        Arel.sql(s_t[col].asc.to_sql + ' NULLS FIRST')
+      end
+      columns += client_hash_columns.values.map do |col|
+        Arel.sql(c_t[col].asc.to_sql + ' NULLS FIRST')
+      end
+      columns += living_situation_hash_columns.values.map do |col|
+        Arel.sql(cls_t[col].asc.to_sql + ' NULLS FIRST')
+      end
+      columns
     end
 
     def self.living_situation_hash_columns
@@ -745,11 +757,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
         updated_at: :DateUpdated,
       }.freeze
     end
+
     def self.client_hash_columns
       {
         destination_client_id: :id,
       }.freeze
     end
+
     def self.enrollment_hash_columns
       {
         id: :id,
@@ -828,6 +842,5 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def force_validity_calculation
       @calculate_hash = nil
     end
-
   end # end Enrollment class
 end
