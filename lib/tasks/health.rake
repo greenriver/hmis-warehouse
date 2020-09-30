@@ -128,7 +128,7 @@ namespace :health do
     Health::PatientReferral.where(derived_referral: true).destroy_all
   end
 
-  task "Compute derived patient referrals"
+  desc "Compute derived patient referrals"
   task compute_derived_patient_referrals: [:environment, 'log:info_to_stdout'] do
     pending_referrals = []
     Health::PatientReferral.where(derived_referral: false).find_each do |referral|
@@ -137,6 +137,61 @@ namespace :health do
     Health::PatientReferral.transaction do
       # Not using import to ensure that PaperTrail gets run
       pending_referrals.flatten.each(&:save!)
+    end
+  end
+
+  desc "Clean up referrals"
+  task cleanup_referrals: [:environment, 'log:info_to_stdout'] do
+    referral_source = Health::PatientReferral.joins(:patient) # Limit to referrals with patients
+    h_pr_t = referral_source.arel_table
+    cleanup_time = Date.today.to_time
+
+    # Any non-current enrollments should have a disenrollment date
+    # Assign the day before the current enrollment start date, if one exists, otherwise leave it, as something else is
+    # wrong...
+    hanging_enrollments = referral_source.where(current: false, pending_disenrollment_date: nil, disenrollment_date: nil)
+    hanging_enrollments.each do |referral|
+      disenrollment_date = referral.patient.patient_referral&.enrollment_start_date&.prev_day
+      # If the current enrollment is on our start date, then make it an empty enrollment, which will be cleaned up later...
+      disenrollment_date = referral.enrollment_start_date if disenrollment_date.present? && disenrollment_date < referral.enrollment_start_date
+      referral.update(disenrollment_date: disenrollment_date)
+    end
+
+    # An empty referral is one where the enrollment and disenrollment date are the same.
+    empty_referrals = referral_source.where(current: false).
+      where(
+        h_pr_t[:enrollment_start_date].eq(h_pr_t[:disenrollment_date]).
+          or(h_pr_t[:enrollment_start_date].eq(h_pr_t[:pending_disenrollment_date]).
+            and(h_pr_t[:disenrollment_date].eq(nil))),
+      )
+    # Remove the empty referrals
+    empty_referrals.update_all(deleted_at: cleanup_time)
+
+    # Multiple referrals starts on the same day
+    referrals_by_patient = referral_source.group(:patient_id, h_pr_t[:enrollment_start_date]).count
+    all_duplicate_starts = referrals_by_patient.select { |_key, v| v > 1 }
+    all_duplicate_starts.keys.each do |patient_id, enrollment_start_date|
+      patient_duplicate_starts = referral_source.where(patient_id: patient_id, enrollment_start_date: enrollment_start_date)
+      patient_duplicate_closed = patient_duplicate_starts.where(current: false)
+      if patient_duplicate_starts.count = patient_duplicate_closed.count
+        # All the starts are closed, keep the longest one
+        longest_referral_id = nil
+        longest_referral_length = nil
+        patient_duplicate_starts.each do |referral|
+          referral_start = referral.enrollment_start_date
+          referral_end = referral.disenrollment_date || referral.pending_disenrollment_date
+          days = (referral_end - referral_start).to_i
+          if longest_referral_length.nil? || days > longest_referral_length
+            longest_referral_id = referral.id
+            longest_referral_length = days
+          end
+        end
+        # Remove the others
+        patient_duplicate_starts.where.not(id: longest_referral_id).update_all(deleted_at: cleanup_time)
+      else
+        # Remove the closed duplicates, leaving the current
+        patient_duplicate_closed.update_all(deleted_at: cleanup_time)
+      end
     end
   end
 
