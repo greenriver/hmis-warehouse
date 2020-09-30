@@ -87,7 +87,7 @@ module HudApr::Generators::Shared::Fy2020
 
           last_bed_night = enrollment.services.select do |s|
             s.RecordType == 200 && s.DateProvided < @report.end_date
-          end.max_by(&:DateProvided)
+          end&.max_by(&:DateProvided)
 
           pending_associations[client] = report_client_universe.new(
             client_id: source_client.id,
@@ -107,7 +107,7 @@ module HudApr::Generators::Shared::Fy2020
             chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability: disabilities.detect(&:chronic?).present?,
             chronically_homeless: last_service_history_enrollment.enrollment.chronically_homeless_at_start?,
-            currently_fleeing: health_and_dv.CurrentlyFleeing,
+            currently_fleeing: health_and_dv&.CurrentlyFleeing,
             date_homeless: enrollment.DateToStreetESSH,
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
             date_of_last_bed_night: last_bed_night&.DateProvided,
@@ -120,7 +120,7 @@ module HudApr::Generators::Shared::Fy2020
             disabling_condition: enrollment.DisablingCondition,
             dob_quality: source_client.DOBDataQuality,
             dob: source_client.DOB,
-            domestic_violence: health_and_dv.DomesticViolenceVictim,
+            domestic_violence: health_and_dv&.DomesticViolenceVictim,
             drug_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse == 2,
             drug_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse == 2,
             drug_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse == 2,
