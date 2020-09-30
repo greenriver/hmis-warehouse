@@ -25,7 +25,7 @@ end
 
 # Reports
 def report_list
-  {
+  r_list = {
     'Operational' => [
       {
         url: 'warehouse_reports/chronic',
@@ -126,7 +126,7 @@ def report_list
       {
         url: 'warehouse_reports/rrh',
         name: 'Rapid Rehousing Dashboard',
-        description: '',
+        description: 'Overview of RRH performance and data exploration.',
         limitable: true,
       },
       {
@@ -144,13 +144,19 @@ def report_list
       {
         url: 'warehouse_reports/psh',
         name: 'Permanent Supportive Housing Dashboard',
-        description: '',
+        description: 'Overview of PSH performance and data exploration.',
         limitable: true,
       },
       {
         url: 'warehouse_reports/youth_intakes',
         name: 'Homeless Youth Program Report',
-        description: '',
+        description: 'Summary counts of youth activity for state reporting.',
+        limitable: true,
+      },
+      {
+        url: 'warehouse_reports/youth_activity',
+        name: 'Youth Activity',
+        description: 'Review data youth entered within a selected time period.',
         limitable: true,
       },
       {
@@ -168,7 +174,7 @@ def report_list
       {
         url: 'warehouse_reports/re_entry',
         name: 'Homelessness Re-Entry',
-        description: 'Details on clients who returned to homelessness after a 60 day break',
+        description: 'Details on clients who returned to homelessness after a 60 day break.',
         limitable: true,
       },
       {
@@ -180,7 +186,7 @@ def report_list
       {
         url: 'warehouse_reports/youth_follow_ups',
         name: 'Homeless Youth Follow Up Report',
-        description: 'Youth who require a three month follow up',
+        description: 'Youth who require a three month follow up.',
         limitable: true,
       },
       {
@@ -198,7 +204,19 @@ def report_list
       {
         url: 'warehouse_reports/overlapping_coc_utilization',
         name: 'Inter-CoC Client Overlap',
-        description: 'Explore enrollments for CoCs with shared clients',
+        description: 'Explore enrollments for CoCs with shared clients.',
+        limitable: true,
+      },
+      {
+        url: 'warehouse_reports/time_homeless_for_exits',
+        name: 'Average Length of Time Homeless for Housed Clients',
+        description: 'Time spent homeless for clients exiting homeless within a date range.',
+        limitable: true,
+      },
+      {
+        url: 'warehouse_reports/inactive_youth_intakes',
+        name: 'Inactive Youth',
+        description: 'Youth with an open intake and no case management activity in the given date range.',
         limitable: true,
       },
     ],
@@ -402,82 +420,10 @@ def report_list
     ],
     'Health' => [
       {
-        url: 'warehouse_reports/health/overview',
-        name: 'Health Dashboard',
-        description: 'Overview of patient metrics.',
-        limitable: false,
-      },
-      {
         url: 'warehouse_reports/confidential_touch_point_exports',
         name: 'Health-related TouchPoint Export',
         description: 'Export for any Confidential Health-related TouchPoints.',
         limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/member_status_reports',
-        name: 'CP Member Status and Outreach',
-        description: 'Download member status reports',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/claims',
-        name: 'Claim Generation',
-        description: 'Generate and download claims files. (837P)',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/agency_performance',
-        name: 'Agency Performance',
-        description: 'Summary data on agency performance in the BH CP.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/aco_performance',
-        name: 'CP Engagement (122 days) by ACO',
-        description: 'Summary data on ACO performance in the BH CP.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/patient_referrals',
-        name: 'Patient Referrals',
-        description: 'View and update batches of patient referrals by referral date.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/premium_payments',
-        name: 'Process Premium Payments (820)',
-        description: 'Convert 820 files into human-readable Excel files',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/eligibility',
-        name: 'Eligibility Determination',
-        description: 'Generate and download eligibility determination files. (270/271)',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/enrollments',
-        name: 'Health Care Enrollments (834)',
-        description: 'Update patient enrollments.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/housing_status',
-        name: 'Patient Housing Status',
-        description: 'Patient housing status report for ACOs.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/cp_roster',
-        name: 'CP Rosters',
-        description: 'Upload CP Rosters',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/expiring_items',
-        name: 'Expiring Items',
-        description: 'See who has Participation Forms, Release Forms, SSMs, CHAs, and PCTPs that are expiring or expired.',
-        limitable: true,
       },
       {
         url: 'warehouse_reports/health/ssm_exports',
@@ -492,15 +438,105 @@ def report_list
         limitable: true,
       },
       {
-        url: 'warehouse_reports/health/ed_ip_visits',
-        name: 'ED & IP Visits',
-        description: 'Upload and attach ED & IP visits to patient records.',
+        url: 'warehouse_reports/health/encounters',
+        name: 'Encounters',
+        description: 'Export Patient Encounters By Year',
         limitable: true,
       },
+    ],
+    'COVID19' => [
       {
         url: 'warehouse_reports/health/contact_tracing',
         name: 'Contact Tracing',
         description: 'Review and download contact tracing records.',
+        limitable: false,
+      },
+    ],
+    'Partner Performance' => [
+      {
+        url: 'warehouse_reports/health/agency_performance',
+        name: 'Dashboard',
+        description: 'Summary data on agency performance in the BH CP.',
+        limitable: false,
+      },
+    ],
+    'Archive' => [
+      {
+        url: 'warehouse_reports/health/overview',
+        name: 'Pilot Health Dashboard',
+        description: 'Overview of patient metrics.',
+        limitable: false,
+      },
+    ],
+    'ACO Performance Reports' => [
+      {
+        url: 'warehouse_reports/health/aco_performance',
+        name: 'PCTP Signature Tracking by ACO',
+        description: 'Summary data on ACO performance in the BH CP.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/housing_status',
+        name: 'Housing Status by ACO',
+        description: 'Patient housing status report for ACOs.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/housing_status_changes',
+        name: 'Patient Housing Status Changes',
+        description: 'Patient housing status changes report for ACOs.',
+        limitable: false,
+      },
+    ],
+    'Member Status Tracking' => [
+      {
+        url: 'warehouse_reports/health/enrollments',
+        name: '834: MassHealth Enrollments and Disenrollments',
+        description: 'Update patient enrollments.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/eligibility',
+        name: '270/271: Eligibility Determination and ACO Status Changes',
+        description: 'Generate and download eligibility determination files. (270/271)',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/member_status_reports',
+        name: 'Member Status and Outreach',
+        description: 'Download member status reports',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/patient_referrals',
+        name: 'Patient Referrals',
+        description: 'View and update batches of patient referrals by referral date.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/cp_roster',
+        name: 'CP Rosters',
+        description: 'Upload CP Rosters',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/expiring_items',
+        name: 'Expiring Items',
+        description: 'See who has Participation Forms, Release Forms, SSMs, CHAs, and PCTPs that are expiring or expired.',
+        limitable: true,
+      },
+    ],
+    'BH CP Claims/Payments' => [
+      {
+        url: 'warehouse_reports/health/claims',
+        name: '837: Claim Generation',
+        description: 'Generate and download claims files. (837P)',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/premium_payments',
+        name: '820: Process Premium Payments',
+        description: 'Convert 820 files into human-readable Excel files',
         limitable: false,
       },
     ],
@@ -587,16 +623,33 @@ def report_list
         description: 'Export data for offline analysis, client names and ids removed',
         limitable: true,
       },
+      {
+        url: 'warehouse_reports/hmis_cross_walks',
+        name: 'HMIS Cross-walk',
+        description: 'Export lookup tables for warehouse record ids to HMIS ids.',
+        limitable: true,
+      },
     ],
   }
+  if RailsDrivers.loaded.include?(:service_scanning)
+    r_list['Operational'] << {
+      url: 'service_scanning/warehouse_reports/scanned_services',
+      name: _('Scanned Services'),
+      description: 'Pull a list of services added within a date range',
+      limitable: true,
+    }
+  end
+  r_list
 end
 
 def cleanup_unused_reports
-  [
+  cleanup = [
     'warehouse_reports/veteran_details/actives',
     'warehouse_reports/veteran_details/entries',
     'warehouse_reports/veteran_details/exits',
-  ].each do |url|
+  ]
+  cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
+  cleanup.each do |url|
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
   end
 end

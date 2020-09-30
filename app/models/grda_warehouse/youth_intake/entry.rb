@@ -13,7 +13,7 @@ module GrdaWarehouse::YouthIntake
       :unaccompanied,
       :street_outreach_contact,
       :housing_status,
-      :other_agency_involvement,
+      :other_agency_involvements,
       :secondary_education,
       :attending_college,
       :health_insurance,
@@ -30,6 +30,10 @@ module GrdaWarehouse::YouthIntake
       :disabilities,
       :requesting_financial_assistance,
       :referred_to_shelter
+
+    def title
+      'Entry Intake'
+    end
 
   end
 end

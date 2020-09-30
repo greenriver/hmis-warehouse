@@ -7,10 +7,13 @@
 module GrdaWarehouse::Youth
   class YouthCaseManagement < GrdaWarehouseBase
     include ArelHelper
+    include YouthExport
     has_paper_trail
     acts_as_paranoid
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :case_managements
+    belongs_to :user
+    has_many :youth_intakes, through: :client
 
     validates_presence_of :engaged_on, :activity
 
@@ -62,10 +65,6 @@ module GrdaWarehouse::Youth
         'Prevention ',
         'Re-Housing',
       ]
-    end
-
-    def self.report_columns
-      column_names - [:user_id, :deleted_at]
     end
   end
 end

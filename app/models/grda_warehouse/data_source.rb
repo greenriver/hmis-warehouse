@@ -44,39 +44,39 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :importable_via_samba, -> do
-    importable.where(source_type: "samba")
+    importable.where(source_type: 'samba')
   end
 
   scope :importable_via_sftp, -> do
-    importable.where(source_type: "sftp")
+    importable.where(source_type: 'sftp')
   end
 
   scope :importable_via_s3, -> do
-    importable.where(source_type: "s3")
+    importable.where(source_type: 's3')
   end
 
-  scope :viewable_by, -> (user) do
+  scope :viewable_by, ->(user) do
     if user.can_edit_anything_super_user?
       current_scope
     else
-      qc = -> (s) { connection.quote_column_name s }
-      q  = -> (s) { connection.quote s }
+      qc = ->(s) { connection.quote_column_name s }
+      q  = ->(s) { connection.quote s }
 
       where(
         [
           has_access_to_data_source_through_viewable_entities(user, q, qc),
           has_access_to_data_source_through_organizations(user, q, qc),
-          has_access_to_data_source_through_projects(user, q, qc)
+          has_access_to_data_source_through_projects(user, q, qc),
         ].join ' OR '
       )
     end
   end
-  scope :editable_by, -> (user) do
+  scope :editable_by, ->(user) do
     if user.can_edit_anything_super_user?
       current_scope
     else
-      qc = -> (s) { connection.quote_column_name s }
-      q  = -> (s) { connection.quote s }
+      qc = ->(s) { connection.quote_column_name s }
+      q  = ->(s) { connection.quote s }
 
       where has_access_to_data_source_through_viewable_entities(user, q, qc)
     end
@@ -90,23 +90,22 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(service_scannable: true)
   end
 
-  scope :visible_in_window_to, -> (user) do
+  scope :visible_in_window_to, ->(user) do
     return none unless user
 
     ds_ids = user.data_sources.pluck(:id)
 
-    if user&.can_edit_anything_super_user?
+    if user.can_edit_anything_super_user? || user.can_view_clients? || user.can_edit_clients?
       current_scope
     elsif user&.can_view_clients_with_roi_in_own_coc?
       if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-        working_scope = current_scope || self.none
+        working_scope = current_scope || none
         sql = arel_table[:id].in(ds_ids).or(arel_table[:id].in(working_scope.select(:id)))
-        if user.can_view_or_search_clients_or_window?
-          sql = sql.or(arel_table[:visible_in_window].eq(true))
-        end
+        sql = sql.or(arel_table[:visible_in_window].eq(true)) if user.can_view_or_search_clients_or_window?
         where(sql)
       else
-        current_scope # this will get limited by client visibility
+        # this will get limited by client visibility, but force window acces only
+        where(visible_in_window: true)
       end
     elsif user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
       # some users can see all clients for a specific data source,
@@ -121,9 +120,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       # only show record in window if the data source is visible in the window or
       # the record is a health record and the user has access to health..
       sql = arel_table[:visible_in_window].eq(true)
-      if user&.has_some_patient_access?
-        sql = sql.or(arel_table[:id].eq(health_id))
-      end
+      sql = sql.or(arel_table[:id].eq(health_id)) if user&.has_some_patient_access?
       where(sql)
     else
       # Note this should be `none` but active record is being incorrigible
@@ -273,7 +270,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     importable.select(:id, :short_name).distinct.pluck(:short_name, :id)
   end
 
-  def self.short_name id
+  def self.short_name(id)
     @short_names ||= importable.select(:id, :short_name).distinct.pluck(:id, :short_name).to_h
     @short_names[id]
   end
@@ -289,28 +286,32 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def self.data_spans_by_id
     Rails.cache.fetch('data_source_date_spans_by_id', expires_in: CACHE_EXPIRY) do
-      spans_by_id = GrdaWarehouse::DataSource.pluck(:id).map do |id| [id, {}] end.to_h
+      spans_by_id = GrdaWarehouse::DataSource.pluck(:id).map { |id| [id, {}] }.to_h
 
-      GrdaWarehouse::Hud::Enrollment.group(:data_source_id).
+      GrdaWarehouse::Hud::Enrollment.joins(:data_source).group(:data_source_id).
         pluck(:data_source_id, nf('MIN', [e_t[:EntryDate]])).each do |ds, date|
+          next unless spans_by_id[ds]
+
           spans_by_id[ds][:start_date] = date
         end
 
-      GrdaWarehouse::Hud::Service.group(:data_source_id).
+      GrdaWarehouse::Hud::Service.joins(:data_source).group(:data_source_id).
         pluck(:data_source_id, nf('MAX', [s_t[:DateProvided]])).each do |ds, date|
+          next unless spans_by_id[ds]
+
           spans_by_id[ds][:end_date] = date
         end
 
-      GrdaWarehouse::Hud::Exit.group(:data_source_id).
+      GrdaWarehouse::Hud::Exit.joins(:data_source).group(:data_source_id).
         pluck(:data_source_id, nf('MAX', [ex_t[:ExitDate]])).each do |ds, date|
-          if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
-            spans_by_id[ds][:end_date] = date
-          end
+          next unless spans_by_id[ds]
+
+          spans_by_id[ds][:end_date] = date if spans_by_id[ds].try(:[],:end_date).blank? || date > spans_by_id[ds][:end_date]
         end
       spans_by_id.each do |ds, dates|
-        if dates[:start_date].present? && dates[:end_date].blank?
-          spans_by_id[ds][:end_date] = Date.current
-        end
+        next unless spans_by_id[ds]
+
+        spans_by_id[ds][:end_date] = Date.current if dates[:start_date].present? && dates[:end_date].blank?
       end
       spans_by_id
     end
@@ -322,8 +323,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def data_span
     return unless enrollments.any?
-    if self.id.present?
-      self.class.data_spans_by_id[self.id]
+
+    if id.present?
+      self.class.data_spans_by_id[id]
     end
   end
 
@@ -331,8 +333,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   # with the same file name on previous days
   # where the upload was uploaded by the system user?
   # return the first date we saw this filename or nil
-  def stalled_since? date
+  def stalled_since?(date)
     return nil unless date.present?
+
     day_before = date - 1.days
     two_months_ago = date - 2.months
     user = User.setup_system_user
@@ -343,18 +346,18 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
         order(id: :desc).
         select(:file).
         limit(1),
-      completed_at: [two_months_ago .. day_before]
-      ).exists?
-    if stalled
-      GrdaWarehouse::Upload.where(
-          data_source_id: id,
-          user_id: user.id,
-          file: GrdaWarehouse::Upload.where(data_source_id: id, user_id: user.id).
-            order(id: :desc).
-            select(:file).
-            limit(1)
-        ).minimum(:completed_at).to_date
-    end
+      completed_at: [two_months_ago .. day_before],
+    ).exists?
+    return unless stalled
+
+    GrdaWarehouse::Upload.where(
+      data_source_id: id,
+      user_id: user.id,
+      file: GrdaWarehouse::Upload.where(data_source_id: id, user_id: user.id).
+        order(id: :desc).
+        select(:file).
+        limit(1),
+    ).minimum(:completed_at).to_date
   end
 
   def self.stalled_imports?(user)
@@ -362,6 +365,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       stalled = false
       viewable_by(user).each do |data_source|
         next if stalled
+
         most_recently_completed = data_source.import_logs.maximum(:completed_at)
         if most_recently_completed.present?
           stalled = true if data_source.stalled_since?(most_recently_completed)
@@ -372,7 +376,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
-  def self.options_for_select user:
+  def self.options_for_select(user:)
     # don't cache this, it's a class method
     viewable_by(user).
       distinct.
@@ -407,11 +411,24 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     organizations.update_all(DateDeleted: Time.current)
   end
 
+  def client_count
+    clients.count
+  end
+
+  def project_count
+    projects.count
+  end
+
   class << self
     extend Memoist
     def health_authoritative_id
       authoritative.where(short_name: 'Health')&.first&.id
     end
     memoize :health_authoritative_id
+
+    def warehouse_id
+      destination.first.id
+    end
+    memoize :warehouse_id
   end
 end

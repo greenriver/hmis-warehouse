@@ -4,7 +4,14 @@ module HmisSqlServer
   module_function def models_by_hud_filename
     # use an explict whitelist as a security measure
     {
+      'Export.csv' => HmisSqlServer::Export,
+      'Funder.csv' => HmisSqlServer::Funder,
       'Affiliation.csv' => HmisSqlServer::Affiliation,
+      'Inventory.csv' => HmisSqlServer::Inventory,
+      'Organization.csv' => HmisSqlServer::Organization,
+      'Project.csv' => HmisSqlServer::Project,
+      'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
+      'User.csv' => HmisSqlServer::User,
       'Client.csv' => HmisSqlServer::Client,
       'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
       'Disabilities.csv' => HmisSqlServer::Disability,
@@ -13,20 +20,12 @@ module HmisSqlServer
       'EnrollmentCoC.csv' => HmisSqlServer::EnrollmentCoc,
       'Event.csv' => HmisSqlServer::Event,
       'Exit.csv' => HmisSqlServer::Exit,
-      'Export.csv' => HmisSqlServer::Export,
-      'Funder.csv' => HmisSqlServer::Funder,
       'HealthAndDV.csv' => HmisSqlServer::HealthAndDv,
       'IncomeBenefits.csv' => HmisSqlServer::IncomeBenefit,
-      'Inventory.csv' => HmisSqlServer::Inventory,
-      'Organization.csv' => HmisSqlServer::Organization,
-      'Project.csv' => HmisSqlServer::Project,
-      'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
       'Services.csv' => HmisSqlServer::Service,
-      'User.csv' => HmisSqlServer::User,
       'Assessment.csv' => HmisSqlServer::Assessment,
       'AssessmentQuestions.csv' => HmisSqlServer::AssessmentQuestion,
       'AssessmentResults.csv' => HmisSqlServer::AssessmentResult,
-
     }.freeze
   end
 
@@ -63,7 +62,7 @@ module HmisSqlServer
   end
   class EnrollmentCoc < LsaBase
     self.table_name = :hmis_EnrollmentCoC
-    include ::HMIS::Structure::EnrollmentCoC
+    include ::HMIS::Structure::EnrollmentCoc
   end
   class Exit < LsaBase
     self.table_name = :hmis_Exit
@@ -90,6 +89,8 @@ module HmisSqlServer
     include ::HMIS::Structure::Inventory
 
     def clean_row_for_import(row:, headers:)
+      return nil unless row[headers.index('InventoryStartDate')].present?
+
       # Fixes for LSA idiosyncracies
       [
         'CHVetBedInventory',
@@ -139,6 +140,19 @@ module HmisSqlServer
   class User < LsaBase
     self.table_name = :hmis_User
     include ::HMIS::Structure::User
+
+    def clean_row_for_import(row:, headers:)
+      # Fixes for LSA idiosyncracies
+      [
+        'DateCreated',
+        'DateUpdated',
+      ].each do |k|
+        field_index = headers.index(k)
+        row[field_index] = row[field_index].presence || Time.current
+      end
+
+      super(row: row, headers: headers)
+    end
   end
   class CurrentLivingSituation < LsaBase
     self.table_name = :hmis_CurrentLivingSituation

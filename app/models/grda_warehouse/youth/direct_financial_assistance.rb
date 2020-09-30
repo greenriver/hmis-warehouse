@@ -7,10 +7,13 @@
 module GrdaWarehouse::Youth
   class DirectFinancialAssistance < GrdaWarehouseBase
     include ArelHelper
+    include YouthExport
     has_paper_trail
     acts_as_paranoid
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :direct_financial_assistances
+    belongs_to :user
+    has_many :youth_intakes, through: :client
     validates_presence_of :provided_on, :type_provided
 
     attr_accessor :other
@@ -65,10 +68,6 @@ module GrdaWarehouse::Youth
         'Cell phone costs',
         'Food / Groceries (including our drop-in food pantries)',
       ].sort + ['Other']
-    end
-
-    def self.report_columns
-      column_names - [:user_id, :deleted_at]
     end
   end
 end

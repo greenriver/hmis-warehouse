@@ -6,7 +6,6 @@
 
 module ClientsSubPop::GrdaWarehouse::WarehouseReports::Dashboard::Clients
   class HousedClients < ::GrdaWarehouse::WarehouseReports::Dashboard::Housed
-
     def client_source
       GrdaWarehouse::Hud::Client.destination
     end

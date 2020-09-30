@@ -1,11 +1,11 @@
-require 'rails_drivers/routes'
-RailsDrivers::Routes.load_driver_routes
-
 Rails.application.routes.draw do
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   match "/404", to: "errors#not_found", via: :all
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
+
+  require 'rails_drivers/routes'
+  RailsDrivers::Routes.load_driver_routes
 
   class OnlyXhrRequest
     def matches?(request)
@@ -30,6 +30,7 @@ Rails.application.routes.draw do
         post :confirm
       end
     end
+    resources :account_requests, only: [:new, :create]
   end
 
   get '/user_training', to: 'user_training#index'
@@ -182,6 +183,7 @@ Rails.application.routes.draw do
     resources :ce_assessments, only: [:index]
     resources :dv_victim_service, only: [:index]
     resources :conflicting_client_attributes, only: [:index]
+    resources :inactive_youth_intakes, only: [:index]
     resources :youth_intakes, only: [:index] do
       collection do
         get :details
@@ -190,6 +192,7 @@ Rails.application.routes.draw do
     resources :youth_follow_ups, only: [:index]
     resources :youth_export, only: [:index, :show, :create, :destroy]
     resources :youth_intake_export, only: [:index, :create]
+    resources :youth_activity, only: [:index]
     resources :incomes, only: [:index]
     resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
@@ -305,6 +308,8 @@ Rails.application.routes.draw do
     end
     resources :ad_hoc_analysis, only: [:index, :create, :destroy, :show]
     resources :ad_hoc_anon_analysis, only: [:index, :create, :destroy, :show]
+    resources :hmis_cross_walks, only: [:index]
+    resources :time_homeless_for_exits, only: [:index]
     namespace :project do
       resource :data_quality do
         get :download, on: :member
@@ -386,7 +391,11 @@ Rails.application.routes.draw do
       resources :housing_status, only: [:index] do
         get :details, on: :collection
       end
-      resources :housing_status_changes, only: [:index]
+      resources :housing_status_changes, only: [:index] do
+        collection do
+          get :detail
+        end
+      end
       resources :cp_roster, only: [:index, :show, :destroy] do
         collection do
           post :roster
@@ -443,7 +452,9 @@ Rails.application.routes.draw do
       end
     end
     resources :coordinated_entry_assessments, controller: 'clients/coordinated_entry_assessments'
-    resources :youth_intakes, controller: 'clients/youth/intakes'
+    resources :youth_intakes, controller: 'clients/youth/intakes' do
+      delete :remove_all_youth_data, on: :collection
+    end
     resources :youth_case_managements, except: [:index], controller: 'clients/youth/case_managements'
     resources :direct_financial_assistances, only: [:create, :destroy], controller: 'clients/youth/direct_financial_assistances'
     resources :youth_referrals, only: [:create, :destroy], controller: 'clients/youth/referrals'
@@ -561,16 +572,19 @@ Rails.application.routes.draw do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "overview#section", as: :section
       get :filters, on: :collection
+      get :download, on: :collection
     end
     resources :household, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "household#section", as: :section
       get :filters, on: :collection
+      get :download, on: :collection
     end
     resources :project_type, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "project_type#section", as: :section
       get :filters, on: :collection
+      get :download, on: :collection
     end
   end
 
@@ -606,7 +620,7 @@ Rails.application.routes.draw do
     resource :hmis_import_config
   end
   resources :ad_hoc_data_sources do
-    resources :uploads, except: [:update, :edit], controller: 'ad_hoc_data_sources/uploads' do
+    resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
       get :download, on: :member
     end
     get :download, on: :collection
@@ -623,7 +637,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :inventory, only: [:edit, :update]
+  resources :inventories, only: [:edit, :update]
   resources :geography, only: [:edit, :update]
   resources :project_cocs, only: [:edit, :update]
 
@@ -716,6 +730,7 @@ Rails.application.routes.draw do
       patch :reactivate, on: :member
       member do
         post :unlock
+        post :un_expire
         post :confirm
         post :impersonate
       end
@@ -725,6 +740,9 @@ Rails.application.routes.draw do
     end
     resources :inactive_users, except: [:show, :new, :create] do
       patch :reactivate, on: :member
+    end
+    resources :account_requests, only: [:index, :edit, :update, :destroy] do
+      post :confirm
     end
 
     resources :roles

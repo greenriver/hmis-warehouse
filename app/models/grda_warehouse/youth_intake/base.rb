@@ -7,6 +7,7 @@
 module GrdaWarehouse::YouthIntake
   class Base < GrdaWarehouseBase
     include ArelHelper
+    include YouthExport
     self.table_name = :youth_intakes
     has_paper_trail
     acts_as_paranoid
@@ -202,6 +203,34 @@ module GrdaWarehouse::YouthIntake
       ]
     end
 
+    def state_agencies
+      @state_agencies ||= {
+        'DCF' => 'Department of Children and Families (DCF)',
+        'DDS' => 'Department of Developmental Services (DDS)',
+        'DMH' => 'Department of Mental Health (DMH)',
+        'DTA' => 'Department of Transitional Assistance (DTA)',
+        'DYS' => 'Department of Youth Services (DYS)',
+        'MRC' => 'Massachusetts Rehabilitation Commission (MRC)',
+        'Yes' => 'Yes, but the agency name is unspecified',
+        'No' => 'No',
+        'Unknown' => 'Unknown',
+      }
+    end
+
+    def race_array
+      return [] if client_race == '[]'
+
+      client_race&.map{ |r| ::HUD::race(r).presence }&.compact
+    end
+
+    def ethnicity_description
+      ::HUD.ethnicity(client_ethnicity)
+    end
+
+    def gender
+      ::HUD.gender(client_gender)
+    end
+
     def update_destination_client
       authoritative_clients = client.source_clients.joins(:data_source).merge(GrdaWarehouse::DataSource.authoritative.youth)
       return unless authoritative_clients.exists?
@@ -233,8 +262,26 @@ module GrdaWarehouse::YouthIntake
     end
 
     def self.report_columns
-      column_names - [:user_id, :deleted_at]
+      columns = column_names
+      columns -= ['user_id', 'deleted_at', 'other_agency_involvement']
+      columns.map do |col|
+        case col
+        when 'client_gender'
+          'gender'
+        when 'client_race'
+          'race_array'
+        when 'client_ethnicity'
+          'ethnicity_description'
+        when 'type'
+          'title'
+        else
+          col
+        end
+      end
     end
 
+    def self.intake_data
+      {}
+    end
   end
 end

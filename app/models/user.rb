@@ -59,9 +59,18 @@ class User < ApplicationRecord
 
   belongs_to :agency, optional: true
 
+  scope :diet, -> do
+    select(*(column_names - ['provider_raw_info']))
+  end
+
   scope :receives_file_notifications, -> do
     where(receive_file_upload_notifications: true)
   end
+
+  scope :receives_account_request_notifications, -> do
+    where(receive_account_request_notifications: true)
+  end
+
   scope :active, -> do
     where(
       arel_table[:active].eq(true).and(
@@ -70,12 +79,14 @@ class User < ApplicationRecord
       )
     )
   end
+
   scope :inactive, -> do
     where(
      arel_table[:active].eq(false).
      or(arel_table[:expired_at].lteq(Time.current))
     )
   end
+
   scope :not_system, -> { where.not(first_name: 'System') }
 
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
@@ -238,14 +249,13 @@ class User < ApplicationRecord
   def self.setup_system_user
     user = User.find_by(email: 'noreply@greenriver.com')
     return user if user.present?
+
     user = User.with_deleted.find_by(email: 'noreply@greenriver.com')
-    if user.present?
-      user.restore
-    end
+    user.restore if user.present?
     user = User.invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User') do |u|
       u.skip_invitation = true
     end
-    return user
+    user
   end
 
   def data_sources
@@ -342,7 +352,7 @@ class User < ApplicationRecord
   end
 
   def coc_codes
-    access_group.coc_codes
+    access_groups.map(&:coc_codes).flatten
   end
 
   def coc_codes= (codes)
@@ -424,6 +434,7 @@ class User < ApplicationRecord
       'receive_file_upload_notifications',
       'notify_of_vispdat_completed',
       'notify_on_anomaly_identified',
+      'receive_account_request_notifications',
     ].freeze
   end
 

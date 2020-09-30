@@ -27,7 +27,8 @@
         - events.each do |event|
           - project = event.project
           %tr
-            %td.id-sqr{ 'data-id' => event.enrollment.client.id }
+            %td
+              .ds{class: "ds-color-#{event.data_source_id}"}= ds_short_name_for(event.enrollment.client.id)
             %td= GrdaWarehouse::Hud::Project.confidentialize(name: project&.name)
             %td.date-cell= event.enrollment.EntryDate
             %td= event.InformationDate

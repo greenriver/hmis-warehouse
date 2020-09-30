@@ -10,7 +10,8 @@ wb.add_worksheet(name: 'Not One Head of Household') do |sheet|
     'Entry Date',
     'Exit Date',
     'Household ID',
-    'Relationship to HoH'
+    'Relationship to HoH',
+    'Relationship to HoH',
   ]
   sheet.add_row(headers, :style => title)
   @enrollments.each do |en|
@@ -27,6 +28,7 @@ wb.add_worksheet(name: 'Not One Head of Household') do |sheet|
       en.exit&.ExitDate,
       en.HouseholdID,
       HUD.relationship_to_hoh(en.RelationshipToHoH),
+      en.RelationshipToHoH,
     ]
     sheet.add_row(values)
   end

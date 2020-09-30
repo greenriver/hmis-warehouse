@@ -1,9 +1,9 @@
 namespace :grda_warehouse do
-  desc "Setup a sample GRDA warehouse database"
+  desc 'Setup a sample GRDA warehouse database'
   task setup: [:migrate, :seed_data_sources]
 
   task defrag: [:environment] do
-    puts "Finding fragmented indexes"
+    puts 'Finding fragmented indexes'
     sql_fragged_report = <<-SQL.strip_heredoc
       SELECT OBJECT_NAME(ind.OBJECT_ID) AS TableName,
       ind.name AS IndexName, indexstats.index_type_desc AS IndexType,
@@ -24,12 +24,12 @@ namespace :grda_warehouse do
 
   end
 
-  desc "Empty the GRDA warehouse"
+  desc 'Empty the GRDA warehouse'
   task clear: [:environment] do
     GrdaWarehouse::Utility.clear!
   end
 
-  desc "Seed file types"
+  desc 'Seed file types'
   task seed_file_types: [:environment] do
     GrdaWarehouse::AvailableFileTag.default_document_types.each do |doc|
       GrdaWarehouse::AvailableFileTag.where(doc).first_or_create
@@ -37,7 +37,7 @@ namespace :grda_warehouse do
     end
   end
 
-  desc "Seed Data Sources"
+  desc 'Seed Data Sources'
   task seed_data_sources: [:environment] do
     if Rails.env.production?
       dnd = GrdaWarehouse::DataSource.where(name: 'Boston Department of Neighborhood Development').first_or_create
@@ -118,81 +118,46 @@ namespace :grda_warehouse do
     end
   end
 
-  desc "Seed Grades"
+  desc 'Seed Grades'
   task seed_grades: [:environment] do
     GrdaWarehouse::Grades::Base.install_default_grades!
   end
 
-  desc "SFTP Import HUD Zips from all Data Sources"
-  task :import_data_sources, [:hmis_version] => [:environment] do |t, args|
-    hmis_version = args.hmis_version || 'hmis_51'
-    case hmis_version
-    when 'hmis_611'
-      Importers::HMISSixOneOne::Sftp.available_connections.each do |key, conf|
-        ds = GrdaWarehouse::DataSource.find_by_short_name(key)
-        options = {
-          data_source_id: ds.id,
-          host: conf['host'],
-          username: conf['username'],
-          password: conf['password'],
-          path: conf['path'],
-        }
-        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HMISSixOneOne::Sftp', options: options)
-      end
+  desc 'S3 Import HUD Zips from all Data Sources'
+  task import_data_sources_s3: [:environment, 'log:info_to_stdout'] do
+    Importers::HmisAutoDetect::S3.available_connections.each do |conf|
+      next unless conf.active?
+
+      options = {
+        data_source_id: conf.data_source_id,
+        region: conf.s3_region,
+        access_key_id: conf.s3_access_key_id,
+        secret_access_key: conf.s3_secret_access_key,
+        bucket_name: conf.s3_bucket_name,
+        path: conf.s3_path,
+        file_password: conf.zip_file_password,
+      }
+      Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisAutoDetect::S3', options: options)
     end
   end
 
-  desc "S3 Import HUD Zips from all Data Sources"
-  task :import_data_sources_s3, [:hmis_version] => [:environment] do |t, args|
-    hmis_version = args.hmis_version || 'hmis_2020'
-
-    case hmis_version
-    when 'hmis_611'
-      Importers::HMISSixOneOne::S3.available_connections.each do |conf|
-        options = {
-          data_source_id: conf.data_source_id,
-          region: conf.s3_region,
-          access_key_id: conf.s3_access_key_id,
-          secret_access_key: conf.s3_secret_access_key,
-          bucket_name: conf.s3_bucket_name,
-          path: conf.s3_path,
-          file_password: conf.zip_file_password
-        }
-        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HMISSixOneOne::S3', options: options)
-      end
-    when 'hmis_2020'
-      Importers::HmisTwentyTwenty::S3.available_connections.each do |conf|
-        options = {
-          data_source_id: conf.data_source_id,
-          region: conf.s3_region,
-          access_key_id: conf.s3_access_key_id,
-          secret_access_key: conf.s3_secret_access_key,
-          bucket_name: conf.s3_bucket_name,
-          path: conf.s3_path,
-          file_password: conf.zip_file_password
-        }
-        Importing::HudZip::FetchAndImportJob.perform_later(klass: 'Importers::HmisTwentyTwenty::S3', options: options)
-      end
-    end
-  end
-
-  desc "Sync from FTPS -> S3"
-  task ftps_s3_sync: [:environment, "log:info_to_stdout"] do
+  desc 'Sync from FTPS -> S3'
+  task ftps_s3_sync: [:environment, 'log:info_to_stdout'] do
      GrdaWarehouse::LftpS3Sync.find_each(&:fetch_and_push)
   end
 
-  desc "Identify duplicates"
-  task identify_duplicates: [:environment, "log:info_to_stdout"] do
+  desc 'Identify duplicates'
+  task identify_duplicates: [:environment, 'log:info_to_stdout'] do
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
   end
 
-  desc "Generate Service History"
-  task generate_service_history: [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Generate Service History'
+  task generate_service_history: [:environment, 'log:info_to_stdout'] do |task, args|
     GrdaWarehouse::Tasks::ServiceHistory::UpdateAddPatch.new.run!
   end
 
-  desc "Initialize ServiceHistortService homeless fields"
-  task initialize_service_service_homelessness: [:environment, "log:info_to_stdout"] do
+  desc 'Initialize ServiceHistortService homeless fields'
+  task initialize_service_service_homelessness: [:environment, 'log:info_to_stdout'] do
     # Clients enrolled in homeless projects are homeless
     GrdaWarehouse::ServiceHistoryService.
       in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES).
@@ -220,25 +185,25 @@ namespace :grda_warehouse do
       update_all(homeless: true, literally_homeless: true)
   end
 
-  desc "Populate/replace nicknames"
-  task nicknames_populate: [:environment, "log:info_to_stdout"] do
+  desc 'Populate/replace nicknames'
+  task nicknames_populate: [:environment, 'log:info_to_stdout'] do
     Nickname.populate!
   end
 
-  desc "Populate or update unique names"
-  task update_unique_names: [:environment, "log:info_to_stdout"] do
+  desc 'Populate or update unique names'
+  task update_unique_names: [:environment, 'log:info_to_stdout'] do
     UniqueName.update!
   end
 
-  desc "Calculate chronic homelessness ['2017-01-15']; defaults: date=Date.current"
-  task :calculate_chronic_homelessness, [:date] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Calculate chronic homelessness [\'2017-01-15\']; defaults: date=Date.current'
+  task :calculate_chronic_homelessness, [:date] => [:environment, 'log:info_to_stdout'] do |task, args|
     date = (args.date || Date.current).to_date
     GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
     GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
   end
 
-  desc "Calculate chronic homelessness ['2015-01-15, 2017-01-15, 1, month']; defaults: interval=1, unit=month"
-  task :calculate_chronic_for_interval, [:start, :end, :interval, :unit] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Calculate chronic homelessness [\'2015-01-15, 2017-01-15, 1, month\']; defaults: interval=1, unit=month'
+  task :calculate_chronic_for_interval, [:start, :end, :interval, :unit] => [:environment, 'log:info_to_stdout'] do |task, args|
     raise 'dates required' unless args.start.present? && args.end.present?
     start_date = args.start.to_date
     end_date = args.end.to_date
@@ -253,8 +218,8 @@ namespace :grda_warehouse do
   end
 
   # rake grda_warehouse:anonymize_client_names['var/data/IL504']
-  desc "Anonymize all client names in Client.csv"
-  task :anonymize_client_names, [:path] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Anonymize all client names in Client.csv'
+  task :anonymize_client_names, [:path] => [:environment, 'log:info_to_stdout'] do |task, args|
     raise 'path is required' unless args.path.present?
     path = args.path
     file = File.join(path, 'Client.csv')
@@ -275,30 +240,30 @@ namespace :grda_warehouse do
     end
   end
 
-  desc "Sanity Check Service History; defaults: n=50"
-  task :sanity_check_service_history, [:n] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Sanity Check Service History; defaults: n=50'
+  task :sanity_check_service_history, [:n] => [:environment, 'log:info_to_stdout'] do |task, args|
     n = args.n
     GrdaWarehouse::Tasks::SanityCheckServiceHistory.new(( n || 50 ).to_i).run!
   end
 
-  desc "Full import routine"
-  task daily: [:environment, "log:info_to_stdout"] do
+  desc 'Full import routine'
+  task daily: [:environment, 'log:info_to_stdout'] do
     Importing::RunDailyImportsJob.new.perform
   end
 
-  desc "Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset"
-  task :first_residential_record, [:reset] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
+  task :first_residential_record, [:reset] => [:environment, 'log:info_to_stdout'] do |task, args|
     GrdaWarehouse::Tasks::EarliestResidentialService.new(args.reset).run!
   end
 
-  desc "Clean destination clients with no sources; defaults: max_allowed=50"
-  task :clean_clients, [:max_allowed] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Clean destination clients with no sources; defaults: max_allowed=50'
+  task :clean_clients, [:max_allowed] => [:environment, 'log:info_to_stdout'] do |task, args|
     max_allowed = args.max_allowed
     GrdaWarehouse::Tasks::ClientCleanup.new(( max_allowed || 50 ).to_i).run!
   end
 
-  desc "Save Service History Snapshots"
-  task :save_service_history_snapshots, [] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Save Service History Snapshots'
+  task :save_service_history_snapshots, [] => [:environment, 'log:info_to_stdout'] do |task, args|
     GrdaWarehouse::Hud::Client.needs_history_pdf.each do |client|
       job = Delayed::Job.enqueue ServiceHistory::ChronicVerificationJob.new(
         client_id: client.id,
@@ -307,32 +272,42 @@ namespace :grda_warehouse do
     end
   end
 
-  desc "Warm Cohort Cache"
-  task :warm_cohort_cache, [] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Warm Cohort Cache'
+  task :warm_cohort_cache, [] => [:environment, 'log:info_to_stdout'] do |task, args|
     GrdaWarehouse::Cohort.delay(queue: :short_running).prepare_active_cohorts
   end
 
-  desc "Process Recurring HMIS Exports"
+  desc 'Process Recurring HMIS Exports'
   task process_recurring_hmis_exports: [:environment] do
     GrdaWarehouse::Tasks::ProcessRecurringHmisExports.new.run!
   end
 
   namespace :secure_files do
-    desc "Remove expired secure files"
+    desc 'Remove expired secure files'
     task clean_expired: [:environment] do
       GrdaWarehouse::SecureFile.clean_expired
     end
   end
 
-  desc "Remove data based on import"
-  task :remove_import_data, [:import_id] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Remove data based on import'
+  task :remove_import_data, [:import_id] => [:environment, 'log:info_to_stdout'] do |task, args|
     import_id = args.import_id.to_i
     exit unless import_id.present? && import_id.to_s == args.import_id
     GrdaWarehouse::ImportRemover.new(import_id).run!
   end
 
-  desc "Force rebuild for homeless enrollments"
-  task :force_rebuild_for_homeless_enrollments, [] => [:environment, "log:info_to_stdout"] do |task, args|
+  desc 'Invalidate incorrectly inherited move-in-date enrollments'
+  task :invalidate_incorrect_move_ins, [] => [:environment, 'log:info_to_stdout'] do
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where(MoveInDate: nil).
+      where.not(RelationshipToHoH: 1).joins(:service_history_enrollment).
+      merge(GrdaWarehouse::ServiceHistoryEnrollment.where.not(move_in_date: nil)).
+      update_all(processed_as: nil)
+
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
+  end
+
+  desc 'Force rebuild for homeless enrollments'
+  task :force_rebuild_for_homeless_enrollments, [] => [:environment, 'log:info_to_stdout'] do |task, args|
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
@@ -342,15 +317,15 @@ namespace :grda_warehouse do
   end
 
   desc 'Send Health Emergency Notifications'
-  task :send_health_emergency_notifications, [] => [:environment, "log:info_to_stdout"] do |task, args|
+  task :send_health_emergency_notifications, [] => [:environment, 'log:info_to_stdout'] do |task, args|
     exit unless GrdaWarehouse::Config.get(:health_emergency)
 
     WarehouseReports::HealthEmergencyBatchNotifierJob.perform_now
   end
 
-  desc "Get shapes"
+  desc 'Get shapes'
   task :get_shapes, [] => [:environment] do
-    Rails.logger.info "Downloading shapes of geometries (you need to set up your AWS environment to download)"
+    Rails.logger.info 'Downloading shapes of geometries (you need to set up your AWS environment to download)'
     FileUtils.chdir(Rails.root.join('shape_files'))
     system('./sync.from.s3')
 
@@ -359,15 +334,15 @@ namespace :grda_warehouse do
       # If you don't care about CoC/ZipCode shapes and want to just get through
       # the migration, just comment out this whole rake task. You can run it
       # later
-      raise "You didn't sync shape files correctly yet. Aborting"
+      raise 'You didn\'t sync shape files correctly yet. Aborting'
     end
 
-    Rails.logger.info "Preparing shapes of geometries for insertion into database"
+    Rails.logger.info 'Preparing shapes of geometries for insertion into database'
     FileUtils.chdir(Rails.root)
-    system("./shape_files/zip_codes.census.2018/make.inserts") || exit
-    system("./shape_files/CoC/make.inserts") || exit
+    system('./shape_files/zip_codes.census.2018/make.inserts') || exit
+    system('./shape_files/CoC/make.inserts') || exit
 
-    Rails.logger.info "Inserting CoCs into the database, conserving RAM"
+    Rails.logger.info 'Inserting CoCs into the database, conserving RAM'
     GrdaWarehouse::Shape::ZipCode.delete_all
     GrdaWarehouse::Shape::CoC.delete_all
     ActiveRecord::Base.logger.silence do
@@ -378,7 +353,7 @@ namespace :grda_warehouse do
       end
     end
 
-    Rails.logger.info "Inserting zip codes into the database, conserving RAM (takes awhile)"
+    Rails.logger.info 'Inserting zip codes into the database, conserving RAM (takes awhile)'
     ActiveRecord::Base.logger.silence do
       File.open('shape_files/zip_codes.census.2018/zip.codes.sql', 'r') do |fin|
         fin.each_line do |line|
@@ -387,10 +362,10 @@ namespace :grda_warehouse do
       end
     end
 
-    Rails.logger.info "Simplifying shapes for much faster UI"
+    Rails.logger.info 'Simplifying shapes for much faster UI'
     GrdaWarehouse::Shape::ZipCode.simplify!
     GrdaWarehouse::Shape::CoC.simplify!
 
-    Rails.logger.info "Done with shape importing"
+    Rails.logger.info 'Done with shape importing'
   end
 end

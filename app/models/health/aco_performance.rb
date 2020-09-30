@@ -13,8 +13,8 @@ module Health
     attr_accessor :range
     def initialize(aco)
       @aco = aco
-      @start_date = Date.new(Date.current.prev_year.year, 9, 2)
-      @end_date = Date.new(Date.current.year, 9, 1)
+      @start_date = Date.new(Date.current.prev_year.year, 9, 2) # MassHealth measurement period start
+      @end_date = Date.new(Date.current.year, 9, 1) # MassHealth measurement period end
     end
 
     def patient_referrals

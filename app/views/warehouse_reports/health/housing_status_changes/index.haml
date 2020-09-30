@@ -6,7 +6,7 @@
 = render 'form'
 
 .text-right.mb-4
-  - if  can_view_clients?
+  - if can_view_clients_or_window?
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       Download Excel
 

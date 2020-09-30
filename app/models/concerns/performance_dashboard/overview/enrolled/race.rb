@@ -9,7 +9,7 @@ module PerformanceDashboard::Overview::Enrolled::Race
 
   # NOTE: always count the most-recently started enrollment within the range
   def enrolled_by_race
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @enrolled_by_race ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = race_buckets.map { |b| [b, []] }.to_h
       counted = {}
       enrolled.

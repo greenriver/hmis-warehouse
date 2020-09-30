@@ -1,22 +1,23 @@
 %h2 Funding Sources
-- if funders.any?
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th
-        %th FunderID
-        %th Source
-        %th Grant ID
-    %tbody
-      - funders.each do |f|
+.card.mb-4
+  - if funders.any?
+    %table.table.table-sm.table-hover
+      %thead
         %tr
-          %td
-            - if can_see_raw_hmis_data?
-              = link_to 'HMIS', hmi_path(f.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
-          %td= f.FunderID
-          %td
-            = HUD.funding_source f.Funder.to_i
-          %td
-            = f.GrantID
-- else
-  %p.text-center No funding sources
+          %th
+          %th FunderID
+          %th Source
+          %th Grant ID
+      %tbody
+        - funders.each do |f|
+          %tr
+            %td
+              - if can_see_raw_hmis_data?
+                = link_to 'HMIS', hmi_path(f.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+            %td= f.FunderID
+            %td
+              = HUD.funding_source f.Funder.to_i
+            %td
+              = f.GrantID
+  - else
+    %h4.text-center No funding sources

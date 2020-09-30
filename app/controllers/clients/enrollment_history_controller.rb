@@ -6,6 +6,7 @@
 
 module Clients
   class EnrollmentHistoryController < ApplicationController
+    include ClientController
     include ClientPathGenerator
     include ClientDependentControllers
 
@@ -14,11 +15,7 @@ module Clients
     after_action :log_client
 
     def index
-      @date = begin
-                params[:history][:date].to_date
-              rescue StandardError
-                Date.yesterday
-              end
+      @date = params.dig(:history, :date)&.to_date || Date.yesterday
       @histories = history_scope.where(on: @date)
       @available_dates = history_scope.distinct.order(on: :desc).pluck(:on)
     end

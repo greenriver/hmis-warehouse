@@ -7,11 +7,12 @@
 module GrdaWarehouse::Hud
   class Disability < Base
     include HudSharedScopes
-    self.table_name = 'Disabilities'
     include ::HMIS::Structure::Disability
 
-    self.hud_key = :DisabilitiesID
-    acts_as_paranoid column: :DateDeleted
+    self.table_name = 'Disabilities'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
+
+    attr_accessor :source_id
 
     belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities
@@ -23,6 +24,10 @@ module GrdaWarehouse::Hud
 
     scope :disabled, -> do
       where(DisabilityResponse: [1, 2, 3])
+    end
+
+    scope :response_present, -> do
+      where(DisabilityResponse: [0, 1, 2, 3])
     end
 
     scope :chronically_disabled, -> do
@@ -44,6 +49,10 @@ module GrdaWarehouse::Hud
 
     scope :sorted_entry_date_information_date, -> do
       order(e_t[:EntryDate].desc,d_t[:InformationDate].desc)
+    end
+
+    scope :newest_first, -> do
+      order(InformationDate: :desc)
     end
 
     scope :physical, -> do

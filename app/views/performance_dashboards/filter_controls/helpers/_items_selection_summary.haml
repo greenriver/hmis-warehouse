@@ -1,5 +1,6 @@
 - if value.blank?
-  .text-muted All
+  .text-muted
+    = default
 - else
   %div
     - if value.is_a?(Enumerable)

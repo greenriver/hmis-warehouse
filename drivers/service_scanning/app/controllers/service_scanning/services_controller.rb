@@ -24,14 +24,15 @@ module ServiceScanning
       @no_client_found = params.dig(:service, :no_client).present?
       query = params.dig(:service, :q)
       @show_new_client_form = query.present? && ::GrdaWarehouse::DataSource.authoritative.scannable && can_create_clients?
-      if query
-        @search_results = client_source.text_search(
+      return unless query
+
+      @search_results = client_source.
+        text_search(
           query,
-          client_scope: client_search_scope
+          client_scope: client_search_scope,
         ).
         order(LastName: :asc, FirstName: :asc).
         page(params[:page]).per(20)
-      end
     end
 
     def create
@@ -58,26 +59,41 @@ module ServiceScanning
         if client.present?
           @service.save!(options)
           respond_with(@service, location: service_scanning_services_path(service: index_params.merge(client_id: client.id, service_id: @service.id)))
-          return
         else
           flash[:error] = 'Unable to add service.'
           redirect_to(service_scanning_services_path(service: index_params.merge(autofocus: :project_id)))
-          return
         end
+        return
       end
 
       scanner_id = options[:scanner_id]
       if scanner_id.blank?
         flash[:error] = 'An ID or search term is required.'
         redirect_to(service_scanning_services_path(service: index_params))
-        return
       elsif scanner_id.match?(/^[a-z]*(\d+)$/i)
         # If the submission looks like a scan card (some number of letters followed by numbers)
         handle_id_search(scanner_id, options)
       else
         # we need to conduct at client search
         redirect_to(service_scanning_services_path(service: index_params.merge(q: scanner_id)))
-        return
+      end
+    end
+
+    def update
+      service = ServiceScanning::Service.find(params[:id].to_i)
+      service_note = note_params[:service_note]
+      @note = ::GrdaWarehouse::ClientNotes::ServiceNote.create(
+        client_id: service.client_id,
+        user_id: current_user.id,
+        note: service_note,
+        service_id: service.id,
+        project_id: service.project_id,
+      )
+      if @note.valid?
+        respond_with(@note, location: service_scanning_services_path(service: index_params.merge(client_id: service.client_id, service_id: service.id)))
+      else
+        flash[:error] = "Note can't be empty"
+        redirect_to(service_scanning_services_path(service: index_params.merge(client_id: service.client_id, service_id: service.id)))
       end
     end
 
@@ -92,6 +108,7 @@ module ServiceScanning
         redirect_to(service_scanning_services_path(service: index_params))
         return
       end
+
       clean_params = client_create_params
       clean_params[:SSN] = clean_params[:SSN].gsub(/\D/, '')
 
@@ -127,11 +144,11 @@ module ServiceScanning
             destination_id: destination_client.id,
             data_source_id: @client.data_source_id,
           )
-          if !request.xhr?
+          unless request.xhr?
             if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
               flash[:notice] = "Client #{@client.full_name} created."
               after_create_path = client_path_generator
-              if @client.data_source.after_create_path.present?
+              if @client.data_source.after_create_path.present? # rubocop:disable Metrics/BlockNesting
                 after_create_path += [@client.data_source.after_create_path]
                 redirect_to polymorphic_path(after_create_path, client_id: destination_client.id)
               else
@@ -173,7 +190,7 @@ module ServiceScanning
       respond_with(@service, location: service_scanning_services_path(service: index_params))
     end
 
-    private def handle_id_search(scanner_id, options)
+    private def handle_id_search(scanner_id, _options)
       numeric_id = scanner_id.gsub(/^[a-z]*/i, '')
       client = attempt_to_find_client(numeric_id, @service.project.data_source_id)
 
@@ -215,6 +232,14 @@ module ServiceScanning
     end
     helper_method :index_params
 
+    private def note_params
+      return {} unless params[:note]
+
+      params.require(:note).permit(
+        :service_note,
+      )
+    end
+
     def client_create_params
       params.require(:client).
         permit(
@@ -253,10 +278,12 @@ module ServiceScanning
 
     private def client_from_hmis_clients(id, data_source_id)
       ::GrdaWarehouse::Hud::Client.joins(:source_eto_client_lookups).
-        merge(::GrdaWarehouse::EtoQaaws::ClientLookup.where(
-          participant_site_identifier: id,
-          data_source_id: data_source_id,
-        )).
+        merge(
+          ::GrdaWarehouse::EtoQaaws::ClientLookup.where(
+            participant_site_identifier: id,
+            data_source_id: data_source_id,
+          ),
+        ).
         first
     end
 

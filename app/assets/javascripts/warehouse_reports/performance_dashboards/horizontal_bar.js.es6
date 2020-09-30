@@ -30,6 +30,7 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
 
   _build_chart() {
     if ($(this.chart_selector).length > 0) {
+      const self = this
       this.options = $(this.chart_selector).data('chart').options;
       this.categories = $(this.chart_selector).data('chart').categories;
       this.link_params = $(this.chart_selector).data('chart').params;
@@ -37,11 +38,32 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
 
       this.padding = this.options.padding || {};
       this.height = this.options.height || 400;
+      // Deep clone array to prevent future issues with additional mutations
+      const columns = $(this.chart_selector).data('chart').columns;
+      const _columns = JSON.parse(JSON.stringify(columns));
+      const setNames = [];
+      const columnTotals = _columns.map((col) => {
+        setNames.push(col[0]);
+        col.shift();
+        return col.reduce((a, b) => a + b, 0);
+      });
       const data = {
-        columns: $(this.chart_selector).data('chart').columns,
+        columns: columns,
         type: 'bar',
         color: this._colors,
-        labels: true,
+        labels: {
+          format: (v, id, i, j) => {
+            if (this.options.showPercentageWithValue) {
+              let percentage = 0
+              let setIndex = setNames.indexOf(id)
+              if (columnTotals[setIndex] > v) {
+                percentage = (v/columnTotals[setIndex])*100
+              }
+              return `${d3.format(",")(v)} (${percentage.toFixed(1)}%)`;
+            }
+            return d3.format(",")(v);
+          }
+        },
         onclick: this._follow_link,
       };
       const config = {
@@ -109,7 +131,7 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
     if (key.id != null) {
       key = key.id;
     }
-    const colors = ['#00918C', '#FFA600'];
+    const colors = window.Chart.defaults.colors
     if (['All'].includes(key)) {
       color = '#288BEE';
     } else {
@@ -130,9 +152,6 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
 
     const bucket_title = this.chart.categories()[d.index];
     const bucket = this.options.sub_keys[bucket_title];
-    // console.log(d, @chart, @chart.categories(), @options.sub_keys, @options, bucket_title, bucket)
-    // return
-    // console.log(d, @chart.data(), bucket_title, bucket, @options)
     const report = 'report';
     if (__guard__(this.chart.data()[1], (x) => x.id) === d.id) {
       this.link_params.filters.start_date = this.options.date_ranges.comparison.start_date;

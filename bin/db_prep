@@ -56,4 +56,4 @@ Dir.chdir APP_ROOT do
   end
 end
 # do not modify this line:
-puts "---DONE---"
+puts '---DONE---'

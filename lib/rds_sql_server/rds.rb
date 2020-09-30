@@ -150,6 +150,18 @@ class Rds
         # puts "No DB yet" if db_exists == 0
         sleep 5
       end
+      can_create_table = false
+      while can_create_table == false
+        begin
+          load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
+          ::LsaSqlServer::DbUp.hmis_table_create!(version: '2020')
+          ::LsaSqlServer::DbUp.create!(status: 'up')
+          can_create_table = true
+        rescue Exception
+          sleep 60
+        end
+        sleep 5
+      end
     end
   end
 

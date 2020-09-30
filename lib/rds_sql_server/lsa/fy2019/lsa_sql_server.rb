@@ -15,6 +15,26 @@ module LsaSqlServer
     }.freeze
   end
 
+  class DbUp < SqlServerBase
+    include ::HMIS::Structure::Base
+    self.table_name = :db_up
+
+    def self.csv_columns
+      [
+        :id,
+        :status,
+      ]
+    end
+
+    def self.hmis_configuration(*)
+      {
+        status: {
+          type: :string,
+        },
+      }
+    end
+  end
+
   class LSAReport < SqlServerBase
     self.table_name = :lsa_Report
     include TsqlImport

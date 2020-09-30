@@ -19,12 +19,12 @@
   %table.table.table-sm
     %thead
       %tr
-        %th{style: 'width:30%'} Project
-        %th{style: 'width:10%'} Confidential?
-        %th{style: 'width:10%'} CoC Code
-        %th{style: 'width:10%'} Continuum Project
-        %th{style: 'width:15%'} Housing Type
-        %th{style: 'width:5%'} Inventory Record?
+        %th Project
+        %th Project Type
+        %th Tracking Method
+        %th.text-center Confidential?
+        %th Edit
+        %th
     %tbody
       - org.projects.each do |project|
         = render 'project', project: project, org: org

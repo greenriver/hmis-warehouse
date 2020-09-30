@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_23_204046) do
+ActiveRecord::Schema.define(version: 2020_09_22_192121) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -31,11 +31,11 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.integer "data_source_id"
     t.string "source_hash"
     t.datetime "pending_date_deleted"
+    t.index ["AffiliationID", "data_source_id"], name: "index_Affiliation_on_AffiliationID_and_data_source_id", unique: true
     t.index ["DateCreated"], name: "affiliation_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Affiliation_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "affiliation_date_updated"
     t.index ["ExportID"], name: "affiliation_export_id"
-    t.index ["data_source_id", "AffiliationID"], name: "unk_Affiliation", unique: true
     t.index ["data_source_id"], name: "index_Affiliation_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Affiliation_on_pending_date_deleted"
   end
@@ -57,7 +57,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.integer "data_source_id"
     t.datetime "pending_date_deleted"
     t.string "source_hash"
-    t.index ["AssessmentID", "data_source_id"], name: "assessment_a_id_ds_id"
+    t.index ["AssessmentID", "data_source_id"], name: "index_Assessment_on_AssessmentID_and_data_source_id", unique: true
     t.index ["PersonalID", "EnrollmentID", "data_source_id", "AssessmentID"], name: "assessment_p_id_en_id_ds_id_a_id"
     t.index ["pending_date_deleted"], name: "index_Assessment_on_pending_date_deleted"
   end
@@ -80,7 +80,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.datetime "pending_date_deleted"
     t.string "source_hash"
     t.index ["AssessmentID", "data_source_id", "PersonalID", "EnrollmentID", "AssessmentQuestionID"], name: "assessment_q_a_id_ds_id_p_id_en_id_aq_id"
-    t.index ["AssessmentQuestionID", "data_source_id"], name: "assessment_q_aq_id_ds_id"
+    t.index ["AssessmentQuestionID", "data_source_id"], name: "aq_aq_id_ds_id", unique: true
     t.index ["pending_date_deleted"], name: "index_AssessmentQuestions_on_pending_date_deleted"
   end
 
@@ -100,7 +100,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.datetime "pending_date_deleted"
     t.string "source_hash"
     t.index ["AssessmentID", "data_source_id", "PersonalID", "EnrollmentID", "AssessmentResultID"], name: "assessment_r_a_id_ds_id_p_id_en_id_ar_id"
-    t.index ["AssessmentResultID", "data_source_id"], name: "assessment_r_ar_id_ds_id"
+    t.index ["AssessmentResultID", "data_source_id"], name: "ar_ar_id_ds_id", unique: true
     t.index ["pending_date_deleted"], name: "index_AssessmentResults_on_pending_date_deleted"
   end
 
@@ -213,6 +213,8 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "encrypted_SSN_iv"
     t.string "encrypted_NameSuffix"
     t.string "encrypted_NameSuffix_iv"
+    t.string "soundex_first"
+    t.string "soundex_last"
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -223,6 +225,129 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.index ["creator_id"], name: "index_Client_on_creator_id"
     t.index ["data_source_id"], name: "index_Client_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Client_on_pending_date_deleted"
+  end
+
+  create_table "ClientUnencrypted", id: :integer, default: -> { "nextval('\"Client_id_seq\"'::regclass)" }, force: :cascade do |t|
+    t.string "PersonalID"
+    t.string "FirstName", limit: 150
+    t.string "MiddleName", limit: 150
+    t.string "LastName", limit: 150
+    t.string "NameSuffix", limit: 50
+    t.integer "NameDataQuality"
+    t.string "SSN"
+    t.integer "SSNDataQuality"
+    t.date "DOB"
+    t.integer "DOBDataQuality"
+    t.integer "AmIndAKNative"
+    t.integer "Asian"
+    t.integer "BlackAfAmerican"
+    t.integer "NativeHIOtherPacific"
+    t.integer "White"
+    t.integer "RaceNone"
+    t.integer "Ethnicity"
+    t.integer "Gender"
+    t.string "OtherGender", limit: 50
+    t.integer "VeteranStatus"
+    t.integer "YearEnteredService"
+    t.integer "YearSeparated"
+    t.integer "WorldWarII"
+    t.integer "KoreanWar"
+    t.integer "VietnamWar"
+    t.integer "DesertStorm"
+    t.integer "AfghanistanOEF"
+    t.integer "IraqOIF"
+    t.integer "IraqOND"
+    t.integer "OtherTheater"
+    t.integer "MilitaryBranch"
+    t.integer "DischargeStatus"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id"
+    t.datetime "disability_verified_on"
+    t.datetime "housing_assistance_network_released_on"
+    t.boolean "sync_with_cas", default: false, null: false
+    t.boolean "dmh_eligible", default: false, null: false
+    t.boolean "va_eligible", default: false, null: false
+    t.boolean "hues_eligible", default: false, null: false
+    t.boolean "hiv_positive", default: false, null: false
+    t.string "housing_release_status"
+    t.boolean "chronically_homeless_for_cas", default: false, null: false
+    t.boolean "us_citizen", default: false, null: false
+    t.boolean "asylee", default: false, null: false
+    t.boolean "ineligible_immigrant", default: false, null: false
+    t.boolean "lifetime_sex_offender", default: false, null: false
+    t.boolean "meth_production_conviction", default: false, null: false
+    t.boolean "family_member", default: false, null: false
+    t.boolean "child_in_household", default: false, null: false
+    t.boolean "ha_eligible", default: false, null: false
+    t.boolean "api_update_in_process", default: false, null: false
+    t.datetime "api_update_started_at"
+    t.datetime "api_last_updated_at"
+    t.integer "creator_id"
+    t.boolean "cspech_eligible", default: false
+    t.date "consent_form_signed_on"
+    t.integer "vispdat_prioritization_days_homeless"
+    t.boolean "generate_history_pdf", default: false
+    t.boolean "congregate_housing", default: false
+    t.boolean "sober_housing", default: false
+    t.integer "consent_form_id"
+    t.integer "rrh_assessment_score"
+    t.boolean "ssvf_eligible", default: false, null: false
+    t.boolean "rrh_desired", default: false, null: false
+    t.boolean "youth_rrh_desired", default: false, null: false
+    t.string "rrh_assessment_contact_info"
+    t.datetime "rrh_assessment_collected_at"
+    t.string "source_hash"
+    t.boolean "generate_manual_history_pdf", default: false, null: false
+    t.boolean "requires_wheelchair_accessibility", default: false
+    t.integer "required_number_of_bedrooms", default: 1
+    t.integer "required_minimum_occupancy", default: 1
+    t.boolean "requires_elevator_access", default: false
+    t.jsonb "neighborhood_interests", default: [], null: false
+    t.string "verified_veteran_status"
+    t.boolean "interested_in_set_asides", default: false
+    t.date "consent_expires_on"
+    t.datetime "pending_date_deleted"
+    t.date "cas_match_override"
+    t.boolean "vash_eligible", default: false
+    t.jsonb "consented_coc_codes", default: []
+    t.boolean "income_maximization_assistance_requested", default: false, null: false
+    t.integer "income_total_monthly"
+    t.boolean "pending_subsidized_housing_placement", default: false, null: false
+    t.boolean "pathways_domestic_violence", default: false, null: false
+    t.boolean "rrh_th_desired", default: false, null: false
+    t.boolean "sro_ok", default: false, null: false
+    t.boolean "pathways_other_accessibility", default: false, null: false
+    t.boolean "pathways_disabled_housing", default: false, null: false
+    t.boolean "evicted", default: false, null: false
+    t.boolean "dv_rrh_desired", default: false
+    t.string "health_prioritized"
+    t.boolean "demographic_dirty", default: true
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+    t.string "encrypted_MiddleName"
+    t.string "encrypted_MiddleName_iv"
+    t.string "encrypted_LastName"
+    t.string "encrypted_LastName_iv"
+    t.string "encrypted_SSN"
+    t.string "encrypted_SSN_iv"
+    t.string "encrypted_NameSuffix"
+    t.string "encrypted_NameSuffix_iv"
+    t.string "soundex_first"
+    t.string "soundex_last"
+    t.index ["DateCreated"], name: "ClientUnencrypted_DateCreated_idx"
+    t.index ["DateDeleted", "data_source_id"], name: "ClientUnencrypted_DateDeleted_data_source_id_idx"
+    t.index ["DateUpdated"], name: "ClientUnencrypted_DateUpdated_idx"
+    t.index ["ExportID"], name: "ClientUnencrypted_ExportID_idx"
+    t.index ["FirstName"], name: "ClientUnencrypted_FirstName_idx"
+    t.index ["LastName"], name: "ClientUnencrypted_LastName_idx"
+    t.index ["PersonalID"], name: "ClientUnencrypted_PersonalID_idx"
+    t.index ["creator_id"], name: "ClientUnencrypted_creator_id_idx"
+    t.index ["data_source_id"], name: "ClientUnencrypted_data_source_id_idx"
+    t.index ["pending_date_deleted"], name: "ClientUnencrypted_pending_date_deleted_idx"
   end
 
   create_table "CurrentLivingSituation", id: :serial, force: :cascade do |t|
@@ -247,6 +372,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.datetime "pending_date_deleted"
     t.string "source_hash"
     t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_cur_id_ds_id"
+    t.index ["CurrentLivingSitID", "data_source_id"], name: "cur_liv_sit_sit_id_ds_id", unique: true
     t.index ["PersonalID", "EnrollmentID", "data_source_id", "CurrentLivingSitID"], name: "cur_liv_sit_p_id_en_id_ds_id_cur_id"
     t.index ["pending_date_deleted"], name: "index_CurrentLivingSituation_on_pending_date_deleted"
   end
@@ -284,11 +410,11 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.index ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id"
     t.index ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateUpdated"], name: "disabilities_date_updated"
+    t.index ["DisabilitiesID", "data_source_id"], name: "index_Disabilities_on_DisabilitiesID_and_data_source_id", unique: true
     t.index ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx"
     t.index ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID"
     t.index ["ExportID"], name: "disabilities_export_id"
     t.index ["PersonalID"], name: "index_Disabilities_on_PersonalID"
-    t.index ["data_source_id", "DisabilitiesID"], name: "unk_Disabilities", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_Disabilities_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Disabilities_on_pending_date_deleted"
@@ -316,10 +442,10 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.index ["DateCreated"], name: "employment_education_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_EmploymentEducation_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "employment_education_date_updated"
+    t.index ["EmploymentEducationID", "data_source_id"], name: "ee_ee_id_ds_id", unique: true
     t.index ["EnrollmentID"], name: "index_EmploymentEducation_on_EnrollmentID"
     t.index ["ExportID"], name: "employment_education_export_id"
     t.index ["PersonalID"], name: "index_EmploymentEducation_on_PersonalID"
-    t.index ["data_source_id", "EmploymentEducationID"], name: "unk_EmploymentEducation", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_EmploymentEducation_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_EmploymentEducation_on_pending_date_deleted"
@@ -443,17 +569,18 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.string "SexualOrientationOther", limit: 100
+    t.date "history_generated_on"
     t.index ["DateCreated"], name: "enrollment_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Enrollment_on_DateDeleted_and_data_source_id"
     t.index ["DateDeleted"], name: "index_Enrollment_on_DateDeleted"
     t.index ["DateUpdated"], name: "enrollment_date_updated"
+    t.index ["EnrollmentID", "PersonalID", "data_source_id"], name: "en_en_id_p_id_ds_id", unique: true
     t.index ["EnrollmentID"], name: "index_Enrollment_on_EnrollmentID"
     t.index ["EntryDate"], name: "index_Enrollment_on_EntryDate"
     t.index ["ExportID"], name: "enrollment_export_id"
     t.index ["MoveInDate"], name: "index_Enrollment_on_MoveInDate"
     t.index ["PersonalID"], name: "index_Enrollment_on_PersonalID"
     t.index ["ProjectID"], name: "index_Enrollment_on_ProjectID"
-    t.index ["data_source_id", "EnrollmentID", "PersonalID"], name: "unk_Enrollment", unique: true
     t.index ["data_source_id", "HouseholdID", "ProjectID"], name: "idx_enrollment_ds_id_hh_id_p_id"
     t.index ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_Enrollment_on_data_source_id"
@@ -480,9 +607,9 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.index ["DateCreated"], name: "enrollment_coc_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_EnrollmentCoC_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "enrollment_coc_date_updated"
+    t.index ["EnrollmentCoCID", "data_source_id"], name: "index_EnrollmentCoC_on_EnrollmentCoCID_and_data_source_id", unique: true
     t.index ["EnrollmentCoCID"], name: "index_EnrollmentCoC_on_EnrollmentCoCID"
     t.index ["ExportID"], name: "enrollment_coc_export_id"
-    t.index ["data_source_id", "EnrollmentCoCID"], name: "unk_EnrollmentCoC", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_EnrollmentCoC_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_EnrollmentCoC_on_pending_date_deleted"
@@ -507,7 +634,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.integer "data_source_id"
     t.datetime "pending_date_deleted"
     t.string "source_hash"
-    t.index ["EventID", "data_source_id"], name: "event_ev_id_ds_id"
+    t.index ["EventID", "data_source_id"], name: "ev_ev_id_ds_id", unique: true
     t.index ["data_source_id", "PersonalID", "EnrollmentID", "EventID"], name: "event_ds_id_p_id_en_id_ev_id"
     t.index ["pending_date_deleted"], name: "index_Event_on_pending_date_deleted"
   end
@@ -578,9 +705,9 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.index ["DateUpdated"], name: "exit_date_updated"
     t.index ["EnrollmentID"], name: "index_Exit_on_EnrollmentID"
     t.index ["ExitDate"], name: "index_Exit_on_ExitDate"
+    t.index ["ExitID", "data_source_id"], name: "index_Exit_on_ExitID_and_data_source_id", unique: true
     t.index ["ExportID"], name: "exit_export_id"
     t.index ["PersonalID"], name: "index_Exit_on_PersonalID"
-    t.index ["data_source_id", "ExitID"], name: "unk_Exit", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_Exit_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Exit_on_pending_date_deleted"
@@ -607,8 +734,8 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.integer "SourceType"
     t.date "effective_export_end_date"
     t.string "source_hash"
+    t.index ["ExportID", "data_source_id"], name: "index_Export_on_ExportID_and_data_source_id", unique: true
     t.index ["ExportID"], name: "export_export_id"
-    t.index ["data_source_id", "ExportID"], name: "unk_Export", unique: true
     t.index ["data_source_id"], name: "index_Export_on_data_source_id"
   end
 
@@ -632,8 +759,8 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.index ["DateDeleted", "data_source_id"], name: "index_Funder_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "funder_date_updated"
     t.index ["ExportID"], name: "funder_export_id"
+    t.index ["FunderID", "data_source_id"], name: "index_Funder_on_FunderID_and_data_source_id", unique: true
     t.index ["ProjectID", "Funder"], name: "index_Funder_on_ProjectID_and_Funder"
-    t.index ["data_source_id", "FunderID"], name: "unk_Funder", unique: true
     t.index ["data_source_id"], name: "index_Funder_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Funder_on_pending_date_deleted"
   end
@@ -699,8 +826,8 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.index ["DateUpdated"], name: "health_and_dv_date_updated"
     t.index ["EnrollmentID"], name: "index_HealthAndDV_on_EnrollmentID"
     t.index ["ExportID"], name: "health_and_dv_export_id"
+    t.index ["HealthAndDVID", "data_source_id"], name: "index_HealthAndDV_on_HealthAndDVID_and_data_source_id", unique: true
     t.index ["PersonalID"], name: "index_HealthAndDV_on_PersonalID"
-    t.index ["data_source_id", "HealthAndDVID"], name: "unk_HealthAndDV", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_HealthAndDV_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_HealthAndDV_on_pending_date_deleted"
@@ -796,9 +923,9 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.index ["DateUpdated"], name: "income_benefits_date_updated"
     t.index ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID"
     t.index ["ExportID"], name: "income_benefits_export_id"
+    t.index ["IncomeBenefitsID", "data_source_id"], name: "index_IncomeBenefits_on_IncomeBenefitsID_and_data_source_id", unique: true
     t.index ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID"
     t.index ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
-    t.index ["data_source_id", "IncomeBenefitsID"], name: "unk_IncomeBenefits", unique: true
     t.index ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_IncomeBenefits_on_pending_date_deleted"
@@ -835,12 +962,14 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.integer "OtherBedInventory"
     t.integer "TargetPopulation"
     t.integer "ESBedType"
+    t.string "coc_code_override"
+    t.date "inventory_start_date_override"
     t.index ["DateCreated"], name: "inventory_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Inventory_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "inventory_date_updated"
     t.index ["ExportID"], name: "inventory_export_id"
+    t.index ["InventoryID", "data_source_id"], name: "index_Inventory_on_InventoryID_and_data_source_id", unique: true
     t.index ["ProjectID", "CoCCode", "data_source_id"], name: "index_Inventory_on_ProjectID_and_CoCCode_and_data_source_id"
-    t.index ["data_source_id", "InventoryID"], name: "unk_Inventory", unique: true
     t.index ["data_source_id"], name: "index_Inventory_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Inventory_on_pending_date_deleted"
   end
@@ -901,6 +1030,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.boolean "active_homeless_status_override", default: false
     t.boolean "include_in_days_homeless_override", default: false
     t.boolean "extrapolate_contacts", default: false, null: false
+    t.boolean "combine_enrollments", default: false
     t.index "COALESCE(act_as_project_type, \"ProjectType\")", name: "project_project_override_index"
     t.index ["DateCreated"], name: "project_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id"
@@ -936,11 +1066,12 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "Zip", limit: 5
     t.integer "geography_type_override"
     t.string "geocode_override", limit: 6
+    t.string "zip_override"
     t.index ["DateCreated"], name: "project_coc_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_ProjectCoC_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "project_coc_date_updated"
     t.index ["ExportID"], name: "project_coc_export_id"
-    t.index ["data_source_id", "ProjectCoCID"], name: "unk_ProjectCoC", unique: true
+    t.index ["ProjectCoCID", "data_source_id"], name: "index_ProjectCoC_on_ProjectCoCID_and_data_source_id", unique: true
     t.index ["data_source_id", "ProjectID", "CoCCode"], name: "index_ProjectCoC_on_data_source_id_and_ProjectID_and_CoCCode"
     t.index ["data_source_id"], name: "index_ProjectCoC_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_ProjectCoC_on_pending_date_deleted"
@@ -973,8 +1104,8 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.index ["EnrollmentID", "PersonalID", "data_source_id"], name: "index_serv_on_proj_entry_per_id_ds_id"
     t.index ["ExportID"], name: "services_export_id"
     t.index ["PersonalID"], name: "index_Services_on_PersonalID"
+    t.index ["ServicesID", "data_source_id"], name: "index_Services_on_ServicesID_and_data_source_id", unique: true
     t.index ["data_source_id", "PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "index_services_ds_id_p_id_type_entry_id_date"
-    t.index ["data_source_id", "ServicesID"], name: "unk_Services", unique: true
     t.index ["data_source_id"], name: "index_Services_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Services_on_pending_date_deleted"
   end
@@ -993,7 +1124,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.integer "data_source_id"
     t.datetime "pending_date_deleted"
     t.string "source_hash"
-    t.index ["UserID", "data_source_id"], name: "index_User_on_UserID_and_data_source_id"
+    t.index ["UserID", "data_source_id"], name: "index_User_on_UserID_and_data_source_id", unique: true
     t.index ["pending_date_deleted"], name: "index_User_on_pending_date_deleted"
   end
 
@@ -1401,7 +1532,11 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.jsonb "recipients"
     t.datetime "sent_at"
     t.boolean "alert_active", default: true, null: false
+    t.bigint "service_id"
+    t.bigint "project_id"
     t.index ["client_id"], name: "index_client_notes_on_client_id"
+    t.index ["project_id"], name: "index_client_notes_on_project_id"
+    t.index ["service_id"], name: "index_client_notes_on_service_id"
     t.index ["user_id"], name: "index_client_notes_on_user_id"
   end
 
@@ -1663,6 +1798,8 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "pii_encryption_type", default: "none"
     t.boolean "auto_de_duplication_enabled", default: false, null: false
     t.boolean "request_account_available", default: false, null: false
+    t.date "dashboard_lookback", default: "2014-07-01"
+    t.integer "domestic_violence_lookback_days", default: 0, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1723,6 +1860,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_id"
     t.datetime "deleted_at"
     t.boolean "service_scannable", default: false, null: false
+    t.jsonb "import_aggregators", default: {}
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
@@ -1734,6 +1872,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.boolean "imported", default: false
+    t.integer "amount"
     t.index ["deleted_at"], name: "index_direct_financial_assistances_on_deleted_at"
   end
 
@@ -2142,9 +2281,178 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["AffiliationID", "data_source_id"], name: "hmis_2020_affiliations-lZaj"
     t.index ["ExportID"], name: "hmis_2020_affiliations-qycr"
     t.index ["source_type", "source_id"], name: "hmis_2020_affiliations-jXFa"
+  end
+
+  create_table "hmis_2020_aggregated_enrollments", force: :cascade do |t|
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.string "ProjectID"
+    t.date "EntryDate"
+    t.string "HouseholdID"
+    t.integer "RelationshipToHoH"
+    t.integer "LivingSituation"
+    t.integer "LengthOfStay"
+    t.integer "LOSUnderThreshold"
+    t.integer "PreviousStreetESSH"
+    t.date "DateToStreetESSH"
+    t.integer "TimesHomelessPastThreeYears"
+    t.integer "MonthsHomelessPastThreeYears"
+    t.integer "DisablingCondition"
+    t.date "DateOfEngagement"
+    t.date "MoveInDate"
+    t.date "DateOfPATHStatus"
+    t.integer "ClientEnrolledInPATH"
+    t.integer "ReasonNotEnrolled"
+    t.integer "WorstHousingSituation"
+    t.integer "PercentAMI"
+    t.string "LastPermanentStreet"
+    t.string "LastPermanentCity"
+    t.string "LastPermanentState"
+    t.string "LastPermanentZIP"
+    t.integer "AddressDataQuality"
+    t.date "DateOfBCPStatus"
+    t.integer "EligibleForRHY"
+    t.integer "ReasonNoServices"
+    t.integer "RunawayYouth"
+    t.integer "SexualOrientation"
+    t.string "SexualOrientationOther"
+    t.integer "FormerWardChildWelfare"
+    t.integer "ChildWelfareYears"
+    t.integer "ChildWelfareMonths"
+    t.integer "FormerWardJuvenileJustice"
+    t.integer "JuvenileJusticeYears"
+    t.integer "JuvenileJusticeMonths"
+    t.integer "UnemploymentFam"
+    t.integer "MentalHealthIssuesFam"
+    t.integer "PhysicalDisabilityFam"
+    t.integer "AlcoholDrugAbuseFam"
+    t.integer "InsufficientIncome"
+    t.integer "IncarceratedParent"
+    t.integer "ReferralSource"
+    t.integer "CountOutreachReferralApproaches"
+    t.integer "UrgentReferral"
+    t.integer "TimeToHousingLoss"
+    t.integer "ZeroIncome"
+    t.integer "AnnualPercentAMI"
+    t.integer "FinancialChange"
+    t.integer "HouseholdChange"
+    t.integer "EvictionHistory"
+    t.integer "SubsidyAtRisk"
+    t.integer "LiteralHomelessHistory"
+    t.integer "DisabledHoH"
+    t.integer "CriminalRecord"
+    t.integer "SexOffender"
+    t.integer "DependentUnder6"
+    t.integer "SingleParent"
+    t.integer "HH5Plus"
+    t.integer "IraqAfghanistan"
+    t.integer "FemVet"
+    t.integer "HPScreeningScore"
+    t.integer "ThresholdScore"
+    t.string "VAMCStation"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_aggregated_enrollments-Jmkq"
+    t.index ["DateDeleted"], name: "hmis_2020_aggregated_enrollments-6wqk"
+    t.index ["DateUpdated"], name: "hmis_2020_aggregated_enrollments-4L8g"
+    t.index ["EnrollmentID", "PersonalID", "data_source_id"], name: "hmis_2020_aggregated_enrollments-0cTv", unique: true
+    t.index ["EnrollmentID", "PersonalID", "importer_log_id", "data_source_id"], name: "hmis_2020_aggregated_enrollments-fSDc", unique: true
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_aggregated_enrollments-ocKA"
+    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_aggregated_enrollments-zNVo"
+    t.index ["EnrollmentID"], name: "hmis_2020_aggregated_enrollments-RNSl"
+    t.index ["EntryDate"], name: "hmis_2020_aggregated_enrollments-oiEU"
+    t.index ["ExportID"], name: "hmis_2020_aggregated_enrollments-fXAB"
+    t.index ["HouseholdID"], name: "hmis_2020_aggregated_enrollments-QV2G"
+    t.index ["LivingSituation"], name: "hmis_2020_aggregated_enrollments-ysoO"
+    t.index ["PersonalID", "ProjectID", "data_source_id"], name: "hmis_2020_agg_enrollments_p_id_p_id_ds_id"
+    t.index ["PersonalID"], name: "hmis_2020_aggregated_enrollments-wnDD"
+    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_2020_aggregated_enrollments-Xqsk"
+    t.index ["ProjectID", "HouseholdID"], name: "hmis_2020_aggregated_enrollments-BMfj"
+    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-RJNU"
+    t.index ["ProjectID"], name: "hmis_2020_aggregated_enrollments-CpSq"
+    t.index ["RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-E6ih"
+    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_2020_aggregated_enrollments-ZGm4"
+    t.index ["source_type", "source_id"], name: "hmis_2020_aggregated_enrollments-G7U1"
+  end
+
+  create_table "hmis_2020_aggregated_exits", force: :cascade do |t|
+    t.string "ExitID"
+    t.string "EnrollmentID"
+    t.string "PersonalID"
+    t.date "ExitDate"
+    t.integer "Destination"
+    t.string "OtherDestination"
+    t.integer "HousingAssessment"
+    t.integer "SubsidyInformation"
+    t.integer "ProjectCompletionStatus"
+    t.integer "EarlyExitReason"
+    t.integer "ExchangeForSex"
+    t.integer "ExchangeForSexPastThreeMonths"
+    t.integer "CountOfExchangeForSex"
+    t.integer "AskedOrForcedToExchangeForSex"
+    t.integer "AskedOrForcedToExchangeForSexPastThreeMonths"
+    t.integer "WorkPlaceViolenceThreats"
+    t.integer "WorkplacePromiseDifference"
+    t.integer "CoercedToContinueWork"
+    t.integer "LaborExploitPastThreeMonths"
+    t.integer "CounselingReceived"
+    t.integer "IndividualCounseling"
+    t.integer "FamilyCounseling"
+    t.integer "GroupCounseling"
+    t.integer "SessionCountAtExit"
+    t.integer "PostExitCounselingPlan"
+    t.integer "SessionsInPlan"
+    t.integer "DestinationSafeClient"
+    t.integer "DestinationSafeWorker"
+    t.integer "PosAdultConnections"
+    t.integer "PosPeerConnections"
+    t.integer "PosCommunityConnections"
+    t.date "AftercareDate"
+    t.integer "AftercareProvided"
+    t.integer "EmailSocialMedia"
+    t.integer "Telephone"
+    t.integer "InPersonIndividual"
+    t.integer "InPersonGroup"
+    t.integer "CMExitReason"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id", null: false
+    t.integer "importer_log_id", null: false
+    t.datetime "pre_processed_at", null: false
+    t.string "source_hash"
+    t.integer "source_id", null: false
+    t.string "source_type", null: false
+    t.datetime "dirty_at"
+    t.datetime "clean_at"
+    t.index ["DateCreated"], name: "hmis_2020_aggregated_exits-2lOR"
+    t.index ["DateDeleted"], name: "hmis_2020_aggregated_exits-cduB"
+    t.index ["DateUpdated"], name: "hmis_2020_aggregated_exits-VRGa"
+    t.index ["EnrollmentID"], name: "hmis_2020_aggregated_exits-BwSf"
+    t.index ["ExitDate"], name: "hmis_2020_aggregated_exits-GBBG"
+    t.index ["ExitID", "data_source_id"], name: "hmis_2020_aggregated_exits-UYdB", unique: true
+    t.index ["ExitID", "importer_log_id", "data_source_id"], name: "hmis_2020_aggregated_exits-2mwI", unique: true
+    t.index ["ExitID"], name: "hmis_2020_aggregated_exits-g6y1"
+    t.index ["ExportID"], name: "hmis_2020_aggregated_exits-auds"
+    t.index ["PersonalID"], name: "hmis_2020_aggregated_exits-EPOP"
+    t.index ["source_type", "source_id"], name: "hmis_2020_aggregated_exits-SgMf"
   end
 
   create_table "hmis_2020_assessment_questions", force: :cascade do |t|
@@ -2169,6 +2477,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["AssessmentID"], name: "hmis_2020_assessment_questions-fD1j"
     t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_2020_assessment_questions-0oMf"
     t.index ["ExportID"], name: "hmis_2020_assessment_questions-sDob"
@@ -2195,6 +2504,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["AssessmentID"], name: "hmis_2020_assessment_results-AnQd"
     t.index ["AssessmentResultID", "data_source_id"], name: "hmis_2020_assessment_results-rawc"
     t.index ["ExportID"], name: "hmis_2020_assessment_results-2kxY"
@@ -2223,6 +2533,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["AssessmentDate"], name: "hmis_2020_assessments-YW8L"
     t.index ["AssessmentID", "data_source_id"], name: "hmis_2020_assessments-3sM0"
     t.index ["AssessmentID"], name: "hmis_2020_assessments-kqMe"
@@ -2277,6 +2588,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DOB"], name: "hmis_2020_clients-qUjP"
     t.index ["DateCreated"], name: "hmis_2020_clients-rrgI"
     t.index ["DateUpdated"], name: "hmis_2020_clients-jdcP"
@@ -2315,6 +2627,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_2020_current_living_situations-cLpS"
     t.index ["CurrentLivingSitID"], name: "hmis_2020_current_living_situations-DXZ0"
     t.index ["CurrentLivingSituation"], name: "hmis_2020_current_living_situations-WmJZ"
@@ -2353,6 +2666,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_disabilities-p0j2"
     t.index ["DateUpdated"], name: "hmis_2020_disabilities-oxMH"
     t.index ["DisabilitiesID", "data_source_id"], name: "hmis_2020_disabilities-DA3C"
@@ -2387,6 +2701,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_employment_educations-oPbl"
     t.index ["DateUpdated"], name: "hmis_2020_employment_educations-rTDS"
     t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_2020_employment_educations-zM3A"
@@ -2419,6 +2734,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["CoCCode"], name: "hmis_2020_enrollment_cocs-5ROz"
     t.index ["DateCreated"], name: "hmis_2020_enrollment_cocs-zikd"
     t.index ["DateDeleted"], name: "hmis_2020_enrollment_cocs-GUQA"
@@ -2511,6 +2827,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_enrollments-ZK9t"
     t.index ["DateDeleted"], name: "hmis_2020_enrollments-WHri"
     t.index ["DateUpdated"], name: "hmis_2020_enrollments-hQVn"
@@ -2556,6 +2873,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["EnrollmentID"], name: "hmis_2020_events-ej4z"
     t.index ["EventDate"], name: "hmis_2020_events-SY9T"
     t.index ["EventID", "data_source_id"], name: "hmis_2020_events-5Ulw"
@@ -2617,6 +2935,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_exits-F305"
     t.index ["DateDeleted"], name: "hmis_2020_exits-s54g"
     t.index ["DateUpdated"], name: "hmis_2020_exits-Crsu"
@@ -2655,6 +2974,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["ExportID", "data_source_id"], name: "hmis_2020_exports-YcvP"
     t.index ["ExportID"], name: "hmis_2020_exports-awLV"
     t.index ["source_type", "source_id"], name: "hmis_2020_exports-5gdY"
@@ -2681,6 +3001,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_funders-CQE4"
     t.index ["DateUpdated"], name: "hmis_2020_funders-yKF3"
     t.index ["ExportID"], name: "hmis_2020_funders-qRxb"
@@ -2716,6 +3037,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_health_and_dvs-85bD"
     t.index ["DateUpdated"], name: "hmis_2020_health_and_dvs-TUTe"
     t.index ["EnrollmentID"], name: "hmis_2020_health_and_dvs-SbP4"
@@ -2812,6 +3134,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_income_benefits-JwPq"
     t.index ["DateUpdated"], name: "hmis_2020_income_benefits-aphJ"
     t.index ["EnrollmentID"], name: "hmis_2020_income_benefits-AUwp"
@@ -2853,6 +3176,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_inventories-J6na"
     t.index ["DateUpdated"], name: "hmis_2020_inventories-0TGU"
     t.index ["ExportID"], name: "hmis_2020_inventories-whCo"
@@ -2880,6 +3204,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["ExportID"], name: "hmis_2020_organizations-VQWo"
     t.index ["OrganizationID", "data_source_id"], name: "hmis_2020_organizations-MfSb"
     t.index ["OrganizationID"], name: "hmis_2020_organizations-Prts"
@@ -2910,6 +3235,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_project_cocs-Tmf3"
     t.index ["DateUpdated"], name: "hmis_2020_project_cocs-OI4Q"
     t.index ["ExportID"], name: "hmis_2020_project_cocs-GTs4"
@@ -2947,6 +3273,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_projects-ctk2"
     t.index ["DateUpdated"], name: "hmis_2020_projects-zcbu"
     t.index ["ExportID"], name: "hmis_2020_projects-fqB3"
@@ -2980,6 +3307,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["DateCreated"], name: "hmis_2020_services-eNab"
     t.index ["DateDeleted"], name: "hmis_2020_services-WGtP"
     t.index ["DateProvided"], name: "hmis_2020_services-8nZj"
@@ -3017,6 +3345,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
+    t.boolean "should_import", default: true
     t.index ["ExportID"], name: "hmis_2020_users-Ls1u"
     t.index ["UserID", "data_source_id"], name: "hmis_2020_users-DmeI"
     t.index ["UserID"], name: "hmis_2020_users-74tq"
@@ -4042,6 +4371,163 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.index ["imported_at"], name: "index_hud_create_logs_on_imported_at"
   end
 
+  create_table "hud_report_apr_clients", force: :cascade do |t|
+    t.integer "age"
+    t.boolean "head_of_household"
+    t.string "head_of_household_id"
+    t.boolean "parenting_youth"
+    t.date "first_date_in_program"
+    t.date "last_date_in_program"
+    t.integer "veteran_status"
+    t.integer "length_of_stay"
+    t.boolean "chronically_homeless"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "name_quality"
+    t.string "ssn"
+    t.integer "ssn_quality"
+    t.date "dob"
+    t.integer "dob_quality"
+    t.date "enrollment_created"
+    t.integer "ethnicity"
+    t.integer "gender"
+    t.jsonb "overlapping_enrollments"
+    t.integer "relationship_to_hoh"
+    t.string "household_id"
+    t.string "enrollment_coc"
+    t.integer "disabling_condition"
+    t.boolean "developmental_disability"
+    t.boolean "hiv_aids"
+    t.boolean "physical_disability"
+    t.boolean "chronic_disability"
+    t.boolean "mental_health_problem"
+    t.boolean "substance_abuse"
+    t.boolean "indefinite_and_impairs"
+    t.integer "client_id"
+    t.integer "data_source_id"
+    t.integer "report_instance_id"
+    t.integer "destination"
+    t.date "income_date_at_start"
+    t.integer "income_from_any_source_at_start"
+    t.jsonb "income_sources_at_start"
+    t.boolean "annual_assessment_expected"
+    t.date "income_date_at_annual_assessment"
+    t.integer "income_from_any_source_at_annual_assessment"
+    t.jsonb "income_sources_at_annual_assessment"
+    t.date "income_date_at_exit"
+    t.integer "income_from_any_source_at_exit"
+    t.jsonb "income_sources_at_exit"
+    t.integer "project_type"
+    t.integer "prior_living_situation"
+    t.integer "prior_length_of_stay"
+    t.date "date_homeless"
+    t.integer "times_homeless"
+    t.integer "months_homeless"
+    t.integer "came_from_street_last_night"
+    t.date "exit_created"
+    t.integer "project_tracking_method"
+    t.date "date_of_last_bed_night"
+    t.boolean "other_clients_over_25"
+    t.date "move_in_date"
+    t.string "household_type"
+    t.integer "race"
+    t.integer "developmental_disability_entry"
+    t.integer "hiv_aids_entry"
+    t.integer "physical_disability_entry"
+    t.integer "chronic_disability_entry"
+    t.integer "mental_health_problem_entry"
+    t.integer "substance_abuse_entry"
+    t.boolean "alcohol_abuse_entry"
+    t.boolean "drug_abuse_entry"
+    t.integer "developmental_disability_exit"
+    t.integer "hiv_aids_exit"
+    t.integer "physical_disability_exit"
+    t.integer "chronic_disability_exit"
+    t.integer "mental_health_problem_exit"
+    t.integer "substance_abuse_exit"
+    t.boolean "alcohol_abuse_exit"
+    t.boolean "drug_abuse_exit"
+    t.integer "developmental_disability_latest"
+    t.integer "hiv_aids_latest"
+    t.integer "physical_disability_latest"
+    t.integer "chronic_disability_latest"
+    t.integer "mental_health_problem_latest"
+    t.integer "substance_abuse_latest"
+    t.boolean "alcohol_abuse_latest"
+    t.boolean "drug_abuse_latest"
+    t.integer "domestic_violence"
+    t.integer "currently_fleeing"
+    t.integer "income_total_at_start"
+    t.integer "income_total_at_annual_assessment"
+    t.integer "income_total_at_exit"
+    t.integer "non_cash_benefits_from_any_source_at_start"
+    t.integer "non_cash_benefits_from_any_source_at_annual_assessment"
+    t.integer "non_cash_benefits_from_any_source_at_exit"
+    t.integer "insurance_from_any_source_at_start"
+    t.integer "insurance_from_any_source_at_annual_assessment"
+    t.integer "insurance_from_any_source_at_exit"
+    t.integer "time_to_move_in"
+    t.integer "approximate_length_of_stay"
+    t.integer "approximate_time_to_move_in"
+    t.date "date_to_street"
+    t.integer "housing_assessment"
+    t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
+  end
+
+  create_table "hud_report_apr_living_situations", force: :cascade do |t|
+    t.bigint "hud_report_apr_client_id"
+    t.date "information_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["hud_report_apr_client_id"], name: "index_hud_apr_client_liv_sit", unique: true
+  end
+
+  create_table "hud_report_cells", force: :cascade do |t|
+    t.bigint "report_instance_id"
+    t.string "question", null: false
+    t.string "cell_name"
+    t.boolean "universe", default: false
+    t.json "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.json "summary"
+    t.string "status"
+    t.text "error_messages"
+    t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
+  end
+
+  create_table "hud_report_instances", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "coc_code"
+    t.string "report_name"
+    t.date "start_date"
+    t.date "end_date"
+    t.json "options"
+    t.string "state"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.json "project_ids"
+    t.json "question_names", null: false
+    t.binary "zip_file"
+    t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
+  end
+
+  create_table "hud_report_universe_members", force: :cascade do |t|
+    t.bigint "report_cell_id"
+    t.string "universe_membership_type"
+    t.bigint "universe_membership_id"
+    t.bigint "client_id"
+    t.string "first_name"
+    t.string "last_name"
+    t.index ["client_id"], name: "index_hud_report_universe_members_on_client_id"
+    t.index ["report_cell_id"], name: "index_hud_report_universe_members_on_report_cell_id"
+    t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"
+  end
+
   create_table "identify_duplicates_log", id: :serial, force: :cascade do |t|
     t.datetime "started_at"
     t.datetime "completed_at"
@@ -4062,9 +4548,16 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.datetime "updated_at", null: false
     t.string "zip"
     t.integer "upload_id"
+    t.text "encrypted_import_errors"
+    t.string "encrypted_import_errors_iv"
+    t.string "type", default: "GrdaWarehouse::ImportLog"
+    t.bigint "loader_log_id"
+    t.bigint "importer_log_id"
     t.index ["completed_at"], name: "index_import_logs_on_completed_at"
     t.index ["created_at"], name: "index_import_logs_on_created_at"
     t.index ["data_source_id"], name: "index_import_logs_on_data_source_id"
+    t.index ["importer_log_id"], name: "index_import_logs_on_importer_log_id"
+    t.index ["loader_log_id"], name: "index_import_logs_on_loader_log_id"
     t.index ["updated_at"], name: "index_import_logs_on_updated_at"
   end
 
@@ -4627,6 +5120,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.string "SexualOrientationOther", limit: 100
+    t.date "history_generated_on"
     t.integer "demographic_id"
     t.integer "client_id"
     t.index ["EntryDate"], name: "entrydate_ret_index"
@@ -6047,6 +6541,8 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.integer "delayed_job_id"
     t.boolean "deidentified", default: false
     t.boolean "project_whitelist", default: false
+    t.text "encrypted_content"
+    t.string "encrypted_content_iv"
     t.index ["deleted_at"], name: "index_uploads_on_deleted_at"
   end
 
@@ -6395,7 +6891,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "unaccompanied", null: false
     t.string "street_outreach_contact", null: false
     t.string "housing_status", null: false
-    t.string "other_agency_involvement", null: false
+    t.string "other_agency_involvement"
     t.string "owns_cell_phone"
     t.string "secondary_education", null: false
     t.string "attending_college", null: false
@@ -6425,6 +6921,7 @@ ActiveRecord::Schema.define(version: 2020_07_23_204046) do
     t.string "first_name"
     t.string "last_name"
     t.string "ssn"
+    t.json "other_agency_involvements", default: []
     t.index ["created_at"], name: "index_youth_intakes_on_created_at"
     t.index ["deleted_at"], name: "index_youth_intakes_on_deleted_at"
     t.index ["updated_at"], name: "index_youth_intakes_on_updated_at"

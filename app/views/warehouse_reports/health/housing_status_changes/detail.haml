@@ -1,0 +1,28 @@
+- title = "Patient Housing Status Changes - Details"
+- content_for :title, title
+%h1= content_for :title
+
+%p The following #{pluralize(@clients.count, 'client')} #{@category.downcase} between #{@report.start_date} and #{@report.end_date}.
+
+.card
+  %table.table
+    %thead
+      %th Client
+      %th ACO
+      %th Started (source)
+      %th Start Date
+      %th Ended (source)
+      %th End Date
+    %tbody
+      - @report.report_data.each do |aco_id, clients|
+        - clients.each do |client_id, record|
+          - next unless @report_data.keys.include?(client_id)
+          - client = @report.client_for_id(client_id)
+          - aco = @report.aco_for_id(aco_id)
+          %tr
+            %td= link_to client.name, client_health_careplans_path(client)
+            %td= aco.name
+            %td #{record[:starting].housing_status} (#{record[:starting].source})
+            %td #{record[:starting].timestamp.to_date}
+            %td #{record[:ending].housing_status} (#{record[:ending].source})
+            %td #{record[:ending].timestamp.to_date}

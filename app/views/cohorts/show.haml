@@ -20,10 +20,12 @@
 = render 'text_size_options'
 = render 'thresholds'
 
-.row
-  .col-sm-12.col-sm-offset-4.alert.alert-info.jLoading.hidden.text-center.mt-2
-    Loading clients... please wait.
-    .percent-loaded
+.d-flex
+  .ml-auto.mr-auto.alert.alert-info.jLoading.hidden
+    .text-center.mt-2
+      .loader-text
+        Loading clients ... please wait.
+      .percent-loaded
 
 
 - if @cohort.clients.blank?

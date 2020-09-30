@@ -56,6 +56,17 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           expect(file.active_consent_form?).to be true
         end
 
+        describe 'when a new non-consent form is uploaded' do
+          before :each do
+            second_file.tag_list.add(other_tag.name)
+            second_file.save!
+          end
+
+          it 'does not invalidate the client consent' do
+            expect(file.client.consent_form_valid?).to be true
+          end
+        end
+
         describe 'when a new consent form is uploaded that is not confirmed' do
           before :each do
             file.update(consent_form_confirmed: true)

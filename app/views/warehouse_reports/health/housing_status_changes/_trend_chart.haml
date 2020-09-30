@@ -1,7 +1,8 @@
 .row.mb-6
   .col
-    %h3 Housing Trends (#{pluralize(@report.unique_client_data.count, 'patient')})
-    .jTrendChart
+    %h3 Housing Trends (#{pluralize(@report.unique_client_data.count, 'ACO')})
+    .well
+      .jTrendChart
   .col
     %h3 Housing Trends Key
     .well
@@ -14,5 +15,5 @@
 = content_for :page_js do
   :javascript
     (function($) {
-      var trend_chart = new App.Health.HousingStatus('.jTrendChart', #{@report.data_for_housing_trend_chart.to_json.html_safe});
+      var trend_chart = new App.Health.HousingStatus('.jTrendChart', #{@report.data_for_housing_trend_chart.to_json.html_safe}, { link: '#{detail_warehouse_reports_health_housing_status_changes_path}', params: #{@report_params.to_json.html_safe} });
     })(jQuery);

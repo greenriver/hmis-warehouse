@@ -6,7 +6,6 @@
 
 module ServiceScanning
   class BedNight < Service
-
     def title
       'Bed-Night'
     end
