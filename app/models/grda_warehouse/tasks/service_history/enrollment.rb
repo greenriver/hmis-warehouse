@@ -387,7 +387,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # All other service, Services Only, Other, Days Shelter, Coordinated Assessment, and PH pre-move-in date is
     # neither homeless nor not homeless and receives a nil value and will neither show up in homeless,
     # or non_homeless scopes"?
-    def homeless? date
+    def homeless?(date)
       return true if GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.include?(project.computed_project_type)
       return false if GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph].include?(project.computed_project_type) &&
         (self.MoveInDate.present? && date > self.MoveInDate)
