@@ -420,82 +420,10 @@ def report_list
     ],
     'Health' => [
       {
-        url: 'warehouse_reports/health/overview',
-        name: 'Health Dashboard',
-        description: 'Overview of patient metrics.',
-        limitable: false,
-      },
-      {
         url: 'warehouse_reports/confidential_touch_point_exports',
         name: 'Health-related TouchPoint Export',
         description: 'Export for any Confidential Health-related TouchPoints.',
         limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/member_status_reports',
-        name: 'CP Member Status and Outreach',
-        description: 'Download member status reports',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/claims',
-        name: 'Claim Generation',
-        description: 'Generate and download claims files. (837P)',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/agency_performance',
-        name: 'Agency Performance',
-        description: 'Summary data on agency performance in the BH CP.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/aco_performance',
-        name: 'CP Engagement (122 days) by ACO',
-        description: 'Summary data on ACO performance in the BH CP.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/patient_referrals',
-        name: 'Patient Referrals',
-        description: 'View and update batches of patient referrals by referral date.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/premium_payments',
-        name: 'Process Premium Payments (820)',
-        description: 'Convert 820 files into human-readable Excel files',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/eligibility',
-        name: 'Eligibility Determination',
-        description: 'Generate and download eligibility determination files. (270/271)',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/enrollments',
-        name: 'Health Care Enrollments (834)',
-        description: 'Update patient enrollments.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/housing_status',
-        name: 'Patient Housing Status',
-        description: 'Patient housing status report for ACOs.',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/cp_roster',
-        name: 'CP Rosters',
-        description: 'Upload CP Rosters',
-        limitable: false,
-      },
-      {
-        url: 'warehouse_reports/health/expiring_items',
-        name: 'Expiring Items',
-        description: 'See who has Participation Forms, Release Forms, SSMs, CHAs, and PCTPs that are expiring or expired.',
-        limitable: true,
       },
       {
         url: 'warehouse_reports/health/ssm_exports',
@@ -510,15 +438,105 @@ def report_list
         limitable: true,
       },
       {
-        url: 'warehouse_reports/health/ed_ip_visits',
-        name: 'ED & IP Visits',
-        description: 'Upload and attach ED & IP visits to patient records.',
+        url: 'warehouse_reports/health/encounters',
+        name: 'Encounters',
+        description: 'Export Patient Encounters By Year',
         limitable: true,
       },
+    ],
+    'COVID19' => [
       {
         url: 'warehouse_reports/health/contact_tracing',
         name: 'Contact Tracing',
         description: 'Review and download contact tracing records.',
+        limitable: false,
+      },
+    ],
+    'Partner Performance' => [
+      {
+        url: 'warehouse_reports/health/agency_performance',
+        name: 'Dashboard',
+        description: 'Summary data on agency performance in the BH CP.',
+        limitable: false,
+      },
+    ],
+    'Archive' => [
+      {
+        url: 'warehouse_reports/health/overview',
+        name: 'Pilot Health Dashboard',
+        description: 'Overview of patient metrics.',
+        limitable: false,
+      },
+    ],
+    'ACO Performance Reports' => [
+      {
+        url: 'warehouse_reports/health/aco_performance',
+        name: 'PCTP Signature Tracking by ACO',
+        description: 'Summary data on ACO performance in the BH CP.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/housing_status',
+        name: 'Housing Status by ACO',
+        description: 'Patient housing status report for ACOs.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/housing_status_changes',
+        name: 'Patient Housing Status Changes',
+        description: 'Patient housing status changes report for ACOs.',
+        limitable: false,
+      },
+    ],
+    'Member Status Tracking' => [
+      {
+        url: 'warehouse_reports/health/enrollments',
+        name: '834: MassHealth Enrollments and Disenrollments',
+        description: 'Update patient enrollments.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/eligibility',
+        name: '270/271: Eligibility Determination and ACO Status Changes',
+        description: 'Generate and download eligibility determination files. (270/271)',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/member_status_reports',
+        name: 'Member Status and Outreach',
+        description: 'Download member status reports',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/patient_referrals',
+        name: 'Patient Referrals',
+        description: 'View and update batches of patient referrals by referral date.',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/cp_roster',
+        name: 'CP Rosters',
+        description: 'Upload CP Rosters',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/expiring_items',
+        name: 'Expiring Items',
+        description: 'See who has Participation Forms, Release Forms, SSMs, CHAs, and PCTPs that are expiring or expired.',
+        limitable: true,
+      },
+    ],
+    'BH CP Claims/Payments' => [
+      {
+        url: 'warehouse_reports/health/claims',
+        name: '837: Claim Generation',
+        description: 'Generate and download claims files. (837P)',
+        limitable: false,
+      },
+      {
+        url: 'warehouse_reports/health/premium_payments',
+        name: '820: Process Premium Payments',
+        description: 'Convert 820 files into human-readable Excel files',
         limitable: false,
       },
     ],

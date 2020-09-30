@@ -27,16 +27,21 @@ module PerformanceDashboard::ProjectType::LengthOfTime
     @lengths_of_time ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = time_buckets.map { |b| [b, []] }.to_h
       counted = Set.new
-      services.
-        distinct.
-        select(shs_t[:date]).
-        group(:client_id).
-        count.
-        each do |c_id, date_count|
+      time_counts.each do |c_id, date_count|
         buckets[time_bucket(date_count)] << c_id unless counted.include?(c_id)
         counted << c_id
       end
       buckets
+    end
+  end
+
+  private def time_counts
+    @time_counts ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      services.
+        distinct.
+        select(shs_t[:date]).
+        group(:client_id).
+        count
     end
   end
 
@@ -92,9 +97,9 @@ module PerformanceDashboard::ProjectType::LengthOfTime
         columns: columns,
         categories: categories,
         summary_datum: [
-          { name: 'Max', value: "#{counts.max} days" },
-          { name: 'Average', value: "#{number_with_delimiter(mean(counts))} days" },
-          { name: 'Median', value: "#{number_with_delimiter(median(counts))} days" },
+          { name: 'Max', value: "#{time_counts.values.max} days" },
+          { name: 'Average', value: "#{number_with_delimiter(mean(time_counts.values))} days" },
+          { name: 'Median', value: "#{number_with_delimiter(median(time_counts.values))} days" },
         ],
       }
     end
