@@ -88,18 +88,32 @@ module GrdaWarehouse::WarehouseReports
 
     private def client_homeless_entry_dates
       @client_homeless_entry_dates ||= {}.tap do |dates|
-        # Find the latest entry into homelessness for the client occurring before the housed date
+        # Find the latest entry into homelessness for the client occurring before the housed date,
+        # if there are overlapping homeless enrollments, go to the beginning of the first in the
+        # overlapping bunch
         homeless_entries.order(e_t[:EntryDate].desc).
-          pluck(:id, e_t[:EntryDate], p_t[:ProjectName], p_t[:id]).
-          each do |client_id, date, project_name, project_id|
-            next if client_housed_dates[client_id].exit_date < date
+          pluck(:id, e_t[:EntryDate], ex_t[:ExitDate], p_t[:ProjectName], p_t[:id]).
+          each do |client_id, entry_date, exit_date, project_name, project_id|
+            next if client_housed_dates[client_id].exit_date < entry_date
 
-            dates[client_id] ||= OpenStruct.new(
-              {
-                entry_date: date,
+            existing_date = dates[client_id]
+            # first-time through
+            if existing_date.blank?
+              dates[client_id] = OpenStruct.new(
+                entry_date: entry_date,
                 project_name: project_name,
                 project_id: project_id,
-              }
+              )
+              next
+            end
+            # ongoing enrollment that started earlier
+            # earlier enrollment that overlaps with the later one
+            next unless exit_date.blank? || existing_date.entry_date.between?(entry_date, exit_date)
+
+            dates[client_id] = OpenStruct.new(
+              entry_date: entry_date,
+              project_name: project_name,
+              project_id: project_id,
             )
           end
       end
@@ -108,7 +122,8 @@ module GrdaWarehouse::WarehouseReports
     private def homeless_entries
       client_source.joins(source_enrollments: :project).
         merge(GrdaWarehouse::Hud::Enrollment.homeless.where(e_t[:EntryDate].lt(filter.end))).
-        where(id: clients_housed_scope.select(:id))
+        where(id: clients_housed_scope.select(:id)).
+        left_outer_joins(source_enrollments: :exit)
     end
 
     private def clients_with_permanent_exits
