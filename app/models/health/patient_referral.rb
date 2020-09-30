@@ -12,6 +12,8 @@ module Health
     include PatientReferralImporter
     include ArelHelper
 
+    acts_as_paranoid
+
     phi_patient :patient_id
 
     phi_attr :first_name, Phi::Name
