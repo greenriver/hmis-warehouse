@@ -15,9 +15,10 @@ class WarehouseReportsController < ApplicationController
     # Hide Health reports if health isn't enabled
     all_report_definitions.delete('Health') unless GrdaWarehouse::Config.get(:healthcare_available)
     if current_user.can_view_all_reports?
-      @report_definitions = all_report_definitions
+      report_definitions = all_report_definitions
     else
-      @report_definitions = current_user.reports.group_by(&:report_group)
+      report_definitions = current_user.reports.group_by(&:report_group)
     end
+    @report_definitions = report_definitions.to_a.sort_by { |group, _| group }
   end
 end

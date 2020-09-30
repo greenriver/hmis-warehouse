@@ -4,7 +4,7 @@
 = render '/warehouse_reports/breadcrumbs'
 = render 'filter'
 %p
-  This report includes clients who have exited to a permanent destination, or had a move-in-date at a PH project within the date range specified.  Days homeless is calculated by finding the latest entry into a homeless project that precedes the permanent exit from homelessness.
+  This report includes clients who have exited to a permanent destination, or had a move-in-date at a PH project within the date range specified.  Days homeless is calculated by finding the latest  entry into a homeless project that precedes the permanent exit from homelessness.  If multiple overlapping homeless enrollments preceed the exit, the entry date is used from the ealiest contiguous enrollment.
 - if @report.data.present?
   .d-flex.text-center.justify-content-center.mt-4.mb-6
     .chunk.pr-4.mr-4.mb-4

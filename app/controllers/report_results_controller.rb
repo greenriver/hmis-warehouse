@@ -168,7 +168,7 @@ class ReportResultsController < ApplicationController
 
   private def add_missing_housing_types
     # There are a few required project descriptor fields.  Without these the report won't run cleanly
-    @missing_data[:missing_housing_type] = GrdaWarehouse::Hud::Project.coc_funded.joins(:organization).
+    @missing_data[:missing_housing_type] = GrdaWarehouse::Hud::Project.viewable_by(current_user).coc_funded.joins(:organization).
       includes(:funders).
       where(computed_project_type: [1, 2, 3, 8, 9, 10, 13]).
       where(HousingType: nil, housing_type_override: nil).
@@ -189,7 +189,7 @@ class ReportResultsController < ApplicationController
     @missing_data[:missing_geocode] = GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       includes(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user).coc_funded.hud_residential).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(Geocode: nil, geocode_override: nil).
       pluck(*missing_data_columns.values).
@@ -208,7 +208,7 @@ class ReportResultsController < ApplicationController
     @missing_data[:missing_geography_type] = GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       includes(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user).coc_funded.hud_residential).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(GeographyType: nil, geography_type_override: nil).
       pluck(*missing_data_columns.values).
@@ -227,7 +227,7 @@ class ReportResultsController < ApplicationController
     query = GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       includes(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user).coc_funded.hud_residential).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(Zip: nil, zip_override: nil)
     @missing_data[:missing_zip] = query.pluck(*missing_data_columns.values).
@@ -243,7 +243,7 @@ class ReportResultsController < ApplicationController
   end
 
   private def add_operating_start_dates
-    @missing_data[:missing_operating_start_date] = GrdaWarehouse::Hud::Project.coc_funded.joins(:organization).
+    @missing_data[:missing_operating_start_date] = GrdaWarehouse::Hud::Project.viewable_by(current_user).coc_funded.joins(:organization).
       includes(:funders).
       where(computed_project_type: [1, 2, 3, 8, 9, 10, 13]).
       where(OperatingStartDate: nil, operating_start_date_override: nil).
@@ -261,10 +261,10 @@ class ReportResultsController < ApplicationController
   end
 
   private def add_invalid_funders
-    @missing_data[:invalid_funders] = GrdaWarehouse::Hud::Project.coc_funded.joins(:organization).
+    @missing_data[:invalid_funders] = GrdaWarehouse::Hud::Project.viewable_by(current_user).coc_funded.joins(:organization).
       includes(:funders).
       distinct.
-      # merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+      # merge(GrdaWarehouse::Hud::Project.viewable_by(current_user).coc_funded.hud_residential).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)).
       where(f_t[:Funder].not_in(::HUD.funding_sources.keys)).
       pluck(*missing_data_columns.values).
@@ -283,7 +283,7 @@ class ReportResultsController < ApplicationController
     query = GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       includes(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user).coc_funded.hud_residential).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(CoCCode: nil, hud_coc_code: nil)
     @missing_data[:missing_coc_codes] = query.pluck(*missing_data_columns.values).
@@ -302,7 +302,7 @@ class ReportResultsController < ApplicationController
     query = GrdaWarehouse::Hud::Inventory.joins(project: :organization).
       includes(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.coc_funded.hud_residential).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(current_user).coc_funded.hud_residential).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(InventoryStartDate: nil, inventory_start_date_override: nil)
     @missing_data[:missing_inventory_start_dates] = query.pluck(*missing_data_columns.values).
