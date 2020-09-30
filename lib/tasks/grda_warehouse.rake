@@ -296,6 +296,16 @@ namespace :grda_warehouse do
     GrdaWarehouse::ImportRemover.new(import_id).run!
   end
 
+  desc 'Invalidate incorrectly inherited move-in-date enrollments'
+  task :invalidate_incorrect_move_ins, [] => [:environment, 'log:info_to_stdout'] do
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where(MoveInDate: nil).
+      where.not(RelationshipToHoH: 1).joins(:service_history_enrollment).
+      merge(GrdaWarehouse::ServiceHistoryEnrollment.where.not(move_in_date: nil)).
+      update_all(processed_as: nil)
+
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
+  end
+
   desc 'Force rebuild for homeless enrollments'
   task :force_rebuild_for_homeless_enrollments, [] => [:environment, 'log:info_to_stdout'] do |task, args|
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).invalidate_processing!

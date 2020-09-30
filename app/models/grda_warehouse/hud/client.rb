@@ -1250,40 +1250,44 @@ module GrdaWarehouse::Hud
         hids = service_history_entries.where.not(household_id: [nil, '']).pluck(:household_id, :data_source_id, :project_id).uniq
         if hids.any?
           columns = {
-            household_id: she_t[:household_id].to_sql,
-            date: she_t[:date].to_sql,
-            client_id: she_t[:client_id].to_sql,
-            age: she_t[:age].to_sql,
-            enrollment_group_id: she_t[:enrollment_group_id].to_sql,
-            FirstName: c_t[:FirstName].to_sql,
-            LastName: c_t[:LastName].to_sql,
-            last_date_in_program: she_t[:last_date_in_program].to_sql,
-            data_source_id: she_t[:data_source_id].to_sql,
+            household_id: she_t[:household_id],
+            date: she_t[:date],
+            client_id: she_t[:client_id],
+            age: she_t[:age],
+            enrollment_group_id: she_t[:enrollment_group_id],
+            FirstName: c_t[:FirstName],
+            LastName: c_t[:LastName],
+            first_date_in_program: she_t[:first_date_in_program],
+            last_date_in_program: she_t[:last_date_in_program],
+            move_in_date: she_t[:move_in_date],
+            data_source_id: she_t[:data_source_id],
+            head_of_household: she_t[:head_of_household],
           }
 
           hh_where = hids.map do |hh_id, ds_id, p_id|
             she_t[:household_id].eq(hh_id).
-            and(
-              she_t[:data_source_id].eq(ds_id)
-            ).
-            and(
-              she_t[:project_id].eq(p_id)
-            ).to_sql
+              and(she_t[:data_source_id].eq(ds_id)).
+              and(she_t[:project_id].eq(p_id)).to_sql
           end.join(' or ')
 
-          entries = GrdaWarehouse::ServiceHistoryEnrollment.entry
-            .joins(:client)
-            .where(hh_where)
-            .where.not(client_id: id )
-            .pluck(*columns.values.map{|v| Arel.sql(v)}).map do |row|
+          entries = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(:client).
+            where(Arel.sql(hh_where)).
+            where.not(client_id: id).
+            pluck(*columns.values).map do |row|
               Hash[columns.keys.zip(row)]
             end.uniq
-          entries = entries.map(&:with_indifferent_access).group_by{|m| [m['household_id'], m['data_source_id']]}
+          entries.map(&:with_indifferent_access).group_by do |m|
+            [
+              m['household_id'],
+              m['data_source_id'],
+            ]
+          end
         end
       end
     end
 
-    def household household_id, data_source_id
+    def household(household_id, data_source_id)
       households[[household_id, data_source_id]] if households.present?
     end
 
@@ -1351,6 +1355,7 @@ module GrdaWarehouse::Hud
     def presented_with_family?(after: nil, before: nil)
       return false unless households.present?
       raise 'After required if before specified.' if before.present? && ! after.present?
+
       hh = if before.present? && after.present?
         recent_households = households.select do |_, entries|
           # return true if this client presented with family during the range in question
@@ -1415,21 +1420,25 @@ module GrdaWarehouse::Hud
 
     def email
       return unless hmis_client_response.present?
+
       hmis_client_response['Email']
     end
 
     def home_phone
       return unless hmis_client_response.present?
+
       hmis_client_response['HomePhone']
     end
 
     def cell_phone
       return unless hmis_client_response.present?
+
       hmis_client_response['CellPhone']
     end
 
     def work_phone
       return unless hmis_client_response.present?
+
       work_phone = hmis_client_response['WorkPhone']
       work_phone += " x #{hmis_client_response['WorkPhoneExtension']}" if hmis_client_response['WorkPhoneExtension'].present?
       work_phone
