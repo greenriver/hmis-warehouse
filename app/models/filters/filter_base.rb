@@ -357,7 +357,7 @@ module Filters
     end
 
     def available_coc_codes
-      GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode)
+      GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
     end
 
     # disallow selection > 1 year, and reverse dates
