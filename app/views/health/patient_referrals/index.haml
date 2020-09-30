@@ -29,4 +29,7 @@
           %td= pr.disenrollment_date
 
 .text-right
-  = link_to 'Include Deleted Referrals', client_health_patient_referrals_path(client_id: @client, with_deleted: true)
+  - if params[:with_deleted] == 'true'
+    = link_to 'Hide Deleted Referrals', client_health_patient_referrals_path(client_id: @client)
+  - else
+    = link_to 'Show Deleted Referrals', client_health_patient_referrals_path(client_id: @client, with_deleted: true)
