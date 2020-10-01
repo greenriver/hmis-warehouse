@@ -967,7 +967,7 @@ module GrdaWarehouse::Hud
     end
 
     def visible_because_of_release?(user)
-      any_window_clients = source_clients.map { |sc| sc.data_source.visible_in_window? }.any?
+      any_window_clients = source_clients.map { |sc| sc.data_source&.visible_in_window? }.any?
       user.can_view_client_window? &&
       (
         release_valid? ||
