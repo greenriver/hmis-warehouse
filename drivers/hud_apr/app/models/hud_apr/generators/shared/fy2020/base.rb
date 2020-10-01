@@ -321,6 +321,8 @@ module HudApr::Generators::Shared::Fy2020
 
     # Note, you need to pass in an apr client because the date needs to be calculated
     private def household_adults(apr_client)
+      return [] unless apr_client.household_members
+
       date = [apr_client.first_date_in_program, @report.start_date].max
       apr_client.household_members.select do |member|
         next false if member['dob'].blank?
@@ -344,12 +346,16 @@ module HudApr::Generators::Shared::Fy2020
 
     # accepts a household_members cell from apr_clients
     private def household_veterans(household_members)
+      return [] unless household_members
+
       household_members.select do |member|
         member['veteran_status'] == 1
       end
     end
 
     private def household_non_veterans(household_members)
+      return [] unless household_members
+
       household_members.select do |member|
         member['veteran_status'].zero?
       end
@@ -368,12 +374,16 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def household_chronically_homeless_clients(household_members)
+      return [] unless household_members
+
       household_members.select do |member|
         member['chronic_status'] == true
       end
     end
 
     private def household_non_chronically_homeless_clients(household_members)
+      return [] unless household_members
+
       household_members.select do |member|
         member['chronic_status'] == false
       end
@@ -384,8 +394,10 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def youth_household_members(apr_client)
+      return [] unless apr_client.household_members
+
       date = [apr_client.first_date_in_program, @report.start_date].max
-      apr_client.household_members.select do |member|
+      apr_client.household_members&.select do |member|
         next false if member['dob'].blank?
 
         age = GrdaWarehouse::Hud::Client.age(date: date, dob: member['dob'].to_date)
