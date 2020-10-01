@@ -1,5 +1,5 @@
 require 'rails_helper'
-require_relative 'apr_context.rb'
+require_relative 'apr_context'
 
 RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionFive, type: :model do
   include_context 'apr context'
@@ -79,6 +79,6 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionFive, type: :model do
   end
 
   def report_result
-    HudReports::ReportInstance.last
+    ::HudReports::ReportInstance.last
   end
 end

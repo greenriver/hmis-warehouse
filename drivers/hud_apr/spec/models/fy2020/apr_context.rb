@@ -1,4 +1,4 @@
-RSpec.configure do |config|
+RSpec.configure do |config| # rubocop:disable Lint/UnusedBlockArgument
   RSpec.configuration.fixpoints_path = 'drivers/hud_apr/spec/fixpoints'
 end
 
@@ -25,7 +25,7 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
   end
 
   def report_result
-    HudReports::ReportInstance.last
+    ::HudReports::ReportInstance.last
   end
 
   def default_setup
@@ -70,7 +70,7 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
   def cleanup
     # Because we are only running the import once, we have to do our own DB and file cleanup
     GrdaWarehouse::Utility.clear!
-    if @delete_later
+    if @delete_later # rubocop:disable Style/SafeNavigation
       @delete_later.each do |path|
         FileUtils.rm_rf(path)
       end

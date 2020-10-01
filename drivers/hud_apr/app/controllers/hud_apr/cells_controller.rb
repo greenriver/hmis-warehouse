@@ -15,8 +15,8 @@ module HudApr
       @table = @report.valid_table_name(params[:table])
       @clients = HudApr::Fy2020::AprClient.
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(HudReports::ReportInstance.where(id: @report.id))
+        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
+        merge(::HudReports::ReportInstance.where(id: @report.id))
     end
   end
 end
