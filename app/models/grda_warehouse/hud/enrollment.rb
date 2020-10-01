@@ -10,12 +10,13 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HudSharedScopes
     include TsqlImport
+    include NotifierConfig
     include ::HMIS::Structure::Enrollment
 
+    attr_accessor :source_id
+
     self.table_name = 'Enrollment'
-    self.hud_key = :EnrollmentID
-    acts_as_paranoid column: :DateDeleted
-    include NotifierConfig
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     alias_attribute :date, :EntryDate
 
@@ -154,9 +155,21 @@ module GrdaWarehouse::Hud
       open_during_range(date..date)
     end
 
-    scope :heads_of_households, -> {
+    scope :opened_during_range, ->(range) do
+      where(EntryDate: range)
+    end
+
+    scope :with_permanent_exit, ->(range) do
+      joins(:exit).merge(GrdaWarehouse::Hud::Exit.permanent.closed_within_range(range))
+    end
+
+    scope :housed, ->(range) do
+      residential_non_homeless.where(MoveInDate: range)
+    end
+
+    scope :heads_of_households, -> do
       where(RelationshipToHoH: 1)
-    }
+    end
 
     ADDRESS_FIELDS = %w( LastPermanentStreet LastPermanentCity LastPermanentState LastPermanentZIP ).map(&:to_sym).freeze
 

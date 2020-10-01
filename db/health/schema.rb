@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_29_205716) do
+ActiveRecord::Schema.define(version: 2020_09_30_152001) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -38,6 +38,7 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.boolean "claimed", default: false, null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.datetime "deleted_at"
   end
 
   create_table "agency_users", id: :serial, force: :cascade do |t|
@@ -487,6 +488,7 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer "updated_patients"
+    t.jsonb "processing_errors", default: []
   end
 
   create_table "epic_careplans", id: :serial, force: :cascade do |t|
@@ -922,6 +924,7 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.boolean "current", default: false, null: false
     t.boolean "contributing", default: false, null: false
     t.boolean "derived_referral", default: false
+    t.datetime "deleted_at"
   end
 
   create_table "patients", id: :serial, force: :cascade do |t|
@@ -958,8 +961,10 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.string "aco_name"
     t.string "previous_aco_name"
     t.boolean "invalid_id", default: false
+    t.bigint "nurse_care_manager_id"
     t.index ["client_id"], name: "patients_client_id_constraint", unique: true, where: "(deleted_at IS NULL)"
     t.index ["medicaid_id"], name: "index_patients_on_medicaid_id"
+    t.index ["nurse_care_manager_id"], name: "index_patients_on_nurse_care_manager_id"
   end
 
   create_table "premium_payments", id: :serial, force: :cascade do |t|

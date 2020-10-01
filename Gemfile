@@ -205,13 +205,13 @@ group :development do
   gem 'web-console'
   # gem 'quiet_assets'
 
-  gem 'list_matcher', require: false   # for the forms:desmush rake task
+  gem 'list_matcher', require: false # for the forms:desmush rake task
 
   gem 'ruby-prof'
   gem 'memory_profiler'
   gem 'rack-mini-profiler', require: false
   gem 'flamegraph'
-  gem 'stackprof'     # For Ruby MRI 2.1+
+  gem 'stackprof' # For Ruby MRI 2.1+
   gem 'active_record_query_trace'
   # gem 'rb-readline'
   gem 'overcommit'

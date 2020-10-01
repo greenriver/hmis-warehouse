@@ -1,0 +1,28 @@
+.text-right.mb-4
+  = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+    %i.icon-download2
+    Download Excel
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Client
+        %th Intake Start
+        %th Last Case Management Note
+        %th Last Referral
+        %th Last Direct Financial Assistance
+        %th Last Follow-Up
+
+    %tbody
+      - @report.clients.each do |client|
+        %tr
+          %td= link_to client.client.name, client_youth_intakes_path(client.client)
+          %td= client.intake.engagement_date
+          - highlight_class = if client.case_mangement.present? && client.case_mangement == client.max_date then 'table-warning' else '' end
+          %td{class: highlight_class}= client.case_mangement
+          - highlight_class = if client.referral.present? && client.referral == client.max_date then 'table-warning' else '' end
+          %td{class: highlight_class}= client.referral
+          - highlight_class = if client.dfa.present? && client.dfa == client.max_date then 'table-warning' else '' end
+          %td{class: highlight_class}= client.dfa
+          - highlight_class = if client.follow_up.present? && client.follow_up == client.max_date then 'table-warning' else '' end
+          %td{class: highlight_class}= client.follow_up

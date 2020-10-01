@@ -1,11 +1,42 @@
 :ruby
   key = :returns
-  detail_params = @report.detail_params.merge({ key: key, returns: true })
+  detail_params = @report.detail_params.deep_merge(filters: { key: key, returns: true })
+  client_counts = { report: @report.returned_total_count, comparison: @comparison.returned_total_count}
   columns = [@report.returns_data_for_chart[:columns]]
+  avg_columns = [@report.returns_data_for_chart[:avg_columns]]
+
   if @report.include_comparison?
     columns << @comparison.returns_data_for_chart[:columns]
+    avg_columns << @comparison.returns_data_for_chart[:avg_columns]
   end
   categories = @report.returns_data_for_chart[:categories]
 
+  pie_chart_options = avg_columns.map do |avg_column|
+    {
+      params: detail_params,
+      title: 'Returned vs. Did not Return',
+      columns: avg_column,
+      options: {
+        height: 400,
+        follow_link: show_client_details?,
+        legendPosition: 'bottom',
+      }
+    }
+  end
 
-= render 'performance_dashboards/project_type/base', title: "Returns to Homelessness", key: key, sub_keys: @report.returns_bucket_titles.invert, chart_height: 500, desc: "Lenth of time between a client's first exit during the period to a permanent destination and the next entry into ES, SH, or SO that occurred at least 7 days after the exit. Re-entry looks forward to the current date regardless of chosen periods.", detail_params: detail_params, comparison_params: nil, columns: columns, categories: categories
+  locals = {
+    title: "Returns to Homelessness",
+    key: key,
+    sub_keys: @report.returns_bucket_titles.invert,
+    chart_height: 500,
+    desc: "Lenth of time between a client's first exit during the period to a permanent destination and the next entry into ES, SH, or SO that occurred at least 7 days after the exit. Re-entry looks forward to the current date regardless of chosen periods.",
+    detail_params: detail_params,
+    comparison_params: nil,
+    columns: columns,
+    categories: categories,
+    client_counts: client_counts,
+    count_type: :returned,
+    pie_chart_options: pie_chart_options,
+  }
+
+= render 'performance_dashboards/project_type/base', locals

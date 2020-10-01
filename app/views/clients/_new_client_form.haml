@@ -20,8 +20,9 @@
         - @existing_matches.each do |client|
           %tr
             %td
+              - ds_id = client.data_source.id
               - sn = client.data_source.short_name
-              %span{class: "ds-#{sn.downcase}"}
+              %span{class: "ds-color--#{ds_id}"}
                 = sn
             %td
               - if current_user.can_edit_clients?

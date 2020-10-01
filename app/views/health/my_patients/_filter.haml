@@ -19,30 +19,27 @@
       .radio
         - active = params[:filter].blank? || params[:filter][:population] == 'all'
         %label{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :all, autocomplete: :off, checked: active} 
+          %input{type: :radio, name: 'filter[population]', value: :all, autocomplete: :off, checked: active}
           All
       .radio
         - active = params[:filter].present? && params[:filter][:population] == 'not_engaged'
         %label{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :not_engaged, autocomplete: :off, checked: active} 
+          %input{type: :radio, name: 'filter[population]', value: :not_engaged, autocomplete: :off, checked: active}
           Not engaged
       .radio
         - active = params[:filter].present? && params[:filter][:population] == 'no_activities'
         %label{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :no_activities, autocomplete: :off, checked: active} 
+          %input{type: :radio, name: 'filter[population]', value: :no_activities, autocomplete: :off, checked: active}
           0 Recent Qualifying Activities
       .radio
         - active = params[:filter].present? && params[:filter][:population] == 'engagement_ending'
         %label{class: "#{active ? :active : ''}"}
-          %input{type: :radio, name: 'filter[population]', value: :engagement_ending, autocomplete: :off, checked: active} 
+          %input{type: :radio, name: 'filter[population]', value: :engagement_ending, autocomplete: :off, checked: active}
           Engagement Period Ending
       %label Care Coordinator
-      .select
-        %select{name: 'filter[user]'}
-          %option{value: ''} All
-          %option{value: current_user.id, selected: params[:filter].try(:[], :user) == current_user.id ? :selected : ''}= current_user.name
-          - current_user.care_coordinators.each do |u|
-            %option{value: u.id, selected: params[:filter].try(:[], :user) == u.id ? :selected : ''}= u.name
+      - selection_candidates = [current_user] + current_user.care_coordinators
+      = select_tag('filter[user]', options_from_collection_for_select(selection_candidates.uniq, :id, :name, params.dig(:filter, :user)), include_blank: 'All', class: 'select2', style: 'width: 100%;')
+
       .o-filtration__actions.form__actions
         = link_to health_my_patients_path, class:'btn btn-secondary' do
           %span.icon-cross.icon-inline

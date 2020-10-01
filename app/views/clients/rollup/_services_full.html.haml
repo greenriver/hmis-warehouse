@@ -1,6 +1,6 @@
 - show_confidential_programs = can_view_confidential_enrollment_details?
 = cache(['clients', 'services_full', @client, can_view_projects?, controller_path, current_user], expires_in: 4.hours) do
-  - services = @client.source_enrollment_services.bed_night.uniqueness_constraint.descending.preload( :client, :enrollment, project: :organization )
+  - services = @client.source_enrollment_services.joins(:client).merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).bed_night.uniqueness_constraint.descending.preload( :client, :enrollment, project: :organization )
   - projects = services.map(&:project).compact.uniq.sort_by{ |m| m.organization_and_name(include_confidential_names: show_confidential_programs)}.each_with_index.map{ |p, i| [ p, i ] }.to_h
   - if services.any?
     .table-responsive(style="max-height:500px;overflow-y:auto;")
@@ -18,7 +18,8 @@
                 - services.each do |service|
                   - project = service.project
                   .client__full-service-project
-                    %span.id-sqr.br{ 'data-id' => service.client.id }
+                    %span
+                      .ds{class: "ds-color-#{service.data_source_id}"}= ds_short_name_for(service.client.id)
                     %span{ data: { toggle: 'tooltip', title: project&.organization_and_name(include_confidential_names: show_confidential_programs), project: projects[project] } }
                       = GrdaWarehouse::Hud::Project.confidentialize(name: project&.name) || 'Unable to determine project name'
                   .text-right

@@ -1,7 +1,7 @@
 - key = :enrolled
-- detail_params = @report.detail_params.merge({key: key, breakdown: breakdown}).merge(options)
+- detail_params = @report.detail_params.deep_merge(filters: {key: key, breakdown: breakdown}).deep_merge(filters: options)
 - comparison_params = detail_params.dup.to_h
-- comparison_params.merge!({ start_date: @comparison.start_date, end_date: @comparison.end_date })
+- comparison_params.deep_merge!(filters: { start_date: @comparison.start_date, end_date: @comparison.end_date })
 - client_counts = { report: @report.enrolled_total_count, comparison: @comparison.enrolled_total_count}
 - if defined?(chart_class_slug)
   - chart_class = "#{key}-#{chart_class_slug}-chart"

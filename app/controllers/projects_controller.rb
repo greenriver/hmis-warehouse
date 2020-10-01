@@ -15,7 +15,7 @@ class ProjectsController < ApplicationController
   def index
     # search
     @projects = if params[:q].present?
-      project_source.text_search(params[:q])
+      project_scope.text_search(params[:q])
     else
       project_scope
     end
@@ -80,7 +80,7 @@ class ProjectsController < ApplicationController
   end
 
   private def set_project
-    @project = project_source.
+    @project = project_scope.
       includes(:organization, :geographies, :inventories, :funders).
       find(params[:id].to_i)
   end

@@ -458,6 +458,8 @@ module HUD
       44 => 'HUD: CoC - Joint Component TH/RRH',
       45 => 'VA: Grant Per Diem - Case Management/Housing Retention',
       46 => 'Local or Other Funding Source',
+      47 => 'HUD: ESG – CV',
+      48 => 'HUD: HOPWA – CV',
     }
   end
 
@@ -555,28 +557,32 @@ module HUD
 
   # 3.1.5
   def name_data_quality(id, reverse = false)
-    map = {
+    _translate(name_data_quality_options, id, reverse)
+  end
+
+  def name_data_quality_options
+    {
       1 => 'Full name reported',
       2 => 'Partial, street name, or code name reported',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.2.2
   def ssn_data_quality(id, reverse = false)
-    map = {
+    _translate(ssn_data_quality_options, id, reverse)
+  end
+
+  def ssn_data_quality_options
+    {
       1 => 'Full SSN reported',
       2 => 'Approximate or partial SSN reported',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.3.2
@@ -916,6 +922,23 @@ module HUD
     end
   end
 
+  def situation_type(id)
+    return 'Temporary or Permanent' if temporary_and_permanent_housing_situations(as: :prior).include?(id)
+    return 'Institutional' if institutional_situations(as: :prior).include?(id)
+    return 'Other' if homeless_situations(as: :prior).include?(id)
+
+    'Other'
+  end
+
+  def destination_type(id)
+    return 'Permanent' if permanent_destinations.include?(id)
+    return 'Temporary' if temporary_destinations.include?(id)
+    return 'Institutional' if institutional_destinations.include?(id)
+    return 'Homeless' if homeless_destinations.include?(id)
+
+    'Other'
+  end
+
   def permanent_destinations(version: nil)
     case version
     when '2020', nil # From SPM 3.1 definition
@@ -953,6 +976,7 @@ module HUD
         2,
         25,
         32,
+        29,
       ]
     end
   end
@@ -963,6 +987,10 @@ module HUD
 
   def other_destinations(version: nil)
     other_situations(as: :destination, version: version)
+  end
+
+  def homeless_destinations(version: nil)
+    homeless_situations(as: :destination, version: version)
   end
 
   # 3.15.1

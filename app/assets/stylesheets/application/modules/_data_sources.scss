@@ -50,6 +50,10 @@
 {
   background-color: $vi-spdat;
 }
+
+// provides .ds-color-1 .. .ds-color-50
+@include many-colors('ds-color');
+
 .btn-hmis
 {
   font-weight: normal;

@@ -6,7 +6,6 @@
 
 module VeteransSubPop::GrdaWarehouse::WarehouseReports::Dashboard::Veterans
   class ActiveClients < GrdaWarehouse::WarehouseReports::Dashboard::Active
-
     def history_scope(scope)
       scope.veterans
     end

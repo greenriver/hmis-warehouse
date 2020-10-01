@@ -42,7 +42,13 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       LastName: -> (value) { fake_name(type: :last) },
       SSN: -> (value) { fake_ssn(value).to_s[0,9] if value.present?},
       DOB: -> (value) {
-        Faker::Date.between(from: 70.years.ago, to: 1.years.ago) if value.present?
+        value = value&.to_date
+        if value.present? && value.is_a?(Date)
+          # If we have a birthday, shift it some random amount, but not so much that we
+          # drastically change life stage
+          value + (-600..600).to_a.sample
+          # Faker::Date.between(from: 70.years.ago, to: 1.years.ago)
+        end
       },
       PersonalID: -> (value) { Digest::MD5.hexdigest(value&.to_s) },
       UserID: -> (value) { Faker::Internet.user_name(specifier: 5..8) },

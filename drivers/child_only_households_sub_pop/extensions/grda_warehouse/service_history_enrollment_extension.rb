@@ -4,7 +4,7 @@ module ChildOnlyHouseholdsSubPop::GrdaWarehouse
 
     included do
       scope :child_only_households, -> do
-         where(she_t[:age].lt(18).and(she_t[:other_clients_between_18_and_25].eq(0)).and(she_t[:other_clients_over_25].eq(0)))
+        where(she_t[:age].lt(18).and(she_t[:other_clients_between_18_and_25].eq(0)).and(she_t[:other_clients_over_25].eq(0)))
       end
 
       scope :parenting_juvenile, -> do

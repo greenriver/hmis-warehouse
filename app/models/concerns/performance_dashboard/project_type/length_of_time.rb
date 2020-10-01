@@ -9,10 +9,12 @@ module PerformanceDashboard::ProjectType::LengthOfTime
 
   def services
     open_enrollments.joins(:service_history_services).
-      merge(GrdaWarehouse::ServiceHistoryService.service_between(
-              start_date: @end_date - 3.years,
-              end_date: @end_date,
-            ))
+      merge(
+        GrdaWarehouse::ServiceHistoryService.service_between(
+          start_date: @end_date - 3.years,
+          end_date: @end_date,
+        ),
+      )
   end
 
   # Note Handle PH differently
@@ -22,15 +24,10 @@ module PerformanceDashboard::ProjectType::LengthOfTime
 
   # Fetch service during range, sum unique days within 3 years of end date
   def lengths_of_time
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @lengths_of_time ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = time_buckets.map { |b| [b, []] }.to_h
       counted = Set.new
-      services.
-        distinct.
-        select(shs_t[:date]).
-        group(:client_id).
-        count.
-        each do |c_id, date_count|
+      time_counts.each do |c_id, date_count|
         buckets[time_bucket(date_count)] << c_id unless counted.include?(c_id)
         counted << c_id
       end
@@ -38,16 +35,20 @@ module PerformanceDashboard::ProjectType::LengthOfTime
     end
   end
 
-  private def time_buckets
-    [
-      :less_than_thirty,
-      :thirty_to_sixty,
-      :sixty_to_ninety,
-      :ninety_to_one_twenty,
-      :one_twenty_to_one_eighty,
-      :one_eighty_to_one_year,
-      :more_than_a_year,
-    ].freeze
+  private def time_counts
+    @time_counts ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      services.
+        distinct.
+        select(shs_t[:date]).
+        group(:client_id).
+        count
+    end
+  end
+
+  def enrolled_total_count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      lengths_of_time.values.flatten.count
+    end
   end
 
   def time_bucket_titles
@@ -60,6 +61,10 @@ module PerformanceDashboard::ProjectType::LengthOfTime
       one_eighty_to_one_year: '181 to 365 days',
       more_than_a_year: '> 1 year',
     }.freeze
+  end
+
+  private def time_buckets
+    time_bucket_titles.keys
   end
 
   def time_bucket(time)
@@ -83,15 +88,37 @@ module PerformanceDashboard::ProjectType::LengthOfTime
   def lengths_of_time_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       columns = [date_range_words]
-      columns += lengths_of_time.values.map(&:count)
+      counts = lengths_of_time.values.map(&:count)
+      columns += counts
       categories = lengths_of_time.keys.map do |k|
         time_bucket_titles[k]
       end
       {
         columns: columns,
         categories: categories,
+        summary_datum: [
+          { name: 'Max', value: "#{time_counts.values.max} days" },
+          { name: 'Average', value: "#{number_with_delimiter(mean(time_counts.values))} days" },
+          { name: 'Median', value: "#{number_with_delimiter(median(time_counts.values))} days" },
+        ],
       }
     end
+  end
+
+  def mean(values)
+    return 0 unless values.any?
+
+    values = values.map(&:to_f)
+    (values.sum.to_f / values.length).round
+  end
+
+  def median(values)
+    return 0 unless values.any?
+
+    values = values.map(&:to_f)
+    mid = values.size / 2
+    sorted = values.sort
+    values.length.odd? ? sorted[mid] : (sorted[mid] + sorted[mid - 1]) / 2
   end
 
   private def length_of_time_details(options)

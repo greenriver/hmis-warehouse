@@ -26,6 +26,7 @@ AllCops:
     - 'app/models/weather/**/*.rb'
     - 'app/renderers/**/*.rb'
     - 'app/uploaders/**/*.rb'
+    - 'drivers/**/*.rb'
     - 'lib/**/*.rb'
 
   Exclude:
@@ -34,6 +35,9 @@ AllCops:
     - 'script/**/*'
     - 'bin/{rails,rake}'
     - 'app/assets/**/*'
+    - 'bin/db_prep'
+
+  NewCops: disable
 
 # We don't care about method length, since we check method cyclomatic
 # complexity.
@@ -78,6 +82,7 @@ Style/ClassAndModuleChildren:
     - 'app/models/concerns/**/*'
     - 'app/controllers/**/*'
     - 'app/jobs/**/*'
+    - 'drivers/**/*'
 
 Style/ConditionalAssignment:
   Enabled: false
@@ -177,36 +182,32 @@ Style/AsciiComments:
 Style/OneLineConditional:
   Enabled: false
 
-# After 1.0 this will just be
-# AllCops:
-#   NewCops: enable
+# Layout/EmptyLinesAroundAttributeAccessor:
+#   Enabled: true
 
-Layout/EmptyLinesAroundAttributeAccessor:
-  Enabled: true
+# Layout/SpaceAroundMethodCallOperator:
+#   Enabled: true
 
-Layout/SpaceAroundMethodCallOperator:
-  Enabled: true
+# Lint/DeprecatedOpenSSLConstant:
+#   Enabled: true
 
-Lint/DeprecatedOpenSSLConstant:
-  Enabled: true
+# Lint/RaiseException:
+#   Enabled: true
 
-Lint/RaiseException:
-  Enabled: true
+# Lint/StructNewOverride:
+#   Enabled: true
 
-Lint/StructNewOverride:
-  Enabled: true
+# Style/ExponentialNotation:
+#   Enabled: true
 
-Style/ExponentialNotation:
-  Enabled: true
+# Style/HashEachMethods:
+#   Enabled: true
 
-Style/HashEachMethods:
-  Enabled: true
+# Style/HashTransformKeys:
+#   Enabled: true
 
-Style/HashTransformKeys:
-  Enabled: true
+# Style/HashTransformValues:
+#   Enabled: true
 
-Style/HashTransformValues:
-  Enabled: true
-
-Style/SlicingWithRange:
-  Enabled: true
+# Style/SlicingWithRange:
+#   Enabled: true

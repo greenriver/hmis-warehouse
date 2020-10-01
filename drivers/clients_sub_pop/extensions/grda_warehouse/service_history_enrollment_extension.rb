@@ -4,7 +4,7 @@ module ClientsSubPop::GrdaWarehouse
 
     included do
       scope :clients, -> do
-         current_scope
+        current_scope
       end
 
       scope :all_clients, -> do

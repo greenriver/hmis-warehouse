@@ -12,9 +12,9 @@ module WarehouseReports::Hud
 
     # This logic is based on 9.2 from the 2020 LSA
     def index
-      @enrollments = GrdaWarehouse::Hud::Enrollment.
+      @enrollments = GrdaWarehouse::Hud::Enrollment.heads_of_households.
         where(e_t[:EntryDate].lt(@filter.end)).
-        joins(:client, project: :project_cocs).
+        joins(project: :project_cocs, client: :destination_client).
         left_outer_joins(:exit).
         preload(:exit, project: :project_cocs, client: :destination_client).
         merge(
@@ -34,6 +34,7 @@ module WarehouseReports::Hud
           or(ex_t[:ExitDate].lt(e_t[:MoveInDate])).
           or(ex_t[:Destination].in(HUD.permanent_destinations).and(e_t[:MoveInDate].eq(nil))),
         ).
+        distinct.
         order(EntryDate: :desc)
       respond_to do |format|
         format.html do
@@ -76,6 +77,7 @@ module WarehouseReports::Hud
       params.require(:filter).permit(
         :start,
         :end,
+        project_ids: [],
         coc_codes: [],
       )
     end

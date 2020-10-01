@@ -6,9 +6,12 @@
 
 module ServiceScanning
   class OtherService < Service
-
     def title
       "Other Service: #{other_type}"
+    end
+
+    def title_only
+      'Other Service'
     end
 
     def slug

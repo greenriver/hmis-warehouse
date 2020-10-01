@@ -12,6 +12,7 @@ RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
     process('enrollment.txt')
 
     expect(Health::PatientReferral.current.count).to eq(referrals + 1)
+    expect(Health::PatientReferral.current.where(record_status: 'A').count).to eq(referrals + 1)
   end
 
   it 'does not duplicate enrollments' do
@@ -35,6 +36,7 @@ RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
     process('disenrollment.txt')
 
     expect(Health::PatientReferral.pending_disenrollment.count).to eq(pending + 1)
+    expect(Health::PatientReferral.pending_disenrollment.where(record_status: 'I').count).to eq(pending + 1)
   end
 
   it 're-enrolls a disenrolled patient' do
@@ -46,6 +48,35 @@ RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
     process('reenrollment.txt')
 
     expect(Health::PatientReferral.pending_disenrollment.count).to eq(pending - 1)
+  end
+
+  it 'doesn\'t update a disenrolled patient' do
+    process('enrollment.txt')
+    process('disenrollment.txt')
+
+    referrals = Health::PatientReferral.count
+
+    process('update_name.txt')
+
+    expect(Health::PatientReferral.count).to eq(referrals)
+  end
+
+  it 'ignores a re-enrollment that is too soon' do
+    process('enrollment.txt')
+    process('disenrollment.txt')
+
+    Health::PatientReferral.pending_disenrollment.each do |referral|
+      referral.update(
+        removal_acknowledged: true,
+        disenrollment_date: referral.pending_disenrollment_date,
+        pending_disenrollment_date: nil,
+      )
+    end
+
+    process('reenrollment.txt')
+
+    expect(Health::PatientReferral.rejection_confirmed.count).to eq(1)
+    expect(Health::Enrollment.last.processing_errors.length).to be > 0
   end
 
   it 'updates a patient' do
@@ -77,6 +108,16 @@ RSpec.describe Health::ProcessEnrollmentChangesJob, type: :model do
     expect(Health::PatientReferral.where(medicaid_id: '100000000999').count).to eq(2)
     expect(Health::PatientReferral.where(medicaid_id: '100000000999', current: true).count).to eq(1)
     expect(Health::PatientReferral.find_by(medicaid_id: '100000000999', current: true).agency_id).to eq(nil)
+  end
+
+  describe 'conflicting medicaid ids' do
+    let!(:existing_patient) { create :patient, medicaid_id: '100000000999' }
+
+    it 'identifies conflicting medicaid ids' do
+      process('enrollment.txt')
+
+      expect(Health::Enrollment.last.processing_errors.length).to be > 0
+    end
   end
 
   def process(fixture)

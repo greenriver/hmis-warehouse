@@ -22,6 +22,8 @@ PreCommit:
     enabled: true
   BundleAudit:
     enabled: true
+    flags:
+      - --ignore CVE-2015-9284
   RuboCop:
     enabled: true
     on_warn: fail # Treat all warnings as failures

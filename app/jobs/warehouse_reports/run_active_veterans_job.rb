@@ -53,11 +53,13 @@ module WarehouseReports
         data_sources = client.source_clients.map do |sc|
           GrdaWarehouse::DataSource.short_name(sc.data_source_id) if sc.VeteranStatus == 1
         end
+        data_source_ids = client.source_clients.map(&:data_source_id)
         client.attributes.merge(
           name: client.name,
           enrollments: enrollments[client.id],
           first_service_history: client.date_of_first_service,
           data_sources: data_sources.uniq.compact,
+          data_source_ids: data_source_ids.uniq.compact,
           days_served: client.processed_service_history.days_served,
           first_date_served: client.processed_service_history.first_date_served,
         )
@@ -90,8 +92,9 @@ module WarehouseReports
         project_name: :project_name,
         project_type: service_history_source.project_type_column,
         data_source_id: :data_source_id,
-        PersonalID: enrollment_table[:PersonalID].as('PersonalID').to_sql,
-        ds_short_name: ds_table[:short_name].as('short_name').to_sql,
+        PersonalID: enrollment_table[:PersonalID].as('PersonalID'),
+        ds_short_name: ds_table[:short_name].as('short_name'),
+        ds_id: ds_table[:id].as('ds_id'),
       }
     end
 

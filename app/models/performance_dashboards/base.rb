@@ -6,6 +6,7 @@
 
 class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   include ArelHelper
+  include ActionView::Helpers::NumberHelper
 
   # Initialize dashboard model.
   #
@@ -83,6 +84,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
       build_coc_control_section,
       build_household_control_section,
       build_demographics_control_section,
+      build_enrollment_control_section,
     ]
   end
 
@@ -129,6 +131,7 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
       section.add_control(id: 'data_sources', value: data_source_names)
       section.add_control(id: 'organizations', value: organization_names)
       section.add_control(id: 'projects', value: project_names)
+      section.add_control(id: 'project_groups', value: project_groups)
     end
   end
 
@@ -172,13 +175,22 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     end
   end
 
+  protected def build_enrollment_control_section
+    return if multiple_project_types?
+
+    ::Filters::UiControlSection.new(id: 'enrollment').tap do |section|
+      section.add_control(id: 'prior_living_situations', value: chosen_prior_living_situations)
+      section.add_control(id: 'destinations', value: chosen_destinations)
+    end
+  end
+
   private def cache_slug
     @filter.attributes
   end
 
   def detail_params
-    @filter.to_h.except(:user).
-      merge(comparison_pattern: :no_comparison_period)
+    @filter.for_params.
+      deep_merge(filters: { comparison_pattern: :no_comparison_period })
   end
 
   def self.detail_method(key)
@@ -210,9 +222,21 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     {
       under_eighteen: '< 18',
       eighteen_to_twenty_four: '18 - 24',
-      twenty_five_to_sixty_one: '25 - 61',
+      twenty_five_to_twenty_nine: '25 - 29',
+      thirty_to_thirty_nine: '30 - 39',
+      forty_to_forty_nine: '40 - 49',
+      fifty_to_fifty_nine: '50 - 59',
+      sixty_to_sixty_one: '60 - 61',
       over_sixty_one: '62+',
     }.invert.freeze
+  end
+
+  def available_prior_living_situations
+    HUD.living_situations.invert
+  end
+
+  def available_destinations
+    HUD.valid_destinations.invert
   end
 
   def available_data_sources_for_select
@@ -237,6 +261,14 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
   def project_names
     available_projects_for_select.values.flatten(1).select { |_, id| @filter.project_ids.include?(id) }&.map(&:first)
+  end
+
+  def project_groups
+    available_project_groups_for_select.select { |_, id| @filter.project_group_ids.include?(id) }&.map(&:first)
+  end
+
+  def available_project_groups_for_select
+    GrdaWarehouse::ProjectGroup.options_for_select(user: @filter.user)
   end
 
   def available_cocs_for_select
@@ -307,6 +339,18 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     end
   end
 
+  def chosen_prior_living_situations
+    @filter.prior_living_situation_ids.map do |id|
+      available_prior_living_situations.invert[id]
+    end.join(', ')
+  end
+
+  def chosen_destinations
+    @filter.destination_ids.map do |id|
+      available_destinations.invert[id]
+    end.join(', ')
+  end
+
   def self.comparison_patterns
     {
       no_comparison_period: 'None',
@@ -345,6 +389,8 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     scope = filter_for_organizations(scope)
     scope = filter_for_projects(scope)
     scope = filter_for_funders(scope)
+    scope = filter_for_prior_living_situation(scope)
+    scope = filter_for_destination(scope)
     scope
   end
 
@@ -387,7 +433,11 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     ages = []
     ages += (0..17).to_a if @age_ranges.include?(:under_eighteen)
     ages += (18..24).to_a if @age_ranges.include?(:eighteen_to_twenty_four)
-    ages += (25..61).to_a if @age_ranges.include?(:twenty_five_to_sixty_one)
+    ages += (25..29).to_a if @age_ranges.include?(:twenty_five_to_twenty_nine)
+    ages += (30..39).to_a if @age_ranges.include?(:thirty_to_thirty_nine)
+    ages += (40..49).to_a if @age_ranges.include?(:forty_to_forty_nine)
+    ages += (50..59).to_a if @age_ranges.include?(:fifty_to_fifty_nine)
+    ages += (60..61).to_a if @age_ranges.include?(:sixty_to_sixty_one)
     ages += (62..110).to_a if @age_ranges.include?(:over_sixty_one)
     scope.where(she_t[:age].in(ages))
   end
@@ -432,9 +482,15 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   private def filter_for_projects(scope)
-    return scope if @filter.project_ids.blank?
+    return scope if @filter.project_ids.blank? && @filter.project_group_ids.blank?
 
-    scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
+    project_ids = @filter.project_ids || []
+    project_groups = GrdaWarehouse::ProjectGroup.find(@filter.project_group_ids)
+    project_groups.each do |group|
+      project_ids += group.projects.pluck(:id)
+    end
+
+    scope.in_project(project_ids.uniq).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
   end
 
   private def filter_for_funders(scope)
@@ -461,6 +517,18 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
 
   private def filter_for_sub_population(scope)
     scope.public_send(@sub_population)
+  end
+
+  private def filter_for_prior_living_situation(scope)
+    return scope if @filter.prior_living_situation_ids.blank?
+
+    scope.where(housing_status_at_entry: @filter.prior_living_situation_ids)
+  end
+
+  private def filter_for_destination(scope)
+    return scope if @filter.destination_ids.blank?
+
+    scope.where(destination: @filter.destination_ids)
   end
 
   def date_range_words

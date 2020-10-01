@@ -1,7 +1,7 @@
 .d-flex.align-items-end
   %h2.mr-auto.c-heading.c-heading--full-bleed Overall Summary
   - if @pdf_export
-    .ml-4.mb-2= render 'performance_dashboards/pdf_download', export: @pdf_export
+    .ml-4.mb-2= render 'performance_dashboards/report_download', export: @pdf_export, excel_download_path: download_performance_dashboards_overview_index_path({filters: filter_params})
 .o-container--full-bleed.o-container--featured
 
   .table-responsive

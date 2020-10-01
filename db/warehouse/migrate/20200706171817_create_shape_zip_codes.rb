@@ -2,7 +2,7 @@ class CreateShapeZipCodes < ActiveRecord::Migration[5.2]
   def change
     # On production and staging, only the superuser can add extensions, so this
     # will always fail there. We add the extension manually ahead of time.
-    if Rails.env.development?
+    if Rails.env.development? || Rails.env.test?
       reversible do |r|
         r.up do
           execute "CREATE EXTENSION IF NOT EXISTS postgis"

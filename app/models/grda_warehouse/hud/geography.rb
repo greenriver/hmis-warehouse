@@ -13,6 +13,7 @@ module GrdaWarehouse::Hud
     include ::HMIS::Structure::Base
 
     self.table_name = 'Geography'
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
     self.hud_key = :GeographyID
     acts_as_paranoid column: :DateDeleted
 

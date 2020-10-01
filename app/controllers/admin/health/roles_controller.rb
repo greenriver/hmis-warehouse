@@ -10,6 +10,12 @@ module Admin::Health
     include HealthPatient
     before_action :require_has_administrative_access_to_health!
 
+    def index
+      @roles = role_scope.order(name: :asc).
+        page(params[:page].to_i).
+        per(50)
+    end
+
     private
 
     def role_scope
