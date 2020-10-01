@@ -1,4 +1,13 @@
 GIT
+  remote: git@github.com:rails-sqlserver/activerecord-sqlserver-adapter.git
+  revision: 777aa53445c34e78d7248d08ca119f00d841bc88
+  branch: 5-2-stable
+  specs:
+    activerecord-sqlserver-adapter (5.2.1)
+      activerecord (~> 5.2.0)
+      tiny_tds
+
+GIT
   remote: https://github.com/greenriver/composite_primary_keys.git
   revision: e50b101268f903da35d808443cf16a474b878c49
   branch: active-record-5.2.4-compatability
@@ -53,9 +62,6 @@ GEM
       multi_json (~> 1.11, >= 1.11.2)
       rack (>= 1.5.2, < 3)
       railties (>= 4.0)
-    activerecord-sqlserver-adapter (5.2.0)
-      activerecord (~> 5.2.0)
-      tiny_tds
     activestorage (5.2.4.3)
       actionpack (= 5.2.4.3)
       activerecord (= 5.2.4.3)
@@ -730,7 +736,7 @@ DEPENDENCIES
   activerecord-import
   activerecord-postgis-adapter
   activerecord-session_store
-  activerecord-sqlserver-adapter (~> 5.0)
+  activerecord-sqlserver-adapter!
   acts-as-taggable-on (~> 6.0)
   after_commit_exception_notification
   attr_encrypted (~> 3.1.0)
