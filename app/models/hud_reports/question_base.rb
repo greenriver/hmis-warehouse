@@ -31,19 +31,22 @@ module HudReports
       end
     end
 
-    def self.last_answer(generator, user)
-      reports(generator, user).order(created_at: :desc).each do |report|
-        answer = report.answer(question: question_number)
-        return answer if answer.completed?
-      end
-      nil
+    def run!
+      run_question!
+      remaining_questions = @report.remaining_questions - [self.class.question_number]
+      @report.update(remaining_questions: remaining_questions)
+    rescue Exception => e
+      @report.answer(question: self.class.question_number).update(error_messages: e.full_message, status: 'Failed')
+      @report.update(state: 'Failed')
+      raise e
     end
 
-    def self.reports(generator, user)
-      HudReports::ReportInstance.where(
-        report_name: generator.title,
-        user_id: user.id,
-      )
+    def self.most_recent_answer(user:, report_name:)
+      answer = ::HudReports::ReportCell.universe.where(question: question_number).
+        joins(:report_instance).
+        merge(::HudReports::ReportInstance.where(report_name: report_name))
+      answer = answer.merge(::HudReports::ReportInstance.where(user_id: user.id)) unless user.can_view_all_hud_reports?
+      answer.order(created_at: :desc).first
     end
 
     def self.question_number

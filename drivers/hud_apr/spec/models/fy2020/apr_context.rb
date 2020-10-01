@@ -21,7 +21,7 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
   end
 
   def default_setup_path
-    'drivers/hud_apr/spec/fixtures/files/hud_hmis_export'
+    'drivers/hud_apr/spec/fixtures/files/fy2020/default'
   end
 
   def report_result

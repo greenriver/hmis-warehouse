@@ -10,24 +10,6 @@ module HudApr::Generators::Shared::Fy2020
     # options = {user_id: 1, coc_code: 'KY-500', start_date: '2018-10-01', end_date: '2019-09-30', project_ids: [1797], generator_class: 'HudApr::Generators::Apr::Fy2020::Generator'}
     # HudApr::Generators::Shared::Fy2020::QuestionFour.new(options: options).run!
 
-    def run!
-      run_question!
-      remaining_questions = @report.remaining_questions - [self.class.question_number]
-      @report.update(remaining_questions: remaining_questions)
-    rescue Exception => e
-      @report.answer(question: self.class.question_number).update(error_messages: e.full_message, status: 'Failed')
-      @report.update(state: 'Failed')
-      raise e
-    end
-
-    def self.most_recent_answer(user:, report_name:)
-      answer = ::HudReports::ReportCell.universe.where(question: question_number).
-        joins(:report_instance).
-        merge(::HudReports::ReportInstance.where(report_name: report_name))
-      answer = answer.merge(::HudReports::ReportInstance.where(user_id: user.id)) unless user.can_view_all_hud_reports?
-      answer.order(created_at: :desc).first
-    end
-
     private def universe
       add_apr_clients unless apr_clients_populated?
       @universe ||= @report.universe(self.class.question_number)
