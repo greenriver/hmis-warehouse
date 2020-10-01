@@ -29,7 +29,15 @@ Date:  4/20/2020
 	   8/19/2020 - 6.9.2 - per specs, correct so prior.ExitDate >= dateadd (dd,-730,hh.FirstEntry) (was just >) 
 	   9/10/2020 - 6.4.2 - update case statement for PSHMoveIn to use PSHStatus (was RRHStatus)
 	   9/17/2020 - 6.12.2.b - only update LastInactive if it is NULL
-
+	   9/24/2020 - 6.12.2.b - limit relevant bednights to those >= entry and < exit dates (if non-NULL)
+						because enrollment dates may have been adjusted in tlsa_HHID/tlsa_Enrollment
+				   6.17.1, 2, and 3 - implement change request from AHAR analysis team to set values 
+						in EST/RRH/PSHAHAR columns based on all active enrollments vs. sys_Time 
+						(which unduplicates project participation status to 1 project type per day and
+						 might undercount households in EST and/or RRH if all active dates of enrollment
+						 overlap with enrollment(s) in another project type) 
+	   10/1/2020 -  6.11 - include RRH exit date as date housed in RRH if equal to move-in date
+					6.17.1, 2, and 3 - add missing closing parentheses (issue created in 9/24 update) 
 
 	6.1 Get Unique Households and Population Identifiers for tlsa_Household
 */
@@ -656,7 +664,8 @@ Date:  4/20/2020
 	inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
 	inner join ref_Calendar cal on cal.theDate >= hhid.MoveInDate
 		and (cal.theDate < hhid.ExitDate 
-				or (hhid.ExitDate is null and cal.theDate <= rpt.ReportEnd))
+			or (cal.theDate = hhid.MoveInDate and cal.theDate = hhid.ExitDate and hhid.ProjectType = 13)
+			or (hhid.ExitDate is null and cal.theDate <= rpt.ReportEnd))
 	where hhid.ProjectType in (3,13) and hhid.Active = 1
 	group by hhid.HoHID, hhid.ActiveHHType, cal.theDate
 /*
@@ -897,7 +906,7 @@ Date:  4/20/2020
 	from tlsa_Household hh
 
 /*
-	6.16 Update ESTStatus and RRHStatus
+	6.16 Update EST/RRH/PSHStatus 
 */
 
 	update hh
@@ -936,25 +945,35 @@ Date:  4/20/2020
 	set hh.ESTAHAR = 1
 		, hh.Step = '6.17.2'
 	from tlsa_Household hh
-	inner join sys_Time st on st.HoHID = hh.HoHID and st.HHType = hh.HHType
-	inner join lsa_Report rpt on st.sysDate between rpt.ReportStart and rpt.ReportEnd 
-		and st.sysStatus in (3,4) 
+	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType 
+	inner join tlsa_Enrollment n on n.HouseholdID = hhid.HouseholdID and n.PersonalID = hhid.HoHID
+	where n.Active = 1 
+		and (hhid.ExitDate is null or hhid.ExitDate > (select ReportStart from lsa_Report))
+		and hhid.ProjectType in (1,2,8)
 
 	update hh
 	set hh.RRHAHAR = 1
 		, hh.Step = '6.17.3'
 	from tlsa_Household hh
-	inner join sys_Time st on st.HoHID = hh.HoHID and st.HHType = hh.HHType
-	inner join lsa_Report rpt on st.sysDate between rpt.ReportStart and rpt.ReportEnd 
-		and st.sysStatus = 2 
+	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType 
+	inner join tlsa_Enrollment n on n.HouseholdID = hhid.HouseholdID and n.PersonalID = hhid.HoHID
+	where n.Active = 1 
+		and (hhid.ExitDate is null 
+			or hhid.ExitDate > (select ReportStart from lsa_Report)
+			or (hhid.ExitDate = hhid.MoveInDate and hhid.ExitDate = (select ReportStart from lsa_Report)))
+		and (hhid.MoveInDate is not null)
+		and hhid.ProjectType = 13
 
 	update hh
 	set hh.PSHAHAR = 1
 		, hh.Step = '6.17.4'
 	from tlsa_Household hh
-	inner join sys_Time st on st.HoHID = hh.HoHID and st.HHType = hh.HHType
-	inner join lsa_Report rpt on st.sysDate between rpt.ReportStart and rpt.ReportEnd 
-		and st.sysStatus = 1
+	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType 
+	inner join tlsa_Enrollment n on n.HouseholdID = hhid.HouseholdID and n.PersonalID = hhid.HoHID
+	where n.Active = 1 
+		and hhid.MoveInDate is not null
+		and (hhid.ExitDate is null or hhid.ExitDate > (select ReportStart from lsa_Report))
+		and hhid.ProjectType = 3
 
 /*
 	6.18 Set SystemPath for LSAHousehold

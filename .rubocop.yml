@@ -37,7 +37,7 @@ AllCops:
     - 'app/assets/**/*'
     - 'bin/db_prep'
 
-  # NewCops: disable
+  NewCops: disable
 
 # We don't care about method length, since we check method cyclomatic
 # complexity.

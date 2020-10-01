@@ -21,6 +21,8 @@ Date:  4/7/2020
 	   9/3/2020 - 9.2 - correct criteria for NoCoC counts
 				  9.1 - compare DOB to CohortStart for the 3 year DQ period for Status3 (was using value for cohort 1)
 	   9/17/2020 - 9.1 - limit dq_Enrollment to those where EntryDate <= CohortEnd and ES/SH/TH/RRH/PSH project types
+	   9/24/2020 - 9.1 - EntryDate < OR EQUAL TO (was just <) CohortEnd
+	   10/1/2020 - 9.1 and 9.2 - adjustments to hhinfo subquery (9.1) and MoveInDate1/3 (9.2) consistent with specs
 
 	9.1 Get Relevant Enrollments for Data Quality Checks
 */
@@ -82,7 +84,7 @@ inner join hmis_Client c on c.PersonalID = n.PersonalID
 left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
 	and x.DateDeleted is null 
 	and x.ExitDate <= cd3.CohortEnd
-left outer join (select distinct hh.HouseholdID, min(hh.MoveInDate) as MoveInDate
+left outer join (select distinct hh.HouseholdID, hh.MoveInDate
 	from hmis_Enrollment hh
 	inner join lsa_Report rpt on hh.EntryDate <= rpt.ReportEnd
 	inner join hmis_Project p on p.ProjectID = hh.ProjectID
@@ -91,13 +93,12 @@ left outer join (select distinct hh.HouseholdID, min(hh.MoveInDate) as MoveInDat
 		and coc.InformationDate <= rpt.ReportEnd
 		and coc.DateDeleted is null 
 	where p.ProjectType in (3,13) 
+		and hh.RelationshipToHoH = 1
 		and hh.MoveInDate <= rpt.ReportEnd 
 		and p.ContinuumProject = 1
 		and hh.DateDeleted is null
-	group by hh.HouseholdID
-	) hhinfo on hhinfo.HouseholdID = n.HouseholdID
---5/14/2020 add parentheses to WHERE clause 
-where n.EntryDate < cd1.CohortEnd
+		) hhinfo on hhinfo.HouseholdID = n.HouseholdID
+where n.EntryDate <= cd1.CohortEnd
 	and (x.ExitDate is null or x.ExitDate >= cd3.CohortStart)
 	and n.DateDeleted is null 
 
@@ -439,7 +440,7 @@ update rpt
 	,	MoveInDate1 = (select count(distinct n.EnrollmentID)
 			from dq_Enrollment n
 			left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
-				and x.DateDeleted is null 
+				and n.ExitDate is not null and x.DateDeleted is null 
 			where n.Status1 is not null and n.RelationshipToHoH = 1
 				and n.ProjectType in (3,13)
 				and ((n.MoveInDate < n.EntryDate or n.MoveInDate > n.ExitDate)
@@ -449,11 +450,9 @@ update rpt
 			from dq_Enrollment n
 			inner join lsa_Report rpt on rpt.ReportEnd >= n.EntryDate
 			left outer join hmis_Exit x on x.EnrollmentID = n.EnrollmentID 
-				and x.ExitDate <= rpt.ReportEnd
-				and x.DateDeleted is null 
+				and n.ExitDate is not null and x.DateDeleted is null 
 			where n.RelationshipToHoH = 1
 				and n.ProjectType in (3,13)
-				and (n.ExitDate is null or n.ExitDate >= (select CohortStart from tlsa_CohortDates where Cohort = 20))
 				and ((n.MoveInDate < n.EntryDate or n.MoveInDate > n.ExitDate)
 					or (x.Destination in (3,31,19,20,21,26,28,10,11,22,23,33,34) 
 						and n.MoveInDate is null)))
