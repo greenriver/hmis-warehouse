@@ -17,7 +17,9 @@ class SqlServerBase < ActiveRecord::Base
     'sslcert' => cert_path,
   }
 
+  # disconnect! complains if there's no host, oddly.
   if rds.host.present?
+    # Only need to disconnect after the first connection
     if @did_connect
       begin
         connection.disconnect!
