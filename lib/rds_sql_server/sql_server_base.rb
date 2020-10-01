@@ -17,7 +17,14 @@ class SqlServerBase < ActiveRecord::Base
     'sslcert' => cert_path,
   }
 
-  establish_connection(conf) unless ENV['NO_LSA_RDS'].present?
+  if rds.host.present?
+    if @did_connect
+      connection.disconnect!
+    end
+
+    establish_connection(conf) unless ENV['NO_LSA_RDS'].present?
+    @did_connect = true
+  end
 
   self.abstract_class = true
 end

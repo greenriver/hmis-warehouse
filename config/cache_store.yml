@@ -2,3 +2,6 @@
   host: <%= ENV['CACHE_HOST'] %>
   port: <%= ENV['CACHE_PORT'] %>
   db: <%= ENV['CACHE_DB'] %>
+  <% if ENV['CACHE_NAMESPACE'] %>
+  namespace: <%= ENV['CACHE_NAMESPACE'] %>
+  <% end %>
