@@ -302,7 +302,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def household_member_data(enrollment)
-      return nil unless enrollment[:head_of_household]
+      # return nil unless enrollment[:head_of_household]
 
       households[enrollment.household_id]
     end
