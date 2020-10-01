@@ -482,7 +482,7 @@ def report_list
         health: false,
       },
     ],
-    'Health' => [
+    'Health: General' => [
       {
         url: 'warehouse_reports/confidential_touch_point_exports',
         name: 'Health-related TouchPoint Export',
@@ -512,7 +512,7 @@ def report_list
         health: true,
       },
     ],
-    'COVID19' => [
+    'Health: COVID19' => [
       {
         url: 'warehouse_reports/health/contact_tracing',
         name: 'Contact Tracing',
@@ -521,7 +521,7 @@ def report_list
         health: true,
       },
     ],
-    'Partner Performance' => [
+    'Health: Partner Performance' => [
       {
         url: 'warehouse_reports/health/agency_performance',
         name: 'Dashboard',
@@ -530,7 +530,7 @@ def report_list
         health: true,
       },
     ],
-    'Archive' => [
+    'Health: Archive' => [
       {
         url: 'warehouse_reports/health/overview',
         name: 'Pilot Health Dashboard',
@@ -539,7 +539,7 @@ def report_list
         health: true,
       },
     ],
-    'ACO Performance Reports' => [
+    'Health: ACO Performance Reports' => [
       {
         url: 'warehouse_reports/health/aco_performance',
         name: 'PCTP Signature Tracking by ACO',
@@ -562,7 +562,7 @@ def report_list
         health: true,
       },
     ],
-    'Member Status Tracking' => [
+    'Health: Member Status Tracking' => [
       {
         url: 'warehouse_reports/health/enrollments',
         name: '834: MassHealth Enrollments and Disenrollments',
@@ -606,7 +606,7 @@ def report_list
         health: true,
       },
     ],
-    'BH CP Claims/Payments' => [
+    'Health: BH CP Claims/Payments' => [
       {
         url: 'warehouse_reports/health/claims',
         name: '837: Claim Generation',
