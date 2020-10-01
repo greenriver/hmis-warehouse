@@ -9,6 +9,8 @@
 # Control: PHI attributes documented
 module Health
   class AgencyPatientReferral < HealthBase
+    acts_as_paranoid
+
     phi_attr :patient_referral_id, Phi::OtherIdentifier
 
     scope :claimed, -> {where(claimed: true)}
