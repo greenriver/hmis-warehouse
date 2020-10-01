@@ -1,19 +1,19 @@
 GIT
-  remote: git@github.com:rails-sqlserver/activerecord-sqlserver-adapter.git
-  revision: 777aa53445c34e78d7248d08ca119f00d841bc88
-  branch: 5-2-stable
-  specs:
-    activerecord-sqlserver-adapter (5.2.1)
-      activerecord (~> 5.2.0)
-      tiny_tds
-
-GIT
   remote: https://github.com/greenriver/composite_primary_keys.git
   revision: e50b101268f903da35d808443cf16a474b878c49
   branch: active-record-5.2.4-compatability
   specs:
     composite_primary_keys (11.2.0)
       activerecord (~> 5.2.1)
+
+GIT
+  remote: https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
+  revision: 777aa53445c34e78d7248d08ca119f00d841bc88
+  branch: 5-2-stable
+  specs:
+    activerecord-sqlserver-adapter (5.2.1)
+      activerecord (~> 5.2.0)
+      tiny_tds
 
 GEM
   remote: https://rubygems.org/
