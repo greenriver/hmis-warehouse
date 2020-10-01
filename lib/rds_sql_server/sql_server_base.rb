@@ -17,7 +17,24 @@ class SqlServerBase < ActiveRecord::Base
     'sslcert' => cert_path,
   }
 
-  establish_connection(conf) unless ENV['NO_LSA_RDS'].present?
+  # disconnect! complains if there's no host, oddly.
+  if rds.host.present?
+    # Only need to disconnect after the first connection
+    if @did_connect
+      begin
+        connection.disconnect!
+      rescue TinyTds::Error => e
+        if e.message ==  "failed to execute statement"
+          puts e.message + " for disconnecting from SQL Server"
+        else
+          raise e
+        end
+      end
+    end
+
+    establish_connection(conf) unless ENV['NO_LSA_RDS'].present?
+    @did_connect = true
+  end
 
   self.abstract_class = true
 end
