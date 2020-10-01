@@ -3,21 +3,28 @@ RSpec.configure do |config| # rubocop:disable Lint/UnusedBlockArgument
 end
 
 RSpec.shared_context 'apr context', shared_context: :metadata do
-  def default_options
+  def shared_filter
     {
-      generator_class: 'HudApr::Generators::Apr::Fy2020::Generator',
-      start_date: Date.parse('2016-10-01'),
-      end_date: Date.parse('2017-09-30'),
+      start: Date.parse('2019-01-01'),
+      end: Date.parse('2019-12-31'),
       coc_code: 'XX-500',
-      project_ids: ['240'],
       user_id: 0,
     }.freeze
   end
 
+  def default_filter
+    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
+    ::Filters::FilterBase.new(shared_filter.merge(project_ids: [project_id]))
+  end
+
   def night_by_night_shelter
-    {
-      project_ids: ['882'],
-    }
+    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'NBN').id
+    ::Filters::FilterBase.new(shared_filter.merge(project_ids: [project_id]))
+  end
+
+  def run(filter, question_name)
+    generator = HudApr::Generators::Apr::Fy2020::Generator
+    generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: [question_name])).run!
   end
 
   def default_setup_path

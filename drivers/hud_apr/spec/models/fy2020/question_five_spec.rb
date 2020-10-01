@@ -6,8 +6,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionFive, type: :model do
 
   before(:all) do
     default_setup
-
-    HudApr::Generators::Apr::Fy2020::QuestionFive.new(options: default_options).run!
+    run(default_filter, HudApr::Generators::Apr::Fy2020::QuestionFive::QUESTION_NUMBER)
   end
 
   after(:all) do

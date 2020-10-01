@@ -6,8 +6,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSix, type: :model do
 
   before(:all) do
     default_setup
-
-    HudApr::Generators::Apr::Fy2020::QuestionSix.new(options: default_options).run!
+    run(default_filter, HudApr::Generators::Apr::Fy2020::QuestionSix::QUESTION_NUMBER)
   end
 
   after(:all) do
@@ -32,4 +31,3 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSix, type: :model do
   describe 'Q6f: Data Quality: Inactive Records: Street Outreach and Emergency Shelter' do
   end
 end
-

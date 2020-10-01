@@ -31,6 +31,13 @@ module HudReports
       Reporting::Hud::RunReportJob.perform_later(self.class.name, @report.id)
     end
 
+    def run!
+      @report.state = 'Waiting'
+      @report.question_names = self.class.questions.keys
+      @report.save
+      Reporting::Hud::RunReportJob.perform_now(self.class.name, @report.id)
+    end
+
     def client_scope
       scope = client_source.
         distinct.

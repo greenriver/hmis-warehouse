@@ -6,9 +6,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionNine, type: :model do
 
   before(:all) do
     default_setup
-
-    options = default_options.merge(night_by_night_shelter)
-    HudApr::Generators::Apr::Fy2020::QuestionNine.new(options: options).run!
+    run(night_by_night_shelter, HudApr::Generators::Apr::Fy2020::QuestionNine::QUESTION_NUMBER)
   end
 
   after(:all) do
