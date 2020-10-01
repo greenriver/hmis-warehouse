@@ -22,10 +22,7 @@
 
 = content_for :page_js do
   :javascript
-    $('.jCareCoordinator').on('change', function(e){
-      $(this).closest('form').trigger('submit');
-    });
-    $('.jNurseCareManager').on('change', function(e){
+    $('.jCareCoordinator, .jNurseCareManager').on('change', function(e){
       $(this).closest('form').trigger('submit');
     });
     var $appointments = $('.jAppointments');
