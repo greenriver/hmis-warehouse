@@ -107,7 +107,8 @@ Rails.application.configure do
   end
 
   cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
-  config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours, raise_errors: false, ssl: cache_ssl, namespace: :hmis }
+  cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
+  config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 8.hours, raise_errors: false, ssl: cache_ssl, namespace: cache-namespace}
 
   config.action_controller.perform_caching = true
   if slack_config.present?
