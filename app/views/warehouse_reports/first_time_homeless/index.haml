@@ -39,9 +39,9 @@
       - @clients.each do |client|
         %tr
           %td
-            %nobr= link_to client.LastName, client_path(client)
+            %nobr= link_to client.LastName, appropriate_client_path(client)
           %td
-            %nobr= link_to client.FirstName, client_path(client)
+            %nobr= link_to client.FirstName, appropriate_client_path(client)
           %td= client.first_service_history.age
           %td= client.age()
           %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)

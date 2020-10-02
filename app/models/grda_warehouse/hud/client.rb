@@ -968,12 +968,10 @@ module GrdaWarehouse::Hud
 
     def visible_because_of_release?(user)
       any_window_clients = source_clients.map { |sc| sc.data_source&.visible_in_window? }.any?
+      # user can see the window, and client has a valid release, or none is required (by the site config)
       user.can_view_client_window? &&
       (
-        # If the user is limited to clients in own CoC, valid release is handled later in visible_because_of_coc_association?
-        # If the site requires a valid release, don't show all window clients
-        # Alternatively, if it doesn't require a valid release, anyone at a data source visible in the window is included
-        (release_valid? && ! user.can_view_clients_with_roi_in_own_coc?) ||
+        release_valid? ||
         ! GrdaWarehouse::Config.get(:window_access_requires_release) && any_window_clients
       )
     end

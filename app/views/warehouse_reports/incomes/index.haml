@@ -37,7 +37,7 @@
         - @enrollments.each do |record|
           %tr
             %td
-              = link_to client_path(record.client) do
+              = link_to appropriate_client_path(record.client) do
                 = record.client.name
             %td
               %ul.list-unstyled

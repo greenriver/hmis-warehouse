@@ -28,7 +28,7 @@
     .warehouse-reports__client
       .warehouse-reports__client-name
         %h4
-          = link_to client.slice("FirstName", "LastName").values.join(' '), client_path(id: client['id'])
+          = link_to client.slice("FirstName", "LastName").values.join(' '), appropriate_client_path(id: client['id'])
           Age:
           =client['age']
       .row

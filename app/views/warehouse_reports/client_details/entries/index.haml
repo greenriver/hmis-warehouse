@@ -51,7 +51,7 @@
             - enrollments = @enrollments[client_id]
             %tr
               %td{rowspan: enrollments.count + 1}
-                = link_to_if can_view_clients?, "#{meta[:first_name]} #{meta[:last_name]}", client_path(client_id)
+                = link_to_if can_view_clients?, "#{meta[:first_name]} #{meta[:last_name]}", appropriate_client_path(client_id)
             - enrollments.each_with_index do |enrollment, index|
               - highlight = ''
               - highlight = 'warehouse-reports__enrollment-highlighted' if index == 0
@@ -66,4 +66,3 @@
                   = enrollment[:project_name]
                 %td
                   = enrollment[:organization_name]
-

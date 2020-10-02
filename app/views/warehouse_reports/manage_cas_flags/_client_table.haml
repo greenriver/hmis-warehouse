@@ -8,6 +8,6 @@
       - clients.each do |client|
         %tr
           %td= client[:id]
-          %td= link_to "#{client[:FirstName]} #{client[:LastName]}", client_path(client[:id])
+          %td= link_to "#{client[:FirstName]} #{client[:LastName]}", appropriate_client_path(client[:id])
 - else
   %p No clients found.
