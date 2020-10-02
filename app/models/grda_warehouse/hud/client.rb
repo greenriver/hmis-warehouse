@@ -970,14 +970,18 @@ module GrdaWarehouse::Hud
       any_window_clients = source_clients.map { |sc| sc.data_source&.visible_in_window? }.any?
       user.can_view_client_window? &&
       (
-        release_valid? ||
+        # If the user is limited to clients in own CoC, valid release is handled later in visible_because_of_coc_association?
+        # If the site requires a valid release, don't show all window clients
+        # Alternatively, if it doesn't require a valid release, anyone at a data source visible in the window is included
+        (release_valid? && ! user.can_view_clients_with_roi_in_own_coc?) ||
         ! GrdaWarehouse::Config.get(:window_access_requires_release) && any_window_clients
       )
     end
 
+    # This permission is mis-named a bit, it should check all project ids visible to the user
     def visible_because_of_assigned_data_source?(user)
       user.can_see_clients_in_window_for_assigned_data_sources? &&
-        (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+        (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
     end
 
     def visible_because_of_coc_association?(user)
