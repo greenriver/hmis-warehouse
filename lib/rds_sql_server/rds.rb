@@ -140,7 +140,7 @@ class Rds
 
     # If we had a previous LSA, this class will still have connection
     # information for that other database.
-    load "lib/rds_sql_server/sql_server_base.rb"
+    load 'lib/rds_sql_server/sql_server_base.rb'
 
     Timeout.timeout(MAX_WAIT_TIME) do
       db_exists = false

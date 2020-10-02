@@ -37,11 +37,7 @@ AllCops:
     - 'app/assets/**/*'
     - 'bin/db_prep'
 
-  NewCops: enable
-
-inherit_mode:
-  merge:
-    - AllowedNames
+  NewCops: disable
 
 # We don't care about method length, since we check method cyclomatic
 # complexity.
@@ -115,6 +111,7 @@ Naming/VariableNumber:
 Naming/MethodParameterName:
   AllowedNames:
     - as
+    - id
 
 Style/MixinUsage:
   Enabled: false

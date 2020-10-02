@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_07_203051) do
+ActiveRecord::Schema.define(version: 2020_09_30_152001) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -38,6 +38,7 @@ ActiveRecord::Schema.define(version: 2020_08_07_203051) do
     t.boolean "claimed", default: false, null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.datetime "deleted_at"
   end
 
   create_table "agency_users", id: :serial, force: :cascade do |t|
@@ -921,6 +922,7 @@ ActiveRecord::Schema.define(version: 2020_08_07_203051) do
     t.boolean "current", default: false, null: false
     t.boolean "contributing", default: false, null: false
     t.boolean "derived_referral", default: false
+    t.datetime "deleted_at"
   end
 
   create_table "patients", id: :serial, force: :cascade do |t|

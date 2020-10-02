@@ -13,7 +13,8 @@ gem 'paranoia', '~> 2.0'
 # gem 'composite_primary_keys', '~> 11'
 gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
 gem "pg"
-gem 'activerecord-sqlserver-adapter', '~> 5.0', require: false
+# version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
+gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: '5-2-stable', require: false
 gem 'activerecord-import'
 gem 'active_record_extended'
 

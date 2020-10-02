@@ -15,6 +15,15 @@ GIT
       activerecord (>= 5.0.0)
       rspec
 
+GIT
+  remote: https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
+  revision: 777aa53445c34e78d7248d08ca119f00d841bc88
+  branch: 5-2-stable
+  specs:
+    activerecord-sqlserver-adapter (5.2.1)
+      activerecord (~> 5.2.0)
+      tiny_tds
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -66,9 +75,6 @@ GEM
       multi_json (~> 1.11, >= 1.11.2)
       rack (>= 1.5.2, < 3)
       railties (>= 4.0)
-    activerecord-sqlserver-adapter (5.2.0)
-      activerecord (~> 5.2.0)
-      tiny_tds
     activestorage (5.2.4.4)
       actionpack (= 5.2.4.4)
       activerecord (= 5.2.4.4)
@@ -439,7 +445,7 @@ GEM
       net-ssh (>= 2.6.5)
     net-ssh (5.2.0)
     netrc (0.11.0)
-    nio4r (2.5.3)
+    nio4r (2.5.4)
     nokogiri (1.10.10)
       mini_portile2 (~> 2.4.0)
     nominatim (0.0.6)
@@ -678,7 +684,7 @@ GEM
       babel-source (>= 5.8.11)
       babel-transpiler
       sprockets (>= 3.0.0)
-    sprockets-rails (3.2.1)
+    sprockets-rails (3.2.2)
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
@@ -747,7 +753,7 @@ DEPENDENCIES
   activerecord-import
   activerecord-postgis-adapter
   activerecord-session_store
-  activerecord-sqlserver-adapter (~> 5.0)
+  activerecord-sqlserver-adapter!
   acts-as-taggable-on (~> 6.0)
   after_commit_exception_notification
   attr_encrypted (~> 3.1.0)
