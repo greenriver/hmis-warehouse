@@ -36,9 +36,9 @@
             - enrollment = client['enrollment']
             %tr
               %td
-                %nobr= link_to client['LastName'], appropriate_client_path(client['id'])
+                %nobr= link_to_if can_view_clients_or_window?, client['LastName'], appropriate_client_path(client['id'])
               %td
-                %nobr= link_to client['FirstName'], appropriate_client_path(client['id'])
+                %nobr= link_to_if can_view_clients_or_window?, client['FirstName'], appropriate_client_path(client['id'])
               %td
                 = enrollment&.[]('age')
               %td

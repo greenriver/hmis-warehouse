@@ -15,7 +15,7 @@
         %tr
           %td
             - if anomaly.client.present?
-              = link_to anomaly.client.name, appropriate_client_path(anomaly.client)
+              = link_to_if can_view_clients_or_window?, anomaly.client.name, appropriate_client_path(anomaly.client)
             - else
               Client no longer available
           %td

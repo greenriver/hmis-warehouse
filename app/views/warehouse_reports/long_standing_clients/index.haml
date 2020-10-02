@@ -31,8 +31,8 @@
       - @entries.each do |entry|
         - client = @clients[entry[:client_id]]
         %tr
-          %td= link_to client.LastName, appropriate_client_path(client)
-          %td= link_to client.FirstName, appropriate_client_path(client)
+          %td= link_to_if can_view_clients_or_window?, client.LastName, appropriate_client_path(client)
+          %td= link_to_if can_view_clients_or_window?, client.FirstName, appropriate_client_path(client)
           %td= entry.first_date_in_program
           %td= entry.project_name
           %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')

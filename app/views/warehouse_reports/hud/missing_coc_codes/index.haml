@@ -26,7 +26,7 @@
           - client = en.client.destination_client
           - project = en.project
           %tr
-            %td= link_to client.name, appropriate_client_path(client)
+            %td= link_to_if can_view_clients_or_window?, client.name, appropriate_client_path(client)
             %td= project.name
             %td= project.project_cocs&.map(&:effective_coc_code)&.join(', ')
             %td= en.EntryDate

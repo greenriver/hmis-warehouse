@@ -44,9 +44,9 @@
         - re_entry = @re_entries[enrollment.id]
         %tr
           %td
-            %nobr= link_to client.LastName, appropriate_client_path(client)
+            %nobr= link_to_if can_view_clients_or_window?, client.LastName, appropriate_client_path(client)
           %td
-            %nobr= link_to client.FirstName, appropriate_client_path(client)
+            %nobr= link_to_if can_view_clients_or_window?, client.FirstName, appropriate_client_path(client)
           %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
           %td= enrollment.first_date_in_program
           %td= HUD.project_type enrollment.computed_project_type

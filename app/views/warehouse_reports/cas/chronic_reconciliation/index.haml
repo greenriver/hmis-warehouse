@@ -33,7 +33,7 @@
         - @missing_in_cas.each do |client|
           %tr
             %td
-              = link_to(appropriate_client_path(client[:client_id])) do
+              = link_to_if can_view_clients_or_window?,appropriate_client_path(client[:client_id]) do
                 = client[:first_name]
                 = client[:last_name]
             %td
@@ -61,7 +61,7 @@
             %td
               = link_to 'Remove', cas_active_path(id: client[:id]), method: :patch, remote: true, class: 'btn btn-sm btn-secondary jRemoveCasActive'
             %td
-              = link_to(appropriate_client_path(client[:id])) do
+              = link_to_if can_view_clients_or_window?, appropriate_client_path(client[:id]) do
                 = client[:FirstName]
                 = client[:LastName]
             %td

@@ -15,7 +15,7 @@
     %tbody
       - @report.data.each do |client|
         %tr
-          %td= link_to client.client.name, appropriate_client_path(client.client)
+          %td= link_to_if can_view_clients_or_window?, client.client.name, appropriate_client_path(client.client)
           %td= client.days
           %td= client.entry_date
           %td= client.exit_date

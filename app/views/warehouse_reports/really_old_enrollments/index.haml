@@ -31,8 +31,8 @@
       - st = GrdaWarehouse::Hud::Enrollment.arel_table
       - @clients.each do |client|
         %tr
-          %td= link_to client.LastName.tr(' ', '⎵'), appropriate_client_path(client)
-          %td= link_to client.FirstName.tr(' ', '⎵'), appropriate_client_path(client)
+          %td= link_to_if can_view_clients_or_window?, client.LastName.tr(' ', '⎵'), appropriate_client_path(client)
+          %td= link_to_if can_view_clients_or_window?, client.FirstName.tr(' ', '⎵'), appropriate_client_path(client)
           %td= client.source_enrollments.where( st[:EntryDate].lt @date ).map{|m| "#{m.EntryDate} at #{m.try(:project).try(:name)}"}.join(', ')
           %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
 %p= paginate @clients

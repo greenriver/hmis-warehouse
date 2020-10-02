@@ -15,4 +15,4 @@
         - client = source_client.destination_client
         %tr
           %td= client.id
-          %td= link_to source_client.name, appropriate_client_path(client.id)
+          %td= link_to_if can_view_clients_or_window?, source_client.name, appropriate_client_path(client.id)
