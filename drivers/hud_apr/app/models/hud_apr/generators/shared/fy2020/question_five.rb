@@ -89,12 +89,12 @@ module HudApr::Generators::Shared::Fy2020
         # Number of stayers
         {
           cell: 'B8',
-          clause: a_t[:last_date_in_program].gt(@report.end_date),
+          clause: stayers_clause,
         },
         # Number of adult stayers
         {
           cell: 'B9',
-          clause: a_t[:last_date_in_program].gt(@report.end_date).
+          clause: stayers_clause.
             and(adult_clause),
         },
         # Number of veterans
