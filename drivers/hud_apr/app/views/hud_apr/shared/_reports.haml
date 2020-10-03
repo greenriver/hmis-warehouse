@@ -1,4 +1,8 @@
 - if @reports.present?
+  - if @question
+    %h3 The Following Reports Include #{@question}
+  - else
+    %h3 Reports
   .card
     %table.table.table-striped
       %thead

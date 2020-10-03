@@ -3,8 +3,13 @@
     = "« #{report_short_name} #{@question} Results"
 - content_for :title do
   = "#{report_short_name} #{@question} #{@cell}"
+.d-flex.mb-2
+  %h1= content_for :title
+  .ml-auto
+    = link_to(link_params.merge({format: :xlsx}),{class: 'btn btn-secondary'}) do
+      %i.icon-file-excel
+      Download
 
-%h1= content_for :title
 = render 'hud_apr/shared/beta_warning'
 
 - if @clients.blank?
@@ -12,8 +17,8 @@
     No records found.
 - else
   .card
-    .table-responsive
-      %table.table.table-sm.table-bordered
+    .overflow-x-scroll{style: "height: 800px"}
+      %table.table.table-sm.table-bordered.table-fixed
         %thead.thead-dark
           %tr
             %th
@@ -24,4 +29,4 @@
             %tr
               %th= i + 1
               - HudApr::Fy2020::AprClient.detail_headers.each_key do |k|
-                %td= client[k]
+                %td{style: 'max-width: 600px;'}= formatted_cell(client[k])
