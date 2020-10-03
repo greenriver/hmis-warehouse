@@ -86,7 +86,7 @@ every 1.day, at: shifted_time.strftime('%H:%M %P') do
 end
 
 
-if ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
+if ENV['HEALTH_SFTP_HOST'].present? && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
   every 1.day, at: '11:03 am' do
     # Defers to delayed jobs
     rake "health:daily"
