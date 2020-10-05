@@ -14,6 +14,21 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSix, type: :model do
   end
 
   describe 'Q6a: Personally Identifiable Information' do
+    it 'finds no SSN issues' do
+      expect(report_result.answer(question: 'Q6a', cell: 'E3').summary).to eq(0)
+    end
+    it 'finds the missing DOB' do
+      expect(report_result.answer(question: 'Q6a', cell: 'C4').summary).to eq(1)
+    end
+    it 'finds the DK/R races' do
+      expect(report_result.answer(question: 'Q6a', cell: 'B5').summary).to eq(2)
+    end
+    it 'finds three total Race flags' do
+      expect(report_result.answer(question: 'Q6a', cell: 'E5').summary).to eq(3)
+    end
+    it 'finds four clients with issues' do
+      expect(report_result.answer(question: 'Q6a', cell: 'E8').summary).to eq(4)
+    end
   end
 
   describe 'Q6b: Data Quality: Universal Data Elements' do
