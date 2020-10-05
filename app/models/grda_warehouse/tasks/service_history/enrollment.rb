@@ -48,6 +48,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def service_history_valid?
+      # Extrapolating SO is implmented in create_service_history!, just force rebuild
+      return false if street_outreach_acts_as_bednight? && GrdaWarehouse::Config.get(:so_day_as_month) || project_extrapolates_contacts?
+
       processed_as.present? && processed_as == calculate_hash && service_history_enrollment.present?
     end
 

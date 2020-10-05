@@ -44,7 +44,7 @@ module Health::CareplanDates
         group(:patient_id).minimum(:date_of_activity)
     end
 
-    private def with_careplans_in_122_days?(patient, as: :boolean) # rubocop:disable Naming/MethodParameterName
+    private def with_careplans_in_122_days?(patient, as: :boolean)
       signature_date = qa_signature_dates[patient.id]
       return nil unless signature_date
       return nil unless patient.enrollment_start_date

@@ -1,0 +1,21 @@
+###
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
+module HudApr::Generators::Caper::Fy2020
+  class QuestionSeven < HudApr::Generators::Shared::Fy2020::QuestionSeven
+    include ArelHelper
+
+    QUESTION_TABLE_NUMBERS = ['Q7b'].freeze
+
+    def run_question!
+      @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
+
+      q7a_persons_served
+
+      @report.complete(QUESTION_NUMBER)
+    end
+  end
+end
