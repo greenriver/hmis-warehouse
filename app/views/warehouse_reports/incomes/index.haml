@@ -37,8 +37,7 @@
         - @enrollments.each do |record|
           %tr
             %td
-              = link_to client_path(record.client) do
-                = record.client.name
+              = link_to_if can_view_clients_or_window?, record.client.name, appropriate_client_path(record.client)
             %td
               %ul.list-unstyled
                 - record.enrollment.income_benefits_at_entry&.sources_and_amounts&.each do |name, amount|

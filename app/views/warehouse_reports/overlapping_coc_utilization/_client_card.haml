@@ -5,9 +5,7 @@
     - if can_access_some_version_of_clients?
       .ml-auto
         .ml-4.text-right.text-nowrap
-          = link_to client_path(data[:client_id]), class: 'text-semi-bold' do
-            View client dashboard
-            &raquo;
+          = link_to_if can_view_clients_or_window?, 'View client dashboard &raquo;', appropriate_client_path(data[:client_id]), class: 'text-semi-bold'
   .h5-prs1.mb-2= data.values_at(*%i/ethnicity race gender age_group/).select(&:present?).join('; ')
   .j-chart(id=chart_id)
 - content_for :page_js do

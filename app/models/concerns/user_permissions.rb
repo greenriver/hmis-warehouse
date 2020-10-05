@@ -85,11 +85,11 @@ module UserPermissions
     end
 
     def can_access_window_search
-      (can_view_or_search_clients_or_window? || can_create_clients?) && ! can_use_strict_search?
+      can_search_window? && ! can_use_strict_search?
     end
 
     def can_access_some_client_search
-      can_view_or_search_clients_or_window? || can_access_window_search? || can_access_client_search? || can_use_strict_search?
+      can_search_window? || can_use_strict_search?
     end
 
     def window_file_access

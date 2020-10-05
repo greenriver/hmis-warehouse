@@ -25,8 +25,8 @@
     %tbody
       - @enrollments.sort_by{|m| [m[:LastName], m[:FirstName]]}.each do |e|
         %tr
-          %td= link_to e[:LastName], client_path(id: e[:destination_id]) if e[:destination_id].present?
-          %td= link_to e[:FirstName], client_path(id: e[:destination_id]) if e[:destination_id].present?
+          %td= link_to_if can_view_clients_or_window?, e[:LastName], appropriate_client_path(id: e[:destination_id]) if e[:destination_id].present?
+          %td= link_to_if can_view_clients_or_window?, e[:FirstName], appropriate_client_path(id: e[:destination_id]) if e[:destination_id].present?
           %td= e[:EntryDate]
           %td= e[:ExitDate]
           %td= e[:DateProvided]

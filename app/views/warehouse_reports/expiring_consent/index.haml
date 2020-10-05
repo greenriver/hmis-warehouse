@@ -1,6 +1,6 @@
 - title = "Clients with Expired or Expiring Consent"
 - content_for :title, title
-%h1= title 
+%h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
 .warehouse-reports__expiring-consent
@@ -17,13 +17,13 @@
       - @unconfirmed.each do |client|
         %tr
           %td
-            = link_to(client_path(client)) do 
+            = link_to_if can_view_clients_or_window?, appropriate_client_path(client) do
               = client.full_name
           %td
             = client.consent_form_signed_on + client.class.consent_validity_period
           %td
             - if @users[client.id].present?
-              - @users[client.id].each do |user| 
+              - @users[client.id].each do |user|
                 = user.name_with_email
                 %br
   %hr
@@ -40,13 +40,13 @@
       - @expiring_clients.each do |client|
         %tr
           %td
-            = link_to(client_path(client)) do 
+            = link_to_if can_view_clients_or_window?, appropriate_client_path(client) do
               = client.full_name
           %td
             = client.consent_form_signed_on + client.class.consent_validity_period
           %td
             - if @users[client.id].present?
-              - @users[client.id].each do |user| 
+              - @users[client.id].each do |user|
                 = user.name_with_email
                 %br
   %hr
@@ -63,14 +63,11 @@
       - @expired_clients.each do |client|
         %tr
           %td
-            = link_to(client_path(client)) do 
-              = client.full_name
+            = link_to_if can_view_clients_or_window?, client.full_name, appropriate_client_path(client)
           %td
             = client.consent_form_signed_on + client.class.consent_validity_period
           %td
             - if @users[client.id].present?
-              - @users[client.id].each do |user| 
+              - @users[client.id].each do |user|
                 = user.name_with_email
                 %br
-
-
