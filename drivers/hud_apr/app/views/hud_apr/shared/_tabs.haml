@@ -1,0 +1,8 @@
+%ul.nav.nav-tabs{role: :tablist}
+  - @tab_content_reports.each do |category|
+    %li.nav-item{role: :presentation}
+      = link_to category, reports_path(anchor: category.parameterize.dasherize), role: :tab, aria: {controls: '#{category}'}, class: 'nav-link'
+  - @report_urls.each do |(category, url)|
+    %li.nav-item{role: :presentation}
+      - active = category == tab_name
+      = link_to category, url, role: :tab, aria: {controls: category}, class: [ 'nav-link', active ? 'active' : '' ]

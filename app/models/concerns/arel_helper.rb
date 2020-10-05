@@ -66,7 +66,7 @@ module ArelHelper
       self.class.acase conditions, elsewise: elsewise
     end
 
-    def cast(exp, as) # rubocop:disable Naming/MethodParameterName
+    def cast(exp, as)
       self.class.cast exp, as
     end
 
@@ -280,6 +280,10 @@ module ArelHelper
     Reporting::MonthlyReports::Base.arel_table
   end
 
+  def hr_ri_t
+    HudReports::ReportInstance.arel_table
+  end
+
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
     # convert non-node into a node
@@ -402,7 +406,7 @@ module ArelHelper
     end
 
     # bonk out a type casting
-    def cast(exp, as) # rubocop:disable Naming/MethodParameterName
+    def cast(exp, as)
       exp = qt exp
       exp = lit exp.to_sql unless exp.respond_to?(:as)
       nf 'CAST', [exp.as(as)]
@@ -603,6 +607,10 @@ module ArelHelper
 
     def r_monthly_t
       Reporting::MonthlyReports::Base.arel_table
+    end
+
+    def hr_ri_t
+      HudReports::ReportInstance.arel_table
     end
   end
 end

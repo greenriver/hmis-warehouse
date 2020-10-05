@@ -30,7 +30,8 @@
 .warehouse-reports__chronic .parameter-label,
 .warehouse-reports__disabled .parameter-label,
 .warehouse-reports__active-veterans .parameter-label,
-.warehouse-reports__parameters .parameter-label
+.warehouse-reports__parameters .parameter-label,
+.reports .parameter-label
 {
   border-radius: 5px 0px 0px 5px;
 }
@@ -38,7 +39,8 @@
 .warehouse-reports__chronic .parameter-value,
 .warehouse-reports__disabled .parameter-value,
 .warehouse-reports__active-veterans .parameter-value,
-.warehouse-reports__parameters .parameter-value
+.warehouse-reports__parameters .parameter-value,
+.reports .parameter-value
 {
   border-radius: 0px 5px 5px 0px;
   white-space: nowrap;
@@ -47,6 +49,10 @@
 .warehouse-reports__hmis_export
 {
   overflow: scroll;
+}
+.reports .parameter-value a
+{
+  color: black;
 }
 
 .warehouse-reports__initiatives .y-axis,

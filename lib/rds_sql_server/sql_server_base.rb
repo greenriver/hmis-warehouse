@@ -24,8 +24,8 @@ class SqlServerBase < ActiveRecord::Base
       begin
         connection.disconnect!
       rescue TinyTds::Error => e
-        if e.message ==  "failed to execute statement"
-          puts e.message + " for disconnecting from SQL Server"
+        if e.message ==  'failed to execute statement' # rubocop:disable Metrics/BlockNesting, Style/GuardClause
+          puts e.message + ' for disconnecting from SQL Server'
         else
           raise e
         end
