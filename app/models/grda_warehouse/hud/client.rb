@@ -968,6 +968,7 @@ module GrdaWarehouse::Hud
 
     def visible_because_of_release?(user)
       any_window_clients = source_clients.map { |sc| sc.data_source&.visible_in_window? }.any?
+      # user can see the window, and client has a valid release, or none is required (by the site config)
       user.can_view_client_window? &&
       (
         release_valid? ||
@@ -975,9 +976,10 @@ module GrdaWarehouse::Hud
       )
     end
 
+    # This permission is mis-named a bit, it should check all project ids visible to the user
     def visible_because_of_assigned_data_source?(user)
       user.can_see_clients_in_window_for_assigned_data_sources? &&
-        (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+        (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
     end
 
     def visible_because_of_coc_association?(user)

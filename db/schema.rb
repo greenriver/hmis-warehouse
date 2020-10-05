@@ -28,6 +28,8 @@ ActiveRecord::Schema.define(version: 2020_07_28_185654) do
     t.integer "user_id"
     t.string "coc_codes", default: [], array: true
     t.datetime "deleted_at"
+    t.boolean "system", default: false
+    t.boolean "required", default: false
   end
 
   create_table "account_requests", force: :cascade do |t|
@@ -641,6 +643,8 @@ ActiveRecord::Schema.define(version: 2020_07_28_185654) do
     t.date "last_training_completed"
     t.string "provider"
     t.string "uid"
+    t.json "provider_raw_info"
+    t.string "uuid"
     t.boolean "receive_account_request_notifications", default: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
