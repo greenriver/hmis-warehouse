@@ -210,7 +210,7 @@ module HudApr::Generators::Shared::Fy2020
         report_living_situation_universe.import(
           client_living_situations,
           on_duplicate_key_update: {
-            conflict_target: [:apr_client_id],
+            conflict_target: [:hud_report_apr_client_id],
             columns: client_living_situations.first&.changed || [],
           },
         )
