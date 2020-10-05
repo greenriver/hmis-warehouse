@@ -517,8 +517,8 @@ module HudApr::Generators::Shared::Fy2020
 
     private def youth_age_ranges
       {
-        '12-17' => a_t[:age].between(12..17),
-        '18-24' => a_t[:age].between(18..24),
+        '12-17' => a_t[:age].between(12..17).and(a_t[:dob_quality].in([1, 2])),
+        '18-24' => a_t[:age].between(18..24).and(a_t[:dob_quality].in([1, 2])),
         "Client Doesn't Know/Client Refused" => a_t[:dob_quality].in([8, 9]),
         'Data Not Collected' => a_t[:dob_quality].not_in([8, 9]).and(a_t[:dob_quality].eq(99).or(a_t[:dob_quality].eq(nil)).or(a_t[:age].lt(0)).or(a_t[:age].eq(nil))),
         'Total' => Arel.sql('1=1'), # include everyone

@@ -106,10 +106,10 @@ module HudApr::Generators::Shared::Fy2020
       ]
       columns = {
         'B' => Arel.sql('1=1'),
-        'C' => a_t[:age].between(0..17),
-        'D' => a_t[:age].between(18..24),
-        'E' => a_t[:age].between(25..61),
-        'F' => a_t[:age].gteq(62),
+        'C' => a_t[:age].between(0..17).and(a_t[:dob_quality].in([1, 2])),
+        'D' => a_t[:age].between(18..24).and(a_t[:dob_quality].in([1, 2])),
+        'E' => a_t[:age].between(25..61).and(a_t[:dob_quality].in([1, 2])),
+        'F' => a_t[:age].gteq(62).and(a_t[:dob_quality].in([1, 2])),
         'G' => a_t[:dob_quality].in([8, 9]),
         'H' => a_t[:dob_quality].not_in([8, 9]).and(a_t[:dob_quality].eq(99).or(a_t[:dob_quality].eq(nil)).or(a_t[:age].lt(0)).or(a_t[:age].eq(nil))),
       }.freeze
