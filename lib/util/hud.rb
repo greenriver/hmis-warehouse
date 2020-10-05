@@ -27,7 +27,7 @@ module HUD
   end
 
   private def digits?(value)
-    value =~ /^\d+$/
+    value.match(/^\d+$/).present?
   end
 
   def fiscal_year_start
