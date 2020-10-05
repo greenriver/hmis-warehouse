@@ -51,7 +51,7 @@ module HudApr::Generators::Shared::Fy2020
       table_name = 'Q9b'
 
       adults_and_hohs = universe.members.where(adult_or_hoh_clause)
-      engaged_ids = adults_and_hohs.where(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)).pluck(:id)
+      engaged_ids = adults_and_hohs.where(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)).pluck(a_t[:id])
 
       engaged_counts = populate_table(table_name, 7, 'Engaged', engaged_ids)
       engaged_counts.each do |col, count|
