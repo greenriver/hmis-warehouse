@@ -104,12 +104,11 @@ module HudApr::Generators::Shared::Fy2020
           situations: [37, 8, 9, 99],
         },
       ].each do |col|
-        next unless col[:situations].present?
-
         buckets.each do |row, (_, range)|
           cell = "#{col[:column]}#{row}"
           answer = @report.answer(question: table_name, cell: cell)
-          member_ids = situations.select { |_, v| range.cover?(v.length) }.keys
+          candidates = situations.select { |_, v| v.any? { |cls| col[:situations].include?(cls.living_situation) } }
+          member_ids = candidates.select { |_, v| range.cover?(v.length) }.keys
           members = universe.members.where(a_t[:id].in(member_ids))
           answer.add_members(members)
           count = members.count

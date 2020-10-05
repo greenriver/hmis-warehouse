@@ -14,8 +14,14 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionNine, type: :model do
   end
 
   describe 'Q9a: Number of Persons Contacted' do
+    it 'total of two contacts' do
+      expect(report_result.answer(question: 'Q9a', cell: 'B6').summary).to eq(2)
+    end
   end
 
   describe 'Q9b: Number of Persons Engaged' do
+    it 'total of one engagement' do
+      expect(report_result.answer(question: 'Q9b', cell: 'B6').summary).to eq(1)
+    end
   end
 end
