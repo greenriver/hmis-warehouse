@@ -56,7 +56,7 @@ module HudApr::Generators::Shared::Fy2020
       engaged_counts = populate_table(table_name, 7, 'Engaged', engaged_ids)
       engaged_counts.each do |col, count|
         ratio = format('%1.4f', count / contact_counts[col].to_f)
-        @report.answer(question: table_name, cell: col).update(summary: ratio)
+        @report.answer(question: table_name, cell: "#{col}7").update(summary: ratio)
       end
     end
 
@@ -104,11 +104,12 @@ module HudApr::Generators::Shared::Fy2020
           situations: [37, 8, 9, 99],
         },
       ].each do |col|
-        clients = situations.select { |_, v| (v.living_situation & col[:situations]).present? }
+        next unless col[:situations].present?
+
         buckets.each do |row, (_, range)|
-          cell = "#{col[:columm]}#{row}"
+          cell = "#{col[:column]}#{row}"
           answer = @report.answer(question: table_name, cell: cell)
-          member_ids = clients.select { |_, v| range.cover?(v.length) }.keys
+          member_ids = situations.select { |_, v| range.cover?(v.length) }.keys
           members = universe.members.where(a_t[:id].in(member_ids))
           answer.add_members(members)
           count = members.count
