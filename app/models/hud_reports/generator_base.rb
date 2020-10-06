@@ -42,7 +42,7 @@ module HudReports
       scope = client_source.
         distinct.
         joins(:service_history_enrollments).
-        merge(GrdaWarehouse::ServiceHistoryEnrollment.open_between(start_date: @report.start_date, end_date: @report.end_date))
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: @report.start_date, end_date: @report.end_date))
 
       scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_coc(coc_code: @report.coc_code)) if @report.coc_code
       scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_project(@report.project_ids)) if @report.project_ids.present?
