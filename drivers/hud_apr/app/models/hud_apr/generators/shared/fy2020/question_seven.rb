@@ -116,10 +116,10 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def last_wednesday_of(month:, year:)
-      date = Date.new(year, month, -1) # end of the month
-      date = date.prev_day until date.wednesday?
+      date = Date.new(year, month, 1).end_of_month
+      return date if date.wednesday?
 
-      date
+      date.prev_occurring(:wednesday)
     end
 
     private def q7a_persons_served
