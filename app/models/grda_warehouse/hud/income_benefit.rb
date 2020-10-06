@@ -140,8 +140,8 @@ module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
 
       calculated = amounts.sum
       return calculated if calculated.positive?
-      return 0.0 if self.IncomeFromAnySource.zero?
       return 0.0 if self.IncomeFromAnySource.in?([1, nil])
+      return 0.0 if self.IncomeFromAnySource.zero?
 
       nil
     end
