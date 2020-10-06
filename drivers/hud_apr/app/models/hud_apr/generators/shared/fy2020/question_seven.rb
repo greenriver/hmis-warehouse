@@ -108,9 +108,9 @@ module HudApr::Generators::Shared::Fy2020
 
     private def pit_date(month:, before:)
       year = before.year if month < before.month
-      year = before.year if month == before.month && before.day >= last_wednesday_of(month: before.month, year: before.year)
+      year = before.year if month == before.month && before.day >= last_wednesday_of(month: before.month, year: before.year).day
       year = before.year - 1 if month > before.month
-      year = before.year - 1 if month == before.month && before.day < last_wednesday_of(month: before.month, year: before.year)
+      year = before.year - 1 if month == before.month && before.day < last_wednesday_of(month: before.month, year: before.year).day
 
       last_wednesday_of(month: month, year: year)
     end
