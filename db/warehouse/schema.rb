@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_01_171704) do
+ActiveRecord::Schema.define(version: 2020_10_06_134420) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -6861,6 +6861,7 @@ ActiveRecord::Schema.define(version: 2020_10_01_171704) do
     t.string "housing_status"
     t.string "other_housing_status"
     t.boolean "imported", default: false
+    t.string "zip_code"
     t.index ["deleted_at"], name: "index_youth_case_managements_on_deleted_at"
   end
 
@@ -6889,6 +6890,10 @@ ActiveRecord::Schema.define(version: 2020_10_01_171704) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.string "action"
+    t.date "action_on"
+    t.date "required_on"
+    t.integer "case_management_id"
     t.index ["deleted_at"], name: "index_youth_follow_ups_on_deleted_at"
   end
 
