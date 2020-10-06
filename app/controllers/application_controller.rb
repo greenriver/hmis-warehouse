@@ -90,15 +90,12 @@ class ApplicationController < ActionController::Base
     super
   end
 
-  cattr_accessor :translations_refreshed_at
+  cattr_accessor :refresh_translations_after
   def possibly_reset_fastgettext_cache
-    ApplicationController.translations_refreshed_at ||= Time.now
-    needs_refresh = Time.now - ApplicationController.translations_refreshed_at > 4.hours
-
-    return unless needs_refresh
+    return unless refresh_translations_after.blank? || Time.current > refresh_translations_after
 
     FastGettext.cache.reload!
-    ApplicationController.translations_refreshed_at = Time.now
+    ApplicationController.refresh_translations_after = Time.now + 4.hours
   end
 
   def _basic_auth
