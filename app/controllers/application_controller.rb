@@ -33,6 +33,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :locale
   before_action :set_gettext_locale
+  before_action :possibly_reset_fastgettext_cache
   before_action :enforce_2fa!
   before_action :require_training!
   before_action :health_emergency?
@@ -87,6 +88,17 @@ class ApplicationController < ActionController::Base
   def set_gettext_locale
     session[:locale] = I18n.locale = FastGettext.set_locale(locale)
     super
+  end
+
+  cattr_accessor :translations_refreshed_at
+  def possibly_reset_fastgettext_cache
+    ApplicationController.translations_refreshed_at ||= Time.now
+    needs_refresh = Time.now - ApplicationController.translations_refreshed_at > 4.hours
+
+    return unless needs_refresh
+
+    FastGettext.cache.reload!
+    ApplicationController.translations_refreshed_at = Time.now
   end
 
   def _basic_auth
