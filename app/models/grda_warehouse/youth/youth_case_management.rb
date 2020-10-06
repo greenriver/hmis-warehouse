@@ -95,8 +95,8 @@ module GrdaWarehouse::Youth
       options = {
         client_id: client_id,
         user_id: user_id,
-        action_on: engagement_date,
-        required_on: GrdaWarehouse::Youth::YouthFollowUp.follow_up_date(engagement_date),
+        action_on: engaged_on,
+        required_on: GrdaWarehouse::Youth::YouthFollowUp.follow_up_date(engaged_on),
         action: action,
       }
       GrdaWarehouse::Youth::YouthFollowUp.create(options)
@@ -108,8 +108,8 @@ module GrdaWarehouse::Youth
 
       due_follow_up.update(
         housing_status: self.class.generic_housing_status(housing_status),
-        zip_code: stable_housing_zipcode,
-        contacted_on: engagement_date,
+        zip_code: zip_code,
+        contacted_on: engaged_on,
         case_management_id: id,
       )
     end

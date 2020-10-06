@@ -4,6 +4,8 @@
 = f.input :housing_status, collection: @entity.class.youth_housing_status_options, label: "Youth Housing Status Check Up", input_html: { class: [:select2, 'jHousingStatus'] }
 .jOtherHousingStatus
   = f.input :other_housing_status, hidden: true
+.jZipCode
+  = f.input :zip_code, hidden: true, label: 'In What Zip Code?'
 
 - content_for :page_js do
   :javascript
@@ -15,6 +17,11 @@
         } else {
           $('.jOtherHousingStatus').hide()
         }
+        if ($('.jHousingStatus').val() == 'This youth is currently in stable housing') {
+          $('.jZipCode').show()
+        } else {
+          $('.jZipCode').hide()
+        }
       });
-      $('.jHousingStatus').trigger('change')
+      $('.jHousingStatus').trigger('change');
     })

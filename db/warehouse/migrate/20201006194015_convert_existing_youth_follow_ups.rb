@@ -2,7 +2,7 @@ class ConvertExistingYouthFollowUps < ActiveRecord::Migration[5.2]
   def up
     return unless GrdaWarehouse::Youth::YouthFollowUp.exists?
 
-    existing_follow_ups = GrdaWarehouse::Youth::YouthFollowUp.order(contacted_on: :asc).all.to_a
+    existing_follow_ups = GrdaWarehouse::Youth::YouthFollowUp.joins(:client).order(contacted_on: :asc).all.to_a
     GrdaWarehouse::Youth::YouthFollowUp.update_all(deleted_at: Date.current)
 
     # Loop over intakes, creating follow-ups as

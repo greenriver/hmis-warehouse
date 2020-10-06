@@ -30,10 +30,9 @@ module Clients::Youth
       @youth_referrals = @client.youth_referrals.
         merge(GrdaWarehouse::Youth::YouthReferral.visible_by?(current_user)).
         order(referred_on: :desc, created_at: :desc)
-      # @follow_ups = @client.youth_follow_ups.
-      #   merge(GrdaWarehouse::Youth::YouthFollowUp.visible_by?(current_user)).
-      #   order(contacted_on: :desc, created_at: :desc)
-      # @follow_up_due = follow_up_due_on
+      @follow_ups = @client.youth_follow_ups.
+        merge(GrdaWarehouse::Youth::YouthFollowUp.visible_by?(current_user)).
+        order(contacted_on: :desc, created_at: :desc)
 
       @referral = @client.youth_referrals.build(referred_on: Date.current)
       @assistance = @client.direct_financial_assistances.build(provided_on: Date.current)
