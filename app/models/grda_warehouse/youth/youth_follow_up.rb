@@ -30,7 +30,7 @@ module GrdaWarehouse::Youth
 
     scope :upcoming, -> do
       where(contacted_on: nil).
-        where(arel_table[:required_on].between(1.weeks.from_now.to_date..Date.yesterday))
+        where(arel_table[:required_on].between(Date.yesterday..1.weeks.from_now.to_date))
     end
 
     scope :due, -> do
