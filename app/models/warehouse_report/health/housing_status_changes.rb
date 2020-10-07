@@ -118,11 +118,10 @@ class WarehouseReport::Health::HousingStatusChanges # rubocop:disable Style/Clas
   end
 
   private def clients_in_trend_group(starting_status:, ending_status:)
-    unique_client_data.select do |row|
-      _, data = row.first
+    unique_client_data.reduce(&:merge).select do |_, data|
       data[:starting].clean_housing_status.in?(starting_status) &&
       data[:ending].clean_housing_status.in?(ending_status)
-    end.map(&:to_a).flatten(1).to_h
+    end
   end
 
   private def count_trend_group(starting_status:, ending_status:)
