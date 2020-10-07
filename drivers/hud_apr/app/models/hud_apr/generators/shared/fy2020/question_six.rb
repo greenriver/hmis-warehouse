@@ -300,15 +300,17 @@ module HudApr::Generators::Shared::Fy2020
 
       # client location
       answer = @report.answer(question: table_name, cell: 'B5')
-      members = universe.members.where(
-        a_t[:enrollment_coc].eq(nil).
-          or(a_t[:enrollment_coc].not_in(HUD.cocs.keys)),
-      )
+      members = universe.members.
+        where(hoh_clause).
+        where(
+          a_t[:enrollment_coc].eq(nil).
+            or(a_t[:enrollment_coc].not_in(HUD.cocs.keys)),
+        )
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C5')
-      hoh_denominator = universe.members.where(a_t[:head_of_household].eq(true))
+      hoh_denominator = universe.members.where(hoh_clause)
       answer.update(summary: format('%1.4f', members.count / hoh_denominator.count.to_f))
 
       # disabling condition
