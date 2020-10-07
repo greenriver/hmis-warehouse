@@ -356,7 +356,7 @@ module HudApr::Generators::Shared::Fy2020
       @report.answer(question: table_name).update(metadata: metadata)
 
       # destinations
-      leavers = universe.members.where(a_t[:last_date_in_program].lteq(@report.end_date))
+      leavers = universe.members.where(leavers_clause)
 
       answer = @report.answer(question: table_name, cell: 'B2')
       members = leavers.where(a_t[:destination].in([nil, 8, 9, 30]))
@@ -513,7 +513,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: format('%1.4f', members.count / es_sh_so.count.to_f))
 
-      es_sh_so
+      members
     end
 
     private def th(table_name, adults_and_hohs)
@@ -567,11 +567,6 @@ module HudApr::Generators::Shared::Fy2020
 
       # percent
       answer = @report.answer(question: table_name, cell: 'H3')
-      # members = date_homeless_members.
-      #   or(missing_institution).
-      #   or(missing_housing).
-      #   or(times_homeless_members).
-      #   or(months_homeless_members)
       ors = th_buckets.select { |m| m[:include_in_percent] }.map do |cell|
         cell[:clause].to_sql
       end
@@ -579,7 +574,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: format('%1.4f', members.count / th.count.to_f))
 
-      th
+      members
     end
 
     private def ph(table_name, adults_and_hohs)
@@ -638,15 +633,10 @@ module HudApr::Generators::Shared::Fy2020
         cell[:clause].to_sql
       end
       members = ph.where(Arel.sql(ors.join(' or ')))
-      # date_homeless_members.
-      #   or(missing_institution).
-      #   or(missing_housing).
-      #   or(times_homeless_members).
-      #   or(months_homeless_members)
       answer.add_members(members)
       answer.update(summary: format('%1.4f', members.count / ph.count.to_f))
 
-      ph
+      members
     end
 
     private def q6e_timeliness

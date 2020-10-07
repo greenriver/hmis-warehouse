@@ -39,9 +39,19 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSix, type: :model do
   end
 
   describe 'Q6c: Data Quality: Income and Housing Data Quality' do
+    it 'counts at least one income' do
+      answer = report_result.answer(question: 'Q6c', cell: 'C3').summary
+      expect(answer).not_to eq(nil)
+      expect(answer).not_to eq('1.0000')
+    end
   end
 
   describe 'Q6d: Data Quality: Chronic Homelessness' do
+    it 'counts at least one valid record' do
+      answer = report_result.answer(question: 'Q6d', cell: 'H5').summary
+      expect(answer).not_to eq(nil)
+      expect(answer).not_to eq('1.0000')
+    end
   end
 
   describe 'Q6e: Data Quality: Timeliness' do
