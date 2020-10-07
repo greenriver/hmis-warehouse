@@ -38,6 +38,18 @@ module GrdaWarehouse::Youth
         where(arel_table[:required_on].lteq(Date.current))
     end
 
+    scope :initial_action_at_risk, -> do
+      where(action: :at_risk)
+    end
+
+    scope :initial_action_homeless, -> do
+      where(action: :homeless)
+    end
+
+    scope :initial_action_housed, -> do
+      where(action: :housed)
+    end
+
     scope :visible_by?, ->(user) do
       # users at your agency, plus your own user in case you have no agency.
       agency_user_ids = User.

@@ -21,6 +21,7 @@ module GrdaWarehouse::YouthIntake
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_intakes
     belongs_to :user
     has_many :youth_follow_ups, through: :client
+    has_many :case_managements, through: :client
 
     after_save :create_required_follow_up!
     after_save :update_destination_client
@@ -74,6 +75,10 @@ module GrdaWarehouse::YouthIntake
       where(turned_away: false)
     end
 
+    scope :not_served, -> do
+      where(turned_away: true)
+    end
+
     scope :ongoing, -> do
       where(exit_date: nil)
     end
@@ -99,6 +104,26 @@ module GrdaWarehouse::YouthIntake
       order(engagement_date: :desc, exit_date: :desc)
     end
 
+    scope :at_risk, -> do
+      where(housing_status: at_risk_string)
+    end
+
+    scope :homeless, -> do
+      where(housing_status: homeless_strings)
+    end
+
+    scope :stably_housed, -> do
+      where(housing_status: stably_housed_string)
+    end
+
+    scope :street_outreach_initial_contact, -> do
+      where(street_outreach_contact: 'Yes')
+    end
+
+    scope :non_street_outreach_initial_contact, -> do
+      where(street_outreach_contact: 'No')
+    end
+
     def self.current_generic_housing_status(on_date: Date.current)
       record = ordered.where(arel_table[:engagement_date].lt(on_date)).limit(1)&.first
       return [] unless record.present?
@@ -114,6 +139,8 @@ module GrdaWarehouse::YouthIntake
         :at_risk
       elsif status == stably_housed_string
         :housed
+      elsif status.in?(homeless_strings)
+        :homeless
       else
         :other
       end
@@ -185,6 +212,26 @@ module GrdaWarehouse::YouthIntake
       self.class.stably_housed_string
     end
 
+    def self.homeless_strings
+      [
+        couch_surfing_string,
+        street_string,
+        shelter_string,
+      ]
+    end
+
+    def self.couch_surfing_string
+      'Experiencing homelessness: couch surfing'
+    end
+
+    def self.street_string
+      'Experiencing homelessness: street'
+    end
+
+    def self.shelter_string
+      'Experiencing homelessness: in shelter'
+    end
+
     def yes_no_unknown_refused
       @yes_no_unknown_refused ||= [
         'Yes',
@@ -204,12 +251,12 @@ module GrdaWarehouse::YouthIntake
 
     def available_housing_stati
       @available_housing_stati ||= {
-        stably_housed_string => 'Stably housed <em>(Individual has sufficient resources or support networks immediately available to prevent them from moving to emergency shelter or another place within 30 days.)</em>'.html_safe,
-        at_risk_string => 'At risk of homelessness <em>(A person 24 years of age or younger whose status or circumstances indicate a significant danger of experiencing homelessness in the near future (four months). Statuses or circumstances that indicate a significant danger may include: (1) youth exiting out-of-home placements; (2) youth who previously were homeless; (3) youth whose parents or primary caregivers are or were previously homeless or have a history of multiple evictions or other types of housing instability; (4) youth who are exposed to abuse and neglect in their homes; (5) youth who experience conflict with parents due to chemical or alcohol dependency, mental health disabilities, or other disabilities; and (6) runaways.)</em>'.html_safe,
+        self.class.stably_housed_string => 'Stably housed <em>(Individual has sufficient resources or support networks immediately available to prevent them from moving to emergency shelter or another place within 30 days.)</em>'.html_safe,
+        self.class.at_risk_string => 'At risk of homelessness <em>(A person 24 years of age or younger whose status or circumstances indicate a significant danger of experiencing homelessness in the near future (four months). Statuses or circumstances that indicate a significant danger may include: (1) youth exiting out-of-home placements; (2) youth who previously were homeless; (3) youth whose parents or primary caregivers are or were previously homeless or have a history of multiple evictions or other types of housing instability; (4) youth who are exposed to abuse and neglect in their homes; (5) youth who experience conflict with parents due to chemical or alcohol dependency, mental health disabilities, or other disabilities; and (6) runaways.)</em>'.html_safe,
         'Unstably housed' => 'Unstably housed but does not meet definition of At risk of homelessness',
-        'Experiencing homelessness: couch surfing' => 'Experiencing homelessness: couch surfing',
-        'Experiencing homelessness: street' => 'Experiencing homelessness: street',
-        'Experiencing homelessness: in shelter' => 'Experiencing homelessness: in shelter',
+        self.class.couch_surfing_string => 'Experiencing homelessness: couch surfing',
+        self.class.street_string => 'Experiencing homelessness: street',
+        self.class.shelter_string => 'Experiencing homelessness: in shelter',
         'Unknown' => 'Unknown',
       }
     end

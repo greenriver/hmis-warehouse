@@ -31,6 +31,18 @@ module GrdaWarehouse::Youth
       where(at[:engaged_on].gteq(start_date).and(at[:engaged_on].lteq(end_date)))
     end
 
+    scope :at_risk, -> do
+      where(housing_status: at_risk_string)
+    end
+
+    scope :homeless, -> do
+      where(housing_status: homeless_string)
+    end
+
+    scope :stably_housed, -> do
+      where(housing_status: stably_housed_string)
+    end
+
     scope :visible_by?, ->(user) do
       # users at your agency, plus your own user in case you have no agency.
       agency_user_ids = User.
@@ -69,6 +81,8 @@ module GrdaWarehouse::Youth
         :at_risk
       elsif status == stably_housed_string
         :housed
+      elsif status == homeless_string
+        :homeless
       else
         :other
       end
@@ -138,11 +152,15 @@ module GrdaWarehouse::Youth
       self.class.stably_housed_string
     end
 
+    def self.homeless_string
+      'This youth is currently experiencing homeless'
+    end
+
     def self.youth_housing_status_options
       [
-        'This youth is currently in stable housing',
-        'This youth is currently experiencing homeless',
-        'This youth is currently at risk',
+        stably_housed_string,
+        homeless_string,
+        at_risk_string,
         'This youth is not currently in stable housing',
         'Unknown',
         'Other:',
@@ -151,7 +169,7 @@ module GrdaWarehouse::Youth
 
     def self.available_activities
       [
-        'Prevention ',
+        'Prevention',
         'Re-Housing',
       ]
     end
