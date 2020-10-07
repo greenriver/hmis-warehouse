@@ -110,7 +110,7 @@ module HudApr::Generators::Shared::Fy2020
             enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
             enrollment_created: enrollment.DateCreated,
             ethnicity: source_client.Ethnicity,
-            exit_created: exit_record&.DateCreated,
+            exit_created: exit_record&.exit&.DateCreated,
             first_date_in_program: last_service_history_enrollment.first_date_in_program,
             first_name: source_client.FirstName,
             gender: source_client.Gender,

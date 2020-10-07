@@ -55,6 +55,13 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSix, type: :model do
   end
 
   describe 'Q6e: Data Quality: Timeliness' do
+    it 'sees the starts' do
+      expect(report_result.answer(question: 'Q6e', cell: 'B2').summary).to eq(9)
+    end
+
+    it 'sees the exits' do
+      expect(report_result.answer(question: 'Q6e', cell: 'C2').summary).to eq(4)
+    end
   end
 
   describe 'Q6f: Data Quality: Inactive Records: Street Outreach and Emergency Shelter' do
