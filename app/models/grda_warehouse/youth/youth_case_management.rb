@@ -115,11 +115,11 @@ module GrdaWarehouse::Youth
     end
 
     private def transitioning_to_housing?
-      stably_housed? && client.current_youth_situation(on_date: engaged_on) != :housed
+      stably_housed? && client.current_youth_housing_situation(on_date: engaged_on) != :housed
     end
 
     private def transitioning_to_at_risk?
-      at_risk_of_homelessness? && client.current_youth_situation(on_date: engaged_on).in?([nil, :housed])
+      at_risk_of_homelessness? && client.current_youth_housing_situation(on_date: engaged_on).in?([nil, :housed])
     end
 
     private def at_risk_of_homelessness?
