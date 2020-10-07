@@ -42,6 +42,7 @@ module HudApr::Generators::Shared::Fy2020
         batch.each do |client|
           # Fetch enrollments for destination client
           enrollments = clients_with_enrollments[client.id]
+          next unless enrollments.present?
 
           last_service_history_enrollment = enrollments.last
           enrollment = last_service_history_enrollment.enrollment
