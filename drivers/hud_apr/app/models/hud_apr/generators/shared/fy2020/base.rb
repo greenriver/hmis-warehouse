@@ -110,7 +110,7 @@ module HudApr::Generators::Shared::Fy2020
             enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
             enrollment_created: enrollment.DateCreated,
             ethnicity: source_client.Ethnicity,
-            exit_created: exit_record&.DateCreated,
+            exit_created: exit_record&.exit&.DateCreated,
             first_date_in_program: last_service_history_enrollment.first_date_in_program,
             first_name: source_client.FirstName,
             gender: source_client.Gender,
@@ -207,13 +207,7 @@ module HudApr::Generators::Shared::Fy2020
           end
         end
 
-        report_living_situation_universe.import(
-          client_living_situations,
-          on_duplicate_key_update: {
-            conflict_target: [:hud_report_apr_client_id],
-            columns: client_living_situations.first&.changed || [],
-          },
-        )
+        report_living_situation_universe.import(client_living_situations)
       end
     end
 
@@ -270,7 +264,7 @@ module HudApr::Generators::Shared::Fy2020
 
     private def households
       @households ||= {}.tap do |hh|
-        enrollment_scope.where(client_id: @generator.client_scope.select(:id)).find_each do |enrollment|
+        enrollment_scope.where(client_id: @generator.client_scope).find_each do |enrollment|
           hh[enrollment.household_id] ||= []
           hh[enrollment.household_id] << {
             source_client_id: enrollment.enrollment.client.id,
@@ -464,7 +458,7 @@ module HudApr::Generators::Shared::Fy2020
 
     private def hoh_entry_dates
       @hoh_entry_dates ||= {}.tap do |entries|
-        enrollment_scope.where(client_id: @generator.client_scope.select(:id)).heads_of_households.
+        enrollment_scope.where(client_id: @generator.client_scope).heads_of_households.
           find_each do |enrollment|
             entries[enrollment[:head_of_household_id]] ||= enrollment.first_date_in_program
           end
@@ -473,7 +467,7 @@ module HudApr::Generators::Shared::Fy2020
 
     private def hoh_move_in_dates
       @hoh_move_in_dates ||= {}.tap do |entries|
-        enrollment_scope.where(client_id: @generator.client_scope.select(:id)).heads_of_households.
+        enrollment_scope.where(client_id: @generator.client_scope).heads_of_households.
           find_each do |enrollment|
             entries[enrollment[:head_of_household_id]] ||= enrollment.move_in_date
           end
