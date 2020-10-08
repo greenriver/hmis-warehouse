@@ -41,7 +41,7 @@ module HudApr::Generators::Shared::Fy2020
 
           answer.update(summary: 0) and next if members.count.zero?
 
-          if income_clause.is_a?(Hash) # rubocop:disable Style/CaseLikeIf
+          if income_clause.is_a?(Hash)
             members = members.where.contains(income_clause)
           elsif income_clause.is_a?(Symbol)
             ids = Set.new
