@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
+class PerformanceDashboards::Base
   include ArelHelper
   include ActionView::Helpers::NumberHelper
 
