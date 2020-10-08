@@ -17,7 +17,7 @@ module WarehouseReports
     def details
       raise 'Key required' if params[:key].blank?
 
-      @key = @report.report_whitelist.detect { |key| key.to_s == params[:key] }
+      @key = @report.allowed_report_keys.detect { |key| key.to_s == params[:key] }
       raise 'Key required' unless @key
 
       client_ids = case @key

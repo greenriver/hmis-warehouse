@@ -16,6 +16,7 @@ gem "pg"
 # version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
 gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: '5-2-stable', require: false
 gem 'activerecord-import'
+gem 'active_record_extended'
 
 # spatial manipulations
 gem 'activerecord-postgis-adapter'
@@ -225,6 +226,7 @@ end
 
 group :test do
   gem "capybara"
+  gem 'fixpoints', git: 'https://github.com/greenriver/fixpoints.git', branch: 'master'
   gem "launchy"
   gem 'minitest-reporters'
   gem 'rspec-mocks'

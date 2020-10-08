@@ -9,6 +9,8 @@ module Health
     queue_as :long_running
 
     def perform(user)
+      return unless GrdaWarehouse::Config.get(:healthcare_available)
+
       api = Health::Soap::MassHealth.new(test: !Rails.env.production?)
       setup_notifier('Update Patient Enrollments')
       file_list = api.file_list

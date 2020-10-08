@@ -19,6 +19,7 @@ module GrdaWarehouse::Hud
     include HudChronicDefinition
     include SiteChronic
     include ClientHealthEmergency
+    include ::Youth::Intake
     has_paper_trail
 
     attr_accessor :source_id
@@ -31,15 +32,10 @@ module GrdaWarehouse::Hud
     has_many :client_files
     has_many :health_files
     has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
-    has_many :youth_intakes, class_name: 'GrdaWarehouse::YouthIntake::Base', inverse_of: :client
     has_many :ce_assessments, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
     has_one :ce_assessment, -> do
       merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active)
     end, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
-    has_many :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', inverse_of: :client
-    has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
-    has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
-    has_many :youth_follow_ups, class_name: 'GrdaWarehouse::Youth::YouthFollowUp', inverse_of: :client
 
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
@@ -968,6 +964,7 @@ module GrdaWarehouse::Hud
 
     def visible_because_of_release?(user)
       any_window_clients = source_clients.map { |sc| sc.data_source&.visible_in_window? }.any?
+      # user can see the window, and client has a valid release, or none is required (by the site config)
       user.can_view_client_window? &&
       (
         release_valid? ||
@@ -975,9 +972,10 @@ module GrdaWarehouse::Hud
       )
     end
 
+    # This permission is mis-named a bit, it should check all project ids visible to the user
     def visible_because_of_assigned_data_source?(user)
       user.can_see_clients_in_window_for_assigned_data_sources? &&
-        (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+        (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
     end
 
     def visible_because_of_coc_association?(user)

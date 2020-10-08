@@ -296,6 +296,22 @@ namespace :grda_warehouse do
     GrdaWarehouse::ImportRemover.new(import_id).run!
   end
 
+  desc 'Cleanup fake CoC Codes'
+  task :fake_coc_cleanup, [] => [:environment, 'log:info_to_stdout'] do |task, args|
+    GrdaWarehouse::FakeData.find_each do |fake|
+      next unless fake.map['CoCCode']
+
+      fake.map['CoCCode'].each do |k, code|
+        if HUD.cocs.keys.include?(code)
+          fake.map['CoCCode'][k] = code
+        else
+          fake.map['CoCCode'][k] = HUD.cocs.keys.sample
+        end
+      end
+      fake.save
+    end
+  end
+
   desc 'Invalidate incorrectly inherited move-in-date enrollments'
   task :invalidate_incorrect_move_ins, [] => [:environment, 'log:info_to_stdout'] do
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where(MoveInDate: nil).

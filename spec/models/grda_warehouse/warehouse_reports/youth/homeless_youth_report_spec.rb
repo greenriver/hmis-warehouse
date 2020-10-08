@@ -18,7 +18,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
   let!(:new_at_risk_contact) { create :intake, :new_intake, :at_risk }
 
   let!(:existing_case_management_existing_client) { create :case_management, :existing_case_management, client: existing_intake.client }
-  let!(:new_case_management_existing_client) { create :case_management, :new_case_management, client: existing_intake.client }
+  let!(:new_case_management_existing_client) { create :case_management, :new_case_management, :case_management_at_risk, client: existing_intake.client }
+  let!(:new_homeless_case_management_existing_client) { create :case_management, :new_case_management, :case_management_homeless, client: existing_intake.client }
   let!(:new_case_management_new_client) { create :case_management, :new_case_management, client: new_intake.client }
 
   let!(:turned_away_at_risk) { create :intake, :new_intake, :at_risk, turned_away: true }
@@ -30,8 +31,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
   let!(:new_referral_out) { create :referral_out, :new_referral_out, client: existing_intake.client }
 
   let!(:past_follow_up) { create :follow_up, :past_follow_up, client: existing_intake.client }
-  let!(:protected_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, client: new_at_risk_contact.client }
-  let!(:rehoused_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, client: new_homeless_contact.client }
+  let!(:protected_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, :follow_up_from_at_risk, client: new_at_risk_contact.client }
+  let!(:rehoused_follow_up) { create :follow_up, :new_follow_up, :housed_at_followup, :follow_up_from_homeless, client: new_homeless_contact.client }
 
   let(:report) { build :homeless_youth_report }
 
@@ -43,8 +44,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
 
   describe 'when a report is generated' do
     it 'counts clients with services in the period' do
-      expect(report.total_served).to include new_intake.client_id
-      expect(report.total_served.count).to eq 6
+      expect(report.total_client_ids_served).to include new_intake.client_id
+      expect(report.total_client_ids_served.count).to eq 6
     end
 
     # A1
@@ -105,17 +106,14 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
     # end
 
     it 'counts continuing clients with case management' do
-      expect(report.four_c.count).to eq 1
+      expect(report.four_b.count).to eq 1
+      expect(report.four_b).to include new_homeless_case_management_existing_client.client_id
     end
 
     # A5
 
     it 'counts clients with financial assistance in interval' do
       expect(report.five_a.count).to eq 1
-    end
-
-    it 'counts clients without financial assistance in interval' do
-      expect(report.five_b.count).to eq 7
     end
 
     # A6
@@ -135,11 +133,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::HomelessYouthReport, type
     end
 
     it 'counts homeless follow ups' do
-      expect(report.follow_up_two_a.count).to eq 1
+      expect(report.follow_up_two_b.count).to eq 1
     end
 
     it 'counts re-housed homeless follow ups' do
-      expect(report.follow_up_two_b.count).to eq 1
+      expect(report.follow_up_two_c.count).to eq 1
     end
   end
 end

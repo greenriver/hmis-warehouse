@@ -13,12 +13,21 @@ module HUD
     group_number = ssn[3..4]
     serial_number = ssn.last(4)
 
+    # Fields can't be all zeros
     return false if area_number.to_i.zero? || group_number.to_i.zero? || serial_number.to_i.zero?
+    # Fields must be numbers
+    return false unless digits?(area_number) && digits?(group_number) && digits?(serial_number)
+    # 900+ are not assigned, and 666 is excluded
     return false if area_number.to_i >= 900 || area_number == '666'
+    # Published IDs are not valid
     return false if ['219099999', '078051120', '123456789'].include?(ssn)
     return false if ssn.split('').uniq.count == 1 # all the same number
 
     true
+  end
+
+  private def digits?(value)
+    value.match(/^\d+$/).present?
   end
 
   def fiscal_year_start
@@ -80,14 +89,15 @@ module HUD
     _translate map, field, reverse
   end
 
+  # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
   def races
     {
-      'AmIndAKNative' => 'American Indian or Alaska Native',
-      'Asian' => 'Asian',
-      'BlackAfAmerican' => 'Black or African American',
-      'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander',
-      'White' => 'White',
-      'RaceNone' => 'None',
+      'AmIndAKNative' => 'American Indian or Alaska Native', # 1
+      'Asian' => 'Asian', # 2
+      'BlackAfAmerican' => 'Black or African American', # 3
+      'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander', # 4
+      'White' => 'White', # 5
+      'RaceNone' => 'None', # 6 (can be 99, 8, 9, null only if all other race fields are 99 or 0)
     }
   end
 
@@ -810,7 +820,7 @@ module HUD
     }
   end
 
-  def homeless_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def homeless_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
@@ -824,7 +834,7 @@ module HUD
     end
   end
 
-  def institutional_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def institutional_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
@@ -841,7 +851,7 @@ module HUD
     end
   end
 
-  def temporary_and_permanent_housing_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def temporary_and_permanent_housing_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
@@ -891,7 +901,7 @@ module HUD
     end
   end
 
-  def other_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def other_situations(as:, version: nil)
     case version
     when '2020', nil
       case as

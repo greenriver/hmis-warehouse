@@ -19,7 +19,7 @@
       - @clients.each do |client|
         - enrollment = client.source_enrollments.select{ |m| m[:EntryDate] == client.DOB }.first
         %tr
-          %td= link_to client.name, client_path(client)
+          %td= link_to_if can_view_clients_or_window?, client.name, appropriate_client_path(client)
           %td= client.DOB
           %td= enrollment.EntryDate
           %td= enrollment.project&.ProjectName
