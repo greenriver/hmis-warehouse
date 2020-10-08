@@ -15,7 +15,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionNine, type: :model do
 
   describe 'Q9a: Number of Persons Contacted' do
     it 'total of two contacts' do
-      expect(report_result.answer(question: 'Q9a', cell: 'B6').summary).to eq(2)
+      expect(report_result.answer(question: 'Q9a', cell: 'B6').summary).to eq(3)
     end
   end
 

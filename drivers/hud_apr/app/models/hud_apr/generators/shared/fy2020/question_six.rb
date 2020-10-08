@@ -300,15 +300,17 @@ module HudApr::Generators::Shared::Fy2020
 
       # client location
       answer = @report.answer(question: table_name, cell: 'B5')
-      members = universe.members.where(
-        a_t[:enrollment_coc].eq(nil).
-          or(a_t[:enrollment_coc].not_in(HUD.cocs.keys)),
-      )
+      members = universe.members.
+        where(hoh_clause).
+        where(
+          a_t[:enrollment_coc].eq(nil).
+            or(a_t[:enrollment_coc].not_in(HUD.cocs.keys)),
+        )
       answer.add_members(members)
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C5')
-      hoh_denominator = universe.members.where(a_t[:head_of_household].eq(true))
+      hoh_denominator = universe.members.where(hoh_clause)
       answer.update(summary: format('%1.4f', members.count / hoh_denominator.count.to_f))
 
       # disabling condition
@@ -354,7 +356,7 @@ module HudApr::Generators::Shared::Fy2020
       @report.answer(question: table_name).update(metadata: metadata)
 
       # destinations
-      leavers = universe.members.where(a_t[:last_date_in_program].lteq(@report.end_date))
+      leavers = universe.members.where(leavers_clause)
 
       answer = @report.answer(question: table_name, cell: 'B2')
       members = leavers.where(a_t[:destination].in([nil, 8, 9, 30]))
@@ -511,7 +513,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: format('%1.4f', members.count / es_sh_so.count.to_f))
 
-      es_sh_so
+      members
     end
 
     private def th(table_name, adults_and_hohs)
@@ -565,11 +567,6 @@ module HudApr::Generators::Shared::Fy2020
 
       # percent
       answer = @report.answer(question: table_name, cell: 'H3')
-      # members = date_homeless_members.
-      #   or(missing_institution).
-      #   or(missing_housing).
-      #   or(times_homeless_members).
-      #   or(months_homeless_members)
       ors = th_buckets.select { |m| m[:include_in_percent] }.map do |cell|
         cell[:clause].to_sql
       end
@@ -577,7 +574,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.add_members(members)
       answer.update(summary: format('%1.4f', members.count / th.count.to_f))
 
-      th
+      members
     end
 
     private def ph(table_name, adults_and_hohs)
@@ -636,15 +633,10 @@ module HudApr::Generators::Shared::Fy2020
         cell[:clause].to_sql
       end
       members = ph.where(Arel.sql(ors.join(' or ')))
-      # date_homeless_members.
-      #   or(missing_institution).
-      #   or(missing_housing).
-      #   or(times_homeless_members).
-      #   or(months_homeless_members)
       answer.add_members(members)
       answer.update(summary: format('%1.4f', members.count / ph.count.to_f))
 
-      ph
+      members
     end
 
     private def q6e_timeliness
@@ -764,12 +756,12 @@ module HudApr::Generators::Shared::Fy2020
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
+      # Clients whose enrollment date is more than 90 days before the end of the report, and are still
+      # enrolled until after the reporting period
       relevant_clients = universe.universe_members.joins(:apr_client).
         joins(report_cell: :report_instance).
         where(
-          datediff(
-            report_client_universe, 'day', a_t[:first_date_in_program], hr_ri_t[:end_date]
-          ).lt(90).
+          datediff(report_client_universe, 'day', hr_ri_t[:end_date], a_t[:first_date_in_program]).gteq(90).
             and(
               a_t[:last_date_in_program].eq(nil).
                 or(a_t[:last_date_in_program].gt(@report.end_date)),
@@ -794,15 +786,14 @@ module HudApr::Generators::Shared::Fy2020
       # inactive_es_so_members is based on ids so that 'or' works.
       es_so_member_ids = []
       es_so_members.find_each do |member|
-        dates = [member.universe_membership.first_date_in_program]
-        dates += member.universe_membership.hud_report_apr_living_situations.
-          pluck(:information_date)
-        dates.sort!
-        dates.each_with_index do |date, index|
-          next if index.zero? # Skip the first date
+        first_date_in_program = member.universe_membership.first_date_in_program
+        next if first_date_in_program > @report.end_date - 90.days # Less than 90 days in report period
 
-          es_so_member_ids << member.id if (date - dates[index - 1]).to_i > 90 # A gap of more than 90 days
-        end
+        last_current_living_situation = [
+          member.universe_membership.hud_report_apr_living_situations.maximum(:information_date),
+          first_date_in_program,
+        ].compact.max
+        es_so_member_ids << member.id if (@report.end_date - last_current_living_situation).to_i > 90
       end
 
       inactive_es_so_members = es_so_members.where(id: es_so_member_ids)
@@ -826,7 +817,7 @@ module HudApr::Generators::Shared::Fy2020
       # Inactive ES
       answer = @report.answer(question: table_name, cell: 'C3')
       inactive_es_members = es_members.where(
-        datediff(report_client_universe, 'day', a_t[:date_of_last_bed_night], hr_ri_t[:end_date]).lteq(90),
+        datediff(report_client_universe, 'day', hr_ri_t[:end_date], a_t[:date_of_last_bed_night]).gt(90),
       )
       answer.add_members(inactive_es_so_members)
       answer.update(summary: inactive_es_so_members.count)
