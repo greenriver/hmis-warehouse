@@ -51,6 +51,7 @@ module WarehouseReports
           :sub_population,
           :no_service_after_date,
           :limit_to_vispdats,
+          :require_homeless_enrollment,
           genders: [],
           races: [],
           ethnicities: [],

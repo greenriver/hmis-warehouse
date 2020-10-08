@@ -46,5 +46,5 @@ module Phi
   # with public data to re-identify the user
   class SmallPopulation < NeedsReview; end
 
-  Attribute = Struct.new(:class, :name, :category)
+  Attribute = Struct.new(:class, :name, :category, :description)
 end
