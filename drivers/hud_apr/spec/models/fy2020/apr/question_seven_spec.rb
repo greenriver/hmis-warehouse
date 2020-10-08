@@ -19,7 +19,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSeven, type: :model do
     end
 
     it 'counts adults without children' do
-      expect(report_result.answer(question: 'Q7a', cell: 'D2').summary).to eq(5)
+      expect(report_result.answer(question: 'Q7a', cell: 'C2').summary).to eq(5)
     end
 
     it 'counts adults with children' do
