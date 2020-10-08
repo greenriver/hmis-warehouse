@@ -65,10 +65,9 @@
                     Exact match
                   - elsif client.client_id.blank? && possible_matching_clients.blank?
                     None found
-                  
                 %td.text-center
                   - if matched_client
-                    = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized == "t" } if matched_client
+                    = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized_for_cas? } if matched_client
               - if client.client_id.blank?
                 - possible_matching_clients.each do |possible|
                   %tr{class: odd_class}
@@ -77,6 +76,6 @@
                       = link_to possible.name, client_path(possible), target: :_blank
                       (#{possible.id})
                     %td.text-center
-                      = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized == "t" }
+                      = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized_for_cas? }
   .text-right
     = f.button :submit, 'Update Health Prioritizations'
