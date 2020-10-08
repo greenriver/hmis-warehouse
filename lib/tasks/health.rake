@@ -128,7 +128,7 @@ namespace :health do
     Health::PatientReferral.where(derived_referral: true).destroy_all
   end
 
-  task "Compute derived patient referrals"
+  desc "Compute derived patient referrals"
   task compute_derived_patient_referrals: [:environment, 'log:info_to_stdout'] do
     pending_referrals = []
     Health::PatientReferral.where(derived_referral: false).find_each do |referral|
@@ -138,6 +138,11 @@ namespace :health do
       # Not using import to ensure that PaperTrail gets run
       pending_referrals.flatten.each(&:save!)
     end
+  end
+
+  desc "Clean up referrals"
+  task cleanup_referrals: [:environment, 'log:info_to_stdout'] do
+    Health::PatientReferral.cleanup_referrals
   end
 
   # DB related, provides health:db:migrate etc.

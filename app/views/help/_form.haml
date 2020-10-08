@@ -1,4 +1,4 @@
-= simple_form_for @help, url: @form_url, remote: request.xhr? do |f|
+= simple_form_for @help, url: @form_url, remote: pjax_request? do |f|
   - row_class = if request.xhr? then '' else 'row' end
   %div{ class: "#{row_class}"}
     - col_class = if request.xhr? then '' else 'col-8' end
@@ -9,7 +9,7 @@
       - elsif @help.controller_path.blank? || @help.action_name.blank?
         = f.input :controller_path
         = f.input :action_name
-      = f.input :location, collection: @help.available_locations, label: 'Help display method', include_blank: false, input_html: { class: 'select2 jSwitcher' }
+      = f.input :location, as: :select_two, collection: @help.available_locations, label: 'Help display method', include_blank: false, input_html: { class: 'select2 jSwitcher' }
       .well
         .jInternal
           = f.input :title
@@ -17,4 +17,3 @@
         .jExternal
           = f.input :external_url
       = f.submit @submit_text
-

@@ -30,6 +30,10 @@ Date:  4/15/2020
 					8.21 - correct exit date criteria in WHERE clause
 		9/3/2020 -  8.21 - limit count to projects in lsa_Project
 		9/10/2020 - 8.14.1 and .3 -- correction in WHERE clause re: latest age and popIDs
+		9/17/2020 - 8.13 - add max age criteria for popIDs 145-148
+					8.20 - in WHERE clause, LastBednight <= dateadd(dd, -90, cd.CohortEnd) (was just <)
+		9/24/2020 - 8.9 through 8.14 - limit relevant bednights to those >= entry and < exit dates (if non-NULL)
+						because enrollment dates may have been adjusted in tlsa_HHID/tlsa_Enrollment 
 
 	8.9 Get Counts of People by Project ID and Household Characteristics
 */
@@ -73,7 +77,9 @@ Date:  4/15/2020
 			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd) 
 			--for night-by-night ES, count only people with bednights in period
 			or (n.TrackingMethod = 3 and n.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= n.EntryDate 
+				and (bn.DateProvided < n.ExitDate or n.ExitDate is null))
 			or (n.TrackingMethod = 0 and n.ProjectType = 1)
 			or (n.ProjectType in (2,8))
 			)
@@ -121,7 +127,9 @@ Date:  4/15/2020
 			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd) 
 			--for night-by-night ES, count only people with bednights in period
 			or (n.TrackingMethod = 3 and n.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= n.EntryDate 
+				and (bn.DateProvided < n.ExitDate or n.ExitDate is null))
 			or (n.TrackingMethod = 0 and n.ProjectType = 1)
 			or (n.ProjectType in (2,8))
 			)
@@ -160,7 +168,9 @@ Date:  4/15/2020
 		and pop.SystemPath is null
 		and (
 			(n.TrackingMethod = 3 and n.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= n.EntryDate 
+				and (bn.DateProvided < n.ExitDate or n.ExitDate is null))
 			or (n.TrackingMethod = 0 and n.ProjectType = 1)
 			or (n.ProjectType in (2,8))
 			)
@@ -204,7 +214,9 @@ Date:  4/15/2020
 			(hhid.ProjectType in (3,13) and hhid.MoveInDate <= cd.CohortEnd) 
 			--for night-by-night ES, count only people with bednights in period
 			or (hhid.TrackingMethod = 3 and hhid.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= hhid.EntryDate 
+				and (bn.DateProvided < hhid.ExitDate or hhid.ExitDate is null))
 			or (hhid.TrackingMethod = 0 and hhid.ProjectType = 1)
 			or (hhid.ProjectType in (2,8))
 			)
@@ -253,7 +265,9 @@ Date:  4/15/2020
 			(hhid.ProjectType in (3,13) and hhid.MoveInDate <= cd.CohortEnd) 
 			--for night-by-night ES, count only people with bednights in period
 			or (hhid.TrackingMethod = 3 and hhid.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= hhid.EntryDate 
+				and (bn.DateProvided < hhid.ExitDate or hhid.ExitDate is null))
 			or (hhid.TrackingMethod = 0 and hhid.ProjectType = 1)
 			or (hhid.ProjectType in (2,8))
 			)
@@ -294,7 +308,9 @@ Date:  4/15/2020
 		and pop.SystemPath is null
 		and (--for night-by-night ES, count only people with bednights in period
 			(hhid.TrackingMethod = 3 and hhid.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= hhid.EntryDate 
+				and (bn.DateProvided < hhid.ExitDate or hhid.ExitDate is null))
 			or (hhid.TrackingMethod = 0 and hhid.ProjectType = 1)
 			or (hhid.ProjectType in (2,8))
 			)
@@ -332,6 +348,12 @@ Date:  4/15/2020
 		  and (cd.CohortStart < n.ExitDate 
 			or n.ExitDate is null
 			or (n.ProjectType = 13 and n.ExitDate = cd.CohortStart and n.MoveInDate = cd.CohortStart))
+	left outer join (select n.PersonalID, hhid.ActiveHHType as HHType, hhid.ProjectType, max(n.ActiveAge) as Age
+		from tlsa_Enrollment n
+		inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
+		group by n.PersonalID, hhid.ActiveHHType, hhid.ProjectType
+		) latest on latest.PersonalID = n.PersonalID and latest.HHType = hhid.ActiveHHType
+			and latest.ProjectType = hhid.ProjectType and latest.Age = n.ActiveAge
 	where n.Active = 1 and cd.Cohort between 1 and 13
 		and (pop.PopID in (3,6) or pop.popID between 145 and 148)
 		and pop.PopType = 3
@@ -341,10 +363,14 @@ Date:  4/15/2020
 			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd) 
 			--for night-by-night ES, count only people with bednights in period
 			or (n.TrackingMethod = 3 and n.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= n.EntryDate 
+				and (bn.DateProvided < n.ExitDate or n.ExitDate is null))
 			or (n.TrackingMethod = 0 and n.ProjectType = 1)
 			or (n.ProjectType in (2,8))
 			)
+		and 
+			(pop.PopID < 145 or latest.Age is not null)	
 	group by cd.Cohort, pop.PopID, n.ProjectID, cd.ReportID
 		, pop.HHType
 
@@ -402,7 +428,9 @@ Date:  4/15/2020
 			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd) 
 			--for night-by-night ES, count only people with bednights in period
 			or (n.TrackingMethod = 3 and n.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= n.EntryDate 
+				and (bn.DateProvided < n.ExitDate or n.ExitDate is null))
 			or (n.TrackingMethod = 0 and n.ProjectType = 1)
 			or (n.ProjectType in (2,8))
 			)
@@ -465,7 +493,9 @@ Date:  4/15/2020
 			(n.ProjectType in (3,13) and n.MoveInDate <= cd.CohortEnd) 
 			--for night-by-night ES, count only people with bednights in period
 			or (n.TrackingMethod = 3 and n.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= n.EntryDate 
+				and (bn.DateProvided < n.ExitDate or n.ExitDate is null))
 			or (n.TrackingMethod = 0 and n.ProjectType = 1)
 			or (n.ProjectType in (2,8))
 			)
@@ -522,7 +552,9 @@ Date:  4/15/2020
 		and (
 			--for night-by-night ES, count only people with bednights in period
 			(n.TrackingMethod = 3 and n.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= n.EntryDate 
+				and (bn.DateProvided < n.ExitDate or n.ExitDate is null))
 			or (n.TrackingMethod = 0 and n.ProjectType = 1)
 			or (n.ProjectType in (2,8))
 			)
@@ -578,7 +610,9 @@ Date:  4/15/2020
 		and (
 			--for night-by-night ES, count only people with bednights in period
 			(n.TrackingMethod = 3 and n.ProjectType = 1
-				and bn.DateProvided between cd.CohortStart and cd.CohortEnd)
+				and bn.DateProvided between cd.CohortStart and cd.CohortEnd
+				and bn.DateProvided >= n.EntryDate 
+				and (bn.DateProvided < n.ExitDate or n.ExitDate is null))
 			or (n.TrackingMethod = 0 and n.ProjectType = 1)
 			or (n.ProjectType in (2,8))
 			)
@@ -873,7 +907,7 @@ Date:  4/15/2020
 		where svc.RecordType = 200 and svc.DateDeleted is null
 		group by svc.EnrollmentID
 		) bn on bn.EnrollmentID = n.EnrollmentID
-	where (hx.ExitDate is null and bn.LastBednight < dateadd(dd, -90, cd.CohortEnd))
+	where (hx.ExitDate is null and bn.LastBednight <= dateadd(dd, -90, cd.CohortEnd))
 		or (hx.ExitDate <> dateadd(dd, 1, bn.LastBednight))
 	group by case when hx.ExitDate is null then 60
 			else 61 end 

@@ -21,7 +21,7 @@
         - client = assessment.destination_client
         %tr
           %td
-            = link_to(client_path(client)) do
+            = link_to_if can_view_clients_or_window?, appropriate_client_path(client) do
               = client.FirstName
               = client.LastName
           %td= assessment.collected_at.to_date

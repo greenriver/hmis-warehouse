@@ -424,6 +424,7 @@ Rails.application.routes.draw do
   end
   resources :clients, except: [:update, :destroy] do
     member do
+      get :appropriate
       get :simple
       get :service_range
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
@@ -572,16 +573,19 @@ Rails.application.routes.draw do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "overview#section", as: :section
       get :filters, on: :collection
+      get :download, on: :collection
     end
     resources :household, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "household#section", as: :section
       get :filters, on: :collection
+      get :download, on: :collection
     end
     resources :project_type, only: [:index] do
       get :details, on: :collection
       get 'section/:partial', on: :collection, to: "project_type#section", as: :section
       get :filters, on: :collection
+      get :download, on: :collection
     end
   end
 

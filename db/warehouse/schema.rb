@@ -10,9 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_04_191736) do
+ActiveRecord::Schema.define(version: 2020_10_06_194015) do
 
   # These are extensions that must be enabled in order to support this database
+  enable_extension "fuzzystrmatch"
+  enable_extension "hstore"
+  enable_extension "pgcrypto"
   enable_extension "plpgsql"
   enable_extension "postgis"
 
@@ -108,7 +111,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.string "LastName", limit: 150
     t.string "NameSuffix", limit: 50
     t.integer "NameDataQuality"
-    t.string "SSN", limit: 9
+    t.string "SSN"
     t.integer "SSNDataQuality"
     t.date "DOB"
     t.integer "DOBDataQuality"
@@ -200,6 +203,18 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.boolean "dv_rrh_desired", default: false
     t.string "health_prioritized"
     t.boolean "demographic_dirty", default: true
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+    t.string "encrypted_MiddleName"
+    t.string "encrypted_MiddleName_iv"
+    t.string "encrypted_LastName"
+    t.string "encrypted_LastName_iv"
+    t.string "encrypted_SSN"
+    t.string "encrypted_SSN_iv"
+    t.string "encrypted_NameSuffix"
+    t.string "encrypted_NameSuffix_iv"
+    t.string "soundex_first"
+    t.string "soundex_last"
     t.index ["DateCreated"], name: "client_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Client_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "client_date_updated"
@@ -208,9 +223,131 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.index ["LastName"], name: "client_last_name"
     t.index ["PersonalID"], name: "client_personal_id"
     t.index ["creator_id"], name: "index_Client_on_creator_id"
-    t.index ["data_source_id", "PersonalID"], name: "index_Client_on_data_source_id_PersonalID"
     t.index ["data_source_id"], name: "index_Client_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Client_on_pending_date_deleted"
+  end
+
+  create_table "ClientUnencrypted", id: :integer, default: -> { "nextval('\"Client_id_seq\"'::regclass)" }, force: :cascade do |t|
+    t.string "PersonalID"
+    t.string "FirstName", limit: 150
+    t.string "MiddleName", limit: 150
+    t.string "LastName", limit: 150
+    t.string "NameSuffix", limit: 50
+    t.integer "NameDataQuality"
+    t.string "SSN"
+    t.integer "SSNDataQuality"
+    t.date "DOB"
+    t.integer "DOBDataQuality"
+    t.integer "AmIndAKNative"
+    t.integer "Asian"
+    t.integer "BlackAfAmerican"
+    t.integer "NativeHIOtherPacific"
+    t.integer "White"
+    t.integer "RaceNone"
+    t.integer "Ethnicity"
+    t.integer "Gender"
+    t.string "OtherGender", limit: 50
+    t.integer "VeteranStatus"
+    t.integer "YearEnteredService"
+    t.integer "YearSeparated"
+    t.integer "WorldWarII"
+    t.integer "KoreanWar"
+    t.integer "VietnamWar"
+    t.integer "DesertStorm"
+    t.integer "AfghanistanOEF"
+    t.integer "IraqOIF"
+    t.integer "IraqOND"
+    t.integer "OtherTheater"
+    t.integer "MilitaryBranch"
+    t.integer "DischargeStatus"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID"
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id"
+    t.datetime "disability_verified_on"
+    t.datetime "housing_assistance_network_released_on"
+    t.boolean "sync_with_cas", default: false, null: false
+    t.boolean "dmh_eligible", default: false, null: false
+    t.boolean "va_eligible", default: false, null: false
+    t.boolean "hues_eligible", default: false, null: false
+    t.boolean "hiv_positive", default: false, null: false
+    t.string "housing_release_status"
+    t.boolean "chronically_homeless_for_cas", default: false, null: false
+    t.boolean "us_citizen", default: false, null: false
+    t.boolean "asylee", default: false, null: false
+    t.boolean "ineligible_immigrant", default: false, null: false
+    t.boolean "lifetime_sex_offender", default: false, null: false
+    t.boolean "meth_production_conviction", default: false, null: false
+    t.boolean "family_member", default: false, null: false
+    t.boolean "child_in_household", default: false, null: false
+    t.boolean "ha_eligible", default: false, null: false
+    t.boolean "api_update_in_process", default: false, null: false
+    t.datetime "api_update_started_at"
+    t.datetime "api_last_updated_at"
+    t.integer "creator_id"
+    t.boolean "cspech_eligible", default: false
+    t.date "consent_form_signed_on"
+    t.integer "vispdat_prioritization_days_homeless"
+    t.boolean "generate_history_pdf", default: false
+    t.boolean "congregate_housing", default: false
+    t.boolean "sober_housing", default: false
+    t.integer "consent_form_id"
+    t.integer "rrh_assessment_score"
+    t.boolean "ssvf_eligible", default: false, null: false
+    t.boolean "rrh_desired", default: false, null: false
+    t.boolean "youth_rrh_desired", default: false, null: false
+    t.string "rrh_assessment_contact_info"
+    t.datetime "rrh_assessment_collected_at"
+    t.string "source_hash"
+    t.boolean "generate_manual_history_pdf", default: false, null: false
+    t.boolean "requires_wheelchair_accessibility", default: false
+    t.integer "required_number_of_bedrooms", default: 1
+    t.integer "required_minimum_occupancy", default: 1
+    t.boolean "requires_elevator_access", default: false
+    t.jsonb "neighborhood_interests", default: [], null: false
+    t.string "verified_veteran_status"
+    t.boolean "interested_in_set_asides", default: false
+    t.date "consent_expires_on"
+    t.datetime "pending_date_deleted"
+    t.date "cas_match_override"
+    t.boolean "vash_eligible", default: false
+    t.jsonb "consented_coc_codes", default: []
+    t.boolean "income_maximization_assistance_requested", default: false, null: false
+    t.integer "income_total_monthly"
+    t.boolean "pending_subsidized_housing_placement", default: false, null: false
+    t.boolean "pathways_domestic_violence", default: false, null: false
+    t.boolean "rrh_th_desired", default: false, null: false
+    t.boolean "sro_ok", default: false, null: false
+    t.boolean "pathways_other_accessibility", default: false, null: false
+    t.boolean "pathways_disabled_housing", default: false, null: false
+    t.boolean "evicted", default: false, null: false
+    t.boolean "dv_rrh_desired", default: false
+    t.string "health_prioritized"
+    t.boolean "demographic_dirty", default: true
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+    t.string "encrypted_MiddleName"
+    t.string "encrypted_MiddleName_iv"
+    t.string "encrypted_LastName"
+    t.string "encrypted_LastName_iv"
+    t.string "encrypted_SSN"
+    t.string "encrypted_SSN_iv"
+    t.string "encrypted_NameSuffix"
+    t.string "encrypted_NameSuffix_iv"
+    t.string "soundex_first"
+    t.string "soundex_last"
+    t.index ["DateCreated"], name: "ClientUnencrypted_DateCreated_idx"
+    t.index ["DateDeleted", "data_source_id"], name: "ClientUnencrypted_DateDeleted_data_source_id_idx"
+    t.index ["DateUpdated"], name: "ClientUnencrypted_DateUpdated_idx"
+    t.index ["ExportID"], name: "ClientUnencrypted_ExportID_idx"
+    t.index ["FirstName"], name: "ClientUnencrypted_FirstName_idx"
+    t.index ["LastName"], name: "ClientUnencrypted_LastName_idx"
+    t.index ["PersonalID"], name: "ClientUnencrypted_PersonalID_idx"
+    t.index ["creator_id"], name: "ClientUnencrypted_creator_id_idx"
+    t.index ["data_source_id"], name: "ClientUnencrypted_data_source_id_idx"
+    t.index ["pending_date_deleted"], name: "ClientUnencrypted_pending_date_deleted_idx"
   end
 
   create_table "CurrentLivingSituation", id: :serial, force: :cascade do |t|
@@ -268,14 +405,17 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.index ["DateCreated"], name: "disabilities_date_created"
+    t.index ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)"
+    t.index ["DateDeleted", "data_source_id"], name: "Disabilities_DateDeleted_data_source_id_idx1", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateDeleted", "data_source_id"], name: "index_Disabilities_on_DateDeleted_and_data_source_id"
+    t.index ["DateDeleted"], name: "Disabilities_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateUpdated"], name: "disabilities_date_updated"
     t.index ["DisabilitiesID", "data_source_id"], name: "index_Disabilities_on_DisabilitiesID_and_data_source_id", unique: true
     t.index ["DisabilityType", "DisabilityResponse", "InformationDate", "PersonalID", "EnrollmentID", "DateDeleted"], name: "disabilities_disability_type_response_idx"
     t.index ["EnrollmentID"], name: "index_Disabilities_on_EnrollmentID"
     t.index ["ExportID"], name: "disabilities_export_id"
     t.index ["PersonalID"], name: "index_Disabilities_on_PersonalID"
-    t.index ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_PersonalID"
+    t.index ["data_source_id", "PersonalID"], name: "index_Disabilities_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_Disabilities_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Disabilities_on_pending_date_deleted"
   end
@@ -306,7 +446,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.index ["EnrollmentID"], name: "index_EmploymentEducation_on_EnrollmentID"
     t.index ["ExportID"], name: "employment_education_export_id"
     t.index ["PersonalID"], name: "index_EmploymentEducation_on_PersonalID"
-    t.index ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_PersonalID"
+    t.index ["data_source_id", "PersonalID"], name: "index_EmploymentEducation_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_EmploymentEducation_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_EmploymentEducation_on_pending_date_deleted"
   end
@@ -442,7 +582,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.index ["PersonalID"], name: "index_Enrollment_on_PersonalID"
     t.index ["ProjectID"], name: "index_Enrollment_on_ProjectID"
     t.index ["data_source_id", "HouseholdID", "ProjectID"], name: "idx_enrollment_ds_id_hh_id_p_id"
-    t.index ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_PersonalID"
+    t.index ["data_source_id", "PersonalID"], name: "index_Enrollment_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_Enrollment_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Enrollment_on_pending_date_deleted"
   end
@@ -470,7 +610,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.index ["EnrollmentCoCID", "data_source_id"], name: "index_EnrollmentCoC_on_EnrollmentCoCID_and_data_source_id", unique: true
     t.index ["EnrollmentCoCID"], name: "index_EnrollmentCoC_on_EnrollmentCoCID"
     t.index ["ExportID"], name: "enrollment_coc_export_id"
-    t.index ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_PersonalID"
+    t.index ["data_source_id", "PersonalID"], name: "index_EnrollmentCoC_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_EnrollmentCoC_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_EnrollmentCoC_on_pending_date_deleted"
   end
@@ -568,7 +708,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.index ["ExitID", "data_source_id"], name: "index_Exit_on_ExitID_and_data_source_id", unique: true
     t.index ["ExportID"], name: "exit_export_id"
     t.index ["PersonalID"], name: "index_Exit_on_PersonalID"
-    t.index ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_PersonalID"
+    t.index ["data_source_id", "PersonalID"], name: "index_Exit_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_Exit_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Exit_on_pending_date_deleted"
   end
@@ -654,6 +794,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.index ["DateUpdated"], name: "site_date_updated"
     t.index ["ExportID"], name: "site_export_id"
     t.index ["data_source_id", "GeographyID"], name: "unk_Geography", unique: true
+    t.index ["data_source_id", "GeographyID"], name: "unk_Site", unique: true
     t.index ["data_source_id"], name: "index_Geography_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_Geography_on_pending_date_deleted"
   end
@@ -687,7 +828,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.index ["ExportID"], name: "health_and_dv_export_id"
     t.index ["HealthAndDVID", "data_source_id"], name: "index_HealthAndDV_on_HealthAndDVID_and_data_source_id", unique: true
     t.index ["PersonalID"], name: "index_HealthAndDV_on_PersonalID"
-    t.index ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_PersonalID"
+    t.index ["data_source_id", "PersonalID"], name: "index_HealthAndDV_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_HealthAndDV_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_HealthAndDV_on_pending_date_deleted"
   end
@@ -776,13 +917,16 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.string "source_hash"
     t.datetime "pending_date_deleted"
     t.index ["DateCreated"], name: "income_benefits_date_created"
+    t.index ["DateDeleted", "data_source_id"], name: "IncomeBenefits_DateDeleted_data_source_id_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateDeleted", "data_source_id"], name: "index_IncomeBenefits_on_DateDeleted_and_data_source_id"
+    t.index ["DateDeleted"], name: "IncomeBenefits_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
     t.index ["DateUpdated"], name: "income_benefits_date_updated"
     t.index ["EnrollmentID"], name: "index_IncomeBenefits_on_EnrollmentID"
     t.index ["ExportID"], name: "income_benefits_export_id"
     t.index ["IncomeBenefitsID", "data_source_id"], name: "index_IncomeBenefits_on_IncomeBenefitsID_and_data_source_id", unique: true
     t.index ["PersonalID"], name: "index_IncomeBenefits_on_PersonalID"
-    t.index ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_PersonalID"
+    t.index ["data_source_id", "DateDeleted"], name: "IncomeBenefits_data_source_id_DateDeleted_idx", where: "(\"DateDeleted\" IS NULL)"
+    t.index ["data_source_id", "PersonalID"], name: "index_IncomeBenefits_on_data_source_id_and_PersonalID"
     t.index ["data_source_id"], name: "index_IncomeBenefits_on_data_source_id"
     t.index ["pending_date_deleted"], name: "index_IncomeBenefits_on_pending_date_deleted"
   end
@@ -1118,6 +1262,18 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.index ["unavailable_at"], name: "index_cas_availabilities_on_unavailable_at"
   end
 
+  create_table "cas_enrollments", id: :serial, force: :cascade do |t|
+    t.integer "client_id"
+    t.integer "enrollment_id"
+    t.date "entry_date"
+    t.date "exit_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.json "history"
+    t.index ["client_id"], name: "index_cas_enrollments_on_client_id"
+    t.index ["enrollment_id"], name: "index_cas_enrollments_on_enrollment_id"
+  end
+
   create_table "cas_houseds", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "cas_client_id", null: false
@@ -1442,7 +1598,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.string "legal_barriers"
     t.string "criminal_record_status"
     t.string "document_ready"
-    t.string "sif_eligible"
+    t.boolean "sif_eligible", default: false
     t.string "sensory_impaired"
     t.date "housed_date"
     t.string "destination"
@@ -1452,7 +1608,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.date "last_group_review_date"
     t.date "pre_contemplative_last_date_approached"
     t.string "va_eligible"
-    t.string "vash_eligible"
+    t.boolean "vash_eligible", default: false
     t.string "chapter_115"
     t.date "first_date_homeless"
     t.date "last_date_approached"
@@ -1780,10 +1936,10 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.integer "client_id", null: false
     t.string "enterprise_guid", null: false
-    t.integer "participant_site_identifier", null: false
     t.integer "site_id", null: false
     t.integer "subject_id", null: false
     t.datetime "last_updated"
+    t.integer "participant_site_identifier"
     t.index ["client_id"], name: "index_eto_client_lookups_on_client_id"
     t.index ["data_source_id"], name: "index_eto_client_lookups_on_data_source_id"
   end
@@ -1941,8 +2097,8 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
 
   create_table "group_viewable_entities", id: :serial, force: :cascade do |t|
     t.integer "access_group_id", null: false
-    t.string "entity_type", null: false
     t.integer "entity_id", null: false
+    t.string "entity_type", null: false
     t.datetime "deleted_at"
     t.index ["access_group_id", "entity_id", "entity_type"], name: "one_entity_per_type_per_group", unique: true
   end
@@ -2126,9 +2282,9 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["AffiliationID", "data_source_id"], name: "hmis_2020_affiliations-lPWE"
-    t.index ["ExportID"], name: "hmis_2020_affiliations-zC2A"
-    t.index ["source_type", "source_id"], name: "hmis_2020_affiliations-fxjS"
+    t.index ["AffiliationID", "data_source_id"], name: "hmis_2020_affiliations-lZaj"
+    t.index ["ExportID"], name: "hmis_2020_affiliations-qycr"
+    t.index ["source_type", "source_id"], name: "hmis_2020_affiliations-jXFa"
   end
 
   create_table "hmis_2020_aggregated_enrollments", force: :cascade do |t|
@@ -2211,26 +2367,27 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
-    t.index ["DateCreated"], name: "hmis_2020_aggregated_enrollments-wuNz"
-    t.index ["DateDeleted"], name: "hmis_2020_aggregated_enrollments-BNxm"
-    t.index ["DateUpdated"], name: "hmis_2020_aggregated_enrollments-h5P5"
-    t.index ["EnrollmentID", "PersonalID", "data_source_id"], name: "hmis_2020_aggregated_enrollments-flPU", unique: true
-    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_aggregated_enrollments-a3J9"
-    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_aggregated_enrollments-GSxg"
-    t.index ["EnrollmentID"], name: "hmis_2020_aggregated_enrollments-67pl"
-    t.index ["EntryDate"], name: "hmis_2020_aggregated_enrollments-j0sH"
-    t.index ["ExportID"], name: "hmis_2020_aggregated_enrollments-oqLL"
-    t.index ["HouseholdID"], name: "hmis_2020_aggregated_enrollments-YCv2"
-    t.index ["LivingSituation"], name: "hmis_2020_aggregated_enrollments-0MHX"
+    t.index ["DateCreated"], name: "hmis_2020_aggregated_enrollments-Jmkq"
+    t.index ["DateDeleted"], name: "hmis_2020_aggregated_enrollments-6wqk"
+    t.index ["DateUpdated"], name: "hmis_2020_aggregated_enrollments-4L8g"
+    t.index ["EnrollmentID", "PersonalID", "data_source_id"], name: "hmis_2020_aggregated_enrollments-0cTv", unique: true
+    t.index ["EnrollmentID", "PersonalID", "importer_log_id", "data_source_id"], name: "hmis_2020_aggregated_enrollments-fSDc", unique: true
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_aggregated_enrollments-ocKA"
+    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_aggregated_enrollments-zNVo"
+    t.index ["EnrollmentID"], name: "hmis_2020_aggregated_enrollments-RNSl"
+    t.index ["EntryDate"], name: "hmis_2020_aggregated_enrollments-oiEU"
+    t.index ["ExportID"], name: "hmis_2020_aggregated_enrollments-fXAB"
+    t.index ["HouseholdID"], name: "hmis_2020_aggregated_enrollments-QV2G"
+    t.index ["LivingSituation"], name: "hmis_2020_aggregated_enrollments-ysoO"
     t.index ["PersonalID", "ProjectID", "data_source_id"], name: "hmis_2020_agg_enrollments_p_id_p_id_ds_id"
-    t.index ["PersonalID"], name: "hmis_2020_aggregated_enrollments-hQ9L"
-    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_2020_aggregated_enrollments-6L85"
-    t.index ["ProjectID", "HouseholdID"], name: "hmis_2020_aggregated_enrollments-RFU3"
-    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-u48r"
-    t.index ["ProjectID"], name: "hmis_2020_aggregated_enrollments-A10c"
-    t.index ["RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-KT3X"
-    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_2020_aggregated_enrollments-4aqW"
-    t.index ["source_type", "source_id"], name: "hmis_2020_aggregated_enrollments-Hez1"
+    t.index ["PersonalID"], name: "hmis_2020_aggregated_enrollments-wnDD"
+    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_2020_aggregated_enrollments-Xqsk"
+    t.index ["ProjectID", "HouseholdID"], name: "hmis_2020_aggregated_enrollments-BMfj"
+    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-RJNU"
+    t.index ["ProjectID"], name: "hmis_2020_aggregated_enrollments-CpSq"
+    t.index ["RelationshipToHoH"], name: "hmis_2020_aggregated_enrollments-E6ih"
+    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_2020_aggregated_enrollments-ZGm4"
+    t.index ["source_type", "source_id"], name: "hmis_2020_aggregated_enrollments-G7U1"
   end
 
   create_table "hmis_2020_aggregated_exits", force: :cascade do |t|
@@ -2285,16 +2442,17 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.string "source_type", null: false
     t.datetime "dirty_at"
     t.datetime "clean_at"
-    t.index ["DateCreated"], name: "hmis_2020_aggregated_exits-PB5A"
-    t.index ["DateDeleted"], name: "hmis_2020_aggregated_exits-9CHT"
-    t.index ["DateUpdated"], name: "hmis_2020_aggregated_exits-49VB"
-    t.index ["EnrollmentID"], name: "hmis_2020_aggregated_exits-biv0"
-    t.index ["ExitDate"], name: "hmis_2020_aggregated_exits-4FHT"
-    t.index ["ExitID", "data_source_id"], name: "hmis_2020_aggregated_exits-VvOo", unique: true
-    t.index ["ExitID"], name: "hmis_2020_aggregated_exits-pNwS"
-    t.index ["ExportID"], name: "hmis_2020_aggregated_exits-aEKj"
-    t.index ["PersonalID"], name: "hmis_2020_aggregated_exits-RAhk"
-    t.index ["source_type", "source_id"], name: "hmis_2020_aggregated_exits-IvBz"
+    t.index ["DateCreated"], name: "hmis_2020_aggregated_exits-2lOR"
+    t.index ["DateDeleted"], name: "hmis_2020_aggregated_exits-cduB"
+    t.index ["DateUpdated"], name: "hmis_2020_aggregated_exits-VRGa"
+    t.index ["EnrollmentID"], name: "hmis_2020_aggregated_exits-BwSf"
+    t.index ["ExitDate"], name: "hmis_2020_aggregated_exits-GBBG"
+    t.index ["ExitID", "data_source_id"], name: "hmis_2020_aggregated_exits-UYdB", unique: true
+    t.index ["ExitID", "importer_log_id", "data_source_id"], name: "hmis_2020_aggregated_exits-2mwI", unique: true
+    t.index ["ExitID"], name: "hmis_2020_aggregated_exits-g6y1"
+    t.index ["ExportID"], name: "hmis_2020_aggregated_exits-auds"
+    t.index ["PersonalID"], name: "hmis_2020_aggregated_exits-EPOP"
+    t.index ["source_type", "source_id"], name: "hmis_2020_aggregated_exits-SgMf"
   end
 
   create_table "hmis_2020_assessment_questions", force: :cascade do |t|
@@ -2320,10 +2478,10 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["AssessmentID"], name: "hmis_2020_assessment_questions-nb3F"
-    t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_2020_assessment_questions-1RFq"
-    t.index ["ExportID"], name: "hmis_2020_assessment_questions-diHM"
-    t.index ["source_type", "source_id"], name: "hmis_2020_assessment_questions-F08U"
+    t.index ["AssessmentID"], name: "hmis_2020_assessment_questions-fD1j"
+    t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_2020_assessment_questions-0oMf"
+    t.index ["ExportID"], name: "hmis_2020_assessment_questions-sDob"
+    t.index ["source_type", "source_id"], name: "hmis_2020_assessment_questions-gVG2"
   end
 
   create_table "hmis_2020_assessment_results", force: :cascade do |t|
@@ -2347,10 +2505,10 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["AssessmentID"], name: "hmis_2020_assessment_results-Gr2U"
-    t.index ["AssessmentResultID", "data_source_id"], name: "hmis_2020_assessment_results-hcCl"
-    t.index ["ExportID"], name: "hmis_2020_assessment_results-judJ"
-    t.index ["source_type", "source_id"], name: "hmis_2020_assessment_results-VOJf"
+    t.index ["AssessmentID"], name: "hmis_2020_assessment_results-AnQd"
+    t.index ["AssessmentResultID", "data_source_id"], name: "hmis_2020_assessment_results-rawc"
+    t.index ["ExportID"], name: "hmis_2020_assessment_results-2kxY"
+    t.index ["source_type", "source_id"], name: "hmis_2020_assessment_results-CKgC"
   end
 
   create_table "hmis_2020_assessments", force: :cascade do |t|
@@ -2376,13 +2534,13 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["AssessmentDate"], name: "hmis_2020_assessments-lXUx"
-    t.index ["AssessmentID", "data_source_id"], name: "hmis_2020_assessments-MG7K"
-    t.index ["AssessmentID"], name: "hmis_2020_assessments-tpp0"
-    t.index ["EnrollmentID"], name: "hmis_2020_assessments-6tOu"
-    t.index ["ExportID"], name: "hmis_2020_assessments-liXR"
-    t.index ["PersonalID"], name: "hmis_2020_assessments-L9WD"
-    t.index ["source_type", "source_id"], name: "hmis_2020_assessments-XZGe"
+    t.index ["AssessmentDate"], name: "hmis_2020_assessments-YW8L"
+    t.index ["AssessmentID", "data_source_id"], name: "hmis_2020_assessments-3sM0"
+    t.index ["AssessmentID"], name: "hmis_2020_assessments-kqMe"
+    t.index ["EnrollmentID"], name: "hmis_2020_assessments-gMUw"
+    t.index ["ExportID"], name: "hmis_2020_assessments-u0eq"
+    t.index ["PersonalID"], name: "hmis_2020_assessments-kdgA"
+    t.index ["source_type", "source_id"], name: "hmis_2020_assessments-B1tS"
   end
 
   create_table "hmis_2020_clients", force: :cascade do |t|
@@ -2431,16 +2589,16 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DOB"], name: "hmis_2020_clients-wMPe"
-    t.index ["DateCreated"], name: "hmis_2020_clients-1G8S"
-    t.index ["DateUpdated"], name: "hmis_2020_clients-HV9z"
-    t.index ["ExportID"], name: "hmis_2020_clients-30Jk"
-    t.index ["FirstName"], name: "hmis_2020_clients-BBEM"
-    t.index ["LastName"], name: "hmis_2020_clients-vEux"
-    t.index ["PersonalID", "data_source_id"], name: "hmis_2020_clients-ylb9"
-    t.index ["PersonalID"], name: "hmis_2020_clients-IUv4"
-    t.index ["VeteranStatus"], name: "hmis_2020_clients-xgyI"
-    t.index ["source_type", "source_id"], name: "hmis_2020_clients-EwaA"
+    t.index ["DOB"], name: "hmis_2020_clients-qUjP"
+    t.index ["DateCreated"], name: "hmis_2020_clients-rrgI"
+    t.index ["DateUpdated"], name: "hmis_2020_clients-jdcP"
+    t.index ["ExportID"], name: "hmis_2020_clients-gmgS"
+    t.index ["FirstName"], name: "hmis_2020_clients-48Qj"
+    t.index ["LastName"], name: "hmis_2020_clients-3vTw"
+    t.index ["PersonalID", "data_source_id"], name: "hmis_2020_clients-t6qe"
+    t.index ["PersonalID"], name: "hmis_2020_clients-qK9d"
+    t.index ["VeteranStatus"], name: "hmis_2020_clients-z1iL"
+    t.index ["source_type", "source_id"], name: "hmis_2020_clients-VRsB"
   end
 
   create_table "hmis_2020_current_living_situations", force: :cascade do |t|
@@ -2470,14 +2628,14 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_2020_current_living_situations-7uYJ"
-    t.index ["CurrentLivingSitID"], name: "hmis_2020_current_living_situations-NApL"
-    t.index ["CurrentLivingSituation"], name: "hmis_2020_current_living_situations-e5NN"
-    t.index ["EnrollmentID"], name: "hmis_2020_current_living_situations-rX4t"
-    t.index ["ExportID"], name: "hmis_2020_current_living_situations-T5OZ"
-    t.index ["InformationDate"], name: "hmis_2020_current_living_situations-fMgY"
-    t.index ["PersonalID"], name: "hmis_2020_current_living_situations-wDFx"
-    t.index ["source_type", "source_id"], name: "hmis_2020_current_living_situations-E4Vj"
+    t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_2020_current_living_situations-cLpS"
+    t.index ["CurrentLivingSitID"], name: "hmis_2020_current_living_situations-DXZ0"
+    t.index ["CurrentLivingSituation"], name: "hmis_2020_current_living_situations-WmJZ"
+    t.index ["EnrollmentID"], name: "hmis_2020_current_living_situations-jG8y"
+    t.index ["ExportID"], name: "hmis_2020_current_living_situations-hGfj"
+    t.index ["InformationDate"], name: "hmis_2020_current_living_situations-4v4L"
+    t.index ["PersonalID"], name: "hmis_2020_current_living_situations-vWt4"
+    t.index ["source_type", "source_id"], name: "hmis_2020_current_living_situations-qbbx"
   end
 
   create_table "hmis_2020_disabilities", force: :cascade do |t|
@@ -2509,14 +2667,14 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_disabilities-tdMz"
-    t.index ["DateUpdated"], name: "hmis_2020_disabilities-NXyb"
-    t.index ["DisabilitiesID", "data_source_id"], name: "hmis_2020_disabilities-yeaG"
-    t.index ["DisabilitiesID"], name: "hmis_2020_disabilities-7pno"
-    t.index ["EnrollmentID"], name: "hmis_2020_disabilities-vcHq"
-    t.index ["ExportID"], name: "hmis_2020_disabilities-mAoA"
-    t.index ["PersonalID"], name: "hmis_2020_disabilities-QNP4"
-    t.index ["source_type", "source_id"], name: "hmis_2020_disabilities-B34j"
+    t.index ["DateCreated"], name: "hmis_2020_disabilities-p0j2"
+    t.index ["DateUpdated"], name: "hmis_2020_disabilities-oxMH"
+    t.index ["DisabilitiesID", "data_source_id"], name: "hmis_2020_disabilities-DA3C"
+    t.index ["DisabilitiesID"], name: "hmis_2020_disabilities-8DFL"
+    t.index ["EnrollmentID"], name: "hmis_2020_disabilities-1JPN"
+    t.index ["ExportID"], name: "hmis_2020_disabilities-G1Z0"
+    t.index ["PersonalID"], name: "hmis_2020_disabilities-2lYA"
+    t.index ["source_type", "source_id"], name: "hmis_2020_disabilities-zFRZ"
   end
 
   create_table "hmis_2020_employment_educations", force: :cascade do |t|
@@ -2544,14 +2702,14 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_employment_educations-USad"
-    t.index ["DateUpdated"], name: "hmis_2020_employment_educations-sxmE"
-    t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_2020_employment_educations-GQBk"
-    t.index ["EmploymentEducationID"], name: "hmis_2020_employment_educations-vwFp"
-    t.index ["EnrollmentID"], name: "hmis_2020_employment_educations-v7KG"
-    t.index ["ExportID"], name: "hmis_2020_employment_educations-iOSA"
-    t.index ["PersonalID"], name: "hmis_2020_employment_educations-VOAp"
-    t.index ["source_type", "source_id"], name: "hmis_2020_employment_educations-AVgZ"
+    t.index ["DateCreated"], name: "hmis_2020_employment_educations-oPbl"
+    t.index ["DateUpdated"], name: "hmis_2020_employment_educations-rTDS"
+    t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_2020_employment_educations-zM3A"
+    t.index ["EmploymentEducationID"], name: "hmis_2020_employment_educations-Hv6e"
+    t.index ["EnrollmentID"], name: "hmis_2020_employment_educations-mSvG"
+    t.index ["ExportID"], name: "hmis_2020_employment_educations-uCTm"
+    t.index ["PersonalID"], name: "hmis_2020_employment_educations-EPrc"
+    t.index ["source_type", "source_id"], name: "hmis_2020_employment_educations-rxeE"
   end
 
   create_table "hmis_2020_enrollment_cocs", force: :cascade do |t|
@@ -2577,16 +2735,16 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["CoCCode"], name: "hmis_2020_enrollment_cocs-zbsW"
-    t.index ["DateCreated"], name: "hmis_2020_enrollment_cocs-U49i"
-    t.index ["DateDeleted"], name: "hmis_2020_enrollment_cocs-aQ0T"
-    t.index ["DateUpdated"], name: "hmis_2020_enrollment_cocs-DFFs"
-    t.index ["EnrollmentCoCID", "data_source_id"], name: "hmis_2020_enrollment_cocs-E1rZ"
-    t.index ["EnrollmentCoCID"], name: "hmis_2020_enrollment_cocs-kA5D"
-    t.index ["EnrollmentID"], name: "hmis_2020_enrollment_cocs-Y9AB"
-    t.index ["ExportID"], name: "hmis_2020_enrollment_cocs-qBWl"
-    t.index ["PersonalID"], name: "hmis_2020_enrollment_cocs-52nx"
-    t.index ["source_type", "source_id"], name: "hmis_2020_enrollment_cocs-F3nw"
+    t.index ["CoCCode"], name: "hmis_2020_enrollment_cocs-5ROz"
+    t.index ["DateCreated"], name: "hmis_2020_enrollment_cocs-zikd"
+    t.index ["DateDeleted"], name: "hmis_2020_enrollment_cocs-GUQA"
+    t.index ["DateUpdated"], name: "hmis_2020_enrollment_cocs-6Mre"
+    t.index ["EnrollmentCoCID", "data_source_id"], name: "hmis_2020_enrollment_cocs-LilW"
+    t.index ["EnrollmentCoCID"], name: "hmis_2020_enrollment_cocs-6ENr"
+    t.index ["EnrollmentID"], name: "hmis_2020_enrollment_cocs-gQJA"
+    t.index ["ExportID"], name: "hmis_2020_enrollment_cocs-sVGW"
+    t.index ["PersonalID"], name: "hmis_2020_enrollment_cocs-5FMZ"
+    t.index ["source_type", "source_id"], name: "hmis_2020_enrollment_cocs-Se2O"
   end
 
   create_table "hmis_2020_enrollments", force: :cascade do |t|
@@ -2670,25 +2828,25 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_enrollments-KclS"
-    t.index ["DateDeleted"], name: "hmis_2020_enrollments-dfxd"
-    t.index ["DateUpdated"], name: "hmis_2020_enrollments-oGG8"
-    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_enrollments-Rrqs"
-    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_enrollments-th4x"
-    t.index ["EnrollmentID", "data_source_id"], name: "hmis_2020_enrollments-gKo6"
-    t.index ["EnrollmentID"], name: "hmis_2020_enrollments-JqfH"
-    t.index ["EntryDate"], name: "hmis_2020_enrollments-Trpw"
-    t.index ["ExportID"], name: "hmis_2020_enrollments-kYs6"
-    t.index ["HouseholdID"], name: "hmis_2020_enrollments-Qwkh"
-    t.index ["LivingSituation"], name: "hmis_2020_enrollments-O0tT"
-    t.index ["PersonalID"], name: "hmis_2020_enrollments-EMqQ"
-    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_2020_enrollments-Gix2"
-    t.index ["ProjectID", "HouseholdID"], name: "hmis_2020_enrollments-YASu"
-    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_2020_enrollments-LU6Y"
-    t.index ["ProjectID"], name: "hmis_2020_enrollments-Ukp4"
-    t.index ["RelationshipToHoH"], name: "hmis_2020_enrollments-19oo"
-    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_2020_enrollments-c1hq"
-    t.index ["source_type", "source_id"], name: "hmis_2020_enrollments-Fs25"
+    t.index ["DateCreated"], name: "hmis_2020_enrollments-ZK9t"
+    t.index ["DateDeleted"], name: "hmis_2020_enrollments-WHri"
+    t.index ["DateUpdated"], name: "hmis_2020_enrollments-hQVn"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_enrollments-xB0L"
+    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_2020_enrollments-Qd6d"
+    t.index ["EnrollmentID", "data_source_id"], name: "hmis_2020_enrollments-dRUc"
+    t.index ["EnrollmentID"], name: "hmis_2020_enrollments-UrCS"
+    t.index ["EntryDate"], name: "hmis_2020_enrollments-6ZYF"
+    t.index ["ExportID"], name: "hmis_2020_enrollments-kzx7"
+    t.index ["HouseholdID"], name: "hmis_2020_enrollments-xiJ6"
+    t.index ["LivingSituation"], name: "hmis_2020_enrollments-Io4W"
+    t.index ["PersonalID"], name: "hmis_2020_enrollments-UM6y"
+    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_2020_enrollments-kIRP"
+    t.index ["ProjectID", "HouseholdID"], name: "hmis_2020_enrollments-8tOj"
+    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_2020_enrollments-HNd8"
+    t.index ["ProjectID"], name: "hmis_2020_enrollments-dn8l"
+    t.index ["RelationshipToHoH"], name: "hmis_2020_enrollments-y1wr"
+    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_2020_enrollments-9mEF"
+    t.index ["source_type", "source_id"], name: "hmis_2020_enrollments-3NkS"
   end
 
   create_table "hmis_2020_events", force: :cascade do |t|
@@ -2716,13 +2874,13 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["EnrollmentID"], name: "hmis_2020_events-plUI"
-    t.index ["EventDate"], name: "hmis_2020_events-dIgN"
-    t.index ["EventID", "data_source_id"], name: "hmis_2020_events-vqD9"
-    t.index ["EventID"], name: "hmis_2020_events-c4FT"
-    t.index ["ExportID"], name: "hmis_2020_events-gosE"
-    t.index ["PersonalID"], name: "hmis_2020_events-d8QR"
-    t.index ["source_type", "source_id"], name: "hmis_2020_events-VbPq"
+    t.index ["EnrollmentID"], name: "hmis_2020_events-ej4z"
+    t.index ["EventDate"], name: "hmis_2020_events-SY9T"
+    t.index ["EventID", "data_source_id"], name: "hmis_2020_events-5Ulw"
+    t.index ["EventID"], name: "hmis_2020_events-h86C"
+    t.index ["ExportID"], name: "hmis_2020_events-chRs"
+    t.index ["PersonalID"], name: "hmis_2020_events-sFna"
+    t.index ["source_type", "source_id"], name: "hmis_2020_events-ztpH"
   end
 
   create_table "hmis_2020_exits", force: :cascade do |t|
@@ -2778,16 +2936,16 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_exits-jitQ"
-    t.index ["DateDeleted"], name: "hmis_2020_exits-z8B5"
-    t.index ["DateUpdated"], name: "hmis_2020_exits-Yqva"
-    t.index ["EnrollmentID"], name: "hmis_2020_exits-H7a0"
-    t.index ["ExitDate"], name: "hmis_2020_exits-HDe4"
-    t.index ["ExitID", "data_source_id"], name: "hmis_2020_exits-VjHL"
-    t.index ["ExitID"], name: "hmis_2020_exits-ip1b"
-    t.index ["ExportID"], name: "hmis_2020_exits-U5dg"
-    t.index ["PersonalID"], name: "hmis_2020_exits-gUEm"
-    t.index ["source_type", "source_id"], name: "hmis_2020_exits-SaTk"
+    t.index ["DateCreated"], name: "hmis_2020_exits-F305"
+    t.index ["DateDeleted"], name: "hmis_2020_exits-s54g"
+    t.index ["DateUpdated"], name: "hmis_2020_exits-Crsu"
+    t.index ["EnrollmentID"], name: "hmis_2020_exits-Z3F6"
+    t.index ["ExitDate"], name: "hmis_2020_exits-nEjV"
+    t.index ["ExitID", "data_source_id"], name: "hmis_2020_exits-S9yO"
+    t.index ["ExitID"], name: "hmis_2020_exits-4DnO"
+    t.index ["ExportID"], name: "hmis_2020_exits-c4Un"
+    t.index ["PersonalID"], name: "hmis_2020_exits-QkLT"
+    t.index ["source_type", "source_id"], name: "hmis_2020_exits-dozv"
   end
 
   create_table "hmis_2020_exports", force: :cascade do |t|
@@ -2817,9 +2975,9 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["ExportID", "data_source_id"], name: "hmis_2020_exports-Gngi"
-    t.index ["ExportID"], name: "hmis_2020_exports-rSeS"
-    t.index ["source_type", "source_id"], name: "hmis_2020_exports-KRI3"
+    t.index ["ExportID", "data_source_id"], name: "hmis_2020_exports-YcvP"
+    t.index ["ExportID"], name: "hmis_2020_exports-awLV"
+    t.index ["source_type", "source_id"], name: "hmis_2020_exports-5gdY"
   end
 
   create_table "hmis_2020_funders", force: :cascade do |t|
@@ -2844,12 +3002,12 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_funders-cKSS"
-    t.index ["DateUpdated"], name: "hmis_2020_funders-ZTQM"
-    t.index ["ExportID"], name: "hmis_2020_funders-cjdK"
-    t.index ["FunderID", "data_source_id"], name: "hmis_2020_funders-tAt1"
-    t.index ["FunderID"], name: "hmis_2020_funders-7gnv"
-    t.index ["source_type", "source_id"], name: "hmis_2020_funders-nD9G"
+    t.index ["DateCreated"], name: "hmis_2020_funders-CQE4"
+    t.index ["DateUpdated"], name: "hmis_2020_funders-yKF3"
+    t.index ["ExportID"], name: "hmis_2020_funders-qRxb"
+    t.index ["FunderID", "data_source_id"], name: "hmis_2020_funders-XiWW"
+    t.index ["FunderID"], name: "hmis_2020_funders-P3hw"
+    t.index ["source_type", "source_id"], name: "hmis_2020_funders-Srvd"
   end
 
   create_table "hmis_2020_health_and_dvs", force: :cascade do |t|
@@ -2880,14 +3038,14 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_health_and_dvs-m0lx"
-    t.index ["DateUpdated"], name: "hmis_2020_health_and_dvs-SKa8"
-    t.index ["EnrollmentID"], name: "hmis_2020_health_and_dvs-ynDP"
-    t.index ["ExportID"], name: "hmis_2020_health_and_dvs-jO5J"
-    t.index ["HealthAndDVID", "data_source_id"], name: "hmis_2020_health_and_dvs-oGn6"
-    t.index ["HealthAndDVID"], name: "hmis_2020_health_and_dvs-1AzW"
-    t.index ["PersonalID"], name: "hmis_2020_health_and_dvs-A3MH"
-    t.index ["source_type", "source_id"], name: "hmis_2020_health_and_dvs-Ob1u"
+    t.index ["DateCreated"], name: "hmis_2020_health_and_dvs-85bD"
+    t.index ["DateUpdated"], name: "hmis_2020_health_and_dvs-TUTe"
+    t.index ["EnrollmentID"], name: "hmis_2020_health_and_dvs-SbP4"
+    t.index ["ExportID"], name: "hmis_2020_health_and_dvs-w4jj"
+    t.index ["HealthAndDVID", "data_source_id"], name: "hmis_2020_health_and_dvs-zonF"
+    t.index ["HealthAndDVID"], name: "hmis_2020_health_and_dvs-zE81"
+    t.index ["PersonalID"], name: "hmis_2020_health_and_dvs-Kqiz"
+    t.index ["source_type", "source_id"], name: "hmis_2020_health_and_dvs-Ha57"
   end
 
   create_table "hmis_2020_income_benefits", force: :cascade do |t|
@@ -2977,14 +3135,14 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_income_benefits-v5MM"
-    t.index ["DateUpdated"], name: "hmis_2020_income_benefits-d90B"
-    t.index ["EnrollmentID"], name: "hmis_2020_income_benefits-7407"
-    t.index ["ExportID"], name: "hmis_2020_income_benefits-3X4s"
-    t.index ["IncomeBenefitsID", "data_source_id"], name: "hmis_2020_income_benefits-MMRe"
-    t.index ["IncomeBenefitsID"], name: "hmis_2020_income_benefits-JkGy"
-    t.index ["PersonalID"], name: "hmis_2020_income_benefits-agE0"
-    t.index ["source_type", "source_id"], name: "hmis_2020_income_benefits-EnNp"
+    t.index ["DateCreated"], name: "hmis_2020_income_benefits-JwPq"
+    t.index ["DateUpdated"], name: "hmis_2020_income_benefits-aphJ"
+    t.index ["EnrollmentID"], name: "hmis_2020_income_benefits-AUwp"
+    t.index ["ExportID"], name: "hmis_2020_income_benefits-BE9p"
+    t.index ["IncomeBenefitsID", "data_source_id"], name: "hmis_2020_income_benefits-tBcJ"
+    t.index ["IncomeBenefitsID"], name: "hmis_2020_income_benefits-pfYl"
+    t.index ["PersonalID"], name: "hmis_2020_income_benefits-NcHX"
+    t.index ["source_type", "source_id"], name: "hmis_2020_income_benefits-LCKi"
   end
 
   create_table "hmis_2020_inventories", force: :cascade do |t|
@@ -3019,13 +3177,13 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_inventories-CLR9"
-    t.index ["DateUpdated"], name: "hmis_2020_inventories-f4o3"
-    t.index ["ExportID"], name: "hmis_2020_inventories-bFin"
-    t.index ["InventoryID", "data_source_id"], name: "hmis_2020_inventories-k6s6"
-    t.index ["InventoryID"], name: "hmis_2020_inventories-vlVk"
-    t.index ["ProjectID", "CoCCode"], name: "hmis_2020_inventories-fZEs"
-    t.index ["source_type", "source_id"], name: "hmis_2020_inventories-u3iD"
+    t.index ["DateCreated"], name: "hmis_2020_inventories-J6na"
+    t.index ["DateUpdated"], name: "hmis_2020_inventories-0TGU"
+    t.index ["ExportID"], name: "hmis_2020_inventories-whCo"
+    t.index ["InventoryID", "data_source_id"], name: "hmis_2020_inventories-LNwI"
+    t.index ["InventoryID"], name: "hmis_2020_inventories-fun6"
+    t.index ["ProjectID", "CoCCode"], name: "hmis_2020_inventories-yV3L"
+    t.index ["source_type", "source_id"], name: "hmis_2020_inventories-DTHt"
   end
 
   create_table "hmis_2020_organizations", force: :cascade do |t|
@@ -3047,10 +3205,10 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["ExportID"], name: "hmis_2020_organizations-XC8S"
-    t.index ["OrganizationID", "data_source_id"], name: "hmis_2020_organizations-8DtT"
-    t.index ["OrganizationID"], name: "hmis_2020_organizations-gn2K"
-    t.index ["source_type", "source_id"], name: "hmis_2020_organizations-1qWA"
+    t.index ["ExportID"], name: "hmis_2020_organizations-VQWo"
+    t.index ["OrganizationID", "data_source_id"], name: "hmis_2020_organizations-MfSb"
+    t.index ["OrganizationID"], name: "hmis_2020_organizations-Prts"
+    t.index ["source_type", "source_id"], name: "hmis_2020_organizations-SWg3"
   end
 
   create_table "hmis_2020_project_cocs", force: :cascade do |t|
@@ -3078,13 +3236,13 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_project_cocs-fYMv"
-    t.index ["DateUpdated"], name: "hmis_2020_project_cocs-kb34"
-    t.index ["ExportID"], name: "hmis_2020_project_cocs-DOqe"
-    t.index ["ProjectCoCID", "data_source_id"], name: "hmis_2020_project_cocs-R2xg"
-    t.index ["ProjectCoCID"], name: "hmis_2020_project_cocs-IyvN"
-    t.index ["ProjectID", "CoCCode"], name: "hmis_2020_project_cocs-Cc7L"
-    t.index ["source_type", "source_id"], name: "hmis_2020_project_cocs-DHg1"
+    t.index ["DateCreated"], name: "hmis_2020_project_cocs-Tmf3"
+    t.index ["DateUpdated"], name: "hmis_2020_project_cocs-OI4Q"
+    t.index ["ExportID"], name: "hmis_2020_project_cocs-GTs4"
+    t.index ["ProjectCoCID", "data_source_id"], name: "hmis_2020_project_cocs-JAwb"
+    t.index ["ProjectCoCID"], name: "hmis_2020_project_cocs-iuZj"
+    t.index ["ProjectID", "CoCCode"], name: "hmis_2020_project_cocs-K8nw"
+    t.index ["source_type", "source_id"], name: "hmis_2020_project_cocs-icQq"
   end
 
   create_table "hmis_2020_projects", force: :cascade do |t|
@@ -3116,13 +3274,13 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_projects-IVgV"
-    t.index ["DateUpdated"], name: "hmis_2020_projects-cPlg"
-    t.index ["ExportID"], name: "hmis_2020_projects-PU94"
-    t.index ["ProjectID", "data_source_id"], name: "hmis_2020_projects-1AC3"
-    t.index ["ProjectID"], name: "hmis_2020_projects-kW6G"
-    t.index ["ProjectType"], name: "hmis_2020_projects-UEeJ"
-    t.index ["source_type", "source_id"], name: "hmis_2020_projects-yHgt"
+    t.index ["DateCreated"], name: "hmis_2020_projects-ctk2"
+    t.index ["DateUpdated"], name: "hmis_2020_projects-zcbu"
+    t.index ["ExportID"], name: "hmis_2020_projects-fqB3"
+    t.index ["ProjectID", "data_source_id"], name: "hmis_2020_projects-oxQa"
+    t.index ["ProjectID"], name: "hmis_2020_projects-nhkJ"
+    t.index ["ProjectType"], name: "hmis_2020_projects-xkUs"
+    t.index ["source_type", "source_id"], name: "hmis_2020_projects-5SSM"
   end
 
   create_table "hmis_2020_services", force: :cascade do |t|
@@ -3150,22 +3308,22 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["DateCreated"], name: "hmis_2020_services-mH05"
-    t.index ["DateDeleted"], name: "hmis_2020_services-BlH1"
-    t.index ["DateProvided"], name: "hmis_2020_services-61dd"
-    t.index ["DateUpdated"], name: "hmis_2020_services-m7fP"
-    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_services-NQkj"
-    t.index ["EnrollmentID", "RecordType", "DateDeleted", "DateProvided"], name: "hmis_2020_services-tVl3"
-    t.index ["EnrollmentID"], name: "hmis_2020_services-g8Wd"
-    t.index ["ExportID"], name: "hmis_2020_services-fTbx"
-    t.index ["PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "hmis_2020_services-SlpH"
-    t.index ["PersonalID"], name: "hmis_2020_services-IUzd"
-    t.index ["RecordType", "DateDeleted"], name: "hmis_2020_services-P3Qh"
-    t.index ["RecordType", "DateProvided"], name: "hmis_2020_services-Xjjx"
-    t.index ["RecordType"], name: "hmis_2020_services-Pm5U"
-    t.index ["ServicesID", "data_source_id"], name: "hmis_2020_services-AFpt"
-    t.index ["ServicesID"], name: "hmis_2020_services-KMdT"
-    t.index ["source_type", "source_id"], name: "hmis_2020_services-SGxI"
+    t.index ["DateCreated"], name: "hmis_2020_services-eNab"
+    t.index ["DateDeleted"], name: "hmis_2020_services-WGtP"
+    t.index ["DateProvided"], name: "hmis_2020_services-8nZj"
+    t.index ["DateUpdated"], name: "hmis_2020_services-VJ0s"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_2020_services-m63x"
+    t.index ["EnrollmentID", "RecordType", "DateDeleted", "DateProvided"], name: "hmis_2020_services-LqGx"
+    t.index ["EnrollmentID"], name: "hmis_2020_services-wXdL"
+    t.index ["ExportID"], name: "hmis_2020_services-Y8F7"
+    t.index ["PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "hmis_2020_services-ggIO"
+    t.index ["PersonalID"], name: "hmis_2020_services-Rwkq"
+    t.index ["RecordType", "DateDeleted"], name: "hmis_2020_services-WrTZ"
+    t.index ["RecordType", "DateProvided"], name: "hmis_2020_services-ApuA"
+    t.index ["RecordType"], name: "hmis_2020_services-mIRP"
+    t.index ["ServicesID", "data_source_id"], name: "hmis_2020_services-3lC5"
+    t.index ["ServicesID"], name: "hmis_2020_services-QkXD"
+    t.index ["source_type", "source_id"], name: "hmis_2020_services-4CG1"
   end
 
   create_table "hmis_2020_users", force: :cascade do |t|
@@ -3188,10 +3346,10 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "dirty_at"
     t.datetime "clean_at"
     t.boolean "should_import", default: true
-    t.index ["ExportID"], name: "hmis_2020_users-5Ons"
-    t.index ["UserID", "data_source_id"], name: "hmis_2020_users-4n9g"
-    t.index ["UserID"], name: "hmis_2020_users-kTiG"
-    t.index ["source_type", "source_id"], name: "hmis_2020_users-y9Yc"
+    t.index ["ExportID"], name: "hmis_2020_users-Ls1u"
+    t.index ["UserID", "data_source_id"], name: "hmis_2020_users-DmeI"
+    t.index ["UserID"], name: "hmis_2020_users-74tq"
+    t.index ["source_type", "source_id"], name: "hmis_2020_users-ZfY6"
   end
 
   create_table "hmis_assessments", id: :serial, force: :cascade do |t|
@@ -3265,8 +3423,8 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["AffiliationID", "data_source_id"], name: "hmis_csv_2020_affiliations-m7Vc"
-    t.index ["ExportID"], name: "hmis_csv_2020_affiliations-PjsD"
+    t.index ["AffiliationID", "data_source_id"], name: "hmis_csv_2020_affiliations-F2ar"
+    t.index ["ExportID"], name: "hmis_csv_2020_affiliations-ofln"
   end
 
   create_table "hmis_csv_2020_assessment_questions", force: :cascade do |t|
@@ -3286,9 +3444,9 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["AssessmentID"], name: "hmis_csv_2020_assessment_questions-Vspc"
-    t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_csv_2020_assessment_questions-Pakw"
-    t.index ["ExportID"], name: "hmis_csv_2020_assessment_questions-YLtO"
+    t.index ["AssessmentID"], name: "hmis_csv_2020_assessment_questions-U6Dk"
+    t.index ["AssessmentQuestionID", "data_source_id"], name: "hmis_csv_2020_assessment_questions-ZGxE"
+    t.index ["ExportID"], name: "hmis_csv_2020_assessment_questions-Xt6t"
   end
 
   create_table "hmis_csv_2020_assessment_results", force: :cascade do |t|
@@ -3306,9 +3464,9 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["AssessmentID"], name: "hmis_csv_2020_assessment_results-muDi"
-    t.index ["AssessmentResultID", "data_source_id"], name: "hmis_csv_2020_assessment_results-tWAF"
-    t.index ["ExportID"], name: "hmis_csv_2020_assessment_results-lAl3"
+    t.index ["AssessmentID"], name: "hmis_csv_2020_assessment_results-NEN7"
+    t.index ["AssessmentResultID", "data_source_id"], name: "hmis_csv_2020_assessment_results-Rkod"
+    t.index ["ExportID"], name: "hmis_csv_2020_assessment_results-NLC4"
   end
 
   create_table "hmis_csv_2020_assessments", force: :cascade do |t|
@@ -3328,12 +3486,12 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["AssessmentDate"], name: "hmis_csv_2020_assessments-cjIv"
-    t.index ["AssessmentID", "data_source_id"], name: "hmis_csv_2020_assessments-yGxF"
-    t.index ["AssessmentID"], name: "hmis_csv_2020_assessments-BcHu"
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_assessments-25dH"
-    t.index ["ExportID"], name: "hmis_csv_2020_assessments-9Mqv"
-    t.index ["PersonalID"], name: "hmis_csv_2020_assessments-sDra"
+    t.index ["AssessmentDate"], name: "hmis_csv_2020_assessments-GRoC"
+    t.index ["AssessmentID", "data_source_id"], name: "hmis_csv_2020_assessments-y7s0"
+    t.index ["AssessmentID"], name: "hmis_csv_2020_assessments-W4vL"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_assessments-EZd7"
+    t.index ["ExportID"], name: "hmis_csv_2020_assessments-MoqJ"
+    t.index ["PersonalID"], name: "hmis_csv_2020_assessments-nFH4"
   end
 
   create_table "hmis_csv_2020_clients", force: :cascade do |t|
@@ -3376,15 +3534,15 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DOB"], name: "hmis_csv_2020_clients-jYMX"
-    t.index ["DateCreated"], name: "hmis_csv_2020_clients-cuUx"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_clients-fBhr"
-    t.index ["ExportID"], name: "hmis_csv_2020_clients-uWlb"
-    t.index ["FirstName"], name: "hmis_csv_2020_clients-xP8Z"
-    t.index ["LastName"], name: "hmis_csv_2020_clients-NU0H"
-    t.index ["PersonalID", "data_source_id"], name: "hmis_csv_2020_clients-k3aX"
-    t.index ["PersonalID"], name: "hmis_csv_2020_clients-I5d1"
-    t.index ["VeteranStatus"], name: "hmis_csv_2020_clients-dRfW"
+    t.index ["DOB"], name: "hmis_csv_2020_clients-FQ7O"
+    t.index ["DateCreated"], name: "hmis_csv_2020_clients-2cnC"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_clients-wlPc"
+    t.index ["ExportID"], name: "hmis_csv_2020_clients-20vV"
+    t.index ["FirstName"], name: "hmis_csv_2020_clients-Q0u6"
+    t.index ["LastName"], name: "hmis_csv_2020_clients-85Ap"
+    t.index ["PersonalID", "data_source_id"], name: "hmis_csv_2020_clients-qppE"
+    t.index ["PersonalID"], name: "hmis_csv_2020_clients-moFz"
+    t.index ["VeteranStatus"], name: "hmis_csv_2020_clients-kRKs"
   end
 
   create_table "hmis_csv_2020_current_living_situations", force: :cascade do |t|
@@ -3408,13 +3566,13 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_csv_2020_current_living_situations-Hskt"
-    t.index ["CurrentLivingSitID"], name: "hmis_csv_2020_current_living_situations-absA"
-    t.index ["CurrentLivingSituation"], name: "hmis_csv_2020_current_living_situations-FAXr"
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_current_living_situations-dSGg"
-    t.index ["ExportID"], name: "hmis_csv_2020_current_living_situations-EtZN"
-    t.index ["InformationDate"], name: "hmis_csv_2020_current_living_situations-mVn9"
-    t.index ["PersonalID"], name: "hmis_csv_2020_current_living_situations-E0x9"
+    t.index ["CurrentLivingSitID", "data_source_id"], name: "hmis_csv_2020_current_living_situations-jzq2"
+    t.index ["CurrentLivingSitID"], name: "hmis_csv_2020_current_living_situations-EGfX"
+    t.index ["CurrentLivingSituation"], name: "hmis_csv_2020_current_living_situations-Vh4Y"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_current_living_situations-ScsR"
+    t.index ["ExportID"], name: "hmis_csv_2020_current_living_situations-KGuH"
+    t.index ["InformationDate"], name: "hmis_csv_2020_current_living_situations-VCsb"
+    t.index ["PersonalID"], name: "hmis_csv_2020_current_living_situations-3hVq"
   end
 
   create_table "hmis_csv_2020_disabilities", force: :cascade do |t|
@@ -3440,13 +3598,13 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_disabilities-VhVa"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_disabilities-YEMV"
-    t.index ["DisabilitiesID", "data_source_id"], name: "hmis_csv_2020_disabilities-d2c4"
-    t.index ["DisabilitiesID"], name: "hmis_csv_2020_disabilities-4LBw"
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_disabilities-mD1K"
-    t.index ["ExportID"], name: "hmis_csv_2020_disabilities-yDE7"
-    t.index ["PersonalID"], name: "hmis_csv_2020_disabilities-sioU"
+    t.index ["DateCreated"], name: "hmis_csv_2020_disabilities-ohpt"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_disabilities-4Nml"
+    t.index ["DisabilitiesID", "data_source_id"], name: "hmis_csv_2020_disabilities-anqe"
+    t.index ["DisabilitiesID"], name: "hmis_csv_2020_disabilities-toFu"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_disabilities-9jL3"
+    t.index ["ExportID"], name: "hmis_csv_2020_disabilities-Sp4k"
+    t.index ["PersonalID"], name: "hmis_csv_2020_disabilities-xa8A"
   end
 
   create_table "hmis_csv_2020_employment_educations", force: :cascade do |t|
@@ -3468,13 +3626,13 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_employment_educations-QeZK"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_employment_educations-r6q3"
-    t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_csv_2020_employment_educations-aFNV"
-    t.index ["EmploymentEducationID"], name: "hmis_csv_2020_employment_educations-zWT9"
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_employment_educations-yV15"
-    t.index ["ExportID"], name: "hmis_csv_2020_employment_educations-pjRV"
-    t.index ["PersonalID"], name: "hmis_csv_2020_employment_educations-5F0y"
+    t.index ["DateCreated"], name: "hmis_csv_2020_employment_educations-bTVG"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_employment_educations-4yxa"
+    t.index ["EmploymentEducationID", "data_source_id"], name: "hmis_csv_2020_employment_educations-3UVX"
+    t.index ["EmploymentEducationID"], name: "hmis_csv_2020_employment_educations-U3yq"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_employment_educations-JTgH"
+    t.index ["ExportID"], name: "hmis_csv_2020_employment_educations-8u1c"
+    t.index ["PersonalID"], name: "hmis_csv_2020_employment_educations-ffjb"
   end
 
   create_table "hmis_csv_2020_enrollment_cocs", force: :cascade do |t|
@@ -3494,15 +3652,15 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["CoCCode"], name: "hmis_csv_2020_enrollment_cocs-X0bZ"
-    t.index ["DateCreated"], name: "hmis_csv_2020_enrollment_cocs-CHUf"
-    t.index ["DateDeleted"], name: "hmis_csv_2020_enrollment_cocs-huZs"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_enrollment_cocs-FeJz"
-    t.index ["EnrollmentCoCID", "data_source_id"], name: "hmis_csv_2020_enrollment_cocs-e4Dn"
-    t.index ["EnrollmentCoCID"], name: "hmis_csv_2020_enrollment_cocs-wkbT"
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_enrollment_cocs-uhjC"
-    t.index ["ExportID"], name: "hmis_csv_2020_enrollment_cocs-GVDN"
-    t.index ["PersonalID"], name: "hmis_csv_2020_enrollment_cocs-EEob"
+    t.index ["CoCCode"], name: "hmis_csv_2020_enrollment_cocs-RyqL"
+    t.index ["DateCreated"], name: "hmis_csv_2020_enrollment_cocs-dizj"
+    t.index ["DateDeleted"], name: "hmis_csv_2020_enrollment_cocs-ManB"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_enrollment_cocs-myvn"
+    t.index ["EnrollmentCoCID", "data_source_id"], name: "hmis_csv_2020_enrollment_cocs-MhSp"
+    t.index ["EnrollmentCoCID"], name: "hmis_csv_2020_enrollment_cocs-zRK2"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_enrollment_cocs-phxe"
+    t.index ["ExportID"], name: "hmis_csv_2020_enrollment_cocs-AFlL"
+    t.index ["PersonalID"], name: "hmis_csv_2020_enrollment_cocs-GYSJ"
   end
 
   create_table "hmis_csv_2020_enrollments", force: :cascade do |t|
@@ -3580,24 +3738,24 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_enrollments-GFYH"
-    t.index ["DateDeleted"], name: "hmis_csv_2020_enrollments-BXAk"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_enrollments-rhAn"
-    t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_2020_enrollments-UQN2"
-    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_csv_2020_enrollments-uqu9"
-    t.index ["EnrollmentID", "data_source_id"], name: "hmis_csv_2020_enrollments-PWiJ"
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_enrollments-ulD9"
-    t.index ["EntryDate"], name: "hmis_csv_2020_enrollments-oQ8w"
-    t.index ["ExportID"], name: "hmis_csv_2020_enrollments-nQ8H"
-    t.index ["HouseholdID"], name: "hmis_csv_2020_enrollments-lzrQ"
-    t.index ["LivingSituation"], name: "hmis_csv_2020_enrollments-R79V"
-    t.index ["PersonalID"], name: "hmis_csv_2020_enrollments-ok0B"
-    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_csv_2020_enrollments-I1Kd"
-    t.index ["ProjectID", "HouseholdID"], name: "hmis_csv_2020_enrollments-AcT4"
-    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_csv_2020_enrollments-zRLA"
-    t.index ["ProjectID"], name: "hmis_csv_2020_enrollments-ySnp"
-    t.index ["RelationshipToHoH"], name: "hmis_csv_2020_enrollments-3rSJ"
-    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_csv_2020_enrollments-1peb"
+    t.index ["DateCreated"], name: "hmis_csv_2020_enrollments-djbw"
+    t.index ["DateDeleted"], name: "hmis_csv_2020_enrollments-B4uX"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_enrollments-qD0O"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_2020_enrollments-8UEw"
+    t.index ["EnrollmentID", "ProjectID", "EntryDate"], name: "hmis_csv_2020_enrollments-LQ7R"
+    t.index ["EnrollmentID", "data_source_id"], name: "hmis_csv_2020_enrollments-2DM8"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_enrollments-XI6S"
+    t.index ["EntryDate"], name: "hmis_csv_2020_enrollments-l0fG"
+    t.index ["ExportID"], name: "hmis_csv_2020_enrollments-1CJ3"
+    t.index ["HouseholdID"], name: "hmis_csv_2020_enrollments-1ErZ"
+    t.index ["LivingSituation"], name: "hmis_csv_2020_enrollments-Leaw"
+    t.index ["PersonalID"], name: "hmis_csv_2020_enrollments-7ZVi"
+    t.index ["PreviousStreetESSH", "LengthOfStay"], name: "hmis_csv_2020_enrollments-CxJA"
+    t.index ["ProjectID", "HouseholdID"], name: "hmis_csv_2020_enrollments-gF7Z"
+    t.index ["ProjectID", "RelationshipToHoH"], name: "hmis_csv_2020_enrollments-KtXA"
+    t.index ["ProjectID"], name: "hmis_csv_2020_enrollments-CKRZ"
+    t.index ["RelationshipToHoH"], name: "hmis_csv_2020_enrollments-GH0S"
+    t.index ["TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears"], name: "hmis_csv_2020_enrollments-bpsk"
   end
 
   create_table "hmis_csv_2020_events", force: :cascade do |t|
@@ -3619,12 +3777,12 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_events-jGBu"
-    t.index ["EventDate"], name: "hmis_csv_2020_events-eZ5e"
-    t.index ["EventID", "data_source_id"], name: "hmis_csv_2020_events-30Ur"
-    t.index ["EventID"], name: "hmis_csv_2020_events-zf0f"
-    t.index ["ExportID"], name: "hmis_csv_2020_events-7eAT"
-    t.index ["PersonalID"], name: "hmis_csv_2020_events-kH7r"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_events-niJ9"
+    t.index ["EventDate"], name: "hmis_csv_2020_events-G60G"
+    t.index ["EventID", "data_source_id"], name: "hmis_csv_2020_events-BBvn"
+    t.index ["EventID"], name: "hmis_csv_2020_events-HCAc"
+    t.index ["ExportID"], name: "hmis_csv_2020_events-lkZq"
+    t.index ["PersonalID"], name: "hmis_csv_2020_events-7ZMP"
   end
 
   create_table "hmis_csv_2020_exits", force: :cascade do |t|
@@ -3674,15 +3832,15 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_exits-s2TJ"
-    t.index ["DateDeleted"], name: "hmis_csv_2020_exits-2D1t"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_exits-yiPU"
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_exits-OOzV"
-    t.index ["ExitDate"], name: "hmis_csv_2020_exits-3aig"
-    t.index ["ExitID", "data_source_id"], name: "hmis_csv_2020_exits-fVBp"
-    t.index ["ExitID"], name: "hmis_csv_2020_exits-CtDM"
-    t.index ["ExportID"], name: "hmis_csv_2020_exits-C3Wr"
-    t.index ["PersonalID"], name: "hmis_csv_2020_exits-ECqn"
+    t.index ["DateCreated"], name: "hmis_csv_2020_exits-B03u"
+    t.index ["DateDeleted"], name: "hmis_csv_2020_exits-9oMc"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_exits-u5YR"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_exits-lfLn"
+    t.index ["ExitDate"], name: "hmis_csv_2020_exits-wXSx"
+    t.index ["ExitID", "data_source_id"], name: "hmis_csv_2020_exits-m68a"
+    t.index ["ExitID"], name: "hmis_csv_2020_exits-yZ3j"
+    t.index ["ExportID"], name: "hmis_csv_2020_exits-xc6a"
+    t.index ["PersonalID"], name: "hmis_csv_2020_exits-86BM"
   end
 
   create_table "hmis_csv_2020_exports", force: :cascade do |t|
@@ -3706,8 +3864,8 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["ExportID", "data_source_id"], name: "hmis_csv_2020_exports-WTdq"
-    t.index ["ExportID"], name: "hmis_csv_2020_exports-cVHV"
+    t.index ["ExportID", "data_source_id"], name: "hmis_csv_2020_exports-K9wp"
+    t.index ["ExportID"], name: "hmis_csv_2020_exports-iweG"
   end
 
   create_table "hmis_csv_2020_funders", force: :cascade do |t|
@@ -3726,11 +3884,11 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_funders-50f3"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_funders-MuVO"
-    t.index ["ExportID"], name: "hmis_csv_2020_funders-PeIJ"
-    t.index ["FunderID", "data_source_id"], name: "hmis_csv_2020_funders-0Dn8"
-    t.index ["FunderID"], name: "hmis_csv_2020_funders-FQiW"
+    t.index ["DateCreated"], name: "hmis_csv_2020_funders-IC4k"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_funders-Ix1m"
+    t.index ["ExportID"], name: "hmis_csv_2020_funders-PEzG"
+    t.index ["FunderID", "data_source_id"], name: "hmis_csv_2020_funders-BLkd"
+    t.index ["FunderID"], name: "hmis_csv_2020_funders-1HLT"
   end
 
   create_table "hmis_csv_2020_health_and_dvs", force: :cascade do |t|
@@ -3755,13 +3913,13 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_health_and_dvs-GbeV"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_health_and_dvs-gD5a"
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_health_and_dvs-eqpq"
-    t.index ["ExportID"], name: "hmis_csv_2020_health_and_dvs-ZPUu"
-    t.index ["HealthAndDVID", "data_source_id"], name: "hmis_csv_2020_health_and_dvs-pOpj"
-    t.index ["HealthAndDVID"], name: "hmis_csv_2020_health_and_dvs-PC9a"
-    t.index ["PersonalID"], name: "hmis_csv_2020_health_and_dvs-Oc84"
+    t.index ["DateCreated"], name: "hmis_csv_2020_health_and_dvs-TUWh"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_health_and_dvs-y2fn"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_health_and_dvs-zvlJ"
+    t.index ["ExportID"], name: "hmis_csv_2020_health_and_dvs-lO76"
+    t.index ["HealthAndDVID", "data_source_id"], name: "hmis_csv_2020_health_and_dvs-6zDo"
+    t.index ["HealthAndDVID"], name: "hmis_csv_2020_health_and_dvs-2NoM"
+    t.index ["PersonalID"], name: "hmis_csv_2020_health_and_dvs-xYMb"
   end
 
   create_table "hmis_csv_2020_income_benefits", force: :cascade do |t|
@@ -3845,13 +4003,13 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_income_benefits-qhSs"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_income_benefits-RiYw"
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_income_benefits-gL3N"
-    t.index ["ExportID"], name: "hmis_csv_2020_income_benefits-eXDn"
-    t.index ["IncomeBenefitsID", "data_source_id"], name: "hmis_csv_2020_income_benefits-Ltzc"
-    t.index ["IncomeBenefitsID"], name: "hmis_csv_2020_income_benefits-GLRg"
-    t.index ["PersonalID"], name: "hmis_csv_2020_income_benefits-RGWc"
+    t.index ["DateCreated"], name: "hmis_csv_2020_income_benefits-lVjn"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_income_benefits-YyfJ"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_income_benefits-6HMy"
+    t.index ["ExportID"], name: "hmis_csv_2020_income_benefits-SEnq"
+    t.index ["IncomeBenefitsID", "data_source_id"], name: "hmis_csv_2020_income_benefits-O58u"
+    t.index ["IncomeBenefitsID"], name: "hmis_csv_2020_income_benefits-KXp0"
+    t.index ["PersonalID"], name: "hmis_csv_2020_income_benefits-Qf5l"
   end
 
   create_table "hmis_csv_2020_inventories", force: :cascade do |t|
@@ -3880,12 +4038,12 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_inventories-hL1K"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_inventories-1P2j"
-    t.index ["ExportID"], name: "hmis_csv_2020_inventories-jU8Q"
-    t.index ["InventoryID", "data_source_id"], name: "hmis_csv_2020_inventories-rHoQ"
-    t.index ["InventoryID"], name: "hmis_csv_2020_inventories-iNbi"
-    t.index ["ProjectID", "CoCCode"], name: "hmis_csv_2020_inventories-y9N6"
+    t.index ["DateCreated"], name: "hmis_csv_2020_inventories-eYpq"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_inventories-NeSc"
+    t.index ["ExportID"], name: "hmis_csv_2020_inventories-wdcK"
+    t.index ["InventoryID", "data_source_id"], name: "hmis_csv_2020_inventories-sfWI"
+    t.index ["InventoryID"], name: "hmis_csv_2020_inventories-RGrg"
+    t.index ["ProjectID", "CoCCode"], name: "hmis_csv_2020_inventories-BTZq"
   end
 
   create_table "hmis_csv_2020_organizations", force: :cascade do |t|
@@ -3901,9 +4059,9 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["ExportID"], name: "hmis_csv_2020_organizations-qUQ7"
-    t.index ["OrganizationID", "data_source_id"], name: "hmis_csv_2020_organizations-J6VT"
-    t.index ["OrganizationID"], name: "hmis_csv_2020_organizations-bfgb"
+    t.index ["ExportID"], name: "hmis_csv_2020_organizations-LqQF"
+    t.index ["OrganizationID", "data_source_id"], name: "hmis_csv_2020_organizations-cRJF"
+    t.index ["OrganizationID"], name: "hmis_csv_2020_organizations-tyIy"
   end
 
   create_table "hmis_csv_2020_project_cocs", force: :cascade do |t|
@@ -3925,12 +4083,12 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_project_cocs-i6Ds"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_project_cocs-xCLb"
-    t.index ["ExportID"], name: "hmis_csv_2020_project_cocs-RIXp"
-    t.index ["ProjectCoCID", "data_source_id"], name: "hmis_csv_2020_project_cocs-4NSD"
-    t.index ["ProjectCoCID"], name: "hmis_csv_2020_project_cocs-QTXW"
-    t.index ["ProjectID", "CoCCode"], name: "hmis_csv_2020_project_cocs-aUeJ"
+    t.index ["DateCreated"], name: "hmis_csv_2020_project_cocs-fRQZ"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_project_cocs-wP5S"
+    t.index ["ExportID"], name: "hmis_csv_2020_project_cocs-336L"
+    t.index ["ProjectCoCID", "data_source_id"], name: "hmis_csv_2020_project_cocs-K765"
+    t.index ["ProjectCoCID"], name: "hmis_csv_2020_project_cocs-5NHP"
+    t.index ["ProjectID", "CoCCode"], name: "hmis_csv_2020_project_cocs-G4ij"
   end
 
   create_table "hmis_csv_2020_projects", force: :cascade do |t|
@@ -3956,12 +4114,12 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_projects-fmbh"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_projects-Rzwb"
-    t.index ["ExportID"], name: "hmis_csv_2020_projects-2ob1"
-    t.index ["ProjectID", "data_source_id"], name: "hmis_csv_2020_projects-NUgF"
-    t.index ["ProjectID"], name: "hmis_csv_2020_projects-PSAF"
-    t.index ["ProjectType"], name: "hmis_csv_2020_projects-p4QT"
+    t.index ["DateCreated"], name: "hmis_csv_2020_projects-m4tQ"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_projects-MNAC"
+    t.index ["ExportID"], name: "hmis_csv_2020_projects-f4DP"
+    t.index ["ProjectID", "data_source_id"], name: "hmis_csv_2020_projects-StS2"
+    t.index ["ProjectID"], name: "hmis_csv_2020_projects-I9LN"
+    t.index ["ProjectType"], name: "hmis_csv_2020_projects-gAEK"
   end
 
   create_table "hmis_csv_2020_services", force: :cascade do |t|
@@ -3983,21 +4141,21 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["DateCreated"], name: "hmis_csv_2020_services-eJYg"
-    t.index ["DateDeleted"], name: "hmis_csv_2020_services-xa4Y"
-    t.index ["DateProvided"], name: "hmis_csv_2020_services-BjSF"
-    t.index ["DateUpdated"], name: "hmis_csv_2020_services-sNPQ"
-    t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_2020_services-ydPc"
-    t.index ["EnrollmentID", "RecordType", "DateDeleted", "DateProvided"], name: "hmis_csv_2020_services-a7uU"
-    t.index ["EnrollmentID"], name: "hmis_csv_2020_services-Rrz0"
-    t.index ["ExportID"], name: "hmis_csv_2020_services-17s2"
-    t.index ["PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "hmis_csv_2020_services-Suew"
-    t.index ["PersonalID"], name: "hmis_csv_2020_services-V8vs"
-    t.index ["RecordType", "DateDeleted"], name: "hmis_csv_2020_services-r7Zs"
-    t.index ["RecordType", "DateProvided"], name: "hmis_csv_2020_services-oZ4y"
-    t.index ["RecordType"], name: "hmis_csv_2020_services-5YUO"
-    t.index ["ServicesID", "data_source_id"], name: "hmis_csv_2020_services-94VT"
-    t.index ["ServicesID"], name: "hmis_csv_2020_services-mpPv"
+    t.index ["DateCreated"], name: "hmis_csv_2020_services-Nlyp"
+    t.index ["DateDeleted"], name: "hmis_csv_2020_services-5b2P"
+    t.index ["DateProvided"], name: "hmis_csv_2020_services-i7KB"
+    t.index ["DateUpdated"], name: "hmis_csv_2020_services-MSYV"
+    t.index ["EnrollmentID", "PersonalID"], name: "hmis_csv_2020_services-7Ekp"
+    t.index ["EnrollmentID", "RecordType", "DateDeleted", "DateProvided"], name: "hmis_csv_2020_services-1ggS"
+    t.index ["EnrollmentID"], name: "hmis_csv_2020_services-mvqR"
+    t.index ["ExportID"], name: "hmis_csv_2020_services-b6iK"
+    t.index ["PersonalID", "RecordType", "EnrollmentID", "DateProvided"], name: "hmis_csv_2020_services-lVDS"
+    t.index ["PersonalID"], name: "hmis_csv_2020_services-ZiEF"
+    t.index ["RecordType", "DateDeleted"], name: "hmis_csv_2020_services-VRZ7"
+    t.index ["RecordType", "DateProvided"], name: "hmis_csv_2020_services-8SnT"
+    t.index ["RecordType"], name: "hmis_csv_2020_services-feYP"
+    t.index ["ServicesID", "data_source_id"], name: "hmis_csv_2020_services-dacu"
+    t.index ["ServicesID"], name: "hmis_csv_2020_services-4Q3B"
   end
 
   create_table "hmis_csv_2020_users", force: :cascade do |t|
@@ -4014,9 +4172,9 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "data_source_id", null: false
     t.datetime "loaded_at", null: false
     t.integer "loader_id", null: false
-    t.index ["ExportID"], name: "hmis_csv_2020_users-AsEo"
-    t.index ["UserID", "data_source_id"], name: "hmis_csv_2020_users-qNve"
-    t.index ["UserID"], name: "hmis_csv_2020_users-FYjU"
+    t.index ["ExportID"], name: "hmis_csv_2020_users-Vflk"
+    t.index ["UserID", "data_source_id"], name: "hmis_csv_2020_users-Y4OW"
+    t.index ["UserID"], name: "hmis_csv_2020_users-3tXl"
   end
 
   create_table "hmis_csv_import_errors", force: :cascade do |t|
@@ -4026,7 +4184,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.string "source_type", null: false
     t.string "source_id", null: false
     t.index ["importer_log_id"], name: "index_hmis_csv_import_errors_on_importer_log_id"
-    t.index ["source_type", "source_id"], name: "hmis_csv_import_errors-8SMH"
+    t.index ["source_type", "source_id"], name: "hmis_csv_import_errors-wgH3"
   end
 
   create_table "hmis_csv_import_validations", force: :cascade do |t|
@@ -4036,7 +4194,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.string "source_type", null: false
     t.string "status"
     t.index ["importer_log_id"], name: "index_hmis_csv_import_validations_on_importer_log_id"
-    t.index ["source_type", "source_id"], name: "hmis_csv_validations-21Cx"
+    t.index ["source_type", "source_id"], name: "hmis_csv_validations-ONiu"
     t.index ["type"], name: "index_hmis_csv_import_validations_on_type"
   end
 
@@ -4213,6 +4371,176 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.index ["imported_at"], name: "index_hud_create_logs_on_imported_at"
   end
 
+  create_table "hud_report_apr_clients", force: :cascade do |t|
+    t.integer "age"
+    t.boolean "head_of_household"
+    t.string "head_of_household_id"
+    t.boolean "parenting_youth"
+    t.date "first_date_in_program"
+    t.date "last_date_in_program"
+    t.integer "veteran_status"
+    t.integer "length_of_stay"
+    t.boolean "chronically_homeless"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "name_quality"
+    t.string "ssn"
+    t.integer "ssn_quality"
+    t.date "dob"
+    t.integer "dob_quality"
+    t.date "enrollment_created"
+    t.integer "ethnicity"
+    t.integer "gender"
+    t.jsonb "overlapping_enrollments"
+    t.integer "relationship_to_hoh"
+    t.string "household_id"
+    t.string "enrollment_coc"
+    t.integer "disabling_condition"
+    t.boolean "developmental_disability"
+    t.boolean "hiv_aids"
+    t.boolean "physical_disability"
+    t.boolean "chronic_disability"
+    t.boolean "mental_health_problem"
+    t.boolean "substance_abuse"
+    t.boolean "indefinite_and_impairs"
+    t.integer "client_id"
+    t.integer "data_source_id"
+    t.integer "report_instance_id"
+    t.integer "destination"
+    t.date "income_date_at_start"
+    t.integer "income_from_any_source_at_start"
+    t.jsonb "income_sources_at_start"
+    t.boolean "annual_assessment_expected"
+    t.date "income_date_at_annual_assessment"
+    t.integer "income_from_any_source_at_annual_assessment"
+    t.jsonb "income_sources_at_annual_assessment"
+    t.date "income_date_at_exit"
+    t.integer "income_from_any_source_at_exit"
+    t.jsonb "income_sources_at_exit"
+    t.integer "project_type"
+    t.integer "prior_living_situation"
+    t.integer "prior_length_of_stay"
+    t.date "date_homeless"
+    t.integer "times_homeless"
+    t.integer "months_homeless"
+    t.integer "came_from_street_last_night"
+    t.date "exit_created"
+    t.integer "project_tracking_method"
+    t.date "date_of_last_bed_night"
+    t.boolean "other_clients_over_25"
+    t.date "move_in_date"
+    t.string "household_type"
+    t.integer "race"
+    t.integer "developmental_disability_entry"
+    t.integer "hiv_aids_entry"
+    t.integer "physical_disability_entry"
+    t.integer "chronic_disability_entry"
+    t.integer "mental_health_problem_entry"
+    t.integer "substance_abuse_entry"
+    t.boolean "alcohol_abuse_entry"
+    t.boolean "drug_abuse_entry"
+    t.integer "developmental_disability_exit"
+    t.integer "hiv_aids_exit"
+    t.integer "physical_disability_exit"
+    t.integer "chronic_disability_exit"
+    t.integer "mental_health_problem_exit"
+    t.integer "substance_abuse_exit"
+    t.boolean "alcohol_abuse_exit"
+    t.boolean "drug_abuse_exit"
+    t.integer "developmental_disability_latest"
+    t.integer "hiv_aids_latest"
+    t.integer "physical_disability_latest"
+    t.integer "chronic_disability_latest"
+    t.integer "mental_health_problem_latest"
+    t.integer "substance_abuse_latest"
+    t.boolean "alcohol_abuse_latest"
+    t.boolean "drug_abuse_latest"
+    t.integer "domestic_violence"
+    t.integer "currently_fleeing"
+    t.integer "income_total_at_start"
+    t.integer "income_total_at_annual_assessment"
+    t.integer "income_total_at_exit"
+    t.integer "non_cash_benefits_from_any_source_at_start"
+    t.integer "non_cash_benefits_from_any_source_at_annual_assessment"
+    t.integer "non_cash_benefits_from_any_source_at_exit"
+    t.integer "insurance_from_any_source_at_start"
+    t.integer "insurance_from_any_source_at_annual_assessment"
+    t.integer "insurance_from_any_source_at_exit"
+    t.integer "time_to_move_in"
+    t.integer "approximate_length_of_stay"
+    t.integer "approximate_time_to_move_in"
+    t.date "date_to_street"
+    t.integer "housing_assessment"
+    t.integer "subsidy_information"
+    t.date "date_of_engagement"
+    t.jsonb "household_members"
+    t.boolean "parenting_juvenile"
+    t.datetime "deleted_at"
+    t.integer "destination_client_id"
+    t.index ["client_id", "data_source_id", "report_instance_id"], name: "apr_client_conflict_columns", unique: true
+  end
+
+  create_table "hud_report_apr_living_situations", force: :cascade do |t|
+    t.bigint "hud_report_apr_client_id"
+    t.date "information_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "living_situation"
+    t.datetime "deleted_at"
+    t.index ["hud_report_apr_client_id"], name: "index_hud_apr_client_liv_sit", unique: true
+  end
+
+  create_table "hud_report_cells", force: :cascade do |t|
+    t.bigint "report_instance_id"
+    t.string "question", null: false
+    t.string "cell_name"
+    t.boolean "universe", default: false
+    t.json "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.json "summary"
+    t.string "status"
+    t.text "error_messages"
+    t.datetime "deleted_at"
+    t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
+  end
+
+  create_table "hud_report_instances", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "coc_code"
+    t.string "report_name"
+    t.date "start_date"
+    t.date "end_date"
+    t.json "options"
+    t.string "state"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.json "project_ids"
+    t.json "question_names", null: false
+    t.binary "zip_file"
+    t.datetime "deleted_at"
+    t.jsonb "build_for_questions"
+    t.jsonb "remaining_questions"
+    t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
+  end
+
+  create_table "hud_report_universe_members", force: :cascade do |t|
+    t.bigint "report_cell_id"
+    t.string "universe_membership_type"
+    t.bigint "universe_membership_id"
+    t.bigint "client_id"
+    t.string "first_name"
+    t.string "last_name"
+    t.datetime "deleted_at"
+    t.index ["client_id"], name: "index_hud_report_universe_members_on_client_id"
+    t.index ["report_cell_id"], name: "index_hud_report_universe_members_on_report_cell_id"
+    t.index ["universe_membership_type", "universe_membership_id"], name: "index_universe_type_and_id"
+  end
+
   create_table "identify_duplicates_log", id: :serial, force: :cascade do |t|
     t.datetime "started_at"
     t.datetime "completed_at"
@@ -4233,6 +4561,8 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "updated_at", null: false
     t.string "zip"
     t.integer "upload_id"
+    t.text "encrypted_import_errors"
+    t.string "encrypted_import_errors_iv"
     t.string "type", default: "GrdaWarehouse::ImportLog"
     t.bigint "loader_log_id"
     t.bigint "importer_log_id"
@@ -4364,6 +4694,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.jsonb "all_clients", default: []
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "juveniles", default: []
     t.jsonb "unaccompanied_minors", default: []
     t.jsonb "youth_families", default: []
     t.jsonb "family_parents", default: []
@@ -4453,6 +4784,14 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.jsonb "sh_all_clients", default: []
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "literally_homeless_juveniles", default: []
+    t.jsonb "system_juveniles", default: []
+    t.jsonb "homeless_juveniles", default: []
+    t.jsonb "ph_juveniles", default: []
+    t.jsonb "es_juveniles", default: []
+    t.jsonb "th__juveniles", default: []
+    t.jsonb "so_juveniles", default: []
+    t.jsonb "sh_juveniles", default: []
     t.jsonb "literally_homeless_unaccompanied_minors", default: []
     t.jsonb "system_unaccompanied_minors", default: []
     t.jsonb "homeless_unaccompanied_minors", default: []
@@ -4568,6 +4907,14 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "th_beds", default: 0
     t.integer "so_beds", default: 0
     t.integer "sh_beds", default: 0
+    t.integer "literally_homeless_juveniles", default: 0
+    t.integer "system_juveniles", default: 0
+    t.integer "homeless_juveniles", default: 0
+    t.integer "ph_juveniles", default: 0
+    t.integer "es_juveniles", default: 0
+    t.integer "th_juveniles", default: 0
+    t.integer "so_juveniles", default: 0
+    t.integer "sh_juveniles", default: 0
     t.integer "literally_homeless_unaccompanied_minors", default: 0
     t.integer "system_unaccompanied_minors", default: 0
     t.integer "homeless_unaccompanied_minors", default: 0
@@ -4610,6 +4957,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "beds", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "juveniles", default: 0
     t.integer "unaccompanied_minors", default: 0
     t.integer "youth_families", default: 0
     t.integer "family_parents", default: 0
@@ -4666,6 +5014,163 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "deleted_at"
   end
 
+  create_table "recent_report_enrollments", id: false, force: :cascade do |t|
+    t.string "EnrollmentID", limit: 50
+    t.string "PersonalID"
+    t.string "ProjectID", limit: 50
+    t.date "EntryDate"
+    t.string "HouseholdID"
+    t.integer "RelationshipToHoH"
+    t.integer "LivingSituation"
+    t.string "OtherResidencePrior"
+    t.integer "LengthOfStay"
+    t.integer "DisablingCondition"
+    t.integer "EntryFromStreetESSH"
+    t.date "DateToStreetESSH"
+    t.integer "ContinuouslyHomelessOneYear"
+    t.integer "TimesHomelessPastThreeYears"
+    t.integer "MonthsHomelessPastThreeYears"
+    t.integer "MonthsHomelessThisTime"
+    t.integer "StatusDocumented"
+    t.integer "HousingStatus"
+    t.date "DateOfEngagement"
+    t.integer "InPermanentHousing"
+    t.date "MoveInDate"
+    t.date "DateOfPATHStatus"
+    t.integer "ClientEnrolledInPATH"
+    t.integer "ReasonNotEnrolled"
+    t.integer "WorstHousingSituation"
+    t.integer "PercentAMI"
+    t.string "LastPermanentStreet"
+    t.string "LastPermanentCity", limit: 50
+    t.string "LastPermanentState", limit: 2
+    t.string "LastPermanentZIP", limit: 10
+    t.integer "AddressDataQuality"
+    t.date "DateOfBCPStatus"
+    t.integer "EligibleForRHY"
+    t.integer "ReasonNoServices"
+    t.integer "SexualOrientation"
+    t.integer "FormerWardChildWelfare"
+    t.integer "ChildWelfareYears"
+    t.integer "ChildWelfareMonths"
+    t.integer "FormerWardJuvenileJustice"
+    t.integer "JuvenileJusticeYears"
+    t.integer "JuvenileJusticeMonths"
+    t.integer "HouseholdDynamics"
+    t.integer "SexualOrientationGenderIDYouth"
+    t.integer "SexualOrientationGenderIDFam"
+    t.integer "HousingIssuesYouth"
+    t.integer "HousingIssuesFam"
+    t.integer "SchoolEducationalIssuesYouth"
+    t.integer "SchoolEducationalIssuesFam"
+    t.integer "UnemploymentYouth"
+    t.integer "UnemploymentFam"
+    t.integer "MentalHealthIssuesYouth"
+    t.integer "MentalHealthIssuesFam"
+    t.integer "HealthIssuesYouth"
+    t.integer "HealthIssuesFam"
+    t.integer "PhysicalDisabilityYouth"
+    t.integer "PhysicalDisabilityFam"
+    t.integer "MentalDisabilityYouth"
+    t.integer "MentalDisabilityFam"
+    t.integer "AbuseAndNeglectYouth"
+    t.integer "AbuseAndNeglectFam"
+    t.integer "AlcoholDrugAbuseYouth"
+    t.integer "AlcoholDrugAbuseFam"
+    t.integer "InsufficientIncome"
+    t.integer "ActiveMilitaryParent"
+    t.integer "IncarceratedParent"
+    t.integer "IncarceratedParentStatus"
+    t.integer "ReferralSource"
+    t.integer "CountOutreachReferralApproaches"
+    t.integer "ExchangeForSex"
+    t.integer "ExchangeForSexPastThreeMonths"
+    t.integer "CountOfExchangeForSex"
+    t.integer "AskedOrForcedToExchangeForSex"
+    t.integer "AskedOrForcedToExchangeForSexPastThreeMonths"
+    t.integer "WorkPlaceViolenceThreats"
+    t.integer "WorkplacePromiseDifference"
+    t.integer "CoercedToContinueWork"
+    t.integer "LaborExploitPastThreeMonths"
+    t.integer "HPScreeningScore"
+    t.integer "VAMCStation"
+    t.datetime "DateCreated"
+    t.datetime "DateUpdated"
+    t.string "UserID", limit: 100
+    t.datetime "DateDeleted"
+    t.string "ExportID"
+    t.integer "data_source_id"
+    t.integer "id"
+    t.integer "LOSUnderThreshold"
+    t.integer "PreviousStreetESSH"
+    t.integer "UrgentReferral"
+    t.integer "TimeToHousingLoss"
+    t.integer "ZeroIncome"
+    t.integer "AnnualPercentAMI"
+    t.integer "FinancialChange"
+    t.integer "HouseholdChange"
+    t.integer "EvictionHistory"
+    t.integer "SubsidyAtRisk"
+    t.integer "LiteralHomelessHistory"
+    t.integer "DisabledHoH"
+    t.integer "CriminalRecord"
+    t.integer "SexOffender"
+    t.integer "DependentUnder6"
+    t.integer "SingleParent"
+    t.integer "HH5Plus"
+    t.integer "IraqAfghanistan"
+    t.integer "FemVet"
+    t.integer "ThresholdScore"
+    t.integer "ERVisits"
+    t.integer "JailNights"
+    t.integer "HospitalNights"
+    t.integer "RunawayYouth"
+    t.string "processed_hash"
+    t.string "processed_as"
+    t.boolean "roi_permission"
+    t.string "last_locality"
+    t.string "last_zipcode"
+    t.string "source_hash"
+    t.datetime "pending_date_deleted"
+    t.string "SexualOrientationOther", limit: 100
+    t.date "history_generated_on"
+    t.integer "demographic_id"
+    t.integer "client_id"
+    t.index ["EntryDate"], name: "entrydate_ret_index"
+    t.index ["client_id"], name: "client_id_ret_index"
+    t.index ["id"], name: "id_ret_index", unique: true
+  end
+
+  create_table "recent_service_history", id: false, force: :cascade do |t|
+    t.integer "id"
+    t.integer "client_id"
+    t.integer "data_source_id"
+    t.date "date"
+    t.date "first_date_in_program"
+    t.date "last_date_in_program"
+    t.string "enrollment_group_id", limit: 50
+    t.integer "age", limit: 2
+    t.integer "destination"
+    t.string "head_of_household_id", limit: 50
+    t.string "household_id", limit: 50
+    t.integer "project_id"
+    t.integer "project_type", limit: 2
+    t.integer "project_tracking_method"
+    t.integer "organization_id"
+    t.integer "housing_status_at_entry"
+    t.integer "housing_status_at_exit"
+    t.integer "service_type", limit: 2
+    t.integer "computed_project_type", limit: 2
+    t.boolean "presented_as_individual"
+    t.index ["client_id"], name: "client_id_rsh_index"
+    t.index ["computed_project_type"], name: "computed_project_type_rsh_index"
+    t.index ["date"], name: "date_rsh_index"
+    t.index ["household_id"], name: "household_id_rsh_index"
+    t.index ["id"], name: "id_rsh_index", unique: true
+    t.index ["project_tracking_method"], name: "project_tracking_method_rsh_index"
+    t.index ["project_type"], name: "project_type_rsh_index"
+  end
+
   create_table "recurring_hmis_export_links", id: :serial, force: :cascade do |t|
     t.integer "hmis_export_id"
     t.integer "recurring_hmis_export_id"
@@ -4710,6 +5215,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "weight", default: 0, null: false
     t.boolean "enabled", default: true, null: false
     t.boolean "limitable", default: true, null: false
+    t.boolean "health", default: false
   end
 
   create_table "report_tokens", id: :serial, force: :cascade do |t|
@@ -5991,10 +6497,10 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
 
   create_table "taggings", id: :serial, force: :cascade do |t|
     t.integer "tag_id"
-    t.string "taggable_type"
     t.integer "taggable_id"
-    t.string "tagger_type"
+    t.string "taggable_type"
     t.integer "tagger_id"
+    t.string "tagger_type"
     t.string "context", limit: 128
     t.datetime "created_at"
     t.index ["context"], name: "index_taggings_on_context"
@@ -6049,6 +6555,8 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "delayed_job_id"
     t.boolean "deidentified", default: false
     t.boolean "project_whitelist", default: false
+    t.text "encrypted_content"
+    t.string "encrypted_content_iv"
     t.index ["deleted_at"], name: "index_uploads_on_deleted_at"
   end
 
@@ -6079,8 +6587,8 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
 
   create_table "user_viewable_entities", id: :serial, force: :cascade do |t|
     t.integer "user_id", null: false
-    t.string "entity_type", null: false
     t.integer "entity_id", null: false
+    t.string "entity_type", null: false
     t.datetime "deleted_at"
     t.index ["user_id", "entity_id", "entity_type", "deleted_at"], name: "one_entity_per_type_per_user_allows_delete", unique: true
   end
@@ -6215,26 +6723,37 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.integer "age"
     t.integer "destination"
     t.string "head_of_household_id", limit: 50
-    t.string "household_id"
-    t.string "project_id"
-    t.string "project_name"
+    t.string "household_id", limit: 50
+    t.string "project_id", limit: 50
+    t.string "project_name", limit: 150
     t.integer "project_type"
     t.integer "project_tracking_method"
-    t.string "organization_id"
-    t.string "record_type", null: false
+    t.string "organization_id", limit: 50
+    t.string "record_type", limit: 50, null: false
     t.integer "housing_status_at_entry"
     t.integer "housing_status_at_exit"
     t.integer "service_type"
     t.integer "computed_project_type"
     t.boolean "presented_as_individual"
+    t.integer "other_clients_over_25", default: 0, null: false
+    t.integer "other_clients_under_18", default: 0, null: false
+    t.integer "other_clients_between_18_and_25", default: 0, null: false
+    t.boolean "unaccompanied_youth", default: false, null: false
+    t.boolean "parenting_youth", default: false, null: false
+    t.boolean "parenting_juvenile", default: false, null: false
+    t.boolean "children_only", default: false, null: false
+    t.boolean "individual_adult", default: false, null: false
+    t.boolean "individual_elder", default: false, null: false
+    t.boolean "head_of_household", default: false, null: false
     t.index ["client_id"], name: "index_service_history_on_client_id"
     t.index ["computed_project_type"], name: "index_warehouse_client_service_history_on_computed_project_type"
     t.index ["data_source_id", "organization_id", "project_id", "record_type"], name: "index_sh_ds_id_org_id_proj_id_r_type"
     t.index ["data_source_id"], name: "index_warehouse_client_service_history_on_data_source_id"
-    t.index ["date", "data_source_id", "organization_id", "project_id"], name: "index_sh_date_ds_id_org_id_proj_id"
-    t.index ["date"], name: "index_warehouse_client_service_history_on_date"
-    t.index ["date"], name: "service_history_date_desc", order: :desc
+    t.index ["date", "data_source_id", "organization_id", "project_id", "project_type"], name: "sh_date_ds_id_org_id_proj_id_proj_type"
+    t.index ["date", "record_type", "presented_as_individual"], name: "index_sh_date_r_type_indiv"
+    t.index ["enrollment_group_id"], name: "index_warehouse_client_service_history_on_enrollment_group_id"
     t.index ["first_date_in_program"], name: "index_warehouse_client_service_history_on_first_date_in_program"
+    t.index ["household_id"], name: "index_warehouse_client_service_history_on_household_id"
     t.index ["last_date_in_program"], name: "index_warehouse_client_service_history_on_last_date_in_program"
     t.index ["project_tracking_method"], name: "index_sh_tracking_method"
     t.index ["project_type"], name: "index_warehouse_client_service_history_on_project_type"
@@ -6292,8 +6811,8 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.boolean "active_in_cas_match", default: false
     t.string "last_exit_destination"
     t.datetime "last_cas_match_date"
-    t.integer "days_homeless_plus_overrides"
     t.string "lgbtq_from_hmis"
+    t.integer "days_homeless_plus_overrides"
     t.index ["chronic_days"], name: "index_warehouse_clients_processed_on_chronic_days"
     t.index ["client_id"], name: "index_warehouse_clients_processed_on_client_id"
     t.index ["days_served"], name: "index_warehouse_clients_processed_on_days_served"
@@ -6342,6 +6861,7 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.string "housing_status"
     t.string "other_housing_status"
     t.boolean "imported", default: false
+    t.string "zip_code"
     t.index ["deleted_at"], name: "index_youth_case_managements_on_deleted_at"
   end
 
@@ -6370,6 +6890,10 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.string "action"
+    t.date "action_on"
+    t.date "required_on"
+    t.integer "case_management_id"
     t.index ["deleted_at"], name: "index_youth_follow_ups_on_deleted_at"
   end
 
@@ -6510,6 +7034,509 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
   add_foreign_key "warehouse_clients", "data_sources"
   add_foreign_key "warehouse_clients_processed", "\"Client\"", column: "client_id"
 
+  create_view "Site", sql_definition: <<-SQL
+      SELECT "Geography"."GeographyID",
+      "Geography"."ProjectID",
+      "Geography"."CoCCode",
+      "Geography"."PrincipalSite",
+      "Geography"."Geocode",
+      "Geography"."Address1",
+      "Geography"."City",
+      "Geography"."State",
+      "Geography"."ZIP",
+      "Geography"."DateCreated",
+      "Geography"."DateUpdated",
+      "Geography"."UserID",
+      "Geography"."DateDeleted",
+      "Geography"."ExportID",
+      "Geography".data_source_id,
+      "Geography".id,
+      "Geography"."InformationDate",
+      "Geography"."Address2",
+      "Geography"."GeographyType",
+      "Geography".source_hash
+     FROM "Geography";
+  SQL
+  create_view "combined_cohort_client_changes", sql_definition: <<-SQL
+      SELECT cc.id,
+      cohort_clients.client_id,
+      cc.cohort_client_id,
+      cc.cohort_id,
+      cc.user_id,
+      cc.change AS entry_action,
+      cc.changed_at AS entry_date,
+      cc_ex.change AS exit_action,
+      cc_ex.changed_at AS exit_date,
+      cc_ex.reason
+     FROM (((( SELECT cohort_client_changes.id,
+              cohort_client_changes.cohort_client_id,
+              cohort_client_changes.cohort_id,
+              cohort_client_changes.user_id,
+              cohort_client_changes.change,
+              cohort_client_changes.changed_at,
+              cohort_client_changes.reason
+             FROM cohort_client_changes
+            WHERE ((cohort_client_changes.change)::text = ANY (ARRAY[('create'::character varying)::text, ('activate'::character varying)::text]))) cc
+       LEFT JOIN LATERAL ( SELECT cohort_client_changes.id,
+              cohort_client_changes.cohort_client_id,
+              cohort_client_changes.cohort_id,
+              cohort_client_changes.user_id,
+              cohort_client_changes.change,
+              cohort_client_changes.changed_at,
+              cohort_client_changes.reason
+             FROM cohort_client_changes
+            WHERE (((cohort_client_changes.change)::text = ANY (ARRAY[('destroy'::character varying)::text, ('deactivate'::character varying)::text])) AND (cc.cohort_client_id = cohort_client_changes.cohort_client_id) AND (cc.cohort_id = cohort_client_changes.cohort_id) AND (cc.changed_at < cohort_client_changes.changed_at))
+            ORDER BY cohort_client_changes.changed_at
+           LIMIT 1) cc_ex ON (true))
+       JOIN cohort_clients ON ((cc.cohort_client_id = cohort_clients.id)))
+       JOIN "Client" ON (((cohort_clients.client_id = "Client".id) AND ("Client"."DateDeleted" IS NULL))))
+    WHERE ((cc_ex.reason IS NULL) OR ((cc_ex.reason)::text <> 'Mistake'::text))
+    ORDER BY cc.id;
+  SQL
+  create_view "index_stats", sql_definition: <<-SQL
+      WITH table_stats AS (
+           SELECT psut.relname,
+              psut.n_live_tup,
+              ((1.0 * (psut.idx_scan)::numeric) / (GREATEST((1)::bigint, (psut.seq_scan + psut.idx_scan)))::numeric) AS index_use_ratio
+             FROM pg_stat_user_tables psut
+            ORDER BY psut.n_live_tup DESC
+          ), table_io AS (
+           SELECT psiut.relname,
+              sum(psiut.heap_blks_read) AS table_page_read,
+              sum(psiut.heap_blks_hit) AS table_page_hit,
+              (sum(psiut.heap_blks_hit) / GREATEST((1)::numeric, (sum(psiut.heap_blks_hit) + sum(psiut.heap_blks_read)))) AS table_hit_ratio
+             FROM pg_statio_user_tables psiut
+            GROUP BY psiut.relname
+            ORDER BY (sum(psiut.heap_blks_read)) DESC
+          ), index_io AS (
+           SELECT psiui.relname,
+              psiui.indexrelname,
+              sum(psiui.idx_blks_read) AS idx_page_read,
+              sum(psiui.idx_blks_hit) AS idx_page_hit,
+              ((1.0 * sum(psiui.idx_blks_hit)) / GREATEST(1.0, (sum(psiui.idx_blks_hit) + sum(psiui.idx_blks_read)))) AS idx_hit_ratio
+             FROM pg_statio_user_indexes psiui
+            GROUP BY psiui.relname, psiui.indexrelname
+            ORDER BY (sum(psiui.idx_blks_read)) DESC
+          )
+   SELECT ts.relname,
+      ts.n_live_tup,
+      ts.index_use_ratio,
+      ti.table_page_read,
+      ti.table_page_hit,
+      ti.table_hit_ratio,
+      ii.indexrelname,
+      ii.idx_page_read,
+      ii.idx_page_hit,
+      ii.idx_hit_ratio
+     FROM ((table_stats ts
+       LEFT JOIN table_io ti ON ((ti.relname = ts.relname)))
+       LEFT JOIN index_io ii ON ((ii.relname = ts.relname)))
+    ORDER BY ti.table_page_read DESC, ii.idx_page_read DESC;
+  SQL
+  create_view "report_disabilities", sql_definition: <<-SQL
+      SELECT "Disabilities"."DisabilitiesID",
+      "Disabilities"."EnrollmentID" AS "ProjectEntryID",
+      "Disabilities"."PersonalID",
+      "Disabilities"."InformationDate",
+      "Disabilities"."DisabilityType",
+      "Disabilities"."DisabilityResponse",
+      "Disabilities"."IndefiniteAndImpairs",
+      "Disabilities"."DocumentationOnFile",
+      "Disabilities"."ReceivingServices",
+      "Disabilities"."PATHHowConfirmed",
+      "Disabilities"."PATHSMIInformation",
+      "Disabilities"."TCellCountAvailable",
+      "Disabilities"."TCellCount",
+      "Disabilities"."TCellSource",
+      "Disabilities"."ViralLoadAvailable",
+      "Disabilities"."ViralLoad",
+      "Disabilities"."ViralLoadSource",
+      "Disabilities"."DataCollectionStage",
+      "Disabilities"."DateCreated",
+      "Disabilities"."DateUpdated",
+      "Disabilities"."UserID",
+      "Disabilities"."DateDeleted",
+      "Disabilities"."ExportID",
+      "Disabilities".data_source_id,
+      "Disabilities".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("Disabilities"
+       JOIN "Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Disabilities"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("Disabilities"."DateDeleted" IS NULL);
+  SQL
+  create_view "report_employment_educations", sql_definition: <<-SQL
+      SELECT "EmploymentEducation"."EmploymentEducationID",
+      "EmploymentEducation"."EnrollmentID" AS "ProjectEntryID",
+      "EmploymentEducation"."PersonalID",
+      "EmploymentEducation"."InformationDate",
+      "EmploymentEducation"."LastGradeCompleted",
+      "EmploymentEducation"."SchoolStatus",
+      "EmploymentEducation"."Employed",
+      "EmploymentEducation"."EmploymentType",
+      "EmploymentEducation"."NotEmployedReason",
+      "EmploymentEducation"."DataCollectionStage",
+      "EmploymentEducation"."DateCreated",
+      "EmploymentEducation"."DateUpdated",
+      "EmploymentEducation"."UserID",
+      "EmploymentEducation"."DateDeleted",
+      "EmploymentEducation"."ExportID",
+      "EmploymentEducation".data_source_id,
+      "EmploymentEducation".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("EmploymentEducation"
+       JOIN "Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("EmploymentEducation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("EmploymentEducation"."DateDeleted" IS NULL);
+  SQL
+  create_view "report_enrollments", sql_definition: <<-SQL
+      SELECT "Enrollment"."EnrollmentID" AS "ProjectEntryID",
+      "Enrollment"."PersonalID",
+      "Enrollment"."ProjectID",
+      "Enrollment"."EntryDate",
+      "Enrollment"."HouseholdID",
+      "Enrollment"."RelationshipToHoH",
+      "Enrollment"."LivingSituation" AS "ResidencePrior",
+      "Enrollment"."OtherResidencePrior",
+      "Enrollment"."LengthOfStay" AS "ResidencePriorLengthOfStay",
+      "Enrollment"."DisablingCondition",
+      "Enrollment"."EntryFromStreetESSH",
+      "Enrollment"."DateToStreetESSH",
+      "Enrollment"."ContinuouslyHomelessOneYear",
+      "Enrollment"."TimesHomelessPastThreeYears",
+      "Enrollment"."MonthsHomelessPastThreeYears",
+      "Enrollment"."MonthsHomelessThisTime",
+      "Enrollment"."StatusDocumented",
+      "Enrollment"."HousingStatus",
+      "Enrollment"."DateOfEngagement",
+      "Enrollment"."InPermanentHousing",
+      "Enrollment"."MoveInDate" AS "ResidentialMoveInDate",
+      "Enrollment"."DateOfPATHStatus",
+      "Enrollment"."ClientEnrolledInPATH",
+      "Enrollment"."ReasonNotEnrolled",
+      "Enrollment"."WorstHousingSituation",
+      "Enrollment"."PercentAMI",
+      "Enrollment"."LastPermanentStreet",
+      "Enrollment"."LastPermanentCity",
+      "Enrollment"."LastPermanentState",
+      "Enrollment"."LastPermanentZIP",
+      "Enrollment"."AddressDataQuality",
+      "Enrollment"."DateOfBCPStatus",
+      "Enrollment"."EligibleForRHY" AS "FYSBYouth",
+      "Enrollment"."ReasonNoServices",
+      "Enrollment"."SexualOrientation",
+      "Enrollment"."FormerWardChildWelfare",
+      "Enrollment"."ChildWelfareYears",
+      "Enrollment"."ChildWelfareMonths",
+      "Enrollment"."FormerWardJuvenileJustice",
+      "Enrollment"."JuvenileJusticeYears",
+      "Enrollment"."JuvenileJusticeMonths",
+      "Enrollment"."HouseholdDynamics",
+      "Enrollment"."SexualOrientationGenderIDYouth",
+      "Enrollment"."SexualOrientationGenderIDFam",
+      "Enrollment"."HousingIssuesYouth",
+      "Enrollment"."HousingIssuesFam",
+      "Enrollment"."SchoolEducationalIssuesYouth",
+      "Enrollment"."SchoolEducationalIssuesFam",
+      "Enrollment"."UnemploymentYouth",
+      "Enrollment"."UnemploymentFam",
+      "Enrollment"."MentalHealthIssuesYouth",
+      "Enrollment"."MentalHealthIssuesFam",
+      "Enrollment"."HealthIssuesYouth",
+      "Enrollment"."HealthIssuesFam",
+      "Enrollment"."PhysicalDisabilityYouth",
+      "Enrollment"."PhysicalDisabilityFam",
+      "Enrollment"."MentalDisabilityYouth",
+      "Enrollment"."MentalDisabilityFam",
+      "Enrollment"."AbuseAndNeglectYouth",
+      "Enrollment"."AbuseAndNeglectFam",
+      "Enrollment"."AlcoholDrugAbuseYouth",
+      "Enrollment"."AlcoholDrugAbuseFam",
+      "Enrollment"."InsufficientIncome",
+      "Enrollment"."ActiveMilitaryParent",
+      "Enrollment"."IncarceratedParent",
+      "Enrollment"."IncarceratedParentStatus",
+      "Enrollment"."ReferralSource",
+      "Enrollment"."CountOutreachReferralApproaches",
+      "Enrollment"."ExchangeForSex",
+      "Enrollment"."ExchangeForSexPastThreeMonths",
+      "Enrollment"."CountOfExchangeForSex",
+      "Enrollment"."AskedOrForcedToExchangeForSex",
+      "Enrollment"."AskedOrForcedToExchangeForSexPastThreeMonths",
+      "Enrollment"."WorkPlaceViolenceThreats",
+      "Enrollment"."WorkplacePromiseDifference",
+      "Enrollment"."CoercedToContinueWork",
+      "Enrollment"."LaborExploitPastThreeMonths",
+      "Enrollment"."HPScreeningScore",
+      "Enrollment"."VAMCStation",
+      "Enrollment"."DateCreated",
+      "Enrollment"."DateUpdated",
+      "Enrollment"."UserID",
+      "Enrollment"."DateDeleted",
+      "Enrollment"."ExportID",
+      "Enrollment".data_source_id,
+      "Enrollment".id,
+      "Enrollment"."LOSUnderThreshold",
+      "Enrollment"."PreviousStreetESSH",
+      "Enrollment"."UrgentReferral",
+      "Enrollment"."TimeToHousingLoss",
+      "Enrollment"."ZeroIncome",
+      "Enrollment"."AnnualPercentAMI",
+      "Enrollment"."FinancialChange",
+      "Enrollment"."HouseholdChange",
+      "Enrollment"."EvictionHistory",
+      "Enrollment"."SubsidyAtRisk",
+      "Enrollment"."LiteralHomelessHistory",
+      "Enrollment"."DisabledHoH",
+      "Enrollment"."CriminalRecord",
+      "Enrollment"."SexOffender",
+      "Enrollment"."DependentUnder6",
+      "Enrollment"."SingleParent",
+      "Enrollment"."HH5Plus",
+      "Enrollment"."IraqAfghanistan",
+      "Enrollment"."FemVet",
+      "Enrollment"."ThresholdScore",
+      "Enrollment"."ERVisits",
+      "Enrollment"."JailNights",
+      "Enrollment"."HospitalNights",
+      "Enrollment"."RunawayYouth",
+      "Enrollment".processed_hash,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM ((("Enrollment"
+       JOIN "Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE ("Enrollment"."DateDeleted" IS NULL);
+  SQL
+  create_view "report_exits", sql_definition: <<-SQL
+      SELECT "Exit"."ExitID",
+      "Exit"."EnrollmentID" AS "ProjectEntryID",
+      "Exit"."PersonalID",
+      "Exit"."ExitDate",
+      "Exit"."Destination",
+      "Exit"."OtherDestination",
+      "Exit"."AssessmentDisposition",
+      "Exit"."OtherDisposition",
+      "Exit"."HousingAssessment",
+      "Exit"."SubsidyInformation",
+      "Exit"."ConnectionWithSOAR",
+      "Exit"."WrittenAftercarePlan",
+      "Exit"."AssistanceMainstreamBenefits",
+      "Exit"."PermanentHousingPlacement",
+      "Exit"."TemporaryShelterPlacement",
+      "Exit"."ExitCounseling",
+      "Exit"."FurtherFollowUpServices",
+      "Exit"."ScheduledFollowUpContacts",
+      "Exit"."ResourcePackage",
+      "Exit"."OtherAftercarePlanOrAction",
+      "Exit"."ProjectCompletionStatus",
+      "Exit"."EarlyExitReason",
+      "Exit"."FamilyReunificationAchieved",
+      "Exit"."DateCreated",
+      "Exit"."DateUpdated",
+      "Exit"."UserID",
+      "Exit"."DateDeleted",
+      "Exit"."ExportID",
+      "Exit".data_source_id,
+      "Exit".id,
+      "Exit"."ExchangeForSex",
+      "Exit"."ExchangeForSexPastThreeMonths",
+      "Exit"."CountOfExchangeForSex",
+      "Exit"."AskedOrForcedToExchangeForSex",
+      "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
+      "Exit"."WorkPlaceViolenceThreats",
+      "Exit"."WorkplacePromiseDifference",
+      "Exit"."CoercedToContinueWork",
+      "Exit"."LaborExploitPastThreeMonths",
+      "Exit"."CounselingReceived",
+      "Exit"."IndividualCounseling",
+      "Exit"."FamilyCounseling",
+      "Exit"."GroupCounseling",
+      "Exit"."SessionCountAtExit",
+      "Exit"."PostExitCounselingPlan",
+      "Exit"."SessionsInPlan",
+      "Exit"."DestinationSafeClient",
+      "Exit"."DestinationSafeWorker",
+      "Exit"."PosAdultConnections",
+      "Exit"."PosPeerConnections",
+      "Exit"."PosCommunityConnections",
+      "Exit"."AftercareDate",
+      "Exit"."AftercareProvided",
+      "Exit"."EmailSocialMedia",
+      "Exit"."Telephone",
+      "Exit"."InPersonIndividual",
+      "Exit"."InPersonGroup",
+      "Exit"."CMExitReason",
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("Exit"
+       JOIN "Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("Exit"."DateDeleted" IS NULL);
+  SQL
+  create_view "report_health_and_dvs", sql_definition: <<-SQL
+      SELECT "HealthAndDV"."HealthAndDVID",
+      "HealthAndDV"."EnrollmentID" AS "ProjectEntryID",
+      "HealthAndDV"."PersonalID",
+      "HealthAndDV"."InformationDate",
+      "HealthAndDV"."DomesticViolenceVictim",
+      "HealthAndDV"."WhenOccurred",
+      "HealthAndDV"."CurrentlyFleeing",
+      "HealthAndDV"."GeneralHealthStatus",
+      "HealthAndDV"."DentalHealthStatus",
+      "HealthAndDV"."MentalHealthStatus",
+      "HealthAndDV"."PregnancyStatus",
+      "HealthAndDV"."DueDate",
+      "HealthAndDV"."DataCollectionStage",
+      "HealthAndDV"."DateCreated",
+      "HealthAndDV"."DateUpdated",
+      "HealthAndDV"."UserID",
+      "HealthAndDV"."DateDeleted",
+      "HealthAndDV"."ExportID",
+      "HealthAndDV".data_source_id,
+      "HealthAndDV".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("HealthAndDV"
+       JOIN "Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("HealthAndDV"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("HealthAndDV"."DateDeleted" IS NULL);
+  SQL
+  create_view "report_income_benefits", sql_definition: <<-SQL
+      SELECT "IncomeBenefits"."IncomeBenefitsID",
+      "IncomeBenefits"."EnrollmentID" AS "ProjectEntryID",
+      "IncomeBenefits"."PersonalID",
+      "IncomeBenefits"."InformationDate",
+      "IncomeBenefits"."IncomeFromAnySource",
+      "IncomeBenefits"."TotalMonthlyIncome",
+      "IncomeBenefits"."Earned",
+      "IncomeBenefits"."EarnedAmount",
+      "IncomeBenefits"."Unemployment",
+      "IncomeBenefits"."UnemploymentAmount",
+      "IncomeBenefits"."SSI",
+      "IncomeBenefits"."SSIAmount",
+      "IncomeBenefits"."SSDI",
+      "IncomeBenefits"."SSDIAmount",
+      "IncomeBenefits"."VADisabilityService",
+      "IncomeBenefits"."VADisabilityServiceAmount",
+      "IncomeBenefits"."VADisabilityNonService",
+      "IncomeBenefits"."VADisabilityNonServiceAmount",
+      "IncomeBenefits"."PrivateDisability",
+      "IncomeBenefits"."PrivateDisabilityAmount",
+      "IncomeBenefits"."WorkersComp",
+      "IncomeBenefits"."WorkersCompAmount",
+      "IncomeBenefits"."TANF",
+      "IncomeBenefits"."TANFAmount",
+      "IncomeBenefits"."GA",
+      "IncomeBenefits"."GAAmount",
+      "IncomeBenefits"."SocSecRetirement",
+      "IncomeBenefits"."SocSecRetirementAmount",
+      "IncomeBenefits"."Pension",
+      "IncomeBenefits"."PensionAmount",
+      "IncomeBenefits"."ChildSupport",
+      "IncomeBenefits"."ChildSupportAmount",
+      "IncomeBenefits"."Alimony",
+      "IncomeBenefits"."AlimonyAmount",
+      "IncomeBenefits"."OtherIncomeSource",
+      "IncomeBenefits"."OtherIncomeAmount",
+      "IncomeBenefits"."OtherIncomeSourceIdentify",
+      "IncomeBenefits"."BenefitsFromAnySource",
+      "IncomeBenefits"."SNAP",
+      "IncomeBenefits"."WIC",
+      "IncomeBenefits"."TANFChildCare",
+      "IncomeBenefits"."TANFTransportation",
+      "IncomeBenefits"."OtherTANF",
+      "IncomeBenefits"."RentalAssistanceOngoing",
+      "IncomeBenefits"."RentalAssistanceTemp",
+      "IncomeBenefits"."OtherBenefitsSource",
+      "IncomeBenefits"."OtherBenefitsSourceIdentify",
+      "IncomeBenefits"."InsuranceFromAnySource",
+      "IncomeBenefits"."Medicaid",
+      "IncomeBenefits"."NoMedicaidReason",
+      "IncomeBenefits"."Medicare",
+      "IncomeBenefits"."NoMedicareReason",
+      "IncomeBenefits"."SCHIP",
+      "IncomeBenefits"."NoSCHIPReason",
+      "IncomeBenefits"."VAMedicalServices",
+      "IncomeBenefits"."NoVAMedReason",
+      "IncomeBenefits"."EmployerProvided",
+      "IncomeBenefits"."NoEmployerProvidedReason",
+      "IncomeBenefits"."COBRA",
+      "IncomeBenefits"."NoCOBRAReason",
+      "IncomeBenefits"."PrivatePay",
+      "IncomeBenefits"."NoPrivatePayReason",
+      "IncomeBenefits"."StateHealthIns",
+      "IncomeBenefits"."NoStateHealthInsReason",
+      "IncomeBenefits"."HIVAIDSAssistance",
+      "IncomeBenefits"."NoHIVAIDSAssistanceReason",
+      "IncomeBenefits"."ADAP",
+      "IncomeBenefits"."NoADAPReason",
+      "IncomeBenefits"."DataCollectionStage",
+      "IncomeBenefits"."DateCreated",
+      "IncomeBenefits"."DateUpdated",
+      "IncomeBenefits"."UserID",
+      "IncomeBenefits"."DateDeleted",
+      "IncomeBenefits"."ExportID",
+      "IncomeBenefits".data_source_id,
+      "IncomeBenefits".id,
+      "IncomeBenefits"."IndianHealthServices",
+      "IncomeBenefits"."NoIndianHealthServicesReason",
+      "IncomeBenefits"."OtherInsurance",
+      "IncomeBenefits"."OtherInsuranceIdentify",
+      "IncomeBenefits"."ConnectionWithSOAR",
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("IncomeBenefits"
+       JOIN "Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("IncomeBenefits"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("IncomeBenefits"."DateDeleted" IS NULL);
+  SQL
+  create_view "report_services", sql_definition: <<-SQL
+      SELECT "Services"."ServicesID",
+      "Services"."EnrollmentID" AS "ProjectEntryID",
+      "Services"."PersonalID",
+      "Services"."DateProvided",
+      "Services"."RecordType",
+      "Services"."TypeProvided",
+      "Services"."OtherTypeProvided",
+      "Services"."SubTypeProvided",
+      "Services"."FAAmount",
+      "Services"."ReferralOutcome",
+      "Services"."DateCreated",
+      "Services"."DateUpdated",
+      "Services"."UserID",
+      "Services"."DateDeleted",
+      "Services"."ExportID",
+      "Services".data_source_id,
+      "Services".id,
+      "Enrollment".id AS enrollment_id,
+      source_clients.id AS demographic_id,
+      destination_clients.id AS client_id
+     FROM (((("Services"
+       JOIN "Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+       JOIN "Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."PersonalID")::text = ("Enrollment"."PersonalID")::text) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
+    WHERE ("Services"."DateDeleted" IS NULL);
+  SQL
   create_view "service_history", sql_definition: <<-SQL
       SELECT service_history_services.id,
       service_history_services.client_id,
@@ -6580,65 +7607,49 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
       service_history_enrollments.head_of_household
      FROM service_history_enrollments;
   SQL
-  create_view "Site", sql_definition: <<-SQL
-      SELECT "Geography"."GeographyID",
-      "Geography"."ProjectID",
-      "Geography"."CoCCode",
-      "Geography"."PrincipalSite",
-      "Geography"."Geocode",
-      "Geography"."Address1",
-      "Geography"."City",
-      "Geography"."State",
-      "Geography"."ZIP",
-      "Geography"."DateCreated",
-      "Geography"."DateUpdated",
-      "Geography"."UserID",
-      "Geography"."DateDeleted",
-      "Geography"."ExportID",
-      "Geography".data_source_id,
-      "Geography".id,
-      "Geography"."InformationDate",
-      "Geography"."Address2",
-      "Geography"."GeographyType",
-      "Geography".source_hash
-     FROM "Geography";
+  create_view "todd_stats", sql_definition: <<-SQL
+      SELECT pg_stat_all_tables.relname,
+      round((
+          CASE
+              WHEN ((pg_stat_all_tables.n_live_tup + pg_stat_all_tables.n_dead_tup) = 0) THEN (0)::double precision
+              ELSE ((pg_stat_all_tables.n_dead_tup)::double precision / ((pg_stat_all_tables.n_dead_tup + pg_stat_all_tables.n_live_tup))::double precision)
+          END * (100.0)::double precision)) AS "Frag %",
+      pg_stat_all_tables.n_live_tup AS "Live rows",
+      pg_stat_all_tables.n_dead_tup AS "Dead rows",
+      pg_stat_all_tables.n_mod_since_analyze AS "Rows modified since analyze",
+          CASE
+              WHEN (COALESCE(pg_stat_all_tables.last_vacuum, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_vacuum
+              ELSE COALESCE(pg_stat_all_tables.last_autovacuum, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_vacuum,
+          CASE
+              WHEN (COALESCE(pg_stat_all_tables.last_analyze, '1999-01-01 00:00:00+00'::timestamp with time zone) > COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)) THEN pg_stat_all_tables.last_analyze
+              ELSE COALESCE(pg_stat_all_tables.last_autoanalyze, '1999-01-01 00:00:00+00'::timestamp with time zone)
+          END AS last_analyze,
+      (pg_stat_all_tables.vacuum_count + pg_stat_all_tables.autovacuum_count) AS vacuum_count,
+      (pg_stat_all_tables.analyze_count + pg_stat_all_tables.autoanalyze_count) AS analyze_count
+     FROM pg_stat_all_tables
+    WHERE (pg_stat_all_tables.schemaname <> ALL (ARRAY['pg_toast'::name, 'information_schema'::name, 'pg_catalog'::name]));
   SQL
-  create_view "combined_cohort_client_changes", sql_definition: <<-SQL
-      SELECT cc.id,
-      cohort_clients.client_id,
-      cc.cohort_client_id,
-      cc.cohort_id,
-      cc.user_id,
-      cc.change AS entry_action,
-      cc.changed_at AS entry_date,
-      cc_ex.change AS exit_action,
-      cc_ex.changed_at AS exit_date,
-      cc_ex.reason
-     FROM (((( SELECT cohort_client_changes.id,
-              cohort_client_changes.cohort_client_id,
-              cohort_client_changes.cohort_id,
-              cohort_client_changes.user_id,
-              cohort_client_changes.change,
-              cohort_client_changes.changed_at,
-              cohort_client_changes.reason
-             FROM cohort_client_changes
-            WHERE ((cohort_client_changes.change)::text = ANY ((ARRAY['create'::character varying, 'activate'::character varying])::text[]))) cc
-       LEFT JOIN LATERAL ( SELECT cohort_client_changes.id,
-              cohort_client_changes.cohort_client_id,
-              cohort_client_changes.cohort_id,
-              cohort_client_changes.user_id,
-              cohort_client_changes.change,
-              cohort_client_changes.changed_at,
-              cohort_client_changes.reason
-             FROM cohort_client_changes
-            WHERE (((cohort_client_changes.change)::text = ANY ((ARRAY['destroy'::character varying, 'deactivate'::character varying])::text[])) AND (cc.cohort_client_id = cohort_client_changes.cohort_client_id) AND (cc.cohort_id = cohort_client_changes.cohort_id) AND (cc.changed_at < cohort_client_changes.changed_at))
-            ORDER BY cohort_client_changes.changed_at
-           LIMIT 1) cc_ex ON (true))
-       JOIN cohort_clients ON ((cc.cohort_client_id = cohort_clients.id)))
-       JOIN "Client" ON (((cohort_clients.client_id = "Client".id) AND ("Client"."DateDeleted" IS NULL))))
-    WHERE ((cc_ex.reason IS NULL) OR ((cc_ex.reason)::text <> 'Mistake'::text))
-    ORDER BY cc.id;
+  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
+      SELECT service_history_services.id,
+      service_history_services.service_history_enrollment_id,
+      service_history_services.record_type,
+      service_history_services.date,
+      service_history_services.age,
+      service_history_services.service_type,
+      service_history_services.client_id,
+      service_history_services.project_type,
+      service_history_services.homeless,
+      service_history_services.literally_homeless
+     FROM service_history_services;
   SQL
+  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
+  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
+  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
+
   create_view "bi_Organization", sql_definition: <<-SQL
       SELECT "Organization".id AS "OrganizationID",
       "Organization"."OrganizationName",
@@ -7183,24 +8194,276 @@ ActiveRecord::Schema.define(version: 2020_09_04_191736) do
        JOIN "Assessment" ON ((("AssessmentResults".data_source_id = "Assessment".data_source_id) AND (("AssessmentResults"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
     WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentResults"."DateDeleted" IS NULL)));
   SQL
-  create_view "service_history_services_materialized", materialized: true, sql_definition: <<-SQL
+  create_view "bi_Client", sql_definition: <<-SQL
+      SELECT "Client".id AS personalid,
+      4 AS "HashStatus",
+      encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
+      encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
+      encode(sha256((soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
+      encode(sha256((soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
+      "Client"."NameDataQuality",
+      concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
+      "Client"."SSNDataQuality",
+      "Client"."DOB",
+      "Client"."DOBDataQuality",
+      "Client"."AmIndAKNative",
+      "Client"."Asian",
+      "Client"."BlackAfAmerican",
+      "Client"."NativeHIOtherPacific",
+      "Client"."White",
+      "Client"."RaceNone",
+      "Client"."Ethnicity",
+      "Client"."Gender",
+      "Client"."VeteranStatus",
+      "Client"."YearEnteredService",
+      "Client"."YearSeparated",
+      "Client"."WorldWarII",
+      "Client"."KoreanWar",
+      "Client"."VietnamWar",
+      "Client"."DesertStorm",
+      "Client"."AfghanistanOEF",
+      "Client"."IraqOIF",
+      "Client"."IraqOND",
+      "Client"."OtherTheater",
+      "Client"."MilitaryBranch",
+      "Client"."DischargeStatus",
+      "Client"."DateCreated",
+      "Client"."DateUpdated",
+      "Client"."UserID",
+      "Client"."DateDeleted",
+      "Client"."ExportID"
+     FROM "Client"
+    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
+             FROM data_sources
+            WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.source_type IS NULL) AND (data_sources.authoritative = false)))));
+  SQL
+  create_view "bi_Demographics", sql_definition: <<-SQL
+      SELECT "Client".id AS personalid,
+      4 AS "HashStatus",
+      encode(sha256((soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
+      encode(sha256((soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
+      encode(sha256((soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
+      encode(sha256((soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
+      "Client"."NameDataQuality",
+      concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
+      "Client"."SSNDataQuality",
+      "Client"."DOB",
+      "Client"."DOBDataQuality",
+      "Client"."AmIndAKNative",
+      "Client"."Asian",
+      "Client"."BlackAfAmerican",
+      "Client"."NativeHIOtherPacific",
+      "Client"."White",
+      "Client"."RaceNone",
+      "Client"."Ethnicity",
+      "Client"."Gender",
+      "Client"."VeteranStatus",
+      "Client"."YearEnteredService",
+      "Client"."YearSeparated",
+      "Client"."WorldWarII",
+      "Client"."KoreanWar",
+      "Client"."VietnamWar",
+      "Client"."DesertStorm",
+      "Client"."AfghanistanOEF",
+      "Client"."IraqOIF",
+      "Client"."IraqOND",
+      "Client"."OtherTheater",
+      "Client"."MilitaryBranch",
+      "Client"."DischargeStatus",
+      "Client"."DateCreated",
+      "Client"."DateUpdated",
+      "Client"."UserID",
+      "Client"."DateDeleted",
+      "Client"."ExportID",
+      warehouse_clients.destination_id AS client_id,
+      "Client".data_source_id
+     FROM ("Client"
+       JOIN warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
+    WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id IN ( SELECT data_sources.id
+             FROM data_sources
+            WHERE ((data_sources.deleted_at IS NULL) AND ((data_sources.source_type IS NOT NULL) OR (data_sources.authoritative = true))))));
+  SQL
+  create_view "bi_Enrollment", sql_definition: <<-SQL
+      SELECT "Enrollment".id AS "EnrollmentID",
+      warehouse_clients.destination_id AS "PersonalID",
+      "Project".id AS "ProjectID",
+      "Enrollment"."EntryDate",
+      "Enrollment"."HouseholdID",
+      "Enrollment"."RelationshipToHoH",
+      "Enrollment"."LivingSituation",
+      "Enrollment"."LengthOfStay",
+      "Enrollment"."LOSUnderThreshold",
+      "Enrollment"."PreviousStreetESSH",
+      "Enrollment"."DateToStreetESSH",
+      "Enrollment"."TimesHomelessPastThreeYears",
+      "Enrollment"."MonthsHomelessPastThreeYears",
+      "Enrollment"."DisablingCondition",
+      "Enrollment"."DateOfEngagement",
+      "Enrollment"."MoveInDate",
+      "Enrollment"."DateOfPATHStatus",
+      "Enrollment"."ClientEnrolledInPATH",
+      "Enrollment"."ReasonNotEnrolled",
+      "Enrollment"."WorstHousingSituation",
+      "Enrollment"."PercentAMI",
+      "Enrollment"."LastPermanentStreet",
+      "Enrollment"."LastPermanentCity",
+      "Enrollment"."LastPermanentState",
+      "Enrollment"."LastPermanentZIP",
+      "Enrollment"."AddressDataQuality",
+      "Enrollment"."DateOfBCPStatus",
+      "Enrollment"."EligibleForRHY",
+      "Enrollment"."ReasonNoServices",
+      "Enrollment"."RunawayYouth",
+      "Enrollment"."SexualOrientation",
+      "Enrollment"."SexualOrientationOther",
+      "Enrollment"."FormerWardChildWelfare",
+      "Enrollment"."ChildWelfareYears",
+      "Enrollment"."ChildWelfareMonths",
+      "Enrollment"."FormerWardJuvenileJustice",
+      "Enrollment"."JuvenileJusticeYears",
+      "Enrollment"."JuvenileJusticeMonths",
+      "Enrollment"."UnemploymentFam",
+      "Enrollment"."MentalHealthIssuesFam",
+      "Enrollment"."PhysicalDisabilityFam",
+      "Enrollment"."AlcoholDrugAbuseFam",
+      "Enrollment"."InsufficientIncome",
+      "Enrollment"."IncarceratedParent",
+      "Enrollment"."ReferralSource",
+      "Enrollment"."CountOutreachReferralApproaches",
+      "Enrollment"."UrgentReferral",
+      "Enrollment"."TimeToHousingLoss",
+      "Enrollment"."ZeroIncome",
+      "Enrollment"."AnnualPercentAMI",
+      "Enrollment"."FinancialChange",
+      "Enrollment"."HouseholdChange",
+      "Enrollment"."EvictionHistory",
+      "Enrollment"."SubsidyAtRisk",
+      "Enrollment"."LiteralHomelessHistory",
+      "Enrollment"."DisabledHoH",
+      "Enrollment"."CriminalRecord",
+      "Enrollment"."SexOffender",
+      "Enrollment"."DependentUnder6",
+      "Enrollment"."SingleParent",
+      "Enrollment"."HH5Plus",
+      "Enrollment"."IraqAfghanistan",
+      "Enrollment"."FemVet",
+      "Enrollment"."HPScreeningScore",
+      "Enrollment"."ThresholdScore",
+      "Enrollment"."VAMCStation",
+      "Enrollment"."DateCreated",
+      "Enrollment"."DateUpdated",
+      "Enrollment"."UserID",
+      "Enrollment"."DateDeleted",
+      "Enrollment"."ExportID",
+      "Enrollment".data_source_id,
+      source_clients.id AS demographic_id
+     FROM ((((("Enrollment"
+       JOIN "Project" ON ((("Enrollment".data_source_id = "Project".data_source_id) AND (("Enrollment"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
+       JOIN "Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
+       JOIN "Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
+       JOIN warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
+       JOIN "Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
+    WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Enrollment"."DateDeleted" IS NULL)));
+  SQL
+  create_view "bi_service_history_services", sql_definition: <<-SQL
       SELECT service_history_services.id,
       service_history_services.service_history_enrollment_id,
       service_history_services.record_type,
       service_history_services.date,
       service_history_services.age,
-      service_history_services.service_type,
       service_history_services.client_id,
-      service_history_services.project_type,
-      service_history_services.homeless,
-      service_history_services.literally_homeless
-     FROM service_history_services;
+      service_history_services.project_type
+     FROM (service_history_services
+       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
+    WHERE (service_history_services.date >= (CURRENT_DATE - '5 years'::interval));
   SQL
-  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
-  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
-  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
-  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
-
+  create_view "bi_service_history_enrollments", sql_definition: <<-SQL
+      SELECT service_history_enrollments.id,
+      service_history_enrollments.client_id,
+      service_history_enrollments.data_source_id,
+      service_history_enrollments.first_date_in_program,
+      service_history_enrollments.last_date_in_program,
+      service_history_enrollments.age,
+      service_history_enrollments.destination,
+      service_history_enrollments.head_of_household_id,
+      service_history_enrollments.household_id,
+      service_history_enrollments.project_name,
+      service_history_enrollments.project_tracking_method,
+      service_history_enrollments.computed_project_type,
+      service_history_enrollments.move_in_date,
+      "Project".id AS project_id,
+      "Enrollment".id AS enrollment_id
+     FROM (((service_history_enrollments
+       JOIN "Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
+       JOIN "Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = service_history_enrollments.data_source_id) AND (("Project"."ProjectID")::text = (service_history_enrollments.project_id)::text) AND (("Project"."OrganizationID")::text = (service_history_enrollments.organization_id)::text))))
+       JOIN "Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = service_history_enrollments.data_source_id) AND (("Enrollment"."EnrollmentID")::text = (service_history_enrollments.enrollment_group_id)::text) AND (("Enrollment"."ProjectID")::text = (service_history_enrollments.project_id)::text))))
+    WHERE (((service_history_enrollments.record_type)::text = 'entry'::text) AND ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval))));
+  SQL
+  create_view "bi_data_sources", sql_definition: <<-SQL
+      SELECT data_sources.id,
+      data_sources.name,
+      data_sources.short_name
+     FROM data_sources
+    WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
+  SQL
+  create_view "bi_lookups_ethnicities", sql_definition: <<-SQL
+      SELECT lookups_ethnicities.id,
+      lookups_ethnicities.value,
+      lookups_ethnicities.text
+     FROM lookups_ethnicities;
+  SQL
+  create_view "bi_lookups_funding_sources", sql_definition: <<-SQL
+      SELECT lookups_funding_sources.id,
+      lookups_funding_sources.value,
+      lookups_funding_sources.text
+     FROM lookups_funding_sources;
+  SQL
+  create_view "bi_lookups_genders", sql_definition: <<-SQL
+      SELECT lookups_genders.id,
+      lookups_genders.value,
+      lookups_genders.text
+     FROM lookups_genders;
+  SQL
+  create_view "bi_lookups_living_situations", sql_definition: <<-SQL
+      SELECT lookups_living_situations.id,
+      lookups_living_situations.value,
+      lookups_living_situations.text
+     FROM lookups_living_situations;
+  SQL
+  create_view "bi_lookups_project_types", sql_definition: <<-SQL
+      SELECT lookups_project_types.id,
+      lookups_project_types.value,
+      lookups_project_types.text
+     FROM lookups_project_types;
+  SQL
+  create_view "bi_lookups_relationships", sql_definition: <<-SQL
+      SELECT lookups_relationships.id,
+      lookups_relationships.value,
+      lookups_relationships.text
+     FROM lookups_relationships;
+  SQL
+  create_view "bi_lookups_tracking_methods", sql_definition: <<-SQL
+      SELECT lookups_tracking_methods.id,
+      lookups_tracking_methods.value,
+      lookups_tracking_methods.text
+     FROM lookups_tracking_methods;
+  SQL
+  create_view "bi_lookups_yes_no_etcs", sql_definition: <<-SQL
+      SELECT lookups_yes_no_etcs.id,
+      lookups_yes_no_etcs.value,
+      lookups_yes_no_etcs.text
+     FROM lookups_yes_no_etcs;
+  SQL
+  create_view "bi_nightly_census_by_projects", sql_definition: <<-SQL
+      SELECT nightly_census_by_projects.id,
+      nightly_census_by_projects.date,
+      nightly_census_by_projects.project_id,
+      nightly_census_by_projects.veterans,
+      nightly_census_by_projects.non_veterans,
+      nightly_census_by_projects.children,
+      nightly_census_by_projects.adults,
+      nightly_census_by_projects.all_clients,
+      nightly_census_by_projects.beds
+     FROM nightly_census_by_projects;
+  SQL
 end

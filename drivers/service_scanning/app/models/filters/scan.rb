@@ -9,7 +9,7 @@ module Filters
     attribute :service_type, String, default: 'ServiceScanning::BedNight'
     attribute :other_type, String, default: ''
 
-    def set_from_params(filters)
+    def set_from_params(filters) # rubocop:disable Naming/AccessorMethodName
       return super unless filters.present?
 
       super
@@ -46,6 +46,5 @@ module Filters
 end
 module ServiceScanning::Filters
   class Scan < ::Filters::Scan
-
   end
 end

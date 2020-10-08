@@ -1,0 +1,10 @@
+- content_for :title, _("HUD Reports")
+%header.mb-3
+  %h1= content_for :title
+
+= render 'hud_apr/shared/tabs', tab_name: 'Consolidated Annual Performance and Evaluation Report'
+= render 'hud_apr/shared/beta_warning'
+
+.jReportListing
+  = render 'all_questions'
+= render 'hud_apr/shared/list_refresher'

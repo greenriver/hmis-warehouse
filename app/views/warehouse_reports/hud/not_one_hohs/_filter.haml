@@ -11,7 +11,7 @@
         = f.input :coc_codes, label: 'CoC Codes', collection: @filter.coc_code_options_for_select(user: current_user), input_html: {class: :select2, multiple: true}, include_blank: false
 
   - content_for :filter_actions do
-    %p.w-100 Report will find any enrollment open at a project in a given CoC where there are zero or more than one Head of Household.  These are checked for enrollments in project types #{project_types_requiring_hoh.to_sentence}.  In addition, HUD does not allow re-use of HouseholdID for future re-enrollments, even for individual enrollments.
+    %p.w-100 Report will find any enrollment open at a project in a given CoC where there are zero or more than one Head of Household.  These are checked for enrollments in project types #{project_types_requiring_hoh.to_sentence}.  In addition, HUD does not allow re-use of HouseholdID for future re-enrollments, even for individual enrollments. Clients appearing once and in an individual enrollment with a Head of Houshold of self, have additional enrollments outside of the visible range with duplicate HouseholdIDs.
     .row
       .col-sm-2
         = f.button :submit, value: 'Update View'

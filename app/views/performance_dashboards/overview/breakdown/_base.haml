@@ -29,7 +29,8 @@
           start_date: @comparison.start_date,
           end_date: @comparison.end_date,
         }
-      }
+      },
+      showPercentageWithValue: true
     }
   }
 
@@ -62,6 +63,7 @@
         Unique #{key.to_s.titleize} #{@report.performance_type.pluralize}:
         = link_to_if show_client_details?, number_with_delimiter(client_counts[:report]), polymorphic_path(@report.detail_path_array, detail_params), data: {loads_in_pjax_modal: true}, class: 'font-weight-bold'
 
-.chart-legend-prs1{id: legend_id}
-.well.mb-6.pt-0
+
+.well.mb-6.pt-2
+  .chart-legend-prs1{id: legend_id}
   .jChart.c-chart.c-chart--horizontal-bar{ class: chart_class, data: { chart: chart_options.to_json.html_safe } }

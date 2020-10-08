@@ -8,9 +8,6 @@ module Admin::Health
   class TeamCoordinatorsController < HealthController
     before_action :require_has_administrative_access_to_health!
     before_action :require_can_administer_health!
-    before_action :load_team_coordinators, only: [:index, :create]
-    before_action :load_care_coordinators, only: [:index, :create]
-    before_action :load_coordinators, only: [:index, :create]
 
     def index
       @coordinator = user_coordinator_source.new
@@ -32,29 +29,39 @@ module Admin::Health
       respond_with(@coordinator, location: admin_health_team_coordinators_path)
     end
 
-    private
-
-    def load_team_coordinators
-      @team_coordinators = User.where(id: user_coordinator_source.pluck(:user_id)).index_by(&:id)
+    private def team_coordinators
+      @team_coordinators ||= User.where(id: user_coordinator_source.pluck(:user_id)).index_by(&:id)
     end
 
-    def load_care_coordinators
-      @care_coordinators = User.where(id: user_coordinator_source.pluck(:care_coordinator_id)).index_by(&:id)
+    private def care_coordinators
+      @care_coordinators ||= User.where(id: user_coordinator_source.pluck(:care_coordinator_id)).index_by(&:id)
     end
 
-    def load_coordinators
-      @coordinators = user_coordinator_source.all
+    private def coordinators
+      @coordinators ||= begin
+        coords = {}
+        user_coordinator_source.all.map do |coordinator|
+          team = team_coordinators[coordinator.user_id]
+          coords[team] ||= []
+          coords[team] << {
+            care: care_coordinators[coordinator.care_coordinator_id],
+            join: coordinator,
+          }
+        end
+        coords.sort_by { |k, _| [k.last_name, k.first_name] }
+      end
     end
+    helper_method :coordinators
 
-    def user_coordinator_source
+    private def user_coordinator_source
       Health::UserCareCoordinator
     end
 
-    def load_team_coordinator
+    private def load_team_coordinator
       @team_coordinator = User.find(params[:team_coordinator_id])
     end
 
-    def allowed_params
+    private def allowed_params
       params.require(:team_coordinator).permit(
         :user_id,
         :care_coordinator_id,

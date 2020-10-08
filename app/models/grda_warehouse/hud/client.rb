@@ -19,6 +19,7 @@ module GrdaWarehouse::Hud
     include HudChronicDefinition
     include SiteChronic
     include ClientHealthEmergency
+    include ::Youth::Intake
     has_paper_trail
 
     attr_accessor :source_id
@@ -31,15 +32,10 @@ module GrdaWarehouse::Hud
     has_many :client_files
     has_many :health_files
     has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
-    has_many :youth_intakes, class_name: 'GrdaWarehouse::YouthIntake::Base', inverse_of: :client
     has_many :ce_assessments, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
     has_one :ce_assessment, -> do
       merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active)
     end, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
-    has_many :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', inverse_of: :client
-    has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
-    has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
-    has_many :youth_follow_ups, class_name: 'GrdaWarehouse::Youth::YouthFollowUp', inverse_of: :client
 
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
@@ -967,7 +963,8 @@ module GrdaWarehouse::Hud
     end
 
     def visible_because_of_release?(user)
-      any_window_clients = source_clients.map { |sc| sc.data_source.visible_in_window? }.any?
+      any_window_clients = source_clients.map { |sc| sc.data_source&.visible_in_window? }.any?
+      # user can see the window, and client has a valid release, or none is required (by the site config)
       user.can_view_client_window? &&
       (
         release_valid? ||
@@ -975,9 +972,10 @@ module GrdaWarehouse::Hud
       )
     end
 
+    # This permission is mis-named a bit, it should check all project ids visible to the user
     def visible_because_of_assigned_data_source?(user)
       user.can_see_clients_in_window_for_assigned_data_sources? &&
-        (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+        (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
     end
 
     def visible_because_of_coc_association?(user)
@@ -1250,40 +1248,44 @@ module GrdaWarehouse::Hud
         hids = service_history_entries.where.not(household_id: [nil, '']).pluck(:household_id, :data_source_id, :project_id).uniq
         if hids.any?
           columns = {
-            household_id: she_t[:household_id].to_sql,
-            date: she_t[:date].to_sql,
-            client_id: she_t[:client_id].to_sql,
-            age: she_t[:age].to_sql,
-            enrollment_group_id: she_t[:enrollment_group_id].to_sql,
-            FirstName: c_t[:FirstName].to_sql,
-            LastName: c_t[:LastName].to_sql,
-            last_date_in_program: she_t[:last_date_in_program].to_sql,
-            data_source_id: she_t[:data_source_id].to_sql,
+            household_id: she_t[:household_id],
+            date: she_t[:date],
+            client_id: she_t[:client_id],
+            age: she_t[:age],
+            enrollment_group_id: she_t[:enrollment_group_id],
+            FirstName: c_t[:FirstName],
+            LastName: c_t[:LastName],
+            first_date_in_program: she_t[:first_date_in_program],
+            last_date_in_program: she_t[:last_date_in_program],
+            move_in_date: she_t[:move_in_date],
+            data_source_id: she_t[:data_source_id],
+            head_of_household: she_t[:head_of_household],
           }
 
           hh_where = hids.map do |hh_id, ds_id, p_id|
             she_t[:household_id].eq(hh_id).
-            and(
-              she_t[:data_source_id].eq(ds_id)
-            ).
-            and(
-              she_t[:project_id].eq(p_id)
-            ).to_sql
+              and(she_t[:data_source_id].eq(ds_id)).
+              and(she_t[:project_id].eq(p_id)).to_sql
           end.join(' or ')
 
-          entries = GrdaWarehouse::ServiceHistoryEnrollment.entry
-            .joins(:client)
-            .where(hh_where)
-            .where.not(client_id: id )
-            .pluck(*columns.values.map{|v| Arel.sql(v)}).map do |row|
+          entries = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(:client).
+            where(Arel.sql(hh_where)).
+            where.not(client_id: id).
+            pluck(*columns.values).map do |row|
               Hash[columns.keys.zip(row)]
             end.uniq
-          entries = entries.map(&:with_indifferent_access).group_by{|m| [m['household_id'], m['data_source_id']]}
+          entries.map(&:with_indifferent_access).group_by do |m|
+            [
+              m['household_id'],
+              m['data_source_id'],
+            ]
+          end
         end
       end
     end
 
-    def household household_id, data_source_id
+    def household(household_id, data_source_id)
       households[[household_id, data_source_id]] if households.present?
     end
 
@@ -1351,6 +1353,7 @@ module GrdaWarehouse::Hud
     def presented_with_family?(after: nil, before: nil)
       return false unless households.present?
       raise 'After required if before specified.' if before.present? && ! after.present?
+
       hh = if before.present? && after.present?
         recent_households = households.select do |_, entries|
           # return true if this client presented with family during the range in question
@@ -1415,21 +1418,25 @@ module GrdaWarehouse::Hud
 
     def email
       return unless hmis_client_response.present?
+
       hmis_client_response['Email']
     end
 
     def home_phone
       return unless hmis_client_response.present?
+
       hmis_client_response['HomePhone']
     end
 
     def cell_phone
       return unless hmis_client_response.present?
+
       hmis_client_response['CellPhone']
     end
 
     def work_phone
       return unless hmis_client_response.present?
+
       work_phone = hmis_client_response['WorkPhone']
       work_phone += " x #{hmis_client_response['WorkPhoneExtension']}" if hmis_client_response['WorkPhoneExtension'].present?
       work_phone

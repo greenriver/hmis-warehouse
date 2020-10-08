@@ -6,22 +6,25 @@
 
 class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
   belongs_to :project_coc, class_name: '::GrdaWarehouse::Hud::ProjectCoc', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :lookup_coc
-  belongs_to :enrollment_coc, class_name: '::GrdaWarehouse::Hud::EnrollmentCoc', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :lookup_coc
+  belongs_to :overridden_project_coc, class_name: '::GrdaWarehouse::Hud::ProjectCoc', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :overridden_lookup_coc
+  belongs_to :enrollment_coc, class_name: '::GrdaWarehouse::Hud::EnrollmentCoc', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :lookup_coc
 
   scope :active, -> do
     where(active: true)
   end
 
-  scope :viewable_by, -> (user) do
-    active.joins(project_coc: :project).
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+  scope :viewable_by, ->(user) do
+    coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user)).distinct.
+      pluck(:CoCCode, :hud_coc_code).flatten.uniq.map(&:presence).compact
+    active.where(coc_code: coc_codes)
   end
 
   def self.options_for_select(user:)
     viewable_by(user).
-    distinct.
-    order(:coc_code).
-    map(&:as_select_option)
+      distinct.
+      order(:coc_code).
+      map(&:as_select_option)
   end
 
   def as_select_option

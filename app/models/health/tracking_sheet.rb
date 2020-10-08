@@ -184,7 +184,7 @@ module Health
         # Limit SSM and CHA to warehouse versions only (per spec)
         'SSM_DATE' => ssm_completed_date(patient.id),
         'CHA_DATE' => cha_completed_date(patient.id),
-        'CHA_REVIEWED' => if cha_reviewed_date(patient.id).present? then 'Yes' else 'No' end,
+        'CHA_REVIEWED' => if patient.recent_cha_form&.reviewed_by_id.present?  then 'Yes' else 'No' end,
         'CHA_RENEWAL_DATE' => cha_renewal_date(patient.id),
         'PCTP_PT_SIGN' => care_plan_patient_signed_date(patient.id),
         'CP_CARE_PLAN_SENT_PCP_DATE' => care_plan_sent_to_provider_date(patient.id),

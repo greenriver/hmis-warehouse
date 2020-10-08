@@ -4,12 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
+class PerformanceDashboards::ProjectType < PerformanceDashboards::Base
   include PerformanceDashboard::ProjectType::LivingSituation
   include PerformanceDashboard::ProjectType::Destination
   include PerformanceDashboard::ProjectType::LengthOfTime
   include PerformanceDashboard::ProjectType::Returns
   include PerformanceDashboard::ProjectType::Detail
+  include PerformanceDashboard::Overview::Entering
 
   def self.url
     'performance_dashboards/project_type'
@@ -36,7 +37,7 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
 
   def self.available_chart_types
     [
-      'living_situations',
+      'prior_living_situations',
       'destinations',
       'lengths_of_time',
       'returns',
