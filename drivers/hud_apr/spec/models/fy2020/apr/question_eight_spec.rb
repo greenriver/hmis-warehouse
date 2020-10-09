@@ -37,7 +37,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionEight, type: :model do
 
   describe 'Q8b: Point-in-Time Count of Households on the Last Wednesday' do
     it 'counts households in January' do
-      expect(report_result.answer(question: 'Q8b', cell: 'B2').summary).to eq(8)
+      expect(report_result.answer(question: 'Q8b', cell: 'B2').summary).to eq(7)
     end
 
     it 'counts households in April' do

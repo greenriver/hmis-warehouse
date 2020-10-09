@@ -74,7 +74,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionFive, type: :model do
   end
 
   it 'counts heads of household and stayers over 365 days' do
-    expect(report_result.answer(question: 'Q5a', cell: 'B16').summary).to eq(5)
+    expect(report_result.answer(question: 'Q5a', cell: 'B16').summary).to eq(4)
   end
 
   def report_result
