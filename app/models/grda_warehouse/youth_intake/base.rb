@@ -373,7 +373,7 @@ module GrdaWarehouse::YouthIntake
     def compute_race_none
       return 9 if client_race.include?('RaceNone')
       return 99 if client_race.blank?
-      return 99 if client_race&.all?(&:empty?)
+      return 99 if client_race&.reject(&:blank?)&.all?(&:empty?)
 
       nil
     end
