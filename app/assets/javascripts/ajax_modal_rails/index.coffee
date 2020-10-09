@@ -86,5 +86,6 @@ class window.AjaxModal
 
   closeAndReload: ->
     @close
-    history.replaceState({}, 'Modal', @initialPath);
+    if @initialPath
+      history.replaceState({}, 'Modal', @initialPath);
     window.location.reload()

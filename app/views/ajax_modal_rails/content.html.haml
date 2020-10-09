@@ -4,10 +4,10 @@
       title = yield :modal_title
       subtitle = yield :modal_title_secondary
     - if title.present?
-      %h4.modal-title(data-pjax-modal-title)
+      %h4.modal-title(data-ajax-modal-title)
         = title
     - if subtitle.present?
-      %h5.modal-title--secondary(data-pjax-modal-title-secondary)
+      %h5.modal-title--secondary(data-ajax-modal-title-secondary)
         = subtitle
   %button.close.pull-right(aria-label="Close" data-ajax-modal-close type="button")
     %i.modal-icon-close
@@ -17,7 +17,7 @@
   %div{"data-ajax-modal-loading" => "", :style => "display: none;"}
     Loading&hellip;
 - if content_for?(:modal_footer)
-  .modal-footer{"data-pjax-modal-footer" => ""}
+  .modal-footer{"data-ajax-modal-footer" => ""}
     = yield :modal_footer
 
 = yield :page_js
