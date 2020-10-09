@@ -693,7 +693,7 @@ module HudApr::Generators::Shared::Fy2020
         'Hotel or motel paid for without emergency shelter voucher' => a_t[:prior_living_situation].eq(14),
         "Staying or living in a friend's room, apartment or house" => a_t[:prior_living_situation].eq(36),
         "Staying or living in a family member's room, apartment or house" => a_t[:prior_living_situation].eq(35),
-        'Client Doesn’t Know/Client Refused' => a_t[:prior_living_situation].in([8, 9]),
+        'Client Doesn\'t Know/Client Refused' => a_t[:prior_living_situation].in([8, 9]),
         'Data Not Collected' => a_t[:prior_living_situation].eq(99).or(a_t[:prior_living_situation].eq(nil)),
         'Subtotal - Other' => a_t[:prior_living_situation].in(
           [
