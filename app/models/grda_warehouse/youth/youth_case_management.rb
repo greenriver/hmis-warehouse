@@ -20,7 +20,7 @@ module GrdaWarehouse::Youth
     has_many :youth_intakes, through: :client
     has_many :youth_follow_ups, through: :client
 
-    validates_presence_of :engaged_on, :activity
+    validates_presence_of :engaged_on, :activity, :housing_status
 
     scope :ordered, -> do
       order(engaged_on: :desc)
