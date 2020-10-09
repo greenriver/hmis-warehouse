@@ -332,8 +332,12 @@ module GrdaWarehouse::WarehouseReports::Youth
       end
     end
 
-    def client_ids_for_all_open_intakes
+    def client_ids_for_opened_intakes
       get_client_ids(all_open_intakes.served.opened_after(@start_date))
+    end
+
+    def client_ids_for_open_intakes
+      get_client_ids(all_open_intakes.served)
     end
 
     def client_ids_for_case_notes_in_range
@@ -347,12 +351,12 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     # Clients with a new intake, or a case note, financial assistance, or referral within the date range
     def total_client_ids_served
-      @total_client_ids_served ||= (client_ids_for_all_open_intakes + client_ids_for_case_notes_in_range + five_a + six_a).uniq
+      @total_client_ids_served ||= (client_ids_for_opened_intakes + client_ids_for_case_notes_in_range + five_a + six_a).uniq
     end
 
     # C. College Student Services
     def college_scope
-      served_during_report_range
+      all_served
     end
 
     def c_one_college_pilot
@@ -372,127 +376,127 @@ module GrdaWarehouse::WarehouseReports::Youth
     # F. Demographics
     def f_one_a
       at = GrdaWarehouse::YouthIntake::Base.arel_table
-      @f_one_a ||= get_client_ids(served_during_report_range.
+      @f_one_a ||= get_client_ids(all_served.
         where(at[:client_dob].gteq(@start_date - 18.years)))
     end
 
     def f_one_b
-      @f_one_b ||= get_client_ids(served_during_report_range.
+      @f_one_b ||= get_client_ids(all_served.
         where(client_gender: 1)) # HUD.gender male
     end
 
     def f_one_c
-      @f_one_c ||= get_client_ids(served_during_report_range.
+      @f_one_c ||= get_client_ids(all_served.
           where(client_gender: 0)) # HUD.gender female
     end
 
     def f_one_d
-      @f_one_d ||= get_client_ids(served_during_report_range.
+      @f_one_d ||= get_client_ids(all_served.
           where(client_gender: [2, 3])) # HUD.gender trans
     end
 
     def f_one_e
-      @f_one_e ||= get_client_ids(served_during_report_range.
+      @f_one_e ||= get_client_ids(all_served.
           where(client_gender: 4)) # HUD.gender non-binary
     end
 
     def f_two_a
-      @f_two_a ||= get_client_ids(served_during_report_range.
+      @f_two_a ||= get_client_ids(all_served.
           where('client_race ?| array[:race]', race: 'White' ))
     end
 
     def f_two_b
-      @f_two_b ||= get_client_ids(served_during_report_range.
+      @f_two_b ||= get_client_ids(all_served.
           where('client_race ?| array[:race]', race: 'BlackAfAmerican' ))
     end
 
     def f_two_c
-      @f_two_c ||= get_client_ids(served_during_report_range.
+      @f_two_c ||= get_client_ids(all_served.
           where('client_race ?| array[:race]', race: 'Asian' ))
     end
 
     def f_two_d
-      @f_two_d ||= get_client_ids(served_during_report_range.
+      @f_two_d ||= get_client_ids(all_served.
           where('client_race ?| array[:race]', race: 'AmIndAKNative' ))
     end
 
     def f_two_e
-      @f_two_e ||= get_client_ids(served_during_report_range.
+      @f_two_e ||= get_client_ids(all_served.
           where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))
     end
 
     def f_two_f
-      @f_two_f ||= get_client_ids(served_during_report_range.
+      @f_two_f ||= get_client_ids(all_served.
           where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
     end
 
     def f_two_g
-      @f_two_g ||= get_client_ids(served_during_report_range.
+      @f_two_g ||= get_client_ids(all_served.
         where(client_primary_language: 'English'))
     end
 
     def f_two_h
-      @f_two_h ||= get_client_ids(served_during_report_range.
+      @f_two_h ||= get_client_ids(all_served.
           where(client_primary_language: 'Spanish'))
     end
 
     def f_two_i
-      @f_two_i ||= get_client_ids(served_during_report_range.
+      @f_two_i ||= get_client_ids(all_served.
           where.not(client_primary_language: ['English', 'Spanish', 'Unknown']))
     end
 
     def f_three_a
-      @f_three_a ||= get_client_ids(served_during_report_range.
+      @f_three_a ||= get_client_ids(all_served.
         where('lower( disabilities::text )::jsonb ?| array[:disability]', disability: 'mental / emotional disability'))
     end
 
     def f_three_b
-      @f_three_b ||= get_client_ids(served_during_report_range.
+      @f_three_b ||= get_client_ids(all_served.
         where('lower( disabilities::text )::jsonb ?| array[:disability]', disability: 'medical / physical disability'))
     end
 
     def f_three_c
-      @f_three_c ||= get_client_ids(served_during_report_range.
+      @f_three_c ||= get_client_ids(all_served.
         where('lower( disabilities::text )::jsonb ?| array[:disability]', disability: 'developmental disability'))
     end
 
     def f_four_a
-      @f_four_a ||= get_client_ids(served_during_report_range.
+      @f_four_a ||= get_client_ids(all_served.
           where(pregnant_or_parenting: ['Pregnant', 'Parenting', 'Pregnant and Parenting']))
     end
 
     def f_four_b
-      @f_four_b ||= get_client_ids(served_during_report_range.
+      @f_four_b ||= get_client_ids(all_served.
           where(client_lgbtq: 'Yes'))
     end
 
     def f_four_c
-      @f_four_c ||= get_client_ids(served_during_report_range.
+      @f_four_c ||= get_client_ids(all_served.
         where(secondary_education: ['Completed High School', 'Completed GED/HiSET']))
     end
 
     def f_four_d
-      @f_four_d ||= get_client_ids(served_during_report_range.
+      @f_four_d ||= get_client_ids(all_served.
           where(secondary_education: 'Currently attending High School'))
     end
 
     def f_four_e
-      @f_four_e ||= get_client_ids(served_during_report_range.
+      @f_four_e ||= get_client_ids(all_served.
           where(attending_college: 'Yes'))
     end
 
     def f_four_f
-      @f_four_f ||= get_client_ids(served_during_report_range.
+      @f_four_f ||= get_client_ids(all_served.
         where.not('other_agency_involvements::jsonb @> ?', ['No', 'Unknown'].to_json))
     end
 
     def f_four_g
-      @f_four_g ||= get_client_ids(served_during_report_range.
+      @f_four_g ||= get_client_ids(all_served.
           where(health_insurance: 'Yes'))
     end
 
     def f_four_h
-      @f_four_h ||= get_client_ids(served_during_report_range.
+      @f_four_h ||= get_client_ids(all_served.
           where(owns_cell_phone: 'Yes'))
     end
 
@@ -539,67 +543,67 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def g_one_a
       at = GrdaWarehouse::YouthIntake::Base.arel_table
-      @g_one_a ||= get_client_ids(served_during_report_range.
+      @g_one_a ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
         where(at[:client_dob].gteq(@start_date - 18.years)))
     end
 
     def g_one_b
-      @g_one_b ||= get_client_ids(served_during_report_range.
+      @g_one_b ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
         where(client_gender: 1)) # HUD.gender male
     end
 
     def g_one_c
-      @g_one_c ||= get_client_ids(served_during_report_range.
+      @g_one_c ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where(client_gender: 0)) # HUD.gender female
     end
 
     def g_one_d
-      @g_one_d ||= get_client_ids(served_during_report_range.
+      @g_one_d ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where(client_gender: [2, 3])) # HUD.gender trans
     end
 
     def g_one_e
-      @g_one_e ||= get_client_ids(served_during_report_range.
+      @g_one_e ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where(client_gender: 4)) # HUD.gender non-binary
     end
 
     def g_two_a
-      @g_two_a ||= get_client_ids(served_during_report_range.
+      @g_two_a ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race]', race: 'White' ))
     end
 
     def g_two_b
-      @g_two_b ||= get_client_ids(served_during_report_range.
+      @g_two_b ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race]', race: 'BlackAfAmerican' ))
     end
 
     def g_two_c
-      @g_two_c ||= get_client_ids(served_during_report_range.
+      @g_two_c ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race]', race: 'Asian' ))
     end
 
     def g_two_d
-      @g_two_d ||= get_client_ids(served_during_report_range.
+      @g_two_d ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race]', race: 'AmIndAKNative' ))
     end
 
     def g_two_e
-      @g_two_e ||= get_client_ids(served_during_report_range.
+      @g_two_e ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))
     end
 
     def g_two_f
-      @g_two_f ||= get_client_ids(served_during_report_range.
+      @g_two_f ||= get_client_ids(all_served.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
     end
@@ -668,6 +672,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         :six_o,
         :six_p,
         :six_q,
+        :total_client_ids_served,
         :total_served,
         :c_one_college_pilot,
         :c_two_graduating_college_pilot,
@@ -717,6 +722,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         :g_two_e,
         :g_two_f,
         :g_three_b,
+        :client_ids_for_open_intakes,
       ]
     end
 

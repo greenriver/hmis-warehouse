@@ -255,8 +255,8 @@
     %h3
       Intakes Overlapping Range:
       %i.icon-info{data: { toggle: :tooltip, title: 'This includes any intake where the Engagement Date is before or during the range, and the exit date is empty, or after the beginning of the reporting range'}}
-      %strong= data_link(:all_open_intakes)
-%p Please note, all demographic calculations are for clients with intakes that overlap the reporting range.
+      %strong= data_link(:client_ids_for_open_intakes)
+%p Please note, all demographic calculations are for clients who received some service during the range, either a new intake, a case note, direct financial assistance, or referral.
 .card.mb-4
   %table.table.table-sm
     %tbody
