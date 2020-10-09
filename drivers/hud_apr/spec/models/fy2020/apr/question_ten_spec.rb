@@ -14,11 +14,36 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionTen, type: :model do
   end
 
   describe 'Q10a: Gender of Adults' do
+    it 'Counts males' do
+      expect(report_result.answer(question: 'Q10a', cell: 'B2').summary).to eq(2)
+    end
+
+    it 'Counts females' do
+      expect(report_result.answer(question: 'Q10a', cell: 'B3').summary).to eq(2)
+    end
+
+    it 'Counts Total' do
+      expect(report_result.answer(question: 'Q10a', cell: 'B9').summary).to eq(6)
+    end
   end
 
   describe 'Q10b: Gender of Children' do
+    it 'Counts MTF' do
+      expect(report_result.answer(question: 'Q10b', cell: 'B4').summary).to eq(1)
+    end
+
+    it 'Counts FTM' do
+      expect(report_result.answer(question: 'Q10b', cell: 'B5').summary).to eq(1)
+    end
+
+    it 'Counts Total' do
+      expect(report_result.answer(question: 'Q10b', cell: 'B9').summary).to eq(2)
+    end
   end
 
   describe 'Q10c: Gender of Persons Missing Age Information' do
+    it 'Counts total households' do
+      expect(report_result.answer(question: 'Q10c', cell: 'B9').summary).to eq(1)
+    end
   end
 end
