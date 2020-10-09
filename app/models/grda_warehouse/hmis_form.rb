@@ -7,6 +7,7 @@
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
   include Eto::PathwaysAnswers
+  include Eto::CovidAnswers
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   has_one :destination_client, through: :client
   belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::HMIS::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
@@ -34,6 +35,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   scope :pathways, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.pathways)
+  end
+
+  scope :covid_19_impact_assessments, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.covid_19_impact_assessments)
   end
 
   scope :interested_in_some_rrh, -> do
@@ -325,6 +330,34 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         # hmis_form.pathways_length_of_time_homeless_score_answer
 
         hmis_form.pathways_updated_at = Time.current
+
+        hmis_form.save if hmis_form.changed?
+      end
+    end
+  end
+
+  def self.covid_19_impact_assessment_results(force_all: false)
+    # find anyone who's never been processed or who has been updated since we last made
+    # note of changes
+    ids = if force_all
+      covid_19_impact_assessments.pluck(:id)
+    else
+      covid_19_impact_assessments.where(
+        arel_table[:covid_impact_updated_at].eq(nil).
+          or(arel_table[:collected_at].gt(arel_table[:covid_impact_updated_at]))
+        ).pluck(:id)
+    end
+    ids.each_slice(100) do |batch|
+      covid_19_impact_assessments.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
+        next unless hmis_form.destination_client.present?
+
+        hmis_form.number_of_bedrooms = hmis_form.number_of_bedrooms_answer
+        hmis_form.subsidy_months = hmis_form.subsidy_months_answer
+        hmis_form.monthly_rent_total = hmis_form.monthly_rent_total_answer
+        hmis_form.percent_ami = hmis_form.percent_ami_answer
+        hmis_form.household_type = hmis_form.household_type_answer
+        hmis_form.household_size = hmis_form.household_size_answer
+        hmis_form.covid_impact_updated_at = Time.current
 
         hmis_form.save if hmis_form.changed?
       end
