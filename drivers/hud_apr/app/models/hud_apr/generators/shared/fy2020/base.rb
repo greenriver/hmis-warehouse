@@ -10,6 +10,10 @@ module HudApr::Generators::Shared::Fy2020
     # options = {user_id: 1, coc_code: 'KY-500', start_date: '2018-10-01', end_date: '2019-09-30', project_ids: [1797], generator_class: 'HudApr::Generators::Apr::Fy2020::Generator'}
     # HudApr::Generators::Shared::Fy2020::QuestionFour.new(options: options).run!
 
+    # report = HudReports::ReportInstance.find(9)
+    # generator = HudApr::Generators::Caper::Fy2020::Generator.new(report)
+    # r = HudApr::Generators::Caper::Fy2020::QuestionFive.new(generator, report)
+
     private def universe
       add_apr_clients unless apr_clients_populated?
       @universe ||= @report.universe(self.class.question_number)
@@ -17,14 +21,14 @@ module HudApr::Generators::Shared::Fy2020
 
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
       @generator.client_scope.find_in_batches do |batch|
-        clients_with_enrollments = clients_with_enrollments(batch)
+        enrollments_by_client_id = clients_with_enrollments(batch)
 
         # Pre-calculate some values
         household_types = {}
         times_to_move_in = {}
         move_in_dates = {}
         approximate_move_in_dates = {}
-        clients_with_enrollments.each do |_, enrollments|
+        enrollments_by_client_id.each do |_, enrollments|
           last_service_history_enrollment = enrollments.last
           hh_id = last_service_history_enrollment.household_id
           date = [
@@ -41,7 +45,7 @@ module HudApr::Generators::Shared::Fy2020
         # Re-shape client to APR Client shape
         batch.each do |client|
           # Fetch enrollments for destination client
-          enrollments = clients_with_enrollments[client.id]
+          enrollments = enrollments_by_client_id[client.id]
           next unless enrollments.present?
 
           last_service_history_enrollment = enrollments.last
@@ -198,7 +202,7 @@ module HudApr::Generators::Shared::Fy2020
         # Add any associated data that needs to be linked back to the apr clients
         client_living_situations = []
         apr_clients.each do |apr_client|
-          last_enrollment = clients_with_enrollments[apr_client.destination_client_id].last.enrollment
+          last_enrollment = enrollments_by_client_id[apr_client.destination_client_id].last.enrollment
           last_enrollment.current_living_situations.each do |living_situation|
             client_living_situations << apr_client.hud_report_apr_living_situations.build(
               information_date: living_situation.InformationDate,
@@ -1054,6 +1058,13 @@ module HudApr::Generators::Shared::Fy2020
       else
         [15, 6, 25, 24]
       end
+    end
+
+    private def last_wednesday_of(month:, year:)
+      date = Date.new(year, month, 1).end_of_month
+      return date if date.wednesday?
+
+      date.prev_occurring(:wednesday)
     end
   end
 end
