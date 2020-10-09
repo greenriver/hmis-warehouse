@@ -668,6 +668,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         :six_o,
         :six_p,
         :six_q,
+        :total_client_ids_served,
         :total_served,
         :c_one_college_pilot,
         :c_two_graduating_college_pilot,
