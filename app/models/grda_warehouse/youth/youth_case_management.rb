@@ -109,6 +109,8 @@ module GrdaWarehouse::Youth
         required_on: GrdaWarehouse::Youth::YouthFollowUp.follow_up_date(engaged_on),
         action: action,
       }
+      return if GrdaWarehouse::Youth::YouthFollowUp.where(required_on: options[:required_on]).exists?
+
       GrdaWarehouse::Youth::YouthFollowUp.create(options)
     end
 

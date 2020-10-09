@@ -177,6 +177,8 @@ module GrdaWarehouse::YouthIntake
         zip_code: stable_housing_zipcode,
         action: action,
       }
+      return if GrdaWarehouse::Youth::YouthFollowUp.where(required_on: options[:required_on]).exists?
+
       GrdaWarehouse::Youth::YouthFollowUp.create(options)
     end
 
