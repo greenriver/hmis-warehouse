@@ -7,7 +7,7 @@
 module ServiceScanning::WarehouseReports
   class ScannedServicesController < ApplicationController
     include WarehouseReportAuthorization
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ArelHelper
     before_action :require_can_use_service_register!
     before_action :set_filter

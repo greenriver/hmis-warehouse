@@ -1,4 +1,4 @@
-= simple_form_for @help, url: @form_url, remote: pjax_request? do |f|
+= simple_form_for @help, url: @form_url, remote: ajax_modal_request? do |f|
   - row_class = if request.xhr? then '' else 'row' end
   %div{ class: "#{row_class}"}
     - col_class = if request.xhr? then '' else 'col-8' end

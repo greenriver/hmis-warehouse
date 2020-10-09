@@ -9,15 +9,15 @@
     - if subtitle.present?
       %h5.modal-title--secondary(data-pjax-modal-title-secondary)
         = subtitle
-  %button.close.pull-right(aria-label="Close" pjax-modal-close type="button")
+  %button.close.pull-right(aria-label="Close" data-ajax-modal-close type="button")
     %i.modal-icon-close
 .modal-body.clearfix
-  %div(data-pjax-modal-body)
+  %div{"data-ajax-modal-body" => ""}
     = yield
-  %div(data-pjax-modal-loading style="display: none;")
+  %div{"data-ajax-modal-loading" => "", :style => "display: none;"}
     Loading&hellip;
 - if content_for?(:modal_footer)
-  .modal-footer(data-pjax-modal-footer)
+  .modal-footer{"data-pjax-modal-footer" => ""}
     = yield :modal_footer
 
 = yield :page_js

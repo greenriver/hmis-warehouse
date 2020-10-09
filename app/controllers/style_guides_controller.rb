@@ -5,7 +5,7 @@
 ###
 
 class StyleGuidesController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   include WindowClientPathGenerator
 
   def alerts

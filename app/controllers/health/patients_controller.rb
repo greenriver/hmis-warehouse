@@ -13,7 +13,7 @@ module Health
     before_action :set_dates, only: [:index]
 
     include WindowClientPathGenerator
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     def index
       @q = @patients.ransack(params[:q])

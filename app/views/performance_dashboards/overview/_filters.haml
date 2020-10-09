@@ -38,7 +38,7 @@
     'use strict'
     $(function() {
       var newModalClass = #{modal_size.to_json.html_safe};
-      var modalDialog = document.querySelector('#pjax-modal .modal-dialog');
+      var modalDialog = document.querySelector('#ajax-modal .modal-dialog');
       if (modalDialog) {
         $(modalDialog)
           .removeClass('modal-xxl')
@@ -46,7 +46,7 @@
           .removeClass('modal-lg')
           .addClass(newModalClass);
       }
-      var modalBody = document.querySelector('#pjax-modal .modal-body')
+      var modalBody = document.querySelector('#ajax-modal .modal-body')
       if (modalBody) {
         App.select2.init(modalBody)
       }

@@ -6,7 +6,7 @@
 
 module Health
   class PatientTeamMembersController < IndividualPatientController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
     include HealthTeamMember
 

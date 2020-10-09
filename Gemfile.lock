@@ -73,6 +73,8 @@ GEM
       activerecord
     airbrussh (1.4.0)
       sshkit (>= 1.6.1, != 1.7.0)
+    ajax_modal_rails (1.0.11)
+      rails (>= 4)
     ansi (1.5.0)
     arel (9.0.0)
     ast (2.4.1)
@@ -734,6 +736,7 @@ DEPENDENCIES
   activerecord-sqlserver-adapter (~> 5.0)
   acts-as-taggable-on (~> 6.0)
   after_commit_exception_notification
+  ajax_modal_rails (~> 1.0)
   attr_encrypted (~> 3.1.0)
   attribute_normalizer
   authtrail
