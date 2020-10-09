@@ -19,6 +19,7 @@ class window.AjaxModal
     @_registerLinks()
     @_registerForms()
     @_registerClose()
+    @_registerOnHide()
 
   _registerLinks: ->
     $('body').on 'click', @linkTriggersSelector, (e) =>
@@ -61,18 +62,29 @@ class window.AjaxModal
   # maybe don't need this for bootstrap
   _registerClose: ->
     @modal.on 'click', @closeSelector, =>
-      history.pushState({}, 'Modal', @initialPath);
       @closeModal()
+
+  _registerOnHide: ->
+    @modal.on "hide.bs.modal", =>
+      history.pushState({}, 'Modal', @initialPath);
 
   open: ->
     @modal.modal 'show'
 
-  closeModal: ->
+  close: -> 
     @modal.modal('hide')
     @reset()
+
+  closeModal: ->
+    @close()
 
   reset: ->
     @title.html("")
     @content.html("")
     @footer.html("")
     @loading.show()
+
+  closeAndReload: ->
+    @close
+    history.pushState({}, 'Modal', @initialPath);
+    window.location.reload()

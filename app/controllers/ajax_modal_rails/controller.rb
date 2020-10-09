@@ -50,6 +50,10 @@ module AjaxModalRails::Controller
     alias_method :redirect_to, :redirect_to_with_xhr_redirect
   end
 
+  def render_close_modal_and_reload_page
+    render "ajax_modal_rails/close_modal_and_reload_page", layout: ajax_modal_layout
+  end
+
   private
 
   def ajax_modal_layout

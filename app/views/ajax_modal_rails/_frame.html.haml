@@ -9,6 +9,8 @@
         %div{"data-ajax-modal-loading" => ""}
           Loading&hellip;
 
+
 - content_for :page_js do
   :javascript
-    new AjaxModal()
+    window.ajaxModalInstance = new AjaxModal()
+    

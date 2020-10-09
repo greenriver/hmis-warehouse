@@ -73,7 +73,7 @@ GEM
       activerecord
     airbrussh (1.4.0)
       sshkit (>= 1.6.1, != 1.7.0)
-    ajax_modal_rails (1.0.11)
+    ajax_modal_rails (1.0.12)
       rails (>= 4)
     ansi (1.5.0)
     arel (9.0.0)
@@ -426,7 +426,7 @@ GEM
       net-ssh (>= 2.6.5)
     net-ssh (5.2.0)
     netrc (0.11.0)
-    nio4r (2.5.3)
+    nio4r (2.5.4)
     nokogiri (1.10.10)
       mini_portile2 (~> 2.4.0)
     nominatim (0.0.6)
@@ -665,7 +665,7 @@ GEM
       babel-source (>= 5.8.11)
       babel-transpiler
       sprockets (>= 3.0.0)
-    sprockets-rails (3.2.1)
+    sprockets-rails (3.2.2)
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
