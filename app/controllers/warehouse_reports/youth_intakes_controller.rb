@@ -17,14 +17,15 @@ module WarehouseReports
     def details
       raise 'Key required' if params[:key].blank?
 
+      # FIXME: allowed_report keys should be simplified, maybe all methods should start with q_
       @key = @report.allowed_report_keys.detect { |key| key.to_s == params[:key] }
       raise 'Key required' unless @key
 
       client_ids = case @key
-      when :two_c, :five_o, :six_q, :follow_up_two_d
-        @report.send(@key).values.flatten.uniq
+      when :two_c, :five_n, :six_q, :follow_up_two_d
+        @report.public_send(@key).values.flatten.uniq
       else
-        @report.send(@key)
+        @report.public_send(@key)
       end
       @clients = GrdaWarehouse::Hud::Client.
         destination.
