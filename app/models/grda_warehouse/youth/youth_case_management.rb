@@ -20,7 +20,7 @@ module GrdaWarehouse::Youth
     has_many :youth_intakes, through: :client
     has_many :youth_follow_ups, through: :client
 
-    validates_presence_of :engaged_on, :activity
+    validates_presence_of :engaged_on, :activity, :housing_status
 
     scope :ordered, -> do
       order(engaged_on: :desc)
@@ -109,6 +109,8 @@ module GrdaWarehouse::Youth
         required_on: GrdaWarehouse::Youth::YouthFollowUp.follow_up_date(engaged_on),
         action: action,
       }
+      return if GrdaWarehouse::Youth::YouthFollowUp.where(required_on: options[:required_on]).exists?
+
       GrdaWarehouse::Youth::YouthFollowUp.create(options)
     end
 

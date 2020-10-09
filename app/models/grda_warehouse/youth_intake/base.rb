@@ -177,6 +177,8 @@ module GrdaWarehouse::YouthIntake
         zip_code: stable_housing_zipcode,
         action: action,
       }
+      return if GrdaWarehouse::Youth::YouthFollowUp.where(required_on: options[:required_on]).exists?
+
       GrdaWarehouse::Youth::YouthFollowUp.create(options)
     end
 
@@ -372,7 +374,8 @@ module GrdaWarehouse::YouthIntake
 
     def compute_race_none
       return 9 if client_race.include?('RaceNone')
-      return 99 if client_race.all?(&:empty?)
+      return 99 if client_race.blank?
+      return 99 if client_race&.reject(&:blank?)&.all?(&:empty?)
 
       nil
     end
