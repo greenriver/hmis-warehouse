@@ -115,13 +115,6 @@ module HudApr::Generators::Shared::Fy2020
       last_wednesday_of(month: month, year: year)
     end
 
-    private def last_wednesday_of(month:, year:)
-      date = Date.new(year, month, 1).end_of_month
-      return date if date.wednesday?
-
-      date.prev_occurring(:wednesday)
-    end
-
     private def q7a_persons_served
       table_name = 'Q7a'
       metadata = {
