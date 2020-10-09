@@ -79,9 +79,9 @@ module HudApr::Generators::Shared::Fy2020
             report_instance_id: @report.id,
 
             age: source_client.age_on(client_start_date),
-            alcohol_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse == 1,
-            alcohol_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse == 1,
-            alcohol_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse == 1,
+            alcohol_abuse_entry: [1, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
+            alcohol_abuse_exit: [1, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
+            alcohol_abuse_latest: [1, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
             annual_assessment_expected: annual_assessment_expected?(last_service_history_enrollment),
             approximate_time_to_move_in: approximate_move_in_dates[last_service_history_enrollment.client_id],
             came_from_street_last_night: enrollment.PreviousStreetESSH,
@@ -104,9 +104,9 @@ module HudApr::Generators::Shared::Fy2020
             dob_quality: source_client.DOBDataQuality,
             dob: source_client.DOB,
             domestic_violence: health_and_dv&.DomesticViolenceVictim,
-            drug_abuse_entry: disabilities_at_entry.detect(&:substance?)&.DisabilityResponse == 2,
-            drug_abuse_exit: disabilities_at_exit.detect(&:substance?)&.DisabilityResponse == 2,
-            drug_abuse_latest: disabilities_latest.detect(&:substance?)&.DisabilityResponse == 2,
+            drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
+            drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
+            drug_abuse_latest: [2, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
             enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
             enrollment_created: enrollment.DateCreated,
             ethnicity: source_client.Ethnicity,
@@ -890,8 +890,10 @@ module HudApr::Generators::Shared::Fy2020
     private def disability_clauses(suffix)
       {
         'Mental Health Problem' => a_t["mental_health_problem_#{suffix}".to_sym].eq(1),
-        'Alcohol Abuse' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true),
-        'Drug Abuse' => a_t["drug_abuse_#{suffix}".to_sym].eq(true),
+        'Alcohol Abuse' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true).
+          and(a_t["drug_abuse_#{suffix}".to_sym].eq(false)),
+        'Drug Abuse' => a_t["drug_abuse_#{suffix}".to_sym].eq(true).
+          and(a_t["alcohol_abuse_#{suffix}".to_sym].eq(false)),
         'Both Alcohol and Drug Abuse' => a_t["alcohol_abuse_#{suffix}".to_sym].eq(true).
           and(a_t["drug_abuse_#{suffix}".to_sym].eq(true)),
         'Chronic Health Condition' => a_t["chronic_disability_#{suffix}".to_sym].eq(1),
