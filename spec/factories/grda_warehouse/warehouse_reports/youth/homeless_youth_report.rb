@@ -71,6 +71,7 @@ FactoryBot.define do
 
   factory :case_management, class: 'GrdaWarehouse::Youth::YouthCaseManagement' do
     activity { 'Prevention' }
+    housing_status { 'Unknown' }
   end
 
   trait :existing_case_management do
