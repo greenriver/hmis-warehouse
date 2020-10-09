@@ -26,7 +26,7 @@ class window.AjaxModal
       e.preventDefault()
       @reset()
       @open()
-      history.pushState({}, 'Modal', $(e.target).attr("href"))
+      history.replaceState({}, 'Modal', $(e.target).attr("href"))
       $.ajax
         url: e.currentTarget.getAttribute("href"),
         dataType: 'html',
@@ -66,7 +66,7 @@ class window.AjaxModal
 
   _registerOnHide: ->
     @modal.on "hide.bs.modal", =>
-      history.pushState({}, 'Modal', @initialPath);
+      history.replaceState({}, 'Modal', @initialPath);
 
   open: ->
     @modal.modal 'show'
@@ -86,5 +86,5 @@ class window.AjaxModal
 
   closeAndReload: ->
     @close
-    history.pushState({}, 'Modal', @initialPath);
+    history.replaceState({}, 'Modal', @initialPath);
     window.location.reload()
