@@ -354,6 +354,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.number_of_bedrooms = hmis_form.number_of_bedrooms_answer
         hmis_form.subsidy_months = hmis_form.subsidy_months_answer
         hmis_form.monthly_rent_total = hmis_form.monthly_rent_total_answer
+        hmis_form.total_subsidy = hmis_form.total_subsidy_answer
         hmis_form.percent_ami = hmis_form.percent_ami_answer
         hmis_form.household_type = hmis_form.household_type_answer
         hmis_form.household_size = hmis_form.household_size_answer

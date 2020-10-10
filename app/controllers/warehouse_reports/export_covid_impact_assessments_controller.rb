@@ -12,12 +12,14 @@ module WarehouseReports
     def index
       assessment_ids = {}
       GrdaWarehouse::HmisForm.covid_19_impact_assessments.order(collected_at: :desc).
-        pluck(:id, :client_id).each do |id, client_id|
-          assessment_ids[client_id] ||= id
+        joins(:destination_client).select(:id, :site_id, :assessment_id, :client_id, :data_source_id).find_each do |form|
+          assessment_ids[form.destination_client.id] ||= form.id
         end
-      @clients = client_scope.where(id: assessment_ids.keys)
+      @clients = client_scope.where(id: assessment_ids.keys).preload(:destination_client)
       @assessments = GrdaWarehouse::HmisForm.covid_19_impact_assessments.
-        where(id: assessment_ids.values).index_by(&:client_id)
+        where(id: assessment_ids.values).joins(:destination_client).index_by do |form|
+          form.destination_client.id
+        end
     end
 
     private def client_scope

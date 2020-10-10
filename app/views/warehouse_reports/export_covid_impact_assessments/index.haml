@@ -1,7 +1,46 @@
 - title = 'COVID-19 Impact Assessment Export'
 - content_for :title, title
 = render '/warehouse_reports/breadcrumbs', tab: 'exports'
-%h1= title
+.d-flex.mb-4
+  %h1= title
+  .ml-auto
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      Download Excel
 
-= debug @clients
-= debug @assessments
+- if @clients.any?
+  .card
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Household Last name
+          %th # Bedrooms
+          %th Tenant Payment
+          %th Subsidy Amount
+          %th Subsidy Length
+          %th Total Rent
+          %th % AMI
+          %th Hispanic
+          %th Race
+          %th Size of Household
+          %th Type of Household
+      %tbody
+        - @clients.each do |client|
+          - assessment = @assessments[client.id]
+          - tenant_payment = 0
+          - if assessment.total_subsidy && assessment.subsidy_months && assessment.monthly_rent_total && assessment.subsidy_months.positive? && assessment.monthly_rent_total.positive?
+            - tenant_payment = assessment.monthly_rent_total - (assessment.total_subsidy / assessment.subsidy_months)
+          %tr
+            %td= client.LastName
+            %td= assessment.number_of_bedrooms
+            %td= tenant_payment
+            %td= assessment.total_subsidy
+            %td= assessment.subsidy_months
+            %td= assessment.monthly_rent_total
+            %td= assessment.percent_ami
+            %td= client.ethnicity_description
+            %td= client.race_description
+            %td= assessment.household_type
+            %td= assessment.household_size
+
+- else
+  %p No COVID Touch Points found.

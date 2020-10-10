@@ -1,0 +1,42 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'COVID-19 Impact Assessment Export'[0, 30]) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.add_row(
+    [
+      'Household Last name',
+      '# Bedrooms',
+      'Tenant Payment',
+      'Subsidy Amount',
+      'Subsidy Length',
+      'Total Rent',
+      '% AMI',
+      'Hispanic',
+      'Race',
+      'Size of Household',
+      'Type of Household',
+      'Type of Contract   (O= Owner; T= Tenant)',
+      'HH Address',
+    ],
+    style: title,
+  )
+  @clients.each do |client|
+    assessment = @assessments[client.id]
+    tenant_payment = 0
+    if assessment.total_subsidy && assessment.subsidy_months && assessment.monthly_rent_total && assessment.subsidy_months.positive? && assessment.monthly_rent_total.positive?
+      tenant_payment = assessment.monthly_rent_total - (assessment.total_subsidy / assessment.subsidy_months)
+    end
+    sheet.add_row [
+      client.LastName,
+      assessment.number_of_bedrooms,
+      tenant_payment,
+      assessment.total_subsidy,
+      assessment.subsidy_months,
+      assessment.monthly_rent_total,
+      assessment.percent_ami,
+      client.ethnicity_description,
+      client.race_description,
+      assessment.household_type,
+      assessment.household_size,
+    ]
+  end
+end
