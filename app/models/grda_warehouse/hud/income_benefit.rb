@@ -138,7 +138,7 @@ module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
     def hud_total_monthly_income
       return self.TotalMonthlyIncome if self.TotalMonthlyIncome&.positive?
 
-      calculated = amounts.sum
+      calculated = amounts&.compact&.sum
       return calculated if calculated.positive?
       return 0.0 if self.IncomeFromAnySource.in?([1, nil])
       return 0.0 if self.IncomeFromAnySource.zero?
