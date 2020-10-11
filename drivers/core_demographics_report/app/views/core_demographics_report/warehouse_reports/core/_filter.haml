@@ -1,23 +1,53 @@
-= simple_form_for @filter, as: :filters, url: core_demographics_report_warehouse_reports_core_index_path, method: :get do |f|
-  - content_for :filters_col_full do
-    .row
-      .col-sm-3
-        = f.input :start, as: :date_picker, label: 'Start', input_html: { value: @filter.start }
-      .col-sm-3
-        = f.input :end, as: :date_picker, label: 'End'
-      .col-sm-6
-        = f.input :coc_codes, collection:  @filter.coc_code_options_for_select(user: current_user), input_html: {class: :select2, multiple: true, data: {placeholder: 'All' }}, include_blank: false, label: 'CoCs'
-    .row
-      .col-sm-8
-        = f.input :comparison_pattern, as: :boolean_button_group, collection: CoreDemographicsReport::Core.comparison_patterns, label: 'Comparison Pattern', include_blank: false
-    .row
-      .col-sm-6
-        = f.input :project_ids, as: :grouped_select, group_method: :last, collection: @filter.project_options_for_select(user: current_user), input_html: {class: :select2, multiple: true, data: {placeholder: 'All' }}, include_blank: false, label: 'Projects'
-      .col-sm-6
-        = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), input_html: {class: :select2, multiple: true, data: {placeholder: 'All' }}, include_blank: false, label: 'Project Groups'
+= content_for :modal_title do
+  = if @chosen_section then "Edit #{@chosen_section.title} Selection" else 'Edit Universe Selection' end
 
+- url = polymorphic_path(@report.report_path_array)
+= simple_form_for @filter, as: :filters, url: url, method: :get do |f|
+  = hidden_field_tag :breakdown, breakdown
 
-  - content_for :filter_actions do
-    = f.submit 'Update', class: ['btn', 'btn-primary']
+  - if @chosen_section
+    .form-filters-section-prs1
+      = render 'filters/filter_controls/section_form_fields',
+        section: @chosen_section, f: f
+    .d-none
+      - # include the rest of the form controls as "hidden" inputs
+      - @sections.each do |section|
+        - next unless section
+        - if section != @chosen_section
+          = render 'filters/filter_controls/section_form_fields',
+            section: section, f: f
+  - else
+    .row
+      - @sections.in_groups(2).each do |sections|
+        .col-md-6
+          - sections.compact.each do |section|
+            - next unless section
+            .form-filters-section-prs1
+              = render 'filters/filter_controls/section_form_fields',
+                section: section, f: f
+  .form-filters-controls-prs1
+    = f.submit 'Save & Update', class: 'float-none'
+    %button.btn.btn-outline-primary(type='button' pjax-modal-close) Cancel
+    - if @chosen_section.blank?
+      = link_to 'Reset to Default', url_for(action: :index, breakdown: breakdown), class: 'btn btn-outline-primary'
 
-  = render 'warehouse_reports/filters', f:f
+- content_for :page_js do
+  :javascript
+    // initializing behaviors and modal size
+    // FIXME - this should probably be global
+    'use strict'
+    $(function() {
+      var newModalClass = #{modal_size.to_json.html_safe};
+      var modalDialog = document.querySelector('#pjax-modal .modal-dialog');
+      if (modalDialog) {
+        $(modalDialog)
+          .removeClass('modal-xxl')
+          .removeClass('modal-xl')
+          .removeClass('modal-lg')
+          .addClass(newModalClass);
+      }
+      var modalBody = document.querySelector('#pjax-modal .modal-body')
+      if (modalBody) {
+        App.select2.init(modalBody)
+      }
+    });

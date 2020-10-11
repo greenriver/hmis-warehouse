@@ -42,20 +42,6 @@ class PerformanceDashboards::BaseController < ApplicationController
   end
   helper_method :show_client_details?
 
-  def filter_open
-    return 'yes' unless params[:filters].present?
-
-    'no'
-  end
-  helper_method :filter_open
-
-  def active_filter_open
-    return 'yes' if params[:filters].present?
-
-    'no'
-  end
-  helper_method :active_filter_open
-
   def breakdown
     @breakdown ||= params[:breakdown]&.to_sym || @report.available_breakdowns.keys.first
   end
@@ -96,7 +82,7 @@ class PerformanceDashboards::BaseController < ApplicationController
   helper_method :filter_params
 
   def filter_item_selection_summary(value, default = 'All')
-    render_to_string partial: '/performance_dashboards/filter_controls/helpers/items_selection_summary', locals: { value: value, default: default }
+    render_to_string partial: '/filters/filter_controls/helpers/items_selection_summary', locals: { value: value, default: default }
   end
   helper_method :filter_item_selection_summary
 end

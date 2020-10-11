@@ -103,12 +103,12 @@ class PerformanceDashboards::Base
   end
 
   protected def describe_household_control_section
-    if chosen_project_types_only_homeless?
+    if @filter.chosen_project_types_only_homeless?
       'Only Homeless'
     elsif filter.project_type_codes.sort == GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.keys.map(&:to_s).sort
       'All'
     else
-      chosen_project_types
+      @filter.chosen_project_types
     end
   end
 
@@ -124,7 +124,7 @@ class PerformanceDashboards::Base
           id: 'coc_codes',
           label: 'CoC Codes',
           short_label: 'CoC',
-          value: chosen_coc_codes,
+          value: @filter.chosen_coc_codes,
         )
       end
       section.add_control(id: 'funding_sources', value: funder_names)
@@ -137,7 +137,7 @@ class PerformanceDashboards::Base
 
   protected def build_household_control_section
     ::Filters::UiControlSection.new(id: 'household').tap do |section|
-      section.add_control(id: 'household_type', required: true, value: @filter.household_type == :all ? nil : chosen_household_type)
+      section.add_control(id: 'household_type', required: true, value: @filter.household_type == :all ? nil : @filter.chosen_household_type)
       if performance_type == 'Client'
         section.add_control(
           id: 'hoh_only',
@@ -158,18 +158,18 @@ class PerformanceDashboards::Base
         value: @filter.sub_population == :clients ? nil : chosen_sub_population,
       )
       if performance_type == 'Client'
-        section.add_control(id: 'races', value: chosen_races, short_label: 'Race')
-        section.add_control(id: 'ethnicities', value: chosen_ethnicities, short_label: 'Ethnicity')
-        section.add_control(id: 'age_ranges', value: chosen_age_ranges, short_label: 'Age')
+        section.add_control(id: 'races', value: @filter.chosen_races, short_label: 'Race')
+        section.add_control(id: 'ethnicities', value: @filter.chosen_ethnicities, short_label: 'Ethnicity')
+        section.add_control(id: 'age_ranges', value: @filter.chosen_age_ranges, short_label: 'Age')
         section.add_control(
           id: 'genders',
           short_label: 'Gender',
-          value: chosen_genders,
+          value: @filter.chosen_genders,
         )
         section.add_control(
           id: 'veteran_statuses',
           short_label: 'Veteran Status',
-          value: chosen_veteran_statuses,
+          value: @filter.chosen_veteran_statuses,
         )
       end
     end
@@ -179,8 +179,8 @@ class PerformanceDashboards::Base
     return if multiple_project_types?
 
     ::Filters::UiControlSection.new(id: 'enrollment').tap do |section|
-      section.add_control(id: 'prior_living_situations', value: chosen_prior_living_situations)
-      section.add_control(id: 'destinations', value: chosen_destinations)
+      section.add_control(id: 'prior_living_situations', value: @filter.chosen_prior_living_situations)
+      section.add_control(id: 'destinations', value: @filter.chosen_destinations)
     end
   end
 
@@ -197,158 +197,61 @@ class PerformanceDashboards::Base
     available_keys[key.to_sym]
   end
 
+  def household_types
+    @filter.available_household_types
+  end
+
+  def household_type(type)
+    @filter.household_type_string(type)
+  end
+
   def self.coc_codes
-    GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode)
+    GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
   end
 
   def include_comparison?
     comparison_pattern != :no_comparison_period
   end
 
-  def household_types
-    {
-      all: 'All household types',
-      without_children: 'Adult only Households',
-      with_children: 'Adult and Child Households',
-      only_children: 'Child only Households',
-    }.invert.freeze
-  end
-
-  def household_type(type)
-    household_types.invert[type] || 'Unknown'
-  end
-
-  def age_ranges
-    {
-      under_eighteen: '< 18',
-      eighteen_to_twenty_four: '18 - 24',
-      twenty_five_to_twenty_nine: '25 - 29',
-      thirty_to_thirty_nine: '30 - 39',
-      forty_to_forty_nine: '40 - 49',
-      fifty_to_fifty_nine: '50 - 59',
-      sixty_to_sixty_one: '60 - 61',
-      over_sixty_one: '62+',
-    }.invert.freeze
-  end
-
-  def available_prior_living_situations
-    HUD.living_situations.invert
-  end
-
-  def available_destinations
-    HUD.valid_destinations.invert
-  end
-
-  def available_data_sources_for_select
-    GrdaWarehouse::DataSource.viewable_by(@filter.user).options_for_select(user: @filter.user)
-  end
-
   def data_source_names
-    available_data_sources_for_select.select { |_, id| @filter.data_source_ids.include?(id) }&.map(&:first)
-  end
-
-  def available_organizations_for_select
-    GrdaWarehouse::Hud::Organization.viewable_by(@filter.user).options_for_select(user: @filter.user)
+    @filter.data_source_options_for_select(user: @filter.user).
+      select do |_, id|
+        @filter.data_source_ids.include?(id)
+      end&.map(&:first)
   end
 
   def organization_names
-    available_organizations_for_select.values.flatten(1).select { |_, id| @filter.organization_ids.include?(id) }&.map(&:first)
-  end
-
-  def available_projects_for_select
-    GrdaWarehouse::Hud::Project.viewable_by(@filter.user).options_for_select(user: @filter.user)
+    @filter.organization_options_for_select(user: @filter.user).
+      values.
+      flatten(1).
+      select do |_, id|
+        @filter.organization_ids.include?(id)
+      end&.map(&:first)
   end
 
   def project_names
-    available_projects_for_select.values.flatten(1).select { |_, id| @filter.project_ids.include?(id) }&.map(&:first)
+    @filter.project_options_for_select(user: @filter.user).
+      values.
+      flatten(1).
+      select do |_, id|
+        @filter.project_ids.include?(id)
+      end&.map(&:first)
   end
 
   def project_groups
-    available_project_groups_for_select.select { |_, id| @filter.project_group_ids.include?(id) }&.map(&:first)
-  end
-
-  def available_project_groups_for_select
-    GrdaWarehouse::ProjectGroup.options_for_select(user: @filter.user)
-  end
-
-  def available_cocs_for_select
-    GrdaWarehouse::Lookups::CocCode.options_for_select(user: @filter.user)
-  end
-
-  def available_funders_for_select
-    GrdaWarehouse::Hud::Funder.options_for_select(user: @filter.user)
+    @filter.project_groups_options_for_select(user: @filter.user).select { |_, id| @filter.project_group_ids.include?(id) }&.map(&:first)
   end
 
   def funder_names
-    available_funders_for_select.select { |_, id| @filter.funder_ids.include?(id.to_i) }&.map(&:first)
+    @filter.funder_options_for_select(user: @filter.user).select { |_, id| @filter.funder_ids.include?(id.to_i) }&.map(&:first)
   end
 
   def chosen_ages
-    @age_ranges
-  end
-
-  def chosen_age_ranges
-    @age_ranges.map do |range|
-      age_ranges.invert[range]
-    end.join(', ')
-  end
-
-  def chosen_genders
-    @genders.map do |gender|
-      HUD.gender(gender)
-    end
-  end
-
-  def chosen_coc_codes
-    @coc_codes.join(', ')
-  end
-
-  def chosen_veteran_statuses
-    @veteran_statuses.map do |veteran_status|
-      HUD.veteran_status(veteran_status)
-    end
-  end
-
-  def chosen_project_types
-    @project_types.map do |type|
-      HUD.project_type(type)
-    end.uniq
-  end
-
-  def chosen_project_types_only_homeless?
-    filter.project_type_ids.sort == GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.sort
-  end
-
-  def chosen_household_type
-    household_type(@household_type.to_sym)
+    @filter.age_ranges
   end
 
   def chosen_sub_population
     Reporting::MonthlyReports::Base.available_types[@sub_population]&.constantize&.new&.sub_population_title
-  end
-
-  def chosen_races
-    @races.map do |race|
-      HUD.race(race)
-    end
-  end
-
-  def chosen_ethnicities
-    @ethnicities.map do |ethnicity|
-      HUD.ethnicity(ethnicity)
-    end
-  end
-
-  def chosen_prior_living_situations
-    @filter.prior_living_situation_ids.map do |id|
-      available_prior_living_situations.invert[id]
-    end.join(', ')
-  end
-
-  def chosen_destinations
-    @filter.destination_ids.map do |id|
-      available_destinations.invert[id]
-    end.join(', ')
   end
 
   def self.comparison_patterns
@@ -395,21 +298,21 @@ class PerformanceDashboards::Base
   end
 
   private def filter_for_range(scope)
-    scope.open_between(start_date: @start_date, end_date: @end_date).
-      with_service_between(start_date: @start_date, end_date: @end_date)
+    scope.open_between(start_date: @filter.start_date, end_date: @filter.end_date).
+      with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)
   end
 
   private def filter_for_cocs(scope)
-    return scope unless @coc_codes.present?
+    return scope unless @filter.coc_codes.present?
 
     scope.joins(:enrollment_coc_at_entry).
-      where(ec_t[:CoCCode].in(@coc_codes))
+      where(ec_t[:CoCCode].in(@filter.coc_codes))
   end
 
   private def filter_for_household_type(scope)
-    return scope unless @household_type.present? && @household_type != :all
+    return scope unless @filter.household_type.present? && @filter.household_type != :all
 
-    case @household_type
+    case @filter.household_type
     when :without_children
       scope.adult_only_households
     when :with_children
@@ -420,25 +323,25 @@ class PerformanceDashboards::Base
   end
 
   private def filter_for_head_of_household(scope)
-    return scope unless @hoh_only
+    return scope unless @filter.hoh_only
 
     scope.where(she_t[:head_of_household].eq(true))
   end
 
   private def filter_for_age(scope)
-    return scope unless @age_ranges.present? && (age_ranges.values & @age_ranges).present?
+    return scope unless @filter.age_ranges.present? && (@filter.available_age_ranges.values & @filter.age_ranges).present?
 
     # Or'ing ages is very slow, instead we'll build up an acceptable
     # array of ages
     ages = []
-    ages += (0..17).to_a if @age_ranges.include?(:under_eighteen)
-    ages += (18..24).to_a if @age_ranges.include?(:eighteen_to_twenty_four)
-    ages += (25..29).to_a if @age_ranges.include?(:twenty_five_to_twenty_nine)
-    ages += (30..39).to_a if @age_ranges.include?(:thirty_to_thirty_nine)
-    ages += (40..49).to_a if @age_ranges.include?(:forty_to_forty_nine)
-    ages += (50..59).to_a if @age_ranges.include?(:fifty_to_fifty_nine)
-    ages += (60..61).to_a if @age_ranges.include?(:sixty_to_sixty_one)
-    ages += (62..110).to_a if @age_ranges.include?(:over_sixty_one)
+    ages += (0..17).to_a if @filter.age_ranges.include?(:under_eighteen)
+    ages += (18..24).to_a if @filter.age_ranges.include?(:eighteen_to_twenty_four)
+    ages += (25..29).to_a if @filter.age_ranges.include?(:twenty_five_to_twenty_nine)
+    ages += (30..39).to_a if @filter.age_ranges.include?(:thirty_to_thirty_nine)
+    ages += (40..49).to_a if @filter.age_ranges.include?(:forty_to_forty_nine)
+    ages += (50..59).to_a if @filter.age_ranges.include?(:fifty_to_fifty_nine)
+    ages += (60..61).to_a if @filter.age_ranges.include?(:sixty_to_sixty_one)
+    ages += (62..110).to_a if @filter.age_ranges.include?(:over_sixty_one)
     scope.where(she_t[:age].in(ages))
   end
 
@@ -559,8 +462,8 @@ class PerformanceDashboards::Base
   # specified project types for the prior 24 months.
   def entries
     previous_period = report_scope_source.entry.
-      open_between(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
-      with_service_between(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
+      open_between(start_date: @filter.start_date - 24.months, end_date: @filter.start_date - 1.day).
+      with_service_between(start_date: @filter.start_date - 24.months, end_date: @filter.start_date - 1.day).
       in_project_type(@project_types)
     # To make this performant, we'll manipulate these a bit
 
@@ -568,28 +471,28 @@ class PerformanceDashboards::Base
   end
 
   def entries_current_period
-    report_scope.entry_within_date_range(start_date: @start_date, end_date: @end_date).
-      with_service_between(start_date: @start_date, end_date: @end_date)
+    report_scope.entry_within_date_range(start_date: @filter.start_date, end_date: @filter.end_date).
+      with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)
   end
 
   # An exit is an enrollment where the exit date is within the report range, and there are no enrollments in the
   # specified project types that were open after the reporting period.
   def exits
     next_period = report_scope_source.entry.
-      open_between(start_date: @end_date + 1.day, end_date: Date.current).
-      with_service_between(start_date: @end_date + 1.day, end_date: Date.current).
+      open_between(start_date: @filter.end_date + 1.day, end_date: Date.current).
+      with_service_between(start_date: @filter.end_date + 1.day, end_date: Date.current).
       in_project_type(@project_types)
 
     exits_current_period.where.not(period_exists_sql(next_period))
   end
 
   def exits_current_period
-    report_scope.exit_within_date_range(start_date: @start_date, end_date: @end_date).
-      with_service_between(start_date: @start_date, end_date: @end_date)
+    report_scope.exit_within_date_range(start_date: @filter.start_date, end_date: @filter.end_date).
+      with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)
   end
 
   def open_enrollments
-    report_scope.open_between(start_date: @start_date, end_date: @end_date)
+    report_scope.open_between(start_date: @filter.start_date, end_date: @filter.end_date)
   end
 
   private def period_exists_sql(period)

@@ -10,15 +10,15 @@ module Filters
     include AvailableSubPopulations
     include ArelHelper
 
-    attribute :start, Date, lazy: true, default: -> (r,_) { r.default_start }
-    attribute :end, Date, lazy: true, default: -> (r,_) { r.default_end }
+    attribute :start, Date, lazy: true, default: ->(r,_) { r.default_start }
+    attribute :end, Date, lazy: true, default: ->(r,_) { r.default_end }
     attribute :sort
     attribute :heads_of_household, Boolean, default: false
-    attribute :comparison_pattern, Symbol, default: -> (r,_) { r.default_comparison_pattern }
+    attribute :comparison_pattern, Symbol, default: ->(r,_) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
-    attribute :project_type_codes, Array, default: -> (r,_) { r.default_project_type_codes }
-    attribute :project_type_numbers, Array, default: -> (r,_) { [] }
+    attribute :project_type_codes, Array, default: ->(r,_) { r.default_project_type_codes }
+    attribute :project_type_numbers, Array, default: ->(r,_) { [] }
     attribute :veteran_statuses, Array, default: []
     attribute :age_ranges, Array, default: []
     attribute :genders, Array, default: []
@@ -272,31 +272,31 @@ module Filters
     end
 
     # Select display options
-    def project_options_for_select(user: )
+    def project_options_for_select(user:)
       all_project_scope.options_for_select(user: user)
     end
 
-    def organization_options_for_select(user: )
+    def organization_options_for_select(user:)
       all_organizations_scope.distinct.options_for_select(user: user)
     end
 
-    def data_source_options_for_select(user: )
+    def data_source_options_for_select(user:)
       all_data_sources_scope.options_for_select(user: user)
     end
 
-    def funder_options_for_select(user: )
+    def funder_options_for_select(user:)
       all_funders_scope.options_for_select(user: user)
     end
 
-    def coc_code_options_for_select(user: )
+    def coc_code_options_for_select(user:)
       GrdaWarehouse::Lookups::CocCode.options_for_select(user: user)
     end
 
-    def project_groups_options_for_select(user: )
+    def project_groups_options_for_select(user:)
       all_project_group_scope.options_for_select(user: user)
     end
 
-    def cohorts_for_select(user: )
+    def cohorts_for_select(user:)
       GrdaWarehouse::Cohort.viewable_by(user)
     end
     # End Select display options
@@ -339,7 +339,11 @@ module Filters
       {
         under_eighteen: '< 18',
         eighteen_to_twenty_four: '18 - 24',
-        twenty_five_to_sixty_one: '25 - 61',
+        twenty_five_to_twenty_nine: '25 - 29',
+        thirty_to_thirty_nine: '30 - 39',
+        forty_to_forty_nine: '40 - 49',
+        fifty_to_fifty_nine: '50 - 59',
+        sixty_to_sixty_one: '60 - 61',
         over_sixty_one: '62+',
       }.invert.freeze
     end
@@ -390,6 +394,87 @@ module Filters
 
     def default_project_type_numbers
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
+    end
+
+    def chosen_age_ranges
+      age_ranges.map do |range|
+        available_age_ranges.invert[range]
+      end.join(', ')
+    end
+
+    def chosen_races
+      races.map do |race|
+        HUD.race(race)
+      end
+    end
+
+    def chosen_ethnicities
+      ethnicities.map do |ethnicity|
+        HUD.ethnicity(ethnicity)
+      end
+    end
+
+    def chosen_genders
+      genders.map do |gender|
+        HUD.gender(gender)
+      end
+    end
+
+    def chosen_coc_codes
+      coc_codes.join(', ')
+    end
+
+    def chosen_veteran_statuses
+      veteran_statuses.map do |veteran_status|
+        HUD.veteran_status(veteran_status)
+      end
+    end
+
+    def chosen_project_types
+      project_type_ids.map do |type|
+        HUD.project_type(type)
+      end.uniq
+    end
+
+    def chosen_project_types_only_homeless?
+      project_type_ids.sort == GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.sort
+    end
+
+    def chosen_household_type
+      household_type_string(household_type.to_sym)
+    end
+
+    def household_type_string(type)
+      available_household_types.invert[type] || 'Unknown'
+    end
+
+    def chosen_prior_living_situations
+      prior_living_situation_ids.map do |id|
+        available_prior_living_situations.invert[id]
+      end.join(', ')
+    end
+
+    def chosen_destinations
+      destination_ids.map do |id|
+        available_destinations.invert[id]
+      end.join(', ')
+    end
+
+    def available_household_types
+      {
+        all: 'All household types',
+        without_children: 'Adult only Households',
+        with_children: 'Adult and Child Households',
+        only_children: 'Child only Households',
+      }.invert.freeze
+    end
+
+    def available_prior_living_situations
+      HUD.living_situations.invert
+    end
+
+    def available_destinations
+      HUD.valid_destinations.invert
     end
 
     def to_comparison

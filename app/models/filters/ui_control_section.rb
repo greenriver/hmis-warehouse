@@ -44,14 +44,13 @@ module Filters
     end
 
     def summary_partial_path
-      "/performance_dashboards/filter_controls/#{id}/summary"
+      "/filters/filter_controls/#{id}/summary"
     end
 
     def input_partial_path
-      "/performance_dashboards/filter_controls/#{id}/input"
+      "/filters/filter_controls/#{id}/input"
     end
 
   end
 
 end
-
