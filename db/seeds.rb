@@ -736,6 +736,15 @@ def report_list
       health: false,
     }
   end
+  if RailsDrivers.loaded.include?(:core_demographics_report)
+    r_list['Operational'] << {
+      url: 'core_demographics_report/warehouse_reports/core',
+      name: 'Core Demographics',
+      description: 'Summary data for client demographics across an arbitrary universe.',
+      limitable: true,
+      health: false,
+    }
+  end
   r_list
 end
 
@@ -746,6 +755,7 @@ def cleanup_unused_reports
     'warehouse_reports/veteran_details/exits',
   ]
   cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
+  cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:service_scanning)
   cleanup.each do |url|
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
   end
