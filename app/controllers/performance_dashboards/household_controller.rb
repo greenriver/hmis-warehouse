@@ -6,7 +6,6 @@
 
 module PerformanceDashboards
   class HouseholdController < OverviewController
-    before_action :set_filter
     before_action :set_report
     before_action :set_key, only: [:details]
 

@@ -7,17 +7,7 @@
 class PerformanceDashboards::BaseController < ApplicationController
   include WarehouseReportAuthorization
   include PjaxModalController
-
-  def filters
-    @sections = @report.control_sections
-    chosen = params[:filter_section_id]
-    if chosen
-      @chosen_section = @sections.detect do |section|
-        section.id == chosen
-      end
-    end
-    @modal_size = :xxl if @chosen_section.nil?
-  end
+  include BaseFilters
 
   def section
     @section = @report.class.available_chart_types.detect do |m|
@@ -29,12 +19,6 @@ class PerformanceDashboards::BaseController < ApplicationController
 
     @section = @report.section_subpath + @section
     render partial: @section, layout: false if request.xhr?
-  end
-
-  def set_filter
-    @filter = filter_class.new(user_id: current_user.id)
-    @filter.set_from_params(filter_params[:filters]) if filter_params[:filters].present?
-    @comparison_filter = @filter.to_comparison
   end
 
   private def show_client_details?
@@ -80,9 +64,4 @@ class PerformanceDashboards::BaseController < ApplicationController
     filtered
   end
   helper_method :filter_params
-
-  def filter_item_selection_summary(value, default = 'All')
-    render_to_string partial: '/filters/filter_controls/helpers/items_selection_summary', locals: { value: value, default: default }
-  end
-  helper_method :filter_item_selection_summary
 end
