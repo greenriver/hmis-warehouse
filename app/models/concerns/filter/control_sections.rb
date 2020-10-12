@@ -65,13 +65,11 @@ module Filter::ControlSections
     protected def build_household_control_section
       ::Filters::UiControlSection.new(id: 'household').tap do |section|
         section.add_control(id: 'household_type', required: true, value: @filter.household_type == :all ? nil : @filter.chosen_household_type)
-        if performance_type == 'Client'
-          section.add_control(
-            id: 'hoh_only',
-            label: 'Only Heads of Household?',
-            value: @filter.hoh_only ? 'HOH Only' : nil,
-          )
-        end
+        section.add_control(
+          id: 'hoh_only',
+          label: 'Only Heads of Household?',
+          value: @filter.hoh_only ? 'HOH Only' : nil,
+        )
       end
     end
 
@@ -84,27 +82,23 @@ module Filter::ControlSections
           required: true,
           value: @filter.sub_population == :clients ? nil : @filter.chosen_sub_population,
         )
-        if performance_type == 'Client'
-          section.add_control(id: 'races', value: @filter.chosen_races, short_label: 'Race')
-          section.add_control(id: 'ethnicities', value: @filter.chosen_ethnicities, short_label: 'Ethnicity')
-          section.add_control(id: 'age_ranges', value: @filter.chosen_age_ranges, short_label: 'Age')
-          section.add_control(
-            id: 'genders',
-            short_label: 'Gender',
-            value: @filter.chosen_genders,
-          )
-          section.add_control(
-            id: 'veteran_statuses',
-            short_label: 'Veteran Status',
-            value: @filter.chosen_veteran_statuses,
-          )
-        end
+        section.add_control(id: 'races', value: @filter.chosen_races, short_label: 'Race')
+        section.add_control(id: 'ethnicities', value: @filter.chosen_ethnicities, short_label: 'Ethnicity')
+        section.add_control(id: 'age_ranges', value: @filter.chosen_age_ranges, short_label: 'Age')
+        section.add_control(
+          id: 'genders',
+          short_label: 'Gender',
+          value: @filter.chosen_genders,
+        )
+        section.add_control(
+          id: 'veteran_statuses',
+          short_label: 'Veteran Status',
+          value: @filter.chosen_veteran_statuses,
+        )
       end
     end
 
     protected def build_enrollment_control_section
-      return if multiple_project_types?
-
       ::Filters::UiControlSection.new(id: 'enrollment').tap do |section|
         section.add_control(id: 'prior_living_situations', value: @filter.chosen_prior_living_situations)
         section.add_control(id: 'destinations', value: @filter.chosen_destinations)
