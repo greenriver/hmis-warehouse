@@ -7,7 +7,9 @@
 module CoreDemographicsReport
   class Core
     include Filter::ControlSections
+    include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
+    include ArelHelper
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
@@ -69,6 +71,60 @@ module CoreDemographicsReport
 
     def include_comparison?
       comparison_pattern != :no_comparison_period
+    end
+
+    # @return filtered scope
+    def report_scope(all_project_types: false)
+      # Report range
+      scope = filter_for_range(report_scope_source)
+      scope = filter_for_cocs(scope)
+      scope = filter_for_sub_population(scope)
+      scope = filter_for_household_type(scope)
+      scope = filter_for_head_of_household(scope)
+      scope = filter_for_age(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_ethnicity(scope)
+      scope = filter_for_veteran_status(scope)
+      scope = filter_for_project_type(scope, all_project_types: all_project_types)
+      scope = filter_for_data_sources(scope)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_projects(scope)
+      scope = filter_for_funders(scope)
+      scope = filter_for_disabilities(scope)
+      scope = filter_for_indefinite_disabilities(scope)
+      scope = filter_for_dv_status(scope)
+      scope = filter_for_chronic_status(scope)
+      scope
+    end
+
+    def report_scope_source
+      GrdaWarehouse::ServiceHistoryEnrollment.entry
+    end
+
+    def yn(boolean)
+      boolean ? 'Yes' : 'No'
+    end
+
+    def total_client_count
+      report_scope.select(:client_id).distinct.count
+    end
+
+    def hoh_count
+      report_scope.where(she_t[:head_of_household].eq(true)).select(:client_id).distinct.count
+    end
+
+    def household_count
+      report_scope.select(:household_id).distinct.count
+    end
+
+    def average_adult_age
+      average_age = nf('AVG', [age_calculation])
+      # limit to adults
+      scope = report_scope.joins(:client).where(
+        Arel.sql("EXTRACT(YEAR FROM #{age_calculation.to_sql})").in((18..110).to_a),
+      )
+      scope.joins(:client).pluck(Arel.sql("EXTRACT(YEAR FROM #{average_age.to_sql})"))&.first&.to_i
     end
   end
 end

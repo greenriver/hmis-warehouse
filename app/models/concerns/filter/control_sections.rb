@@ -1,4 +1,5 @@
-module Filter::ControlSections
+module
+  Filter::ControlSections
   extend ActiveSupport::Concern
   included do
     def control_sections
@@ -151,22 +152,22 @@ module Filter::ControlSections
       section.add_control(
         id: 'disabilities',
         value: @filter.chosen_disabilities,
-        short_label: 'Disability Type',
+        label: 'Disability Type',
       )
       section.add_control(
         id: 'indefinite_disabilities',
         value: @filter.chosen_indefinite_disabilities,
-        short_label: 'Indefinite and Impairing?',
+        label: 'Indefinite and Impairing?',
       )
       section.add_control(
         id: 'dv_status',
         value: @filter.chosen_dv_status,
-        short_label: 'DV Status',
+        label: 'DV Status',
         hint: 'DV status is limited to occurrences that were reported during the chosen range indicating they had occurred within the past year.',
       )
       section.add_control(
         id: 'chronic_status',
-        short_label: 'Chronically Homeless',
+        label: 'Chronically Homeless',
         value: @filter.chronic_status ? 'Chronically Homeless' : nil,
         hint: 'Chronic status is calcualted twice monthly, choosing this will include clients who were chronic on the most-recent calculation within the chosen range.',
       )

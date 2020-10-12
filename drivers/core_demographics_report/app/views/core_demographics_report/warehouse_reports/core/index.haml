@@ -13,5 +13,6 @@
       %h1.mb-5= title
       .mb-4=# render 'hero_counts'
     .main-inner-prs1
-      .mt-2=# render 'disaggregation_picker'
-      =# render 'disaggregations'
+      = render 'table'
+      = debug @report.report_scope.count
+      = debug @report.report_scope.to_sql

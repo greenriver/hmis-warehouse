@@ -1,27 +1,15 @@
-.d-flex
-  .ml-auto.mb-4
-    = link_to service_scanning_warehouse_reports_scanned_services_path(@filter.for_params.merge(format: :xlsx)), class: 'btn btn-secondary' do
-      %i.icon-download2
-      Download
 .card
   %table.table
     %thead
       %tr
-        %th Date
-        %th Project
-        %th Clients
-        %th Services
-        %th
+        %th Unique Clients
+        %th Heads of Household
+        %th Households
+        %th Average Adult Age
+
     %tbody
-      - @dates.each do |date, projects|
-        - projects.each do |_, data|
-          - project = data[:project]
-          %tr
-            %td= date
-            %td= project.name
-            %td= data[:clients].count
-            %td
-              = link_to(data[:services].count, detail_service_scanning_warehouse_reports_scanned_services_path(@filter.for_params.deep_merge(detail: :clients, filters: { start: date, project_ids: [project.id] })), data: { loads_in_pjax_modal: true })
-            %td
-              = link_to(detail_service_scanning_warehouse_reports_scanned_services_path(@filter.for_params.deep_merge(format: :xlsx, detail: :clients, filters: { start: date, project_ids: [project.id] })), class: 'btn btn-secondary btn-sm btn-icon-only') do
-                %i.icon-download2
+      %tr
+        %td= @report.total_client_count
+        %td= @report.hoh_count
+        %td= @report.household_count
+        %td= @report.average_adult_age
