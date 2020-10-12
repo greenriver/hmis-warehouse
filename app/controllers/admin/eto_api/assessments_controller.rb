@@ -55,6 +55,7 @@ module Admin::EtoApi
           :hud_assessment,
           :triage_assessment,
           :rrh_assessment,
+          :covid_19_impact_assessment,
         )
     end
   end

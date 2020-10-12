@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_08_204557) do
+ActiveRecord::Schema.define(version: 2020_10_09_165424) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -3373,6 +3373,7 @@ ActiveRecord::Schema.define(version: 2020_10_08_204557) do
     t.boolean "hud_assessment", default: false
     t.boolean "triage_assessment", default: false
     t.boolean "rrh_assessment", default: false
+    t.boolean "covid_19_impact_assessment", default: false
     t.index ["assessment_id"], name: "index_hmis_assessments_on_assessment_id"
     t.index ["data_source_id"], name: "index_hmis_assessments_on_data_source_id"
     t.index ["site_id"], name: "index_hmis_assessments_on_site_id"
@@ -4299,6 +4300,14 @@ ActiveRecord::Schema.define(version: 2020_10_08_204557) do
     t.boolean "ssvf_eligible", default: false
     t.string "vispdat_physical_disability_answer"
     t.datetime "vispdat_physical_disability_updated_at"
+    t.datetime "covid_impact_updated_at"
+    t.integer "number_of_bedrooms"
+    t.integer "subsidy_months"
+    t.integer "total_subsidy"
+    t.integer "monthly_rent_total"
+    t.integer "percent_ami"
+    t.string "household_type"
+    t.integer "household_size"
     t.index ["assessment_id"], name: "index_hmis_forms_on_assessment_id"
     t.index ["client_id"], name: "index_hmis_forms_on_client_id"
     t.index ["collected_at"], name: "index_hmis_forms_on_collected_at"

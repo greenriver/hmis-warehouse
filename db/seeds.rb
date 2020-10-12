@@ -725,6 +725,13 @@ def report_list
         limitable: true,
         health: false,
       },
+      {
+        url: 'warehouse_reports/export_covid_impact_assessments',
+        name: 'COVID-19 Impact Assessment Export',
+        description: 'Export Data from ETO COVID-19 impact assessments',
+        limitable: true,
+        health: false,
+      },
     ],
   }
   if RailsDrivers.loaded.include?(:service_scanning)
