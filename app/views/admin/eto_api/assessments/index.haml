@@ -21,6 +21,7 @@
         %th SSM (Health)
         %th Health Case Note
         %th Contains Qualifying Activities (Health)
+        %th COVID-19 Impact Assessment
     %tbody
       - @assessments.each do |assessment|
         %tr
@@ -57,3 +58,5 @@
             = checkmark(assessment.health_case_note)
           %td
             = checkmark(assessment.health_has_qualifying_activities)
+          %td
+            = checkmark(assessment.covid_19_impact_assessment)
