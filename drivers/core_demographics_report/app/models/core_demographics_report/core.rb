@@ -29,16 +29,17 @@ module CoreDemographicsReport
         viewable_by(user).exists?
     end
 
-    def performance_type
-      'Client'
-    end
-
-    def client_filters?
-      true
-    end
-
     def multiple_project_types?
       true
+    end
+
+    protected def build_control_sections
+      [
+        build_general_control_section,
+        build_coc_control_section,
+        build_household_control_section,
+        add_demographic_disabilities_control_section,
+      ]
     end
 
     def report_path_array

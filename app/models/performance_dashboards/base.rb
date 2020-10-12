@@ -51,10 +51,6 @@ class PerformanceDashboards::Base
     'Client'
   end
 
-  def client_filters?
-    true
-  end
-
   def multiple_project_types?
     true
   end

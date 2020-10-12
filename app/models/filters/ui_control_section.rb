@@ -29,13 +29,14 @@ module Filters
   end
 
   class UiControl
-    attr_accessor :id, :label, :short_label, :value, :required
+    attr_accessor :id, :label, :short_label, :value, :required, :hint
 
-    def initialize(id:, value:, label: nil, short_label: nil, required: false)
+    def initialize(id:, value:, label: nil, short_label: nil, required: false, hint: nil)
       self.id = id
       self.label = label || id.humanize.titleize
       self.short_label = short_label || self.label
       self.required = required
+      self.hint = hint
       self.value = value
     end
 

@@ -43,12 +43,14 @@ module Filters
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
     attribute :ph, Boolean, default: false
+    attribute :disabilities, Array, default: []
+    attribute :indefinite_disabilities, Array, default: []
+    attribute :dv_status, Array, default: []
+    attribute :chronic_status, Boolean, default: false
 
     validates_presence_of :start, :end
     validate do
-      if start > self.end
-        errors.add(:end, 'End date must follow start date.')
-      end
+      errors.add(:end, 'End date must follow start date.') if start > self.end
     end
 
     # NOTE: keep this up-to-date if adding additional attributes
@@ -92,6 +94,11 @@ module Filters
       self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map { |m| m.to_i }
       self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map { |m| m.to_sym }
       self.cohort_ids = filters.dig(:cohort_ids)&.reject(&:blank?)&.map { |m| m.to_i }
+
+      self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map { |m| m.to_i }
+      self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map { |m| m.to_i }
+      self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map { |m| m.to_i }
+      self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true])
       ensure_dates_work
     end
 
@@ -121,6 +128,10 @@ module Filters
           prior_living_situation_ids: prior_living_situation_ids,
           destination_ids: destination_ids,
           length_of_times: length_of_times,
+          disabilities: disabilities,
+          indefinite_disabilities: indefinite_disabilities,
+          dv_status: dv_status,
+          chronic_status: chronic_status,
         }
       }
     end
@@ -468,6 +479,24 @@ module Filters
       end.join(', ')
     end
 
+    def chosen_disabilities
+      disabilities.map do |id|
+        available_disabilities.invert[id]
+      end.join(', ')
+    end
+
+    def chosen_indefinite_disabilities
+      indefinite_disabilities.map do |id|
+        available_indefinite_disabilities.invert[id]
+      end.join(', ')
+    end
+
+    def chosen_dv_status
+      dv_status.map do |id|
+        available_dv_status.invert[id]
+      end.join(', ')
+    end
+
     def data_source_names
       data_source_options_for_select(user: user).
         select do |_, id|
@@ -516,6 +545,18 @@ module Filters
 
     def available_destinations
       HUD.valid_destinations.invert
+    end
+
+    def available_disabilities
+      HUD.disability_types.invert
+    end
+
+    def available_indefinite_disabilities
+      HUD.no_yes_reasons_for_missing_data_options.invert
+    end
+
+    def available_dv_status
+      HUD.no_yes_reasons_for_missing_data_options.invert
     end
 
     def to_comparison

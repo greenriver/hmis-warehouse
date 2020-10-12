@@ -24,8 +24,15 @@ module Filter::ControlSections
           short_label: 'Project Type',
           value: describe_household_control_section,
         )
-        section.add_control(id: 'reporting_period', required: true, value: @filter.date_range_words)
-        section.add_control(id: 'comparison_period', value: nil)
+        section.add_control(
+          id: 'reporting_period',
+          required: true,
+          value: @filter.date_range_words,
+        )
+        section.add_control(
+          id: 'comparison_period',
+          value: nil,
+        )
       end
     end
 
@@ -54,11 +61,26 @@ module Filter::ControlSections
             value: @filter.chosen_coc_codes,
           )
         end
-        section.add_control(id: 'funding_sources', value: @filter.funder_names)
-        section.add_control(id: 'data_sources', value: @filter.data_source_names)
-        section.add_control(id: 'organizations', value: @filter.organization_names)
-        section.add_control(id: 'projects', value: @filter.project_names)
-        section.add_control(id: 'project_groups', value: @filter.project_groups)
+        section.add_control(
+          id: 'funding_sources',
+          value: @filter.funder_names,
+        )
+        section.add_control(
+          id: 'data_sources',
+          value: @filter.data_source_names,
+        )
+        section.add_control(
+          id: 'organizations',
+          value: @filter.organization_names,
+        )
+        section.add_control(
+          id: 'projects',
+          value: @filter.project_names,
+        )
+        section.add_control(
+          id: 'project_groups',
+          value: @filter.project_groups,
+        )
       end
     end
 
@@ -82,9 +104,21 @@ module Filter::ControlSections
           required: true,
           value: @filter.sub_population == :clients ? nil : @filter.chosen_sub_population,
         )
-        section.add_control(id: 'races', value: @filter.chosen_races, short_label: 'Race')
-        section.add_control(id: 'ethnicities', value: @filter.chosen_ethnicities, short_label: 'Ethnicity')
-        section.add_control(id: 'age_ranges', value: @filter.chosen_age_ranges, short_label: 'Age')
+        section.add_control(
+          id: 'races',
+          value: @filter.chosen_races,
+          short_label: 'Race',
+        )
+        section.add_control(
+          id: 'ethnicities',
+          value: @filter.chosen_ethnicities,
+          short_label: 'Ethnicity',
+        )
+        section.add_control(
+          id: 'age_ranges',
+          value: @filter.chosen_age_ranges,
+          short_label: 'Age',
+        )
         section.add_control(
           id: 'genders',
           short_label: 'Gender',
@@ -100,9 +134,43 @@ module Filter::ControlSections
 
     protected def build_enrollment_control_section
       ::Filters::UiControlSection.new(id: 'enrollment').tap do |section|
-        section.add_control(id: 'prior_living_situations', value: @filter.chosen_prior_living_situations)
-        section.add_control(id: 'destinations', value: @filter.chosen_destinations)
+        section.add_control(
+          id: 'prior_living_situations',
+          value: @filter.chosen_prior_living_situations,
+        )
+        section.add_control(
+          id: 'destinations',
+          value: @filter.chosen_destinations,
+        )
       end
+    end
+
+    protected def add_demographic_disabilities_control_section
+      section = build_demographics_control_section
+
+      section.add_control(
+        id: 'disabilities',
+        value: @filter.chosen_disabilities,
+        short_label: 'Disability Type',
+      )
+      section.add_control(
+        id: 'indefinite_disabilities',
+        value: @filter.chosen_indefinite_disabilities,
+        short_label: 'Indefinite and Impairing?',
+      )
+      section.add_control(
+        id: 'dv_status',
+        value: @filter.chosen_dv_status,
+        short_label: 'DV Status',
+        hint: 'DV status is limited to occurrences that were reported during the chosen range indicating they had occurred within the past year.',
+      )
+      section.add_control(
+        id: 'chronic_status',
+        short_label: 'Chronically Homeless',
+        value: @filter.chronic_status ? 'Chronically Homeless' : nil,
+        hint: 'Chronic status is calcualted twice monthly, choosing this will include clients who were chronic on the most-recent calculation within the chosen range.',
+      )
+      section
     end
   end
 end

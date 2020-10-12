@@ -55,6 +55,7 @@ module CoreDemographicsReport::WarehouseReports
           :household_type,
           :hoh_only,
           :sub_population,
+          :chronic_status,
           coc_codes: [],
           project_types: [],
           project_type_codes: [],
@@ -70,6 +71,9 @@ module CoreDemographicsReport::WarehouseReports
           project_group_ids: [],
           prior_living_situation_ids: [],
           destination_ids: [],
+          disabilities: [],
+          indefinite_disabilities: [],
+          dv_status: [],
         ],
       )
     end

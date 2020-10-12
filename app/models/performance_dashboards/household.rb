@@ -28,10 +28,6 @@ class PerformanceDashboards::Household < PerformanceDashboards::Base
     'Household'
   end
 
-  def client_filters?
-    false
-  end
-
   def report_path_array
     [
       :performance,
