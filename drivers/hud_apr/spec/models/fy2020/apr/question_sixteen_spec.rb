@@ -15,14 +15,18 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSixteen, type: :model do
 
   describe 'Q16: Cash Income - Ranges' do
     it 'counts entries' do
-      expect(report_result.answer(question: 'Q16', cell: 'B2').summary).to eq(1)
-      expect(report_result.answer(question: 'Q16', cell: 'B11').summary).to eq(5)
+      expect(report_result.answer(question: 'Q16', cell: 'B2').summary).to eq(2)
+      expect(report_result.answer(question: 'Q16', cell: 'B11').summary).to eq(4)
       expect(report_result.answer(question: 'Q16', cell: 'B14').summary).to eq(6)
     end
 
     it 'counts annual assessments' do
       expect(report_result.answer(question: 'Q16', cell: 'C12').summary).to eq(1)
-      expect(report_result.answer(question: 'Q16', cell: 'C13').summary).to eq(2)
+      expect(report_result.answer(question: 'Q16', cell: 'C13').summary).to eq(1)
+    end
+
+    it 'counts amounts in annual assessments' do
+      expect(report_result.answer(question: 'Q16', cell: 'C3').summary).to eq(1)
     end
   end
 end

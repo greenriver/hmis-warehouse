@@ -808,9 +808,10 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def annual_assessment_expected?(enrollment)
-      elapsed_years = @report.end_date.year - enrollment.first_date_in_program.year
-      elapsed_years -= 1 if enrollment.first_date_in_program + elapsed_years.year > @report.end_date
-      enrollment.head_of_household? && elapsed_years&.positive?
+      return false if enrollment.last_date_in_program.present? &&
+        enrollment.last_date_in_program - enrollment.first_date_in_program < 1.year
+
+      enrollment.head_of_household? && enrollment.first_date_in_program + 1.years < @report.end_date
     end
 
     private def earned_amount(apr_client, suffix)
