@@ -1,7 +1,6 @@
 - title = _('Core Demographics')
 - content_for :title, title
 
-= render 'filter'
 - @layout__plain_inner = true
 - @layout__width = 'lg'
 .content-outer-prs1
@@ -10,4 +9,9 @@
   .main-outer-prs1
     .utility-prs1
       = render '/warehouse_reports/breadcrumbs', tab: 'operational'
-%h1= title
+    .top-nav-prs1
+      %h1.mb-5= title
+      .mb-4=# render 'hero_counts'
+    .main-inner-prs1
+      .mt-2=# render 'disaggregation_picker'
+      =# render 'disaggregations'

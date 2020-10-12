@@ -150,6 +150,10 @@ module Filters
       last
     end
 
+    def date_range_words
+      "#{start_date} - #{end_date}"
+    end
+
     def length
       (self.end - self.start).to_i rescue 0
     end
@@ -396,6 +400,10 @@ module Filters
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
+    def chosen_sub_population
+      Reporting::MonthlyReports::Base.available_types[sub_population]&.constantize&.new&.sub_population_title
+    end
+
     def chosen_age_ranges
       age_ranges.map do |range|
         available_age_ranges.invert[range]
@@ -458,6 +466,39 @@ module Filters
       destination_ids.map do |id|
         available_destinations.invert[id]
       end.join(', ')
+    end
+
+    def data_source_names
+      data_source_options_for_select(user: user).
+        select do |_, id|
+          data_source_ids.include?(id)
+        end&.map(&:first)
+    end
+
+    def organization_names
+      organization_options_for_select(user: user).
+        values.
+        flatten(1).
+        select do |_, id|
+          organization_ids.include?(id)
+        end&.map(&:first)
+    end
+
+    def project_names
+      project_options_for_select(user: user).
+        values.
+        flatten(1).
+        select do |_, id|
+          project_ids.include?(id)
+        end&.map(&:first)
+    end
+
+    def project_groups
+      project_groups_options_for_select(user: user).select { |_, id| project_group_ids.include?(id) }&.map(&:first)
+    end
+
+    def funder_names
+      funder_options_for_select(user: user).select { |_, id| funder_ids.include?(id.to_i) }&.map(&:first)
     end
 
     def available_household_types
