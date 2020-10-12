@@ -205,6 +205,7 @@ Rails.application.routes.draw do
     resources :entry_exit_service, only: [:index]
     resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
+    resources :export_covid_impact_assessments, only: [:index]
     resources :rrh, only: [:index] do
       collection do
         get :clients
@@ -424,6 +425,7 @@ Rails.application.routes.draw do
   end
   resources :clients, except: [:update, :destroy] do
     member do
+      get :appropriate
       get :simple
       get :service_range
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup

@@ -1,6 +1,6 @@
 - title = "Client With Odd Characters in Their Names"
 - content_for :title, title
-%h1= title 
+%h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 
 .warehouse-reports__missing-projects
@@ -19,7 +19,7 @@
     %tbody
       - @clients.each do |client|
         %tr
-          %td= link_to client.LastName.gsub(' ', '⎵'), client_path(client)
-          %td= link_to client.FirstName.gsub(' ', '⎵'), client_path(client)
+          %td= link_to_if can_view_clients_or_window?, client.LastName.gsub(' ', '⎵'), appropriate_client_path(client)
+          %td= link_to_if can_view_clients_or_window?, client.FirstName.gsub(' ', '⎵'), appropriate_client_path(client)
           %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
 %p= paginate @clients

@@ -51,6 +51,7 @@ module Clients::Youth
         :activity,
         :housing_status,
         :other_housing_status,
+        :zip_code,
       )
     end
 

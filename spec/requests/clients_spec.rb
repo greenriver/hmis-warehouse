@@ -231,7 +231,8 @@ RSpec.describe ClientsController, type: :request do
   describe 'logged in, and can view client window' do
     # implies 'can_see_this_client_demographics!'
     let(:role) { create :can_view_client_window }
-    let(:user) { create :user, roles: [role] }
+    let(:role_search) { create :can_search_window }
+    let(:user) { create :user, roles: [role, role_search] }
 
     it 'allows index' do
       sign_in user
@@ -312,7 +313,8 @@ RSpec.describe ClientsController, type: :request do
   describe 'logged in, and can edit clients' do
     let(:role) { create :can_edit_clients }
     let(:role2) { create :can_view_client_window }
-    let(:user) { create :user, roles: [role, role2] }
+    let(:role_search) { create :can_search_window }
+    let(:user) { create :user, roles: [role, role2, role_search] }
 
     it 'allows index' do
       sign_in user

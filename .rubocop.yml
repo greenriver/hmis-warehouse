@@ -20,6 +20,8 @@ AllCops:
     - 'app/models/concerns/**/*.rb'
     - 'app/models/eto_api/**/*.rb'
     - 'app/models/grda_warhouse/client_notes/**/*.rb'
+    - 'app/models/grda_warhouse/youth/**/*.rb'
+    - 'app/models/grda_warhouse/youth_intake/**/*.rb'
     - 'app/models/health_emergency/**/*.rb'
     - 'app/models/performance_dashboards/**/*.rb'
     - 'app/models/warehouse_report/**/*.rb'
@@ -37,7 +39,7 @@ AllCops:
     - 'app/assets/**/*'
     - 'bin/db_prep'
 
-  # NewCops: disable
+  NewCops: disable
 
 # We don't care about method length, since we check method cyclomatic
 # complexity.
@@ -78,11 +80,8 @@ Style/AndOr:
   Enabled: true
 
 Style/ClassAndModuleChildren:
-  Exclude:
-    - 'app/models/concerns/**/*'
-    - 'app/controllers/**/*'
-    - 'app/jobs/**/*'
-    - 'drivers/**/*'
+  Enabled:
+    false
 
 Style/ConditionalAssignment:
   Enabled: false
@@ -107,6 +106,11 @@ Style/CommentedKeyword:
 
 Naming/VariableNumber:
   Enabled: false
+
+Naming/MethodParameterName:
+  AllowedNames:
+    - as
+    - id
 
 Style/MixinUsage:
   Enabled: false
@@ -182,32 +186,5 @@ Style/AsciiComments:
 Style/OneLineConditional:
   Enabled: false
 
-# Layout/EmptyLinesAroundAttributeAccessor:
-#   Enabled: true
-
-# Layout/SpaceAroundMethodCallOperator:
-#   Enabled: true
-
-# Lint/DeprecatedOpenSSLConstant:
-#   Enabled: true
-
-# Lint/RaiseException:
-#   Enabled: true
-
-# Lint/StructNewOverride:
-#   Enabled: true
-
-# Style/ExponentialNotation:
-#   Enabled: true
-
-# Style/HashEachMethods:
-#   Enabled: true
-
-# Style/HashTransformKeys:
-#   Enabled: true
-
-# Style/HashTransformValues:
-#   Enabled: true
-
-# Style/SlicingWithRange:
-#   Enabled: true
+Style/StringConcatenation:
+  Enabled: false

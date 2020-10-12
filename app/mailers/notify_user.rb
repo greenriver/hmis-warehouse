@@ -203,6 +203,15 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: 'Your HUD Report has finished')
   end
 
+  def driver_hud_report_finished(generator)
+    @user = generator.report.user
+    return unless @user.active?
+
+    @generator = generator
+    @report_url = @generator.url
+    mail(to: @user.email, subject: "Your #{@generator.class.short_name} has finished")
+  end
+
   def health_premium_payments_finished(user_id)
     @user = User.find(user_id)
     return unless @user.active?

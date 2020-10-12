@@ -395,7 +395,7 @@ module Exporters::HmisTwentyTwenty
         project_ids: @projects,
         include_deleted: @include_deleted,
       }
-      options[:export_id] = Digest::MD5.hexdigest(options.to_s)
+      options[:export_id] = Digest::MD5.hexdigest(options.to_s)[0..31]
 
       @export = GrdaWarehouse::HmisExport.create(options)
       @export.fake_data = GrdaWarehouse::FakeData.where(environment: @faked_environment).first_or_create

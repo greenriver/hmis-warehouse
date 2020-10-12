@@ -14,6 +14,7 @@ module Filters
     attribute :races, Array, default: []
     attribute :ethnicities, Array, default: []
     attribute :genders, Array, default: []
+    attribute :require_homeless_enrollment, Boolean, default: false
 
     validates_presence_of :start, :end, :sub_population
 
@@ -21,7 +22,7 @@ module Filters
       Date.current - 90.day
     end
 
-     def available_sub_populations
+    def available_sub_populations
       @available_sub_populations = GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.dup
       @available_sub_populations['Youth at Search Start'] = :youth_at_search_start
       @available_sub_populations['Youth at Housed Date'] = :youth_at_housed_date

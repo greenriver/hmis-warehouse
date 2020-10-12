@@ -22,8 +22,10 @@ module GrdaWarehouse::Hud
     has_many :inventories, class_name: 'GrdaWarehouse::Hud::Inventory', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
     belongs_to :data_source
     has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :project_coc
+    has_one :overridden_lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :overridden_project_coc
 
-    scope :in_coc, -> (coc_code:) do
+
+    scope :in_coc, ->(coc_code:) do
       # hud_coc_code overrides CoCCode
       coc_code = Array(coc_code)
       where(
@@ -36,7 +38,7 @@ module GrdaWarehouse::Hud
       where.not(CoCCode: nil).or(where.not(hud_coc_code: nil))
     end
 
-    scope :viewable_by, -> (user) do
+    scope :viewable_by, ->(user) do
       if user.can_edit_anything_super_user?
         current_scope
       elsif user.coc_codes.none?

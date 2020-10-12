@@ -83,7 +83,7 @@ module ServiceScanning::WarehouseReports
           :other_type,
           project_ids: [],
           project_group_ids: [],
-        ]
+        ],
       )
     end
   end

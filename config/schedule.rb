@@ -66,12 +66,10 @@ every 1.day, at: '4:02 am' do
   rake "messages:daily"
 end
 
-# These only happen in some scenarios
-if ENV['ETO_API_SITE1'] != 'unknown'
-  every 1.day, at: '6:04 am' do
-    # Defers to delayed jobs
-    rake "eto:import:demographics_and_touch_points"
-  end
+# These only happen in some scenarios, now DB based
+every 1.day, at: '6:04 am' do
+  # Defers to delayed jobs
+  rake "eto:import:demographics_and_touch_points"
 end
 
 
@@ -86,7 +84,7 @@ every 1.day, at: shifted_time.strftime('%H:%M %P') do
 end
 
 
-if ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
+if ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
   every 1.day, at: '11:03 am' do
     # Defers to delayed jobs
     rake "health:daily"

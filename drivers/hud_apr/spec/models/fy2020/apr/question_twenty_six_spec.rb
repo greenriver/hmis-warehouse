@@ -1,0 +1,39 @@
+require 'rails_helper'
+require_relative 'apr_context'
+
+RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionTwentySix, type: :model do
+  include_context 'apr context'
+
+  before(:all) do
+    default_setup
+    run(default_filter, HudApr::Generators::Apr::Fy2020::QuestionTwentySix::QUESTION_NUMBER)
+  end
+
+  after(:all) do
+    cleanup
+  end
+
+  describe 'Q26a: Chronic Homeless Status - Number of Households w/at least one or more CH person' do
+  end
+
+  describe 'Q26b: Number of Chronically Homeless Persons by Household' do
+  end
+
+  describe 'Q26c: Gender of Chronically Homeless Persons' do
+  end
+
+  describe 'Q26d: Age of Chronically Homeless Persons' do
+  end
+
+  describe 'Q26e: Physical and Mental Health Conditions - Chronically Homeless Persons' do
+  end
+
+  describe 'Q26f: Client Cash Income - Chronically Homeless Persons' do
+  end
+
+  describe 'Q26g: Type of Cash Income Sources - Chronically Homeless Persons' do
+  end
+
+  describe 'Q26h: Type of Non-Cash Benefit Sources - Chronically Homeless Persons' do
+  end
+end

@@ -43,7 +43,10 @@ Date:  4/20/2020
 	9/3/2020 - 7.1 - add DateDeleted criteria for hmis_EnrollmentCoC
 				7.6.2 (a and b) - replace hardcoded value of 1 for Cohort with tlsa_Exit.Cohort in INSERT to sys_TimePadded 
 								- use CohortEnd as sys_TimePadded.EndDate if the padded value > CohortEnd
-
+	9/24/2020 - 7.6.2.a - Insert entry/exit dates for all possible enrollments that might be part of system path to sys_TimePadded
+						(was only inserting dates for qualifying exit).  Alse, remove impossible condition from CASE statement (ExitDate is null)
+				7.6.2.b - limit relevant bednights to those >= entry and < exit dates (if non-NULL)
+						because enrollment dates may have been adjusted in tlsa_HHID/tlsa_Enrollment
 	7.1 Identify Qualifying Exits in Exit Cohort Periods
 */
 
@@ -312,10 +315,9 @@ from tlsa_Exit ex
 
 	insert into sys_TimePadded (HoHID, HHType, Cohort, StartDate, EndDate, Step)
 	select distinct ex.HoHID, ex.HHType, ex.Cohort
-		, hhid.EntryDate	
-		, case when hhid.ExitDate is null 
-			or dateadd(dd, 6, hhid.ExitDate) > cd.CohortEnd then cd.CohortEnd 
-			else dateadd(dd, 6, hhid.ExitDate) end
+		, possible.EntryDate	
+		, case when dateadd(dd, 6, possible.ExitDate) > cd.CohortEnd then cd.CohortEnd 
+			else dateadd(dd, 6, possible.ExitDate) end
 		, '7.6.2.a'
 	from tlsa_Exit ex
 	inner join tlsa_HHID hhid on hhid.HouseholdID = ex.QualifyingExitHHID
@@ -343,6 +345,7 @@ from tlsa_Exit ex
 			and possible.ExitDate <= hhid.ExitDate
 	inner join hmis_Services bn on bn.EnrollmentID = possible.EnrollmentID 
 		and bn.DateProvided <= cd.CohortEnd
+		and bn.DateProvided >= possible.EntryDate and bn.DateProvided < possible.ExitDate
 		-- 5/14/2020 correct "DateDeleted = 0" to "DateDeleted is null"
 		and bn.RecordType = 200 and bn.DateDeleted is null
 	where ex.LastInactive is null 

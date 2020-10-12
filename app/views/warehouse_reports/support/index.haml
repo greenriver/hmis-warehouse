@@ -18,8 +18,7 @@
           - row.each_with_index do |v, index|
             %td
               - if id_index.present? && index == id_index
-                = link_to client_path(id: v), target: '_blank' do
-                  = v
+                = link_to_if can_view_clients_or_window?, v, appropriate_client_path(id: v), target: '_blank'
               - else
                 = v
 - else

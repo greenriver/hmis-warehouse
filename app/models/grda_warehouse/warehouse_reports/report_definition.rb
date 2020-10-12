@@ -13,8 +13,13 @@ module GrdaWarehouse::WarehouseReports
       where(enabled: true)
     end
 
-    scope :viewable_by, -> (user) do
+    scope :non_health, -> do
+      where(health: false)
+    end
+
+    scope :viewable_by, ->(user) do
       return none unless user
+
       if user.can_view_all_reports?
         current_scope
       elsif user.can_view_assigned_reports?
@@ -25,8 +30,9 @@ module GrdaWarehouse::WarehouseReports
       end
     end
 
-    scope :assignable_by, -> (user) do
+    scope :assignable_by, ->(user) do
       return none unless user
+
       if user.can_view_all_reports?
         current_scope
       else
