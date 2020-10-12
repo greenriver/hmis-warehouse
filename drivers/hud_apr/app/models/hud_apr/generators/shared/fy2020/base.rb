@@ -835,9 +835,7 @@ module HudApr::Generators::Shared::Fy2020
       return false unless apr_client["income_sources_at_#{suffix}"]['Earned'] == 1
 
       earned_amt = earned_amount(apr_client, suffix)
-      return false unless earned_amt.blank?
-
-      earned_amt.positive?
+      earned_amt.present? && earned_amt.to_i.positive?
     end
 
     # We have other income if the total is positive and not equal to the earned amount
@@ -845,7 +843,7 @@ module HudApr::Generators::Shared::Fy2020
       total_amount = total_amount(apr_client, suffix)
       return false unless total_amount.present? && total_amount.positive?
 
-      total_amount != earned_amount(apr_client, suffix)
+      total_amount != earned_amount(apr_client, suffix).to_i
     end
 
     private def total_income?(apr_client, suffix)
