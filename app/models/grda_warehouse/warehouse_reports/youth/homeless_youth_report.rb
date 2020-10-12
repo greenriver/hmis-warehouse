@@ -486,8 +486,10 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def f_four_f
-      @f_four_f ||= get_client_ids(all_served.
-        where.not('other_agency_involvements::jsonb @> ?', ['No', 'Unknown'].to_json))
+      @f_four_f ||= get_client_ids(
+        all_served.
+        where(Arel.sql("not other_agency_involvements::jsonb ?| array['No', 'Unknown'] and other_agency_involvements::jsonb != '[]'")),
+      )
     end
 
     def f_four_g
