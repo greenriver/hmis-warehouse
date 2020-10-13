@@ -10,12 +10,15 @@ module CoreDemographicsReport
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
     include ArelHelper
+    include CoreDemographicsReport::AgeCalculations
+    include CoreDemographicsReport::GenderCalculations
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
 
     def initialize(filter)
       @filter = filter
+      @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
     end
 
     def self.comparison_patterns
@@ -107,23 +110,29 @@ module CoreDemographicsReport
     end
 
     def total_client_count
-      report_scope.select(:client_id).distinct.count
+      @total_client_count ||= report_scope.select(:client_id).distinct.count
     end
 
     def hoh_count
-      report_scope.where(she_t[:head_of_household].eq(true)).select(:client_id).distinct.count
+      @hoh_count ||= report_scope.where(she_t[:head_of_household].eq(true)).select(:client_id).distinct.count
     end
 
     def household_count
-      report_scope.select(:household_id).distinct.count
+      @household_count ||= report_scope.select(:household_id).distinct.count
     end
 
-    def average_adult_age
+    private def adult_clause
+      Arel.sql("EXTRACT(YEAR FROM #{age_calculation.to_sql})").in((18..110).to_a)
+    end
+
+    private def child_clause
+      Arel.sql("EXTRACT(YEAR FROM #{age_calculation.to_sql})").in((0..17).to_a)
+    end
+
+    private def average_age(clause:)
       average_age = nf('AVG', [age_calculation])
       # limit to adults
-      scope = report_scope.joins(:client).where(
-        Arel.sql("EXTRACT(YEAR FROM #{age_calculation.to_sql})").in((18..110).to_a),
-      )
+      scope = report_scope.joins(:client).where(clause)
       scope.joins(:client).pluck(Arel.sql("EXTRACT(YEAR FROM #{average_age.to_sql})"))&.first&.to_i
     end
   end

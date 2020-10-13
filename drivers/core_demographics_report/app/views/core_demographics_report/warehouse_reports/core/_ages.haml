@@ -1,0 +1,44 @@
+%h3 Adults
+.card.mb-4
+  %table.table
+    %thead
+      %tr
+        %th
+        %th Count
+        %th Average Age
+    %tbody
+      %tr
+        %th All
+        %td= number_with_delimiter @report.adult_count
+        %td= @report.average_adult_age
+
+      %tr
+        %th Female
+        %td= number_with_delimiter @report.adult_female_count
+        %td= @report.average_adult_female_age
+      %tr
+        %th Male
+        %td= number_with_delimiter @report.adult_male_count
+        %td= @report.average_adult_male_age
+%h3 Children
+.card.mb-4
+  %table.table
+    %thead
+      %tr
+        %th
+        %th Count
+        %th Average Age
+    %tbody
+      %tr
+        %th All
+        %td= number_with_delimiter @report.child_count
+        %td= @report.average_child_age
+
+      %tr
+        %th Female
+        %td= number_with_delimiter @report.child_female_count
+        %td= @report.average_child_female_age
+      %tr
+        %th Male
+        %td= number_with_delimiter @report.child_male_count
+        %td= @report.average_child_male_age

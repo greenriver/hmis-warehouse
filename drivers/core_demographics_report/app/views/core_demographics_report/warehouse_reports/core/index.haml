@@ -11,8 +11,7 @@
       = render '/warehouse_reports/breadcrumbs', tab: 'operational'
     .top-nav-prs1
       %h1.mb-5= title
-      .mb-4=# render 'hero_counts'
+      .mb-4= render 'hero_counts'
     .main-inner-prs1
-      = render 'table'
-      = debug @report.report_scope.count
-      = debug @report.report_scope.to_sql
+      = render 'ages'
+      = render 'genders'
