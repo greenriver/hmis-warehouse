@@ -15,8 +15,9 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSixteen, type: :model do
 
   describe 'Q16: Cash Income - Ranges' do
     it 'counts entries' do
+      expect(report_result.answer(question: 'Q16', cell: 'B2').summary).to eq(1)
       expect(report_result.answer(question: 'Q16', cell: 'B3').summary).to eq(1)
-      expect(report_result.answer(question: 'Q16', cell: 'B11').summary).to eq(5)
+      expect(report_result.answer(question: 'Q16', cell: 'B11').summary).to eq(4)
       expect(report_result.answer(question: 'Q16', cell: 'B14').summary).to eq(6)
     end
 
