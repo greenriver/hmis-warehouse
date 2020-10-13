@@ -16,7 +16,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionNineteen, type: :model d
   describe 'Q19a1: Client Cash Income Change - Income Source - by Start and Latest Status' do
     it 'has a client with earned increase from start and annual assessment' do
       expect(report_result.answer(question: 'Q19a1', cell: 'E2').summary).to eq(1)
-      expect(report_result.answer(question: 'Q19a1', cell: 'E3').summary).to eq(1.0)
+      expect(report_result.answer(question: 'Q19a1', cell: 'E3').summary).to eq('1.00')
     end
 
     it 'counts start and annual assessment population' do
@@ -28,5 +28,9 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionNineteen, type: :model d
   end
 
   describe 'Q19b: Disabling Conditions and Income for Adults at Exit' do
+    it 'finds the disabled exit with no income' do
+      expect(report_result.answer(question: 'Q19b', cell: 'B13').summary).to eq(1)
+      expect(report_result.answer(question: 'Q19b', cell: 'B14').summary).to eq(1)
+    end
   end
 end

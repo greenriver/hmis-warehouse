@@ -1065,5 +1065,13 @@ module HudApr::Generators::Shared::Fy2020
 
       date.prev_occurring(:wednesday)
     end
+
+    private def percentage(value)
+      format('%1.4f', value.round(4))
+    end
+
+    private def money(value)
+      format('%.2f', value.round(2))
+    end
   end
 end

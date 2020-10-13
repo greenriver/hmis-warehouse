@@ -53,8 +53,8 @@ module HudApr::Generators::Shared::Fy2020
 
           if column[:column] == 'J'
             percent = 0
-            percent = (members.count.to_f / adults.count).round(4) if ids.any?
-            answer.update(summary: percent)
+            percent = (members.count.to_f / adults.count) if ids.any?
+            answer.update(summary: percentage(percent))
             next
           end
 
@@ -63,8 +63,8 @@ module HudApr::Generators::Shared::Fy2020
             answer.update(summary: members.count)
           when :average
             average = 0
-            average = (amounts.sum.to_f / ids.count).round(2) if ids.any?
-            answer.update(summary: average)
+            average = (amounts.sum.to_f / ids.count) if ids.any?
+            answer.update(summary: money(average))
           end
         end
       end
@@ -155,12 +155,12 @@ module HudApr::Generators::Shared::Fy2020
             # The final question doesn't require accessing the jsonb column
             members = members.where(income_clause)
           end
-          value = 0
           if disabilities_clause.is_a?(Hash)
+            value = percentage(0)
             disabled_count = members.where(disabilities_clause[:household]).
               where(a_t[:disabling_condition].eq(1)).count
             total_count = members.where(disabilities_clause[:household]).count
-            value = (disabled_count.to_f / total_count).round(4) if total_count.positive?
+            value = percentage(disabled_count.to_f / total_count) if total_count.positive?
           else
             members = members.where(disabilities_clause)
             value = members.count
@@ -210,6 +210,7 @@ module HudApr::Generators::Shared::Fy2020
         'VA Non-Service Connected Disability Pension',
         'General Assistance (GA)',
         'Alimony and other spousal support',
+        'Adults with Income Information at Start and Annual Assessment/Exit',
       ).merge(
         {
           'No Sources' => a_t[:income_from_any_source_at_exit].eq(0),
