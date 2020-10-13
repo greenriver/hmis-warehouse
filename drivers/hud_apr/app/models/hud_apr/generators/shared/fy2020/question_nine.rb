@@ -55,7 +55,7 @@ module HudApr::Generators::Shared::Fy2020
 
       engaged_counts = populate_table(table_name, 7, 'Engaged', engaged_ids)
       engaged_counts.each do |col, count|
-        ratio = format('%1.4f', count / contact_counts[col].to_f)
+        ratio = percentage(count / contact_counts[col].to_f)
         @report.answer(question: table_name, cell: "#{col}7").update(summary: ratio)
       end
     end
