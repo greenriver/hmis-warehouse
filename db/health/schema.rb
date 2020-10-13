@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_30_152001) do
+ActiveRecord::Schema.define(version: 2020_10_13_203358) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -198,6 +198,157 @@ ActiveRecord::Schema.define(version: 2020_09_30_152001) do
     t.float "baseline_visits"
     t.float "implementation_visits"
     t.index ["medicaid_id"], name: "index_claims_ed_nyu_severity_on_medicaid_id"
+  end
+
+  create_table "claims_reporting_medical_claims", force: :cascade do |t|
+    t.string "member_id", limit: 50
+    t.string "claim_number", limit: 30
+    t.string "line_number", limit: 10
+    t.string "cp_pidsl", limit: 50
+    t.string "cp_name", limit: 255
+    t.string "aco_pidsl", limit: 50
+    t.string "aco_name", limit: 255
+    t.string "pcc_pidsl", limit: 50
+    t.string "pcc_name", limit: 255
+    t.string "pcc_npi", limit: 50
+    t.string "pcc_taxid", limit: 50
+    t.string "mco_pidsl", limit: 50
+    t.string "mco_name", limit: 50
+    t.string "source", limit: 50
+    t.string "claim_type", limit: 255
+    t.date "member_dob"
+    t.string "patient_status", limit: 255
+    t.date "service_start_date"
+    t.date "service_end_date"
+    t.date "admit_date"
+    t.date "discharge_date"
+    t.string "type_of_bill", limit: 255
+    t.string "admit_source", limit: 255
+    t.string "admit_type", limit: 255
+    t.string "frequency_code", limit: 255
+    t.date "paid_date"
+    t.decimal "billed_amount", precision: 19, scale: 4
+    t.decimal "allowed_amount", precision: 19, scale: 4
+    t.decimal "paid_amount", precision: 19, scale: 4
+    t.string "admit_diagnosis", limit: 50
+    t.string "dx_1", limit: 50
+    t.string "dx_2", limit: 50
+    t.string "dx_3", limit: 50
+    t.string "dx_4", limit: 50
+    t.string "dx_5", limit: 50
+    t.string "dx_6", limit: 50
+    t.string "dx_7", limit: 50
+    t.string "dx_8", limit: 50
+    t.string "dx_9", limit: 50
+    t.string "dx_10", limit: 50
+    t.string "dx_11", limit: 50
+    t.string "dx_12", limit: 50
+    t.string "dx_13", limit: 50
+    t.string "dx_14", limit: 50
+    t.string "dx_15", limit: 50
+    t.string "dx_16", limit: 50
+    t.string "dx_17", limit: 50
+    t.string "dx_18", limit: 50
+    t.string "dx_19", limit: 50
+    t.string "dx_20", limit: 50
+    t.string "dx_21", limit: 50
+    t.string "dx_22", limit: 50
+    t.string "dx_23", limit: 50
+    t.string "dx_24", limit: 50
+    t.string "dx_25", limit: 50
+    t.string "e_dx_1", limit: 50
+    t.string "e_dx_2", limit: 50
+    t.string "e_dx_3", limit: 50
+    t.string "e_dx_4", limit: 50
+    t.string "e_dx_5", limit: 50
+    t.string "e_dx_6", limit: 50
+    t.string "e_dx_7", limit: 50
+    t.string "e_dx_8", limit: 50
+    t.string "e_dx_9", limit: 50
+    t.string "e_dx_10", limit: 50
+    t.string "e_dx_11", limit: 50
+    t.string "e_dx_12", limit: 50
+    t.string "icd_version", limit: 50
+    t.string "surgical_procedure_code_1", limit: 50
+    t.string "surgical_procedure_code_2", limit: 50
+    t.string "surgical_procedure_code_3", limit: 50
+    t.string "surgical_procedure_code_4", limit: 50
+    t.string "surgical_procedure_code_5", limit: 50
+    t.string "surgical_procedure_code_6", limit: 50
+    t.string "revenue_code", limit: 50
+    t.string "place_of_service_code", limit: 50
+    t.string "procedure_code", limit: 50
+    t.string "procedure_modifier_1", limit: 50
+    t.string "procedure_modifier_2", limit: 50
+    t.string "procedure_modifier_3", limit: 50
+    t.string "procedure_modifier_4", limit: 50
+    t.string "drg_code", limit: 50
+    t.string "drg_version_code", limit: 50
+    t.string "severity_of_illness", limit: 50
+    t.string "service_provider_npi", limit: 50
+    t.string "id_provider_servicing", limit: 50
+    t.string "servicing_taxid", limit: 50
+    t.string "servicing_provider_name", limit: 512
+    t.string "servicing_provider_type", limit: 255
+    t.string "servicing_provider_taxonomy", limit: 255
+    t.string "servicing_address", limit: 512
+    t.string "servicing_city", limit: 255
+    t.string "servicing_state", limit: 255
+    t.string "servicing_zip", limit: 50
+    t.string "billing_npi", limit: 50
+    t.string "id_provider_billing", limit: 50
+    t.string "billing_taxid", limit: 50
+    t.string "billing_provider_name", limit: 512
+    t.string "billing_provider_type", limit: 50
+    t.string "billing_provider_taxonomy", limit: 50
+    t.string "billing_address", limit: 512
+    t.string "billing_city", limit: 255
+    t.string "billing_state", limit: 255
+    t.string "billing_zip", limit: 50
+    t.string "claim_status", limit: 255
+    t.string "disbursement_code", limit: 255
+    t.string "enrolled_flag", limit: 50
+    t.string "referral_circle_ind", limit: 50
+    t.string "mbhp_flag", limit: 50
+    t.string "present_on_admission_1", limit: 50
+    t.string "present_on_admission_2", limit: 50
+    t.string "present_on_admission_3", limit: 50
+    t.string "present_on_admission_4", limit: 50
+    t.string "present_on_admission_5", limit: 50
+    t.string "present_on_admission_6", limit: 50
+    t.string "present_on_admission_7", limit: 50
+    t.string "present_on_admission_8", limit: 50
+    t.string "present_on_admission_9", limit: 50
+    t.string "present_on_admission_10", limit: 50
+    t.string "present_on_admission_11", limit: 50
+    t.string "present_on_admission_12", limit: 50
+    t.string "present_on_admission_13", limit: 50
+    t.string "present_on_admission_14", limit: 50
+    t.string "present_on_admission_15", limit: 50
+    t.string "present_on_admission_16", limit: 50
+    t.string "present_on_admission_17", limit: 50
+    t.string "present_on_admission_18", limit: 50
+    t.string "present_on_admission_19", limit: 50
+    t.string "present_on_admission_20", limit: 50
+    t.string "present_on_admission_21", limit: 50
+    t.string "present_on_admission_22", limit: 50
+    t.string "present_on_admission_23", limit: 50
+    t.string "present_on_admission_24", limit: 50
+    t.string "present_on_admission_25", limit: 50
+    t.string "e_dx_present_on_admission_1", limit: 50
+    t.string "e_dx_present_on_admission_2", limit: 50
+    t.string "e_dx_present_on_admission_3", limit: 50
+    t.string "e_dx_present_on_admission_4", limit: 50
+    t.string "e_dx_present_on_admission_5", limit: 50
+    t.string "e_dx_present_on_admission_6", limit: 50
+    t.string "e_dx_present_on_admission_7", limit: 50
+    t.string "e_dx_present_on_admission_8", limit: 50
+    t.string "e_dx_present_on_admission_9", limit: 50
+    t.string "e_dx_present_on_admission_10", limit: 50
+    t.string "e_dx_present_on_admission_11", limit: 50
+    t.string "e_dx_present_on_admission_12", limit: 50
+    t.decimal "quantity", precision: 12, scale: 4
+    t.string "price_method", limit: 50
   end
 
   create_table "claims_roster", id: :serial, force: :cascade do |t|
@@ -541,6 +692,7 @@ ActiveRecord::Schema.define(version: 2020_09_30_152001) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -584,6 +736,7 @@ ActiveRecord::Schema.define(version: 2020_09_30_152001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
+    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|

@@ -174,6 +174,9 @@ namespace :health do
       task :down do
         Rake::Task["db:migrate:down"].invoke
       end
+      task :status do
+        Rake::Task["db:migrate:status"].invoke
+      end
     end
 
     task :rollback do
