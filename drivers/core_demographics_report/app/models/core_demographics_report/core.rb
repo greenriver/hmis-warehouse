@@ -12,6 +12,7 @@ module CoreDemographicsReport
     include ArelHelper
     include CoreDemographicsReport::AgeCalculations
     include CoreDemographicsReport::GenderCalculations
+    include CoreDemographicsReport::RaceCalculations
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
@@ -110,7 +111,7 @@ module CoreDemographicsReport
     end
 
     def total_client_count
-      @total_client_count ||= report_scope.select(:client_id).distinct.count
+      @total_client_count ||= distinct_client_ids.count
     end
 
     def hoh_count
@@ -119,6 +120,10 @@ module CoreDemographicsReport
 
     def household_count
       @household_count ||= report_scope.select(:household_id).distinct.count
+    end
+
+    private def distinct_client_ids
+      report_scope.select(:client_id).distinct
     end
 
     private def adult_clause

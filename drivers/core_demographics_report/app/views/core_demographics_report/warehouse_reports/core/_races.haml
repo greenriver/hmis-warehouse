@@ -1,0 +1,16 @@
+%h3 Race Breakdowns
+.row
+  .col-sm-6
+    .card.mb-4
+      %table.table
+        %thead
+          %tr
+            %th Race
+            %th Count
+            %th Percentage
+        %tbody
+          - @report.race_buckets.each do |id, title|
+            %tr
+              %th= title
+              %td= number_with_delimiter(@report.race_count(id))
+              %td= number_to_percentage(@report.race_percentage(id), precision: 2)

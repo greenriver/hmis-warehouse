@@ -1,0 +1,16 @@
+%h3 Gender Breakdowns
+.row
+  .col-sm-6
+    .card.mb-4
+      %table.table
+        %thead
+          %tr
+            %th Gender
+            %th Count
+            %th Percentage
+        %tbody
+          - HUD.genders.each do |id, title|
+            %tr
+              %th= title
+              %td= number_with_delimiter(@report.gender_count(id))
+              %td= number_to_percentage(@report.gender_percentage(id), precision: 2)
