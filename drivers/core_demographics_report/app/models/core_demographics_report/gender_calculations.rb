@@ -16,8 +16,33 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    def gender_age_count(gender:, age_range:)
+      age_range.to_a.map do |age|
+        gender_age_breakdowns[[gender, age]]&.count&.presence || 0
+      end.sum
+    end
+
+    def gender_age_percentage(gender:, age_range:)
+      total_count = client_genders_and_ages.count
+      return 0 if total_count.zero?
+
+      of_type = gender_age_count(gender: gender, age_range: age_range)
+      return 0 if of_type.zero?
+
+      ((of_type.to_f / total_count) * 100)
+    end
+
+    private def gender_age_breakdowns
+      @gender_age_breakdowns ||= client_genders_and_ages.group_by do |_, row|
+        [
+          row[:gender],
+          row[:age],
+        ]
+      end
+    end
+
     private def gender_breakdowns
-      client_genders_and_ages.group_by do |_, row|
+      @gender_breakdowns ||= client_genders_and_ages.group_by do |_, row|
         row[:gender]
       end
     end
