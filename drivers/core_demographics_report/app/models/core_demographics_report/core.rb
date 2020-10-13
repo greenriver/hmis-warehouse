@@ -13,6 +13,10 @@ module CoreDemographicsReport
     include CoreDemographicsReport::AgeCalculations
     include CoreDemographicsReport::GenderCalculations
     include CoreDemographicsReport::RaceCalculations
+    include CoreDemographicsReport::EthnicityCalculations
+    include CoreDemographicsReport::DisabilityCalculations
+    include CoreDemographicsReport::RelationshipCalculations
+    include CoreDemographicsReport::DvCalculations
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes

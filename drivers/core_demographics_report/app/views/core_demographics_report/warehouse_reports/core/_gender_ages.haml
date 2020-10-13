@@ -1,0 +1,16 @@
+.card.mb-4
+  %table.table
+    %thead
+      %tr
+        %th Gender
+        %th Age Range
+        %th Count
+        %th Percentage
+    %tbody
+      - HUD.genders.each do |gender, gender_title|
+        - @report.age_categories.each do |age_range, age_title|
+          %tr
+            %th= gender_title
+            %th= age_title
+            %td= number_with_delimiter(@report.gender_age_count(gender: gender, age_range: age_range))
+            %td= number_to_percentage(@report.gender_age_percentage(gender: gender, age_range: age_range), precision: 2)

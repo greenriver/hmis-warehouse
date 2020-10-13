@@ -1,0 +1,15 @@
+%h3 DV Victim/Survivor - Most Recent Occurance
+%p Percentages are out of those reporting being a DV victim or survivor.
+.card.mb-4
+  %table.table
+    %thead
+      %tr
+        %th Occurrance Timing
+        %th Count
+        %th Percentage
+    %tbody
+      - ::HUD.when_occurreds.each do |id, title|
+        %tr
+          %th= title
+          %td= number_with_delimiter(@report.dv_count(id))
+          %td= number_to_percentage(@report.dv_percentage(id), precision: 2)

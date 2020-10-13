@@ -3,7 +3,7 @@ module
   extend ActiveSupport::Concern
   included do
     def gender_count(type)
-      gender_breakdowns[type].count.presence || 0
+      gender_breakdowns[type]&.count&.presence || 0
     end
 
     def gender_percentage(type)

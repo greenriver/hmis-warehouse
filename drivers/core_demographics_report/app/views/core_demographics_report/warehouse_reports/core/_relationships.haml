@@ -1,0 +1,14 @@
+%h3 Relationship Breakdowns
+.card.mb-4
+  %table.table
+    %thead
+      %tr
+        %th Relationship to Head of Household
+        %th Count
+        %th Percentage
+    %tbody
+      - HUD.relationships_to_hoh.each do |id, title|
+        %tr
+          %th= title
+          %td= number_with_delimiter(@report.relationship_count(id))
+          %td= number_to_percentage(@report.relationship_percentage(id), precision: 2)

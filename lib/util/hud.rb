@@ -1097,7 +1097,12 @@ module HUD
 
   # 4.11.A
   def when_d_v_occurred(id, reverse = false)
-    map = {
+    map = when_occurreds
+    _translate map, id, reverse
+  end
+
+  def when_occurreds
+    {
       1 => 'Within the past three months',
       2 => 'Three to six months ago (excluding six months exactly)',
       3 => 'Six months to one year ago (excluding one year exactly)',
@@ -1106,8 +1111,6 @@ module HUD
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 4.12.2

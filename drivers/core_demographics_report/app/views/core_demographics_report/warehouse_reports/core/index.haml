@@ -14,6 +14,13 @@
       .mb-4= render 'hero_counts'
     .main-inner-prs1
       = render 'ages'
-      = render 'genders'
-      = render 'races'
-      = render 'ethnicities'
+      .row
+        .col-sm-6
+          = render 'genders'
+          = render 'races'
+          = render 'ethnicities'
+          = render 'disabilities'
+          = render 'relationships'
+          = render 'dvs'
+        .col-sm-6
+          = render 'gender_ages'
