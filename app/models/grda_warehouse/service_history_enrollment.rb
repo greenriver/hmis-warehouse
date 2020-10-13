@@ -27,7 +27,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   # make a scope for every project type and a type? method for instances
   GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k, v|
-    next unless Symbol === k
+    next unless k.is_a?(Symbol)
 
     scope k, -> { where project_type_column => v }
     define_method "#{k}?" do
@@ -44,9 +44,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   def self.service_types
     service_types = ['service']
-    if GrdaWarehouse::Config.get(:so_day_as_month)
-      service_types << 'extrapolated'
-    end
+    service_types << 'extrapolated' if GrdaWarehouse::Config.get(:so_day_as_month)
   end
   scope :residential, -> {
     in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
