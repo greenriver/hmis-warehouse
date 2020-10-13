@@ -29,9 +29,18 @@ module HudApr::Generators::Shared::Fy2020
             where( # with Income and Sources at start and at <suffix>
               a_t[:income_from_any_source_at_start].eq(1).
               and(a_t["income_from_any_source_at_#{suffix}".to_sym].eq(1)).
-              and(a_t[:income_total_at_start].gt(0)).
               and(a_t["income_total_at_#{suffix}".to_sym].gt(0)),
             )
+
+          case column[:amount_at_start]
+          when :positive
+            adults = adults.where(a_t[:income_total_at_start].gt(0))
+          when :zero
+            adults = adults.where(a_t[:income_total_at_start].eq(0))
+          end
+
+          adults = adults.where(a_t["income_total_at_#{suffix}".to_sym].gt(0)) unless column[:column] == 'H'
+
           (ids, amounts) = ids_and_amounts(
             adults,
             column: column[:column],
@@ -344,29 +353,29 @@ module HudApr::Generators::Shared::Fy2020
 
     private def income_stati_stayers
       {
-        'Had Income Category at Start and Did Not Have It at Annual Assessment' => { column: 'B' },
-        'Retained Income Category But Had Less $ at Annual Assessment Than at Start' => { column: 'C' },
-        'Retained Income Category and Same $ at Annual Assessment as at Start' => { column: 'D' },
-        'Retained Income Category and Increased $ at Annual Assessment' => { column: 'E' },
-        'Did Not Have the Income Category at Start and Gained the Income Category at Annual Assessment' => { column: 'F' },
-        'Did Not Have the Income Category at Start or at Annual Assessment' => { column: 'G' },
-        'Total Adults (including those with No Income)' => { column: 'H' },
-        'Performance Measure: Adults who Gained or Increased Income from Start to Annual Assessment, Average Gain' => { column: 'I' },
-        'Performance measure: Percent of persons who accomplishe d this measure' => { column: 'J' },
+        'Had Income Category at Start and Did Not Have It at Annual Assessment' => { column: 'B', amount_at_start: :positive },
+        'Retained Income Category But Had Less $ at Annual Assessment Than at Start' => { column: 'C', amount_at_start: :positive },
+        'Retained Income Category and Same $ at Annual Assessment as at Start' => { column: 'D', amount_at_start: :positive },
+        'Retained Income Category and Increased $ at Annual Assessment' => { column: 'E', amount_at_start: :positive },
+        'Did Not Have the Income Category at Start and Gained the Income Category at Annual Assessment' => { column: 'F', amount_at_start: :zero },
+        'Did Not Have the Income Category at Start or at Annual Assessment' => { column: 'G', amount_at_start: :zero },
+        'Total Adults (including those with No Income)' => { column: 'H', amount_at_start: :any },
+        'Performance Measure: Adults who Gained or Increased Income from Start to Annual Assessment, Average Gain' => { column: 'I', amount_at_start: :any },
+        'Performance measure: Percent of persons who accomplishe d this measure' => { column: 'J', amount_at_start: :any },
       }
     end
 
     private def income_stati_leavers
       {
-        'Had Income Category at Start and Did Not Have It at Exit' => { column: 'B' },
-        'Retained Income Category But Had Less $ at Exit Than at Start' => { column: 'C' },
-        'Retained Income Category and Same $ at Exit as at Start' => { column: 'D' },
-        'Retained Income Category and Increased $ at Exit' => { column: 'E' },
-        'Did Not Have the Income Category at Start and Gained the Income Category at Exit' => { column: 'F' },
-        'Did Not Have the Income Category at Start or at Exit' => { column: 'G' },
-        'Total Adults (including those with No Income)' => { column: 'H' },
-        'Performance Measure: Adults who Gained or Increased Income from Start to Exit, Average Gain' => { column: 'I' },
-        'Performance measure: Percent of persons who accomplished this measure' => { column: 'J' },
+        'Had Income Category at Start and Did Not Have It at Exit' => { column: 'B', amount_at_start: :positive },
+        'Retained Income Category But Had Less $ at Exit Than at Start' => { column: 'C', amount_at_start: :positive },
+        'Retained Income Category and Same $ at Exit as at Start' => { column: 'D', amount_at_start: :positive },
+        'Retained Income Category and Increased $ at Exit' => { column: 'E', amount_at_start: :positive },
+        'Did Not Have the Income Category at Start and Gained the Income Category at Exit' => { column: 'F', amount_at_start: :zero },
+        'Did Not Have the Income Category at Start or at Exit' => { column: 'G', amount_at_start: :zero },
+        'Total Adults (including those with No Income)' => { column: 'H', amount_at_start: :any },
+        'Performance Measure: Adults who Gained or Increased Income from Start to Exit, Average Gain' => { column: 'I', amount_at_start: :any },
+        'Performance measure: Percent of persons who accomplished this measure' => { column: 'J', amount_at_start: :any },
       }
     end
 
