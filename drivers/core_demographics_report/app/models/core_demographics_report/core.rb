@@ -17,6 +17,7 @@ module CoreDemographicsReport
     include CoreDemographicsReport::DisabilityCalculations
     include CoreDemographicsReport::RelationshipCalculations
     include CoreDemographicsReport::DvCalculations
+    include CoreDemographicsReport::PriorCalculations
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
