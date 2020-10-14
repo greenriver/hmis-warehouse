@@ -1,0 +1,22 @@
+attributes:
+  - content
+  - foreign_key
+  - inheritance
+disconnected: false
+filename: erd
+filetype: dot
+indirect: false
+inheritance: true
+markup: true
+notation: bachman
+orientation: horizontal
+polymorphism: false
+sort: true
+warn: true
+title: "Sample Title"
+exclude: null
+only: "Health::AccountableCareOrganization,Health::Agency,Health::AgencyPatientReferral,Health::AgencyUser,Health::Appointment,Health::BackupPlan,Health::Base,Health::Careplan,Health::CareplanFile,Health::CareplanService,Health::Claim,Health::Claims::AmountPaid,Health::Claims::Base,Health::Claims::ClaimsVolume,Health::Claims::EdNyuSeverity,Health::Claims::Roster,Health::Claims::TopConditions,Health::Claims::TopIpConditions,Health::Claims::TopProviders,Health::ComprehensiveHealthAssessment,Health::ComprehensiveHealthAssessmentFile,Health::Cp,Health::CpMembers::EnrollmentRoster,Health::CpMembers::EnrollmentRosterFile,Health::CpMembers::FileBase,Health::CpMembers::Roster,Health::CpMembers::RosterFile,Health::DataSource,Health::DisenrollmentReason,Health::EdIpVisit,Health::EdIpVisitFile,Health::EligibilityInquiry,Health::EligibilityResponse,Health::EncounterRecord,Health::EncounterReport,Health::Enrollment,Health::EpicBase,Health::EpicCareplan,Health::EpicCaseNote,Health::EpicCaseNoteQualifyingActivity,Health::EpicCha,Health::EpicGoal,Health::EpicHousingStatus,Health::EpicPatient,Health::EpicQualifyingActivity,Health::EpicSsm,Health::EpicTeamMember,Health::Equipment,Health::Goal::Base,Health::Goal::Clinical,Health::Goal::Housing,Health::Goal::Hpc,Health::Goal::SelfManagement,Health::Goal::Social,Health::HealthFile,Health::HealthVersion,Health::Medication,Health::MemberStatusReport,Health::MemberStatusReportPatient,Health::ParticipationForm,Health::ParticipationFormFile,Health::Patient,Health::PatientReferral,Health::PatientReferralImport,Health::PatientReferralRefresh,Health::PremiumPayment,Health::Problem,Health::QualifyingActivity,Health::ReleaseForm,Health::ReleaseFormFile,Health::SchemaMigration,Health::SdhCaseManagementNote,Health::SdhCaseManagementNoteFile,Health::SelfSufficiencyMatrixForm,Health::Service,Health::SignableDocument,Health::SignableDocumentFile,Health::SignatureRequest,Health::SignatureRequests::AcoSignatureRequest,Health::SignatureRequests::PatientSignatureRequest,Health::SignatureRequests::PcpSignatureRequest,Health::Soap::Config,Health::SsmExport,Health::SsmFile,Health::Team,Health::Team::AcoCareManager,Health::Team::Behavioral,Health::Team::CareCoordinator,Health::Team::CaseManager,Health::Team::Member,Health::Team::Nurse,Health::Team::Other,Health::Team::PcpDesignee,Health::Team::Provider,Health::Team::Representative,Health::Tracing::Case,Health::Tracing::Contact,Health::Tracing::Location,Health::Tracing::Result,Health::Tracing::SiteLeader,Health::Tracing::Staff,Health::TransactionAcknowledgement,Health::UserCareCoordinator,Health::Visit,HealthBase"
+only_recursion_depth: null
+prepend_primary: false
+cluster: false
+splines: spline

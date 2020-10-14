@@ -1,12 +1,11 @@
-- if @follow_up_due.present?
-  - if @follow_up_due >= Date.current
-    %div.alert.alert-warning
-      %i.alert__icon.icon-warning
-      A 3-month follow up is due for #{@client.name} on #{@follow_up_due}
-  - else
-    %div.alert.alert-danger
-      %i.alert__icon.icon-warning
-      A 3-month follow up was due for #{@client.name} on #{@follow_up_due}
+- if @client.youth_follow_up_due_soon?
+  %div.alert.alert-warning
+    %i.alert__icon.icon-warning
+    A 3-month follow up case note is due for #{@client.name} on #{@client.youth_follow_up_due_on}
+- if @client.youth_follow_up_due?
+  %div.alert.alert-danger
+    %i.alert__icon.icon-warning
+    A 3-month follow up case note was due for #{@client.name} on #{@client.youth_follow_up_due_on}
 = render 'intake_list'
 = render 'case_management_list'
 

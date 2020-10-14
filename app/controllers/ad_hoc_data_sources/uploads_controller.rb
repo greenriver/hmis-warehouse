@@ -54,8 +54,8 @@ class AdHocDataSources::UploadsController < ApplicationController
   private def update_health_prioritization
     prioritized_client_ids = update_params[:clients].select { |_, opts| opts[:health_prioritized] == '1' }.keys
     un_prioritized_client_ids = update_params[:clients].select { |_, opts| opts[:health_prioritized] == '0' }.keys
-    GrdaWarehouse::Hud::Client.where(id: prioritized_client_ids).update_all(health_prioritized: true)
-    GrdaWarehouse::Hud::Client.where(id: un_prioritized_client_ids).update_all(health_prioritized: false)
+    GrdaWarehouse::Hud::Client.where(id: prioritized_client_ids).update_all(health_prioritized: 'Yes')
+    GrdaWarehouse::Hud::Client.where(id: un_prioritized_client_ids).update_all(health_prioritized: nil)
   end
 
   private def upload_params

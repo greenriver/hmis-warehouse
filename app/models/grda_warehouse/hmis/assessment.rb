@@ -65,6 +65,10 @@ module GrdaWarehouse::HMIS
       where(pathways: true)
     end
 
+    scope :covid_19_impact_assessments, -> do
+      where(covid_19_impact_assessment: true)
+    end
+
     scope :health_for_user, -> (user) do
       if user.can_administer_health?
         joins(:hmis_forms).merge(GrdaWarehouse::HmisForm.health_touch_points)

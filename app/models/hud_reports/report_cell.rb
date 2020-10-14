@@ -72,9 +72,9 @@ module HudReports
     private def new_member(warehouse_client:, universe_client:)
       UniverseMember.new(
         report_cell: self,
-        client: warehouse_client,
-        first_name: warehouse_client.first_name,
-        last_name: warehouse_client.last_name,
+        client_id: warehouse_client.id,
+        first_name: universe_client.first_name,
+        last_name: universe_client.last_name,
         universe_membership: universe_client,
       )
     end
