@@ -1,30 +1,38 @@
-%h3 DV Victim/Survivor
-.card.mb-4
-  %table.table
-    %thead
-      %tr
-        %th Response
-        %th Count
-        %th Percentage
-    %tbody
-      - ::HUD.no_yes_reasons_for_missing_data_options.each do |id, title|
-        %tr
-          %th= title
-          %td= number_with_delimiter(@report.dv_status_count(id))
-          %td= number_to_percentage(@report.dv_status_percentage(id), precision: 2)
+- reports = [@report]
+- column_class = 'col-sm-8'
+- if @report.include_comparison?
+  - reports << @comparison
+  - column_class = 'col-sm-6'
+.row
+  - reports.each do |report|
+    %div{class: column_class}
+      %h3 DV Victim/Survivor
+      .card.mb-4
+        %table.table
+          %thead
+            %tr
+              %th Response
+              %th Count
+              %th Percentage
+          %tbody
+            - ::HUD.no_yes_reasons_for_missing_data_options.each do |id, title|
+              %tr
+                %th= title
+                %td= number_with_delimiter(report.dv_status_count(id))
+                %td= number_to_percentage(report.dv_status_percentage(id), precision: 2)
 
-%h3 DV Victim/Survivor - Most Recent Occurance
-%p Percentages are out of those reporting being a DV victim or survivor.
-.card.mb-4
-  %table.table
-    %thead
-      %tr
-        %th Occurrance Timing
-        %th Count
-        %th Percentage
-    %tbody
-      - ::HUD.when_occurreds.each do |id, title|
-        %tr
-          %th= title
-          %td= number_with_delimiter(@report.dv_occurrence_count(id))
-          %td= number_to_percentage(@report.dv_occurrence_percentage(id), precision: 2)
+      %h3 DV Victim/Survivor - Most Recent Occurance
+      %p Percentages are out of those reporting being a DV victim or survivor.
+      .card.mb-4
+        %table.table
+          %thead
+            %tr
+              %th Occurrance Timing
+              %th Count
+              %th Percentage
+          %tbody
+            - ::HUD.when_occurreds.each do |id, title|
+              %tr
+                %th= title
+                %td= number_with_delimiter(report.dv_occurrence_count(id))
+                %td= number_to_percentage(report.dv_occurrence_percentage(id), precision: 2)

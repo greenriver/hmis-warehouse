@@ -18,6 +18,7 @@ module CoreDemographicsReport
     include CoreDemographicsReport::RelationshipCalculations
     include CoreDemographicsReport::DvCalculations
     include CoreDemographicsReport::PriorCalculations
+    include CoreDemographicsReport::HouseholdTypeCalculations
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
@@ -25,6 +26,7 @@ module CoreDemographicsReport
     def initialize(filter)
       @filter = filter
       @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      @comparison_pattern = filter.comparison_pattern
     end
 
     def self.comparison_patterns
@@ -38,6 +40,25 @@ module CoreDemographicsReport
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
         viewable_by(user).exists?
+    end
+
+    def self.url
+      'core_demographics_report/warehouse_reports/core'
+    end
+
+    def self.available_section_types
+      [
+        'ages',
+        'genders',
+        'races',
+        'ethnicities',
+        'disabilities',
+        'relationships',
+        'dvs',
+        'priors',
+        'household_types',
+        'gender_ages',
+      ]
     end
 
     def multiple_project_types?
@@ -116,15 +137,25 @@ module CoreDemographicsReport
     end
 
     def total_client_count
-      @total_client_count ||= distinct_client_ids.count
+      @total_client_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        distinct_client_ids.count
+      end
     end
 
     def hoh_count
-      @hoh_count ||= report_scope.where(she_t[:head_of_household].eq(true)).select(:client_id).distinct.count
+      @hoh_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        hoh_scope.select(:client_id).distinct.count
+      end
     end
 
     def household_count
-      @household_count ||= report_scope.select(:household_id).distinct.count
+      @household_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        report_scope.select(:household_id).distinct.count
+      end
+    end
+
+    private def hoh_scope
+      report_scope.where(she_t[:head_of_household].eq(true))
     end
 
     private def distinct_client_ids
@@ -144,6 +175,16 @@ module CoreDemographicsReport
       # limit to adults
       scope = report_scope.joins(:client).where(clause)
       scope.joins(:client).pluck(Arel.sql("EXTRACT(YEAR FROM #{average_age.to_sql})"))&.first&.to_i
+    end
+
+    private def cache_slug
+      @filter.attributes
+    end
+
+    private def expiration_length
+      return 30.seconds if Rails.env.development?
+
+      10.minutes
     end
   end
 end

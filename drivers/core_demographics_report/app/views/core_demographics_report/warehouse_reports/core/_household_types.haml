@@ -6,17 +6,18 @@
 .row
   - reports.each do |report|
     %div{class: column_class}
-      %h3 Gender Breakdowns
+      %h3 Household Types
+      %p Household type counts count Heads of Household in each type.
       .card.mb-4
         %table.table
           %thead
             %tr
-              %th Gender
+              %th Type
               %th Count
               %th Percentage
           %tbody
-            - HUD.genders.each do |id, title|
+            - @filter.available_household_types.each do |title, id|
               %tr
                 %th= title
-                %td= number_with_delimiter(report.gender_count(id))
-                %td= number_to_percentage(report.gender_percentage(id), precision: 2)
+                %td= number_with_delimiter(report.household_type_count(id))
+                %td= number_to_percentage(report.household_type_percentage(id), precision: 2)

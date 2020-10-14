@@ -23,13 +23,15 @@ module
     end
 
     private def client_ethnicities
-      @client_ethnicities ||= {}.tap do |clients|
-        report_scope.joins(:client).order(first_date_in_program: :desc).
-          distinct.
-          pluck(:client_id, c_t[:Ethnicity], :first_date_in_program).
-          each do |client_id, ethnicity, _|
-            clients[client_id] ||= ethnicity
-          end
+      @client_ethnicities ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        {}.tap do |clients|
+          report_scope.joins(:client).order(first_date_in_program: :desc).
+            distinct.
+            pluck(:client_id, c_t[:Ethnicity], :first_date_in_program).
+            each do |client_id, ethnicity, _|
+              clients[client_id] ||= ethnicity
+            end
+        end
       end
     end
   end

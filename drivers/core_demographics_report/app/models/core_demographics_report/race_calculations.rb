@@ -27,12 +27,14 @@ module
     end
 
     private def client_races
-      @client_races ||= {}.tap do |clients|
-        # find any clients who fell within the scope
-        client_scope = GrdaWarehouse::Hud::Client.where(id: distinct_client_ids)
-        cache_client = GrdaWarehouse::Hud::Client.new
-        distinct_client_ids.pluck(:client_id).each do |client_id|
-          clients[client_id] = cache_client.race_string(scope_limit: client_scope, destination_id: client_id)
+      @client_races ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        {}.tap do |clients|
+          # find any clients who fell within the scope
+          client_scope = GrdaWarehouse::Hud::Client.where(id: distinct_client_ids)
+          cache_client = GrdaWarehouse::Hud::Client.new
+          distinct_client_ids.pluck(:client_id).each do |client_id|
+            clients[client_id] = cache_client.race_string(scope_limit: client_scope, destination_id: client_id)
+          end
         end
       end
     end

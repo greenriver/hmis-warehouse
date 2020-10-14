@@ -1,14 +1,22 @@
-%h3 Ethnicity Breakdowns
-.card.mb-4
-  %table.table
-    %thead
-      %tr
-        %th Ethnicity
-        %th Count
-        %th Percentage
-    %tbody
-      - HUD.ethnicities.each do |id, title|
-        %tr
-          %th= title
-          %td= number_with_delimiter(@report.ethnicity_count(id))
-          %td= number_to_percentage(@report.ethnicity_percentage(id), precision: 2)
+- reports = [@report]
+- column_class = 'col-sm-8'
+- if @report.include_comparison?
+  - reports << @comparison
+  - column_class = 'col-sm-6'
+.row
+  - reports.each do |report|
+    %div{class: column_class}
+      %h3 Ethnicity Breakdowns
+      .card.mb-4
+        %table.table
+          %thead
+            %tr
+              %th Ethnicity
+              %th Count
+              %th Percentage
+          %tbody
+            - HUD.ethnicities.each do |id, title|
+              %tr
+                %th= title
+                %td= number_with_delimiter(report.ethnicity_count(id))
+                %td= number_to_percentage(report.ethnicity_percentage(id), precision: 2)

@@ -48,16 +48,18 @@ module
     end
 
     private def client_genders_and_ages
-      @client_genders_and_ages ||= {}.tap do |clients|
-        report_scope.joins(:client).order(first_date_in_program: :desc).
-          distinct.
-          pluck(:client_id, age_calculation, c_t[:Gender], :first_date_in_program).
-          each do |client_id, age, gender, _|
-            clients[client_id] ||= {
-              gender: gender.presence || 99,
-              age: age,
-            }
-          end
+      @client_genders_and_ages ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        {}.tap do |clients|
+          report_scope.joins(:client).order(first_date_in_program: :desc).
+            distinct.
+            pluck(:client_id, age_calculation, c_t[:Gender], :first_date_in_program).
+            each do |client_id, age, gender, _|
+              clients[client_id] ||= {
+                gender: gender.presence || 99,
+                age: age,
+              }
+            end
+        end
       end
     end
   end

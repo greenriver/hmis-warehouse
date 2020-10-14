@@ -7,7 +7,7 @@ module
     end
 
     def disability_percentage(type)
-      total_count = distinct_client_ids.count
+      total_count = total_client_count
       return 0 if total_count.zero?
 
       of_type = disability_count(type)
@@ -17,11 +17,11 @@ module
     end
 
     def no_disability_count
-      @no_disability_count ||= distinct_client_ids.count - client_disabilities.count
+      @no_disability_count ||= total_client_count - client_disabilities_count
     end
 
     def no_disability_percentage
-      total_count = distinct_client_ids.count
+      total_count = total_client_count
       return 0 if total_count.zero?
 
       of_type = no_disability_count
@@ -31,17 +31,23 @@ module
     end
 
     def yes_disability_count
-      @yes_disability_count ||= client_disabilities.count
+      @yes_disability_count ||= client_disabilities_count
     end
 
     def yes_disability_percentage
-      total_count = distinct_client_ids.count
+      total_count = total_client_count
       return 0 if total_count.zero?
 
       of_type = yes_disability_count
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)
+    end
+
+    private def client_disabilities_count
+      @client_disabilities_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        client_disabilities.count
+      end
     end
 
     private def disability_breakdowns
@@ -56,20 +62,22 @@ module
     end
 
     private def client_disabilities
-      @client_disabilities ||= {}.tap do |clients|
-        GrdaWarehouse::Hud::Client.disabled_client_scope.where(id: distinct_client_ids).
-          joins(:source_enrollment_disabilities).
-          merge(
-            GrdaWarehouse::Hud::Disability.
-            where(
-              DisabilityType: ::HUD.disability_types.keys,
-              DisabilityResponse: [1, 2, 3],
-              IndefiniteAndImpairs: 1,
-            ),
-          ).pluck(:id, d_t[:DisabilityType]).each do |client_id, disability|
-            clients[client_id] ||= Set.new
-            clients[client_id] << disability
-          end
+      @client_disabilities ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        {}.tap do |clients|
+          GrdaWarehouse::Hud::Client.disabled_client_scope.where(id: distinct_client_ids).
+            joins(:source_enrollment_disabilities).
+            merge(
+              GrdaWarehouse::Hud::Disability.
+              where(
+                DisabilityType: ::HUD.disability_types.keys,
+                DisabilityResponse: [1, 2, 3],
+                IndefiniteAndImpairs: 1,
+              ),
+            ).pluck(:id, d_t[:DisabilityType]).each do |client_id, disability|
+              clients[client_id] ||= Set.new
+              clients[client_id] << disability
+            end
+        end
       end
     end
   end

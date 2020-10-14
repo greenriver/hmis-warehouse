@@ -30,7 +30,7 @@ module CoreDemographicsReport::WarehouseReports
     end
 
     def section
-      @section = @report.class.available_chart_types.detect do |m|
+      @section = @report.class.available_section_types.detect do |m|
         m == params.require(:partial).underscore
       end
       @section = 'overall' if @section.blank? && params.require(:partial) == 'overall'
