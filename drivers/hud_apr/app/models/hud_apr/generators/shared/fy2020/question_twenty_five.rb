@@ -386,7 +386,7 @@ module HudApr::Generators::Shared::Fy2020
               value = percentage(0.0)
               members = universe.members.where(population_clause)
               positive = members.where(q25i_destinations['Total persons exiting to positive housing destinations']).count
-              total =  members.where(q25i_destinations['Total']).count
+              total = members.where(q25i_destinations['Total']).count
               excluded = members.where(q25i_destinations['Total persons whose destinations excluded them from the calculation']).count
               value = percentage(positive.to_f / (total - excluded)) if total.positive? && excluded != total
             end
