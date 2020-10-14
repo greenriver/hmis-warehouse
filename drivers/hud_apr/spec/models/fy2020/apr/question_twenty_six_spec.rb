@@ -13,6 +13,11 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionTwentySix, type: :model 
     cleanup
   end
 
+  # This is just a smoke test, the underlying logic should already have been tested
+  it 'runs' do
+    expect(report_result.answer(question: 'Q26a', cell: 'B2').summary).to eq(1)
+  end
+
   describe 'Q26a: Chronic Homeless Status - Number of Households w/at least one or more CH person' do
   end
 
