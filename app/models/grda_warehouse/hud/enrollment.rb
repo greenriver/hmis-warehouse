@@ -132,7 +132,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :visible_in_window_to, -> (user) do
-      joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
+      if user.can_view_clients? || user.can_view_client_window?
+        joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
+      else
+        joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+      end
     end
 
     scope :open_during_range, -> (range) do
