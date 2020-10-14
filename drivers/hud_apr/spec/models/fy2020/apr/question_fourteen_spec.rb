@@ -14,8 +14,19 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionFourteen, type: :model d
   end
 
   describe 'Q14a: Domestic Violence History' do
+    it 'counts 1 w/o children' do
+      expect(report_result.answer(question: 'Q14a', cell: 'B2').summary).to eq(1)
+      expect(report_result.answer(question: 'Q14a', cell: 'C2').summary).to eq(1)
+    end
+
+    it 'counts 1 no answer w/ children' do
+      expect(report_result.answer(question: 'Q14a', cell: 'D5').summary).to eq(1)
+    end
   end
 
   describe 'Q14b: Persons Fleeing Domestic Violence' do
+    it 'counts 1 fleeing' do
+      expect(report_result.answer(question: 'Q14b', cell: 'B2').summary).to eq(1)
+    end
   end
 end
