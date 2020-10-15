@@ -4,7 +4,7 @@
   - reports << @comparison
   - column_class = 'col-sm-6'
 .row
-  - reports.each do |report|
+  - reports.each_with_index do |report, index|
     %div{class: column_class}
       %h3 Household Types
       %p Household type counts count Heads of Household in each type.

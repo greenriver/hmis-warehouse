@@ -4,7 +4,7 @@
   - reports << @comparison
   - column_class = 'col-sm-6'
 .row
-  - reports.each do |report|
+  - reports.each_with_index do |report, index|
     %div{class: column_class}
       %h3 Indefinite and Impairing Disabilities
       %p The following clients have reported a disability with no subsequent "No" response for that disability, and have reported the disability as Indefinite and impairing.  Clients may have more than one disability type

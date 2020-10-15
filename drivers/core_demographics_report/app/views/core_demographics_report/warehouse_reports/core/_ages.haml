@@ -5,18 +5,22 @@
   - column_class = 'col-sm-6'
 .row
   - if @report.include_comparison?
-    .col-sm-6
-      %h3= @filter.date_range_words
-    .col-sm-6
-      %h3= @comparison_filter.date_range_words
-  - reports.each do |report|
+    - reports.each_with_index do |report, index|
+      .col-sm-6
+        %h3.d-flex
+          .pb-4.mr-2.c-swatch__display{class: "c-swatch__display--chart-#{index}"}
+          .title= report.filter.date_range_words
+  - reports.each_with_index do |report, index|
+    - comparison_class = ''
+    - if reports.count > 1
+      - comparison_class = "c-swatch__border-left--td-#{index}"
     %div{class: column_class}
       %h3 Adults
       .card.mb-4
         %table.table
           %thead
             %tr
-              %th
+              %th{class: comparison_class}
               %th Count
               %th Average Age
           %tbody

@@ -3,9 +3,11 @@
   if @report.include_comparison?
     reports << @comparison
   end
-- reports.each do |report|
+- reports.each_with_index do |report, index|
   - if @report.include_comparison?
-    %h4= report.filter.date_range_words
+    %h4.d-flex
+      .pb-4.mr-2.c-swatch__display{class: "c-swatch__display--chart-#{index}"}
+      .title= report.filter.date_range_words
   .d-flex.flex-wrap
     :ruby
       items = [
