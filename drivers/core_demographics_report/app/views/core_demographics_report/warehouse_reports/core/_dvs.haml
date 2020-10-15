@@ -5,9 +5,12 @@
   - column_class = 'col-sm-6'
 .row
   - reports.each_with_index do |report, index|
+    - comparison_class = ''
+    - if reports.count > 1
+      - comparison_class = "c-swatch__border-left--td-#{index}"
     %div{class: column_class}
       %h3 DV Victim/Survivor
-      .card.mb-4
+      .card.mb-4{class: comparison_class}
         %table.table
           %thead
             %tr
@@ -23,7 +26,7 @@
 
       %h3 DV Victim/Survivor - Most Recent Occurance
       %p Percentages are out of those reporting being a DV victim or survivor.
-      .card.mb-4
+      .card.mb-4{class: comparison_class}
         %table.table
           %thead
             %tr

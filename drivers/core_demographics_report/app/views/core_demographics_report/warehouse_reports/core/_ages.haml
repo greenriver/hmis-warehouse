@@ -16,11 +16,11 @@
       - comparison_class = "c-swatch__border-left--td-#{index}"
     %div{class: column_class}
       %h3 Adults
-      .card.mb-4
+      .card.mb-4{class: comparison_class}
         %table.table
           %thead
             %tr
-              %th{class: comparison_class}
+              %th
               %th Count
               %th Average Age
           %tbody
@@ -39,7 +39,7 @@
               %td= report.average_adult_male_age
 
       %h3 Children
-      .card.mb-4
+      .card.mb-4{class: comparison_class}
         %table.table
           %thead
             %tr

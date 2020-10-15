@@ -50,6 +50,7 @@ module CoreDemographicsReport
       [
         'ages',
         'genders',
+        'gender_ages',
         'races',
         'ethnicities',
         'disabilities',
@@ -57,7 +58,6 @@ module CoreDemographicsReport
         'dvs',
         'priors',
         'household_types',
-        'gender_ages',
       ]
     end
 

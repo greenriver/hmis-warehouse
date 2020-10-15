@@ -5,10 +5,13 @@
   - column_class = 'col-sm-6'
 .row
   - reports.each_with_index do |report, index|
+    - comparison_class = ''
+    - if reports.count > 1
+      - comparison_class = "c-swatch__border-left--td-#{index}"
     %div{class: column_class}
       %h3 Number of Times on the Streets, ES, or SH in The Past 3 Years
       %p Data comes from the HUD Entry Assessment of most recent enrollment within the date range for each client client.
-      .card.mb-4
+      .card.mb-4{class: comparison_class}
         %table.table
           %thead
             %tr
@@ -24,7 +27,7 @@
 
       %h3 Number of Months on the Streets, ES, or SH in The Past 3 Years
       %p Data comes from the HUD Entry Assessment of most recent enrollment within the date range for each client client.
-      .card.mb-4
+      .card.mb-4{class: comparison_class}
         %table.table
           %thead
             %tr
@@ -40,7 +43,7 @@
 
       %h3 Prior Living Situation
       %p Data comes from the HUD Entry Assessment of most recent enrollment within the date range for each client client.
-      .card.mb-4
+      .card.mb-4{class: comparison_class}
         %table.table
           %thead
             %tr
