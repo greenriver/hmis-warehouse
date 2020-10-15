@@ -136,6 +136,35 @@ module Filters
       }
     end
 
+    def selected_params_for_display
+      {}.tap do |opts|
+        opts['Report Range'] = date_range_words
+        opts['Comparison Range'] = comparison_range_words if includes_comparison?
+        opts['CoC Codes'] = chosen_coc_codes if coc_codes.present?
+        opts['Project Types'] = chosen_project_types
+        opts['Sub-Population'] = chosen_sub_population
+        opts['Data Sources'] = data_source_names if data_source_ids.any?
+        opts['Organizations'] = organization_names if organization_ids.any?
+        opts['Projects'] = project_names if project_ids.any?
+        opts['Project Groups'] = project_groups if project_group_ids.any?
+        opts['Funders'] = funder_names if funder_ids.any?
+        opts['Heads of Household only?'] = 'Yes' if hoh_only
+        opts['Household Type'] = chosen_household_type if household_type
+        opts['Age Ranges'] = chosen_age_ranges if age_ranges.any?
+        opts['Races'] = chosen_races if races.any?
+        opts['Ethnicities'] = chosen_ethnicities if ethnicities.any?
+        opts['Genders'] = chosen_genders if genders.any?
+        opts['Veteran Statuses'] = chosen_veteran_statuses if veteran_statuses.any?
+        opts['Length of Time'] = length_of_times if length_of_times.any?
+        opts['Prior Living Situations'] = chosen_prior_living_situations if prior_living_situation_ids.any?
+        opts['Destinations'] = chosen_destinations if destination_ids.any?
+        opts['Disabilities'] = chosen_disabilities if disabilities.any?
+        opts['Indefinite and Impairing Disabilities'] = chosen_indefinite_disabilities if indefinite_disabilities.any?
+        opts['DV Status'] = chosen_dv_status if dv_status.any?
+        opts['Chronically Homeless'] = 'Yes' if chronic_status
+      end
+    end
+
     def range
       self.start .. self.end
     end
@@ -163,6 +192,11 @@ module Filters
 
     def date_range_words
       "#{start_date} - #{end_date}"
+    end
+
+    def comparison_range_words
+      s, e = comparison_dates
+      "#{s} - #{e}"
     end
 
     def length
@@ -401,6 +435,10 @@ module Filters
 
     def default_comparison_pattern
       :no_comparison_period
+    end
+
+    def includes_comparison?
+      comparison_pattern != :no_comparison_period
     end
 
     def default_project_type_codes

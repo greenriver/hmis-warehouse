@@ -197,11 +197,11 @@ module
     private def filter_for_dv_status(scope)
       return scope if @filter.dv_status.blank?
 
-      scope.joins(enrollment: :health_and_dv).
+      scope.joins(enrollment: :health_and_dvs).
         merge(
           GrdaWarehouse::Hud::HealthAndDv.where(
             InformationDate: @filter.range,
-            IndefiniteAndImpairs: @filter.dv_status,
+            DomesticViolenceVictim: @filter.dv_status,
           ),
         )
     end

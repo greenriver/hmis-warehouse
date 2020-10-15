@@ -154,6 +154,52 @@ module CoreDemographicsReport
       end
     end
 
+    def self.data_for_export(reports)
+      {}.tap do |rows|
+        reports.each do |report|
+          rows['Date Range'] ||= []
+          rows['Date Range'] += [report.filter.date_range_words, nil, nil, nil]
+          rows['Unique Clients'] ||= []
+          rows['Unique Clients'] += [report.total_client_count, nil, nil, nil]
+          rows['Heads of Household'] ||= []
+          rows['Heads of Household'] += [report.hoh_count, nil, nil, nil]
+          rows['Households'] ||= []
+          rows['Households'] += [report.household_count, nil, nil, nil]
+          rows['Adults'] ||= []
+          rows['Adults'] += ['Count', 'Average Age', nil, nil]
+          rows['All'] ||= []
+          rows['All'] += [report.adult_count, report.average_adult_age, nil, nil]
+          rows['Female'] ||= []
+          rows['Female'] += [report.adult_female_count, report.average_adult_female_age, nil, nil]
+          rows['Male'] ||= []
+          rows['Male'] += [report.adult_male_count, report.average_adult_male_age, nil, nil]
+
+          rows['Children'] ||= []
+          rows['Children'] += ['Count', 'Average Age', nil, nil]
+          rows['All'] ||= []
+          rows['All'] += [report.child_count, report.average_child_age, nil, nil]
+          rows['Female'] ||= []
+          rows['Female'] += [report.child_female_count, report.average_child_female_age, nil, nil]
+          rows['Male'] ||= []
+          rows['Male'] += [report.child_male_count, report.average_child_male_age, nil, nil]
+          rows['Gender/Age Beakdowns'] ||= []
+          rows['Gender/Age Beakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage']
+          HUD.genders.each do |gender, gender_title|
+            report.age_categories.each do |age_range, age_title|
+              rows["#{gender_title} #{age_title}"] ||= []
+              rows["#{gender_title} #{age_title}"] += [
+                gender_title,
+                age_title,
+                report.gender_age_count(gender: gender, age_range: age_range),
+                report.gender_age_percentage(gender: gender, age_range: age_range),
+                nil,
+              ]
+            end
+          end
+        end
+      end
+    end
+
     private def hoh_scope
       report_scope.where(she_t[:head_of_household].eq(true))
     end

@@ -1,35 +1,67 @@
+reports = [@report]
+if @report.include_comparison?
+  reports << @comparison
+end
 wb = xlsx_package.workbook
-
-wb.add_worksheet(name: 'Services') do |sheet|
+wb_styles = wb.styles
+report_style = wb_styles.add_style(
+  {
+    border: { style: :thick, color: '00918C', edges: [:left],}
+  }
+)
+comparison_style = wb_styles.add_style(
+  {
+    border: { style: :thick, color: 'FFA600', edges: [:left],}
+  }
+)
+header_style = wb_styles.add_style(
+  {
+    sz: 14,
+  }
+)
+th_style = wb_styles.add_style(
+  {
+    bg_color: '81adb9',
+    b: true,
+    border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
+  }
+)
+option_style = wb_styles.add_style(
+  {
+    border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
+  }
+)
+wb.add_worksheet(name: 'Report Info') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
-
   sheet.add_row(
     [
-      'Warehouse Client ID',
-      'First Name',
-      'Last Name',
-      if can_view_full_dob? then 'DOB' else 'Age' end,
-      'Project',
-      'Date',
-      'Service Type',
-      'Service Detail',
-    ], style: title
+      'Core Demographics Report',
+    ],
+    style: header_style,
   )
-
-  @services.each do |service|
-    client = service.client
-    next unless client
-
-    row = [
-      client.id,
-      client.FirstName,
-      client.LastName,
-      dob_or_age(client.DOB&.to_date),
-      service.project.name,
-      service.provided_at,
-      service.title_only,
-      service.other_type,
-    ]
-    sheet.add_row(row)
+  @filter.selected_params_for_display.each do |title, value|
+    value = value.join(', ') if value.is_a?(Array)
+    sheet.add_row(
+      [
+        "#{title}:",
+        value,
+      ],
+      style: [th_style, nil],
+    )
+  end
+end
+wb.add_worksheet(name: 'Data') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  @report.class.data_for_export(reports).each_with_index do |(title, row), index|
+    style = []
+    style = [th_style, nil] if index.positive?
+    style = [th_style, report_style, nil, nil, nil, comparison_style, nil, nil, nil] if reports.count > 1
+    sheet.add_row(
+      [
+        title,
+        *row,
+      ],
+      style: style,
+    )
   end
 end

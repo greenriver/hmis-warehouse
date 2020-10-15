@@ -14,6 +14,13 @@ module CoreDemographicsReport::WarehouseReports
     before_action :set_report
 
     def index
+      @pdf_export = CoreDemographicsReport::DocumentExports::CoreDemographicsExport.new
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=Core Demographics - #{Time.current.to_s(:db)}.xlsx"
+        end
+      end
     end
 
     private def set_report
