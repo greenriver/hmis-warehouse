@@ -68,7 +68,7 @@ module HudApr::Generators::Shared::Fy2020
         'Client went to jail/prison' => a_t[:housing_assessment].eq(7),
         'Client died' => a_t[:housing_assessment].eq(10),
         'Client doesn’t know/Client refused' => a_t[:housing_assessment].in([8, 9]),
-        'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99),
+        'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(leavers_clause.and(a_t[:housing_assessment].eq(nil))),
         'Total' => leavers_clause,
       }.freeze
     end

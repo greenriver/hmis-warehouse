@@ -14,5 +14,8 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionEleven, type: :model do
   end
 
   describe 'Q11: Age' do
+    it 'counts clients in households with adults and children' do
+      expect(report_result.answer(question: 'Q11', cell: 'D13').summary).to eq(2)
+    end
   end
 end
