@@ -90,6 +90,20 @@ module
       end
     end
 
+    def age_count(type)
+      client_ages.select { |_, age| age.in?(type) }&.count&.presence || 0
+    end
+
+    def age_percentage(type)
+      total_count = client_ages.count
+      return 0 if total_count.zero?
+
+      of_type = age_count(type)
+      return 0 if of_type.zero?
+
+      ((of_type.to_f / total_count) * 100)
+    end
+
     def age_data_for_export(rows)
       rows['_Adults Break'] ||= []
       rows['*Adults'] ||= []
@@ -110,22 +124,32 @@ module
       rows['_Children - Female'] += [child_female_count, average_child_female_age, nil, nil]
       rows['_Children - Male'] ||= []
       rows['_Children - Male'] += [child_male_count, average_child_male_age, nil, nil]
-      rows['_Gender/Age Beakdowns Break'] ||= []
-      rows['*Gender/Age Beakdowns'] ||= []
-      rows['*Gender/Age Beakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
-      HUD.genders.each do |gender, gender_title|
-        age_categories.each do |age_range, age_title|
-          rows["_#{gender_title} #{age_title}"] ||= []
-          rows["_#{gender_title} #{age_title}"] += [
-            gender_title,
-            age_title,
-            gender_age_count(gender: gender, age_range: age_range),
-            gender_age_percentage(gender: gender, age_range: age_range),
-            nil,
-          ]
-        end
+      rows['_Age Beakdowns Break'] ||= []
+      rows['*Age Beakdowns'] ||= []
+      rows['*Age Beakdowns'] += ['Age Range', 'Count', 'Percentage', nil]
+      age_categories.each do |age_range, age_title|
+        rows["_#{age_title}"] ||= []
+        rows["_#{age_title}"] += [
+          age_title,
+          age_count(age_range),
+          age_percentage(age_range),
+          nil,
+        ]
       end
       rows
+    end
+
+    private def client_ages
+      @client_ages ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+        {}.tap do |clients|
+          report_scope.joins(:client).order(first_date_in_program: :desc).
+            distinct.
+            pluck(:client_id, age_calculation, :first_date_in_program).
+            each do |client_id, age, _|
+              clients[client_id] ||= age
+            end
+        end
+      end
     end
   end
 end

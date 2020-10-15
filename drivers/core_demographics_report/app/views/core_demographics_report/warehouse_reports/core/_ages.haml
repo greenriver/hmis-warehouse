@@ -60,3 +60,19 @@
               %th Male
               %td= number_with_delimiter report.child_male_count
               %td= report.average_child_male_age
+        %div{class: column_class}
+        
+      %h3 Age Breakdowns
+      .card.mb-4{class: comparison_class}
+        %table.table
+          %thead
+            %tr
+              %th Age Range
+              %th Count
+              %th Percentage
+          %tbody
+            - @report.age_categories.each do |id, title|
+              %tr
+                %th= title
+                %td= number_with_delimiter(report.age_count(id))
+                %td= number_to_percentage(report.age_percentage(id), precision: 2)
