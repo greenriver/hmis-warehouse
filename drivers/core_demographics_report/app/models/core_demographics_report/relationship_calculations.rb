@@ -16,6 +16,22 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    def relationship_data_for_export(rows)
+      rows['_Relationship to Head of Household Break'] ||= []
+      rows['*Relationship to Head of Household'] ||= []
+      rows['*Relationship to Head of Household'] += ['Count', 'Percentage', nil, nil]
+      ::HUD.relationships_to_hoh.each do |id, title|
+        rows["_Relationship#{title}"] ||= []
+        rows["_Relationship#{title}"] += [
+          title,
+          relationship_count(id),
+          relationship_percentage(id),
+          nil,
+        ]
+      end
+      rows
+    end
+
     private def relationship_breakdowns
       @relationship_breakdowns ||= client_relationships.group_by do |_, v|
         v

@@ -44,6 +44,34 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    def disability_data_for_export(rows)
+      rows['_Disability Break'] ||= []
+      rows['*Indefinite and Impairing Disabilities'] ||= []
+      rows['*Indefinite and Impairing Disabilities'] += ['Count', 'Percentage', nil, nil]
+      ::HUD.disability_types.each do |id, title|
+        rows["_Disabilities#{title}"] ||= []
+        rows["_Disabilities#{title}"] += [
+          title,
+          disability_count(id),
+          disability_percentage(id),
+          nil,
+        ]
+      end
+      rows['_At Least One Disability'] += [
+        'At Least One Disability',
+        yes_disability_count,
+        yes_disability_percentage,
+        nil,
+      ]
+      rows['_No Disability'] += [
+        'No Disability',
+        no_disability_count,
+        no_disability_percentage,
+        nil,
+      ]
+      rows
+    end
+
     private def client_disabilities_count
       @client_disabilities_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         client_disabilities.count

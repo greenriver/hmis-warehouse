@@ -16,6 +16,22 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    def household_type_data_for_export(rows)
+      rows['_Household Types'] ||= []
+      rows['*Household Types'] ||= []
+      rows['*Household Types'] += ['Count', 'Percentage', nil, nil]
+      @filter.available_household_types.each do |id, title|
+        rows["_Household Types#{title}"] ||= []
+        rows["_Household Types#{title}"] += [
+          title,
+          household_type_count(id),
+          household_type_percentage(id),
+          nil,
+        ]
+      end
+      rows
+    end
+
     private def client_households
       @client_households ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|

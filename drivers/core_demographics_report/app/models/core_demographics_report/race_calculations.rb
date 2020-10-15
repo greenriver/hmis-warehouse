@@ -20,6 +20,22 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    def race_data_for_export(rows)
+      rows['_Race Break'] ||= []
+      rows['*Race'] ||= []
+      rows['*Race'] += ['Count', 'Percentage', nil, nil]
+      race_buckets.each do |id, title|
+        rows["_Race#{title}"] ||= []
+        rows["_Race#{title}"] += [
+          title,
+          race_count(id),
+          race_percentage(id),
+          nil,
+        ]
+      end
+      rows
+    end
+
     private def race_breakdowns
       @race_breakdowns ||= client_races.group_by do |_, v|
         v

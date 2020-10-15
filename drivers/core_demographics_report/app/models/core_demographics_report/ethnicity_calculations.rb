@@ -16,6 +16,22 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    def ethnicity_data_for_export(rows)
+      rows['_Ethnicity Break'] ||= []
+      rows['*Ethnicity'] ||= []
+      rows['*Ethnicity'] += ['Count', 'Percentage', nil, nil]
+      ::HUD.ethnicities.each do |id, title|
+        rows["_Ethnicity#{title}"] ||= []
+        rows["_Ethnicity#{title}"] += [
+          title,
+          ethnicity_count(id),
+          ethnicity_percentage(id),
+          nil,
+        ]
+      end
+      rows
+    end
+
     private def ethnicity_breakdowns
       @ethnicity_breakdowns ||= client_ethnicities.group_by do |_, v|
         v

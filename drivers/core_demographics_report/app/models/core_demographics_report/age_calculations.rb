@@ -128,8 +128,8 @@ module
       rows['*Age Beakdowns'] ||= []
       rows['*Age Beakdowns'] += ['Age Range', 'Count', 'Percentage', nil]
       age_categories.each do |age_range, age_title|
-        rows["_#{age_title}"] ||= []
-        rows["_#{age_title}"] += [
+        rows["_Age Beakdowns#{age_title}"] ||= []
+        rows["_Age Beakdowns#{age_title}"] += [
           age_title,
           age_count(age_range),
           age_percentage(age_range),

@@ -55,6 +55,35 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    def dv_status_data_for_export(rows)
+      rows['_DV Victim/Survivor Break'] ||= []
+      rows['*DV Victim/Survivor'] ||= []
+      rows['*DV Response'] ||= []
+      rows['*DV Response'] += ['Count', 'Percentage', nil, nil]
+      ::HUD.no_yes_reasons_for_missing_data_options.each do |id, title|
+        rows["_DV Response#{title}"] ||= []
+        rows["_DV Response#{title}"] += [
+          title,
+          dv_status_count(id),
+          dv_status_percentage(id),
+          nil,
+        ]
+      end
+      rows['*DV Victim/Survivor - Most Recent Occurance'] ||= []
+      rows['*DV Occurrance Timing'] ||= []
+      rows['*DV Occurrance Timing'] += ['Count', 'Percentage', nil, nil]
+      ::HUD.when_occurreds.each do |id, title|
+        rows["_DV Occurrance Timing#{title}"] ||= []
+        rows["_DV Occurrance Timing#{title}"] += [
+          title,
+          dv_occurrence_count(id),
+          dv_occurrence_percentage(id),
+          nil,
+        ]
+      end
+      rows
+    end
+
     private def dv_status_breakdowns
       @dv_status_breakdowns ||= client_dv_stati.group_by do |_, v|
         v

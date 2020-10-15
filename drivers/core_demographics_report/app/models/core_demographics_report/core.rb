@@ -168,6 +168,12 @@ module CoreDemographicsReport
 
           rows = report.age_data_for_export(rows)
           rows = report.gender_data_for_export(rows)
+          rows = report.race_data_for_export(rows)
+          rows = report.ethnicity_data_for_export(rows)
+          rows = report.relationship_data_for_export(rows)
+          rows = report.dv_status_data_for_export(rows)
+          rows = report.priors_data_for_export(rows)
+          rows = report.household_type_data_for_export(rows)
         end
       end
     end
