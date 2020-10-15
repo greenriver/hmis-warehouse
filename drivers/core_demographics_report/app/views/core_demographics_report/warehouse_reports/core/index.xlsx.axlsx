@@ -53,9 +53,27 @@ end
 wb.add_worksheet(name: 'Data') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   @report.class.data_for_export(reports).each_with_index do |(title, row), index|
-    style = []
-    style = [th_style, nil] if index.positive?
-    style = [th_style, report_style, nil, nil, nil, comparison_style, nil, nil, nil] if reports.count > 1
+    if index.zero?
+      style = []
+    elsif index.positive?
+      if reports.count > 1
+        if title.starts_with?('_')
+          title = ''
+          style = [nil, report_style, nil, nil, nil, comparison_style, nil, nil, nil]
+        else
+          style = [th_style, report_style, nil, nil, nil, comparison_style, nil, nil, nil]
+        end
+      else
+        style = [th_style, nil]
+      end
+      if title.starts_with?('*')
+        title = title.sub('*', '')
+        style = Array.new(12, th_style)
+      elsif title.starts_with?('_')
+        title = ''
+      end
+    end
+
     sheet.add_row(
       [
         title,

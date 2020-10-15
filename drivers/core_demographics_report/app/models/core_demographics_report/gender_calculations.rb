@@ -32,6 +32,17 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    def gender_data_for_export(rows)
+      rows['_Gender Break'] ||= []
+      rows['*Gender Breakdowns'] ||= []
+      rows['*Gender Breakdowns'] += ['Gender', 'Count', 'Percentage', nil, nil]
+      HUD.genders.each do |id, title|
+        rows["_#{title}"] ||= []
+        rows["_#{title}"] += [title, gender_count(id), gender_percentage(id), nil, nil]
+      end
+      rows
+    end
+
     private def gender_age_breakdowns
       @gender_age_breakdowns ||= client_genders_and_ages.group_by do |_, row|
         [

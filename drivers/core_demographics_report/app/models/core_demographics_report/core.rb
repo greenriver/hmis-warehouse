@@ -165,37 +165,9 @@ module CoreDemographicsReport
           rows['Heads of Household'] += [report.hoh_count, nil, nil, nil]
           rows['Households'] ||= []
           rows['Households'] += [report.household_count, nil, nil, nil]
-          rows['Adults'] ||= []
-          rows['Adults'] += ['Count', 'Average Age', nil, nil]
-          rows['All'] ||= []
-          rows['All'] += [report.adult_count, report.average_adult_age, nil, nil]
-          rows['Female'] ||= []
-          rows['Female'] += [report.adult_female_count, report.average_adult_female_age, nil, nil]
-          rows['Male'] ||= []
-          rows['Male'] += [report.adult_male_count, report.average_adult_male_age, nil, nil]
 
-          rows['Children'] ||= []
-          rows['Children'] += ['Count', 'Average Age', nil, nil]
-          rows['All'] ||= []
-          rows['All'] += [report.child_count, report.average_child_age, nil, nil]
-          rows['Female'] ||= []
-          rows['Female'] += [report.child_female_count, report.average_child_female_age, nil, nil]
-          rows['Male'] ||= []
-          rows['Male'] += [report.child_male_count, report.average_child_male_age, nil, nil]
-          rows['Gender/Age Beakdowns'] ||= []
-          rows['Gender/Age Beakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage']
-          HUD.genders.each do |gender, gender_title|
-            report.age_categories.each do |age_range, age_title|
-              rows["#{gender_title} #{age_title}"] ||= []
-              rows["#{gender_title} #{age_title}"] += [
-                gender_title,
-                age_title,
-                report.gender_age_count(gender: gender, age_range: age_range),
-                report.gender_age_percentage(gender: gender, age_range: age_range),
-                nil,
-              ]
-            end
-          end
+          rows = report.age_data_for_export(rows)
+          rows = report.gender_data_for_export(rows)
         end
       end
     end
