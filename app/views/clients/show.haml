@@ -6,8 +6,9 @@
   .o-page__header
     = render 'clients/aliases'
   = render 'tab_navigation', current: client_path(@client)
-  %section.o-dashboard__block--primary.client__summary
-    = render 'client_summary'
+  - if can_view_clients? || can_view_client_window?
+    %section.o-dashboard__block--primary.client__summary
+      = render 'client_summary'
   - if can_view_clients?
     = render 'rollups'
   - else
