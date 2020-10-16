@@ -1,0 +1,22 @@
+- content_for :title, 'Enrollment-Disenrollment Files for ACO/MCOs'
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+
+= simple_form_for :report do |f|
+  - content_for :filters_col_full do
+    %p
+      This report will generate a zip file containing an enrollment/disenrollment report and summary file for one
+      or more ACO/MCOs. If more than one ACO/MCO is selected, the disenrollments are combined into a single report.
+      ACO/MCOs will appear as available in this report based on their
+      = link_to 'configuration.', admin_health_accountable_care_organizations_path
+
+    .row
+      .col-sm-6
+        = f.input :acos, collection: available_acos, selected: @acos, input_html: {class: :select2, multiple: true}, label: 'ACO/MCOs to include'
+      .col-sm-3
+        = f.input :month, collection: months, label_method: :first, value_method: :last, selected: @month, input_html: {class: :select2}
+
+  - content_for :filter_actions do
+    = f.submit 'Download Zip File', data: {disable_with: false}
+
+  = render 'warehouse_reports/filters', f:f
