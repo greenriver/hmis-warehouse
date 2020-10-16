@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_30_152001) do
+ActiveRecord::Schema.define(version: 2020_10_15_195157) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -22,6 +22,8 @@ ActiveRecord::Schema.define(version: 2020_09_30_152001) do
     t.string "mco_sl"
     t.boolean "active", default: true, null: false
     t.string "edi_name"
+    t.string "e_d_receiver_text"
+    t.string "e_d_file_prefix"
   end
 
   create_table "agencies", id: :serial, force: :cascade do |t|
@@ -318,6 +320,7 @@ ActiveRecord::Schema.define(version: 2020_09_30_152001) do
     t.string "npi"
     t.string "ein"
     t.string "trace_id", limit: 10
+    t.string "cp_name_official"
   end
 
   create_table "data_sources", id: :serial, force: :cascade do |t|
