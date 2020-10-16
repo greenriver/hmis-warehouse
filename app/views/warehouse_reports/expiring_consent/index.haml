@@ -17,8 +17,7 @@
       - @unconfirmed.each do |client|
         %tr
           %td
-            = link_to_if can_view_clients_or_window?, appropriate_client_path(client) do
-              = client.full_name
+            = link_to_if can_view_clients_or_window?, client.full_name, appropriate_client_path(client)
           %td
             = client.consent_form_signed_on + client.class.consent_validity_period
           %td
@@ -40,8 +39,7 @@
       - @expiring_clients.each do |client|
         %tr
           %td
-            = link_to_if can_view_clients_or_window?, appropriate_client_path(client) do
-              = client.full_name
+            = link_to_if can_view_clients_or_window?, client.full_name, appropriate_client_path(client)
           %td
             = client.consent_form_signed_on + client.class.consent_validity_period
           %td

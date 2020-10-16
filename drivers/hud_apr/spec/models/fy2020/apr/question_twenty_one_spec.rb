@@ -14,5 +14,20 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionTwentyOne, type: :model 
   end
 
   describe 'Q21: Health Insurance' do
+    it 'finds no insurance at start' do
+      expect(report_result.answer(question: 'Q21', cell: 'B12').summary).to eq(1)
+    end
+    it 'finds medicaid at start' do
+      expect(report_result.answer(question: 'Q21', cell: 'B2').summary).to eq(1)
+    end
+    it 'finds medicaid at annual assessment' do
+      expect(report_result.answer(question: 'Q21', cell: 'C2').summary).to eq(1)
+    end
+    it 'finds medicaid at exit' do
+      expect(report_result.answer(question: 'Q21', cell: 'D2').summary).to eq(1)
+    end
+    it 'finds stayer without annual assessment yet' do
+      expect(report_result.answer(question: 'Q21', cell: 'C15').summary).to eq(1)
+    end
   end
 end

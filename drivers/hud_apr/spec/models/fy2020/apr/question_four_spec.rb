@@ -16,8 +16,4 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionFour, type: :model do
   it 'runs' do
     expect(report_result.answer(question: 'Q4a', cell: 'A2').summary).to eq('Test Organization')
   end
-
-  def report_result
-    ::HudReports::ReportInstance.last
-  end
 end

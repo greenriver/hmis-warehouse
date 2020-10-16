@@ -43,21 +43,21 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def q22a2_length_of_participation
-      table_name = 'Q22b1'
+      table_name = 'Q22a2'
       metadata = {
         header_row: [' '] + q_22a_populations.keys,
-        row_labels: q22b1_lengths.keys,
+        row_labels: q22a2_lengths.keys,
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
-        last_row: 17,
+        last_row: 16,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
       q_22a_populations.values.each_with_index do |population_clause, col_index|
-        q22b1_lengths.values.each_with_index do |length_clause, row_index|
+        q22a2_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
@@ -97,7 +97,7 @@ module HudApr::Generators::Shared::Fy2020
           value = 0
           case method
           when :average
-            value = (stay_lengths.sum(0.0) / stay_lengths.count).round(2) if stay_lengths.any?
+            value = (stay_lengths.sum(0.0) / stay_lengths.count).round(4) if stay_lengths.any?
           when :median
             if stay_lengths.any?
               sorted = stay_lengths.sort
@@ -270,7 +270,7 @@ module HudApr::Generators::Shared::Fy2020
       end.to_h
     end
 
-    private def q22b1_lengths
+    private def q22a2_lengths
       {
         '0 to 7 days' => '0 to 7 days',
         '8 to 14 days' => '8 to 14 days',
@@ -286,6 +286,7 @@ module HudApr::Generators::Shared::Fy2020
         '1,461 to 1,825 days (4-5 Yrs)' => '1,461 to 1,825 days (4-5 Yrs)',
         'More than 1,825 days (> 5 Yrs)' => 'More than 1,825 days (> 5 Yrs)',
         'Data Not Collected' => 'Data Not Collected',
+        'Total' => 'Total',
       }.map do |k, label|
         [label, lengths[k]]
       end.to_h

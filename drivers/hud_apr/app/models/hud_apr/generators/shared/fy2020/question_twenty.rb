@@ -21,7 +21,7 @@ module HudApr::Generators::Shared::Fy2020
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
-        last_row: 6,
+        last_row: 7,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 

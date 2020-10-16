@@ -33,16 +33,16 @@ module HudApr::Generators::Shared::Fy2020
           next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-          value = 0
 
           if destination_clause.is_a?(Symbol)
             case destination_clause
             when :percentage
+              value = percentage(0.0)
               members = universe.members.where(population_clause)
               positive = members.where(q23c_destinations['Total persons exiting to positive housing destinations']).count
-              total = members.count
+              total = members.where(q23c_destinations['Total']).count
               excluded = members.where(q23c_destinations['Total persons whose destinations excluded them from the calculation']).count
-              value = (positive.to_f / (total - excluded) * 100).round(4) if total.positive? && excluded != total
+              value = percentage(positive.to_f / (total - excluded)) if total.positive? && excluded != total
             end
           else
             members = universe.members.where(population_clause).where(destination_clause)
