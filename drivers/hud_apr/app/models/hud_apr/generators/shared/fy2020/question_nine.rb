@@ -14,9 +14,9 @@ module HudApr::Generators::Shared::Fy2020
     HEADER_ROW = [
       'Number of Persons Contacted',
       'All Persons Contacted',
-      'First contact – NOT staying on the Streets, ES, or SH',
-      'First contact – WAS staying on Streets, ES, or SH',
-      'First contact – Worker unable to determine',
+      'First contact - NOT staying on the Streets, ES, or SH',
+      'First contact - WAS staying on Streets, ES, or SH',
+      'First contact - Worker unable to determine',
     ].freeze
 
     def self.question_number
@@ -54,6 +54,7 @@ module HudApr::Generators::Shared::Fy2020
       engaged_ids = adults_and_hohs.where(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)).pluck(a_t[:id])
 
       engaged_counts = populate_table(table_name, 7, 'Engaged', engaged_ids)
+      @report.answer(question: table_name, cell: 'A7').update(summary: 'Rate of Engagement')
       engaged_counts.each do |col, count|
         ratio = percentage(count / contact_counts[col].to_f)
         @report.answer(question: table_name, cell: "#{col}7").update(summary: ratio)
