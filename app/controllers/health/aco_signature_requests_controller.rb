@@ -6,7 +6,7 @@
 
 module Health
   class AcoSignatureRequestsController < IndividualPatientController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
     include HealthCareplan
     helper ChaHelper

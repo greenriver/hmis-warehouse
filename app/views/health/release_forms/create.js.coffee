@@ -3,6 +3,6 @@
   $('.release-form .alert.alert-danger').remove()
   $('.release-form').prepend('<div class="alert alert-danger"><%= @release_form.errors.full_messages.join(', ') %></div>')
 <% else %>
-  $('#pjax-modal').modal('hide')
+  $('#ajax-modal').modal('hide')
   window.location.reload()
 <% end %>

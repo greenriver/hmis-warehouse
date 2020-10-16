@@ -6,7 +6,7 @@
 
 module ReportResults
   class SupportController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     before_action :require_can_view_hud_reports!
     before_action :set_report, only: [:index]
     before_action :set_report_result, only: [:index]

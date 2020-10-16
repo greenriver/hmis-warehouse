@@ -6,7 +6,7 @@
 
 module Health
   class QualifyingActivitiesController < IndividualPatientController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
 
     before_action :require_some_patient_access!

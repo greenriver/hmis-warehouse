@@ -6,7 +6,7 @@
 
 module Health::Pilot
   class PatientController < HealthController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
     include ActionView::Helpers::NumberHelper
 

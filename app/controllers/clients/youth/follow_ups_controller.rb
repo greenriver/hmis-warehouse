@@ -7,7 +7,7 @@
 module Clients::Youth
   class FollowUpsController < ApplicationController
     include ClientPathGenerator
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientDependentControllers
 
     before_action :require_can_access_youth_intake_list!

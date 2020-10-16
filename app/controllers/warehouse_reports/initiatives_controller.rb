@@ -6,7 +6,7 @@
 
 module WarehouseReports
   class InitiativesController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include WarehouseReportAuthorization
 
     # Authorize by either access to report OR access by token

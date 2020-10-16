@@ -6,7 +6,7 @@
 
 module Cohorts
   class NotesController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include CohortAuthorization
     before_action :require_can_access_cohort!
     before_action :set_note, only: [:destroy]

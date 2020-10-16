@@ -255,3 +255,5 @@ group :rake do
   gem 'fast_gettext'
   gem 'gettext', '>=3.0.2'
 end
+
+gem "ajax_modal_rails", "~> 1.0"

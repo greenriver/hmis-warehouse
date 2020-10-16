@@ -1,0 +1,41 @@
+.modal-header
+  .modal-header__titles
+    :ruby
+      title = yield :modal_title
+      subtitle = yield :modal_title_secondary
+    - if title.present?
+      %h4.modal-title(data-ajax-modal-title)
+        = title
+    - if subtitle.present?
+      %h5.modal-title--secondary(data-ajax-modal-title-secondary)
+        = subtitle
+  %button.close.pull-right(aria-label="Close" data-ajax-modal-close type="button")
+    %i.modal-icon-close
+.modal-body.clearfix
+  %div{"data-ajax-modal-body" => ""}
+    = yield
+  %div{"data-ajax-modal-loading" => "", :style => "display: none;"}
+    Loading&hellip;
+- if content_for?(:modal_footer)
+  .modal-footer{"data-ajax-modal-footer" => ""}
+    = yield :modal_footer
+
+= yield :page_js
+:javascript
+  // initializing behaviors and modal size
+  'use strict'
+  $(function() {
+    var newModalClass = #{modal_size.to_json.html_safe};
+    var modalDialog = document.querySelector('#ajax-modal .modal-dialog');
+    if (modalDialog) {
+      $(modalDialog)
+        .removeClass('modal-xxl')
+        .removeClass('modal-xl')
+        .removeClass('modal-lg')
+        .addClass(newModalClass);
+    }
+    var modalBody = document.querySelector('#ajax-modal .modal-body')
+    if (modalBody) {
+      App.select2.init(modalBody)
+    }
+  });

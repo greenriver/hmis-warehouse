@@ -6,7 +6,7 @@
 
 module Health
   class EpicSsmsController < HealthController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
     include HealthFileController
 

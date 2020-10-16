@@ -6,7 +6,7 @@
 
 module WarehouseReports
   class YouthActivityController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     before_action :set_filter
 

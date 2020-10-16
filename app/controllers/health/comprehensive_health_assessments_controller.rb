@@ -6,7 +6,7 @@
 
 module Health
   class ComprehensiveHealthAssessmentsController < IndividualPatientController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
     include HealthFileController
 

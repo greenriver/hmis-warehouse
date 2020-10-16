@@ -52,7 +52,7 @@ class App.Users.Messages
         do (path, id, subject) =>
           $m = $ """
                  <li class="dropdown-item message">
-                   <a data-loads-in-pjax-modal="true">
+                   <a data-loads-in-ajax-modal="true">
                      <i class="icon-envelope-o"/>
                      &nbsp;
                    </a>

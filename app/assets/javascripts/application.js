@@ -43,13 +43,12 @@
 //= require bootstrap-datetimepicker
 //= require promise-polyfill/dist/polyfill.min.js
 
-
 //////////////////////////
 // App specific code
 //////////////////////////
 //= require namespace
 //= require polyfills
-//= require pjax-modals
+//= require ajax_modal_rails
 //= require util
 //= require site_menu
 //= require ssm

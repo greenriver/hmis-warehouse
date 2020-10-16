@@ -6,7 +6,7 @@
 
 module ServiceScanning
   class ScannerIdsController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientController
     include ClientPathGenerator
     before_action :require_can_view_client_window!

@@ -1,0 +1,15 @@
+#ajax-modal.modal.fade{"data-ajax-modal" => "", :role => "dialog", :tabindex => "-1", aria_hidden: true}
+  .modal-dialog.modal-dialog-scrollable.modal-dialog-centered{:role => "document", class: modal_size}
+    .modal-content{"data-ajax-modal-content" => ""}
+      .modal-header
+        %h4.modal-title{"data-ajax-modal-title" => ""} Loading
+        %button.close(aria-label="Close" data-ajax-modal-close type="button")
+          %i.modal-icon-close
+      .modal-body.clearfix
+        %div{"data-ajax-modal-loading" => ""}
+          Loading&hellip;
+
+
+- content_for :page_js do
+  :javascript
+    window.ajaxModalInstance = new AjaxModal()

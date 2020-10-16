@@ -1,4 +1,4 @@
-- unless pjax_request?
+- unless ajax_modal_request?
   :ruby
     show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
     show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false

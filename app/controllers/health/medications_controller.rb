@@ -7,7 +7,7 @@
 module Health
   class MedicationsController < HealthController
     # This controller serves both BH CP data and pilot data, so it can't use the BH CP permissions
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
 
     before_action :require_pilot_or_some_client_access!

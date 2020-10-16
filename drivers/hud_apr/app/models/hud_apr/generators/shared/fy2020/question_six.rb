@@ -467,14 +467,15 @@ module HudApr::Generators::Shared::Fy2020
 
       # totals
       answer = @report.answer(question: table_name, cell: 'B5')
+      answer.update(summary: adults_and_hohs.count)
+
+      # percent
+      answer = @report.answer(question: table_name, cell: 'H5')
       total_members = es_sh_so_clients.
         or(th_clients).
         or(ph_clients)
       answer.add_members(total_members)
       answer.update(summary: total_members.count)
-
-      # percent
-      answer = @report.answer(question: table_name, cell: 'H5')
       answer.update(summary: percentage(total_members.count / adults_and_hohs.count.to_f))
     end
 

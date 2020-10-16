@@ -6,7 +6,7 @@
 
 module Admin
   class AccountRequestsController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ViewableEntities
     # This controller is namespaced to prevent
     # route collision with Devise

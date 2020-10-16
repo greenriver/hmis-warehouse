@@ -6,7 +6,7 @@
 
 module Health
   class PcpSignatureRequestsController < IndividualPatientController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
 
     include HealthCareplan

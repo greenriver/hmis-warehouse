@@ -6,7 +6,7 @@
 
 module WarehouseReports
   class SupportController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     before_action :require_can_view_all_reports!
     before_action :set_report
 

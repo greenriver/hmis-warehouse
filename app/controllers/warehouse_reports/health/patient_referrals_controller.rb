@@ -7,7 +7,7 @@
 module WarehouseReports::Health
   class PatientReferralsController < ApplicationController
     include ArelHelper
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include WindowClientPathGenerator
     include WarehouseReportAuthorization
 

@@ -6,7 +6,7 @@
 
 module Cohorts
   class ColumnsController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     before_action :require_can_manage_cohorts!
     before_action :set_cohort
 

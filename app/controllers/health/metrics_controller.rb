@@ -6,7 +6,7 @@
 
 module Health
   class MetricsController < HealthController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
     include ActionView::Helpers::NumberHelper
 

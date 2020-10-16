@@ -7,7 +7,7 @@
 require 'json/ext'
 module Cohorts
   class ClientsController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ArelHelper
     include Chronic
     include CohortAuthorization

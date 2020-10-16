@@ -231,10 +231,10 @@ class ApplicationController < ActionController::Base
   end
   helper_method :healthcare_available?
 
-  def pjax_request?
+  def ajax_modal_request?
     false
   end
-  helper_method :pjax_request?
+  helper_method :ajax_modal_request?
 
   def set_hostname
     @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName

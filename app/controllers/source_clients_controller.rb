@@ -5,7 +5,7 @@
 ###
 
 class SourceClientsController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   include ClientPathGenerator
 
   before_action :require_can_create_clients!, except: [:image]

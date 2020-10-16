@@ -13,7 +13,7 @@ module Admin::Health
 
     include PatientReferral
     helper_method :tab_path_params
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     def edit
       @patient_referral = Health::PatientReferral.find(params[:id].to_i)
