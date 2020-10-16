@@ -6,7 +6,7 @@
 
 class PerformanceDashboards::BaseController < ApplicationController
   include WarehouseReportAuthorization
-  include PjaxModalController
+  include AjaxModalRails::Controller
   include BaseFilters
 
   def section

@@ -6,7 +6,7 @@
 
 module Health
   class ReleaseFormsController < IndividualPatientController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
 
     include HealthFileController

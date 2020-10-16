@@ -6,7 +6,7 @@
 
 module WarehouseReports::Health
   class HousingStatusChangesController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     before_action :require_can_view_aggregate_health!
     before_action :setup_report

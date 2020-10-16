@@ -5,7 +5,7 @@
 ###
 
 class AccountTwoFactorsController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   # before_action :authenticate_user!
   before_action :set_user
 

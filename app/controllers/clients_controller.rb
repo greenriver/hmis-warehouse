@@ -5,7 +5,7 @@
 ###
 
 class ClientsController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   include ClientController
   include ArelHelper
   include ClientPathGenerator
