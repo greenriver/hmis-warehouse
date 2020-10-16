@@ -56,7 +56,7 @@ module HudApr::Generators::Shared::Fy2020
 
       count = clients.distinct.count
       @report.answer(question: table_name, cell: 'E8').update(summary: count)
-      @report.answer(question: table_name, cell: 'F8').update(summary: format('%1.4f', count / universe.members.count.to_f))
+      @report.answer(question: table_name, cell: 'F8').update(summary: percentage(count / universe.members.count.to_f))
     end
 
     private def name_quality(table_name:)
@@ -89,7 +89,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F2')
-      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(total_members.count / universe.members.count.to_f))
 
       total_members
     end
@@ -126,7 +126,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F3')
-      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(total_members.count / universe.members.count.to_f))
 
       total_members
     end
@@ -163,7 +163,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F4')
-      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(total_members.count / universe.members.count.to_f))
 
       total_members
     end
@@ -201,7 +201,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F5')
-      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(total_members.count / universe.members.count.to_f))
 
       total_members
     end
@@ -228,7 +228,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # Percentage
       answer = @report.answer(question: table_name, cell: 'F' + row_label)
-      answer.update(summary: format('%1.4f', total_members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(total_members.count / universe.members.count.to_f))
 
       total_members
     end
@@ -266,7 +266,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C2')
-      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(members.count / universe.members.count.to_f))
 
       # project start date
       answer = @report.answer(question: table_name, cell: 'B3')
@@ -275,7 +275,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C3')
-      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(members.count / universe.members.count.to_f))
 
       # relationship to head of household
       answer = @report.answer(question: table_name, cell: 'B4')
@@ -296,7 +296,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C4')
-      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(members.count / universe.members.count.to_f))
 
       # client location
       answer = @report.answer(question: table_name, cell: 'B5')
@@ -311,7 +311,7 @@ module HudApr::Generators::Shared::Fy2020
 
       answer = @report.answer(question: table_name, cell: 'C5')
       hoh_denominator = universe.members.where(hoh_clause)
-      answer.update(summary: format('%1.4f', members.count / hoh_denominator.count.to_f))
+      answer.update(summary: percentage(members.count / hoh_denominator.count.to_f))
 
       # disabling condition
       answer = @report.answer(question: table_name, cell: 'B6')
@@ -331,7 +331,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C6')
-      answer.update(summary: format('%1.4f', members.count / universe.members.count.to_f))
+      answer.update(summary: percentage(members.count / universe.members.count.to_f))
     end
 
     private def q6c_income_and_housing
@@ -364,7 +364,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C2')
-      answer.update(summary: format('%1.4f', members.count / leavers.count.to_f))
+      answer.update(summary: percentage(members.count / leavers.count.to_f))
 
       # incomes
       adults_and_hohs = universe.members.where(adult_or_hoh_clause)
@@ -383,7 +383,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C3')
-      answer.update(summary: format('%1.4f', members.count / adults_and_hohs.count.to_f))
+      answer.update(summary: percentage(members.count / adults_and_hohs.count.to_f))
 
       # income at anniversary
       stayers_with_anniversary = adults_and_hohs.where(
@@ -405,7 +405,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C4')
-      answer.update(summary: format('%1.4f', members.count / stayers_with_anniversary.count.to_f))
+      answer.update(summary: percentage(members.count / stayers_with_anniversary.count.to_f))
 
       # income at exit
       leavers = adults_and_hohs.where(a_t[:last_date_in_program].lteq(@report.end_date))
@@ -424,7 +424,7 @@ module HudApr::Generators::Shared::Fy2020
       answer.update(summary: members.count)
 
       answer = @report.answer(question: table_name, cell: 'C5')
-      answer.update(summary: format('%1.4f', members.count / leavers.count.to_f))
+      answer.update(summary: percentage(members.count / leavers.count.to_f))
     end
 
     private def q6d_chronic_homelessness
@@ -467,15 +467,16 @@ module HudApr::Generators::Shared::Fy2020
 
       # totals
       answer = @report.answer(question: table_name, cell: 'B5')
+      answer.update(summary: adults_and_hohs.count)
+
+      # percent
+      answer = @report.answer(question: table_name, cell: 'H5')
       total_members = es_sh_so_clients.
         or(th_clients).
         or(ph_clients)
       answer.add_members(total_members)
       answer.update(summary: total_members.count)
-
-      # percent
-      answer = @report.answer(question: table_name, cell: 'H5')
-      answer.update(summary: format('%1.4f', total_members.count / adults_and_hohs.count.to_f))
+      answer.update(summary: percentage(total_members.count / adults_and_hohs.count.to_f))
     end
 
     private def es_sh_so(table_name, adults_and_hohs)
@@ -511,7 +512,7 @@ module HudApr::Generators::Shared::Fy2020
         or(times_homeless_members).
         or(months_homeless_members)
       answer.add_members(members)
-      answer.update(summary: format('%1.4f', members.count / es_sh_so.count.to_f))
+      answer.update(summary: percentage(members.count / es_sh_so.count.to_f))
 
       members
     end
@@ -572,7 +573,7 @@ module HudApr::Generators::Shared::Fy2020
       end
       members = th.where(Arel.sql(ors.join(' or ')))
       answer.add_members(members)
-      answer.update(summary: format('%1.4f', members.count / th.count.to_f))
+      answer.update(summary: percentage(members.count / th.count.to_f))
 
       members
     end
@@ -634,7 +635,7 @@ module HudApr::Generators::Shared::Fy2020
       end
       members = ph.where(Arel.sql(ors.join(' or ')))
       answer.add_members(members)
-      answer.update(summary: format('%1.4f', members.count / ph.count.to_f))
+      answer.update(summary: percentage(members.count / ph.count.to_f))
 
       members
     end
@@ -803,7 +804,7 @@ module HudApr::Generators::Shared::Fy2020
       # percent inactive ES or SO
       answer = @report.answer(question: table_name, cell: 'D2')
       answer.add_members(inactive_es_so_members)
-      answer.update(summary: format('%1.4f', inactive_es_so_members.count / es_so_members.count.to_f))
+      answer.update(summary: percentage(inactive_es_so_members.count / es_so_members.count.to_f))
 
       # Relevant ES-NBN
       answer = @report.answer(question: table_name, cell: 'B3')
@@ -825,7 +826,7 @@ module HudApr::Generators::Shared::Fy2020
       # percent inactive ES
       answer = @report.answer(question: table_name, cell: 'D3')
       answer.add_members(inactive_es_so_members)
-      answer.update(summary: format('%1.4f', inactive_es_members.count / es_members.count.to_f))
+      answer.update(summary: percentage(inactive_es_members.count / es_members.count.to_f))
     end
   end
 end
