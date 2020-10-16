@@ -1,9 +1,11 @@
 :ruby
   redaction_text = '[redacted]'
   qualifying_activities = @patient.qualifying_activities.order(date_of_activity: :desc, id: :desc)
+  activity_date_range = Range.new(*qualifying_activities.map(&:date_of_activity).minmax)
+  possible_claims = @patient.medical_claims_by_service_start_date(date_range: activity_date_range)
 
 %h1= "Medicaid ID: #{ redaction_text || @patient.medicaid_id }"
-%h2= "#{qualifying_activities.size} Qualifying Activities matched against #{@patient.medical_claims.size} Medical Claims"
+%h2= "#{qualifying_activities.size} Qualifying Activities matched against #{possible_claims.size} Medical Claims with service starting #{activity_date_range}"
 :css
   th, td {padding: 0.25em;}
 %table{rules:'all'}
@@ -35,5 +37,5 @@
         %td= claim&.service_end_date
         %td
           = claim&.procedure_with_modifiers
-        %td{style: ('background:red;' if claims&.size > 1) }
+        %td{style: ('background:yellow;' if claims&.size > 1) }
           = claims&.size || 0
