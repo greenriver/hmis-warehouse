@@ -1,0 +1,39 @@
+:ruby
+  redaction_text = '[redacted]'
+  qualifying_activities = @patient.qualifying_activities.order(date_of_activity: :desc, id: :desc)
+
+%h1= "Medicaid ID: #{ redaction_text || @patient.medicaid_id }"
+%h2= "#{qualifying_activities.size} Qualifying Activities matched against #{@patient.medical_claims.size} Medical Claims"
+:css
+  th, td {padding: 0.25em;}
+%table{rules:'all'}
+  %thead
+    %tr
+      %th epic_source_id
+      %th qa.id
+      %th date_of_activity
+      %th activity
+      %th procedure_with_modifiers
+      %th claim_id
+      %th service_start_date
+      %th service_end_date
+      %th procedure_with_modifiers
+      %th possible_matches
+  %tbody
+    - qualifying_activities.each do |qa|
+      :ruby
+        claims = @patient.medical_claims_for_qualifying_activity(qa)
+        claim = @patient.best_medical_claim_for_qualifying_activity(qa)
+      %tr
+        %td= (redaction_text || qa.epic_source_id) if qa.epic_source_id.present?
+        %td= qa.id
+        %td= qa.date_of_activity
+        %td= qa.activity
+        %td= qa.procedure_with_modifiers
+        %td= claim&.id
+        %td= claim&.service_start_date
+        %td= claim&.service_end_date
+        %td
+          = claim&.procedure_with_modifiers
+        %td{style: ('background:red;' if claims&.size > 1) }
+          = claims&.size || 0

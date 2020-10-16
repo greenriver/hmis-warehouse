@@ -108,6 +108,42 @@ module Health
     belongs_to :nurse_care_manager, class_name: 'User'
     has_many :qualifying_activities
 
+    has_many :medical_claims, class_name: 'ClaimsReporting::MedicalClaim', foreign_key: :member_id, primary_key: :medicaid_id
+    def medical_claims_for_qualifying_activity(qa)
+      matching_claims = (
+        medical_claims_by_service_start_date[qa.date_of_activity] || []
+      ).select do |c|
+        qa.procedure_code == c.procedure_code && qa.modifiers.to_set == c.modifiers.to_set
+      end
+    end
+
+    def best_medical_claim_for_qualifying_activity(qa)
+      matching_claims = medical_claims_for_qualifying_activity(qa)
+
+      matching_claims.first if matching_claims.size <= 1
+
+      # slow path -- more that one matching claim for the same day
+      # we can try to assign them in matching order by id
+      matching_qa = qualifying_activities.select do |qa2|
+        (
+          qa2.claim_submitted_on.present? &&
+          qa2.date_of_activity == qa.date_of_activity &&
+          qa2.procedure_code == qa.procedure_code &&
+          qa2.modifiers.to_set == qa.modifiers.to_set
+        )
+      end
+
+      return nil unless matching_qa.size == matching_claims.size
+      matching_claims[matching_qa.index(qa)]
+    end
+
+    require 'memoist'
+    extend Memoist
+    private def medical_claims_by_service_start_date
+      @medical_claims_by_service_start_date ||= medical_claims.group_by{|c| c.service_start_date}
+    end
+    memoize :medical_claims_by_service_start_date
+
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
     scope :bh_cp, -> { where pilot: false }
@@ -667,7 +703,7 @@ module Health
       end
       case_notes += epic_case_notes.order(contact_date: :desc).map do |form|
         date = form.contact_date
-        # Epic doesn't send timezone, but sends the dates all as mid-night, 
+        # Epic doesn't send timezone, but sends the dates all as mid-night,
         # so assume it's in the local timezone
         date = Time.zone.local_to_utc(date).to_date if date
         {
