@@ -1,5 +1,5 @@
 BostonHmis::Application.routes.draw do
-  scope :claims_reporting do
-    root to: 'claims_reporting/home#index'
+  namespace :claims_reporting do
+    resources :claims
   end
 end
