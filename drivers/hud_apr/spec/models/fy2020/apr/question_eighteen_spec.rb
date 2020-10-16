@@ -14,5 +14,12 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionEighteen, type: :model d
   end
 
   describe 'Q18: Client Cash Income Category - Earned/Other Income Category - by Start and Annual Assessment/Exit Status' do
+    it 'sees earned income in annual assessment' do
+      expect(report_result.answer(question: 'Q18', cell: 'C2').summary).to eq(1)
+    end
+
+    it 'sees income at start and annual assessment' do
+      expect(report_result.answer(question: 'Q18', cell: 'C12').summary).to eq(1)
+    end
   end
 end

@@ -250,4 +250,57 @@ namespace :health do
   task revert_to_original_config: [:environment] do
     ApplicationRecord.setup_config
   end
+
+  #print out phi_dictionary of all descendants of HealthBase
+  task generate_data_dict: [:environment] do
+    #loading namespace info
+    Rails.configuration.eager_load_namespaces.each(&:eager_load!)
+
+    #creating new csv and fill with header
+    csv = CSV.open("./data_dict.csv", "w+")
+    csv << [:table_name, :model_name, :attribute, :data_type, :phi_class, :description]
+
+    #preload phi_dict
+    phi_dict = HealthBase.phi_dictionary
+
+    #iterate through healthbase descendant classes to fill csv with info
+    HealthBase.descendants.each do |record|
+      #only proceed if exists and is not abstract
+      if !record.abstract_class? && record.table_exists?
+        #get table_name and model_name
+        table_name = record.table_name.to_s
+        model_name = record.model_name.to_s
+
+        #check if model in phi dictionary
+        if phi_dict.key?(model_name)
+          phi_dict_attr = phi_dict[model_name][:attrbutes].index_by(&:name)
+        else phi_dict_attr = {}
+        end
+
+        record.columns.each do |attribute|
+          #get attribute name and type
+          attr_name = attribute.name.to_s
+          attr_name_sym = attr_name.to_sym
+          attr_type = attribute.type.to_s
+
+          #get phi_class and desc if model in phi dictionary
+          if phi_dict_attr.key?(attr_name_sym)
+            phi_class = phi_dict_attr[attr_name_sym].category.to_s
+            description = phi_dict_attr[attr_name_sym].description.to_s
+          else
+            phi_class = ""
+            description = ""
+          end
+        
+          #fill csv with corresponding information
+          csv << [table_name, model_name, attr_name, attr_type, phi_class, description]
+        end
+
+        #insert blank line to separate between tables
+        csv << []
+      end
+    end
+
+  end
+
 end

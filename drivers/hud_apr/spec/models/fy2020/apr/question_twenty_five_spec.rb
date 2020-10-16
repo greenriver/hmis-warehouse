@@ -13,6 +13,11 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionTwentyFive, type: :model
     cleanup
   end
 
+  # This is just a smoke test, the underlying logic should already have been tested
+  it 'runs' do
+    expect(report_result.answer(question: 'Q25a', cell: 'B3').summary).to eq(2)
+  end
+
   describe 'Q25a: Number of Veterans' do
   end
 

@@ -38,6 +38,8 @@ module HudReports
       Reporting::Hud::RunReportJob.perform_now(self.class.name, @report.id)
     end
 
+    # This selects just ids for the clients, to ensure uniqueness, but uses select instead of pluck
+    # so that we can find in batches.
     def client_scope
       scope = client_source.
         distinct.
@@ -47,7 +49,7 @@ module HudReports
       scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_coc(coc_code: @report.coc_code)) if @report.coc_code
       scope = scope.merge(GrdaWarehouse::ServiceHistoryEnrollment.in_project(@report.project_ids)) if @report.project_ids.present?
 
-      scope
+      scope.select(:id)
     end
 
     def client_source

@@ -122,14 +122,14 @@ module GrdaWarehouse::WarehouseReports
       {
         clients_to_ph: 'Clients exiting to PH',
         hoh_to_ph: 'Heads of Households exiting to PH',
-        psh_clients_to_stabilization: "PSH Clients entering #{_"Housing"}",
-        psh_hoh_to_stabilization: "PSH Heads of Households entering #{_"Housing"}",
-        rrh_clients_to_stabilization: "RRH Clients entering #{_"Stabilization"}",
-        rrh_hoh_to_stabilization: "RRH Heads of Households entering #{_"Stabilization"}",
-        clients_to_stabilization: "All Clients entering #{_"Stabilization"}",
-        hoh_to_stabilization: "All Heads of Households entering #{_"Stabilization"}",
-        exits_to_ph: "Unique Clients exiting PH or entering #{_"Stabilization"}",
-        hoh_exits_to_ph: "Unique Heads of Households exiting PH or entering #{_"Stabilization"}",
+        psh_clients_to_stabilization: "PSH Clients entering #{_('Housing')}",
+        psh_hoh_to_stabilization: "PSH Heads of Households entering #{_('Housing')}",
+        rrh_clients_to_stabilization: "RRH Clients entering #{_('Stabilization')}",
+        rrh_hoh_to_stabilization: "RRH Heads of Households entering #{_('Stabilization')}",
+        clients_to_stabilization: "All Clients entering #{_('Stabilization')}",
+        hoh_to_stabilization: "All Heads of Households entering #{_('Stabilization')}",
+        exits_to_ph: "Unique Clients exiting PH or entering #{_('Stabilization')}",
+        hoh_exits_to_ph: "Unique Heads of Households exiting PH or entering #{_('Stabilization')}",
         clients_without_recent_service: 'Clients without recent service',
         hoh_without_recent_service: 'Heads of Households without recent service',
         client_outflow: 'Total Outflow',
@@ -153,10 +153,9 @@ module GrdaWarehouse::WarehouseReports
       housed = Reporting::Housed.
         where(client_id: entries_scope.residential.pluck(:client_id)).
         viewable_by(@user)
-      if @filter.sub_population.to_s.starts_with?('youth')
-        housed = housed.send(@filter.sub_population)
-      end
-      return housed
+      housed = housed.send(@filter.sub_population) if @filter.sub_population.to_s.starts_with?('youth')
+
+      housed
     end
 
     def service_history_enrollment_scope
@@ -169,8 +168,9 @@ module GrdaWarehouse::WarehouseReports
         joins(:organization).
         merge(GrdaWarehouse::Hud::Project.viewable_by(@user))
 
-      scope = scope.where(p_t[:id].in @filter.project_ids) unless @filter.project_ids.empty?
-      scope = scope.where(o_t[:id].in @filter.organization_ids) unless @filter.organization_ids.empty?
+      scope = scope.where(p_t[:id].in(@filter.project_ids)) unless @filter.project_ids.empty?
+      scope = scope.where(o_t[:id].in(@filter.organization_ids)) unless @filter.organization_ids.empty?
+
       if @filter.limit_to_vispdats
         scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids)
       end
@@ -186,11 +186,18 @@ module GrdaWarehouse::WarehouseReports
         end
       end
       scope = scope.joins(:client).where(race_filter) if race_filter.present?
-      if @filter.genders.present?
-        scope = scope.joins(:client).where(c_t[:Gender].in(@filter.genders))
+      scope = scope.joins(:client).where(c_t[:Gender].in(@filter.genders)) if @filter.genders.present?
+
+      if @filter.require_homeless_enrollment
+        homeless_clients = GrdaWarehouse::ServiceHistoryEnrollment.
+          entry.
+          with_service_between(start_date: @filter.start, end_date: @filter.end).
+          homeless.
+          select(:client_id)
+        scope = scope.where(client_id: homeless_clients)
       end
 
-      return scope
+      scope
     end
 
     private def warehouse_vispdat_client_ids

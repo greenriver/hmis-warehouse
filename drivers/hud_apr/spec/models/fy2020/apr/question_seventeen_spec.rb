@@ -14,5 +14,12 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSeventeen, type: :model 
   end
 
   describe 'Q17: Cash Income - Sources' do
+    it 'sees an entry assessment with earned income' do
+      expect(report_result.answer(question: 'Q17', cell: 'B2').summary).to eq(1)
+    end
+
+    it 'sees an annual assessment with earned income' do
+      expect(report_result.answer(question: 'Q17', cell: 'C2').summary).to eq(1)
+    end
   end
 end
