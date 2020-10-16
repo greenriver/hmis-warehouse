@@ -5,7 +5,7 @@
 ###
 
 class CohortsController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   include CohortAuthorization
   include CohortClients
   before_action :some_cohort_access!

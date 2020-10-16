@@ -7,7 +7,7 @@
 module WarehouseReports::HealthEmergency
   class UploadedResultsController < ApplicationController
     include ArelHelper
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include WarehouseReportAuthorization
     include WarehouseReportsHealthEmergencyController
     before_action :require_can_edit_health_emergency_clinical!
