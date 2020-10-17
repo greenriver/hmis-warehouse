@@ -64,6 +64,7 @@ module GrdaWarehouse::Tasks
           [
             row[:personal_id],
             row[:data_source_id],
+            row[:household_id],
           ]
         end.select { |_, v| v.count > 1 }
 
@@ -71,24 +72,38 @@ module GrdaWarehouse::Tasks
         households.each do |row|
           next if row[:exit_date].blank?
 
-          row[:fixed_household_id] = Digest::MD5.hexdigest("e_#{row[:data_source_id]}_#{row[:household_id]}_#{row[:enrollment_id]}")
+          # make a new unique household id based on enrollment, existing household id, project, and data source
+          row[:fixed_household_id] = Digest::MD5.hexdigest("e_#{row[:data_source_id]}_#{row[:project_id]}_#{row[:household_id]}_#{row[:enrollment_id]}")
         end
       end
+      @notifier.ping "Found #{incorrect_households.count} Heads of Household with at least two duplicate HouseholdIDs"
+      to_update = 0
       incorrect_households.each do |_, households|
         households.each do |row|
           next if row[:exit_date].blank?
 
-          # Update any closed enrollments that match this data source, household_id, date range
-          # with a unique household id
-          GrdaWarehouse::Hud::Enrollment.joins(:exit).where(
+          # Join exit to be sure we're only updating closed enrollments
+          enrollments = GrdaWarehouse::Hud::Enrollment.joins(:exit).where(
             data_source_id: row[:data_source_id],
-            household_id: row[:household_id],
+            HouseholdID: row[:household_id],
+            ProjectID: row[:project_id],
             EntryDate: row[:entry_date]..row[:exit_date],
-          ).update_all(
-            household_id: row[:fixed_household_id],
-            processed_as: nil,
           )
+          # Update any closed enrollments that match this data source, project, household_id,
+          # and date range, with a unique household id
+          unless @dry_run
+            enrollments.update_all(
+              HouseholdID: row[:fixed_household_id],
+              processed_as: nil,
+            )
+          end
+          to_update += enrollments.count
         end
+      end
+      if @dry_run
+        @notifier.ping "Not updating #{to_update} enrollments (dry-run)"
+      else
+        @notifier.ping "Updated #{to_update} enrollments with incorrect HouseholdIDs"
       end
     end
 
