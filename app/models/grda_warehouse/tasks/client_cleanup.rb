@@ -13,7 +13,7 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
-    def initialize(max_allowed=1_000, bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false, show_progress: false)
+    def initialize(max_allowed=1_000, _bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false, show_progress: false) # rubocop:disable Metrics/ParameterLists
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger
@@ -23,31 +23,85 @@ module GrdaWarehouse::Tasks
       @dry_run = dry_run
       @show_progress = show_progress
     end
+
     def run!
-      remove_unused_source_clients()
-      remove_unused_warehouse_clients_processed()
+      remove_unused_source_clients
+      remove_unused_warehouse_clients_processed
       GrdaWarehouseBase.transaction do
         @clients = find_unused_destination_clients
         debug_log "Found #{@clients.size} unused destination clients"
         remove_unused_service_history
-        invalidate_incorrect_family_enrollments()
+        invalidate_incorrect_family_enrollments
         if @clients.any?
-          debug_log "Deleting service history"
+          debug_log 'Deleting service history'
           clean_service_history
-          debug_log "Deleting warehouse clients processed"
+          debug_log 'Deleting warehouse clients processed'
           clean_warehouse_clients_processed
-          debug_log "Deleting warehouse clients"
+          debug_log 'Deleting warehouse clients'
           clean_warehouse_clients
-          debug_log "Deleting hmis clients"
+          debug_log 'Deleting hmis clients'
           clean_hmis_clients
-          debug_log "Soft-deleting destination clients"
+          debug_log 'Soft-deleting destination clients'
           clean_destination_clients
         end
       end
-      update_client_demographics_based_on_sources()
-      fix_incorrect_ages_in_service_history()
-      add_missing_ages_to_service_history()
-      rebuild_service_history_for_incorrect_clients()
+      update_client_demographics_based_on_sources
+      fix_incorrect_ages_in_service_history
+      add_missing_ages_to_service_history
+      fix_incorrect_household_ids
+      rebuild_service_history_for_incorrect_clients
+    end
+
+    # Find any heads of households where the same client has a duplicate HouseholdID
+    # Update all members of the household where the HoH enrollment is closed with a new HouseholdID
+    # where the members enrollment date falls between the HoH Entry and Exit dates inclusive
+    def fix_incorrect_household_ids
+      incorrect_households = GrdaWarehouse::Hud::Enrollment.heads_of_households.
+        left_outer_joins(:exit).
+        pluck(*household_id_columns.values).map do |row|
+          Hash[household_id_columns.keys.zip(row)]
+        end.group_by do |row|
+          [
+            row[:personal_id],
+            row[:data_source_id],
+          ]
+        end.select { |_, v| v.count > 1 }
+
+      incorrect_households.transform_values! do |households|
+        households.each do |row|
+          next if row[:exit_date].blank?
+
+          row[:fixed_household_id] = Digest::MD5.hexdigest("e_#{row[:data_source_id]}_#{row[:household_id]}_#{row[:enrollment_id]}")
+        end
+      end
+      incorrect_households.each do |_, households|
+        households.each do |row|
+          next if row[:exit_date].blank?
+
+          # Update any closed enrollments that match this data source, household_id, date range
+          # with a unique household id
+          GrdaWarehouse::Hud::Enrollment.joins(:exit).where(
+            data_source_id: row[:data_source_id],
+            household_id: row[:household_id],
+            EntryDate: row[:entry_date]..row[:exit_date],
+          ).update_all(
+            household_id: row[:fixed_household_id],
+            processed_as: nil,
+          )
+        end
+      end
+    end
+
+    private def household_id_columns
+      {
+        personal_id: e_t[:PersonalID],
+        data_source_id: e_t[:data_source_id],
+        entry_date: e_t[:EntryDate],
+        exit_date: ex_t[:ExitDate],
+        project_id: e_t[:ProjectID],
+        enrollment_id: e_t[:EnrollmentID],
+        household_id: e_t[:HouseholdID],
+      }.freeze
     end
 
     def rebuild_service_history_for_incorrect_clients
