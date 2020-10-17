@@ -6,7 +6,7 @@
 
 module WarehouseReports
   class InactiveYouthIntakesController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     before_action :set_filter
     before_action :set_report

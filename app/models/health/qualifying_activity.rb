@@ -459,11 +459,17 @@ module Health
     end
 
     def first_outreach_of_month_for_patient?
-      outreaches_of_month_for_patient.minimum(:id) == self.id
+      outreaches_of_month_for_patient.
+        payable. # Limit to payable QAs
+        or(self.class.where(id: id)). # Assume that we are payable for this calculation
+        minimum(:id) == id
     end
 
     def first_non_outreach_of_month_for_patient?
-      non_outreaches_of_month_for_patient.minimum(:id) == self.id
+      non_outreaches_of_month_for_patient.
+        payable. # Limit to payable QAs
+        or(self.class.where(id: id)). # Assume that we are payable for this calculation
+        minimum(:id) == id
     end
 
     def number_of_outreach_activity_months
