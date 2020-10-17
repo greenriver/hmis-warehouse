@@ -5,13 +5,13 @@
 ###
 
 class AccountTwoFactorsController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   # before_action :authenticate_user!
   before_action :set_user
 
   def edit
     @user.set_initial_two_factor_secret!
-    render 'accounts/edit'
+    render "accounts/edit"
   end
 
   # used to create and display backup codes

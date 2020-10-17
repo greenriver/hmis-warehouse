@@ -6,7 +6,7 @@
 
 module Health
   class DurableEquipmentsController < IndividualPatientController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
 
     before_action :set_client

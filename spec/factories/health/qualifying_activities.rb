@@ -13,6 +13,7 @@ FactoryBot.define do
     mode_of_contact { :in_person }
     reached_client { :yes }
     activity { :outreach }
+    naturally_payable { true }
     association :source, factory: :qa_source
     user
     patient
