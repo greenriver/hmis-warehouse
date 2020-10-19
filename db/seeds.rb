@@ -605,6 +605,13 @@ def report_list
         limitable: true,
         health: true,
       },
+      {
+        url: 'warehouse_reports/health/enrollments_disenrollments',
+        name: 'Enrollment-Disenrollment Files',
+        description: 'Generate the monthly Enrollment/Disenrollment files for ACOs.',
+        limitable: true,
+        health: true,
+      },
     ],
     'Health: BH CP Claims/Payments' => [
       {

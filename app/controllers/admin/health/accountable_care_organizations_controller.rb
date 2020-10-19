@@ -66,6 +66,8 @@ module Admin::Health
         :mco_sl,
         :edi_name,
         :active,
+        :e_d_file_prefix,
+        :e_d_receiver_text,
       )
     end
   end
