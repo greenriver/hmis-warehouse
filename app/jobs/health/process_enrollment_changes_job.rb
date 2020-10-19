@@ -161,7 +161,7 @@ module Health
       referral
     end
 
-    def referral_data(transaction)
+    def referral_data(transaction, change_description: nil)
       data = {
         first_name: Health::Enrollment.first_name(transaction),
         last_name: Health::Enrollment.last_name(transaction),
@@ -177,6 +177,8 @@ module Health
         cp_sl: @receiver.sl,
         record_status: 'A', # default to active
       }
+
+      data[:change_description] = change_description if change_description.present?
 
       health_enrollment_aco_pid_sl = Health::Enrollment.aco_pid_sl(transaction)
       if health_enrollment_aco_pid_sl
@@ -204,12 +206,12 @@ module Health
     end
 
     def enroll_patient(transaction)
-      Health::PatientReferral.create_referral(nil, referral_data(transaction))
+      Health::PatientReferral.create_referral(nil, referral_data(transaction, change_description: 'Enroll patient via 834'))
     end
 
     def re_enroll_patient(referral, transaction)
       patient = referral.patient
-      referral_data = referral_data(transaction)
+      referral_data = referral_data(transaction, change_description: 'Re-enroll patient via 834')
       referral_data[:agency_id] = referral.agency_id unless referral.enrollment_start_date != referral_data[:enrollment_start_date]
       Health::PatientReferral.create_referral(patient, referral_data)
     end
@@ -221,11 +223,12 @@ module Health
         record_status: 'I', # Mark disenrolled patients as inactive
         pending_disenrollment_date: Health::Enrollment.disenrollment_date(transaction) || file_date,
         stop_reason_description: disenrollment_reason_description(code),
+        change_description: 'Disenroll patient via 834',
       )
     end
 
     def update_patient_referrals(patient, transaction)
-      updates = referral_data(transaction)
+      updates = referral_data(transaction, change_description: 'Update patient via 834')
       current_referral = patient.patient_referral
       current_referral.assign_attributes(updates)
 
