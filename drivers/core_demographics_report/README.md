@@ -47,25 +47,23 @@ https://files.hudexchange.info/resources/documents/HomelessDefinition_Recordkeep
 (1) Individual or family who lacks a fixed, regular, and adequate nighttime residence, meaning:
 (i) Has a primary nighttime residence that is a public or private place not meant for human habitation;
 (ii) Is living in a publicly or privately operated shelter designated to provide temporary living arrangements (including congregate shelters, transitional housing, and hotels and motels paid for by charitable organizations or by federal, state and local government programs); or
-(iii) Isexitinganinstitutionwhere(s)hehasresidedfor90days or less and who resided in an emergency shelter or place not meant for human habitation immediately before entering that institution
+(iii) Is exiting an institution where (s)he has resided for 90 days or less and who resided in an emergency shelter or place not meant for human habitation immediately before entering that institution
 
 ### Category 2 (Imminent Risk of Homelessness)
 (2) Individual or family who will imminently lose their primary nighttime residence, provided that:
 (i) Residence will be lost within 14 days of the date of application for homeless assistance;
 (ii) No subsequent residence has been identified; and
-(iii) Theindividualorfamilylackstheresourcesorsupport
-networks needed to obtain other permanent housing
+(iii) The individual or family lacks the resources or support networks needed to obtain other permanent housing
 
 ### Category 3 (Homeless under other Federal statutes)
 (3) Unaccompanied youth under 25 years of age, or families with children and youth, who do not otherwise qualify as homeless under this definition, but who:
 (i) Are defined as homeless under the other listed federal statutes;
 (ii) Have not had a lease, ownership interest, or occupancy agreement in permanent housing during the 60 days prior to the homeless assistance application;
-(iii) Haveexperiencedpersistentinstabilityasmeasuredbytwo moves or more during in the preceding 60 days; and
-(iv) Canbeexpectedtocontinueinsuchstatusforanextended period of time due to special needs or barriers
+(iii) Have experienced persistent instability as measured by two moves or more during in the preceding 60 days; and
+(iv) Can be expected to continue in such status for an extended period of time due to special needs or barriers
 
 ### Category 4 (Fleeing/ Attempting to Flee DV)
 (4) Any individual or family who:
 (i) Is fleeing, or is attempting to flee, domestic violence;
 (ii) Has no other residence; and
-(iii) Lackstheresourcesorsupportnetworkstoobtainother
-permanent housing
+(iii) Lacks the resources or support networks to obtain other permanent housing

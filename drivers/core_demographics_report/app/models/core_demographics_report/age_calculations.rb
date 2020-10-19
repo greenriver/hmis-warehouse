@@ -26,13 +26,13 @@ module
 
     def adult_female_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(adult_clause.and(c_t[:Gender].eq(0))).select(:client_id).distinct.count
+        report_scope.joins(:client).where(adult_clause.and(female_clause)).select(:client_id).distinct.count
       end
     end
 
     def adult_male_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(adult_clause.and(c_t[:Gender].eq(1))).select(:client_id).distinct.count
+        report_scope.joins(:client).where(adult_clause.and(male_clause)).select(:client_id).distinct.count
       end
     end
 
@@ -44,13 +44,13 @@ module
 
     def child_female_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(child_clause.and(c_t[:Gender].eq(0))).select(:client_id).distinct.count
+        report_scope.joins(:client).where(child_clause.and(female_clause)).select(:client_id).distinct.count
       end
     end
 
     def child_male_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(child_clause.and(c_t[:Gender].eq(1))).select(:client_id).distinct.count
+        report_scope.joins(:client).where(child_clause.and(male_clause)).select(:client_id).distinct.count
       end
     end
 
@@ -62,13 +62,13 @@ module
 
     def average_adult_male_age
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        average_age(clause: adult_clause.and(c_t[:Gender].eq(1)))
+        average_age(clause: adult_clause.and(male_clause))
       end
     end
 
     def average_adult_female_age
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        average_age(clause: adult_clause.and(c_t[:Gender].eq(0)))
+        average_age(clause: adult_clause.and(female_clause))
       end
     end
 
@@ -80,13 +80,13 @@ module
 
     def average_child_male_age
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        average_age(clause: child_clause.and(c_t[:Gender].eq(1)))
+        average_age(clause: child_clause.and(male_clause))
       end
     end
 
     def average_child_female_age
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        average_age(clause: child_clause.and(c_t[:Gender].eq(0)))
+        average_age(clause: child_clause.and(female_clause))
       end
     end
 

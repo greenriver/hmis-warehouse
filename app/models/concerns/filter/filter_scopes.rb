@@ -2,18 +2,6 @@ module
   Filter::FilterScopes
   extend ActiveSupport::Concern
   included do
-    private def add_alternative(scope, alternative)
-      if scope.present?
-        scope.or(alternative)
-      else
-        alternative
-      end
-    end
-
-    private def race_alternative(key)
-      report_scope_source.joins(:client).where(c_t[key].eq(1))
-    end
-
     private def filter_for_range(scope)
       scope.open_between(start_date: @filter.start_date, end_date: @filter.end_date).
         with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)
@@ -100,6 +88,18 @@ module
       race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
 
       scope.merge(race_scope)
+    end
+
+    private def add_alternative(scope, alternative)
+      if scope.present?
+        scope.or(alternative)
+      else
+        alternative
+      end
+    end
+
+    private def race_alternative(key)
+      report_scope_source.joins(:client).where(c_t[key].eq(1))
     end
 
     private def filter_for_ethnicity(scope)

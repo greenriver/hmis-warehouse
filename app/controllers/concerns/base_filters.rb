@@ -11,12 +11,10 @@ module BaseFilters
 
     def filters
       @sections = @report.control_sections
-      chosen = params[:filter_section_id]
-      if chosen
-        @chosen_section = @sections.detect do |section|
-          section.id == chosen
-        end
+      @chosen_section = @sections.detect do |section|
+        section.id == params[:filter_section_id]
       end
+
       @modal_size = :xxl if @chosen_section.nil?
     end
 

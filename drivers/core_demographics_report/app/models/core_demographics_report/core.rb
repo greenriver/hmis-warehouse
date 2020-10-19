@@ -194,9 +194,16 @@ module CoreDemographicsReport
       Arel.sql("EXTRACT(YEAR FROM #{age_calculation.to_sql})").in((0..17).to_a)
     end
 
+    private def male_clause
+      c_t[:Gender].eq(1)
+    end
+
+    private def female_clause
+      c_t[:Gender].eq(0)
+    end
+
     private def average_age(clause:)
       average_age = nf('AVG', [age_calculation])
-      # limit to adults
       scope = report_scope.joins(:client).where(clause)
       scope.joins(:client).pluck(Arel.sql("EXTRACT(YEAR FROM #{average_age.to_sql})"))&.first&.to_i
     end

@@ -7,7 +7,7 @@
 module CoreDemographicsReport::WarehouseReports
   class CoreController < ApplicationController
     include WarehouseReportAuthorization
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ArelHelper
     include BaseFilters
 
