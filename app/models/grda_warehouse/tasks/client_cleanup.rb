@@ -94,6 +94,7 @@ module GrdaWarehouse::Tasks
           unless @dry_run
             enrollments.update_all(
               HouseholdID: row[:fixed_household_id],
+              original_household_id: row[:household_id],
               processed_as: nil,
             )
           end
