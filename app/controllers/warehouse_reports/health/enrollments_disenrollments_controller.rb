@@ -34,20 +34,7 @@ module WarehouseReports::Health
     end
 
     def months
-      @months ||= [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-      ].each_with_index.map { |m, i| [m, i + 1] }.freeze
+      @months ||= Date::MONTHNAMES.reject(&:blank?).each_with_index.map { |m, i| [m, i + 1] }.freeze
     end
     helper_method :months
 
