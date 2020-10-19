@@ -1,7 +1,7 @@
 - @title = "#{@report.project_type_title} Performance"
 %section.filter-summary.mb-5
   %h2.mb-4 Summary of Selected Universe
-  = render 'performance_dashboards/active_filters_three_col'
+  = render 'filters/active_filters_three_col'
 .main-inner-prs1
   %section
     - @report.class.available_chart_types.each do |chart|

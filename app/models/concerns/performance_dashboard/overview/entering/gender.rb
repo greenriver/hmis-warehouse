@@ -26,7 +26,7 @@ module PerformanceDashboard::Overview::Entering::Gender
 
   def entering_by_gender_data_for_chart
     @entering_by_gender_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += entering_by_gender.values.map(&:count)
       categories = entering_by_gender.keys
       filter_selected_data_for_chart(
