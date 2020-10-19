@@ -7,7 +7,7 @@
 module Projects
   class ContactsController < ApplicationController
     include Contacts
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     def contact_source
       GrdaWarehouse::Contact::Project
