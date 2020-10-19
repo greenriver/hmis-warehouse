@@ -1,0 +1,20 @@
+%h4.mt-0 Demographics
+%dl
+  %dt Sub-Population
+  %dd= @filter.chosen_sub_population
+  %dt Races
+  - if @filter.chosen_races.blank?
+    %dd.text-muted
+      All
+  - else
+    %dd
+      - @filter.chosen_races.each do |race|
+        .race= race
+  %dt Ethnicities
+  - if @filter.chosen_ethnicities.blank?
+    %dd.text-muted
+      All
+  - else
+    %dd
+      - @filter.chosen_ethnicities.each do |ethnicity|
+        .ethnicity= ethnicity

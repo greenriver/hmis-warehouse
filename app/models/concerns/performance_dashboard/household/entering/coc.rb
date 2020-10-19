@@ -27,7 +27,7 @@ module PerformanceDashboard::Household::Entering::Coc
 
   def entering_by_coc_data_for_chart
     @entering_by_coc_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += entering_by_coc.values.map(&:count)
       categories = entering_by_coc.keys
       filter_selected_data_for_chart(

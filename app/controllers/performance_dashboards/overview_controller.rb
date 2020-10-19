@@ -6,7 +6,6 @@
 
 module PerformanceDashboards
   class OverviewController < BaseController
-    before_action :set_filter
     before_action :set_report
     before_action :set_key, only: [:details]
     before_action :set_pdf_export

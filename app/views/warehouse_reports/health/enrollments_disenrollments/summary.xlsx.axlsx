@@ -1,0 +1,25 @@
+wb = xlsx_package.workbook
+header =     [
+  'Sender',
+  'Sent_Row_Num',
+  'Sent_Column_Num',
+  'Sent_Export_Time_Stamp',
+  'Receiver',
+  'Received_Row_Num',
+  'Received_Column_Num',
+  'Received_Export_Time_Stamp',
+].freeze
+
+wb.add_worksheet(name: 'ENROLLMENT') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+
+  sheet.add_row(header, style: title)
+  sheet.add_row(@report.enrollment_summary)
+end
+
+wb.add_worksheet(name: 'DISENROLLMENT') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+
+  sheet.add_row(header, style: title)
+  sheet.add_row(@report.disenrollment_summary)
+end

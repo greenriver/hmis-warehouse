@@ -27,7 +27,7 @@ module PerformanceDashboard::Household::Entering::Household
 
   def entering_by_household_data_for_chart
     @entering_by_household_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += entering_by_household.values.map(&:count).drop(1) # ignore :all
       categories = entering_by_household.keys.drop(1) # ignore :all
       filter_selected_data_for_chart(
