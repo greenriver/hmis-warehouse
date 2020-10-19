@@ -26,7 +26,7 @@ module PerformanceDashboard::Overview::Exiting::Ethnicity
 
   def exiting_by_ethnicity_data_for_chart
     @exiting_by_ethnicity_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += exiting_by_ethnicity.values.map(&:count)
       categories = exiting_by_ethnicity.keys
       filter_selected_data_for_chart(

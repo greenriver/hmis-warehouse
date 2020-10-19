@@ -6,8 +6,7 @@
 
 module PerformanceDashboards
   class ProjectTypeController < OverviewController
-    include PjaxModalController
-    before_action :set_filter
+    include AjaxModalRails::Controller
     before_action :set_report
     before_action :set_key, only: [:details]
     before_action :set_pdf_export

@@ -26,7 +26,7 @@ module PerformanceDashboard::Household::Enrolled::ProjectType
 
   def enrolled_by_project_type_data_for_chart
     @enrolled_by_project_type_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += enrolled_by_project_type.values.map(&:count)
       categories = enrolled_by_project_type.keys
       categories &= GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten

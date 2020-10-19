@@ -26,7 +26,7 @@ module PerformanceDashboard::Overview::Enrolled::Race
 
   def enrolled_by_race_data_for_chart
     @enrolled_by_race_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += enrolled_by_race.values.map(&:count)
       categories = enrolled_by_race.keys
       filter_selected_data_for_chart(

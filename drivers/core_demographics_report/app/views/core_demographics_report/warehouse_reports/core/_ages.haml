@@ -1,0 +1,78 @@
+- reports = [@report]
+- column_class = 'col-sm-8'
+- if @report.include_comparison?
+  - reports << @comparison
+  - column_class = 'col-sm-6'
+.row
+  - if @report.include_comparison?
+    - reports.each_with_index do |report, index|
+      .col-sm-6
+        %h3.d-flex
+          .pb-4.mr-2.c-swatch__display{class: "c-swatch__display--chart-#{index}"}
+          .title= report.filter.date_range_words
+  - reports.each_with_index do |report, index|
+    - comparison_class = ''
+    - if reports.count > 1
+      - comparison_class = "c-swatch__border-left--td-#{index}"
+    %div{class: column_class}
+      %h3 Adults
+      .card.mb-4{class: comparison_class}
+        %table.table
+          %thead
+            %tr
+              %th
+              %th Count
+              %th Average Age
+          %tbody
+            %tr
+              %th All
+              %td= number_with_delimiter report.adult_count
+              %td= report.average_adult_age
+
+            %tr
+              %th Female
+              %td= number_with_delimiter report.adult_female_count
+              %td= report.average_adult_female_age
+            %tr
+              %th Male
+              %td= number_with_delimiter report.adult_male_count
+              %td= report.average_adult_male_age
+
+      %h3 Children
+      .card.mb-4{class: comparison_class}
+        %table.table
+          %thead
+            %tr
+              %th
+              %th Count
+              %th Average Age
+          %tbody
+            %tr
+              %th All
+              %td= number_with_delimiter report.child_count
+              %td= report.average_child_age
+
+            %tr
+              %th Female
+              %td= number_with_delimiter report.child_female_count
+              %td= report.average_child_female_age
+            %tr
+              %th Male
+              %td= number_with_delimiter report.child_male_count
+              %td= report.average_child_male_age
+        %div{class: column_class}
+        
+      %h3 Age Breakdowns
+      .card.mb-4{class: comparison_class}
+        %table.table
+          %thead
+            %tr
+              %th Age Range
+              %th Count
+              %th Percentage
+          %tbody
+            - @report.age_categories.each do |id, title|
+              %tr
+                %th= title
+                %td= number_with_delimiter(report.age_count(id))
+                %td= number_to_percentage(report.age_percentage(id), precision: 2)

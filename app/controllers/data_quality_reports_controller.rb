@@ -5,7 +5,7 @@
 ###
 
 class DataQualityReportsController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   skip_before_action :authenticate_user!, only: [:show, :answers]
   before_action :require_valid_token_or_report_access!, except: [:index]
   before_action :require_valid_token_or_project_access!
@@ -61,7 +61,7 @@ class DataQualityReportsController < ApplicationController
           set_client_path
           # The view is versioned using the model name
           layout = if request.xhr?
-            'pjax_modal_content'
+            'ajax_modal_rails/content'
           else
             'application'
           end
@@ -118,7 +118,7 @@ class DataQualityReportsController < ApplicationController
           render xlsx: 'index', filename: "support-#{@key}.xlsx"
         end
         format.html do
-          render layout: 'pjax_modal_content' if params[:layout].present? && params[:layout] == 'false'
+          render layout: 'ajax_modal_rails/content' if params[:layout].present? && params[:layout] == 'false'
         end
         format.js {}
       end

@@ -54,7 +54,7 @@ module PerformanceDashboard::ProjectType::Destination
 
   def destinations_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += destinations.top.values.map(&:count).reverse
       categories = destinations.top.keys.reverse.map do |k|
         if k == :other

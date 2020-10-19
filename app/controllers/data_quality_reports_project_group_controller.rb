@@ -5,7 +5,7 @@
 ###
 
 class DataQualityReportsProjectGroupController < DataQualityReportsController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   # Authorize by either access to projects OR access by token
   skip_before_action :authenticate_user!, only: [:show, :answers]
   skip_before_action :set_project

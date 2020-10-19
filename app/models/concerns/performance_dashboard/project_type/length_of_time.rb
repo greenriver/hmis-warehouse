@@ -87,7 +87,7 @@ module PerformanceDashboard::ProjectType::LengthOfTime
 
   def lengths_of_time_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       counts = lengths_of_time.values.map(&:count)
       columns += counts
       categories = lengths_of_time.keys.map do |k|

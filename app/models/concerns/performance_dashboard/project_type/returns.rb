@@ -74,7 +74,7 @@ module PerformanceDashboard::ProjectType::Returns
 
   def returns_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += returns_buckets.map do |bucket|
         homeless_re_entries.values.map { |en| en[:returns_bucket] }.count(bucket)
       end
