@@ -7,7 +7,7 @@
 module Health::He
   class ResultsController < HealthController
     include IndividualContactTracingController
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     before_action :set_case
     before_action :set_contact

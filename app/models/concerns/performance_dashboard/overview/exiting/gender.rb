@@ -26,7 +26,7 @@ module PerformanceDashboard::Overview::Exiting::Gender
 
   def exiting_by_gender_data_for_chart
     @exiting_by_gender_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += exiting_by_gender.values.map(&:count)
       categories = exiting_by_gender.keys
       filter_selected_data_for_chart(

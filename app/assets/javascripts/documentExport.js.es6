@@ -5,7 +5,7 @@ const initialState = {
 };
 
 $(() => {
-  const $modal = $('#pjax-modal');
+  const $modal = $('#ajax-modal');
 
   let state = { ...initialState };
   const setState = (newState) => {

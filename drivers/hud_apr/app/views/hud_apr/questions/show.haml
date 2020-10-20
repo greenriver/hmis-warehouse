@@ -5,7 +5,7 @@
   = "#{report_short_name} #{@question}"
 
 %h1= content_for :title
-= render 'hud_apr/shared/beta_warning'
+
 = render 'hud_apr/shared/report_form', url: path_for_questions(report_id: 0, question: @question)
 
 - if @reports.present?

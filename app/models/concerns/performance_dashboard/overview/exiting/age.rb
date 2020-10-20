@@ -23,7 +23,7 @@ module PerformanceDashboard::Overview::Exiting::Age
 
   def exiting_by_age_data_for_chart
     @exiting_by_age_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += exiting_by_age.values.map(&:count)
       categories = entering_by_age.keys
       filter_selected_data_for_chart(

@@ -8,7 +8,7 @@ module WarehouseReports
   class PshController < RrhController
     include WarehouseReportAuthorization
     include ArelHelper
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     private def set_report
       @report = WarehouseReport::PshReport.new(

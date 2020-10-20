@@ -264,6 +264,14 @@ RSpec.describe Health::QualifyingActivity, type: :model do
         expect(other_qa8.compute_valid_unpayable?).to be true
       end
     end
+
+    it 'ignores unpayable outreach QAs when checking for first' do
+      create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-15'), naturally_payable: false
+      outreach_qa = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-20')
+
+      Timecop.return
+      expect(outreach_qa.compute_valid_unpayable?).to be false
+    end
   end
 
   describe 'Outreach QA' do
