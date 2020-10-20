@@ -57,6 +57,7 @@ module GrdaWarehouse::Tasks
     # where the members enrollment date falls between the HoH Entry and Exit dates inclusive
     def fix_incorrect_household_ids
       incorrect_households = GrdaWarehouse::Hud::Enrollment.heads_of_households.
+        where.not(HouseholdID: nil).
         left_outer_joins(:exit).
         pluck(*household_id_columns.values).map do |row|
           Hash[household_id_columns.keys.zip(row)]
