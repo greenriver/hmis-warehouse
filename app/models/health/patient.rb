@@ -8,6 +8,7 @@
 # Control: PHI attributes documented
 module Health
   class Patient < Base
+    include RailsDrivers::Extensions
     include ArelHelper
     acts_as_paranoid
 
@@ -667,7 +668,7 @@ module Health
       end
       case_notes += epic_case_notes.order(contact_date: :desc).map do |form|
         date = form.contact_date
-        # Epic doesn't send timezone, but sends the dates all as mid-night, 
+        # Epic doesn't send timezone, but sends the dates all as mid-night,
         # so assume it's in the local timezone
         date = Time.zone.local_to_utc(date).to_date if date
         {
