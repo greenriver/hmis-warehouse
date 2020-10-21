@@ -5,7 +5,7 @@
 ###
 
 class HelpController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
 
   before_action :require_can_edit_help!, except: [:show]
   before_action :load_help, except: [:index, :new, :create]
