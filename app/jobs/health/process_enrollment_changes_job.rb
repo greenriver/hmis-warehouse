@@ -172,7 +172,7 @@ module Health
         gender: Health::Enrollment.gender(transaction),
         medicaid_id: Health::Enrollment.subscriber_id(transaction),
         enrollment_start_date: Health::Enrollment.enrollment_date(transaction),
-        cp_name_official: @receiver.mmis_enrollment_name,
+        cp_name_official: @receiver.cp_name_official,
         cp_pid: @receiver.pid,
         cp_sl: @receiver.sl,
         record_status: 'A', # default to active

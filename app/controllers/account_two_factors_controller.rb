@@ -11,7 +11,7 @@ class AccountTwoFactorsController < ApplicationController
 
   def edit
     @user.set_initial_two_factor_secret!
-    render "accounts/edit"
+    render 'accounts/edit'
   end
 
   # used to create and display backup codes

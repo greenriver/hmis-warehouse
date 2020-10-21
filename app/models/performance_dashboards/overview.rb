@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
+class PerformanceDashboards::Overview < PerformanceDashboards::Base
   include PerformanceDashboard::Overview::Age
   include PerformanceDashboard::Overview::Gender
   include PerformanceDashboard::Overview::Household
@@ -51,6 +51,15 @@ class PerformanceDashboards::Overview < PerformanceDashboards::Base # rubocop:di
     # Only show CoC tab if the site is setup to show it
     chart_types << 'by_coc' if GrdaWarehouse::Config.get(:multi_coc_installation)
     chart_types
+  end
+
+  protected def build_control_sections
+    [
+      build_general_control_section,
+      build_coc_control_section,
+      build_household_control_section,
+      build_demographics_control_section,
+    ]
   end
 
   def exiting_by_destination

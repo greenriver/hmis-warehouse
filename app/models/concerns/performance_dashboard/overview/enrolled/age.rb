@@ -24,7 +24,7 @@ module PerformanceDashboard::Overview::Enrolled::Age
 
   def enrolled_by_age_data_for_chart
     @enrolled_by_age_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += enrolled_by_age.values.map(&:count)
       categories = entering_by_age.keys
       filter_selected_data_for_chart(

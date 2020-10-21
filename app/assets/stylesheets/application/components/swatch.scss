@@ -27,3 +27,15 @@
     fill: $color;
   }
 }
+
+@each $index, $color in $chart-colors {
+  .c-swatch__display--chart-#{$index} {
+    background-color: $color;
+  }
+  .c-swatch__display--chart-#{$index} {
+    fill: $color;
+  }
+  .c-swatch__border-left--td-#{$index} {
+    border-left: 4px solid $color;
+  }
+}

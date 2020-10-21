@@ -10,15 +10,15 @@ module Filters
     include AvailableSubPopulations
     include ArelHelper
 
-    attribute :start, Date, lazy: true, default: -> (r,_) { r.default_start }
-    attribute :end, Date, lazy: true, default: -> (r,_) { r.default_end }
+    attribute :start, Date, lazy: true, default: ->(r,_) { r.default_start }
+    attribute :end, Date, lazy: true, default: ->(r,_) { r.default_end }
     attribute :sort
     attribute :heads_of_household, Boolean, default: false
-    attribute :comparison_pattern, Symbol, default: -> (r,_) { r.default_comparison_pattern }
+    attribute :comparison_pattern, Symbol, default: ->(r,_) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
-    attribute :project_type_codes, Array, default: -> (r,_) { r.default_project_type_codes }
-    attribute :project_type_numbers, Array, default: -> (r,_) { [] }
+    attribute :project_type_codes, Array, default: ->(r,_) { r.default_project_type_codes }
+    attribute :project_type_numbers, Array, default: ->(r,_) { [] }
     attribute :veteran_statuses, Array, default: []
     attribute :age_ranges, Array, default: []
     attribute :genders, Array, default: []
@@ -43,12 +43,14 @@ module Filters
     attribute :start_age, Integer, default: 17
     attribute :end_age, Integer, default: 25
     attribute :ph, Boolean, default: false
+    attribute :disabilities, Array, default: []
+    attribute :indefinite_disabilities, Array, default: []
+    attribute :dv_status, Array, default: []
+    attribute :chronic_status, Boolean, default: false
 
     validates_presence_of :start, :end
     validate do
-      if start > self.end
-        errors.add(:end, 'End date must follow start date.')
-      end
+      errors.add(:end, 'End date must follow start date.') if start > self.end
     end
 
     # NOTE: keep this up-to-date if adding additional attributes
@@ -92,6 +94,11 @@ module Filters
       self.destination_ids = filters.dig(:destination_ids)&.reject(&:blank?)&.map { |m| m.to_i }
       self.length_of_times = filters.dig(:length_of_times)&.reject(&:blank?)&.map { |m| m.to_sym }
       self.cohort_ids = filters.dig(:cohort_ids)&.reject(&:blank?)&.map { |m| m.to_i }
+
+      self.disabilities = filters.dig(:disabilities)&.reject(&:blank?)&.map { |m| m.to_i }
+      self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map { |m| m.to_i }
+      self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map { |m| m.to_i }
+      self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true])
       ensure_dates_work
     end
 
@@ -121,8 +128,41 @@ module Filters
           prior_living_situation_ids: prior_living_situation_ids,
           destination_ids: destination_ids,
           length_of_times: length_of_times,
+          disabilities: disabilities,
+          indefinite_disabilities: indefinite_disabilities,
+          dv_status: dv_status,
+          chronic_status: chronic_status,
         }
       }
+    end
+
+    def selected_params_for_display
+      {}.tap do |opts|
+        opts['Report Range'] = date_range_words
+        opts['Comparison Range'] = comparison_range_words if includes_comparison?
+        opts['CoC Codes'] = chosen_coc_codes if coc_codes.present?
+        opts['Project Types'] = chosen_project_types
+        opts['Sub-Population'] = chosen_sub_population
+        opts['Data Sources'] = data_source_names if data_source_ids.any?
+        opts['Organizations'] = organization_names if organization_ids.any?
+        opts['Projects'] = project_names if project_ids.any?
+        opts['Project Groups'] = project_groups if project_group_ids.any?
+        opts['Funders'] = funder_names if funder_ids.any?
+        opts['Heads of Household only?'] = 'Yes' if hoh_only
+        opts['Household Type'] = chosen_household_type if household_type
+        opts['Age Ranges'] = chosen_age_ranges if age_ranges.any?
+        opts['Races'] = chosen_races if races.any?
+        opts['Ethnicities'] = chosen_ethnicities if ethnicities.any?
+        opts['Genders'] = chosen_genders if genders.any?
+        opts['Veteran Statuses'] = chosen_veteran_statuses if veteran_statuses.any?
+        opts['Length of Time'] = length_of_times if length_of_times.any?
+        opts['Prior Living Situations'] = chosen_prior_living_situations if prior_living_situation_ids.any?
+        opts['Destinations'] = chosen_destinations if destination_ids.any?
+        opts['Disabilities'] = chosen_disabilities if disabilities.any?
+        opts['Indefinite and Impairing Disabilities'] = chosen_indefinite_disabilities if indefinite_disabilities.any?
+        opts['DV Status'] = chosen_dv_status if dv_status.any?
+        opts['Chronically Homeless'] = 'Yes' if chronic_status
+      end
     end
 
     def range
@@ -148,6 +188,15 @@ module Filters
 
     def end_date
       last
+    end
+
+    def date_range_words
+      "#{start_date} - #{end_date}"
+    end
+
+    def comparison_range_words
+      s, e = comparison_dates
+      "#{s} - #{e}"
     end
 
     def length
@@ -272,31 +321,31 @@ module Filters
     end
 
     # Select display options
-    def project_options_for_select(user: )
+    def project_options_for_select(user:)
       all_project_scope.options_for_select(user: user)
     end
 
-    def organization_options_for_select(user: )
+    def organization_options_for_select(user:)
       all_organizations_scope.distinct.options_for_select(user: user)
     end
 
-    def data_source_options_for_select(user: )
+    def data_source_options_for_select(user:)
       all_data_sources_scope.options_for_select(user: user)
     end
 
-    def funder_options_for_select(user: )
+    def funder_options_for_select(user:)
       all_funders_scope.options_for_select(user: user)
     end
 
-    def coc_code_options_for_select(user: )
+    def coc_code_options_for_select(user:)
       GrdaWarehouse::Lookups::CocCode.options_for_select(user: user)
     end
 
-    def project_groups_options_for_select(user: )
+    def project_groups_options_for_select(user:)
       all_project_group_scope.options_for_select(user: user)
     end
 
-    def cohorts_for_select(user: )
+    def cohorts_for_select(user:)
       GrdaWarehouse::Cohort.viewable_by(user)
     end
     # End Select display options
@@ -339,7 +388,11 @@ module Filters
       {
         under_eighteen: '< 18',
         eighteen_to_twenty_four: '18 - 24',
-        twenty_five_to_sixty_one: '25 - 61',
+        twenty_five_to_twenty_nine: '25 - 29',
+        thirty_to_thirty_nine: '30 - 39',
+        forty_to_forty_nine: '40 - 49',
+        fifty_to_fifty_nine: '50 - 59',
+        sixty_to_sixty_one: '60 - 61',
         over_sixty_one: '62+',
       }.invert.freeze
     end
@@ -384,12 +437,164 @@ module Filters
       :no_comparison_period
     end
 
+    def includes_comparison?
+      comparison_pattern != :no_comparison_period
+    end
+
     def default_project_type_codes
       GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES
     end
 
     def default_project_type_numbers
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
+    end
+
+    def chosen_sub_population
+      Reporting::MonthlyReports::Base.available_types[sub_population]&.constantize&.new&.sub_population_title
+    end
+
+    def chosen_age_ranges
+      age_ranges.map do |range|
+        available_age_ranges.invert[range]
+      end.join(', ')
+    end
+
+    def chosen_races
+      races.map do |race|
+        HUD.race(race)
+      end
+    end
+
+    def chosen_ethnicities
+      ethnicities.map do |ethnicity|
+        HUD.ethnicity(ethnicity)
+      end
+    end
+
+    def chosen_genders
+      genders.map do |gender|
+        HUD.gender(gender)
+      end
+    end
+
+    def chosen_coc_codes
+      coc_codes.join(', ')
+    end
+
+    def chosen_veteran_statuses
+      veteran_statuses.map do |veteran_status|
+        HUD.veteran_status(veteran_status)
+      end
+    end
+
+    def chosen_project_types
+      project_type_ids.map do |type|
+        HUD.project_type(type)
+      end.uniq
+    end
+
+    def chosen_project_types_only_homeless?
+      project_type_ids.sort == GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES.sort
+    end
+
+    def chosen_household_type
+      household_type_string(household_type.to_sym)
+    end
+
+    def household_type_string(type)
+      available_household_types.invert[type] || 'Unknown'
+    end
+
+    def chosen_prior_living_situations
+      prior_living_situation_ids.map do |id|
+        available_prior_living_situations.invert[id]
+      end.join(', ')
+    end
+
+    def chosen_destinations
+      destination_ids.map do |id|
+        available_destinations.invert[id]
+      end.join(', ')
+    end
+
+    def chosen_disabilities
+      disabilities.map do |id|
+        available_disabilities.invert[id]
+      end.join(', ')
+    end
+
+    def chosen_indefinite_disabilities
+      indefinite_disabilities.map do |id|
+        available_indefinite_disabilities.invert[id]
+      end.join(', ')
+    end
+
+    def chosen_dv_status
+      dv_status.map do |id|
+        available_dv_status.invert[id]
+      end.join(', ')
+    end
+
+    def data_source_names
+      data_source_options_for_select(user: user).
+        select do |_, id|
+          data_source_ids.include?(id)
+        end&.map(&:first)
+    end
+
+    def organization_names
+      organization_options_for_select(user: user).
+        values.
+        flatten(1).
+        select do |_, id|
+          organization_ids.include?(id)
+        end&.map(&:first)
+    end
+
+    def project_names
+      project_options_for_select(user: user).
+        values.
+        flatten(1).
+        select do |_, id|
+          project_ids.include?(id)
+        end&.map(&:first)
+    end
+
+    def project_groups
+      project_groups_options_for_select(user: user).select { |_, id| project_group_ids.include?(id) }&.map(&:first)
+    end
+
+    def funder_names
+      funder_options_for_select(user: user).select { |_, id| funder_ids.include?(id.to_i) }&.map(&:first)
+    end
+
+    def available_household_types
+      {
+        all: 'All household types',
+        without_children: 'Adult only Households',
+        with_children: 'Adult and Child Households',
+        only_children: 'Child only Households',
+      }.invert.freeze
+    end
+
+    def available_prior_living_situations
+      HUD.living_situations.invert
+    end
+
+    def available_destinations
+      HUD.valid_destinations.invert
+    end
+
+    def available_disabilities
+      HUD.disability_types.invert
+    end
+
+    def available_indefinite_disabilities
+      HUD.no_yes_reasons_for_missing_data_options.invert
+    end
+
+    def available_dv_status
+      HUD.no_yes_reasons_for_missing_data_options.invert
     end
 
     def to_comparison
