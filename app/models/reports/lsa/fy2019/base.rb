@@ -194,8 +194,7 @@ module Reports::Lsa::Fy2019
         GrdaWarehouse::Hud::Project.viewable_by(user).coc_funded.joins(:organization).
         includes(:funders).
         where(computed_project_type: [1, 2, 3, 8, 9, 10, 13, 4]).
-        where(OperatingStartDate: nil, operating_start_date_override: nil).
-        where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)), # this is imperfect, but only look at projects with enrollments open during the past three years
+        where(OperatingStartDate: nil, operating_start_date_override: nil),
       )
     end
 
