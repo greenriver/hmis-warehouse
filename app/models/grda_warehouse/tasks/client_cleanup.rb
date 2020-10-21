@@ -71,8 +71,6 @@ module GrdaWarehouse::Tasks
 
       incorrect_households.transform_values! do |households|
         households.each do |row|
-          next if row[:exit_date].blank?
-
           # make a new unique household id based on enrollment, existing household id, project, and data source
           row[:fixed_household_id] = Digest::MD5.hexdigest("e_#{row[:data_source_id]}_#{row[:project_id]}_#{row[:enrollment_id]}")
         end
@@ -81,17 +79,24 @@ module GrdaWarehouse::Tasks
       to_update = 0
       incorrect_households.each do |_, households|
         households.each do |row|
-          next if row[:exit_date].blank?
-
-          # Join exit to be sure we're only updating closed enrollments
-          enrollments = GrdaWarehouse::Hud::Enrollment.joins(:exit).where(
+          # If the enrollment is open, only update other open enrollments started on the same day
+          # If the enrollment is closed, find any closed enrollment overlapping the range
+          enrollments = GrdaWarehouse::Hud::Enrollment.where(
             data_source_id: row[:data_source_id],
             HouseholdID: row[:household_id],
             ProjectID: row[:project_id],
-            EntryDate: row[:entry_date]..row[:exit_date],
           )
+          enrollments = if row[:exit_date].blank?
+            enrollments.where(EntryDate: row[:entry_date]).
+              left_outer_joins(:exit).
+              where(ex_t[:ExitDate].eq(nil))
+          else
+            enrollments.joins(:exit).where(EntryDate: row[:entry_date]...row[:exit_date])
+          end
+
           # Update any closed enrollments that match this data source, project, household_id,
           # and date range, with a unique household id
+          to_update += enrollments.count
           unless @dry_run
             enrollments.update_all(
               HouseholdID: row[:fixed_household_id],
@@ -99,7 +104,6 @@ module GrdaWarehouse::Tasks
               processed_as: nil,
             )
           end
-          to_update += enrollments.count
         end
       end
       if @dry_run
