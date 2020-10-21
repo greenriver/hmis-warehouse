@@ -23,4 +23,5 @@
           - unless reason[0] == pr.rejected_reason
             %li
               = link_to Health::PatientReferral.display_rejected_reason(reason[0]), '#', data: {behavior: 'reject patient referral', rejected_reason: reason[0]}
-    = f.input :disenrollment_date, as: :date_picker,  label: 'Disenrollment date:', input_html: { value:pr.disenrollment_date || Date.current.end_of_month }
+    - value = pr.disenrollment_date || pr.pending_disenrollment_date || Date.current.end_of_month
+    = f.input :disenrollment_date, as: :date_picker,  label: 'Disenrollment date:', input_html: { value: value }
