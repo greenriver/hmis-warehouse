@@ -74,7 +74,7 @@ module GrdaWarehouse::Tasks
           next if row[:exit_date].blank?
 
           # make a new unique household id based on enrollment, existing household id, project, and data source
-          row[:fixed_household_id] = Digest::MD5.hexdigest("e_#{row[:data_source_id]}_#{row[:project_id]}_#{row[:household_id]}_#{row[:enrollment_id]}")
+          row[:fixed_household_id] = Digest::MD5.hexdigest("e_#{row[:data_source_id]}_#{row[:project_id]}_#{row[:enrollment_id]}")
         end
       end
       @notifier.ping "Found #{incorrect_households.count} Heads of Household with at least two duplicate HouseholdIDs"
