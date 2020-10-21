@@ -8,7 +8,7 @@
     - excluded << item
 
 %p
-  Run by #{@report.user.name} at
+  Run by #{@report.user&.name} at
   %strong
     #{@report.completed_at}
   with the following options:

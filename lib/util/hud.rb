@@ -721,24 +721,7 @@ module HUD
 
   # 3.917.5
   def months_homeless_past_three_years(id, reverse = false)
-    map = {
-      8 => 'Client doesn’t know',
-      9 => 'Client refused',
-      99 => 'Data not collected',
-      101 => '1',
-      102 => '2',
-      103 => '3',
-      104 => '4',
-      105 => '5',
-      106 => '6',
-      107 => '7',
-      108 => '8',
-      109 => '9',
-      110 => '10',
-      111 => '11',
-      112 => '12',
-      113 => 'More than 12 months',
-    }
+    map = month_categories
 
     _translate map, id, reverse
   end
@@ -764,6 +747,27 @@ module HUD
     }
 
     _translate map, id, reverse
+  end
+
+  def month_categories
+    {
+      8 => 'Client doesn’t know',
+      9 => 'Client refused',
+      99 => 'Data not collected',
+      101 => '1',
+      102 => '2',
+      103 => '3',
+      104 => '4',
+      105 => '5',
+      106 => '6',
+      107 => '7',
+      108 => '8',
+      109 => '9',
+      110 => '10',
+      111 => '11',
+      112 => '12',
+      113 => 'More than 12 months',
+    }
   end
 
   # 3.12.1
@@ -1097,7 +1101,12 @@ module HUD
 
   # 4.11.A
   def when_d_v_occurred(id, reverse = false)
-    map = {
+    map = when_occurreds
+    _translate map, id, reverse
+  end
+
+  def when_occurreds
+    {
       1 => 'Within the past three months',
       2 => 'Three to six months ago (excluding six months exactly)',
       3 => 'Six months to one year ago (excluding one year exactly)',
@@ -1106,8 +1115,6 @@ module HUD
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 4.12.2

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_09_165424) do
+ActiveRecord::Schema.define(version: 2020_10_20_181913) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -570,6 +570,7 @@ ActiveRecord::Schema.define(version: 2020_10_09_165424) do
     t.datetime "pending_date_deleted"
     t.string "SexualOrientationOther", limit: 100
     t.date "history_generated_on"
+    t.string "original_household_id"
     t.index ["DateCreated"], name: "enrollment_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Enrollment_on_DateDeleted_and_data_source_id"
     t.index ["DateDeleted"], name: "index_Enrollment_on_DateDeleted"

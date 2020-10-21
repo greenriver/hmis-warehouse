@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class PerformanceDashboards::Household < PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
+class PerformanceDashboards::Household < PerformanceDashboards::Base
   include PerformanceDashboard::Household::Household
   include PerformanceDashboard::Household::Detail
   include PerformanceDashboard::Household::Entering
@@ -28,10 +28,6 @@ class PerformanceDashboards::Household < PerformanceDashboards::Base # rubocop:d
     'Household'
   end
 
-  def client_filters?
-    false
-  end
-
   def report_path_array
     [
       :performance,
@@ -49,6 +45,33 @@ class PerformanceDashboards::Household < PerformanceDashboards::Base # rubocop:d
     # Only show CoC tab if the site is setup to show it
     chart_types << 'by_coc' if GrdaWarehouse::Config.get(:multi_coc_installation)
     chart_types
+  end
+
+  protected def build_control_sections
+    [
+      build_general_control_section,
+      build_coc_control_section,
+      build_household_control_section,
+      build_demographics_control_section,
+    ]
+  end
+
+  protected def build_demographics_control_section
+    ::Filters::UiControlSection.new(id: 'demographics').tap do |section|
+      section.add_control(
+        id: 'sub_population',
+        label: 'Sub-Population',
+        short_label: 'Sub-Population',
+        required: true,
+        value: @filter.sub_population == :clients ? nil : @filter.chosen_sub_population,
+      )
+    end
+  end
+
+  protected def build_household_control_section
+    ::Filters::UiControlSection.new(id: 'household').tap do |section|
+      section.add_control(id: 'household_type', required: true, value: @filter.household_type == :all ? nil : @filter.chosen_household_type)
+    end
   end
 
   def exiting_by_destination

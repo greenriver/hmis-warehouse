@@ -1,0 +1,8 @@
+%h4.mt-0 Dates
+%dl
+  %dt Dates of Period
+  %dd= @filter.date_range_words
+- if @report.include_comparison?
+  %dl
+    %dt Dates of Comparison Period
+    %dd= @comparison_filter.date_range_words

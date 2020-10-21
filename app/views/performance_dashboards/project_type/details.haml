@@ -1,7 +1,7 @@
 - title = "Support for #{@report.support_title(@options)}"
 = content_for :modal_title, title
 .d-flex
-  %p.mr-auto= @report.date_range_words
+  %p.mr-auto= @filter.date_range_words
   %div
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       %i.icon.icon-download2
