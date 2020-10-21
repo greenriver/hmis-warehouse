@@ -14,8 +14,8 @@ module ClaimsReporting
       end
     end
 
-    def self.pull_from_health_sftp(path, replace_all: )
-      config = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]['ONE']
+    def self.pull_from_health_sftp(path, replace_all:, config: nil)
+      config ||= YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]['ONE']
       sftp = Net::SFTP.start(
         config['host'],
         config['username'],
@@ -34,6 +34,7 @@ module ClaimsReporting
     def self.import_from_zip(zip_path_or_io, entry_path: 'BCCH-CP_Jul_2020_medical_claims.csv', replace_all: )
       i = new
       i.logger.info "import_from_zip(#{zip_path_or_io}, entry_path: #{entry_path})"
+      # FIXME: entry_path has date/container in its name. Handle that better
       Zip::InputStream.open(zip_path_or_io) do |io|
         while (entry = io.get_next_entry)
           if entry.name == entry_path
