@@ -50,6 +50,7 @@
           %th Modifiers
           - if can_unsubmit_submitted_claims?
             %th Un-submit
+          %th Paid
       %tbody
         - @qualifying_activities.each do |qa|
           %tr{class: qa.validity_class}
@@ -66,6 +67,7 @@
               %td
                 = link_to polymorphic_path(health_path_generator + [:qualifying_activity], {id: qa.id}), method: :delete, data: {confirm: "Are you sure you want to un-submit the claim for this QA?"}, class: 'btn btn-link btn-link--danger' do
                   %i.icon-cross
+            %td= yes_no qa.patient.medical_claims_for_qualifying_activity(qa).present?
 
   - else
     %p.no-data None on file.
