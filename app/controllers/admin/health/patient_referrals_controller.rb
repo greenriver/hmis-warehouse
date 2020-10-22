@@ -106,7 +106,6 @@ module Admin::Health
 
     def update
       @patient_referral = Health::PatientReferral.find(params[:id].to_i)
-      @patient_referral.disenrollment_date ||= @patient_referral.pending_disenrollment_date || Date.current if params[:removal_acknowledged] == '1'
       @patient_referral.update(patient_referral_params)
       respond_with(@patient_referral, location: review_admin_health_patient_referrals_path)
     end
@@ -179,6 +178,7 @@ module Admin::Health
     def reject_params
       params.require(:health_patient_referral).permit(
         :rejected_reason,
+        :disenrollment_date,
       )
     end
 

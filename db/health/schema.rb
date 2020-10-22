@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_15_195157) do
+ActiveRecord::Schema.define(version: 2020_10_20_125617) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -471,6 +471,7 @@ ActiveRecord::Schema.define(version: 2020_10_15_195157) do
     t.string "ein"
     t.string "trace_id", limit: 10
     t.string "cp_name_official"
+    t.string "cp_assignment_plan"
   end
 
   create_table "data_sources", id: :serial, force: :cascade do |t|
@@ -694,7 +695,6 @@ ActiveRecord::Schema.define(version: 2020_10_15_195157) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -738,7 +738,6 @@ ActiveRecord::Schema.define(version: 2020_10_15_195157) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
@@ -1078,6 +1077,7 @@ ActiveRecord::Schema.define(version: 2020_10_15_195157) do
     t.boolean "contributing", default: false, null: false
     t.boolean "derived_referral", default: false
     t.datetime "deleted_at"
+    t.string "change_description"
   end
 
   create_table "patients", id: :serial, force: :cascade do |t|

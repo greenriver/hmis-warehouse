@@ -14,9 +14,9 @@ module HudApr::Generators::Shared::Fy2020
     HEADER_ROW = [
       'Number of Persons Contacted',
       'All Persons Contacted',
-      'First contact – NOT staying on the Streets, ES, or SH',
-      'First contact – WAS staying on Streets, ES, or SH',
-      'First contact – Worker unable to determine',
+      'First contact - NOT staying on the Streets, ES, or SH',
+      'First contact - WAS staying on Streets, ES, or SH',
+      'First contact - Worker unable to determine',
     ].freeze
 
     def self.question_number
@@ -53,14 +53,14 @@ module HudApr::Generators::Shared::Fy2020
       adults_and_hohs = universe.members.where(adult_or_hoh_clause)
       engaged_ids = adults_and_hohs.where(a_t[:date_of_engagement].between(@report.start_date..@report.end_date)).pluck(a_t[:id])
 
-      engaged_counts = populate_table(table_name, 7, 'Engaged', engaged_ids)
+      engaged_counts = populate_table(table_name, 7, 'Engaged', engaged_ids, summary_row: 'Rate of Engagement')
       engaged_counts.each do |col, count|
         ratio = percentage(count / contact_counts[col].to_f)
         @report.answer(question: table_name, cell: "#{col}7").update(summary: ratio)
       end
     end
 
-    private def populate_table(table_name, table_rows, label, client_ids)
+    private def populate_table(table_name, table_rows, label, client_ids, summary_row: nil)
       buckets = {
         2 => ['Once', (1..1)],
         3 => ['2-5 Times', (2..5)],
@@ -69,11 +69,13 @@ module HudApr::Generators::Shared::Fy2020
         6 => ["Total Persons #{label}", (1..)],
       }
 
+      row_labels = buckets.values.map(&:first)
+      row_labels << summary_row if summary_row.present?
       last_row = {}
 
       metadata = {
         header_row: HEADER_ROW,
-        row_labels: buckets.values.map(&:first),
+        row_labels: row_labels,
         first_column: 'B',
         last_column: 'E',
         first_row: 2,
