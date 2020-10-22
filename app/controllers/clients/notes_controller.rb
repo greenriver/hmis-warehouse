@@ -6,7 +6,7 @@
 
 module Clients
   class NotesController < ApplicationController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
     include ClientDependentControllers
 

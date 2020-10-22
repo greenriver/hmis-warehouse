@@ -9,7 +9,7 @@ module WarehouseReports::Health
     include ArelHelper
     include WindowClientPathGenerator
     include WarehouseReportAuthorization
-    include PjaxModalController
+    include AjaxModalRails::Controller
     before_action :require_can_administer_health!
     before_action :set_report, only: [:show, :destroy, :revise, :accept, :acknowledge, :details, :generate_claims_file]
     before_action :set_sender

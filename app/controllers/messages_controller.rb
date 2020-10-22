@@ -5,7 +5,7 @@
 ###
 
 class MessagesController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
 
   def index
     @hide_messages = true

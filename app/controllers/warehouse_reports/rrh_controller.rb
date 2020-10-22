@@ -8,7 +8,7 @@ module WarehouseReports
   class RrhController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     before_action :available_projects
     before_action :set_months
@@ -27,7 +27,7 @@ module WarehouseReports
       else
         WarehouseReport::RrhReport::Support.new(clients: [], rows: [], headers: [])
       end
-      render layout: 'pjax_modal_content'
+      render layout: 'ajax_modal_rails/content'
     end
 
     def describe_computations
