@@ -2332,6 +2332,49 @@ module GrdaWarehouse::Hud
       scope.select( Arel.star, diff_full, diff_first, diff_last ).order('diff_full DESC, diff_last DESC, diff_first DESC')
     end
 
+    def split(client_ids, hmis_receiver_id, health_receiver_id, current_user)
+      client_names = []
+      dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
+
+      GrdaWarehouse::Hud::Base.transaction do
+        client_ids.each do |client_id|
+          c = self.class.find(client_id)
+          c.warehouse_client_source.destroy if c.warehouse_client_source.present?
+          destination_client = c.dup
+          destination_client.data_source = dnd_warehouse_data_source
+          destination_client.save
+
+          receive_hmis = hmis_receiver_id == client_id
+          receive_health = health_receiver_id == client_id
+
+          GrdaWarehouse::ClientSplitHistory.create(
+            split_from: id,
+            split_into: destination_client.id,
+            receive_hmis: receive_hmis,
+            receive_health: receive_health,
+          )
+
+          GrdaWarehouse::WarehouseClient.create(
+            id_in_source: c.PersonalID,
+            source_id: c.id,
+            destination_id: destination_client.id,
+            data_source_id: c.data_source_id,
+            proposed_at: Time.now,
+            reviewed_at: Time.now,
+            reviewd_by: current_user.id,
+            approved_at: Time.now,
+          )
+
+          destination_client.move_dependent_hmis_items(id, destination_client.id) if receive_hmis
+          destination_client.move_dependent_health_items(id, destination_client.id) if receive_health
+
+          client_names << c.full_name
+        end
+      end
+
+      client_names
+    end
+
     # Move source clients to this destination client
     # other_client can be a single source record or a destination record
     # if it's a destination record, all of its sources will move and it will be deleted
