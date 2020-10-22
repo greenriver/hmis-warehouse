@@ -49,6 +49,7 @@ class ContainerList
     # Allow for short-hand environments
     environment = 'staging' if environment.start_with?('sta')
     environment = 'production' if environment.start_with?('pro')
+    service_string = "#{client}-#{service}-#{environment}-ecs-#{service_type}"
 
     to_run = nil
     instances.each.with_index do |instance, _i|
@@ -68,15 +69,19 @@ class ContainerList
 
         "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
       end.compact&.detect do |cmd|
-        # puts "testing #{cmd}"
-        service_string = "#{client}-#{service}-#{environment}-ecs-#{service_type}"
-        # puts "for #{service_string}"
         cmd.include?(service_string)
       end
       to_run = run_cmd if run_cmd
       break
     end
-    system(to_run)
+    if to_run
+      puts 'Connecting to:'
+      puts to_run
+      puts "\n\n"
+      system(to_run)
+    else
+      puts "Unable to find matching container for #{service_string}"
+    end
   end
 
   def run!
