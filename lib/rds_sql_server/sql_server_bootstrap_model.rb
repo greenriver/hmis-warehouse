@@ -22,11 +22,7 @@ class SqlServerBootstrapModel < ActiveRecord::Base
       begin
         connection.disconnect!
       rescue TinyTds::Error => e
-        if e.message ==  'failed to execute statement' # rubocop:disable Metrics/BlockNesting, Style/GuardClause
-          puts e.message + ' for disconnecting from SQL Server'
-        else
-          raise e
-        end
+        Rails.logger.warn "Couldn't cleanly disconnect from a previous SqlServer. Server might already be gone: #{e.message}"
       end
     end
 

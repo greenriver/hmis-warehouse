@@ -157,7 +157,10 @@ module Health
         last_disenrollment_date = current_referral.disenrollment_date || current_referral.pending_disenrollment_date
         if last_disenrollment_date.nil?
           # Last referral was not disenrolled. For record keeping, close the last enrollment, and immediately open a new one
-          current_referral.update(disenrollment_date: enrollment_start_date)
+          current_referral.update(
+            disenrollment_date: enrollment_start_date,
+            change_description: 'Close open enrollment',
+          )
           referral = create(referral_args)
         else
           if (enrollment_start_date - last_disenrollment_date).to_i > 90
