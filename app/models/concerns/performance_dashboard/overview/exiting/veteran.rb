@@ -26,7 +26,7 @@ module PerformanceDashboard::Overview::Exiting::Veteran
 
   def exiting_by_veteran_data_for_chart
     @exiting_by_veteran_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += exiting_by_veteran.values.map(&:count)
       categories = exiting_by_veteran.keys
       filter_selected_data_for_chart(

@@ -1,0 +1,26 @@
+- title = _('Core Demographics')
+- content_for :title, title
+
+- @layout__plain_inner = true
+- @layout__width = 'lg'
+.content-outer-prs1
+  %nav.nav-drawer.prs1
+    = render 'filters/filter_controls/sidebar'
+  .main-outer-prs1
+    .utility-prs1
+      = render '/warehouse_reports/breadcrumbs', tab: 'operational'
+    .top-nav-prs1
+      %h1.mb-5= title
+      .mb-4= render 'hero_counts'
+    .main-inner-prs1
+      .text-right.mb-4
+        = render 'performance_dashboards/report_download', export: nil, excel_download_path: core_demographics_report_warehouse_reports_core_index_path({format: :xlsx}.merge(@filter.for_params))
+      - @report.class.available_section_types.each do |section|
+        .rollup{data: {partial: section}}
+
+-# load in all the bits of aggregate statistics via ajax
+= content_for :page_js do
+  :javascript
+    'use strict';
+    var section_path = #{(url_for(action: 'index') + '/section/').to_json.html_safe};
+    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});

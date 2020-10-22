@@ -15,6 +15,7 @@
         %th Contributing?
         %th Pending Disenrollment Date
         %th Disenrollment Date
+        %th Description
     %tbody
       - @patient_referrals.each do |pr|
         - if pr.deleted_at.present?
@@ -27,6 +28,7 @@
           %th= checkmark pr.contributing
           %td= pr.pending_disenrollment_date
           %td= pr.disenrollment_date
+          %td= pr.change_description
 
 .text-right
   - if params[:with_deleted] == 'true'

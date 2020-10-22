@@ -1,0 +1,63 @@
+wb = xlsx_package.workbook
+
+enrollment_header = [
+  'Medicaid_ID',
+  'Member_Name_Last',
+  'Member_Name_First',
+  'Member_Middle_Initial',
+  'Member_Suffix',
+  'Member_Date_of_Birth',
+  'Member_Sex',
+  'ACO_MCO_Name',
+  'ACO_MCO_PID',
+  'ACO_MCO_SL',
+  'Member_CP_Assignment_Plan',
+  'CP_Name_Official',
+  'CP_PID',
+  'CP_SL',
+  'Enrollment_Start_Date',
+  'Start_Reason_Desc',
+  'Record_Status',
+  'Record_Update_Date',
+  'Export_Date',
+].freeze
+
+wb.add_worksheet(name: 'ENROLLMENT') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+
+  sheet.add_row(enrollment_header, style: title)
+  # Contains no data
+end
+
+disenrollment_header = [
+  'Medicaid_ID',
+  'Member_Name_Last',
+  'Member_Name_First',
+  'Member_Middle_Initial',
+  'Member_Suffix',
+  'Member_Date_of_Birth',
+  'Member_Sex',
+  'ACO_MCO_Name',
+  'ACO_MCO_PID',
+  'ACO_MCO_SL',
+  'Member_CP_Assignment_Plan',
+  'CP_Name_Official',
+  'CP_PID',
+  'CP_SL',
+  'Enrollment_Start_Date',
+  'Start_Reason_Desc',
+  'Disenrollment_Date',
+  'Stop_Reason_Desc',
+  'Record_Status',
+  'Record_Update_Date',
+  'Export_Date',
+].freeze
+
+wb.add_worksheet(name: 'DISENROLLMENT') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+
+  sheet.add_row(disenrollment_header, style: title)
+  @report.disenrollments.each do |row|
+    sheet.add_row(row)
+  end
+end

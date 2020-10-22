@@ -26,7 +26,7 @@ module PerformanceDashboard::Overview::Enrolled::Ethnicity
 
   def enrolled_by_ethnicity_data_for_chart
     @enrolled_by_ethnicity_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += enrolled_by_ethnicity.values.map(&:count)
       categories = enrolled_by_ethnicity.keys
       filter_selected_data_for_chart(
