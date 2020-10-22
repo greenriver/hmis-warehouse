@@ -8,6 +8,7 @@
 # Control: PHI attributes documented
 module Health
   class Patient < Base
+    include RailsDrivers::Extensions
     include ArelHelper
     acts_as_paranoid
 

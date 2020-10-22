@@ -1,12 +1,13 @@
 require 'memoist'
-
 module ClaimsReporting::Health
   module PatientExtension
     extend ActiveSupport::Concern
-    extend Memoist
-    has_many :medical_claims, class_name: 'ClaimsReporting::MedicalClaim', foreign_key: :member_id, primary_key: :medicaid_id
 
     included do
+      extend Memoist
+
+      has_many :medical_claims, class_name: 'ClaimsReporting::MedicalClaim', foreign_key: :member_id, primary_key: :medicaid_id
+
       def medical_claims_for_qualifying_activity(qa)
 
         activity_date_range = Range.new *qualifying_activities.map(&:date_of_activity).minmax
