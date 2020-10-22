@@ -8,18 +8,17 @@ module ClaimsReporting::Health
 
       has_many :medical_claims, class_name: 'ClaimsReporting::MedicalClaim', foreign_key: :member_id, primary_key: :medicaid_id
 
-      def medical_claims_for_qualifying_activity(qa)
+      def medical_claims_for_qualifying_activity(qa) # rubocop:disable Naming/MethodParameterName
+        activity_date_range = Range.new(*qualifying_activities.map(&:date_of_activity).minmax)
 
-        activity_date_range = Range.new *qualifying_activities.map(&:date_of_activity).minmax
-
-        matching_claims = (
+        (
           medical_claims_by_service_start_date(date_range: activity_date_range)[qa.date_of_activity] || []
         ).select do |c|
           qa.procedure_code == c.procedure_code && qa.modifiers.to_set == c.modifiers.to_set
         end
       end
 
-      def best_medical_claim_for_qualifying_activity(qa)
+      def best_medical_claim_for_qualifying_activity(qa) # rubocop:disable Naming/MethodParameterName
         matching_claims = medical_claims_for_qualifying_activity(qa)
 
         matching_claims.first if matching_claims.size <= 1
@@ -36,13 +35,14 @@ module ClaimsReporting::Health
         end
 
         return nil unless matching_qa.size == matching_claims.size
+
         matching_claims[matching_qa.index(qa)]
       end
 
-      def medical_claims_by_service_start_date(date_range: )
+      def medical_claims_by_service_start_date(date_range:)
         medical_claims.where(
-          service_start_date: date_range
-        ).group_by{|c| c.service_start_date}
+          service_start_date: date_range,
+        ).group_by(&:service_start_date)
       end
       memoize :medical_claims_by_service_start_date
     end
