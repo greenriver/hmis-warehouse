@@ -1,0 +1,8 @@
+= render 'clients/breadcrumbs'
+- title = 'Add A Flexible Service Verification Form'
+= content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= "#{content_for(:title)} for #{@client.full_name}"
+  .o-page__content
+    = render 'form'
