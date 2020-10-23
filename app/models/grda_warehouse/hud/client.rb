@@ -2448,6 +2448,20 @@ module GrdaWarehouse::Hud
       moved
     end
 
+    def move_dependent_hmis_items(previous_id, new_id)
+      hmis_dependent_items.each do |klass|
+        klass.where(client_id: previous_id).
+          update_all(client_id: new_id)
+      end
+    end
+    
+    def move_dependent_health_items(previous_id, new_id)
+      health_dependent_items.each do |klass|
+        klass.where(client_id: previous_id).
+          update_all(client_id: new_id)
+      end
+    end
+
     def move_dependent_items previous_id, new_id
       dependent_items.each do |klass|
         klass.where(client_id: previous_id).
@@ -2456,6 +2470,10 @@ module GrdaWarehouse::Hud
     end
 
     private def dependent_items
+      hmis_dependent_items + health_dependent_items
+    end
+
+    private def hmis_dependent_items
       [
         GrdaWarehouse::ClientNotes::Base,
         GrdaWarehouse::ClientFile,
@@ -2477,6 +2495,11 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::HealthEmergency::Isolation,
         GrdaWarehouse::HealthEmergency::Quarantine,
         GrdaWarehouse::HealthEmergency::UploadedTest,
+      ]
+    end
+
+    private def health_dependent_items
+      [
         Health::Patient,
         Health::HealthFile,
         Health::Tracing::Case,
