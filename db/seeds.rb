@@ -759,6 +759,15 @@ def report_list
       health: false,
     }
   end
+  if RailsDrivers.loaded.include?(:project_scorecard)
+    r_list['Performance'] << {
+      url: 'project_scorecard/warehouse_reports/scorecard',
+      name: 'Project Scorecard',
+      description: 'Instrument for evaluating project performance.',
+      limitable: true,
+      health: false,
+    }
+  end
   r_list
 end
 

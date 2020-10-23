@@ -1,0 +1,43 @@
+- content_for :title, _("Project Scorecards")
+%h1= content_for :title
+
+= render 'breadcrumbs'
+
+%section.o-container--constrained.mb-6
+  %p
+    The following list of organizations and projects can be used to generate and send scorecards to contacts at each entity.
+    To generate a new version of a scorecard, check-off the
+    %strong Select
+    checkbox next to the particular project, or organization.  Then select the
+    %strong Generate
+    option at the bottom of the page.  If you would like the generated scorecards sent immediately to the contacts associated
+    with the organizations or projects, select the
+    %strong Email
+    option as well.
+  %p
+    Organization contacts will receive an email for each performance scorecard generated within that organization.
+    Project contacts will only receive reports for the project for which they are associated.  No email will be sent unless the
+    %strong Email
+    checkbox is checked.
+
+= simple_form_for :scorecard, url: project_scorecard_warehouse_reports_scorecards_path() do |f|
+  - select_scope = 'allOrgsProjects'
+  %div{id: select_scope}
+    %section.mb-6
+      .d-flex.mb-5.ml-4
+        %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
+        %h2.mb-0.mt-0 Organizations and Projects
+      - @projects.each do |(data_source, organization), projects|
+        = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
+
+    %section.mb-6
+      = render 'project_groups', f: f, project_groups: @project_groups
+
+  = render 'actions', f: f
+
+= content_for :page_js do
+  :javascript
+    new App.SelectableList({
+      title: 'Organizations & Projects'
+    })
+
