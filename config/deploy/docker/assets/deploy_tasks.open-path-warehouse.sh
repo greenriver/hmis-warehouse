@@ -1,18 +1,20 @@
-#!/bin/sh
+#!/bin/bash
+
+set -eo pipefail
 
 echo Migrating with individual rake tasks
 
 echo Migrating app database
-bundle exec rake db:migrate || echo "Migration failed for application. Aborting" && exit 1
+bundle exec rake db:migrate
 
 echo Migrating warehouse database
-bundle exec rake warehouse:db:migrate || echo "Migration failed for warehouse. Aborting" && exit 1
+bundle exec rake warehouse:db:migrate
 
 echo Migrating health database
-bundle exec rake health:db:migrate || echo "Migration failed for health. Aborting" && exit 1
+bundle exec rake health:db:migrate
 
 echo Migrating reporting database
-bundle exec rake reporting:db:migrate || echo "Migration failed for reporting. Aborting" && exit 1
+bundle exec rake reporting:db:migrate
 
 echo Report seeding
 bundle exec rake reports:seed

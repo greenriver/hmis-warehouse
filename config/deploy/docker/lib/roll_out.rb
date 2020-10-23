@@ -587,7 +587,7 @@ class RollOut
         if event.message.match?(/---DONE---/)
           self.last_task_completed = true
           return
-        elsif event.message.match?(/Aborting/)
+        elsif event.message.match?(/rake aborted|an error has occurred/i)
           return
         end
       end
