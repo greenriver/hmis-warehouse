@@ -18,7 +18,12 @@ module HealthFlexibleServices
     end
 
     def new
-      @vpr = vpr_source.new(user: current_user, patient: @patient).set_defaults
+      @vpr = vpr_source.new(user: current_user, patient: @patient)
+      @vpr.set_defaults
+    end
+
+    def create
+      raise permitted_params.inspect
     end
 
     private def vpr_source
