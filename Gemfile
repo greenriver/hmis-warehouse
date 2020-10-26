@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem "rails", '~>5.2.4'
+gem 'rails', '~>5.2.4'
 gem 'rails_drivers'
 
 # bundle exec rake doc:rails generates the API under doc/api.
@@ -12,7 +12,7 @@ gem 'sshkit'
 gem 'paranoia', '~> 2.0'
 # gem 'composite_primary_keys', '~> 11'
 gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
-gem "pg"
+gem 'pg'
 # version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
 gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: '5-2-stable', require: false
 gem 'activerecord-import'
@@ -27,10 +27,10 @@ gem 'rgeo-proj4'
 
 # gem 'active_record_distinct_on'
 gem 'charlock_holmes', require: false
-gem "bootsnap"
+gem 'bootsnap'
 gem 'bcrypt'
-gem "haml-rails"
-gem "sass-rails"
+gem 'haml-rails'
+gem 'sass-rails'
 gem 'autoprefixer-rails'
 gem 'kaminari'
 gem 'with_advisory_lock'
@@ -69,10 +69,10 @@ gem 'paper_trail'
 gem 'validate_url'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'
-gem "email_check"
+gem 'email_check'
 gem 'text'
 
-gem "lograge"
+gem 'lograge'
 gem 'logstop'
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
@@ -80,12 +80,12 @@ gem 'delayed_job_active_record'
 gem 'uglifier'
 gem 'daemons'
 
-gem "simple_form"
+gem 'simple_form'
 gem 'virtus'
 
 # Asset related
 gem 'bootstrap', '~> 4.3.1'
-gem "jquery-rails"
+gem 'jquery-rails'
 gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
@@ -102,9 +102,9 @@ gem 'htmlentities'
 gem 'bootstrap3-datetimepicker-rails', '~> 4.17.42'
 
 # ETO API related
-gem "rest-client", "~> 2.0"
-gem "curb", require: false
-gem "gmail", require: false
+gem 'rest-client', '~> 2.0'
+gem 'curb', require: false
+gem 'gmail', require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
@@ -146,7 +146,7 @@ gem 'exception_notification'
 gem 'puma', '~> 3.12.6'
 
 # gem 'newrelic_rpm', require: false
-# gem "temping", require: false
+# gem 'temping', require: false
 gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
@@ -179,7 +179,7 @@ gem 'ransack'
 
 gem 'rack-attack'
 
-gem "attr_encrypted", "~> 3.1.0"
+gem 'attr_encrypted', '~> 3.1.0'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
@@ -225,9 +225,9 @@ group :development do
 end
 
 group :test do
-  gem "capybara"
+  gem 'capybara'
   gem 'fixpoints', git: 'https://github.com/greenriver/fixpoints.git', branch: 'master'
-  gem "launchy"
+  gem 'launchy'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda'
@@ -251,9 +251,9 @@ group :production, :development, :staging do
 end
 
 group :rake do
-  gem 'gettext_i18n_rails'
-  gem 'fast_gettext'
-  gem 'gettext', '>=3.0.2'
+  gem 'gettext_i18n_rails' # rubocop:disable Bundler/DuplicatedGem
+  gem 'fast_gettext' # rubocop:disable Bundler/DuplicatedGem
+  gem 'gettext', '>=3.0.2' # rubocop:disable Bundler/DuplicatedGem
 end
 
-gem "ajax_modal_rails", "~> 1.0"
+gem 'ajax_modal_rails', '~> 1.0'

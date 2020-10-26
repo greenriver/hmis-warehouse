@@ -33,6 +33,7 @@ x-backend: &backend
     - .:/app:cached
     - rails_cache:/app/tmp/cache
     - bundle:/bundle
+    - /Users/elliot/Sites:/gems:cached
 
 services:
   shell:

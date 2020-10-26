@@ -78,6 +78,7 @@ class CreateVprs < ActiveRecord::Migration[5.2]
       t.jsonb :race
       t.string :race_detail
       t.string :primary_language
+      t.boolean :primary_language_refused
       t.string :education
       t.string :education_detail
       t.string :employment_status

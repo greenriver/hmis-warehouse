@@ -1,4 +1,4 @@
-module HealthFlexibleServices
+module HealthFlexibleService
   def self.table_name_prefix
     'health_flexible_service_'
   end

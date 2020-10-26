@@ -148,10 +148,10 @@
       },
     }
     health.merge!({
-      client_health_flexible_services_vprs_path(@client) => {
+      client_health_flexible_service_vprs_path(@client) => {
         title: 'VPRs',
         permission: show_health_hpc,
       },
-    }) if RailsDrivers.loaded.include?(:health_flexible_services)
+    }) if RailsDrivers.loaded.include?(:health_flexible_service)
   = render 'clients/pre_navigation_bar'
   = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health

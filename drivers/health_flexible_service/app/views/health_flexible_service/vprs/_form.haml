@@ -1,0 +1,128 @@
+= render 'form_header'
+%h2 Part II: Cover Page
+.well.condensed-checkboxes
+  %h3 Member Information
+  = f.input :planned_on, as: :date_picker, label: 'Date of service planning'
+  .w-50
+    = f.input :first_name, label: 'Member first name'
+    = f.input :middle_name, label: 'Member middle initial'
+    = f.input :last_name, label: 'Member last name'
+    = f.input :dob, as: :date_picker, label: 'Member date of birth'
+  = f.input :accommodations_needed
+  %h3 Contact Information
+  .w-50
+    = f.input :contact_type, collection: @vpr.class.available_contact_types, as: :select_two
+    = f.input :phone
+    = f.input :email
+  = f.input :additional_contact_details, hint: 'Optional'
+  %h3 Flexible Services Contacts
+  %h4 Person Developing Plan (Main Point of Concact)
+  .w-50
+    = f.input :main_contact_first_name
+    = f.input :main_contact_last_name
+    = f.input :main_contact_organization
+    = f.input :main_contact_phone
+    = f.input :main_contact_email
+  %h4 Person Reviewing Plan
+  .w-50
+    = f.input :reviewer_first_name
+    = f.input :reviewer_last_name
+    = f.input :reviewer_organization
+    = f.input :reviewer_phone
+    = f.input :reviewer_email
+  %h4 Person Representing Entity Delivering Flexible Services
+  .w-50
+    = f.input :representative_first_name
+    = f.input :representative_last_name
+    = f.input :representative_organization
+    = f.input :representative_phone
+    = f.input :representative_email
+  %h3 Plan Acceptance
+  = f.input :member_agrees_to_plan, as: :pretty_boolean
+  = f.input :member_agreement_notes
+  = f.input :aco_approved, as: :pretty_boolean
+  = f.input :aco_approved_on, as: :date_picker
+  = f.input :aco_rejection_notes, label: 'If no, why not?', hint: 'Optional'
+%h2 Part II: Verify Screening Results
+%h3 Health Needs Based Criteria
+%p
+  Please specify the date on which the member was screened for Health Needs Based Criteria and check the box next to any Health Needs Based Criteria used to establish member eligibility. Optional: briefly describe the condition or activity (as applicable).
+.well.condensed-checkboxes
+  .w-50
+    = f.input :health_needs_screened_on, as: :date_picker, label: 'Date of health needs based critera screening'
+    = f.input :complex_physical_health_need, as: :pretty_boolean
+    = f.input :complex_physical_health_need_detail
+    = f.input :behavioral_health_need, as: :pretty_boolean
+    = f.input :behavioral_health_need_detail
+    = f.input :activities_of_daily_living, as: :pretty_boolean
+    = f.input :activities_of_daily_living_detail
+    = f.input :ed_utilization, as: :pretty_boolean
+    = f.input :high_risk_pregnancy, as: :pretty_boolean
+    = f.input :high_risk_pregnancy_detail
+  %h3 Risk Factor
+  %p
+    Please specify the date on which the member was screened for Risk Factors and check the box next to any Risk Factor(s) used to establish member eligibility.
+  = f.input :risk_factors_screened_on, as: :date_picker
+  = f.input :experiencing_homelessness, as: :pretty_boolean
+  = f.input :at_risk_of_homelessness, as: :pretty_boolean
+  = f.input :at_risk_of_nutritional_deficiency, as: :pretty_boolean, label: 'At Risk of Nutritional Deficiency/ Imbalance'
+  = f.input :health_and_risk_notes, label: 'Please add any additional information about HNBC or Risk Factors that may be useful to inform delivery of services'
+%h2 Part III: Identify Receipt of Other Public Benefits
+.well.condensed-checkboxes
+  %h3 State, Federal, or Other Publically-Funded Services
+  %p
+    Please indicate state, federal, or other publically- funded housing or nutrition services and supports the member is currently receiving.
+  = f.input :receives_snap, as: :pretty_boolean, label: 'Supplemental Nutritional Assistance Program (SNAP)'
+  = f.input :receives_wic, as: :pretty_boolean, label: 'Community Support Program (CSP) for Chronically Homeless individuals'
+  = f.input :receives_csp, as: :pretty_boolean, label: 'Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)'
+  = f.input :receives_other, as: :pretty_boolean, label: 'Other'
+  .w-50
+    = f.input :receives_other_detail, label: 'Other details'
+
+%h2 Part IV: Describe Flexible Services Plan
+- (1..@vpr.class.max_service_count).each do |i|
+  - visibility_class = "jFlexibleServicePlan jPlanID_#{i}"
+  - if i > 1 && @vpr["service_#{i}_added_on"].blank?
+    - visibility_class += ' jFlexibleServicePlanHidden'
+  .well.condensed-checkboxes{class: visibility_class}
+    %h3 Flexible Service Plan #{i}
+    = f.input "service_#{i}_added_on", as: :date_picker, label: 'Date service was added to the FS Plan'
+    = f.input "service_#{i}_goals", label: 'Goals', hint: '(e.g., obtain housing, improve food security)'
+    = f.input "service_#{i}_category", label: 'Flexible Service Category', collection: @vpr.class.available_categories, as: :pretty_boolean_group
+    = f.input "service_#{i}_flex_services", label: 'Flexible Services', hint: '(e.g., nutrition bundle, housing search & placement)'
+    = f.input "service_#{i}_units", label: 'Units', hint: '(e.g., hours of service,# of weeks, # or $ value of goods)'
+    = f.input "service_#{i}_delivering_entity", label: 'Entity Delivering Flexible Service ', hint: '(Organization name)'
+    = f.input "service_#{i}_steps", label: 'Steps for Obtaining Service(s)', hint: '(e.g., connect member with XYZ agency, complete services by # date)'
+    = f.input "service_#{i}_aco_plan", label: 'ACO Follow-up Plan', hint: '(e.g., after completing services, meet in 4 weeks with ACO main contact)'
+    - if i < @vpr.class.max_service_count - 1
+      %button{class: 'btn btn-secondary btn-sm jAddFlexiblService'}
+        %i.icon-plus
+        Add Flexible Service Plan
+
+%h2 Part V: Demographic Data
+.well.condensed-checkboxes
+  = f.input :gender, as: :pretty_boolean_group, collection: @vpr.class.available_genders, label: 'Gender/Gender Identity'
+  .w-50
+    = f.input :gender_detail, label: 'Reason for not specifying', hint: 'Optional'
+  = f.input :sexual_orientation, as: :pretty_boolean_group, collection: @vpr.class.available_orientations, label: 'Sexual Orientation'
+  .w-50
+    = f.input :sexual_orientation_detail, label: 'Reason for not specifying', hint: 'Optional'
+  = f.input :race, as: :pretty_boolean_group, collection: @vpr.class.available_races, label: 'Race/Ethnicity (Check all that apply)', multiple: true
+  .w-50
+    = f.input :race_detail, label: 'Other race, ethnicity, or origin detail', hint: 'Optional'
+  = f.input :primary_language
+  .w-50
+    = f.input :primary_language_refused, as: :pretty_boolean, label: 'Prefer not to say'
+  = f.input :education, collection: @vpr.class.available_educations, as: :pretty_boolean_group
+  .w-50
+    = f.input :education_detail, label: 'Other education detail'
+  = f.input :employment_status, collection: @vpr.class.available_employments, as: :pretty_boolean_group
+
+= content_for :page_js do
+  :javascript
+    $('.jFlexibleServicePlanHidden').hide();
+    $('.jAddFlexiblService').on('click', function(e) {
+      e.preventDefault();
+      $('.jFlexibleServicePlanHidden:first').removeClass('jFlexibleServicePlanHidden').show();
+      $(this).hide();
+    });

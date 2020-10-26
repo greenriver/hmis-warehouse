@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HealthFlexibleServices
+module HealthFlexibleService
   class VprsController < IndividualPatientController
     include AjaxModalRails::Controller
     include ArelHelper
@@ -13,7 +13,7 @@ module HealthFlexibleServices
     before_action :set_hpc_patient
 
     def index
-      @vprs = @patient # .flexible_services
+      # @vprs = @patient.flexible_services
       @follow_ups = @patient # .flexible_service_follow_ups
     end
 
@@ -23,11 +23,13 @@ module HealthFlexibleServices
     end
 
     def create
-      raise permitted_params.inspect
+      options = permitted_params.merge(user: current_user, patient: @patient)
+      @vpr = vpr_source.create(options)
+      respond_with(@vpr, location: client_health_flexible_service_vprs_path(@client))
     end
 
     private def vpr_source
-      HealthFlexibleServices::Vpr
+      HealthFlexibleService::Vpr
     end
 
     private def vpr_scope
@@ -97,6 +99,7 @@ module HealthFlexibleServices
         :race,
         :race_detail,
         :primary_language,
+        :primary_language_refused,
         :education,
         :education_detail,
         :employment_status,
