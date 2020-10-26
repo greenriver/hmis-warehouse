@@ -9,9 +9,10 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     include NotifierConfig
 
-    def initialize
+    def initialize(test: false)
       setup_notifier('IdentifyDuplicates')
-      super
+      @test = test
+      super()
     end
 
     def run!
@@ -103,8 +104,10 @@ module GrdaWarehouse::Tasks
         end
         Rails.logger.info "merged #{source.id} into #{destination.id}"
       end
-      Importing::RunAddServiceHistoryJob.perform_later
-      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing(max_wait_seconds: 1_800)
+      unless @test
+        Importing::RunAddServiceHistoryJob.perform_later
+        GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing(max_wait_seconds: 1_800)
+      end
     end
 
     def find_current_id_for(id)
