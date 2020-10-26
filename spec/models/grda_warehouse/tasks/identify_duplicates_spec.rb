@@ -24,7 +24,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
     let!(:warehouse_data_source) { create :destination_data_source }
 
     before(:each) do
-      processor = GrdaWarehouse::Tasks::IdentifyDuplicates.new(test: true)
+      processor = GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false)
       processor.run!
       processor.match_existing!
     end
@@ -53,7 +53,7 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       end
 
       it 'does not re-merge the split clients' do
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new(test: true).match_existing!
+        GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false).match_existing!
 
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(2)
       end
