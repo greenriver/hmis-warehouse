@@ -44,6 +44,7 @@ class User < ApplicationRecord
   validates :last_name, presence: true, length: {maximum: 40}
   validates :first_name, presence: true, length: {maximum: 40}
   validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
+  validates :agency_id, presence: true
 
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :roles, through: :user_roles
