@@ -184,6 +184,10 @@ module GrdaWarehouse::Hud
       where condition
     }
 
+    scope :unprocessed, -> do
+      where(processed_as: nil)
+    end
+
 
     def self.related_item_keys
       [
