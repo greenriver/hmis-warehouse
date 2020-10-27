@@ -117,20 +117,23 @@ module ReportGenerators::Lsa::Fy2019
       return GrdaWarehouse::HmisExport.find(@hmis_export_id) if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
 
       # All LSA reports should have the same HMIS export scope, so reuse the file if available from today
-      existing_export = GrdaWarehouse::HmisExport.order(created_at: :desc).limit(1).
-        where(
-          created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day,
-          start_date: '2012-10-01',
-          period_type: 3,
-          directive: 2,
-          hash_status: 1,
-          include_deleted: false,
-        ).
-        where("project_ids @> ?", @project_ids.to_json).
-        where.not(file: nil)&.first
-      if existing_export.present?
-        @hmis_export = existing_export
-        return
+      # This is really only useful if you are changing the code, so only reuse the export in development
+      if Rails.env.development?
+        existing_export = GrdaWarehouse::HmisExport.order(created_at: :desc).limit(1).
+          where(
+            created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day,
+            start_date: '2012-10-01',
+            period_type: 3,
+            directive: 2,
+            hash_status: 1,
+            include_deleted: false,
+          ).
+          where("project_ids @> ?", @project_ids.to_json).
+          where.not(file: nil)&.first
+        if existing_export.present?
+          @hmis_export = existing_export
+          return
+        end
       end
 
       @hmis_export = Exporters::HmisTwentyTwenty::Base.new(
@@ -272,7 +275,7 @@ module ReportGenerators::Lsa::Fy2019
           SoftwareName: 'OpenPath HMIS Data Warehouse',
           VendorContact: 'Elliot Anders',
           VendorEmail: 'elliot@greenriver.org',
-          LSAScope: @lsa_scope
+          LSAScope: lsa_scope,
         )
       end
     end
