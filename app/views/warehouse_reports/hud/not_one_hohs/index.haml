@@ -39,7 +39,7 @@
           %th Relationship to HoH
       %tbody
         - @enrollments.each do |en|
-          - client = en.client.
+          - client = en.client
           - destination_client = client.destination_client
           - project = en.project
           %tr
