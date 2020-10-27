@@ -11,9 +11,10 @@ module HealthFlexibleService
     include ClientPathGenerator
     before_action :set_client
     before_action :set_hpc_patient
+    before_action :set_vpr, only: [:show, :edit, :update, :destroy]
 
     def index
-      # @vprs = @patient.flexible_services
+      @vprs = @patient.flexible_services
       @follow_ups = @patient # .flexible_service_follow_ups
     end
 
@@ -22,9 +23,67 @@ module HealthFlexibleService
       @vpr.set_defaults
     end
 
+    def edit
+    end
+
+    def show
+      respond_to do |format|
+        format.html do
+          @pdf = false
+          @html = true
+        end
+        format.pdf do
+          @pdf = true
+          @html = false
+          render_pdf!
+        end
+      end
+    end
+
+    private def render_pdf!
+      file_name = "VPR #{DateTime.current.to_s(:db)}"
+      send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
+    end
+
+    def pdf
+      grover_options = {
+        display_url: root_url,
+        displayHeaderFooter: true,
+        headerTemplate: '<h2>Header</h2>',
+        footerTemplate: '<h6 class="text-center">Footer</h6>',
+        timeout: 50_000,
+        format: 'Letter',
+        emulate_media: 'print',
+        margin: {
+          top: '.5in',
+          bottom: '.5in',
+          left: '.4in',
+          right: '.4in',
+        },
+        debug: {
+          # headless: false,
+          # devtools: true
+        },
+      }
+
+      html = render_to_string('health_flexible_service/vprs/show')
+      Grover.new(html, grover_options).to_pdf
+    end
+
     def create
       options = permitted_params.merge(user: current_user, patient: @patient)
       @vpr = vpr_source.create(options)
+      respond_with(@vpr, location: client_health_flexible_service_vprs_path(@client))
+    end
+
+    def update
+      options = permitted_params.merge(user: current_user, patient: @patient)
+      @vpr = @vpr.update(options)
+      respond_with(@vpr, location: client_health_flexible_service_vprs_path(@client))
+    end
+
+    def destroy
+      @vpr.destroy
       respond_with(@vpr, location: client_health_flexible_service_vprs_path(@client))
     end
 
@@ -34,6 +93,10 @@ module HealthFlexibleService
 
     private def vpr_scope
       vpr_source.order(created_at: :desc)
+    end
+
+    private def set_vpr
+      @vpr = vpr_source.find(params[:id].to_i)
     end
 
     private def permitted_params
@@ -96,16 +159,20 @@ module HealthFlexibleService
         :gender_detail,
         :sexual_orientation,
         :sexual_orientation_detail,
-        :race,
         :race_detail,
         :primary_language,
         :primary_language_refused,
         :education,
         :education_detail,
         :employment_status,
+        race: [],
       ]
       attrs += vpr_source.service_attributes
       params.require(:vpr).permit(attrs)
+    end
+
+    def flash_interpolation_options
+      { resource_name: 'Flexible Service Verification Form' }
     end
   end
 end

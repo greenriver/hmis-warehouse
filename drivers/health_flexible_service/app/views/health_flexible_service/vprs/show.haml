@@ -1,0 +1,9 @@
+= render 'breadcrumbs'
+- title = 'Flexible Service Verification Form'
+= content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= "#{content_for(:title)} for #{@client.full_name}"
+  .o-page__content
+    = simple_form_for @vpr, as: :vpr, url: client_health_flexible_service_vpr_path(@client, @vpr), wrapper: :readonly do |f|
+      = render 'form', f: f

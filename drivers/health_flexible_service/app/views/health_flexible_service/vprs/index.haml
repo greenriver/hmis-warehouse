@@ -17,11 +17,19 @@
         %thead
           %tr
             %th Date of Service Planning
+            %th Last updated
+            %th Download PDF
         %tbody
           - @vprs.each do |vpr|
             %tr
               %td
                 = link_to edit_client_health_flexible_service_vpr_path(@client, vpr) do
-                  %i.icon-pencil
-                  vpr.planned_on
+                  = vpr.planned_on
+              %td
+                = vpr.updated_at
+                by #{vpr.user.name}
+              %td
+                = link_to client_health_flexible_service_vpr_path(@client, vpr, format: :pdf), class: 'btn btn-secondary btn-sm btn-icon-only' do
+                  %i.icon-download2
+
     - else

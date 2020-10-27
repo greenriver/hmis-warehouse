@@ -84,6 +84,7 @@
   - visibility_class = "jFlexibleServicePlan jPlanID_#{i}"
   - if i > 1 && @vpr["service_#{i}_added_on"].blank?
     - visibility_class += ' jFlexibleServicePlanHidden'
+    - next if @pdf
   .well.condensed-checkboxes{class: visibility_class}
     %h3 Flexible Service Plan #{i}
     = f.input "service_#{i}_added_on", as: :date_picker, label: 'Date service was added to the FS Plan'
@@ -94,7 +95,7 @@
     = f.input "service_#{i}_delivering_entity", label: 'Entity Delivering Flexible Service ', hint: '(Organization name)'
     = f.input "service_#{i}_steps", label: 'Steps for Obtaining Service(s)', hint: '(e.g., connect member with XYZ agency, complete services by # date)'
     = f.input "service_#{i}_aco_plan", label: 'ACO Follow-up Plan', hint: '(e.g., after completing services, meet in 4 weeks with ACO main contact)'
-    - if i < @vpr.class.max_service_count - 1
+    - if i < @vpr.class.max_service_count - 1 && @html
       %button{class: 'btn btn-secondary btn-sm jAddFlexiblService'}
         %i.icon-plus
         Add Flexible Service Plan
