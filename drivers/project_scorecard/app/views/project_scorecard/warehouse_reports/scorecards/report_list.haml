@@ -1,0 +1,24 @@
+= render 'breadcrumbs'
+
+- content_for :title, "Project Scorecards for #{@name}"
+%h1= content_for :title
+
+- if @reports.any?
+  %table.table.table-sm
+    %thead
+      %tr
+        %th Date Range
+        %th Run On
+        %th Completed On
+    %tbody
+      - @reports.each do |report|
+        %tr
+          %td
+            = link_to report.status, project_scorecard_warehouse_reports_scorecard_path(report)
+          %td
+            = report.started_at
+          %td
+            = report.completed_at
+- else
+  %p
+    No reports on file

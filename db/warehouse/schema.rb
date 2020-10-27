@@ -4863,11 +4863,18 @@ ActiveRecord::Schema.define(version: 2020_10_23_130124) do
 
   create_table "project_scorecard_reports", force: :cascade do |t|
     t.bigint "project_id"
-    t.string "status"
+    t.bigint "project_group_id"
+    t.string "status", default: "pending"
+    t.bigint "user_id"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "sent_at"
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["project_group_id"], name: "index_project_scorecard_reports_on_project_group_id"
     t.index ["project_id"], name: "index_project_scorecard_reports_on_project_id"
+    t.index ["user_id"], name: "index_project_scorecard_reports_on_user_id"
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
