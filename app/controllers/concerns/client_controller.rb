@@ -337,7 +337,14 @@ module ClientController
 
     protected def set_search_client
       id = params[:id].to_i
+      # Search source clients only, this is faster
       @client = client_search_scope.find_by(id: id)
+      return if @client.present?
+
+      # search source and destination clients
+      # for authoritative data sources, this can be the only way to
+      # find someone since the data source doesn't have any projects
+      @client = client_scope(id: id).find_by(id: id)
       return if @client.present?
 
       client_id = GrdaWarehouse::ClientMergeHistory.new.current_destination(id)
