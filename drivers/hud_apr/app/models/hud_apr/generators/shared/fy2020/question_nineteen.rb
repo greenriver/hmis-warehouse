@@ -230,6 +230,8 @@ module HudApr::Generators::Shared::Fy2020
           initial: :start,
           subsequent: suffix,
         )
+        next if income_difference.blank? # if income in either initial or subsequent is blank, skip this client
+
         case column
         when 'B'
           if income_for_category?(
