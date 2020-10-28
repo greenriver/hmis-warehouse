@@ -6,7 +6,10 @@
 
 module HudReports
   class QuestionBase
+    include NotifierConfig
+
     def initialize(generator = nil, report = nil, options: {})
+      setup_notifier('HudReports')
       options = options.with_indifferent_access
       if generator && report
         @generator = generator
