@@ -168,6 +168,7 @@ class ReportResultsController < ApplicationController
         :sub_population,
         :race_code,
         :ethnicity_code,
+        :lsa_scope,
         coc_codes: [],
         project_id: [],
         project_type: [],

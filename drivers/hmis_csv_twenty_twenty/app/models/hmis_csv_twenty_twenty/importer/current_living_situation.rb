@@ -42,7 +42,8 @@ module HmisCsvTwentyTwenty::Importer
 
       warehouse_class.joins(enrollment: :project).
         merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
-        merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range))
+        merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range.range)).
+        where(warehouse_class.arel_table[:InformationDate].lteq(date_range.last))
     end
 
     def self.warehouse_class

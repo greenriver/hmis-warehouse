@@ -334,6 +334,8 @@ module Health
 
     def current_days_enrolled
       referral = patient_referral
+      return 0 unless referral
+
       end_date = referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
       # This only happens with demo data
       return 0 unless referral.enrollment_start_date

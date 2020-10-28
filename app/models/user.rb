@@ -44,6 +44,7 @@ class User < ApplicationRecord
   validates :last_name, presence: true, length: {maximum: 40}
   validates :first_name, presence: true, length: {maximum: 40}
   validates :email_schedule, inclusion: { in: Message::SCHEDULES }, allow_blank: false
+  validates :agency_id, presence: true
 
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :roles, through: :user_roles
@@ -252,7 +253,7 @@ class User < ApplicationRecord
 
     user = User.with_deleted.find_by(email: 'noreply@greenriver.com')
     user.restore if user.present?
-    user = User.invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User') do |u|
+    user = User.invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
       u.skip_invitation = true
     end
     user
