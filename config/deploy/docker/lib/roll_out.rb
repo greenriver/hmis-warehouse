@@ -522,7 +522,7 @@ class RollOut
         puts "[WARN] We expected: #{self.deployment_id}"
         puts "[WARN] We got: #{response.dig('registered_deployment_id')}"
         puts "[WARN] You can safely (p)roceed if this is the first deployment"
-        print "\nYou can (w)ait, (p)roceed with deployment anyway, or (a)bort: "
+        print "\nYou can (w)ait, (p)roceed with deployment anyway, (v)iew log tail, or (a)bort: "
         response = STDIN.gets
         if response.downcase.match(/w/)
           puts "[INFO] Waiting 30 seconds"
@@ -533,6 +533,15 @@ class RollOut
         elsif response.downcase.match(/a/)
           puts "[WARN] exiting"
           exit
+        elsif response.downcase.match(/v/)
+          resp = cwl.get_log_events({
+            log_group_name: target_group_name,
+            log_stream_name: log_stream_name,
+            start_from_head: true,
+          })
+          resp.events.each do |event|
+            puts "[TASK] #{event.message}"
+          end
         else
           puts "[INFO] Waiting 30 seconds since we didn't understand your response"
           sleep 30
@@ -577,6 +586,8 @@ class RollOut
         puts "[TASK] #{event.message}"
         if event.message.match?(/---DONE---/)
           self.last_task_completed = true
+          return
+        elsif event.message.match?(/rake aborted|an error has occurred/i)
           return
         end
       end

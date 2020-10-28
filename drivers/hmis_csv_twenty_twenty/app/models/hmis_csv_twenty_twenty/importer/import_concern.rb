@@ -67,7 +67,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       new(csv_data.merge(source_type: loaded.class.name, source_id: loaded.id, data_source_id: loaded.data_source_id))
     end
 
-    # Overide as necessary
+    # Override as necessary
     def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
       involved_warehouse_scope(
         data_source_id: data_source_id,

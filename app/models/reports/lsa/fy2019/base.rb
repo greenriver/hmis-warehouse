@@ -45,26 +45,19 @@ module Reports::Lsa::Fy2019
       GrdaWarehouse::DataSource.importable
     end
 
-    # def self.available_sub_populations
-    #   [
-    #     ['All Clients', :all_clients],
-    #     ['Veteran', :veteran],
-    #     ['Youth', :youth],
-    #     ['Parenting Youth', :parenting_youth],
-    #     ['Parenting Children', :parenting_children],
-    #     ['Individual Adults', :individual_adults],
-    #     ['Non Veteran', :non_veteran],
-    #     ['Family', :family],
-    #     ['Children', :children],
-    #     ['Unaccompanied Minors', :unaccompanied_minors],
-    #   ]
-    # end
+    def self.available_lsa_scopes
+      {
+        'System-Wide' => 1,
+        'Project-focused' => 2,
+      }
+    end
 
     def value_for_options options
       return '' unless options.present?
 
       display_string = "Report Start: #{options['report_start']}; Report End: #{options['report_end']}"
       display_string << "; CoC-Code: #{options['coc_code']}" if options['coc_code'].present?
+      display_string << "; Scope: #{self.class.available_lsa_scopes.invert[options['lsa_scope']&.to_i] || 'Auto Select'}"
       display_string << "; Data Source: #{GrdaWarehouse::DataSource.short_name(options['data_source_id'].to_i)}" if options['data_source_id'].present?
       display_string << project_id_string(options)
       display_string << project_group_string(options)
@@ -194,8 +187,7 @@ module Reports::Lsa::Fy2019
         GrdaWarehouse::Hud::Project.viewable_by(user).coc_funded.joins(:organization).
         includes(:funders).
         where(computed_project_type: [1, 2, 3, 8, 9, 10, 13, 4]).
-        where(OperatingStartDate: nil, operating_start_date_override: nil).
-        where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)), # this is imperfect, but only look at projects with enrollments open during the past three years
+        where(OperatingStartDate: nil, operating_start_date_override: nil),
       )
     end
 

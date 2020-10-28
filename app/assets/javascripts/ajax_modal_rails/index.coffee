@@ -63,7 +63,7 @@ class window.AjaxModal
       @closeModal()
 
   _registerOnHide: ->
-    @modal.on "hide.bs.modal", =>
+    @modal.on "hidden.bs.modal", =>
       @reset()
       history.replaceState({}, 'Modal', @initialPath);
 

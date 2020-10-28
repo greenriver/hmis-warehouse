@@ -57,6 +57,13 @@ module GrdaWarehouse::Tasks
     # where the members enrollment date falls between the HoH Entry and Exit dates inclusive
     def fix_incorrect_household_ids
       incorrect_households = GrdaWarehouse::Hud::Enrollment.heads_of_households.
+        joins(:project).
+        merge(
+          GrdaWarehouse::Hud::Project.
+          with_project_type(
+            GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten,
+          ),
+        ).
         where.not(HouseholdID: nil).
         left_outer_joins(:exit).
         pluck(*household_id_columns.values).map do |row|
@@ -68,38 +75,34 @@ module GrdaWarehouse::Tasks
             row[:household_id],
           ]
         end.select { |_, v| v.count > 1 }
+      return unless incorrect_households
 
       incorrect_households.transform_values! do |households|
         households.each do |row|
-          next if row[:exit_date].blank?
-
           # make a new unique household id based on enrollment, existing household id, project, and data source
-          row[:fixed_household_id] = Digest::MD5.hexdigest("e_#{row[:data_source_id]}_#{row[:project_id]}_#{row[:household_id]}_#{row[:enrollment_id]}")
+          row[:fixed_household_id] = Digest::MD5.hexdigest("e_#{row[:data_source_id]}_#{row[:project_id]}_#{row[:enrollment_id]}")
         end
       end
       @notifier.ping "Found #{incorrect_households.count} Heads of Household with at least two duplicate HouseholdIDs"
       to_update = 0
+
+      # Fix all individual enrollments
+      individuals = GrdaWarehouse::Hud::Enrollment.
+        where(HouseholdID: incorrect_households.keys.map(&:last)).
+        group(:PersonalID, :data_source_id, :HouseholdID).
+        having('count(distinct("PersonalID")) = 1').
+        count.
+        keys
+      individuals.each do |key|
+        households = incorrect_households.delete(key)
+        households&.each do |row|
+          to_update += cleanup_household(row, individual: true)
+        end
+      end
+
       incorrect_households.each do |_, households|
         households.each do |row|
-          next if row[:exit_date].blank?
-
-          # Join exit to be sure we're only updating closed enrollments
-          enrollments = GrdaWarehouse::Hud::Enrollment.joins(:exit).where(
-            data_source_id: row[:data_source_id],
-            HouseholdID: row[:household_id],
-            ProjectID: row[:project_id],
-            EntryDate: row[:entry_date]..row[:exit_date],
-          )
-          # Update any closed enrollments that match this data source, project, household_id,
-          # and date range, with a unique household id
-          unless @dry_run
-            enrollments.update_all(
-              HouseholdID: row[:fixed_household_id],
-              original_household_id: row[:household_id],
-              processed_as: nil,
-            )
-          end
-          to_update += enrollments.count
+          to_update += cleanup_household(row)
         end
       end
       if @dry_run
@@ -107,6 +110,49 @@ module GrdaWarehouse::Tasks
       else
         @notifier.ping "Updated #{to_update} enrollments with incorrect HouseholdIDs"
       end
+    end
+
+    private def cleanup_household(household, individual: false)
+      # If the enrollment is open, only update other open enrollments started on the same day
+      # If the enrollment is closed, find any closed enrollment overlapping the range
+      enrollments = GrdaWarehouse::Hud::Enrollment.where(
+        data_source_id: household[:data_source_id],
+        ProjectID: household[:project_id],
+      )
+      # If we are cleaning up an individuals enrollment, use the enrollment ID to find it
+      # if we have a household, use the household ID
+      if individual
+        enrollments = enrollments.where(EnrollmentID: household[:enrollment_id])
+      else
+        enrollments = enrollments.where(HouseholdID: household[:household_id])
+        # for ongoing enrollments, only look for matching entry dates
+        if household[:exit_date].blank?
+          enrollments = enrollments.where(EntryDate: household[:entry_date]).
+            left_outer_joins(:exit).
+            where(ex_t[:ExitDate].eq(nil))
+        else
+          # If the entry date occurs on or after the exit date
+          # just compare entry dates
+          dates = if household[:entry_date] >= household[:exit_date]
+            household[:entry_date]
+          else
+            household[:entry_date]...household[:exit_date]
+          end
+          enrollments = enrollments.joins(:exit).where(EntryDate: dates)
+        end
+      end
+
+      # Update any closed enrollments that match this data source, project, household_id,
+      # and date range, with a unique household id
+      updated_count = enrollments.count
+      unless @dry_run
+        enrollments.update_all(
+          HouseholdID: household[:fixed_household_id],
+          original_household_id: household[:household_id],
+          processed_as: nil,
+        )
+      end
+      updated_count
     end
 
     private def household_id_columns
