@@ -253,11 +253,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def self.set_part_of_a_family
     family_source_client_ids = Set.new
     vispdats = {}
-    vispdat.order(collected_at: :desc).
+    GrdaWarehouse::HmisForm.vispdat.order(collected_at: :desc).
       pluck(:client_id, :vispdat_family_score, :collected_at).
       each do |client_id, vispdat_family_score, collected_at|
-        vispdats[client_id] ||= []
-        vispdats[client_id] << {
+        vispdats[client_id] ||= {
           score: vispdat_family_score,
           collected_at: collected_at,
         }
@@ -266,12 +265,12 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     potential_clients = GrdaWarehouse::Hud::Client.where(id: vispdats.keys).
       select(:id, :DOB).
       index_by(&:id)
-    vispdats.each do |client_id, scores|
+    vispdats.each do |client_id, score|
       # anyone with a score of 0 or nil in the most-recent vi-spdat is excluded
-      next if scores.last[:score].blank? || scores.last[:score].zero?
+      next if score[:score].blank? || score[:score].zero?
 
       # anyone with the most-recent score > 2 is included
-      if scores.last[:score].present? && scores.last[:score] > 2
+      if score[:score].present? && score[:score] > 2
         family_source_client_ids << client_id
         next
       end
@@ -280,7 +279,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
       client = potential_clients[client_id]
       next unless client
 
-      collected_at = scores.last[:collected_at]
+      collected_at = score[:collected_at]
       age = client.age_on(collected_at.to_date)
       next if age.blank? || age >= 60
 
