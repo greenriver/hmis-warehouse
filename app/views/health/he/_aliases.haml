@@ -9,8 +9,9 @@
           = "(#{@case.aliases})" if @case.aliases.present?
       - if @case.client.present?
         = render 'clients/aliases'
-  .col-sm-4
-    .text-right
-      = link_to single_case_warehouse_reports_health_contact_tracing_path(@case, format: :xlsx), class: 'btn btn-secondary' do
-        %i.icon-download2
-        Download
+  - if @he_report_access
+    .col-sm-4
+      .text-right
+        = link_to single_case_warehouse_reports_health_contact_tracing_path(@case, format: :xlsx), class: 'btn btn-secondary' do
+          %i.icon-download2
+          Download
