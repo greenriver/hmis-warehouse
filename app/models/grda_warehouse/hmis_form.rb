@@ -247,39 +247,48 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     end
   end
 
-  # Pre-check part of a family if the client has a family score and are < 60
-  # or if they are 60+ and have a score > 1
+  # Pre-check part of a family if the client has a family score > 2
+  # or if they are under 60 and have a score = 1
+  # Only check the box if the most-recent VI-SPDAT qualifies
   def self.set_part_of_a_family
-    # update any we don't need to check for age
-    source_client_ids = vispdat.where(vispdat_family_score: (2..Float::INFINITY)).
-      distinct.
-      pluck(:client_id)
-    destination_client_ids = GrdaWarehouse::WarehouseClient.
-      where(source_id: source_client_ids).
-      distinct.
-      pluck(:destination_id)
-    GrdaWarehouse::Hud::Client.where(id: destination_client_ids, family_member: false).
-      update_all(family_member: true)
-
-    # For anyone with a score of one, only update those who are < 60
-    source_clients = vispdat.where(vispdat_family_score: 1).
-      distinct.
-      pluck(:client_id, :collected_at).to_h
-
-    warehouse_clients = GrdaWarehouse::WarehouseClient.
-      where(source_id: source_clients.keys).
-      distinct.
-      pluck(:destination_id, :source_id).to_h
-
-    GrdaWarehouse::Hud::Client.where(id: warehouse_clients.keys).
-      find_each do |client|
-        source_client_id = warehouse_clients[client.id]
-        collected_at = source_clients[source_client_id]
-        age = client.age_on(collected_at.to_date)
-        if age.blank? || age < 60
-          client.update(family_member: true) unless client.family_member
-        end
+    family_source_client_ids = Set.new
+    vispdats = {}
+    GrdaWarehouse::HmisForm.vispdat.order(collected_at: :desc).
+      pluck(:client_id, :vispdat_family_score, :collected_at).
+      each do |client_id, vispdat_family_score, collected_at|
+        vispdats[client_id] ||= {
+          score: vispdat_family_score,
+          collected_at: collected_at,
+        }
       end
+
+    potential_clients = GrdaWarehouse::Hud::Client.where(id: vispdats.keys).
+      select(:id, :DOB).
+      index_by(&:id)
+    vispdats.each do |client_id, score|
+      # anyone with a score of 0 or nil in the most-recent vi-spdat is excluded
+      next if score[:score].blank? || score[:score].zero?
+
+      # anyone with the most-recent score > 2 is included
+      if score[:score].present? && score[:score] > 2
+        family_source_client_ids << client_id
+        next
+      end
+
+      # anyone who is under 60 and has a score of 1 in the most-recent vi-spdat
+      client = potential_clients[client_id]
+      next unless client
+
+      collected_at = score[:collected_at]
+      age = client.age_on(collected_at.to_date)
+      next if age.blank? || age >= 60
+
+      family_source_client_ids << client_id
+    end
+
+    GrdaWarehouse::Hud::Client.joins(:warehouse_client_destination).
+      merge(GrdaWarehouse::WarehouseClient.where(source_id: family_source_client_ids)).
+      update_all(family_member: true)
   end
 
   def self.set_pathways_results(force_all: false)
