@@ -253,7 +253,7 @@ class User < ApplicationRecord
 
     user = User.with_deleted.find_by(email: 'noreply@greenriver.com')
     user.restore if user.present?
-    user = User.invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User') do |u|
+    user = User.invite!(email: 'noreply@greenriver.com', first_name: 'System', last_name: 'User', agency_id: 0) do |u|
       u.skip_invitation = true
     end
     user
