@@ -29,6 +29,8 @@
                 = vpr.updated_at
                 by #{vpr.user.name}
               %td
+                = link_to client_health_flexible_service_vpr_path(@client, vpr), class: 'btn btn-secondary btn-sm btn-icon-only' do
+                  View
                 = link_to client_health_flexible_service_vpr_path(@client, vpr, format: :pdf), class: 'btn btn-secondary btn-sm btn-icon-only' do
                   %i.icon-download2
 
