@@ -10,8 +10,8 @@ module
     private def filter_for_cocs(scope)
       return scope unless @filter.coc_codes.present?
 
-      scope.joins(:project).
-        where(p_t[:CoCCode].in(@filter.coc_codes))
+      scope.joins(project: :project_cocs).
+        where(pc_t[:CoCCode].in(@filter.coc_codes))
     end
 
     private def filter_for_household_type(scope)
