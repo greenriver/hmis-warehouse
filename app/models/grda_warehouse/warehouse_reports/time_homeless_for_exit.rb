@@ -120,8 +120,14 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def homeless_entries
-      client_source.joins(source_enrollments: :project).
-        merge(GrdaWarehouse::Hud::Enrollment.homeless.where(e_t[:EntryDate].lt(filter.end))).
+      # Require some recent-ish service to avoid joining in completely empty enrollments
+      client_source.joins(service_history_enrollments: [:project, :enrollment]).
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.homeless.
+          entry.
+          with_service_between(start_date: filter.last - 5.years, end_date: filter.last).
+          where(she_t[:first_date_in_program].lt(filter.end)),
+        ).
         where(id: clients_housed_scope.select(:id)).
         left_outer_joins(source_enrollments: :exit)
     end
