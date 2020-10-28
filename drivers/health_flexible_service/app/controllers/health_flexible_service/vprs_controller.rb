@@ -24,6 +24,8 @@ module HealthFlexibleService
     end
 
     def edit
+      @pdf = false
+      @html = true
     end
 
     def show

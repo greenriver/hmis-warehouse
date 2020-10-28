@@ -149,7 +149,7 @@
     }
     health.merge!({
       client_health_flexible_service_vprs_path(@client) => {
-        title: 'VPRs',
+        title: 'Flex Services',
         permission: show_health_hpc,
       },
     }) if RailsDrivers.loaded.include?(:health_flexible_service)

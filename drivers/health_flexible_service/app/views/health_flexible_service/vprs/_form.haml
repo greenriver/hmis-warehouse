@@ -73,7 +73,7 @@
       = f.input :behavioral_health_need_detail
       = f.input :activities_of_daily_living, as: :pretty_boolean
       = f.input :activities_of_daily_living_detail
-      = f.input :ed_utilization, as: :pretty_boolean
+      = f.input :ed_utilization, as: :pretty_boolean, label: 'ED utilization'
       = f.input :high_risk_pregnancy, as: :pretty_boolean
       = f.input :high_risk_pregnancy_detail
     %h3 Risk Factor
@@ -108,14 +108,15 @@
       %div{class: col_class}
         .well.condensed-checkboxes{class: visibility_class}
           %h3 Flexible Service Plan #{i}
-          = f.input "service_#{i}_added_on", as: :date_picker, label: 'Date service was added to the FS Plan'
-          = f.input "service_#{i}_goals", label: 'Goals', hint: '(e.g., obtain housing, improve food security)'
-          = f.input "service_#{i}_category", label: 'Flexible Service Category', collection: @vpr.class.available_categories, as: :pretty_boolean_group
-          = f.input "service_#{i}_flex_services", label: 'Flexible Services', hint: '(e.g., nutrition bundle, housing search & placement)'
-          = f.input "service_#{i}_units", label: 'Units', hint: '(e.g., hours of service,# of weeks, # or $ value of goods)'
-          = f.input "service_#{i}_delivering_entity", label: 'Entity Delivering Flexible Service ', hint: '(Organization name)'
-          = f.input "service_#{i}_steps", label: 'Steps for Obtaining Service(s)', hint: '(e.g., connect member with XYZ agency, complete services by # date)'
-          = f.input "service_#{i}_aco_plan", label: 'ACO Follow-up Plan', hint: '(e.g., after completing services, meet in 4 weeks with ACO main contact)'
+          %div{class: width_class}
+            = f.input "service_#{i}_added_on", as: :date_picker, label: 'Date service was added to the FS Plan'
+            = f.input "service_#{i}_goals", label: 'Goals', hint: '(e.g., obtain housing, improve food security)'
+            = f.input "service_#{i}_category", label: 'Flexible Service Category', collection: @vpr.class.available_categories, as: :pretty_boolean_group
+            = f.input "service_#{i}_flex_services", label: 'Flexible Services', hint: '(e.g., nutrition bundle, housing search & placement)'
+            = f.input "service_#{i}_units", label: 'Units', hint: '(e.g., hours of service,# of weeks, # or $ value of goods)'
+            = f.input "service_#{i}_delivering_entity", label: 'Entity Delivering Flexible Service ', hint: '(Organization name)'
+            = f.input "service_#{i}_steps", label: 'Steps for Obtaining Service(s)', hint: '(e.g., connect member with XYZ agency, complete services by # date)'
+            = f.input "service_#{i}_aco_plan", label: 'ACO Follow-up Plan', hint: '(e.g., after completing services, meet in 4 weeks with ACO main contact)'
           - if i < @vpr.class.max_service_count - 1 && @html
             %button{class: 'btn btn-secondary btn-sm jAddFlexiblService'}
               %i.icon-plus
@@ -156,3 +157,4 @@
       $('.jFlexibleServicePlanHidden:first').removeClass('jFlexibleServicePlanHidden').show();
       $(this).hide();
     });
+    $('.jAddFlexiblService:visible:not(:last)').hide();
