@@ -85,8 +85,7 @@ module Admin
               g.remove(@user)
             end
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
-          @user.update(user_params)
-          raise 'Agency required' if @user.agency_id.blank?
+          @user.update!(user_params)
 
           # Restore any health roles we previously had
           @user.roles = (@user.roles + existing_health_roles).uniq
