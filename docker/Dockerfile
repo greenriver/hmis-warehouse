@@ -19,7 +19,8 @@ RUN apt-get update -qq \
   && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
     build-essential \
     curl \
-    gnupg2
+    gnupg2 \
+  && apt-get upgrade # slim-buster has a few CVEs open. Safer to upgrade
 
 # Add PostgreSQL to sources list
 RUN curl -sSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
