@@ -9,9 +9,10 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     include NotifierConfig
 
-    def initialize
+    def initialize(run_post_processing: true)
       setup_notifier('IdentifyDuplicates')
-      super
+      @run_post_processing = run_post_processing
+      super()
     end
 
     def run!
@@ -103,8 +104,10 @@ module GrdaWarehouse::Tasks
         end
         Rails.logger.info "merged #{source.id} into #{destination.id}"
       end
-      Importing::RunAddServiceHistoryJob.perform_later
-      GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing(max_wait_seconds: 1_800)
+      if @run_post_processing
+        Importing::RunAddServiceHistoryJob.perform_later
+        GrdaWarehouse::Tasks::ServiceHistory::Base.wait_for_processing(max_wait_seconds: 1_800)
+      end
     end
 
     def find_current_id_for(id)
@@ -120,10 +123,18 @@ module GrdaWarehouse::Tasks
 
     def find_merge_candidates
       to_merge = Set.new
+      all_splits = GrdaWarehouse::ClientSplitHistory.pluck(:split_from, :split_into)
+      splits_by_from = all_splits.group_by(&:first)
+      splits_by_into = all_splits.group_by(&:last)
+
       all_source_clients.each do |first_name, last_name, ssn, dob, dest_id|
         matches_name = []
         matches_dob = []
         matches_ssn = []
+
+        splits = splits_by_from[dest_id]&.flatten || [] # Don't re-merge anybody that was split off from this candidate
+        splits += splits_by_into[dest_id]&.flatten || [] # Don't merge with anybody that this candidate was split off from
+
         if first_name && last_name
           key = [first_name.downcase.strip.gsub(/[^a-z0-9]/i, ''), last_name.downcase.strip.gsub(/[^a-z0-9]/i, '')]
           matches_name += source_clients_grouped_by_name[key].map(&:last).uniq - [dest_id]
@@ -134,8 +145,10 @@ module GrdaWarehouse::Tasks
         if dob
           matches_dob += source_clients_grouped_by_dob[dob].map(&:last).uniq - [dest_id]
         end
-        all_matching_dest_ids = matches_name + matches_ssn + matches_dob
-        to_merge_by_dest_id = all_matching_dest_ids.uniq.map{|num| [num, all_matching_dest_ids.count(num)]}.to_h.select{|_,v| v > 1}
+        all_matching_dest_ids = (matches_name + matches_ssn + matches_dob) - splits
+        to_merge_by_dest_id = all_matching_dest_ids.uniq.
+          map { |num| [num, all_matching_dest_ids.count(num)] }.to_h.
+          select { |_,v| v > 1 }
         if to_merge_by_dest_id.any?
           to_merge += to_merge_by_dest_id.keys.map{ |source_id| [dest_id, source_id].sort }
         end

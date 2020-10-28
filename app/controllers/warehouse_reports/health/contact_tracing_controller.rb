@@ -8,7 +8,8 @@ module WarehouseReports::Health
   class ContactTracingController < ApplicationController
     include WarehouseReportAuthorization
     before_action :require_can_edit_health_emergency_contact_tracing!
-    before_action :load_cases
+    before_action :load_cases, except: [:single_case]
+    before_action :load_case, only: [:single_case]
     before_action :load_by_case
 
     def index
@@ -17,6 +18,10 @@ module WarehouseReports::Health
 
     def download
       render xlsx: 'download', filename: "Contact Tracing #{Date.current}.xlsx"
+    end
+
+    def single_case
+      render xlsx: 'download', filename: "#{@case.name}.xlsx"
     end
 
     def index_case_columns
@@ -554,10 +559,15 @@ module WarehouseReports::Health
       @cases = Health::Tracing::Case.ongoing.order(last_name: :asc, first_name: :asc)
     end
 
+    def load_case
+      @case = Health::Tracing::Case.find(params[:id].to_i)
+      @cases = Health::Tracing::Case.where(id: @case.id)
+    end
+
     def load_by_case
-      @contacts = Health::Tracing::Contact.all
-      @managers = Health::Tracing::SiteLeader.all
-      @staff = Health::Tracing::Staff.all
+      @contacts = Health::Tracing::Contact.where(case_id: @cases.select(:id))
+      @managers = Health::Tracing::SiteLeader.where(case_id: @cases.select(:id))
+      @staff = Health::Tracing::Staff.where(case_id: @cases.select(:id))
 
       @by_case = {
         contacts: @contacts.group_by(&:case_id),

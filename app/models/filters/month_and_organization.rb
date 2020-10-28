@@ -37,7 +37,7 @@ module Filters
     end
 
     def disambiguated_name(org)
-      "#{org.name} < #{org.data_source.short_name}"
+      "#{org.name} < #{org.data_source&.short_name}"
     end
 
     def organization_name
