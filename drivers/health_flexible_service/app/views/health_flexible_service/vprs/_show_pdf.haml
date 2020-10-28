@@ -14,3 +14,4 @@
         .o-page__content
           = simple_form_for @vpr, as: :vpr, url: client_health_flexible_service_vpr_path(@client, @vpr), wrapper: :readonly do |f|
             = render 'form', f: f
+      = svg 'symbol-defs'

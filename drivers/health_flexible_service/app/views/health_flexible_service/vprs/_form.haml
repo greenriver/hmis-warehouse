@@ -100,26 +100,26 @@
 %h2 Part IV: Describe Flexible Services Plan
 %section.page-break-after
   %div{class: row_class}
-  - (1..@vpr.class.max_service_count).each do |i|
-    - visibility_class = "jFlexibleServicePlan jPlanID_#{i}"
-    - if i > 1 && @vpr["service_#{i}_added_on"].blank?
-      - visibility_class += ' jFlexibleServicePlanHidden'
-      - next if @pdf
-    %div{class: col_class}
-      .well.condensed-checkboxes{class: visibility_class}
-        %h3 Flexible Service Plan #{i}
-        = f.input "service_#{i}_added_on", as: :date_picker, label: 'Date service was added to the FS Plan'
-        = f.input "service_#{i}_goals", label: 'Goals', hint: '(e.g., obtain housing, improve food security)'
-        = f.input "service_#{i}_category", label: 'Flexible Service Category', collection: @vpr.class.available_categories, as: :pretty_boolean_group
-        = f.input "service_#{i}_flex_services", label: 'Flexible Services', hint: '(e.g., nutrition bundle, housing search & placement)'
-        = f.input "service_#{i}_units", label: 'Units', hint: '(e.g., hours of service,# of weeks, # or $ value of goods)'
-        = f.input "service_#{i}_delivering_entity", label: 'Entity Delivering Flexible Service ', hint: '(Organization name)'
-        = f.input "service_#{i}_steps", label: 'Steps for Obtaining Service(s)', hint: '(e.g., connect member with XYZ agency, complete services by # date)'
-        = f.input "service_#{i}_aco_plan", label: 'ACO Follow-up Plan', hint: '(e.g., after completing services, meet in 4 weeks with ACO main contact)'
-        - if i < @vpr.class.max_service_count - 1 && @html
-          %button{class: 'btn btn-secondary btn-sm jAddFlexiblService'}
-            %i.icon-plus
-            Add Flexible Service Plan
+    - (1..@vpr.class.max_service_count).each do |i|
+      - visibility_class = "jFlexibleServicePlan jPlanID_#{i}"
+      - if i > 1 && @vpr["service_#{i}_added_on"].blank?
+        - visibility_class += ' jFlexibleServicePlanHidden'
+        - next if @pdf
+      %div{class: col_class}
+        .well.condensed-checkboxes{class: visibility_class}
+          %h3 Flexible Service Plan #{i}
+          = f.input "service_#{i}_added_on", as: :date_picker, label: 'Date service was added to the FS Plan'
+          = f.input "service_#{i}_goals", label: 'Goals', hint: '(e.g., obtain housing, improve food security)'
+          = f.input "service_#{i}_category", label: 'Flexible Service Category', collection: @vpr.class.available_categories, as: :pretty_boolean_group
+          = f.input "service_#{i}_flex_services", label: 'Flexible Services', hint: '(e.g., nutrition bundle, housing search & placement)'
+          = f.input "service_#{i}_units", label: 'Units', hint: '(e.g., hours of service,# of weeks, # or $ value of goods)'
+          = f.input "service_#{i}_delivering_entity", label: 'Entity Delivering Flexible Service ', hint: '(Organization name)'
+          = f.input "service_#{i}_steps", label: 'Steps for Obtaining Service(s)', hint: '(e.g., connect member with XYZ agency, complete services by # date)'
+          = f.input "service_#{i}_aco_plan", label: 'ACO Follow-up Plan', hint: '(e.g., after completing services, meet in 4 weeks with ACO main contact)'
+          - if i < @vpr.class.max_service_count - 1 && @html
+            %button{class: 'btn btn-secondary btn-sm jAddFlexiblService'}
+              %i.icon-plus
+              Add Flexible Service Plan
 
 %h2 Part V: Demographic Data
 %section.page-break-after

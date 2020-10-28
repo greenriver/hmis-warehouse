@@ -11,15 +11,17 @@ class PrettyBooleanInput < SimpleForm::Inputs::BooleanInput
     id = name.to_s.parameterize
     if @builder.options[:wrapper] == :readonly
       if checked
-        template.content_tag :div, class: 'c-checkbox' do
-          template.content_tag(:span, nil, label_html_options.merge(class: 'icon-checkmark o-color--positive mr-2')) +
-          template.content_tag(:label, label_text, for: id)
-        end
+        style = '' # rubocop:disable Style/IdenticalConditionalBranches
+        symbol_name = 'checkmark'
+        wrapper_class = 'o-color--positive'
       else
-        template.content_tag :div, class: 'c-checkbox' do
-          template.content_tag(:span, nil, label_html_options.merge(class: 'icon-cross o-color--warning mr-2')) +
-          template.content_tag(:label, label_text, for: id)
-        end
+        style = '' # rubocop:disable Style/IdenticalConditionalBranches
+        symbol_name = 'cross'
+        wrapper_class = 'o-color--warning'
+      end
+      template.content_tag :div, class: 'c-checkbox' do
+        template.concat(svg_checkbox(template, wrapper_class, style, symbol_name))
+        template.concat(template.content_tag(:label, label_text, for: id))
       end
     else
       merged_input_options = merge_wrapper_options(input_html_options, wrapper_options)
@@ -29,6 +31,14 @@ class PrettyBooleanInput < SimpleForm::Inputs::BooleanInput
       template.content_tag :div, class: 'c-checkbox' do
         template.check_box_tag(name, 1, checked, merged_input_options.merge(id: id)) +
         template.content_tag(:label, label_and_hint, for: id)
+      end
+    end
+  end
+
+  private def svg_checkbox(template, wrapper_class, style, symbol_name)
+    template.content_tag :span, class: "icon-svg--xs #{wrapper_class} mr-2" do
+      template.content_tag :svg, style: style do
+        template.content_tag(:use, '', 'xlink:href' => "\#icon-#{symbol_name}")
       end
     end
   end
