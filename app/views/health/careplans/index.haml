@@ -5,4 +5,10 @@
     %h1= "#{content_for(:title)} for #{@client.full_name}"
   = render 'clients/breadcrumbs'
   = render 'clients/tab_navigation', current: polymorphic_path(careplans_path_generator, client_id: @client)
-  = render 'health/careplans/index'
+  - if @patient.persisted?
+    = render 'health/careplans/index'
+  - else
+    .alert.alert-danger
+      %p
+        %i.icon-warning
+        There is a problem with this patient record.

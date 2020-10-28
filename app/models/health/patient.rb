@@ -333,6 +333,8 @@ module Health
 
     def current_days_enrolled
       referral = patient_referral
+      return 0 unless referral
+
       end_date = referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
       # This only happens with demo data
       return 0 unless referral.enrollment_start_date
@@ -667,7 +669,7 @@ module Health
       end
       case_notes += epic_case_notes.order(contact_date: :desc).map do |form|
         date = form.contact_date
-        # Epic doesn't send timezone, but sends the dates all as mid-night, 
+        # Epic doesn't send timezone, but sends the dates all as mid-night,
         # so assume it's in the local timezone
         date = Time.zone.local_to_utc(date).to_date if date
         {

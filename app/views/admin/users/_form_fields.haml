@@ -16,7 +16,7 @@
           = f.input :phone
       .row
         .col-sm-10
-          = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id, required: false, include_blank: 'Unknown', input_html: {class: :select2}
+          = f.input :agency_id, collection: @agencies, label_method: :name, value_method: :id, required: false, include_blank: 'Unknown', input_html: { class: :select2 }, required: true
       - if @user.two_factor_enabled?
         .row
           .col-sm-8
