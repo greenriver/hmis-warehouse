@@ -111,7 +111,7 @@ module HmisCsvTwentyTwenty::Loader
 
       incoming_headers = line&.map(&:to_s)&.map(&:downcase)&.map(&:to_sym)
       hud_headers = klass.hud_csv_headers.map(&:downcase)
-      hud_headers == incoming_headers
+      hud_headers.sort == incoming_headers.sort
     end
 
     def header_invalid?(headers, klass)
