@@ -19,6 +19,8 @@ module HealthFlexibleService
     end
 
     def new
+      @pdf = false
+      @html = true
       @vpr = vpr_source.new(user: current_user, patient: @patient)
       @vpr.set_defaults
     end
