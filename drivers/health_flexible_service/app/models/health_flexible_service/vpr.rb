@@ -80,11 +80,11 @@ module HealthFlexibleService
     end
 
     private def race_from(value)
-      value&.gsub(/\[.\] /, '')
+      value.map { |r| r&.gsub(/\[.\] /, '') }
     end
 
     private def language_from(value)
-      value&.gsub(/\[.\] /, '')
+      value&.gsub(/\d+\. /, '')
     end
 
     def self.service_attributes
