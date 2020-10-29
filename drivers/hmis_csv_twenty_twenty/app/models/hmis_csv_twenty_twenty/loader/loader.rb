@@ -111,7 +111,7 @@ module HmisCsvTwentyTwenty::Loader
 
       incoming_headers = line&.map(&:to_s)&.map(&:downcase)&.map(&:to_sym)
       hud_headers = klass.hud_csv_headers.map(&:downcase)
-      hud_headers == incoming_headers
+      hud_headers.sort == incoming_headers.sort
     end
 
     def header_invalid?(headers, klass)
@@ -194,7 +194,7 @@ module HmisCsvTwentyTwenty::Loader
       # Strip internal newlines
       # add data_source_id
       # add loader_id
-      csv = CSV.new(read_from, headers: csv_headers, liberal_parsing: true, empty_value: nil)
+      csv = CSV.new(read_from, headers: csv_headers, liberal_parsing: true, empty_value: nil, skip_blanks: true)
 
       headers = csv_headers + ['data_source_id', 'loader_id', 'loaded_at']
       batch = []
