@@ -15,6 +15,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
 
     def apply_overrides row, data_source_id:
       row[:GrantID] = 'Unknown' if row[:GrantID].blank?
+      row[:OtherFunder] = row[:OtherFunder][0...50] if row[:OtherFunder]
 
       return row
     end

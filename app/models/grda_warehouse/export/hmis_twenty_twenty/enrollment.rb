@@ -47,6 +47,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
 
       # Only use the first 5 of the zip
       row[:LastPermanentZIP] = row[:LastPermanentZIP].to_s[0..4] if row[:LastPermanentZIP].present?
+      row[:LastPermanentCity] = row[:LastPermanentCity][0...50] if row[:LastPermanentCity]
       # If the project has been overridden as PH, assume the MoveInDate
       # is the EntryDate if we don't have a MoveInDate.
       # Usually we won't have a MoveInDate because it isn't required

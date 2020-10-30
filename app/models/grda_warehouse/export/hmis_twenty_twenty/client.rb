@@ -33,6 +33,11 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     end
 
     def apply_overrides row, data_source_id:
+      row[:FirstName] = row[:FirstName][0...50] if row[:FirstName]
+      row[:MiddleName] = row[:MiddleName][0...50] if row[:MiddleName]
+      row[:LastName] = row[:LastName][0...50] if row[:LastName]
+      row[:NameSuffix] = row[:NameSuffix][0...50] if row[:NameSuffix]
+
       row[:NameDataQuality] = 99 if row[:NameDataQuality].blank?
       row[:SSNDataQuality] = 99 if row[:SSNDataQuality].blank?
       row[:DOBDataQuality] = 99 if row[:DOBDataQuality].blank?

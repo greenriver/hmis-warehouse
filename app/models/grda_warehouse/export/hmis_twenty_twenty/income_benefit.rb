@@ -18,6 +18,8 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     def apply_overrides(row, data_source_id:)
       # Technical limit of HMIS spec is 50 characters
       row[:OtherInsuranceIdentify] = row[:OtherInsuranceIdentify][0...50] if row[:OtherInsuranceIdentify]
+      row[:OtherIncomeSourceIdentify] = row[:OtherIncomeSourceIdentify][0...50] if row[:OtherIncomeSourceIdentify]
+      row[:OtherBenefitsSourceIdentify] = row[:OtherBenefitsSourceIdentify][0...50] if row[:OtherBenefitsSourceIdentify]
       # Required by HUD spec, not always provided 99 is not valid, but we can't really guess
       row[:DataCollectionStage] = 99 if row[:DataCollectionStage].blank?
 
