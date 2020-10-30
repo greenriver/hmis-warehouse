@@ -6,6 +6,7 @@
 
 module CoreDemographicsReport::DocumentExports
   class CoreDemographicsExport < ::GrdaWarehouse::DocumentExport
+    include ApplicationHelper
     def authorized?
       user.can_view_any_reports? && report_class.viewable_by(user)
     end

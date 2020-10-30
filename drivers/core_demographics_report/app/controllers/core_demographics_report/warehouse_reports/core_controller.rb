@@ -12,6 +12,7 @@ module CoreDemographicsReport::WarehouseReports
     include BaseFilters
 
     before_action :set_report
+    before_action :set_pdf_export
 
     def index
       @pdf_export = CoreDemographicsReport::DocumentExports::CoreDemographicsExport.new
@@ -88,6 +89,10 @@ module CoreDemographicsReport::WarehouseReports
 
     private def filter_class
       ::Filters::FilterBase
+    end
+
+    private def set_pdf_export
+      @pdf_export = CoreDemographicsReport::DocumentExports::CoreDemographicsExport.new
     end
   end
 end
