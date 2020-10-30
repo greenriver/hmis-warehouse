@@ -45,8 +45,13 @@ module CoreDemographicsReport::WarehouseReports
 
       raise 'Rollup not in allowlist' unless @section.present?
 
-      @section = @report.section_subpath + @section
-      render partial: @section, layout: false if request.xhr?
+      if @report.section_ready?(@section)
+        @section = @report.section_subpath + @section
+        render partial: @section, layout: false if request.xhr?
+      else
+        render_to_string(partial: @section, layout: false)
+        render status: :accepted, plain: 'Loading'
+      end
     end
 
     def breakdown

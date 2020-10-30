@@ -92,7 +92,7 @@ module
     end
 
     private def client_disabilities
-      @client_disabilities ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+      @client_disabilities ||= Rails.cache.fetch(disabilities_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
           GrdaWarehouse::Hud::Client.disabled_client_scope.where(id: distinct_client_ids).
             joins(:source_enrollment_disabilities).
@@ -109,6 +109,10 @@ module
             end
         end
       end
+    end
+
+    private def disabilities_cache_key
+      [self.class.name, cache_slug, 'client_disabilities']
     end
   end
 end

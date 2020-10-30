@@ -61,6 +61,21 @@ module CoreDemographicsReport
       ]
     end
 
+    def section_ready?(section)
+      return true unless section.in?(['disabilities', 'races'])
+
+      Rails.cache.exist?(cache_key_for_section(section))
+    end
+
+    private def cache_key_for_section(section)
+      case section
+      when 'disabilities'
+        disabilities_cache_key
+      when 'races'
+        races_cache_key
+      end
+    end
+
     def multiple_project_types?
       true
     end

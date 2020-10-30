@@ -43,7 +43,7 @@ module
     end
 
     private def client_races
-      @client_races ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+      @client_races ||= Rails.cache.fetch(races_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
           # find any clients who fell within the scope
           client_scope = GrdaWarehouse::Hud::Client.where(id: distinct_client_ids)
@@ -53,6 +53,10 @@ module
           end
         end
       end
+    end
+
+    private def races_cache_key
+      [self.class.name, cache_slug, 'client_races']
     end
   end
 end

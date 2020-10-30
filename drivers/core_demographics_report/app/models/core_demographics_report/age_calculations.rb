@@ -140,7 +140,7 @@ module
     end
 
     private def client_ages
-      @client_ages ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+      @client_ages ||= Rails.cache.fetch(age_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
           report_scope.joins(:client).order(first_date_in_program: :desc).
             distinct.
@@ -150,6 +150,10 @@ module
             end
         end
       end
+    end
+
+    private def age_cache_key
+      [self.class.name, cache_slug, 'client_ages']
     end
   end
 end

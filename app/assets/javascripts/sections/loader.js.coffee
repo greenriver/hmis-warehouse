@@ -7,8 +7,10 @@ class App.Sections.Loader
       do (p) =>
         $e = $(p)
         $e.html('<div class="rollup-container well"/>')
-        $(document).queue "fx", =>
-          $.get @rollupPath + $e.data('partial'), @params, (data) =>
+        loader = (data, status, xhr) =>
+          if xhr.status == 202
+            setTimeout fetch_rollup, 10000
+          else
             $e.find('.rollup-container').removeClass('well')
             $e.find('.rollup-container').append data
             $e.find('.rollup-container').siblings('.jRemoveWhenComplete').remove()
@@ -16,7 +18,12 @@ class App.Sections.Loader
             $e.attr('complete', 'true')
             $e.data('complete', 'true')
             # console.log($e)
-          .fail ()->
-            $e.find('.rollup-container').append '<div class="alert alert-danger">Failed to load data</div>'
-            $e.find('.rollup-container').removeClass('well')
-            $(document).dequeue("fx")
+        fail = ()->
+          $e.find('.rollup-container').append '<div class="alert alert-danger">Failed to load data</div>'
+          $e.find('.rollup-container').removeClass('well')
+          $(document).dequeue("fx")
+        fetch_rollup = ()=>
+          console.log('attempting')
+          $.get(@rollupPath + $e.data('partial'), @params, loader).fail(fail)
+        $(document).queue "fx", =>
+          fetch_rollup()
