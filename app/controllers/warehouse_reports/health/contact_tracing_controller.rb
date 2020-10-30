@@ -368,7 +368,7 @@ module WarehouseReports::Health
       @patient_contacts ||= @contacts.map do |contact|
         {
           investigator: contact.investigator,
-          date_interviewed: contact.date_interviewed&.strftime('%m/%d/%Y'),
+          contact_interviewed: contact.date_interviewed&.strftime('%m/%d/%Y'),
           alert_in_epic: contact.alert_in_epic,
           index_case_id: contact.case_id.to_s,
           first_name: contact.first_name,
