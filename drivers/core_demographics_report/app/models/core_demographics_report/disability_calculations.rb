@@ -57,12 +57,14 @@ module
           nil,
         ]
       end
+      rows['_At Least One Disability'] ||= []
       rows['_At Least One Disability'] += [
         'At Least One Disability',
         yes_disability_count,
         yes_disability_percentage,
         nil,
       ]
+      rows['_No Disability'] ||= []
       rows['_No Disability'] += [
         'No Disability',
         no_disability_count,

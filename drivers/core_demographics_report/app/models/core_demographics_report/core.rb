@@ -171,6 +171,7 @@ module CoreDemographicsReport
           rows = report.race_data_for_export(rows)
           rows = report.ethnicity_data_for_export(rows)
           rows = report.relationship_data_for_export(rows)
+          rows = report.disability_data_for_export(rows)
           rows = report.dv_status_data_for_export(rows)
           rows = report.priors_data_for_export(rows)
           rows = report.household_type_data_for_export(rows)
