@@ -117,7 +117,7 @@
             = f.input "service_#{i}_delivering_entity", label: 'Entity Delivering Flexible Service ', hint: '(Organization name)'
             = f.input "service_#{i}_steps", label: 'Steps for Obtaining Service(s)', hint: '(e.g., connect member with XYZ agency, complete services by # date)'
             = f.input "service_#{i}_aco_plan", label: 'ACO Follow-up Plan', hint: '(e.g., after completing services, meet in 4 weeks with ACO main contact)'
-          - if i < @vpr.class.max_service_count - 1 && @html
+          - if i < @vpr.class.max_service_count && @html
             %button{class: 'btn btn-secondary btn-sm jAddFlexiblService'}
               %i.icon-plus
               Add Flexible Service Plan
@@ -151,6 +151,7 @@
 
 = content_for :page_js do
   :javascript
+    var total_possible_services = #{@vpr.class.max_service_count};
     $('.jFlexibleServicePlanHidden').hide();
     $('.jAddFlexiblService').on('click', function(e) {
       e.preventDefault();
@@ -158,3 +159,7 @@
       $(this).hide();
     });
     $('.jAddFlexiblService:visible:not(:last)').hide();
+    console.log($('.jFlexibleServicePlan:visible').length, total_possible_services);
+    if($('.jFlexibleServicePlan:visible').length == total_possible_services) {
+      $('.jAddFlexiblService').hide();
+    }

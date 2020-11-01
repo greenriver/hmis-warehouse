@@ -80,7 +80,7 @@ module HealthFlexibleService
     end
 
     private def race_from(value)
-      value.map { |r| r&.gsub(/\[.\] /, '') }
+      value&.map { |r| r&.gsub(/\[.\] /, '') }
     end
 
     private def language_from(value)
@@ -88,7 +88,7 @@ module HealthFlexibleService
     end
 
     def self.service_attributes
-      (1..max_service_count).map do |i|
+      (1..max_service_count + 1).map do |i|
         [
           "service_#{i}_added_on",
           "service_#{i}_goals",
