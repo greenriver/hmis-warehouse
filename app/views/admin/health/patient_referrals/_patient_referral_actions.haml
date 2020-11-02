@@ -17,7 +17,7 @@
   = render 'reject', pr: pr
 - if can_bulk_assign?
   .col-sm-1.d-flex
-    .c-checkbox.c-checkbox--round.ml-auto
+    .c-checkbox.c-checkbox.ml-auto
       - id = "patient_referral_id_#{pr.id}"
       = check_box_tag :patient_referral_id, pr.id, nil, id: id
       %label{for: id}

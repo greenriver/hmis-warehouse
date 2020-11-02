@@ -1,4 +1,4 @@
-- url = window_client_health_patient_index_path(patient.client) rescue ''
+- url = client_health_patient_index_path(patient.client) rescue ''
 .c-card.clients__client-card
   .c-card__content.d-flex.justify-content-between
     .patient__demographics
@@ -10,7 +10,7 @@
       .patient__care_coordinator.mt-4
         %hr
         - if patient.client.present?
-          = simple_form_for patient, as: :patient, url: window_client_health_patient_url(patient.client, patient), remote: true do |f|
+          = simple_form_for patient, as: :patient, url: client_health_patient_url(patient.client, patient), remote: true do |f|
             = f.input :care_coordinator_id, collection: patient.available_care_coordinators, input_html: {class: [:select2, :jCareCoordinator], id: "patient_care_coordinator_id_#{patient.id}"}
             = f.input :nurse_care_manager_id, collection: patient.available_nurse_care_managers, input_html: {class: [:select2, :jNurseCareManager], id: "nurse_care_manager_id_#{patient.id}"}
         - else
@@ -18,7 +18,7 @@
     .patient__upcoming-appointments.mb-4{style: 'max-width 450px;'}
       - if patient.client
         = render 'clients/recent_es_so', client: patient.client
-        %section#appointments-list.jAppointments{data: {path: upcoming_window_client_health_appointments_path(client_id: patient.client.id)}}
+        %section#appointments-list.jAppointments{data: {path: upcoming_client_health_appointments_path(client_id: patient.client.id)}}
     .patient__action-needed
       .mb-4
         = render 'health/patient/engagement', patient: patient

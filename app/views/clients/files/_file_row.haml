@@ -2,7 +2,7 @@
   .row
     .col-8
       %h3.d-flex
-        .c-checkbox.c-checkbox--round.mr-4
+        .c-checkbox.c-checkbox.mr-4
           %input.jDownload{type: :checkbox, value: file.id, id: file.id, checked: @pre_checked&.include?(file.id)}
           %label{for:file.id, tabindex:'1' }
         - file.tag_list.each do |tag|

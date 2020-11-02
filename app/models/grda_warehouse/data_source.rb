@@ -330,7 +330,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def unprocessed_enrollment_count
-    @unprocessed_enrollment_count ||= enrollments.unprocessed.count
+    @unprocessed_enrollment_count ||= enrollments.unprocessed.joins(:project, :destination_client).count
   end
 
   # are there any uploads for this data_source

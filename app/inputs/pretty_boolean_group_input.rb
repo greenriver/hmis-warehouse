@@ -9,22 +9,54 @@ class PrettyBooleanGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
     merged_input_options = merge_wrapper_options(input_html_options, wrapper_options)
     radio_group = template.content_tag(:div) do
       current_value = object.send(attribute_name)
-      pre_label = template.content_tag(:span, options[:pre_label], class: 'c-checkbox__pre-label') if options[:pre_label].present?
-      check =
-        template.content_tag(:span, template.content_tag(:span, '', class: 'c-checkbox__check-icon'), class: 'c-checkbox__check-container')
-      collection.each_with_index do |(label, value, _attrs), _index|
-        checked = value == current_value
+      collection.each do |label, value, _|
         name = "#{object_name}[#{attribute_name}]"
+        if options[:multiple]
+          checked = current_value.present? && value.in?(current_value)
+          name += '[]'
+          tag_name = :check_box_tag
+        else
+          checked = value == current_value
+          tag_name = :radio_button_tag
+        end
         id = name.to_s.parameterize + '_' + value.to_s
-        label_text_el = template.content_tag(:span, label, class: 'c-checkbox__label')
-        template.concat(
-          template.content_tag(:div, class: 'c-checkbox c-checkbox--round mb-1') do
-            template.radio_button_tag(name, value, checked, merged_input_options.merge(id: id)) +
-            template.content_tag(:label, pre_label + check + label_text_el, for: id)
-          end,
-        )
+        if @builder.options[:wrapper] == :readonly
+          if checked
+            style = '' # rubocop:disable Style/IdenticalConditionalBranches
+            symbol_name = 'checkmark'
+            wrapper_class = 'o-color--positive'
+          else
+            style = '' # rubocop:disable Style/IdenticalConditionalBranches
+            symbol_name = 'cross'
+            wrapper_class = 'o-color--warning'
+          end
+          internal = template.content_tag :div, class: 'c-checkbox' do
+            template.concat(svg_checkbox(template, wrapper_class, style, symbol_name))
+            template.concat(template.content_tag(:label, value, for: id))
+          end
+          template.concat(internal)
+        else
+          label_text_el = template.content_tag(:span, label, class: 'c-checkbox__label ml-6')
+          checkbox_classes = ['c-checkbox']
+          checkbox_classes << 'mb-2' if options[:multiple]
+          checkbox_classes << 'c-checkbox--round' unless options[:multiple]
+          template.concat(
+            template.content_tag(:div, class: checkbox_classes) do
+              template.send(tag_name, name, value, checked, merged_input_options.merge(id: id)) +
+              template.content_tag(:label, label_text_el, for: id)
+            end,
+          )
+        end
       end
     end
     radio_group
+  end
+
+  private def svg_checkbox(template, wrapper_class, style, symbol_name)
+    template.content_tag :span, class: "icon-svg--xs #{wrapper_class} mr-2" do
+      template.content_tag :svg, style: style do
+        template.content_tag(:use, '', 'xlink:href' => "\#icon-#{symbol_name}")
+      end
+    end
   end
 end
