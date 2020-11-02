@@ -47,6 +47,13 @@ Date:  4/20/2020
 						(was only inserting dates for qualifying exit).  Alse, remove impossible condition from CASE statement (ExitDate is null)
 				7.6.2.b - limit relevant bednights to those >= entry and < exit dates (if non-NULL)
 						because enrollment dates may have been adjusted in tlsa_HHID/tlsa_Enrollment
+	10/22/2020 - 7.7.2 - delete the UPDATE statement that was formerly step 7.7.2, re-number subsequent section 7.7 steps.
+						(The statement was identified as an optional shortcut that would reduce the processing required 
+						 in the following steps by setting SystemPath based solely on ExitFrom for all records where Stat in (1,2,3,4).
+						 It did not take into account the possibility of enrollments in other project types that fall entirely within 
+						 the date range of the enrollment with the qualifying exit, however -- and per the specs, those enrollments
+						 should be included in SystemPath.)
+
 	7.1 Identify Qualifying Exits in Exit Cohort Periods
 */
 
@@ -388,26 +395,6 @@ inner join tlsa_CohortDates cd on cd.Cohort = ex.Cohort
 where (ex.ExitFrom = 6 and qx.MoveInDate < cd.CohortStart) 
 	or (ex.ExitFrom in (5,6) and dateadd(dd, 365, qx.MoveInDate) <= qx.ExitDate)
 
---  This step is not mandatory and is therefore not defined in the specs -- the same result would be 
---  achieved by skipping it -- but it saves a lot of unnecessary processing in 7.7.3-7.7.5.
--- SystemPath can be set directly based on ExitFrom for
--- -Any first time homeless household (Stat = 1)
--- -Any household returning/re-engaging after 15-730 days (Stat in (2,3,4))
--- and any household whose LastInactive date is the day before the EntryDate for the qualifying exit. 
-
-update ex
-set ex.SystemPath = case ex.ExitFrom
-	when 2 then 1
-	when 3 then 2
-	when 4 then 1
-	when 5 then 4
-	when 6 then 8
-	else 8 end
-	, ex.Step = '7.7.2'
-from tlsa_Exit ex 
-inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
-where ex.SystemPath is null
-	and (ex.Stat in (1,2,3,4) or ex.LastInactive = dateadd(dd, -1, qx.EntryDate))
 
 update ex
 set ex.SystemPath = case ptype.summary
@@ -423,7 +410,7 @@ set ex.SystemPath = case ptype.summary
 	when 1101 then 10
 	when 1100 then 11
 	else 12 end 
-	, ex.Step = '7.7.3'
+	, ex.Step = '7.7.2'
 from tlsa_Exit ex
 inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 			, case when rrh.HoHID is not null then 100 else 0 end
@@ -463,7 +450,7 @@ set ex.SystemPath = case ptype.summary
 	when 1101 then 10
 	when 1100 then 11
 	else 12 end 
-	, ex.Step = '7.7.4'
+	, ex.Step = '7.7.3'
 from tlsa_Exit ex
 inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 			, case when rrh.HoHID is not null then 100 else 0 end
@@ -503,7 +490,7 @@ set ex.SystemPath = case ptype.summary
 	when 1101 then 10
 	when 1100 then 11
 	else 12 end 
-	, ex.Step = '7.7.5'
+	, ex.Step = '7.7.4'
 from tlsa_Exit ex
 inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 			, case when rrh.HoHID is not null then 100 else 0 end

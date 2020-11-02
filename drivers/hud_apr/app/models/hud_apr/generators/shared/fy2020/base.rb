@@ -42,6 +42,7 @@ module HudApr::Generators::Shared::Fy2020
         end
 
         pending_associations = {}
+        processed_source_clients = Set.new
         # Re-shape client to APR Client shape
         batch.each do |client|
           # Fetch enrollments for destination client
@@ -76,6 +77,12 @@ module HudApr::Generators::Shared::Fy2020
             s.RecordType == 200 && s.DateProvided < @report.end_date
           end&.max_by(&:DateProvided)
 
+          if processed_source_clients.include?(source_client.id)
+            @notifier.ping "Duplicate source client: #{source_client.id} for destination client: #{client.id} in enrollment: #{enrollment.id}" if @send_notifications
+            next
+          end
+
+          processed_source_clients << source_client.id
           pending_associations[client] = report_client_universe.new(
             client_id: source_client.id,
             destination_client_id: last_service_history_enrollment.client_id,

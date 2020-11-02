@@ -974,8 +974,12 @@ module GrdaWarehouse::Hud
 
     # This permission is mis-named a bit, it should check all project ids visible to the user
     def visible_because_of_assigned_data_source?(user)
-      user.can_see_clients_in_window_for_assigned_data_sources? &&
-        (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
+      return false unless user.can_see_clients_in_window_for_assigned_data_sources?
+
+      visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
+      visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+
+      visible_because_of_enrollments || visible_because_of_data_sources
     end
 
     def visible_because_of_coc_association?(user)
@@ -2454,7 +2458,7 @@ module GrdaWarehouse::Hud
           update_all(client_id: new_id)
       end
     end
-    
+
     def move_dependent_health_items(previous_id, new_id)
       health_dependent_items.each do |klass|
         klass.where(client_id: previous_id).
