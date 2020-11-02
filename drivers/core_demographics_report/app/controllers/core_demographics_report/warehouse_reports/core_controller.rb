@@ -11,6 +11,7 @@ module CoreDemographicsReport::WarehouseReports
     include ArelHelper
     include BaseFilters
 
+    before_action :require_can_view_clients, only: [:detail]
     before_action :set_report
     before_action :set_pdf_export
 
@@ -22,6 +23,10 @@ module CoreDemographicsReport::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=Core Demographics - #{Time.current.to_s(:db)}.xlsx"
         end
       end
+    end
+
+    def details
+      raise params.inspect
     end
 
     private def set_report

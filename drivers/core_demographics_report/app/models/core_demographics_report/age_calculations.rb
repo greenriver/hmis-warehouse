@@ -20,38 +20,62 @@ module
 
     def adult_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(adult_clause).select(:client_id).distinct.count
+        adult_scope.select(:client_id).distinct.count
       end
+    end
+
+    def adult_scope
+      report_scope.joins(:client).where(adult_clause)
     end
 
     def adult_female_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(adult_clause.and(female_clause)).select(:client_id).distinct.count
+        adult_female_scope.select(:client_id).distinct.count
       end
+    end
+
+    def adult_female_scope
+      report_scope.joins(:client).where(adult_clause.and(female_clause))
     end
 
     def adult_male_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(adult_clause.and(male_clause)).select(:client_id).distinct.count
+        adult_male_scope.select(:client_id).distinct.count
       end
+    end
+
+    def adult_male_scope
+      report_scope.joins(:client).where(adult_clause.and(male_clause))
     end
 
     def child_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(child_clause).select(:client_id).distinct.count
+        child_scope.select(:client_id).distinct.count
       end
+    end
+
+    def child_scope
+      report_scope.joins(:client).where(child_clause)
     end
 
     def child_female_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(child_clause.and(female_clause)).select(:client_id).distinct.count
+        child_female_scope.select(:client_id).distinct.count
       end
+    end
+
+    def child_female_scope
+      report_scope.joins(:client).where(child_clause.and(female_clause))
     end
 
     def child_male_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(child_clause.and(male_clause)).select(:client_id).distinct.count
+        child_male_scope.select(:client_id).distinct.count
       end
+    end
+
+    def child_male_scope
+      report_scope.joins(:client).where(child_clause.and(male_clause))
     end
 
     def average_adult_age

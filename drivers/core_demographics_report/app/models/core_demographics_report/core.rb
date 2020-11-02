@@ -114,6 +114,20 @@ module CoreDemographicsReport
       [:details] + report_path_array
     end
 
+    def detail_scope_from_key(key)
+      scope = [
+        :adult_scope,
+        :adult_female_scope,
+        :adult_male_scope,
+        :child_scope,
+        :child_female_scope,
+        :child_male_scope,
+      ].detect do |k|
+        key.to_sym == k
+      end
+      send(scope)
+    end
+
     def include_comparison?
       comparison_pattern != :no_comparison_period
     end
@@ -232,7 +246,7 @@ module CoreDemographicsReport
     private def expiration_length
       return 30.seconds if Rails.env.development?
 
-      10.minutes
+      30.minutes
     end
   end
 end
