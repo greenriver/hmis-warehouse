@@ -188,3 +188,6 @@ Style/OneLineConditional:
 
 Style/StringConcatenation:
   Enabled: false
+
+Bundler/OrderedGems:
+  Enabled: false

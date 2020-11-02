@@ -39,7 +39,10 @@
     color: $gray-020;
   }
   span {
-    padding-left: calc(#{rem($size)} + #{space(2)})
+    padding-left: calc(#{rem($size)} + #{space(2)});
+  }
+  span.c-checkbox__label {
+    padding-left: space(2);
   }
 }
 

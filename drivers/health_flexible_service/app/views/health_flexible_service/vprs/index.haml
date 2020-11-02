@@ -1,0 +1,41 @@
+= render 'clients/breadcrumbs'
+- title = 'Flexible Services Verification Forms'
+= content_for(:title, title)
+.o-page
+  .o-page__header
+    %h1= "#{content_for(:title)} for #{@client.full_name}"
+  = render 'clients/tab_navigation', current: client_health_flexible_service_vprs_path(@client)
+  .o-page__content
+    %section.client__assessments.c-card.c-card--block.c-card--no-padding
+      .c-card__header.c-card__header--external
+        %h2.section-expander-block__header MassHealth Flexible Services Verification, Planning, and Referral Forms (VPRs)
+        = link_to new_client_health_flexible_service_vpr_path(@client), class: 'btn btn-secondary btn-sm ml-auto' do
+          %i.icon-plus
+          Add VPR
+    - if @vprs.any?
+      %table.table
+        %thead
+          %tr
+            %th Date of Service Planning
+            %th Last updated
+            %th Download
+            %th
+        %tbody
+          - @vprs.each do |vpr|
+            %tr
+              %td
+                = link_to edit_client_health_flexible_service_vpr_path(@client, vpr) do
+                  = vpr.planned_on
+              %td
+                = vpr.updated_at
+                by #{vpr.user.name}
+              %td
+                = link_to client_health_flexible_service_vpr_path(@client, vpr, format: :pdf), class: 'btn btn-secondary btn-sm' do
+                  %i.icon-file-pdf.mr-2
+                  PDF
+              %td
+                = link_to client_health_flexible_service_vpr_path(@client, vpr), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: { confirm: 'Are you sure you want to delete this VPR?'} do
+                  %i.icon-cross
+
+    - else
+      %p.well.none-found No VPRs on file.
