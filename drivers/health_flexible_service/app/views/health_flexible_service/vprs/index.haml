@@ -12,7 +12,7 @@
         = link_to new_client_health_flexible_service_vpr_path(@client), class: 'btn btn-secondary btn-sm ml-auto' do
           %i.icon-plus
           Add VPR
-    - if @vprs
+    - if @vprs.any?
       %table.table
         %thead
           %tr
@@ -38,3 +38,4 @@
                   %i.icon-cross
 
     - else
+      %p.well.none-found No VPRs on file.
