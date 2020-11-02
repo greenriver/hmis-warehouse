@@ -117,7 +117,12 @@ module
     private def filter_for_project_type(scope, all_project_types: nil)
       return scope if all_project_types
 
-      scope.in_project_type(@project_types)
+      p_types = if @filter.coordinated_assessment_living_situation_homeless
+        @project_types + GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca]
+      else
+        @project_types
+      end
+      scope.in_project_type(p_types)
     end
 
     private def filter_for_projects(scope)
@@ -218,6 +223,19 @@ module
       max_date = chronic_source.where(date: @filter.range).maximum(:date)
 
       scope.where(client_id: chronic_source.where(date: max_date).select(:client_id))
+    end
+
+    # This needs to work correctly with project type filters, where it adds the
+    # potentially additional type of CA, but only if LivingSituation (3.917.1) is
+    # of a homeless type (6, 1, 18)
+    private def filter_for_ca_homeless(scope)
+      return scope unless @filter.coordinated_assessment_living_situation_homeless
+
+      scope.joins(:enrollment).where(
+        she_t[:computed_project_type].in(GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[:ca]).
+        and(e_t[:LivingSituation].in(HUD.homeless_situations(as: :prior))).
+        or(she_t[:computed_project_type].in(@project_types)),
+      )
     end
   end
 end

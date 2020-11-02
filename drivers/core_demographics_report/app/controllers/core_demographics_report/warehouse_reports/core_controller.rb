@@ -69,6 +69,7 @@ module CoreDemographicsReport::WarehouseReports
           :hoh_only,
           :sub_population,
           :chronic_status,
+          :coordinated_assessment_living_situation_homeless,
           coc_codes: [],
           project_types: [],
           project_type_codes: [],
