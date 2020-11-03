@@ -30,7 +30,7 @@ module ProjectScorecard
     # include? doesn't work on open ranges, so we do it by hand
     private def in_range?(range, value)
       if range.end.nil?
-        value > range.begin
+        value >= range.begin
       else
         range.include?(value)
       end
@@ -81,6 +81,8 @@ module ProjectScorecard
         :pit_participation,
         :coc_meetings,
         :coc_meetings_attended,
+        :improvement_plan,
+        :financial_plan,
       ].freeze
     end
 

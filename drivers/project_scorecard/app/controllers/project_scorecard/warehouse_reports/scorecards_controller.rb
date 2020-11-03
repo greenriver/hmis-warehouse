@@ -131,9 +131,10 @@ module ProjectScorecard::WarehouseReports
     end
 
     private def set_projects
-      @projects = project_scope.joins(:organization, :data_source).
+      base_scope = project_scope.joins(:organization, :data_source).
         order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
-        preload(:contacts, :data_source, organization: :contacts).
+        preload(:contacts, :data_source, organization: :contacts)
+      @projects = base_scope.ph.or(base_scope.rrh).
         group_by { |m| [m.data_source.short_name, m.organization] }
     end
 
