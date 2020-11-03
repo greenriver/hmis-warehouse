@@ -8,6 +8,7 @@
 # Control: PHI attributes documented
 module Health
   class Patient < Base
+    include RailsDrivers::Extensions
     include ArelHelper
     acts_as_paranoid
 
@@ -869,7 +870,7 @@ module Health
             title: epic_member.relationship,
             email: epic_member.email,
             phone: epic_member.phone,
-            organization: epic_member.email&.split('@')&.last || 'Unknown'
+            organization: epic_member.email&.split('@')&.last || 'Unknown',
           )
         member.save(validate: false)
         epic_member.update(processed: Time.now)

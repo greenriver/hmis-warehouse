@@ -1,0 +1,75 @@
+@import '../helpers';
+
+@media print {
+  p,
+  .ho-container,
+  .o-chart {
+    page-break-inside: avoid !important;
+  }
+
+  body {
+    display: block;
+    background: #FFF;
+  }
+
+  h1 {
+    font-size: .55in;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  h2 {
+    font-size: .45in;
+    border: 0;
+    color: #457687;
+  }
+
+  h3 {
+    font-size: .25in;
+    line-height: 1.1;
+  }
+
+  h4.title {
+    font-size: .35in;
+    padding: 0 space(4);
+  }
+
+  p {
+    font-size: .175in;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  .l-page__secondary-content {
+    h1 {
+      font-size: .35in;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    h2 {
+      font-size: .275in;
+      border: 0;
+      color: #457687;
+      &:not(:first-child) {
+        margin-top: space(6);
+      }
+    }
+
+    h3 {
+      font-size: .2in;
+      line-height: 1.1;
+    }
+
+    h4,
+    h4.title {
+      font-size: .2in;
+    }
+
+    p {
+      font-size: .175in;
+    }
+  }
+}

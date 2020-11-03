@@ -83,16 +83,16 @@
       - # Care plans are valid for one year from their signature date
       - careplan = patient.careplans.active.recent.first
       - if careplan.present?
-        = if_link_to link, window_client_health_careplan_path(client_id: client.id, id: careplan.id) do
+        = if_link_to link, client_health_careplan_path(client_id: client.id, id: careplan.id) do
           %span.icon-checkmark.o-color--positive.mr-1
           PCTP Signed
       - else
         - careplan = patient.careplans.active.editable.last
         - if careplan.present?
-          = if_link_to link, window_client_health_careplan_path(client_id: client.id, id: careplan.id) do
+          = if_link_to link, client_health_careplan_path(client_id: client.id, id: careplan.id) do
             %span.icon-checkmark.mr-1.o-color--gray-l
             PCTP Signed
         - else
-          = if_link_to link, new_window_client_health_careplan_path(client) do
+          = if_link_to link, new_client_health_careplan_path(client) do
             %span.icon-checkmark.mr-1.o-color--gray-l
             PCTP Signed
