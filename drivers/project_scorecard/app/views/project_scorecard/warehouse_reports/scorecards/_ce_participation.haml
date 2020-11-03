@@ -14,7 +14,7 @@
   .col-3
     Average Time to Lease Up
   .col-1
-    N/A
+    = f.input :days_to_lease_up, label: false, disabled: @report.locked?(:days_to_lease_up, current_user)
   .col-1
     <=30 days
   .col-1
@@ -22,7 +22,7 @@
   .col-1
     >=46 Days
   .col-1
-    = 0
+    = @report.lease_up_score
 .row
   .col-2
     Accepted Referrals
@@ -35,14 +35,14 @@
       .col-8
         Number of CES Referrals
       .col-4
-        = 0
+        = f.input :number_referrals, label: false, disabled: @report.locked?(:number_referrals, current_user)
     .row
       .col-8
         Number of Accepted Referrals
       .col-4
-        = 0
+        = f.input :accepted_referrals, label: false, disabled: @report.locked?(:accepted_referrals, current_user)
   .col-1
-    = 0
+    = @report.accepted_referrals_percentage
   .col-1
     >=90%
   .col-1
@@ -50,4 +50,4 @@
   .col-1
     <=89%
   .col-1
-    = 0
+    = @report.accepted_referrals_score

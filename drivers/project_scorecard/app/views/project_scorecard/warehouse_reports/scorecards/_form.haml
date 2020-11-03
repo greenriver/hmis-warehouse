@@ -1,0 +1,30 @@
+.container.text-center
+  = render 'header', f: f
+  %p
+  = render 'total_score', f: f
+  %p
+  .row
+    .col-2
+      Performance Criteria
+    .col-2
+      Purpose & Source of Measurement
+    .col-3
+      Formula Information
+    .col-1
+      Performance Calculation
+    .col-1
+      Points: 10
+    .col-1
+      Points: 5
+    .col-1
+      Points: 0
+    .col-1
+      Total
+  = render 'project_performance', f: f
+  = render 'data_quality', f: f
+  = render 'ce_participation', f: f
+  = render 'grant_management_and_financials', f: f
+  %p
+  = render 'review_only', f: f
+%p
+= render 'agency_response', f: f

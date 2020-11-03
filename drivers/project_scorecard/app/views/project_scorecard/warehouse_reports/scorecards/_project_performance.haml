@@ -16,34 +16,34 @@
       .col-8
         January Total (Q08b, Row 1, Column 1)
       .col-4
-        = 0
+        = f.input :utilization_jan, label: false, disabled: @report.locked?(:utilization_jan, current_user)
     .row
       .col-8
         April Total (Q08b, Row 2, Column 1)
       .col-4
-        = 0
+        = f.input :utilization_apr, label: false, disabled: @report.locked?(:utilization_apr, current_user)
     .row
       .col-8
         July Total (Q08b, Row 3, Column 1)
       .col-4
-        = 0
+        = f.input :utilization_jul, label: false, disabled: @report.locked?(:utilization_jul, current_user)
     .row
       .col-8
         October Total (Q08b, Row 4, Column 1)
       .col-4
-        = 0
+        = f.input :utilization_oct, label: false, disabled: @report.locked?(:utilization_oct, current_user)
     .row
       .col-8
         Adjusted Total from 2017 Project Application (Auto Calculates)
       .col-4
-        = 0
+        = @report.adjusted_utilization
     .row
       .col-8
         Proposed number of households served
       .col-4
-        = 0
+        = f.input :utilization_proposed, label: false, disabled: @report.locked?(:utilization_proposed, current_user)
   .col-1
-    = 0
+    = @report.utilization_percentage
   .col-1
     90% - 150%
   .col-1
@@ -51,7 +51,7 @@
   .col-1
     >= 151% or <= 79%
   .col-1
-    = 0
+    = @report.utilization_score
 .row
   .col-2
     Percentage of chronically homeless households served
@@ -64,14 +64,14 @@
       .col-8
         Total Chronically Homeless Households served
       .col-4
-        = 0
+        = f.input :chronic_households_served, label: false, disabled: @report.locked?(:chronic_households_served, current_user)
     .row
       .col-8
         Total Households served
       .col-4
-        = 0
+        = f.input :total_households_served, label: false, disabled: @report.locked?(:total_households_served, current_user)
   .col-1
-    = 0
+    = @report.chronic_service_percentage
   .col-1
     PSH: >=75%
   .col-1
@@ -79,7 +79,7 @@
   .col-1
     PSH: <= 64%
   .col-1
-    = 0
+    = @report.chronic_service_score
 .row
   .col-2
     Percentage of participants who remained in PSH or exited to permanent housing
@@ -91,29 +91,29 @@
       .col-8
         Total Number of Persons Served (Q05a, Row 1)
       .col-4
-        = 0
+        = f.input :total_persons_served, label: false, disabled: @report.locked?(:total_persons_served, current_user)
     .row
       .col-8
         Total Persons exiting to positive destinations (Q23c, 3rd row from bottom)
       .col-4
-        = 0
+        = f.input :total_persons_with_positive_exit, label: false, disabled: @report.locked?(:total_persons_with_positive_exit, current_user)
     .row
       .col-8
         Total Exits (Q23c, 4th row from bottom)
       .col-4
-        = 0
+        = f.input :total_persons_exited, label: false, disabled: @report.locked?(:total_persons_exited, current_user)
     .row
       .col-8
         Total persons whose destinations excluded them from the calculation (Q23c, 2nd row from bottom)
       .col-4
-        = 0
+        = f.input :excluded_exits, label: false, disabled: @report.locked?(:excluded_exits, current_user)
     .row
       .col-8
         Unsuccessful exits (Auto Calculated)
       .col-4
-        = 0
+        = @report.unsuccessful_exits
   .col-1
-    = 0
+    = @report.exit_to_ph_percentage
   .col-1
     PSH: >= 98%
     %br RRH: >= 95%
@@ -124,7 +124,7 @@
     PSH: <= 89%
     %br RRH: <= 89%
   .col-1
-    = 0
+    = @report.exit_to_ph_score
 .row
   .col-2
     Average length of stay of program leavers
@@ -135,7 +135,7 @@
   .col-3
     N/A
   .col-1
-    N/A
+    = f.input :average_los_leavers, label: false, disabled: @report.locked?(:average_los_leavers, current_user)
   .col-1
     RRH: >=3-18 months
   .col-1
@@ -143,7 +143,7 @@
   .col-1
     RRH: >=25 / <=2 months
   .col-1
-    = 0
+    = @report.leavers_los_score
 .row
   .col-2
     Percentage of adults at exit or annual assessment who gained or increased employment income
@@ -154,7 +154,7 @@
   .col-3
 
   .col-1
-    = 0
+    = f.input :percent_increased_employment_income_at_exit, label: false, disabled: @report.locked?(:percent_increased_employment_income_at_exit, current_user)
   .col-1
     PSH: >= 15%
     %br RRH: >= 56%
@@ -165,7 +165,7 @@
     PSH: <= 8%
     %br RRH: <= 49%
   .col-1
-    = 0
+    = @report.increased_employment_income_score
 .row
   .col-2
     Percentage of adults at exit or annual assessment who gained or increased non-employment cash income
@@ -176,7 +176,7 @@
   .col-3
 
   .col-1
-    = 0
+    = f.input :percent_increased_other_cash_income_at_exit, label: false, disabled: @report.locked?(:percent_increased_other_cash_income_at_exit, current_user)
   .col-1
     PSH: >= 61%
     %br RRH: >= 21%
@@ -187,7 +187,7 @@
     PSH: <= 54%
     %br RRH: <= 14%
   .col-1
-    = 0
+    = @report.increased_other_cash_income_score
 .row
   .col-2
     Returns to Homelessness
@@ -198,7 +198,7 @@
   .col-3
 
   .col-1
-    = 0
+    = f.input :percent_returns_to_homelessness, label: false, disabled: @report.locked?(:percent_returns_to_homelessness, current_user)
   .col-1
     <= 5%
   .col-1
@@ -206,4 +206,4 @@
   .col-1
     >= 16%
   .col-1
-    = 0
+    = @report.returns_to_homelessness_score

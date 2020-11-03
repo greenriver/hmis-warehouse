@@ -24,59 +24,48 @@
       .col-4
         Project Performance
       .col-2
-        = 0
+        = @report.project_performance_score
       .col-2
         60
       .col-2
         50%
       .col-2
-        = 0
+        #{@report.project_performance_percentage}%
     .row
       .col-4
         HMIS Data Quality
       .col-2
-        = 0
+        = @report.data_quality_score
       .col-2
         30
       .col-2
         20%
       .col-2
-        = 0
-    .row
-      .col-4
-        HMIS Data Quality
-      .col-2
-        = 0
-      .col-2
-        30
-      .col-2
-        20%
-      .col-2
-        = 0
+        #{@report.data_quality_percentage}%
     .row
       .col-4
         Coordinated Entry Participation
       .col-2
-        = 0
+        = @report.ce_score
       .col-2
         10
       .col-2
         20%
       .col-2
-        = 0
+        #{@report.ce_percentage}%
     .row
       .col-4
         Grant Management & Financials
       .col-2
-        = 0
+        = @report.m_and_f_score
       .col-2
         50
       .col-2
         10%
       .col-2
-        = 0
+        #{@report.m_and_f_percentage}%
     .row
       .col-4
         Total Score
       .col-8
-        = 0
+        #{@report.project_performance_percentage + @report.data_quality_percentage + @report.ce_percentage + @report.m_and_f_percentage}%

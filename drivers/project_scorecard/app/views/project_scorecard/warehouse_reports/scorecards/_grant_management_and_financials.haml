@@ -13,19 +13,19 @@
       .col-8
         Funds expended to date, as reflected in eLOCCS
       .col-4
-        = 0
+        = f.input :funds_expended, label: false, disabled: @report.locked?(:funds_expended, current_user)
     .row
       .col-8
         Total Grant Amount Awarded
       .col-4
-        = 0
+        = f.input :amount_awarded, label: false, disabled: @report.locked?(:amount_awarded, current_user)
     .row
       .col-8
         Number of months since start of grant term to present
       .col-4
-        = 0
+        = f.input :months_since_start, label: false, disabled: @report.locked?(:months_since_start, current_user)
   .col-1
-    = 0
+    = @report.spend_down_percentage
   .col-1
     (+/-) 0 - 10%
   .col-1
@@ -33,7 +33,7 @@
   .col-1
     (+/-) 16% +
   .col-1
-    = 0
+    = @report.spend_down_score
 .row
   .col-2
     Cost Efficiency
@@ -45,14 +45,14 @@
       .col-8
         FY17 Total CoC Budget Plus 25% Required Match
       .col-4
-        = 0
+        = @report.budget_plus_match
     .row
       .col-8
         Number of participants who exited to or remained in permanent supportive housing during the reporting period
       .col-4
-        = 0
+        = @report.participants_in_psh
   .col-1
-    = 0
+    = @report.cost_per_participant
   .col-1
     PSH <=$8,999
     %br RRH <=$2,499
@@ -63,7 +63,7 @@
     PSH >=$11,001
     %br RRH >=$4,501
   .col-1
-    = 0
+    = @report.cost_efficiency_score
   .row
   .col-2
     Percentage of total grant funds that were recaptured in the most recent grant closeout
@@ -76,19 +76,19 @@
       .col-8
         Total Grant Award
       .col-4
-        = 0
+        = @report.amount_awarded
     .row
       .col-8
         Total Spent
       .col-4
-        = 0
+        = @report.funds_expended
     .row
       .col-8
         Unspent Amount
       .col-4
-        = 0
+        = @report.unspent_amount
   .col-1
-    = 0
+    = @report.percentage_recaptured
   .col-1
     0-2%
   .col-1
@@ -96,7 +96,7 @@
   .col-1
     >=6%
   .col-1
-    = 0
+    = @report.recaptured_score
 .row
   .col-2
     2019 PIT Count Participation
@@ -106,7 +106,7 @@
   .col-3
     N/A
   .col-1
-    = 0
+    = f.input :pit_participation, label: false, disabled: @report.locked?(:pit_participation, current_user)
   .col-1
     Yes
   .col-1
@@ -114,7 +114,7 @@
   .col-1
     No
   .col-1
-    = 0
+    = @report.pit_participation_score
 .row
   .col-2
     CoC General Meeting Attendance
@@ -127,14 +127,14 @@
       .col-8
         Number of Meetings
       .col-4
-        = 0
+        = f.input :coc_meetings, label: false, disabled: @report.locked?(:coc_meetings, current_user)
     .row
       .col-8
         Number Attended
       .col-4
-        = 0
+        = f.input :coc_meetings_attended, label: false, disabled: @report.locked?(:coc_meetings_attended, current_user)
   .col-1
-    = 0
+    = @report.percentage_meetings_attended
   .col-1
     >= 75%
   .col-1
@@ -142,4 +142,4 @@
   .col-1
     <= 49%
   .col-1
-    = 0
+    = @report.meetings_attended_score

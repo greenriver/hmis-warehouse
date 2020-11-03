@@ -15,7 +15,7 @@
   .col-3
 
   .col-1
-    = 0
+    = f.input :percent_pii_errors, label: false, disabled: @report.locked?(:percent_pii_errors, current_user)
   .col-1
     0% - 1%
   .col-1
@@ -23,7 +23,7 @@
   .col-1
     >= 6%
   .col-1
-    = 0
+    = @report.pii_errors_score
 .row
   .col-2
     Universal Data Elements Error Rate
@@ -32,7 +32,7 @@
   .col-3
 
   .col-1
-    = 0
+    = f.input :percent_ude_errors, label: false, disabled: @report.locked?(:percent_ude_errors, current_user)
   .col-1
     0% - 1%
   .col-1
@@ -40,7 +40,7 @@
   .col-1
     >= 6%
   .col-1
-    = 0
+    = @report.ude_errors_score
 .row
   .col-2
     Income and Housing Data Quality
@@ -49,7 +49,7 @@
   .col-3
 
   .col-1
-    = 0
+    = f.input :percent_income_and_housing_errors, label: false, disabled: @report.locked?(:percent_income_and_housing_errors, current_user)
   .col-1
     0% - 1%
   .col-1
@@ -57,4 +57,4 @@
   .col-1
     >= 6%
   .col-1
-    = 0
+    = @report.income_and_housing_errors_score

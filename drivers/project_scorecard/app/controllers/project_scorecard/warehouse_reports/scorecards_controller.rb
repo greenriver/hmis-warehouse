@@ -9,16 +9,13 @@ module ProjectScorecard::WarehouseReports
     include WarehouseReportAuthorization
     include ArelHelper
     before_action :set_projects, :set_project_groups, :set_current_reports
+    before_action :set_report, only: [:show, :edit, :update]
 
     def index
       start_date = Date.current.prev_month.beginning_of_month
       end_date = Date.current.prev_month.end_of_month
 
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
-    end
-
-    def show
-      @report = reports_scope.find(params[:id].to_i)
     end
 
     def for_project
@@ -53,8 +50,8 @@ module ProjectScorecard::WarehouseReports
       if errors.any?
         flash[:error] = errors.join('<br />'.html_safe)
       elsif @generate
-        generate_for_projects(@project_ids, @email, current_user)
-        generate_for_project_groups(@project_group_ids, @email, current_user)
+        generate_for_projects(@project_ids, @email, @range, current_user)
+        generate_for_project_groups(@project_group_ids, @email, @range, current_user)
       elsif @email
         email_to_projects(@project_ids, current_user)
         email_to_project_groups(@project_group_ids, current_user)
@@ -63,16 +60,24 @@ module ProjectScorecard::WarehouseReports
       render action: :index
     end
 
-    private def generate_for_projects(ids, _send_email, user)
+    def edit
+    end
+
+    def update
+      @report.update!(scorecard_params)
+      render :show
+    end
+
+    private def generate_for_projects(ids, _send_email, range, user)
       ids.each do |id|
-        reports_scope.create(project_id: id, user_id: user.id)
+        reports_scope.create(project_id: id, user_id: user.id, start_date: range.first, end_date: range.last)
         # TODO: deferred generator
       end
     end
 
-    private def generate_for_project_groups(ids, _send_email, user)
+    private def generate_for_project_groups(ids, _send_email, range, user)
       ids.each do |id|
-        reports_scope.create(project_group_id: id, user_id: user.id)
+        reports_scope.create(project_group_id: id, user_id: user.id, start_date: range.first, end_date: range.last)
         # TODO: deferred generator
       end
     end
@@ -105,6 +110,14 @@ module ProjectScorecard::WarehouseReports
         )
     end
 
+    private def scorecard_params
+      parameter_names = []
+      @report.controlled_parameters.each do |name|
+        parameter_names << name unless @report.locked?(name, current_user)
+      end
+      params.require(:project_scorecard_report).permit(*parameter_names)
+    end
+
     private def project_scope
       GrdaWarehouse::Hud::Project.viewable_by current_user
     end
@@ -128,6 +141,10 @@ module ProjectScorecard::WarehouseReports
       @project_groups = project_group_scope.includes(:projects).
         order(name: :asc).
         preload(:contacts, projects: [organization: :contacts])
+    end
+
+    private def set_report
+      @report = reports_scope.find(params[:id].to_i)
     end
 
     private def set_current_reports

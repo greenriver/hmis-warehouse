@@ -1,0 +1,12 @@
+= render 'breadcrumbs'
+
+= simple_form_for @report, url: project_scorecard_warehouse_reports_scorecard_path(@report) do |f|
+
+  .row
+    .col-sm-8
+      %h1 Project Scorecard
+    .col-sm-4
+      .text-right
+        = f.submit 'Save Changes', class: 'btn btn-primary'
+
+  = render 'form', f: f

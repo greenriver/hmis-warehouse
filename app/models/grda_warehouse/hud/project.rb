@@ -490,6 +490,11 @@ module GrdaWarehouse::Hud
       self[self.class.project_type_column].to_i == 13
     end
 
+    scope :psh, -> { where(self.project_type_column => [3, 10]) }
+    def psh?
+      [3, 10].include? self[self.class.project_type_column]
+    end
+
     alias_attribute :name, :ProjectName
 
     def self.related_item_keys
