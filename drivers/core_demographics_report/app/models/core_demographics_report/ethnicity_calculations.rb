@@ -2,6 +2,19 @@ module
   CoreDemographicsReport::EthnicityCalculations
   extend ActiveSupport::Concern
   included do
+    def ethnicity_detail_hash
+      {}.tap do |hashes|
+        HUD.ethnicities.each do |key, title|
+          hashes["ethnicity_#{key}"] = {
+            title: "Ethnicity - #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: report_scope.joins(:client).where(client_id: client_ids_in_ethnicity(key)).distinct,
+          }
+        end
+      end
+    end
+
     def ethnicity_count(type)
       ethnicity_breakdowns[type]&.count&.presence || 0
     end
@@ -30,6 +43,10 @@ module
         ]
       end
       rows
+    end
+
+    def client_ids_in_ethnicity(key)
+      ethnicity_breakdowns[key]&.map(&:first)
     end
 
     private def ethnicity_breakdowns

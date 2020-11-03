@@ -2,6 +2,19 @@ module
   CoreDemographicsReport::RaceCalculations
   extend ActiveSupport::Concern
   included do
+    def race_detail_hash
+      {}.tap do |hashes|
+        race_buckets.each do |key, title|
+          hashes["race_#{key}"] = {
+            title: "Race - #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: report_scope.joins(:client).where(client_id: client_ids_in_race(key)).distinct,
+          }
+        end
+      end
+    end
+
     def race_buckets
       ::HUD.races.merge('MultiRacial' => 'Multi-racial')
     end
@@ -40,6 +53,10 @@ module
       @race_breakdowns ||= client_races.group_by do |_, v|
         v
       end
+    end
+
+    private def client_ids_in_race(key)
+      race_breakdowns[key]&.map(&:first)
     end
 
     private def client_races

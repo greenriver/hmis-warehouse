@@ -19,6 +19,7 @@ module CoreDemographicsReport
     include CoreDemographicsReport::DvCalculations
     include CoreDemographicsReport::PriorCalculations
     include CoreDemographicsReport::HouseholdTypeCalculations
+    include CoreDemographicsReport::Details
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
@@ -100,32 +101,6 @@ module CoreDemographicsReport
 
     def filter_path_array
       [:filters] + report_path_array
-    end
-
-    def detail_link_base
-      "#{section_subpath}details"
-    end
-
-    def section_subpath
-      "#{self.class.url}/"
-    end
-
-    def detail_path_array
-      [:details] + report_path_array
-    end
-
-    def detail_scope_from_key(key)
-      scope = [
-        :adult_scope,
-        :adult_female_scope,
-        :adult_male_scope,
-        :child_scope,
-        :child_female_scope,
-        :child_male_scope,
-      ].detect do |k|
-        key.to_sym == k
-      end
-      send(scope)
     end
 
     def include_comparison?

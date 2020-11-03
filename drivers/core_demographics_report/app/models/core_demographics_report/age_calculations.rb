@@ -18,6 +18,47 @@ module
       }
     end
 
+    def age_detail_hash
+      {}.tap do |hashes|
+        [
+          :adult_scope,
+          :adult_female_scope,
+          :adult_male_scope,
+          :child_scope,
+          :child_female_scope,
+          :child_male_scope,
+        ].each do |key|
+          title = key.to_s.sub('_scope', '').titleize.pluralize
+          hashes[key] = {
+            title: "Ages - #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: send(key),
+          }
+        end
+        age_categories.each do |key, title|
+          hashes["age_#{key}"] = {
+            title: title,
+            headers: client_headers,
+            columns: client_columns,
+            scope: report_scope.joins(:client).
+              where(client_id: client_ids_in_age_range(key)).distinct,
+          }
+        end
+        age_categories.each do |age_key, age_title|
+          HUD.genders.each do |gender, gender_title|
+            hashes["age_#{age_key}_gender_#{gender}"] = {
+              title: "Age - #{age_title} #{gender_title}",
+              headers: client_headers,
+              columns: client_columns,
+              scope: report_scope.joins(:client).
+                where(client_id: client_ids_in_gender_age(gender, age_key)).distinct,
+            }
+          end
+        end
+      end
+    end
+
     def adult_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         adult_scope.select(:client_id).distinct.count
@@ -115,7 +156,15 @@ module
     end
 
     def age_count(type)
-      client_ages.select { |_, age| age.in?(type) }&.count&.presence || 0
+      clients_in_age_range(type)&.count&.presence || 0
+    end
+
+    def clients_in_age_range(type)
+      client_ages.select { |_, age| age.in?(type) }
+    end
+
+    def client_ids_in_age_range(type)
+      clients_in_age_range(type).keys
     end
 
     def age_percentage(type)

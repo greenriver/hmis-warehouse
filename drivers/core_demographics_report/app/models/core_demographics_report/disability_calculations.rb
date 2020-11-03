@@ -2,6 +2,19 @@ module
   CoreDemographicsReport::DisabilityCalculations
   extend ActiveSupport::Concern
   included do
+    def disability_detail_hash
+      {}.tap do |hashes|
+        HUD.disability_types.each do |key, title|
+          hashes["disability_#{key}"] = {
+            title: "Disability #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: report_scope.joins(:client).where(client_id: client_ids_in_disability(key)).distinct,
+          }
+        end
+      end
+    end
+
     def disability_count(type)
       disability_breakdowns[type]&.count&.presence || 0
     end
@@ -78,6 +91,10 @@ module
       @client_disabilities_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         client_disabilities.count
       end
+    end
+
+    def client_ids_in_disability(type)
+      disability_breakdowns[type]
     end
 
     private def disability_breakdowns

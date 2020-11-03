@@ -26,7 +26,14 @@ module CoreDemographicsReport::WarehouseReports
     end
 
     def details
-      raise params.inspect
+      @key = params[:key]
+      @sub_key = params[:sub_key]
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=Core Demographics Support for #{@report.support_title(@key)} - #{Time.current.to_s(:db)}.xlsx"
+        end
+      end
     end
 
     private def set_report

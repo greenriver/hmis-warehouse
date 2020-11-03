@@ -2,6 +2,19 @@ module
   CoreDemographicsReport::HouseholdTypeCalculations
   extend ActiveSupport::Concern
   included do
+    def household_detail_hash
+      {}.tap do |hashes|
+        @filter.available_household_types.each do |key, title|
+          hashes["household_#{key}"] = {
+            title: "Household Type - #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: report_scope.joins(:client).where(client_id: client_ids_in_household_type(key)).distinct,
+          }
+        end
+      end
+    end
+
     def household_type_count(type)
       client_households[type]&.count&.presence || 0
     end
@@ -30,6 +43,10 @@ module
         ]
       end
       rows
+    end
+
+    def client_ids_in_household_type(key)
+      client_households[key]
     end
 
     private def client_households
