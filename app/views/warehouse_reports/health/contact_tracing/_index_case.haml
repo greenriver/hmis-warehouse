@@ -11,6 +11,11 @@
     %i.icon-arrow-circled-right.table__toggle-icon.pr-4
 %tr.collapse.no-hover
   %td{colspan: 6}
+    .d-flex
+      .ml-auto
+        = link_to single_case_warehouse_reports_health_contact_tracing_path(index_case, format: :xlsx), class: 'btn btn-sm btn-secondary' do
+          %i.icon-download2
+          Download
     - contacts = @by_case[:contacts][index_case.id]
     - if contacts
       .row

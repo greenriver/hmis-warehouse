@@ -97,7 +97,7 @@
   padding: space(2);
   border-radius: 4px;
   margin-bottom: 5px;
-  min-height: 50px;
+  min-height: 40px;
   .c-checkbox__check-container {
     margin-right: space(2);
   }
@@ -168,4 +168,12 @@
   font-style: italic;
   font-size: 13px;
   color: $gray-060;
+}
+
+.custom-checkbox {
+  padding-left: 0;
+}
+
+.condensed-checkboxes fieldset {
+  margin-bottom: 15px;
 }

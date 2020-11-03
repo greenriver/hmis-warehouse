@@ -2,7 +2,7 @@
 .mb-5
   .c-card.c-card--linked.c-card--row.j-parent
     .c-card__content.d-flex.align-items-center
-      .c-checkbox.c-checkbox--round.mr-4
+      .c-checkbox.c-checkbox.mr-4
         = check_box_tag("organization-toggle[#{id}]", 1, false, {class: 'j-select-children'})
         %label{for: "organization-toggle_#{id}", data: {toggle: 'tooltip'}, title: 'Select/Deselect all projects of organization'}
       .data-source
@@ -30,7 +30,7 @@
         - last_report = @project_report_shells[project.id]
         %tr
           %td<
-            .c-checkbox.c-checkbox--round
+            .c-checkbox.c-checkbox
               = check_box_tag("project[#{project.id}]", 1, false, {class: 'j-child-select'})
               %label{for:"project_#{project.id}", tabindex:'1' }
           %td<

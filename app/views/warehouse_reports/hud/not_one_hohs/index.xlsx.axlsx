@@ -19,7 +19,7 @@ wb.add_worksheet(name: 'Not One Head of Household') do |sheet|
     dc = c.destination_client
     project = en.project
     values = [
-      dc.id,
+      dc&.id || 'Not yet Processed',
       c.PersonalID,
       c.FirstName,
       c.LastName,

@@ -355,6 +355,10 @@ module Health
       end
     end
 
+    def option_text_for(section_key, score)
+      self.class.collection_for(section_key).to_h.invert[score]
+    end
+
     def completed?
       completed_at.present?
     end

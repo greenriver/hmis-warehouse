@@ -1,4 +1,4 @@
-- if @patient.ssms.any?
+- if @patient&.ssms&.any?
   %table.table.table-sm.datatable-ssm
     %thead
       %tr
@@ -6,7 +6,7 @@
         %th Date Completed
         %th Case Manager
     %tbody
-      - @patient.ssms.each do |form|
+      - @patient&.ssms&.each do |form|
         %tr
           - if form.is_a? Health::SelfSufficiencyMatrixForm
             %td
