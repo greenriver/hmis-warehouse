@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_20_155907) do
+ActiveRecord::Schema.define(version: 2020_11_03_202932) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -431,6 +431,7 @@ ActiveRecord::Schema.define(version: 2020_10_20_155907) do
     t.datetime "completed_at"
     t.datetime "reviewed_at"
     t.string "reviewer"
+    t.datetime "deleted_at"
     t.index ["health_file_id"], name: "index_comprehensive_health_assessments_on_health_file_id"
     t.index ["patient_id"], name: "index_comprehensive_health_assessments_on_patient_id"
     t.index ["reviewed_by_id"], name: "index_comprehensive_health_assessments_on_reviewed_by_id"

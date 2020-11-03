@@ -9,6 +9,7 @@
 # Control: PHI attributes documented
 module Health
   class ComprehensiveHealthAssessment < HealthBase
+    acts_as_paranoid
     phi_patient :patient_id
     phi_attr :user_id, Phi::SmallPopulation
     phi_attr :reviewed_by_id, Phi::SmallPopulation

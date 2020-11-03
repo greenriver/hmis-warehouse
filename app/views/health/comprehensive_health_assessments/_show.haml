@@ -24,7 +24,13 @@
     - if @cha.editable_by?(current_user)
       .ml-auto
         - if ! @cha_locked
-          = link_to 'Edit', polymorphic_path([:edit] + cha_path_generator, id: @cha.id), class: 'btn btn-primary btn-primary__reverse', data: { disable_with: 'Loading...', toggle: 'tooltip' }
+          = link_to polymorphic_path([:edit] + cha_path_generator, id: @cha.id), class: 'btn btn-secondary btn-sm', data: { disable_with: 'Loading...', toggle: 'tooltip' } do
+            %i.icon-pencil
+            Edit CHA
+          %br
+          = link_to polymorphic_path(cha_path_generator, id: @cha.id), method: :delete, class: 'btn btn-danger btn-sm mt-4', data: { confirm: 'Are you sure you want to delete this CHA?' } do
+            %i.icon-cross
+            Delete CHA
         - else
           .alert.alert-info
             = _('A claim was submitted for this CHA; it is no longer editable.')
