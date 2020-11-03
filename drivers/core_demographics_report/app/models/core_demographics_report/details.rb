@@ -20,14 +20,17 @@ module
         merge(disability_detail_hash).
         merge(ethnicity_detail_hash).
         merge(race_detail_hash).
-        merge(household_detail_hash)
+        merge(household_detail_hash).
+        merge(dv_detail_hash).
+        merge(relationship_detail_hash).
+        merge(prior_detail_hash)
     end
 
     def detail_scope_from_key(key)
       detail = detail_hash[key]
       return report_scope.none unless detail
 
-      detail[:scope]
+      detail[:scope].call
     end
 
     def support_title(key)

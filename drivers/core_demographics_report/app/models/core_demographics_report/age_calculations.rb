@@ -29,11 +29,11 @@ module
           :child_male_scope,
         ].each do |key|
           title = key.to_s.sub('_scope', '').titleize.pluralize
-          hashes[key] = {
+          hashes[key.to_s] = {
             title: "Ages - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: send(key),
+            scope: -> { send(key) },
           }
         end
         age_categories.each do |key, title|
@@ -41,8 +41,7 @@ module
             title: title,
             headers: client_headers,
             columns: client_columns,
-            scope: report_scope.joins(:client).
-              where(client_id: client_ids_in_age_range(key)).distinct,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_age_range(key)).distinct },
           }
         end
         age_categories.each do |age_key, age_title|
@@ -51,8 +50,7 @@ module
               title: "Age - #{age_title} #{gender_title}",
               headers: client_headers,
               columns: client_columns,
-              scope: report_scope.joins(:client).
-                where(client_id: client_ids_in_gender_age(gender, age_key)).distinct,
+              scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_gender_age(gender, age_key)).distinct },
             }
           end
         end

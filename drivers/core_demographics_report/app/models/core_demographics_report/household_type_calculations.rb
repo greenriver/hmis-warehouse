@@ -4,12 +4,12 @@ module
   included do
     def household_detail_hash
       {}.tap do |hashes|
-        @filter.available_household_types.each do |key, title|
-          hashes["household_#{key}"] = {
+        @filter.available_household_types.invert.each do |key, title|
+          hashes["household_type_#{key}"] = {
             title: "Household Type - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: report_scope.joins(:client).where(client_id: client_ids_in_household_type(key)).distinct,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_household_type(key)).distinct },
           }
         end
       end

@@ -9,7 +9,7 @@ module
             title: "Disability #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: report_scope.joins(:client).where(client_id: client_ids_in_disability(key)).distinct,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_disability(key)).distinct },
           }
         end
       end
@@ -111,21 +111,25 @@ module
     private def client_disabilities
       @client_disabilities ||= Rails.cache.fetch(disabilities_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
-          GrdaWarehouse::Hud::Client.disabled_client_scope.where(id: distinct_client_ids).
-            joins(:source_enrollment_disabilities).
-            merge(
-              GrdaWarehouse::Hud::Disability.
-              where(
-                DisabilityType: ::HUD.disability_types.keys,
-                DisabilityResponse: [1, 2, 3],
-                IndefiniteAndImpairs: 1,
-              ),
-            ).pluck(:id, d_t[:DisabilityType]).each do |client_id, disability|
-              clients[client_id] ||= Set.new
-              clients[client_id] << disability
-            end
+          disabled_client_disability_types.each do |client_id, disability|
+            clients[client_id] ||= Set.new
+            clients[client_id] << disability
+          end
         end
       end
+    end
+
+    private def disabled_client_disability_types
+      GrdaWarehouse::Hud::Client.disabled_client_scope.where(id: distinct_client_ids).
+        joins(:source_enrollment_disabilities).
+        merge(
+          GrdaWarehouse::Hud::Disability.
+          where(
+            DisabilityType: ::HUD.disability_types.keys,
+            DisabilityResponse: [1, 2, 3],
+            IndefiniteAndImpairs: 1,
+          ),
+        ).pluck(:id, d_t[:DisabilityType])
     end
 
     private def disabilities_cache_key
