@@ -3,7 +3,8 @@ wb.add_worksheet(name: 'COVID-19 Impact Assessment Export'[0, 30]) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
-      'Household Last name',
+      'Household Last Name',
+      'Household First Name',
       '# Bedrooms',
       'Tenant Payment',
       'Subsidy Amount',
@@ -27,6 +28,7 @@ wb.add_worksheet(name: 'COVID-19 Impact Assessment Export'[0, 30]) do |sheet|
     end
     sheet.add_row [
       client.LastName,
+      client.FirstName,
       assessment.number_of_bedrooms,
       tenant_payment,
       assessment.total_subsidy,

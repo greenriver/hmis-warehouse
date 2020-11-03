@@ -12,7 +12,8 @@
     %table.table.table-striped
       %thead
         %tr
-          %th Household Last name
+          %th Household Last Name
+          %th Household First Name
           %th # Bedrooms
           %th Tenant Payment
           %th Subsidy Amount
@@ -31,6 +32,7 @@
             - tenant_payment = assessment.monthly_rent_total - (assessment.total_subsidy / assessment.subsidy_months)
           %tr
             %td= client.LastName
+            %td= client.FirstName
             %td= assessment.number_of_bedrooms
             %td= tenant_payment
             %td= assessment.total_subsidy
