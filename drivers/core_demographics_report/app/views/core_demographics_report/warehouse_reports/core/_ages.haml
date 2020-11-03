@@ -31,11 +31,11 @@
 
             %tr
               %th Female
-              %td= link_to_if can_view_clients?, number_with_delimiter(report.adult_female_count), details_core_demographics_report_warehouse_reports_core_index_path(link_params.merge(key: :adult_female_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= link_to_if can_view_clients?, number_with_delimiter(report.adult_female_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :adult_female_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               %td= report.average_adult_female_age
             %tr
               %th Male
-              %td= link_to_if can_view_clients?, number_with_delimiter(report.adult_male_count), details_core_demographics_report_warehouse_reports_core_index_path(link_params.merge(key: :adult_male_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= link_to_if can_view_clients?, number_with_delimiter(report.adult_male_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :adult_male_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               %td= report.average_adult_male_age
 
       %h3 Children
@@ -49,16 +49,16 @@
           %tbody
             %tr
               %th All
-              %td= link_to_if can_view_clients?, number_with_delimiter(report.child_count), details_core_demographics_report_warehouse_reports_core_index_path(link_params.merge(key: :child_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= link_to_if can_view_clients?, number_with_delimiter(report.child_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :child_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               %td= report.average_child_age
 
             %tr
               %th Female
-              %td= link_to_if can_view_clients?, number_with_delimiter(report.child_female_count), details_core_demographics_report_warehouse_reports_core_index_path(link_params.merge(key: :child_female_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= link_to_if can_view_clients?, number_with_delimiter(report.child_female_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :child_female_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               %td= report.average_child_female_age
             %tr
               %th Male
-              %td= link_to_if can_view_clients?, number_with_delimiter(report.child_male_count), details_core_demographics_report_warehouse_reports_core_index_path(link_params.merge(key: :child_male_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+              %td= link_to_if can_view_clients?, number_with_delimiter(report.child_male_count), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: :child_male_scope, filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
               %td= report.average_child_male_age
         %div{class: column_class}
 
@@ -74,5 +74,5 @@
             - @report.age_categories.each do |id, title|
               %tr
                 %th= title
-                %td= link_to_if can_view_clients?, number_with_delimiter(report.age_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(link_params.merge(key: "age_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
+                %td= link_to_if can_view_clients?, number_with_delimiter(report.age_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "age_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
                 %td= number_to_percentage(report.age_percentage(id), precision: 2)
