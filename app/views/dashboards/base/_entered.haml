@@ -36,13 +36,13 @@
             In
             = "#{month_name},"
             %strong
-              = number_with_delimiter @first_time_total_deduplicated
+              = number_with_delimiter(@first_time_total_deduplicated)
             clients appeared for the first time in one of the project types above. Of those
             = "#{number_with_delimiter(@first_time_total_deduplicated)},"
             %strong
 
               = link_to polymorphic_path([:warehouse_reports, :first_time_homeless_index], first_time_homeless: {start: @start_date, end: @end_date, sub_population: sub_population_key, project_types: GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES, coc_codes: @coc_codes }) do
-                = number_with_delimiter @first_time_ever
+                = number_with_delimiter(@first_time_ever)
             had no prior record of any type in the system.
 
     .updated_on.small.text-muted
