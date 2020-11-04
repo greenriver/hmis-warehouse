@@ -759,6 +759,15 @@ def report_list
       health: false,
     }
   end
+  if RailsDrivers.loaded.include?(:cliams_reporting)
+    r_list['Health: BH CP Claims/Payments'] << {
+      url: 'claims_reporting/warehouse_reports/reconciliation',
+      name: 'BH CP Claim Reconciliation',
+      description: 'Verify payment of claims.',
+      limitable: false,
+      health: true,
+    }
+  end
   r_list
 end
 
