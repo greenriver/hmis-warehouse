@@ -611,7 +611,84 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def g_three_b
-      @g_three_b ||= get_client_ids(all_served.where(client_lgbtq: 1))
+      @g_three_b ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).
+        merge(transitioned_to_stabilized_housing_scope).
+        where(client_lgbtq: 1))
+    end
+
+    def h_one_a
+      at = GrdaWarehouse::YouthIntake::Base.arel_table
+      @h_one_a ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+        where(at[:client_dob].gteq(@start_date - 18.years)))
+    end
+
+    def h_one_b
+      @h_one_b ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+        where(client_gender: 1)) # HUD.gender male
+    end
+
+    def h_one_c
+      @h_one_c ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+          where(client_gender: 0)) # HUD.gender female
+    end
+
+    def h_one_d
+      @h_one_d ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+          where(client_gender: [2, 3])) # HUD.gender trans
+    end
+
+    def h_one_e
+      @h_one_e ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+          where(client_gender: 4)) # HUD.gender non-binary
+    end
+
+    def h_two_a
+      @h_two_a ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+          where('client_race ?| array[:race]', race: 'White' ))
+    end
+
+    def h_two_b
+      @h_two_b ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+          where('client_race ?| array[:race]', race: 'BlackAfAmerican' ))
+    end
+
+    def h_two_c
+      @h_two_c ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+          where('client_race ?| array[:race]', race: 'Asian' ))
+    end
+
+    def h_two_d
+      @h_two_d ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+          where('client_race ?| array[:race]', race: 'AmIndAKNative' ))
+    end
+
+    def h_two_e
+      @h_two_e ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+          where('client_race ?| array[:race]', race: ['NativeHIOtherPacific', 'RaceNone']))
+    end
+
+    def h_two_f
+      @h_two_f ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
+          where(client_ethnicity: 1)) # HUD.ethnicity Hispanic/Latino
+    end
+
+    def h_three_b
+      @h_three_b ||= get_client_ids(all_served.
+        joins(:youth_follow_ups).
+        merge(follow_up_from_at_risk).
+          where(client_lgbtq: 1))
     end
 
     # def follow_up_two_d
@@ -724,6 +801,18 @@ module GrdaWarehouse::WarehouseReports::Youth
         :g_two_e,
         :g_two_f,
         :g_three_b,
+        :h_one_a,
+        :h_one_b,
+        :h_one_c,
+        :h_one_d,
+        :h_one_e,
+        :h_two_a,
+        :h_two_b,
+        :h_two_c,
+        :h_two_d,
+        :h_two_e,
+        :h_two_f,
+        :h_three_b,
         :client_ids_for_open_intakes,
       ]
     end
