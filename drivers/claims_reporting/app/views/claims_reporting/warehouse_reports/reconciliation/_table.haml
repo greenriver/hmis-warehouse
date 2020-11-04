@@ -1,0 +1,18 @@
+-#
+  # selected month.... range: HealthClaim::fieldrange max_date -- round to month
+  # most recent uploaded payment date
+  # list of clients where the claims are missing for the selected month?
+  # Patient.active_between(start_date, end_date)
+  # filter by Patient#aco?
+  # no need to show $$$ amounts
+%h2 Patients missing payments
+- unless @patients.present?
+  %p There are no patients identified with missing payments in this period.
+- else
+  %table.table.table-hover
+    %thead
+      %tr
+        %th Patient #link to health dashboard)
+    %tbody
+      - @patients.each do |patient|
+        client_health_patient_index_path(patient.client)

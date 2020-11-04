@@ -6,7 +6,7 @@
 module ClaimsReporting::WarehouseReports
   class ReconciliationController < ApplicationController
     include WarehouseReportAuthorization
-    before_action :require_can_administer_health!
+    before_action :require_can_view_member_health_reports!
 
     # include AjaxModalRails::Controller
     include ArelHelper

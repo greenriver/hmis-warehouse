@@ -1,9 +1,9 @@
 module ClaimsReporting
   class MedicalClaim < HealthBase
     belongs_to :patient,
-      class_name: 'Health::Patient',
-      primary_key: :medicaid_id,
-      foreign_key: :medicaid_id
+               class_name: 'Health::Patient',
+               primary_key: :medicaid_id,
+               foreign_key: :medicaid_id
 
     def modifiers
       [
@@ -15,7 +15,7 @@ module ClaimsReporting
     end
 
     def procedure_with_modifiers
-      ([procedure_code]+modifiers).join('>')
+      ([procedure_code] + modifiers).join('>')
     end
   end
 end
