@@ -49,11 +49,6 @@ module Filters
     attribute :chronic_status, Boolean, default: false
 
     validates_presence_of :start, :end
-    validate do
-      if start.present? && self.end.present?
-        errors.add(:end, 'date must follow start date.') if start > self.end
-      end
-    end
 
     # NOTE: keep this up-to-date if adding additional attributes
     def cache_key
