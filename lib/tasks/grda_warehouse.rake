@@ -253,8 +253,14 @@ namespace :grda_warehouse do
 
   desc 'Hourly tasks'
   task hourly: [:environment, 'log:info_to_stdout'] do
-    Rake::Task['jobs:check_queue'].invoke
-    Rake::Task['grda_warehouse:send_health_emergency_notifications'].invoke
+    begin
+      Rake::Task['jobs:check_queue'].invoke
+    rescue StandardError
+    end
+    begin
+      Rake::Task['grda_warehouse:send_health_emergency_notifications'].invoke
+    rescue StandardError
+    end
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
