@@ -30,7 +30,7 @@ module WarehouseReports::Hud
           or(ex_t[:ExitDate].eq(nil)),
         ).
         joins(hoh_count_query).
-        where('hoh.hoh_count != 1'). # NOTE: the exporter fixes hoh.HouseholdID is null
+        where('hoh.hoh_count != 1 or hoh.hoh_count IS NULL'). # NOTE: the exporter fixes hoh.HouseholdID is null
         order(HouseholdID: :asc, RelationshipToHoH: :asc, EntryDate: :desc)
 
       respond_to do |format|
@@ -56,6 +56,7 @@ module WarehouseReports::Hud
           from "Enrollment" as en
           where en."RelationshipToHoH" = 1
           and en."EntryDate" < '#{@filter.end.to_formatted_s(:db)}'
+          and en."DateDeleted" is NULL
           group by en."HouseholdID", en."ProjectID", en."data_source_id"
         ) as hoh
         on hoh."HouseholdID" = "Enrollment"."HouseholdID"

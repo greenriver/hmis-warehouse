@@ -46,14 +46,12 @@ end
 
 every 1.hour do
   # Fast and low RAM
-  rake "jobs:check_queue"
-  rake "grda_warehouse:send_health_emergency_notifications"
+  rake "grda_warehouse:hourly"
 end
 
 every 5.minutes do
-  # Long-running, but infrequent
-  rake 'reporting:run_project_data_quality_reports'
-  rake 'reporting:run_ad_hoc_processing'
+  # Long-running, but infrequently so
+  rake 'reporting:frequent'
 end
 
 every 4.hours do
@@ -90,8 +88,7 @@ if ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' &
     rake "health:daily"
   end
   every 1.day, at: '6:01 am' do
-    rake "health:queue_eligibility_determination"
-    rake "health:queue_retrieve_enrollments"
+    rake "health:enrollments_and_eligibility"
   end
 end
 
