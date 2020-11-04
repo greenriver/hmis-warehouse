@@ -50,7 +50,9 @@ module Filters
 
     validates_presence_of :start, :end
     validate do
-      errors.add(:end, 'End date must follow start date.') if start > self.end
+      if start.present? && self.end.present?
+        errors.add(:end, 'date must follow start date.') if start > self.end
+      end
     end
 
     # NOTE: keep this up-to-date if adding additional attributes
@@ -99,7 +101,7 @@ module Filters
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map { |m| m.to_i }
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map { |m| m.to_i }
       self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true])
-      ensure_dates_work
+      ensure_dates_work if valid?
     end
 
     def for_params
