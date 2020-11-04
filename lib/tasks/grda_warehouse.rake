@@ -251,6 +251,12 @@ namespace :grda_warehouse do
     Importing::RunDailyImportsJob.new.perform
   end
 
+  desc 'Hourly tasks'
+  task hourly: [:environment, 'log:info_to_stdout'] do
+    Rake::Task['jobs:check_queue'].invoke
+    Rake::Task['grda_warehouse:send_health_emergency_notifications'].invoke
+  end
+
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
   task :first_residential_record, [:reset] => [:environment, 'log:info_to_stdout'] do |task, args|
     GrdaWarehouse::Tasks::EarliestResidentialService.new(args.reset).run!

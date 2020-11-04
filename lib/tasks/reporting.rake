@@ -15,6 +15,12 @@ namespace :reporting do
     GrdaWarehouse::AdHocBatch.process!
   end
 
+  desc 'Frequent reporting tasks'
+  task frequent: [:environment] do
+    GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.process!
+    GrdaWarehouse::AdHocBatch.process!
+  end
+
   # DB related, provides reporting:db:migrate etc.
   namespace :db do |ns|
 
