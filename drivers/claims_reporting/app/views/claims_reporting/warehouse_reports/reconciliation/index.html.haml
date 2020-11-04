@@ -2,8 +2,11 @@
 - content_for :title, title
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'health'
-
+= simple_form_for ClaimsReporting::CpPaymentUpload.new, as: :file, url: url_for(action: :create) do |f|
+  %h3 Upload Reconciliation File
+  = f.input :content, as: :file, label: false
+  = f.submit 'Upload', class: 'btn btn-primary'
+%h2 Patients missing payments
 = render 'form'
-
 = render 'table'
 

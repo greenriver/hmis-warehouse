@@ -1,19 +1,8 @@
-= simple_form_for ClaimsReporting::CpPaymentUpload.new, as: :file, url: url_for(action: :create) do |f|
-  %h3 Upload Reconciliation File
-  = f.input :content, as: :file, label: false
-  = f.submit 'Upload', class: 'btn btn-primary'
-
-:ruby
-  available_months = 36.times.map do |n|
-    date = (Date.current << n).end_of_month
-  end
-  @month ||= available_months.first
-
 = simple_form_for :filter, method: :get do |f|
   - content_for :filters_col_full do
     .row
       .col-sm-4
-        = f.input :month, selected: @month, collection: available_months,  input_html: { class: :select2,  multiple: false }
+        = f.input :month, selected: @active_month, collection: @available_months, value_method: :iso8601, label_method: proc {|v| v.strftime('%b %Y')}, input_html: { class: :select2,  multiple: false }
       .col-sm-4
         = f.input :aco, collection: Health::AccountableCareOrganization.active, label: 'ACO', selected: @acos, input_html: { class: :select2,  multiple: true, placeholder: '(all ACOs)' }
   - content_for :filter_actions do
