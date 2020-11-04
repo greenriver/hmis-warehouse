@@ -14,6 +14,24 @@ module ClaimsReporting::WarehouseReports
 
     # before_action :set_report
     def index
+      @upload = ClaimsReporting::CpPaymentUpload.new
+    end
+
+    def create
+      if params[:file]
+        upload = params.dig(:file, :content)
+        @upload = ClaimsReporting::CpPaymentUpload.new(
+          user_id: current_user.id,
+          content: upload.read,
+          original_filename: upload.original_filename,
+        )
+        if @upload.save
+          flash[:notice] = 'Upload accepted for processing'
+        else
+          flash[:notice] = @upload.errors.full_messages.to_sentence
+        end
+      end
+      redirect_to request.referrer || url_for(action: :index)
     end
   end
 end
