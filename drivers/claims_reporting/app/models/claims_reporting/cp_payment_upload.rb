@@ -7,6 +7,7 @@
 require 'roo'
 module ClaimsReporting
   class CpPaymentUpload < HealthBase
+    MAX_UPLOAD_SIZE = 50.megabytes
     acts_as_paranoid
 
     phi_attr :id, Phi::SmallPopulation
@@ -42,6 +43,10 @@ module ClaimsReporting
     # Member_Suffix
 
     def validate_contents
+      if content.length > MAX_UPLOAD_SIZE
+        errors.add(:content, "is too large. Max size is #{MAX_UPLOAD_SIZE.to_s(:human_size)}")
+        return
+      end
       excel_content_as_details
     rescue Zip::Error
       errors.add(:content, 'must be a valid XLSX file')
