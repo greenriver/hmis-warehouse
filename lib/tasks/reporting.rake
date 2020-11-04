@@ -19,11 +19,13 @@ namespace :reporting do
   task frequent: [:environment] do
     begin
       GrdaWarehouse::WarehouseReports::Project::DataQuality::Base.process!
-    rescue StandardError
+    rescue StandardError => e
+      puts e.message
     end
     begin
       GrdaWarehouse::AdHocBatch.process!
-    rescue StandardError
+    rescue StandardError => e
+      puts e.message
     end
   end
 

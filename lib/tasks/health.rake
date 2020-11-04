@@ -16,11 +16,13 @@ namespace :health do
   task enrollments_and_eligibility: [:environment, "log:info_to_stdout"] do
     begin
       Rake::Task['health:queue_eligibility_determination'].invoke
-    rescue StandardError
+    rescue StandardError => e
+      puts e.message
     end
     begin
       Rake::Task['health:queue_retrieve_enrollments'].invoke
-    rescue StandardError
+    rescue StandardError => e
+      puts e.message
     end
   end
 

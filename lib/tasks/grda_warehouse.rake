@@ -255,11 +255,13 @@ namespace :grda_warehouse do
   task hourly: [:environment, 'log:info_to_stdout'] do
     begin
       Rake::Task['jobs:check_queue'].invoke
-    rescue StandardError
+    rescue StandardError => e
+      puts e.message
     end
     begin
       Rake::Task['grda_warehouse:send_health_emergency_notifications'].invoke
-    rescue StandardError
+    rescue StandardError => e
+      puts e.message
     end
   end
 
