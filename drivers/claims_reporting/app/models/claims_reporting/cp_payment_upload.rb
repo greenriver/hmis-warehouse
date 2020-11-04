@@ -7,6 +7,8 @@
 require 'roo'
 module ClaimsReporting
   class CpPaymentUpload < HealthBase
+    has_paper_trail ignore: [:content]
+
     MAX_UPLOAD_SIZE = 50.megabytes
     acts_as_paranoid
 
@@ -15,6 +17,8 @@ module ClaimsReporting
 
     belongs_to :user, class_name: 'User', required: true
     validate :validate_contents
+
+    has_many :details, class_name: '::ClaimsReporting::CpPaymentDetail'
 
     scope :unprocessed, -> do
       where(started_at: nil)
@@ -29,14 +33,32 @@ module ClaimsReporting
         started_at: Time.current,
         completed_at: nil,
       )
-      transction do
-        excel_content_as_details
+      transaction do
+        details.import content_as_details
+
+        # TODO? the  XLSX file also contains a summary
+        # with "Number Claims", ""Total Claims Amount" etc we could cross check
         update(completed_at: Time.current)
       end
     end
 
-    DETAIL_COLS = ['Medicaid_ID', 'Member_CP_Assignment_Plan', 'CP_Enrollment_Start_Date', 'CP_Name_DSRIP', 'CP_Name_Official', 'CP_PID', 'CP_SL', 'Month_Payment_Issued', 'Paid_DOS', 'Paid_Num_ICN', 'Adjustment_Amount', 'Amount_Paid', 'Payment_Date'].freeze
-    # we are excluding these unneeded columns for the moment
+    DETAIL_COLS = [
+      'Medicaid_ID',
+      'Member_CP_Assignment_Plan',
+      'CP_Enrollment_Start_Date',
+      'CP_Name_DSRIP',
+      'CP_Name_Official',
+      'CP_PID',
+      'CP_SL',
+      'Month_Payment_Issued',
+      'Paid_DOS',
+      'Paid_Num_ICN',
+      'Adjustment_Amount',
+      'Amount_Paid',
+      'Payment_Date',
+    ].freeze
+
+    # We are excluding these unneeded columns for the moment
     # Member_Name_Last
     # Member_Name_First
     # Member_Middle_Initial
@@ -47,7 +69,7 @@ module ClaimsReporting
         errors.add(:content, "is too large. Max size is #{MAX_UPLOAD_SIZE.to_s(:human_size)}")
         return
       end
-      excel_content_as_details
+      content_as_details.any? # we just need to call this to try
     rescue Zip::Error
       errors.add(:content, 'must be a valid XLSX file')
     rescue RangeError => e
@@ -58,9 +80,13 @@ module ClaimsReporting
       errors.add(:content, err.message)
     end
 
-    def excel_content_as_details
+    def content_as_details
       roo = ::Roo::Excelx.new(StringIO.new(content).binmode)
-      roo.sheet('DETAIL').parse(DETAIL_COLS.map { |c| [c.downcase, c] }.to_h)
+
+      required_cols = DETAIL_COLS.map { |c| [c.downcase, c] }.to_h
+      roo.sheet('DETAIL').parse(
+        required_cols,
+      ).map(&:symbolize_keys)
     end
 
     def started?

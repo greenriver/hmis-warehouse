@@ -26,7 +26,8 @@ module ClaimsReporting::WarehouseReports
           original_filename: upload.original_filename,
         )
         if @upload.save
-          flash[:notice] = 'Upload accepted for processing'
+          @upload.process!
+          flash[:notice] = 'Upload accepted and processed successfully'
         else
           flash[:notice] = @upload.errors.full_messages.to_sentence
         end
