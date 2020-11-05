@@ -2,35 +2,32 @@
 - content_for :title, title
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'health'
-.row
-  .col-12
-    .mb-6
-      %h2 Patients Missing Payments
-      = render 'form'
-      = render 'table'
-.row
-  .col-12
-    .mb-3
-      %h2 Reconciliation Files
-      %div
-        = simple_form_for ::ClaimsReporting::CpPaymentUpload.new, as: :file, wrapper: :inline_form, url: url_for(action: :create) do |f|
-          = f.input_field :content, as: :file, label: false
-          = f.submit 'Upload', class: 'btn btn-primary'
-    .mb-3
-      %h3 Recent Uploads
-      %table.table.table-hover
-        %thead
+.mb-6
+  %h2 Patients Missing Payments
+  = render 'form'
+  = render 'table'
+.mb-6
+  .mb-3
+    %h2 Reconciliation Files
+    %div
+      = simple_form_for ::ClaimsReporting::CpPaymentUpload.new, as: :file, wrapper: :inline_form, url: url_for(action: :create) do |f|
+        = f.input_field :content, as: :file, label: false
+        = f.submit 'Upload', class: 'btn btn-primary'
+  .mb-3
+    %h3 Recent Uploads
+    %table.table.table-hover
+      %thead
+        %tr
+          %th File
+          %th Patients
+          %th Date of Service Range
+          %th Completed
+      %tbody
+        - recent_uploads = ::ClaimsReporting::CpPaymentUpload.limit(5).order(completed_at: :desc)
+        - recent_uploads.select(:id, :completed_at, :original_filename).each do |upload|
           %tr
-            %th File
-            %th Patients
-            %th Date of Service Range
-            %th Completed
-        %tbody
-          - recent_uploads = ::ClaimsReporting::CpPaymentUpload.limit(5).order(completed_at: :desc)
-          - recent_uploads.select(:id, :completed_at, :original_filename).each do |upload|
-            %tr
-              %td= upload.original_filename
-              %td= upload.details.distinct.count(:medicaid_id)
-              %td= upload.paid_dos_range.join(' - ')
-              %td= l upload.completed_at.to_date, format: :default
+            %td= upload.original_filename
+            %td= upload.details.distinct.count(:medicaid_id)
+            %td= upload.paid_dos_range.join(' - ')
+            %td= l upload.completed_at.to_date, format: :default
 
