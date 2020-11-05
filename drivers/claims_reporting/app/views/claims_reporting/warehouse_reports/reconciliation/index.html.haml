@@ -29,8 +29,7 @@
           - recent_uploads = ::ClaimsReporting::CpPaymentUpload.limit(5).order(completed_at: :desc)
           - recent_uploads.select(:id, :completed_at, :original_filename).each do |upload|
             %tr
-              %td
-                %div{style: 'overflow: hidden; text-overflow: ellipsis; max-width: 40ch; white-space:nowrap;'}= upload.original_filename
+              %td= upload.original_filename
               %td= upload.details.distinct.count(:medicaid_id)
               %td= upload.paid_dos_range.join(' - ')
               %td= l upload.completed_at.to_date, format: :default
