@@ -13,7 +13,7 @@ module Health
     before_action :set_dates, only: [:index]
 
     include WindowClientPathGenerator
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     def index
       @q = @patients.ransack(params[:q])
@@ -27,6 +27,11 @@ module Health
           @patients = @patients.engaged.no_qualifying_activities_this_month
         when 'engagement_ending'
           @patients = @patients.engagement_ending
+        end
+
+        if params[:filter][:user].present?
+          @active_filter = true
+          @patients = @patients.where(care_coordinator_id: params[:filter][:user].to_i)
         end
       end
 

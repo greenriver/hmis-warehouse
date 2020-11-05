@@ -4,12 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
+class PerformanceDashboards::ProjectType < PerformanceDashboards::Base
   include PerformanceDashboard::ProjectType::LivingSituation
   include PerformanceDashboard::ProjectType::Destination
   include PerformanceDashboard::ProjectType::LengthOfTime
   include PerformanceDashboard::ProjectType::Returns
   include PerformanceDashboard::ProjectType::Detail
+  include PerformanceDashboard::Overview::Entering
 
   def self.url
     'performance_dashboards/project_type'
@@ -19,6 +20,10 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
     GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES[filter.project_type_codes.first&.to_sym]
   end
 
+  def multiple_project_types?
+    false
+  end
+
   def self.available_keys
     {
       entering: :entering,
@@ -26,12 +31,29 @@ class PerformanceDashboards::ProjectType < PerformanceDashboards::Base # rubocop
     }
   end
 
+  def section_subpath
+    'performance_dashboards/project_type/'
+  end
+
   def self.available_chart_types
     [
-      'living_situations',
+      'prior_living_situations',
       'destinations',
       'lengths_of_time',
       'returns',
+    ]
+  end
+
+  def available_breakdowns
+    {}
+  end
+
+  def report_path_array
+    [
+      :performance,
+      :dashboards,
+      :project_type,
+      :index,
     ]
   end
 end

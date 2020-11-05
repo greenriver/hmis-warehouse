@@ -6,18 +6,32 @@
     %h1= content_for :title
   = render 'clients/tab_navigation', current: client_health_patient_referrals_path(client_id: @client)
 
-  .table-responsive
-    %table.table.table-sm
-      %thead
-        %tr
-          %th Enrollment Start Date
-          %th Contributing?
-          %th Pending Disenrollment Date
-          %th Disenrollment Date
-      %tbody
-        - @patient_referrals.each do |pr|
-          %tr
-            %td= pr.enrollment_start_date
-            %th= checkmark pr.contributing
-            %td= pr.pending_disenrollment_date
-            %td= pr.disenrollment_date
+.table-responsive
+  %table.table.table-sm
+    %thead
+      %tr
+        %th Enrollment Start Date
+        %th Current?
+        %th Contributing?
+        %th Pending Disenrollment Date
+        %th Disenrollment Date
+        %th Description
+    %tbody
+      - @patient_referrals.each do |pr|
+        - if pr.deleted_at.present?
+          - background = 'bg-info'
+        - else
+          - background = ''
+        %tr{class: background}
+          %td= pr.enrollment_start_date
+          %th= checkmark pr.current
+          %th= checkmark pr.contributing
+          %td= pr.pending_disenrollment_date
+          %td= pr.disenrollment_date
+          %td= pr.change_description
+
+.text-right
+  - if params[:with_deleted] == 'true'
+    = link_to 'Hide Deleted Referrals', client_health_patient_referrals_path(client_id: @client)
+  - else
+    = link_to 'Show Deleted Referrals', client_health_patient_referrals_path(client_id: @client, with_deleted: true)

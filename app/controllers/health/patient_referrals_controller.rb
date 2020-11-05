@@ -6,7 +6,7 @@
 
 module Health
   class PatientReferralsController < IndividualPatientController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
 
     before_action :require_some_patient_access!
@@ -16,6 +16,7 @@ module Health
     def index
       @patient_referrals = @patient.patient_referrals.
         order(enrollment_start_date: :asc)
+      @patient_referrals = @patient_referrals.with_deleted if params[:with_deleted] == 'true'
     end
 
     protected def title_for_show

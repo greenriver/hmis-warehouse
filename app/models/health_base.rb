@@ -21,13 +21,14 @@ class HealthBase < ActiveRecord::Base
       }
     end
 
-    def phi_attr(attribute, category)
+    def phi_attr(attribute, category, description: nil)
       raise ArgumentError, "category (#{category}) must be a ::Phi::Category" unless category < ::Phi::Category
       raise ArgumentError, "attr (#{attr})  must method name as a symbol" unless attribute.is_a?(::Symbol)
       self.phi_dictionary_entry[:attrbutes] << ::Phi::Attribute.new(
         self.name,
         attribute,
-        category
+        category,
+        description
       )
     end
 

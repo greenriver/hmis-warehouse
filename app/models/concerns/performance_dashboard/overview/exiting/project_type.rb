@@ -9,29 +9,35 @@ module PerformanceDashboard::Overview::Exiting::ProjectType
 
   # NOTE: always count the most-recently started enrollment within the range
   def exiting_by_project_type
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @exiting_by_project_type ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = project_type_buckets.map { |b| [b, []] }.to_h
-      counted = Set.new
+      counted = {}
       exiting.
         joins(:client).
         order(first_date_in_program: :desc).
         pluck(:client_id, she_t[project_type_col], :first_date_in_program).each do |id, project_type, _|
-        buckets[project_type_bucket(project_type)] << id unless counted.include?(id)
-        counted << id
-      end
+          counted[project_type_bucket(project_type)] ||= Set.new
+          buckets[project_type_bucket(project_type)] << id unless counted[project_type_bucket(project_type)].include?(id)
+          counted[project_type_bucket(project_type)] << id
+        end
       buckets
     end
   end
 
   def exiting_by_project_type_data_for_chart
     @exiting_by_project_type_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += exiting_by_project_type.values.map(&:count)
-      categories = exiting_by_project_type.keys.map { |m| HUD.project_type(m) }
-      {
-        columns: columns,
-        categories: categories,
-      }
+      categories = exiting_by_project_type.keys
+      categories &= GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values.flatten
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.project_type(s)] }.to_h,
+          chosen: @project_types,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 

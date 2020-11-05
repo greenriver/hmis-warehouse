@@ -6,10 +6,10 @@
 
 module ReportGenerators::Lsa::Fy2019
   class Base
-  include ArelHelper
+    include ArelHelper
     attr_accessor :report
 
-    def initialize destroy_rds: true, hmis_export_id: nil, options: {}
+    def initialize(destroy_rds: true, hmis_export_id: nil, options: {})
       @destroy_rds = destroy_rds
       @hmis_export_id = hmis_export_id
       @user = User.find(options[:user_id].to_i) if options[:user_id].present?
@@ -24,9 +24,8 @@ module ReportGenerators::Lsa::Fy2019
         @report.options['project_id'] |= project_group_project_ids
       end
       data_source_id = @report.options['data_source_id'].presence&.to_i
-      if data_source_id.present?
-        @report.options['project_id'] |= GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id).pluck(:id)
-      end
+      @report.options['project_id'] |= GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id).pluck(:id)  if data_source_id.present?
+
       if test?
         @coc_code = 'XX-500'
       else
@@ -35,19 +34,29 @@ module ReportGenerators::Lsa::Fy2019
       if @report.options['project_id'].delete_if(&:blank?).any?
         @project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
         # Limit to only those projects the user who queued the report can see
-        @project_ids = @project_ids & GrdaWarehouse::Hud::Project.viewable_by(@report.user).pluck(:id)
-        @lsa_scope = 2
+        @project_ids &= GrdaWarehouse::Hud::Project.viewable_by(@report.user).pluck(:id)
       else
         # Confirmed with HUD only project types 1, 2, 3, 8, 9, 10, 13 need to be included in hmis_ tables.
         @project_ids = system_wide_project_ids
-        @lsa_scope = 1
       end
     end
 
     def system_wide_project_ids
-      @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(@user).in_coc(coc_code: @coc_code).
+      @system_wide_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(@user).
+        in_coc(coc_code: @coc_code).
         with_hud_project_type([1, 2, 3, 8, 9, 10, 13]).
+        coc_funded.
         pluck(:id).sort
+    end
+
+    private def lsa_scope
+      return @report.options['lsa_scope'].to_i if @report.options['lsa_scope'].present?
+
+      if @report.options['project_id'].delete_if(&:blank?).any?
+        2
+      else
+        1
+      end
     end
 
     def set_report_start_and_end

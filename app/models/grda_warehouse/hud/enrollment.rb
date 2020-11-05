@@ -10,12 +10,13 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HudSharedScopes
     include TsqlImport
+    include NotifierConfig
     include ::HMIS::Structure::Enrollment
 
+    attr_accessor :source_id
+
     self.table_name = 'Enrollment'
-    self.hud_key = :EnrollmentID
-    acts_as_paranoid column: :DateDeleted
-    include NotifierConfig
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     alias_attribute :date, :EntryDate
 
@@ -131,7 +132,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :visible_in_window_to, -> (user) do
-      joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
+      if user.can_view_clients? || user.can_view_client_window?
+        joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
+      else
+        joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+      end
     end
 
     scope :open_during_range, -> (range) do
@@ -154,9 +159,21 @@ module GrdaWarehouse::Hud
       open_during_range(date..date)
     end
 
-    scope :heads_of_households, -> {
+    scope :opened_during_range, ->(range) do
+      where(EntryDate: range)
+    end
+
+    scope :with_permanent_exit, ->(range) do
+      joins(:exit).merge(GrdaWarehouse::Hud::Exit.permanent.closed_within_range(range))
+    end
+
+    scope :housed, ->(range) do
+      residential_non_homeless.where(MoveInDate: range)
+    end
+
+    scope :heads_of_households, -> do
       where(RelationshipToHoH: 1)
-    }
+    end
 
     ADDRESS_FIELDS = %w( LastPermanentStreet LastPermanentCity LastPermanentState LastPermanentZIP ).map(&:to_sym).freeze
 
@@ -166,6 +183,10 @@ module GrdaWarehouse::Hud
       condition = conditions.reduce(conditions.shift){ |c1, c2| c1.or c2 }
       where condition
     }
+
+    scope :unprocessed, -> do
+      where(processed_as: nil)
+    end
 
 
     def self.related_item_keys
@@ -359,7 +380,7 @@ module GrdaWarehouse::Hud
       end
 
       # Line 21
-      if (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(LivingSituation)
+      if (HUD.temporary_and_permanent_housing_situations(as: :prior) + HUD.other_situations(as: :prior)).include?(self.LivingSituation)
         # Line 22
         return :no if is_no?(self.LOSUnderThreshold)
         # Line 23
@@ -367,6 +388,8 @@ module GrdaWarehouse::Hud
         # Lines 24 - 26
         return homeless_duration_sufficient if homeless_duration_sufficient
       end
+
+      return :no # Not included in flow -- added as fail safe
     end
 
     def is_no?(value)
@@ -386,7 +409,8 @@ module GrdaWarehouse::Hud
       return dk_or_r_or_missing(self.TimesHomelessPastThreeYears) if dk_or_r_or_missing(self.TimesHomelessPastThreeYears)
 
       @twelve_or_more_months_homeless ||= [112, 113].freeze  # 112 = 12 months, 113 = 13+ months
-      return :yes if @twelve_or_more_months.include?(self.MonthsHomelessPastThreeYears)
+      return :yes if @twelve_or_more_months_homeless.include?(self.MonthsHomelessPastThreeYears)
+
       return dk_or_r_or_missing(self.MonthsHomelessPastThreeYears) if dk_or_r_or_missing(self.MonthsHomelessPastThreeYears)
     end
   end # End Enrollment

@@ -16,7 +16,7 @@ module WarehouseReports::Hud
         where(e_t[:EntryDate].lt(@filter.end)).
         joins(:client, project: :project_cocs).
         left_outer_joins(:exit).
-        preload(client: :destination_client).
+        preload(:project, :exit, client: :destination_client).
         merge(
           GrdaWarehouse::Hud::Project.
           viewable_by(current_user).
@@ -30,10 +30,15 @@ module WarehouseReports::Hud
           or(ex_t[:ExitDate].eq(nil)),
         ).
         joins(hoh_count_query).
-        where('hoh.hoh_count != 1'). # NOTE: the exporter fixes hoh.HouseholdID is null
-        order(EntryDate: :desc, HouseholdID: :asc, RelationshipToHoH: :asc).
-        page(params[:page]).per(50)
+        where('hoh.hoh_count != 1 or hoh.hoh_count IS NULL'). # NOTE: the exporter fixes hoh.HouseholdID is null
+        order(HouseholdID: :asc, RelationshipToHoH: :asc, EntryDate: :desc)
 
+      respond_to do |format|
+        format.html do
+          @enrollments = @enrollments.page(params[:page]).per(50)
+        end
+        format.xlsx {}
+      end
       # NotOneHoH3 = (select count(distinct n.HouseholdID)
       # from dq_Enrollment n
       # left outer join (select hn.HouseholdID, count(distinct hn.EnrollmentID) as hoh
@@ -50,6 +55,8 @@ module WarehouseReports::Hud
           select en."HouseholdID", en."ProjectID", en."data_source_id", count(distinct(en."EnrollmentID")) as hoh_count
           from "Enrollment" as en
           where en."RelationshipToHoH" = 1
+          and en."EntryDate" < '#{@filter.end.to_formatted_s(:db)}'
+          and en."DateDeleted" is NULL
           group by en."HouseholdID", en."ProjectID", en."data_source_id"
         ) as hoh
         on hoh."HouseholdID" = "Enrollment"."HouseholdID"
@@ -78,6 +85,7 @@ module WarehouseReports::Hud
       params.require(:filter).permit(
         :start,
         :end,
+        project_ids: [],
         coc_codes: [],
       )
     end

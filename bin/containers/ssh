@@ -43,6 +43,47 @@ class ContainerList
     end
   end
 
+  def ssh_to(client:, service: 'warehouse', environment: 'production', service_type: 'dj')
+    ensure_profile_and_ip
+
+    # Allow for short-hand environments
+    environment = 'staging' if environment.start_with?('sta')
+    environment = 'production' if environment.start_with?('pro')
+    service_string = "#{client}-#{service}-#{environment}-ecs-#{service_type}"
+
+    to_run = nil
+    instances.each.with_index do |instance, _i|
+      ip = instance.public_ip_address
+      remote_cmd = "bash -l -c \"docker container ls --format='#{ip}|{{print .ID}}|{{print .Names}}|{{print .RunningFor}}|{{println .Image}}'\""
+
+      full_cmd = "ssh ec2-user@#{ip} #{Shellwords.escape remote_cmd}"
+
+      # Pull out results from remote system
+      lines = `#{full_cmd}`.split(/\n/).reject { |l| l.match?(/^\s*$/) }
+
+      run_cmd = lines.map do |line|
+        (_, container_id, task) = line.split(/\|/)
+
+        # Skip the ECS agent
+        next if task.match?(/ecs-agent/)
+
+        "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
+      end.compact&.detect do |cmd|
+        cmd.include?(service_string)
+      end
+      to_run = run_cmd if run_cmd
+      break
+    end
+    if to_run
+      puts 'Connecting to:'
+      puts to_run
+      puts "\n\n"
+      system(to_run)
+    else
+      puts "Unable to find matching container for #{service_string}"
+    end
+  end
+
   def run!
     ensure_profile_and_ip
     instances.each.with_index do |instance, _i|
@@ -92,7 +133,15 @@ end
 if __FILE__.include?('list')
   ContainerList.new.run!
 elsif __FILE__.include?('ssh')
-  ContainerList.new.ssh!
+  if ARGV.count.positive?
+    (client, service, environment, service_type) = ARGV
+    service ||= 'warehouse'
+    environment ||= 'production'
+    service_type ||= 'dj'
+    ContainerList.new.ssh_to(client: client, service: service, environment: environment, service_type: service_type)
+  else
+    ContainerList.new.ssh!
+  end
 else
   puts __FILE__
 end

@@ -6,7 +6,7 @@
 
 module Health
   class PatientController < IndividualPatientController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
     include ActionView::Helpers::NumberHelper
 
@@ -22,7 +22,8 @@ module Health
 
     def update
       @patient.update(patient_params)
-      @patient.build_team_memeber!(patient_params[:care_coordinator_id], current_user) if patient_params[:care_coordinator_id].present?
+      @patient.build_team_member!(Health::Team::CareCoordinator, patient_params[:care_coordinator_id], current_user) if patient_params[:care_coordinator_id].present?
+      @patient.build_team_member!(Health::Team::Nurse, patient_params[:nurse_care_manager_id], current_user) if patient_params[:nurse_care_manager_id].present?
       if request.xhr?
         head(:ok)
         nil
@@ -34,6 +35,7 @@ module Health
     def patient_params
       params.require(:patient).permit(
         :care_coordinator_id,
+        :nurse_care_manager_id,
       )
     end
 

@@ -8,16 +8,20 @@ require 'time'
 # Run from rails root
 
 class CronInstaller
+  MAX_DESCRIPTION_LENGTH = 512
+
   def run!
     entry_number = 0
 
     ScheduledTask.clear!(target_group_name)
 
     each_cron_entry do |cron_expression, command|
+      description = command.join(' ').sub(/ --silent/, '').sub(/bundle exec /, '')[0, MAX_DESCRIPTION_LENGTH]
+
       params = {
         target_group_name: target_group_name,
         schedule_expression: cron_expression,
-        description: command.join(' '),
+        description: description,
         offset: entry_number,
         cluster_name: ENV.fetch('CLUSTER_NAME'),
         role_arn: role_arn,
@@ -89,6 +93,8 @@ class CronInstaller
 
     # https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html#CronExpressions
     if day_of_month == '*' && day_of_week == '*'
+      day_of_week = '?'
+    elsif day_of_month != '*'
       day_of_week = '?'
     end
 

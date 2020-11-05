@@ -17,8 +17,9 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
 
     def apply_overrides row, data_source_id:
       row[:TypeProvided] = 99 if row[:TypeProvided].blank?
+      row[:OtherTypeProvided] = row[:OtherTypeProvided][0...50] if row[:OtherTypeProvided]
 
-      return row
+      row
     end
   end
 end

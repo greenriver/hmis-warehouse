@@ -4,9 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::CasDeclines < OpenStruct
-  include ArelHelper
-
+class WarehouseReport::CasDeclines < OpenStruct include ArelHelper
   attr_accessor :start_date
   attr_accessor :end_date
 
@@ -16,9 +14,9 @@ class WarehouseReport::CasDeclines < OpenStruct
   end
 
   def reasons
-    @reasons ||= (declines + cancels).map do|row|
+    @reasons ||= (declines + cancels).map do |row|
       reason = row.decline_reason || row.administrative_cancel_reason
-      reason.squish.gsub(/Other.*/,'Other').strip
+      reason.squish.gsub(/Other.*/, 'Other').strip
     end.each_with_object(Hash.new(0)) do |reason, counts|
       counts[reason] += 1
     end.sort_by(&:last).reverse
@@ -38,7 +36,7 @@ class WarehouseReport::CasDeclines < OpenStruct
   def cancels
     @cancels ||= report_source.canceled_between(
       start_date: start_date,
-      end_date: end_date
+      end_date: end_date,
     )
   end
 
@@ -72,5 +70,4 @@ class WarehouseReport::CasDeclines < OpenStruct
   def report_source
     GrdaWarehouse::CasReport
   end
-
 end

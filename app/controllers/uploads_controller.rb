@@ -59,6 +59,8 @@ class UploadsController < ApplicationController
       job = Delayed::Job.enqueue Importing::HudZip::SixOneOneJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :long_running
     when 'hmis_2020'
       job = Delayed::Job.enqueue Importing::HudZip::HmisTwentyTwentyJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :long_running
+    when 'hmis_auto'
+      job = Delayed::Job.enqueue Importing::HudZip::HmisAutoDetectJob.new(upload_id: @upload.id, data_source_id: @upload.data_source_id, deidentified: @upload.deidentified, project_whitelist: @upload.project_whitelist), queue: :long_running
     end
     @upload.update(delayed_job_id: job.id)
   end

@@ -7,7 +7,7 @@
 module GrdaWarehouse::ClientNotes
   class AnomalyNote < Base
     def self.type_name
-      "Anomaly Note"
+      'Anomaly Note'
     end
 
     scope :visible_by, -> (user) do
@@ -16,6 +16,12 @@ module GrdaWarehouse::ClientNotes
       else
         none
       end
+    end
+
+    def destroyable_by(user)
+      return true if user_id == user.id
+
+      user.can_edit_client_notes?
     end
   end
 end

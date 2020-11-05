@@ -46,14 +46,12 @@ end
 
 every 1.hour do
   # Fast and low RAM
-  rake "jobs:check_queue"
-  rake "grda_warehouse:send_health_emergency_notifications"
+  rake "grda_warehouse:hourly"
 end
 
 every 5.minutes do
-  # Long-running, but infrequent
-  rake 'reporting:run_project_data_quality_reports'
-  rake 'reporting:run_ad_hoc_processing'
+  # Long-running, but infrequently so
+  rake 'reporting:frequent'
 end
 
 every 4.hours do
@@ -61,24 +59,22 @@ every 4.hours do
   rake "grda_warehouse:save_service_history_snapshots"
 end
 
-every 1.day, at: '4:00 am' do
+every 1.day, at: '4:02 am' do
   # FIXME May need to be back-grounded?
   rake "messages:daily"
 end
 
-# These only happen in some scenarios
-if ENV['ETO_API_SITE1'] != 'unknown'
-  every 1.day, at: '6:00 am' do
-    # Defers to delayed jobs
-    rake "eto:import:demographics_and_touch_points"
-  end
+# These only happen in some scenarios, now DB based
+every 1.day, at: '6:04 am' do
+  # Defers to delayed jobs
+  rake "eto:import:demographics_and_touch_points"
 end
 
 
 import_schedule = ENV['IMPORT_SCHEDULE'] || '5:30 pm'
 every 1.day, at: import_schedule do
   # Defers to delayed jobs
-  rake "grda_warehouse:import_data_sources_s3[hmis_611]"
+  rake "grda_warehouse:import_data_sources_s3"
 end
 shifted_time = Time.parse(import_schedule) - 4.hours
 every 1.day, at: shifted_time.strftime('%H:%M %P') do
@@ -86,13 +82,13 @@ every 1.day, at: shifted_time.strftime('%H:%M %P') do
 end
 
 
-if ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
-  every 1.day, at: '11:00 am' do
+if ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
+  every 1.day, at: '11:03 am' do
     # Defers to delayed jobs
     rake "health:daily"
   end
-  every 1.day, at: '6am' do
-    rake "health:queue_eligibility_determination"
+  every 1.day, at: '6:01 am' do
+    rake "health:enrollments_and_eligibility"
   end
 end
 
@@ -105,7 +101,7 @@ if ENV['GLACIER_NEEDS_BACKUP']=='true'
   end
 
   if ENV['ECS'] != 'true' # Files are for the logs, these end up in CloudWatch for ECS deployments
-    every :month, at: database_backup_time-1.hour do
+    every :month, at: database_backup_time-1.hours do
       rake "glacier:backup:files"
     end
   end

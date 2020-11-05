@@ -19,12 +19,16 @@ AllCops:
     - 'app/models/cohort_columns/**/*.rb'
     - 'app/models/concerns/**/*.rb'
     - 'app/models/eto_api/**/*.rb'
+    - 'app/models/grda_warhouse/client_notes/**/*.rb'
+    - 'app/models/grda_warhouse/youth/**/*.rb'
+    - 'app/models/grda_warhouse/youth_intake/**/*.rb'
     - 'app/models/health_emergency/**/*.rb'
     - 'app/models/performance_dashboards/**/*.rb'
-
+    - 'app/models/warehouse_report/**/*.rb'
     - 'app/models/weather/**/*.rb'
     - 'app/renderers/**/*.rb'
     - 'app/uploaders/**/*.rb'
+    - 'drivers/**/*.rb'
     - 'lib/**/*.rb'
 
   Exclude:
@@ -33,6 +37,9 @@ AllCops:
     - 'script/**/*'
     - 'bin/{rails,rake}'
     - 'app/assets/**/*'
+    - 'bin/db_prep'
+
+  NewCops: disable
 
 # We don't care about method length, since we check method cyclomatic
 # complexity.
@@ -73,10 +80,8 @@ Style/AndOr:
   Enabled: true
 
 Style/ClassAndModuleChildren:
-  Exclude:
-    - 'app/models/concerns/**/*'
-    - 'app/controllers/**/*'
-    - 'app/jobs/**/*'
+  Enabled:
+    false
 
 Style/ConditionalAssignment:
   Enabled: false
@@ -101,6 +106,14 @@ Style/CommentedKeyword:
 
 Naming/VariableNumber:
   Enabled: false
+
+Naming/MethodParameterName:
+  AllowedNames:
+    - as
+    - id
+    - by
+    - io
+    - to
 
 Style/MixinUsage:
   Enabled: false
@@ -176,36 +189,8 @@ Style/AsciiComments:
 Style/OneLineConditional:
   Enabled: false
 
-# After 1.0 this will just be
-# AllCops:
-#   NewCops: enable
+Style/StringConcatenation:
+  Enabled: false
 
-Layout/EmptyLinesAroundAttributeAccessor:
-  Enabled: true
-
-Layout/SpaceAroundMethodCallOperator:
-  Enabled: true
-
-Lint/DeprecatedOpenSSLConstant:
-  Enabled: true
-
-Lint/RaiseException:
-  Enabled: true
-
-Lint/StructNewOverride:
-  Enabled: true
-
-Style/ExponentialNotation:
-  Enabled: true
-
-Style/HashEachMethods:
-  Enabled: true
-
-Style/HashTransformKeys:
-  Enabled: true
-
-Style/HashTransformValues:
-  Enabled: true
-
-Style/SlicingWithRange:
-  Enabled: true
+Bundler/OrderedGems:
+  Enabled: false

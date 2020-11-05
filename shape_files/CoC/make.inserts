@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+require 'pathname'
+require 'zip'
+
+FileUtils.chdir(Pathname.new(__FILE__).dirname)
+
+begin
+  Dir.glob("*.zip").each do |zipfile_path|
+    Zip::File.open(zipfile_path) do |zipfile|
+      zipfile.each do |file|
+        zipfile.extract(file, "#{file.name}") unless File.exist?(file.name)
+      end
+    end
+  end
+rescue Zip::Error
+  puts 'ERROR: Unable to extract zip file'
+  return
+end
+
+FileUtils.rm_f('coc.sql')
+
+Dir.glob('**/*shp').each do |shape_file|
+  system "shp2pgsql -s 4269:4326 -p -I #{shape_file} shape_cocs > coc.structure.sql"
+  puts "Exporting insert statements into coc.sql for #{shape_file}"
+  system(<<~EOS)
+    shp2pgsql -s 4269:4326 -c -I #{shape_file} shape_cocs \
+      | sed -e 's/gid/id/' \
+      | grep 'INSERT' \
+      >> coc.sql
+  EOS
+end

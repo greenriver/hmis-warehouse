@@ -12,6 +12,8 @@ module Health
     include PatientReferralImporter
     include ArelHelper
 
+    acts_as_paranoid
+
     phi_patient :patient_id
 
     phi_attr :first_name, Phi::Name
@@ -149,21 +151,26 @@ module Health
         # Re-enrollment
         referral_args.merge!(patient: patient)
         current_referral = patient.patient_referral
+        patient.patient_referrals.contributing.update_all(current: false)
+
         enrollment_start_date = referral_args[:enrollment_start_date]
-        last_enrollment_date = current_referral.disenrollment_date
-        if last_enrollment_date.nil?
+        last_disenrollment_date = current_referral.disenrollment_date || current_referral.pending_disenrollment_date
+        if last_disenrollment_date.nil?
           # Last referral was not disenrolled. For record keeping, close the last enrollment, and immediately open a new one
-          current_referral.update(disenrollment_date: enrollment_start_date, current: false)
+          current_referral.update(
+            disenrollment_date: enrollment_start_date,
+            change_description: 'Close open enrollment',
+          )
           referral = create(referral_args)
         else
-          if (enrollment_start_date - last_enrollment_date).to_i > 90
-            # It has been more than 90 days, so this is a "reenrollment"
-            patient.patient_referrals.contributing.update_all(current: false, contributing: false)
+          if (enrollment_start_date - last_disenrollment_date).to_i > 90
+            # It has been more than 90 days, so this is a "reenrollment", so close the contributing range
+            patient.patient_referrals.contributing.update_all(contributing: false)
             referral = create(referral_args)
             patient.reenroll!(referral)
           else
             # This is an "auto-reenrollment"
-            current_referral.update(current: false, contributing: true)
+            # current was set to false above, remains contributing...
             referral = create(referral_args)
           end
         end
@@ -178,7 +185,7 @@ module Health
     end
 
     def should_clear_assignment?
-      enrollment_start_date_changed? || accountable_care_organization_id_changed?
+      enrollment_start_date_changed?
     end
 
     def client
@@ -289,6 +296,10 @@ module Health
       disenrollment_date.present? || pending_disenrollment_date.present? || removal_acknowledged? || rejected?
     end
 
+    def re_enrollment_blackout?(on_date)
+      removal_acknowledged? && on_date < disenrollment_date + 30.days
+    end
+
     def display_claimed_by_other(agencies)
       cb = display_claimed_by
       other_size = cb.select{|c| c != 'Unknown'}.size
@@ -322,7 +333,8 @@ module Health
 
     def convert_to_patient
       # nothing to do if we have a client already
-      return if client.present?
+      return true if client.present?
+
       update(effective_date: Date.current)
       # look for an existing patient
       if Health::Patient.where(medicaid_id: medicaid_id).exists?
@@ -389,23 +401,29 @@ module Health
     end
 
     def create_patient destination_client
+      linked_patient = Health::Patient.with_deleted.find_by(client_id: destination_client.id)
       patient = Health::Patient.with_deleted.where(medicaid_id: medicaid_id).first_or_initialize
-      patient.assign_attributes(
-        id_in_source: id,
-        first_name: first_name,
-        last_name: last_name,
-        birthdate: birthdate,
-        ssn: ssn,
-        client_id: destination_client.id,
-        medicaid_id: medicaid_id,
-        pilot: false,
-        # engagement_date: engagement_date,
-        data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first,
-        deleted_at: nil,
-      )
-      patient.save!
-      patient.import_epic_team_members
-      update(patient_id: patient.id)
+      if linked_patient.present? && patient.client_id != linked_patient.id
+        # The medicaid id has changed, or points to a different client!
+        raise MedicaidIdConflict, "Patient: #{patient.client_id}, linked_patient: #{linked_patient.id}"
+      else
+        patient.assign_attributes(
+          id_in_source: id,
+          first_name: first_name,
+          last_name: last_name,
+          birthdate: birthdate,
+          ssn: ssn,
+          client_id: destination_client.id,
+          medicaid_id: medicaid_id,
+          pilot: false,
+          # engagement_date: engagement_date,
+          data_source_id: Health::DataSource.where(name: 'Patient Referral').pluck(:id).first,
+          deleted_at: nil,
+        )
+        patient.save!
+        patient.import_epic_team_members
+        update(patient_id: patient.id)
+      end
     end
 
     def self.text_search(text)
@@ -479,5 +497,63 @@ module Health
     def disenrolled?
       pending_disenrollment_date.present? || disenrollment_date.present?
     end
+
+    def self.cleanup_referrals
+      referral_source = joins(:patient) # Limit to referrals with patients
+      cleanup_time = Date.today.to_time
+
+      # Any non-current enrollments should have a disenrollment date
+      # Assign the day before the current enrollment start date, if one exists, otherwise leave it, as something else is
+      # wrong...
+      hanging_enrollments = referral_source.where(current: false, pending_disenrollment_date: nil, disenrollment_date: nil)
+      hanging_enrollments.each do |referral|
+        disenrollment_date = referral.patient.patient_referral&.enrollment_start_date&.prev_day
+        # If the current enrollment is on our start date, then make it an empty enrollment, which will be cleaned up later...
+        disenrollment_date = referral.enrollment_start_date if disenrollment_date.present? && disenrollment_date < referral.enrollment_start_date
+        referral.update(disenrollment_date: disenrollment_date)
+      end
+
+      # An empty referral is one where the enrollment and disenrollment date are the same.
+      empty_referrals = referral_source.where(current: false).
+        where(
+          hpr_t[:enrollment_start_date].eq(hpr_t[:disenrollment_date]).
+            or(hpr_t[:enrollment_start_date].eq(hpr_t[:pending_disenrollment_date]).
+              and(hpr_t[:disenrollment_date].eq(nil))),
+        )
+      # Remove the empty referrals
+      empty_referrals.update_all(deleted_at: cleanup_time)
+
+      # Multiple referrals for a patient that start on the same day
+      referral_groups = referral_source.group(:patient_id, hpr_t[:enrollment_start_date]).count
+      referral_groups_with_duplicate_starts = referral_groups.select { |_key, v| v > 1 }
+
+      # Go through each (patient, start date) pair
+      referral_groups_with_duplicate_starts.keys.each do |patient_id, enrollment_start_date|
+        referrals = referral_source.where(patient_id: patient_id, enrollment_start_date: enrollment_start_date)
+        older_referrals = referrals.where(current: false) # The older referrals are not current
+        if referrals.count == older_referrals.count
+          # All the referrals are older, so, just keep the longest one
+          longest_referral = nil
+          longest_referral_length = nil
+          older_referrals.each do |referral|
+            referral_start = referral.enrollment_start_date
+            referral_end = referral.disenrollment_date || referral.pending_disenrollment_date # older referrals must have an end
+            days = (referral_end - referral_start).to_i
+            if longest_referral_length.nil? || days > longest_referral_length
+              longest_referral = referral
+              longest_referral_length = days
+            end
+          end
+          # Remove all but the longest, and make sure we have a current referral
+          referrals.where.not(id: longest_referral.id).update_all(deleted_at: cleanup_time)
+          longest_referral.update(current: true) if longest_referral.patient.patient_referral.blank?
+        else
+          # There is a current referral in the duplicates, remove the older referrals, leaving the current one
+          older_referrals.update_all(deleted_at: cleanup_time)
+        end
+      end
+    end
   end
+
+  class MedicaidIdConflict < StandardError ; end
 end

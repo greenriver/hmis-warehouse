@@ -27,9 +27,9 @@
         %tr
           - client = enrollments.first.client
           %td{rowspan: enrollments.count+1}
-            = link_to client.id, client_path(client.id)
+            = link_to_if can_view_clients_or_window?, client.id, appropriate_client_path(client.id)
           %td{rowspan: enrollments.count+1}
-            = link_to client.name, client_path(client.id)
+            = link_to_if can_view_clients_or_window?, client.name, appropriate_client_path(client.id)
           - enrollments.each do |enrollment|
             %tr
               %td= enrollment.project_name

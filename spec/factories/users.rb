@@ -8,5 +8,6 @@ FactoryBot.define do
     password_confirmation { Digest::SHA256.hexdigest('abcd1234abcd1234') }
     confirmed_at { Date.yesterday }
     notify_on_vispdat_completed { false }
+    agency_id { 1 }
   end
 end

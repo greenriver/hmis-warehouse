@@ -66,7 +66,7 @@ module ArelHelper
       self.class.acase conditions, elsewise: elsewise
     end
 
-    def cast(exp, as) # rubocop:disable Naming/MethodParameterName
+    def cast(exp, as)
       self.class.cast exp, as
     end
 
@@ -180,6 +180,10 @@ module ArelHelper
     GrdaWarehouse::Hud::Funder.arel_table
   end
 
+  def cls_t
+    GrdaWarehouse::Hud::CurrentLivingSituation.arel_table
+  end
+
   def enx_t
     GrdaWarehouse::EnrollmentExtra.arel_table
   end
@@ -276,6 +280,10 @@ module ArelHelper
     Reporting::MonthlyReports::Base.arel_table
   end
 
+  def hr_ri_t
+    HudReports::ReportInstance.arel_table
+  end
+
   # and to the class itself (so they can be used in scopes, for example)
   class_methods do
     # convert non-node into a node
@@ -345,7 +353,7 @@ module ArelHelper
     # other DBMS's
     def datediff(engine, type, date_1, date_2)
       case engine.connection.adapter_name
-      when 'PostgreSQL'
+      when /PostgreSQL|PostGIS/
         case type
         when 'day'
           Arel::Nodes::Subtraction.new(date_1, date_2)
@@ -363,7 +371,7 @@ module ArelHelper
     # to convert a pair of timestamps into a difference in seconds
     def seconds_diff(engine, date_1, date_2)
       case engine.connection.adapter_name
-      when 'PostgreSQL'
+      when /PostgreSQL|PostGIS/
         delta = Arel::Nodes::Subtraction.new(date_1, date_2)
         nf 'EXTRACT', [lit("epoch FROM #{delta.to_sql}")]
       else
@@ -375,7 +383,7 @@ module ArelHelper
     # other DBMS's
     def datepart(engine, type, date)
       case engine.connection.adapter_name
-      when 'PostgreSQL'
+      when /PostgreSQL|PostGIS/
         date = lit "#{Arel::Nodes::Quoted.new(date).to_sql}::date" if date.is_a? String
         nf 'DATE_PART', [type, date]
       when 'SQLServer'
@@ -388,7 +396,7 @@ module ArelHelper
     # to translate between SQL Server CHECKSUM and Postgresql MD5
     def checksum(engine, fields)
       case engine.connection.adapter_name
-      when 'PostgreSQL'
+      when /PostgreSQL|PostGIS/
         nf('md5', [nf('concat', fields)])
       when 'SQLServer'
         nf 'CHECKSUM', fields
@@ -398,7 +406,7 @@ module ArelHelper
     end
 
     # bonk out a type casting
-    def cast(exp, as) # rubocop:disable Naming/MethodParameterName
+    def cast(exp, as)
       exp = qt exp
       exp = lit exp.to_sql unless exp.respond_to?(:as)
       nf 'CAST', [exp.as(as)]
@@ -495,6 +503,10 @@ module ArelHelper
 
     def f_t
       GrdaWarehouse::Hud::Funder.arel_table
+    end
+
+    def cls_t
+      GrdaWarehouse::Hud::CurrentLivingSituation.arel_table
     end
 
     def enx_t
@@ -595,6 +607,10 @@ module ArelHelper
 
     def r_monthly_t
       Reporting::MonthlyReports::Base.arel_table
+    end
+
+    def hr_ri_t
+      HudReports::ReportInstance.arel_table
     end
   end
 end

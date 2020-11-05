@@ -9,29 +9,34 @@ module PerformanceDashboard::Overview::Exiting::Gender
 
   # NOTE: always count the most-recently started enrollment within the range
   def exiting_by_gender
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @exiting_by_gender ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = gender_buckets.map { |b| [b, []] }.to_h
-      counted = Set.new
+      counted = {}
       exiting.
         joins(:client).
         order(first_date_in_program: :desc).
         pluck(:client_id, c_t[:Gender], :first_date_in_program).each do |id, gender, _|
-        buckets[gender_bucket(gender)] << id unless counted.include?(id)
-        counted << id
-      end
+          counted[gender_bucket(gender)] ||= Set.new
+          buckets[gender_bucket(gender)] << id unless counted[gender_bucket(gender)].include?(id)
+          counted[gender_bucket(gender)] << id
+        end
       buckets
     end
   end
 
   def exiting_by_gender_data_for_chart
     @exiting_by_gender_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += exiting_by_gender.values.map(&:count)
-      categories = exiting_by_gender.keys.map { |g| HUD.gender(g) }
-      {
-        columns: columns,
-        categories: categories,
-      }
+      categories = exiting_by_gender.keys
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.gender(s)] }.to_h,
+          chosen: @genders,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 

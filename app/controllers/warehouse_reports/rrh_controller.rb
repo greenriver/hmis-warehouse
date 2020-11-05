@@ -8,7 +8,7 @@ module WarehouseReports
   class RrhController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
-    include PjaxModalController
+    include AjaxModalRails::Controller
 
     before_action :available_projects
     before_action :set_months
@@ -27,7 +27,7 @@ module WarehouseReports
       else
         WarehouseReport::RrhReport::Support.new(clients: [], rows: [], headers: [])
       end
-      render layout: 'pjax_modal_content'
+      render layout: 'ajax_modal_rails/content'
     end
 
     def describe_computations
@@ -80,7 +80,7 @@ module WarehouseReports
         @end_months.values[0]
       end
       # force at least a 2 month coverage
-      @filter.start_date = (@filter.end_date - 1.months).beginning_of_month if @filter.start_date > @filter.end_date - 1.months
+      @filter.start_date = (@filter.end_date - 1.months).beginning_of_month if @filter.start_date > @filter.end_date
       @filter.subpopulation = begin
         report_params[:subpopulation]&.to_sym&.presence || :all
       rescue StandardError

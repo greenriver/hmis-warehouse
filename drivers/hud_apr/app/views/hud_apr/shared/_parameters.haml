@@ -1,0 +1,20 @@
+.mb-2.reports
+  - [:start_date, :end_date, :coc_codes, :project_ids].each do |param|
+    - value = report.public_send(param)
+    - next if value.blank?
+    - if param == :project_ids
+      %label.label.label-default.parameter-label Projects
+      %label.label.label-primary.parameter-value
+        %strong
+          - value.compact.delete_if(&:blank?).each do |project_id|
+            - project = GrdaWarehouse::Hud::Project.find(project_id)
+            = link_to_if can_view_projects?, project.name, project_path(project_id)
+            %br
+    - else
+      %label.label.label-default.parameter-label
+        = param.to_s.humanize
+      %label.label.label-primary.parameter-value
+        %strong
+          - value = value.compact.delete_if(&:blank?).join(', ') if value.is_a?(Array)
+          = value
+      &nbsp;

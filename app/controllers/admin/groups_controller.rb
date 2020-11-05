@@ -92,7 +92,7 @@ module Admin
         collection: GrdaWarehouse::Hud::Organization.
           order(:name).
           preload(:data_source).
-          group_by { |o| o.data_source.name },
+          group_by { |o| o.data_source&.name },
         placeholder: 'Organization',
         multiple: true,
         input_html: {

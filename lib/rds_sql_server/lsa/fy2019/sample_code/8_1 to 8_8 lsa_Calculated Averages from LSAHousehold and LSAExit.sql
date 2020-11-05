@@ -4,7 +4,18 @@ LSA FY2019 Sample Code
 Name:  8_1 to 8_8 lsa_Calculated averages from LSAHousehold and LSAExit (File 8 of 10)
 Date:  4/7/2020   
 	   5/21/2020 - Add set of Step column to all INSERT statements
-
+	   7/23/2020 - Correct set of Step to '8.1/8.2' (was '8.1/2.1')
+					- Correct WHERE clause in 8.3 from PSHStatus > 0 to PSHStatus between 11 and 22
+					- Split 8.6 and 8.7 into separate statements to produce appropriate ReportRow and SystemPath values
+					  (see GitHub issue #290)
+		7/30/2020 - step 8.1/2.9 - correct criteria for SystemPath consistent with specs
+		9/2/2020 - remove 'pop.PopID between 0 and 4' from the WHERE clause in 8.6, add it to 8.7 (where it belongs), 
+					 and add SystemPath criteria to join to ref_Populations in 8.7
+		10/1/2020 - 8.5 - correct set of ReportRow for new ExitFrom values 7 and 8 (w/ related changes in specs section 8.5
+					and dictionary list 33/ReportRow).
+					8.1 and 8.2 - correct step numbering
+		10/22/2020 - 8.7 - specify that records in ref_Populations used for counts should be PopType 1 (household characteristics) 
+						/ exclude PopType 3 (personal characteristics)
 
 	8.1 and 8.2 Average Days for Length of Time Homeless 
 */
@@ -311,7 +322,7 @@ Date:  4/7/2020
 		and (lh.SystemPath = pop.SystemPath or pop.SystemPath is null)
 	where lh.SystemDaysNotPSHHoused > 0 
 		and pop.LOTH = 1
-		and (lh.SystemPath in (4,5,6,7,8,9,10,11,12) or pop.SystemPath is null)
+		and (lh.SystemPath <> -1 or pop.SystemPath is null)
 	group by pop.PopID
 		, pop.HHType
 		, pop.SystemPath
@@ -347,7 +358,7 @@ Date:  4/7/2020
 		and (lh.HoHRace = pop.HoHRace or pop.HoHRace is null)
 		and (lh.HoHEthnicity = pop.HoHEthnicity or pop.HoHEthnicity is null)
 		and (lh.SystemPath = pop.SystemPath or pop.SystemPath is null)
-	where lh.PSHMoveIn > 0 and lh.PSHStatus > 0
+	where lh.PSHMoveIn > 0 and lh.PSHStatus between 11 and 22
 		and pop.Core = 1
 	group by pop.PopID
 		, pop.HHType
@@ -387,8 +398,7 @@ Date:  4/7/2020
 		and (lh.HoHRace = pop.HoHRace or pop.HoHRace is null)
 		and (lh.HoHEthnicity = pop.HoHEthnicity or pop.HoHEthnicity is null)
 		and (lh.SystemPath = pop.SystemPath or pop.SystemPath is null)
-	where lh.RRHStatus > 2 
-		and pop.Core = 1
+	where lh.RRHStatus > 2 and pop.Core = 1
 	group by pop.PopID
 		, pop.HHType
 		, case when lh.RRHMoveIn in (1,2) then 14
@@ -444,7 +454,10 @@ Date:  4/7/2020
 		, coalesce(pop.HHType, 0) 
 		, pop.PopID as Population
 		, -1 as SystemPath
-		, lx.ExitFrom + 16 as ReportRow
+		, case lx.ExitFrom 
+			when 7 then 63 
+			when 8 then 64
+			else lx.ExitFrom + 16 end as ReportRow
 		, lx.ReportID
 		, '8.5'
 	from tlsa_Exit lx
@@ -468,20 +481,21 @@ Date:  4/7/2020
 			when lx.ExitTo between 7 and 14 then 3 else 4 end
 		, pop.HHType
 /*
-	8.6 and 8.7 Days to Return/Re-engage by Population / SystemPath
+	8.6 Days to Return/Re-engage by Population 
 */
+
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ReportID, Step)
 	select avg(lx.ReturnTime) as Value
 		, lx.Cohort, 
 		case when lx.ExitTo between 1 and 6 then 2
 			when lx.ExitTo between 7 and 14 then 3 else 4 end as Universe
-		, coalesce(pop.HHType, 0) 
+		, coalesce(pop.HHType, 0) as HHType
 		, pop.PopID as Population
-		, coalesce(pop.SystemPath, -1)
-		, coalesce(pop.SystemPath, 0) + 23 as ReportRow
+		, -1 as SystemPath
+		, 23 as ReportRow
 		, lx.ReportID
-		, '8.5-8.6'
+		, '8.6'
 	from tlsa_Exit lx
 	inner join ref_Populations pop on
 		(lx.HHType = pop.HHType or pop.HHType is null)
@@ -496,13 +510,46 @@ Date:  4/7/2020
 		and (lx.HoHEthnicity = pop.HoHEthnicity or pop.HoHEthnicity is null)
 		and (lx.SystemPath = pop.SystemPath or pop.SystemPath is null)
 	where lx.ReturnTime > 0 
-		and pop.ReturnSummary = 1
+		and pop.ReturnSummary = 1 
+		and pop.SystemPath is null
 	group by pop.PopID, lx.ReportID
 		, lx.Cohort
 		, case when lx.ExitTo between 1 and 6 then 2
 			when lx.ExitTo between 7 and 14 then 3 else 4 end
 		, pop.HHType
-		, pop.SystemPath
+
+/*
+	
+	8.7 Days to Return/Re-engage by Population / SystemPath
+*/
+	insert into lsa_Calculated (Value, Cohort, Universe, HHType
+		, Population, SystemPath, ReportRow, ReportID, Step)
+	select avg(lx.ReturnTime) as Value
+		, lx.Cohort, 
+		case when lx.ExitTo between 1 and 6 then 2
+			when lx.ExitTo between 7 and 14 then 3 else 4 end as Universe
+		, coalesce(pop.HHType, 0) 
+		, pop.PopID as Population
+		, case when pop.SystemPath is null then -1 else pop.SystemPath end
+		, case when pop.SystemPath is null then 36 else pop.SystemPath + 23 end as ReportRow
+		, lx.ReportID
+		, '8.7'
+	from tlsa_Exit lx
+	inner join ref_Populations pop on
+		(lx.HHType = pop.HHType or pop.HHType is null)
+		and (lx.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
+		and (lx.HHVet = pop.HHVet or pop.HHVet is null)
+		and (lx.SystemPath = pop.SystemPath or pop.SystemPath is null)
+	where lx.ReturnTime > 0 
+	    and lx.SystemPath <> -1 --290
+		and pop.PopID between 0 and 4 and pop.PopType = 1
+	group by pop.PopID, lx.ReportID
+		, lx.Cohort
+		, case when lx.ExitTo between 1 and 6 then 2
+			when lx.ExitTo between 7 and 14 then 3 else 4 end
+		, pop.HHType
+		, case when pop.SystemPath is null then -1 else pop.SystemPath end
+		, case when pop.SystemPath is null then 36 else pop.SystemPath + 23 end 
 
 /*
 	8.8 Days to Return/Re-engage by Exit Destination

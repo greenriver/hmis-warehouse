@@ -43,7 +43,7 @@
         - episode_class = 'enrollment__new-episode'
       %tr{class: episode_class}
         %td.nobr
-          %span.id-sqr{ 'data-id' => e[:client_source_id]}
+          .ds.jClickToCopy{class: "ds-color-#{e[:data_source_id]}", data: {toggle: :tooltip, title: ds_tooltip_content(e[:client_source_id], e[:data_source_id]), html: 'true'}}= ds_short_name_for(e[:client_source_id])
           .enrollment__project_type{class: e[:class]}
             %span.service-type__program-type{data: {toggle: :tooltip, title: HUD.project_type(e[:project_type_id])}}
               = e[:project_type]
@@ -96,9 +96,22 @@
         %td
           - if e[:household].present?
             - e[:household].each do |c|
-              = "#{c['FirstName']} #{c['LastName']}"
-              Age:
-              = c['age']
+              - tooltip = ''
+              - if c['head_of_household']
+                - tooltip += 'Head of Household<br />'
+              - tooltip += "Entry: #{c['first_date_in_program']}<br />"
+              - if c['move_in_date']
+                - tooltip += "Move-in-Date: #{c['move_in_date']}<br />"
+              - if c['last_date_in_program']
+                - tooltip += "Exit: #{c['last_date_in_program']}<br />"
+              .mb-0{data: { toggle: :tooltip, title: tooltip, html: 'true' }}
+                = link_to client_path(c['client_id']), class: 'd-block' do
+                  #{c['FirstName']} #{c['LastName']}
+                  - if c['head_of_household']
+                    %i.icon-user
+                  %br
+                  Age:
+                  = c['age']
               %br
         - if @client.hmis_source_visible_by?(current_user)
           %td

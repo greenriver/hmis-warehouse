@@ -14,8 +14,9 @@ SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
   ],
 )
 # SimpleCov.start 'rails'
-SimpleCov.start
-SimpleCov.add_filter '/test/'
+# Disabling SimpleCov, it is too noisy
+# SimpleCov.start
+# SimpleCov.add_filter '/test/'
 
 # Add additional requires below this line. Rails is not loaded until this point!
 
@@ -72,8 +73,11 @@ RSpec.configure do |config|
   config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include FactoryBot::Syntax::Methods
+
+  config.include FixpointTestHelpers
 end
 
+# Drivers
 Dir[Rails.root.join('drivers/*/spec/support/*.rb')].sort.each { |f| require f }
 
 RSpec.configure do |config|

@@ -40,18 +40,19 @@ class Rds
   def initialize
     self.identifier = Rds.identifier || DEFAULT_IDENTIFIER
 
+    # if environment is set up correctly, this can be
+    # self.client = Aws::RDS::Client.new
     if SECRET_ACCESS_KEY.present? && SECRET_ACCESS_KEY != 'unknown'
-      Aws.config.update(
-        region: REGION,
-        credentials: Aws::Credentials.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY),
-      )
+      self.client = Aws::RDS::Client.new({
+                                           region: REGION,
+                                           access_key_id: ACCESS_KEY_ID,
+                                           secret_access_key: SECRET_ACCESS_KEY,
+                                         })
     else
-      Aws.config.update(
-        region: REGION,
-      )
+      self.client = Aws::RDS::Client.new({
+                                           region: REGION,
+                                         })
     end
-
-    self.client = Aws::RDS::Client.new(region: REGION)
   end
 
   define_method(:sqlservers) { _list.select { |server| server.engine.match(/sqlserver/) } }
@@ -137,12 +138,28 @@ class Rds
   def wait_for_database!
     load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
 
+    # If we had a previous LSA, this class will still have connection
+    # information for that other database.
+    load 'lib/rds_sql_server/sql_server_base.rb'
+
     Timeout.timeout(MAX_WAIT_TIME) do
       db_exists = false
       while db_exists == false
         db_exists = db_exists?
         Rails.logger.debug 'No DB yet' unless db_exists
         # puts "No DB yet" if db_exists == 0
+        sleep 5
+      end
+      can_create_table = false
+      while can_create_table == false
+        begin
+          load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
+          ::LsaSqlServer::DbUp.hmis_table_create!(version: '2020')
+          ::LsaSqlServer::DbUp.create!(status: 'up')
+          can_create_table = true
+        rescue Exception
+          sleep 60
+        end
         sleep 5
       end
     end

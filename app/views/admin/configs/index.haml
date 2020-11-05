@@ -35,16 +35,23 @@
           = f.input :infer_family_from_household_id, label: 'Should "presented as an individual" be inferred from the count of matching household ids? (unchecked uses project inventory HouseholdType)'
           = f.input :expose_coc_code, label: 'Expose CoC Code on client dashboard rows?', hint: 'This is most useful if the installation spans multiple CoCs'
 
+      %section.o-section-card
+        %h3 Reporting Options
+        .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :dashboard_lookback, as: :date_picker, label: 'Dashboard Lookback Date'
     .col-sm-4
       %section.o-section-card
         %h3 Connections
         .c-card.c-card--flush.c-card--padded.flex-wrap
+          = f.input :pii_encryption_type, collection: GrdaWarehouse::Config.available_encryption_types, label: 'PII Encryption Type', input_html: {class: :select2}
+          = f.input :request_account_available, label: 'Allow anyone to request an account?'
           = f.input :eto_api_available, label: 'Is the ETO API available?'
           = f.input :url_of_blank_consent_form, label: 'Blank consent form URL'
           = f.input :site_coc_codes, as: :string, label: 'Default CoC Codes', hint: 'comma separated.  eg. MA-500, MA-504'
           = f.input :continuum_name, as: :string, label: 'Continuum Name'
           = f.input :multi_coc_installation, label: 'Is this a multi-CoC installation?'
           = f.input :only_most_recent_import, label: 'Only allow importing of the most-recent HMIS version'
+
           -# f.input :default_coc_zipcodes, as: :string, label: 'Default CoC Zip codes', hint: 'comma separated.  eg. 02108, 02109'
 
       %section.o-section-card
@@ -64,5 +71,6 @@
           = f.input :rrh_cas_readiness, label: 'Include RRH section in CAS Readiness?'
           = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', input_html: { multiple: true, class: 'select2' }
           = f.input :health_priority_age, label: 'Age above which should be automatically flagged as health prioritized'
+          = f.input :domestic_violence_lookback_days, label: 'How long should a victim of domestic violence be considered a victim?', collection: GrdaWarehouse::Config.dv_days, as: :select_two
 
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'

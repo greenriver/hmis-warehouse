@@ -9,15 +9,16 @@ module PerformanceDashboard::Overview::Enrolled::Ethnicity
 
   # NOTE: always count the most-recently started enrollment within the range
   def enrolled_by_ethnicity
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @enrolled_by_ethnicity ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = ethnicity_buckets.map { |b| [b, []] }.to_h
-      counted = Set.new
+      counted = {}
       enrolled.
         joins(:client).
         order(first_date_in_program: :desc).
         pluck(:client_id, :Ethnicity, :first_date_in_program).each do |id, ethnicity, _|
-          buckets[ethnicity_bucket(ethnicity)] << id unless counted.include?(id)
-          counted << id
+          counted[ethnicity_bucket(ethnicity)] ||= Set.new
+          buckets[ethnicity_bucket(ethnicity)] << id unless counted[ethnicity_bucket(ethnicity)].include?(id)
+          counted[ethnicity_bucket(ethnicity)] << id
         end
       buckets
     end
@@ -25,15 +26,17 @@ module PerformanceDashboard::Overview::Enrolled::Ethnicity
 
   def enrolled_by_ethnicity_data_for_chart
     @enrolled_by_ethnicity_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += enrolled_by_ethnicity.values.map(&:count)
-      categories = enrolled_by_ethnicity.keys.map do |type|
-        HUD.ethnicity(type)
-      end
-      {
-        columns: columns, # ignore :all
-        categories: categories, # ignore :all
-      }
+      categories = enrolled_by_ethnicity.keys
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.ethnicity(s)] }.to_h,
+          chosen: @ethnicities,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 

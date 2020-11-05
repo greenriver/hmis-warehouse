@@ -7,7 +7,7 @@
 module Clients::Youth
   class DirectFinancialAssistancesController < ApplicationController
     include ClientPathGenerator
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientDependentControllers
 
     before_action :require_can_access_youth_intake_list!
@@ -41,6 +41,7 @@ module Clients::Youth
         :provided_on,
         :type_provided,
         :other,
+        :amount,
       )
     end
 

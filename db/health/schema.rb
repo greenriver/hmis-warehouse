@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_29_205716) do
+ActiveRecord::Schema.define(version: 2020_11_04_191034) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -22,6 +22,8 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.string "mco_sl"
     t.boolean "active", default: true, null: false
     t.string "edi_name"
+    t.string "e_d_receiver_text"
+    t.string "e_d_file_prefix"
   end
 
   create_table "agencies", id: :serial, force: :cascade do |t|
@@ -38,6 +40,7 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.boolean "claimed", default: false, null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.datetime "deleted_at"
   end
 
   create_table "agency_users", id: :serial, force: :cascade do |t|
@@ -199,6 +202,193 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.index ["medicaid_id"], name: "index_claims_ed_nyu_severity_on_medicaid_id"
   end
 
+  create_table "claims_reporting_cp_payment_details", force: :cascade do |t|
+    t.bigint "cp_payment_upload_id", null: false
+    t.string "medicaid_id", null: false
+    t.date "cp_enrollment_start_date", null: false
+    t.date "paid_dos", null: false
+    t.date "payment_date", null: false
+    t.decimal "amount_paid", precision: 10, scale: 2
+    t.decimal "adjustment_amount", precision: 10, scale: 2
+    t.string "member_cp_assignment_plan"
+    t.string "cp_name_dsrip"
+    t.string "cp_name_official"
+    t.string "cp_pid"
+    t.string "cp_sl"
+    t.string "month_payment_issued"
+    t.string "paid_num_icn"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cp_payment_upload_id"], name: "idx_cpd_on_cp_payment_upload_id"
+    t.index ["paid_dos"], name: "index_claims_reporting_cp_payment_details_on_paid_dos"
+    t.index ["payment_date"], name: "index_claims_reporting_cp_payment_details_on_payment_date"
+  end
+
+  create_table "claims_reporting_cp_payment_uploads", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "original_filename"
+    t.binary "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_claims_reporting_cp_payment_uploads_on_deleted_at"
+    t.index ["user_id"], name: "index_claims_reporting_cp_payment_uploads_on_user_id"
+  end
+
+  create_table "claims_reporting_medical_claims", force: :cascade do |t|
+    t.string "member_id", limit: 50
+    t.string "claim_number", limit: 30
+    t.string "line_number", limit: 10
+    t.string "cp_pidsl", limit: 50
+    t.string "cp_name", limit: 255
+    t.string "aco_pidsl", limit: 50
+    t.string "aco_name", limit: 255
+    t.string "pcc_pidsl", limit: 50
+    t.string "pcc_name", limit: 255
+    t.string "pcc_npi", limit: 50
+    t.string "pcc_taxid", limit: 50
+    t.string "mco_pidsl", limit: 50
+    t.string "mco_name", limit: 50
+    t.string "source", limit: 50
+    t.string "claim_type", limit: 255
+    t.date "member_dob"
+    t.string "patient_status", limit: 255
+    t.date "service_start_date"
+    t.date "service_end_date"
+    t.date "admit_date"
+    t.date "discharge_date"
+    t.string "type_of_bill", limit: 255
+    t.string "admit_source", limit: 255
+    t.string "admit_type", limit: 255
+    t.string "frequency_code", limit: 255
+    t.date "paid_date"
+    t.decimal "billed_amount", precision: 19, scale: 4
+    t.decimal "allowed_amount", precision: 19, scale: 4
+    t.decimal "paid_amount", precision: 19, scale: 4
+    t.string "admit_diagnosis", limit: 50
+    t.string "dx_1", limit: 50
+    t.string "dx_2", limit: 50
+    t.string "dx_3", limit: 50
+    t.string "dx_4", limit: 50
+    t.string "dx_5", limit: 50
+    t.string "dx_6", limit: 50
+    t.string "dx_7", limit: 50
+    t.string "dx_8", limit: 50
+    t.string "dx_9", limit: 50
+    t.string "dx_10", limit: 50
+    t.string "dx_11", limit: 50
+    t.string "dx_12", limit: 50
+    t.string "dx_13", limit: 50
+    t.string "dx_14", limit: 50
+    t.string "dx_15", limit: 50
+    t.string "dx_16", limit: 50
+    t.string "dx_17", limit: 50
+    t.string "dx_18", limit: 50
+    t.string "dx_19", limit: 50
+    t.string "dx_20", limit: 50
+    t.string "dx_21", limit: 50
+    t.string "dx_22", limit: 50
+    t.string "dx_23", limit: 50
+    t.string "dx_24", limit: 50
+    t.string "dx_25", limit: 50
+    t.string "e_dx_1", limit: 50
+    t.string "e_dx_2", limit: 50
+    t.string "e_dx_3", limit: 50
+    t.string "e_dx_4", limit: 50
+    t.string "e_dx_5", limit: 50
+    t.string "e_dx_6", limit: 50
+    t.string "e_dx_7", limit: 50
+    t.string "e_dx_8", limit: 50
+    t.string "e_dx_9", limit: 50
+    t.string "e_dx_10", limit: 50
+    t.string "e_dx_11", limit: 50
+    t.string "e_dx_12", limit: 50
+    t.string "icd_version", limit: 50
+    t.string "surgical_procedure_code_1", limit: 50
+    t.string "surgical_procedure_code_2", limit: 50
+    t.string "surgical_procedure_code_3", limit: 50
+    t.string "surgical_procedure_code_4", limit: 50
+    t.string "surgical_procedure_code_5", limit: 50
+    t.string "surgical_procedure_code_6", limit: 50
+    t.string "revenue_code", limit: 50
+    t.string "place_of_service_code", limit: 50
+    t.string "procedure_code", limit: 50
+    t.string "procedure_modifier_1", limit: 50
+    t.string "procedure_modifier_2", limit: 50
+    t.string "procedure_modifier_3", limit: 50
+    t.string "procedure_modifier_4", limit: 50
+    t.string "drg_code", limit: 50
+    t.string "drg_version_code", limit: 50
+    t.string "severity_of_illness", limit: 50
+    t.string "service_provider_npi", limit: 50
+    t.string "id_provider_servicing", limit: 50
+    t.string "servicing_taxid", limit: 50
+    t.string "servicing_provider_name", limit: 512
+    t.string "servicing_provider_type", limit: 255
+    t.string "servicing_provider_taxonomy", limit: 255
+    t.string "servicing_address", limit: 512
+    t.string "servicing_city", limit: 255
+    t.string "servicing_state", limit: 255
+    t.string "servicing_zip", limit: 50
+    t.string "billing_npi", limit: 50
+    t.string "id_provider_billing", limit: 50
+    t.string "billing_taxid", limit: 50
+    t.string "billing_provider_name", limit: 512
+    t.string "billing_provider_type", limit: 50
+    t.string "billing_provider_taxonomy", limit: 50
+    t.string "billing_address", limit: 512
+    t.string "billing_city", limit: 255
+    t.string "billing_state", limit: 255
+    t.string "billing_zip", limit: 50
+    t.string "claim_status", limit: 255
+    t.string "disbursement_code", limit: 255
+    t.string "enrolled_flag", limit: 50
+    t.string "referral_circle_ind", limit: 50
+    t.string "mbhp_flag", limit: 50
+    t.string "present_on_admission_1", limit: 50
+    t.string "present_on_admission_2", limit: 50
+    t.string "present_on_admission_3", limit: 50
+    t.string "present_on_admission_4", limit: 50
+    t.string "present_on_admission_5", limit: 50
+    t.string "present_on_admission_6", limit: 50
+    t.string "present_on_admission_7", limit: 50
+    t.string "present_on_admission_8", limit: 50
+    t.string "present_on_admission_9", limit: 50
+    t.string "present_on_admission_10", limit: 50
+    t.string "present_on_admission_11", limit: 50
+    t.string "present_on_admission_12", limit: 50
+    t.string "present_on_admission_13", limit: 50
+    t.string "present_on_admission_14", limit: 50
+    t.string "present_on_admission_15", limit: 50
+    t.string "present_on_admission_16", limit: 50
+    t.string "present_on_admission_17", limit: 50
+    t.string "present_on_admission_18", limit: 50
+    t.string "present_on_admission_19", limit: 50
+    t.string "present_on_admission_20", limit: 50
+    t.string "present_on_admission_21", limit: 50
+    t.string "present_on_admission_22", limit: 50
+    t.string "present_on_admission_23", limit: 50
+    t.string "present_on_admission_24", limit: 50
+    t.string "present_on_admission_25", limit: 50
+    t.string "e_dx_present_on_admission_1", limit: 50
+    t.string "e_dx_present_on_admission_2", limit: 50
+    t.string "e_dx_present_on_admission_3", limit: 50
+    t.string "e_dx_present_on_admission_4", limit: 50
+    t.string "e_dx_present_on_admission_5", limit: 50
+    t.string "e_dx_present_on_admission_6", limit: 50
+    t.string "e_dx_present_on_admission_7", limit: 50
+    t.string "e_dx_present_on_admission_8", limit: 50
+    t.string "e_dx_present_on_admission_9", limit: 50
+    t.string "e_dx_present_on_admission_10", limit: 50
+    t.string "e_dx_present_on_admission_11", limit: 50
+    t.string "e_dx_present_on_admission_12", limit: 50
+    t.decimal "quantity", precision: 12, scale: 4
+    t.string "price_method", limit: 50
+    t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
+  end
+
   create_table "claims_roster", id: :serial, force: :cascade do |t|
     t.string "medicaid_id", null: false
     t.string "last_name"
@@ -277,6 +467,7 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.datetime "completed_at"
     t.datetime "reviewed_at"
     t.string "reviewer"
+    t.datetime "deleted_at"
     t.index ["health_file_id"], name: "index_comprehensive_health_assessments_on_health_file_id"
     t.index ["patient_id"], name: "index_comprehensive_health_assessments_on_patient_id"
     t.index ["reviewed_by_id"], name: "index_comprehensive_health_assessments_on_reviewed_by_id"
@@ -317,6 +508,8 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.string "npi"
     t.string "ein"
     t.string "trace_id", limit: 10
+    t.string "cp_name_official"
+    t.string "cp_assignment_plan"
   end
 
   create_table "data_sources", id: :serial, force: :cascade do |t|
@@ -487,6 +680,7 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer "updated_patients"
+    t.jsonb "processing_errors", default: []
   end
 
   create_table "epic_careplans", id: :serial, force: :cascade do |t|
@@ -695,6 +889,199 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.float "size"
     t.integer "parent_id"
     t.index ["type"], name: "index_health_files_on_type"
+  end
+
+  create_table "health_flexible_service_follow_ups", force: :cascade do |t|
+    t.bigint "patient_id", null: false
+    t.bigint "user_id", null: false
+    t.date "completed_on"
+    t.string "first_name"
+    t.string "middle_name"
+    t.string "last_name"
+    t.date "dob"
+    t.string "delivery_first_name"
+    t.string "delivery_last_name"
+    t.string "delivery_organization"
+    t.string "delivery_phone"
+    t.string "delivery_email"
+    t.string "reviewer_first_name"
+    t.string "reviewer_last_name"
+    t.string "reviewer_organization"
+    t.string "reviewer_phone"
+    t.string "reviewer_email"
+    t.text "services_completed"
+    t.text "goal_status"
+    t.boolean "additional_flex_services_requested"
+    t.text "additional_flex_services_requested_detail"
+    t.boolean "agreement_to_flex_services"
+    t.string "agreement_to_flex_services_detail"
+    t.boolean "aco_approved_flex_services"
+    t.string "aco_approved_flex_services_detail"
+    t.date "aco_approved_flex_services_on"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_health_flexible_service_follow_ups_on_created_at"
+    t.index ["patient_id"], name: "index_health_flexible_service_follow_ups_on_patient_id"
+    t.index ["updated_at"], name: "index_health_flexible_service_follow_ups_on_updated_at"
+    t.index ["user_id"], name: "index_health_flexible_service_follow_ups_on_user_id"
+  end
+
+  create_table "health_flexible_service_vprs", force: :cascade do |t|
+    t.bigint "patient_id", null: false
+    t.bigint "user_id", null: false
+    t.date "planned_on"
+    t.string "first_name"
+    t.string "middle_name"
+    t.string "last_name"
+    t.date "dob"
+    t.string "accommodations_needed"
+    t.string "contact_type"
+    t.string "phone"
+    t.string "email"
+    t.text "additional_contact_details"
+    t.string "main_contact_first_name"
+    t.string "main_contact_last_name"
+    t.string "main_contact_organization"
+    t.string "main_contact_phone"
+    t.string "main_contact_email"
+    t.string "reviewer_first_name"
+    t.string "reviewer_last_name"
+    t.string "reviewer_organization"
+    t.string "reviewer_phone"
+    t.string "reviewer_email"
+    t.string "representative_first_name"
+    t.string "representative_last_name"
+    t.string "representative_organization"
+    t.string "representative_phone"
+    t.string "representative_email"
+    t.boolean "member_agrees_to_plan"
+    t.text "member_agreement_notes"
+    t.boolean "aco_approved"
+    t.date "aco_approved_on"
+    t.text "aco_rejection_notes"
+    t.date "health_needs_screened_on"
+    t.boolean "complex_physical_health_need"
+    t.string "complex_physical_health_need_detail"
+    t.boolean "behavioral_health_need"
+    t.string "behavioral_health_need_detail"
+    t.boolean "activities_of_daily_living"
+    t.string "activities_of_daily_living_detail"
+    t.boolean "ed_utilization"
+    t.string "ed_utilization_detail"
+    t.boolean "high_risk_pregnancy"
+    t.string "high_risk_pregnancy_detail"
+    t.date "risk_factors_screened_on"
+    t.boolean "experiencing_homelessness"
+    t.string "experiencing_homelessness_detail"
+    t.boolean "at_risk_of_homelessness"
+    t.string "at_risk_of_homelessness_detail"
+    t.boolean "at_risk_of_nutritional_deficiency"
+    t.string "at_risk_of_nutritional_deficiency_detail"
+    t.text "health_and_risk_notes"
+    t.boolean "receives_snap"
+    t.boolean "receives_wic"
+    t.boolean "receives_csp"
+    t.boolean "receives_other"
+    t.string "receives_other_detail"
+    t.date "service_1_added_on"
+    t.string "service_1_goals"
+    t.string "service_1_category"
+    t.string "service_1_flex_services"
+    t.string "service_1_units"
+    t.string "service_1_delivering_entity"
+    t.string "service_1_steps"
+    t.string "service_1_aco_plan"
+    t.date "service_2_added_on"
+    t.string "service_2_goals"
+    t.string "service_2_category"
+    t.string "service_2_flex_services"
+    t.string "service_2_units"
+    t.string "service_2_delivering_entity"
+    t.string "service_2_steps"
+    t.string "service_2_aco_plan"
+    t.date "service_3_added_on"
+    t.string "service_3_goals"
+    t.string "service_3_category"
+    t.string "service_3_flex_services"
+    t.string "service_3_units"
+    t.string "service_3_delivering_entity"
+    t.string "service_3_steps"
+    t.string "service_3_aco_plan"
+    t.date "service_4_added_on"
+    t.string "service_4_goals"
+    t.string "service_4_category"
+    t.string "service_4_flex_services"
+    t.string "service_4_units"
+    t.string "service_4_delivering_entity"
+    t.string "service_4_steps"
+    t.string "service_4_aco_plan"
+    t.date "service_5_added_on"
+    t.string "service_5_goals"
+    t.string "service_5_category"
+    t.string "service_5_flex_services"
+    t.string "service_5_units"
+    t.string "service_5_delivering_entity"
+    t.string "service_5_steps"
+    t.string "service_5_aco_plan"
+    t.date "service_6_added_on"
+    t.string "service_6_goals"
+    t.string "service_6_category"
+    t.string "service_6_flex_services"
+    t.string "service_6_units"
+    t.string "service_6_delivering_entity"
+    t.string "service_6_steps"
+    t.string "service_6_aco_plan"
+    t.date "service_7_added_on"
+    t.string "service_7_goals"
+    t.string "service_7_category"
+    t.string "service_7_flex_services"
+    t.string "service_7_units"
+    t.string "service_7_delivering_entity"
+    t.string "service_7_steps"
+    t.string "service_7_aco_plan"
+    t.date "service_8_added_on"
+    t.string "service_8_goals"
+    t.string "service_8_category"
+    t.string "service_8_flex_services"
+    t.string "service_8_units"
+    t.string "service_8_delivering_entity"
+    t.string "service_8_steps"
+    t.string "service_8_aco_plan"
+    t.date "service_9_added_on"
+    t.string "service_9_goals"
+    t.string "service_9_category"
+    t.string "service_9_flex_services"
+    t.string "service_9_units"
+    t.string "service_9_delivering_entity"
+    t.string "service_9_steps"
+    t.string "service_9_aco_plan"
+    t.date "service_10_added_on"
+    t.string "service_10_goals"
+    t.string "service_10_category"
+    t.string "service_10_flex_services"
+    t.string "service_10_units"
+    t.string "service_10_delivering_entity"
+    t.string "service_10_steps"
+    t.string "service_10_aco_plan"
+    t.string "gender"
+    t.string "gender_detail"
+    t.string "sexual_orientation"
+    t.string "sexual_orientation_detail"
+    t.jsonb "race"
+    t.string "race_detail"
+    t.string "primary_language"
+    t.boolean "primary_language_refused"
+    t.string "education"
+    t.string "education_detail"
+    t.string "employment_status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_health_flexible_service_vprs_on_created_at"
+    t.index ["patient_id"], name: "index_health_flexible_service_vprs_on_patient_id"
+    t.index ["updated_at"], name: "index_health_flexible_service_vprs_on_updated_at"
+    t.index ["user_id"], name: "index_health_flexible_service_vprs_on_user_id"
   end
 
   create_table "health_goals", id: :serial, force: :cascade do |t|
@@ -922,6 +1309,8 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.boolean "current", default: false, null: false
     t.boolean "contributing", default: false, null: false
     t.boolean "derived_referral", default: false
+    t.datetime "deleted_at"
+    t.string "change_description"
   end
 
   create_table "patients", id: :serial, force: :cascade do |t|
@@ -958,8 +1347,10 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.string "aco_name"
     t.string "previous_aco_name"
     t.boolean "invalid_id", default: false
+    t.bigint "nurse_care_manager_id"
     t.index ["client_id"], name: "patients_client_id_constraint", unique: true, where: "(deleted_at IS NULL)"
     t.index ["medicaid_id"], name: "index_patients_on_medicaid_id"
+    t.index ["nurse_care_manager_id"], name: "index_patients_on_nurse_care_manager_id"
   end
 
   create_table "premium_payments", id: :serial, force: :cascade do |t|
@@ -1446,6 +1837,7 @@ ActiveRecord::Schema.define(version: 2020_06_29_205716) do
     t.integer "data_source_id", default: 6, null: false
   end
 
+  add_foreign_key "claims_reporting_cp_payment_details", "claims_reporting_cp_payment_uploads", column: "cp_payment_upload_id"
   add_foreign_key "comprehensive_health_assessments", "health_files"
   add_foreign_key "comprehensive_health_assessments", "patients"
   add_foreign_key "health_goals", "patients"

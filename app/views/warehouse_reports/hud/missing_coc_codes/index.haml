@@ -4,8 +4,13 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 = render 'filter'
 - if @enrollments.exists?
-  %p= page_entries_info @enrollments, entry_name: _('enrollment')
   .d-flex
+    .ml-auto.mb-4
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary ml-auto'}) do
+        %i.icon-download2
+        Download
+  .d-flex
+    %p= page_entries_info @enrollments, entry_name: _('enrollment')
     %p.ml-auto= paginate @enrollments
   .table-responsive
     %table.table.table-sm.table-hover
@@ -18,10 +23,11 @@
           %th Exit Date
       %tbody
         - @enrollments.each do |en|
-          - client = en.client.destination_client
+          - client = en.client
+          - destination_client = client.destination_client
           - project = en.project
           %tr
-            %td= link_to client.name, client_path(client)
+            %td= link_to_if can_view_clients_or_window? && destination_client, destination_client&.name || 'Not yet processed', appropriate_client_path(destination_client)
             %td= project.name
             %td= project.project_cocs&.map(&:effective_coc_code)&.join(', ')
             %td= en.EntryDate

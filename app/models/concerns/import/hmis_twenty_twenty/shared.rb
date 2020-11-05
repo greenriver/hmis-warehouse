@@ -21,11 +21,7 @@ module Import::HmisTwentyTwenty::Shared
   end
 
   def log(message)
-    begin
-      @notifier&.ping message
-    rescue Slack::Notifier::APIError
-      sleep(3)
-    end
+    @notifier&.ping message
     logger.info message if @debug
   end
 

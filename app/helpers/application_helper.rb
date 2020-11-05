@@ -48,7 +48,7 @@ module ApplicationHelper
     end
   end
 
-  def checkmark_or_x(boolean)
+  def checkmark_or_x(boolean, tooltip = nil)
     html_class =
       if boolean
         'checkmark o-color--positive'
@@ -56,7 +56,7 @@ module ApplicationHelper
         'cross o-color--warning'
       end
     capture do
-      concat content_tag :span, nil, class: "icon-#{html_class} inline-icon"
+      concat content_tag :span, nil, { data: { toggle: :tooltip, title: tooltip }, class: "icon-#{html_class} inline-icon" }
     end
   end
 
@@ -143,6 +143,7 @@ module ApplicationHelper
       result << params[:controller]
       result << params[:action]
       result << 'not-signed-in' if current_user.blank?
+      result << (@layout__width == 'lg' ? 'l-content-width-lg' : 'l-content-width-md')
     end
   end
 
@@ -179,7 +180,7 @@ module ApplicationHelper
       sn = name[:ds]
       id = name[:ds_id]
       full_name = name[:name]
-      content_tag(:em, sn, class: "ds-#{id}") + " #{full_name}"
+      content_tag(:em, sn, class: "ds-color-#{id}") + " #{full_name}"
     end.uniq
   end
 

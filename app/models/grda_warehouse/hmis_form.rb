@@ -7,6 +7,7 @@
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
   include Eto::PathwaysAnswers
+  include Eto::CovidAnswers
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
   has_one :destination_client, through: :client
   belongs_to :hmis_assessment, class_name: 'GrdaWarehouse::HMIS::Assessment', primary_key: [:assessment_id, :site_id, :data_source_id], foreign_key: [:assessment_id, :site_id, :data_source_id]
@@ -34,6 +35,10 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
 
   scope :pathways, -> do
     joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.pathways)
+  end
+
+  scope :covid_19_impact_assessments, -> do
+    joins(:hmis_assessment).merge(GrdaWarehouse::HMIS::Assessment.covid_19_impact_assessments)
   end
 
   scope :interested_in_some_rrh, -> do
@@ -242,39 +247,48 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     end
   end
 
-  # Pre-check part of a family if the client has a family score and are < 60
-  # or if they are 60+ and have a score > 1
+  # Pre-check part of a family if the client has a family score > 2
+  # or if they are under 60 and have a score = 1
+  # Only check the box if the most-recent VI-SPDAT qualifies
   def self.set_part_of_a_family
-    # update any we don't need to check for age
-    source_client_ids = vispdat.where(vispdat_family_score: (2..Float::INFINITY)).
-      distinct.
-      pluck(:client_id)
-    destination_client_ids = GrdaWarehouse::WarehouseClient.
-      where(source_id: source_client_ids).
-      distinct.
-      pluck(:destination_id)
-    GrdaWarehouse::Hud::Client.where(id: destination_client_ids, family_member: false).
-      update_all(family_member: true)
-
-    # For anyone with a score of one, only update those who are < 60
-    source_clients = vispdat.where(vispdat_family_score: 1).
-      distinct.
-      pluck(:client_id, :collected_at).to_h
-
-    warehouse_clients = GrdaWarehouse::WarehouseClient.
-      where(source_id: source_clients.keys).
-      distinct.
-      pluck(:destination_id, :source_id).to_h
-
-    GrdaWarehouse::Hud::Client.where(id: warehouse_clients.keys).
-      find_each do |client|
-        source_client_id = warehouse_clients[client.id]
-        collected_at = source_clients[source_client_id]
-        age = client.age_on(collected_at.to_date)
-        if age.blank? || age < 60
-          client.update(family_member: true) unless client.family_member
-        end
+    family_source_client_ids = Set.new
+    vispdats = {}
+    GrdaWarehouse::HmisForm.vispdat.order(collected_at: :desc).
+      pluck(:client_id, :vispdat_family_score, :collected_at).
+      each do |client_id, vispdat_family_score, collected_at|
+        vispdats[client_id] ||= {
+          score: vispdat_family_score,
+          collected_at: collected_at,
+        }
       end
+
+    potential_clients = GrdaWarehouse::Hud::Client.where(id: vispdats.keys).
+      select(:id, :DOB).
+      index_by(&:id)
+    vispdats.each do |client_id, score|
+      # anyone with a score of 0 or nil in the most-recent vi-spdat is excluded
+      next if score[:score].blank? || score[:score].zero?
+
+      # anyone with the most-recent score > 2 is included
+      if score[:score].present? && score[:score] > 2
+        family_source_client_ids << client_id
+        next
+      end
+
+      # anyone who is under 60 and has a score of 1 in the most-recent vi-spdat
+      client = potential_clients[client_id]
+      next unless client
+
+      collected_at = score[:collected_at]
+      age = client.age_on(collected_at.to_date)
+      next if age.blank? || age >= 60
+
+      family_source_client_ids << client_id
+    end
+
+    GrdaWarehouse::Hud::Client.joins(:warehouse_client_destination).
+      merge(GrdaWarehouse::WarehouseClient.where(source_id: family_source_client_ids)).
+      update_all(family_member: true)
   end
 
   def self.set_pathways_results(force_all: false)
@@ -325,6 +339,35 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         # hmis_form.pathways_length_of_time_homeless_score_answer
 
         hmis_form.pathways_updated_at = Time.current
+
+        hmis_form.save if hmis_form.changed?
+      end
+    end
+  end
+
+  def self.covid_19_impact_assessment_results(force_all: false)
+    # find anyone who's never been processed or who has been updated since we last made
+    # note of changes
+    ids = if force_all
+      covid_19_impact_assessments.pluck(:id)
+    else
+      covid_19_impact_assessments.where(
+        arel_table[:covid_impact_updated_at].eq(nil).
+          or(arel_table[:collected_at].gt(arel_table[:covid_impact_updated_at]))
+        ).pluck(:id)
+    end
+    ids.each_slice(100) do |batch|
+      covid_19_impact_assessments.where(id: batch).preload(:destination_client).oldest_first.to_a.each do |hmis_form|
+        next unless hmis_form.destination_client.present?
+
+        hmis_form.number_of_bedrooms = hmis_form.number_of_bedrooms_answer
+        hmis_form.subsidy_months = hmis_form.subsidy_months_answer
+        hmis_form.monthly_rent_total = hmis_form.monthly_rent_total_answer
+        hmis_form.total_subsidy = hmis_form.total_subsidy_answer
+        hmis_form.percent_ami = hmis_form.percent_ami_answer
+        hmis_form.household_type = hmis_form.household_type_answer
+        hmis_form.household_size = hmis_form.household_size_answer
+        hmis_form.covid_impact_updated_at = Time.current
 
         hmis_form.save if hmis_form.changed?
       end

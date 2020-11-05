@@ -15,6 +15,45 @@ module LsaSqlServer
     }.freeze
   end
 
+  module_function def intermediate_models_by_filename
+    {
+      'ch_Episodes.csv' => LsaSqlServer::ChEpisodes,
+      'ch_Exclude.csv' => LsaSqlServer::ChExclude,
+      'ch_Include.csv' => LsaSqlServer::ChInclude,
+      'dq_Enrollment.csv' => LsaSqlServer::DqEnrollment,
+      'ref_Calendar.csv' => LsaSqlServer::RefCalendar,
+      'ref_Populations.csv' => LsaSqlServer::RefPopulations,
+      'sys_Time.csv' => LsaSqlServer::SysTime,
+      'sys_TimePadded.csv' => LsaSqlServer::SysTimePadded,
+      'tlsa_CohortDates.csv' => LsaSqlServer::TlsaCohortDates,
+      'tlsa_Enrollment.csv' => LsaSqlServer::TlsaEnrollment,
+      'tlsa_Exit.csv' => LsaSqlServer::TlsaExit,
+      'tlsa_HHID.csv' => LsaSqlServer::TlsaHHID,
+      'tlsa_Household.csv' => LsaSqlServer::TlsaHousehold,
+      'tlsa_Person.csv' => LsaSqlServer::TlsaPerson,
+    }.freeze
+  end
+
+  class DbUp < SqlServerBase
+    include ::HMIS::Structure::Base
+    self.table_name = :db_up
+
+    def self.csv_columns
+      [
+        :id,
+        :status,
+      ]
+    end
+
+    def self.hmis_configuration(*)
+      {
+        status: {
+          type: :string,
+        },
+      }
+    end
+  end
+
   class LSAReport < SqlServerBase
     self.table_name = :lsa_Report
     include TsqlImport
@@ -328,5 +367,61 @@ module LsaSqlServer
         :HHComposition,
       ]
     end
+  end
+
+  class LsaSqlServer::ChEpisodes < SqlServerBase
+    self.table_name = :ch_Episodes
+  end
+
+  class LsaSqlServer::ChExclude < SqlServerBase
+    self.table_name = :ch_Exclude
+  end
+
+  class LsaSqlServer::ChInclude < SqlServerBase
+    self.table_name = :ch_Include
+  end
+
+  class LsaSqlServer::DqEnrollment < SqlServerBase
+    self.table_name = :dq_Enrollment
+  end
+
+  class LsaSqlServer::RefCalendar < SqlServerBase
+    self.table_name = :ref_Calendar
+  end
+
+  class LsaSqlServer::RefPopulations < SqlServerBase
+    self.table_name = :ref_Populations
+  end
+
+  class LsaSqlServer::SysTime < SqlServerBase
+    self.table_name = :sys_Time
+  end
+
+  class LsaSqlServer::SysTimePadded < SqlServerBase
+    self.table_name = :sys_TimePadded
+  end
+
+  class LsaSqlServer::TlsaCohortDates < SqlServerBase
+    self.table_name = :tlsa_CohortDates
+  end
+
+  class LsaSqlServer::TlsaEnrollment < SqlServerBase
+    self.table_name = :tlsa_Enrollment
+  end
+
+  class LsaSqlServer::TlsaExit < SqlServerBase
+    self.table_name = :tlsa_Exit
+  end
+
+  class LsaSqlServer::TlsaHHID < SqlServerBase
+    self.table_name = :tlsa_HHID
+  end
+
+  class LsaSqlServer::TlsaHousehold < SqlServerBase
+    self.table_name = :tlsa_Household
+  end
+
+  class LsaSqlServer::TlsaPerson < SqlServerBase
+    self.table_name = :tlsa_Person
   end
 end

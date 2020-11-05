@@ -1,10 +1,9 @@
 - title = "#{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@filter.sub_population]} Exit Detail"
 - content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
 .row
   .col-sm-8
     %h1= title
-
-= render '/warehouse_reports/breadcrumbs'
 
 = render 'filter'
 
@@ -63,11 +62,10 @@
       - @clients.each do |client|
         %tr
           %td
-            = link_to "#{client[:first_name]} #{client[:last_name]}", client_path(id: client[:client_id])
+            = link_to_if can_view_clients_or_window?, "#{client[:first_name]} #{client[:last_name]}", appropriate_client_path(id: client[:client_id])
           %td
             = client[:date]
           %td
             = HUD.destination(client[:destination])
           %td
             = client[:project_name]
-

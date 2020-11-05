@@ -28,7 +28,8 @@ Rails.application.configure do
     config.action_controller.perform_caching = false
 
     cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
-    config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 2.minutes, raise_errors: false, ssl: cache_ssl, namespace: :hmis }
+    cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
+    config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 2.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace}
   end
 
   if ENV['SMTP_SERVER']

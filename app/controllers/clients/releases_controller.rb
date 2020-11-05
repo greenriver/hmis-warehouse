@@ -7,7 +7,7 @@
 module Clients
   class ReleasesController < FilesController
     include ClientPathGenerator
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientDependentControllers
 
     skip_before_action :require_window_file_access!

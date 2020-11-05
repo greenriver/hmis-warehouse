@@ -4,11 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
 module Health
   class ComprehensiveHealthAssessment < HealthBase
+    acts_as_paranoid
     phi_patient :patient_id
     phi_attr :user_id, Phi::SmallPopulation
     phi_attr :reviewed_by_id, Phi::SmallPopulation

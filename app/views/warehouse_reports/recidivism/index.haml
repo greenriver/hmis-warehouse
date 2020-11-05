@@ -3,7 +3,7 @@
 .d-flex
   %h1= content_for :title
 
-= render '/warehouse_reports/breadcrumbs', tab: 'operational-reports'
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
 = render 'form'
 
 - if @clients.present?
@@ -26,8 +26,7 @@
     .warehouse-reports__client
       .warehouse-reports__client-name
         %h4
-          = link_to client_path(client) do
-            = client.full_name
+          = link_to_if can_view_clients_or_window?, client.full_name, appropriate_client_path(client)
       .row
         .col-sm-6
           %h4 PH Enrollments

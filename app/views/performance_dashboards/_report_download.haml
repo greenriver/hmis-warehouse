@@ -1,0 +1,35 @@
+:ruby
+  filter_params = {}
+  (params['filters'] || {}).to_h.each_pair do |key, value|
+    if value.is_a?(Array)
+      value = value.map(&:presence).compact.presence
+    end
+    if value.present?
+      filter_params[key] = value
+    end
+  end
+  report_params = {
+    'filters' => filter_params
+  }
+  if breakdown.present?
+    report_params['breakdown'] = breakdown
+  end
+  if export.present?
+    data = {
+      type: export.type,
+      query_string: report_params.to_query
+    }
+  end
+
+.dropdown
+  %button#downloadButton.btn.btn-secondary.dropdown-toggle{aria: {expanded: "false", haspopup: "true"}, data:{toggle: "dropdown"}, type: "button"}
+    %i.icon-download2
+    Download Report
+  .dropdown-menu.dropdown-menu-right.px-0.py-2{style: 'min-width: 200px', aria: {labelledby:"downloadButton"}}
+    - if export.present?
+      %a.dropdown-item.d-flex.align-items-center.mb-1.j-document-exports.py-1{href: "#", data: data}
+        %i.icon-file-pdf.icon-lg.mr-2
+        %span PDF
+    = link_to excel_download_path, class: 'dropdown-item d-flex align-items-center py-1' do
+      %i.icon-file-excel.icon-lg.mr-2
+      %span Excel or CSV

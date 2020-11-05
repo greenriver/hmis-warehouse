@@ -21,6 +21,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "149f43ca0c9d46c20323967d168bcf5e5dc81816dd870fc6ce1cd8f047d79639",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/bi/view_maintainer.rb",
+      "line": 402,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.execute(\"DROP VIEW IF EXISTS #{name}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Bi::ViewMaintainer",
+        "method": "safe_drop_view"
+      },
+      "user_input": "name",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "167d304a2a6e35f5514e9151322701f7330f801e1b29f03e072fadc7e6e35dae",
@@ -37,6 +57,26 @@
         "method": "perform"
       },
       "user_input": "GrdaWarehouse::WarehouseReports::Dashboard::Base.sub_populations_by_type[report_type.to_sym]",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "17b51608f07889a142d8f548bbe24583b3bab7d8146caeedc9ad2c7e9ad1d2bf",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/bi/view_maintainer.rb",
+      "line": 422,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.execute(\"CREATE OR REPLACE VIEW #{name} AS #{sql_definition}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Bi::ViewMaintainer",
+        "method": "safe_create_view"
+      },
+      "user_input": "name",
       "confidence": "Medium",
       "note": ""
     },
@@ -87,7 +127,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/service_history_service.rb",
-      "line": 128,
+      "line": 136,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'\")",
       "render_path": null,
@@ -252,6 +292,37 @@
       "note": ""
     },
     {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "45ba8ec6c039b68ae04bc85f1d277996ce975f38f43956c9b8909b3c78ac7590",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/imports/show.haml",
+      "line": 1,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => import_scope.find(params[:id].to_i), {})",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "ImportsController",
+          "method": "show",
+          "line": 29,
+          "file": "app/controllers/imports_controller.rb",
+          "rendered": {
+            "name": "imports/show",
+            "file": "app/views/imports/show.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "imports/show"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "560654d4119023b98ace9aa621f8578d4bbf9842e89acc251bda37a3ca2476ab",
@@ -368,7 +439,7 @@
           "type": "controller",
           "class": "Admin::RolesController",
           "method": "index",
-          "line": 19,
+          "line": 17,
           "file": "app/controllers/admin/roles_controller.rb",
           "rendered": {
             "name": "admin/roles/index",
@@ -411,7 +482,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 41,
+      "line": 43,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -431,7 +502,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 46,
+      "line": 48,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -451,7 +522,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 61,
+      "line": 63,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -471,7 +542,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 67,
+      "line": 69,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -491,7 +562,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/clients_controller.rb",
-      "line": 71,
+      "line": 73,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -525,6 +596,126 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "822ab18e43cc8a9807a17e1d1ecac0217f8446e30ea8531ce8e75f8402dc1ea0",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
+      "line": 42,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::Shape::SharedBehaviors::ClassMethods",
+        "method": "simplify!"
+      },
+      "user_input": "simplification_distance_in_degrees",
+      "confidence": "Medium",
+      "note": "injection is always a number and not from the database or user input"
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "849446774e3b52c7f8466041ee59b0b11f01dc4ad5d4d465e4740fa33ec76397",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients/enrollment_history_controller.rb",
+      "line": 43,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Clients::EnrollmentHistoryController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "849446774e3b52c7f8466041ee59b0b11f01dc4ad5d4d465e4740fa33ec76397",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients/enrollment_history_controller.rb",
+      "line": 48,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Clients::EnrollmentHistoryController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "849446774e3b52c7f8466041ee59b0b11f01dc4ad5d4d465e4740fa33ec76397",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients/enrollment_history_controller.rb",
+      "line": 63,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Clients::EnrollmentHistoryController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "849446774e3b52c7f8466041ee59b0b11f01dc4ad5d4d465e4740fa33ec76397",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients/enrollment_history_controller.rb",
+      "line": 69,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Clients::EnrollmentHistoryController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
+      "warning_type": "Dangerous Send",
+      "warning_code": 23,
+      "fingerprint": "849446774e3b52c7f8466041ee59b0b11f01dc4ad5d4d465e4740fa33ec76397",
+      "check_name": "Send",
+      "message": "User controlled method execution",
+      "file": "app/controllers/clients/enrollment_history_controller.rb",
+      "line": 73,
+      "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
+      "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Clients::EnrollmentHistoryController",
+        "method": "sort_filter_index"
+      },
+      "user_input": "params[:population].to_sym",
+      "confidence": "High",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "850068cbcbd30e554efc5cc597f03ad14dfbd68240142d37a64e9f7a6c53a1a7",
@@ -551,7 +742,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 60,
+      "line": 62,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -571,7 +762,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 45,
+      "line": 47,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -591,7 +782,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 479,
+      "line": 502,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"#{quoted_table_name}.consented_coc_codes ?| array[#{(Array.wrap(coc_codes) + [\"All CoCs\"]).map do\n connection.quote(s)\n end.join(\",\")}]\")",
       "render_path": null,
@@ -611,7 +802,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 65,
+      "line": 67,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -631,7 +822,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 298,
+      "line": 322,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -671,7 +862,7 @@
       "check_name": "Send",
       "message": "User controlled method execution",
       "file": "app/controllers/concerns/client_controller.rb",
-      "line": 41,
+      "line": 43,
       "link": "https://brakemanscanner.org/docs/warning_types/dangerous_send/",
       "code": "@clients.joins(:processed_service_history).includes(:processed_service_history).where(:id => service_history_service_scope.select(:client_id).distinct.where(:date => ((params[:start_date].to_date..params[:end_date].to_date)))).public_send(params[:population].to_sym)",
       "render_path": null,
@@ -701,6 +892,26 @@
         "method": "set_lftp_bookmark"
       },
       "user_input": "lftp_bookmark_path",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "a9040593943192bed3788b5c04a11f50ce20482af33b84ec76b05e8eec6838c8",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/bi/view_maintainer.rb",
+      "line": 416,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.execute(\"DO $$\\nBEGIN\\n  CREATE ROLE #{role} WITH NOLOGIN;\\n  EXCEPTION WHEN DUPLICATE_OBJECT THEN\\n  RAISE NOTICE 'not creating role #{role} -- it already exists';\\nEND\\n$$;\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Bi::ViewMaintainer",
+        "method": "safe_create_role"
+      },
+      "user_input": "role",
       "confidence": "Medium",
       "note": ""
     },
@@ -841,7 +1052,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/reporting/monthly_reports/base.rb",
-      "line": 419,
+      "line": 409,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE TABLE #{Reporting::MonthlyReports::Base.remainder_table} (CHECK ( #{\" type NOT IN ('#{Reporting::MonthlyReports::Base.sub_tables.keys.join(\"', '\")}') \"} ) ) INHERITS (#{Reporting::MonthlyReports::Base.parent_table});\")",
       "render_path": null,
@@ -911,7 +1122,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/reporting/monthly_reports/base.rb",
-      "line": 475,
+      "line": 465,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'\")",
       "render_path": null,
@@ -929,9 +1140,9 @@
       "warning_code": 70,
       "fingerprint": "d1df65ed70bfef4890bb44d788400c8da08fb84c088d9b9219c66745d0998cc6",
       "check_name": "MassAssignment",
-      "message": "Parameters should be whitelisted for mass assignment",
+      "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 57,
+      "line": 58,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -941,6 +1152,26 @@
         "method": "link_params"
       },
       "user_input": null,
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "d59454b5044a42f5f1e5d423a7ba4c4e4dfbf4c3f400a7d1074b04e93b65afcc",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called with model attribute",
+      "file": "app/models/filters/filter_base.rb",
+      "line": 454,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Filters::FilterBase",
+        "method": "chosen_sub_population"
+      },
+      "user_input": "Reporting::MonthlyReports::Base.available_types[sub_population]",
       "confidence": "Medium",
       "note": ""
     },
@@ -985,22 +1216,22 @@
       "note": ""
     },
     {
-      "warning_type": "Remote Code Execution",
-      "warning_code": 24,
-      "fingerprint": "e8363134a72c5ae3f5d9027a26f181923b910359a92ea85fe228e8ae96346dd8",
-      "check_name": "UnsafeReflection",
-      "message": "Unsafe reflection method `constantize` called with model attribute",
-      "file": "app/models/performance_dashboards/base.rb",
-      "line": 160,
-      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
-      "code": "Reporting::MonthlyReports::Base.available_types[@sub_population].constantize",
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "e52db9a64ac0bf61e35334f89b7703a1a1df7c9fd84a506e575cbd79816712e4",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/bi/view_maintainer.rb",
+      "line": 425,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "GrdaWarehouseBase.connection.execute(\"GRANT SELECT ON #{name} TO #{\"bi\"}\")",
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "PerformanceDashboards::Base",
-        "method": "chosen_sub_population"
+        "class": "Bi::ViewMaintainer",
+        "method": "safe_create_view"
       },
-      "user_input": "Reporting::MonthlyReports::Base.available_types[@sub_population]",
+      "user_input": "name",
       "confidence": "Medium",
       "note": ""
     },
@@ -1090,7 +1321,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/reporting/monthly_reports/base.rb",
-      "line": 403,
+      "line": 393,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE TABLE #{details[:table_name]} ( CHECK ( #{\"type = '#{details[:type]}'\"} ) ) INHERITS (#{Reporting::MonthlyReports::Base.parent_table});\")",
       "render_path": null,
@@ -1104,6 +1335,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-07-08 12:27:34 -0400",
-  "brakeman_version": "4.8.2"
+  "updated": "2020-11-05 18:57:51 +0000",
+  "brakeman_version": "4.10.0"
 }

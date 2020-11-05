@@ -44,8 +44,8 @@ module GrdaWarehouse
 
     def self.available_chronic_definitions
       {
-        "Potentially chronic" => :chronics,
-        "HUD definition" => :hud_chronics,
+        'Potentially chronic' => :chronics,
+        'HUD definition' => :hud_chronics,
       }
     end
 
@@ -73,6 +73,28 @@ module GrdaWarehouse
       {
         'COVID-19' => :covid_19,
       }
+    end
+
+    def self.available_encryption_types
+      {
+        'None' => :none,
+        'PII Encrypted' => :pii,
+      }
+    end
+
+    def self.dv_days
+      {
+        'Indefinite' => 0,
+        'Three Years' => 1095,
+        'One Year' => 365,
+        'Six months' => 180,
+        'Three months' => 90,
+        'One month' => 30,
+      }
+    end
+
+    def self.client_search_available?
+      get(:pii_encryption_type).to_sym.in?([:none])
     end
 
     def self.currrent_health_emergency_tracing_title

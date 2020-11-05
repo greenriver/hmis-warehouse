@@ -9,15 +9,16 @@ module PerformanceDashboard::Overview::Exiting::Veteran
 
   # NOTE: always count the most-recently started enrollment within the range
   def exiting_by_veteran
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @exiting_by_veteran ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = veteran_buckets.map { |b| [b, []] }.to_h
-      counted = Set.new
+      counted = {}
       exiting.
         joins(:client).
         order(first_date_in_program: :desc).
         pluck(:client_id, c_t[:VeteranStatus], :first_date_in_program).each do |id, veteran_status, _|
-          buckets[veteran_bucket(veteran_status)] << id unless counted.include?(id)
-          counted << id
+          counted[veteran_bucket(veteran_status)] ||= Set.new
+          buckets[veteran_bucket(veteran_status)] << id unless counted[veteran_bucket(veteran_status)].include?(id)
+          counted[veteran_bucket(veteran_status)] << id
         end
       buckets
     end
@@ -25,15 +26,17 @@ module PerformanceDashboard::Overview::Exiting::Veteran
 
   def exiting_by_veteran_data_for_chart
     @exiting_by_veteran_data_for_chart ||= begin
-      columns = [date_range_words]
+      columns = [@filter.date_range_words]
       columns += exiting_by_veteran.values.map(&:count)
-      categories = exiting_by_veteran.keys.map do |type|
-        HUD.veteran_status(type)
-      end
-      {
-        columns: columns,
-        categories: categories,
-      }
+      categories = exiting_by_veteran.keys
+      filter_selected_data_for_chart(
+        {
+          labels: categories.map { |s| [s, HUD.veteran_status(s)] }.to_h,
+          chosen: @veteran_statuses,
+          columns: columns,
+          categories: categories,
+        },
+      )
     end
   end
 

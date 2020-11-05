@@ -14,7 +14,7 @@ class Object
     Date.parse(date).strftime('%d-%b-%Y')
   end
 end
-module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
+module EtoApi::Tasks
   class UpdateClientLookupViaMail < UpdateClientLookup
     include TsqlImport
     attr_accessor :logger

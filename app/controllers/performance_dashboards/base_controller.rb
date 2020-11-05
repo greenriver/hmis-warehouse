@@ -6,7 +6,8 @@
 
 class PerformanceDashboards::BaseController < ApplicationController
   include WarehouseReportAuthorization
-  include PjaxModalController
+  include AjaxModalRails::Controller
+  include BaseFilters
 
   def section
     @section = @report.class.available_chart_types.detect do |m|
@@ -16,14 +17,8 @@ class PerformanceDashboards::BaseController < ApplicationController
 
     raise 'Rollup not in allowlist' unless @section.present?
 
-    @section = section_subpath + @section
+    @section = @report.section_subpath + @section
     render partial: @section, layout: false if request.xhr?
-  end
-
-  def set_filter
-    @filter = filter_class.new(user_id: current_user.id)
-    @filter.set_from_params(filter_params[:filters]) if filter_params[:filters].present?
-    @comparison_filter = @filter.to_comparison
   end
 
   private def show_client_details?
@@ -31,22 +26,8 @@ class PerformanceDashboards::BaseController < ApplicationController
   end
   helper_method :show_client_details?
 
-  def filter_open
-    return 'yes' unless params[:filters].present?
-
-    'no'
-  end
-  helper_method :filter_open
-
-  def active_filter_open
-    return 'yes' if params[:filters].present?
-
-    'no'
-  end
-  helper_method :active_filter_open
-
   def breakdown
-    @breakdown ||= params[:breakdown]&.to_sym || :age
+    @breakdown ||= params[:breakdown]&.to_sym || @report.available_breakdowns.keys.first
   end
   helper_method :breakdown
 
@@ -59,6 +40,7 @@ class PerformanceDashboards::BaseController < ApplicationController
         :household_type,
         :hoh_only,
         :sub_population,
+        :coordinated_assessment_living_situation_homeless,
         coc_codes: [],
         project_types: [],
         project_type_codes: [],
@@ -71,6 +53,9 @@ class PerformanceDashboards::BaseController < ApplicationController
         organization_ids: [],
         project_ids: [],
         funder_ids: [],
+        project_group_ids: [],
+        prior_living_situation_ids: [],
+        destination_ids: [],
       ],
     )
     # project_type_codes exists as both a single and multi, ensure it's always

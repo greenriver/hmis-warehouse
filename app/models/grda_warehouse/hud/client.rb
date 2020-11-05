@@ -7,6 +7,7 @@
 require 'restclient'
 module GrdaWarehouse::Hud
   class Client < Base
+    self.primary_key = :id
     include RailsDrivers::Extensions
     include Rails.application.routes.url_helpers
     include RandomScope
@@ -18,25 +19,23 @@ module GrdaWarehouse::Hud
     include HudChronicDefinition
     include SiteChronic
     include ClientHealthEmergency
+    include ::Youth::Intake
     has_paper_trail
 
+    attr_accessor :source_id
+
     self.table_name = :Client
-    self.hud_key = :PersonalID
-    acts_as_paranoid(column: :DateDeleted)
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
+
     CACHE_EXPIRY = if Rails.env.production? then 4.hours else 30.minutes end
 
     has_many :client_files
     has_many :health_files
     has_many :vispdats, class_name: 'GrdaWarehouse::Vispdat::Base', inverse_of: :client
-    has_many :youth_intakes, class_name: 'GrdaWarehouse::YouthIntake::Base', inverse_of: :client
     has_many :ce_assessments, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
     has_one :ce_assessment, -> do
       merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active)
     end, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
-    has_many :case_managements, class_name: 'GrdaWarehouse::Youth::YouthCaseManagement', inverse_of: :client
-    has_many :direct_financial_assistances, class_name: 'GrdaWarehouse::Youth::DirectFinancialAssistance', inverse_of: :client
-    has_many :youth_referrals, class_name: 'GrdaWarehouse::Youth::YouthReferral', inverse_of: :client
-    has_many :youth_follow_ups, class_name: 'GrdaWarehouse::Youth::YouthFollowUp', inverse_of: :client
 
     has_one :cas_project_client, class_name: 'Cas::ProjectClient', foreign_key: :id_in_data_source
     has_one :cas_client, class_name: 'Cas::Client', through: :cas_project_client, source: :client
@@ -151,6 +150,7 @@ module GrdaWarehouse::Hud
     has_many :window_notes, class_name: 'GrdaWarehouse::ClientNotes::WindowNote'
     has_many :anomaly_notes, class_name: 'GrdaWarehouse::ClientNotes::AnomalyNote'
     has_many :cohort_notes, class_name: 'GrdaWarehouse::ClientNotes::CohortNote'
+    has_many :alert_notes, class_name: 'GrdaWarehouse::ClientNotes::Alert'
 
     has_many :anomalies, class_name: 'GrdaWarehouse::Anomaly'
     has_many :cas_houseds, class_name: 'GrdaWarehouse::CasHoused'
@@ -473,6 +473,29 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # should always return a destination client, but some visibility
+    # is governed by the source client, some by the destination
+    def self.destination_client_viewable_by_user(client_id:, user:)
+      destination.where(
+        Arel.sql(
+          arel_table[:id].in(visible_by_source(id: client_id, user: user)).
+          or(arel_table[:id].in(visible_by_destination(id: client_id, user: user))).to_sql,
+        ),
+      )
+    end
+
+    def self.visible_by_source(id:, user:)
+      query = GrdaWarehouse::WarehouseClient.joins(:source).merge(viewable_by(user))
+      query = query.where(destination_id: id) if id.present?
+      Arel.sql(query.select(:destination_id).to_sql)
+    end
+
+    def self.visible_by_destination(id:, user:)
+      query = viewable_by(user)
+      query = query.where(id: id) if id.present?
+      Arel.sql(query.select(:id).to_sql)
+    end
+
     scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
       coc_codes = Array.wrap(coc_codes) + ['All CoCs']
       where(
@@ -760,7 +783,7 @@ module GrdaWarehouse::Hud
         }
       end
       if health && patient.present? && names.detect { |name| name[:health] }.blank?
-        names << { ds: 'Health', ds_id: 'health', name: patient.name }
+        names << { ds: 'Health', ds_id: GrdaWarehouse::DataSource.health_authoritative_id, name: patient.name }
       end
       return names
     end
@@ -929,20 +952,30 @@ module GrdaWarehouse::Hud
     end
 
     def visible_because_of_permission?(user)
-        user.can_view_clients? ||
-        visible_because_of_release?(user) ||
-        visible_because_of_assigned_data_source?(user) ||
-        visible_because_of_coc_association?(user)
+      user.can_view_clients? ||
+      visible_because_of_release?(user) ||
+      visible_because_of_assigned_data_source?(user) ||
+      visible_because_of_coc_association?(user)
     end
 
     def visible_because_of_release?(user)
+      any_window_clients = source_clients.map { |sc| sc.data_source&.visible_in_window? }.any?
+      # user can see the window, and client has a valid release, or none is required (by the site config)
       user.can_view_client_window? &&
-      (release_valid? || ! GrdaWarehouse::Config.get(:window_access_requires_release))
+      (
+        release_valid? ||
+        ! GrdaWarehouse::Config.get(:window_access_requires_release) && any_window_clients
+      )
     end
 
+    # This permission is mis-named a bit, it should check all project ids visible to the user
     def visible_because_of_assigned_data_source?(user)
-      user.can_see_clients_in_window_for_assigned_data_sources? &&
-        (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+      return false unless user.can_see_clients_in_window_for_assigned_data_sources?
+
+      visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
+      visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+
+      visible_because_of_enrollments || visible_because_of_data_sources
     end
 
     def visible_because_of_coc_association?(user)
@@ -960,14 +993,16 @@ module GrdaWarehouse::Hud
     # Define a bunch of disability methods we can use to get the response needed
     # for CAS integration
     # This generates methods like: substance_response()
-    GrdaWarehouse::Hud::Disability.disability_types.each do |hud_key, disability_type|
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
       define_method "#{disability_type}_response".to_sym do
         disability_check = "#{disability_type}?".to_sym
-        source_disabilities.detect(&disability_check).try(:response)
+        source_disabilities.response_present.
+          newest_first.
+          detect(&disability_check).try(:response)
       end
     end
 
-    GrdaWarehouse::Hud::Disability.disability_types.each do |hud_key, disability_type|
+    GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
       define_method "#{disability_type}_response?".to_sym do
         self.send("#{disability_type}_response".to_sym) == 'Yes'
       end
@@ -1188,7 +1223,15 @@ module GrdaWarehouse::Hud
     def domestic_violence?
       return pathways_domestic_violence if pathways_domestic_violence
 
-      source_health_and_dvs.where(DomesticViolenceVictim: 1).exists?
+      dv_scope = source_health_and_dvs.where(DomesticViolenceVictim: 1)
+      lookback_days = GrdaWarehouse::Config.get(:domestic_violence_lookback_days)
+      if lookback_days&.positive?
+        dv_scope.where(hdv_t[:InformationDate].gt(lookback_days.days.ago.to_date)). # Limit report date to a reasonable range
+          where(hdv_t[:WhenOccurred].eq(1)). # Limit to within 3 months of report date
+          exists?
+      else
+        dv_scope.exists?
+      end
     end
 
     def chronic?(on: nil)
@@ -1211,40 +1254,44 @@ module GrdaWarehouse::Hud
         hids = service_history_entries.where.not(household_id: [nil, '']).pluck(:household_id, :data_source_id, :project_id).uniq
         if hids.any?
           columns = {
-            household_id: she_t[:household_id].to_sql,
-            date: she_t[:date].to_sql,
-            client_id: she_t[:client_id].to_sql,
-            age: she_t[:age].to_sql,
-            enrollment_group_id: she_t[:enrollment_group_id].to_sql,
-            FirstName: c_t[:FirstName].to_sql,
-            LastName: c_t[:LastName].to_sql,
-            last_date_in_program: she_t[:last_date_in_program].to_sql,
-            data_source_id: she_t[:data_source_id].to_sql,
+            household_id: she_t[:household_id],
+            date: she_t[:date],
+            client_id: she_t[:client_id],
+            age: she_t[:age],
+            enrollment_group_id: she_t[:enrollment_group_id],
+            FirstName: c_t[:FirstName],
+            LastName: c_t[:LastName],
+            first_date_in_program: she_t[:first_date_in_program],
+            last_date_in_program: she_t[:last_date_in_program],
+            move_in_date: she_t[:move_in_date],
+            data_source_id: she_t[:data_source_id],
+            head_of_household: she_t[:head_of_household],
           }
 
           hh_where = hids.map do |hh_id, ds_id, p_id|
             she_t[:household_id].eq(hh_id).
-            and(
-              she_t[:data_source_id].eq(ds_id)
-            ).
-            and(
-              she_t[:project_id].eq(p_id)
-            ).to_sql
+              and(she_t[:data_source_id].eq(ds_id)).
+              and(she_t[:project_id].eq(p_id)).to_sql
           end.join(' or ')
 
-          entries = GrdaWarehouse::ServiceHistoryEnrollment.entry
-            .joins(:client)
-            .where(hh_where)
-            .where.not(client_id: id )
-            .pluck(*columns.values.map{|v| Arel.sql(v)}).map do |row|
+          entries = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            joins(:client).
+            where(Arel.sql(hh_where)).
+            where.not(client_id: id).
+            pluck(*columns.values).map do |row|
               Hash[columns.keys.zip(row)]
             end.uniq
-          entries = entries.map(&:with_indifferent_access).group_by{|m| [m['household_id'], m['data_source_id']]}
+          entries.map(&:with_indifferent_access).group_by do |m|
+            [
+              m['household_id'],
+              m['data_source_id'],
+            ]
+          end
         end
       end
     end
 
-    def household household_id, data_source_id
+    def household(household_id, data_source_id)
       households[[household_id, data_source_id]] if households.present?
     end
 
@@ -1312,6 +1359,7 @@ module GrdaWarehouse::Hud
     def presented_with_family?(after: nil, before: nil)
       return false unless households.present?
       raise 'After required if before specified.' if before.present? && ! after.present?
+
       hh = if before.present? && after.present?
         recent_households = households.select do |_, entries|
           # return true if this client presented with family during the range in question
@@ -1376,21 +1424,25 @@ module GrdaWarehouse::Hud
 
     def email
       return unless hmis_client_response.present?
+
       hmis_client_response['Email']
     end
 
     def home_phone
       return unless hmis_client_response.present?
+
       hmis_client_response['HomePhone']
     end
 
     def cell_phone
       return unless hmis_client_response.present?
+
       hmis_client_response['CellPhone']
     end
 
     def work_phone
       return unless hmis_client_response.present?
+
       work_phone = hmis_client_response['WorkPhone']
       work_phone += " x #{hmis_client_response['WorkPhoneExtension']}" if hmis_client_response['WorkPhoneExtension'].present?
       work_phone
@@ -1579,7 +1631,7 @@ module GrdaWarehouse::Hud
       # if we think we're updating, but we've been at it for more than 15 minutes
       # something probably got stuck
       if updating
-        updating = api_update_started_at > 15.minutes.ago
+        updating = api_update_started_at < 15.minutes.ago
       end
       {
         started_at: api_update_started_at,
@@ -2088,6 +2140,10 @@ module GrdaWarehouse::Hud
       race_fields.map{ |f| ::HUD::race f }.join ', '
     end
 
+    def ethnicity_description
+      ::HUD.ethnicity(self.Ethnicity)
+    end
+
     def cas_primary_race_code
       race_text = ::HUD::race(race_fields.first)
       Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
@@ -2282,6 +2338,49 @@ module GrdaWarehouse::Hud
       scope.select( Arel.star, diff_full, diff_first, diff_last ).order('diff_full DESC, diff_last DESC, diff_first DESC')
     end
 
+    def split(client_ids, hmis_receiver_id, health_receiver_id, current_user)
+      client_names = []
+      dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
+
+      GrdaWarehouse::Hud::Base.transaction do
+        client_ids.each do |client_id|
+          c = self.class.find(client_id)
+          c.warehouse_client_source.destroy if c.warehouse_client_source.present?
+          destination_client = c.dup
+          destination_client.data_source = dnd_warehouse_data_source
+          destination_client.save
+
+          receive_hmis = hmis_receiver_id == client_id
+          receive_health = health_receiver_id == client_id
+
+          GrdaWarehouse::ClientSplitHistory.create(
+            split_from: id,
+            split_into: destination_client.id,
+            receive_hmis: receive_hmis,
+            receive_health: receive_health,
+          )
+
+          GrdaWarehouse::WarehouseClient.create(
+            id_in_source: c.PersonalID,
+            source_id: c.id,
+            destination_id: destination_client.id,
+            data_source_id: c.data_source_id,
+            proposed_at: Time.now,
+            reviewed_at: Time.now,
+            reviewd_by: current_user.id,
+            approved_at: Time.now,
+          )
+
+          destination_client.move_dependent_hmis_items(id, destination_client.id) if receive_hmis
+          destination_client.move_dependent_health_items(id, destination_client.id) if receive_health
+
+          client_names << c.full_name
+        end
+      end
+
+      client_names
+    end
+
     # Move source clients to this destination client
     # other_client can be a single source record or a destination record
     # if it's a destination record, all of its sources will move and it will be deleted
@@ -2355,6 +2454,20 @@ module GrdaWarehouse::Hud
       moved
     end
 
+    def move_dependent_hmis_items(previous_id, new_id)
+      hmis_dependent_items.each do |klass|
+        klass.where(client_id: previous_id).
+          update_all(client_id: new_id)
+      end
+    end
+
+    def move_dependent_health_items(previous_id, new_id)
+      health_dependent_items.each do |klass|
+        klass.where(client_id: previous_id).
+          update_all(client_id: new_id)
+      end
+    end
+
     def move_dependent_items previous_id, new_id
       dependent_items.each do |klass|
         klass.where(client_id: previous_id).
@@ -2363,6 +2476,10 @@ module GrdaWarehouse::Hud
     end
 
     private def dependent_items
+      hmis_dependent_items + health_dependent_items
+    end
+
+    private def hmis_dependent_items
       [
         GrdaWarehouse::ClientNotes::Base,
         GrdaWarehouse::ClientFile,
@@ -2384,6 +2501,11 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::HealthEmergency::Isolation,
         GrdaWarehouse::HealthEmergency::Quarantine,
         GrdaWarehouse::HealthEmergency::UploadedTest,
+      ]
+    end
+
+    private def health_dependent_items
+      [
         Health::Patient,
         Health::HealthFile,
         Health::Tracing::Case,
@@ -2792,7 +2914,7 @@ module GrdaWarehouse::Hud
           else
             cocs = ''
             if GrdaWarehouse::Config.get(:expose_coc_code)
-              cocs = entry.enrollment.enrollment_cocs.map(&:CoCCode).uniq.join(', ')
+              cocs = entry.enrollment&.enrollment_cocs&.map(&:CoCCode)&.uniq&.join(', ')
               cocs = " (#{cocs})" if cocs.present?
             end
             "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"

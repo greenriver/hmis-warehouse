@@ -5,7 +5,7 @@
 ###
 
 class SourceClientsController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   include ClientPathGenerator
 
   before_action :require_can_create_clients!, except: [:image]
@@ -91,7 +91,7 @@ class SourceClientsController < ApplicationController
 
   private def validate_new_client_params(clean_params)
     valid = true
-    unless [0, 9].include?(clean_params[:SSN].length)
+    unless [0, 9].include?(clean_params[:SSN].to_s.length)
       @client.errors[:SSN] = 'SSN must contain 9 digits'
       valid = false
     end
@@ -101,10 +101,6 @@ class SourceClientsController < ApplicationController
     end
     if clean_params[:LastName].blank?
       @client.errors[:LastName] = 'Last name is required'
-      valid = false
-    end
-    if clean_params[:DOB].blank?
-      @client.errors[:DOB] = 'Date of birth is required'
       valid = false
     end
     valid

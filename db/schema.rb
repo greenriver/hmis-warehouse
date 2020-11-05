@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_27_165150) do
+ActiveRecord::Schema.define(version: 2020_11_05_132926) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -28,6 +28,26 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.integer "user_id"
     t.string "coc_codes", default: [], array: true
     t.datetime "deleted_at"
+    t.boolean "system", default: false
+    t.boolean "required", default: false
+  end
+
+  create_table "account_requests", force: :cascade do |t|
+    t.string "email", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.string "phone"
+    t.string "status", null: false
+    t.text "details"
+    t.datetime "accepted_at"
+    t.integer "accepted_by"
+    t.string "rejection_reason"
+    t.datetime "rejected_at"
+    t.integer "rejected_by"
+    t.bigint "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_account_requests_on_user_id"
   end
 
   create_table "activity_logs", id: :serial, force: :cascade do |t|
@@ -132,6 +152,21 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.index ["name"], name: "index_consent_limits_on_name"
   end
 
+  create_table "db_credentials", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "role", null: false
+    t.string "adaptor", null: false
+    t.string "username", null: false
+    t.binary "encrypted_password", null: false
+    t.binary "encrypted_password_iv", null: false
+    t.string "database", null: false
+    t.string "host"
+    t.string "port"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "role"], name: "index_db_credentials_on_user_id_and_role", unique: true
+  end
+
   create_table "delayed_jobs", id: :serial, force: :cascade do |t|
     t.integer "priority", default: 0, null: false
     t.integer "attempts", default: 0, null: false
@@ -147,18 +182,16 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.index ["priority", "run_at"], name: "delayed_jobs_priority"
   end
 
-  create_table "document_exports", force: :cascade do |t|
+  create_table "encryption_secrets", force: :cascade do |t|
+    t.string "version_stage", null: false
+    t.string "version_id", null: false
+    t.boolean "previous", default: true, null: false
+    t.boolean "current", default: true, null: false
+    t.datetime "rotated_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "type", null: false
-    t.bigint "user_id", null: false
-    t.string "version", null: false
-    t.string "status", null: false
-    t.string "query_string"
-    t.binary "file_data"
-    t.string "filename"
-    t.string "mime_type"
-    t.index ["user_id"], name: "index_document_exports_on_user_id"
+    t.index ["version_id"], name: "index_encryption_secrets_on_version_id", unique: true
+    t.index ["version_stage"], name: "index_encryption_secrets_on_version_stage", unique: true
   end
 
   create_table "glacier_archives", id: :serial, force: :cascade do |t|
@@ -279,6 +312,8 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.json "support"
     t.integer "delayed_job_id"
     t.integer "file_id"
+    t.integer "support_file_id"
+    t.integer "export_id"
     t.index ["deleted_at"], name: "index_report_results_on_deleted_at"
     t.index ["report_id"], name: "index_report_results_on_report_id"
   end
@@ -431,6 +466,11 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.boolean "can_edit_health_emergency_contact_tracing", default: false
     t.boolean "receives_medical_restriction_notifications", default: false
     t.boolean "can_download_cohorts", default: false
+    t.boolean "can_use_service_register", default: false
+    t.boolean "can_manage_auto_client_de_duplication", default: false
+    t.boolean "can_view_all_window_notes", default: false
+    t.boolean "can_decrypt_pii", default: false
+    t.boolean "can_delete_youth_intake", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
@@ -469,6 +509,24 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.string "name"
     t.integer "taggings_count", default: 0
     t.index ["name"], name: "index_tags_on_name", unique: true
+  end
+
+  create_table "test_addresses", force: :cascade do |t|
+    t.integer "test_person_id"
+    t.string "street"
+  end
+
+  create_table "test_clients", force: :cascade do |t|
+    t.string "FirstName"
+    t.string "encrypted_FirstName"
+    t.string "encrypted_FirstName_iv"
+  end
+
+  create_table "test_people", force: :cascade do |t|
+    t.string "encrypted_first_name"
+    t.string "encrypted_first_name_iv"
+    t.string "email"
+    t.string "hair"
   end
 
   create_table "tokens", id: :serial, force: :cascade do |t|
@@ -585,6 +643,11 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.datetime "password_changed_at"
     t.boolean "training_completed", default: false
     t.date "last_training_completed"
+    t.string "provider"
+    t.string "uid"
+    t.json "provider_raw_info"
+    t.string "uuid"
+    t.boolean "receive_account_request_notifications", default: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deleted_at"], name: "index_users_on_deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -619,7 +682,7 @@ ActiveRecord::Schema.define(version: 2020_06_27_165150) do
     t.datetime "deleted_at"
   end
 
-  add_foreign_key "document_exports", "users"
+  add_foreign_key "db_credentials", "users"
   add_foreign_key "glacier_archives", "glacier_vaults"
   add_foreign_key "report_results", "users"
   add_foreign_key "reports", "report_results_summaries"

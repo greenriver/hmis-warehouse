@@ -1,11 +1,45 @@
 :ruby
   key = :destination
-  detail_params = @report.detail_params.merge({ key: key, destination: true })
+  detail_params = @report.detail_params.deep_merge(filters: { key: key, destination: true })
+  client_counts = { report: @report.exiting_total_count, comparison: @comparison.exiting_total_count}
   columns = [@report.destinations_data_for_chart[:columns]]
+  avg_columns = [@report.destinations_data_for_chart[:avg_columns]]
   if @report.include_comparison?
     columns << @comparison.destinations_data_for_chart[:columns]
+    avg_columns << @comparison.destinations_data_for_chart[:avg_columns]
   end
   categories = @report.destinations_data_for_chart[:categories]
   chart_class = "#{key}-chart"
+  pie_chart_options = avg_columns.map do |avg_column|
+    {
+      params: detail_params,
+      columns: avg_column,
+      options: {
+        height: 400,
+        follow_link: show_client_details?,
+        legendPosition: 'bottom',
+        data: {
+          labels: {
+            centered: true,
+          },
+        },
+      },
+    }
+  end
 
-= render 'performance_dashboards/project_type/base', key: key, sub_keys: @report.destination_bucket_titles.invert, title: 'Destinations', chart_height: 600, desc: 'Destination provided at exit for the most-recent exit occuring within the period for each client.', detail_params: detail_params, comparison_params: nil, columns: columns, categories: categories
+  locals = {
+    key: key,
+    sub_keys: @report.destination_bucket_titles.invert,
+    title: 'Destinations',
+    chart_height: 600,
+    desc: 'Destination provided at exit for the most-recent exit occuring within the period for each client. Clients may have subsequent enrollments, and therefore the count may be greater than the number of clients leaving during the range.',
+    detail_params: detail_params,
+    comparison_params: nil,
+    columns: columns,
+    categories: categories,
+    client_counts: client_counts,
+    count_type: :exited,
+    pie_chart_options: pie_chart_options
+  }
+
+= render 'performance_dashboards/project_type/base', locals

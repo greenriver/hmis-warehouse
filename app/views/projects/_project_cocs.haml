@@ -1,47 +1,56 @@
 
 %h2 Project CoC Records
-- if project_cocs.count > 0
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th
-        %th ProjectCoCID
-        %th CoC Code
-        %th Geocode
-        %th Geography Type
-        %th
-    %tbody
-      - project_cocs.all.each do |p_coc|
+.card.mb-4
+  - if project_cocs.count > 0
+    %table.table.table-sm.table-hover
+      %thead
         %tr
-          %td
-            - if can_see_raw_hmis_data?
-              = link_to 'HMIS', hmi_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
-          %td= p_coc.ProjectCoCID
-          %td
-            = p_coc.CoCCode
-            - if p_coc.hud_coc_code.present?
-              %br
-              %em
-                Overridden as
-                = p_coc.hud_coc_code
-          %td
-            = p_coc.Geocode
-            - if p_coc.geocode_override.present?
-              %br
-              %em
-                Overridden as
-                = p_coc.geocode_override
-          %td
-            = HUD.geography_type p_coc.GeographyType
-            - if p_coc.geography_type_override.present?
-              %br
-              %em
-                Overridden as
-                = HUD.geography_type p_coc.geography_type_override
-          %td
-            - if can_edit_projects?
-              = link_to edit_project_coc_path(p_coc), class: ['btn', 'btn-sm', 'btn-secondary'] do
-                %i.icon-pencil
-                Edit
-- else
-  %p.text-center No sites
+          %th
+          %th ProjectCoCID
+          %th CoC Code
+          %th Zipcode
+          %th Geocode
+          %th Geography Type
+          %th
+      %tbody
+        - project_cocs.all.each do |p_coc|
+          %tr
+            %td
+              - if can_see_raw_hmis_data?
+                = link_to 'HMIS', hmi_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+            %td= p_coc.ProjectCoCID
+            %td
+              = p_coc.CoCCode
+              - if p_coc.hud_coc_code.present?
+                %br
+                %em
+                  Overridden as
+                  = p_coc.hud_coc_code
+            %td
+              = p_coc.Zip
+              - if p_coc.zip_override.present?
+                %br
+                %em
+                  Overridden as
+                  = p_coc.zip_override
+            %td
+              = p_coc.Geocode
+              - if p_coc.geocode_override.present?
+                %br
+                %em
+                  Overridden as
+                  = p_coc.geocode_override
+            %td
+              = HUD.geography_type p_coc.GeographyType
+              - if p_coc.geography_type_override.present?
+                %br
+                %em
+                  Overridden as
+                  = HUD.geography_type p_coc.geography_type_override
+            %td
+              - if can_edit_projects?
+                = link_to edit_project_coc_path(p_coc), class: ['btn', 'btn-sm', 'btn-secondary'] do
+                  %i.icon-pencil
+                  Edit
+  - else
+    %h4.text-center No sites

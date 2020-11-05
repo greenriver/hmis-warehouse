@@ -8,6 +8,7 @@
 # Control: PHI attributes documented
 module Health
   class Patient < Base
+    include RailsDrivers::Extensions
     include ArelHelper
     acts_as_paranoid
 
@@ -37,6 +38,7 @@ module Health
     phi_attr :care_coordinator_id, Phi::SmallPopulation
     phi_attr :coverage_level, Phi::SmallPopulation
     phi_attr :coverage_inquiry_date, Phi::Date
+    phi_attr :nurse_care_manager_id, Phi::SmallPopulation
 
     has_many :epic_patients, primary_key: :medicaid_id, foreign_key: :medicaid_id, inverse_of: :patient
     has_many :appointments, through: :epic_patients
@@ -104,6 +106,7 @@ module Health
     has_many :patient_referrals
     has_one :health_agency, through: :patient_referral, source: :assigned_agency
     belongs_to :care_coordinator, class_name: 'User'
+    belongs_to :nurse_care_manager, class_name: 'User'
     has_many :qualifying_activities
 
     scope :pilot, -> { where pilot: true }
@@ -331,6 +334,8 @@ module Health
 
     def current_days_enrolled
       referral = patient_referral
+      return 0 unless referral
+
       end_date = referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
       # This only happens with demo data
       return 0 unless referral.enrollment_start_date
@@ -392,7 +397,7 @@ module Health
         user = User.setup_system_user
         qualifying_activities.create(
           activity: :pctp_signed,
-          date_of_activity: enrollment_start_date,
+          date_of_activity: referral.enrollment_start_date,
 
           user_id: user.id,
           user_full_name: user.name,
@@ -403,6 +408,10 @@ module Health
           reached_client: :yes,
         )
       end
+    end
+
+    def age(on_date:)
+      GrdaWarehouse::Hud::Client.age(date: on_date, dob: birthdate)
     end
 
     # Priority:
@@ -660,12 +669,16 @@ module Health
         }
       end
       case_notes += epic_case_notes.order(contact_date: :desc).map do |form|
+        date = form.contact_date
+        # Epic doesn't send timezone, but sends the dates all as mid-night,
+        # so assume it's in the local timezone
+        date = Time.zone.local_to_utc(date).to_date if date
         {
           type: :epic,
           id: form.id,
           title: form.encounter_type,
           sub_title: 'From Epic',
-          date: form.contact_date&.to_date,
+          date: date,
           user: form.provider_name,
         }
       end
@@ -857,7 +870,7 @@ module Health
             title: epic_member.relationship,
             email: epic_member.email,
             phone: epic_member.phone,
-            organization: epic_member.email&.split('@')&.last || 'Unknown'
+            organization: epic_member.email&.split('@')&.last || 'Unknown',
           )
         member.save(validate: false)
         epic_member.update(processed: Time.now)
@@ -905,9 +918,9 @@ module Health
       return full_name
     end
 
-    def build_team_memeber!(care_coordinator_id, current_user)
-      user = User.find(care_coordinator_id)
-      team_member = Health::Team::CareCoordinator.where(patient_id: id, email: user.email).first_or_initialize
+    def build_team_member!(team_member_class, team_member_user_id, current_user)
+      user = User.find(team_member_user_id)
+      team_member = team_member_class.where(patient_id: id, email: user.email).first_or_initialize
       team_member.assign_attributes(
         patient_id: id,
         first_name: user.first_name,
@@ -920,6 +933,12 @@ module Health
     end
 
     def available_care_coordinators
+      return [] unless health_agency.present?
+      user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
+      User.where(id: user_ids)
+    end
+
+    def available_nurse_care_managers
       return [] unless health_agency.present?
       user_ids = Health::AgencyUser.where(agency_id: health_agency.id).pluck(:user_id)
       User.where(id: user_ids)

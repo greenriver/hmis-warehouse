@@ -17,3 +17,7 @@
 .v-align-middle {
   vertical-align: middle !important;
 }
+
+tr.even td {
+  background-color: $gray-015;
+}

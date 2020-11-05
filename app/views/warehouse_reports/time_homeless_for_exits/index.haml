@@ -1,0 +1,24 @@
+- title = 'Average Length of Time Homeless for Housed Clients'
+- content_for :title, title
+%h1= title
+= render '/warehouse_reports/breadcrumbs'
+= render 'filter'
+%p
+  This report includes clients who have exited to a permanent destination, or had a move-in-date at a PH project within the date range specified.  Days homeless is calculated by finding the latest  entry into a homeless project that precedes the permanent exit from homelessness.  If multiple overlapping homeless enrollments preceed the exit, the entry date is used from the ealiest contiguous enrollment.
+- if @report.data.present?
+  .d-flex.text-center.justify-content-center.mt-4.mb-6
+    .chunk.pr-4.mr-4.mb-4
+      %h4.title
+        Average Days Homeless
+      .metric
+        = @report.average_days
+      %i.icon-calendar.metric
+    .chunk.pr-4.mr-4.mb-4
+      %h4.title
+        Clients
+      .metric
+        = @report.data.count
+      %i.icon-group.metric
+  = render 'table'
+- else
+  %p.well.none-found No clients found.

@@ -30,7 +30,7 @@
 #   },
 # )
 
-module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
+module EtoApi::Tasks
   class UpdateClientDemographics
     include ActionView::Helpers::DateHelper
     include NotifierConfig
@@ -125,6 +125,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
                 notifier.ping msg if send_notifications
                 return # rubocop:disable Lint/NonLocalExitFromIterator
               end
+              found.maintain_client_consent if @one_off && found.present?
             rescue Exception => e
               notifier.ping "ERROR #{e.message} for api client #{client.id}, source_client: #{client.client_id} in data source #{@data_source_id}"
             end
@@ -342,8 +343,12 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
           answers[:sections] << s_section
         end
 
-        staff = @api.staff(site_id: site_id, id: api_response['AuditStaffID'])
-        hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
+        staff = @api.staff(site_id: site_id, id: api_response['AuditStaffID']) # Returns nil if it can't be found
+        if staff.present?
+          hmis_form.staff = "#{staff['FirstName']} #{staff['LastName']}"
+        else
+          hmis_form.staff = "ETO Staff ID: #{api_response['AuditStaffID']}"
+        end
         hmis_form.staff_email = staff['Email']
         # Add email
         hmis_form.collected_at = @api.parse_date(api_response['ResponseCreatedDate'])

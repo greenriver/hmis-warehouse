@@ -43,8 +43,9 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
 
       row[:ProjectCommonName] = row[:ProjectName] if row[:ProjectCommonName].blank?
 
+      override = hmis_participating_project_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
+      row[:HMISParticipatingProject] = override if override.present?
       row[:HMISParticipatingProject] = 99 if row[:HMISParticipatingProject].blank?
-
 
       # TrackingMethod override is dependent on the original ProjectType, this must come before the ProjectType override
       override = tracking_method_override_for(project: row, data_source_id: data_source_id)
@@ -99,6 +100,15 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
           end
         end.compact.to_h
       return @continuum_project_overrides[[data_source_id, project_id]]
+    end
+
+    def hmis_participating_project_override_for project_id:, data_source_id:
+      @hmis_participating_project_override_for ||= self.class.where.not(hmis_participating_project_override: nil).
+        pluck(:data_source_id, :id, :hmis_participating_project_override).
+        map do |ds_id, p_id, hmis_participating_project_override|
+          [[ds_id, p_id], hmis_participating_project_override] if hmis_participating_project_override.present?
+        end.compact.to_h
+      @hmis_participating_project_override_for[[data_source_id, project_id]]
     end
 
     def operating_start_date_override_for project_id:, data_source_id:

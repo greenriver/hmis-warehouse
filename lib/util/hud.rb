@@ -13,12 +13,21 @@ module HUD
     group_number = ssn[3..4]
     serial_number = ssn.last(4)
 
+    # Fields can't be all zeros
     return false if area_number.to_i.zero? || group_number.to_i.zero? || serial_number.to_i.zero?
+    # Fields must be numbers
+    return false unless digits?(area_number) && digits?(group_number) && digits?(serial_number)
+    # 900+ are not assigned, and 666 is excluded
     return false if area_number.to_i >= 900 || area_number == '666'
+    # Published IDs are not valid
     return false if ['219099999', '078051120', '123456789'].include?(ssn)
     return false if ssn.split('').uniq.count == 1 # all the same number
 
     true
+  end
+
+  private def digits?(value)
+    value.match(/^\d+$/).present?
   end
 
   def fiscal_year_start
@@ -80,14 +89,15 @@ module HUD
     _translate map, field, reverse
   end
 
+  # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
   def races
     {
-      'AmIndAKNative' => 'American Indian or Alaska Native',
-      'Asian' => 'Asian',
-      'BlackAfAmerican' => 'Black or African American',
-      'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander',
-      'White' => 'White',
-      'RaceNone' => 'None',
+      'AmIndAKNative' => 'American Indian or Alaska Native', # 1
+      'Asian' => 'Asian', # 2
+      'BlackAfAmerican' => 'Black or African American', # 3
+      'NativeHIOtherPacific' => 'Native Hawaiian or Other Pacific Islander', # 4
+      'White' => 'White', # 5
+      'RaceNone' => 'None', # 6 (can be 99, 8, 9, null only if all other race fields are 99 or 0)
     }
   end
 
@@ -400,13 +410,17 @@ module HUD
 
   # 2.5.1
   def tracking_method(id, reverse = false)
-    map = {
+    map = tracking_methods
+
+    _translate map, id, reverse
+  end
+
+  def tracking_methods
+    {
       0 => 'Entry/Exit Date',
       3 => 'Night-by-Night',
       nil => 'Entry/Exit Date',
     }
-
-    _translate map, id, reverse
   end
 
   def funding_sources
@@ -454,6 +468,8 @@ module HUD
       44 => 'HUD: CoC - Joint Component TH/RRH',
       45 => 'VA: Grant Per Diem - Case Management/Housing Retention',
       46 => 'Local or Other Funding Source',
+      47 => 'HUD: ESG – CV',
+      48 => 'HUD: HOPWA – CV',
     }
   end
 
@@ -551,28 +567,32 @@ module HUD
 
   # 3.1.5
   def name_data_quality(id, reverse = false)
-    map = {
+    _translate(name_data_quality_options, id, reverse)
+  end
+
+  def name_data_quality_options
+    {
       1 => 'Full name reported',
       2 => 'Partial, street name, or code name reported',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.2.2
   def ssn_data_quality(id, reverse = false)
-    map = {
+    _translate(ssn_data_quality_options, id, reverse)
+  end
+
+  def ssn_data_quality_options
+    {
       1 => 'Full SSN reported',
       2 => 'Approximate or partial SSN reported',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.3.2
@@ -672,7 +692,13 @@ module HUD
 
   # 3.917.4
   def times_homeless_past_three_years(id, reverse = false)
-    map = {
+    map = times_homeless_options
+
+    _translate map, id, reverse
+  end
+
+  def times_homeless_options
+    {
       1 => 'One time',
       2 => 'Two times',
       3 => 'Three times',
@@ -681,8 +707,6 @@ module HUD
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   def times_homeless_past_three_years_brief(id, reverse = false)
@@ -701,24 +725,7 @@ module HUD
 
   # 3.917.5
   def months_homeless_past_three_years(id, reverse = false)
-    map = {
-      8 => 'Client doesn’t know',
-      9 => 'Client refused',
-      99 => 'Data not collected',
-      101 => '1',
-      102 => '2',
-      103 => '3',
-      104 => '4',
-      105 => '5',
-      106 => '6',
-      107 => '7',
-      108 => '8',
-      109 => '9',
-      110 => '10',
-      111 => '11',
-      112 => '12',
-      113 => 'More than 12 months',
-    }
+    map = month_categories
 
     _translate map, id, reverse
   end
@@ -744,6 +751,27 @@ module HUD
     }
 
     _translate map, id, reverse
+  end
+
+  def month_categories
+    {
+      8 => 'Client doesn’t know',
+      9 => 'Client refused',
+      99 => 'Data not collected',
+      101 => '1',
+      102 => '2',
+      103 => '3',
+      104 => '4',
+      105 => '5',
+      106 => '6',
+      107 => '7',
+      108 => '8',
+      109 => '9',
+      110 => '10',
+      111 => '11',
+      112 => '12',
+      113 => 'More than 12 months',
+    }
   end
 
   # 3.12.1
@@ -800,7 +828,7 @@ module HUD
     }
   end
 
-  def homeless_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def homeless_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
@@ -814,7 +842,7 @@ module HUD
     end
   end
 
-  def institutional_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def institutional_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
@@ -831,7 +859,7 @@ module HUD
     end
   end
 
-  def temporary_and_permanent_housing_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def temporary_and_permanent_housing_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
@@ -881,7 +909,7 @@ module HUD
     end
   end
 
-  def other_situations(as:, version: nil) # rubocop:disable Naming/MethodParameterName
+  def other_situations(as:, version: nil)
     case version
     when '2020', nil
       case as
@@ -910,6 +938,23 @@ module HUD
         ]
       end
     end
+  end
+
+  def situation_type(id)
+    return 'Temporary or Permanent' if temporary_and_permanent_housing_situations(as: :prior).include?(id)
+    return 'Institutional' if institutional_situations(as: :prior).include?(id)
+    return 'Other' if homeless_situations(as: :prior).include?(id)
+
+    'Other'
+  end
+
+  def destination_type(id)
+    return 'Permanent' if permanent_destinations.include?(id)
+    return 'Temporary' if temporary_destinations.include?(id)
+    return 'Institutional' if institutional_destinations.include?(id)
+    return 'Homeless' if homeless_destinations.include?(id)
+
+    'Other'
   end
 
   def permanent_destinations(version: nil)
@@ -949,6 +994,7 @@ module HUD
         2,
         25,
         32,
+        29,
       ]
     end
   end
@@ -961,9 +1007,19 @@ module HUD
     other_situations(as: :destination, version: version)
   end
 
+  def homeless_destinations(version: nil)
+    homeless_situations(as: :destination, version: version)
+  end
+
   # 3.15.1
   def relationship_to_hoh(id, reverse = false)
-    map = {
+    map = relationships_to_hoh
+
+    _translate map, id, reverse
+  end
+
+  def relationships_to_hoh
+    {
       1 => 'Self (head of household)',
       2 => 'Child',
       3 => 'Spouse or partner',
@@ -971,8 +1027,6 @@ module HUD
       5 => 'Unrelated household member',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 4.1.1
@@ -1051,7 +1105,12 @@ module HUD
 
   # 4.11.A
   def when_d_v_occurred(id, reverse = false)
-    map = {
+    map = when_occurreds
+    _translate map, id, reverse
+  end
+
+  def when_occurreds
+    {
       1 => 'Within the past three months',
       2 => 'Three to six months ago (excluding six months exactly)',
       3 => 'Six months to one year ago (excluding one year exactly)',
@@ -1060,8 +1119,6 @@ module HUD
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   # 4.12.2

@@ -1,0 +1,14 @@
+ExitID,EnrollmentID,PersonalID,ExitDate,Destination,OtherDestination,HousingAssessment,SubsidyInformation,ProjectCompletionStatus,EarlyExitReason,ExchangeForSex,ExchangeForSexPastThreeMonths,CountOfExchangeForSex,AskedOrForcedToExchangeForSex,AskedOrForcedToExchangeForSexPastThreeMonths,WorkPlaceViolenceThreats,WorkplacePromiseDifference,CoercedToContinueWork,LaborExploitPastThreeMonths,CounselingReceived,IndividualCounseling,FamilyCounseling,GroupCounseling,SessionCountAtExit,PostExitCounselingPlan,SessionsInPlan,DestinationSafeClient,DestinationSafeWorker,PosAdultConnections,PosPeerConnections,PosCommunityConnections,AftercareDate,AftercareProvided,EmailSocialMedia,Telephone,InPersonIndividual,InPersonGroup,CMExitReason,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+X-1,E-1,C-1,2020-01-01,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-2,E-2,C-1,2020-01-02,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-3,E-3,C-1,2020-01-03,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-4,E-4,C-1,2020-01-05,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-5,E-5,C-1,2020-01-06,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-6,E-6,C-2,2020-01-03,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-7,E-7,C-2,2020-01-04,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-8,E-8,C-2,2020-01-06,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-9,E-9,C-2,2020-01-08,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-10,E-10,C-1,2020-01-01,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-11,E-11,C-1,2020-01-02,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-12,E-12,C-1,2020-01-03,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST
+X-13,E-13, C-1,2020-01-05,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2020-01-01 00:00:00,2020-01-01 00:00:00,user,,ALLOW-TEST

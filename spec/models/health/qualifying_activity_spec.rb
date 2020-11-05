@@ -264,5 +264,38 @@ RSpec.describe Health::QualifyingActivity, type: :model do
         expect(other_qa8.compute_valid_unpayable?).to be true
       end
     end
+
+    it 'ignores unpayable outreach QAs when checking for first' do
+      create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-15'), naturally_payable: false
+      outreach_qa = create :qualifying_activity, patient: @patient, activity: :outreach, date_of_activity: Date.parse('2018-01-20')
+
+      Timecop.return
+      expect(outreach_qa.compute_valid_unpayable?).to be false
+    end
+  end
+
+  describe 'Outreach QA' do
+    let(:qa) { create :valid_qa }
+
+    it 'has a valid procedure code' do
+      qa.calculate_payability!
+      qa.maintain_procedure_valid
+
+      expect(qa.naturally_payable).to be true
+      expect(qa.procedure_valid?).to be true
+      expect(qa.procedure_code).to eq 'G9011'
+    end
+  end
+  describe 'PCTP QA' do
+    let(:qa) { create :pctp_signed_qa }
+
+    it 'has a valid procedure code' do
+      qa.calculate_payability!
+      qa.maintain_procedure_valid
+
+      expect(qa.naturally_payable).to be true
+      expect(qa.procedure_valid?).to be true
+      expect(qa.procedure_code).to eq 'T2024>U4'
+    end
   end
 end

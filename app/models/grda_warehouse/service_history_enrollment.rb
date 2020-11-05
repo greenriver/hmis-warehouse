@@ -14,15 +14,21 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:data_source_id, :enrollment_group_id, :project_id], primary_key: [:data_source_id, :EnrollmentID, :ProjectID], autosave: false
   has_one :source_client, through: :enrollment, source: :client, autosave: false
   has_one :enrollment_coc_at_entry, through: :enrollment, autosave: false
-  has_one :head_of_household, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], inverse_of: :service_history, autosave: false
+  has_one :head_of_household, class_name: 'GrdaWarehouse::Hud::Client', primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:PersonalID, :data_source_id], autosave: false
   belongs_to :data_source, autosave: false
   belongs_to :processed_client, -> { where(routine: 'service_history')}, class_name: 'GrdaWarehouse::WarehouseClientsProcessed', foreign_key: :client_id, primary_key: :client_id, inverse_of: :service_history_enrollments, autosave: false
   has_many :service_history_services, inverse_of: :service_history_enrollment, primary_key: [:id, :client_id], foreign_key: [:service_history_enrollment_id, :client_id]
   has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], foreign_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
 
+  # Find the SHE for the head of household associated with this enrollment's household, if this is for th HoH, it returns itself
+  has_one :service_history_enrollment_for_head_of_household, -> { where(head_of_household: true) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:head_of_household_id, :data_source_id], autosave: false
+  # Find the non HoH SHEs associated with this enrollment's household, if this is not for the HoH, it will contain this enrollment
+  has_many :other_household_service_history_enrollments, -> { where(head_of_household: false) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :household_id], foreign_key: [:data_source_id, :project_id, :household_id], autosave: false
+
   # make a scope for every project type and a type? method for instances
-  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k,v|
-    next unless Symbol === k
+  GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k, v|
+    next unless k.is_a?(Symbol)
+
     scope k, -> { where project_type_column => v }
     define_method "#{k}?" do
       v.include? self.project_type
@@ -38,9 +44,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   def self.service_types
     service_types = ['service']
-    if GrdaWarehouse::Config.get(:so_day_as_month)
-      service_types << 'extrapolated'
-    end
+    service_types << 'extrapolated' if GrdaWarehouse::Config.get(:so_day_as_month)
   end
   scope :residential, -> {
     in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
@@ -74,7 +78,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_UNSHELTERED_PROJECT_TYPES)
   end
 
-  scope :ongoing, -> (on_date: Date.current) do
+  scope :ongoing, ->(on_date: Date.current) do
     at = arel_table
     where_closed = at[:first_date_in_program].lteq(on_date).
       and(at[:last_date_in_program].gt(on_date))
@@ -83,7 +87,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(where_closed.or(where_open))
   end
 
-  scope :open_between, -> (start_date:, end_date:) do
+  scope :open_between, ->(start_date:, end_date:) do
     at = arel_table
     # Excellent discussion of why this works:
     # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
@@ -95,7 +99,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
   end
 
-  scope :homeless, -> (chronic_types_only: false) do
+  scope :homeless, ->(chronic_types_only: false) do
     if chronic_types_only
       project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
     else
@@ -105,13 +109,12 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   # this is always only chronic
-  scope :hud_homeless, -> (chronic_types_only: true) do
+  scope :hud_homeless, ->(chronic_types_only: true) do
     hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
   end
 
   # The client is enrolled in ES, SO, SH (TH) or PH prior to move-in and has no overlapping PH (TH) after move in
-  scope :currently_homeless, -> (date: Date.current, chronic_types_only: false) do
-
+  scope :currently_homeless, ->(date: Date.current, chronic_types_only: false) do
     if chronic_types_only # literally homeless
       residential_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
     else
@@ -130,8 +133,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       where.not(client_id: housed_scope.select(:client_id))
   end
 
-  scope :hud_currently_homeless, -> (date: Date.current, chronic_types_only: false) do
-
+  scope :hud_currently_homeless, ->(date: Date.current, chronic_types_only: false) do
     if chronic_types_only # literally homeless
       residential_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
     else
@@ -149,23 +151,23 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
       where.not(client_id: housed_scope.select(:client_id))
   end
 
-  scope :service_within_date_range, -> (start_date: , end_date: ) do
+  scope :service_within_date_range, ->(start_date:, end_date:) do
     joins(:service_history_services).
-    merge(GrdaWarehouse::ServiceHistoryService.service).
-    where(shs_t[:date].gteq(start_date).and(shs_t[:date].lteq(end_date)))
+      merge(GrdaWarehouse::ServiceHistoryService.service).
+      where(shs_t[:date].gteq(start_date).and(shs_t[:date].lteq(end_date)))
   end
 
-  scope :service_on_date, -> (date) do
+  scope :service_on_date, ->(date) do
     joins(:service_history_services).
       merge(GrdaWarehouse::ServiceHistoryService.service).
       where(shs_t[:date].eq(date))
   end
 
-  scope :entry_within_date_range, -> (start_date: , end_date: ) do
+  scope :entry_within_date_range, ->(start_date:, end_date:) do
     self.entry.started_between(start_date: start_date, end_date: end_date)
   end
 
-  scope :exit_within_date_range, -> (start_date: , end_date: ) do
+  scope :exit_within_date_range, ->(start_date:, end_date:) do
     self.entry.ended_between(start_date: start_date, end_date: end_date)
   end
 
@@ -179,7 +181,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     enrollment_open_in_prior_years(years: 3)
   }
 
-  scope :enrollment_open_in_prior_years, -> (years: 3) do
+  scope :enrollment_open_in_prior_years, ->(years: 3) do
     t = DateTime.current - years.years
     at = arel_table
     where(
@@ -187,11 +189,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     )
   end
 
-  scope :started_between, -> (start_date: , end_date: ) do
+  scope :started_between, ->(start_date:, end_date:) do
     where(first_date_in_program: (start_date..end_date))
   end
 
-  scope :ended_between, -> (start_date: , end_date: ) do
+  scope :ended_between, ->(start_date:, end_date:) do
     where(last_date_in_program: (start_date..end_date))
   end
 
@@ -200,12 +202,12 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   # Takes advantage of the HUD reporting override for CoC code
-  scope :in_coc, -> (coc_code:) do
+  scope :in_coc, ->(coc_code:) do
     joins(project: :project_cocs).
       merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
   end
 
-  scope :coc_funded_in, -> (coc_code:) do
+  scope :coc_funded_in, ->(coc_code:) do
     coc_funded.in_coc(coc_code: coc_code)
   end
 
@@ -217,41 +219,41 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     )
   end
 
-  scope :grant_funded_between, -> (start_date:, end_date:) do
+  scope :grant_funded_between, ->(start_date:, end_date:) do
     joins(project: :funders).
       merge(GrdaWarehouse::Hud::Funder.open_between(start_date: start_date, end_date: end_date))
   end
 
   # HUD reporting Project Type overlay
-  scope :hud_project_type, -> (project_types) do
+  scope :hud_project_type, ->(project_types) do
     where(computed_project_type: project_types)
   end
 
-  scope :in_project_type, -> (project_types) do
+  scope :in_project_type, ->(project_types) do
     where(project_type_column => project_types)
   end
 
   # uses actual Projects.id not ProjectID (which is stored in the table and requires data_source_id)
   # also accepts an array of ids if you want a multi-project query
-  scope :in_project, -> (ids) do
+  scope :in_project, ->(ids) do
     joins(:project).merge(GrdaWarehouse::Hud::Project.where(id: ids))
   end
 
-  scope :in_organization, -> (ids) do
+  scope :in_organization, ->(ids) do
     joins(:organization).merge(GrdaWarehouse::Hud::Organization.where(id: ids))
   end
 
-  scope :in_data_source, -> (ids) do
+  scope :in_data_source, ->(ids) do
     where(data_source_id: ids)
   end
 
-  scope :with_service_between, -> (start_date:, end_date:, service_scope: :current_scope) do
+  scope :with_service_between, ->(start_date:, end_date:, service_scope: :current_scope) do
     where(
       GrdaWarehouse::ServiceHistoryService.
       service_between(start_date: start_date, end_date: end_date, service_scope: service_scope).
       where(
         shs_t[:service_history_enrollment_id].eq(she_t[:id]).
-        and(shs_t[:client_id].eq(she_t[:client_id]))
+        and(shs_t[:client_id].eq(she_t[:client_id])),
       ).
       arel.exists
     )
@@ -269,19 +271,23 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(she_t[:head_of_household].eq(true))
   end
 
-  scope :visible_in_window_to, -> (user) do
-    joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
+  scope :visible_in_window_to, ->(user) do
+    if user.can_view_clients? || user.can_view_client_window?
+      joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
+    else
+      joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+    end
   end
 
-  scope :with_move_in_date_before, -> (date) do
+  scope :with_move_in_date_before, ->(date) do
     where(she_t[:move_in_date].lt(date))
   end
 
-  scope :with_move_in_date_after_or_blank, -> (date) do
+  scope :with_move_in_date_after_or_blank, ->(date) do
     where(she_t[:move_in_date].gteq(date).or(she_t[:move_in_date].eq(nil)))
   end
 
-  scope :in_age_ranges, -> (age_ranges) do
+  scope :in_age_ranges, ->(age_ranges) do
     age_ranges = age_ranges.reject(&:blank?).map(&:to_sym)
     return current_scope unless age_ranges.present?
 
@@ -304,36 +310,60 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   #################################
-    # Standard Cohort Scopes
+  # Standard Cohort Scopes
 
-    # FIXME: do we need these? individual, youth, children, adult
-    scope :individual, -> do
-      where(presented_as_individual: true)
-    end
+  # FIXME: do we need these? individual, youth, children, adult
+  scope :individual, -> do
+    where(presented_as_individual: true)
+  end
 
-    scope :youth, -> do
-      where(age: (18..24))
-    end
+  scope :youth, -> do
+    where(age: (18..24))
+  end
 
-    scope :children, -> do
-      where(age: (0...18))
-    end
+  scope :children, -> do
+    where(age: (0...18))
+  end
 
-    scope :adult, -> do
-      where(age: (18..Float::INFINITY))
-    end
+  scope :adult, -> do
+    where(age: (18..Float::INFINITY))
+  end
 
-    def self.known_standard_cohorts
-      AvailableSubPopulations.available_sub_populations.values
-    end
+  def self.known_standard_cohorts
+    AvailableSubPopulations.available_sub_populations.values
+  end
 
-    # End Standard Cohort Scopes
-    #################################
+  # End Standard Cohort Scopes
+  #################################
 
   # Only run this on off-hours.  It can take 2-5 hours and hang
   # the database
   def self.reindex_table!
     connection.execute("REINDEX TABLE #{table_name}")
+  end
+
+  def self.view_column_names
+    column_names - [
+      'date',
+      'project_type',
+      'organization_id',
+      'service_type',
+      'record_type',
+      'housing_status_at_entry',
+      'housing_status_at_exit',
+      'presented_as_individual',
+      'other_clients_over_25',
+      'other_clients_under_18',
+      'other_clients_between_18_and_25',
+      'unaccompanied_youth',
+      'parenting_youth',
+      'parenting_juvenile',
+      'children_only',
+      'individual_adult',
+      'individual_elder',
+      'head_of_household',
+      'unaccompanied_minor',
+    ]
   end
 
   # Relevant Project Types/Program Types

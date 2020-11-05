@@ -5,10 +5,11 @@
 ###
 
 module PerformanceDashboards
-  class ProjectTypeController < BaseController
-    before_action :set_filter
+  class ProjectTypeController < OverviewController
+    include AjaxModalRails::Controller
     before_action :set_report
     before_action :set_key, only: [:details]
+    before_action :set_pdf_export
 
     def index
     end
@@ -33,6 +34,10 @@ module PerformanceDashboards
       end
     end
 
+    def download
+      render xlsx: 'xlsx_download', filename: "#{@report.project_type_title} Performance".truncate(31)
+    end
+
     private def option_params
       params.permit(
         filters: [
@@ -43,19 +48,10 @@ module PerformanceDashboards
           :length_of_time,
           :returns,
           :breakdown,
+          :coordinated_assessment_living_situation_homeless,
         ],
       )
     end
-
-    private def multiple_project_types?
-      false
-    end
-    helper_method :multiple_project_types?
-
-    private def include_comparison_pattern?
-      false
-    end
-    helper_method :include_comparison_pattern?
 
     private def set_report
       @report = PerformanceDashboards::ProjectType.new(@filter)
@@ -72,6 +68,10 @@ module PerformanceDashboards
 
     private def filter_class
       ::Filters::PerformanceDashboardByProjectType
+    end
+
+    private def set_pdf_export
+      @pdf_export = GrdaWarehouse::DocumentExports::ProjectTypePerformanceExport.new
     end
   end
 end

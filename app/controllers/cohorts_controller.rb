@@ -5,7 +5,7 @@
 ###
 
 class CohortsController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   include CohortAuthorization
   include CohortClients
   before_action :some_cohort_access!
@@ -211,7 +211,7 @@ class CohortsController < ApplicationController
       m[:column] == @column && m[:direction] == @direction
     end.first[:order]
 
-    result += ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name == 'PostgreSQL'
+    result += ' NULLS LAST' if ActiveRecord::Base.connection.adapter_name.in?(['PostgreSQL', 'PostGIS'])
     result
   end
 end

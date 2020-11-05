@@ -7,10 +7,13 @@
 module GrdaWarehouse::Youth
   class YouthReferral < GrdaWarehouseBase
     include ArelHelper
+    include YouthExport
     has_paper_trail
     acts_as_paranoid
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_referrals
+    belongs_to :user
+    has_many :youth_intakes, through: :client
 
     validates_presence_of :referred_on, :referred_to
 
@@ -32,14 +35,10 @@ module GrdaWarehouse::Youth
         where.not(agency_id: nil).
         where(agency_id: user.agency_id).
         pluck(:id) + [user.id]
-      if user.can_edit_anything_super_user?
+      # If you can see anything, then show them all
+      # if you can see all youth intakes, show them all
+      if user.can_edit_anything_super_user? || user.can_view_youth_intake? || user.can_edit_youth_intake?
         all
-      # If you can see any, then show yours, those for your agency, and those for anyone with a full release
-      elsif user.can_view_youth_intake? || user.can_edit_youth_intake?
-        where(
-          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
-          or(arel_table[:user_id].in(agency_user_ids))
-        )
       # If you can see your agancy's, then show yours and those for your agency
       elsif user.can_view_own_agency_youth_intake? || user.can_edit_own_agency_youth_intake?
         where(user_id: agency_user_ids)
@@ -67,10 +66,6 @@ module GrdaWarehouse::Youth
         'Referred to cultural / recreational activities',
         'Referred to other services / activities not listed above',
       ].sort.freeze + ['Other']
-    end
-
-    def self.report_columns
-      column_names - [:user_id, :deleted_at]
     end
   end
 end

@@ -7,7 +7,7 @@
 module Clients::Youth
   class CaseManagementsController < ApplicationController
     include ClientPathGenerator
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientDependentControllers
 
     before_action :require_can_access_youth_intake_list!
@@ -51,6 +51,7 @@ module Clients::Youth
         :activity,
         :housing_status,
         :other_housing_status,
+        :zip_code,
       )
     end
 

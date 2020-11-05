@@ -9,10 +9,12 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::ProjectCoc
     include ArelHelper
+    require 'csv'
+
+    attr_accessor :source_id
 
     self.table_name = 'ProjectCoC'
-    self.hud_key = :ProjectCoCID
-    acts_as_paranoid column: :DateDeleted
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
 
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :project_cocs
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :project_cocs, optional: true
@@ -20,8 +22,10 @@ module GrdaWarehouse::Hud
     has_many :inventories, class_name: 'GrdaWarehouse::Hud::Inventory', primary_key: [:ProjectID, :CoCCode, :data_source_id], foreign_key: [:ProjectID, :CoCCode, :data_source_id], inverse_of: :project_coc
     belongs_to :data_source
     has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :project_coc
+    has_one :overridden_lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :overridden_project_coc
 
-    scope :in_coc, -> (coc_code:) do
+
+    scope :in_coc, ->(coc_code:) do
       # hud_coc_code overrides CoCCode
       coc_code = Array(coc_code)
       where(
@@ -34,7 +38,7 @@ module GrdaWarehouse::Hud
       where.not(CoCCode: nil).or(where.not(hud_coc_code: nil))
     end
 
-    scope :viewable_by, -> (user) do
+    scope :viewable_by, ->(user) do
       if user.can_edit_anything_super_user?
         current_scope
       elsif user.coc_codes.none?
@@ -45,9 +49,7 @@ module GrdaWarehouse::Hud
     end
 
     def effective_coc_code
-      return hud_coc_code if hud_coc_code.present?
-
-      self.CoCCode
+      hud_coc_code.presence || self.CoCCode
     end
 
     def self.related_item_keys
@@ -55,21 +57,52 @@ module GrdaWarehouse::Hud
     end
 
     def self.available_coc_codes
-      distinct.order(:CoCCode).pluck(:CoCCode)
+      distinct.pluck(coc_code_coalesce).reject(&:blank?).sort
     end
 
-    def self.options_for_select user:
+    def self.options_for_select(user:)
       # don't cache this, it's a class method
       viewable_by(user).
         distinct.
-        order(CoCCode: :asc).
-        pluck(:CoCCode).
+        pluck(coc_code_coalesce).
+        reject(&:blank?).
+        sort.
         map do |coc_code|
           [
             coc_code,
             coc_code,
           ]
         end
+    end
+
+    def self.coc_code_coalesce
+      cl(pc_t[:hud_coc_code], pc_t[:CoCCode])
+    end
+
+    # when we export, we always need to replace ProjectCoCID with the value of id
+    # and ProjectID with the id of the related project
+    def self.to_csv(scope:)
+      attributes = self.hud_csv_headers.dup
+      headers = attributes.clone
+      attributes[attributes.index(:ProjectCoCID)] = :id
+      attributes[attributes.index(:ProjectID)] = 'project.id'
+
+      CSV.generate(headers: true) do |csv|
+        csv << headers
+
+        scope.each do |i|
+          csv << attributes.map do |attr|
+            attr = attr.to_s
+            # we need to grab the appropriate id from the related project
+            if attr.include?('.')
+              obj, meth = attr.split('.')
+              i.send(obj).send(meth)
+            else
+              i.send(attr)
+            end
+          end
+        end
+      end
     end
   end
 end

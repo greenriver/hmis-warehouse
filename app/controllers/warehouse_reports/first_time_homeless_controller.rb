@@ -60,6 +60,7 @@ module WarehouseReports
       scope = history_scope(scope, @filter.sub_population)
       scope = filter_for_age_ranges(scope)
       scope = filter_for_hoh(scope)
+      scope = filter_for_coc_codes(scope)
       scope
     end
 
@@ -96,6 +97,7 @@ module WarehouseReports
         organization_ids: [],
         project_ids: [],
         project_type_codes: [],
+        coc_codes: [],
       )
     end
   end

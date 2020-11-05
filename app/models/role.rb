@@ -385,6 +385,13 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
+      can_delete_youth_intake: {
+        description: 'The ability to delete a Youth Intake record',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_view_own_agency_youth_intake: {
         description: 'Access to existing Youth Intake records associated with the User\'s agency',
         administrative: false,
@@ -429,6 +436,13 @@ class Role < ApplicationRecord
       },
       can_see_own_window_client_notes: {
         description: 'Access to notes created by the user in the window',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
+      can_view_all_window_notes: {
+        description: 'User will be able to see notes for any client they can already see, this includes only notes of type Window Note, Alert, or Emergency Contact',
         administrative: false,
         categories: [
           'Client Extras',
@@ -749,10 +763,25 @@ class Role < ApplicationRecord
         ],
       },
       receives_medical_restriction_notifications: {
-        description: 'Email notifications will be sent whenever a medical restriction or test result is added',
+        description: 'Email notifications will be sent whenever a medical restriction or test result is added.',
         administrative: false,
         categories: [
           'Health Emergency',
+        ],
+      },
+      can_use_service_register: {
+        description: 'Grants the ability to scan individual services for a given program.',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
+      can_manage_auto_client_de_duplication: {
+        description: 'Ability to see statistics around client de-duplication and set the threshold for probabilistic matching.',
+        administrative: true,
+        categories: [
+          'Administration',
+
         ],
       },
     }

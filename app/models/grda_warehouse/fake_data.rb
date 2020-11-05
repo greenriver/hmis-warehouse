@@ -38,39 +38,45 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
 
   def fake_patterns
     @fake_patterns ||= {
-      FirstName:  -> (value) { fake_name(type: :first) },
-      LastName: -> (value) { fake_name(type: :last) },
-      SSN: -> (value) { fake_ssn(value).to_s[0,9] if value.present?},
-      DOB: -> (value) {
-        Faker::Date.between(from: 70.years.ago, to: 1.years.ago) if value.present?
+      FirstName: ->(value) { fake_name(type: :first) },
+      LastName: ->(value) { fake_name(type: :last) },
+      SSN: ->(value) { fake_ssn(value).to_s[0,9] if value.present?},
+      DOB: ->(value) {
+        value = value&.to_date
+        if value.present? && value.is_a?(Date)
+          # If we have a birthday, shift it some random amount, but not so much that we
+          # drastically change life stage
+          value + (-600..600).to_a.sample
+          # Faker::Date.between(from: 70.years.ago, to: 1.years.ago)
+        end
       },
-      PersonalID: -> (value) { Digest::MD5.hexdigest(value&.to_s) },
-      UserID: -> (value) { Faker::Internet.user_name(specifier: 5..8) },
-      CoCCode: -> (value) { "#{Faker::Address.state_abbr}-#{Faker::Number.number(digits: 3)}" },
-      ProjectName: -> (value) { fake_location },
-      ProjectCommonName: -> (value) { fake_location },
-      OrganizationName: -> (value) { fake_location },
-      OrganizationCommonName: -> (value) { fake_location },
-      SourceContactEmail: -> (value) { Faker::Internet.safe_email},
-      SourceContactFirst: -> (value) { fake_name(type: :first) },
-      SourceContactLast: -> (value) { fake_name(type: :last) },
-      SourceContactPhone: -> (value) { Faker::PhoneNumber.cell_phone },
-      Address: -> (value) { Faker::Address.street_address },
-      City: -> (value) { Faker::Address.city },
-      State: -> (value) { Faker::Address.state_abbr },
-      ZIP: -> (value) { Faker::Address.zip },
-      LastPermanentStreet: -> (value) { Faker::Address.street_address },
-      LastPermanentCity: -> (value) { Faker::Address.city },
-      LastPermanentState: -> (value) { Faker::Address.state_abbr },
-      LastPermanentZIP: -> (value) { Faker::Address.zip },
-      OtherDestination: -> (value) { if value.present? then Faker::Hipster.sentence(word_count: 3) else nil end},
-      OtherDisposition: -> (value) {if value.present? then Faker::Hipster.sentence(word_count: 2) else nil end},
-      OtherInsuranceIdentify: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location + ' Health' else nil end},
-      OtherIncomeSourceIdentify: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
-      OtherBenefitsSourceIdentify: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
-      OtherTypeProvided: -> (value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
-      Address1: -> (value) { if value.present? then Faker::Address.street_address else nil end },
-      Address2: -> (value) { if value.present? then Faker::Address.street_address else nil end },
+      PersonalID: ->(value) { Digest::MD5.hexdigest(value&.to_s) },
+      UserID: ->(value) { Faker::Internet.user_name(specifier: 5..8) },
+      CoCCode: ->(value) { HUD.cocs.keys.sample },
+      ProjectName: ->(value) { fake_location },
+      ProjectCommonName: ->(value) { fake_location },
+      OrganizationName: ->(value) { fake_location },
+      OrganizationCommonName: ->(value) { fake_location },
+      SourceContactEmail: ->(value) { Faker::Internet.safe_email},
+      SourceContactFirst: ->(value) { fake_name(type: :first) },
+      SourceContactLast: ->(value) { fake_name(type: :last) },
+      SourceContactPhone: ->(value) { Faker::PhoneNumber.cell_phone },
+      Address: ->(value) { Faker::Address.street_address },
+      City: ->(value) { Faker::Address.city },
+      State: ->(value) { Faker::Address.state_abbr },
+      ZIP: ->(value) { Faker::Address.zip },
+      LastPermanentStreet: ->(value) { Faker::Address.street_address },
+      LastPermanentCity: ->(value) { Faker::Address.city },
+      LastPermanentState: ->(value) { Faker::Address.state_abbr },
+      LastPermanentZIP: ->(value) { Faker::Address.zip },
+      OtherDestination: ->(value) { if value.present? then Faker::Hipster.sentence(word_count: 3) else nil end},
+      OtherDisposition: ->(value) {if value.present? then Faker::Hipster.sentence(word_count: 2) else nil end},
+      OtherInsuranceIdentify: ->(value) {if value.present? then Faker::TvShows::TwinPeaks.location + ' Health' else nil end},
+      OtherIncomeSourceIdentify: ->(value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
+      OtherBenefitsSourceIdentify: ->(value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
+      OtherTypeProvided: ->(value) {if value.present? then Faker::TvShows::TwinPeaks.location else nil end},
+      Address1: ->(value) { if value.present? then Faker::Address.street_address else nil end },
+      Address2: ->(value) { if value.present? then Faker::Address.street_address else nil end },
     }
   end
 

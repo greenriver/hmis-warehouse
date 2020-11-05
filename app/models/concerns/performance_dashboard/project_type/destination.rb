@@ -9,7 +9,7 @@ module PerformanceDashboard::ProjectType::Destination
 
   # Fetch last destination for each client
   def destinations
-    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+    @destinations ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
       buckets = HUD.valid_destinations.keys.map { |b| [b, []] }.to_h
       counted = Set.new
       exits_current_period.
@@ -22,24 +22,41 @@ module PerformanceDashboard::ProjectType::Destination
       end
 
       # expose top 10 plus other
-      top_destinations = buckets.
+      all_destinations = buckets.
         # Ignore blank, 8, 9, 99
         reject { |k, _| k.in?([nil, 8, 9, 99]) }.
-        sort_by { |_, v| v.count }.
-        last(5).to_h
+        sort_by { |_, v| v.count }
+      top_destinations = all_destinations.last(5).to_h
+      summary = {}
+      all_destinations.each do |id, dests|
+        type = ::HUD.destination_type(id)
+        summary[type] ||= 0
+        summary[type] += dests.count
+      end
       top_destinations[:other] = buckets.except(*top_destinations.keys).
         map do |_, v|
           v
         end.flatten
-      top_destinations
+      OpenStruct.new(
+        {
+          top: top_destinations,
+          summary: summary,
+        },
+      )
+    end
+  end
+
+  def exiting_total_count
+    Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
+      exits.distinct.select(:client_id).count
     end
   end
 
   def destinations_data_for_chart
     Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: 5.minutes) do
-      columns = [date_range_words]
-      columns += destinations.values.map(&:count).reverse
-      categories = destinations.keys.reverse.map do |k|
+      columns = [@filter.date_range_words]
+      columns += destinations.top.values.map(&:count).reverse
+      categories = destinations.top.keys.reverse.map do |k|
         if k == :other
           'All others'
         else
@@ -49,8 +66,18 @@ module PerformanceDashboard::ProjectType::Destination
       {
         columns: columns,
         categories: categories,
+        avg_columns: destination_avg_columns,
       }
     end
+  end
+
+  private def destination_avg_columns
+    destinations.summary.map do |label, count|
+      [
+        "#{label} (#{number_with_delimiter(count)})",
+        count,
+      ]
+    end.sort
   end
 
   def destination_bucket_titles

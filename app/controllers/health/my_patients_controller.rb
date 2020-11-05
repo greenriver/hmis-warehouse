@@ -38,7 +38,7 @@ module Health
         end
         format.xlsx do
           date = Date.current.strftime('%Y-%m-%d')
-          @patients = @patients.joins(:patient_referral).preload(:patient_referral)
+          @patients = @patients.joins(:patient_referral).preload(:patient_referral, :recent_cha_form)
           @tracking_sheet = Health::TrackingSheet.new(@patients)
           render(xlsx: 'index', filename: "Tracking Sheet #{date}.xlsx")
         end
@@ -49,10 +49,12 @@ module Health
       if current_user.can_manage_care_coordinators?
         ids = [current_user.id] + current_user.user_care_coordinators.pluck(:care_coordinator_id)
         patient_source.where(care_coordinator_id: ids).
+          or(patient_source.where(nurse_care_manager_id: ids)).
           joins(:patient_referral).
           merge(Health::PatientReferral.not_confirmed_rejected)
       else
         patient_source.where(care_coordinator_id: current_user.id).
+          or(patient_source.where(nurse_care_manager_id: current_user.id)).
           joins(:patient_referral).
           merge(Health::PatientReferral.not_confirmed_rejected)
       end

@@ -2,7 +2,9 @@
 - content_for :title, title
 %h1
   = title
-= render '/warehouse_reports/breadcrumbs'
+= content_for :crumbs do
+  = link_to warehouse_reports_active_veterans_path do
+    = "« " + title
 
 .warehouse-reports__active-veterans.mb-4
   = render 'parameters', report: @report
@@ -34,24 +36,36 @@
       - span = enrollments.size+ 1
       %tr
         %td{rowspan: span}
-          = link_to client_path(id: client['id']) do
+          = link_to_if can_view_clients_or_window?, appropriate_client_path(id: client['id']) do
             = client['id']
         %td{rowspan: span}
-          = link_to client_path(id: client['id']) do
+          = link_to_if can_view_clients_or_window?, appropriate_client_path(id: client['id']) do
             = client['name']
         %td{rowspan: span}= client['first_service_history']
         %td{rowspan: span}= dob_or_age(client['DOB']&.to_date)
         %td.nobr{rowspan: span}= ssn client['SSN']
         %td{rowspan: span}
-          - client['data_sources'].each do |ds|
-            %em{ class: "ds-#{ds.downcase}"}
-              = ds
+          - if client['data_source_ids']
+            - client['data_source_ids'].each_with_index do |ds_id, i|
+              - ds = client['data_sources'][i]
+              - if ds
+                %em{ class: "ds-color-#{ds_id}"}
+                  = ds
+          - else
+            - client['data_sources'].each do |ds|
+              %em{ class: "ds-#{ds.downcase}"}
+                = ds
       - enrollments.each do |enrollment|
         - service_type_class = "client__service_type_#{enrollment['project_type']}"
         %tr
           %td
-            %em{ class: "ds-#{enrollment['ds_short_name'].downcase}"}
-              = enrollment['ds_short_name']
+            - if enrollment['ds_id']
+              %em{ class: "ds-color-#{enrollment['ds_id']}"}
+                = enrollment['ds_short_name']
+            - else
+              %em{ class: "ds-#{enrollment['ds_short_name'].downcase}"}
+                = enrollment['ds_short_name']
+
           %td
             .enrollment__project_type{class: service_type_class}
               %em.service-type__program-type= HUD::project_type_brief(enrollment['project_type'])

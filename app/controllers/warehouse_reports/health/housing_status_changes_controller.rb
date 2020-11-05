@@ -6,9 +6,23 @@
 
 module WarehouseReports::Health
   class HousingStatusChangesController < ApplicationController
+    include AjaxModalRails::Controller
+
     before_action :require_can_view_aggregate_health!
+    before_action :setup_report
 
     def index
+    end
+
+    def detail
+      @report_data = @report.details_for(params)
+
+      @clients = GrdaWarehouse::Hud::Client.destination.where(id: @report_data.keys)
+      @category = @report.allowed_status(params)
+    end
+
+    private def setup_report
+      @report_params = report_params
       @end_date = (report_params[:end_date] || Date.current).to_date
       @start_date = (report_params[:start_date] || @end_date - 1.year).to_date
       @acos = report_params[:aco]&.select { |id| id.present? }

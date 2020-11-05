@@ -10,9 +10,9 @@ module Admin
     # This controller is namespaced to prevent
     # route collision with Devise
     before_action :require_can_edit_users!, except: [:stop_impersonating]
-    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate]
+    before_action :set_user, only: [:edit, :unlock, :confirm, :update, :destroy, :impersonate, :un_expire]
     before_action :require_can_impersonate_users!, only: [:impersonate]
-    after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock]
+    after_action :log_user, only: [:show, :edit, :update, :destroy, :unlock, :un_expire]
     helper_method :sort_column, :sort_direction
 
     require 'active_support'
@@ -41,6 +41,11 @@ module Admin
     def unlock
       @user.unlock_access!
       redirect_to({ action: :index }, notice: 'User unlocked')
+    end
+
+    def un_expire
+      @user.update_last_activity!
+      redirect_to({ action: :index }, notice: 'User re-activated')
     end
 
     def confirm
@@ -80,7 +85,7 @@ module Admin
               g.remove(@user)
             end
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
-          @user.update(user_params)
+          @user.update!(user_params)
 
           # Restore any health roles we previously had
           @user.roles = (@user.roles + existing_health_roles).uniq
@@ -145,6 +150,7 @@ module Admin
         :notify_on_vispdat_completed,
         :notify_on_client_added,
         :notify_on_anomaly_identified,
+        :receive_account_request_notifications,
         :otp_required_for_login,
         :expired_at,
         :training_completed,

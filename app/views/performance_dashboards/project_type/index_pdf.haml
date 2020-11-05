@@ -1,0 +1,25 @@
+- @title = "#{@report.project_type_title} Performance"
+%section.filter-summary.mb-5
+  %h2.mb-4 Summary of Selected Universe
+  = render 'performance_dashboards/active_filters_three_col'
+.main-inner-prs1
+  %section
+    - @report.class.available_chart_types.each do |chart|
+      %article.mb-6
+        = render "/performance_dashboards/project_type/#{chart}"
+= content_for :page_js do
+  :javascript
+    $(function() {
+      'use strict';
+      var opts = {};
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.living_situation-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.living_situation-chart-pie-0', opts);
+      new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.living_situation-chart-pie-1', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.destination-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.destination-chart-pie-0', opts);
+      new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.destination-chart-pie-1', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.returns-chart', opts);
+      new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.returns-chart-pie-0', opts);
+      new App.WarehouseReports.PerformanceDashboards.Pie('.jChart.returns-chart-pie-1', opts);
+      new App.WarehouseReports.PerformanceDashboards.HorizontalBar('.jChart.length_of_time-chart', opts);
+    });

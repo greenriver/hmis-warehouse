@@ -4,11 +4,11 @@ module NonVeteransSubPop::GrdaWarehouse
 
     included do
       scope :non_veterans, -> do
-         joins(:client).merge(GrdaWarehouse::Hud::Client.non_veterans)
+        joins(:client).merge(GrdaWarehouse::Hud::Client.non_veterans)
       end
 
       scope :non_veteran, -> do
-         non_veterans
+        non_veterans
       end
     end
   end

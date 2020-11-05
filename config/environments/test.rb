@@ -23,7 +23,7 @@ Rails.application.configure do
   config.action_controller.perform_caching = false
 
   # time zone
-  config.time_zone = 'Eastern Time (US & Canada)'
+  config.time_zone = 'America/New_York'
 
   # Raise exceptions instead of rendering exception templates.
   config.action_dispatch.show_exceptions = false

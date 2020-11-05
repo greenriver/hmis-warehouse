@@ -4,9 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::CasApr < OpenStruct
-  include ArelHelper
-
+class WarehouseReport::CasApr < OpenStruct include ArelHelper
   attr_accessor :start_date
   attr_accessor :end_date
 
@@ -83,10 +81,10 @@ class WarehouseReport::CasApr < OpenStruct
 
   def decline_reasons
     @reasons = matches_scope.
-      where.not( decline_reason: nil ).
-      map do|row|
-        row[:decline_reason].squish.gsub(/Other.*/,'Other').strip
-      end.each_with_object(Hash.new(0)) { |reason,counts| counts[reason] += 1 }
+      where.not(decline_reason: nil).
+      map do |row|
+        row[:decline_reason].squish.gsub(/Other.*/, 'Other').strip
+      end.each_with_object(Hash.new(0)) { |reason, counts| counts[reason] += 1 }
   end
 
   def match_dates
@@ -98,16 +96,16 @@ class WarehouseReport::CasApr < OpenStruct
       pluck(*report_columns).map do |row|
         Hash[report_columns.zip(row)]
       end
-    housed_dates = GrdaWarehouse::CasHoused.where(match_id: matches.map{|m| m[:match_id]}).
+    housed_dates = GrdaWarehouse::CasHoused.where(match_id: matches.map { |m| m[:match_id] }).
       pluck(:match_id, :housed_on).to_h
-    decline_reasons = GrdaWarehouse::CasReport.where(match_id: matches.map{|m| m[:match_id]}).
+    decline_reasons = GrdaWarehouse::CasReport.where(match_id: matches.map { |m| m[:match_id] }).
       where.not(decline_reason: nil).
       pluck(:match_id, :decline_reason).to_h
     matches.each do |row|
       row[:housed_on] = housed_dates.try(:[], row[:match_id])
       row[:decline_reason] = decline_reasons.try(:[], row[:match_id])
     end
-    return matches
+    matches
   end
 
   def matches_scope

@@ -14,25 +14,11 @@ module Reporting::MonthlyReports
 
     self.table_name = :warehouse_partitioned_monthly_reports
 
-    LOOKBACK_START = '2014-07-01'
-
     after_initialize :set_dates
     attr_accessor :date_range
 
     def self.available_types
       Rails.application.config.monthly_reports[:available_types] || {
-        # all_clients: 'Reporting::MonthlyReports::AllClients',
-        # veteran: 'Reporting::MonthlyReports::Veteran',
-        # youth: 'Reporting::MonthlyReports::Youth',
-        # family_parents: 'Reporting::MonthlyReports::Parents',
-        # parenting_youth: 'Reporting::MonthlyReports::ParentingYouth',
-        # parenting_children: 'Reporting::MonthlyReports::ParentingChildren',
-        # unaccompanied_minors: 'Reporting::MonthlyReports::UnaccompaniedMinors',
-        # individual_adults: 'Reporting::MonthlyReports::IndividualAdults',
-        # non_veteran: 'Reporting::MonthlyReports::NonVeteran',
-        # family: 'Reporting::MonthlyReports::Family',
-        # youth_families: 'Reporting::MonthlyReports::YouthFamilies',
-        # children: 'Reporting::MonthlyReports::Children',
       }
     end
 
@@ -46,8 +32,12 @@ module Reporting::MonthlyReports
       available_types[sub_population.to_sym].constantize
     end
 
+    def self.lookback_start
+      GrdaWarehouse::Config.get(:dashboard_lookback)&.to_date
+    end
+
     def set_dates
-      @date_range ||= LOOKBACK_START.to_date..Date.yesterday
+      @date_range ||= self.class.lookback_start..Date.yesterday
       @start_date = @date_range.first
       @end_date = @date_range.last
     end

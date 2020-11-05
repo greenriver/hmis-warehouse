@@ -1,4 +1,6 @@
-- title = "Accountable Care Organization Performance Between #{@start_date} and #{@end_date}"
+- if @aco_name.present?
+  - aco_title_string = "for #{@aco_name}"
+- title = "CP Engagement (122 days) by ACO #{aco_title_string}"
 - content_for :title, title
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'health'

@@ -203,11 +203,27 @@ class NotifyUser < DatabaseMailer
     mail(to: @user.email, subject: 'Your HUD Report has finished')
   end
 
+  def driver_hud_report_finished(generator)
+    @user = generator.report.user
+    return unless @user.active?
+
+    @generator = generator
+    @report_url = @generator.url
+    mail(to: @user.email, subject: "Your #{@generator.class.short_name} has finished")
+  end
+
   def health_premium_payments_finished(user_id)
     @user = User.find(user_id)
     return unless @user.active?
 
     @report_url = warehouse_reports_health_premium_payments_url
     mail(from: ENV.fetch('HEALTH_FROM'), to: @user.email, subject: 'Premium Payment File Processed')
+  end
+
+  def pending_account_submitted
+    @notify = User.active.receives_account_request_notifications
+    @notify.each do |user|
+      mail(to: user.email, subject: 'Account Request Submitted')
+    end
   end
 end

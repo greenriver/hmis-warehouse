@@ -24,4 +24,6 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.acronym 'DND'
   inflect.acronym 'CoC'
   inflect.acronym 'DHCD'
+  inflect.acronym 'LGBTQ'
+  inflect.acronym 'ACO'
 end

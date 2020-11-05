@@ -1,5 +1,19 @@
 @import '../helpers';
 
+@mixin o-menu-drawer {
+  width: 45vw;
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding-top: calc(#{$header-height} + #{space(6)});
+  min-height: 100vh;
+  transition: .35s transform ease-in-out;
+  &.off-canvas {
+    transform: translateX(45vw);
+  }
+}
+
 .o-menu {
   position: relative;
   min-height: 100%;
@@ -14,18 +28,16 @@
   &.on-canvas {
     z-index: $zIndex-1/2;
   }
+}
+
+.l-content-width-md .o-menu {
   @include media-breakpoint-down(md) {
-    width: 45vw;
-    position: fixed;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    padding-top: calc(#{$header-height} + #{space(6)});
-    min-height: 100vh;
-    transition: .35s transform ease-in-out;
-    &.off-canvas {
-      transform: translateX(45vw);
-    }
+    @include o-menu-drawer;
+  }
+}
+.l-content-width-lg .o-menu {
+  @include media-breakpoint-down(lg) {
+    @include o-menu-drawer;
   }
 }
 

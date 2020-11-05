@@ -17,7 +17,18 @@ class SqlServerBootstrapModel < ActiveRecord::Base
     'sslcert' => cert_path,
   }
 
-  establish_connection(conf) unless ENV['NO_LSA_RDS'].present?
+  if rds.host.present?
+    if @did_connect
+      begin
+        connection.disconnect!
+      rescue TinyTds::Error => e
+        Rails.logger.warn "Couldn't cleanly disconnect from a previous SqlServer. Server might already be gone: #{e.message}"
+      end
+    end
+
+    establish_connection(conf) unless ENV['NO_LSA_RDS'].present?
+    @did_connect = true
+  end
 
   self.abstract_class = true
 end

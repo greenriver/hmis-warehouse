@@ -7,6 +7,7 @@
 module GrdaWarehouse::YouthIntake
   class Base < GrdaWarehouseBase
     include ArelHelper
+    include YouthExport
     self.table_name = :youth_intakes
     has_paper_trail
     acts_as_paranoid
@@ -19,24 +20,23 @@ module GrdaWarehouse::YouthIntake
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :youth_intakes
     belongs_to :user
+    has_many :youth_follow_ups, through: :client
+    has_many :case_managements, through: :client
 
+    after_save :create_required_follow_up!
     after_save :update_destination_client
 
-    scope :visible_by?, -> (user) do
+    scope :visible_by?, ->(user) do
       # users at your agency, plus your own user in case you have no agency.
       agency_user_ids = User.
         with_deleted.
         where.not(agency_id: nil).
         where(agency_id: user.agency_id).
         pluck(:id) + [user.id]
-      if user.can_edit_anything_super_user?
+      # If you can see anything, then show them all
+      # if you can see all youth intakes, show them all
+      if user.can_edit_anything_super_user? || user.can_view_youth_intake? || user.can_edit_youth_intake?
         all
-      # If you can see any, then show yours, those for your agency, and those for anyone with a full release
-      elsif user.can_view_youth_intake? || user.can_edit_youth_intake?
-        where(
-          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
-          or(arel_table[:user_id].in(agency_user_ids))
-        )
       # If you can see your agancy's, then show yours and those for your agency
       elsif user.can_view_own_agency_youth_intake? || user.can_edit_own_agency_youth_intake?
         where(user_id: agency_user_ids)
@@ -45,20 +45,16 @@ module GrdaWarehouse::YouthIntake
       end
     end
 
-    scope :editable_by?, -> (user) do
+    scope :editable_by?, ->(user) do
       agency_user_ids = User.
         with_deleted.
         where.not(agency_id: nil).
         where(agency_id: user.agency_id).
         pluck(:id) + [user.id]
-      if user.can_edit_anything_super_user?
+      # If you can see anything, then show them all
+      # if you can see all youth intakes, show them all
+      if user.can_edit_anything_super_user? || user.can_edit_youth_intake?
         all
-      # If you can edit any, then show yours and those for anyone with a full release
-      elsif  user.can_edit_youth_intake?
-        where(
-          arel_table[:client_id].in(Arel.sql(GrdaWarehouse::Hud::Client.full_housing_release_on_file.select(:id).to_sql)).
-          or(arel_table[:user_id].in(agency_user_ids))
-        )
       # If you can edit your agancy's, then show yours and those for your agency
       elsif user.can_edit_own_agency_youth_intake?
         where(user_id: agency_user_ids)
@@ -67,15 +63,19 @@ module GrdaWarehouse::YouthIntake
       end
     end
 
-    scope :served, -> () do
+    scope :served, -> do
       where(turned_away: false)
+    end
+
+    scope :not_served, -> do
+      where(turned_away: true)
     end
 
     scope :ongoing, -> do
       where(exit_date: nil)
     end
 
-    scope :open_between, -> (start_date:, end_date:) do
+    scope :open_between, ->(start_date:, end_date:) do
       at = arel_table
       # Excellent discussion of why this works:
       # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
@@ -87,13 +87,63 @@ module GrdaWarehouse::YouthIntake
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
-    scope :opened_after, -> (start_date) do
+    scope :opened_after, ->(start_date) do
       at = arel_table
       where(at[:engagement_date].gteq(start_date))
     end
 
     scope :ordered, -> do
       order(engagement_date: :desc, exit_date: :desc)
+    end
+
+    scope :at_risk, -> do
+      where(housing_status: at_risk_string)
+    end
+
+    scope :homeless, -> do
+      where(housing_status: homeless_strings)
+    end
+
+    scope :stably_housed, -> do
+      where(housing_status: stably_housed_string)
+    end
+
+    scope :street_outreach_initial_contact, -> do
+      where(street_outreach_contact: 'Yes')
+    end
+
+    scope :non_street_outreach_initial_contact, -> do
+      where(street_outreach_contact: 'No')
+    end
+
+    def self.current_generic_housing_status(on_date: Date.current)
+      record = ordered.where(arel_table[:engagement_date].lt(on_date)).limit(1)&.first
+      return [] unless record.present?
+
+      [
+        record.engagement_date,
+        generic_housing_status(record.housing_status),
+      ]
+    end
+
+    def self.generic_housing_status(status)
+      if status == at_risk_string
+        :at_risk
+      elsif status == stably_housed_string
+        :housed
+      elsif status.in?(homeless_strings)
+        :homeless
+      else
+        :other
+      end
+    end
+
+    def self.at_risk_string
+      'At risk of homelessness'
+    end
+
+    def self.stably_housed_string
+      'Stably housed'
     end
 
     def self.any_visible_by?(user)
@@ -108,12 +158,80 @@ module GrdaWarehouse::YouthIntake
       exit_date.blank?
     end
 
+    # Follow-ups are required 90 days after:
+    # 1. The first time a youth identified as at risk for losing housing
+    # 2. A youth reports having moved from a non-housed situation to housing
+    def create_required_follow_up!
+      return if youth_follow_ups.incomplete.exists?
+
+      action = self.class.generic_housing_status(housing_status)
+      return unless action
+      return unless transitioning_to_at_risk? || transitioning_to_housing?
+
+      options = {
+        client_id: client_id,
+        user_id: user_id,
+        action_on: engagement_date,
+        required_on: GrdaWarehouse::Youth::YouthFollowUp.follow_up_date(engagement_date),
+        housing_status: housing_status,
+        zip_code: stable_housing_zipcode,
+        action: action,
+      }
+      return if GrdaWarehouse::Youth::YouthFollowUp.where(required_on: options[:required_on]).exists?
+
+      GrdaWarehouse::Youth::YouthFollowUp.create(options)
+    end
+
+    private def transitioning_to_housing?
+      stably_housed? && client.current_youth_housing_situation(on_date: engagement_date) != :housed
+    end
+
+    private def transitioning_to_at_risk?
+      at_risk_of_homelessness? && client.current_youth_housing_situation(on_date: engagement_date).in?([nil, :housed])
+    end
+
+    private def at_risk_of_homelessness?
+      housing_status == at_risk_string
+    end
+
+    private def at_risk_string
+      self.class.at_risk_string
+    end
+
+    private def stably_housed?
+      housing_status == stably_housed_string
+    end
+
+    private def stably_housed_string
+      self.class.stably_housed_string
+    end
+
+    def self.homeless_strings
+      [
+        couch_surfing_string,
+        street_string,
+        shelter_string,
+      ]
+    end
+
+    def self.couch_surfing_string
+      'Experiencing homelessness: couch surfing'
+    end
+
+    def self.street_string
+      'Experiencing homelessness: street'
+    end
+
+    def self.shelter_string
+      'Experiencing homelessness: in shelter'
+    end
+
     def yes_no_unknown_refused
       @yes_no_unknown_refused ||= [
         'Yes',
         'No',
         'Unknown',
-        'Refused'
+        'Refused',
       ]
     end
 
@@ -127,12 +245,12 @@ module GrdaWarehouse::YouthIntake
 
     def available_housing_stati
       @available_housing_stati ||= {
-        'Stably housed' => 'Stably housed <em>(Individual has sufficient resources or support networks immediately available to prevent them from moving to emergency shelter or another place within 30 days.)</em>'.html_safe,
-        'At risk of homelessness' => 'At risk of homelessness <em>(A person 24 years of age or younger whose status or circumstances indicate a significant danger of experiencing homelessness in the near future (four months). Statuses or circumstances that indicate a significant danger may include: (1) youth exiting out-of-home placements; (2) youth who previously were homeless; (3) youth whose parents or primary caregivers are or were previously homeless or have a history of multiple evictions or other types of housing instability; (4) youth who are exposed to abuse and neglect in their homes; (5) youth who experience conflict with parents due to chemical or alcohol dependency, mental health disabilities, or other disabilities; and (6) runaways.)</em>'.html_safe,
+        self.class.stably_housed_string => 'Stably housed <em>(Individual has sufficient resources or support networks immediately available to prevent them from moving to emergency shelter or another place within 30 days.)</em>'.html_safe,
+        self.class.at_risk_string => 'At risk of homelessness <em>(A person 24 years of age or younger whose status or circumstances indicate a significant danger of experiencing homelessness in the near future (four months). Statuses or circumstances that indicate a significant danger may include: (1) youth exiting out-of-home placements; (2) youth who previously were homeless; (3) youth whose parents or primary caregivers are or were previously homeless or have a history of multiple evictions or other types of housing instability; (4) youth who are exposed to abuse and neglect in their homes; (5) youth who experience conflict with parents due to chemical or alcohol dependency, mental health disabilities, or other disabilities; and (6) runaways.)</em>'.html_safe,
         'Unstably housed' => 'Unstably housed but does not meet definition of At risk of homelessness',
-        'Experiencing homelessness: couch surfing' => 'Experiencing homelessness: couch surfing',
-        'Experiencing homelessness: street' => 'Experiencing homelessness: street',
-        'Experiencing homelessness: in shelter' => 'Experiencing homelessness: in shelter',
+        self.class.couch_surfing_string => 'Experiencing homelessness: couch surfing',
+        self.class.street_string => 'Experiencing homelessness: street',
+        self.class.shelter_string => 'Experiencing homelessness: in shelter',
         'Unknown' => 'Unknown',
       }
     end
@@ -153,7 +271,7 @@ module GrdaWarehouse::YouthIntake
         'English',
         'Spanish',
         'Unknown',
-        'Other...'
+        'Other...',
       ] + [client_primary_language&.strip]).compact.uniq
     end
 
@@ -189,7 +307,7 @@ module GrdaWarehouse::YouthIntake
     end
 
     def other_referral?
-      how_hear.include? 'Other' rescue false
+      how_hear&.include?('Other') || false
     end
 
     def stable_housing_options
@@ -200,6 +318,34 @@ module GrdaWarehouse::YouthIntake
         'No',
         'Unknown',
       ]
+    end
+
+    def state_agencies
+      @state_agencies ||= {
+        'DCF' => 'Department of Children and Families (DCF)',
+        'DDS' => 'Department of Developmental Services (DDS)',
+        'DMH' => 'Department of Mental Health (DMH)',
+        'DTA' => 'Department of Transitional Assistance (DTA)',
+        'DYS' => 'Department of Youth Services (DYS)',
+        'MRC' => 'Massachusetts Rehabilitation Commission (MRC)',
+        'Yes' => 'Yes, but the agency name is unspecified',
+        'No' => 'No',
+        'Unknown' => 'Unknown',
+      }
+    end
+
+    def race_array
+      return [] if client_race == '[]'
+
+      client_race&.map { |r| ::HUD.race(r).presence }&.compact
+    end
+
+    def ethnicity_description
+      ::HUD.ethnicity(client_ethnicity)
+    end
+
+    def gender
+      ::HUD.gender(client_gender)
     end
 
     def update_destination_client
@@ -228,13 +374,33 @@ module GrdaWarehouse::YouthIntake
 
     def compute_race_none
       return 9 if client_race.include?('RaceNone')
-      return 99 if client_race.select { |race| ! race&.empty? }&.empty?
-      return nil
+      return 99 if client_race.blank?
+      return 99 if client_race&.reject(&:blank?)&.all?(&:empty?)
+
+      nil
     end
 
     def self.report_columns
-      column_names - [:user_id, :deleted_at]
+      columns = column_names
+      columns -= ['user_id', 'deleted_at', 'other_agency_involvement']
+      columns.map do |col|
+        case col
+        when 'client_gender'
+          'gender'
+        when 'client_race'
+          'race_array'
+        when 'client_ethnicity'
+          'ethnicity_description'
+        when 'type'
+          'title'
+        else
+          col
+        end
+      end
     end
 
+    def self.intake_data
+      {}
+    end
   end
 end

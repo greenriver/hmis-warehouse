@@ -11,10 +11,13 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ProjectReport
     include ::HMIS::Structure::Project
+    include RailsDrivers::Extensions
+    
+    attr_accessor :source_id
 
     self.table_name = :Project
-    self.hud_key = :ProjectID
-    acts_as_paranoid column: :DateDeleted
+    self.sequence_name = "public.\"#{table_name}_id_seq\""
+
     has_paper_trail
 
    include Filterable
@@ -83,7 +86,7 @@ module GrdaWarehouse::Hud
       psh: [3, 10]
     }
 
-    attr_accessor :hud_coc_code, :geocode_override, :geography_type_override
+    attr_accessor :hud_coc_code, :geocode_override, :geography_type_override, :zip_override
     belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects
     belongs_to :data_source, inverse_of: :projects
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true
@@ -165,14 +168,14 @@ module GrdaWarehouse::Hud
       where(self.project_type_override.in(r_non_homeless))
     end
 
-    scope :with_hud_project_type, -> (project_types) do
+    scope :with_hud_project_type, ->(project_types) do
       where(self.project_type_override.in(project_types))
     end
-    scope :with_project_type, -> (project_types) do
+    scope :with_project_type, ->(project_types) do
       where(project_type_column => project_types)
     end
 
-    scope :in_coc, -> (coc_code:) do
+    scope :in_coc, ->(coc_code:) do
       joins(:project_cocs).
         merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
     end
@@ -188,13 +191,34 @@ module GrdaWarehouse::Hud
     scope :coc_funded, -> do
       # hud_continuum_funded overrides ContinuumProject
       where(
-        arel_table[:ContinuumProject].eq(1).and(arel_table[:hud_continuum_funded].eq(nil).or(arel_table[:hud_continuum_funded].eq(true))).
-        or(arel_table[:hud_continuum_funded].eq(true).and(arel_table[:ContinuumProject].eq(0)))
+        arel_table[:ContinuumProject].eq(1).
+        and(arel_table[:hud_continuum_funded].eq(nil))
+        .or(arel_table[:hud_continuum_funded].eq(true)),
       )
+    end
+
+    scope :enrollments_combined, -> do
+      where(combine_enrollments: true)
+    end
+
+    scope :active_on, ->(date) do
+      where(
+        p_t[:OperatingEndDate].gteq(date).or(p_t[:OperatingEndDate].eq(nil)).
+          and(p_t[:OperatingStartDate].eq(nil).and(p_t[:operating_start_date_override].eq(nil)).
+            or(p_t[:OperatingStartDate].lteq(date).and(p_t[:operating_start_date_override].eq(nil))).
+            or(p_t[:operating_start_date_override].lteq(date))),
+      )
+    end
+
+    scope :active_during, ->(range) do
+      p_start = cl(p_t[:operating_start_date_override], p_t[:OperatingStartDate])
+      p_end = p_t[:OperatingEndDate]
+      where(p_end.gteq(range.first).or(p_end.eq(nil)).and(p_start.lteq(range.last)))
     end
 
     def coc_funded?
       return self.ContinuumProject == 1 if hud_continuum_funded.nil?
+
       hud_continuum_funded
     end
 
@@ -204,10 +228,11 @@ module GrdaWarehouse::Hud
       where(
         id: GrdaWarehouse::Hud::Project.joins(:inventories).
           merge(GrdaWarehouse::Hud::Inventory.serves_families).
-          distinct.select(:id)
+          distinct.select(:id),
       )
 
     end
+
     def serves_families?
       if @serves_families.nil?
         @serves_families = self.class.serves_families.exists?(id)
@@ -219,11 +244,10 @@ module GrdaWarehouse::Hud
     scope :serves_individuals, -> do
       where(
         p_t[:id].in(lit(GrdaWarehouse::Hud::Project.joins(:inventories).merge(GrdaWarehouse::Hud::Inventory.serves_individuals).select(:id).to_sql)).
-          or(
-            p_t[:id].not_in(lit(GrdaWarehouse::Hud::Project.serves_families.select(:id).to_sql))
-          )
+          or(p_t[:id].not_in(lit(GrdaWarehouse::Hud::Project.serves_families.select(:id).to_sql)))
       )
     end
+
     def serves_individuals?
       if @serves_individuals.nil?
         @serves_individuals = self.class.serves_individuals.exists?(id)
@@ -620,6 +644,10 @@ module GrdaWarehouse::Hud
       'If marked as confidential, the project name will be replaced with "Confidential Project" within individual client pages. Users with the "Can view confidential enrollment details" will still see the project name.'
     end
 
+    def combine_enrollments_hint
+      'If enrollments are combined, the import process will collapse sequential enrollments for a given client at this project.'
+    end
+
     def safe_project_name
       if confidential?
         self.class.confidential_project_name
@@ -696,11 +724,19 @@ module GrdaWarehouse::Hud
         project_scope = project_scope.merge(scope) if scope.present?
 
         project_scope.
-          joins(:organization).
+          joins(:organization, :data_source).
+          preload(:organization, :data_source).
           order(o_t[:OrganizationName].asc, ProjectName: :asc).
-            pluck(o_t[:OrganizationName].as('org_name'), :ProjectName, project_type_column, :id).each do |org, project_name, project_type, id|
-            options[org] ||= []
-            options[org] << ["#{project_name} (#{HUD::project_type_brief(project_type)})", id]
+          each do |project|
+            org_name = project.organization.OrganizationName
+            org_name += " at #{project.data_source.short_name}" if Rails.env.development?
+            options[org_name] ||= []
+            text = "#{project.ProjectName} (#{HUD.project_type_brief(project.computed_project_type)})"
+            # text += "#{project.ContinuumProject.inspect} #{project.hud_continuum_funded.inspect}"
+            options[org_name] << [
+              text,
+              project.id,
+            ]
           end
         options
       end

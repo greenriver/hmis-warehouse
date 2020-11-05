@@ -5,7 +5,7 @@
 ###
 
 class ClientsController < ApplicationController
-  include PjaxModalController
+  include AjaxModalRails::Controller
   include ClientController
   include ArelHelper
   include ClientPathGenerator
@@ -16,11 +16,11 @@ class ClientsController < ApplicationController
   before_action :require_can_access_some_client_search!, only: [:index, :simple]
   before_action :require_can_view_clients_or_window!, only: [:show, :service_range, :rollup, :image, :enrollment_details]
 
-  before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create, :simple]
+  before_action :require_can_see_this_client_demographics!, except: [:index, :new, :create, :simple, :appropriate]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
   before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
-  before_action :set_search_client, only: [:simple]
+  before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
   # This should no longer be needed
@@ -157,40 +157,15 @@ class ClientsController < ApplicationController
     to_unmerge = client_params['unmerge'].reject(&:empty?)
     hmis_receiver = client_params['hmis_receiver']
     health_receiver = client_params['health_receiver']
-    unmerged = []
-    @dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
-    # FIXME: Transaction kills this for some reason
-    # GrdaWarehouse::Hud::Base.transaction do
+
     Rails.logger.info "Unmerging #{to_unmerge.inspect}"
-    to_unmerge.each do |id|
-      c = client_source.find(id)
-      c.warehouse_client_source.destroy if c.warehouse_client_source.present?
-      destination_client = c.dup
-      destination_client.data_source = @dnd_warehouse_data_source
-      destination_client.save
+    client_names = @client.split(to_unmerge, hmis_receiver, health_receiver, current_user)
 
-      receive_hmis = hmis_receiver == id
-      receive_health = health_receiver == id
-      GrdaWarehouse::ClientSplitHistory.create(
-        split_from: @client.id,
-        split_into: destination_client.id,
-        receive_hmis: receive_hmis,
-        receive_health: receive_health,
-      )
-
-      GrdaWarehouse::WarehouseClient.create(id_in_source: c.PersonalID, source_id: c.id, destination_id: destination_client.id, data_source_id: c.data_source_id, proposed_at: Time.now, reviewed_at: Time.now, reviewd_by: current_user.id, approved_at: Time.now)
-
-      destination_client.move_dependent_hmis_items(@client.id, destination_client.id) if receive_hmis
-      destination_client.move_dependent_health_items(@client.id, destination_client.id) if receive_health
-
-      unmerged << c.full_name
-    end
     Rails.logger.info '@client.invalidate_service_history'
     @client.invalidate_service_history
-    # end
 
     Importing::RunAddServiceHistoryJob.perform_later
-    redirect_to({ action: :edit }, notice: "Client records split from #{unmerged.join(', ')}. Service history rebuild queued.")
+    redirect_to({ action: :edit }, notice: "Client records split from #{client_names.join(', ')}. Service history rebuild queued.")
   rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.error e.inspect
 
@@ -207,6 +182,12 @@ class ClientsController < ApplicationController
   end
 
   def simple
+  end
+
+  # It can be expensive to calculate the appropriate link to show a user for a batch of clients
+  # instead, just provide one where we can make that determination on a per-client basis
+  def appropriate
+    redirect_to @client.window_link_for?(current_user)
   end
 
   # This is only valid for Potentially chronic (not HUD Chronic)
@@ -252,27 +233,7 @@ class ClientsController < ApplicationController
   # should always return a destination client, but some visibility
   # is governed by the source client, some by the destination
   private def client_scope(id: nil)
-    client_source.destination.where(
-      Arel.sql(
-        client_source.arel_table[:id].in(visible_by_source(id: id)).
-        or(client_source.arel_table[:id].in(visible_by_destination(id: id))).to_sql,
-      ),
-    )
-  end
-
-  private def visible_by_source(id: nil)
-    query = GrdaWarehouse::WarehouseClient.joins(:source).
-      merge(GrdaWarehouse::Hud::Client.viewable_by(current_user))
-    query = query.where(destination_id: id) if id.present?
-
-    Arel.sql(query.select(:destination_id).to_sql)
-  end
-
-  private def visible_by_destination(id: nil)
-    query = GrdaWarehouse::Hud::Client.viewable_by(current_user)
-    query = query.where(id: id) if id.present?
-
-    Arel.sql(query.select(:id).to_sql)
+    client_source.destination_client_viewable_by_user(client_id: id, user: current_user)
   end
 
   # Should always return any clients, source or destination that match

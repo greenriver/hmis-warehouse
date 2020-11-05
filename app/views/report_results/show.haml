@@ -38,12 +38,24 @@
         Download
         = @result.download_type.upcase
     - if @result.download_type.present? && @result.download_type == :zip
-      = link_to({format: @result.download_type},{class: 'btn btn-primary'}) do
+      = link_to({ format: @result.download_type }, {class: 'btn btn-primary'}) do
         %span.icon-download2
         Download
+    - if @result.support_file_id
+      .mt-2
+        = link_to({ action: :download_support, format: :zip}, {class: 'btn btn-secondary'}) do
+          %span.icon-download2
+          Supporting Files
+    - if @result.export_id
+      .mt-2
+        = link_to(warehouse_reports_hmis_export_path(@result.export_id), {class: 'btn btn-secondary'}) do
+          %span.icon-download2
+          Source HMIS Data
 - if @result.job_status.present?
   .alert.alert-danger
-    = @result.job_status
+    .error-note
+      %p.mb-6 The report failed to run with an unexpected error.  A notification has been sent to #{_('Green River')}.  If this is time-critical, you may want to #{_('contact us')} directly.  The details of the error are listed here:
+      = @result.job_status
 - if @result.validations.present?
   - error_count = @result.validations.map{|section, errs| errs.size}.sum
   - if error_count > 0

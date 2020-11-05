@@ -6,9 +6,7 @@
 
 # dev projects -- with affiliation: 61; single RRH: 44
 
-class WarehouseReport::PshReport < WarehouseReport::RrhReport
-  include ArelHelper
-
+class WarehouseReport::PshReport < WarehouseReport::RrhReport include ArelHelper
   def default_support_columns
     {
       service_project: _('Housing Search'),

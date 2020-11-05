@@ -43,13 +43,12 @@
 //= require bootstrap-datetimepicker
 //= require promise-polyfill/dist/polyfill.min.js
 
-
 //////////////////////////
 // App specific code
 //////////////////////////
 //= require namespace
 //= require polyfills
-//= require pjax-modals
+//= require ajax_modal_rails
 //= require util
 //= require site_menu
 //= require ssm
@@ -59,9 +58,11 @@
 //= require selectable_list
 //= require viewable_entities
 //= require select_2
+//= require_directory ./admin/client_matches
 //= require_directory ./census
 //= require_directory ./filter
 //= require_directory ./maps
+//= require_directory ./reports
 //= require_directory ./rollups
 //= require_directory ./sections
 //= require_directory ./health

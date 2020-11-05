@@ -18,7 +18,7 @@ FactoryBot.define do
     unaccompanied { 'No' }
     street_outreach_contact { 'No' }
     housing_status { 'Unknown' }
-    other_agency_involvement { 'No' }
+    other_agency_involvements { ['No'] }
     owns_cell_phone { 'No' }
     secondary_education { 'Unknown' }
     attending_college { 'No' }
@@ -61,8 +61,17 @@ FactoryBot.define do
     housing_status { 'At risk of homelessness' }
   end
 
+  trait :case_management_at_risk do
+    housing_status { 'This youth is currently at risk' }
+  end
+
+  trait :case_management_homeless do
+    housing_status { 'This youth is currently experiencing homeless' }
+  end
+
   factory :case_management, class: 'GrdaWarehouse::Youth::YouthCaseManagement' do
     activity { 'Prevention' }
+    housing_status { 'Unknown' }
   end
 
   trait :existing_case_management do
@@ -98,6 +107,8 @@ FactoryBot.define do
   end
 
   factory :follow_up, class: 'GrdaWarehouse::Youth::YouthFollowUp' do
+    action_on { Date.parse('2018-09-30') }
+    required_on { Date.parse('2018-12-30') }
   end
 
   trait :past_follow_up do
@@ -108,12 +119,20 @@ FactoryBot.define do
     contacted_on { Date.parse('2019-01-01') }
   end
 
+  trait :follow_up_from_at_risk do
+    action { :at_risk }
+  end
+
+  trait :follow_up_from_homeless do
+    action { :homeless }
+  end
+
   trait :homeless_at_followup do
-    housing_status { 'No' }
+    housing_status { :homeless }
   end
 
   trait :housed_at_followup do
-    housing_status { 'Yes, in RRH' }
+    housing_status { :housed }
     zip_code { '99999' }
   end
 end

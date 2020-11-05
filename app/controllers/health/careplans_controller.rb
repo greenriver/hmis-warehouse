@@ -6,7 +6,7 @@
 
 module Health
   class CareplansController < IndividualPatientController
-    include PjaxModalController
+    include AjaxModalRails::Controller
     include ClientPathGenerator
     include HealthCareplan
     include HealthFileController
@@ -24,16 +24,17 @@ module Health
     def index
       @goal = Health::Goal::Base.new
       @readonly = false
-      @careplans = @patient.careplans.sorted
+      @patient = @patient ||= Health::Patient.new
+      @careplans = @patient&.careplans&.sorted
       # most-recent careplan
-      @careplan = @careplans.first
+      @careplan = @careplans&.first
       @disable_goal_actions = true
       @goals = @careplan&.hpc_goals
 
       # Callbacks don't work in development, so we have to do something like this
       return unless Rails.env.development?
 
-      @careplans.each do |cp|
+      @careplans&.each do |cp|
         [cp.pcp_signable_documents.un_fetched_document, cp.patient_signable_documents.un_fetched_document].flatten.each do |doc|
           begin
             # This is trying to ensure we run the same thing here as we do for the callback from HS
@@ -153,7 +154,7 @@ module Health
     end
 
     def set_epic_goals
-      @epic_goals = @patient.epic_goals.visible
+      @epic_goals = @patient&.epic_goals&.visible
     end
 
     def careplan_source

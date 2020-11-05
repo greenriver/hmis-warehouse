@@ -9,7 +9,7 @@ module WarehouseReports::Health
     include ArelHelper
     include WindowClientPathGenerator
     include WarehouseReportAuthorization
-    include PjaxModalController
+    include AjaxModalRails::Controller
     before_action :require_can_administer_health!
     before_action :set_report, only: [:show, :destroy, :revise, :accept, :acknowledge, :details, :generate_claims_file]
     before_action :set_sender
@@ -20,12 +20,7 @@ module WarehouseReports::Health
         @report = Health::Claim.queued.last
       elsif Health::Claim.precalculated.exists?
         @state = :precalculated
-        @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
-        @report = Health::Claim.precalculated.last
-        @payable = {}
-        @unpayable = {}
-        @duplicate = {}
-        @valid_unpayable = {}
+        bucket_results
       elsif Health::Claim.incomplete.exists?
         @state = :running
         @report = Health::Claim.incomplete.last || Health::Claim.queued.last
@@ -67,33 +62,8 @@ module WarehouseReports::Health
     end
 
     def precalculated
-      @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
-      @report = Health::Claim.precalculated.last
+      bucket_results
       return unless @report
-
-      @payable = {}
-      @unpayable = {}
-      @duplicate = {}
-      @valid_unpayable = {}
-      @report.qualifying_activities.joins(:patient).
-        preload(patient: :patient_referral).
-        order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
-        find_each do |qa|
-        # Bucket results
-        if qa.duplicate? && qa.naturally_payable?
-          @duplicate[qa.patient_id] ||= []
-          @duplicate[qa.patient_id] << qa
-        elsif qa.naturally_payable? && qa.valid_unpayable?
-          @valid_unpayable[qa.patient_id] ||= []
-          @valid_unpayable[qa.patient_id] << qa
-        elsif ! qa.naturally_payable?
-          @unpayable[qa.patient_id] ||= []
-          @unpayable[qa.patient_id] << qa
-        else
-          @payable[qa.patient_id] ||= []
-          @payable[qa.patient_id] << qa
-        end
-      end
 
       render layout: false if request.xhr?
     end
@@ -204,6 +174,36 @@ module WarehouseReports::Health
           @report.update(submitted_at: sent_at, result: claim_result, transaction_acknowledgement_id: ta.id)
         end
         redirect_to action: :index
+      end
+    end
+
+    def bucket_results
+      @recent_report = Health::Claim.submitted.order(submitted_at: :desc).limit(1).last
+      @report = Health::Claim.precalculated.last
+      @payable = {}
+      @unpayable = {}
+      @duplicate = {}
+      @valid_unpayable = {}
+      return unless @report
+
+      @report.qualifying_activities.joins(:patient).
+        preload(patient: :patient_referral).
+        order(hp_t[:last_name].asc, hp_t[:first_name].asc, date_of_activity: :desc, id: :asc).
+        find_each do |qa|
+        # Bucket results
+        if qa.duplicate? && qa.naturally_payable?
+          @duplicate[qa.patient_id] ||= []
+          @duplicate[qa.patient_id] << qa
+        elsif qa.naturally_payable? && qa.valid_unpayable?
+          @valid_unpayable[qa.patient_id] ||= []
+          @valid_unpayable[qa.patient_id] << qa
+        elsif ! qa.naturally_payable?
+          @unpayable[qa.patient_id] ||= []
+          @unpayable[qa.patient_id] << qa
+        else
+          @payable[qa.patient_id] ||= []
+          @payable[qa.patient_id] << qa
+        end
       end
     end
 

@@ -4,8 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
+class PerformanceDashboards::Base
   include ArelHelper
+  include ActionView::Helpers::NumberHelper
+  include Filter::ControlSections
+  include Filter::FilterScopes
 
   # Initialize dashboard model.
   #
@@ -45,138 +48,68 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
       viewable_by(user).exists?
   end
 
+  def performance_type
+    'Client'
+  end
+
+  def multiple_project_types?
+    true
+  end
+
+  def detail_link_base
+    "#{section_subpath}details"
+  end
+
+  def section_subpath
+    "#{self.class.url}/"
+  end
+
+  def filter_path_array
+    [:filters] + report_path_array
+  end
+
+  def detail_path_array
+    [:details] + report_path_array
+  end
+
   private def cache_slug
     @filter.attributes
   end
 
   def detail_params
-    @filter.to_h.except(:user).
-      merge(comparison_pattern: :no_comparison_period)
+    @filter.for_params.
+      deep_merge(filters: { comparison_pattern: :no_comparison_period })
   end
 
   def self.detail_method(key)
     available_keys[key.to_sym]
   end
 
+  def household_types
+    @filter.available_household_types
+  end
+
+  def household_type(type)
+    @filter.household_type_string(type)
+  end
+
   def self.coc_codes
-    GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode)
+    GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
   end
 
   def include_comparison?
     comparison_pattern != :no_comparison_period
   end
 
-  def household_types
-    {
-      all: 'All household types',
-      without_children: 'Adult only Households',
-      with_children: 'Adult and Child Households',
-      only_children: 'Child only Households',
-    }.invert.freeze
-  end
-
-  def household_type(type)
-    household_types.invert[type] || 'Unknown'
-  end
-
-  def age_ranges
-    {
-      under_eighteen: '< 18',
-      eighteen_to_twenty_four: '18 - 24',
-      twenty_five_to_sixty_one: '25 - 61',
-      over_sixty_one: '62+',
-    }.invert.freeze
-  end
-
-  def available_data_sources_for_select
-    GrdaWarehouse::DataSource.viewable_by(@filter.user).options_for_select(user: @filter.user)
-  end
-
-  def data_source_names
-    available_data_sources_for_select.select { |_, id| @filter.data_source_ids.include?(id) }&.map(&:first)
-  end
-
-  def available_organizations_for_select
-    GrdaWarehouse::Hud::Organization.viewable_by(@filter.user).options_for_select(user: @filter.user)
-  end
-
-  def organization_names
-    available_organizations_for_select.values.flatten(1).select { |_, id| @filter.organization_ids.include?(id) }&.map(&:first)
-  end
-
-  def available_projects_for_select
-    GrdaWarehouse::Hud::Project.viewable_by(@filter.user).options_for_select(user: @filter.user)
-  end
-
-  def project_names
-    available_projects_for_select.values.flatten(1).select { |_, id| @filter.project_ids.include?(id) }&.map(&:first)
-  end
-
-  def available_cocs_for_select
-    GrdaWarehouse::Lookups::CocCode.options_for_select(user: @filter.user)
-  end
-
-  def available_funders_for_select
-    GrdaWarehouse::Hud::Funder.options_for_select(user: @filter.user)
-  end
-
-  def funder_names
-    available_funders_for_select.select { |_, id| @filter.funder_ids.include?(id.to_i) }&.map(&:first)
-  end
-
-  def chosen_age_ranges
-    @age_ranges.map do |range|
-      age_ranges.invert[range]
-    end.join(', ')
-  end
-
-  def chosen_genders
-    @genders.map do |gender|
-      HUD.gender(gender)
-    end
-  end
-
-  def chosen_coc_codes
-    @coc_codes.join(', ')
-  end
-
-  def chosen_veteran_statuses
-    @veteran_statuses.map do |veteran_status|
-      HUD.veteran_status(veteran_status)
-    end
-  end
-
-  def chosen_project_types
-    @project_types.map do |type|
-      HUD.project_type(type)
-    end.uniq
-  end
-
-  def chosen_household_type
-    household_type(@household_type.to_sym)
-  end
-
-  def chosen_sub_population
-    Reporting::MonthlyReports::Base.available_types[@sub_population]&.constantize&.new&.sub_population_title
-  end
-
-  def chosen_races
-    @races.map do |race|
-      HUD.race(race)
-    end
-  end
-
-  def chosen_ethnicities
-    @ethnicities.map do |ethnicity|
-      HUD.ethnicity(ethnicity)
-    end
+  def chosen_ages
+    @filter.age_ranges
   end
 
   def self.comparison_patterns
     {
+      no_comparison_period: 'None',
       prior_year: 'Same period, prior year',
       prior_period: 'Prior Period',
-      no_comparison_period: 'No comparison period',
     }.invert.freeze
   end
 
@@ -210,142 +143,14 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
     scope = filter_for_organizations(scope)
     scope = filter_for_projects(scope)
     scope = filter_for_funders(scope)
+    scope = filter_for_prior_living_situation(scope)
+    scope = filter_for_destination(scope)
+    scope = filter_for_ca_homeless(scope)
     scope
-  end
-
-  private def filter_for_range(scope)
-    scope.open_between(start_date: @start_date, end_date: @end_date).
-      with_service_between(start_date: @start_date, end_date: @end_date)
-  end
-
-  private def filter_for_cocs(scope)
-    return scope unless @coc_codes.present?
-
-    scope.joins(:enrollment_coc_at_entry).
-      where(ec_t[:CoCCode].in(@coc_codes))
-  end
-
-  private def filter_for_household_type(scope)
-    return scope unless @household_type.present? && @household_type != :all
-
-    case @household_type
-    when :without_children
-      scope.adult_only_households
-    when :with_children
-      scope.adults_with_children
-    when :only_children
-      scope.child_only_households
-    end
-  end
-
-  private def filter_for_head_of_household(scope)
-    return scope unless @hoh_only
-
-    scope.where(she_t[:head_of_household].eq(true))
-  end
-
-  private def filter_for_age(scope)
-    return scope unless @age_ranges.present? && (age_ranges.values & @age_ranges).present?
-
-    # Or'ing ages is very slow, instead we'll build up an acceptable
-    # array of ages
-    ages = []
-    ages += (0..17).to_a if @age_ranges.include?(:under_eighteen)
-    ages += (18..24).to_a if @age_ranges.include?(:eighteen_to_twenty_four)
-    ages += (25..61).to_a if @age_ranges.include?(:twenty_five_to_sixty_one)
-    ages += (62..110).to_a if @age_ranges.include?(:over_sixty_one)
-    scope.where(she_t[:age].in(ages))
-  end
-
-  private def filter_for_gender(scope)
-    return scope unless @genders.present?
-
-    scope.joins(:client).where(c_t[:Gender].in(@genders))
-  end
-
-  private def filter_for_race(scope)
-    return scope unless @races.present?
-
-    keys = @races
-    race_scope = nil
-    race_scope = add_alternative(race_scope, race_alternative(:AmIndAKNative)) if keys.include?('AmIndAKNative')
-    race_scope = add_alternative(race_scope, race_alternative(:Asian)) if keys.include?('Asian')
-    race_scope = add_alternative(race_scope, race_alternative(:BlackAfAmerican)) if keys.include?('BlackAfAmerican')
-    race_scope = add_alternative(race_scope, race_alternative(:NativeHIOtherPacific)) if keys.include?('NativeHIOtherPacific')
-    race_scope = add_alternative(race_scope, race_alternative(:White)) if keys.include?('White')
-    race_scope = add_alternative(race_scope, race_alternative(:RaceNone)) if keys.include?('RaceNone')
-
-    scope.merge(race_scope)
-  end
-
-  private def filter_for_ethnicity(scope)
-    return scope unless @ethnicities.present?
-
-    scope.joins(:client).where(c_t[:Ethnicity].in(@ethnicities))
-  end
-
-  private def filter_for_veteran_status(scope)
-    return scope unless @veteran_statuses.present?
-
-    scope.joins(:client).where(c_t[:VeteranStatus].in(@veteran_statuses))
-  end
-
-  private def filter_for_project_type(scope, all_project_types: nil)
-    return scope if all_project_types
-
-    scope.in_project_type(@project_types)
-  end
-
-  private def filter_for_projects(scope)
-    return scope if @filter.project_ids.blank?
-
-    scope.in_project(@filter.project_ids).merge(GrdaWarehouse::Hud::Project.viewable_by(@filter.user))
-  end
-
-  private def filter_for_funders(scope)
-    return scope if @filter.funder_ids.blank?
-
-    project_ids = GrdaWarehouse::Hud::Funder.viewable_by(@filter.user).
-      where(Funder: @filter.funder_ids).
-      joins(:project).
-      select(p_t[:id])
-    scope.in_project(project_ids)
-  end
-
-  private def filter_for_data_sources(scope)
-    return scope if @filter.data_source_ids.blank?
-
-    scope.in_data_source(@filter.data_source_ids).joins(:data_source).merge(GrdaWarehouse::DataSource.viewable_by(@filter.user))
-  end
-
-  private def filter_for_organizations(scope)
-    return scope if @filter.organization_ids.blank?
-
-    scope.in_organization(@filter.organization_ids).merge(GrdaWarehouse::Hud::Organization.viewable_by(@filter.user))
-  end
-
-  private def filter_for_sub_population(scope)
-    scope.public_send(@sub_population)
-  end
-
-  def date_range_words
-    "#{start_date} - #{end_date}"
   end
 
   def report_scope_source
     GrdaWarehouse::ServiceHistoryEnrollment.entry
-  end
-
-  private def add_alternative(scope, alternative)
-    if scope.present?
-      scope.or(alternative)
-    else
-      alternative
-    end
-  end
-
-  private def race_alternative(key)
-    report_scope_source.joins(:client).where(c_t[key].eq(1))
   end
 
   def yn(boolean)
@@ -356,8 +161,8 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   # specified project types for the prior 24 months.
   def entries
     previous_period = report_scope_source.entry.
-      open_between(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
-      with_service_between(start_date: @start_date - 24.months, end_date: @start_date - 1.day).
+      open_between(start_date: @filter.start_date - 24.months, end_date: @filter.start_date - 1.day).
+      with_service_between(start_date: @filter.start_date - 24.months, end_date: @filter.start_date - 1.day).
       in_project_type(@project_types)
     # To make this performant, we'll manipulate these a bit
 
@@ -365,28 +170,28 @@ class PerformanceDashboards::Base # rubocop:disable Style/ClassAndModuleChildren
   end
 
   def entries_current_period
-    report_scope.entry_within_date_range(start_date: @start_date, end_date: @end_date).
-      with_service_between(start_date: @start_date, end_date: @end_date)
+    report_scope.entry_within_date_range(start_date: @filter.start_date, end_date: @filter.end_date).
+      with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)
   end
 
   # An exit is an enrollment where the exit date is within the report range, and there are no enrollments in the
   # specified project types that were open after the reporting period.
   def exits
     next_period = report_scope_source.entry.
-      open_between(start_date: @end_date + 1.day, end_date: Date.current).
-      with_service_between(start_date: @end_date + 1.day, end_date: Date.current).
+      open_between(start_date: @filter.end_date + 1.day, end_date: Date.current).
+      with_service_between(start_date: @filter.end_date + 1.day, end_date: Date.current).
       in_project_type(@project_types)
 
     exits_current_period.where.not(period_exists_sql(next_period))
   end
 
   def exits_current_period
-    report_scope.exit_within_date_range(start_date: @start_date, end_date: @end_date).
-      with_service_between(start_date: @start_date, end_date: @end_date)
+    report_scope.exit_within_date_range(start_date: @filter.start_date, end_date: @filter.end_date).
+      with_service_between(start_date: @filter.start_date, end_date: @filter.end_date)
   end
 
   def open_enrollments
-    report_scope.open_between(start_date: @start_date, end_date: @end_date)
+    report_scope.open_between(start_date: @filter.start_date, end_date: @filter.end_date)
   end
 
   private def period_exists_sql(period)
