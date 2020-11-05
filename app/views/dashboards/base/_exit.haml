@@ -4,13 +4,14 @@
   .ho-container__header
     %h3 #{@report.sub_population_title} Exits to Permanent Housing
   .ho-container__summary
-    .rrh__enrolled.chunk
-      %h4.title
-        #{@report.sub_population_title.pluralize} Housed to Date
-      .metric
-        = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.all_housed_client_count), @report.sub_population_title), warehouse_reports_client_details_exits_path(filter: {start: Reporting::MonthlyReports::Base.lookback_start.to_date, end: Date.current, sub_population: @report.sub_population, ph: 'true', coc_codes: @coc_codes }), target: :_blank
-      .description
-        total #{@report.sub_population_title.pluralize.downcase} housed to date
+    - unless GrdaWarehouse::Config.get(:multi_coc_installation)
+      .rrh__enrolled.chunk
+        %h4.title
+          #{@report.sub_population_title.pluralize} Housed to Date
+        .metric
+          = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.all_housed_client_count), @report.sub_population_title), warehouse_reports_client_details_exits_path(filter: {start: Reporting::MonthlyReports::Base.lookback_start.to_date, end: Date.current, sub_population: @report.sub_population, ph: 'true', coc_codes: @coc_codes }), target: :_blank
+        .description
+          total #{@report.sub_population_title.pluralize.downcase} housed to date
     .rrh__enrolled.chunk
       %h4.title
         #{@report.sub_population_title.pluralize} Housed During Reporting Period

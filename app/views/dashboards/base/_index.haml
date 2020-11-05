@@ -1,6 +1,7 @@
 - @show_census = false
 = render 'index_title'
-= render 'housed_overall'
+- unless GrdaWarehouse::Config.get(:multi_coc_installation)
+  = render 'housed_overall'
 - if @html
   = render 'report_picker'
 - else
