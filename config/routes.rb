@@ -135,6 +135,7 @@ Rails.application.routes.draw do
 
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
+      get :download_support, on: :member
       resources :support, only: [:index], controller: 'report_results/support'
     end
   end
