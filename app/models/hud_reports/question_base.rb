@@ -20,7 +20,7 @@ module HudReports
         @generator = options[:generator_class].constantize.new(options)
         @report = HudReports::ReportInstance.create(
           user_id: options['user_id'],
-          coc_code: options['coc_code'],
+          coc_codes: options['coc_codes'],
           start_date: options['start_date'].to_date,
           end_date: options['end_date'].to_date,
           project_ids: options['project_ids'],

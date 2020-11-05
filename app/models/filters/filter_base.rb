@@ -49,9 +49,6 @@ module Filters
     attribute :chronic_status, Boolean, default: false
 
     validates_presence_of :start, :end
-    validate do
-      errors.add(:end, 'End date must follow start date.') if start > self.end
-    end
 
     # NOTE: keep this up-to-date if adding additional attributes
     def cache_key
@@ -99,7 +96,7 @@ module Filters
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map { |m| m.to_i }
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map { |m| m.to_i }
       self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true])
-      ensure_dates_work
+      ensure_dates_work if valid?
     end
 
     def for_params
