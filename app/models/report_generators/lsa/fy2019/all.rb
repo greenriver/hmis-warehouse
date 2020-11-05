@@ -86,11 +86,18 @@ module ReportGenerators::Lsa::Fy2019
           run_lsa_queries()
           update_report_progress(percent: 90)
           log_and_ping('LSA Queries complete')
+          # Fetch data
           fetch_results()
           fetch_summary_results()
           zip_report_folder()
           attach_report_zip()
           remove_report_files()
+          # Fetch supporting data
+          fetch_intermediate_results()
+          zip_intermediate_report_folder()
+          attach_intermediate_report_zip()
+          remove_report_files()
+
           update_report_progress(percent: 100)
           log_and_ping('LSA Complete')
         ensure
@@ -114,7 +121,11 @@ module ReportGenerators::Lsa::Fy2019
 
     def create_hmis_csv_export
       return if test?
-      return GrdaWarehouse::HmisExport.find(@hmis_export_id) if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
+
+      if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
+        @report.export_id = @hmis_export_id
+        return GrdaWarehouse::HmisExport.find(@hmis_export_id)
+      end
 
       # All LSA reports should have the same HMIS export scope, so reuse the file if available from today
       # This is really only useful if you are changing the code, so only reuse the export in development
@@ -128,7 +139,7 @@ module ReportGenerators::Lsa::Fy2019
             hash_status: 1,
             include_deleted: false,
           ).
-          where("project_ids @> ?", @project_ids.to_json).
+          where('project_ids @> ?', @project_ids.to_json).
           where.not(file: nil)&.first
         if existing_export.present?
           @hmis_export = existing_export
@@ -146,6 +157,7 @@ module ReportGenerators::Lsa::Fy2019
         include_deleted: false,
         user_id: @report.user_id,
       ).export!
+      @report.export_id = @hmis_export.id
     end
 
     def setup_temporary_rds
@@ -177,6 +189,18 @@ module ReportGenerators::Lsa::Fy2019
       end
     end
 
+    def zip_intermediate_report_folder
+      files = Dir.glob(File.join(unzip_path, '*')).map{|f| File.basename(f)}
+      Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
+        files.each do |file_name|
+          zipfile.add(
+            file_name,
+            File.join(unzip_path, file_name)
+          )
+        end
+      end
+    end
+
     def attach_report_zip
       report_file = GrdaWarehouse::ReportResultFile.new(user_id: @report.user_id)
       file = Pathname.new(zip_path).open
@@ -184,6 +208,16 @@ module ReportGenerators::Lsa::Fy2019
       report_file.content_type = 'application/zip'
       report_file.save!
       @report.file_id = report_file.id
+      @report.save!
+    end
+
+    def attach_intermediate_report_zip
+      report_file = GrdaWarehouse::ReportResultFile.new(user_id: @report.user_id)
+      file = Pathname.new(zip_path).open
+      report_file.content = file.read
+      report_file.content_type = 'application/zip'
+      report_file.save!
+      @report.support_file_id = report_file.id
       @report.save!
     end
 
@@ -235,8 +269,36 @@ module ReportGenerators::Lsa::Fy2019
         path = File.join(unzip_path, filename)
         # Sample files are not quoted when the columns are integers or dates regardless of if there is data
         force_quotes = ! klass.name.include?('LSA')
-        CSV.open(path, "wb", force_quotes: force_quotes) do |csv|
+        CSV.open(path, 'wb', force_quotes: force_quotes) do |csv|
           headers = klass.csv_columns.map{ |m| if m == :Zip then :ZIP else m end }.map(&:to_s)
+          csv << headers
+          klass.all.each do |item|
+            row = []
+            item.attributes.slice(*headers).each_value do |m|
+              if m.is_a?(Date)
+                row << m.strftime('%F')
+              elsif m.is_a?(Time)
+                row << m.utc.strftime('%F %T')
+              else
+                row << m
+              end
+            end
+            csv << row
+          end
+        end
+      end
+      # puts LsaSqlServer.models_by_filename.values.map(&:count).inspect
+    end
+
+    def fetch_intermediate_results
+      load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
+      # Make note of completion time, LSA requirements are very specific that this should be the time the report was completed, not when it was initiated.
+      # There will only ever be one of these.
+      LsaSqlServer::LSAReport.update_all(ReportDate: Time.now)
+      LsaSqlServer.intermediate_models_by_filename.each do |filename, klass|
+        path = File.join(unzip_path, filename)
+        CSV.open(path, 'wb') do |csv|
+          headers = klass.column_names
           csv << headers
           klass.all.each do |item|
             row = []

@@ -38,9 +38,19 @@
         Download
         = @result.download_type.upcase
     - if @result.download_type.present? && @result.download_type == :zip
-      = link_to({format: @result.download_type},{class: 'btn btn-primary'}) do
+      = link_to({ format: @result.download_type }, {class: 'btn btn-primary'}) do
         %span.icon-download2
         Download
+    - if @result.support_file_id
+      .mt-2
+        = link_to({ action: :download_support, format: :zip}, {class: 'btn btn-secondary'}) do
+          %span.icon-download2
+          Supporting Files
+    - if @result.export_id
+      .mt-2
+        = link_to(warehouse_reports_hmis_export_path(@result.export_id), {class: 'btn btn-secondary'}) do
+          %span.icon-download2
+          Source HMIS Data
 - if @result.job_status.present?
   .alert.alert-danger
     .error-note
