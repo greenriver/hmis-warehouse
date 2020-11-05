@@ -14,7 +14,7 @@
       .mb-4= render 'hero_counts'
     .main-inner-prs1
       .text-right.mb-4
-        = render 'performance_dashboards/report_download', export: nil, excel_download_path: core_demographics_report_warehouse_reports_core_index_path({format: :xlsx}.merge(@filter.for_params))
+        = render 'performance_dashboards/report_download', export: @pdf_export, excel_download_path: core_demographics_report_warehouse_reports_core_index_path({format: :xlsx}.merge(@filter.for_params))
       - @report.class.available_section_types.each do |section|
         .rollup{data: {partial: section}}
 

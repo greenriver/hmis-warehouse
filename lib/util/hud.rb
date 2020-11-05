@@ -692,7 +692,13 @@ module HUD
 
   # 3.917.4
   def times_homeless_past_three_years(id, reverse = false)
-    map = {
+    map = times_homeless_options
+
+    _translate map, id, reverse
+  end
+
+  def times_homeless_options
+    {
       1 => 'One time',
       2 => 'Two times',
       3 => 'Three times',
@@ -701,8 +707,6 @@ module HUD
       9 => 'Client refused',
       99 => 'Data not collected',
     }
-
-    _translate map, id, reverse
   end
 
   def times_homeless_past_three_years_brief(id, reverse = false)
