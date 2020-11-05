@@ -764,7 +764,7 @@ def report_list
       url: 'claims_reporting/warehouse_reports/reconciliation',
       name: 'BH CP Claim Reconciliation',
       description: 'Verify payment of claims.',
-      limitable: true,
+      limitable: false,
       health: true,
     }
   end
