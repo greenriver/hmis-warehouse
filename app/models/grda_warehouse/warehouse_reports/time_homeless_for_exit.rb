@@ -91,8 +91,8 @@ module GrdaWarehouse::WarehouseReports
         # Find the latest entry into homelessness for the client occurring before the housed date,
         # if there are overlapping homeless enrollments, go to the beginning of the first in the
         # overlapping bunch
-        homeless_entries.order(e_t[:EntryDate].desc).
-          pluck(:id, e_t[:EntryDate], ex_t[:ExitDate], p_t[:ProjectName], p_t[:id]).
+        homeless_entries.order(she_t[:first_date_in_program].desc).
+          pluck(:id, she_t[:first_date_in_program], she_t[:last_date_in_program], p_t[:ProjectName], p_t[:id]).
           each do |client_id, entry_date, exit_date, project_name, project_id|
             next if client_housed_dates[client_id].exit_date < entry_date
 
@@ -120,10 +120,16 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def homeless_entries
-      client_source.joins(source_enrollments: :project).
-        merge(GrdaWarehouse::Hud::Enrollment.homeless.where(e_t[:EntryDate].lt(filter.end))).
-        where(id: clients_housed_scope.select(:id)).
-        left_outer_joins(source_enrollments: :exit)
+      # Require some recent-ish service to avoid joining in completely empty enrollments
+      client_source.joins(service_history_enrollments: [:project, :enrollment]).
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.homeless.
+          entry.
+          with_service_between(start_date: filter.last - 5.years, end_date: filter.last).
+          where(she_t[:first_date_in_program].lt(filter.end)).
+          where(client_id: clients_housed_scope.select(:id)),
+        ).
+        where(id: clients_housed_scope.select(:id))
     end
 
     private def clients_with_permanent_exits

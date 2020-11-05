@@ -14,6 +14,8 @@ Date:  4/7/2020
 		10/1/2020 - 8.5 - correct set of ReportRow for new ExitFrom values 7 and 8 (w/ related changes in specs section 8.5
 					and dictionary list 33/ReportRow).
 					8.1 and 8.2 - correct step numbering
+		10/22/2020 - 8.7 - specify that records in ref_Populations used for counts should be PopType 1 (household characteristics) 
+						/ exclude PopType 3 (personal characteristics)
 
 	8.1 and 8.2 Average Days for Length of Time Homeless 
 */
@@ -540,7 +542,7 @@ Date:  4/7/2020
 		and (lx.SystemPath = pop.SystemPath or pop.SystemPath is null)
 	where lx.ReturnTime > 0 
 	    and lx.SystemPath <> -1 --290
-		and pop.PopID between 0 and 4
+		and pop.PopID between 0 and 4 and pop.PopType = 1
 	group by pop.PopID, lx.ReportID
 		, lx.Cohort
 		, case when lx.ExitTo between 1 and 6 then 2

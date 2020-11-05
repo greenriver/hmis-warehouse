@@ -406,6 +406,7 @@ Rails.application.routes.draw do
       resources :ed_ip_visits, only: [:index, :show, :create, :destroy]
       resources :contact_tracing, only: [:index] do
         get :download, on: :collection
+        get :single_case, on: :member
       end
       resources :completed_contact_tracing, only: [:index] do
         get :download, on: :collection

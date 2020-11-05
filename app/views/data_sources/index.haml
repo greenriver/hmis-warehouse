@@ -46,7 +46,12 @@
             %td= number_with_delimiter(@project_counts[data_source.id])
             %td.text-center= checkmark(data_source.visible_in_window)
             %td.text-center= checkmark(data_source.authoritative)
-            %td= most_recently_completed
+            %td
+              = most_recently_completed
+              - if data_source.unprocessed_enrollment_count.positive?
+                .mt-2
+                  %em
+                    Enrollments remaining to process: #{data_source.unprocessed_enrollment_count}
             %td
               -# NOTE: this will only show the data source as stalled if the files were brought in by the system user
               - if most_recently_completed.present?

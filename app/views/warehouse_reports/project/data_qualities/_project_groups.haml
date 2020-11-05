@@ -4,7 +4,7 @@
     .mb-5
       .c-card.c-card--linked.c-card--row.j-parent
         .c-card__content.d-flex.align-items-center
-          .c-checkbox.c-checkbox--round.mr-4
+          .c-checkbox.c-checkbox.mr-4
             = check_box_tag("organization-toggle[project_groups]", 1, false, {class: 'j-select-children'})
             %label{for: "organization-toggle_project_groups", data: {toggle: 'tooltip'}, title: 'Select/Deselect all projects in group'}
           %h3.mb-0.mt-0 Project Groups
@@ -26,7 +26,7 @@
             - last_report = @project_group_report_shells[id]
             %tr.jProject.jProject{data: {organization_id: :project_groups}}
               %td
-                .c-checkbox.c-checkbox--round
+                .c-checkbox.c-checkbox
                   = check_box_tag("project_group[#{id}]", 1, false, {class: 'j-child-select'})
                   %label{ for:"project_group_#{id}", tabindex:'1' }
               %td

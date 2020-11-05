@@ -329,6 +329,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  def unprocessed_enrollment_count
+    @unprocessed_enrollment_count ||= enrollments.unprocessed.joins(:project, :destination_client).count
+  end
+
   # are there any uploads for this data_source
   # with the same file name on previous days
   # where the upload was uploaded by the system user?

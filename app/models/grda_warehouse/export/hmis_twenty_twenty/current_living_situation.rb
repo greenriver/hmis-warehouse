@@ -15,5 +15,10 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     # enrollment has been deleted
     belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
 
+    def apply_overrides row, data_source_id:
+      row[:VerifiedBy] = row[:VerifiedBy][0...50] if row[:VerifiedBy]
+
+      row
+    end
   end
 end

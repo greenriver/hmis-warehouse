@@ -15,10 +15,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so]
 
-    scope :unprocessed, -> do
-      where(processed_as: nil)
-    end
-
     def self.batch_process_unprocessed!(max_wait_seconds: 21_600)
       queue_batch_process_unprocessed!
       GrdaWarehouse::Tasks::ServiceHistory::Base.
