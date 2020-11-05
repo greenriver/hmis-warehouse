@@ -30,7 +30,7 @@ module
       detail = detail_hash[key]
       return report_scope.none unless detail
 
-      detail[:scope].call
+      detail[:scope].call.distinct
     end
 
     def support_title(key)
