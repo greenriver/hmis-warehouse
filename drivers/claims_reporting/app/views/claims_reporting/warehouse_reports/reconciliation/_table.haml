@@ -2,7 +2,7 @@
 - if @report.active_patient_count.positive?
   - if @report.payment_details.none?
     %p
-      %b No payment details where found for services performed during this period. Have they been loaded yet?
+      %b No payment details were found for services performed during this period. Have they been loaded yet?
   - elsif @report.patients_without_payments.none?
     %p
       %b Found #{pluralize @report.patients_without_payments.size, 'missing claim'} during this period.
