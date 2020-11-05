@@ -1,6 +1,7 @@
 # Class to handle upsert style inserts from a CSV (and potentially other flat file formats
 # into ClaimsReporting::MedicalClaims.
 require 'csv'
+require 'net/sftp'
 
 module ClaimsReporting
   class MedicalClaimsImporter
@@ -11,6 +12,136 @@ module ClaimsReporting
       File.open(path) do |f|
         i.import(f, filename: path, replace_all: true)
       end
+    end
+
+    # credentials is a Hash containing host, username, password
+    # defaults to one from config/health_sftp.yml
+    def self.pull_from_health_sftp(zip_path, entry_path, replace_all:, credentials: nil)
+      credentials ||= YAML.safe_load(ERB.new(File.read(Rails.root.join('config/health_sftp.yml'))).result)[Rails.env]['ONE']
+      sftp = Net::SFTP.start(
+        credentials['host'],
+        credentials['username'],
+        password: credentials['password'],
+        auth_methods: ['publickey', 'password'],
+      )
+      HealthBase.logger.debug 'pull_from_health_sftp: connected, downloading...'
+      Tempfile.create(File.basename(zip_path)) do |tmpfile|
+        HealthBase.logger.debug "pull_from_health_sftp: to #{tmpfile.path}"
+        sftp.download!(path, tmpfile.path)
+        import_from_zip(tmpfile, replace_all: replace_all, entry_path: entry_path)
+      end
+    end
+
+    # zip_path_or_io is passed Zip::InputStream.open
+    def self.import_from_zip(zip_path_or_io, entry_path:, replace_all:)
+      i = new
+      i.logger.info "import_from_zip(#{zip_path_or_io}, entry_path: #{entry_path})"
+      # FIXME: entry_path has date/container in its name. Handle that better
+      Zip::InputStream.open(zip_path_or_io) do |io|
+        while (entry = io.get_next_entry)
+          next unless entry.name == entry_path
+
+          i.logger.info "import_from_zip: found #{entry_path}, reading..."
+          entry.get_input_stream do |entry_io|
+            i.import(entry_io, filename: entry_path, replace_all: replace_all)
+          end
+          break
+        end
+      end
+    end
+
+    # Expects an IO and a String filename for the logs.
+    #
+    # Returns the number of rows processed.
+    def import(io, filename:, replace_all:) # rubocop:disable Naming/MethodParameterName
+      # TODO: Support partial updates by reading rows into tmp table with with_temp_table
+      # and then upserting in the final table
+      table_name = MedicalClaim.quoted_table_name
+      MedicalClaim.transaction do
+        conn.truncate(MedicalClaim.table_name) if replace_all
+        col_list = csv_cols.join(',')
+        log_timing "Loading #{filename} in #{table_name} cols:#{col_list}" do
+          copy_sql = <<~SQL.strip
+            COPY #{table_name} (#{col_list})
+            FROM STDIN
+            WITH (FORMAT csv,HEADER,QUOTE '"',DELIMITER '|',FORCE_NULL(#{force_null_cols.join(',')}))
+          SQL
+          logger.debug { copy_sql }
+          pg_conn = conn.raw_connection
+          pg_conn.copy_data copy_sql do
+            io.each_line do |line|
+              pg_conn.put_copy_data(line)
+            end
+          end
+        end
+      end
+    end
+
+    def csv_schema
+      @csv_schema ||= CSV.parse CSV_SCHEMA, headers: true, converters: lambda { |value, field_info|
+        if field_info.header == 'PRIVACY: Encounter pricing' && value == '-'
+          nil
+        else
+          value
+        end
+      }
+    end
+
+    def csv_cols
+      csv_schema.map { |r| r['Field name'] }
+    end
+
+    def force_null_cols
+      csv_schema.reject { |r| r['Data type'] == 'string' }.map { |r| r['Field name'] }
+    end
+
+    def generate_table_definition
+      csv_schema.each do |row|
+        db_type = row['Data type']
+        db_type = 'date' if db_type == 'date (YYYY-MM-DD)'
+        puts "t.column '#{row['Field name']}', '#{db_type}', limit: #{db_type == 'string' ? row['Length'] : 'nil'}"
+      end
+    end
+
+    private def with_temp_table
+      tmp_table_name = "mr_#{SecureRandom.hex}"
+      log_timing 'Create temp table' do
+        conn.create_table(tmp_table_name, id: false, temporary: true) do |t|
+          csv_schema.each do |row|
+            db_type = row['Data type']
+            db_type = 'date' if db_type == 'date (YYYY-MM-DD)'
+            t.column(
+              row['Field name'],
+              db_type,
+              limit: (row['Length'] if db_type == 'string'),
+              # comment: row['Description'],
+            )
+          end
+        end
+      end
+      yield tmp_table_name
+    ensure
+      conn.drop_table(tmp_table_name, if_exists: true)
+    end
+
+    private def log_timing(str)
+      logger.info { "#{self.class}: #{str} started" }
+      res = nil
+      bm = Benchmark.measure do
+        res = yield
+      end
+      msg = "#{self.class}: #{str} completed in #{bm.to_s.strip}"
+      puts msg
+      logger.info msg
+      res
+    end
+
+    private def conn
+      HealthBase.connection
+    end
+
+    def logger
+      HealthBase.logger
     end
 
     CSV_SCHEMA = <<~CSV.freeze
@@ -164,100 +295,5 @@ module ClaimsReporting
       147,quantity,Quantity billed,30,"decimal(12,4)",-
       148,price_method,Indicates the pricing method used for payment of the claim,50,string,-
     CSV
-
-    # Expects an IO and a String filename for the logs.
-    #
-    # Returns the number of rows processed.
-    def import(io, filename:, replace_all:) # rubocop:disable Naming/MethodParameterName
-      # TODO: Support partial updates by reading rows into tmp table with with_temp_table
-      # and then upserting in the final table
-      data = io.each_line
-      table_name = MedicalClaim.quoted_table_name
-      MedicalClaim.transaction do
-        conn.truncate(MedicalClaim.table_name) if replace_all
-        col_list = csv_cols.join(',')
-        log_timing "Loading #{filename} in #{table_name} cols:#{col_list}" do
-          copy_sql = <<~SQL.strip
-            COPY #{table_name} (#{col_list})
-            FROM STDIN
-            WITH (FORMAT csv,HEADER,QUOTE '"',DELIMITER '|',FORCE_NULL(#{force_null_cols.join(',')}))
-          SQL
-          logger.debug { copy_sql }
-          pg_conn = conn.raw_connection
-          pg_conn.copy_data copy_sql do
-            data.each do |line|
-              pg_conn.put_copy_data(line)
-            end
-          end
-        end
-      end
-    end
-
-    def csv_schema
-      @csv_schema ||= CSV.parse CSV_SCHEMA, headers: true, converters: lambda { |value, field_info|
-        if field_info.header == 'PRIVACY: Encounter pricing' && value == '-'
-          nil
-        else
-          value
-        end
-      }
-    end
-
-    def csv_cols
-      csv_schema.map { |r| r['Field name'] }
-    end
-
-    def force_null_cols
-      csv_schema.reject { |r| r['Data type'] == 'string' }.map { |r| r['Field name'] }
-    end
-
-    def generate_table_definition
-      csv_schema.each do |row|
-        db_type = row['Data type']
-        db_type = 'date' if db_type == 'date (YYYY-MM-DD)'
-        puts "t.column '#{row['Field name']}', '#{db_type}', limit: #{db_type == 'string' ? row['Length'] : 'nil'}"
-      end
-    end
-
-    private def with_temp_table
-      tmp_table_name = "mr_#{SecureRandom.hex}"
-      log_timing 'Create temp table' do
-        conn.create_table(tmp_table_name, id: false, temporary: true) do |t|
-          csv_schema.each do |row|
-            db_type = row['Data type']
-            db_type = 'date' if db_type == 'date (YYYY-MM-DD)'
-            t.column(
-              row['Field name'],
-              db_type,
-              limit: (row['Length'] if db_type == 'string'),
-              # comment: row['Description'],
-            )
-          end
-        end
-      end
-      yield tmp_table_name
-    ensure
-      conn.drop_table(tmp_table_name, if_exists: true)
-    end
-
-    private def log_timing(str)
-      logger.info { "#{self.class}: #{str} started" }
-      res = nil
-      bm = Benchmark.measure do
-        res = yield
-      end
-      msg = "#{self.class}: #{str} completed in #{bm.to_s.strip}"
-      puts msg
-      logger.info msg
-      res
-    end
-
-    private def conn
-      HealthBase.connection
-    end
-
-    private def logger
-      HealthBase.logger
-    end
   end
 end
