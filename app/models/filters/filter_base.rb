@@ -50,9 +50,6 @@ module Filters
     attribute :coordinated_assessment_living_situation_homeless, Boolean, default: false
 
     validates_presence_of :start, :end
-    validate do
-      errors.add(:end, 'End date must follow start date.') if start > self.end
-    end
 
     # NOTE: keep this up-to-date if adding additional attributes
     def cache_key
@@ -101,7 +98,7 @@ module Filters
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map { |m| m.to_i }
       self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true])
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true])
-      ensure_dates_work
+      ensure_dates_work if valid?
     end
 
     def for_params

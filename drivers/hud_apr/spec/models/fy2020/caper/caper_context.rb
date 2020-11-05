@@ -7,19 +7,19 @@ RSpec.shared_context 'caper context', shared_context: :metadata do
     {
       start: Date.parse('2019-01-01'),
       end: Date.parse('2019-12-31'),
-      coc_code: 'XX-500',
+      coc_codes: ['XX-500'],
       user_id: 0,
     }.freeze
   end
 
   def default_filter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-ES').id
-    ::Filters::FilterBase.new(shared_filter.merge(project_ids: [project_id]))
+    HudApr::Filters::AprFilter.new(shared_filter.merge(project_ids: [project_id]))
   end
 
   def night_by_night_shelter
     project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'NBN').id
-    ::Filters::FilterBase.new(shared_filter.merge(project_ids: [project_id]))
+    HudApr::Filters::AprFilter.new(shared_filter.merge(project_ids: [project_id]))
   end
 
   def run(filter, question_name)
