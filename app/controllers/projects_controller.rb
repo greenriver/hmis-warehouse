@@ -68,6 +68,7 @@ class ProjectsController < ApplicationController
       :active_homeless_status_override,
       :include_in_days_homeless_override,
       :extrapolate_contacts,
+      :hmis_participating_project_override,
     )
   end
 
