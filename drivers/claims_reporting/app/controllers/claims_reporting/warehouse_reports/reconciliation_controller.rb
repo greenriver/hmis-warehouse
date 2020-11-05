@@ -6,29 +6,23 @@
 module ClaimsReporting::WarehouseReports
   class ReconciliationController < ApplicationController
     include WarehouseReportAuthorization
-    # before_action :require_can_view_member_health_reports!
+    before_action :require_can_view_member_health_reports!
 
-    # include AjaxModalRails::Controller
-    include ArelHelper
-    # include BaseFilters
-
-    # before_action :set_report
     def index
-      dates = if ::Health::Claim.none?
-        ::Health::QualifyingActivity.distinct.pluck(:date_of_activity)
-      else
-        ::Health::Claim.distinct.pluck(:max_date)
-      end
-
-      @available_months = dates.map(&:beginning_of_month).sort.uniq.reverse
-
-      month = begin
-                Date.parse(filter_params[:month]).beginning_of_month
-              rescue StandardError
-                nil
-              end
-      @active_month = @available_months.detect { |m| m == month } || @available_months.first
+      @report = ClaimsReporting::ReconcilationReport.new(**filter_params)
     end
+
+    private def available_months
+      @available_months ||= begin
+        dates = if ::Health::Claim.none?
+          ::Health::QualifyingActivity.distinct.pluck(:date_of_activity)
+        else
+          ::Health::Claim.distinct.pluck(:max_date)
+        end
+        dates.map(&:beginning_of_month).sort.uniq.reverse
+      end
+    end
+    helper_method :available_months
 
     def create
       if params[:file]
@@ -38,7 +32,7 @@ module ClaimsReporting::WarehouseReports
           content: upload.read,
           original_filename: upload.original_filename,
         )
-        if @upload.save
+        if record.save
           record.process!
           flash[:notice] = 'Upload accepted and processed successfully'
         else
@@ -49,10 +43,12 @@ module ClaimsReporting::WarehouseReports
     end
 
     private def filter_params
-      params.fetch(:filter, {}).permit(
+      params.fetch(:f, {}).permit(
         :month,
-        acos: [],
-      )
+        aco_ids: [],
+      ).tap do |filter|
+        filter[:month] = available_months.detect { |m| m.iso8601 == filter[:month] } || available_months.first
+      end.to_h.symbolize_keys
     end
   end
 end

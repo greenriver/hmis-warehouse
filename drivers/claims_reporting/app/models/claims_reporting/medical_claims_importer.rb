@@ -17,14 +17,14 @@ module ClaimsReporting
     # credentials is a Hash containing host, username, password
     # defaults to one from config/health_sftp.yml
     def self.pull_from_health_sftp(path, replace_all:, credentials: nil)
-      credentials ||= YAML::load(ERB.new(File.read(Rails.root.join('config/health_sftp.yml'))).result)[Rails.env]['ONE']
+      credentials ||= YAML.safe_load(ERB.new(File.read(Rails.root.join('config/health_sftp.yml'))).result)[Rails.env]['ONE']
       sftp = Net::SFTP.start(
         credentials['host'],
         credentials['username'],
         password: credentials['password'],
-        auth_methods: ['publickey','password']
+        auth_methods: ['publickey', 'password'],
       )
-      HealthBase.logger.debug "pull_from_health_sftp: connected, downloading..."
+      HealthBase.logger.debug 'pull_from_health_sftp: connected, downloading...'
       Tempfile.create(File.basename(path)) do |tmpfile|
         HealthBase.logger.debug "pull_from_health_sftp: to #{tmpfile.path}"
         sftp.download!(path, tmpfile.path)
@@ -33,19 +33,19 @@ module ClaimsReporting
     end
 
     # zip_path_or_io is passed Zip::InputStream.open
-    def self.import_from_zip(zip_path_or_io, entry_path: 'BCCH-CP_Jul_2020_medical_claims.csv', replace_all: )
+    def self.import_from_zip(zip_path_or_io, entry_path: 'BCCH-CP_Jul_2020_medical_claims.csv', replace_all:)
       i = new
       i.logger.info "import_from_zip(#{zip_path_or_io}, entry_path: #{entry_path})"
       # FIXME: entry_path has date/container in its name. Handle that better
       Zip::InputStream.open(zip_path_or_io) do |io|
         while (entry = io.get_next_entry)
-          if entry.name == entry_path
-            i.logger.info "import_from_zip: found #{entry_path}, reading..."
-            entry.get_input_stream do |io|
-              i.import(io, filename: entry_path, replace_all: replace_all)
-            end
-            break
+          next unless entry.name == entry_path
+
+          i.logger.info "import_from_zip: found #{entry_path}, reading..."
+          entry.get_input_stream do |entry_io|
+            i.import(entry_io, filename: entry_path, replace_all: replace_all)
           end
+          break
         end
       end
     end

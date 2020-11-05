@@ -69,15 +69,15 @@ module ClaimsReporting
         errors.add(:content, "is too large. Max size is #{MAX_UPLOAD_SIZE.to_s(:human_size)}")
         return
       end
-      content_as_details.any? # we just need to call this to try
+      content_as_details.any? # we call this just to provoke Roo to throw validation errors
     rescue Zip::Error
       errors.add(:content, 'must be a valid XLSX file')
-    rescue RangeError => e
+    rescue RangeError => e # raised when looking for a sheet in Roo
       errors.add(:content, e.message)
     rescue Roo::HeaderRowNotFoundError => e
-      errors.add(:content, "Unable to find required headers: #{e.message}")
-    rescue Roo::Error
-      errors.add(:content, err.message)
+      errors.add(:content, "does not contain the following required headers: #{e.message}")
+    rescue Roo::Error => e
+      errors.add(:content, e.message)
     end
 
     def content_as_details
@@ -105,6 +105,13 @@ module ClaimsReporting
       else
         'Queued for processing'
       end
+    end
+
+    def paid_dos_range
+      details.pluck(
+        details.arel_table[:paid_dos].minimum,
+        details.arel_table[:paid_dos].maximum,
+      ).first
     end
   end
 end
