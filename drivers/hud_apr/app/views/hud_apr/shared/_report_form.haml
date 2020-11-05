@@ -7,7 +7,7 @@
       .col-sm-4
         = f.input :end, as: :date_picker, label: 'End Date', required: true
       .col-sm-4
-        = f.input :coc_code, collection: @filter.coc_code_options_for_select(user: current_user), input_html: {class: 'select2'}, label: 'CoC Code', hint: default_coc_code, required: true
+        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), input_html: {multiple: true, class: 'select2'}, label: 'CoC Codes', hint: default_coc_code, required: true
     .row
       .col-sm-6
         = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: 'select2'},label: 'Projects', required: true

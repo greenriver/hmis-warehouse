@@ -23,7 +23,13 @@ module
           required: true,
           label: 'Population by Project Type',
           short_label: 'Project Type',
-          value: describe_household_control_section,
+          value: describe_project_type_control_section,
+        )
+        section.add_control(
+          id: 'coordinated_assessment_living_situation_homeless',
+          label: 'Including CA homeless at entry?',
+          value: @filter.coordinated_assessment_living_situation_homeless ? 'Yes' : nil,
+          hint: "Including Coordinated Assessment enrollments where the prior living situation is homeless (#{HUD.homeless_situations(as: :prior).to_sentence}) will include these clients even if they do not have an enrollment in one of the chosen project types.",
         )
         section.add_control(
           id: 'reporting_period',
@@ -37,7 +43,7 @@ module
       end
     end
 
-    protected def describe_household_control_section
+    protected def describe_project_type_control_section
       if @filter.chosen_project_types_only_homeless?
         'Only Homeless'
       elsif filter.project_type_codes.sort == GrdaWarehouse::Hud::Project::PROJECT_GROUP_TITLES.keys.map(&:to_s).sort

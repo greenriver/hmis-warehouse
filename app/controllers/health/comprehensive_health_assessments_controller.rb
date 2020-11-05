@@ -14,7 +14,7 @@ module Health
 
     before_action :set_client
     before_action :set_hpc_patient
-    before_action :set_form, only: [:show, :edit, :update, :download, :remove_file, :upload]
+    before_action :set_form, only: [:show, :edit, :update, :download, :remove_file, :upload, :destroy]
     before_action :set_locked, only: [:show, :edit]
     before_action :set_medications, only: [:show, :edit]
     before_action :set_problems, only: [:show, :edit]
@@ -63,6 +63,11 @@ module Health
 
     def show
       render :show
+    end
+
+    def destroy
+      @cha.destroy
+      respond_with @cha, location: polymorphic_path(careplans_path_generator)
     end
 
     def form_url(format_js: false)

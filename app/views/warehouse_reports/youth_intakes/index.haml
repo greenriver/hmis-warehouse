@@ -396,7 +396,7 @@
 
 .row
   .col-sm-8
-    %h2 G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing (YTD should be unduplicated and match F-2a.)
+    %h2 G. Demographics of Rehousing Outcomes: youth who transitioned into stabilized housing
   .col-sm-4
     YTD should be unpuplicated and match F2a "Number of YYA who transition into stabilized housing"
 .card.mb-4
@@ -426,7 +426,7 @@
           %i does not include refused or not collected
 
     %tr
-      %th{rowspan: 9} 2. Race, Ethnicity and Language
+      %th{rowspan: 6} 2. Race, Ethnicity and Language
       %th a. Number of YYA  served who identified as White (race)
       %td= data_link(:g_two_a)
     %tr
@@ -446,6 +446,64 @@
       %td= data_link(:g_two_f)
       %td Could be any race.
     %tr
-      %th{rowspan: 9} 3. Other
+      %th 3. Other
       %th b. Number of YYA served who were LGBTQ+
       %td= data_link(:g_three_b)
+      %td
+
+.row
+  .col-sm-8
+    %h2 G. Demographics of Rehousing Prevention: youth who identified as at risk, and remained housed
+  .col-sm-4
+    YTD should be unpuplicated and match F1a "Number of YYA contacted for follow up 3 mos. after receiving prevention services"
+.card.mb-4
+  %table.table.table-sm
+    %tbody
+      %tr
+        %th{rowspan: 5} 1. Age and Gender
+        %th a. Number of YYA served who were Under 18
+        %td= data_link(:h_one_a)
+        %td Report age at start of reporting period
+      %tr
+        %th b. Number of YYA  served who identified as Male
+        %td= data_link(:h_one_b)
+      %tr
+        %th c. Number of YYA  served who identified as Female
+        %td= data_link(:h_one_c)
+      %tr
+        %th d. Number of YYA  served who identified as Transgender
+        %td= data_link(:h_one_d)
+      %tr
+        %th
+          e. Number of YYA  served who identified as Other
+        %td= data_link(:h_one_e)
+        %td
+          Include YYA who identified as other than male or female
+          %br
+          %i does not include refused or not collected
+
+    %tr
+      %th{rowspan: 6} 2. Race, Ethnicity and Language
+      %th a. Number of YYA  served who identified as White (race)
+      %td= data_link(:h_two_a)
+    %tr
+      %th b. Number of YYA  served who identified as African American (race)
+      %td= data_link(:h_two_b)
+    %tr
+      %th c. Number of YYA  served who identified as Asian (race)
+      %td= data_link(:h_two_c)
+    %tr
+      %th d. Number of YYA  served who identified as American Indian/Alaska Native (race)
+      %td= data_link(:h_two_d)
+    %tr
+      %th e. Number of YYA  served who identified as Other (race)
+      %td= data_link(:h_two_e)
+    %tr
+      %th f. Number of YYA  served who identified as Hispanic (ethnicity)
+      %td= data_link(:h_two_f)
+      %td Could be any race.
+    %tr
+      %th 3. Other
+      %th b. Number of YYA served who were LGBTQ+
+      %td= data_link(:h_three_b)
+      %td

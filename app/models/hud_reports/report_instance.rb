@@ -26,8 +26,8 @@ module HudReports
         project_ids: filter.effective_project_ids,
         start_date: filter.start.to_date,
         end_date: filter.end.to_date,
-        coc_code: filter.coc_code,
-        options: filter.for_params[:filters].slice(:start, :end, :coc_code, :project_ids, :project_group_ids, :user_id),
+        coc_codes: filter.coc_codes,
+        options: filter.for_params[:filters].slice(:start, :end, :coc_codes, :project_ids, :project_group_ids, :user_id),
       )
     end
 

@@ -101,6 +101,7 @@ module Reporting::MonthlyReports::MonthlyReportCharts
 
       client_scope = client_scope.heads_of_household if filter[:heads_of_household]
       client_scope = client_scope.filter_for_age(filter[:age_ranges])
+      client_scope = client_scope.filter_for_coc_codes(filter[:coc_codes])
 
       client_scope
     end
@@ -125,6 +126,15 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       end
 
       current_scope.where(age_exists.and(accumulative))
+    end
+
+    # This needs to check project_id in the warehouse since we don't store this in the reporting DB
+    def self.filter_for_coc_codes(coc_codes)
+      return current_scope unless coc_codes&.compact.present?
+
+      project_ids = GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_codes).distinct.pluck(:id)
+
+      current_scope.where(project_id: project_ids)
     end
 
     def self.warehouse_vispdat_client_ids

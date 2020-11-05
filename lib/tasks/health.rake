@@ -12,6 +12,21 @@ namespace :health do
     Health::Tasks::CalculateValidUnpayableQas.new.run!
   end
 
+  desc "Enrollments and Eligibility"
+  task enrollments_and_eligibility: [:environment, "log:info_to_stdout"] do
+    begin
+      Rake::Task['health:queue_eligibility_determination'].invoke
+    rescue StandardError => e
+      puts e.message
+    end
+    begin
+      Rake::Task['health:queue_retrieve_enrollments'].invoke
+    rescue StandardError => e
+      puts e.message
+    end
+  end
+
+
   desc "Create Healthcare for the Homeless Data Source"
   task setup_healthcare_ds: [:environment, "log:info_to_stdout"] do
     ds = GrdaWarehouse::DataSource.where(short_name: 'Health', name: 'Healthcare for the Homeless').first_or_initialize
@@ -291,7 +306,7 @@ namespace :health do
             phi_class = ""
             description = ""
           end
-        
+
           #fill csv with corresponding information
           csv << [table_name, model_name, attr_name, attr_type, phi_class, description]
         end

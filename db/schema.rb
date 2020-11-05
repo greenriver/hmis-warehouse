@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_28_185654) do
+ActiveRecord::Schema.define(version: 2020_11_05_132926) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -312,6 +312,8 @@ ActiveRecord::Schema.define(version: 2020_07_28_185654) do
     t.json "support"
     t.integer "delayed_job_id"
     t.integer "file_id"
+    t.integer "support_file_id"
+    t.integer "export_id"
     t.index ["deleted_at"], name: "index_report_results_on_deleted_at"
     t.index ["report_id"], name: "index_report_results_on_report_id"
   end

@@ -2,6 +2,19 @@ module
   CoreDemographicsReport::GenderCalculations
   extend ActiveSupport::Concern
   included do
+    def gender_detail_hash
+      {}.tap do |hashes|
+        HUD.genders.each do |key, title|
+          hashes["gender_#{key}"] = {
+            title: "Gender - #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_gender(key)).distinct },
+          }
+        end
+      end
+    end
+
     def gender_count(type)
       gender_breakdowns[type]&.count&.presence || 0
     end
@@ -73,10 +86,23 @@ module
       end
     end
 
+    def client_ids_in_gender_age(gender, age)
+      ids = Set.new
+      age.to_a.each do |age_old|
+        client_ids = gender_age_breakdowns[[gender, age_old]]&.map(&:first)
+        ids += client_ids if client_ids
+      end
+      ids
+    end
+
     private def gender_breakdowns
       @gender_breakdowns ||= client_genders_and_ages.group_by do |_, row|
         row[:gender]
       end
+    end
+
+    def client_ids_in_gender(gender)
+      gender_breakdowns[gender]&.map(&:first)
     end
 
     private def client_genders_and_ages
