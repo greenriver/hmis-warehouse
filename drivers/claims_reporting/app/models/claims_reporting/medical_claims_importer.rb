@@ -16,7 +16,7 @@ module ClaimsReporting
 
     # credentials is a Hash containing host, username, password
     # defaults to one from config/health_sftp.yml
-    def self.pull_from_health_sftp(path, replace_all:, credentials: nil)
+    def self.pull_from_health_sftp(zip_path, entry_path, replace_all:, credentials: nil)
       credentials ||= YAML.safe_load(ERB.new(File.read(Rails.root.join('config/health_sftp.yml'))).result)[Rails.env]['ONE']
       sftp = Net::SFTP.start(
         credentials['host'],
@@ -25,15 +25,15 @@ module ClaimsReporting
         auth_methods: ['publickey', 'password'],
       )
       HealthBase.logger.debug 'pull_from_health_sftp: connected, downloading...'
-      Tempfile.create(File.basename(path)) do |tmpfile|
+      Tempfile.create(File.basename(zip_path)) do |tmpfile|
         HealthBase.logger.debug "pull_from_health_sftp: to #{tmpfile.path}"
         sftp.download!(path, tmpfile.path)
-        import_from_zip(tmpfile, replace_all: replace_all)
+        import_from_zip(tmpfile, replace_all: replace_all, entry_path: entry_path)
       end
     end
 
     # zip_path_or_io is passed Zip::InputStream.open
-    def self.import_from_zip(zip_path_or_io, entry_path: 'BCCH-CP_Jul_2020_medical_claims.csv', replace_all:)
+    def self.import_from_zip(zip_path_or_io, entry_path:, replace_all:)
       i = new
       i.logger.info "import_from_zip(#{zip_path_or_io}, entry_path: #{entry_path})"
       # FIXME: entry_path has date/container in its name. Handle that better
