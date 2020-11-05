@@ -20,6 +20,7 @@ module PerformanceDashboards
           :household,
           :sub_population,
           :project_type,
+          :coordinated_assessment_living_situation_homeless,
           :coc,
           :breakdown,
         ],

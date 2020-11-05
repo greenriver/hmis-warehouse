@@ -145,6 +145,7 @@ class PerformanceDashboards::Base
     scope = filter_for_funders(scope)
     scope = filter_for_prior_living_situation(scope)
     scope = filter_for_destination(scope)
+    scope = filter_for_ca_homeless(scope)
     scope
   end
 

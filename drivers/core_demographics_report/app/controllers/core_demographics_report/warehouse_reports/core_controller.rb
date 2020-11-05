@@ -11,14 +11,29 @@ module CoreDemographicsReport::WarehouseReports
     include ArelHelper
     include BaseFilters
 
+    before_action :require_can_view_clients, only: [:detail]
     before_action :set_report
+    before_action :set_pdf_export
 
     def index
       @pdf_export = CoreDemographicsReport::DocumentExports::CoreDemographicsExport.new
       respond_to do |format|
         format.html {}
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=Core Demographics - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Core Demographics - #{Time.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
+    end
+
+    def details
+      @key = params[:key]
+      @sub_key = params[:sub_key]
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "Core Demographics Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
     end
@@ -44,8 +59,13 @@ module CoreDemographicsReport::WarehouseReports
 
       raise 'Rollup not in allowlist' unless @section.present?
 
-      @section = @report.section_subpath + @section
-      render partial: @section, layout: false if request.xhr?
+      if @report.section_ready?(@section)
+        @section = @report.section_subpath + @section
+        render partial: @section, layout: false if request.xhr?
+      else
+        render_to_string(partial: @section, layout: false)
+        render status: :accepted, plain: 'Loading'
+      end
     end
 
     def breakdown
@@ -63,6 +83,7 @@ module CoreDemographicsReport::WarehouseReports
           :hoh_only,
           :sub_population,
           :chronic_status,
+          :coordinated_assessment_living_situation_homeless,
           coc_codes: [],
           project_types: [],
           project_type_codes: [],
@@ -88,6 +109,10 @@ module CoreDemographicsReport::WarehouseReports
 
     private def filter_class
       ::Filters::FilterBase
+    end
+
+    private def set_pdf_export
+      @pdf_export = CoreDemographicsReport::DocumentExports::CoreDemographicsExport.new
     end
   end
 end

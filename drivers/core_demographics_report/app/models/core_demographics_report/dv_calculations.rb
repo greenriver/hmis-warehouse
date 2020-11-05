@@ -2,6 +2,27 @@ module
   CoreDemographicsReport::DvCalculations
   extend ActiveSupport::Concern
   included do
+    def dv_detail_hash
+      {}.tap do |hashes|
+        HUD.no_yes_reasons_for_missing_data_options.each do |key, title|
+          hashes["dv_#{key}"] = {
+            title: "DV Response #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_dv(key)).distinct },
+          }
+        end
+        ::HUD.when_occurreds.each do |key, title|
+          hashes["dv_occurrence_#{key}"] = {
+            title: "DV Occurrence Timing #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_dv_occurrence(key)).distinct },
+          }
+        end
+      end
+    end
+
     def dv_occurrence_count(type)
       dv_occurrence_breakdowns[type]&.count&.presence || 0
     end
@@ -20,6 +41,10 @@ module
       @dv_occurrence_breakdowns ||= client_dv_occurrences.group_by do |_, v|
         v
       end
+    end
+
+    def client_ids_in_dv_occurrence(type)
+      dv_occurrence_breakdowns[type]&.map(&:first)
     end
 
     private def client_dv_occurrences
@@ -70,11 +95,11 @@ module
         ]
       end
       rows['*DV Victim/Survivor - Most Recent Occurance'] ||= []
-      rows['*DV Occurrance Timing'] ||= []
-      rows['*DV Occurrance Timing'] += ['Count', 'Percentage', nil, nil]
+      rows['*DV Occurrence Timing'] ||= []
+      rows['*DV Occurrence Timing'] += ['Count', 'Percentage', nil, nil]
       ::HUD.when_occurreds.each do |id, title|
-        rows["_DV Occurrance Timing#{title}"] ||= []
-        rows["_DV Occurrance Timing#{title}"] += [
+        rows["_DV Occurrence Timing#{title}"] ||= []
+        rows["_DV Occurrence Timing#{title}"] += [
           title,
           dv_occurrence_count(id),
           dv_occurrence_percentage(id),
@@ -88,6 +113,10 @@ module
       @dv_status_breakdowns ||= client_dv_stati.group_by do |_, v|
         v
       end
+    end
+
+    def client_ids_in_dv(type)
+      dv_status_breakdowns[type]&.map(&:first)
     end
 
     private def client_dv_stati
