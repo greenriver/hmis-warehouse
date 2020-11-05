@@ -79,4 +79,5 @@ if Rails.env.development?
   require_dependency 'grda_warehouse/document_exports/client_performance_export'
   require_dependency 'grda_warehouse/document_exports/household_performance_export'
   require_dependency 'grda_warehouse/document_exports/project_type_performance_export'
+  require_dependency 'health/document_exports/housing_status_changes_export'
 end
