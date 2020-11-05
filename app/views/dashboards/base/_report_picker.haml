@@ -18,6 +18,9 @@
       .col-4
         = f.input :end_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @end_month, input_html: { class: :select2 }, required: false
     .row
+      - if GrdaWarehouse::Config.get(:multi_coc_installation)
+        .col-4
+          = f.input :coc_codes, collection: GrdaWarehouse::Lookups::CocCode.options_for_select(user: current_user), as: :select_two, input_html: { multiple: true }, selected: @coc_codes, label: 'CoC Limit', required: false
       .col-4
         = f.input :heads_of_household, as: :boolean, label: 'Limit to heads of household', input_html: { checked: @heads_of_household }
       .col-4
@@ -45,4 +48,3 @@
       });
       $('.jProjectTypes, .jOrganizations').trigger('change');
     });
-

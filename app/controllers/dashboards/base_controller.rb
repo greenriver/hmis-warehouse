@@ -22,6 +22,7 @@ module Dashboards
     before_action :set_limit_to_vispdat
     before_action :set_limit_to_heads_of_household
     before_action :set_age_ranges
+    before_action :set_cocs
 
     def index
       @report = active_report_class.new(
@@ -70,6 +71,7 @@ module Dashboards
           vispdat: @limit_to_vispdat,
           heads_of_household: @heads_of_household,
           age_ranges: @age_ranges,
+          coc_codes: @coc_codes,
         },
       )
       section = allowed_sections.detect do |m|
@@ -159,6 +161,7 @@ module Dashboards
           project_ids: [],
           project_types: [],
           age_ranges: [],
+          coc_codes: [],
         )
     end
     helper_method :report_params
@@ -259,6 +262,10 @@ module Dashboards
 
     def set_age_ranges
       @age_ranges = report_params[:age_ranges]&.reject(&:blank?)&.map(&:to_sym)
+    end
+
+    def set_cocs
+      @coc_codes = report_params[:coc_codes]&.reject(&:blank?)
     end
   end
 end
