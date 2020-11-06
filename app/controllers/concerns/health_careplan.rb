@@ -102,8 +102,8 @@ module HealthCareplan
       pdf << CombinePDF.parse(pctp)
 
       pdf << CombinePDF.parse(@careplan.health_file.content) if @careplan.health_file.present?
-      pdf << CombinePDF.parse(@form.health_file.content) if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
       pdf << CombinePDF.parse(@cha.health_file.content) if @cha.present? && @cha.health_file.present? && @cha.health_file.content_type == 'application/pdf'
+      pdf << CombinePDF.parse(@form.health_file.content) if @form.present? && @form.is_a?(Health::SelfSufficiencyMatrixForm) && @form.health_file.present?
       pdf
     end
   end
