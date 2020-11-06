@@ -4,7 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::ExportEnrollmentCalculator < OpenStruct include ArelHelper
+class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
+  include ArelHelper
   attr_accessor :batch_scope
   attr_accessor :filter
 

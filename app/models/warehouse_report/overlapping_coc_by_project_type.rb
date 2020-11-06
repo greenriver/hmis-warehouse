@@ -5,7 +5,8 @@
 ###
 require 'memoist'
 
-class WarehouseReport::OverlappingCocByProjectType < WarehouseReport VERSION = 3
+class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
+  VERSION = 3
   class Error < ::StandardError; end
 
   attr_reader :start_date, :end_date, :project_type, :non_overlapping

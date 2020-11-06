@@ -5,7 +5,8 @@
 ###
 require 'memoist'
 
-class WarehouseReport::OverlappingCoc < WarehouseReport VERSION = 0
+class WarehouseReport::OverlappingCoc < WarehouseReport
+  VERSION = 0
   class Error < ::StandardError; end
   include ArelHelper
 
