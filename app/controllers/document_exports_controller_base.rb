@@ -11,7 +11,7 @@ class DocumentExportsControllerBase < ApplicationController
       if @export.new_record?
         @export.status = document_export_class::PENDING_STATUS
         @export.save!
-        DocumentExportJob.perform_later(export_id: @export.id)
+        export_job_class.perform_later(export_id: @export.id)
       end
       render json: serialize_export(@export)
     else

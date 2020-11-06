@@ -9,6 +9,10 @@ class DocumentExportsController < DocumentExportsControllerBase
     GrdaWarehouse::DocumentExport
   end
 
+  private def export_job_class
+    DocumentExportJob
+  end
+
   private def export_scope
     current_user.document_exports
   end

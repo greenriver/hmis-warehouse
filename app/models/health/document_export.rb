@@ -44,11 +44,11 @@ class Health::DocumentExport < HealthBase
   CURRENT_VERSION = '1'.freeze # bump to invalidate exports
 
   def self.with_current_version
-    where(version: CURRENT_VERSION)
+    where(export_version: CURRENT_VERSION)
   end
 
   before_create do
-    self.version ||= CURRENT_VERSION
+    self.export_version ||= CURRENT_VERSION
   end
 
   EXPIRES_AFTER = 12.hours

@@ -4,10 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module WarehouseReports::Health
+module Health
   class DocumentExportsController < DocumentExportsControllerBase
     private def document_export_class
       Health::DocumentExport
+    end
+
+    private def export_job_class
+      Health::DocumentExportJob
     end
 
     private def export_scope

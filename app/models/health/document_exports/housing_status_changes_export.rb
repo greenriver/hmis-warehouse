@@ -5,7 +5,7 @@
 ###
 
 module Health::DocumentExports
-  class HousingStatusChangesExport < ::GrdaWarehouse::DocumentExport
+  class HousingStatusChangesExport < ::Health::DocumentExport
     def authorized?
       user.can_view_aggregate_health?
     end

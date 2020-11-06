@@ -4,7 +4,7 @@ class CreateDocumentExports < ActiveRecord::Migration[5.2]
       t.timestamps
       t.string :type, null: false, index: true
       t.references :user, null: false, index: true
-      t.string :version, null: false
+      t.string :export_version, null: false
       t.string :status, null: false
       t.string :query_string
       t.binary :file_data

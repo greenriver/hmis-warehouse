@@ -495,7 +495,7 @@ ActiveRecord::Schema.define(version: 2020_11_06_141253) do
     t.datetime "updated_at", null: false
     t.string "type", null: false
     t.bigint "user_id", null: false
-    t.string "version", null: false
+    t.string "export_version", null: false
     t.string "status", null: false
     t.string "query_string"
     t.binary "file_data"
