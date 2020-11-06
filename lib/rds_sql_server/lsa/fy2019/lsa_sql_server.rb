@@ -387,6 +387,18 @@ module LsaSqlServer
 
   class LsaSqlServer::RefCalendar < SqlServerBase
     self.table_name = :ref_Calendar
+
+    def self.column_names
+      [
+        'theDate',
+        'yyyy',
+        'mm',
+        'dd',
+        'month_name',
+        'day_name',
+        'fy',
+      ]
+    end
   end
 
   class LsaSqlServer::RefPopulations < SqlServerBase
