@@ -35,6 +35,7 @@ module ClaimsReporting::Health
         end
 
         return nil unless matching_qa.size == matching_claims.size
+        return nil if matching_qa.index(qa).nil?
 
         matching_claims[matching_qa.index(qa)]
       end

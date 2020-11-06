@@ -68,7 +68,7 @@
                 = link_to polymorphic_path(health_path_generator + [:qualifying_activity], {id: qa.id}), method: :delete, data: {confirm: "Are you sure you want to un-submit the claim for this QA?"}, class: 'btn btn-link btn-link--danger' do
                   %i.icon-cross
             %td
-              = yes_no qa.patient.best_medical_claim_for_qualifying_activity(qa)&.present?
+              = yes_no(qa.patient&.best_medical_claim_for_qualifying_activity(qa)&.present?)
 
   - else
     %p.no-data None on file.
