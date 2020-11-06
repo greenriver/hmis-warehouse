@@ -111,6 +111,9 @@ Naming/MethodParameterName:
   AllowedNames:
     - as
     - id
+    - by
+    - io
+    - to
 
 Style/MixinUsage:
   Enabled: false

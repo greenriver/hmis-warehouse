@@ -237,7 +237,10 @@ module GrdaWarehouse
       #
       # If the consent if valid on the client,
       # remove consent only if the confirmation was also changed and this is the only confirmed consent file
+
       return unless consent_form?
+
+      coc_codes_chosen = coc_codes.presence || ['All CoCs']
 
       if ! client.consent_form_valid?
         if consent_form_signed_on.present? && consent_revoked_at.blank?
@@ -248,7 +251,7 @@ module GrdaWarehouse
             housing_release_status: consent_type,
             consent_form_signed_on: consent_form_signed_on,
             consent_form_id: id,
-            consented_coc_codes: coc_codes,
+            consented_coc_codes: coc_codes_chosen,
           )
         end
       else
@@ -260,7 +263,7 @@ module GrdaWarehouse
             housing_release_status: consent_type,
             consent_form_signed_on: consent_form_signed_on,
             consent_form_id: id,
-            consented_coc_codes: coc_codes,
+            consented_coc_codes: coc_codes_chosen,
           )
         elsif no_other_confirmed_consent_files
           client.invalidate_consent!

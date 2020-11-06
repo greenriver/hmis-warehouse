@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::InitiativeBarCharts # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::InitiativeBarCharts
   DATA_TYPES = [
     :gender_breakdowns,
     :veteran_breakdowns,

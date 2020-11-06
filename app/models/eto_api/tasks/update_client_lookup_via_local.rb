@@ -6,7 +6,7 @@
 
 require 'csv'
 
-module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
+module EtoApi::Tasks
   class UpdateClientLookupViaLocal < UpdateClientLookup
     include TsqlImport
     attr_accessor :logger

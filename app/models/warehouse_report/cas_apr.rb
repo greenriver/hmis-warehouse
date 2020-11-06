@@ -4,9 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::CasApr < OpenStruct # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::CasApr < OpenStruct
   include ArelHelper
-
   attr_accessor :start_date
   attr_accessor :end_date
 
