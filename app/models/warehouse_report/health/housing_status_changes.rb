@@ -20,10 +20,13 @@ class WarehouseReport::Health::HousingStatusChanges
   end
 
   def describe
-    "For #{aco_names.join(', ')}, between #{@start_date} and #{@end_date}."
+    name_list = aco_names&.join(', ') || 'all ACOs'
+    "For #{name_list}, between #{@start_date} and #{@end_date}."
   end
 
   def aco_names
+    return nil unless @selected_acos.present?
+
     Health::AccountableCareOrganization.find(@selected_acos).pluck(:name)
   end
 
