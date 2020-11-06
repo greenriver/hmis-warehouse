@@ -21,7 +21,7 @@ module ClaimsReporting::Health
       def best_medical_claim_for_qualifying_activity(qa) # rubocop:disable Naming/MethodParameterName
         matching_claims = medical_claims_for_qualifying_activity(qa)
 
-        matching_claims.first if matching_claims.size <= 1
+        return matching_claims.first if matching_claims.size <= 1
 
         # slow path -- more that one matching claim for the same day
         # we can try to assign them in matching order by id
