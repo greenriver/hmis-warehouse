@@ -30,4 +30,5 @@ end
 if Rails.env.development?
   # require subclasses are populated for validation of acceptable types
   require_dependency 'health/document_exports/housing_status_changes_export'
+  require_dependency 'health/document_exports/agency_performance_export'
 end
