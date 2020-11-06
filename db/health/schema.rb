@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_03_202932) do
+ActiveRecord::Schema.define(version: 2020_11_06_141253) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -490,6 +490,21 @@ ActiveRecord::Schema.define(version: 2020_11_03_202932) do
     t.index ["reason_code"], name: "index_disenrollment_reasons_on_reason_code"
   end
 
+  create_table "document_exports", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "type", null: false
+    t.bigint "user_id", null: false
+    t.string "version", null: false
+    t.string "status", null: false
+    t.string "query_string"
+    t.binary "file_data"
+    t.string "filename"
+    t.string "mime_type"
+    t.index ["type"], name: "index_document_exports_on_type"
+    t.index ["user_id"], name: "index_document_exports_on_user_id"
+  end
+
   create_table "ed_ip_visit_files", id: :serial, force: :cascade do |t|
     t.string "type"
     t.string "file"
@@ -697,7 +712,6 @@ ActiveRecord::Schema.define(version: 2020_11_03_202932) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -741,7 +755,6 @@ ActiveRecord::Schema.define(version: 2020_11_03_202932) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
