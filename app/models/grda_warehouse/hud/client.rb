@@ -420,8 +420,11 @@ module GrdaWarehouse::Hud
       else
         project_query = exists_with_inner_clients(visible_by_project_to(user))
         window_query = exists_with_inner_clients(visible_in_window_to(user))
-        active_consent_query = exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
-
+        active_consent_query = if GrdaWarehouse::Config.get(:multi_coc_installation)
+          exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
+        else
+          exists_with_inner_clients(consent_form_valid)
+        end
         if user.can_view_clients_with_roi_in_own_coc?
           # At a high level if you can see clients with ROI in your COC, you need to be able
           # to see everyone for searching purposes.
@@ -496,11 +499,14 @@ module GrdaWarehouse::Hud
       Arel.sql(query.select(:id).to_sql)
     end
 
-    scope :active_confirmed_consent_in_cocs, -> (coc_codes) do
+    scope :active_confirmed_consent_in_cocs, ->(coc_codes) do
       coc_codes = Array.wrap(coc_codes) + ['All CoCs']
-      where(
-        Arel.sql("#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]")
-      )
+      # if the client has a release in "my" cocs, or all cocs
+      query = "#{quoted_table_name}.consented_coc_codes ?| array[#{coc_codes.map {|s| connection.quote(s)}.join(',')}]"
+      # or if the cocs haven't been set
+      query += " or #{quoted_table_name}.consented_coc_codes = '[]' "
+      # and the release is valid
+      consent_form_valid.where(Arel.sql(query))
     end
 
     scope :consent_form_valid, -> do
