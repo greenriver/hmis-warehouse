@@ -5,7 +5,7 @@
 ###
 require 'memoist'
 
-class WarehouseReport::OverlappingCoc < WarehouseReport # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::OverlappingCoc < WarehouseReport
   VERSION = 0
   class Error < ::StandardError; end
   include ArelHelper

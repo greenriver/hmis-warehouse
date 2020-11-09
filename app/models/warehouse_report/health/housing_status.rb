@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::Health::HousingStatus # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::Health::HousingStatus
   include ArelHelper
   include HealthCharts
 

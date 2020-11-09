@@ -53,7 +53,7 @@ module ClaimsReporting
     # Expects an IO and a String filename for the logs.
     #
     # Returns the number of rows processed.
-    def import(io, filename:, replace_all:) # rubocop:disable Naming/MethodParameterName
+    def import(io, filename:, replace_all:)
       # TODO: Support partial updates by reading rows into tmp table with with_temp_table
       # and then upserting in the final table
       table_name = MedicalClaim.quoted_table_name
