@@ -40,6 +40,7 @@
     %tbody
       - @projects_with_counts.each do |id, project|
         - next if id == :totals
+        - next unless project
         %tr
           %td
             = link_to project.name, project_path(project.id)

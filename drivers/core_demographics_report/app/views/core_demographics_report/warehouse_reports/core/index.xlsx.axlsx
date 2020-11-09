@@ -4,21 +4,9 @@ if @report.include_comparison?
 end
 wb = xlsx_package.workbook
 wb_styles = wb.styles
-report_style = wb_styles.add_style(
-  {
-    border: { style: :thick, color: '00918C', edges: [:left],}
-  }
-)
-comparison_style = wb_styles.add_style(
-  {
-    border: { style: :thick, color: 'FFA600', edges: [:left],}
-  }
-)
-header_style = wb_styles.add_style(
-  {
-    sz: 14,
-  }
-)
+report_style = wb_styles.add_style({ border: { style: :thick, color: '00918C', edges: [:left] } })
+comparison_style = wb_styles.add_style({ border: { style: :thick, color: 'FFA600', edges: [:left] } })
+header_style = wb_styles.add_style({ sz: 14 })
 th_style = wb_styles.add_style(
   {
     bg_color: '81adb9',
@@ -26,13 +14,13 @@ th_style = wb_styles.add_style(
     border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
   }
 )
-option_style = wb_styles.add_style(
+wb_styles.add_style(
   {
     border: {style: :thin, color: 'FFFFFF', edges: [:bottom, :top]},
   }
 )
 wb.add_worksheet(name: 'Report Info') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
       'Core Demographics Report',
@@ -51,7 +39,7 @@ wb.add_worksheet(name: 'Report Info') do |sheet|
   end
 end
 wb.add_worksheet(name: 'Data') do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
   @report.class.data_for_export(reports).each_with_index do |(title, row), index|
     if index.zero?
       style = []

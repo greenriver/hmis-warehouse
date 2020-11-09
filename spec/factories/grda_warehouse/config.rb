@@ -12,6 +12,7 @@ FactoryBot.define do
     so_day_as_month { true }
     infer_family_from_household_id { false }
     vispdat_prioritization_scheme { 'length_of_time' }
+    multi_coc_installation { false }
   end
 
   factory :config_s, class: 'GrdaWarehouse::Config' do
@@ -24,6 +25,7 @@ FactoryBot.define do
     so_day_as_month { true }
     infer_family_from_household_id { false }
     vispdat_prioritization_scheme { 'length_of_time' }
+    multi_coc_installation { false }
   end
 
   factory :config_3c, class: 'GrdaWarehouse::Config' do
@@ -36,6 +38,7 @@ FactoryBot.define do
     so_day_as_month { true }
     infer_family_from_household_id { true }
     vispdat_prioritization_scheme { 'length_of_time' }
+    multi_coc_installation { false }
   end
 
   factory :config_tc, class: 'GrdaWarehouse::Config' do
@@ -48,6 +51,7 @@ FactoryBot.define do
     so_day_as_month { true }
     infer_family_from_household_id { true }
     vispdat_prioritization_scheme { 'veteran_status' }
+    multi_coc_installation { false }
   end
 
   factory :config_ma, class: 'GrdaWarehouse::Config' do
@@ -60,6 +64,7 @@ FactoryBot.define do
     so_day_as_month { true }
     infer_family_from_household_id { true }
     vispdat_prioritization_scheme { 'length_of_time' }
+    multi_coc_installation { true }
   end
 
   factory :config_mi, class: 'GrdaWarehouse::Config' do
@@ -72,5 +77,6 @@ FactoryBot.define do
     so_day_as_month { true }
     infer_family_from_household_id { true }
     vispdat_prioritization_scheme { 'length_of_time' }
+    multi_coc_installation { true }
   end
 end

@@ -54,6 +54,7 @@ module WarehouseReports
         organization_ids: [],
         project_ids: [],
         project_type_codes: [],
+        coc_codes: [],
       )
     end
 
@@ -67,6 +68,7 @@ module WarehouseReports
       scope = filter_for_projects(scope)
       scope = filter_for_age_ranges(scope)
       scope = filter_for_hoh(scope)
+      scope = filter_for_coc_codes(scope)
       scope
     end
   end

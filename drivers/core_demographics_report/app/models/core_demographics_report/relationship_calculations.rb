@@ -2,6 +2,19 @@ module
   CoreDemographicsReport::RelationshipCalculations
   extend ActiveSupport::Concern
   included do
+    def relationship_detail_hash
+      {}.tap do |hashes|
+        ::HUD.relationships_to_hoh.each do |key, title|
+          hashes["relationship_#{key}"] = {
+            title: "Relationship #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_relationship(key)).distinct },
+          }
+        end
+      end
+    end
+
     def relationship_count(type)
       relationship_breakdowns[type]&.count&.presence || 0
     end
@@ -36,6 +49,10 @@ module
       @relationship_breakdowns ||= client_relationships.group_by do |_, v|
         v
       end
+    end
+
+    private def client_ids_in_relationship(key)
+      relationship_breakdowns[key]&.map(&:first)
     end
 
     private def client_relationships

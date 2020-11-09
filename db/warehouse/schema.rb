@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_04_133922) do
+ActiveRecord::Schema.define(version: 2020_11_09_142122) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -2246,6 +2246,8 @@ ActiveRecord::Schema.define(version: 2020_11_04_133922) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.bigint "ama_restriction_id"
+    t.index ["ama_restriction_id"], name: "index_health_emergency_uploaded_tests_on_ama_restriction_id"
     t.index ["batch_id"], name: "index_health_emergency_uploaded_tests_on_batch_id"
     t.index ["created_at"], name: "index_health_emergency_uploaded_tests_on_created_at"
     t.index ["deleted_at"], name: "index_health_emergency_uploaded_tests_on_deleted_at"
@@ -4536,6 +4538,7 @@ ActiveRecord::Schema.define(version: 2020_11_04_133922) do
     t.datetime "deleted_at"
     t.jsonb "build_for_questions"
     t.jsonb "remaining_questions"
+    t.jsonb "coc_codes"
     t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
   end
 

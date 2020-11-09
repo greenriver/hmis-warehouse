@@ -48,6 +48,7 @@ module PerformanceDashboards
           :length_of_time,
           :returns,
           :breakdown,
+          :coordinated_assessment_living_situation_homeless,
         ],
       )
     end

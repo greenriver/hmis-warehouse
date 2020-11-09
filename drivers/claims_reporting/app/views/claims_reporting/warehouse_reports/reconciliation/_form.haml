@@ -1,0 +1,9 @@
+= simple_form_for :f, method: :get do |f|
+  .row
+    .col-sm-4
+      = f.input :month, selected: @report.month.iso8601, collection: available_months, value_method: :iso8601, label_method: proc {|v| v.strftime('%b %Y')}, input_html: { class: :select2,  multiple: false }, label: 'Date of Services During'
+    .col-sm-4
+      = f.input :aco_ids,selected: @report.aco_ids, collection: Health::AccountableCareOrganization.active.sort_by(&:name), label: 'ACO', input_html: { class: :select2,  multiple: true, placeholder: '(all ACOs)' }, label: 'Referrals to'
+    .col-sm-4
+      = f.submit 'Update Report', class: 'btn btn-primary mt-no-label'
+  /= render 'warehouse_reports/filters', f:f, submit_button: nil

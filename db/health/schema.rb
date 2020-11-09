@@ -202,6 +202,41 @@ ActiveRecord::Schema.define(version: 2020_11_06_141253) do
     t.index ["medicaid_id"], name: "index_claims_ed_nyu_severity_on_medicaid_id"
   end
 
+  create_table "claims_reporting_cp_payment_details", force: :cascade do |t|
+    t.bigint "cp_payment_upload_id", null: false
+    t.string "medicaid_id", null: false
+    t.date "cp_enrollment_start_date", null: false
+    t.date "paid_dos", null: false
+    t.date "payment_date", null: false
+    t.decimal "amount_paid", precision: 10, scale: 2
+    t.decimal "adjustment_amount", precision: 10, scale: 2
+    t.string "member_cp_assignment_plan"
+    t.string "cp_name_dsrip"
+    t.string "cp_name_official"
+    t.string "cp_pid"
+    t.string "cp_sl"
+    t.string "month_payment_issued"
+    t.string "paid_num_icn"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cp_payment_upload_id"], name: "idx_cpd_on_cp_payment_upload_id"
+    t.index ["paid_dos"], name: "index_claims_reporting_cp_payment_details_on_paid_dos"
+    t.index ["payment_date"], name: "index_claims_reporting_cp_payment_details_on_payment_date"
+  end
+
+  create_table "claims_reporting_cp_payment_uploads", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "original_filename"
+    t.binary "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "deleted_at"
+    t.index ["deleted_at"], name: "index_claims_reporting_cp_payment_uploads_on_deleted_at"
+    t.index ["user_id"], name: "index_claims_reporting_cp_payment_uploads_on_user_id"
+  end
+
   create_table "claims_reporting_medical_claims", force: :cascade do |t|
     t.string "member_id", limit: 50
     t.string "claim_number", limit: 30
@@ -351,6 +386,7 @@ ActiveRecord::Schema.define(version: 2020_11_06_141253) do
     t.string "e_dx_present_on_admission_12", limit: 50
     t.decimal "quantity", precision: 12, scale: 4
     t.string "price_method", limit: 50
+    t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
   end
 
   create_table "claims_roster", id: :serial, force: :cascade do |t|
@@ -712,6 +748,7 @@ ActiveRecord::Schema.define(version: 2020_11_06_141253) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -755,6 +792,7 @@ ActiveRecord::Schema.define(version: 2020_11_06_141253) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
+    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
@@ -1814,6 +1852,7 @@ ActiveRecord::Schema.define(version: 2020_11_06_141253) do
     t.integer "data_source_id", default: 6, null: false
   end
 
+  add_foreign_key "claims_reporting_cp_payment_details", "claims_reporting_cp_payment_uploads", column: "cp_payment_upload_id"
   add_foreign_key "comprehensive_health_assessments", "health_files"
   add_foreign_key "comprehensive_health_assessments", "patients"
   add_foreign_key "health_goals", "patients"

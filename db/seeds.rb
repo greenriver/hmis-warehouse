@@ -759,6 +759,15 @@ def report_list
       health: false,
     }
   end
+  if RailsDrivers.loaded.include?(:claims_reporting)
+    r_list['Health: BH CP Claims/Payments'] << {
+      url: 'claims_reporting/warehouse_reports/reconciliation',
+      name: 'BH CP Claim Reconciliation',
+      description: 'Verify payment of claims.',
+      limitable: false,
+      health: true,
+    }
+  end
   r_list
 end
 
@@ -769,7 +778,8 @@ def cleanup_unused_reports
     'warehouse_reports/veteran_details/exits',
   ]
   cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
-  cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:service_scanning)
+  cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
+  cleanup << 'claims_reporting/warehouse_reports/reconciliation' unless RailsDrivers.loaded.include?(:claims_reporting)
   cleanup.each do |url|
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
   end

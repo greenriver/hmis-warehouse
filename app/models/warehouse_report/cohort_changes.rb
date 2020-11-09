@@ -4,9 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::CohortChanges < OpenStruct # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::CohortChanges < OpenStruct
   include ArelHelper
-
   attr_writer :start_date
   attr_writer :end_date
   attr_writer :cohort_id

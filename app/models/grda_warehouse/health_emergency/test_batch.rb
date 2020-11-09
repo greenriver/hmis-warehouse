@@ -17,7 +17,7 @@ module GrdaWarehouse::HealthEmergency
     belongs_to :user
     has_many :uploaded_tests, foreign_key: :batch_id, inverse_of: :batch
 
-    scope :visible_to, -> (user) do
+    scope :visible_to, ->(user) do
       return current_scope if user.can_see_health_emergency_clinical?
 
       none
@@ -125,7 +125,7 @@ module GrdaWarehouse::HealthEmergency
         matching_client_ids += dob_matches(client)
         # See if any clients matched more than once
         counts = matching_client_ids.
-          each_with_object(Hash.new(0)) { |id, counts| counts[id] += 1 }.
+          each_with_object(Hash.new(0)) { |id, c| c[id] += 1 }.
           select { |_, c| c > 1 }
         # If only one client matched more than once, make note
         if counts.count == 1
@@ -144,15 +144,34 @@ module GrdaWarehouse::HealthEmergency
             tested_on: uploaded_test.tested_on,
             result: uploaded_test.test_result,
             location: uploaded_test.test_location,
-            emergency_type: GrdaWarehouse::Config.get(:health_emergency),
+            emergency_type: health_emergency,
           ).first_or_create do |test|
             test.assign_attributes(
               user_id: user.id,
-              agency_id: user.agency&.id
+              agency_id: user.agency&.id,
             )
           end
           uploaded_test.update(test_id: test.id)
+          add_medical_restriction!(test, uploaded_test)
         end
+    end
+
+    private def add_medical_restriction!(test, uploaded_test)
+      return unless test.result.to_s.downcase.include?('positive')
+
+      restriction = GrdaWarehouse::HealthEmergency::AmaRestriction.create(
+        user_id: user.id,
+        client_id: test.client_id,
+        agency_id: user.agency&.id,
+        emergency_type: health_emergency,
+        restricted: 'Yes',
+        note: 'This restriction was added automatically based on a Positive test result.',
+      )
+      uploaded_test.update(ama_restriction_id: restriction.id)
+    end
+
+    private def health_emergency
+      GrdaWarehouse::Config.get(:health_emergency)
     end
 
     def notify_user

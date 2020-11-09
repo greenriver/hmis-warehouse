@@ -46,9 +46,13 @@ module HudApr
     end
 
     def create
-      @report = report_source.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
-      generator.new(@report).queue
-      redirect_to hud_reports_caper_path(0)
+      if @filter.valid?
+        @report = report_source.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
+        generator.new(@report).queue
+        redirect_to hud_reports_caper_path(0)
+      else
+        render :new
+      end
     end
 
     def destroy

@@ -29,7 +29,7 @@
               %td= file.recipient&.name
               %td= file.created_at.to_date
               %td
-                = link_to secure_file_path(file), method: :delete, class: 'btn btn-link btn-link--danger' do
+                = link_to secure_file_path(file), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger' do
                   %i.icon-cross
 
   .col-sm-6
