@@ -10,7 +10,8 @@
         %th Tested on
         %th Test location
         %th Test result
-        %th Added?
+        %th Test Added?
+        %th Restriction Added?
     %tbody
       - @results.find_each do |result|
         - client = result.client
@@ -26,3 +27,4 @@
           %td= result.test_location
           %td= result.test_result
           %td= checkmark_or_x(result.test_id.present?)
+          %td= checkmark_or_x(result.ama_restriction_id.present?)
