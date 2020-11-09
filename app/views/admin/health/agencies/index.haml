@@ -19,12 +19,9 @@
               - health_agency.users.each do |user|
                 .health_agency_user= user.name
             %td
-              = link_to admin_health_agency_path(health_agency), method: :delete, class: 'btn btn-link, btn-link-danger', data: { :confirm => 'Are you sure?' } do
+              = link_to admin_health_agency_path(health_agency), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger', data: { :confirm => 'Are you sure?' } do
                 %span.icon-cross
   .col-sm-4
     = link_to new_admin_health_agency_path, class: 'btn btn-primary' do
       %i.icon-plus
       New Agency
-
-
-
