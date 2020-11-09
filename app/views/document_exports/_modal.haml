@@ -1,8 +1,4 @@
-- if request.path.match(/\/health\//)
-  - data_url = health_document_exports_path
-- else
-  - data_url = document_exports_path
-- data = { url: data_url, status: 'pending' }
+- data = { url: @pdf_export&.data_url, status: 'pending' }
 .hide.j-document-export-title Download PDF
 .hide.j-document-export-body{data: data}
   .doc-export-part.pending

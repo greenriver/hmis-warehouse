@@ -5,6 +5,7 @@
 ###
 
 class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
+  include Rails.application.routes.url_helpers
   belongs_to :user
 
   STATUS_OPTIONS = [
@@ -74,5 +75,9 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
     self.filename = File.basename(file_io.path)
     self.file_data = file_io.read
     self.mime_type = PDF_MIME_TYPE
+  end
+
+  def data_url
+    document_exports_path
   end
 end
