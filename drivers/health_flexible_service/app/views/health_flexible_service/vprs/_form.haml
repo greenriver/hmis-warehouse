@@ -56,8 +56,8 @@
         = f.input :member_agrees_to_plan, as: :pretty_boolean
         = f.input :member_agreement_notes
       %div{class: col_class}
-        = f.input :aco_approved, as: :pretty_boolean
-        = f.input :aco_approved_on, as: :date_picker
+        = f.input :aco_approved, as: :pretty_boolean, label: 'ACO approved'
+        = f.input :aco_approved_on, as: :date_picker, label: 'ACO approved on'
         = f.input :aco_rejection_notes, label: 'If no, why not?', hint: 'Optional'
 %h2 Part II: Verify Screening Results
 %section.page-break-after
