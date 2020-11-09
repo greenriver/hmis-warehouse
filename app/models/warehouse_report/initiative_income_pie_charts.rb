@@ -4,9 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::InitiativeIncomePieCharts # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::InitiativeIncomePieCharts
   attr_accessor :projects, :project_types
-
   def initialize(data, report_range, comparison_range)
     @data = data
     @projects = @data.involved_projects.sort_by(&:last)

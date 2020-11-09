@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::InitiativeMmBarCharts # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::InitiativeMmBarCharts
   DATA_TYPES = [
     :length_of_stay_breakdowns,
   ].freeze

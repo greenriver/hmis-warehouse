@@ -33,7 +33,7 @@
               %td= user.email
               %td= user.roles.map(&:name).join(', ')
               %td
-                = link_to admin_user_audit_path(user), class: 'btn btn-link' do
+                = link_to admin_user_audit_path(user), class: 'btn btn-sm btn-secondary btn-icon-only' do
                   %i.icon-eye{data: {toggle: :tooltip, title: 'Audit'}}
               %td= render 'admin/users/user_invitation_status', user: user
               %td

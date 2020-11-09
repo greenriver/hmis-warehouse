@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::InitiativeNcLineCharts # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::InitiativeNcLineCharts
   PERIODS = [
     :report,
     :comparison,
