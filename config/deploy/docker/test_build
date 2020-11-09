@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require_relative 'lib/command_args'
+require_relative 'lib/deployer'
+
+args = CommandArgs.new
+
+deployment = args.deployments.first
+
+puts "Building #{deployment[:target_group_name]}..."
+
+Deployer.new(**deployment).test_build!

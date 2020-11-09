@@ -1,10 +1,9 @@
 - title = "#{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@filter.sub_population]} Exit Detail"
 - content_for :title, title
+= render '/warehouse_reports/breadcrumbs'
 .row
   .col-sm-8
     %h1= title
-
-= render '/warehouse_reports/breadcrumbs'
 
 = render 'filter'
 

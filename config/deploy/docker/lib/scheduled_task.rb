@@ -13,6 +13,8 @@ class ScheduledTask
   attr_accessor :target_group_name
   attr_accessor :task_definition_arn
 
+  MAX_NAME_LENGTH = 64
+
   def initialize(params)
     params.each do |name, value|
       send("#{name}=", value)
@@ -25,7 +27,16 @@ class ScheduledTask
   end
 
   def name
-    "#{target_group_name}-#{offset}"
+    suffix = (0.upto(9).to_a +  'A'.upto('Z').to_a)[offset]
+
+    ideal_name = "#{target_group_name}#{suffix}"
+
+    if ideal_name.length > MAX_NAME_LENGTH
+      puts "[ERROR] #{ideal_name} was too long. Needs to be shorter for #{schedule_expression}: #{description}. Aborting"
+      exit 1
+    else
+      ideal_name
+    end
   end
 
   def self.clear!(target_group_name)

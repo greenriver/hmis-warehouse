@@ -81,6 +81,14 @@ class ReportResult < ApplicationRecord
     GrdaWarehouse::ReportResultFile.where(id: file_id)
   end
 
+  def support_file
+    GrdaWarehouse::ReportResultFile.find_by(id: support_file_id)
+  end
+
+  def export
+    GrdaWarehouse::Export.where(id: export_id)
+  end
+
   def to_partial_path
     "report_results/#{report_type}"
   end

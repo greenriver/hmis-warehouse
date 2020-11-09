@@ -14,8 +14,9 @@ SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
   ],
 )
 # SimpleCov.start 'rails'
-SimpleCov.start
-SimpleCov.add_filter '/test/'
+# Disabling SimpleCov, it is too noisy
+# SimpleCov.start
+# SimpleCov.add_filter '/test/'
 
 # Add additional requires below this line. Rails is not loaded until this point!
 

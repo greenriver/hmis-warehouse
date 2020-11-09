@@ -18,40 +18,103 @@ module
       }
     end
 
+    def age_detail_hash
+      {}.tap do |hashes|
+        [
+          :adult_scope,
+          :adult_female_scope,
+          :adult_male_scope,
+          :child_scope,
+          :child_female_scope,
+          :child_male_scope,
+        ].each do |key|
+          title = key.to_s.sub('_scope', '').titleize.pluralize
+          hashes[key.to_s] = {
+            title: "Ages - #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { send(key) },
+          }
+        end
+        age_categories.each do |key, title|
+          hashes["age_#{key}"] = {
+            title: title,
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_age_range(key)).distinct },
+          }
+        end
+        age_categories.each do |age_key, age_title|
+          HUD.genders.each do |gender, gender_title|
+            hashes["age_#{age_key}_gender_#{gender}"] = {
+              title: "Age - #{age_title} #{gender_title}",
+              headers: client_headers,
+              columns: client_columns,
+              scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_gender_age(gender, age_key)).distinct },
+            }
+          end
+        end
+      end
+    end
+
     def adult_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(adult_clause).select(:client_id).distinct.count
+        adult_scope.select(:client_id).distinct.count
       end
+    end
+
+    def adult_scope
+      report_scope.joins(:client).where(adult_clause)
     end
 
     def adult_female_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(adult_clause.and(female_clause)).select(:client_id).distinct.count
+        adult_female_scope.select(:client_id).distinct.count
       end
+    end
+
+    def adult_female_scope
+      report_scope.joins(:client).where(adult_clause.and(female_clause))
     end
 
     def adult_male_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(adult_clause.and(male_clause)).select(:client_id).distinct.count
+        adult_male_scope.select(:client_id).distinct.count
       end
+    end
+
+    def adult_male_scope
+      report_scope.joins(:client).where(adult_clause.and(male_clause))
     end
 
     def child_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(child_clause).select(:client_id).distinct.count
+        child_scope.select(:client_id).distinct.count
       end
+    end
+
+    def child_scope
+      report_scope.joins(:client).where(child_clause)
     end
 
     def child_female_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(child_clause.and(female_clause)).select(:client_id).distinct.count
+        child_female_scope.select(:client_id).distinct.count
       end
+    end
+
+    def child_female_scope
+      report_scope.joins(:client).where(child_clause.and(female_clause))
     end
 
     def child_male_count
       Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.joins(:client).where(child_clause.and(male_clause)).select(:client_id).distinct.count
+        child_male_scope.select(:client_id).distinct.count
       end
+    end
+
+    def child_male_scope
+      report_scope.joins(:client).where(child_clause.and(male_clause))
     end
 
     def average_adult_age
@@ -91,7 +154,15 @@ module
     end
 
     def age_count(type)
-      client_ages.select { |_, age| age.in?(type) }&.count&.presence || 0
+      clients_in_age_range(type)&.count&.presence || 0
+    end
+
+    def clients_in_age_range(type)
+      client_ages.select { |_, age| age.in?(type) }
+    end
+
+    def client_ids_in_age_range(type)
+      clients_in_age_range(type).keys
     end
 
     def age_percentage(type)
@@ -140,7 +211,7 @@ module
     end
 
     private def client_ages
-      @client_ages ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+      @client_ages ||= Rails.cache.fetch(age_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
           report_scope.joins(:client).order(first_date_in_program: :desc).
             distinct.
@@ -150,6 +221,10 @@ module
             end
         end
       end
+    end
+
+    private def age_cache_key
+      [self.class.name, cache_slug, 'client_ages']
     end
   end
 end

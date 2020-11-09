@@ -4,9 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Weather::NoaaService # rubocop:disable Style/ClassAndModuleChildren
+class Weather::NoaaService
   include NotifierConfig
-
   def initialize(token = nil)
     api_config = YAML.safe_load(ERB.new(File.read("#{Rails.root}/config/weather.yml")).result)[Rails.env]
     @token = token || api_config['token']

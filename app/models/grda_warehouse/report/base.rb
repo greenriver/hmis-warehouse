@@ -116,7 +116,7 @@ module GrdaWarehouse::Report
       d_2_end = ex_t[:ExitDate]
 
       # This is a copy of the code that creates the report_enrollments view
-      # combined with the limit for open during a date range from Enrollmnt
+      # combined with the limit for open during a date range from Enrollment
       # because it is way faster than limiting the view
       query =  e_t.join(source_client_table).on(
           e_t[:data_source_id].eq(source_client_table[:data_source_id]).

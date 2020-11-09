@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_30_145808) do
+ActiveRecord::Schema.define(version: 2020_11_04_183517) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -891,6 +891,7 @@ ActiveRecord::Schema.define(version: 2020_10_30_145808) do
     t.boolean "include_in_days_homeless_override", default: false
     t.boolean "extrapolate_contacts", default: false, null: false
     t.boolean "combine_enrollments", default: false
+    t.integer "hmis_participating_project_override"
     t.index "COALESCE(act_as_project_type, \"ProjectType\")", name: "project_project_override_index"
     t.index ["DateCreated"], name: "project_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id"
@@ -4392,6 +4393,7 @@ ActiveRecord::Schema.define(version: 2020_10_30_145808) do
     t.datetime "deleted_at"
     t.jsonb "build_for_questions"
     t.jsonb "remaining_questions"
+    t.jsonb "coc_codes"
     t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
   end
 

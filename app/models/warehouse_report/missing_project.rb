@@ -4,5 +4,5 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class WarehouseReport::MissingProject < WarehouseReport # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::MissingProject < WarehouseReport
 end

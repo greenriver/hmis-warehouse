@@ -6,7 +6,7 @@
 
 # Tool to update data via the ETO API based on results from QaaWS via Bo::ClientIdLookup
 # require 'newrelic_rpm'
-module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
+module EtoApi::Tasks
   class UpdateEtoData
     include ActionView::Helpers::DateHelper
     include NotifierConfig

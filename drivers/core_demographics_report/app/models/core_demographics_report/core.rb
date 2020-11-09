@@ -19,6 +19,7 @@ module CoreDemographicsReport
     include CoreDemographicsReport::DvCalculations
     include CoreDemographicsReport::PriorCalculations
     include CoreDemographicsReport::HouseholdTypeCalculations
+    include CoreDemographicsReport::Details
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
@@ -61,6 +62,21 @@ module CoreDemographicsReport
       ]
     end
 
+    def section_ready?(section)
+      return true unless section.in?(['disabilities', 'races'])
+
+      Rails.cache.exist?(cache_key_for_section(section))
+    end
+
+    private def cache_key_for_section(section)
+      case section
+      when 'disabilities'
+        disabilities_cache_key
+      when 'races'
+        races_cache_key
+      end
+    end
+
     def multiple_project_types?
       true
     end
@@ -85,18 +101,6 @@ module CoreDemographicsReport
 
     def filter_path_array
       [:filters] + report_path_array
-    end
-
-    def detail_link_base
-      "#{section_subpath}details"
-    end
-
-    def section_subpath
-      "#{self.class.url}/"
-    end
-
-    def detail_path_array
-      [:details] + report_path_array
     end
 
     def include_comparison?
@@ -125,6 +129,7 @@ module CoreDemographicsReport
       scope = filter_for_indefinite_disabilities(scope)
       scope = filter_for_dv_status(scope)
       scope = filter_for_chronic_status(scope)
+      scope = filter_for_ca_homeless(scope)
       scope
     end
 
@@ -171,6 +176,7 @@ module CoreDemographicsReport
           rows = report.race_data_for_export(rows)
           rows = report.ethnicity_data_for_export(rows)
           rows = report.relationship_data_for_export(rows)
+          rows = report.disability_data_for_export(rows)
           rows = report.dv_status_data_for_export(rows)
           rows = report.priors_data_for_export(rows)
           rows = report.household_type_data_for_export(rows)
@@ -215,7 +221,7 @@ module CoreDemographicsReport
     private def expiration_length
       return 30.seconds if Rails.env.development?
 
-      10.minutes
+      30.minutes
     end
   end
 end

@@ -16,9 +16,9 @@
       .ml-auto
         - logo = wicked_pdf_asset_base64("theme/logo/#{ENV['PRINT_LOGO']}") rescue nil
         = image_tag(logo, width: 250) if logo.present?
-
-    %section
-      = render 'housed_overall', chart_options: chart_options
+    - unless GrdaWarehouse::Config.get(:multi_coc_installation)
+      %section
+        = render 'housed_overall', chart_options: chart_options
 
     %section
       = render 'overview', chart_options: chart_options

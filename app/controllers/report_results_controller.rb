@@ -7,7 +7,7 @@
 class ReportResultsController < ApplicationController
   before_action :require_can_view_hud_reports!
   before_action :set_report
-  before_action :set_report_result, only: [:show, :edit, :update, :destroy]
+  before_action :set_report_result, only: [:show, :edit, :update, :destroy, :download_support]
   helper_method :sort_column, :sort_direction
   helper_method :default_pit_date, :default_chronic_date
   include ArelHelper
@@ -57,7 +57,21 @@ class ReportResultsController < ApplicationController
         end
         file = @result.file.first
         filename = @report.try(:file_name, @result.options) || @report.name
-        send_data file.content, filename: "#{filename}-#{@result.created_at.strftime('%Y-%m-%dT%H%M')}.zip", type: file.content_type, disposition: 'attachment'
+        send_data file.content, filename: "#{filename}-#{@result.created_at.to_s(:db)}.zip", type: file.content_type, disposition: 'attachment'
+      end
+    end
+  end
+
+  def download_support
+    respond_to do |format|
+      format.zip do
+        if @result.support_file_id.blank?
+          flash[:alert] = "Unable to download support file for #{@report.name}"
+          redirect_to action: :show
+        end
+        file = @result.support_file
+        filename = @report.try(:file_name, @result.options) || @report.name
+        send_data file.content, filename: "Support for #{filename}-#{@result.created_at.to_s(:db)}.zip", type: file.content_type, disposition: 'attachment'
       end
     end
   end

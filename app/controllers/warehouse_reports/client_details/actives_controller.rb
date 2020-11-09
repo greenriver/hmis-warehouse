@@ -39,6 +39,7 @@ module WarehouseReports::ClientDetails
         organization_ids: [],
         project_ids: [],
         project_type_codes: [],
+        coc_codes: [],
       )
     end
 
@@ -82,6 +83,7 @@ module WarehouseReports::ClientDetails
       res_scope = filter_for_projects(res_scope)
       res_scope = filter_for_age_ranges(res_scope)
       res_scope = filter_for_hoh(res_scope)
+      res_scope = filter_for_coc_codes(res_scope)
       res_scope
     end
   end

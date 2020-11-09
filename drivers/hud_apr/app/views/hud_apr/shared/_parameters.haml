@@ -1,5 +1,5 @@
 .mb-2.reports
-  - [:start_date, :end_date, :coc_code, :project_ids].each do |param|
+  - [:start_date, :end_date, :coc_codes, :project_ids].each do |param|
     - value = report.public_send(param)
     - next if value.blank?
     - if param == :project_ids

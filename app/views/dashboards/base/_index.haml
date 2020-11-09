@@ -1,6 +1,7 @@
 - @show_census = false
 = render 'index_title'
-= render 'housed_overall'
+- unless GrdaWarehouse::Config.get(:multi_coc_installation)
+  = render 'housed_overall'
 - if @html
   = render 'report_picker'
 - else
@@ -27,7 +28,7 @@
 -# From exit.haml
 = content_for :page_js do
   - if can_see_client_details?
-    - support_link = "#{warehouse_reports_client_details_exits_path(filter: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, ph: 'true'})}"
+    - support_link = "#{warehouse_reports_client_details_exits_path(filter: { start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, ph: 'true', coc_codes: @coc_codes })}"
   :javascript
     var support_link = '#{support_link}'
 
@@ -36,8 +37,8 @@
 -# From entry.haml
 = content_for :page_js do
   - if can_see_client_details?
-    - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], filter: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household})}"
-    - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], filter: {start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household})}"
+    - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], filter: { start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, coc_codes: @coc_codes })}"
+    - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], filter: { start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, coc_codes: @coc_codes })}"
   :javascript
     var entry_support_link = '#{entry_support_link}'
 

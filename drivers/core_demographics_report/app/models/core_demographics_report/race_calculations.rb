@@ -2,6 +2,19 @@ module
   CoreDemographicsReport::RaceCalculations
   extend ActiveSupport::Concern
   included do
+    def race_detail_hash
+      {}.tap do |hashes|
+        race_buckets.each do |key, title|
+          hashes["race_#{key}"] = {
+            title: "Race - #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_race(key)).distinct },
+          }
+        end
+      end
+    end
+
     def race_buckets
       ::HUD.races.merge('MultiRacial' => 'Multi-racial')
     end
@@ -42,8 +55,12 @@ module
       end
     end
 
+    private def client_ids_in_race(key)
+      race_breakdowns[key]&.map(&:first)
+    end
+
     private def client_races
-      @client_races ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
+      @client_races ||= Rails.cache.fetch(races_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
           # find any clients who fell within the scope
           client_scope = GrdaWarehouse::Hud::Client.where(id: distinct_client_ids)
@@ -53,6 +70,10 @@ module
           end
         end
       end
+    end
+
+    private def races_cache_key
+      [self.class.name, cache_slug, 'client_races']
     end
   end
 end
