@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_09_142122) do
+ActiveRecord::Schema.define(version: 2020_11_10_201513) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -5020,6 +5020,68 @@ ActiveRecord::Schema.define(version: 2020_11_09_142122) do
     t.datetime "deleted_at"
   end
 
+  create_table "project_pass_fails", force: :cascade do |t|
+    t.bigint "user_id"
+    t.jsonb "options", default: {}
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.float "utilization_rate"
+    t.float "universal_data_element_rate"
+    t.float "average_timeliness"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_project_pass_fails_on_created_at"
+    t.index ["deleted_at"], name: "index_project_pass_fails_on_deleted_at"
+    t.index ["updated_at"], name: "index_project_pass_fails_on_updated_at"
+    t.index ["user_id"], name: "index_project_pass_fails_on_user_id"
+  end
+
+  create_table "project_pass_fails_clients", force: :cascade do |t|
+    t.bigint "project_pass_fail_id"
+    t.bigint "project_pass_fails_project_id"
+    t.bigint "client_id"
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "disabling_condition"
+    t.integer "dob_quality"
+    t.date "dob"
+    t.integer "ethnicity"
+    t.integer "gender"
+    t.integer "name_quality"
+    t.jsonb "race"
+    t.boolean "any_races"
+    t.integer "ssn_quality"
+    t.string "ssn"
+    t.integer "veteran_status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["client_id"], name: "index_project_pass_fails_clients_on_client_id"
+    t.index ["created_at"], name: "index_project_pass_fails_clients_on_created_at"
+    t.index ["deleted_at"], name: "index_project_pass_fails_clients_on_deleted_at"
+    t.index ["project_pass_fail_id"], name: "index_project_pass_fails_clients_on_project_pass_fail_id"
+    t.index ["project_pass_fails_project_id"], name: "ppfc_ppfp_idx"
+    t.index ["updated_at"], name: "index_project_pass_fails_clients_on_updated_at"
+  end
+
+  create_table "project_pass_fails_projects", force: :cascade do |t|
+    t.bigint "project_pass_fail_id"
+    t.bigint "project_id"
+    t.float "available_beds"
+    t.float "utilization_rate"
+    t.float "universal_data_element_rate"
+    t.float "average_timeliness"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_project_pass_fails_projects_on_created_at"
+    t.index ["deleted_at"], name: "index_project_pass_fails_projects_on_deleted_at"
+    t.index ["project_id"], name: "index_project_pass_fails_projects_on_project_id"
+    t.index ["project_pass_fail_id"], name: "index_project_pass_fails_projects_on_project_pass_fail_id"
+    t.index ["updated_at"], name: "index_project_pass_fails_projects_on_updated_at"
+  end
+
   create_table "project_project_groups", id: :serial, force: :cascade do |t|
     t.integer "project_group_id"
     t.integer "project_id"
@@ -6990,6 +7052,9 @@ ActiveRecord::Schema.define(version: 2020_11_09_142122) do
   add_foreign_key "Services", "data_sources"
   add_foreign_key "files", "vispdats"
   add_foreign_key "import_logs", "data_sources"
+  add_foreign_key "project_pass_fails_clients", "project_pass_fails", on_delete: :cascade
+  add_foreign_key "project_pass_fails_clients", "project_pass_fails_projects", on_delete: :cascade
+  add_foreign_key "project_pass_fails_projects", "project_pass_fails", on_delete: :cascade
   add_foreign_key "service_history_services", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2000", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2001", "service_history_enrollments", on_delete: :cascade

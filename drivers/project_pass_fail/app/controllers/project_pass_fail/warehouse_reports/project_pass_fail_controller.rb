@@ -23,10 +23,23 @@ module ProjectPassFail::WarehouseReports
     include BaseFilters
 
     before_action :require_can_view_clients, only: [:detail]
-    before_action :set_report
+    before_action :set_report, except: [:create]
     before_action :set_pdf_export
 
     def index
+    end
+
+    def create
+      @report = report_class.create(@filter)
+      respond_with(@report, location: project_pass_fail_warehouse_reports_project_pass_fail_index_path)
+    end
+
+    def show
+    end
+
+    def destroy
+      @report.destroy
+      respond_with(@report, location: project_pass_fail_warehouse_reports_project_pass_fail_index_path)
     end
 
     def filter_params
@@ -47,7 +60,11 @@ module ProjectPassFail::WarehouseReports
     helper_method :filter_params
 
     private def set_report
-      @report = report_class.new(@filter)
+      @report = if params[:id]
+        report_class.find(params[:id].to_i)
+      else
+        report_class.new(@filter)
+      end
     end
 
     private def report_class
@@ -60,6 +77,10 @@ module ProjectPassFail::WarehouseReports
 
     private def set_pdf_export
       @pdf_export = ProjectPassFail::DocumentExports::ProjectPassFailExport.new
+    end
+
+    private def flash_interpolation_options
+      { resource_name: @report.title }
     end
   end
 end

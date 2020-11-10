@@ -5,7 +5,8 @@
 ###
 
 module ProjectPassFail
-  class ProjectPassFail
+  class ProjectPassFail < GrdaWarehouseBase
+    self.table_name = :project_pass_fails
     include Filter::ControlSections
     include Filter::FilterScopes
 
@@ -18,7 +19,7 @@ module ProjectPassFail
     end
 
     def url
-      warehouse_reports_health_encounters_url(host: ENV.fetch('FQDN'))
+      project_pass_fail_warehouse_reports_project_pass_fail_url(host: ENV.fetch('FQDN'))
     end
 
     def run_and_save!
