@@ -53,8 +53,8 @@ module ProjectScorecard::WarehouseReports
         generate_for_projects(@project_ids, @email, @range, current_user)
         generate_for_project_groups(@project_group_ids, @email, @range, current_user)
       elsif @email
-        email_to_projects(@project_ids, current_user)
-        email_to_project_groups(@project_group_ids, current_user)
+        email_to_projects(@project_ids)
+        email_to_project_groups(@project_group_ids)
       end
 
       render action: :index
@@ -68,10 +68,10 @@ module ProjectScorecard::WarehouseReports
       render :show
     end
 
-    private def generate_for_projects(ids, _send_email, range, user)
+    private def generate_for_projects(ids, send_email, range, user)
       ids.each do |id|
-        reports_scope.create(project_id: id, user_id: user.id, start_date: range.first, end_date: range.last)
-        # TODO: deferred generator
+        report = reports_scope.create(project_id: id, user_id: user.id, start_date: range.first, end_date: range.last)
+        ProjectScorecard::PopulateScorecard.perform_later(report.id, send_email, user.id)
       end
     end
 
@@ -82,15 +82,15 @@ module ProjectScorecard::WarehouseReports
       end
     end
 
-    private def email_to_projects(ids, user)
+    private def email_to_projects(ids)
       ids.each do |id|
-        @current_reports[id]&.send_email(user)
+        @current_reports[id]&.send_email
       end
     end
 
-    private def email_to_project_groups(ids, user)
+    private def email_to_project_groups(ids)
       ids.each do |id|
-        @current_group_reports[id]&.send_email(user)
+        @current_group_reports[id]&.send_email
       end
     end
 

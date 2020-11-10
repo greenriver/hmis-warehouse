@@ -22,9 +22,34 @@ module ProjectScorecard
     belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
     belongs_to :user, class_name: 'User'
 
-    def locked?(_field, _user)
-      # TODO: Implement field access rules
-      false
+    has_many :project_contacts, through: :project, source: :contacts
+    has_many :organization_contacts, through: :project
+
+    def locked?(field, _user)
+      # TODO: Implement field access rules for users
+      case status
+      when 'pending'
+        case field
+        when :recipient, :subrecipient, :funding_year, :grant_term
+          # Allow editing the header while being pre-filled
+          false
+        else
+          true
+        end
+
+      when 'pre-filled'
+        false
+
+      when 'ready'
+        case field
+        when :improvement_plan, :financial_plan
+          false
+        else
+          true
+        end
+      else
+        true
+      end
     end
 
     # include? doesn't work on open ranges, so we do it by hand
@@ -86,8 +111,18 @@ module ProjectScorecard
       ].freeze
     end
 
-    def send_email(from)
-      # TODO
+    def notify_requester
+      return unless user.present?
+
+      ProjectScorecard::ScorecardMailer.scorecard_prefilled(self, user).deliver
+    end
+
+    def send_email
+      update(status: 'ready')
+      contacts = project_contacts + organization_contacts
+      contacts.index_by(&:email).values.each do |contact|
+        ProjectScorecard::ScorecardMailer.scorecard_ready(self, contact).deliver
+      end
     end
   end
 end
