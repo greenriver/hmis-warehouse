@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
+class Health::DocumentExport < HealthBase
   include Rails.application.routes.url_helpers
   belongs_to :user
 
@@ -45,11 +45,11 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
   CURRENT_VERSION = '1'.freeze # bump to invalidate exports
 
   def self.with_current_version
-    where(version: CURRENT_VERSION)
+    where(export_version: CURRENT_VERSION)
   end
 
   before_create do
-    self.version ||= CURRENT_VERSION
+    self.export_version ||= CURRENT_VERSION
   end
 
   EXPIRES_AFTER = 12.hours
@@ -78,6 +78,6 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
   end
 
   def data_url
-    document_exports_path
+    health_document_exports_path
   end
 end
