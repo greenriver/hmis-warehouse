@@ -6,9 +6,7 @@
 = render 'form'
 
 .text-right.mb-4
-  - if can_view_clients_or_window?
-    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-      Download Excel
+  = render 'report_download', export: @pdf_export, excel_download_path: warehouse_reports_health_housing_status_index_path({format: :xlsx}.merge(link_params))
 
 = render 'housed_chart'
 = render 'trend_chart'

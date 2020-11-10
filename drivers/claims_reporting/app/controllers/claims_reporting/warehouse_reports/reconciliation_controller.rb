@@ -10,6 +10,7 @@ module ClaimsReporting::WarehouseReports
 
     def index
       @report = ClaimsReporting::ReconcilationReport.new(**filter_params)
+      @file = ::ClaimsReporting::CpPaymentUpload.new
     end
 
     private def available_months

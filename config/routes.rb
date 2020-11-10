@@ -698,6 +698,9 @@ Rails.application.routes.draw do
         resources :staff
       end
     end
+    resources :document_exports, only: [:show, :create] do
+      get :download, on: :member
+    end
   end
 
   namespace :api do
