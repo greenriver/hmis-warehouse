@@ -1,0 +1,14 @@
+:ruby
+  if export.present?
+    data = {
+      type: export.type,
+      query_string: export.query_string
+    }
+  end
+
+.text-right.mb-4
+  - if export.present?
+    %a.btn.btn-secondary.j-document-exports{href: "#", data: data}
+      %i.icon-download2
+      Download as PDF
+

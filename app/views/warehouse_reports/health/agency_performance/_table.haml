@@ -31,7 +31,7 @@
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
             - else
-              scope.size
+              = scope.size
           %td.text-right
             - scope = agency.consented_patients
             - title = "#{pluralize(scope.size, 'Patient')} Consented"
@@ -42,7 +42,7 @@
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
             - else
-              scope.size
+              = scope.size
           %td.text-right
             - scope = agency.with_chas
             - title = "#{pluralize(scope.size, 'Patient')} with CHAs"
@@ -53,7 +53,7 @@
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
             - else
-              scope.size
+              = scope.size
           %td.agency-performance__without.text-right
             - scope = agency.without_chas
             - title = "#{pluralize(scope.size, 'Patient')} without CHAs"
@@ -64,7 +64,7 @@
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
             - else
-              scope.size
+              = scope.size
           %td.text-right
             - scope = agency.with_ssms
             - title = "#{pluralize(scope.size, 'Patient')} with SSMs"
@@ -75,7 +75,7 @@
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
             - else
-              scope.size
+              = scope.size
           %td.agency-performance__without.text-right
             - scope = agency.without_ssms
             - title = "#{pluralize(scope.size, 'Patient')} without SSMs"
@@ -86,7 +86,7 @@
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
             - else
-              scope.size
+              = scope.size
 
           %td.text-right
             - scope = agency.with_signed_careplans
@@ -109,7 +109,7 @@
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
             - else
-              scope.size
+              = scope.size
           %td.agency-performance__date-effected.text-right
             - scope = agency.with_careplans_signed_within_range
             - title = "#{pluralize(scope.size, 'Patient')} with Care Plans Signed Within Period"
@@ -120,7 +120,7 @@
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
             - else
-              scope.size
+              = scope.size
           %td.text-right
             - scope = agency.with_careplans_in_122_days
             - title = "#{pluralize(scope.size, 'Patient')} with Care Plans Signed During Period"
@@ -148,7 +148,7 @@
                 = f.input :section, as: :hidden, input_html: {value: title}
                 = f.submit scope.size, class: 'btn btn-secondary btn-sm', data: { disable_with: false }
             - else
-              scope.size
+              = scope.size
     - if @agencies.size > 1
       %tfoot
         %tr

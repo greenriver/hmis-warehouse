@@ -16,6 +16,11 @@ module WarehouseReports::Health
     before_action :set_dates, only: [:index]
 
     def index
+      query_string = {
+        start_date: @start_date,
+        end_date: @end_date,
+      }.to_query
+      @pdf_export = Health::DocumentExports::AgencyPerformanceExport.new(query_string: query_string)
       @report = Health::AgencyPerformance.new(range: (@start_date..@end_date))
 
       @agencies = @report.agency_counts
