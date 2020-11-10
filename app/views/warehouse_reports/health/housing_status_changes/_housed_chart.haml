@@ -1,8 +1,13 @@
+- chart_width = 'col'
+- chart_width = 'col-sm-8' if @pdf
 .row.mb-6
-  .col
+  %div{class: chart_width}
     %h3 Starting / Ending Housing Status (#{pluralize(@report.unique_client_data.count, 'ACO')})
-    .well
+    - if @pdf
       .jHousingChart
+    - else
+      .well
+        .jHousingChart
   .col
     %h3 Housing Status Key
     .well
