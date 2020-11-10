@@ -6,7 +6,7 @@
 
 # dev projects -- with affiliation: 61; single RRH: 44
 
-class WarehouseReport::RrhReport # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::RrhReport
   include ArelHelper
 
   attr_accessor :project_ids, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status
@@ -1156,8 +1156,8 @@ class WarehouseReport::RrhReport # rubocop:disable Style/ClassAndModuleChildren
       @rows.map do |row|
         client_id = row.first
         client = @clients[client_id]
-        first_name = client[1]
-        last_name = client[2]
+        first_name = client&.try(:[], 1)
+        last_name = client&.try(:[], 2)
         Hash[@headers.zip([client_id, first_name, last_name] + row.drop(1))]
       end
     end

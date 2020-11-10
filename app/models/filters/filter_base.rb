@@ -47,11 +47,9 @@ module Filters
     attribute :indefinite_disabilities, Array, default: []
     attribute :dv_status, Array, default: []
     attribute :chronic_status, Boolean, default: false
+    attribute :coordinated_assessment_living_situation_homeless, Boolean, default: false
 
     validates_presence_of :start, :end
-    validate do
-      errors.add(:end, 'End date must follow start date.') if start > self.end
-    end
 
     # NOTE: keep this up-to-date if adding additional attributes
     def cache_key
@@ -99,7 +97,8 @@ module Filters
       self.indefinite_disabilities = filters.dig(:indefinite_disabilities)&.reject(&:blank?)&.map { |m| m.to_i }
       self.dv_status = filters.dig(:dv_status)&.reject(&:blank?)&.map { |m| m.to_i }
       self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true])
-      ensure_dates_work
+      self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true])
+      ensure_dates_work if valid?
     end
 
     def for_params
@@ -132,6 +131,7 @@ module Filters
           indefinite_disabilities: indefinite_disabilities,
           dv_status: dv_status,
           chronic_status: chronic_status,
+          coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
         }
       }
     end
@@ -162,6 +162,7 @@ module Filters
         opts['Indefinite and Impairing Disabilities'] = chosen_indefinite_disabilities if indefinite_disabilities.any?
         opts['DV Status'] = chosen_dv_status if dv_status.any?
         opts['Chronically Homeless'] = 'Yes' if chronic_status
+        opts['CE Homeless'] = 'Yes' if coordinated_assessment_living_situation_homeless
       end
     end
 

@@ -48,6 +48,7 @@ module PerformanceDashboards
           :project_type,
           :coc,
           :breakdown,
+          :coordinated_assessment_living_situation_homeless,
         ],
       )
     end

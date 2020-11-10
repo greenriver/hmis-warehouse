@@ -5,7 +5,7 @@
 ###
 require 'memoist'
 
-class WarehouseReport::OverlappingCocByProjectType < WarehouseReport # rubocop:disable Style/ClassAndModuleChildren
+class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   VERSION = 3
   class Error < ::StandardError; end
 

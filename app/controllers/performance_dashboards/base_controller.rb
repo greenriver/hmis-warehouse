@@ -40,6 +40,7 @@ class PerformanceDashboards::BaseController < ApplicationController
         :household_type,
         :hoh_only,
         :sub_population,
+        :coordinated_assessment_living_situation_homeless,
         coc_codes: [],
         project_types: [],
         project_type_codes: [],

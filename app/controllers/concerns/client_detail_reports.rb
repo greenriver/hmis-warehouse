@@ -39,6 +39,13 @@ module ClientDetailReports
       scope.heads_of_households
     end
 
+    private def filter_for_coc_codes(scope)
+      coc_codes = @filter.coc_codes&.reject(&:blank?)
+      return scope unless coc_codes.any?
+
+      scope.in_coc(coc_code: coc_codes)
+    end
+
     private def filter_for_project_types(scope)
       project_type_ids = @filter.project_type_ids
       return scope unless project_type_ids.any?

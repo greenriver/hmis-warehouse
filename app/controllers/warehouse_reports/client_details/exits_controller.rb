@@ -57,6 +57,7 @@ module WarehouseReports::ClientDetails
       hsh_scope = filter_for_projects(hsh_scope)
       hsh_scope = filter_for_age_ranges(hsh_scope)
       hsh_scope = filter_for_hoh(hsh_scope)
+      hsh_scope = filter_for_coc_codes(hsh_scope)
       hsh_scope
     end
 
@@ -73,6 +74,7 @@ module WarehouseReports::ClientDetails
         organization_ids: [],
         project_ids: [],
         project_type_codes: [],
+        coc_codes: [],
       )
     end
   end

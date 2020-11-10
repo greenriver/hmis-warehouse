@@ -19,10 +19,10 @@
               %th Count
               %th Percentage
           %tbody
-            - ::HUD.yes_no_missing_options.each do |id, title|
+            - ::HUD.times_homeless_options.each do |id, title|
               %tr
                 %th= title
-                %td= number_with_delimiter(report.times_on_street_count(id))
+                %td= link_to_if can_view_clients?, number_with_delimiter(report.times_on_street_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "prior_times_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
                 %td= number_to_percentage(report.times_on_street_percentage(id), precision: 2)
 
       %h3 Number of Months on the Streets, ES, or SH in The Past 3 Years
@@ -38,7 +38,7 @@
             - ::HUD.month_categories.each do |id, title|
               %tr
                 %th= title
-                %td= number_with_delimiter(report.months_on_street_count(id))
+                %td= link_to_if can_view_clients?, number_with_delimiter(report.months_on_street_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "prior_months_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
                 %td= number_to_percentage(report.months_on_street_percentage(id), precision: 2)
 
       %h3 Prior Living Situation
@@ -54,5 +54,5 @@
             - ::HUD.living_situations.each do |id, title|
               %tr
                 %th= title
-                %td= number_with_delimiter(report.prior_living_situations_count(id))
+                %td= link_to_if can_view_clients?, number_with_delimiter(report.prior_living_situations_count(id)), details_core_demographics_report_warehouse_reports_core_index_path(report.filter.for_params.deep_merge(key: "prior_situation_#{id}", filters: { start: report.filter.start_date, end: report.filter.end_date })), target: :_blank
                 %td= number_to_percentage(report.prior_living_situations_percentage(id), precision: 2)

@@ -7,14 +7,14 @@
             .title
               Exits to PH from homelessness
             .body
-              = @ph_exits.map{|_,m| m[:data].sum}.sum
+              = number_with_delimiter(@ph_exits.map{|_,m| m[:data].sum}.sum)
         .col-sm-4
           .big-block
             .title
               Unique Clients Exiting to PH
             .body
-              = @ph_clients.size
-          
+              = number_with_delimiter(@ph_clients.size)
+
     %canvas#housed-chart{style: 'width: 100%; height: 300px;', data: {labels: @all_exits_labels.to_json, data: @ph_exits.to_json.html_safe}}
 
     %h3 All Exits from Homeless Programs by Destination

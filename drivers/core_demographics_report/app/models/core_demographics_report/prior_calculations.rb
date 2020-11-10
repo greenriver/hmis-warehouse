@@ -2,6 +2,35 @@ module
   CoreDemographicsReport::PriorCalculations
   extend ActiveSupport::Concern
   included do
+    def prior_detail_hash
+      {}.tap do |hashes|
+        ::HUD.times_homeless_options.each do |id, title|
+          hashes["prior_times_#{id}"] = {
+            title: "Number of Times on the Streets, ES, or SH in The Past 3 Years #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_times(id)).distinct },
+          }
+        end
+        ::HUD.month_categories.each do |id, title|
+          hashes["prior_months_#{id}"] = {
+            title: "Number of Months on the Streets, ES, or SH in The Past 3 Years #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_months(id)).distinct },
+          }
+        end
+        ::HUD.living_situations.each do |id, title|
+          hashes["prior_situation_#{id}"] = {
+            title: "Prior Living Situation #{title}",
+            headers: client_headers,
+            columns: client_columns,
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_situation(id)).distinct },
+          }
+        end
+      end
+    end
+
     def times_on_street_count(type)
       times_on_street_breakdowns[type]&.count&.presence || 0
     end
@@ -20,6 +49,10 @@ module
       @times_on_street_breakdowns ||= client_entry_data.group_by do |_, row|
         row[:times]
       end
+    end
+
+    private def client_ids_in_prior_times(key)
+      times_on_street_breakdowns[key]&.map(&:first)
     end
 
     def months_on_street_count(type)
@@ -42,6 +75,10 @@ module
       end
     end
 
+    private def client_ids_in_prior_months(key)
+      months_on_street_breakdowns[key]&.map(&:first)
+    end
+
     def prior_living_situations_count(type)
       prior_living_situations_breakdowns[type]&.count&.presence || 0
     end
@@ -56,12 +93,16 @@ module
       ((of_type.to_f / total_count) * 100)
     end
 
+    private def client_ids_in_prior_situation(key)
+      prior_living_situations_breakdowns[key]&.map(&:first)
+    end
+
     def priors_data_for_export(rows)
       rows['_Number of Times on the Streets, ES, or SH in The Past 3 Years break'] ||= []
       rows['*Number of Times on the Streets, ES, or SH in The Past 3 Years'] ||= []
       rows['*Number of Times Reponse'] ||= []
       rows['*Number of Times Reponse'] += ['Count', 'Percentage', nil, nil]
-      ::HUD.yes_no_missing_options.each do |id, title|
+      ::HUD.times_homeless_options.each do |id, title|
         rows["_Number of Times Reponse#{title}"] ||= []
         rows["_Number of Times Reponse#{title}"] += [
           title,
@@ -86,7 +127,7 @@ module
       rows['_Prior Living Situation break'] ||= []
       rows['*Prior Living Situation'] ||= []
       rows['*Prior Living Situation'] += ['Count', 'Percentage', nil, nil]
-      ::HUD.month_categories.each do |id, title|
+      ::HUD.living_situations.each do |id, title|
         rows["_Prior Living Situation#{title}"] ||= []
         rows["_Prior Living Situation#{title}"] += [
           title,

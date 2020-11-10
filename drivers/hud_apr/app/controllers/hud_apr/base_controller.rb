@@ -29,7 +29,7 @@ module HudApr
         permit(
           :start,
           :end,
-          :coc_code,
+          coc_codes: [],
           project_ids: [],
           project_group_ids: [],
         )
@@ -50,16 +50,17 @@ module HudApr
       if filter_params.blank?
         prior_report = generator.find_report(current_user)
         options = prior_report&.options
+        site_coc_codes = GrdaWarehouse::Config.get(:site_coc_codes).presence&.split(/,\s*/)
         if options.present?
           @filter.start = options['start'].presence || Date.new(year - 1, 10, 1)
           @filter.end = options['end'].presence || Date.new(year, 9, 30)
-          @filter.coc_code = options['coc_code']
+          @filter.coc_codes = options['coc_codes'].presence || site_coc_codes
           @filter.project_ids = options['project_ids']
           @filter.project_group_ids = options['project_group_ids']
         else
           @filter.start = Date.new(year - 1, 10, 1)
           @filter.end = Date.new(year, 9, 30)
-          @filter.coc_code = GrdaWarehouse::Config.get(:site_coc_codes)
+          @filter.coc_codes = site_coc_codes
         end
       end
       # Override with params if set
@@ -94,7 +95,7 @@ module HudApr
     end
 
     private def filter_class
-      ::Filters::FilterBase
+      HudApr::Filters::AprFilter
     end
   end
 end

@@ -6,7 +6,8 @@
   - title
 - if can_see_client_details?
   - if @clients.support_rows.any?
-    %p Showing #{pluralize(@clients.support_rows.count, 'row')}
+    - client_count = @clients.support_rows.map{ |m| m['Warehouse ID'] }.uniq.count
+    %p Showing #{pluralize(client_count, 'row')}
     %table.table.table-sm
       %thead
         %tr

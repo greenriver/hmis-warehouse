@@ -30,7 +30,7 @@
         %em This file is visible in the window
       .jThumb.mt-2{data: {file: file.id}}
       - if file.content.present?
-        = link_to appropriate_file_path(id: file.id), class: 'btn btn-link icon-lg mt-2' do
+        = link_to appropriate_file_path(id: file.id), class: 'btn btn-icon-only btn-secondary icon-lg mt-2' do
           %i.icon-download2
     .col-4
       - file.tag_list.each do |tag|

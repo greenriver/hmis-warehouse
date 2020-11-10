@@ -14,7 +14,7 @@ class Object
     Date.parse(date).strftime('%d-%b-%Y')
   end
 end
-module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
+module EtoApi::Tasks
   class UpdateClientLookup
     include TsqlImport
     attr_accessor :logger
@@ -109,7 +109,7 @@ module EtoApi::Tasks # rubocop:disable Style/ClassAndModuleChildren
     end
 
     protected def client_id_from_personal_id(personal_id)
-      @client_ids ||= client_source.pluck(:PersonalID, :id).map do |p_id, id| # rubocop:disable Style/HashTransformKeys
+      @client_ids ||= client_source.pluck(:PersonalID, :id).map do |p_id, id|
         [p_id.upcase, id]
       end.to_h
       @client_ids[personal_id.upcase]
