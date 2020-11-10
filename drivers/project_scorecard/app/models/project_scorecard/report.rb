@@ -52,19 +52,10 @@ module ProjectScorecard
       end
     end
 
-    # include? doesn't work on open ranges, so we do it by hand
-    private def in_range?(range, value)
-      if range.end.nil?
-        value >= range.begin
-      else
-        range.include?(value)
-      end
-    end
-
     private def score(value, ten_range, five_range = nil)
       return nil if value.blank?
 
-      if in_range?(ten_range, value)
+      if ten_range.include?(value)
         10
       elsif five_range.present? && five_range.include?(value)
         5

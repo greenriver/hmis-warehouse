@@ -61,17 +61,17 @@ module ProjectScorecard
 
       def increased_employment_income_score
         if project.psh?
-          score(percent_increased_employment_income_at_exit, 15.., 9..14)
+          score(percent_increased_employment_income_at_exit, 15..Float::INFINITY, 9..14)
         elsif project.rrh?
-          score(percent_increased_employment_income_at_exit, 56.., 50..55)
+          score(percent_increased_employment_income_at_exit, 56..Float::INFINITY, 50..55)
         end
       end
 
       def increased_other_cash_income_score
         if project.psh?
-          score(percent_increased_other_cash_income_at_exit, 61.., 55..60)
+          score(percent_increased_other_cash_income_at_exit, 61..Float::INFINITY, 55..60)
         elsif project.rrh?
-          score(percent_increased_other_cash_income_at_exit, 21.., 15..20)
+          score(percent_increased_other_cash_income_at_exit, 21..Float::INFINITY, 15..20)
         end
       end
 

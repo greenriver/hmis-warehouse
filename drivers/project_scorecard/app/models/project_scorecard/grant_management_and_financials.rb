@@ -71,7 +71,7 @@ module ProjectScorecard
       end
 
       def meetings_attended_score
-        score(percentage_meetings_attended, 75.., 50..74)
+        score(percentage_meetings_attended, 75..Float::INFINITY, 50..74)
       end
     end
   end

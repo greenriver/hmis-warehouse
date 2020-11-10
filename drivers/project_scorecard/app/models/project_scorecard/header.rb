@@ -9,15 +9,11 @@ module ProjectScorecard
     extend ActiveSupport::Concern
     included do
       def project_names
-        return project.name if project.present?
-
-        project_group.projects.map(&:name).join(', ')
+        project.name
       end
 
       def project_types
-        return HUD.project_type(project.compute_project_type) if project.present?
-
-        project_group.projects.map(&:compute_project_type).join(', ')
+        HUD.project_type(project.compute_project_type)
       end
     end
   end
