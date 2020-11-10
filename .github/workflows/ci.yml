@@ -79,14 +79,15 @@ jobs:
 
          gem install bundler --version=1.17.3
 
-     - uses: chrislennon/action-aws-cli@v1.1
+     #- uses: chrislennon/action-aws-cli@v1.1
 
      - uses: actions/checkout@v2
 
      - name: Use Node.js 10
-       uses: actions/setup-node@v1
+       uses: actions/setup-node@v2-beta
        with:
-         node-version: 10.x
+         node-version: '10'
+         check-latest: true
 
      - run: npm install
 

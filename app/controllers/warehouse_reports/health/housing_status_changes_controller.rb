@@ -12,6 +12,7 @@ module WarehouseReports::Health
     before_action :setup_report
 
     def index
+      @pdf_export = Health::DocumentExports::HousingStatusChangesExport.new(query_string: @report_params.to_query)
     end
 
     def detail

@@ -57,6 +57,7 @@ class User < ApplicationRecord
 
   has_many :messages
   has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
+  has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
 
   belongs_to :agency, optional: true
 
