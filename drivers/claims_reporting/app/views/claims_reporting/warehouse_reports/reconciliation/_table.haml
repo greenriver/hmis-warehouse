@@ -22,5 +22,5 @@
             %td= link_to patient.medicaid_id, client_health_qualifying_activities_path(patient.client)
             %td= patient.first_name
             %td= patient.last_name
-            %td= @report.qaulifying_activity_count_for_patient(patient)
+            %td= @report.qualifying_activity_count_for_patient(patient)
             %td= @report.acos_for_patient(patient).to_sentence
