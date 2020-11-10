@@ -56,7 +56,7 @@ module ClaimsReporting
     end
 
     def qualifying_activity_counts_by_patient_id
-      ::Health::QualifyingActivity.where(
+      @qualifying_activity_counts_by_patient_id ||= ::Health::QualifyingActivity.where(
         patient: active_patients,
       ).submitted.in_range(
         report_date_range,
