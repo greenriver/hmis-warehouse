@@ -322,6 +322,17 @@ module Filters
     end
 
     # Select display options
+    def project_type_options_for_select(id_limit: [])
+      options = HUD.project_types.invert
+      options = options.select { |_, id| id.in?(id_limit) } if id_limit.present?
+      options.map do |text, id|
+        [
+          "#{text} (#{id})",
+          id,
+        ]
+      end
+    end
+
     def project_options_for_select(user:)
       all_project_scope.options_for_select(user: user)
     end

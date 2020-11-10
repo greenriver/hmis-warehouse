@@ -768,6 +768,15 @@ def report_list
       health: true,
     }
   end
+  if RailsDrivers.loaded.include?(:project_pass_fail)
+    r_list['Data Quality'] << {
+      url: 'project_pass_fail/warehouse_reports/project_pass_fail',
+      name: 'Project Pass Fail',
+      description: 'Investigate data quality issues for projects',
+      limitable: true,
+      health: false,
+    }
+  end
   r_list
 end
 
