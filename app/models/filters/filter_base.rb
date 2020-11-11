@@ -66,7 +66,7 @@ module Filters
     end
 
     def set_from_params(filters)
-      return unless filters.present?
+      return self unless filters.present?
 
       self.start = filters.dig(:start)&.to_date
       self.end = filters.dig(:end)&.to_date
@@ -99,6 +99,7 @@ module Filters
       self.chronic_status = filters.dig(:chronic_status).in?(['1', 'true', true])
       self.coordinated_assessment_living_situation_homeless = filters.dig(:coordinated_assessment_living_situation_homeless).in?(['1', 'true', true])
       ensure_dates_work if valid?
+      self
     end
 
     def for_params
@@ -384,6 +385,7 @@ module Filters
       ids = GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
         *project_type_codes.reject(&:blank?).map(&:to_sym)
       ).flatten
+
       ids += project_type_numbers if project_type_numbers.any?
       ids
     end
@@ -461,6 +463,47 @@ module Filters
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
+    def chosen(key)
+      case key
+      when :project_type_codes, :project_type_ids, :project_type_numbers
+        chosen_project_types
+      when :sub_population
+        chosen_sub_population
+      when :age_ranges
+        chosen_age_ranges
+      when :races
+        chosen_races
+      when :ethnicities
+        chosen_ethnicities
+      when :genders
+        chosen_genders
+      when :coc_codes
+        chosen_coc_codes
+      when :organization_ids
+        chosen_organizations
+      when :project_ids
+        chosen_projects
+      when :data_source_ids
+        chosen_data_sources
+      when :project_group_ids
+        chosen_project_groups
+      when :veteran_statuses
+        chosen_veteran_statuses
+      when :household_type
+        chosen_household_type
+      when :prior_living_situation_ids
+        chosen_prior_living_situations
+      when :destination_ids
+        chosen_destinations
+      when :disabilities
+        chosen_disabilities
+      when :indefinite_disabilities
+        chosen_indefinite_disabilities
+      when :dv_status
+        chosen_dv_status
+      end
+    end
+
     def chosen_sub_population
       Reporting::MonthlyReports::Base.available_types[sub_population]&.constantize&.new&.sub_population_title
     end
@@ -491,6 +534,30 @@ module Filters
 
     def chosen_coc_codes
       coc_codes.join(', ')
+    end
+
+    def chosen_organizations
+      return nil unless organization_ids.reject(&:blank?).present?
+
+      GrdaWarehouse::Hud::Organization.where(id: organization_ids).pluck(:OrganizationName)
+    end
+
+    def chosen_projects
+      return nil unless project_ids.reject(&:blank?).present?
+
+      GrdaWarehouse::Hud::Project.where(id: project_ids).pluck(:ProjectName)
+    end
+
+    def chosen_data_sources
+      return nil unless data_source_ids.reject(&:blank?).present?
+
+      GrdaWarehouse::DataSource.where(id: data_source_ids).pluck(:short_name)
+    end
+
+    def chosen_project_groups
+      return nil unless project_group_ids.reject(&:blank?).present?
+
+      GrdaWarehouse::ProjectGroup.where(id: project_group_ids).pluck(:name)
     end
 
     def chosen_veteran_statuses

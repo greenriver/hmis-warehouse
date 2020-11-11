@@ -7,3 +7,4 @@
 = render 'filter'
 
 =# render 'report_downloads/report_download', export: @pdf_export, excel_download_path: project_pass_fail_warehouse_reports_project_pass_fail_index_path({format: :xlsx}.merge(@filter.for_params))
+= render 'table'

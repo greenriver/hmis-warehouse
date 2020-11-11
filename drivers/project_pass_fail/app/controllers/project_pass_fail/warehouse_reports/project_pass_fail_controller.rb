@@ -27,10 +27,18 @@ module ProjectPassFail::WarehouseReports
     before_action :set_pdf_export
 
     def index
+      @reports = report_scope.ordered.
+        page(params[:page]).per(25)
     end
 
     def create
-      @report = report_class.create(@filter)
+      @report = report_class.create(options: filter_params, user_id: @filter.user_id)
+
+      ::WarehouseReports::GenericReportJob.perform_later(
+        user_id: current_user.id,
+        report_class: @report.class.name,
+        report_id: @report.id,
+      )
       respond_with(@report, location: project_pass_fail_warehouse_reports_project_pass_fail_index_path)
     end
 
@@ -49,7 +57,7 @@ module ProjectPassFail::WarehouseReports
           :end,
           coc_codes: [],
           project_types: [],
-          project_type_codes: [],
+          project_type_numbers: [],
           data_source_ids: [],
           organization_ids: [],
           project_ids: [],
@@ -63,7 +71,7 @@ module ProjectPassFail::WarehouseReports
       @report = if params[:id]
         report_class.find(params[:id].to_i)
       else
-        report_class.new(@filter)
+        report_class.new(options: @filter.for_params)
       end
     end
 
@@ -71,8 +79,17 @@ module ProjectPassFail::WarehouseReports
       ProjectPassFail::ProjectPassFail
     end
 
+    private def report_scope
+      report_class.viewable_by(current_user)
+    end
+
     private def filter_class
       ::Filters::FilterBase
+    end
+
+    private def set_filter
+      @filter = filter_class.new(user_id: current_user.id, project_type_codes: [])
+      @filter.set_from_params(filter_params[:filters]) if filter_params[:filters].present?
     end
 
     private def set_pdf_export
