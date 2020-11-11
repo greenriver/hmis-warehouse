@@ -52,7 +52,7 @@ module ClaimsReporting
     end
 
     def acos_for_patient(patient)
-      patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco.name }.uniq
+      patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco&.name }.compact.uniq
     end
 
     def qualifying_activity_counts_by_patient_id
