@@ -47,8 +47,24 @@ module ClaimsReporting
       scope
     end
 
+    def qualifying_activity_count_for_patient(patient)
+      qualifying_activity_counts_by_patient_id[patient.id]
+    end
+
+    def acos_for_patient(patient)
+      patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco&.name }.compact.uniq
+    end
+
+    def qualifying_activity_counts_by_patient_id
+      @qualifying_activity_counts_by_patient_id ||= ::Health::QualifyingActivity.where(
+        patient: active_patients,
+      ).submitted.in_range(
+        report_date_range,
+      ).group(:patient_id).count
+    end
+
     def patients_without_payments
-      active_patients.where.not(medicaid_id: payment_details.select(:medicaid_id))
+      active_patients.where.not(medicaid_id: payment_details.select(:medicaid_id)).preload(patient_referrals: :aco)
     end
 
     def payments_without_patients

@@ -1,5 +1,7 @@
+- chart_width = 'col'
+- chart_width = 'col-sm-8' if @pdf
 .row.mb-6
-  .col
+  %div{class: chart_width}
     %h3 Housing Trends (#{pluralize(@report.unique_client_data.count, 'ACO')})
     .well
       .jTrendChart

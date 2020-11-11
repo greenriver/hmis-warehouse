@@ -38,7 +38,7 @@ module Health::DocumentExports
         template_file = 'warehouse_reports/health/agency_performance/index_pdf'
         PdfGenerator.new.perform(
           html: view.render(file: template_file, layout: 'layouts/healthcare_report'),
-          file_name: "Agency Performance #{DateTime.current.to_s(:db)}",
+          file_name: "Partner Dashboard #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
         end

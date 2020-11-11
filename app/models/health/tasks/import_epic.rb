@@ -35,23 +35,23 @@ module Health::Tasks
         @config = config
         ds = Health::DataSource.find_by(name: config['data_source_name'])
         @data_source_id = ds.id
-        fetch_files() unless @load_locally
-        import_files()
-        update_consent()
-        sync_epic_pilot_patients()
-        update_housing_statuses()
-        return change_counts()
+        fetch_files unless @load_locally
+        import_files
+        update_consent
+        sync_epic_pilot_patients
+        update_housing_statuses
+        return change_counts
       end
     end
 
     # This does not remove any data coming from EPIC, only upsert
-    def import klass:, file:
+    def import(klass:, file:)
       path = "#{@config['destination']}/#{file}"
       handle = read_csv_file(path: path)
       if ! header_row_matches(file: handle, klass: klass)
         msg = "Incorrect file format for #{file}"
         notify msg
-        raise msg
+        return
       end
       clean_values = []
       instance = klass.new # need an instance to cache some queries
@@ -80,8 +80,9 @@ module Health::Tasks
     # always allow import if we don't have any in the warehouse
     def above_acceptable_change_threshold klass, incoming, existing
       return false unless @prevent_massive_change
-      return false if existing == 0
+      return false if existing.zero?
       return false if incoming > existing
+
       ((incoming - existing).abs.to_f / existing) > 0.1
     end
 
@@ -145,11 +146,11 @@ module Health::Tasks
         @config['username'],
         password: @config['password'],
         # verbose: :debug,
-        auth_methods: ['publickey','password']
+        auth_methods: ['publickey','password'],
       )
       sftp.download!(@config['path'], @config['destination'], recursive: true)
 
-      notify "Health data downloaded"
+      notify 'Health data downloaded'
     end
 
     def read_csv_file path:
@@ -169,9 +170,14 @@ module Health::Tasks
 
     def header_row_matches file:, klass:
       expected = klass.csv_map.keys.sort
-      found = CSV.parse(file.first).first.map(&:to_sym).sort
-      if klass.name == "Health::EpicCaseNote"
-        (expected - found).size == 0
+      header_row = file.first
+      if header_row.blank?
+        notify("Unable to parse empty file for: #{klass.name}")
+        return false
+      end
+      found = CSV.parse(header_row).first.map(&:to_sym).sort
+      if klass.name == 'Health::EpicCaseNote'
+        (expected - found).size.zero?
       else
         found == expected
       end

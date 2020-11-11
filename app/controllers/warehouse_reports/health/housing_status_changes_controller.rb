@@ -13,6 +13,17 @@ module WarehouseReports::Health
 
     def index
       @pdf_export = Health::DocumentExports::HousingStatusChangesExport.new(query_string: @report_params.to_query)
+
+      respond_to do |format|
+        format.html do
+          @html = true
+          @pdf = false
+        end
+        format.pdf do
+          @html = false
+          @pdf = true
+        end
+      end
     end
 
     def detail

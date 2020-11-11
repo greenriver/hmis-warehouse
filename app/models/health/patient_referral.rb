@@ -123,6 +123,12 @@ module Health
       # Currently does not count as an overlap if one starts on the end of the other
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
+
+    def active_within?(range)
+      return nil unless enrollment_start_date
+      (enrollment_start_date .. disenrollment_date).overlaps?(range)
+    end
+
     scope :referred_on, -> (date) do
       where(enrollment_start_date: date)
     end
