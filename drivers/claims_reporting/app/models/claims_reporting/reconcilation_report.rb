@@ -38,10 +38,8 @@ module ClaimsReporting
     def active_patients
       scope = ::Health::Patient.active_between(report_date_range.min, report_date_range.max)
       if aco_ids.any?
-        scope = scope.merge(
-          ::Health::PatientReferral.where(
-            accountable_care_organization_id: aco_ids,
-          ),
+        scope = scope.where(
+          id: ::Health::PatientReferral.where(accountable_care_organization_id: aco_ids).select(:patient_id),
         )
       end
       scope
