@@ -15,7 +15,6 @@
           %th First Name
           %th Last Name
           %th Qualifying Activities
-          %th ACO(s)
       %tbody
         - @report.patients_without_payments.each do |patient|
           %tr
@@ -23,4 +22,3 @@
             %td= patient.first_name
             %td= patient.last_name
             %td= @report.qualifying_activity_count_for_patient(patient)
-            %td= @report.acos_for_patient(patient).to_sentence
