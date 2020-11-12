@@ -12,13 +12,13 @@ class Deployer
   attr_accessor :repo_name
   attr_accessor :registry_id
 
-  ROOT_PATH      = File.realpath(File.join(__dir__, '..',  '..', '..', '..'))
+  ROOT_PATH   = File.realpath(File.join(__dir__, '..',  '..', '..', '..'))
 
-  ASSETS_PATH    = File.join(ROOT_PATH, 'config', 'deploy', 'docker', 'assets')
-  AWS_PROFILE    = ENV.fetch('AWS_PROFILE')
-  TEST_HOST      = 'deploy.warehouse.dev.test'
-  TEST_PORT      = 9999
-  WAIT_TIME      = 2
+  ASSETS_PATH = File.join(ROOT_PATH, 'config', 'deploy', 'docker', 'assets')
+  AWS_PROFILE = ENV.fetch('AWS_PROFILE')
+  TEST_HOST   = 'deploy.warehouse.dev.test'
+  TEST_PORT   = 9999
+  WAIT_TIME   = 2
 
   attr_accessor :image_tag
 
@@ -209,6 +209,11 @@ class Deployer
   end
 
   def _check_secrets!
+    if secrets_arn.nil?
+      puts "Please specify a secrets arn in your secret.deploy.values.yml file"
+      exit
+    end
+
     secretsmanager.describe_secret(secret_id: secrets_arn)
   rescue Aws::SecretsManager::Errors::ResourceNotFoundException
     puts "Cannot find #{secrets_arn}. Aborting"
@@ -261,7 +266,7 @@ class Deployer
   end
 
   def debug?
-    ENV['DEBUG']=='true'
+    ENV['DEBUG'] == 'true'
   end
 
   def _push_image!
@@ -321,7 +326,7 @@ class Deployer
 
   def _run(c, alt_msg: nil)
     cmd = c.gsub(/\n/, ' ').squeeze(' ')
-    puts "Running #{alt_msg||cmd}"
+    puts "Running #{alt_msg || cmd}"
 
     system(cmd)
 
