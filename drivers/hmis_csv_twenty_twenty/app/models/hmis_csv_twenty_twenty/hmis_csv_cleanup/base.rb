@@ -14,5 +14,9 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
     def cleanup!
       raise 'cleanup! must be implemented'
     end
+
+    def self.description
+      name.split('::').last.underscore.humanize
+    end
   end
 end

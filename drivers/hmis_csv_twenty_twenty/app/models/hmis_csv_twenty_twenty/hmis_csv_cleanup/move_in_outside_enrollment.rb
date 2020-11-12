@@ -45,5 +45,9 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
     def exit_source
       HmisCsvTwentyTwenty::Importer::Exit
     end
+
+    def self.description
+      'Remove move-in dates the occur before the entry, or after the exit'
+    end
   end
 end
