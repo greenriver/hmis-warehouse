@@ -87,7 +87,7 @@ class CronInstaller
   def get_cron_expression(line)
     tokens = line.split(' ')
 
-    (minute, hour, day_of_month, month, day_of_week) = tokens[0,5]
+    (minute, hour, day_of_month, month, day_of_week) = tokens[0, 5]
 
     year = '*'
 
@@ -101,10 +101,10 @@ class CronInstaller
     # This isn't strictly correct, but hopefully good enough
     utc_hour =
       if !hour.include?('*')
-        #ENV["TZ"] ||= "US/Eastern"
+        # ENV["TZ"] ||= "US/Eastern"
         hour.split(',').map do |h|
-          #Time.parse("#{h}:00").to_datetime.utc.hour
-          ((h.to_i + 4)%24).to_s
+          # Time.parse("#{h}:00").to_datetime.utc.hour
+          ((h.to_i + 4) % 24).to_s
         end.join(',')
       else
         hour
@@ -113,7 +113,6 @@ class CronInstaller
     "cron(#{minute}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})".tap do |expression|
       puts "[INFO] cron expression is #{expression}"
     end
-
   end
 
   def get_command(line)
