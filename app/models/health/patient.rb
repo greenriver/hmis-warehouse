@@ -129,14 +129,12 @@ module Health
     end
 
     scope :active_between, -> (start_date, end_date) do
-      d_1_start = start_date
-      d_1_end = end_date
-      d_2_start = hpr_t[:enrollment_start_date]
-      d_2_end = hpr_t[:disenrollment_date]
-      joins(:patient_referrals).
-        merge(Health::PatientReferral.where(
-          d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end))
-        ))
+      where(
+        id: Health::PatientReferral.active_within_range(
+          start_date: start_date,
+          end_date: end_date
+        ).select(:patient_id)
+      )
     end
 
     scope :unprocessed, -> { where client_id: nil}
