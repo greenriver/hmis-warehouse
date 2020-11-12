@@ -172,6 +172,12 @@
     line-height: 1;
     font-weight: normal;
   }
+  .text-success [class^=icon] {
+    color: $brand-success;
+  }
+  .text-danger [class^=icon] {
+    color: $brand-danger;
+  }
   .title,
   [class^=icon] {
     color: $gray-700;

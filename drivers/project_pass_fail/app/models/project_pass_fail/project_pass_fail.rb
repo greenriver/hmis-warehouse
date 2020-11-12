@@ -43,32 +43,62 @@ module ProjectPassFail
     end
 
     def run_and_save!
+      update(started_at: Time.current)
       populate_projects
       populate_clients
-      run_calculations
-    end
-
-    private def run_calculations
-      # The following methods set the appropriate data, but don't save so we can save in a batch
       calculate_utilization_rates
       calculate_universal_data_element_rates
-
+      calculate_timeliness
       projects.each(&:save!)
+      assign_attributes(completed_at: Time.current)
+      save
+    end
+
+    def utilization_rate_as_percent
+      (utilization_rate * 100).round(2)
+    end
+
+    def within_utilization_threshold?
+      utilization_rate.in?(Project.utilization_range)
+    end
+
+    def within_timeliness_threshold?
+      average_days_to_enter_entry_date <= Project.timeliness_threshold
+    end
+
+    private def calculate_timeliness
+      projects.each(&:calculate_timeliness)
+
+      self.average_days_to_enter_entry_date = if clients.exists?
+        clients.sum(:days_to_enter_entry_date) / clients.count.to_f
+      else
+        0
+      end
     end
 
     private def calculate_universal_data_element_rates
       projects.each(&:calculate_universal_data_element_rates)
+
+      outside_threshold = projects.map(&:within_universal_data_element_threshold?).count(false)
+      assign_attributes(projects_failing_universal_data_elements: outside_threshold)
     end
 
     private def calculate_utilization_rates
       projects.each(&:calculate_utilization_rate)
+      capacity = projects.sum(:available_beds)
+      rate = if capacity.positive? && clients.exists?
+        clients.sum(:days_served).to_f / filter.range.count / capacity
+      else
+        0
+      end
+      assign_attributes(utilization_rate: rate)
     end
 
     private def populate_projects
       projects = []
       hmis_projects.find_each do |project|
-        average_bed_count = project.inventories.within_range(filter.range).map do |i|
-          i.average_daily_inventory(range: filter.range, field: :BedInventory)
+        average_bed_count = project.inventories.within_range(filter.as_date_range).map do |i|
+          i.average_daily_inventory(range: filter.as_date_range, field: :BedInventory)
         end.sum
         p = Project.new(
           project_pass_fail_id: id,
@@ -87,31 +117,38 @@ module ProjectPassFail
         project.apr = run_apr(project.project_id)
         project.apr.universe('Question 6').universe_members.preload(:universe_membership).find_each do |member|
           apr_client = member.universe_membership
-          clients << Client.new(
+          client = Client.new(
             project_pass_fail_id: id,
-            project_pass_fails_project_id: project.id,
-            client_id: apr_client.client_id,
-            first_name: apr_client.first_name,
-            last_name: apr_client.last_name,
-            first_date_in_program: apr_client.first_date_in_program,
-            last_date_in_program: apr_client.last_date_in_program,
-            disabling_condition: apr_client.disabling_condition,
-            dob: apr_client.dob,
-            dob_quality: apr_client.dob_quality,
-            ethnicity: apr_client.ethnicity,
-            gender: apr_client.gender,
-            name_quality: apr_client.name_quality,
-            race: apr_client.race,
-            ssn_quality: apr_client.ssn_quality,
-            ssn: apr_client.ssn,
-            veteran_status: apr_client.veteran_status,
-            relationship_to_hoh: apr_client.relationship_to_hoh,
-            enrollment_created: apr_client.enrollment_created,
-            enrollment_coc: apr_client.enrollment_coc,
+            project_id: project.id,
+            days_served: days_of_service_for(apr_client.client_id, project),
           )
+          client.calculate_universal_data_elements(apr_client)
+          client.calculate_time_to_enter
+          clients << client
         end
 
         Client.import(clients) if clients.any?
+      end
+    end
+
+    private def days_of_service_for(source_client_id, project)
+      destination_client_id = destination_client_id_for(source_client_id, project.project.data_source_id)
+      project.service_counts_for(destination_client_id)
+    end
+
+    private def destination_client_id_for(source_client_id, data_source_id)
+      source_client_lookup[[source_client_id, data_source_id]]
+    end
+
+    private def source_client_lookup
+      @source_client_lookup ||= begin
+        lookup = {}
+        GrdaWarehouse::WarehouseClient.
+          pluck(:source_id, :data_source_id, :destination_id).
+          each do |row|
+            lookup[[row.first, row.second]] = row.last
+          end
+        lookup
       end
     end
 
@@ -131,7 +168,7 @@ module ProjectPassFail
       generator = HudApr::Generators::Apr::Fy2020::Generator
       apr = HudReports::ReportInstance.from_filter(apr_filter, generator.title, build_for_questions: questions)
       # FIXME: figure out how to make this run without emailing
-      generator.new(apr).run!
+      generator.new(apr).run!(email: false)
       apr
     end
 

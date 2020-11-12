@@ -5028,30 +5028,8 @@ ActiveRecord::Schema.define(version: 2020_11_10_201513) do
     t.datetime "failed_at"
     t.text "processing_errors"
     t.float "utilization_rate"
-    t.float "name_error_rate"
-    t.float "ssn_error_rate"
-    t.float "race_error_rate"
-    t.float "ethnicity_error_rate"
-    t.float "gender_error_rate"
-    t.float "dob_error_rate"
-    t.float "veteran_status_error_rate"
-    t.float "start_date_error_rate"
-    t.float "relationship_to_hoh_error_rate"
-    t.float "location_error_rate"
-    t.float "disabling_condition_error_rate"
-    t.float "utilization_count"
-    t.float "name_error_count"
-    t.float "ssn_error_count"
-    t.float "race_error_count"
-    t.float "ethnicity_error_count"
-    t.float "gender_error_count"
-    t.float "dob_error_count"
-    t.float "veteran_status_error_count"
-    t.float "start_date_error_count"
-    t.float "relationship_to_hoh_error_count"
-    t.float "location_error_count"
-    t.float "disabling_condition_error_count"
-    t.float "average_timeliness"
+    t.integer "projects_failing_universal_data_elements"
+    t.float "average_days_to_enter_entry_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
@@ -5063,7 +5041,7 @@ ActiveRecord::Schema.define(version: 2020_11_10_201513) do
 
   create_table "project_pass_fails_clients", force: :cascade do |t|
     t.bigint "project_pass_fail_id"
-    t.bigint "project_pass_fails_project_id"
+    t.bigint "project_id"
     t.bigint "client_id"
     t.string "first_name"
     t.string "last_name"
@@ -5082,14 +5060,16 @@ ActiveRecord::Schema.define(version: 2020_11_10_201513) do
     t.integer "relationship_to_hoh"
     t.date "enrollment_created"
     t.string "enrollment_coc"
+    t.integer "days_to_enter_entry_date"
+    t.integer "days_served"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.index ["client_id"], name: "index_project_pass_fails_clients_on_client_id"
     t.index ["created_at"], name: "index_project_pass_fails_clients_on_created_at"
     t.index ["deleted_at"], name: "index_project_pass_fails_clients_on_deleted_at"
+    t.index ["project_id"], name: "ppfc_ppfp_idx"
     t.index ["project_pass_fail_id"], name: "index_project_pass_fails_clients_on_project_pass_fail_id"
-    t.index ["project_pass_fails_project_id"], name: "ppfc_ppfp_idx"
     t.index ["updated_at"], name: "index_project_pass_fails_clients_on_updated_at"
   end
 
@@ -5122,7 +5102,7 @@ ActiveRecord::Schema.define(version: 2020_11_10_201513) do
     t.float "relationship_to_hoh_error_count"
     t.float "location_error_count"
     t.float "disabling_condition_error_count"
-    t.float "average_timeliness"
+    t.float "average_days_to_enter_entry_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
@@ -7105,7 +7085,6 @@ ActiveRecord::Schema.define(version: 2020_11_10_201513) do
   add_foreign_key "files", "vispdats"
   add_foreign_key "import_logs", "data_sources"
   add_foreign_key "project_pass_fails_clients", "project_pass_fails", on_delete: :cascade
-  add_foreign_key "project_pass_fails_clients", "project_pass_fails_projects", on_delete: :cascade
   add_foreign_key "project_pass_fails_projects", "project_pass_fails", on_delete: :cascade
   add_foreign_key "service_history_services", "service_history_enrollments", on_delete: :cascade
   add_foreign_key "service_history_services_2000", "service_history_enrollments", on_delete: :cascade

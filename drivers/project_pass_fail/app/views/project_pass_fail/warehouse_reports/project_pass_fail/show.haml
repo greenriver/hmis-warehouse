@@ -1,0 +1,42 @@
+- title = _('Project Pass/Fail Report')
+- content_for :title, title
+= content_for :crumbs do
+  = link_to project_pass_fail_warehouse_reports_project_pass_fail_index_path do
+    = "« #{title}"
+
+%h1.mb-5= title
+%h3 Selected Universe:
+.reports
+  = render 'filters/report_parameters', options: @report.options['filters'], report: @report
+
+- if @report.projects.count > 1
+  %h2 Overall
+  .well
+    .d-flex.text-center.justify-content-center.mt-4.mb-6
+      .overall-utilization-rate.chunk
+        - status_class = if @report.within_utilization_threshold? then 'text-success' else 'text-danger' end
+        .ml-2.mr-2
+          %h4.title Overall Utilization Rate
+          %i.icon-group.metric
+          .metric{class: status_class}
+            = number_to_percentage @report.utilization_rate_as_percent, precision: 2
+      .overall-universal-data-elements.chunk
+        - status_class = if @report.projects_failing_universal_data_elements.zero? then 'text-success' else 'text-danger' end
+        .ml-2.mr-2
+          %h4.title Projects Failing Universal Data Elements
+          %i.icon-file-text.metric
+          .metric{class: status_class}
+            = number_with_delimiter(@report.projects_failing_universal_data_elements)
+      .overall-timeliness.chunk
+        - status_class = if @report.within_timeliness_threshold? then 'text-success' else 'text-danger' end
+        .ml-2.mr-2
+          %h4.title Average Days to Enter Enrollments
+          %i.icon-calendar.metric
+          .metric{class: status_class}
+            = number_with_delimiter(@report.average_days_to_enter_entry_date.round)
+  %h2 Project Summary
+  - @report.projects.each do |project|
+    = render 'project_summary', project: project
+- else
+  - @report.projects.each do |project|
+    = render 'project_summary', project: project

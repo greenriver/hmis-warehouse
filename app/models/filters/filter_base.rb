@@ -171,6 +171,10 @@ module Filters
       self.start .. self.end
     end
 
+    def as_date_range
+      DateRange.new(start: self.start, end: self.end)
+    end
+
     def first
       range.begin
     end

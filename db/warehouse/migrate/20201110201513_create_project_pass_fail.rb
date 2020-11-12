@@ -8,30 +8,8 @@ class CreateProjectPassFail < ActiveRecord::Migration[5.2]
       t.datetime :failed_at
       t.text :processing_errors
       t.float :utilization_rate
-      t.float :name_error_rate
-      t.float :ssn_error_rate
-      t.float :race_error_rate
-      t.float :ethnicity_error_rate
-      t.float :gender_error_rate
-      t.float :dob_error_rate
-      t.float :veteran_status_error_rate
-      t.float :start_date_error_rate
-      t.float :relationship_to_hoh_error_rate
-      t.float :location_error_rate
-      t.float :disabling_condition_error_rate
-      t.float :utilization_count
-      t.float :name_error_count
-      t.float :ssn_error_count
-      t.float :race_error_count
-      t.float :ethnicity_error_count
-      t.float :gender_error_count
-      t.float :dob_error_count
-      t.float :veteran_status_error_count
-      t.float :start_date_error_count
-      t.float :relationship_to_hoh_error_count
-      t.float :location_error_count
-      t.float :disabling_condition_error_count
-      t.float :average_timeliness
+      t.integer :projects_failing_universal_data_elements
+      t.float :average_days_to_enter_entry_date
       t.timestamps index: true, null: false
       t.datetime :deleted_at, index: true
     end
@@ -65,14 +43,14 @@ class CreateProjectPassFail < ActiveRecord::Migration[5.2]
       t.float :relationship_to_hoh_error_count
       t.float :location_error_count
       t.float :disabling_condition_error_count
-      t.float :average_timeliness
+      t.float :average_days_to_enter_entry_date
       t.timestamps index: true, null: false
       t.datetime :deleted_at, index: true
     end
 
     create_table :project_pass_fails_clients do |t|
       t.references :project_pass_fail, index: true, foreign_key: { on_delete: :cascade }
-      t.references :project_pass_fails_project, index: { name: :ppfc_ppfp_idx }, foreign_key: { on_delete: :cascade }
+      t.references :project, index: { name: :ppfc_ppfp_idx }
       t.references :client
       t.string :first_name
       t.string :last_name
@@ -91,6 +69,8 @@ class CreateProjectPassFail < ActiveRecord::Migration[5.2]
       t.integer :relationship_to_hoh
       t.date :enrollment_created
       t.string :enrollment_coc
+      t.integer :days_to_enter_entry_date
+      t.integer :days_served
       t.timestamps index: true, null: false
       t.datetime :deleted_at, index: true
     end
