@@ -4,7 +4,7 @@
 require 'aws-sdk-glacier'
 
 class Rds
-  attr_accessor :client, :identifier
+  attr_accessor :client
 
   REGION             = 'us-east-1'.freeze
   AVAILABILITY_ZONE  = 'us-east-1a'.freeze
@@ -22,14 +22,6 @@ class Rds
   MAX_WAIT_TIME      = 1.hour
 
   class << self
-    attr_writer :identifier
-  end
-
-  class << self
-    attr_reader :identifier
-  end
-
-  class << self
     attr_writer :timeout
   end
 
@@ -38,8 +30,6 @@ class Rds
   end
 
   def initialize
-    self.identifier = Rds.identifier || DEFAULT_IDENTIFIER
-
     # if environment is set up correctly, this can be
     # self.client = Aws::RDS::Client.new
     if SECRET_ACCESS_KEY.present? && SECRET_ACCESS_KEY != 'unknown'
@@ -61,7 +51,45 @@ class Rds
   define_method(:terminate!) { client.delete_db_instance(db_instance_identifier: identifier, skip_final_snapshot: true) }
   define_method(:host)       { ENV['LSA_DB_HOST'].presence || my_instance&.endpoint&.address }
   define_method(:exists?)    { !!my_instance }
-  define_method(:database)   { identifier.underscore }
+
+  delegate :static_rds?, :database, :database=, :identifier, :identifier=,
+           to: Rds
+
+  def self.static_rds?
+    ENV['RDS_IDENTIFIER'].present?
+  end
+
+  def self.database
+    if !static_rds?
+      identifier
+    elsif @database.present?
+      @database
+    else
+      DEFAULT_IDENTIFIER.underscore
+    end
+  end
+
+  # rubocop:disable Style/TrivialAccessors
+  def self.database=(database)
+    @database = database
+  end
+  # rubocop:enable Style/TrivialAccessors
+
+  def self.identifier
+    if static_rds?
+      ENV['RDS_IDENTIFIER']
+    elsif @identifier.present?
+      @identifier
+    else
+      DEFAULT_IDENTIFIER
+    end
+  end
+
+  def self.identifier=(identifier)
+    raise 'Cannot set identifier' if static_rds?
+
+    @identifier = identifier.underscore
+  end
 
   def test!
     create!
