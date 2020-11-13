@@ -21,6 +21,14 @@ class Rds
   DB_SUBNET_GROUP    = ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
   MAX_WAIT_TIME      = 1.hour
 
+  NEVER_STARTING_STATUSES = [
+    'deleting',
+    'failed',
+    'stopped',
+    'stopping',
+    'storage-full',
+  ].freeze
+
   class << self
     attr_writer :timeout
   end
@@ -48,14 +56,10 @@ class Rds
   define_method(:sqlservers) { _list.select { |server| server.engine.match(/sqlserver/) } }
 
   def start!
-    resp = client.describe_db_instances(db_instance_identifier: identifier)
+    status = instance_data.db_instance_status
 
-    raise "Couldn't start since we couldn't find an instance and figure out its state" if resp.db_instances.length != 1
-
-    status = resp.db_instances.first.db_instance_status
-
-    if status == 'available'
-      Rails.logger.info "Not starting #{identifier}. It's running already"
+    if status.in?(['available', 'starting'])
+      Rails.logger.info "Not starting #{identifier}. It's #{status}"
     elsif status == 'stopped'
       Rails.logger.info "Starting #{identifier}."
       client.start_db_instance(db_instance_identifier: identifier)
@@ -66,11 +70,7 @@ class Rds
   end
 
   def stop!
-    resp = client.describe_db_instances(db_instance_identifier: identifier)
-
-    raise "Couldn't stop since we couldn't find an instance and figure out its state" if resp.db_instances.length != 1
-
-    status = resp.db_instances.first.db_instance_status
+    status = instance_data.db_instance_status
 
     if status.in?(['stopped', 'stopping'])
       Rails.logger.info "Not stopping #{identifier}. It's already #{status}"
@@ -185,8 +185,17 @@ class Rds
   end
 
   def wait!
+    status = instance_data.db_instance_status
+
+    # rubocop:disable Style/IfUnlessModifier
+    if status.in?(NEVER_STARTING_STATUSES)
+      raise "Can't wait. It doesn't look like the instance will ever start. It's #{status}"
+    end
+
+    # rubocop:enable Style/IfUnlessModifier
+
     Timeout.timeout(MAX_WAIT_TIME) do
-      while host.blank?
+      while host.blank? && instance_data.db_instance_status != 'available'
         Rails.logger.debug 'no host yet'
         # puts "no host yet"
         sleep 5
@@ -263,6 +272,14 @@ class Rds
   end
 
   private
+
+  def instance_data
+    resp = client.describe_db_instances(db_instance_identifier: identifier)
+
+    raise "Couldn't stop since we couldn't find an instance and figure out its state" if resp.db_instances.length != 1
+
+    resp.db_instances.first
+  end
 
   define_method(:_list)       { client.describe_db_instances.db_instances }
   define_method(:_operations) { client.operation_names }
