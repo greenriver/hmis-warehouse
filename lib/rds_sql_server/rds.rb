@@ -60,10 +60,10 @@ class Rds
   end
 
   def self.database
-    if !static_rds?
-      identifier
-    elsif @database.present?
+    if @database.present?
       @database
+    elsif !static_rds?
+      identifier
     else
       DEFAULT_IDENTIFIER.underscore
     end
