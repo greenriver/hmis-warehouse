@@ -65,7 +65,24 @@ class Rds
     end
   end
 
-  define_method(:stop!)      { client.stop_db_instance(db_instance_identifier: identifier) }
+  def stop!
+    resp = client.describe_db_instances(db_instance_identifier: identifier)
+
+    raise "Couldn't stop since we couldn't find an instance and figure out its state" if resp.db_instances.length != 1
+
+    status = resp.db_instances.first.db_instance_status
+
+    if status.in?(['stopped', 'stopping'])
+      Rails.logger.info "Not stopping #{identifier}. It's already #{status}"
+    elsif status == 'available'
+      Rails.logger.info "Stopping #{identifier}."
+      client.stop_db_identifier(db_instance_identifier: identifier)
+      sleep 10
+    else
+      raise "Couldn't stop since #{identifier} has a status of #{status}"
+    end
+  end
+
   define_method(:terminate!) { client.delete_db_instance(db_instance_identifier: identifier, skip_final_snapshot: true) }
   define_method(:host)       { ENV['LSA_DB_HOST'].presence || my_instance&.endpoint&.address }
   define_method(:exists?)    { !!my_instance }
