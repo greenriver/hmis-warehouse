@@ -58,7 +58,7 @@ class Rds
       Rails.logger.info "Not starting #{identifier}. It's running already"
     elsif status == 'stopped'
       Rails.logger.info "Starting #{identifier}."
-      client.start_db_identifier(db_instance_identifier: identifier)
+      client.start_db_instance(db_instance_identifier: identifier)
       sleep 10
     else
       raise "Couldn't start since #{identifier} has a status of #{status}"
@@ -76,7 +76,7 @@ class Rds
       Rails.logger.info "Not stopping #{identifier}. It's already #{status}"
     elsif status == 'available'
       Rails.logger.info "Stopping #{identifier}."
-      client.stop_db_identifier(db_instance_identifier: identifier)
+      client.stop_db_instance(db_instance_identifier: identifier)
       sleep 10
     else
       raise "Couldn't stop since #{identifier} has a status of #{status}"
