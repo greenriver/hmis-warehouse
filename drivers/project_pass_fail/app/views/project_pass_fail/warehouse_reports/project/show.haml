@@ -1,0 +1,19 @@
+%h1 Client Details for #{@project.project&.name} between #{@report.filter.start} and #{@report.filter.end}
+.card
+  .overflow-x-scroll{style: "height: 800px"}
+    %table.table.table-sm.table-bordered.table-fixed
+      %thead.thead-dark
+        %tr
+          %th
+          - ProjectPassFail::Client.detail_headers.each_value do |header|
+            %th= header
+      %tbody.thead-dark
+        - @clients.each.with_index do |client, i|
+          %tr
+            %th= i + 1
+            - ProjectPassFail::Client.detail_headers.each_key do |k|
+              %td{style: 'max-width: 600px;'}
+                - if k.in?([:first_name, :last_name])
+                  = link_to client[k], appropriate_client_path(client.client.destination_client)
+                - else
+                  = client[k]
