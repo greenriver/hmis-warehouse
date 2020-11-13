@@ -161,6 +161,9 @@
     line-height: (26/22);
     margin-bottom: space(2);
   }
+  .metric-sm [class^=icon]{
+    font-size: rem(22px);
+  }
   .description {
     font-size: 1rem;
     line-height: (18/16);

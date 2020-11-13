@@ -9,6 +9,7 @@ module ProjectPassFail
     self.table_name = :project_pass_fails_clients
     belongs_to :project_pass_fail, inverse_of: :clients
     belongs_to :project, inverse_of: :clients
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     def calculate_universal_data_elements(apr_client)
       assign_attributes(
@@ -37,6 +38,30 @@ module ProjectPassFail
       assign_attributes(
         days_to_enter_entry_date: (enrollment_created - first_date_in_program).to_i,
       )
+    end
+
+    def self.detail_headers
+      {
+        first_name: 'First Name',
+        last_name: 'Last Name',
+        name_quality: 'Name Quality',
+        first_date_in_program: 'Entry Date',
+        last_date_in_program: 'Exit Date',
+        disabling_condition: 'Disabling Condition',
+        dob: 'DOB',
+        dob_quality: 'DOB Quality',
+        ssn: 'SSN',
+        ssn_quality: 'SSN Quality',
+        ethnicity: 'Ethnicity',
+        gender: 'Gender',
+        race: 'Race',
+        veteran_status: 'Veteran Status',
+        relationship_to_hoh: 'Relationship to HoH',
+        enrollment_coc: 'Enrollment CoC',
+        enrollment_created: 'Enrollment Added On',
+        days_to_enter_entry_date: 'Days Between Entry and Date Added',
+        days_served: 'Days Served',
+      }
     end
   end
 end

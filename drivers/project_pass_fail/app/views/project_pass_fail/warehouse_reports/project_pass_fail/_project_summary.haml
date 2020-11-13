@@ -13,7 +13,7 @@
       .ml-2.mr-2
         %h4.title All Universal Data Element Error Rates Within Threshold?
         %i.icon-file-text.metric
-        .metric.mt-2{class: status_class}
+        .metric-sm.mt-2{class: status_class, style: 'font-size: 1rem;'}
           = checkmark_or_x(project.within_universal_data_element_threshold?)
     .overall-timeliness.chunk
       - status_class = if project.within_timeliness_threshold? then 'text-success' else 'text-danger' end
@@ -36,6 +36,9 @@
             %dd= project.project_pass_fail.filter.range.count
             %dt Average Available Beds per Day
             %dd= project.available_beds
+          - if can_view_clients?
+            = link_to project_pass_fail_warehouse_reports_project_pass_fail_project_path(project.project_pass_fail, project), class: 'btn btn-primary', target: :_blank do
+              Client Details
         .col-sm-6
           %table.table
             %tbody
@@ -52,6 +55,5 @@
             %dd= project.clients.minimum(:days_to_enter_entry_date)
             %dt Maximum Days to Enter
             %dd= project.clients.maximum(:days_to_enter_entry_date)
-
 
     = render 'common/panel_collapse', id: id, title: 'Details'

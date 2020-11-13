@@ -22,7 +22,6 @@ module ProjectPassFail::WarehouseReports
     include ArelHelper
     include BaseFilters
 
-    before_action :require_can_view_clients, only: [:detail]
     before_action :set_report, except: [:create]
     before_action :set_pdf_export
 
