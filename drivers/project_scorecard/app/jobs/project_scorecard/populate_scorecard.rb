@@ -10,6 +10,11 @@ module ProjectScorecard
 
     def perform(report_id, send_email, user_id)
       report = report_scope.find(report_id)
+      report.update(started_at: Time.current)
+
+      previous = previous_report(report)
+      assessment_answers = {}
+
       if RailsDrivers.loaded.include?(:hud_apr)
         # Generate APR
         filter = ::Filters::FilterBase.new(user_id: user_id)
@@ -31,28 +36,31 @@ module ProjectScorecard
         ]
         generator = HudApr::Generators::Apr::Fy2020::Generator
         apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
+        # FIXME: run!(email: false)
         generator.new(apr).run!
 
-        assessment_answers = {
-          utilization_jan: answer(apr, 'Q8b', 'B2'),
-          utilization_apr: answer(apr, 'Q8b', 'B3'),
-          utilization_jul: answer(apr, 'Q8b', 'B4'),
-          utilization_oct: answer(apr, 'Q8b', 'B5'),
+        assessment_answers.merge!(
+          {
+            utilization_jan: answer(apr, 'Q8b', 'B2'),
+            utilization_apr: answer(apr, 'Q8b', 'B3'),
+            utilization_jul: answer(apr, 'Q8b', 'B4'),
+            utilization_oct: answer(apr, 'Q8b', 'B5'),
 
-          chronic_households_served: answer(apr, 'Q26a', 'B2'),
-          total_households_served: answer(apr, 'Q26a', 'B6'),
+            chronic_households_served: answer(apr, 'Q26a', 'B2'),
+            total_households_served: answer(apr, 'Q26a', 'B6'),
 
-          total_persons_served: answer(apr, 'Q5a', 'B1'),
-          total_persons_with_positive_exit: answer(apr, 'Q23c', 'B44'),
-          total_persons_exited: answer(apr, 'Q23c', 'B43'),
-          excluded_exits: answer(apr, 'Q23c', 'B45'),
+            total_persons_served: answer(apr, 'Q5a', 'B1'),
+            total_persons_with_positive_exit: answer(apr, 'Q23c', 'B44'),
+            total_persons_exited: answer(apr, 'Q23c', 'B43'),
+            excluded_exits: answer(apr, 'Q23c', 'B45'),
 
-          average_los_leavers: answer(apr, 'Q22b', 'B2'),
+            average_los_leavers: answer(apr, 'Q22b', 'B2'),
 
-          percent_pii_errors: answer(apr, 'Q6a', 'F8'),
+            percent_pii_errors: answer(apr, 'Q6a', 'F8'),
 
-          days_to_lease_up: answer(apr, 'Q22c', 'B11'),
-        }
+            days_to_lease_up: answer(apr, 'Q22c', 'B11'),
+          },
+        )
 
         # Percent increased income calculations
 
@@ -75,22 +83,32 @@ module ProjectScorecard
 
         assessment_answers.merge!(
           {
-            # FIXME: Currently local code
-            percent_returns_to_homelessness: percent_returns_to_homelessness_from_spm(report.start_date, report.end_date, report.project_id, user_id),
             percent_increased_employment_income_at_exit: percent_increased_employment_income_at_exit,
             percent_increased_other_cash_income_at_exit: percent_increased_other_cash_income_at_exit,
             percent_ude_errors: percent_ude_errors,
             percent_income_and_housing_errors: percent_income_and_housing_errors,
           },
         )
-        report.update(assessment_answers)
       end
-      report.update(status: 'pre-filled')
+
+      assessment_answers.merge!(
+        {
+          percent_returns_to_homelessness: percent_returns_to_homelessness_from_spm(report.start_date, report.end_date, report.project_id, user_id),
+        },
+      )
+
+      assessment_answers.merge!(
+        {
+          amount_awarded: previous&.amount_awarded,
+          status: 'pre-filled',
+        },
+      )
+      report.update(assessment_answers)
       report.notify_requester
       report.send_email if send_email
     end
 
-    # FIXME: This is copied in from the SPM until we have new SPM code
+    # TODO: When the SPM is updated, this should be too
     private def percent_returns_to_homelessness_from_spm(start_date, end_date, project_id, user_id)
       options = {
         report_start: start_date,
@@ -124,6 +142,14 @@ module ProjectScorecard
 
     private def percentage(value)
       format('%1.4f', value.round(4))
+    end
+
+    private def previous_report(report)
+      report_scope.
+        where(project_id: report.project_id).
+        where.not(id: report.id).
+        order(id: :desc).
+        first
     end
 
     private def report_scope
