@@ -82,7 +82,11 @@ class Rds
   end
 
   def create!
-    return if ENV['LSA_DB_HOST'].present? || exists?
+    if ENV['LSA_DB_HOST'].present? || exists?
+      # This should be fine if it's already running
+      start!
+      return
+    end
 
     # FIXME: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/SQLServer.Concepts.General.SSL.Using.html#SQLServer.Concepts.General.SSL.Forcing
     @response = client.create_db_instance(
