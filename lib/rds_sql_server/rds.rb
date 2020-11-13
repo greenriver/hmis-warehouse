@@ -46,7 +46,25 @@ class Rds
   end
 
   define_method(:sqlservers) { _list.select { |server| server.engine.match(/sqlserver/) } }
-  define_method(:start!)     { client.start_db_instance(db_instance_identifier: identifier) }
+
+  def start!
+    resp = client.describe_db_instances(db_instance_identifier: identifier)
+
+    raise "Couldn't start since we couldn't find an instance and figure out its state" if resp.db_instances.length != 1
+
+    status = resp.db_instances.first.db_instance_status
+
+    if status == 'available'
+      Rails.logger.info "Not starting #{identifier}. It's running already"
+    elsif status == 'stopped'
+      Rails.logger.info "Starting #{identifier}."
+      client.start_db_identifier(db_instance_identifier: identifier)
+      sleep 10
+    else
+      raise "Couldn't start since #{identifier} has a status of #{status}"
+    end
+  end
+
   define_method(:stop!)      { client.stop_db_instance(db_instance_identifier: identifier) }
   define_method(:terminate!) { client.delete_db_instance(db_instance_identifier: identifier, skip_final_snapshot: true) }
   define_method(:host)       { ENV['LSA_DB_HOST'].presence || my_instance&.endpoint&.address }
