@@ -11,9 +11,8 @@
   report_params = {
     'filters' => filter_params
   }
-  begin
-    report_params['breakdown'] = breakdown if breakdown.present?
-  rescue NameError
+  if defined?(breakdown) && breakdown.present?
+    report_params['breakdown'] = breakdown
   end
   if export.present?
     data = {

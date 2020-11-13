@@ -66,23 +66,6 @@ module ProjectPassFail
       average_days_to_enter_entry_date <= Project.timeliness_threshold
     end
 
-    private def calculate_timeliness
-      projects.each(&:calculate_timeliness)
-
-      self.average_days_to_enter_entry_date = if clients.exists?
-        clients.sum(:days_to_enter_entry_date) / clients.count.to_f
-      else
-        0
-      end
-    end
-
-    private def calculate_universal_data_element_rates
-      projects.each(&:calculate_universal_data_element_rates)
-
-      outside_threshold = projects.map(&:within_universal_data_element_threshold?).count(false)
-      assign_attributes(projects_failing_universal_data_elements: outside_threshold)
-    end
-
     private def calculate_utilization_rates
       projects.each(&:calculate_utilization_rate)
       capacity = projects.sum(:available_beds)
@@ -92,6 +75,23 @@ module ProjectPassFail
         0
       end
       assign_attributes(utilization_rate: rate)
+    end
+
+    private def calculate_universal_data_element_rates
+      projects.each(&:calculate_universal_data_element_rates)
+
+      outside_threshold = projects.map(&:within_universal_data_element_threshold?).count(false)
+      assign_attributes(projects_failing_universal_data_elements: outside_threshold)
+    end
+
+    private def calculate_timeliness
+      projects.each(&:calculate_timeliness)
+
+      self.average_days_to_enter_entry_date = if clients.exists?
+        clients.sum(:days_to_enter_entry_date) / clients.count.to_f
+      else
+        0
+      end
     end
 
     private def populate_projects
@@ -167,7 +167,6 @@ module ProjectPassFail
       ]
       generator = HudApr::Generators::Apr::Fy2020::Generator
       apr = HudReports::ReportInstance.from_filter(apr_filter, generator.title, build_for_questions: questions)
-      # FIXME: figure out how to make this run without emailing
       generator.new(apr).run!(email: false)
       apr
     end
