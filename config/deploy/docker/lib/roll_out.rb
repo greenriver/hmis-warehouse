@@ -1,5 +1,5 @@
 require 'English'
-require 'awesome_print'
+require 'amazing_print'
 require 'yaml'
 require_relative 'ecs_tools'
 require 'aws-sdk-cloudwatchlogs'
@@ -54,8 +54,13 @@ class RollOut
     self.web_options         = web_options
     self.status_uri          = URI("https://#{fqdn}/system_status/details")
 
+    if task_role.nil? || task_role.match(/^\s*$/)
+      puts "\n[WARN] task role was not set. The containers will use the role of the entire instance\n\n"
+      self.task_role = nil
+    end
+
     # Comment this out if you want to bypass checking on deploy task completion
-    if _get_status == {}
+    if _get_status == {} && ! ENV['FIRST'] == 'true'
       puts "Status uri #{self.status_uri} isn't correct"
       exit
     end
@@ -69,14 +74,14 @@ class RollOut
     end
 
     deployed_at = Date.today.to_s
-    deployed_by = ENV['USER']||'unknown'
+    deployed_by = ENV['USER'] || 'unknown'
 
     # when the deploy tasks complete, it updates a redis key
     # with this value. We can then ping the app to see when this happens at
     # system_status/details.
     self.deployment_id = [
       deployed_at,
-      deployed_by[0,3], # A little anonymity
+      deployed_by[0, 3], # A little anonymity
       File.read("#{Deployer::ASSETS_PATH}/REVISION").chomp,
       SecureRandom.hex(6),
     ].join('::')
@@ -156,7 +161,7 @@ class RollOut
       soft_mem_limit_mb: DEFAULT_SOFT_DJ_RAM_MB.call(target_group_name),
       image: image_base + '--dj',
       name: name,
-      #command: ['echo', 'workerhere'],
+      # command: ['echo', 'workerhere'],
     )
   end
 
@@ -230,6 +235,10 @@ class RollOut
     ).mark_spot_instances!
   end
 
+  def web_soft_mem_limit_mb
+    (web_options['soft_mem_limit_mb'] || DEFAULT_SOFT_WEB_RAM_MB).to_i
+  end
+
   def deploy_web!
     _make_cloudwatch_group!
 
@@ -237,9 +246,12 @@ class RollOut
 
     soft_mem_limit_mb = (web_options['soft_mem_limit_mb'] || DEFAULT_SOFT_WEB_RAM_MB).to_i
 
+    environment = default_environment.dup
+
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
       image: image_base + '--web',
+      environment: environment,
       ports: [{
         "container_port" => 443,
         "host_port" => 0,
@@ -259,14 +271,14 @@ class RollOut
     _start_service!(
       name: name,
       load_balancers: lb,
-      desired_count: web_options['container_count']||1,
+      desired_count: web_options['container_count'] || 1,
       minimum_healthy_percent: minimum,
       maximum_percent: maximum,
     )
   end
 
   def deploy_dj!(dj_options)
-    name  = target_group_name + "-dj-#{dj_options['name']}"
+    name = target_group_name + "-dj-#{dj_options['name']}"
 
     environment = default_environment.dup
 
@@ -289,7 +301,7 @@ class RollOut
 
     _start_service!(
       name: name,
-      desired_count: dj_options['container_count']||1,
+      desired_count: dj_options['container_count'] || 1,
       maximum_percent: maximum,
       minimum_healthy_percent: minimum,
     )
@@ -298,16 +310,16 @@ class RollOut
   private
 
   def _get_min_max_from_desired(container_count)
-    desired_count = container_count||1
+    desired_count = container_count || 1
 
     if desired_count == 0
-      return [0,0]
+      return [0, 0]
     elsif desired_count == 1
       [100, 200]
     else
       chunk_size = (100 / desired_count) + 1
 
-      [chunk_size, 100 + chunk_size*2]
+      [chunk_size, 100 + chunk_size * 2]
     end
   end
 
@@ -353,7 +365,7 @@ class RollOut
       cpu: cpu_shares,
 
       # Hard limit
-      memory: ( soft_mem_limit_mb * memory_multiplier ).to_i,
+      memory: (soft_mem_limit_mb * memory_multiplier).to_i,
 
       # Soft limit
       memory_reservation: soft_mem_limit_mb,
@@ -403,19 +415,21 @@ class RollOut
       }
     end
 
-    results = ecs.register_task_definition({
-      container_definitions: [ container_definition ],
+    task_definition_payload = {
+      container_definitions: [container_definition],
 
       family: name,
-
-      # This is the role that the service/task can assume
-      task_role_arn: task_role,
 
       # This is the role that the ECS agent and Docker daemon can assume
       execution_role_arn: execution_role,
 
       placement_constraints: placement_constraints,
-    })
+    }
+
+    # This is the role that the service/task can assume
+    task_definition_payload[:task_role_arn] = task_role unless task_role.nil?
+
+    results = ecs.register_task_definition(task_definition_payload)
 
     self.task_definition = results.to_h.dig(:task_definition, :task_definition_arn)
   end
@@ -464,16 +478,16 @@ class RollOut
       exit
     end
 
-    puts "[INFO] Task arn: #{task_arn||'unknown'}"
+    puts "[INFO] Task arn: #{task_arn || 'unknown'}"
     puts "[INFO] Debug with: aws ecs describe-tasks --cluster #{cluster} --tasks #{task_arn}"
 
     puts '[INFO] Waiting on the task to start and finish quickly to catch resource-related errors'
     begin
-      ecs.wait_until(:tasks_running, {cluster: cluster, tasks: [task_arn]}, {max_attempts: 5, delay: 5})
+      ecs.wait_until(:tasks_running, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 5, delay: 5 })
     rescue Aws::Waiters::Errors::TooManyAttemptsError
     end
     begin
-      ecs.wait_until(:tasks_stopped, {cluster: cluster, tasks: [task_arn]}, {max_attempts: 2, delay: 5})
+      ecs.wait_until(:tasks_stopped, { cluster: cluster, tasks: [task_arn] }, { max_attempts: 2, delay: 5 })
     rescue Aws::Waiters::Errors::TooManyAttemptsError
     end
 
@@ -552,7 +566,7 @@ class RollOut
 
   # If you can construct or query for the log stream name, you can use this to
   # tail any tasks, even those that are part of a service.
-  def _tail_logs(start_time=Time.now)
+  def _tail_logs(start_time = Time.now)
     self.last_task_completed = false
     begin
       resp = cwl.get_log_events({
@@ -578,10 +592,10 @@ class RollOut
     end
 
     too_soon = -> do
-      (Time.now.utc.to_i - start_time.utc.to_i) < 60*5
+      (Time.now.utc.to_i - start_time.utc.to_i) < 60 * 5
     end
 
-    while ( resp.events.length > 0 || too_soon.call )
+    while (resp.events.length > 0 || too_soon.call)
       resp.events.each do |event|
         puts "[TASK] #{event.message}"
         if event.message.match?(/---DONE---/)
@@ -634,7 +648,7 @@ class RollOut
         service: name,
         desired_count: desired_count,
         task_definition: task_definition,
-        #placement_constraints: placement_constraints,
+        # placement_constraints: placement_constraints,
         placement_strategy: placement_strategy,
         deployment_configuration: {
           maximum_percent: maximum_percent,
@@ -659,7 +673,7 @@ class RollOut
           minimum_healthy_percent: minimum_healthy_percent,
         },
         launch_type: 'EC2',
-        #placement_constraints: placement_constraints,
+        # placement_constraints: placement_constraints,
         placement_strategy: placement_strategy,
         load_balancers: load_balancers,
       }
