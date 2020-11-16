@@ -98,7 +98,7 @@ class Rds
     if @database.present?
       @database
     elsif !static_rds?
-      identifier
+      identifier.underscore
     else
       DEFAULT_IDENTIFIER.underscore
     end
@@ -120,10 +120,10 @@ class Rds
     end
   end
 
-  def self.identifier=(identifier)
+  def self.identifier=(ident)
     raise 'Cannot set identifier' if static_rds?
 
-    @identifier = identifier.underscore
+    @identifier = ident
   end
 
   def test!
