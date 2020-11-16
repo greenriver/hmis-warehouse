@@ -124,6 +124,10 @@ module ReportGenerators::Lsa::Fy2019
       "#{ ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '') }-#{ Rails.env }-LSA-#{@report.id}".downcase
     end
 
+    def sql_server_database
+      sql_server_identifier.underscore
+    end
+
     def create_hmis_csv_export
       return if test?
 
@@ -166,7 +170,8 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def setup_temporary_rds
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       ::Rds.timeout = 60_000_000
       @rds = ::Rds.new
       @rds.setup!
@@ -338,7 +343,8 @@ module ReportGenerators::Lsa::Fy2019
     def setup_lsa_report
       load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
       if test?
-        ::Rds.identifier = sql_server_identifier
+        ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
         ::Rds.timeout = 60_000_000
         load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
         LsaSqlServer::LSAQueries.new.setup_test_report
@@ -381,7 +387,8 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def setup_hmis_table_structure
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       load 'lib/rds_sql_server/lsa/fy2019/hmis_sql_server.rb'
       HmisSqlServer.models_by_hud_filename.each do |_, klass|
         klass.hmis_table_create!(version: '2020')
@@ -592,12 +599,14 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def setup_lsa_table_structure
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       load 'lib/rds_sql_server/lsa/fy2019/lsa_table_structure.rb'
     end
 
     def run_lsa_queries
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
       rep = LsaSqlServer::LSAQueries.new
