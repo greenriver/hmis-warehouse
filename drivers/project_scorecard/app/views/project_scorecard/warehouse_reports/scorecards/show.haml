@@ -7,8 +7,13 @@
       %h1 Project Scorecard
     .col-sm-4
       .text-right
-        = link_to edit_project_scorecard_warehouse_reports_scorecard_path(@report), class: 'btn btn-primary' do
-          %i.icon.icon-pencil
-          Edit
+        - if @report.status == 'complete'
+          %a.btn.btn-primary.j-document-exports{href: "#", data: @pdf_export.pdf_data}
+            %i.icon-download2
+            Download as PDF
+        - else
+          = link_to edit_project_scorecard_warehouse_reports_scorecard_path(@report), class: 'btn btn-primary' do
+            %i.icon.icon-pencil
+            Edit
 
   = render 'form', f: f

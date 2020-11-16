@@ -18,8 +18,7 @@ module ProjectScorecard
     include GrantManagementAndFinancials
     include ReviewOnly
 
-    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
-    belongs_to :project_group, class_name: 'GrdaWarehouse::ProjectGroup', optional: true
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
     belongs_to :user, class_name: 'User'
 
     has_many :project_contacts, through: :project, source: :contacts

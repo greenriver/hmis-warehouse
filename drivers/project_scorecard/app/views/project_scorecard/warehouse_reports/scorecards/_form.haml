@@ -1,7 +1,7 @@
 .container.text-center
-  = render 'header', f: f
+  = render 'project_scorecard/warehouse_reports/scorecards/header', f: f
   %p
-  = render 'total_score', f: f
+  = render 'project_scorecard/warehouse_reports/scorecards/total_score', f: f
   %p
   .row
     .col-2
@@ -20,11 +20,11 @@
       Points: 0
     .col-1
       Total
-  = render 'project_performance', f: f
-  = render 'data_quality', f: f
-  = render 'ce_participation', f: f
-  = render 'grant_management_and_financials', f: f
+  = render 'project_scorecard/warehouse_reports/scorecards/project_performance', f: f
+  = render 'project_scorecard/warehouse_reports/scorecards/data_quality', f: f
+  = render 'project_scorecard/warehouse_reports/scorecards/ce_participation', f: f
+  = render 'project_scorecard/warehouse_reports/scorecards/grant_management_and_financials', f: f
   %p
-  = render 'review_only', f: f
+  = render 'project_scorecard/warehouse_reports/scorecards/review_only', f: f
 %p
-= render 'agency_response', f: f
+= render 'project_scorecard/warehouse_reports/scorecards/agency_response', f: f

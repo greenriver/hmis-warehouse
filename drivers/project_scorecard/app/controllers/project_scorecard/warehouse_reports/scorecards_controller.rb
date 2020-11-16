@@ -8,6 +8,7 @@ module ProjectScorecard::WarehouseReports
   class ScorecardsController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
+    # TODO: wjat are the access rules?
     before_action :set_projects, :set_current_reports
     before_action :set_report, only: [:show, :edit, :update]
 
@@ -23,6 +24,11 @@ module ProjectScorecard::WarehouseReports
       @name = project.name
       @reports = reports_scope.where(project_id: project.id)
       render :report_list
+    end
+
+    def show
+      report_id = { report_id: @report.id }
+      @pdf_export = ProjectScorecard::DocumentExports::ScorecardExport.new(query_string: report_id.to_query)
     end
 
     def create
