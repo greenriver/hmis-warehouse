@@ -17,7 +17,7 @@
     .mr-2= render 'spinner'
     %div Loading&hellip;
   .ml-auto
-    = render 'performance_dashboards/report_download', export: @pdf_export, excel_download_path: download_performance_dashboards_overview_index_path({filters: filter_params})
+    = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: download_performance_dashboards_overview_index_path({filters: filter_params})
 
 - content_for :page_js do
   :javascript
