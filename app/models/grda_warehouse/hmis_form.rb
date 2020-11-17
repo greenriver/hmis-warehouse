@@ -526,15 +526,16 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   end
 
   def vispdat_pregnancy_status
-    relevant_section = answers[:sections].select do |section|
+    health_sections = answers[:sections].select do |section|
       section[:section_title].downcase.include?('wellness') && section[:questions].present?
-    end&.first
-    return nil unless relevant_section.present?
+    end.compact
+    return nil unless health_sections.present?
 
-    relevant_question = relevant_section[:questions].select do |question|
-      question[:question].downcase.starts_with?('20. for female respondents only: are you currently pregnant?')
-    end&.first.try(:[], :answer)
-    relevant_question
+    health_sections.map do |relevant_section|
+      relevant_section[:questions].select do |question|
+        question[:question].downcase.include?('currently pregnant')
+      end&.first.try(:[], :answer)
+    end.compact.detect(&:presence)
   end
 
   def vispdat_physical_disability
