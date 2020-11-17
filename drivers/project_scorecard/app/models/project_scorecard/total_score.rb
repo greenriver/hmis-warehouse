@@ -44,7 +44,7 @@ module ProjectScorecard
       end
 
       def ce_percentage
-        (((ce_score / 10.0) * 0.2) * 100).round
+        (((ce_score / 20.0) * 0.2) * 100).round
       end
 
       def m_and_f_score
