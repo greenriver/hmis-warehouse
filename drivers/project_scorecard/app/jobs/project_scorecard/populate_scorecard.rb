@@ -94,6 +94,8 @@ module ProjectScorecard
       assessment_answers.merge!(
         {
           percent_returns_to_homelessness: percent_returns_to_homelessness_from_spm(report.start_date, report.end_date, report.project_id, user_id),
+          clients_with_vispdats: clients_with_vispdats_fom_hmis(report.start_date, report.end_date, report.project_id).count,
+          average_vispdat_score: average_vispdat_score_fom_hmis(report.start_date, report.end_date, report.project_id),
         },
       )
 
@@ -134,6 +136,24 @@ module ProjectScorecard
       number_of_returns = spm.results['two_i7']['value']
 
       percentage(number_of_returns / number_of_exits.to_f)
+    end
+
+    private def clients_with_vispdats_fom_hmis(start_date, end_date, project_id)
+      GrdaWarehouse::Hud::Client.
+        joins(:source_hmis_forms).
+        merge(GrdaWarehouse::HmisForm.vispdat).
+        where(id: GrdaWarehouse::ServiceHistoryEnrollment.
+          entry.
+          open_between(start_date: start_date, end_date: end_date).
+          in_project(project_id).
+          select(:client_id)).
+        distinct
+    end
+
+    private def average_vispdat_score_fom_hmis(start_date, end_date, project_id)
+      clients_with_vispdats_fom_hmis(start_date, end_date, project_id).
+        merge(GrdaWarehouse::HmisForm.within_range(start_date..end_date)).
+        average(:vispdat_total_score)
     end
 
     private def answer(report, table, cell)

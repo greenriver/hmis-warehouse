@@ -63,6 +63,14 @@ module ProjectScorecard
       end
     end
 
+    def site_monitoring_options
+      @site_monitoring_options ||= [
+        'No Findings',
+        'Findings but Resolved',
+        'Finding with no Resolution',
+      ].freeze
+    end
+
     def controlled_parameters
       @controlled_parameters ||= [
         :recipient,
@@ -96,6 +104,11 @@ module ProjectScorecard
         :pit_participation,
         :coc_meetings,
         :coc_meetings_attended,
+        :site_monitoring,
+        :total_ces_referrals,
+        :accepted_ces_referrals,
+        :clients_with_vispdats,
+        :average_vispdat_score,
         :improvement_plan,
         :financial_plan,
       ].freeze

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_09_142122) do
+ActiveRecord::Schema.define(version: 2020_11_16_211113) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1722,6 +1722,7 @@ ActiveRecord::Schema.define(version: 2020_11_09_142122) do
     t.datetime "deleted_at"
     t.jsonb "import_aggregators", default: {}
     t.boolean "service_scannable", default: false, null: false
+    t.jsonb "import_cleanups", default: {}
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
@@ -4911,6 +4912,11 @@ ActiveRecord::Schema.define(version: 2020_11_09_142122) do
     t.integer "coc_meetings_attended"
     t.string "improvement_plan"
     t.string "financial_plan"
+    t.string "site_monitoring"
+    t.integer "total_ces_referrals"
+    t.integer "accepted_ces_referrals"
+    t.integer "clients_with_vispdats"
+    t.integer "average_vispdat_score"
     t.index ["project_group_id"], name: "index_project_scorecard_reports_on_project_group_id"
     t.index ["project_id"], name: "index_project_scorecard_reports_on_project_id"
     t.index ["user_id"], name: "index_project_scorecard_reports_on_user_id"

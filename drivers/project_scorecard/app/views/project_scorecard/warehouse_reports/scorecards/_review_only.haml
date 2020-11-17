@@ -11,7 +11,7 @@
   .col-3
     N/A
   .col-1
-    = # TODO
+    = f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false
   .col-1
     No Findings
   .col-1
@@ -33,14 +33,14 @@
       .col-8
         Number of CES Referrals
       .col-4
-        = # TODO
+        = f.input :total_ces_referrals, label: false
     .row
       .col-8
         Number of Accepted Referrals
       .col-4
-        = # TODO
+        = f.input :accepted_ces_referrals, label: false
   .col-1
-    = # TODO
+    = @report.ces_rejected_referral_percentage
   .col-1
     <=10%
   .col-1
@@ -57,6 +57,37 @@
     %br Self Sufficency Matrix and HMIS Custom Report
   .col-3
     TBD
+  .col-1
+    = # TODO
+  .col-1
+
+  .col-1
+
+  .col-1
+
+  .col-1
+    = # TODO
+.row
+  .col-2
+    VI-SPDAT
+  .col-2
+    TBD
+  .col-3
+    .row
+      .col-8
+        Number of clients enrolled
+      .col-4
+        = @report.total_persons_served
+    .row
+      .col-8
+        Number of clients with VI-SPDATs
+      .col-4
+        = f.input :clients_with_vispdats, label: false
+    .row
+      .col-8
+        Average VI-SPDAT score
+      .col-4
+        = f.input :average_vispdat_score, label: false
   .col-1
     = # TODO
   .col-1
