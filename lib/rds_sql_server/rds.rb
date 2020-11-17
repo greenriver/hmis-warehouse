@@ -288,6 +288,8 @@ class Rds
   end
 
   def create_schema!
+    return unless USE_SCHEMA
+
     Rails.logger.info "Creating schema #{schema} in database #{database} if needed..."
 
     load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
@@ -299,6 +301,8 @@ class Rds
   end
 
   def drop_schema!
+    return unless USE_SCHEMA
+
     load 'lib/rds_sql_server/sql_server_base.rb'
 
     sql = ->(query) { SqlServerBase.connection.exec_query(query) }
