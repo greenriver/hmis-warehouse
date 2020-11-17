@@ -169,8 +169,8 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
         hmis_form.vispdat_total_score = hmis_form.vispdat_score_total
         hmis_form.vispdat_family_score = hmis_form.vispdat_score_family
         hmis_form.vispdat_youth_score = hmis_form.vispdat_score_youth
-        hmis_form.vispdat_months_homeless = hmis_form.vispdat_homless_months
-        hmis_form.vispdat_times_homeless = hmis_form.vispdat_homless_times
+        hmis_form.vispdat_months_homeless = hmis_form.vispdat_homeless_months
+        hmis_form.vispdat_times_homeless = hmis_form.vispdat_homeless_times
         hmis_form.vispdat_score_updated_at = Time.now
 
         if hmis_form.changed? && hmis_form&.destination_client
@@ -501,7 +501,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     relevant_question
   end
 
-  def vispdat_homless_months
+  def vispdat_homeless_months
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase.include?('history of housing and homelessness') && section[:questions].present?
     end&.first
@@ -513,7 +513,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
     relevant_question
   end
 
-  def vispdat_homless_times
+  def vispdat_homeless_times
     relevant_section = answers[:sections].select do |section|
       section[:section_title].downcase.include?('history of housing and homelessness') && section[:questions].present?
     end&.first
