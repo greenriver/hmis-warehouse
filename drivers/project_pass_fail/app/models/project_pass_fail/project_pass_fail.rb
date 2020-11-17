@@ -28,7 +28,7 @@ module ProjectPassFail
 
     def filter
       @filter ||= begin
-        f = ::Filters::FilterBase.new
+        f = ::Filters::FilterBase.new(user_id: user_id)
         f.set_from_params(options['filters'].with_indifferent_access)
         f
       end
