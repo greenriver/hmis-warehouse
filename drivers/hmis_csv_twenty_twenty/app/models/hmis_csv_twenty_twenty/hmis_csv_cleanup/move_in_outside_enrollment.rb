@@ -14,7 +14,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
 
       invalid_move_in_dates = enrollment_scope.where(
         e_t[:MoveInDate].lt(e_t[:EntryDate]).
-          or(e_t[:MoveInDate].gt(ex_t[:ExitDate])),
+          or(ex_t[:ExitDate].not_eq(nil).and(e_t[:MoveInDate].gt(ex_t[:ExitDate]))),
       )
 
       invalid_move_in_dates.find_each do |enrollment|
@@ -34,7 +34,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
 
     def enrollment_scope
       enrollment_source.
-        joins(:exit).
+        left_outer_joins(:exit).
         where(importer_log_id: @importer_log.id)
     end
 

@@ -7,18 +7,21 @@
 
 - models = (@data_source.import_aggregators.keys + @data_source.import_cleanups.keys).uniq.sort
 
-%table.table
-  %thead
-    %tr
-      %th Model
-      %th Extensions
-  %tbody
-    - models.each do |model|
+- if models.present?
+  %table.table
+    %thead
       %tr
-        %td= model
-        %td
-          - aggregators = @data_source.import_aggregators[model]&.map do |aggregator|
-            - aggregator.constantize.description
-          - cleanups = @data_source.import_cleanups[model]&.map do |cleanup|
-            - cleanup.constantize.description
-          #{((aggregators|| []) + (cleanups || [])).sort.join(', ')}.
+        %th Model
+        %th Extensions
+    %tbody
+      - models.each do |model|
+        %tr
+          %td= model
+          %td
+            - aggregators = @data_source.import_aggregators[model]&.map do |aggregator|
+              - aggregator.constantize.description
+            - cleanups = @data_source.import_cleanups[model]&.map do |cleanup|
+              - cleanup.constantize.description
+            #{((aggregators || []) + (cleanups || [])).sort.join(', ')}.
+- else
+  No extensions.

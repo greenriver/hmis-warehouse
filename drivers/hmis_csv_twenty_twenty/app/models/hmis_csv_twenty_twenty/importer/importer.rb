@@ -58,8 +58,8 @@ module HmisCsvTwentyTwenty::Importer
         pre_process!
         validate_data_set!
         aggregate!
-        ingest!
         cleanup_data_set!
+        ingest!
         invalidate_aggregated_enrollments!
         complete_import
       end
