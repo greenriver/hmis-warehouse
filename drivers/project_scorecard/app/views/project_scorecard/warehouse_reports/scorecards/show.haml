@@ -7,7 +7,7 @@
       %h1 Project Scorecard
     .col-sm-4
       .text-right
-        - if @report.status == 'complete'
+        - if @report.status == 'completed'
           %a.btn.btn-primary.j-document-exports{href: "#", data: @pdf_export.pdf_data}
             %i.icon-download2
             Download as PDF

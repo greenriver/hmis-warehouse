@@ -59,8 +59,16 @@ module ProjectScorecard::WarehouseReports
     end
 
     def update
+      if params[:commit] == 'Save & Complete'
+        case @report.status
+        when 'pre-filled'
+          @report.update!(status: 'ready')
+        when 'ready'
+          @report.update!(status: 'completed')
+        end
+      end
       @report.update!(scorecard_params)
-      render :show
+      redirect_to action: :show
     end
 
     private def generate_for_projects(ids, send_email, range, user)

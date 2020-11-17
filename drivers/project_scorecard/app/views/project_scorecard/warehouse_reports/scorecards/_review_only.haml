@@ -11,7 +11,7 @@
   .col-3
     N/A
   .col-1
-    = f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false
+    = f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, disabled: @report.locked?(:site_monitoring, current_user)
   .col-1
     No Findings
   .col-1
@@ -33,12 +33,12 @@
       .col-8
         Number of CES Referrals
       .col-4
-        = f.input :total_ces_referrals, label: false
+        = f.input :total_ces_referrals, label: false, disabled: @report.locked?(:total_ces_referrals, current_user)
     .row
       .col-8
         Number of Accepted Referrals
       .col-4
-        = f.input :accepted_ces_referrals, label: false
+        = f.input :accepted_ces_referrals, label: false, disabled: @report.locked?(:accepted_ces_referrals, current_user)
   .col-1
     = @report.ces_rejected_referral_percentage
   .col-1
@@ -82,12 +82,12 @@
       .col-8
         Number of clients with VI-SPDATs
       .col-4
-        = f.input :clients_with_vispdats, label: false
+        = f.input :clients_with_vispdats, label: false, disabled: @report.locked?(:clients_with_vispdats, current_user)
     .row
       .col-8
         Average VI-SPDAT score
       .col-4
-        = f.input :average_vispdat_score, label: false
+        = f.input :average_vispdat_score, label: false, disabled: @report.locked?(:average_vispdat_score, current_user)
   .col-1
     = # TODO
   .col-1

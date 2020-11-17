@@ -7,6 +7,8 @@
       %h1 Project Scorecard
     .col-sm-4
       .text-right
+        - if @report.status.in?(['pre-filled', 'ready'])
+          = f.submit 'Save & Complete', class: 'btn btn-secondary'
         = f.submit 'Save Changes', class: 'btn btn-primary'
 
   = render 'form', f: f
