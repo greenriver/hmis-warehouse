@@ -298,6 +298,20 @@ class Rds
     SQL
   end
 
+  def drop_schema!
+    load 'lib/rds_sql_server/sql_server_base.rb'
+
+    sql = ->(query) { SqlServerBase.connection.exec_query(query) }
+
+    SqlServerBase.connection.tables.each do |table_name|
+      Rails.logger.info "Dropping table #{table_name}"
+      sql.call("drop table #{schema}.#{table_name}")
+    end
+
+    Rails.logger.info "Dropping schema #{schema}"
+    sql.call("drop schema #{schema}")
+  end
+
   def my_instance
     sqlservers.find do |server|
       server.db_instance_identifier == identifier
