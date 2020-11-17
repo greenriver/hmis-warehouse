@@ -1074,6 +1074,8 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def percentage(value)
+      return '0.0000' if value.nan?
+
       format('%1.4f', value.round(4))
     end
 

@@ -55,7 +55,7 @@ module ProjectPassFail
         'Entry Date' => start_date_error_rate,
         'Relationship to HoH' => relationship_to_hoh_error_rate,
         'Location' => location_error_rate,
-        'Disabiling Condition' => disabling_condition_error_rate,
+        'Disabling Condition' => disabling_condition_error_rate,
       }
     end
 
@@ -88,29 +88,29 @@ module ProjectPassFail
     end
 
     def calculate_universal_data_element_rates
-      self.name_error_rate = apr.answer(question: 'Q6a', cell: 'F2').summary
-      self.ssn_error_rate = apr.answer(question: 'Q6a', cell: 'F3').summary
-      self.dob_error_rate = apr.answer(question: 'Q6a', cell: 'F4').summary
-      self.race_error_rate = apr.answer(question: 'Q6a', cell: 'F5').summary
-      self.ethnicity_error_rate = apr.answer(question: 'Q6a', cell: 'F6').summary
-      self.gender_error_rate = apr.answer(question: 'Q6a', cell: 'F7').summary
-      self.veteran_status_error_rate = apr.answer(question: 'Q6b', cell: 'C2').summary
-      self.start_date_error_rate = apr.answer(question: 'Q6b', cell: 'C3').summary
-      self.relationship_to_hoh_error_rate = apr.answer(question: 'Q6b', cell: 'C4').summary
-      self.location_error_rate = apr.answer(question: 'Q6b', cell: 'C5').summary
-      self.disabling_condition_error_rate = apr.answer(question: 'Q6b', cell: 'C6').summary
+      self.name_error_rate = apr.answer(question: 'Q6a', cell: 'F2').summary.to_f
+      self.ssn_error_rate = apr.answer(question: 'Q6a', cell: 'F3').summary.to_f
+      self.dob_error_rate = apr.answer(question: 'Q6a', cell: 'F4').summary.to_f
+      self.race_error_rate = apr.answer(question: 'Q6a', cell: 'F5').summary.to_f
+      self.ethnicity_error_rate = apr.answer(question: 'Q6a', cell: 'F6').summary.to_f
+      self.gender_error_rate = apr.answer(question: 'Q6a', cell: 'F7').summary.to_f
+      self.veteran_status_error_rate = apr.answer(question: 'Q6b', cell: 'C2').summary.to_f
+      self.start_date_error_rate = apr.answer(question: 'Q6b', cell: 'C3').summary.to_f
+      self.relationship_to_hoh_error_rate = apr.answer(question: 'Q6b', cell: 'C4').summary.to_f
+      self.location_error_rate = apr.answer(question: 'Q6b', cell: 'C5').summary.to_f
+      self.disabling_condition_error_rate = apr.answer(question: 'Q6b', cell: 'C6').summary.to_f
 
-      self.name_error_count = apr.answer(question: 'Q6a', cell: 'E2').summary
-      self.ssn_error_count = apr.answer(question: 'Q6a', cell: 'E3').summary
-      self.dob_error_count = apr.answer(question: 'Q6a', cell: 'E4').summary
-      self.race_error_count = apr.answer(question: 'Q6a', cell: 'E5').summary
-      self.ethnicity_error_count = apr.answer(question: 'Q6a', cell: 'E6').summary
-      self.gender_error_count = apr.answer(question: 'Q6a', cell: 'E7').summary
-      self.veteran_status_error_count = apr.answer(question: 'Q6b', cell: 'B2').summary
-      self.start_date_error_count = apr.answer(question: 'Q6b', cell: 'B3').summary
-      self.relationship_to_hoh_error_count = apr.answer(question: 'Q6b', cell: 'B4').summary
-      self.location_error_count = apr.answer(question: 'Q6b', cell: 'B5').summary
-      self.disabling_condition_error_count = apr.answer(question: 'Q6b', cell: 'B6').summary
+      self.name_error_count = apr.answer(question: 'Q6a', cell: 'E2').summary.to_f
+      self.ssn_error_count = apr.answer(question: 'Q6a', cell: 'E3').summary.to_f
+      self.dob_error_count = apr.answer(question: 'Q6a', cell: 'E4').summary.to_f
+      self.race_error_count = apr.answer(question: 'Q6a', cell: 'E5').summary.to_f
+      self.ethnicity_error_count = apr.answer(question: 'Q6a', cell: 'E6').summary.to_f
+      self.gender_error_count = apr.answer(question: 'Q6a', cell: 'E7').summary.to_f
+      self.veteran_status_error_count = apr.answer(question: 'Q6b', cell: 'B2').summary.to_f
+      self.start_date_error_count = apr.answer(question: 'Q6b', cell: 'B3').summary.to_f
+      self.relationship_to_hoh_error_count = apr.answer(question: 'Q6b', cell: 'B4').summary.to_f
+      self.location_error_count = apr.answer(question: 'Q6b', cell: 'B5').summary.to_f
+      self.disabling_condition_error_count = apr.answer(question: 'Q6b', cell: 'B6').summary.to_f
     end
 
     def calculate_timeliness

@@ -10,6 +10,7 @@ module ProjectPassFail
     include Filter::ControlSections
     include Filter::FilterScopes
     include Reporting::Status
+    include Rails.application.routes.url_helpers
 
     belongs_to :user
     has_many :projects, inverse_of: :project_pass_fail
@@ -39,7 +40,7 @@ module ProjectPassFail
     end
 
     def url
-      project_pass_fail_warehouse_reports_project_pass_fail_url(host: ENV.fetch('FQDN'))
+      project_pass_fail_warehouse_reports_project_pass_fail_url(host: ENV.fetch('FQDN'), id: id)
     end
 
     def run_and_save!
@@ -172,7 +173,7 @@ module ProjectPassFail
     end
 
     private def hmis_projects
-      GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)
+      GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids).with_project_type(filter.project_type_ids)
     end
 
     def key_for_display(key)
