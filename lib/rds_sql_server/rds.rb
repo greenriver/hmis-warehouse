@@ -216,7 +216,7 @@ class Rds
     # rubocop:enable Style/IfUnlessModifier
 
     Timeout.timeout(MAX_WAIT_TIME) do
-      while host.blank? && instance_data.db_instance_status != 'available'
+      until host.present? && instance_data.db_instance_status == 'available'
         Rails.logger.debug 'no host yet'
         # puts "no host yet"
         sleep 5

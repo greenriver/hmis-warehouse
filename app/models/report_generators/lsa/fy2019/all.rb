@@ -278,8 +278,12 @@ module ReportGenerators::Lsa::Fy2019
         path = File.join(unzip_path, filename)
         # Sample files are not quoted when the columns are integers or dates regardless of if there is data
         force_quotes = ! klass.name.include?('LSA')
+        remove_primary_key = false
         # Force a primary key for fetching in batches
-        klass.primary_key = 'id' unless klass.primary_key
+        if klass.primary_key.blank?
+          klass.primary_key = 'id'
+          remove_primary_key = true
+        end
         CSV.open(path, 'wb', force_quotes: force_quotes) do |csv|
           headers = klass.csv_columns.map{ |m| if m == :Zip then :ZIP else m end }.map(&:to_s)
           csv << headers
@@ -297,6 +301,7 @@ module ReportGenerators::Lsa::Fy2019
             csv << row
           end
         end
+        klass.primary_key = nil if remove_primary_key
       end
       # puts LsaSqlServer.models_by_filename.values.map(&:count).inspect
     end
@@ -307,9 +312,13 @@ module ReportGenerators::Lsa::Fy2019
       # There will only ever be one of these.
       LsaSqlServer.intermediate_models_by_filename.each do |filename, klass|
         path = File.join(unzip_path, filename)
+        remove_primary_key = false
+        if klass.primary_key.blank?
+          klass.primary_key = 'id'
+          remove_primary_key = true
+        end
         CSV.open(path, 'wb') do |csv|
           # Force a primary key for fetching in batches
-          klass.primary_key = 'id' unless klass.primary_key
           headers = klass.column_names
           csv << headers
           klass.find_each(batch_size: 10_000) do |item|
@@ -326,6 +335,7 @@ module ReportGenerators::Lsa::Fy2019
             csv << row
           end
         end
+        klass.primary_key = nil if remove_primary_key
       end
       # puts LsaSqlServer.models_by_filename.values.map(&:count).inspect
     end
