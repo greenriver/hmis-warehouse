@@ -1,4 +1,10 @@
-%h1 Client Details for #{@project.project&.name} between #{@report.filter.start} and #{@report.filter.end}
+.row
+  .col-sm-8
+    %h1 Client Details for #{@project.project&.name} between #{@report.filter.start} and #{@report.filter.end}
+  .col-sm-4
+    = link_to({action: :show, format: :xlsx}, { class: 'btn btn-secondary'}) do
+      %i.icon-download2
+      Download
 .card
   .overflow-x-scroll{style: "height: 800px"}
     %table.table.table-sm.table-bordered.table-fixed
