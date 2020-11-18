@@ -11,7 +11,7 @@ class SqlServerBootstrapModel < ActiveRecord::Base
     'port' => 1433,
     'username' => Rds::USERNAME,
     'password' => Rds::PASSWORD,
-    'database' => (Rds::DB_NAME.present? ? Rds::DB_NAME : 'master'),
+    'database' => 'master',
     'login_timeout' => 2, # seconds
     'sslmode' => 'verify-full',
     'sslcert' => cert_path,
@@ -20,10 +20,8 @@ class SqlServerBootstrapModel < ActiveRecord::Base
   if rds.host.present?
     if @did_connect
       begin
-        Timeout.timeout(15) do
-          connection.disconnect!
-        end
-      rescue TinyTds::Error, Timeout::Error => e
+        connection.disconnect!
+      rescue TinyTds::Error => e
         Rails.logger.warn "Couldn't cleanly disconnect from a previous SqlServer. Server might already be gone: #{e.message}"
       end
     end
