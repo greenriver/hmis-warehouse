@@ -371,8 +371,6 @@ module ReportGenerators::Lsa::Fy2019
         # Otherwise, just drop the databse
         if ENV['LSA_DB_HOST'].blank?
           @rds&.terminate!
-        elsif Rds::USE_SCHEMA
-          @rds.drop_schema!
         else
           begin
             SqlServerBase.connection.execute (<<~SQL);

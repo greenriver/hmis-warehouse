@@ -17,11 +17,9 @@ class Rds
   SECURITY_GROUP_IDS = [ENV.fetch('RDS_SECURITY_GROUP_ID')].freeze
   DEFAULT_IDENTIFIER = ENV.fetch('RDS_IDENTIFIER') { 'testing' }
   RDS_KMS_KEY_ID     = ENV.fetch('RDS_KMS_KEY_ID')
+  DB_NAME            = 'sql_server_openpath'.freeze
   DB_SUBNET_GROUP    = ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
   MAX_WAIT_TIME      = 1.hour
-
-  DB_NAME = ENV['LSA_DB_NAME']
-  USE_SCHEMA = DB_NAME.present?
 
   NEVER_STARTING_STATUSES = [
     'deleting',
@@ -34,8 +32,6 @@ class Rds
   class << self
     attr_writer :timeout
   end
-
-  attr_accessor :schema
 
   def self.timeout
     @timeout || 50_000_000
@@ -91,30 +87,15 @@ class Rds
   define_method(:host)       { ENV['LSA_DB_HOST'].presence || my_instance&.endpoint&.address }
   define_method(:exists?)    { !!my_instance }
 
-  delegate :static_rds?, :database, :database=, :identifier, :identifier=, :schema,
+  delegate :static_rds?, :database, :database=, :identifier, :identifier=,
            to: Rds
 
   def self.static_rds?
     ENV['RDS_IDENTIFIER'].present?
   end
 
-  def self.schema
-    database(schema_mode: 'schema')
-  end
-
-  def self.database(schema_mode: nil)
-    if USE_SCHEMA
-      raise "You didn't set the database!" unless @database.present?
-
-      # Use the passed in database name as the schema
-      if schema_mode == 'db' || schema_mode.nil?
-        DB_NAME
-      elsif schema_mode == 'schema'
-        @database
-      else
-        raise "Invalid schema mode: #{schema_mode}"
-      end
-    elsif @database.present?
+  def self.database
+    if @database.present?
       @database
     elsif !static_rds?
       identifier.underscore
@@ -149,7 +130,6 @@ class Rds
     create!
     wait!
     create_database!
-    create_schema!
 
     # terminate!
   end
@@ -158,7 +138,6 @@ class Rds
     create!
     wait!
     create_database!
-    create_schema!
     wait_for_database!
     GrdaWarehouseBase.connection.reconnect!
     ApplicationRecord.connection.reconnect!
@@ -254,8 +233,7 @@ class Rds
           ::LsaSqlServer::DbUp.hmis_table_create!(version: '2020')
           ::LsaSqlServer::DbUp.create!(status: 'up')
           can_create_table = true
-        rescue Exception => e
-          Rails.logger.error e.message
+        rescue Exception
           sleep 60
         end
         sleep 5
@@ -274,7 +252,7 @@ class Rds
   end
 
   def create_database!
-    Rails.logger.info "Creating database #{database} if needed..."
+    Rails.logger.info "Creating database #{database}..."
 
     load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
 
@@ -285,35 +263,6 @@ class Rds
 
     Rails.logger.info "SQL Server Host detected: #{host}"
     Rails.logger.info "There are #{sqlservers.length} SQL Server database servers detected"
-  end
-
-  def create_schema!
-    return unless USE_SCHEMA
-
-    Rails.logger.info "Creating schema #{schema} in database #{database} if needed..."
-
-    load 'lib/rds_sql_server/sql_server_bootstrap_model.rb'
-
-    SqlServerBootstrapModel.connection.execute(<<~SQL)
-      if not exists(select * from sys.schemas where name = N'#{schema}' )
-        EXEC('create schema [#{schema}]')
-    SQL
-  end
-
-  def drop_schema!
-    return unless USE_SCHEMA
-
-    load 'lib/rds_sql_server/sql_server_base.rb'
-
-    sql = ->(query) { SqlServerBase.connection.exec_query(query) }
-
-    SqlServerBase.connection.tables.each do |table_name|
-      Rails.logger.info "Dropping table #{table_name}"
-      sql.call("drop table #{schema}.#{table_name}")
-    end
-
-    Rails.logger.info "Dropping schema #{schema}"
-    sql.call("drop schema #{schema}")
   end
 
   def my_instance
