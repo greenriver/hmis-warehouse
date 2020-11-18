@@ -57,7 +57,10 @@ end
 every 4.hours do
   # Defers to delayed jobs
   rake "grda_warehouse:save_service_history_snapshots"
-  if ENV['LSA_DB_HOST'].present?
+end
+
+if ENV['LSA_DB_HOST'].present?
+  every 3.hours do
     rake 'reporting:lsa_shut_down'
   end
 end
