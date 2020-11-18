@@ -308,6 +308,8 @@ class Rds
     sql = ->(query) { SqlServerBase.connection.exec_query(query) }
 
     SqlServerBase.connection.tables.each do |table_name|
+      next if table_name.start_with?('#')
+
       Rails.logger.info "Dropping table #{table_name}"
       sql.call("drop table #{schema}.#{table_name}")
     end
