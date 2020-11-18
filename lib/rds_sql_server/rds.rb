@@ -104,7 +104,7 @@ class Rds
 
   def self.database(schema_mode: nil)
     if USE_SCHEMA
-      raise "You didn't set the database!" unless @database.present?
+      # raise "You didn't set the database!" unless @database.present?
 
       # Use the passed in database name as the schema
       if schema_mode == 'db' || schema_mode.nil?
