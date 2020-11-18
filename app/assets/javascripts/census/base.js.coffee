@@ -24,9 +24,14 @@ class App.Census.Base
 
     @_build_census()
 
+  _service_total: (data) ->
+    counts = $.map data.datasets[0].data, (row) ->
+      row['y']
+    counts.reduce (m, n) -> m + n
+
   _individual_chart: (data, id, census_detail_slug, options) ->
     chart_id = "census-chart-#{id}"
-    $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4></div><div class='col-sm-4 jChartDownloads'></div></div><div id='#{chart_id}' class='jChart'></div>")
+    $('.jCharts').append("<div class='row'><div class='col-sm-8'><h4 class='census__chart-title'>#{data.title.text}</h4><div><strong>Services Provided:</strong> #{@_service_total(data)}</div></div><div class='col-sm-4 jChartDownloads'></div></div><div id='#{chart_id}' class='jChart'></div>")
 
     # console.log(data, id, census_detail_slug, options)
 
@@ -215,4 +220,3 @@ class App.Census.Base
 
   _height: ->
     40
-

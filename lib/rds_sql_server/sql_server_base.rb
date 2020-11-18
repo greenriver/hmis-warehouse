@@ -17,13 +17,24 @@ class SqlServerBase < ActiveRecord::Base
     'sslcert' => cert_path,
   }
 
+  # rds is a local variable, so we do this...
+  define_singleton_method(:table_name=) do |name|
+    if Rds::USE_SCHEMA
+      super "[#{rds.schema}].#{name}"
+    else
+      super name
+    end
+  end
+
   # disconnect! complains if there's no host, oddly.
   if rds.host.present?
     # Only need to disconnect after the first connection
     if @did_connect
       begin
-        connection.disconnect!
-      rescue TinyTds::Error => e
+        Timeout.timeout(15) do
+          connection.disconnect!
+        end
+      rescue TinyTds::Error, Timeout::Error => e
         Rails.logger.warn "Couldn't cleanly disconnect from a previous SqlServer. Server might already be gone: #{e.message}"
       end
     end
