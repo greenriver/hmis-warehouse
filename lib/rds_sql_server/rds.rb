@@ -17,7 +17,6 @@ class Rds
   SECURITY_GROUP_IDS = [ENV.fetch('RDS_SECURITY_GROUP_ID')].freeze
   DEFAULT_IDENTIFIER = ENV.fetch('RDS_IDENTIFIER') { 'testing' }
   RDS_KMS_KEY_ID     = ENV.fetch('RDS_KMS_KEY_ID')
-  DB_NAME            = 'sql_server_openpath'.freeze
   DB_SUBNET_GROUP    = ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
   MAX_WAIT_TIME      = 1.hour
 
