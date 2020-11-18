@@ -233,7 +233,8 @@ class Rds
           ::LsaSqlServer::DbUp.hmis_table_create!(version: '2020')
           ::LsaSqlServer::DbUp.create!(status: 'up')
           can_create_table = true
-        rescue Exception
+        rescue Exception => e
+          Rails.logger.error e.message
           sleep 60
         end
         sleep 5
