@@ -9,4 +9,10 @@ FactoryBot.define do
       }
     end
   end
+
+  factory :dont_cleanup_move_ins_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Dont Clean Up Move In Dates' }
+    short_name { 'Move In' }
+    source_type { :sftp }
+  end
 end
