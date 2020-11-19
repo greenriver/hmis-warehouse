@@ -20,7 +20,7 @@ namespace :reporting do
   desc 'Shutdown unused LSA Servers'
   task lsa_shut_down: [:environment] do
     lsa_report_ids = Report.where(Report.arel_table[:type].matches('%::Lsa::%')).pluck(:id)
-    return if ReportResult.incomplete.updated_today.where(report_id: lsa_report_ids).exists?
+    exit if ReportResult.incomplete.updated_today.where(report_id: lsa_report_ids).exists?
 
     load 'lib/rds_sql_server/rds.rb'
     Rds.new.stop!

@@ -26,6 +26,13 @@ module ProjectPassFail::WarehouseReports
       @report = report_scope.find(params[:project_pass_fail_id].to_i)
       @project = @report.projects.find(params[:id].to_i)
       @clients = @project.clients.preload(client: :destination_client)
+      respond_to do |format|
+        format.html {}
+        format.xlsx do
+          filename = "#{@project.project&.name&.tr(' ', '-')}-#{Date.current.strftime('%Y-%m-%d')}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     private def report_class

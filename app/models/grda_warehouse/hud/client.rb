@@ -780,7 +780,7 @@ module GrdaWarehouse::Hud
     end
 
     def client_names user:, health: false
-      names = source_clients.searchable_by(user).includes(:data_source).map do |m|
+      names = source_clients.joins(:data_source).searchable_by(user).includes(:data_source).map do |m|
         {
           ds: m.data_source&.short_name,
           ds_id: m.data_source&.id,

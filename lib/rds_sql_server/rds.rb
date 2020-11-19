@@ -17,7 +17,6 @@ class Rds
   SECURITY_GROUP_IDS = [ENV.fetch('RDS_SECURITY_GROUP_ID')].freeze
   DEFAULT_IDENTIFIER = ENV.fetch('RDS_IDENTIFIER') { 'testing' }
   RDS_KMS_KEY_ID     = ENV.fetch('RDS_KMS_KEY_ID')
-  DB_NAME            = 'sql_server_openpath'.freeze
   DB_SUBNET_GROUP    = ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
   MAX_WAIT_TIME      = 1.hour
 
@@ -233,7 +232,8 @@ class Rds
           ::LsaSqlServer::DbUp.hmis_table_create!(version: '2020')
           ::LsaSqlServer::DbUp.create!(status: 'up')
           can_create_table = true
-        rescue Exception
+        rescue Exception => e
+          Rails.logger.error e.message
           sleep 60
         end
         sleep 5
