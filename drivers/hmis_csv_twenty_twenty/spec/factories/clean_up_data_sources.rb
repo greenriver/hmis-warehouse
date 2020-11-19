@@ -10,7 +10,18 @@ FactoryBot.define do
     end
   end
 
-  factory :dont_cleanup_move_ins_ds, class: 'GrdaWarehouse::DataSource' do
+  factory :prepend_project_ids, class: 'GrdaWarehouse::DataSource' do
+    name { 'Prepend Project Ids' }
+    short_name { 'ProjectID' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'Project': ['HmisCsvTwentyTwenty::HmisCsvCleanup::PrependProjectId'],
+      }
+    end
+  end
+
+  factory :dont_cleanup_ds, class: 'GrdaWarehouse::DataSource' do
     name { 'Dont Clean Up Move In Dates' }
     short_name { 'Move In' }
     source_type { :sftp }
