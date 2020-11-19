@@ -40,5 +40,15 @@ module HealthFlexibleService::WarehouseReports
       Health::AccountableCareOrganization.where.not(vpr_name: nil)
     end
     helper_method :available_acos
+
+    def r_numbers
+      @r_numbers ||= {
+        'Initial Submission (R0)' => 0,
+        'Initial Revision (R1)' => 1,
+        'Submission (R2)' => 2,
+        'Submission (R3)' => 3,
+      }.freeze
+    end
+    helper_method :r_numbers
   end
 end

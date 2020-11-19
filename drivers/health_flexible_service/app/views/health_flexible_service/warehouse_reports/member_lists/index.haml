@@ -8,7 +8,7 @@
       .col-sm-6
         = f.input :aco, collection: available_acos, selected: @aco, as: :select_two, label: 'ACO'
       .col-sm-3
-        = f.input :r_number, as: :integer, input_html: {value: @r_number}
+        = f.input :r_number, collection: r_numbers, selected: @r_number, as: :select_two
       .col-sm-3
         = f.input :date, as: :date_picker, input_html: {value: @end_date}, label: 'End of quarter'
 
