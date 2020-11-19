@@ -222,5 +222,9 @@ module HmisCsvTwentyTwenty::Aggregated
     def exit_destination
       HmisCsvTwentyTwenty::Importer::Exit
     end
+
+    def self.description
+      name.split('::').last.underscore.humanize
+    end
   end
 end

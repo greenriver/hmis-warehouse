@@ -1,0 +1,27 @@
+= content_for :crumbs do
+  = link_to data_source_path(@data_source) do
+    &laquo; #{@data_source.name}
+
+%h2
+  Importer Extensions for #{@data_source.name}
+
+- models = (@data_source.import_aggregators.keys + @data_source.import_cleanups.keys).uniq.sort
+
+- if models.present?
+  %table.table
+    %thead
+      %tr
+        %th Model
+        %th Extensions
+    %tbody
+      - models.each do |model|
+        %tr
+          %td= model
+          %td
+            - aggregators = @data_source.import_aggregators[model]&.map do |aggregator|
+              - aggregator.constantize.description
+            - cleanups = @data_source.import_cleanups[model]&.map do |cleanup|
+              - cleanup.constantize.description
+            #{((aggregators || []) + (cleanups || [])).sort.join(', ')}.
+- else
+  %p.well.none-found No extensions.
