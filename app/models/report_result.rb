@@ -26,6 +26,14 @@ class ReportResult < ApplicationRecord
     end
   end
 
+  scope :incomplete, -> do
+    where(completed_at: nil)
+  end
+
+  scope :updated_today, -> do
+    where(arel_table[:updated_at].gt(24.hours.ago))
+  end
+
   delegate :download_type, to: :report
   delegate :value_for_options, to: :report
 

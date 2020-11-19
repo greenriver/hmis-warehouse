@@ -1,0 +1,59 @@
+%h3= link_to_if can_view_projects?, project.project&.ProjectName, project_path(project.project)
+.well
+  .d-flex.text-center.justify-content-center.mt-4
+    .overall-utilization-rate.chunk
+      - status_class = if project.within_utilization_threshold? then 'text-success' else 'text-danger' end
+      .ml-2.mr-2
+        %h4.title Utilization Rate
+        %i.icon-group.metric
+        .metric{class: status_class}
+          = number_to_percentage project.utilization_rate_as_percent, precision: 2
+    .overall-universal-data-elements.chunk
+      - status_class = if project.within_universal_data_element_threshold? then 'text-success' else 'text-danger' end
+      .ml-2.mr-2
+        %h4.title All Universal Data Element Error Rates Within Threshold?
+        %i.icon-file-text.metric
+        .metric-sm.mt-2{class: status_class, style: 'font-size: 1rem;'}
+          = checkmark_or_x(project.within_universal_data_element_threshold?)
+    .overall-timeliness.chunk
+      - status_class = if project.within_timeliness_threshold? then 'text-success' else 'text-danger' end
+      .ml-2.mr-2
+        %h4.title Average Days to Enter Enrollments
+        %i.icon-calendar.metric
+        .metric{class: status_class}
+          = number_with_delimiter(project.average_days_to_enter_entry_date.round)
+  - id = "details-#{project.id}"
+  .panel-group.panel-collapsible{id: "#{id}-accordion"}
+    - content_for :panel_collapse_content, flush: true do
+      .row
+        .col-sm-3
+          %dl
+            %dt Clients Served
+            %dd= project.clients.count
+            %dt Days of services
+            %dd= project.clients.sum(:days_served)
+            %dt Days in Range
+            %dd= project.project_pass_fail.filter.range.count
+            %dt Average Available Beds per Day
+            %dd= project.available_beds
+          - if can_view_clients?
+            = link_to project_pass_fail_warehouse_reports_project_pass_fail_project_path(project.project_pass_fail, project), class: 'btn btn-primary', target: :_blank do
+              Client Details
+        .col-sm-6
+          %table.table
+            %tbody
+              %tr
+                %th Metric
+                %th Error Rate
+              - project.universal_data_element_rates.each do |label, value|
+                %tr
+                  %th= label
+                  %td= number_to_percentage(value * 100, precision: 2)
+        .col-sm-3
+          %dl
+            %dt Minimum Days to Enter
+            %dd= project.clients.minimum(:days_to_enter_entry_date)
+            %dt Maximum Days to Enter
+            %dd= project.clients.maximum(:days_to_enter_entry_date)
+
+    = render 'common/panel_collapse', id: id, title: 'Details'

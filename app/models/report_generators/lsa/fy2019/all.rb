@@ -46,7 +46,7 @@ module ReportGenerators::Lsa::Fy2019
       setup_notifier('LSA')
       # Disable logging so we don't fill the disk
       # ActiveRecord::Base.logger.silence do
-        calculate()
+        calculate
         Rails.logger.info "Done"
       # end # End silence ActiveRecord Log
     end
@@ -55,55 +55,60 @@ module ReportGenerators::Lsa::Fy2019
 
     def calculate
       if start_report(Reports::Lsa::Fy2019::All.first)
-        setup_filters()
+        setup_filters
         @report_start ||= @report.options['report_start'].to_date
         @report_end ||= @report.options['report_end'].to_date
         log_and_ping("Starting report #{@report.report.name}")
         begin
-          create_hmis_csv_export()
+          create_hmis_csv_export
           update_report_progress(percent: 15)
           log_and_ping('HMIS Export complete')
-          setup_temporary_rds()
+          setup_temporary_rds
           update_report_progress(percent: 20)
           log_and_ping('RDS DB Setup')
-          setup_hmis_table_structure()
+          setup_hmis_table_structure
           update_report_progress(percent: 22)
           log_and_ping('HMIS Table Structure')
-          setup_lsa_table_structure()
+          setup_lsa_table_structure
           update_report_progress(percent: 25)
           log_and_ping('LSA Table Structure')
           update_report_progress(percent: 27)
-          setup_lsa_table_indexes()
+          setup_lsa_table_indexes
           log_and_ping('LSA Indexes Setup')
           update_report_progress(percent: 29)
-          setup_lsa_report()
+          setup_lsa_report
           log_and_ping('LSA Report Setup')
 
-          populate_hmis_tables()
+          populate_hmis_tables
           update_report_progress(percent: 30)
           log_and_ping('HMIS tables populated')
 
-          run_lsa_queries()
+          run_lsa_queries
           update_report_progress(percent: 90)
           log_and_ping('LSA Queries complete')
           # Fetch data
-          fetch_results()
-          fetch_summary_results()
-          zip_report_folder()
-          attach_report_zip()
-          remove_report_files()
+          # HUD has chosen not to give some tables identity columns, rails needs these
+          # to be able to fetch in batches, so we'll add them here
+          add_missing_identity_columns
+          fetch_results
+          fetch_summary_results
+          zip_report_folder
+          attach_report_zip
+          remove_report_files
           # Fetch supporting data
-          fetch_intermediate_results()
-          zip_intermediate_report_folder()
-          attach_intermediate_report_zip()
-          remove_report_files()
+          fetch_intermediate_results
+          zip_intermediate_report_folder
+          attach_intermediate_report_zip
+          remove_report_files
 
+          # Remove identity columns so it works again even against the same db
+          remove_missing_identity_columns
           update_report_progress(percent: 100)
           log_and_ping('LSA Complete')
         ensure
-          remove_temporary_rds()
+          remove_temporary_rds
         end
-        finish_report()
+        finish_report
       else
         log_and_ping('No LSA Report Queued')
       end
@@ -117,6 +122,10 @@ module ReportGenerators::Lsa::Fy2019
 
     def sql_server_identifier
       "#{ ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '') }-#{ Rails.env }-LSA-#{@report.id}".downcase
+    end
+
+    def sql_server_database
+      sql_server_identifier.underscore
     end
 
     def create_hmis_csv_export
@@ -161,7 +170,8 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def setup_temporary_rds
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       ::Rds.timeout = 60_000_000
       @rds = ::Rds.new
       @rds.setup!
@@ -264,15 +274,20 @@ module ReportGenerators::Lsa::Fy2019
       load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
       # Make note of completion time, LSA requirements are very specific that this should be the time the report was completed, not when it was initiated.
       # There will only ever be one of these.
-      LsaSqlServer::LSAReport.update_all(ReportDate: Time.now)
       LsaSqlServer.models_by_filename.each do |filename, klass|
         path = File.join(unzip_path, filename)
         # Sample files are not quoted when the columns are integers or dates regardless of if there is data
         force_quotes = ! klass.name.include?('LSA')
+        remove_primary_key = false
+        # Force a primary key for fetching in batches
+        if klass.primary_key.blank?
+          klass.primary_key = 'id'
+          remove_primary_key = true
+        end
         CSV.open(path, 'wb', force_quotes: force_quotes) do |csv|
           headers = klass.csv_columns.map{ |m| if m == :Zip then :ZIP else m end }.map(&:to_s)
           csv << headers
-          klass.all.each do |item|
+          klass.find_each(batch_size: 10_000) do |item|
             row = []
             item.attributes.slice(*headers).each_value do |m|
               if m.is_a?(Date)
@@ -286,6 +301,7 @@ module ReportGenerators::Lsa::Fy2019
             csv << row
           end
         end
+        klass.primary_key = nil if remove_primary_key
       end
       # puts LsaSqlServer.models_by_filename.values.map(&:count).inspect
     end
@@ -294,13 +310,18 @@ module ReportGenerators::Lsa::Fy2019
       load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
       # Make note of completion time, LSA requirements are very specific that this should be the time the report was completed, not when it was initiated.
       # There will only ever be one of these.
-      LsaSqlServer::LSAReport.update_all(ReportDate: Time.now)
       LsaSqlServer.intermediate_models_by_filename.each do |filename, klass|
         path = File.join(unzip_path, filename)
+        remove_primary_key = false
+        if klass.primary_key.blank?
+          klass.primary_key = 'id'
+          remove_primary_key = true
+        end
         CSV.open(path, 'wb') do |csv|
+          # Force a primary key for fetching in batches
           headers = klass.column_names
           csv << headers
-          klass.all.each do |item|
+          klass.find_each(batch_size: 10_000) do |item|
             row = []
             item.attributes.slice(*headers).each_value do |m|
               if m.is_a?(Date)
@@ -314,6 +335,7 @@ module ReportGenerators::Lsa::Fy2019
             csv << row
           end
         end
+        klass.primary_key = nil if remove_primary_key
       end
       # puts LsaSqlServer.models_by_filename.values.map(&:count).inspect
     end
@@ -321,7 +343,8 @@ module ReportGenerators::Lsa::Fy2019
     def setup_lsa_report
       load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
       if test?
-        ::Rds.identifier = sql_server_identifier
+        ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
         ::Rds.timeout = 60_000_000
         load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
         LsaSqlServer::LSAQueries.new.setup_test_report
@@ -364,7 +387,8 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def setup_hmis_table_structure
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       load 'lib/rds_sql_server/lsa/fy2019/hmis_sql_server.rb'
       HmisSqlServer.models_by_hud_filename.each do |_, klass|
         klass.hmis_table_create!(version: '2020')
@@ -575,12 +599,14 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def setup_lsa_table_structure
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       load 'lib/rds_sql_server/lsa/fy2019/lsa_table_structure.rb'
     end
 
     def run_lsa_queries
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
       rep = LsaSqlServer::LSAQueries.new
@@ -614,6 +640,35 @@ module ReportGenerators::Lsa::Fy2019
       summary = LsaSqlServer::LSAReportSummary.new
       @report.results = { summary: summary.fetch_summary }
       @report.save
+    end
+
+    def add_missing_identity_columns
+      query = ''
+      tables_needing_identity_columns.each do |table_name|
+        query += " ALTER TABLE #{table_name} ADD id BIGINT identity (1,1) NOT NULL; "
+      end
+      # Add some useful Identity columns
+      SqlServerBase.connection.execute(query)
+    end
+
+    def remove_missing_identity_columns
+      query = ''
+      tables_needing_identity_columns.each do |table_name|
+        query += " ALTER TABLE #{table_name} DROP COLUMN id; "
+      end
+      # Add some useful Identity columns
+      SqlServerBase.connection.execute(query)
+    end
+
+    def tables_needing_identity_columns
+      @tables_needing_identity_columns ||= begin
+        load 'lib/rds_sql_server/rds.rb'
+        load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
+        tables = LsaSqlServer.models_by_filename.values.map(&:table_name)
+        tables += LsaSqlServer.intermediate_models_by_filename.values.map(&:table_name)
+        tables -= ['ref_Populations'] # these already have identity columns
+        tables.sort
+      end
     end
   end
 end

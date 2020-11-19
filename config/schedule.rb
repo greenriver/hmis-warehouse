@@ -59,6 +59,12 @@ every 4.hours do
   rake "grda_warehouse:save_service_history_snapshots"
 end
 
+if ENV['LSA_DB_HOST'].to_s != ''
+  every 3.hours do
+    rake 'reporting:lsa_shut_down'
+  end
+end
+
 every 1.day, at: '4:02 am' do
   # FIXME May need to be back-grounded?
   rake "messages:daily"

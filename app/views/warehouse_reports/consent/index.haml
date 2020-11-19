@@ -7,74 +7,76 @@
   %h3
     Unconfirmed Consent
   = simple_form_for :clients, url: update_clients_warehouse_reports_consent_index_path, method: :post do |f|
-    %table.table.table-sm.table-hover.datatable
-      %thead
-        %tr
-          %th Client
-          - if current_user.can_confirm_housing_release?
-            %th.text-center
-              = _('Available for matching in CAS') + '?'
-              - if GrdaWarehouse::Config.get(:cas_available_method).to_sym == :cas_flag
-                %br
-                %input#jCasActive.jCheckAll{type: :checkbox}
-          %th.text-center Disability Verification
-          %th.text-center
-            Disability Verified?
-            %br
-            %input#jDisabilityVerification.jCheckAll{type: :checkbox}
-          %th Consent Form Signed on
-          - if current_user.can_confirm_housing_release?
-            %th.text-center Release Type
-            %th.text-center
-              Confirm Consent?
-              %br
-              %input#jConsent.jCheckAll{type: :checkbox}
-
-          - @cohorts_for_unconfirmed.each do |_,cohort|
-            %th= cohort[:name]
-      %tbody
-        - @unconfirmed.each do |client|
-          - unconfirmed_files = client.client_files.consent_forms.unconfirmed
-          - columns_to_skip = @cohorts_for_unconfirmed.count
+    .card
+      %table.table.table-sm.table-hover
+        %thead
           %tr
-            %td
-              = link_to_if can_view_clients_or_window?, client.full_name, appropriate_client_path(client)
-            - if current_user.can_confirm_housing_release?
-              %td.text-center
-                - if client.active_in_cas?
-                  = checkmark client.active_in_cas?
-                - else
-                  - if GrdaWarehouse::Config.get(:cas_available_method).to_sym == :cas_flag
-                    = f.input "[active_in_cas][#{client.id}]", as: :boolean, label: false, input_html: {class: 'jCasActive'}
-            %td.text-center
-              - file = client.client_files.verification_of_disability.order(:created_at).last
-              - if file.present?
-                = link_to preview_client_file_path(client, file), target: '_blank' do
-                  = file.effective_date&.to_date || file.updated_at&.to_date
-                - if file.tag_list.present?
-                  %br= file.tag_list.join(', ')
-            %td.text-center
-              - if client.disability_verified_on
-                = client.disability_verified_on
-              - else
-                = f.input "[disability_verified_on][#{client.id}]", as: :boolean, label: false, input_html: {class: 'jDisabilityVerification'}
-            %td{colspan: 4}
-            - @cohorts_for_unconfirmed.each do |_,cohort|
-              %td= checkmark cohort[:clients].include?(client.id)
-          - unconfirmed_files.each do |file|
-            %tr
-              %td{colspan: 4}
-              %td.text-center
-                = link_to preview_client_file_path(client, file), target: '_blank' do
-                  = file.effective_date&.to_date || file.consent_form_signed_on&.to_date || 'Not signed'
-
-              %td= file.consent_type
+            %th.pl-2 Client
+            %th.text-center
               - if current_user.can_confirm_housing_release?
+                = _('Available for matching in CAS') + '?'
+                - if GrdaWarehouse::Config.get(:cas_available_method).to_sym == :cas_flag
+                  %br
+                  %input#jCasActive.jCheckAll{type: :checkbox}
+            %th.text-center Disability Verification
+            %th.text-center
+              Disability Verified?
+              %br
+              %input#jDisabilityVerification.jCheckAll{type: :checkbox}
+            %th Consent Form Signed on
+            %th.text-center
+              - if current_user.can_confirm_housing_release?
+                Release Type
+            %th.text-center
+              - if current_user.can_confirm_housing_release?
+                Confirm Consent?
+                %br
+                %input#jConsent.jCheckAll{type: :checkbox}
+
+            - @cohorts_for_unconfirmed.each do |_,cohort|
+              %th= cohort[:name]
+        %tbody
+          - @unconfirmed.each do |client|
+            - unconfirmed_files = client.client_files.consent_forms.unconfirmed
+            - columns_to_skip = @cohorts_for_unconfirmed.count
+            %tr
+              %td.pl-2
+                = link_to_if can_view_clients_or_window?, client.full_name, appropriate_client_path(client)
+              %td.text-center
+                - if current_user.can_confirm_housing_release?
+                  - if client.active_in_cas?
+                    = checkmark(client.active_in_cas?)
+                  - else
+                    - if GrdaWarehouse::Config.get(:cas_available_method).to_sym == :cas_flag
+                      = f.input "[active_in_cas][#{client.id}]", as: :boolean, label: false, input_html: {class: 'jCasActive'}
+              %td.text-center
+                - file = client.client_files.verification_of_disability.order(:created_at).last
+                - if file.present?
+                  = link_to preview_client_file_path(client, file), target: '_blank' do
+                    = file.effective_date&.to_date || file.updated_at&.to_date
+                  - if file.tag_list.present?
+                    %br= file.tag_list.join(', ')
+              %td.text-center
+                - if client.disability_verified_on
+                  = client.disability_verified_on
+                - elsif file.present?
+                  = f.input "[disability_verified_on][#{client.id}]", as: :boolean, label: false, input_html: {class: 'jDisabilityVerification'}
+              %td{colspan: 3}
+              - @cohorts_for_unconfirmed.each do |_,cohort|
+                %td.text-center= checkmark(cohort[:clients].include?(client.id))
+            - unconfirmed_files.each do |file|
+              %tr
+                %td.pl-2{colspan: 4}
                 %td.text-center
-                  = f.input "[confirm_consent][#{file.id}]", as: :boolean, label: false, input_html: {class: 'jConsent'}
+                  = link_to preview_client_file_path(client, file), target: '_blank' do
+                    = file.effective_date&.to_date || file.consent_form_signed_on&.to_date || 'Not signed'
+                %td= file.consent_type
+                %td.text-center
+                  - if current_user.can_confirm_housing_release?
+                    = f.input "[confirm_consent][#{file.id}]", as: :boolean, label: false, input_html: {class: 'jConsent'}
                 %td{colspan: columns_to_skip}
 
-    .text-right
+    .text-right.mt-4
       = f.button :submit, value: 'Update Clients', input_html: {class: 'btn btn-primary'}
 
 = content_for :page_js do

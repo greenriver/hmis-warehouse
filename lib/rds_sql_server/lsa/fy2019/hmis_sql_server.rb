@@ -1,4 +1,4 @@
-require_relative '../../sql_server_base'
+require_relative '../../sql_server_base' unless ENV['NO_LSA_RDS'].present?
 module HmisSqlServer
   # a Hash mapping hud filenames to GrdaWarehouse::Hud models
   module_function def models_by_hud_filename

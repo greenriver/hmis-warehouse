@@ -11,7 +11,7 @@
   report_params = {
     'filters' => filter_params
   }
-  if breakdown.present?
+  if defined?(breakdown) && breakdown.present?
     report_params['breakdown'] = breakdown
   end
   if export.present?
