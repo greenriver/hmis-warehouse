@@ -69,14 +69,14 @@ module HealthFlexibleService
       HealthFlexibleService::Vpr.
         joins(patient: :patient_referral).
         preload(:patient, patient: :patient_referral).
-        merge(Health::PatientReferral.at_acos(@aco_id)).
+        merge(::Health::PatientReferral.at_acos(@aco_id)).
         category_in_range(category, @report_range).
         order(last_name: :asc, first_name: :asc, middle_name: :asc).
         distinct
     end
 
     private def delivery_entities(vpr, category)
-      entity_names = (1..max_service_count).map do |i|
+      entity_names = (1..HealthFlexibleService::Vpr.max_service_count).map do |i|
         service_category = "service_#{i}_category"
         service_entity = "service_#{i}_delivering_entity"
         vpr[service_entity] if vpr[service_category] == category
