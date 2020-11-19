@@ -15,22 +15,15 @@ module WarehouseReports
     before_action :set_filter
 
     def index
-      @clients = client_source.joins(first_service_history: [project: :organization]).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+      @clients = client_source.joins(:first_service_history).
+        where(id: first_time_homeless_client_ids).
         preload(
           :first_service_history,
           first_service_history: [:organization, :project],
           source_clients: :data_source,
-        ).
-        where(she_t[:record_type].eq('first')).
-        where(id: first_time_homeless_client_ids).
-        distinct.
+        ).distinct.
         select(:id, :FirstName, :LastName, she_t[:date], :VeteranStatus, :DOB).
         order(she_t[:date], :LastName, :FirstName)
-
-      # NOTE: not using filter_for_organizations as @clients are GrdaWarehouse::Hud::Client not SHE
-      @clients = @clients.merge(GrdaWarehouse::Hud::Organization.where(id: @filter.organization_ids)) if @filter.organization_ids.any?
-      @clients = @clients.merge(GrdaWarehouse::Hud::Project.where(id: @filter.project_ids)) if @filter.project_ids.any?
 
       respond_to do |format|
         format.html do
@@ -41,8 +34,10 @@ module WarehouseReports
     end
 
     def first_time_homeless_client_ids
+      @filter.project_type_codes = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPE_CODES unless @filter.project_type_ids.present?
       @first_time_homeless_client_ids ||= begin
         ids = []
+        # Ensure first project also has services in the correct project type
         @filter.project_type_ids.each do |project_type|
           ids += first_time_homeless_within_range(project_type).distinct.pluck(:client_id)
         end
@@ -61,6 +56,9 @@ module WarehouseReports
       scope = filter_for_age_ranges(scope)
       scope = filter_for_hoh(scope)
       scope = filter_for_coc_codes(scope)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_projects(scope)
+      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
       scope
     end
 
