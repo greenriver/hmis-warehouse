@@ -52,7 +52,7 @@ RSpec.describe 'Prepend Project IDs', type: :model do
     @data_source = if with_cleanup
       create(:prepend_project_ids)
     else
-      create(:dont_cleanup_move_ins_ds)
+      create(:dont_cleanup_ds)
     end
 
     source_file_path = File.join(file_path, 'source')
