@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
+require 'rubyXL'
+
 module HealthFlexibleService
   class MemberList
     include ArelHelper
@@ -18,12 +20,13 @@ module HealthFlexibleService
 
     def filename
       @filename ||= begin
-        aco = Health::AccountableCareOrganization.find(@aco_id)
+        aco = ::Health::AccountableCareOrganization.find(@aco_id)
         "#{aco.short_name}_ML_R#{@r_number}_QE#{@report_range.end.strftime('%Y%m%d')}.xlsx".upcase
       end
     end
 
-    def write_to(workbook)
+    def write_to(template_path)
+      workbook = RubyXL::Parser.parse(template_path)
       categories.each do |worksheet_name, category_name|
         worksheet = workbook[worksheet_name]
         vprs = vpr_scope(category_name)
@@ -33,6 +36,7 @@ module HealthFlexibleService
           end
         end
       end
+      workbook
     end
 
     def categories
@@ -68,7 +72,7 @@ module HealthFlexibleService
     def vpr_scope(category)
       HealthFlexibleService::Vpr.
         joins(patient: :patient_referral).
-        preload(:patient, patient: :patient_referral).
+        preload(patient: :patient_referral).
         merge(::Health::PatientReferral.at_acos(@aco_id)).
         category_in_range(category, @report_range).
         order(last_name: :asc, first_name: :asc, middle_name: :asc).

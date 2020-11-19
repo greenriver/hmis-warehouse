@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-require 'rubyXL'
-
 module HealthFlexibleService::WarehouseReports
   class MemberListsController < ApplicationController
     include WarehouseReportAuthorization
@@ -17,8 +15,7 @@ module HealthFlexibleService::WarehouseReports
 
     def create
       member_list = HealthFlexibleService::MemberList.new(@aco, @r_number, @end_date)
-      xlsx = RubyXL::Parser.parse('drivers/health_flexible_service/app/views/health_flexible_service/warehouse_reports/member_lists/template.xlsx')
-      member_list.write_to(xlsx)
+      xlsx = member_list.write_to('drivers/health_flexible_service/app/views/health_flexible_service/warehouse_reports/member_lists/template.xlsx')
       send_data(xlsx.stream.string, filename: member_list.filename)
     end
 
