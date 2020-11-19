@@ -70,7 +70,7 @@ RSpec.describe 'Clean Up Move In Dates', type: :model do
     @data_source = if with_cleanup
       create(:cleanup_move_ins_ds)
     else
-      create(:dont_cleanup_move_ins_ds)
+      create(:dont_cleanup_ds)
     end
 
     source_file_path = File.join(file_path, 'source')
