@@ -185,6 +185,13 @@ module ProjectPassFail
       key.humanize
     end
 
+    def projects_failing_universal_data_elements_percent
+      return 0 unless projects.any?
+      return 0 if projects_failing_universal_data_elements.zero?
+
+      (projects_failing_universal_data_elements.to_f / projects.count * 100).round
+    end
+
     def value_for_display(key, value)
       case key.to_sym
       when :start, :end
