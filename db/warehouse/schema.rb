@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_10_201513) do
+ActiveRecord::Schema.define(version: 2020_11_11_165550) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1863,6 +1863,7 @@ ActiveRecord::Schema.define(version: 2020_11_10_201513) do
     t.datetime "deleted_at"
     t.boolean "service_scannable", default: false, null: false
     t.jsonb "import_aggregators", default: {}
+    t.jsonb "import_cleanups", default: {}
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|

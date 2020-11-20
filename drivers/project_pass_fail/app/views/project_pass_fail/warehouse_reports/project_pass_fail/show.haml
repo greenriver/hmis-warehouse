@@ -26,7 +26,7 @@
           %h4.title Projects Failing Universal Data Elements
           %i.icon-file-text.metric
           .metric{class: status_class}
-            = number_with_delimiter(@report.projects_failing_universal_data_elements)
+            #{number_with_delimiter(@report.projects_failing_universal_data_elements)} of #{@report.projects.count} (#{@report.projects_failing_universal_data_elements_percent} %)
       .overall-timeliness.chunk
         - status_class = if @report.within_timeliness_threshold? then 'text-success' else 'text-danger' end
         .ml-2.mr-2
