@@ -1,53 +1,57 @@
-.row
-  .col-12
+%tr
+  %th{colspan: 12}
     Coordinated Entry System Particpation 20%
     %br
-      24 CFR 578.(a)(8) states that CoCs must establish and operate a Coordinated Entry System to allocate assistance as
-      effectivley as possible, prioritizing services to those that need it the most.
-.row
-  .col-2
+    24 CFR 578.(a)(8) states that CoCs must establish and operate a Coordinated Entry System to allocate assistance as
+    effectivley as possible, prioritizing services to those that need it the most.
+%tr
+  %th{colspan: 2}
     Time to Lease Up
-  .col-2
+  %th{colspan: 2}
     TX-601 established Community-wide performance expectations in 2016 and identified that well-functioning Housing
     Crisis Response System moves households from homelessness to permanent housing in less than 30 days.
-    %br Sage APR Q22c
-  .col-3
+    %br
+    Sage APR Q22c
+  %th{colspan: 3}
     Average Time to Lease Up
-  .col-1
+  %td{colspan: 1}
     = f.input :days_to_lease_up, label: false, disabled: @report.locked?(:days_to_lease_up, current_user)
-  .col-1
+  %th{colspan: 1}
     <=30 days
-  .col-1
+  %th{colspan: 1}
     31 - 45 Days
-  .col-1
+  %th{colspan: 1}
     >=46 Days
-  .col-1
+  %td{colspan: 1}
     = @report.lease_up_score
-.row
-  .col-2
+%tr
+  %th{colspan: 2}
     Accepted Referrals
-  .col-2
+  %th{colspan: 2}
     TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as
     possible, prioritizing services to those that need it the most.
-    %br GreenRiver Report
-  .col-3
-    .row
-      .col-8
-        Number of CES Referrals
-      .col-4
-        = f.input :number_referrals, label: false, disabled: @report.locked?(:number_referrals, current_user)
-    .row
-      .col-8
-        Number of Accepted Referrals
-      .col-4
-        = f.input :accepted_referrals, label: false, disabled: @report.locked?(:accepted_referrals, current_user)
-  .col-1
+    %br
+    GreenRiver Report
+  %td{colspan: 3}
+    %table.table-table-sm
+      %tbody
+        %tr
+          %th{colspan: 8}
+            Number of CES Referrals
+          %td{colspan: 4}
+            = f.input :number_referrals, label: false, disabled: @report.locked?(:number_referrals, current_user)
+        %tr
+          %th{colspan: 8}
+            Number of Accepted Referrals
+          %td{colspan: 4}
+            = f.input :accepted_referrals, label: false, disabled: @report.locked?(:accepted_referrals, current_user)
+  %td{colspan: 1}
     = @report.accepted_referrals_percentage
-  .col-1
+  %th{colspan: 1}
     >=90%
-  .col-1
+  %th{colspan: 1}
 
-  .col-1
+  %th{colspan: 1}
     <=89%
-  .col-1
+  %td{colspan: 1}
     = @report.accepted_referrals_score

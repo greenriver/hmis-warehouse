@@ -1,10 +1,11 @@
-.row.text-center
-  .col-12
-    Agency Response Section
-    %br In the boxes below, please respond to the following questions (if applicable). These responses will be reviewed by the Allocations Committee.
-.row
-  .col-12
-    = f.input :improvement_plan, as: :text, label: '1) For scored elements that received 0 or 5 points, please explain how your agency plans to improve the performance over time.'
-.row
-  .col-12
-    = f.input :financial_plan, as: :text, label: '2) If your grant recaptured more than 10%, please explain how you intend to spend project funds in the coming year OR if you plan to voluntarily reallocate the excess budget.'
+%table.table.table-bordered
+  %tbody
+    %tr
+      %th
+        Agency Response Section
+        %br
+        In the boxes below, please respond to the following questions (if applicable). These responses will be reviewed by the Allocations Committee.
+    %tr.text-left
+      %td= f.input :improvement_plan, as: :text, label: '1) For scored elements that received 0 or 5 points, please explain how your agency plans to improve the performance over time.'
+    %tr.text-left
+      %td= f.input :financial_plan, as: :text, label: '2) If your grant recaptured more than 10%, please explain how you intend to spend project funds in the coming year OR if you plan to voluntarily reallocate the excess budget.'

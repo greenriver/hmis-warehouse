@@ -1,36 +1,22 @@
-.row
-  .col-3
-    Recipient
-  .col-3
-    = f.input :recipient, label: false, disabled: @report.locked?(:recipient, current_user)
-  .col-3
-    Project Component Type
-  .col-3
-    = @report.project_types
-.row
-  .col-3
-    Subrecipient
-  .col-3
-    = f.input :subrecipient, label: false, disabled: @report.locked?(:subrecipient, current_user)
-  .col-3
-    Reporting Period
-  .col-3
-    #{@report.start_date} - #{@report.end_date}
-.row
-  .col-3
-    Project Name
-  .col-3
-    = @report.project_names
-  .col-3
-    Scorecard Status
-  .col-3
-    = @report.status.humanize
-.row
-  .col-3
-    CoC Funding Year
-  .col-3
-    = f.input :funding_year, label: false, disabled: @report.locked?(:funding_year, current_user)
-  .col-3
-    Full Grant Term
-  .col-3
-    = f.input :grant_term, label: false, disabled: @report.locked?(:grant_term, current_user)
+%table.table.table-bordered
+  %tbody
+    %tr
+      %th Recipient
+      %td= f.input :recipient, label: false, disabled: @report.locked?(:recipient, current_user)
+      %th Project Component Type
+      %td= @report.project_types
+    %tr
+      %th Subrecipient
+      %td= f.input :subrecipient, label: false, disabled: @report.locked?(:subrecipient, current_user)
+      %th Reporting Period
+      %td #{@report.start_date} - #{@report.end_date}
+    %tr
+      %th Project Name
+      %td= @report.project_names
+      %th Scorecard Status
+      %td= @report.status.humanize
+    %tr
+      %th CoC Funding Year
+      %td= f.input :funding_year, label: false, disabled: @report.locked?(:funding_year, current_user)
+      %th Full Grant Term
+      %td= f.input :grant_term, label: false, disabled: @report.locked?(:grant_term, current_user)

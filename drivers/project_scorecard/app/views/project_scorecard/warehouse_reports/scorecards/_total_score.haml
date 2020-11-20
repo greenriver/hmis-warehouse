@@ -1,71 +1,75 @@
-.row
-  .col-12.text-center
-    Total Project Score
-.row
-  .col-6
-    Total Project Score =
-    Project Performance Percentage Achieved
-    + HMIS Data Quality Percentage Achieved
-    + Coordinated Entry Participation Percentage Achieved
-    + Grant Management & Financials Percentage Achieved
-  .col-6
-    .row
-      .col-4
-        Scoring Category
-      .col-2
-        Total Points Achieved
-      .col-2
-        Total Points Available
-      .col-2
-        Category Weight
-      .col-2
-        Percentage Achieved
-    .row
-      .col-4
-        Project Performance
-      .col-2
-        = @report.project_performance_score
-      .col-2
-        60
-      .col-2
-        50%
-      .col-2
-        #{@report.project_performance_percentage}%
-    .row
-      .col-4
-        HMIS Data Quality
-      .col-2
-        = @report.data_quality_score
-      .col-2
-        30
-      .col-2
-        20%
-      .col-2
-        #{@report.data_quality_percentage}%
-    .row
-      .col-4
-        Coordinated Entry Participation
-      .col-2
-        = @report.ce_score
-      .col-2
-        20
-      .col-2
-        20%
-      .col-2
-        #{@report.ce_percentage}%
-    .row
-      .col-4
-        Grant Management & Financials
-      .col-2
-        = @report.m_and_f_score
-      .col-2
-        50
-      .col-2
-        10%
-      .col-2
-        #{@report.m_and_f_percentage}%
-    .row
-      .col-4
-        Total Score
-      .col-8
-        #{@report.project_performance_percentage + @report.data_quality_percentage + @report.ce_percentage + @report.m_and_f_percentage}%
+%table.table.table-bordered
+  %tbody
+    %tr
+      %th{colspan: 12}
+        Total Project Score
+    %tr
+      %th{colspan: 6}
+        Total Project Score =
+        Project Performance Percentage Achieved
+        + HMIS Data Quality Percentage Achieved
+        + Coordinated Entry Participation Percentage Achieved
+        + Grant Management & Financials Percentage Achieved
+      %td{colspan: 6}
+        %table.table.table-sm
+          %tbody
+            %tr
+              %th{colspan: 4}
+                Scoring Category
+              %th{colspan: 2}
+                Total Points Achieved
+              %th{colspan: 2}
+                Total Points Available
+              %th{colspan: 2}
+                Category Weight
+              %th{colspan: 2}
+                Percentage Achieved
+            %tr
+              %th{colspan: 4}
+                Project Performance
+              %td{colspan: 2}
+                = @report.project_performance_score
+              %th{colspan: 2}
+                60
+              %th{colspan: 2}
+                50%
+              %td{colspan: 2}
+                #{@report.project_performance_percentage}%
+            %tr
+              %th{colspan: 4}
+                HMIS Data Quality
+              %td{colspan: 2}
+                = @report.data_quality_score
+              %th{colspan: 2}
+                30
+              %th{colspan: 2}
+                20%
+              %td{colspan: 2}
+                #{@report.data_quality_percentage}%
+            %tr
+              %th{colspan: 4}
+                Coordinated Entry Participation
+              %td{colspan: 2}
+                = @report.ce_score
+              %th{colspan: 2}
+                20
+              %th{colspan: 2}
+                20%
+              %td{colspan: 2}
+                #{@report.ce_percentage}%
+            %tr
+              %th{colspan: 4}
+                Grant Management & Financials
+              %td{colspan: 2}
+                = @report.m_and_f_score
+              %th{colspan: 2}
+                50
+              %th{colspan: 2}
+                10%
+              %td{colspan: 2}
+                #{@report.m_and_f_percentage}%
+            %tr
+              %th{colspan: 4}
+                Total Score
+              %td{colspan: 8}
+                #{@report.project_performance_percentage + @report.data_quality_percentage + @report.ce_percentage + @report.m_and_f_percentage}%
