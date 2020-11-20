@@ -50,6 +50,28 @@ module HealthFlexibleService
       self.employment_status = employment_from(ssm.option_text_for(:employment, ssm.employment_score)) if ssm
     end
 
+    scope :category_in_range, ->(category, range) do
+      a_t = arel_table
+      query = nil
+
+      (1..max_service_count).each do |i|
+        service_category = "service_#{i}_category"
+        service_date = "service_#{i}_added_on"
+
+        query_part = a_t[service_category].eq(category).
+          and(a_t[service_date].gteq(range.begin)).
+          and(a_t[service_date].lteq(range.end))
+
+        query = if query.nil?
+          query_part
+        else
+          query = query.or(query_part)
+        end
+      end
+
+      where(query)
+    end
+
     private def education_from(value)
       case value
       when '[3] Has high school diploma/GED. (safe)'

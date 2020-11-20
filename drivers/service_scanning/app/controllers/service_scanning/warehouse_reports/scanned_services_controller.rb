@@ -16,7 +16,8 @@ module ServiceScanning::WarehouseReports
     def index
       ids = @dates.values.map(&:values).flatten.flat_map { |m| m[:services].to_a }
       @services = service_class.where(id: ids).
-        preload(:project, :client)
+        preload(:project, client: [:processed_service_history])
+
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -40,6 +41,49 @@ module ServiceScanning::WarehouseReports
         end
       end
     end
+
+    def most_recent_hmis_service
+      most_recent_dates_of_service = @services.map do |service|
+        service.client.date_of_last_service
+      end.compact
+      @most_recent_hmis_service ||= GrdaWarehouse::ServiceHistoryService.
+        joins(:service_history_enrollment, :client).
+        preload(:service_history_enrollment, :client).
+        order(date: :asc).
+        where(client_id: @services.select(:client_id)).
+        where(date: most_recent_dates_of_service).
+        index_by(&:client_id).
+        map do |client_id, service|
+          en = service.service_history_enrollment
+          project_id = en.project_id
+          data_source_id = en.data_source_id
+          project_name = en.project_name
+          confidential = service.client.project_confidential?(project_id: project_id, data_source_id: data_source_id)
+          clean_name = if ! confidential
+            project_name
+          else
+            GrdaWarehouse::Hud::Project.confidential_project_name
+          end
+          [
+            client_id,
+            [
+              client_id,
+              service.date,
+              clean_name,
+            ],
+          ]
+        end.to_h
+    end
+    helper_method :most_recent_hmis_service
+
+    def most_recent_scan_service
+      @most_recent_scan_service ||= service_class.joins(:project).
+        where(client_id: @services.select(:client_id)).
+        order(provided_at: :asc).
+        pluck(:client_id, :provided_at, :ProjectName).
+        index_by(&:first)
+    end
+    helper_method :most_recent_scan_service
 
     private def set_data
       @dates = begin

@@ -38,7 +38,7 @@
       - else
         - source_clients = @client.source_clients.visible_in_window_to(current_user)
 
-      - source_clients.each do |client|
+      - source_clients.joins(:data_source).each do |client|
         = render 'clients/demographic_row', client: client, authoritative_data_source_ids: authoritative_data_source_ids
 
 

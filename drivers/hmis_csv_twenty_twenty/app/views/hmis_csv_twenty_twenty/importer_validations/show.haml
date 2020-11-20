@@ -1,0 +1,33 @@
+= content_for :crumbs do
+  = link_to import_path(@import) do
+    &laquo; Import Log
+
+%h1= "Validation Flags for #{@filename}"
+
+%ul.nav.nav-tabs{role: "presentation"}
+  %li.nav-item.active{role: 'presentation'}
+    = link_to 'Validation Flags', hmis_csv_twenty_twenty_importer_validation_path(@import.importer_log, file: @filename), class: 'nav-link'
+  %li.nav-item{role: 'presentation'}
+    = link_to 'Importer Errors', hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: @filename), class: 'nav-link'
+
+- if @validations.present?
+  = paginate @validations
+  %table.table
+    %thead
+      %tr
+        %th Type
+        %th Message
+        %th HUD ID
+    %tbody
+      - @validations.each do |error|
+        %tr
+          %td= error.class.type_name
+          %td= error.status
+          - source = error.source
+          %td
+            - if source.present?
+              = source.send(source.class.hud_key)
+            - else
+              #{error.source_id} (id, HUD Key not found)
+- else
+  %p.well.none-found No validation flags.

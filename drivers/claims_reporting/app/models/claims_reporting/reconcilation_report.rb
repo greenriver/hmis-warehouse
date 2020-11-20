@@ -21,14 +21,14 @@ module ClaimsReporting
           completed_at: latest_payment_report_upload.completed_at,
         },
         active_patient_count: active_patient_count,
-        payment_detail_count: payment_details.distinct.count(:medicaid_id),
-        patients_without_payments: patients_without_payments.map(&:id),
-        payments_without_patients: payments_without_patients.map(&:id),
+        payment_detail_count: payment_details.count,
+        patients_without_payments: patients_without_payments.map(&:to_param),
+        payments_without_patients: payments_without_patients.map(&:to_param),
       }
     end
 
     def active_patient_count
-      active_patients.distinct.count(:medicaid_id)
+      active_patients.count
     end
 
     def latest_payment_report_upload
@@ -52,7 +52,7 @@ module ClaimsReporting
     end
 
     def acos_for_patient(patient)
-      patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco.name }.uniq
+      patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco&.name }.compact.uniq
     end
 
     def qualifying_activity_counts_by_patient_id
@@ -64,11 +64,15 @@ module ClaimsReporting
     end
 
     def patients_without_payments
-      active_patients.where.not(medicaid_id: payment_details.select(:medicaid_id)).preload(patient_referrals: :aco)
+      active_patients.where.not(
+        medicaid_id: payment_details.select(:medicaid_id),
+      ).preload(patient_referrals: :aco)
     end
 
     def payments_without_patients
-      payment_details.where.not(medicaid_id: active_patients.select(:medicaid_id))
+      payment_details.where.not(
+        medicaid_id: active_patients.select(:medicaid_id),
+      )
     end
 
     def payment_details

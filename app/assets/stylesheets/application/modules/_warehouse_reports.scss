@@ -161,6 +161,9 @@
     line-height: (26/22);
     margin-bottom: space(2);
   }
+  .metric-sm [class^=icon]{
+    font-size: rem(22px);
+  }
   .description {
     font-size: 1rem;
     line-height: (18/16);
@@ -171,6 +174,12 @@
     font-size: 3rem;
     line-height: 1;
     font-weight: normal;
+  }
+  .text-success [class^=icon] {
+    color: $brand-success;
+  }
+  .text-danger [class^=icon] {
+    color: $brand-danger;
   }
   .title,
   [class^=icon] {

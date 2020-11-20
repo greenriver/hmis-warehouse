@@ -1,19 +1,18 @@
 - title = 'First-Time Homeless'
 - content_for :title, title
 %h1= title
+%p Or first time in chosen project type.
 = render '/warehouse_reports/breadcrumbs'
 
 = render 'filter'
 = render 'warehouse_reports/limited_by_project_note'
-
+%p
+  Clients shown received their first residential service in one of the following project types:
+  %strong #{@filter.project_type_codes.reject(&:blank?).map(&:upcase).to_sentence(last_word_connector: ', or ')}
+  within the period from #{@filter.start} to #{@filter.end} limited to the chosen universe.
+  = render 'common/population_warnings'
 - if @clients.any?
-  %p
-    Clients who first received a residential service in the period from
-    = @filter.start
-    to
-    = @filter.end
-    = render 'common/population_warnings'
-  %h4 All Clients Added
+  %h4 New Clients in Past Year (#{1.years.ago.to_date} to #{1.days.ago.to_date})
   .row
     .col-sm-10
       .jCharts
@@ -22,43 +21,47 @@
       = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
         Download Excel
   %p= page_entries_info @clients, entry_name: _('client')
-  %table.table.table-sm.table-hover
-    %thead
-      %tr
-        %th Last Name
-        %th First Name
-        %th Age at entry
-        %th Age today
-        %th Veteran Status
-        %th Date of First Service
-        %th Project Type
-        %th Project
-        %th Organization
-        %th Data Source
-    %tbody
-      - @clients.each do |client|
+  .card
+    %table.table.table-sm.table-hover
+      %thead
         %tr
-          %td
-            %nobr= link_to_if can_view_clients_or_window?, client.LastName, appropriate_client_path(client)
-          %td
-            %nobr= link_to_if can_view_clients_or_window?, client.FirstName, appropriate_client_path(client)
-          %td= client.first_service_history.age
-          %td= client.age()
-          %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
-          %td= client.first_service_history.date
-          %td
-            = ::HUD.project_type(client.first_service_history.project_type)
-            - if client.first_service_history.project.act_as_project_type.present?
-              acts as
-              = ::HUD.project_type_brief(client.first_service_history.project.act_as_project_type)
-          %td= client.first_service_history.project_name
-          %td= client.first_service_history.organization.try(:OrganizationName)
-          %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
+          %th Last Name
+          %th First Name
+          %th Age at entry
+          %th Age today
+          %th Veteran Status
+          %th Date of First Service
+          %th Project Type
+          %th Project
+          %th Organization
+          %th Data Source
+      %tbody
+        - @clients.each do |client|
+          %tr
+            %td
+              %nobr= link_to_if can_view_clients_or_window?, client.LastName, appropriate_client_path(client)
+            %td
+              %nobr= link_to_if can_view_clients_or_window?, client.FirstName, appropriate_client_path(client)
+            %td= client.first_service_history.age
+            %td= client.age()
+            %td= HUD.no_yes_reasons_for_missing_data(client.VeteranStatus)
+            %td= client.first_service_history.date
+            %td
+              = ::HUD.project_type(client.first_service_history.project_type)
+              - if client.first_service_history.project.act_as_project_type.present?
+                acts as
+                = ::HUD.project_type_brief(client.first_service_history.project.act_as_project_type)
+            %td= client.first_service_history.project_name
+            %td= client.first_service_history.organization.try(:OrganizationName)
+            %td= client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
   %p= paginate @clients
 - else
-  %p.text-center No clients found
+  %p.well.none-found No clients found
+- filter = { start: @filter.start, end: @filter.end, sub_population: @filter.sub_population, project_type_codes: @filter.project_type_codes, age_ranges: @filter.age_ranges, heads_of_household: @filter.heads_of_household, organization_ids: @filter.organization_ids, project_ids: @filter.project_ids}
+- if @filter.coc_codes
+  - filter[:coc_codes] = @filter.coc_codes
 
-- url = summary_warehouse_reports_first_time_homeless_index_path(filter: { start: @filter.start, end: @filter.end, sub_population: @filter.sub_population, project_type_codes: @filter.project_type_codes, age_ranges: @filter.age_ranges, heads_of_household: @filter.heads_of_household})
+- url = summary_warehouse_reports_first_time_homeless_index_path(filter: filter)
 - content_for :page_js do
   :javascript
     (function($) {

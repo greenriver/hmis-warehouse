@@ -58,6 +58,7 @@ module HmisCsvTwentyTwenty::Importer
         pre_process!
         validate_data_set!
         aggregate!
+        cleanup_data_set!
         ingest!
         invalidate_aggregated_enrollments!
         complete_import
@@ -142,10 +143,26 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def validate_data_set!
-      # TODO: Apply whole table validations
       importable_files.each do |filename, klass|
         failures = klass.run_complex_validations!(importer_log, filename)
         HmisCsvValidation::Base.import(failures) if failures.any?
+      end
+    end
+
+    def cleanup_data_set!
+      importer_log.update(status: :cleaning)
+      importable_files.each_value do |klass|
+        cleanups = cleanups_from_class(klass, @data_source)
+        next unless cleanups.present?
+
+        log("Cleaning #{klass.name}")
+        cleanups.each do |cleanup_klass|
+          cleanup = cleanup_klass.new(
+            importer_log: @importer_log,
+            date_range: date_range,
+          )
+          cleanup.cleanup!
+        end
       end
     end
 
@@ -195,6 +212,11 @@ module HmisCsvTwentyTwenty::Importer
     def aggregators_from_class(klass, data_source)
       basename = klass.name.split('::').last
       data_source.import_aggregators[basename]&.map(&:constantize)
+    end
+
+    def cleanups_from_class(klass, data_source)
+      basename = klass.name.split('::').last
+      data_source.import_cleanups[basename]&.map(&:constantize)
     end
 
     def mark_tree_as_dead(pending_date_deleted)

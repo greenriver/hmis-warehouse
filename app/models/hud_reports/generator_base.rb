@@ -31,11 +31,11 @@ module HudReports
       Reporting::Hud::RunReportJob.perform_later(self.class.name, @report.id)
     end
 
-    def run!
+    def run!(email: true)
       @report.state = 'Waiting'
       @report.question_names = self.class.questions.keys
       @report.save
-      Reporting::Hud::RunReportJob.perform_now(self.class.name, @report.id)
+      Reporting::Hud::RunReportJob.perform_now(self.class.name, @report.id, email: email)
     end
 
     # This selects just ids for the clients, to ensure uniqueness, but uses select instead of pluck
