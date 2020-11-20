@@ -28,13 +28,15 @@
         %th First Name
         %th Enrollment Count
         %th Project Type
+        %th Projects
     %tbody
       - st = GrdaWarehouse::Hud::Enrollment.arel_table
       - @counts.each do |client_id, data|
         - client = @clients[client_id]
-        - data.each do |client_id, project_type, count|
+        - data.each do |client_id, project_type, project_names, count|
           %tr
             %td= link_to_if can_view_clients_or_window?, client.LastName, appropriate_client_path(client)
             %td= link_to_if can_view_clients_or_window?, client.FirstName, appropriate_client_path(client)
             %td= count
             %td= HUD.project_type project_type
+            %td= project_names
