@@ -8,7 +8,7 @@
 
 = render 'filter'
 - if @clients.exists?
-  %p The following #{@clients.count} youth had data entered or updated between #{@filter.start} and #{@filter.end}. Dates shown are modification dates and may differ from the date the item was added to the youth's record.
+  %p The following #{@clients.count} youth had data entered or updated between #{@filter.start} and #{@filter.end}.
 - else
   %p No modifications were made to youth records between #{@filter.start} and #{@filter.end}.
 - @clients.find_each do |client|
@@ -16,10 +16,10 @@
   .c-card.mb-4
     .c-card__content
       - # We've preloaded all, use ruby select to pick those in range
-      - intakes = client.youth_intakes.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
+      - intakes = client.youth_intakes.preload(:versions).select { |m| m.updated_at.between?(@filter.start, @filter.end) }
       - case_notes = client.case_managements.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
-      - referrals = client.direct_financial_assistances.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
-      - dfas = client.youth_referrals.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
+      - dfas = client.direct_financial_assistances.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
+      - referrals = client.youth_referrals.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
       - follow_ups = client.youth_follow_ups.select { |m| m.updated_at.between?(@filter.start, @filter.end) }
 
       .row
@@ -27,29 +27,43 @@
           .col-sm-4
             %h4 Intakes
             - intakes.each do |item|
-              .item
-                #{link_to item.updated_at, client_youth_intakes_path(client)} by #{item.user.name}
+              .item.mb-2
+                #{link_to "Engaged on: #{item.engagement_date}", client_youth_intakes_path(client)}
+                %br
+                %em Created #{item.created_at} by #{item.user.name}
+                %br
+                %em Last updated #{item.versions.last.created_at} by #{name_for(item.versions.last.whodunnit)}
         - if case_notes && (@filter.activity_type.empty? || @filter.activity_type.include?('case_managements'))
           .col-sm-4
             %h4 Case Management
             - case_notes.each do |item|
-              .item
-                #{link_to item.updated_at, client_youth_intakes_path(client)} by #{item.user.name}
+              .item.mb-2
+                #{link_to "Contacted on: #{item.engaged_on}", client_youth_intakes_path(client)}
+                %br
+                %em Created #{item.created_at} by #{item.user.name}
+                %br
+                %em Last updated #{item.versions.last.created_at} by #{name_for(item.versions.last.whodunnit)}
         - if referrals && (@filter.activity_type.empty? || @filter.activity_type.include?('youth_referrals'))
           .col-sm-4
             %h4 Referrals
             - referrals.each do |item|
-              .item
-                #{link_to item.updated_at, client_youth_intakes_path(client)} by #{item.user.name}
+              .item.mb-2
+                #{link_to "Referral on: #{item.referred_on}", client_youth_intakes_path(client)}
+                %br
+                %em Created #{item.created_at} by #{item.user.name}
         - if dfas && (@filter.activity_type.empty? || @filter.activity_type.include?('direct_financial_assistances'))
           .col-sm-4
             %h4 Direct Financial Assistance
             - dfas.each do |item|
-              .item
-                #{link_to item.updated_at, client_youth_intakes_path(client)} by #{item.user.name}
+              .item.mb-2
+                #{link_to "Provided on: #{item.provided_on}", client_youth_intakes_path(client)}
+                %br
+                %em Created #{item.created_at} by #{item.user.name}
         - if follow_ups && (@filter.activity_type.empty? || @filter.activity_type.include?('youth_follow_ups'))
           .col-sm-4
             %h4 3-month Follow Ups
             - follow_ups.each do |item|
-              .item
-                #{link_to item.updated_at, client_youth_intakes_path(client)} by #{item.user.name}
+              .item.mb-2
+                #{link_to "Contacted on: #{item.contacted_on}", client_youth_intakes_path(client)} by #{item.user.name}
+                %br
+                %em Created #{item.created_at} by #{item.user.name}

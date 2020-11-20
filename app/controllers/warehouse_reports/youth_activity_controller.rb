@@ -86,6 +86,12 @@ module WarehouseReports
       scope
     end
 
+    private def name_for(id)
+      @users ||= User.all.map { |u| [u.id, u.name] }.to_h
+      @users[id.to_i] || id
+    end
+    helper_method :name_for
+
     private def user_ids_at_agency
       User.where(agency_id: @filter.agency_id).pluck(:id)
     end

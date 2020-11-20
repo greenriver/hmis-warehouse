@@ -9,9 +9,9 @@
         = f.input :activity_type, collection: activity_types, as: :select_two, input_html: { multiple: true, placeholder: 'All Types' }
     .row
       .col-sm-3
-        = f.input :agency_id, collection: available_agencies, as: :select_two, include_blank: 'Any Agency'
+        = f.input :agency_id, collection: available_agencies, as: :select_two, include_blank: 'Any Agency', label: 'Creation Agency'
       .col-sm-3
-        = f.input :user_id, collection: available_users, as: :select_two, include_blank: 'Any User'
+        = f.input :user_id, collection: available_users, as: :select_two, include_blank: 'Any User', label: 'Creation User'
 
   - content_for :filter_actions do
     = f.button :submit, value: 'Update View'
