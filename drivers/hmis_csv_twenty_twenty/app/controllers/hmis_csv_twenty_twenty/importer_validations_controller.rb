@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class HmisCsvTwentyTwenty::ImporterErrorsController < ApplicationController
+class HmisCsvTwentyTwenty::ImporterValidationsController < ApplicationController
   before_action :require_can_view_imports!
 
   def show
@@ -14,6 +14,6 @@ class HmisCsvTwentyTwenty::ImporterErrorsController < ApplicationController
     @filename = HmisCsvTwentyTwenty::Importer::Importer.importable_files_map.keys.detect { |v| v == params[:file] }
     pattern = '%::' + HmisCsvTwentyTwenty::Importer::Importer.importable_files_map[@filename].downcase
 
-    @errors = importer_log.import_errors.where(HmisCsvTwentyTwenty::Importer::ImportError.arel_table[:source_type].lower.matches(pattern)).page(params[:page])
+    @validations = importer_log.import_validations.where(HmisCsvValidation::Base.arel_table[:source_type].lower.matches(pattern)).page(params[:page])
   end
 end
