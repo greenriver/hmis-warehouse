@@ -48,15 +48,38 @@ module ApplicationHelper
     end
   end
 
-  def checkmark_or_x(boolean, tooltip = nil)
-    html_class =
-      if boolean
-        'checkmark o-color--positive'
-      else
-        'cross o-color--warning'
+  def checkmark_or_x(boolean, tooltip = nil, size: :xs, style: :font)
+    if boolean
+      symbol_name = 'checkmark'
+      wrapper_class = 'o-color--positive'
+    else
+      symbol_name = 'cross'
+      wrapper_class = 'o-color--danger'
+    end
+    html_class = "#{symbol_name} #{wrapper_class}"
+    case size.to_sym
+    when :md
+      html_class += ' icon-lg'
+    when :lg
+      html_class += ' icon-xl'
+    end
+    case style
+    when :svg
+      svg_checkbox(wrapper_class: wrapper_class, symbol_name: symbol_name, size: size, tooltip: tooltip)
+    else
+      capture do
+        concat content_tag :span, nil, { data: { toggle: :tooltip, title: tooltip }, class: "icon-#{html_class} inline-icon" }
       end
+    end
+  end
+
+  def svg_checkbox(wrapper_class:, symbol_name:, size: 'xs', tooltip: nil)
     capture do
-      concat content_tag :span, nil, { data: { toggle: :tooltip, title: tooltip }, class: "icon-#{html_class} inline-icon" }
+      content_tag(:span, class: "icon-svg--#{size} #{wrapper_class} mr-2", data: { toggle: :tooltip, title: tooltip }) do
+        content_tag(:svg) do
+          content_tag(:use, '', 'xlink:href' => "\#icon-#{symbol_name}")
+        end
+      end
     end
   end
 

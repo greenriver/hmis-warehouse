@@ -1,9 +1,26 @@
+@import '../helpers';
+
 .icon-svg {
   &,
   svg {
     width: 3rem;
     height: 3rem;
   }
+}
+
+.o-color--positive svg,
+.o-color--success svg {
+  fill: $brand-success;
+}
+
+
+.o-color--danger svg {
+  fill: $brand-danger;
+}
+
+
+.o-color--warning svg {
+  fill: $brand-warning;
 }
 
 $sizes: (
