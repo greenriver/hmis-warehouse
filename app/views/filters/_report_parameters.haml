@@ -1,9 +1,16 @@
 .report-parameters
   - options.each do |k,v|
     - next if v.blank? || v == ['']
-    .report-parameters__parameter
-      %label.label.label-default.parameter-label
-        = report.key_for_display(k)
-      %label.label.label-primary.parameter-value
-        %strong
+    - if @pdf
+      .param.mr-6.mb-6
+        .parameter-label
+          %strong= report.key_for_display(k)
+        .parameter-value
           = report.value_for_display(k, v)
+    - else
+      .report-parameters__parameter
+        %label.label.label-default.parameter-label
+          = report.key_for_display(k)
+        %label.label.label-primary.parameter-value
+          %strong
+            = report.value_for_display(k, v)

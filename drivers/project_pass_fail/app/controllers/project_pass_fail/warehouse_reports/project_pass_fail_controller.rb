@@ -42,6 +42,14 @@ module ProjectPassFail::WarehouseReports
     end
 
     def show
+      respond_to do |format|
+        format.html do
+          @pdf = false
+        end
+        format.pdf do
+          @pdf = true
+        end
+      end
     end
 
     def destroy

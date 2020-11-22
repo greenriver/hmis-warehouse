@@ -1,0 +1,30 @@
+.row
+  .col-sm-3
+    %dl
+      %dt Clients Served
+      %dd= project.clients.count
+      %dt Days of services
+      %dd= project.clients.sum(:days_served)
+      %dt Days in Range
+      %dd= project.project_pass_fail.filter.range.count
+      %dt Average Available Beds per Day
+      %dd= project.available_beds
+    - if can_view_clients? && !@pdf
+      = link_to project_pass_fail_warehouse_reports_project_pass_fail_project_path(project.project_pass_fail, project), class: 'btn btn-primary', target: :_blank do
+        Client Details
+  .col-sm-6
+    %table.table
+      %tbody
+        %tr
+          %th Metric
+          %th Error Rate
+        - project.universal_data_element_rates.each do |label, value|
+          %tr
+            %th= label
+            %td= number_to_percentage(value * 100, precision: 2)
+  .col-sm-3
+    %dl
+      %dt Minimum Days to Enter
+      %dd= project.clients.minimum(:days_to_enter_entry_date)
+      %dt Maximum Days to Enter
+      %dd= project.clients.maximum(:days_to_enter_entry_date)
