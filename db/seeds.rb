@@ -761,7 +761,7 @@ def report_list
   end
   if RailsDrivers.loaded.include?(:project_scorecard)
     r_list['Performance'] << {
-      url: 'project_scorecard/warehouse_reports/scorecard',
+      url: 'project_scorecard/warehouse_reports/scorecards',
       name: 'Project Scorecard',
       description: 'Instrument for evaluating project performance.',
       limitable: true,
@@ -809,6 +809,7 @@ def cleanup_unused_reports
   cleanup << 'claims_reporting/warehouse_reports/reconciliation' unless RailsDrivers.loaded.include?(:claims_reporting)
   cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
   cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
+  cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
   cleanup.each do |url|
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
   end
