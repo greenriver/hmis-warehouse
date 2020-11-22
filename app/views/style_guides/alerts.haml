@@ -29,7 +29,51 @@
       %button.btn.btn-default.ml-auto{type: 'button'}
         Call to action
 
-
+.mb-6
+  %h3 Checkboxes
+  .row
+    .col-sm-6
+      %p
+        Icon font
+        %br
+        = checkmark_or_x(true)
+        \-- True
+        %br
+        = checkmark_or_x(false)
+        \-- False
+        %br
+        = checkmark_or_x(true, 'With tooltip!')
+        \-- With tooltip
+        %br
+        = checkmark_or_x(false, size: :sm)
+        \-- Small
+        %br
+        = checkmark_or_x(false, size: :md)
+        \-- Medium
+        %br
+        = checkmark_or_x(false, size: :lg)
+        \-- Large
+    .col-sm-6
+      %p
+        SVG
+        %br
+        = checkmark_or_x(true, style: :svg)
+        \-- True
+        %br
+        = checkmark_or_x(false, style: :svg)
+        \-- False
+        %br
+        = checkmark_or_x(true, 'With tooltip!', style: :svg)
+        \-- With tooltip
+        %br
+        = checkmark_or_x(false, style: :svg, size: :sm)
+        \-- Small
+        %br
+        = checkmark_or_x(false, style: :svg, size: :md)
+        \-- Medium
+        %br
+        = checkmark_or_x(false, style: :svg, size: :lg)
+        \-- Large
 .mb-6
   = render 'buttons'
 

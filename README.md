@@ -70,7 +70,7 @@ Once these are in place, `bin/setup` should:
 
 If all goes well you should then be able to run `bin/rails server` and open the Warehouse in your system at http://localhost:3000 using the email/password created during `bin/setup`. If not, read `bin/setup` to figure out what went wrong and fix it.
 
-Hack on your version as you see fit and if you have questions or want to contibute open an issue on github.
+Hack on your version as you see fit and if you have questions or want to contribute open an issue on github.
 
 # Developer Notes
 

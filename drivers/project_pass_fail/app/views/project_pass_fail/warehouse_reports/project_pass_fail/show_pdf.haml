@@ -1,0 +1,8 @@
+- title = _('Project Pass/Fail Report')
+- content_for :title, title
+
+.d-flex
+  %h1.mb-5= title
+
+= render 'project_pass_fail/warehouse_reports/project_pass_fail/show'
+-#= svg 'symbol-defs'
