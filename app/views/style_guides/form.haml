@@ -27,10 +27,12 @@
 - validate_html = { input_html: {class: 'validate'}}
 - form_defaults = { required: false }
 - collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
+- huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
 .container.py-4
   %h1 Form
   %section
     = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults do |f|
+      = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => api_projects_path(format: :json) }}
       .row
         .col-6
           %h4 Default input

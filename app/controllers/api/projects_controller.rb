@@ -17,24 +17,29 @@ module Api
 
     def index
       respond_to do |format|
+        @data = {}
+        selected_project_ids = project_params[:selected_project_ids]&.
+          map(&:to_i)&.
+          compact || []
+        project_scope.
+          pluck(
+            :id,
+            :ProjectName,
+            :computed_project_type,
+            o_t[:OrganizationName],
+          ).each do |id, p_name, type, o_name|
+            @data[o_name] ||= []
+            @data[o_name] << [
+              "#{p_name} (#{HUD.project_type_brief(type)})",
+              id,
+              selected_project_ids.include?(id),
+            ]
+          end
         format.html do
-          @data = {}
-          selected_project_ids = project_params[:selected_project_ids]&.map(&:to_i)&.compact || []
-          project_scope.
-            pluck(
-              :id,
-              :ProjectName,
-              :computed_project_type,
-              o_t[:OrganizationName],
-            ).each do |id, p_name, type, o_name|
-              @data[o_name] ||= []
-              @data[o_name] << [
-                "#{p_name} (#{HUD.project_type_brief(type)})",
-                id,
-                selected_project_ids.include?(id),
-              ]
-            end
           render layout: false
+        end
+        format.json do
+          render json: select2ize(@data)
         end
       end
     end
@@ -57,35 +62,43 @@ module Api
     end
 
     def set_data_sources
-      @data_source_ids = begin
-                           project_params[:data_source_ids].select(&:present?).map(&:to_i)
-                         rescue StandardError
-                           data_source_source.pluck(:id)
-                         end
+      ds_ids = project_params[:data_source_ids].select(&:present?) if project_params[:data_source_ids].present?
+      @data_source_ids = if ds_ids.present?
+        ds_ids.map(&:to_i)
+      else
+        data_source_source.pluck(:id)
+      end
     end
 
     def set_organizations
-      @organization_ids = begin
-                            project_params[:organization_ids].select(&:present?).map(&:to_i)
-                          rescue StandardError
-                            organization_source.pluck(:id)
-                          end
+      org_ids = project_params[:organization_ids].select(&:present?) if project_params[:organization_ids].present?
+      @organization_ids = if org_ids.present?
+        org_ids.map(&:to_i)
+      else
+        organization_source.pluck(:id)
+      end
     end
 
     def set_project_types
-      @project_types = if project_params[:project_types].present? || project_params[:project_type_ids].present?
-        []
+      if project_params[:project_types].present? || project_params[:project_type_ids].present?
+        @project_types = []
       else
-        HUD.project_types.keys
+        # none provided, limit to known types
+        @project_types = HUD.project_types.keys
+        return
       end
-      begin
+
+      if project_params[:project_types].present?
         project_params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
           @project_types += project_source::RESIDENTIAL_PROJECT_TYPES[type]
         end
-        @project_types += project_params[:project_type_ids]&.select(&:present?)&.map(&:to_i) if project_params[:project_type_ids].present?
-      rescue StandardError
-        @project_types = HUD.project_types.keys
       end
+      if project_params[:project_type_ids].present?
+        @project_types += project_params[:project_type_ids]&.
+          select(&:present?)&.
+          map(&:to_i)
+      end
+
       @project_types
     end
 
