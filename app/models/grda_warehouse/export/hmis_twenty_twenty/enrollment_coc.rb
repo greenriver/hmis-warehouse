@@ -19,6 +19,8 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     # HouseholdID is required, but often not provided, send some sane defaults
     # Also unique the HouseholdID to a data source
     def apply_overrides row, data_source_id:
+      row[:ProjectID] = project_id_from_enrollment_id(row[:EnrollmentID], data_source_id) if row[:ProjectID].blank?
+
       if row[:HouseholdID].blank?
         row[:HouseholdID] = Digest::MD5.hexdigest("e_#{data_source_id}_#{row[:ProjectID]}_#{row[:EnrollmentID]}")
       else
@@ -31,6 +33,17 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       row[:DataCollectionStage] = 99 if row[:DataCollectionStage].blank?
 
       return row
+    end
+
+    def project_id_from_enrollment_id(enrollment_id, data_source_id)
+      @project_id_from_enrollment_id ||= {}.tap do |enrollments|
+        GrdaWarehouse::Hud::Enrollment.
+          pluck(:EnrollmentID, :data_source_id, :ProjectID).
+          each do |e_id, ds_id, p_id|
+            enrollments[[e_id, ds_id]] = p_id
+          end
+      end
+      @project_id_from_enrollment_id[[enrollment_id, data_source_id]]
     end
   end
 end
