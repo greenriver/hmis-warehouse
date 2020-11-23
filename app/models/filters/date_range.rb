@@ -12,6 +12,9 @@ module Filters
     attribute :sort
     attribute :age_ranges, Array, default: []
     attribute :heads_of_household, Boolean, default: false
+    attribute :activity_type, Array, default: []
+    attribute :agency_id, Integer
+    attribute :user_id, Integer
 
     validates_presence_of :start, :end
 
