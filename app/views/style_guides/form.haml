@@ -32,7 +32,6 @@
   %h1 Form
   %section
     = simple_form_for @form, as: :mock_2, url: '#', defaults: form_defaults do |f|
-      = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => api_projects_path(format: :json) }}
       .row
         .col-6
           %h4 Default input
@@ -85,6 +84,8 @@
             %p.font-italic Select inputs have class name: <strong>.select2-parenthetical-when-selected</strong>
             = f.input :select2_parenthetical_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
 
+            %h4 Select 2 - Ajax load of Projects
+            = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => api_projects_path(format: :json) }}, label: 'Projects'
           %h4 Password
           = f.input :password, as: :password, required: true, **validate_html
 

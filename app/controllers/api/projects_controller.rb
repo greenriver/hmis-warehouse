@@ -39,6 +39,7 @@ module Api
           render layout: false
         end
         format.json do
+          # NOTE: pre-selection does not work if this is fetched via AJAX by select2
           render json: select2ize(@data)
         end
       end
@@ -53,8 +54,10 @@ module Api
           text: org_name,
           children: [],
         }
-        projects.each do |name, id|
-          group[:children] << { id: id, text: name }
+        projects.each do |name, id, selected|
+          proj = { id: id, text: name }
+          proj[:selected] = selected if selected
+          group[:children] << proj
         end
         formatted[:results] << group
       end
