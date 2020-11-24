@@ -30,6 +30,10 @@ module Health
           @active_filter = true
           @patients = @patients.where(care_coordinator_id: params[:filter][:user].to_i)
         end
+        if params[:filter][:nurse_care_manager_id].present?
+          @active_filter = true
+          @patients = @patients.where(nurse_care_manager_id: params[:filter][:nurse_care_manager_id].to_i)
+        end
       end
       respond_to do |format|
         format.html do
