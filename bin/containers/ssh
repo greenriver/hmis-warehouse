@@ -53,6 +53,8 @@ class ContainerList
 
     to_run = nil
     instances.each.with_index do |instance, _i|
+      break unless to_run.nil?
+
       ip = instance.public_ip_address
       remote_cmd = "bash -l -c \"docker container ls --format='#{ip}|{{print .ID}}|{{print .Names}}|{{print .RunningFor}}|{{println .Image}}'\""
 
@@ -61,18 +63,17 @@ class ContainerList
       # Pull out results from remote system
       lines = `#{full_cmd}`.split(/\n/).reject { |l| l.match?(/^\s*$/) }
 
-      run_cmd = lines.map do |line|
+      lines.each do |line|
         (_, container_id, task) = line.split(/\|/)
 
         # Skip the ECS agent
         next if task.match?(/ecs-agent/)
 
-        "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
-      end.compact&.detect do |cmd|
-        cmd.include?(service_string)
+        if task.include?(service_string)
+          to_run = "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
+          break
+        end
       end
-      to_run = run_cmd if run_cmd
-      break
     end
     if to_run
       puts 'Connecting to:'

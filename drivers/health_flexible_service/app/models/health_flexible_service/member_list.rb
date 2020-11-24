@@ -32,6 +32,7 @@ module HealthFlexibleService
         vprs = vpr_scope(category_name)
         vprs.each_with_index do |vpr, row_index|
           columns(vpr, category_name).each_with_index do |value, col_index|
+            value = value.join(', ') if value.is_a?(Array)
             worksheet.add_cell(row_index + 1, col_index, value)
           end
         end
@@ -65,7 +66,7 @@ module HealthFlexibleService
         vpr[:race],
         vpr[:primary_language],
         vpr[:education],
-        vpr[:employment],
+        vpr[:employment_status],
       ]
     end
 

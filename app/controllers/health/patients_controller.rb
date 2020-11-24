@@ -33,6 +33,10 @@ module Health
           @active_filter = true
           @patients = @patients.where(care_coordinator_id: params[:filter][:user].to_i)
         end
+        if params[:filter][:nurse_care_manager_id].present?
+          @active_filter = true
+          @patients = @patients.where(nurse_care_manager_id: params[:filter][:nurse_care_manager_id].to_i)
+        end
       end
 
       @report = Health::AgencyPerformance.new(range: (@start_date..@end_date), agency_scope: Health::Agency.where(id: @active_agency.id))
