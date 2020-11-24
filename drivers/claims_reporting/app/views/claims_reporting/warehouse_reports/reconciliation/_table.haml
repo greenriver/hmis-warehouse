@@ -12,7 +12,7 @@
       = link_to url_for(format: :csv) do
         Download
         %span.icon-download2
-    %table.table.table-hover
+    %table.table.table-sm.datatable
       %thead
         %tr
           %th Medicaid ID
@@ -26,3 +26,11 @@
             %td= patient.first_name
             %td= patient.last_name
             %td= @report.qualifying_activity_count_for_patient(patient)
+  = content_for :page_js do
+    :javascript
+      $('.datatable').DataTable({
+        searching: false,
+        ordering: true,
+        paging: false,
+        info: false
+      });
