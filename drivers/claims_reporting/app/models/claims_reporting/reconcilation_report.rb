@@ -78,5 +78,19 @@ module ClaimsReporting
         paid_dos: report_date_range,
       )
     end
+
+    def to_csv
+      CSV.generate(headers: true) do |csv|
+        csv << ['Medicaid ID', 'First Name', 'Last Name', 'Qualifying Activities']
+        patients_without_payments.each do |patient|
+          csv << [
+            patient.medicaid_id,
+            patient.first_name,
+            patient.last_name,
+            qualifying_activity_count_for_patient(patient),
+          ]
+        end
+      end
+    end
   end
 end

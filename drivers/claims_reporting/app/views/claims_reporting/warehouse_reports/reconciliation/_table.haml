@@ -8,6 +8,10 @@
       %b Found #{pluralize @report.patients_without_payments.size, 'missing claim'} during this period.
   - elsif @report.patients_without_payments.any?
     %p No record of payment could be found for the following #{pluralize @report.patients_without_payments.size, 'patient'}:
+    .pull-right
+      = link_to url_for(format: :csv) do
+        Download
+        %span.icon-download2
     %table.table.table-hover
       %thead
         %tr
