@@ -40,7 +40,7 @@
       - selection_candidates = [current_user] + current_user.care_coordinators
       = select_tag('filter[user]', options_from_collection_for_select(selection_candidates.uniq, :id, :name, params.dig(:filter, :user)), include_blank: 'All', class: 'select2', style: 'width: 100%;')
       %label.mt-4 Nurse Care Manager
-      - selection_candidates = [current_user] + current_user.care_coordinators
+      - selection_candidates = [current_user] + User.nurse_care_managers.to_a
       = select_tag('filter[nurse_care_manager_id]', options_from_collection_for_select(selection_candidates.uniq, :id, :name, params.dig(:filter, :nurse_care_manager_id)), include_blank: 'All', class: 'select2', style: 'width: 100%;')
 
       .o-filtration__actions.form__actions
