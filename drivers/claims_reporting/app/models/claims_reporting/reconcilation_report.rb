@@ -81,12 +81,13 @@ module ClaimsReporting
 
     def to_csv
       CSV.generate(headers: true) do |csv|
-        csv << ['Medicaid ID', 'First Name', 'Last Name', 'Qualifying Activities']
+        csv << ['Medicaid ID', 'First Name', 'Last Name', 'Care Plans Signed', 'Qualifying Activities']
         patients_without_payments.each do |patient|
           csv << [
             patient.medicaid_id,
             patient.first_name,
             patient.last_name,
+            patient.careplans.map { |d| l d.provider_signed_on }.to_sentence,
             qualifying_activity_count_for_patient(patient),
           ]
         end
