@@ -2,41 +2,26 @@
   = link_to import_path(@import) do
     &laquo; Import Log
 
-%h1= "Problems Importing #{@filename}"
+%h1= "Importer Errors for #{@filename}"
 
-%ul.nav.nav-tabs.mb-0
-  %li.nav-item
-    %a.nav-link.active{href: '#validation-flags', role: 'presentation', data: {toggle: :tab}, aria: {controls: 'validation-flags', selected: :true}}
-      Validation Flags
-  %li.nav-item
-    %a.nav-link{href: '#importer-errors', role: 'presentation', data: {toggle: :tab}, aria: {controls: 'importer-errors', selected: :true}}
-      Importer Errors
+%ul.nav.nav-tabs{role: "presentation"}
+  %li.nav-item{role: 'presentation'}
+    = link_to 'Validation Flags', hmis_csv_twenty_twenty_importer_validation_path(@import.importer_log, file: @filename), class: 'nav-link'
+  %li.nav-item.active{role: 'presentation'}
+    = link_to 'Importer Errors', hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: @filename), class: 'nav-link'
 
-.tab-content
-  .tab-pane.show.active.fade#validation-flags{role: 'tabpanel', aria: {labelledby: 'validation-flags'}}
-    %table.table
-      %thead
+- if @errors.present?
+  = paginate @errors
+  %table.table
+    %thead
+      %tr
+        %th Error
+        %th HUD ID
+    %tbody
+      - @errors.each do |error|
         %tr
-          %th Type
-          %th Message
-          %th HUD ID
-      %tbody
-        - @validations.each do |error|
-          %tr
-            %td= error.class.type_name
-            %td= error.status
-            - source = error.source
-            %td= source.send(source.class.hud_key) if source.present?
-
-  .tab-pane.fade#importer-errors{role: 'tabpanel', aria: {labelledby: 'importer-errors'}}
-    %table.table
-      %thead
-        %tr
-          %th Error
-          %th HUD ID
-      %tbody
-        - @errors.each do |error|
-          %tr
-            %td= error.details
-            - source = error.source
-            %td= source.send(source.class.hud_key) if source.present?
+          %td= error.details
+          - source = error.source
+          %td= source.send(source.class.hud_key) if source.present?
+- else
+  %p.well.none-found No importer errors.

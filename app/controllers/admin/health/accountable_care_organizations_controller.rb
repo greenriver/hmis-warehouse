@@ -68,6 +68,7 @@ module Admin::Health
         :active,
         :e_d_file_prefix,
         :e_d_receiver_text,
+        :vpr_name,
       )
     end
   end

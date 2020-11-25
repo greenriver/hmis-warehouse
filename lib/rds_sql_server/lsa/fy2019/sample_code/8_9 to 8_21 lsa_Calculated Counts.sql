@@ -33,7 +33,10 @@ Date:  4/15/2020
 		9/17/2020 - 8.13 - add max age criteria for popIDs 145-148
 					8.20 - in WHERE clause, LastBednight <= dateadd(dd, -90, cd.CohortEnd) (was just <)
 		9/24/2020 - 8.9 through 8.14 - limit relevant bednights to those >= entry and < exit dates (if non-NULL)
-						because enrollment dates may have been adjusted in tlsa_HHID/tlsa_Enrollment 
+						because enrollment dates may have been adjusted in tlsa_HHID/tlsa_Enrollment
+		10/29/2020 - 8.21 Correction to comment identifying section name / no change to code 
+		11/23/2020 - 8.17 & 8.18.1/2 - add Active = 1 to WHERE clause 
+					 8.21 - remove EntryDate > ReportStart criteria from left join to hmis_Exit
 
 	8.9 Get Counts of People by Project ID and Household Characteristics
 */
@@ -773,7 +776,7 @@ Date:  4/15/2020
 	left outer join ref_Calendar bnd on bnd.theDate = bn.DateProvided
 		and bnd.theDate >= rpt.ReportStart and bnd.theDate <= rpt.ReportEnd
 		and n.ProjectType = 1 and n.TrackingMethod = 3
-	where pop.PopID in (3,6) and pop.PopType = 3
+	where n.Active = 1 and pop.PopID in (3,6) and pop.PopType = 3
 	group by n.ProjectID, rpt.ReportID, pop.PopID, pop.HHType
 
 /*
@@ -820,7 +823,7 @@ Date:  4/15/2020
 	left outer join ref_Calendar bnd on bnd.theDate = bn.DateProvided
 		and bnd.theDate >= rpt.ReportStart and bnd.theDate <= rpt.ReportEnd
 		and n.ProjectType = 1 and n.TrackingMethod = 3
-	where pop.PopID in (3,6) and pop.PopType = 3
+	where n.Active = 1 and pop.PopID in (3,6) and pop.PopType = 3
 	group by rpt.ReportID, pop.PopID, pop.HHType, n.ProjectType
 
 	--ES/SH/TH unduplicated
@@ -854,7 +857,7 @@ Date:  4/15/2020
 	left outer join ref_Calendar bnd on bnd.theDate = bn.DateProvided
 		and bnd.theDate >= rpt.ReportStart and bnd.theDate <= rpt.ReportEnd
 		and n.ProjectType = 1 and n.TrackingMethod = 3
-	where pop.PopID in (3,6) and pop.PopType = 3
+	where n.Active = 1 and pop.PopID in (3,6) and pop.PopType = 3
 		and n.ProjectType in (1,8,2)
 	group by rpt.ReportID, pop.PopID, pop.HHType
 
@@ -914,7 +917,7 @@ Date:  4/15/2020
 		, p.ProjectID, cd.ReportID
 
 /*
-	8.21 Get Counts of Enrollments with no Enrollment CoC Record
+	8.21 Get Counts of Households with no Enrollment CoC Record
 */
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
@@ -924,7 +927,6 @@ Date:  4/15/2020
 	inner join hmis_Enrollment hn on hn.EntryDate <= rpt.ReportEnd
 	inner join lsa_Project p on p.ProjectID = hn.ProjectID and p.ProjectType not in (9,10)
 	left outer join hmis_Exit hx on hx.EnrollmentID = hn.EnrollmentID 
-		and hx.ExitDate >= rpt.ReportStart
 		and hx.DateDeleted is null
 	left outer join hmis_Enrollment hoh on hoh.HouseholdID = hn.HouseholdID 
 		and hoh.RelationshipToHoH = 1 

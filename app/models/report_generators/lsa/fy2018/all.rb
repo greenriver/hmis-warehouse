@@ -114,6 +114,10 @@ module ReportGenerators::Lsa::Fy2018
       "#{ ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '') }-#{ Rails.env }-LSA-#{@report.id}".downcase
     end
 
+    def sql_server_database
+      sql_server_identifier.underscore
+    end
+
     def create_hmis_csv_export
       # debugging
       if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
@@ -146,7 +150,8 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def setup_temporary_rds
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       ::Rds.timeout = 60_000_000
       @rds = ::Rds.new
       @rds.setup!
@@ -270,7 +275,8 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def setup_hmis_table_structure
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       load 'lib/rds_sql_server/lsa/fy2018/hmis_table_structure.rb'
     end
 
@@ -482,18 +488,21 @@ module ReportGenerators::Lsa::Fy2018
 
 
     def setup_lsa_reference_tables
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       load 'lib/rds_sql_server/lsa/fy2018/lsa_reference_table_structure.rb'
     end
 
     def setup_lsa_table_structure
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       load 'lib/rds_sql_server/lsa/fy2018/lsa_table_structure.rb'
     end
 
     def validate_lsa_sample_code
       unless ENV['NO_LSA_RDS'].present?
-        ::Rds.identifier = sql_server_identifier
+        ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+        ::Rds.database = sql_server_database
         ::Rds.timeout = 60_000_000
       end
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
@@ -501,7 +510,8 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def run_lsa_queries
-      ::Rds.identifier = sql_server_identifier
+      ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
+      ::Rds.database = sql_server_database
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
       if @lsa_scope == 1 # System wide

@@ -768,6 +768,24 @@ def report_list
       health: true,
     }
   end
+  if RailsDrivers.loaded.include?(:project_pass_fail)
+    r_list['Data Quality'] << {
+      url: 'project_pass_fail/warehouse_reports/project_pass_fail',
+      name: 'Project Pass Fail',
+      description: 'Investigate data quality issues for projects',
+      limitable: true,
+      health: false,
+    }
+  end
+  if RailsDrivers.loaded.include?(:health_flexible_service)
+    r_list['Health: General'] << {
+      url: 'health_flexible_service/warehouse_reports/member_lists',
+      name: 'VPR Member Lists',
+      description: 'Generate the quarterly member list files for flex services',
+      limitable: true,
+      health: true,
+    }
+  end
   r_list
 end
 
@@ -780,6 +798,8 @@ def cleanup_unused_reports
   cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
   cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
   cleanup << 'claims_reporting/warehouse_reports/reconciliation' unless RailsDrivers.loaded.include?(:claims_reporting)
+  cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
+  cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
   cleanup.each do |url|
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
   end

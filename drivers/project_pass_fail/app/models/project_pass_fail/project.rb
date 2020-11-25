@@ -1,0 +1,124 @@
+###
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+###
+
+module ProjectPassFail
+  class Project < GrdaWarehouseBase
+    self.table_name = :project_pass_fails_projects
+    belongs_to :project_pass_fail, inverse_of: :projects
+    belongs_to :apr, class_name: 'HudReports::ReportInstance'
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
+    has_many :clients, inverse_of: :project, dependent: :destroy
+
+    # Data quality acceptable error rates
+    def self.universal_data_element_threshold
+      0.02
+    end
+
+    # Acceptable utilization rates
+    def self.utilization_range
+      (0.66..1.04)
+    end
+
+    # Days allowed for entering entry assessments
+    def self.timeliness_threshold
+      3
+    end
+
+    def utilization_rate_as_percent
+      (utilization_rate * 100).round(2)
+    end
+
+    def within_utilization_threshold?
+      utilization_rate.in?(self.class.utilization_range)
+    end
+
+    def within_universal_data_element_threshold?
+      universal_data_element_rates.values.max <= self.class.universal_data_element_threshold
+    end
+
+    def within_timeliness_threshold?
+      average_days_to_enter_entry_date <= self.class.timeliness_threshold
+    end
+
+    def universal_data_element_rates
+      {
+        'Name' => name_error_rate,
+        'SSN' => ssn_error_rate,
+        'DOB' => dob_error_rate,
+        'Race' => race_error_rate,
+        'Ethnicity' => ethnicity_error_rate,
+        'Gender' => gender_error_rate,
+        'Veteran' => veteran_status_error_rate,
+        'Entry Date' => start_date_error_rate,
+        'Relationship to HoH' => relationship_to_hoh_error_rate,
+        'Location' => location_error_rate,
+        'Disabling Condition' => disabling_condition_error_rate,
+      }
+    end
+
+    def calculate_utilization_rate
+      self.utilization_rate = if available_beds.positive? && clients.exists?
+        clients.sum(:days_served).to_f / project_pass_fail.filter.range.count / available_beds
+      else
+        0
+      end
+      self.utilization_count = clients.count
+    end
+
+    private def destination_client_service_counts
+      @destination_client_service_counts ||= ::GrdaWarehouse::ServiceHistoryService.where(
+        date: project_pass_fail.filter.range,
+      ).
+        joins(:service_history_enrollment).
+        merge(
+          GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            where(
+              project_id: project.ProjectID,
+              data_source_id: project.data_source_id,
+            ),
+        ).
+        group(:client_id).distinct.count(:date)
+    end
+
+    def service_counts_for(destination_client_id)
+      destination_client_service_counts[destination_client_id]
+    end
+
+    def calculate_universal_data_element_rates
+      self.name_error_rate = apr.answer(question: 'Q6a', cell: 'F2').summary.to_f
+      self.ssn_error_rate = apr.answer(question: 'Q6a', cell: 'F3').summary.to_f
+      self.dob_error_rate = apr.answer(question: 'Q6a', cell: 'F4').summary.to_f
+      self.race_error_rate = apr.answer(question: 'Q6a', cell: 'F5').summary.to_f
+      self.ethnicity_error_rate = apr.answer(question: 'Q6a', cell: 'F6').summary.to_f
+      self.gender_error_rate = apr.answer(question: 'Q6a', cell: 'F7').summary.to_f
+      self.veteran_status_error_rate = apr.answer(question: 'Q6b', cell: 'C2').summary.to_f
+      self.start_date_error_rate = apr.answer(question: 'Q6b', cell: 'C3').summary.to_f
+      self.relationship_to_hoh_error_rate = apr.answer(question: 'Q6b', cell: 'C4').summary.to_f
+      self.location_error_rate = apr.answer(question: 'Q6b', cell: 'C5').summary.to_f
+      self.disabling_condition_error_rate = apr.answer(question: 'Q6b', cell: 'C6').summary.to_f
+
+      self.name_error_count = apr.answer(question: 'Q6a', cell: 'E2').summary.to_f
+      self.ssn_error_count = apr.answer(question: 'Q6a', cell: 'E3').summary.to_f
+      self.dob_error_count = apr.answer(question: 'Q6a', cell: 'E4').summary.to_f
+      self.race_error_count = apr.answer(question: 'Q6a', cell: 'E5').summary.to_f
+      self.ethnicity_error_count = apr.answer(question: 'Q6a', cell: 'E6').summary.to_f
+      self.gender_error_count = apr.answer(question: 'Q6a', cell: 'E7').summary.to_f
+      self.veteran_status_error_count = apr.answer(question: 'Q6b', cell: 'B2').summary.to_f
+      self.start_date_error_count = apr.answer(question: 'Q6b', cell: 'B3').summary.to_f
+      self.relationship_to_hoh_error_count = apr.answer(question: 'Q6b', cell: 'B4').summary.to_f
+      self.location_error_count = apr.answer(question: 'Q6b', cell: 'B5').summary.to_f
+      self.disabling_condition_error_count = apr.answer(question: 'Q6b', cell: 'B6').summary.to_f
+    end
+
+    def calculate_timeliness
+      self.average_days_to_enter_entry_date = if clients.exists?
+        clients.sum(:days_to_enter_entry_date) / clients.count.to_f
+      else
+        0
+      end
+    end
+  end
+end

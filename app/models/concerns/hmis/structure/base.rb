@@ -132,7 +132,7 @@ module HMIS::Structure::Base
         # enforce a short index name
         # cols = columns.map { |c| "#{c[0..5]&.downcase}#{c[-4..]&.downcase}" }
         # name = ([table_name[0..4]+table_name[-4..]] + cols).join('_')
-        name = table_name + '-' + SecureRandom.alphanumeric(4)
+        name = table_name.gsub(/[^0-9a-z ]/i, '') + '_' + SecureRandom.alphanumeric(4)
         next if connection.index_exists?(table_name, columns, name: name)
 
         connection.add_index table_name, columns, name: name

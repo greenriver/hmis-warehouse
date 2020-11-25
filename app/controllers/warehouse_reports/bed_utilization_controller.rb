@@ -63,14 +63,6 @@ module WarehouseReports
             0
           end
         end
-      else
-        @projects_with_counts = (
-          begin
-            @mo.organization.projects.viewable_by(current_user).map { |p| [p, []] }
-           rescue StandardError
-             {}
-          end
-        )
       end
       respond_to :html
     end

@@ -1,0 +1,43 @@
+- accordion_class = if @pdf then '' else '' end
+%h3= link_to_if can_view_projects?, project.project&.ProjectName, project_path(project.project)
+.well.page-break-after
+  .d-flex.text-center.justify-content-center.mt-4
+    .overall-utilization-rate.chunk.mr-4.ml-4
+      - status_class = if project.within_utilization_threshold? then 'text-success' else 'text-danger' end
+      .ml-2.mr-2
+        %h4.title Utilization Rate
+        .d-flex.justify-content-center
+          = embedded_svg(:group)
+        .metric{class: status_class}
+          = number_to_percentage project.utilization_rate_as_percent, precision: 2
+    .overall-universal-data-elements.chunk.mr-auto.ml-auto
+      - status_class = if project.within_universal_data_element_threshold? then 'text-success' else 'text-danger' end
+      .ml-2.mr-2
+        %h4.title
+          All Universal Data Element
+          %br
+          Error Rates Within Threshold?
+        .d-flex.justify-content-center
+          = embedded_svg('file-text')
+        .metric-sm.mt-2{class: status_class, style: 'font-size: 1rem;'}
+          = checkmark_or_x(project.within_universal_data_element_threshold?, size: :sm, style: :svg)
+    .overall-timeliness.chunk.mr-4.ml-4
+      - status_class = if project.within_timeliness_threshold? then 'text-success' else 'text-danger' end
+      .ml-2.mr-2
+        %h4.title
+          Average Days
+          %br
+          to Enter Enrollments
+        .d-flex.justify-content-center
+          = embedded_svg(:calendar)
+        .metric{class: status_class}
+          = number_with_delimiter(project.average_days_to_enter_entry_date.round)
+  - if @pdf
+    = render 'project_pass_fail/warehouse_reports/project_pass_fail/project_detail', project: project
+  - else
+    - id = "details-#{project.id}"
+    .panel-group.panel-collapsible{ id: "#{id}-accordion"}
+      - content_for :panel_collapse_content, flush: true do
+        = render 'project_pass_fail/warehouse_reports/project_pass_fail/project_detail', project: project
+
+      = render 'common/panel_collapse', id: id, title: 'Details'
