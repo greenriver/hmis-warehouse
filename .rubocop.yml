@@ -8,7 +8,7 @@ AllCops:
     - 'spec/**/*.rb'
     - 'app/controllers/**/*.rb'
     - 'app/inputs/**/*.rb'
-    # - 'app/helpers/**/*.rb'
+    - 'app/helpers/**/*.rb'
     - 'app/jobs/**/*.rb'
     - 'app/helpers/**/*.rb'
     - 'app/mail_interceptors/**/*.rb'
@@ -21,6 +21,7 @@ AllCops:
     - 'app/models/cohort_columns/**/*.rb'
     - 'app/models/concerns/**/*.rb'
     - 'app/models/eto_api/**/*.rb'
+    - 'app/models/exporters/**/*.rb'
     - 'app/models/grda_warehouse/client_notes/**/*.rb'
     - 'app/models/grda_warehouse/youth/**/*.rb'
     - 'app/models/grda_warehouse/youth_intake/**/*.rb'
@@ -53,13 +54,17 @@ Metrics/AbcSize:
   # The ABC size is a calculated magnitude, so this number can be a Fixnum or
   # a Float.
   Max: 175
+  Exclude:
+    - 'app/models/exporters/tableau'
 Metrics/CyclomaticComplexity:
   Max: 50
   Exclude:
     - 'lib/util/hud.rb'
+    - 'app/models/exporters/tableau'
 Metrics/PerceivedComplexity:
   Max: 50
-
+  Exclude:
+    - 'app/models/exporters/tableau'
 # Trailing commas make for clearer diffs because the last line won't appear
 # to have been changed, as it would if it lacked a comma and had one added.
 Style/TrailingCommaInArguments:
@@ -145,6 +150,9 @@ Layout/MultilineOperationIndentation:
   Enabled: false
 
 Style/AccessModifierDeclarations:
+  Enabled: false
+
+Style/RedundantReturn:
   Enabled: false
 
 Metrics/ModuleLength:
