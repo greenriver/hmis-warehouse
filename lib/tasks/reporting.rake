@@ -19,10 +19,18 @@ namespace :reporting do
   # shut down the LSA server, we'll spool it up on-demand
   desc 'Shutdown unused LSA Servers'
   task lsa_shut_down: [:environment] do
+    # Note the current state
+    load 'lib/rds_sql_server/rds.rb'
+    begin
+      state = Rds.new.current_state
+    rescue Aws::RDS::Errors::DBInstanceNotFound
+      state = 'unknown'
+    end
+    GrdaWarehouse::LsaRdsStateLog.create(state: state)
+
     lsa_report_ids = Report.where(Report.arel_table[:type].matches('%::Lsa::%')).pluck(:id)
     exit if ReportResult.incomplete.updated_today.where(report_id: lsa_report_ids).exists?
 
-    load 'lib/rds_sql_server/rds.rb'
     Rds.new.stop!
   end
 

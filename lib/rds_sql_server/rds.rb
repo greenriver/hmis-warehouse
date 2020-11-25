@@ -271,6 +271,10 @@ class Rds
     end
   end
 
+  def current_state
+    instance_data.db_instance_status
+  end
+
   private
 
   def instance_data
