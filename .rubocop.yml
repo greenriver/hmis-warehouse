@@ -22,6 +22,7 @@ AllCops:
     - 'app/models/concerns/**/*.rb'
     - 'app/models/eto_api/**/*.rb'
     - 'app/models/exporters/**/*.rb'
+    - 'app/models/filters/**/*.rb'
     - 'app/models/grda_warehouse/client_notes/**/*.rb'
     - 'app/models/grda_warehouse/youth/**/*.rb'
     - 'app/models/grda_warehouse/youth_intake/**/*.rb'
