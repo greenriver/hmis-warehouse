@@ -40,7 +40,7 @@ module GrdaWarehouse::ClientNotes
       where(type: types)
     end
 
-    scope :visible_by, -> (user, client) do
+    scope :visible_by, ->(user, client) do
       if user.can_edit_client_notes?
         current_scope
       elsif user.can_view_all_window_notes?
@@ -55,7 +55,7 @@ module GrdaWarehouse::ClientNotes
     end
 
     def self.type_name
-      raise "Must be implemented in sub-class"
+      raise 'Must be implemented in sub-class'
     end
 
     def type_name
@@ -85,4 +85,3 @@ module GrdaWarehouse::ClientNotes
     end
   end
 end
-
