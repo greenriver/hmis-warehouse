@@ -24,7 +24,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
           e_coc.CoCCode = nil
         end
         # double check the resulting code is valid, blank it if not
-        c_coc.CocCode = nil if e_coc.CoCCode.present? && ! ::HUD.valid_coc?(e_coc.CoCCode)
+        e_coc.CoCCode = nil if e_coc.CoCCode.present? && ! ::HUD.valid_coc?(e_coc.CoCCode)
 
         e_coc.set_source_hash
         enrollment_coc_batch << e_coc

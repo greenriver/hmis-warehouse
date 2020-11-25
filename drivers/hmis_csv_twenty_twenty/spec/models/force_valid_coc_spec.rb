@@ -43,6 +43,11 @@ RSpec.describe 'Force Valid CoC Codes', type: :model do
     it 'Includes ignores CoCCodes it cannot fix' do
       expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).compact.count).to eq(3)
     end
+
+    it 'Includes corrected CoCCodes' do
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-502')
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-503')
+    end
   end
 
   def setup(with_cleanup:)
@@ -52,7 +57,7 @@ RSpec.describe 'Force Valid CoC Codes', type: :model do
     file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/cleanup_move_ins'
 
     @data_source = if with_cleanup
-      create(:prepend_project_ids)
+      create(:force_valid_enrollment_cocs)
     else
       create(:dont_cleanup_ds)
     end
