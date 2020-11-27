@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
   class EmploymentEducation < Base
     include HudSharedScopes
     include ::HMIS::Structure::EmploymentEducation
+    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 
