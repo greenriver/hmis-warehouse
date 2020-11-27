@@ -27,7 +27,7 @@ FactoryBot.define do
     source_type { :sftp }
     import_cleanups do
       {
-        'Project': ['HmisCsvTwentyTwenty::HmisCsvCleanup::ForceValidEnrollmentCoc'],
+        'EnrollmentCoC': ['HmisCsvTwentyTwenty::HmisCsvCleanup::ForceValidEnrollmentCoc'],
       }
     end
   end
