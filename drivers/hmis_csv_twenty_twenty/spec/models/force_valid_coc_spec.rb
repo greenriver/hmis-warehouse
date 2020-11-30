@@ -13,14 +13,15 @@ RSpec.describe 'Force Valid CoC Codes', type: :model do
       FileUtils.rm_rf(@import_path)
     end
 
-    it 'Has 8 enrollment cocs' do
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.count).to eq(8)
+    it 'Has 9 enrollment cocs' do
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.count).to eq(9)
     end
 
     it 'Includes invalid CoCCodes' do
       expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA5001')
       expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('zz999')
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).compact.count).to eq(8)
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('ma504')
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).compact.count).to eq(9)
     end
   end
 
@@ -36,17 +37,18 @@ RSpec.describe 'Force Valid CoC Codes', type: :model do
       FileUtils.rm_rf(@import_path)
     end
 
-    it 'Has 8 enrollment cocs' do
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.count).to eq(8)
+    it 'Has 9 enrollment cocs' do
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.count).to eq(9)
     end
 
     it 'Includes ignores CoCCodes it cannot fix' do
-      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).compact.count).to eq(3)
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode).compact.count).to eq(4)
     end
 
     it 'Includes corrected CoCCodes' do
       expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-502')
       expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-503')
+      expect(GrdaWarehouse::Hud::EnrollmentCoc.pluck(:CoCCode)).to include('MA-504')
     end
   end
 
