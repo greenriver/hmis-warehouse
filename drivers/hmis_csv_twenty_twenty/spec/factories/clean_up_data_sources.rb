@@ -21,6 +21,17 @@ FactoryBot.define do
     end
   end
 
+  factory :force_valid_enrollment_cocs, class: 'GrdaWarehouse::DataSource' do
+    name { 'Force Valid CoCs' }
+    short_name { 'CoCCode' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'EnrollmentCoc': ['HmisCsvTwentyTwenty::HmisCsvCleanup::ForceValidEnrollmentCoc'],
+      }
+    end
+  end
+
   factory :dont_cleanup_ds, class: 'GrdaWarehouse::DataSource' do
     name { 'Dont Clean Up Move In Dates' }
     short_name { 'Move In' }
