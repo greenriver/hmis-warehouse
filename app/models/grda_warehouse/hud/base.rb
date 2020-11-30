@@ -7,6 +7,5 @@
 module GrdaWarehouse::Hud
   class Base < GrdaWarehouseBase
     self.abstract_class = true
-
   end
 end

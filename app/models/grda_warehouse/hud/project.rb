@@ -12,7 +12,7 @@ module GrdaWarehouse::Hud
     include ProjectReport
     include ::HMIS::Structure::Project
     include RailsDrivers::Extensions
-    
+
     attr_accessor :source_id
 
     self.table_name = :Project

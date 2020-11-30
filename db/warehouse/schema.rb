@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_11_165550) do
+ActiveRecord::Schema.define(version: 2020_11_25_130708) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4652,6 +4652,12 @@ ActiveRecord::Schema.define(version: 2020_11_11_165550) do
     t.index ["value"], name: "index_lookups_yes_no_etcs_on_value"
   end
 
+  create_table "lsa_rds_state_logs", force: :cascade do |t|
+    t.string "state"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "new_service_history", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "data_source_id"
@@ -5121,6 +5127,62 @@ ActiveRecord::Schema.define(version: 2020_11_11_165550) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.datetime "deleted_at"
+  end
+
+  create_table "project_scorecard_reports", force: :cascade do |t|
+    t.bigint "project_id"
+    t.bigint "project_group_id"
+    t.string "status", default: "pending"
+    t.bigint "user_id"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "sent_at"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "recipient"
+    t.string "subrecipient"
+    t.date "start_date"
+    t.date "end_date"
+    t.string "funding_year"
+    t.string "grant_term"
+    t.integer "utilization_jan"
+    t.integer "utilization_apr"
+    t.integer "utilization_jul"
+    t.integer "utilization_oct"
+    t.integer "utilization_proposed"
+    t.integer "chronic_households_served"
+    t.integer "total_households_served"
+    t.integer "total_persons_served"
+    t.integer "total_persons_with_positive_exit"
+    t.integer "total_persons_exited"
+    t.integer "excluded_exits"
+    t.integer "average_los_leavers"
+    t.integer "percent_increased_employment_income_at_exit"
+    t.integer "percent_increased_other_cash_income_at_exit"
+    t.integer "percent_returns_to_homelessness"
+    t.integer "percent_pii_errors"
+    t.integer "percent_ude_errors"
+    t.integer "percent_income_and_housing_errors"
+    t.integer "days_to_lease_up"
+    t.integer "number_referrals"
+    t.integer "accepted_referrals"
+    t.integer "funds_expended"
+    t.integer "amount_awarded"
+    t.integer "months_since_start"
+    t.boolean "pit_participation"
+    t.integer "coc_meetings"
+    t.integer "coc_meetings_attended"
+    t.string "improvement_plan"
+    t.string "financial_plan"
+    t.string "site_monitoring"
+    t.integer "total_ces_referrals"
+    t.integer "accepted_ces_referrals"
+    t.integer "clients_with_vispdats"
+    t.integer "average_vispdat_score"
+    t.index ["project_group_id"], name: "index_project_scorecard_reports_on_project_group_id"
+    t.index ["project_id"], name: "index_project_scorecard_reports_on_project_id"
+    t.index ["user_id"], name: "index_project_scorecard_reports_on_user_id"
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|

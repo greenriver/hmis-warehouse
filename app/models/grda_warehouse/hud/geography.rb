@@ -11,6 +11,7 @@ module GrdaWarehouse::Hud
     # the struture file
     # include ::HMIS::Structure::Geography
     include ::HMIS::Structure::Base
+    include RailsDrivers::Extensions
 
     self.table_name = 'Geography'
     self.sequence_name = "public.\"#{table_name}_id_seq\""

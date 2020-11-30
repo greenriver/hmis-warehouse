@@ -9,6 +9,9 @@ module HmisCsvTwentyTwenty::GrdaWarehouse::Hud
     extend ActiveSupport::Concern
 
     included do
+      has_many :imported_items, class_name: 'HmisCsvTwentyTwenty::Importer::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id]
+      has_many :loaded_items, class_name: 'HmisCsvTwentyTwenty::Loader::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id]
+
       def convert_to_aggregated!
         existing = HmisCsvTwentyTwenty::Aggregated::Enrollment.where(data_source_id: data_source_id, ProjectID: self.ProjectID).exists?
         raise 'This can only be run once per data source!' if existing
