@@ -16,9 +16,9 @@ class HmisController < ApplicationController
 
   def index
     if searched?
-      @type = params[:search].try(:[], :type)
-      @id = params[:search].try(:[], :id)
-      @data_source_id = params[:search].try(:[], :data_source_id)
+      @type = params.dig(:search, :type)
+      @id = params.dig(:search, :id)
+      @data_source_id = params.dig(:search, :data_source_id)
     end
 
     @results = load_results

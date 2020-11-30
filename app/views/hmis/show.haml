@@ -4,13 +4,17 @@
 - if @imported
   .well
     %p
-      Details are shown for imported data.  From right to left, the columns show the results of the import process.  On the right,
-      %strong CSV Value
-      is the record as imported directly from the HMIS CSV import.
-      %strong Post-Processed Value
-      shows the record after passing through the import and cleaning process.
+      Details are shown for imported data.  The columns show the results of the import process.
+      %br
       %strong Warehouse Value
       represents the final data after merging the post-processed data with the existing warehouse record.
+      %br
+      %strong Post-Processed Value
+      shows the record after passing through the import and cleaning process.
+      %br
+      %strong CSV Value
+      is the record as imported directly from the HMIS CSV import.
+
     - models = (@data_source.import_aggregators.keys + @data_source.import_cleanups.keys).uniq.sort
     - if models.present?
       %p The following extensions are enabled on this data source, and will cause changes during the import process
