@@ -13,16 +13,12 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
         # ignore any valid CoC-codes
         next if ::HUD.valid_coc?(e_coc.CoCCode)
 
-        # upcase any that match the format but aren't correctly cased
-        if e_coc.CoCCode.match?(/^[a-z]{2}-[0-9]{3}$/i)
-          e_coc.CoCCode.upcase!
         # add a dash if we have two characters and 3 numbers
-        elsif e_coc.CoCCode.match?(/^[a-z]{2}[0-9]{3}$/i)
-          e_coc.CoCCode = "#{e_coc.CoCCode[0..1]}-#{e_coc.CoCCode[2..4]}"
-        else
-          # Set all other invalid to blank
-          e_coc.CoCCode = nil
-        end
+        e_coc.CoCCode = "#{e_coc.CoCCode[0..1]}-#{e_coc.CoCCode[2..4]}" if e_coc.CoCCode.match?(/^[a-z]{2}[0-9]{3}$/i)
+
+        # upcase any that match the format but aren't correctly cased
+        e_coc.CoCCode.upcase! if e_coc.CoCCode.match?(/^[a-z]{2}-[0-9]{3}$/i)
+
         # double check the resulting code is valid, blank it if not
         e_coc.CoCCode = nil if e_coc.CoCCode.present? && ! ::HUD.valid_coc?(e_coc.CoCCode)
 
