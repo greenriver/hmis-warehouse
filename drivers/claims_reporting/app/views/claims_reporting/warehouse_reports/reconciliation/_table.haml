@@ -18,16 +18,20 @@
           %th Medicaid ID
           %th First Name
           %th Last Name
-          %th Provider Care Plan Signatures On
           %th Qualifying Activities
+          %th Provider Care Plan Signatures On
+          %th Missing Enrollment
+          %th Missing Care Plan
       %tbody
         - @report.patients_without_payments.each do |patient|
           %tr
             %td= link_to patient.medicaid_id, client_health_qualifying_activities_path(patient.client)
             %td= patient.first_name
             %td= patient.last_name
+            %td= @report.qa_count_for_patient(patient)
+            %td= @report.qa_missing_enrollment_count_for_patient(patient)
+            %td= @report.qa_missing_careplan_count_for_patient(patient)
             %th= patient.careplans.map{|d| l d.provider_signed_on }.to_sentence
-            %td= @report.qualifying_activity_count_for_patient(patient)
   = content_for :page_js do
     :javascript
       $('.datatable').DataTable({
