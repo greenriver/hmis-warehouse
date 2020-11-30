@@ -6,7 +6,7 @@
 
 module Reporting::Hud
   class RunReportJob < BaseJob
-    def perform(class_name, report_id)
+    def perform(class_name, report_id, email: true)
       report = HudReports::ReportInstance.find(report_id)
       report.start_report
 
@@ -18,7 +18,7 @@ module Reporting::Hud
       end
 
       report.complete_report
-      NotifyUser.driver_hud_report_finished(@generator).deliver_now if report.user_id
+      NotifyUser.driver_hud_report_finished(@generator).deliver_now if report.user_id && email
     end
   end
 end

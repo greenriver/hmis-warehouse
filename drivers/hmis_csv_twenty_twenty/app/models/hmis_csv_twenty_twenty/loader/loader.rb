@@ -176,14 +176,18 @@ module HmisCsvTwentyTwenty::Loader
       csv.rewind
 
       if headers.blank?
-        msg = "Unable to import #{file_name}, no data"
-        add_error(file_path: read_from.path, message: msg, line: '')
+        err = 'No data.'
+        msg = "Unable to import #{file_name}: #{err}"
+        log(msg)
+        add_error(file_path: read_from.path, message: err, line: '')
         return
       end
 
       if header_invalid?(headers, klass)
-        msg = "Unable to import #{file_name}, header invalid: \n#{headers}; \nexpected a subset of: \n#{klass.hud_csv_headers.map(&:to_s)}"
-        add_error(file_path: read_from.path, message: msg, line: '')
+        err = "Header invalid: \n#{headers}; \nexpected a subset of: \n#{klass.hud_csv_headers.map(&:to_s)}"
+        msg = "Unable to import #{file_name}, #{err}"
+        log(msg)
+        add_error(file_path: read_from.path, message: err, line: '')
         return
       end
 
@@ -211,7 +215,7 @@ module HmisCsvTwentyTwenty::Loader
               batch = []
             end
           else
-            msg = 'Line length is incorrect, unable to import:'
+            msg = "Line length is incorrect: #{row.count}"
             add_error(file_path: read_from.path, message: msg, line: row.to_s)
           end
         end
@@ -271,7 +275,7 @@ module HmisCsvTwentyTwenty::Loader
       # Construct a valid file_path for add_error
       file_path = File.join(@file_path, 'Export.csv')
       msg = "SourceID '#{source_id}' from Export.csv does not match '#{data_source.source_id}' specified in the data source"
-
+      log(msg)
       add_error(file_path: file_path, message: msg, line: '')
 
       @loader_log.summary['Export.csv']['total_lines'] = 1

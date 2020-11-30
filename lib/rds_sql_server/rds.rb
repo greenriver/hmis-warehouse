@@ -4,7 +4,7 @@
 require 'aws-sdk-glacier'
 
 class Rds
-  attr_accessor :client, :identifier
+  attr_accessor :client
 
   REGION             = 'us-east-1'.freeze
   AVAILABILITY_ZONE  = 'us-east-1a'.freeze
@@ -17,17 +17,16 @@ class Rds
   SECURITY_GROUP_IDS = [ENV.fetch('RDS_SECURITY_GROUP_ID')].freeze
   DEFAULT_IDENTIFIER = ENV.fetch('RDS_IDENTIFIER') { 'testing' }
   RDS_KMS_KEY_ID     = ENV.fetch('RDS_KMS_KEY_ID')
-  DB_NAME            = 'sql_server_openpath'.freeze
   DB_SUBNET_GROUP    = ENV.fetch('DB_SUBNET_GROUP') { 'without us-east-1e' }
   MAX_WAIT_TIME      = 1.hour
 
-  class << self
-    attr_writer :identifier
-  end
-
-  class << self
-    attr_reader :identifier
-  end
+  NEVER_STARTING_STATUSES = [
+    'deleting',
+    'failed',
+    'stopped',
+    'stopping',
+    'storage-full',
+  ].freeze
 
   class << self
     attr_writer :timeout
@@ -38,8 +37,6 @@ class Rds
   end
 
   def initialize
-    self.identifier = Rds.identifier || DEFAULT_IDENTIFIER
-
     # if environment is set up correctly, this can be
     # self.client = Aws::RDS::Client.new
     if SECRET_ACCESS_KEY.present? && SECRET_ACCESS_KEY != 'unknown'
@@ -56,12 +53,77 @@ class Rds
   end
 
   define_method(:sqlservers) { _list.select { |server| server.engine.match(/sqlserver/) } }
-  define_method(:start!)     { client.start_db_instance(db_instance_identifier: identifier) }
-  define_method(:stop!)      { client.stop_db_instance(db_instance_identifier: identifier) }
+
+  def start!
+    status = instance_data.db_instance_status
+
+    if status.in?(['available', 'starting'])
+      Rails.logger.info "Not starting #{identifier}. It's #{status}"
+    elsif status == 'stopped'
+      Rails.logger.info "Starting #{identifier}."
+      client.start_db_instance(db_instance_identifier: identifier)
+      sleep 10
+    else
+      raise "Couldn't start since #{identifier} has a status of #{status}"
+    end
+  end
+
+  def stop!
+    status = instance_data.db_instance_status
+
+    if status.in?(['stopped', 'stopping'])
+      Rails.logger.info "Not stopping #{identifier}. It's already #{status}"
+    elsif status == 'available'
+      Rails.logger.info "Stopping #{identifier}."
+      client.stop_db_instance(db_instance_identifier: identifier)
+      sleep 10
+    else
+      raise "Couldn't stop since #{identifier} has a status of #{status}"
+    end
+  end
+
   define_method(:terminate!) { client.delete_db_instance(db_instance_identifier: identifier, skip_final_snapshot: true) }
   define_method(:host)       { ENV['LSA_DB_HOST'].presence || my_instance&.endpoint&.address }
   define_method(:exists?)    { !!my_instance }
-  define_method(:database)   { identifier.underscore }
+
+  delegate :static_rds?, :database, :database=, :identifier, :identifier=,
+           to: Rds
+
+  def self.static_rds?
+    ENV['RDS_IDENTIFIER'].present?
+  end
+
+  def self.database
+    if @database.present?
+      @database
+    elsif !static_rds?
+      identifier.underscore
+    else
+      DEFAULT_IDENTIFIER.underscore
+    end
+  end
+
+  # rubocop:disable Style/TrivialAccessors
+  def self.database=(database)
+    @database = database
+  end
+  # rubocop:enable Style/TrivialAccessors
+
+  def self.identifier
+    if static_rds?
+      ENV['RDS_IDENTIFIER']
+    elsif @identifier.present?
+      @identifier
+    else
+      DEFAULT_IDENTIFIER
+    end
+  end
+
+  def self.identifier=(ident)
+    raise 'Cannot set identifier' if static_rds?
+
+    @identifier = ident
+  end
 
   def test!
     create!
@@ -82,13 +144,17 @@ class Rds
   end
 
   def create!
-    return if ENV['LSA_DB_HOST'].present? || exists?
+    if ENV['LSA_DB_HOST'].present? || exists?
+      # This should be fine if it's already running
+      start!
+      return
+    end
 
     # FIXME: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/SQLServer.Concepts.General.SSL.Using.html#SQLServer.Concepts.General.SSL.Forcing
     @response = client.create_db_instance(
       db_instance_class: DB_INSTANCE_CLASS,
       db_instance_identifier: identifier,
-      allocated_storage: 20, # 20GB is minimum required
+      allocated_storage: 100, # 20GB is minimum required, 100 so we don't run out of space
       engine: DB_ENGINE,
       master_username: USERNAME,
       master_user_password: PASSWORD,
@@ -118,8 +184,17 @@ class Rds
   end
 
   def wait!
+    status = instance_data.db_instance_status
+
+    # rubocop:disable Style/IfUnlessModifier
+    if status.in?(NEVER_STARTING_STATUSES)
+      raise "Can't wait. It doesn't look like the instance will ever start. It's #{status}"
+    end
+
+    # rubocop:enable Style/IfUnlessModifier
+
     Timeout.timeout(MAX_WAIT_TIME) do
-      while host.blank?
+      until host.present? && instance_data.db_instance_status == 'available'
         Rails.logger.debug 'no host yet'
         # puts "no host yet"
         sleep 5
@@ -157,7 +232,8 @@ class Rds
           ::LsaSqlServer::DbUp.hmis_table_create!(version: '2020')
           ::LsaSqlServer::DbUp.create!(status: 'up')
           can_create_table = true
-        rescue Exception
+        rescue Exception => e
+          Rails.logger.error e.message
           sleep 60
         end
         sleep 5
@@ -196,6 +272,14 @@ class Rds
   end
 
   private
+
+  def instance_data
+    resp = client.describe_db_instances(db_instance_identifier: identifier)
+
+    raise "Couldn't stop since we couldn't find an instance and figure out its state" if resp.db_instances.length != 1
+
+    resp.db_instances.first
+  end
 
   define_method(:_list)       { client.describe_db_instances.db_instances }
   define_method(:_operations) { client.operation_names }

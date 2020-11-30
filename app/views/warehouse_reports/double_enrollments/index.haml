@@ -19,22 +19,23 @@
 
 %p LSA checks enrollments on the following dates: October 31, January 31, April 30, and July 31.
 = render 'warehouse_reports/limited_by_project_note'
-.warehouse-reports__double_enrollments
-
-  %table.table.table-sm.table-hover
+.warehouse-reports__double_enrollments.card
+  %table.table.table-striped
     %thead
       %tr
         %th Last Name
         %th First Name
         %th Enrollment Count
         %th Project Type
+        %th Projects
     %tbody
       - st = GrdaWarehouse::Hud::Enrollment.arel_table
       - @counts.each do |client_id, data|
         - client = @clients[client_id]
-        - data.each do |client_id, project_type, count|
+        - data.each do |client_id, project_type, project_names, count|
           %tr
             %td= link_to_if can_view_clients_or_window?, client.LastName, appropriate_client_path(client)
             %td= link_to_if can_view_clients_or_window?, client.FirstName, appropriate_client_path(client)
             %td= count
             %td= HUD.project_type project_type
+            %td= project_names

@@ -1,0 +1,12 @@
+- title = _('Project Pass/Fail Report')
+- content_for :title, title
+= content_for :crumbs do
+  = link_to project_pass_fail_warehouse_reports_project_pass_fail_index_path do
+    = "« #{title}"
+.d-flex
+  %h1.mb-5= title
+  .ml-auto
+    %a.btn.btn-secondary.d-flex.align-items-center.mb-1.j-document-exports.py-1{href: "#", data: { type: @pdf_export.type, query_string: {id: @report.id}.to_query }}
+      %i.icon-file-pdf.icon-lg.mr-2
+      %span Download PDF
+= render 'show'

@@ -21,6 +21,10 @@ class Role < ApplicationRecord
     where(health_role: false)
   end
 
+  scope :nurse_care_manager, -> do
+    health.where(name: 'Nurse Care Manager')
+  end
+
   def has_super_admin_permissions?
     Role.permissions.each do |permission,|
       return true if Role.super_admin_permissions.include?(permission) && self[permission]

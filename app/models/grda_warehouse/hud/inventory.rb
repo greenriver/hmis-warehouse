@@ -114,13 +114,15 @@ module GrdaWarehouse::Hud
 
     # field is usually :UnitInventory or :BedInventory
     # range must be of type Filters::DateRange
-    def average_daily_inventory range:, field:
+    def average_daily_inventory(range:, field:)
       count = self[field]
       return 0 if count.blank? || count < 1
+
       start_date = [range.start, computed_start_date].compact.max
       end_date = [range.end, self.InventoryEndDate].compact.min
       days = (end_date - start_date).to_i
-      (days.to_f * count / range.length).to_i rescue 0
+
+      (days.to_f * count / range.length).to_i rescue 0 # rubocop:disable Style/RescueModifier
     end
   end
 end

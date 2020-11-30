@@ -30,8 +30,12 @@
   %div{id: select_scope}
     %section.mb-6
       .d-flex.mb-5.ml-4
-        %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
-        %h2.mb-0.mt-0 Organizations and Projects
+        .header.d-flex.align-items-center.justify-content-center
+          %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
+          %h2.mb-0.mt-0 Organizations and Projects
+        .ml-auto
+          %p= page_entries_info @organizations, entry_name: _('organizations')
+          %p= paginate @organizations
       - @projects.each do |(data_source, organization), projects|
         = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
 

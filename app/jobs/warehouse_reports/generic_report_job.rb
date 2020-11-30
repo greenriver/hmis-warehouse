@@ -29,7 +29,7 @@ module WarehouseReports
     end
 
     def whitelisted_reports
-      {
+      reports = {
         'GrdaWarehouse::WarehouseReports::Youth::Export' => ::GrdaWarehouse::WarehouseReports::Youth::Export,
         'Health::SsmExport' => ::Health::SsmExport,
         'Health::EncounterReport' => ::Health::EncounterReport,
@@ -38,6 +38,10 @@ module WarehouseReports
         'GrdaWarehouse::WarehouseReports::Exports::AdHoc' => GrdaWarehouse::WarehouseReports::Exports::AdHoc,
         'GrdaWarehouse::WarehouseReports::Exports::AdHocAnon' => GrdaWarehouse::WarehouseReports::Exports::AdHocAnon,
       }
+
+      reports['ProjectPassFail::ProjectPassFail'] = ProjectPassFail::ProjectPassFail if RailsDrivers.loaded.include?(:project_pass_fail)
+
+      reports
     end
   end
 end
