@@ -12,7 +12,7 @@ class HmisCsvTwentyTwenty::LoadedController < ApplicationController
     @filename = log.summary.keys.detect { |v| v == params[:file] }
     @import = GrdaWarehouse::ImportLog.find_by(loader_log_id: log.id)
     @klass = HmisCsvTwentyTwenty::Loader::LoaderLog.importable_files[@filename]
-    @data = @klass.unscoped.where(loader_id: log.id).
+    @data = @klass.with_deleted.where(loader_id: log.id).
       order(@klass.hud_key => :asc).
       page(params[:page]).
       per(500)

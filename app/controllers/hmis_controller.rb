@@ -33,7 +33,7 @@ class HmisController < ApplicationController
     return unless @importer
 
     @imported = @item.imported_items.order(importer_log_id: :desc).first
-    @csv = @item.loaded_items.order(loader_id: :desc).first
+    @csv = @item.loaded_items.with_deleted.order(loader_id: :desc).first
   end
 
   private def searched?
