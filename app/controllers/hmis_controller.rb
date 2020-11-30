@@ -18,6 +18,7 @@ class HmisController < ApplicationController
     if searched?
       @type = params[:search].try(:[], :type)
       @id = params[:search].try(:[], :id)
+      @data_source_id = params[:search].try(:[], :data_source_id)
     end
 
     @results = load_results
@@ -52,7 +53,7 @@ class HmisController < ApplicationController
     @query = params[:search][:id]
     # long string searches against integers make postgres unhappy
     # limit the search to the HUD key if the search isn't an integer
-    if @query.to_i == @query
+    scope = if @query.to_i == @query
       item_scope.where(
         @klass.arel_table[:id].eq(@query).
         or(@klass.arel_table[@klass.hud_key].eq(@query)),
@@ -60,6 +61,8 @@ class HmisController < ApplicationController
     else
       item_scope.where(@klass.arel_table[@klass.hud_key].eq(@query))
     end
+    scope = scope.where(data_source_id: @data_source_id) if @data_source_id
+    scope
   end
 
   private def valid_class(type)
