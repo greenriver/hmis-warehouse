@@ -767,6 +767,13 @@ def report_list
       limitable: false,
       health: true,
     }
+    r_list['Health: BH CP Claims/Payments'] << {
+      url: 'claims_reporting/warehouse_reports/performance',
+      name: 'BH CP Performance',
+      description: 'Explore performance .',
+      limitable: false,
+      health: true,
+    }
   end
   if RailsDrivers.loaded.include?(:project_pass_fail)
     r_list['Data Quality'] << {
