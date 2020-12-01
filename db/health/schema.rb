@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_18_181257) do
+ActiveRecord::Schema.define(version: 2020_12_01_192211) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -201,6 +201,17 @@ ActiveRecord::Schema.define(version: 2020_11_18_181257) do
     t.float "baseline_visits"
     t.float "implementation_visits"
     t.index ["medicaid_id"], name: "index_claims_ed_nyu_severity_on_medicaid_id"
+  end
+
+  create_table "claims_reporting_ccs_lookups", force: :cascade do |t|
+    t.string "hcpcs_start", null: false
+    t.string "hcpcs_end", null: false
+    t.integer "ccs_id", null: false
+    t.integer "ccs_label", null: false
+    t.date "effective_start", null: false
+    t.date "effective_end"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "claims_reporting_cp_payment_details", force: :cascade do |t|
@@ -749,6 +760,7 @@ ActiveRecord::Schema.define(version: 2020_11_18_181257) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -792,6 +804,7 @@ ActiveRecord::Schema.define(version: 2020_11_18_181257) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
+    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|

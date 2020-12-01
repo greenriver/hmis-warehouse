@@ -1,0 +1,13 @@
+- table = report.data
+%table{rules: 'all'}
+  %thead
+    %tr
+      - table.columns.each do |col|
+        %th= col
+
+  %tbody
+    - report.data.each do |row|
+      %tr
+        - row.each do |_, col|
+          %td= col
+

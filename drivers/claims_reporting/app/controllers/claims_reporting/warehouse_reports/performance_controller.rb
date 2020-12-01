@@ -9,6 +9,27 @@ module ClaimsReporting::WarehouseReports
     before_action :require_can_view_member_health_reports!
 
     def index
+      @report = ClaimsReporting::PerformanceReport.new(**filter_params)
+    end
+
+    private def available_months
+      @available_months ||= begin
+        dates = if ::Health::Claim.none?
+          ::Health::QualifyingActivity.distinct.pluck(:date_of_activity)
+        else
+          ::Health::Claim.distinct.pluck(:max_date)
+        end
+        dates.map(&:beginning_of_month).sort.uniq.reverse
+      end
+    end
+    helper_method :available_months
+
+    private def filter_params
+      params.fetch(:f, {}).permit(
+        :month,
+      ).tap do |filter|
+        filter[:month] = available_months.detect { |m| m.iso8601 == filter[:month] } || available_months.first
+      end.to_h.symbolize_keys
     end
   end
 end
