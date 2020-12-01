@@ -207,11 +207,12 @@ ActiveRecord::Schema.define(version: 2020_12_01_192211) do
     t.string "hcpcs_start", null: false
     t.string "hcpcs_end", null: false
     t.integer "ccs_id", null: false
-    t.integer "ccs_label", null: false
+    t.string "ccs_label", null: false
     t.date "effective_start", null: false
-    t.date "effective_end"
+    t.date "effective_end", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["effective_start", "hcpcs_start", "hcpcs_end"], name: "unk_code_range", unique: true
   end
 
   create_table "claims_reporting_cp_payment_details", force: :cascade do |t|
