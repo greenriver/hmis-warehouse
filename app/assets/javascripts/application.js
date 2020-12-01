@@ -22,6 +22,7 @@
 //= require DataTables/datatables.min
 //= require handlebars.runtime
 //= require select2
+//= require remote_select_load
 //= require bootstrap-datepicker
 //= require Chart.bundle.min
 //= require jquery-ui/widgets/sortable
