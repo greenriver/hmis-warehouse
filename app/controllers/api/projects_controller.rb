@@ -61,12 +61,12 @@ module Api
       formatted
     end
 
-    def data_source_ids
+    private def data_source_ids
       ds_ids = project_params[:data_source_ids].select(&:present?) if project_params[:data_source_ids].present?
       @data_source_ids ||= ds_ids.map(&:to_i) if ds_ids.present?
     end
 
-    def organization_ids
+    private def organization_ids
       org_ids = project_params[:organization_ids].select(&:present?) if project_params[:organization_ids].present?
       @organization_ids ||= if org_ids.present?
         org_ids.map(&:to_i)
@@ -75,7 +75,7 @@ module Api
       end
     end
 
-    def project_types
+    private def project_types
       return HUD.project_types.keys unless project_params[:project_types].present? || project_params[:project_type_ids].present?
 
       @project_types ||= begin
@@ -106,7 +106,7 @@ module Api
       )
     end
 
-    def project_scope
+    private def project_scope
       @project_scope ||= begin
         scope = project_source.viewable_by(current_user).
           joins(:data_source, :organization).
