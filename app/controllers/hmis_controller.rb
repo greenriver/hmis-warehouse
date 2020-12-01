@@ -16,8 +16,9 @@ class HmisController < ApplicationController
 
   def index
     if searched?
-      @type = params[:search].try(:[], :type)
-      @id = params[:search].try(:[], :id)
+      @type = params.dig(:search, :type)
+      @id = params.dig(:search, :id)
+      @data_source_id = params.dig(:search, :data_source_id)
     end
 
     @results = load_results
@@ -25,6 +26,14 @@ class HmisController < ApplicationController
 
   def show
     @type = params[:type] if valid_class(params[:type]).present?
+    @data_source = @item.data_source
+    return unless RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty)
+
+    @importer = HmisCsvTwentyTwenty::Importer::ImporterLog.where(data_source_id: @item.data_source_id).order(created_at: :desc)&.first
+    return unless @importer
+
+    @imported = @item.imported_items.order(importer_log_id: :desc).first
+    @csv = @item.loaded_items.with_deleted.order(loader_id: :desc).first
   end
 
   private def searched?
@@ -44,7 +53,7 @@ class HmisController < ApplicationController
     @query = params[:search][:id]
     # long string searches against integers make postgres unhappy
     # limit the search to the HUD key if the search isn't an integer
-    if @query.to_i == @query
+    scope = if @query.to_i == @query
       item_scope.where(
         @klass.arel_table[:id].eq(@query).
         or(@klass.arel_table[@klass.hud_key].eq(@query)),
@@ -52,6 +61,8 @@ class HmisController < ApplicationController
     else
       item_scope.where(@klass.arel_table[@klass.hud_key].eq(@query))
     end
+    scope = scope.where(data_source_id: @data_source_id) if @data_source_id
+    scope
   end
 
   private def valid_class(type)
