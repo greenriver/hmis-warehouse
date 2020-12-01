@@ -14,6 +14,4 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
   def download_url
     download_document_export_url(id, host: ENV['FQDN'])
   end
-
 end
-

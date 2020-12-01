@@ -6,7 +6,7 @@
 
 module Health
   class DocumentExportJob < BaseJob
-    extend ActiveSupport::Concern
+    include DocumentExportJobBehavior
     queue_as :default
 
     protected def export_scope

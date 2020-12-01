@@ -19,16 +19,17 @@ module DocumentExportBehavior
     PDF_MIME_TYPE = 'application/pdf'.freeze,
   ].freeze
 
-  EXPIRES_AFTER = 12.hours
-
+  EXPIRES_AFTER = 30.days
   CURRENT_VERSION = '1'.freeze # bump to invalidate exports
 
   included do
     belongs_to :user
     validates :status, inclusion: { in: STATUS_OPTIONS }
     validates :mime_type, inclusion: { in: MIME_TYPES }, allow_blank: true
-    before_create do
-      self.version ||= CURRENT_VERSION
+
+    after_initialize do
+      self.version ||= CURRENT_VERSION if self.class.column_names.include?('version')
+      self.export_version ||= CURRENT_VERSION if self.class.column_names.include?('export_version')
     end
   end
 
@@ -84,6 +85,10 @@ module DocumentExportBehavior
   end
 
   def download_title
-    item.filename.presence || 'Report PDF'
+    filename.presence || 'Report PDF'
+  end
+
+  def generator_url
+    report_class.url
   end
 end

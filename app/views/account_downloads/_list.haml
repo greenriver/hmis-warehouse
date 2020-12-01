@@ -1,12 +1,15 @@
-%table.table
-  %thead
-    %tr
-      %th Report
-      %th Date Requested
-  %tbody
-    - @items.each.map do |item|
+.card
+  %table.table.table-striped
+    %thead
       %tr
-        %td
-          = link_to item.download_title, item.download_url, download: 'download'
-        %td
-          = item.created_at.to_s(:long)
+        %th Report
+        %th Date Requested
+        %th Generated From
+    %tbody
+      - @items.each.map do |item|
+        %tr
+          %td
+            = link_to item.download_title, item.download_url, download: 'download'
+          %td
+            = item.created_at.to_s(:long)
+          %td= link_to 'Report', "#{item.generator_url}?#{item.query_string}"

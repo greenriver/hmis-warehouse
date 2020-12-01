@@ -46,7 +46,7 @@ module Health::DocumentExports
     end
 
     def download_title
-      "Partner Dashboard Report"
+      'Partner Dashboard Report'
     end
 
     protected def report_class

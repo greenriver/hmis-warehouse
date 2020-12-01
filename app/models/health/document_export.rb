@@ -15,4 +15,7 @@ class Health::DocumentExport < HealthBase
     download_health_document_export_url(id, host: ENV['FQDN'])
   end
 
+  def self.with_current_version
+    where(export_version: CURRENT_VERSION)
+  end
 end
