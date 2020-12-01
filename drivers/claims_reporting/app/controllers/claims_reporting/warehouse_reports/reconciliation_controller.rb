@@ -14,7 +14,7 @@ module ClaimsReporting::WarehouseReports
       respond_to do |format|
         format.html {} # render the default template
         format.csv do
-          send_data @report.to_csv, filename: "unmatched-claims-#{Time.now}.csv"
+          send_data @report.to_csv, filename: "unmatched-claims-#{Time.current.to_s(:number)}.csv"
         end
       end
     end
