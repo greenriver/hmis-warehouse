@@ -633,9 +633,8 @@ module Health
     # slower and more complex than patient_has_valid_care_plan?
     # which cares only about the patients status now
     def patient_had_valid_care_plan?
-      # These have changed over time
-      # FIXME?: do we want to back fill rules in effect
-      # at date_of_activity
+      # These have changed over time but this report
+      # cares only about the current rules for now
       engagement_period_in_days = ::Health::PatientReferral::ENGAGEMENT_IN_DAYS
       allowed_gap_in_days = ::Health::PatientReferral::REENROLLMENT_REQUIRED_AFTER_DAYS
 
@@ -643,8 +642,7 @@ module Health
       patient_referrals = patient.patient_referrals.sort_by(&:enrollment_start_date)
 
       # Are there any referrals that were active at the time of this activity?
-      # FIXME? Other code assumes that enrollments are non-overlapping
-      # doing so here could make this code faster
+      # Enrollments are intended to non-overlapping but are not always
       contributing_referrals = patient_referrals.select do |r|
         r.active_on?(date_of_activity)
       end.to_set
@@ -655,9 +653,7 @@ module Health
       # Search backward in time and collect any referrals
       # where the gaps between the its disenrollment_date
       # and any of our existing contributions is <= allowed_gap_in_days
-      # This is O(n^2) but N is expected to stay small.
-      # FIXME? Other code assumes that enrollments are non-overlapping
-      # doing so here could make this code faster
+      # This is O(n^2) but N is expected to stay small
       patient_referrals.reverse_each do |r|
         next if r.in?(contributing_referrals)
         close_enough = contributing_referrals.any? do |r2|
@@ -669,8 +665,8 @@ module Health
       # Just in case
       contributing_referrals = contributing_referrals.to_a.sort_by(&:enrollment_start_date)
 
-      # we need care plan signed within the first 150 accumulated
-      # days of enrollment in the contributing_referrals series
+      # We need care plan signed within the first 150 accumulated
+      # days of enrollment from the initial enrollment in the series
       enrolled_dates = Set.new
       contributing_referrals.each do |r|
         enrolled_dates += r.enrolled_days_to_date
@@ -680,7 +676,8 @@ module Health
 
       care_plan_date_range = contributing_referrals.first.enrollment_start_date .. last_possible_enrollment_date
 
-      patient.careplans.detect do |cp|
+      # we just need a boolean
+      patient.careplans.any? do |cp|
         cp.provider_signed_date && care_plan_date_range.cover?(cp.provider_signed_date)
       end
     end
