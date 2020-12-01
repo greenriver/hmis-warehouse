@@ -18,13 +18,13 @@ module ClaimsReporting
       t = medical_claims.arel_table
 
       scope = medical_claims.group(
-        :procedure_code,
+        :ccs_id,
       ).select(
-        :procedure_code,
+        :ccs_id,
         Arel.sql('*').count.as('count'),
-        t[:member_id].count.as('member_count'),
+        t[:member_id].count(true).as('member_count'),
         t[:paid_amount].sum.as('paid_amount_sum'),
-      )
+      ).order('4 DESC NULLS LAST')
 
       connection.select_all(scope)
     end

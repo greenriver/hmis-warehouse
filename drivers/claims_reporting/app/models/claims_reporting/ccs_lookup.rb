@@ -30,6 +30,18 @@ module ClaimsReporting
       @lookup_table ||= all.order(hcpcs_start: :asc, effective_start: :asc).readonly.to_a
     end
 
+    def self.classify_medical_claims(scope = ClaimsReporting::MedicalClaim.all)
+      scope.select(:id, :ccs_id, :procedure_code).in_batches do |batch|
+        updates = batch.map do |c|
+          {
+            id: c.id,
+            ccs_id: lookup(c.procedure_code, nil)&.ccs_label,
+          }
+        end
+        scope.import(updates, on_duplicate_key_update: { conflict_target: [:id], columns: [:ccs_id] })
+      end
+    end
+
     def self.lookup(hcpcs, date = nil)
       date = date&.to_date
       hcpcs = hcpcs.to_s
