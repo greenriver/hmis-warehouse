@@ -649,7 +649,7 @@ module Health
         r.active_on?(date_of_activity)
       end.to_set
 
-      # 0 active referrals means a valid care plan is irreverent/impossible
+      # 0 active referrals means a valid care plan is irrelevant/impossible
       return nil if contributing_referrals.none?
 
       # Search backward in time and collect any referrals
