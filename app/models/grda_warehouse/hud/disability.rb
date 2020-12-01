@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
   class Disability < Base
     include HudSharedScopes
     include ::HMIS::Structure::Disability
+    include RailsDrivers::Extensions
 
     self.table_name = 'Disabilities'
     self.sequence_name = "public.\"#{table_name}_id_seq\""

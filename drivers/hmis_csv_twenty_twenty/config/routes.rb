@@ -4,5 +4,7 @@ BostonHmis::Application.routes.draw do
     resources :importer_validations, only: [:show]
     resources :importer_errors, only: [:show]
     resources :importer_extensions, only: [:show]
+    resources :loaded, only: [:show]
+    resources :imported, only: [:show]
   end
 end

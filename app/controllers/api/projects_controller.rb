@@ -11,30 +11,33 @@
 module Api
   class ProjectsController < ApplicationController
     include ArelHelper
-    before_action :set_data_sources
-    before_action :set_organizations
-    before_action :set_project_types
 
     def index
       respond_to do |format|
+        @data = {}
+        selected_project_ids = project_params[:selected_project_ids]&.
+          map(&:to_i)&.
+          compact || []
+        project_scope.
+          pluck(
+            :id,
+            :ProjectName,
+            :computed_project_type,
+            o_t[:OrganizationName],
+          ).each do |id, p_name, type, o_name|
+            @data[o_name] ||= []
+            @data[o_name] << [
+              "#{p_name} (#{HUD.project_type_brief(type)})",
+              id,
+              selected_project_ids.include?(id),
+            ]
+          end
         format.html do
-          @data = {}
-          selected_project_ids = project_params[:selected_project_ids]&.map(&:to_i)&.compact || []
-          project_scope.
-            pluck(
-              :id,
-              :ProjectName,
-              :computed_project_type,
-              o_t[:OrganizationName],
-            ).each do |id, p_name, type, o_name|
-              @data[o_name] ||= []
-              @data[o_name] << [
-                "#{p_name} (#{HUD.project_type_brief(type)})",
-                id,
-                selected_project_ids.include?(id),
-              ]
-            end
           render layout: false
+        end
+        format.json do
+          # NOTE: pre-selection does not work if this is fetched via AJAX by select2
+          render json: select2ize(@data)
         end
       end
     end
@@ -48,45 +51,48 @@ module Api
           text: org_name,
           children: [],
         }
-        projects.each do |name, id|
-          group[:children] << { id: id, text: name }
+        projects.each do |name, id, selected|
+          proj = { id: id, text: name }
+          proj[:selected] = selected if selected
+          group[:children] << proj
         end
         formatted[:results] << group
       end
       formatted
     end
 
-    def set_data_sources
-      @data_source_ids = begin
-                           project_params[:data_source_ids].select(&:present?).map(&:to_i)
-                         rescue StandardError
-                           data_source_source.pluck(:id)
-                         end
+    private def data_source_ids
+      ds_ids = project_params[:data_source_ids].select(&:present?) if project_params[:data_source_ids].present?
+      @data_source_ids ||= ds_ids.map(&:to_i) if ds_ids.present?
     end
 
-    def set_organizations
-      @organization_ids = begin
-                            project_params[:organization_ids].select(&:present?).map(&:to_i)
-                          rescue StandardError
-                            organization_source.pluck(:id)
-                          end
-    end
-
-    def set_project_types
-      @project_types = if project_params[:project_types].present? || project_params[:project_type_ids].present?
-        []
+    private def organization_ids
+      org_ids = project_params[:organization_ids].select(&:present?) if project_params[:organization_ids].present?
+      @organization_ids ||= if org_ids.present?
+        org_ids.map(&:to_i)
       else
-        HUD.project_types.keys
+        organization_source.select(:id)
       end
-      begin
-        project_params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
-          @project_types += project_source::RESIDENTIAL_PROJECT_TYPES[type]
+    end
+
+    private def project_types
+      return HUD.project_types.keys unless project_params[:project_types].present? || project_params[:project_type_ids].present?
+
+      @project_types ||= begin
+        types = []
+
+        if project_params[:project_types].present?
+          project_params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
+            types += project_source::RESIDENTIAL_PROJECT_TYPES[type]
+          end
         end
-        @project_types += project_params[:project_type_ids]&.select(&:present?)&.map(&:to_i) if project_params[:project_type_ids].present?
-      rescue StandardError
-        @project_types = HUD.project_types.keys
+        if project_params[:project_type_ids].present?
+          types += project_params[:project_type_ids]&.
+            select(&:present?)&.
+            map(&:to_i)
+        end
+        types
       end
-      @project_types
     end
 
     def project_params
@@ -100,12 +106,15 @@ module Api
       )
     end
 
-    def project_scope
-      @project_scope = project_source.viewable_by(current_user).
-        joins(:data_source, :organization).
-        where(computed_project_type: @project_types).
-        merge(data_source_source.where(id: @data_source_ids)).
-        merge(organization_source.where(id: @organization_ids))
+    private def project_scope
+      @project_scope ||= begin
+        scope = project_source.viewable_by(current_user).
+          joins(:data_source, :organization).
+          with_project_type(project_types)
+        scope = scope.merge(data_source_source.where(id: data_source_ids)) if data_source_ids.present?
+        scope = scope.merge(organization_source.where(id: organization_ids)) if organization_ids.present?
+        scope
+      end
     end
 
     def project_source

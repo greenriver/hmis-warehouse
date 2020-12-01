@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
   class Site < Base
     include HudSharedScopes
     include ::HMIS::Structure::Base
+    include RailsDrivers::Extensions
     acts_as_paranoid column: :DateDeleted
 
     attr_accessor :source_id
