@@ -18,6 +18,10 @@ module GrdaWarehouse::DocumentExports
       end
     end
 
+    def download_title
+      "ProjectType Performance Report"
+    end
+
     protected def report_class
       PerformanceDashboards::ProjectType
     end

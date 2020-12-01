@@ -41,6 +41,10 @@ module Health::DocumentExports
       end
     end
 
+    def download_title
+      "Housing Status Changes Report"
+    end
+
     protected def report_class
       WarehouseReport::Health::HousingStatusChanges
     end

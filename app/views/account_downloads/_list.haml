@@ -1,0 +1,12 @@
+%table.table
+  %thead
+    %tr
+      %th Report
+      %th Date Requested
+  %tbody
+    - @items.each.map do |item|
+      %tr
+        %td
+          = link_to item.download_title, item.download_url, download: 'download'
+        %td
+          = item.created_at.to_s(:long)
