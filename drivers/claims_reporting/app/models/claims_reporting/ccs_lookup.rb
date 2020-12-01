@@ -27,7 +27,7 @@ module ClaimsReporting
     end
 
     def self.lookup_table
-      @lookup_table ||= all.order(hcpcs_start: :asc, effective_start: :asc).to_a
+      @lookup_table ||= all.order(hcpcs_start: :asc, effective_start: :asc).readonly.to_a
     end
 
     def self.lookup(hcpcs, date = nil)
