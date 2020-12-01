@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
   class IncomeBenefit < Base
     include HudSharedScopes
     include ::HMIS::Structure::IncomeBenefit
+    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 

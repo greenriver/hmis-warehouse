@@ -237,6 +237,10 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       self.source_hash = calculate_source_hash
     end
 
+    def hmis_data
+      slice(*self.class.hmis_structure(version: '2020').keys)
+    end
+
     def run_row_validations(filename, importer_log)
       failures = []
       self.class.hmis_validations.each do |column, checks|
