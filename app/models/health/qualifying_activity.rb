@@ -617,11 +617,70 @@ module Health
       date_of_activity.present? && patient.first_n_contributed_days_of_enrollment(90).include?(date_of_activity)
     end
 
+    # at the time of this call does the patient have
+    # a valid care plan covering the date_of_activity
     def patient_has_valid_care_plan?
       return false if patient.care_plan_renewal_date.blank?
       return false unless date_of_activity.present?
 
       date_of_activity >= patient.care_plan_provider_signed_date && date_of_activity < patient.care_plan_renewal_date
+    end
+
+
+    # For the date of ac date_of_activity did the patient have
+    # a care plan that MassHealth would consider
+    # valid covering the date_of_activity. This is much
+    # slower and more complex than patient_has_valid_care_plan?
+    # which cares only about the patients status now
+    def patient_had_valid_care_plan?
+      # These have changed over time but this report
+      # cares only about the current rules for now
+      engagement_period_in_days = ::Health::PatientReferral::ENGAGEMENT_IN_DAYS
+      allowed_gap_in_days = ::Health::PatientReferral::REENROLLMENT_REQUIRED_AFTER_DAYS
+
+      # We are going to need to look at most referrals for this patient
+      patient_referrals = patient.patient_referrals.sort_by(&:enrollment_start_date)
+
+      # Are there any referrals that were active at the time of this activity?
+      # Enrollments are intended to non-overlapping but are not always
+      contributing_referrals = patient_referrals.select do |r|
+        r.active_on?(date_of_activity)
+      end.to_set
+
+      # 0 active referrals means a valid care plan is irrelevant/impossible
+      return nil if contributing_referrals.none?
+
+      # Search backward in time and collect any referrals
+      # where the gaps between the its disenrollment_date
+      # and any of our existing contributions is <= allowed_gap_in_days
+      # This is O(n^2) but N is expected to stay small
+      patient_referrals.reverse_each do |r|
+        next if r.in?(contributing_referrals)
+        next if r.enrollment_start_date > date_of_activity # dont need to consider this one, it started after the QA
+        close_enough = contributing_referrals.any? do |r2|
+          (r2.enrollment_start_date - r.disenrollment_date).to_i.between?(0, allowed_gap_in_days)
+        end
+        contributing_referrals << r if close_enough
+      end
+
+      # Just in case
+      contributing_referrals = contributing_referrals.to_a.sort_by(&:enrollment_start_date)
+
+      # We need care plan signed within the first 150 accumulated
+      # days of enrollment from the initial enrollment in the series
+      enrolled_dates = Set.new
+      contributing_referrals.each do |r|
+        enrolled_dates += r.enrolled_days_to_date
+        break if enrolled_dates.size >= engagement_period_in_days
+      end
+      last_possible_enrollment_date = enrolled_dates.sort.first(engagement_period_in_days).last
+
+      care_plan_date_range = contributing_referrals.first.enrollment_start_date .. last_possible_enrollment_date
+
+      # we just need a boolean
+      patient.careplans.any? do |cp|
+        cp.provider_signed_date && care_plan_date_range.cover?(cp.provider_signed_date)
+      end
     end
 
     def patient_has_signed_careplan?

@@ -17,7 +17,7 @@ module Reports
 
       respond_to do |format|
         format.html
-        format.csv { send_data GrdaWarehouse::Hud::ProjectCoc.to_csv(scope: @project_cocs), filename: "projectcoc-#{Time.now}.csv" }
+        format.csv { send_data GrdaWarehouse::Hud::ProjectCoc.to_csv(scope: @project_cocs), filename: "projectcoc-#{Time.current.to_s(:number)}.csv" }
       end
     end
   end

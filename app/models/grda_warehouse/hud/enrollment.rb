@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     include TsqlImport
     include NotifierConfig
     include ::HMIS::Structure::Enrollment
+    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 

@@ -67,7 +67,7 @@ module WarehouseReports
     end
 
     def show
-      # send_data GrdaWarehouse::Hud::Geography.to_csv(scope: @sites), filename: "site-#{Time.now}.csv"
+      # send_data GrdaWarehouse::Hud::Geography.to_csv(scope: @sites), filename: "site-#{Time.current.to_s(:number)}.csv"
       send_data @export.content, filename: "HMIS_export_#{@export.created_at.to_s.delete(',')}.zip", type: @export.content_type, disposition: 'attachment'
     end
 

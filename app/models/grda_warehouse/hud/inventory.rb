@@ -16,6 +16,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HMIS::Structure::Inventory
     include ArelHelper
+    include RailsDrivers::Extensions
     require 'csv'
 
     attr_accessor :source_id
