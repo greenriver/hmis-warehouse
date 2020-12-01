@@ -656,8 +656,9 @@ module Health
       # This is O(n^2) but N is expected to stay small
       patient_referrals.reverse_each do |r|
         next if r.in?(contributing_referrals)
+        next if r.enrollment_start_date > date_of_activity # dont need to consider this one, it started after the QA
         close_enough = contributing_referrals.any? do |r2|
-          (r2.enrollment_start_date - r.disenrollment_date).to_i <= allowed_gap_in_days
+          (r2.enrollment_start_date - r.disenrollment_date).to_i.between?(0, allowed_gap_in_days)
         end
         contributing_referrals << r if close_enough
       end
