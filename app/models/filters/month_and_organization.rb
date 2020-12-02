@@ -14,7 +14,7 @@ module Filters
     validates :org, presence: true
 
     def months
-      @months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].each_with_index.to_a.map { |m, i| [m, i + 1] }
+      @months = Date::MONTHNAMES.each_with_index.to_a.map { |m, i| [m, i + 1] }
     end
 
     def organizations

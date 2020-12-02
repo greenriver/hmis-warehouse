@@ -13,7 +13,7 @@ module GrdaWarehouse::ClientNotes
     end
 
     # anyone who can see this client
-    scope :visible_by, ->(user, client) do # rubocop:disable Lint/UnusedBlockArgument
+    scope :visible_by, ->(user, _client) do
       joins(:client).merge(GrdaWarehouse::Hud::Client.viewable_by(user))
     end
 
