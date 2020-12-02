@@ -58,7 +58,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       row[:TrackingMethod] = override if override.present?
 
       # Potentially we have an explicit override for tracking method, use that in preference to the above
-      override = tracking_method_override_for(project: row, data_source_id: data_source_id)
+      override = tracking_method_override_for(project_id: row[:ProjectID], data_source_id: data_source_id)
       row[:TrackingMethod] = override if override.present?
 
       override = project_type_override_for(project_id: row[:ProjectID].to_i, data_source_id: data_source_id)
