@@ -6,7 +6,6 @@
 
 module Filters
   class DateRangeAndSourcesResidentialOnly < DateRangeAndSources
-
     def all_project_scope
       GrdaWarehouse::Hud::Project.residential.viewable_by(user)
     end
