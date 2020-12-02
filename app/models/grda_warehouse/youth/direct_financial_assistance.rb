@@ -22,12 +22,12 @@ module GrdaWarehouse::Youth
       order(provided_on: :desc)
     end
 
-    scope :between, -> (start_date:, end_date:) do
+    scope :between, ->(start_date:, end_date:) do
       at = arel_table
       where(at[:provided_on].gteq(start_date).and(at[:provided_on].lteq(end_date)))
     end
 
-    scope :visible_by?, -> (user) do
+    scope :visible_by?, ->(user) do
       # users at your agency, plus your own user in case you have no agency.
       agency_user_ids = User.
         with_deleted.
@@ -45,7 +45,6 @@ module GrdaWarehouse::Youth
         none
       end
     end
-
 
     def available_types
       @available_types ||= [

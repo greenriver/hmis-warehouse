@@ -17,13 +17,12 @@ module Filters
 
     def add_control(args)
       control_id = args.fetch(:id)
-      if control_id.in?(@control_ids)
-        raise "duplicate ID for control #{control_id}"
-      end
+      raise "duplicate ID for control #{control_id}" if control_id.in?(@control_ids)
+
       @control_ids.add(control_id)
 
-      self.controls.push(
-        ::Filters::UiControl.new(**args)
+      controls.push(
+        ::Filters::UiControl.new(**args),
       )
     end
   end
@@ -31,7 +30,7 @@ module Filters
   class UiControl
     attr_accessor :id, :label, :short_label, :value, :required, :hint
 
-    def initialize(id:, value:, label: nil, short_label: nil, required: false, hint: nil)
+    def initialize(id:, value:, label: nil, short_label: nil, required: false, hint: nil) # rubocop:disable Metrics/ParameterLists
       self.id = id
       self.label = label || id.humanize.titleize
       self.short_label = short_label || self.label
@@ -51,7 +50,5 @@ module Filters
     def input_partial_path
       "/filters/filter_controls/#{id}/input"
     end
-
   end
-
 end
