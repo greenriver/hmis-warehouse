@@ -59,6 +59,7 @@ module Reports::Lsa::Fy2019
       display_string << "; CoC-Code: #{options['coc_code']}" if options['coc_code'].present?
       display_string << "; Scope: #{self.class.available_lsa_scopes.invert[options['lsa_scope']&.to_i] || 'Auto Select'}"
       display_string << "; Data Source: #{GrdaWarehouse::DataSource.short_name(options['data_source_id'].to_i)}" if options['data_source_id'].present?
+      display_string << "; Data Sources: #{GrdaWarehouse::DataSource.where(id: options['data_source_ids'].select(&:present?).map(&:to_i)).pluck(:short_name).to_sentence}" if options['data_source_ids'].present?
       display_string << project_id_string(options)
       display_string << project_group_string(options)
       display_string << sub_population_string(options)
