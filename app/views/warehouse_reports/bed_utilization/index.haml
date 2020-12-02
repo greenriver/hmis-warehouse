@@ -24,42 +24,44 @@
 
     = render 'warehouse_reports/filters', f:f
 
-  %table.table.table-sm.table-hover.bed-table
-    %thead
-      %tr
-        %th{ colspan: 2 }
-        %th.lightest-gray{ colspan: 4 }
-          Average Daily
-      %tr
-        %th Program Name
-        %th Project Type
-        %th Beds
-        %th Units
-        %th.lightest-gray Clients
-        %th.lightest-gray % Utilization
-    %tbody
-      - @projects_with_counts.each do |id, project|
-        - next if id == :totals
-        - next unless project
+  - if @projects_with_counts
+    %table.table.table-sm.table-hover.bed-table
+      %thead
         %tr
-          %td
-            = link_to project.name, project_path(project.id)
-          %td
-            - project_type = project.project_type
-            - p_type = ::HUD.project_type_brief(project_type)
-            - p_class = "client__service_type_#{p_type}"
-            %span{class: "client__service_type_#{project_type}"}
-              .enrollment__project_type{class: p_class}
-                %em.service-type__program-type= p_type
-          %td= project.beds
-          %td= project.units
-          %td= project.clients
-          %td= project.utilization
-      %tr
-        - project = @projects_with_counts[:totals]
-        %th
-        %th.text-right Organization-Wide
-        %th= project.beds
-        %th= project.units
-        %th= project.clients
-        %th= project.utilization
+          %th{ colspan: 2 }
+          %th.lightest-gray{ colspan: 4 }
+            Average Daily
+        %tr
+          %th Program Name
+          %th Project Type
+          %th Beds
+          %th Units
+          %th.lightest-gray Clients
+          %th.lightest-gray % Utilization
+      %tbody
+        - @projects_with_counts.each do |id, project|
+          - next if id == :totals
+          - next unless project
+          %tr
+            %td
+              = link_to project.name, project_path(project.id)
+            %td
+              - project_type = project.project_type
+              - p_type = ::HUD.project_type_brief(project_type)
+              - p_class = "client__service_type_#{p_type}"
+              %span{class: "client__service_type_#{project_type}"}
+                .enrollment__project_type{class: p_class}
+                  %em.service-type__program-type= p_type
+            %td= project.beds
+            %td= project.units
+            %td= project.clients
+            %td= project.utilization
+        %tr
+          - project = @projects_with_counts[:totals]
+          %th
+          %th.text-right Organization-Wide
+          %th= project.beds
+          %th= project.units
+          %th= project.clients
+          %th= project.utilization
+

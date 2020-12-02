@@ -6,7 +6,11 @@
 
 module Health::Tasks
   class PatientClientMatcher
+    include NotifierConfig
+    attr_accessor :send_notifications, :notifier_config
+
     def run!
+      setup_notifier('PatientClientMatcher')
       Rails.logger.info 'Loading unprocessed patients'
       started_at = DateTime.now
 
@@ -56,10 +60,18 @@ module Health::Tasks
       obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1)}.compact
       if obvious_matches.any?
         patient_record = Health::Patient.find(patient[:id])
-        patient_record.update(
-          client_id: obvious_matches.first[:id],
-          updated_at: patient_record.updated_at
-        )
+        begin
+          patient_record.update(
+            client_id: obvious_matches.first[:id],
+            updated_at: patient_record.updated_at
+          )
+        rescue ActiveRecord::RecordNotUnique => e
+          msg = "Unable to match patient, failed with the following error #{e}\n"
+          msg += e.full_message
+
+          notify(msg)
+          return
+        end
       end
     end
 
@@ -102,5 +114,11 @@ module Health::Tasks
     def check_name patient_first, patient_last, client_first, client_last
       "#{patient_first} #{patient_last}" == "#{client_first.downcase} #{client_last.downcase}"
     end
+
+    def notify msg
+      Rails.logger.info msg
+      @notifier.ping msg if @send_notifications
+    end
+
   end
 end

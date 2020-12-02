@@ -26,6 +26,9 @@ module ProjectPassFail::WarehouseReports
     before_action :set_pdf_export
 
     def index
+      # Handle arriving from the Document Export list
+      redirect_to(action: :show, id: params[:id]) if params[:id]
+
       @reports = report_scope.ordered.
         page(params[:page]).per(25)
     end
@@ -42,6 +45,14 @@ module ProjectPassFail::WarehouseReports
     end
 
     def show
+      respond_to do |format|
+        format.html do
+          @pdf = false
+        end
+        format.pdf do
+          @pdf = true
+        end
+      end
     end
 
     def destroy

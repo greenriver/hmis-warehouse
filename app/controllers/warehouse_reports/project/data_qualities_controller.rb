@@ -8,9 +8,30 @@ module WarehouseReports::Project
   class DataQualitiesController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
-    before_action :set_projects, :set_project_groups, :load_data_quality_report_shells
 
     def show
+      @organizations = organization_scope.order(OrganizationName: :asc).
+        page(params[:page]).
+        per(100)
+
+      @projects = project_scope.joins(:organization, :data_source).
+        merge(organization_scope.where(id: @organizations.select(:id))).
+        order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
+        preload(:contacts, :data_source, organization: :contacts).
+        group_by { |m| [m.data_source.short_name, m.organization] }
+
+      @project_groups = project_group_scope.includes(:projects).
+        order(name: :asc).
+        preload(:contacts, projects: [organization: :contacts])
+      @project_report_shells = report_base_class.where.not(project_id: nil).
+        select(report_base_class.column_names - ['report', 'support']).
+        order(id: :asc).
+        index_by(&:project_id)
+      @project_group_report_shells = report_base_class.where.not(project_group_id: nil).
+        select(report_base_class.column_names - ['report', 'support']).
+        order(id: :asc).
+        index_by(&:project_group_id)
+
       if Date.current.month < 10
         start_date = Date.new(Date.current.year - 2, 10, 1)
         end_date = Date.new(Date.current.year - 1, 9, 30)
@@ -118,6 +139,10 @@ module WarehouseReports::Project
         permit([:start, :end])
     end
 
+    def organization_scope
+      GrdaWarehouse::Hud::Organization.viewable_by current_user
+    end
+
     def project_scope
       GrdaWarehouse::Hud::Project.viewable_by current_user
     end
@@ -133,30 +158,6 @@ module WarehouseReports::Project
 
     def report_base_class
       GrdaWarehouse::WarehouseReports::Project::DataQuality::Base
-    end
-
-    def set_projects
-      @projects = project_scope.joins(:organization, :data_source).
-        order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
-        preload(:contacts, :data_source, organization: :contacts).
-        group_by { |m| [m.data_source.short_name, m.organization] }
-    end
-
-    def set_project_groups
-      @project_groups = project_group_scope.includes(:projects).
-        order(name: :asc).
-        preload(:contacts, projects: [organization: :contacts])
-    end
-
-    def load_data_quality_report_shells
-      @project_report_shells = report_base_class.where.not(project_id: nil).
-        select(report_base_class.column_names - ['report', 'support']).
-        order(id: :asc).
-        index_by(&:project_id)
-      @project_group_report_shells = report_base_class.where.not(project_group_id: nil).
-        select(report_base_class.column_names - ['report', 'support']).
-        order(id: :asc).
-        index_by(&:project_group_id)
     end
 
     def related_report

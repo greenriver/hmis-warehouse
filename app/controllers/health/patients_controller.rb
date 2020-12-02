@@ -33,6 +33,10 @@ module Health
           @active_filter = true
           @patients = @patients.where(care_coordinator_id: params[:filter][:user].to_i)
         end
+        if params[:filter][:nurse_care_manager_id].present?
+          @active_filter = true
+          @patients = @patients.where(nurse_care_manager_id: params[:filter][:nurse_care_manager_id].to_i)
+        end
       end
 
       @report = Health::AgencyPerformance.new(range: (@start_date..@end_date), agency_scope: Health::Agency.where(id: @active_agency.id))
@@ -69,14 +73,8 @@ module Health
       @section = params.require(:agency)[:section]
       @patient_ids = params.require(:agency)[:patient_ids]&.split(',')&.map(&:to_i)
       @patients = Health::Patient.bh_cp.where(id: @patient_ids).
-        order(last_name: :asc, first_name: :asc).
-        pluck(:client_id, :first_name, :last_name).map do |client_id, first_name, last_name|
-        OpenStruct.new(
-          client_id: client_id,
-          first_name: first_name,
-          last_name: last_name,
-        )
-      end
+        preload(:care_coordinator).
+        order(last_name: :asc, first_name: :asc)
 
       @agency = Health::Agency.find(@agency_id)
     end

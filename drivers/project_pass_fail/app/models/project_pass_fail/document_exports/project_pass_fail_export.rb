@@ -12,7 +12,7 @@ module ProjectPassFail::DocumentExports
     end
 
     protected def report
-      @report ||= report_class.new(filter)
+      @report ||= report_class.find(params['id'])
     end
 
     protected def view_assigns
@@ -39,7 +39,7 @@ module ProjectPassFail::DocumentExports
 
     def perform
       with_status_progression do
-        template_file = 'project_pass_fail/warehouse_reports/project_pass_fail/index_pdf'
+        template_file = 'project_pass_fail/warehouse_reports/project_pass_fail/show_pdf'
         PdfGenerator.new.perform(
           html: view.render(file: template_file, layout: 'layouts/performance_report'),
           file_name: "Project Pass Fail #{DateTime.current.to_s(:db)}",

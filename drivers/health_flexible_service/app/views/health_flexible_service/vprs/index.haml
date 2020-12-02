@@ -13,29 +13,30 @@
           %i.icon-plus
           Add VPR
     - if @vprs.any?
-      %table.table
-        %thead
-          %tr
-            %th Date of Service Planning
-            %th Last updated
-            %th Download
-            %th
-        %tbody
-          - @vprs.each do |vpr|
+      .card
+        %table.table.table-striped
+          %thead
             %tr
-              %td
-                = link_to edit_client_health_flexible_service_vpr_path(@client, vpr) do
-                  = vpr.planned_on
-              %td
-                = vpr.updated_at
-                by #{vpr.user.name}
-              %td
-                = link_to client_health_flexible_service_vpr_path(@client, vpr, format: :pdf), class: 'btn btn-secondary btn-sm' do
-                  %i.icon-file-pdf.mr-2
-                  PDF
-              %td
-                = link_to client_health_flexible_service_vpr_path(@client, vpr), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: { confirm: 'Are you sure you want to delete this VPR?'} do
-                  %i.icon-cross
+              %th Date of Service Planning
+              %th Last updated
+              %th Download
+              %th
+          %tbody
+            - @vprs.each do |vpr|
+              %tr
+                %td
+                  = link_to edit_client_health_flexible_service_vpr_path(@client, vpr) do
+                    = vpr.planned_on
+                %td
+                  = vpr.updated_at
+                  by #{vpr.user.name}
+                %td
+                  = link_to client_health_flexible_service_vpr_path(@client, vpr, format: :pdf), class: 'btn btn-secondary btn-sm' do
+                    %i.icon-file-pdf.mr-2
+                    PDF
+                %td
+                  = link_to client_health_flexible_service_vpr_path(@client, vpr), method: :delete, class: 'btn btn-danger btn-sm btn-icon-only', data: { confirm: 'Are you sure you want to delete this VPR?'} do
+                    %i.icon-cross
 
     - else
       %p.well.none-found No VPRs on file.

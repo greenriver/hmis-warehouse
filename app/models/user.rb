@@ -89,6 +89,10 @@ class User < ApplicationRecord
     )
   end
 
+  scope :nurse_care_managers, -> do
+    joins(:roles).merge(Role.nurse_care_manager)
+  end
+
   scope :not_system, -> { where.not(first_name: 'System') }
 
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
