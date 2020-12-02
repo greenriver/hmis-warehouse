@@ -27,6 +27,7 @@
 - validate_html = { input_html: {class: 'validate'}}
 - form_defaults = { required: false }
 - collection = {'Choice 1 (ES)' => 'One', 'Choice 2 (SO)' => 'Two', 'Choice 3 (TH)' => 'Three',  'Choice 4 (RRH)' => 'Four', 'Choice 5' => 'Five'}
+- huge_collection = (0..20_000).map{|i| [number_to_human(i), i]}
 .container.py-4
   %h1 Form
   %section
@@ -83,6 +84,21 @@
             %p.font-italic Select inputs have class name: <strong>.select2-parenthetical-when-selected</strong>
             = f.input :select2_parenthetical_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
 
+            %h4 Select 2 - Ajax load of Projects (select2)
+            = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => api_projects_path(format: :json) }}, label: 'Projects'
+
+            %h4 Select 2 - Ajax load of Options for Projects with Blank (warehouse)
+            = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }}, label: 'Projects', include_blank: 'Please choose'
+
+            - selected = GrdaWarehouse::Hud::Project.joins(:data_source, :organization).viewable_by(current_user).last.id
+            %h4 Select 2 - Ajax load of Options for Projects #{selected} pre-selected (warehouse)
+            = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }}, label: 'Projects'
+
+            %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
+            = f.input :huge_collection_options_multi_none, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }, multiple: true}, label: 'Projects'
+
+            %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
+            = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
           %h4 Password
           = f.input :password, as: :password, required: true, **validate_html
 

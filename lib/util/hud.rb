@@ -2159,6 +2159,10 @@ module HUD
     cocs.try(:[], coc_code) || coc_code
   end
 
+  def valid_coc?(coc_code)
+    cocs.key?(coc_code)
+  end
+
   def cocs
     {
       'CO-500' => 'Colorado Balance of State CoC',
@@ -2557,6 +2561,6 @@ module HUD
       'TX-624' => 'Wichita Falls/Wise, Palo Pinto, Wichita, Archer Counties CoC',
       'UT-503' => 'Utah Balance of State CoC',
       'VA-500' => 'Richmond/Henrico, Chesterfield, Hanover Counties CoC',
-    }
+    }.freeze
   end
 end
