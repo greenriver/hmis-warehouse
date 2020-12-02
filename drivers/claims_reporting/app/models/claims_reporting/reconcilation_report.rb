@@ -46,7 +46,7 @@ module ClaimsReporting
     end
 
     def qa_count_for_patient(patient)
-      qualifying_activities_by_patient_id[patient.id].size
+      qualifying_activities_by_patient_id[patient.id]&.size
     end
 
     def qa_missing_enrollment_count_for_patient(patient)
@@ -60,7 +60,7 @@ module ClaimsReporting
     end
 
     def qa_missing_careplan_count_for_patient(patient)
-      qualifying_activities_by_patient_id[patient.id].reject(&:patient_had_valid_care_plan?).size
+      qualifying_activities_by_patient_id[patient.id].reject(&:patient_had_valid_care_plan?)&.size
     end
 
     def acos_for_patient(patient)
@@ -102,7 +102,7 @@ module ClaimsReporting
             patient.first_name,
             patient.last_name,
             patient.careplans.map { |d| l d.provider_signed_on }.to_sentence,
-            qualifying_activities_by_patient_id(patient).size,
+            qualifying_activities_by_patient_id(patient)&.size,
           ]
         end
       end
