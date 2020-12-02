@@ -45,6 +45,10 @@ module Health::DocumentExports
       end
     end
 
+    def download_title
+      'Partner Dashboard Report'
+    end
+
     protected def report_class
       Health::AgencyPerformance
     end

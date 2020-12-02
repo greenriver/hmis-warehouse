@@ -39,6 +39,10 @@ module ProjectPassFail
       'Project Pass/Fail Report'
     end
 
+    def self.url
+      'project_pass_fail/warehouse_reports/project_pass_fail'
+    end
+
     def url
       project_pass_fail_warehouse_reports_project_pass_fail_url(host: ENV.fetch('FQDN'), id: id)
     end
