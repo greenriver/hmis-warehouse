@@ -679,7 +679,7 @@ module Health
 
       # we just need a boolean
       patient.careplans.any? do |cp|
-        cp.provider_signed_date && care_plan_date_range.cover?(cp.provider_signed_date)
+        cp.provider_signed_on && care_plan_date_range.cover?(cp.provider_signed_on)
       end
     end
 

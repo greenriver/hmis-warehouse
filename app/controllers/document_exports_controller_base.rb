@@ -60,13 +60,26 @@ class DocumentExportsControllerBase < ApplicationController
   end
 
   protected def export_params
-    valid_types = document_export_class.descendants.map(&:name)
-    type = params.require(:type).presence_in(valid_types)
+    type = params.require(:type).presence_in(valid_document_export_classes)
     raise ActionController::BadRequest, "bad type #{params[:type]}" unless type
 
     {
       type: type,
       query_string: params[:query_string],
     }
+  end
+
+  # NOTE: you must add any new exporters here
+  protected def valid_document_export_classes
+    [
+      'GrdaWarehouse::DocumentExports::ClientPerformanceExport',
+      'GrdaWarehouse::DocumentExports::HouseholdPerformanceExport',
+      'GrdaWarehouse::DocumentExports::ProjectTypePerformanceExport',
+      'CoreDemographicsReport::DocumentExports::CoreDemographicsExport',
+      'ProjectPassFail::DocumentExports::ProjectPassFailExport',
+      'GrdaWarehouse::DocumentExports::BasePerformanceExport',
+      'Health::DocumentExports::HousingStatusChangesExport',
+      'Health::DocumentExports::AgencyPerformanceExport',
+    ]
   end
 end

@@ -19,6 +19,10 @@ class WarehouseReport::Health::HousingStatusChanges
     @report_data = {}
   end
 
+  def self.url
+    'warehouse_reports/health/housing_status_changes'
+  end
+
   def describe
     name_list = aco_names&.join(', ') || 'all ACOs'
     "For #{name_list}, between #{@start_date} and #{@end_date}."

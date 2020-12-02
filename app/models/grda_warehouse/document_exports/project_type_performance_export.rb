@@ -11,11 +11,15 @@ module GrdaWarehouse::DocumentExports
         template_file = 'performance_dashboards/project_type/index_pdf'
         PdfGenerator.new.perform(
           html: view.render(file: template_file, layout: 'layouts/performance_report'),
-          file_name: "ProjectType Performance #{DateTime.current.to_s(:db)}"
+          file_name: "ProjectType Performance #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
         end
       end
+    end
+
+    def download_title
+      'Project Type Performance Report'
     end
 
     protected def report_class
@@ -38,7 +42,7 @@ module GrdaWarehouse::DocumentExports
         @show_client_details ||= current_user.can_view_clients?
       end
 
-      def details_performance_dashboards_project_type_index_path(*args)
+      def details_performance_dashboards_project_type_index_path(*args) # rubocop:disable Lint/UnusedMethodArgument
         '#'
       end
     end

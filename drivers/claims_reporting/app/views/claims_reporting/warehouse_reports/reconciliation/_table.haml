@@ -5,9 +5,9 @@
       %b No payment details were found for services performed during this period. Have they been loaded yet?
   - elsif @report.patients_without_payments.none?
     %p
-      %b Found #{pluralize @report.patients_without_payments.size, 'missing claim'} during this period.
+      %b Found #{pluralize(@report.patients_without_payments&.size, 'missing claim')} during this period.
   - elsif @report.patients_without_payments.any?
-    %p No record of payment could be found for the following #{pluralize @report.patients_without_payments.size, 'patient'}:
+    %p No record of payment could be found for the following #{pluralize(@report.patients_without_payments&.size, 'patient')}:
     .pull-right
       = link_to url_for(format: :csv) do
         Download
@@ -19,9 +19,9 @@
           %th First Name
           %th Last Name
           %th Qualifying Activities
-          %th Provider Care Plan Signatures On
           %th Missing Enrollment
           %th Missing Care Plan
+          %th Plan Dates
       %tbody
         - @report.patients_without_payments.each do |patient|
           %tr
