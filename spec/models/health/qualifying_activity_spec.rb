@@ -274,6 +274,14 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     end
   end
 
+  describe 'had_valid_care_plan detects historical care plan validity' do
+    let(:qa) { create :valid_qa }
+
+    it 'runs' do
+      qa.had_valid_care_plan?
+    end
+  end
+
   describe 'Outreach QA' do
     let(:qa) { create :valid_qa }
 
