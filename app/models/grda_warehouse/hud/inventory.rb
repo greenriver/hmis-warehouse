@@ -113,6 +113,10 @@ module GrdaWarehouse::Hud
       inventory_start_date_override.presence || self.InventoryStartDate
     end
 
+    def computed_end_date
+      inventory_end_date_override.presence || self.InventoryEndDate
+    end
+
     # field is usually :UnitInventory or :BedInventory
     # range must be of type Filters::DateRange
     def average_daily_inventory(range:, field:)
