@@ -32,8 +32,7 @@ module ProjectScorecard::WarehouseReports
     end
 
     def create
-      @generate = create_params[:generate] == '1'
-      @email = create_params[:email] == '1'
+      @action = create_params[:action]
 
       @range = ::Filters::FilterBase.new
       @range.set_from_params(filter_params)
@@ -46,9 +45,9 @@ module ProjectScorecard::WarehouseReports
 
       if errors.any?
         flash[:error] = errors.join('<br />'.html_safe)
-      elsif @generate
-        generate_for_projects(@project_ids, @email, @range, current_user)
-      elsif @email
+      elsif @action == 'generate'
+        generate_for_projects(@project_ids, @range, current_user)
+      elsif @action == 'email'
         email_to_projects(@project_ids)
       end
 
@@ -74,14 +73,21 @@ module ProjectScorecard::WarehouseReports
       when 'pre-filled'
         @report.update!(status: 'ready')
       when 'ready'
-        @report.update!(status: 'completed')
+        @report.update!(
+          completed_at: Time.current,
+          status: 'completed',
+        )
       end
     end
 
-    private def generate_for_projects(ids, send_email, range, user)
+    private def generate_for_projects(ids, range, user)
       ids.each do |id|
         report = reports_scope.create(project_id: id, user_id: user.id, start_date: range.first, end_date: range.last)
-        ProjectScorecard::PopulateScorecard.perform_later(report.id, send_email, user.id)
+        ::WarehouseReports::GenericReportJob.perform_later(
+          user_id: user.id,
+          report_class: report.class.name,
+          report_id: report.id,
+        )
       end
     end
 
@@ -94,8 +100,7 @@ module ProjectScorecard::WarehouseReports
     private def create_params
       params.require(:scorecard).
         permit(
-          :generate,
-          :email,
+          :action,
         )
     end
 

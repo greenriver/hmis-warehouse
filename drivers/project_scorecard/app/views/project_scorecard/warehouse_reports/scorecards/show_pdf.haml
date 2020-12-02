@@ -1,5 +1,5 @@
 %h1
-  #{@report.project.name.titlecase} Project Scorecard
+  #{@report.title}
 
 = simple_form_for @report, url: project_scorecard_warehouse_reports_scorecard_path(@report), wrapper: :readonly do |f|
   = render 'project_scorecard/warehouse_reports/scorecards/form', f: f

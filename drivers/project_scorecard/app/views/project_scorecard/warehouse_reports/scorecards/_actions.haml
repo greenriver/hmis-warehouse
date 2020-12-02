@@ -3,15 +3,7 @@
   .d-flex
     %div
       .mr-4.d-flex
-        .mr-2
-          = f.input :generate, as: :boolean, input_html: {checked: @generate}
-        .mr-2
-          %i.icon-info{data: { toggle: :tooltip, title: 'Generate new versions of selected scorecards'}}
-      .mr-4.d-flex
-        .mr-2
-          = f.input :email, as: :boolean, input_html: {checked: @email}
-        .mr-2
-          %i.icon-info{data: { toggle: :tooltip, title: 'Email selected scorecards, new versions will be generated first if generate is selected'}}
+        = f.input :action, as: :radio_buttons, collection: {generate: 'Generate new versions of selected scorecards', email: 'Email selected scorecards'}.invert, checked: @action
     .mr-2
       = f.input :start, as: :date_picker, input_html: {class: 'form-control', value: @range.start}
     .mr-2
