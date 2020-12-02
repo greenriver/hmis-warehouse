@@ -120,6 +120,10 @@ module ProjectScorecard::WarehouseReports
       params.require(:project_scorecard_report).permit(*parameter_names)
     end
 
+    private def organization_scope
+      GrdaWarehouse::Hud::Organization.viewable_by current_user
+    end
+
     private def project_scope
       GrdaWarehouse::Hud::Project.viewable_by current_user
     end
@@ -129,9 +133,15 @@ module ProjectScorecard::WarehouseReports
     end
 
     private def set_projects
+      @organizations = organization_scope.order(OrganizationName: :asc).
+        page(params[:page]).
+        per(100)
+
       base_scope = project_scope.joins(:organization, :data_source).
+        merge(organization_scope.where(id: @organizations.select(:id))).
         order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
         preload(:contacts, :data_source, organization: :contacts)
+
       @projects = base_scope.ph.or(base_scope.rrh).
         group_by { |m| [m.data_source.short_name, m.organization] }
     end
