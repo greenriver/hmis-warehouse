@@ -31,7 +31,7 @@
             %td= @report.qa_count_for_patient(patient)
             %td= @report.qa_missing_enrollment_count_for_patient(patient)
             %td= @report.qa_missing_careplan_count_for_patient(patient)
-            %th= patient.careplans.map{|d| l d.provider_signed_on }.to_sentence
+            %th= patient.careplans.select(&:provider_signed_on).map{|d| l d.provider_signed_on }.to_sentence
   = content_for :page_js do
     :javascript
       $('.datatable').DataTable({
