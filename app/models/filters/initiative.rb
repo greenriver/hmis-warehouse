@@ -9,8 +9,8 @@ module Filters
   class Initiative < DateRange
     include ArelHelper
     attribute :sub_population, Symbol, default: :clients
-    attribute :comparison_start, Date, lazy: true, default: -> (r,_) { r.default_comparison_start }
-    attribute :comparison_end, Date, lazy: true, default: -> (r,_) { r.default_comparison_end }
+    attribute :comparison_start, Date, lazy: true, default: ->(r, _) { r.default_comparison_start }
+    attribute :comparison_end, Date, lazy: true, default: ->(r, _) { r.default_comparison_end }
     attribute :initiative_name, String, default: nil
     attribute :project_ids, Array, default: []
     attribute :project_group_ids, Array, default: []
@@ -19,19 +19,13 @@ module Filters
     validates_presence_of :initiative_name, :start, :end, :comparison_start, :comparison_end
 
     validate do
-      if start > self.end
-        errors.add(:end, 'End date must follow start date.')
-      end
-      if comparison_start > self.comparison_end
-        errors.add(:comparison_end, 'End date must follow start date.')
-      end
-      if project_ids.reject(&:blank?).blank? && project_group_ids.reject(&:blank?).blank?
-        errors.add(:project_ids, 'At least one project or project group is required.')
-      end
+      errors.add(:end, 'End date must follow start date.') if start > self.end
+      errors.add(:comparison_end, 'End date must follow start date.') if comparison_start > comparison_end
+      errors.add(:project_ids, 'At least one project or project group is required.') if project_ids.reject(&:blank?).blank? && project_group_ids.reject(&:blank?).blank?
     end
 
     def comparison_range
-      self.comparison_start .. self.comparison_end
+      comparison_start .. comparison_end
     end
 
     def comparison_first
@@ -51,7 +45,7 @@ module Filters
     end
 
     def default_comparison_start
-      self.start - 1.years
+      start - 1.years
     end
 
     def default_comparison_end
@@ -59,12 +53,12 @@ module Filters
     end
 
     def options_for_initiative
-      options = {
+      {
         initiative_name: initiative_name,
         start: start,
         end: self.end,
         comparison_start: comparison_start,
-        comparison_end: self.comparison_end,
+        comparison_end: comparison_end,
         projects: effective_project_ids,
         sub_population: sub_population,
         user_id: user.id,
@@ -82,7 +76,7 @@ module Filters
 
     def effective_project_ids_from_projects
       visible_project_ids = GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)
-      project_ids.reject(&:blank?).map(&:to_i).select{ |id| visible_project_ids.include?(id) }
+      project_ids.reject(&:blank?).map(&:to_i).select { |id| visible_project_ids.include?(id) }
     end
 
     def effective_project_ids_from_project_groups

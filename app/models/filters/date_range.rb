@@ -7,8 +7,8 @@
 # provides validation for date ranges
 module Filters
   class DateRange < ::ModelForm
-    attribute :start, Date, lazy: true, default: -> (r,_) { r.default_start }
-    attribute :end, Date, lazy: true, default: -> (r,_) { r.default_end }
+    attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
+    attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :sort
     attribute :age_ranges, Array, default: []
     attribute :heads_of_household, Boolean, default: false
@@ -19,13 +19,11 @@ module Filters
     validates_presence_of :start, :end
 
     validate do
-      if start > self.end
-        errors.add(:end, 'End date must follow start date.')
-      end
+      errors.add(:end, 'End date must follow start date.') if start > self.end
     end
 
     def range
-      self.start .. self.end
+      self.start .. self.end # rubocop:disable Style/RedundantSelf
     end
 
     def first
@@ -50,7 +48,9 @@ module Filters
     end
 
     def length
-      (self.end - self.start).to_i rescue 0
+      (self.end - self.start).to_i # rubocop:disable Style/RedundantSelf
+    rescue StandardError
+      0
     end
 
     class MonthDefault < DateRange

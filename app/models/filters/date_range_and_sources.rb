@@ -71,9 +71,7 @@ module Filters
       @effective_project_ids += effective_project_ids_from_organizations
       @effective_project_ids += effective_project_ids_from_data_sources
       @effective_project_ids += effective_project_ids_from_coc_codes
-      if @effective_project_ids.empty?
-        @effective_project_ids = all_project_ids
-      end
+      @effective_project_ids = all_project_ids if @effective_project_ids.empty?
       return @effective_project_ids.uniq.reject(&:blank?)
     end
 
@@ -91,8 +89,8 @@ module Filters
 
       GrdaWarehouse::ProjectGroup.joins(:projects).
         merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
-          where(id: projects).
-          pluck(p_t[:id].as('project_id'))
+        where(id: projects).
+        pluck(p_t[:id].as('project_id'))
     end
 
     def effective_project_ids_from_organizations
@@ -154,27 +152,27 @@ module Filters
         merge(all_project_scope)
     end
 
-    def project_options_for_select(user: )
+    def project_options_for_select(user:)
       all_project_scope.options_for_select(user: user)
     end
 
-    def organization_options_for_select(user: )
+    def organization_options_for_select(user:)
       all_organizations_scope.options_for_select(user: user)
     end
 
-    def data_source_options_for_select(user: )
+    def data_source_options_for_select(user:)
       all_data_sources_scope.options_for_select(user: user)
     end
 
-    def funder_options_for_select(user: )
+    def funder_options_for_select(user:)
       all_funders_scope.options_for_select(user: user)
     end
 
-    def coc_code_options_for_select(user: )
+    def coc_code_options_for_select(user:)
       all_coc_code_scope.options_for_select(user: user)
     end
 
-    def project_groups_options_for_select(user: )
+    def project_groups_options_for_select(user:)
       all_project_group_scope.options_for_select(user: user)
     end
 
@@ -194,7 +192,7 @@ module Filters
 
     def project_type_ids
       GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
-        *project_type_codes.reject(&:blank?).map(&:to_sym)
+        *project_type_codes.reject(&:blank?).map(&:to_sym),
       ).flatten
     end
 

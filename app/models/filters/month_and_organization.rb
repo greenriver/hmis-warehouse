@@ -6,7 +6,7 @@
 
 module Filters
   class MonthAndOrganization < ::Filters::DateRange::MonthDefault
-    attribute :org, Integer, default: -> (s,_) {s.default_org}
+    attribute :org, Integer, default: ->(s, _) { s.default_org }
     attribute :month, Integer, default: Date.current.month
     attribute :year, Integer, default: Date.current.year
     attribute :user, User, default: nil
@@ -14,7 +14,7 @@ module Filters
     validates :org, presence: true
 
     def months
-      @months = %w( January February March April May June July August September October November December ).each_with_index.to_a.map{ |m,i| [ m, i + 1 ] }
+      @months = Date::MONTHNAMES.each_with_index.to_a.map { |m, i| [m, i + 1] }
     end
 
     def organizations
@@ -26,13 +26,13 @@ module Filters
         includes(:data_source).
         group_by(&:name).
         flat_map do |name, orgs|
-          if orgs.many?
-            orgs.map do |org|
-              [ disambiguated_name(org), org.id ]
-            end
-          else
-            [[ name, orgs.first.id ]]
+        if orgs.many?
+          orgs.map do |org|
+            [disambiguated_name(org), org.id]
           end
+        else
+          [[name, orgs.first.id]]
+        end
       end.to_h
     end
 
@@ -41,9 +41,9 @@ module Filters
     end
 
     def organization_name
-      if disambiguated_organizations.has_key?(organization.name)
+      if disambiguated_organizations.key?(organization.name)
         organization.name
-      elsif disambiguated_organizations.has_key?(disambiguated_name(organization))
+      elsif disambiguated_organizations.key?(disambiguated_name(organization))
         disambiguated_name(organization)
       else
         Rails.logger.error "this needs some work; there's an organization not individuated by its disambiguated name"
@@ -52,18 +52,24 @@ module Filters
 
     def default_org
       organization_scope.
-      order(:OrganizationName).
-      distinct.
-      limit(1).
-      pluck(:id, :OrganizationName).first.first rescue 0
+        order(:OrganizationName).
+        distinct.
+        limit(1).
+        pluck(:id, :OrganizationName).first.first
+    rescue StandardError
+      0
     end
 
     def organization
-      @organization ||= organizations.find org rescue organizations.first
+      @organization ||= begin
+                          organizations.find org
+                        rescue StandardError
+                          organizations.first
+                        end
     end
 
     def years
-      ( earliest_year .. latest_year ).to_a
+      (earliest_year .. latest_year).to_a
     end
 
     def earliest_year
@@ -83,9 +89,7 @@ module Filters
     end
 
     validate do
-      unless organization.present?
-        errors.add :org, 'Organization required.'
-      end
+      errors.add :org, 'Organization required.' unless organization.present?
     end
   end
 end

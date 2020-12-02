@@ -14,9 +14,7 @@ module GrdaWarehouse::ClientNotes
 
     def notify_users
       # notify related users if the client has a full release (otherwise they can't see the notes)
-      if client.present? && client.release_valid?
-        NotifyUser.note_added( id ).deliver_later
-      end
+      NotifyUser.note_added(id).deliver_later if client.present? && client.release_valid?
     end
 
     def destroyable_by(user)
