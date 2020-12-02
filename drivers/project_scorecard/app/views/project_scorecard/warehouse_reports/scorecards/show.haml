@@ -12,6 +12,9 @@
             %i.icon-download2
             Download as PDF
         - else
+          = link_to complete_project_scorecard_warehouse_reports_scorecard_path(@report), class: 'btn btn-secondary mr-2' do
+            %i.icon.icon-pencil
+            Mark Complete
           = link_to edit_project_scorecard_warehouse_reports_scorecard_path(@report), class: 'btn btn-primary' do
             %i.icon.icon-pencil
             Edit

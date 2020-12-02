@@ -10,7 +10,7 @@ module ProjectScorecard::WarehouseReports
     include ArelHelper
     # TODO: wjat are the access rules?
     before_action :set_projects, :set_current_reports
-    before_action :set_report, only: [:show, :edit, :update]
+    before_action :set_report, only: [:show, :edit, :complete, :update]
 
     def index
       start_date = Date.current.prev_month.beginning_of_month
@@ -58,17 +58,24 @@ module ProjectScorecard::WarehouseReports
     def edit
     end
 
-    def update
-      if params[:commit] == 'Save & Complete'
-        case @report.status
-        when 'pre-filled'
-          @report.update!(status: 'ready')
-        when 'ready'
-          @report.update!(status: 'completed')
-        end
-      end
-      @report.update!(scorecard_params)
+    def complete
+      advance_workflow
       redirect_to action: :show
+    end
+
+    def update
+      @report.update!(scorecard_params)
+      advance_workflow if params[:commit] == 'Save & Complete'
+      redirect_to action: :show
+    end
+
+    private def advance_workflow
+      case @report.status
+      when 'pre-filled'
+        @report.update!(status: 'ready')
+      when 'ready'
+        @report.update!(status: 'completed')
+      end
     end
 
     private def generate_for_projects(ids, send_email, range, user)
