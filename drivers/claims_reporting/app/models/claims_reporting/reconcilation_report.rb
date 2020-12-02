@@ -46,25 +46,29 @@ module ClaimsReporting
     end
 
     def qa_count_for_patient(patient)
-      qualifying_activities_by_patient_id[patient.id].size
+      patient_qas(patient.id).size
     end
 
     def qa_missing_enrollment_count_for_patient(patient)
-      qualifying_activities_by_patient_id[patient.id].reject do |qa|
+      patient_qas(patient.id).reject do |qa|
         # This is logically occurred_during_any_enrollment? but is
         # faster since we will already have the full patient_referrals history
         qa.date_of_activity.present? && patient.patient_referrals.select do |r|
           r.active_on?(qa.date_of_activity)
         end
-      end
+      end.size
     end
 
     def qa_missing_careplan_count_for_patient(patient)
-      qualifying_activities_by_patient_id[patient.id].reject(&:patient_had_valid_care_plan?).size
+      patient_qas(patient.id).reject(&:patient_had_valid_care_plan?).size
     end
 
     def acos_for_patient(patient)
       patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco&.name }.compact.uniq
+    end
+
+    private def patient_qas(patient_id)
+      qualifying_activities_by_patient_id[patient_id] || []
     end
 
     def qualifying_activities_by_patient_id
@@ -95,14 +99,25 @@ module ClaimsReporting
 
     def to_csv
       CSV.generate(headers: true) do |csv|
-        csv << ['Medicaid ID', 'First Name', 'Last Name', 'Care Plans Signed', 'Qualifying Activities']
+        csv << [
+          'Medicaid ID',
+          'First Name',
+          'Last Name',
+          'Qualifying Activities',
+          'Missing Enrollment',
+          'Missing Care Plan',
+          'Plan Dates',
+        ]
         patients_without_payments.each do |patient|
           csv << [
             patient.medicaid_id,
             patient.first_name,
             patient.last_name,
             patient.careplans.map { |d| l d.provider_signed_on }.to_sentence,
-            qualifying_activities_by_patient_id(patient).size,
+            qa_count_for_patient(patient),
+            qa_missing_enrollment_count_for_patient(patient),
+            qa_missing_careplan_count_for_patient(patient),
+            patient.careplans.map { |d| l d.provider_signed_on }.to_sentence,
           ]
         end
       end

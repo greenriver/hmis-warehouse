@@ -1,0 +1,8 @@
+= content_for :title, 'Recent Downloads'
+%h1= content_for :title
+%hr
+= render 'accounts/account_info_tabs'
+- if @items.any?
+  = render 'list'
+- else
+  %p No recent downloads
