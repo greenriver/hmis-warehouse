@@ -10,7 +10,7 @@ module GrdaWarehouse::ClientNotes
       'Anomaly Note'
     end
 
-    scope :visible_by, -> (user) do
+    scope :visible_by, ->(user) do
       if user.can_track_anomalies?
         current_scope
       else

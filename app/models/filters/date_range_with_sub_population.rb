@@ -10,6 +10,5 @@ module Filters
     attribute :sub_population, Symbol, default: :clients
 
     validates_presence_of :start, :end, :sub_population
-
   end
 end
