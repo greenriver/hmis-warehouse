@@ -804,7 +804,10 @@ def cleanup_unused_reports
   ]
   cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
   cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
-  cleanup << 'claims_reporting/warehouse_reports/reconciliation' unless RailsDrivers.loaded.include?(:claims_reporting)
+  unless RailsDrivers.loaded.include?(:claims_reporting)
+    cleanup << 'claims_reporting/warehouse_reports/reconciliation'
+    cleanup << 'claims_reporting/warehouse_reports/performance'
+  end
   cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
   cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
   cleanup.each do |url|
