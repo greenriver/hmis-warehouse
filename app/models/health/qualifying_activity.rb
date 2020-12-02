@@ -598,7 +598,8 @@ module Health
     end
 
     def procedure_with_modifiers
-      ([procedure_code] + modifiers).join('>').to_s
+      # sort is here since this is used as a key to match against other data
+      ([procedure_code] + modifiers.sort).join('>').to_s
     end
 
     def any_submitted_of_type_for_day_for_patient?
