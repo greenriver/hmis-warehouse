@@ -11,11 +11,15 @@ module GrdaWarehouse::DocumentExports
         template_file = 'performance_dashboards/overview/index_pdf'
         PdfGenerator.new.perform(
           html: view.render(file: template_file, layout: 'layouts/performance_report'),
-          file_name: "Household Performance #{DateTime.current.to_s(:db)}"
+          file_name: "Household Performance #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
         end
       end
+    end
+
+    def download_title
+      'Household Performance Report'
     end
 
     protected def report_class
@@ -42,7 +46,7 @@ module GrdaWarehouse::DocumentExports
         '#'
       end
 
-      def breakdown
+      def breakdown # rubocop:disable Style/TrivialAccessors
         @breakdown
       end
     end

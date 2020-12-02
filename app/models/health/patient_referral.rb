@@ -12,6 +12,8 @@ module Health
     include PatientReferralImporter
     include ArelHelper
 
+    REENROLLMENT_REQUIRED_AFTER_DAYS = 90
+
     acts_as_paranoid
 
     phi_patient :patient_id
@@ -126,7 +128,14 @@ module Health
 
     def active_within?(range)
       return nil unless enrollment_start_date
+      # disenrollment_date date might be nil but Range handles that for us
       (enrollment_start_date .. disenrollment_date).overlaps?(range)
+    end
+
+    def active_on?(date)
+      return nil unless enrollment_start_date
+      # disenrollment_date date might be nil but Range handles that for us
+      (enrollment_start_date .. disenrollment_date).cover?(date)
     end
 
     scope :referred_on, -> (date) do
@@ -169,8 +178,8 @@ module Health
           )
           referral = create(referral_args)
         else
-          if (enrollment_start_date - last_disenrollment_date).to_i > 90
-            # It has been more than 90 days, so this is a "reenrollment", so close the contributing range
+          if (enrollment_start_date - last_disenrollment_date).to_i > REENROLLMENT_REQUIRED_AFTER_DAYS
+            # It has been more than REENROLLMENT_REQUIRED_AFTER_DAYS days, so this is a "reenrollment", so close the contributing range
             patient.patient_referrals.contributing.update_all(contributing: false)
             referral = create(referral_args)
             patient.reenroll!(referral)
@@ -221,6 +230,7 @@ module Health
       patient.care_plan_signed? && Date.current <= patient.engagement_date
     end
 
+    ENGAGEMENT_IN_DAYS = 150
     # The engagement date is the date by which a patient must be engaged
     def engagement_date
       return nil unless enrollment_start_date.present?
@@ -229,7 +239,11 @@ module Health
       # Before 2018-09-01, engagement was 120 days following the start of the month following enrollment
       # Until 2020-04-01, engagement was 90 days following the start of the month following enrollment
 
-      (enrollment_start_date + 150.days).to_date
+      (enrollment_start_date + ENGAGEMENT_IN_DAYS).to_date
+    end
+
+    def enrolled_days_to_date
+      (enrollment_start_date .. (disenrollment_date || Date.current)).to_a
     end
 
     def name
@@ -491,8 +505,8 @@ module Health
         newer_referral = disenrollments[index + 1] || self
         enrolled_on = newer_referral.enrollment_start_date
         disenrolled_on = older_referral.disenrollment_date || older_referral.pending_disenrollment_date
-        within_90_days = (enrolled_on - disenrolled_on).to_i <= 90
-        older_referral.assign_attributes(current: false, contributing: within_90_days, derived_referral: true)
+        within_required_days = (enrolled_on - disenrolled_on).to_i <= REENROLLMENT_REQUIRED_AFTER_DAYS
+        older_referral.assign_attributes(current: false, contributing: within_required_days, derived_referral: true)
 
         older_referral
       end

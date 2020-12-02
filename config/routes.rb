@@ -825,6 +825,7 @@ Rails.application.routes.draw do
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
+  resources :account_downloads, only: [:index]
 
   resources :document_exports, only: [:show, :create] do
     get :download, on: :member

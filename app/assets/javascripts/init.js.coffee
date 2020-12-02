@@ -1,6 +1,7 @@
 #= require namespace
 App.init = ->
   App.select2.init()
+  App.remoteSelectLoad.init()
   $('abbr').tooltip();
   $('body').tooltip({
     selector: '[data-toggle="tooltip"]'

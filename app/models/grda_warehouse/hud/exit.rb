@@ -8,6 +8,7 @@ module GrdaWarehouse::Hud
   class Exit < Base
     include HudSharedScopes
     include ::HMIS::Structure::Exit
+    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 

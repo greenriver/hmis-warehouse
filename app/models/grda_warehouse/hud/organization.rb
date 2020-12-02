@@ -10,6 +10,7 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include HudSharedScopes
     include ::HMIS::Structure::Organization
+    include RailsDrivers::Extensions
 
     attr_accessor :source_id
 
