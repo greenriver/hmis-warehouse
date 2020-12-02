@@ -25,11 +25,11 @@
                 %thead
                   %tr
                     - data[:situations].each do |situation, _|
-                      %th= situation
+                      %th.text-center= situation
                 %tbody
                   %tr
                     - data[:situations].each do |_, ids|
-                      %th= number_with_delimiter(ids.count)
+                      %th.text-center= number_with_delimiter(ids.count)
             .card
               %table.table.table-striped
                 %thead
@@ -38,8 +38,11 @@
                     %th Length of Stay in Days
                     %th Client Count
                 %tbody
-                  - data[:situations_length].each do |(situation, length), ids|
-                    %tr
-                      %td= situation
-                      %td= length.presence || 'unknown'
-                      %td= number_with_delimiter(ids.count)
+                  - data[:situations_length].each do |situation, sit_data|
+                    - sit_data.each_with_index do |(length, ids), index|
+                      %tr
+                        %td
+                          - if index.zero?
+                            = situation
+                        %td= length.presence || 'unknown'
+                        %td= number_with_delimiter(ids.count)

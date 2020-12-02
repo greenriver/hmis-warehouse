@@ -10,16 +10,6 @@ module PriorLivingSituation
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
     include ArelHelper
-    # include CoreDemographicsReport::AgeCalculations
-    # include CoreDemographicsReport::GenderCalculations
-    # include CoreDemographicsReport::RaceCalculations
-    # include CoreDemographicsReport::EthnicityCalculations
-    # include CoreDemographicsReport::DisabilityCalculations
-    # include CoreDemographicsReport::RelationshipCalculations
-    # include CoreDemographicsReport::DvCalculations
-    # include CoreDemographicsReport::PriorCalculations
-    # include CoreDemographicsReport::HouseholdTypeCalculations
-    # include CoreDemographicsReport::Details
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
@@ -45,36 +35,6 @@ module PriorLivingSituation
 
     def self.url
       'prior_living_situation/warehouse_reports/prior_living_situation'
-    end
-
-    def self.available_section_types
-      [
-        # 'ages',
-        # 'genders',
-        # 'gender_ages',
-        # 'races',
-        # 'ethnicities',
-        # 'disabilities',
-        # 'relationships',
-        # 'dvs',
-        # 'priors',
-        # 'household_types',
-      ]
-    end
-
-    def section_ready?(section)
-      return true unless section.in?(['disabilities', 'races'])
-
-      Rails.cache.exist?(cache_key_for_section(section))
-    end
-
-    private def cache_key_for_section(section)
-      case section
-      when 'disabilities'
-        disabilities_cache_key
-      when 'races'
-        races_cache_key
-      end
     end
 
     def multiple_project_types?
@@ -121,6 +81,8 @@ module PriorLivingSituation
       scope = filter_for_dv_status(scope)
       scope = filter_for_chronic_status(scope)
       scope = filter_for_ca_homeless(scope)
+      scope = filter_for_prior_living_situation(scope)
+      scope = filter_for_destination(scope)
       scope
     end
 
@@ -175,10 +137,16 @@ module PriorLivingSituation
 
             data[coc_code][:situations] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
 
-            data[coc_code][:situations_length] ||= living_situation_buckets.product(HUD.residence_prior_length_of_stays_brief.values.uniq).map { |b| [b, Set.new] }.to_h
+            # data[coc_code][:situations_length] ||= living_situation_buckets.product(HUD.residence_prior_length_of_stays_brief.values.uniq).map { |b| [b, Set.new] }.to_h
+            data[coc_code][:situations_length] ||= living_situation_buckets.map { |b| [b, {}] }.to_h
+            living_situation_buckets.each do |b|
+              HUD.residence_prior_length_of_stays_brief.values.uniq.each do |l|
+                data[coc_code][:situations_length][b][l] ||= Set.new
+              end
+            end
 
             data[coc_code][:situations][living_situation] << client_id
-            data[coc_code][:situations_length][[living_situation, HUD.residence_prior_length_of_stay_brief(length_of_stay) || '']] << client_id
+            data[coc_code][:situations_length][living_situation][HUD.residence_prior_length_of_stay_brief(length_of_stay) || ''] << client_id
           end
         data
       end
