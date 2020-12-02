@@ -81,15 +81,6 @@ module PriorLivingSituation
       true
     end
 
-    protected def build_control_sections
-      [
-        build_general_control_section,
-        build_coc_control_section,
-        build_household_control_section,
-        add_demographic_disabilities_control_section,
-      ]
-    end
-
     def report_path_array
       [
         :prior_living_situation,
@@ -157,6 +148,55 @@ module PriorLivingSituation
       @household_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         report_scope.select(:household_id).distinct.count
       end
+    end
+
+    def data_for_living_situations
+      @data_for_living_situations ||= begin
+        data = {}
+        report_scope.joins(:enrollment, project: :project_cocs).
+          order(:first_date_in_program).
+          pluck(
+            :client_id,
+            :LivingSituation,
+            :LengthOfStay,
+            :CoCCode,
+          ).each do |client_id, living_situation_id, length_of_stay, coc_code|
+            data[coc_code] ||= {}
+            data[coc_code][:clients] ||= {}
+            next if data[coc_code][:clients][client_id]
+
+            living_situation = HUD.situation_type(living_situation_id, include_homeless_breakout: true)
+            data[coc_code][:clients][client_id] ||= {
+              living_situation_id: living_situation_id,
+              living_situation: living_situation,
+              length_of_stay: length_of_stay,
+              coc_code: coc_code,
+            }
+
+            data[coc_code][:situations] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
+
+            data[coc_code][:situations_length] ||= living_situation_buckets.product(HUD.residence_prior_length_of_stays_brief.values.uniq).map { |b| [b, Set.new] }.to_h
+
+            data[coc_code][:situations][living_situation] << client_id
+            data[coc_code][:situations_length][[living_situation, HUD.residence_prior_length_of_stay_brief(length_of_stay) || '']] << client_id
+          end
+        data
+      end
+      # By ProjectCoc.CoCCode
+      # include total by location
+
+      # columns:
+      #   'location' ()
+      #   'length of stay' HUD.residence_prior_length_of_stay_brief
+    end
+
+    private def living_situation_buckets
+      [
+        'Homeless',
+        'Institutional',
+        'Temporary or Permanent',
+        'Other',
+      ]
     end
 
     def self.data_for_export(reports)

@@ -675,7 +675,13 @@ module HUD
   end
 
   def residence_prior_length_of_stay_brief(id, reverse = false)
-    map = {
+    map = residence_prior_length_of_stays_brief
+
+    _translate map, id, reverse
+  end
+
+  def residence_prior_length_of_stays_brief
+    {
       2 => '7-30',
       3 => '30-90',
       4 => '90-365',
@@ -686,8 +692,6 @@ module HUD
       11 => '0-7',
       99 => '',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.917.4
@@ -940,9 +944,10 @@ module HUD
     end
   end
 
-  def situation_type(id)
+  def situation_type(id, include_homeless_breakout: false)
     return 'Temporary or Permanent' if temporary_and_permanent_housing_situations(as: :prior).include?(id)
     return 'Institutional' if institutional_situations(as: :prior).include?(id)
+    return 'Homeless' if homeless_situations(as: :prior).include?(id) && include_homeless_breakout
     return 'Other' if homeless_situations(as: :prior).include?(id)
 
     'Other'
