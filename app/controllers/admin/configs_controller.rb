@@ -65,6 +65,7 @@ module Admin
         :request_account_available,
         :dashboard_lookback,
         :domestic_violence_lookback_days,
+        :support_contact_email,
         client_details: [],
       )
     end

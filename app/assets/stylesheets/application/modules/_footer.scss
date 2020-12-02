@@ -14,10 +14,26 @@ footer {
 footer p {
   margin: 0;
   font-size: rem(12px);
+}
+footer .site-description {
   @include media-breakpoint-up(lg) {
     width: 50%;
   }
 }
+footer .custom-footer-content {
+  a:link, a:visited {
+    color: $footer-foreground;
+    text-decoration: underline;
+  }
+  a:hover, a:active {
+    text-decoration: none;
+  }
+
+  @include media-breakpoint-up(lg) {
+    width: 25%;
+  }
+}
+
 
 .seal-image {
   width: auto;
