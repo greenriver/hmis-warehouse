@@ -36,8 +36,7 @@ module ProjectScorecard
         ]
         generator = HudApr::Generators::Apr::Fy2020::Generator
         apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
-        # FIXME: run!(email: false)
-        generator.new(apr).run!
+        generator.new(apr).run!(email: false)
 
         assessment_answers.merge!(
           {
