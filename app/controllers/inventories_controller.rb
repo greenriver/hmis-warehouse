@@ -24,6 +24,7 @@ class InventoriesController < ApplicationController
     params.require(:inventory).permit(
       :coc_code_override,
       :inventory_start_date_override,
+      :inventory_end_date_override,
     )
   end
 

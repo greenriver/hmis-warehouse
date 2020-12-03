@@ -556,13 +556,17 @@ module HUD
 
   # 2.9.1
   def target_population(id, reverse = false)
-    map = {
+    map = target_populations
+
+    _translate map, id, reverse
+  end
+
+  def target_populations
+    {
       1 => 'Domestic violence victims',
       3 => 'Persons with HIV/AIDS',
       4 => 'Not applicable',
     }
-
-    _translate map, id, reverse
   end
 
   # 3.1.5
