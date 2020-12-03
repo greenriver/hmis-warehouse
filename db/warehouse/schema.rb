@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_02_135347) do
+ActiveRecord::Schema.define(version: 2020_12_03_140706) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -5379,6 +5379,7 @@ ActiveRecord::Schema.define(version: 2020_12_02_135347) do
     t.string "encrypted_s3_secret"
     t.string "encrypted_s3_secret_iv"
     t.datetime "deleted_at"
+    t.string "version"
     t.index ["encrypted_s3_access_key_id_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_access_key_id_iv", unique: true
     t.index ["encrypted_s3_secret_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_secret_iv", unique: true
   end

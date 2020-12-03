@@ -121,6 +121,7 @@ module GrdaWarehouse
         :data_source_ids,
         :user_id,
         :faked_pii,
+        :version,
 
         :reporting_range,
         :reporting_range_days,
