@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_25_130708) do
+ActiveRecord::Schema.define(version: 2020_12_03_140706) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -824,6 +824,7 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.integer "ESBedType"
     t.string "coc_code_override"
     t.date "inventory_start_date_override"
+    t.date "inventory_end_date_override"
     t.index ["DateCreated"], name: "inventory_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Inventory_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "inventory_date_updated"
@@ -892,6 +893,9 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.boolean "extrapolate_contacts", default: false, null: false
     t.boolean "combine_enrollments", default: false
     t.integer "hmis_participating_project_override"
+    t.integer "target_population_override"
+    t.integer "tracking_method_override"
+    t.date "operating_end_date_override"
     t.index "COALESCE(act_as_project_type, \"ProjectType\")", name: "project_project_override_index"
     t.index ["DateCreated"], name: "project_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id"
@@ -1661,6 +1665,7 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.boolean "request_account_available", default: false, null: false
     t.date "dashboard_lookback", default: "2014-07-01"
     t.integer "domestic_violence_lookback_days", default: 0, null: false
+    t.string "support_contact_email"
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -5210,6 +5215,7 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.string "encrypted_s3_secret"
     t.string "encrypted_s3_secret_iv"
     t.datetime "deleted_at"
+    t.string "version"
     t.index ["encrypted_s3_access_key_id_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_access_key_id_iv", unique: true
     t.index ["encrypted_s3_secret_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_secret_iv", unique: true
   end

@@ -9,9 +9,10 @@ module Filters
     attribute :name, String
     attribute :search_scope
 
-    def touch_points_for_user user
+    def touch_points_for_user(user)
       return [] unless search_scope.present?
-      @names ||= search_scope.health_for_user(user).active.
+
+      @touch_points_for_user ||= search_scope.health_for_user(user).active.
         distinct.
         where(name: GrdaWarehouse::HmisForm.distinct.select(:name)).
         order(name: :asc).

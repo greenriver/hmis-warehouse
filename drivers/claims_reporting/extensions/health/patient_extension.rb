@@ -14,7 +14,7 @@ module ClaimsReporting::Health
         (
           medical_claims_by_service_start_date(date_range: activity_date_range)[qa.date_of_activity] || []
         ).select do |c|
-          qa.procedure_code == c.procedure_code && qa.modifiers.to_set == c.modifiers.to_set
+          qa.procedure_with_modifiers == c.procedure_with_modifiers
         end
       end
 
@@ -29,8 +29,7 @@ module ClaimsReporting::Health
           (
             qa2.claim_submitted_on.present? &&
             qa2.date_of_activity == qa.date_of_activity &&
-            qa2.procedure_code == qa.procedure_code &&
-            qa2.modifiers.to_set == qa.modifiers.to_set
+            qa2.procedure_with_modifiers == qa.procedure_with_modifiers
           )
         end
 
