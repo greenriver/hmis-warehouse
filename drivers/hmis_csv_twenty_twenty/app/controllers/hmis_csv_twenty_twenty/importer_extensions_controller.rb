@@ -6,6 +6,7 @@
 
 class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
   before_action :require_can_view_imports!
+  before_action :can_manage_config!, only: [:edit, :update]
   before_action :set_data_source
 
   def show
