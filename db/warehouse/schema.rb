@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_01_162902) do
+ActiveRecord::Schema.define(version: 2020_12_03_140706) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1806,6 +1806,7 @@ ActiveRecord::Schema.define(version: 2020_12_01_162902) do
     t.boolean "request_account_available", default: false, null: false
     t.date "dashboard_lookback", default: "2014-07-01"
     t.integer "domestic_violence_lookback_days", default: 0, null: false
+    t.string "support_contact_email"
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -5133,6 +5134,62 @@ ActiveRecord::Schema.define(version: 2020_12_01_162902) do
     t.datetime "deleted_at"
   end
 
+  create_table "project_scorecard_reports", force: :cascade do |t|
+    t.bigint "project_id"
+    t.bigint "project_group_id"
+    t.string "status", default: "pending"
+    t.bigint "user_id"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "sent_at"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "recipient"
+    t.string "subrecipient"
+    t.date "start_date"
+    t.date "end_date"
+    t.string "funding_year"
+    t.string "grant_term"
+    t.integer "utilization_jan"
+    t.integer "utilization_apr"
+    t.integer "utilization_jul"
+    t.integer "utilization_oct"
+    t.integer "utilization_proposed"
+    t.integer "chronic_households_served"
+    t.integer "total_households_served"
+    t.integer "total_persons_served"
+    t.integer "total_persons_with_positive_exit"
+    t.integer "total_persons_exited"
+    t.integer "excluded_exits"
+    t.integer "average_los_leavers"
+    t.integer "percent_increased_employment_income_at_exit"
+    t.integer "percent_increased_other_cash_income_at_exit"
+    t.integer "percent_returns_to_homelessness"
+    t.integer "percent_pii_errors"
+    t.integer "percent_ude_errors"
+    t.integer "percent_income_and_housing_errors"
+    t.integer "days_to_lease_up"
+    t.integer "number_referrals"
+    t.integer "accepted_referrals"
+    t.integer "funds_expended"
+    t.integer "amount_awarded"
+    t.integer "months_since_start"
+    t.boolean "pit_participation"
+    t.integer "coc_meetings"
+    t.integer "coc_meetings_attended"
+    t.string "improvement_plan"
+    t.string "financial_plan"
+    t.string "site_monitoring"
+    t.integer "total_ces_referrals"
+    t.integer "accepted_ces_referrals"
+    t.integer "clients_with_vispdats"
+    t.integer "average_vispdat_score"
+    t.index ["project_group_id"], name: "index_project_scorecard_reports_on_project_group_id"
+    t.index ["project_id"], name: "index_project_scorecard_reports_on_project_id"
+    t.index ["user_id"], name: "index_project_scorecard_reports_on_user_id"
+  end
+
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
     t.string "EnrollmentID", limit: 50
     t.string "PersonalID"
@@ -5322,6 +5379,7 @@ ActiveRecord::Schema.define(version: 2020_12_01_162902) do
     t.string "encrypted_s3_secret"
     t.string "encrypted_s3_secret_iv"
     t.datetime "deleted_at"
+    t.string "version"
     t.index ["encrypted_s3_access_key_id_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_access_key_id_iv", unique: true
     t.index ["encrypted_s3_secret_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_secret_iv", unique: true
   end
@@ -8580,11 +8638,4 @@ ActiveRecord::Schema.define(version: 2020_12_01_162902) do
       service_history_services.literally_homeless
      FROM service_history_services;
   SQL
-  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
-  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
-  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
-  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
-  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
-
 end

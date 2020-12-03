@@ -228,7 +228,7 @@ module Export::HmisTwentyTwenty::Shared
 
   # We can only safely override if the project only has one CoCCode
   def enrollment_coc_from_project_coc(project_id, data_source_id)
-    available_overrides = project_cocs_for_project(project_id, data_source_id).uniq
+    available_overrides = project_cocs_for_project(project_id, data_source_id)&.uniq
     return available_overrides.first if available_overrides.count == 1
 
     nil
