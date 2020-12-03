@@ -57,8 +57,12 @@
       .container-fluid.w-100{class: container_classes}
         .d-flex.align-items-center.pt-4.pb-6
           = render 'layouts/footer_seal'
-          %p
+          %p.site-description
             = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
+          - if GrdaWarehouse::Config.get(:support_contact_email)
+            .ml-4.custom-footer-content
+              = mail_to GrdaWarehouse::Config.get(:support_contact_email), _('Contact Support'), subject: "#{_('Boston DND Warehouse')} Support Request"
+
 
     #d3-tooltip
     = render 'layouts/ajax_modal_frame'
