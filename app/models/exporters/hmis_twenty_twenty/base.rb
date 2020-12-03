@@ -413,7 +413,7 @@ module Exporters::HmisTwentyTwenty
       export = export_source.new(path: @file_path)
       export.ExportID = @export.export_id
       export.SourceType = 3 # data warehouse
-      export.SourceID = nil # potentially more than one CoC
+      export.SourceID = _('Boston DND Warehouse')[0..31] # potentially more than one CoC
       export.SourceName = _('Boston DND Warehouse')
       export.SourceContactFirst = @user&.first_name || 'Automated'
       export.SourceContactLast = @user&.last_name || 'Export'
