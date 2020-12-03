@@ -16,7 +16,6 @@ module PriorLivingSituation::WarehouseReports
     before_action :set_pdf_export
 
     def index
-      @pdf_export = pdf_export_source.new
       respond_to do |format|
         format.html {}
         format.xlsx do

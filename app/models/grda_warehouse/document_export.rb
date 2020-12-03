@@ -14,4 +14,18 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
   def download_url
     download_document_export_url(id, host: ENV['FQDN'])
   end
+
+  protected def filter
+    @filter ||= begin
+      f = ::Filters::FilterBase.new(user_id: user.id)
+      filter_params = params['filters'].presence&.deep_symbolize_keys
+      f.set_from_params(filter_params) if filter_params
+
+      f
+    end
+  end
+
+  protected def params
+    query_string.present? ? Rack::Utils.parse_nested_query(query_string) : {}
+  end
 end

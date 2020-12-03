@@ -23,20 +23,6 @@ module ProjectPassFail::DocumentExports
       }
     end
 
-    protected def filter
-      @filter ||= begin
-        f = ::Filters::FilterBase.new(user_id: user.id)
-        filter_params = params['filters'].presence&.deep_symbolize_keys
-        f.set_from_params(filter_params) if filter_params
-
-        f
-      end
-    end
-
-    protected def params
-      query_string.present? ? Rack::Utils.parse_nested_query(query_string) : {}
-    end
-
     def perform
       with_status_progression do
         template_file = 'project_pass_fail/warehouse_reports/project_pass_fail/show_pdf'
@@ -60,11 +46,7 @@ module ProjectPassFail::DocumentExports
       view
     end
 
-    class ProjectPassFailExportTemplate < ActionView::Base
-      include ActionDispatch::Routing::PolymorphicRoutes
-      include Rails.application.routes.url_helpers
-      include ApplicationHelper
-      attr_accessor :current_user
+    class ProjectPassFailExportTemplate < PdfExportTemplateBase
       def show_client_details?
         @show_client_details ||= current_user.can_view_clients?
       end
