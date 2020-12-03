@@ -15,6 +15,8 @@ module HmisCsvTwentyTwenty::Importer
     has_one :destination_record, **hud_assoc(:EnrollmentID, 'Enrollment')
     has_one :exit, primary_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwenty::Importer::Exit', autosave: false
     belongs_to :project, primary_key: [:ProjectID, :data_source_id, :importer_log_id], foreign_key: [:ProjectID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwenty::Importer::Project', autosave: false
+    has_many :services, primary_key: [:EnrollmentID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwenty::Importer::Service', autosave: false
+    has_many :current_living_situations, primary_key: [:EnrollmentID, :data_source_id, :importer_log_id], foreign_key: [:EnrollmentID, :data_source_id, :importer_log_id], class_name: 'HmisCsvTwentyTwenty::Importer::CurrentLivingSituation', autosave: false
 
     scope :open_during_range, ->(range) do
       e_t = arel_table

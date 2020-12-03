@@ -14,6 +14,10 @@ module HmisCsvTwentyTwenty::Importer
 
     has_one :destination_record, **hud_assoc(:ProjectID, 'Project')
 
+    scope :night_by_night, -> do
+      where(TrackingMethod: 3)
+    end
+
     def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:) # rubocop:disable  Lint/UnusedMethodArgument
       return none unless project_ids.present?
 
