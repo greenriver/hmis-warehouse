@@ -21,7 +21,7 @@ module HealthFlexibleService
       self.last_name = patient.client.LastName
       self.dob = patient.birthdate
       self.contact_type = :member
-      # self.phone = patient.phone
+      self.phone = patient.most_recent_phone
       self.email = patient.email
       self.main_contact_first_name = user.first_name
       self.main_contact_last_name = user.last_name
