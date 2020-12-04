@@ -15,6 +15,8 @@ module HealthFlexibleService
     def set_defaults
       cha = patient.recent_cha_form
       ssm = patient.recent_ssm_form
+      mmis_name = Health::Cp.sender.mmis_enrollment_name
+
       self.planned_on = Date.current
       self.first_name = patient.client.FirstName
       self.middle_name = patient.client.MiddleName
@@ -49,7 +51,7 @@ module HealthFlexibleService
       self.education = education_from(ssm.option_text_for(:education, ssm.education_score)) if ssm
       self.employment_status = employment_from(ssm.option_text_for(:employment, ssm.employment_score)) if ssm
       (1..HealthFlexibleService::Vpr.max_service_count).each do |i|
-        self["service_#{i}_delivering_entity"] = 'Boston Health Care for the Homeless Program'
+        self["service_#{i}_delivering_entity"] = mmis_name
       end
     end
 
