@@ -2,15 +2,19 @@
   #{sanitize @section} for #{@agency.name}
 
 - if @patients.present?
+  - grouped_patients = @patients.group_by(&:care_coordinator_id).map { |_, patients| [patients.first.care_coordinator&.name || '', patients] }.sort.to_h
   %table.table.table-sm
     %thead
       %tr
-        %th Patient
         %th Care Coordinator
+        %th Patients
     %tbody
-      - @patients.each do |patient|
+      - grouped_patients.each do |care_coordinator, patients|
         %tr
+          %td{colspan: patients.count}= care_coordinator
+          - patient = patients.first
           %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
-          %td= patient.care_coordinator&.name
+          - patients[1..-1].each do |patient|
+            %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
 - else
   No patients found
