@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module ProjectPassFail::DocumentExports
-  class ProjectPassFailExport < ::GrdaWarehouse::DocumentExport
+module PriorLivingSituation::DocumentExports
+  class PriorLivingSituationExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
       user.can_view_any_reports? && report_class.viewable_by(user)
@@ -25,10 +25,10 @@ module ProjectPassFail::DocumentExports
 
     def perform
       with_status_progression do
-        template_file = 'project_pass_fail/warehouse_reports/project_pass_fail/show_pdf'
+        template_file = 'prior_living_situation/warehouse_reports/prior_living_situation/index_pdf'
         PdfGenerator.new.perform(
           html: view.render(file: template_file, layout: 'layouts/performance_report'),
-          file_name: "Project Pass Fail #{DateTime.current.to_s(:db)}",
+          file_name: "Prior Living Situation #{DateTime.current.to_s(:db)}",
         ) do |io|
           self.pdf_file = io
         end
@@ -36,17 +36,17 @@ module ProjectPassFail::DocumentExports
     end
 
     protected def report_class
-      ProjectPassFail::ProjectPassFail
+      PriorLivingSituation::PriorLivingSituationReport
     end
 
     protected def view
-      context = ProjectPassFail::WarehouseReports::ProjectPassFailController.view_paths
-      view = ProjectPassFailExportTemplate.new(context, view_assigns)
+      context = PriorLivingSituation::WarehouseReports::PriorLivingSituationController.view_paths
+      view = PriorLivingSituationExportTemplate.new(context, view_assigns)
       view.current_user = user
       view
     end
 
-    class ProjectPassFailExportTemplate < PdfExportTemplateBase
+    class PriorLivingSituationExportTemplate < PdfExportTemplateBase
       def show_client_details?
         @show_client_details ||= current_user.can_view_clients?
       end

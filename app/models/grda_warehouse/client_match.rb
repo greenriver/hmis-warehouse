@@ -51,6 +51,11 @@ module GrdaWarehouse
     end
 
     def self.auto_process!
+      # Don't do anything if we don't have any destination clients
+      return unless GrdaWarehouse::Hud::Client.destination.count.positive?
+
+      # Initialize before running if we've never run before
+      SimilarityMetric::Initializer.new.run! if GrdaWarehouse::ClientMatch.count.zero?
       within_auto_accept_threshold.joins(:source_client, :destination_client).
         find_each(&:accept!)
       within_auto_reject_threshold.joins(:source_client, :destination_client).

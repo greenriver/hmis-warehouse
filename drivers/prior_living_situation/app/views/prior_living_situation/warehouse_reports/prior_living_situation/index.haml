@@ -1,0 +1,48 @@
+- title = _('Prior Living Situation Report')
+- content_for :title, title
+
+- @layout__plain_inner = true
+- @layout__width = 'lg'
+.content-outer-prs1
+  %nav.nav-drawer.prs1
+    = render 'filters/filter_controls/sidebar'
+  .main-outer-prs1
+    .utility-prs1
+      = render '/warehouse_reports/breadcrumbs', tab: 'operational'
+      = render 'utility'
+    .top-nav-prs1
+      %h1.mb-5= title
+      .mb-4= render 'hero_counts'
+      .main-inner-prs1
+        - if false
+          .text-right.mb-4
+            = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: prior_living_situation_warehouse_reports_prior_living_situation_index_path({format: :xlsx}.merge(@filter.for_params))
+        - @report.data_for_living_situations.each do |coc_code, data|
+          .mb-4
+            %h3= coc_code
+            .card.mb-4
+              %table.table.table-striped
+                %thead
+                  %tr
+                    - data[:situations].each do |situation, _|
+                      %th.text-center= situation
+                %tbody
+                  %tr
+                    - data[:situations].each do |_, ids|
+                      %th.text-center= number_with_delimiter(ids.count)
+            .card
+              %table.table.table-striped
+                %thead
+                  %tr
+                    %th Situation
+                    %th Length of Stay in Days
+                    %th Client Count
+                %tbody
+                  - data[:situations_length].each do |situation, sit_data|
+                    - sit_data.each_with_index do |(length, ids), index|
+                      %tr
+                        %td
+                          - if index.zero?
+                            = situation
+                        %td= length.presence || 'unknown'
+                        %td= number_with_delimiter(ids.count)
