@@ -25,7 +25,7 @@ module ReportGenerators::Lsa::Fy2019
       end
       # Allow for historical single data source, or new multi-data source
       data_source_ids = Array.wrap(@report.options['data_source_id'].presence&.to_i).compact
-      data_source_ids += @report.options['data_source_ids'].select(&:present?).map(&:to_i)
+      data_source_ids += @report.options['data_source_ids']&.select(&:present?)&.map(&:to_i) || []
       @report.options['project_id'] |= GrdaWarehouse::Hud::Project.where(data_source_id: data_source_ids).pluck(:id) if data_source_ids.present?
       if test?
         @coc_code = 'XX-500'
