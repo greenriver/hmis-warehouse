@@ -11,10 +11,11 @@
     %tbody
       - grouped_patients.each do |care_coordinator, patients|
         %tr
-          %td{colspan: patients.count}= care_coordinator
+          %td{rowspan: patients.count}= care_coordinator
           - patient = patients.first
           %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
-          - patients[1..-1].each do |patient|
+        - patients[1..-1].each do |patient|
+          %tr
             %td= link_to "#{patient.first_name} #{patient.last_name}", polymorphic_path(health_path_generator + [:patient, :index], client_id: patient.client_id)
 - else
   No patients found
