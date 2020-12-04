@@ -48,6 +48,9 @@ module HealthFlexibleService
       self.primary_language = language_from(cha.answer('b_q3')) if cha
       self.education = education_from(ssm.option_text_for(:education, ssm.education_score)) if ssm
       self.employment_status = employment_from(ssm.option_text_for(:employment, ssm.employment_score)) if ssm
+      (1..HealthFlexibleService::Vpr.max_service_count).each do |i|
+        self["service_#{i}_delivering_entity"] = 'Boston Health Care for the Homeless Program'
+      end
     end
 
     scope :category_in_range, ->(category, range) do
