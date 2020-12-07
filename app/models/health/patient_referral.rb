@@ -132,10 +132,11 @@ module Health
       (enrollment_start_date .. disenrollment_date).overlaps?(range)
     end
 
+    # Note: respects pending_disenrollment_date if there is no disenrollment_date
     def active_on?(date)
       return nil unless enrollment_start_date
       # disenrollment_date date might be nil but Range handles that for us
-      (enrollment_start_date .. disenrollment_date).cover?(date)
+      (enrollment_start_date .. (disenrollment_date || pending_disenrollment_date)).cover?(date)
     end
 
     scope :referred_on, -> (date) do

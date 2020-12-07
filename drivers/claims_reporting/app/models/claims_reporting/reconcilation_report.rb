@@ -60,7 +60,7 @@ module ClaimsReporting
     end
 
     def qa_missing_careplan_count_for_patient(patient)
-      patient_qas(patient.id).reject(&:patient_had_valid_care_plan?).size
+      patient_qas(patient.id).select(&:missing_care_plan?).size
     end
 
     def acos_for_patient(patient)
@@ -104,16 +104,15 @@ module ClaimsReporting
           'First Name',
           'Last Name',
           'Qualifying Activities',
-          'Missing Enrollment',
-          'Missing Care Plan',
-          'Plan Dates',
+          'QAs Outside Enrollment',
+          'QAs Without Required Careplan',
+          'Careplan PCP signatures',
         ]
         patients_without_payments.each do |patient|
           csv << [
             patient.medicaid_id,
             patient.first_name,
             patient.last_name,
-            patient.careplans.map { |d| l d.provider_signed_on }.to_sentence,
             qa_count_for_patient(patient),
             qa_missing_enrollment_count_for_patient(patient),
             qa_missing_careplan_count_for_patient(patient),
