@@ -795,6 +795,15 @@ def report_list
       health: true,
     }
   end
+  if RailsDrivers.loaded.include?(:prior_living_situation)
+    r_list['Operational'] << {
+      url: 'prior_living_situation/warehouse_reports/prior_living_situation',
+      name: 'Prior Living Situation Breakdowns',
+      description: 'Details of Prior Living Situation at Entry (3.917)',
+      limitable: true,
+      health: false,
+    }
+  end
   r_list
 end
 
@@ -810,6 +819,7 @@ def cleanup_unused_reports
   cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
   cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
   cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
+  cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
   cleanup.each do |url|
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
   end
