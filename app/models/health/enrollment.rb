@@ -29,12 +29,6 @@ module Health
     end
 
     def self.describe(transaction)
-      @maintenance_types ||= {
-        '021' => 'Enrollment',
-        '024' => 'Disenrollment',
-        '001' => 'Change',
-        '030' => 'Audit',
-      }
       "#{maintenance_type_name(transaction)}: " +
         "#{first_name(transaction)} #{last_name(transaction)}" +
         " (#{subscriber_id(transaction)})"
