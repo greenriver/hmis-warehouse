@@ -4,3 +4,4 @@ Rails.logger.debug "Running initializer in #{__FILE__}"
 
 # Add new mime types for use in respond_to blocks:
 # Mime::Type.register "text/richtext", :rtf
+Mime::Type.register "application/EDI-X12", :edi

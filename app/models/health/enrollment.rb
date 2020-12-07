@@ -18,6 +18,16 @@ module Health
 
     belongs_to :user
 
+    def self.maintenance_type_name(transaction)
+      @maintenance_types ||= {
+        '021' => 'Enrollment',
+        '024' => 'Disenrollment',
+        '001' => 'Change',
+        '030' => 'Audit',
+      }.freeze
+      @maintenance_types[maintenance_type(transaction)]
+    end
+
     def self.describe(transaction)
       @maintenance_types ||= {
         '021' => 'Enrollment',
@@ -25,7 +35,7 @@ module Health
         '001' => 'Change',
         '030' => 'Audit',
       }
-      "#{@maintenance_types[maintenance_type(transaction)]}: " +
+      "#{maintenance_type_name(transaction)}: " +
         "#{first_name(transaction)} #{last_name(transaction)}" +
         " (#{subscriber_id(transaction)})"
     end
