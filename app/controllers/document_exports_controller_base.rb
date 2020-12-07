@@ -80,6 +80,7 @@ class DocumentExportsControllerBase < ApplicationController
       'GrdaWarehouse::DocumentExports::BasePerformanceExport',
       'Health::DocumentExports::HousingStatusChangesExport',
       'Health::DocumentExports::AgencyPerformanceExport',
+      'ProjectScorecard::DocumentExports::ScorecardExport',
     ]
   end
 end

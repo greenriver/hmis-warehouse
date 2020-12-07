@@ -27,6 +27,8 @@
     Accepted Referrals
   %th{colspan: 2}
     = simple_format(_('TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most.'))
+    %br
+    [FIXME: which report? - add link]
   %td{colspan: 3}
     %table.table-table-sm
       %tbody
@@ -34,7 +36,10 @@
           %th{colspan: 8}
             Number of CES Referrals
           %td{colspan: 4}
-            = f.input :number_referrals, label: false, disabled: @report.locked?(:number_referrals, current_user)
+            - as = {}
+            - if @report.locked?(:number_referrals, current_user)
+              - as = { as: :read_only }
+            = f.input :number_referrals, label: false, **as
         %tr
           %th{colspan: 8}
             Number of Accepted Referrals

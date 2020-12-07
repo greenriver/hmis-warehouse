@@ -16,7 +16,7 @@ module ProjectScorecard
       end
 
       def spend_down_score
-        score(spend_down_percentage.abs, 0..10, 11.15) if spend_down_percentage.present?
+        score(spend_down_percentage.abs, 0..10, 11..15) if spend_down_percentage.present?
       end
 
       def budget_plus_match
