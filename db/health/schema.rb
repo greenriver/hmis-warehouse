@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_01_224035) do
+ActiveRecord::Schema.define(version: 2020_12_03_212706) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -400,7 +400,116 @@ ActiveRecord::Schema.define(version: 2020_12_01_224035) do
     t.decimal "quantity", precision: 12, scale: 4
     t.string "price_method", limit: 50
     t.string "ccs_id"
+    t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
     t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
+    t.index ["member_id"], name: "claims_reporting_medical_claims_member_id_idx"
+  end
+
+  create_table "claims_reporting_member_rosters", force: :cascade do |t|
+    t.string "member_id", limit: 50
+    t.string "nam_first", limit: 255
+    t.string "nam_last", limit: 255
+    t.string "cp_pidsl", limit: 50
+    t.string "cp_name", limit: 255
+    t.string "aco_pidsl", limit: 50
+    t.string "aco_name", limit: 255
+    t.string "mco_pidsl", limit: 50
+    t.string "mco_name", limit: 50
+    t.string "sex", limit: 50
+    t.date "date_of_birth"
+    t.string "mailing_address_1", limit: 512
+    t.string "mailing_address_2", limit: 512
+    t.string "mailing_city", limit: 255
+    t.string "mailing_state", limit: 255
+    t.string "mailing_zip", limit: 50
+    t.string "residential_address_1", limit: 512
+    t.string "residential_address_2", limit: 512
+    t.string "residential_city", limit: 255
+    t.string "residential_state", limit: 255
+    t.string "residential_zip", limit: 50
+    t.string "race", limit: 50
+    t.string "phone_number", limit: 50
+    t.string "primary_language_s", limit: 255
+    t.string "primary_language_w", limit: 255
+    t.string "sdh_nss7_score", limit: 50
+    t.string "sdh_homelessness", limit: 50
+    t.string "sdh_addresses_flag", limit: 50
+    t.string "sdh_other_disabled", limit: 50
+    t.string "sdh_spmi", limit: 50
+    t.string "raw_risk_score", limit: 50
+    t.string "normalized_risk_score", limit: 50
+    t.string "raw_dxcg_risk_score", limit: 50
+    t.date "last_office_visit"
+    t.date "last_ed_visit"
+    t.date "last_ip_visit"
+    t.string "enrolled_flag", limit: 50
+    t.string "enrollment_status", limit: 50
+    t.date "cp_claim_dt"
+    t.string "qualifying_hcpcs", limit: 50
+    t.string "qualifying_hcpcs_nm", limit: 255
+    t.string "qualifying_dsc", limit: 512
+    t.string "email", limit: 512
+    t.string "head_of_household", limit: 512
+  end
+
+  create_table "claims_reporting_rx_claims", force: :cascade do |t|
+    t.string "member_id", limit: 50
+    t.string "claim_number", limit: 30
+    t.string "line_number", limit: 10
+    t.string "cp_pidsl", limit: 50
+    t.string "cp_name", limit: 255
+    t.string "aco_pidsl", limit: 50
+    t.string "aco_name", limit: 255
+    t.string "pcc_pidsl", limit: 50
+    t.string "pcc_name", limit: 255
+    t.string "pcc_npi", limit: 50
+    t.string "pcc_taxid", limit: 50
+    t.string "mco_pidsl", limit: 50
+    t.string "mco_name", limit: 50
+    t.string "source", limit: 50
+    t.string "claim_type", limit: 255
+    t.date "member_dob"
+    t.string "refill_quantity", limit: 20
+    t.date "service_start_date"
+    t.date "service_end_date"
+    t.date "paid_date"
+    t.integer "days_supply"
+    t.decimal "billed_amount", precision: 19, scale: 4
+    t.decimal "allowed_amount", precision: 19, scale: 4
+    t.decimal "paid_amount", precision: 19, scale: 4
+    t.string "prescriber_npi", limit: 50
+    t.string "id_prescriber_servicing", limit: 50
+    t.string "prescriber_taxid", limit: 50
+    t.string "prescriber_name", limit: 255
+    t.string "prescriber_type", limit: 50
+    t.string "prescriber_taxonomy", limit: 50
+    t.string "prescriber_address", limit: 512
+    t.string "prescriber_city", limit: 255
+    t.string "prescriber_state", limit: 255
+    t.string "prescriber_zip", limit: 50
+    t.string "billing_npi", limit: 50
+    t.string "id_provider_billing", limit: 50
+    t.string "billing_taxid", limit: 50
+    t.string "billing_provider_name", limit: 255
+    t.string "billing_provider_type", limit: 50
+    t.string "billing_provider_taxonomy", limit: 50
+    t.string "billing_address", limit: 512
+    t.string "billing_city", limit: 255
+    t.string "billing_state", limit: 255
+    t.string "billing_zip", limit: 50
+    t.string "ndc_code", limit: 50
+    t.string "dosage_form_code", limit: 50
+    t.string "therapeutic_class", limit: 50
+    t.string "daw_ind", limit: 50
+    t.string "gcn", limit: 50
+    t.string "claim_status", limit: 50
+    t.string "disbursement_code", limit: 50
+    t.string "enrolled_flag", limit: 50
+    t.string "drug_name", limit: 512
+    t.integer "brand_vs_generic_indicator"
+    t.string "price_method", limit: 50
+    t.decimal "quantity", precision: 12, scale: 4
+    t.string "route_of_administration", limit: 255
   end
 
   create_table "claims_roster", id: :serial, force: :cascade do |t|
