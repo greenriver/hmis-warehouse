@@ -1,0 +1,24 @@
+wb = xlsx_package.workbook
+
+columns = [
+  'Maintenance Type',
+  'Medicaid ID',
+  'Last Name',
+  'First Name',
+]
+
+wb.add_worksheet(name: 'Transactions') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+
+  sheet.add_row(columns, style: title)
+
+  @enrollment.transactions.each do |transaction|
+    row = [
+      Health::Enrollment.maintenance_type_name(transaction),
+      Health::Enrollment.subscriber_id(transaction),
+      Health::Enrollment.last_name(transaction),
+      Health::Enrollment.first_name(transaction),
+    ]
+    sheet.add_row(row, types: [nil, :string, nil, nil]) # Force subscriber id to string to avoid formatting problems
+  end
+end
