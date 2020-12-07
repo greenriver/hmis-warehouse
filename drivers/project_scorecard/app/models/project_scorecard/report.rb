@@ -116,7 +116,7 @@ module ProjectScorecard
     end
 
     def title
-      "#{project.name.titlecase} Project Scorecard"
+      "#{project.name} Project Scorecard"
     end
 
     def url

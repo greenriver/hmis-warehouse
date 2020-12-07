@@ -1,20 +1,21 @@
 %tr
   %th{colspan: 12}
-    Grant Management & Financials 10%
-    %br Projects must demonstrate understanding of compliance with federal & local regulations of project operations.
+    = _('Grant Management & Financials 10%')
+    %br
+    = simple_format(_('Projects must demonstrate understanding of compliance with federal & local regulations of project operations.'))
 %tr
   %th{colspan: 2}
     Projected Project Spend Down
   %th{colspan: 2}
-    Ensure the program is on track to spend down all project funds by the end of its current grant term
+    = simple_format(_('Ensure the program is on track to spend down all project funds by the end of its current grant term'))
     %br
-    Agency Self-Report and eLOCCS data
+    = simple_format(_('Agency Self-Report and eLOCCS data'))
   %th{colspan: 3}
     %table.table.table-sm
       %tbody
         %tr
           %th{colspan: 8}
-            Funds expended to date, as reflected in eLOCCS
+            = _('Funds expended to date, as reflected in eLOCCS')
           %td{colspan: 4}
             = f.input :funds_expended, label: false, disabled: @report.locked?(:funds_expended, current_user)
         %tr
@@ -41,21 +42,20 @@
   %th{colspan: 2}
     Cost Efficiency
   %th{colspan: 2}
-    It is important to HUD that programs demonstrate cost efficiency - the annual cost to retain or move someone
-    into permanent housing.
+    = simple_format(_('It is important to HUD that programs demonstrate cost efficiency - the annual cost to retain or move someone into permanent housing.'))
     %br
-    Project Application & Sage APR Data
+    = _('Project Application & Sage APR Data')
   %th{colspan: 3}
     %table.table.table-sm
       %tbody
         %tr
           %th{colspan: 8}
-            FY17 Total CoC Budget Plus 25% Required Match
+            = _('FY17 Total CoC Budget Plus 25% Required Match')
           %td{colspan: 4}
             = @report.budget_plus_match
         %tr
           %th{colspan: 8}
-            Number of participants who exited to or remained in permanent supportive housing during the reporting period
+            = _('Number of participants who exited to or remained in permanent supportive housing during the reporting period')
           %td{colspan: 4}
             = @report.participants_in_psh
   %td{colspan: 1}
@@ -76,10 +76,9 @@
     = @report.cost_efficiency_score
 %tr
   %th{colspan: 2}
-    Percentage of total grant funds that were recaptured in the most recent grant closeout
+    = ('Percentage of total grant funds that were recaptured in the most recent grant closeout')
   %th{colspan: 2}
-    It is important to HUD that programs show agency capacity to spend funds allocated in a timely manner and in full
-    and allows for potential fund reallocation of unspent funds during the HUD CoC Competition.
+    = simple_format(_('It is important to HUD that programs show agency capacity to spend funds allocated in a timely manner and in full and allows for potential fund reallocation of unspent funds during the HUD CoC Competition.'))
     %br
     Sage APR Data
   %th{colspan: 3}
@@ -112,11 +111,11 @@
     = @report.recaptured_score
 %tr
   %th{colspan: 2}
-    2019 PIT Count Participation
+    = _('2019 PIT Count Participation')
   %th{colspan: 2}
-    The measure indicates if agency is participating in CoC-related activities
+    = _('The measure indicates if agency is participating in CoC-related activities')
     %br
-    PIT Registration or PIT Data
+    = _('PIT Registration or PIT Data')
   %th{colspan: 3}
     N/A
   %td{colspan: 1}
@@ -133,10 +132,9 @@
   %th{colspan: 2}
     CoC General Meeting Attendance
   %th{colspan: 2}
-    To support collaboration between agencies and knowledge of local resources at the CoC will provides CoC wide
-    meetings with varying topics related to homelessness and housing services. The measure indicates agency participation.
+    = simple_format(_('To support collaboration between agencies and knowledge of local resources at the CoC will provides CoC wide meetings with varying topics related to homelessness and housing services. The measure indicates agency participation.'))
     %br
-    TCHC Sign-In Sheets
+    = _('TCHC Sign-In Sheets')
   %th{colspan: 3}
     %table.table.table-sm
       %tbody
