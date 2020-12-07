@@ -246,7 +246,7 @@ module Export::HmisTwentyTwenty::Shared
       end
       cocs
     end
-    @project_cocs_for_project[[project_id, data_source_id]]
+    @project_cocs_for_project[[project_id, data_source_id]] || []
   end
 
   def organization_export_id(organization_id, data_source_id)

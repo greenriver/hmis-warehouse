@@ -38,6 +38,8 @@ Date:  4/20/2020
 						 overlap with enrollment(s) in another project type) 
 	   10/1/2020 -  6.11 - include RRH exit date as date housed in RRH if equal to move-in date
 					6.17.1, 2, and 3 - add missing closing parentheses (issue created in 9/24 update) 
+	   12/3/2020 - 6.13.1-6.13.3 - correct to include counts of dates for enrollments with entry dates prior
+						to 10/1/2012 when LastInactive = 9/30/2012 and the enrollments extend beyond that date 
 
 	6.1 Get Unique Households and Population Identifiers for tlsa_Household
 */
@@ -747,10 +749,10 @@ Date:  4/20/2020
 		, '6.13.1'
 	from tlsa_Household hh 
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-		and hhid.EntryDate > hh.LastInactive 
 	inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
 	inner join ref_Calendar cal on 
 		cal.theDate >= hhid.EntryDate
+		and cal.theDate > hh.LastInactive
 		and cal.theDate <= coalesce(dateadd(dd, -1, hhid.ExitDate), rpt.ReportEnd)
 	left outer join sys_Time housed on housed.HoHID = hh.HoHID and housed.HHType = hh.HHType
 		and housed.sysDate = cal.theDate
@@ -764,12 +766,12 @@ Date:  4/20/2020
 		, '6.13.2'
 	from tlsa_Household hh 
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-		and hhid.EntryDate > hh.LastInactive 
 	inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
 	inner join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200 and bn.DateDeleted is null
 	inner join ref_Calendar cal on 
 		cal.theDate = bn.DateProvided
+		and cal.theDate > hh.LastInactive
 		and cal.theDate between hhid.EntryDate and coalesce(dateadd(dd, -1, hhid.ExitDate), rpt.ReportEnd)
 	left outer join sys_Time other on other.HoHID = hh.HoHID and other.HHType = hh.HHType
 		and other.sysDate = cal.theDate
@@ -782,7 +784,6 @@ Date:  4/20/2020
 		, '6.13.3'
 	from tlsa_Household hh 
 	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-		and hhid.EntryDate > hh.LastInactive 
 	inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
 	inner join ref_Calendar cal on 
 		cal.theDate >= hhid.EntryDate
@@ -796,7 +797,7 @@ Date:  4/20/2020
 /*
 	6.14 Get Other Dates Homeless from 3.917 Living Situation
 */
-	--If there are enrollments in sys_Enrollment where EntryDate >= LastInactive,
+	--If there are enrollments in sys_Enrollment where EntryDate > LastInactive,
 	-- dates between the earliest DateToStreetESSH and LastInactive --
 	-- i.e., dates without a potential status conflict based on other system use --
 	-- populate Other3917Days as the difference in days between DateToStreetESSH

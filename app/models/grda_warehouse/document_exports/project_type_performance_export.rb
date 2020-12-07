@@ -33,11 +33,7 @@ module GrdaWarehouse::DocumentExports
       view
     end
 
-    class ProjectTypePerformanceExportTemplate < ActionView::Base
-      include ActionDispatch::Routing::PolymorphicRoutes
-      include Rails.application.routes.url_helpers
-      include ApplicationHelper
-      attr_accessor :current_user
+    class ProjectTypePerformanceExportTemplate < PdfExportTemplateBase
       def show_client_details?
         @show_client_details ||= current_user.can_view_clients?
       end

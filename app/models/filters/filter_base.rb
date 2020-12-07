@@ -663,7 +663,12 @@ module Filters
     end
 
     def available_prior_living_situations
-      HUD.living_situations.invert
+      HUD.living_situations.invert.map do |title, id|
+        [
+          "#{title} (#{id})",
+          id,
+        ]
+      end.to_h
     end
 
     def available_destinations
