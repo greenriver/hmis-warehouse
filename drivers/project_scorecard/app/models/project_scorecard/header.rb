@@ -13,7 +13,7 @@ module ProjectScorecard
       end
 
       def project_types
-        HUD.project_type(project.compute_project_type)
+        HUD.project_type(project.computed_project_type)
       end
     end
   end

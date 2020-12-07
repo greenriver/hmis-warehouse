@@ -19,7 +19,7 @@ module ProjectScorecard
       end
 
       def accepted_referrals_score
-        score(accepted_referrals_percentage, 90..)
+        score(accepted_referrals_percentage, 90..Float::INFINITY)
       end
     end
   end

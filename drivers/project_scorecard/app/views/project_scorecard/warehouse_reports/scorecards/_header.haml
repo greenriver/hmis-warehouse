@@ -2,12 +2,12 @@
   %tbody
     %tr
       %th Recipient
-      %td= f.input :recipient, label: false, disabled: @report.locked?(:recipient, current_user)
+      %td= f.input :recipient, label: false, **@report.form_input_as(:recipient, current_user)
       %th Project Component Type
       %td= @report.project_types
     %tr
       %th Subrecipient
-      %td= f.input :subrecipient, label: false, disabled: @report.locked?(:subrecipient, current_user)
+      %td= f.input :subrecipient, label: false, **@report.form_input_as(:subrecipient, current_user)
       %th Reporting Period
       %td #{@report.start_date} - #{@report.end_date}
     %tr
@@ -17,6 +17,6 @@
       %td= @report.status.humanize
     %tr
       %th CoC Funding Year
-      %td= f.input :funding_year, label: false, disabled: @report.locked?(:funding_year, current_user)
+      %td= f.input :funding_year, label: false, **@report.form_input_as(:funding_year, current_user)
       %th Full Grant Term
-      %td= f.input :grant_term, label: false, disabled: @report.locked?(:grant_term, current_user)
+      %td= f.input :grant_term, label: false, **@report.form_input_as(:grant_term, current_user)

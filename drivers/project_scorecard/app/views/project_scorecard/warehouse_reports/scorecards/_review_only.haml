@@ -13,7 +13,7 @@
   %th{colspan: 3}
     N/A
   %td{colspan: 1}
-    = f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, disabled: @report.locked?(:site_monitoring, current_user)
+    = f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, **@report.form_input_as(:site_monitoring, current_user)
   %th{colspan: 1}
     No Findings
   %th{colspan: 1}
@@ -36,12 +36,12 @@
           %th{colspan: 8}
             Number of CES Referrals
           %td{colspan: 4}
-            = f.input :total_ces_referrals, label: false, disabled: @report.locked?(:total_ces_referrals, current_user)
+            = f.input :total_ces_referrals, label: false, **@report.form_input_as(:total_ces_referrals, current_user)
         %tr
           %th{colspan: 8}
             Number of Accepted Referrals
           %td{colspan: 4}
-            = f.input :accepted_ces_referrals, label: false, disabled: @report.locked?(:accepted_ces_referrals, current_user)
+            = f.input :accepted_ces_referrals, label: false, **@report.form_input_as(:accepted_ces_referrals, current_user)
   %td{colspan: 1}
     = @report.ces_rejected_referral_percentage
   %th{colspan: 1}
@@ -88,12 +88,12 @@
           %th{colspan: 8}
             Number of clients with VI-SPDATs
           %td{colspan: 4}
-            = f.input :clients_with_vispdats, label: false, disabled: @report.locked?(:clients_with_vispdats, current_user)
+            = f.input :clients_with_vispdats, label: false, **@report.form_input_as(:clients_with_vispdats, current_user)
         %tr
           %th{colspan: 8}
             Average VI-SPDAT score
           %td{colspan: 4}
-            = f.input :average_vispdat_score, label: false, disabled: @report.locked?(:average_vispdat_score, current_user)
+            = f.input :average_vispdat_score, label: false, **@report.form_input_as(:average_vispdat_score, current_user)
   %td{colspan: 1}
     = # TODO
   %th{colspan: 1}

@@ -14,22 +14,22 @@
       %tbody
         %tr
           %th{colspan: 8} January Total (Q08b, Row 1, Column 1)
-          %td{colspan: 4}= f.input :utilization_jan, label: false, disabled: @report.locked?(:utilization_jan, current_user)
+          %td{colspan: 4}= f.input :utilization_jan, label: false, **@report.form_input_as(:utilization_jan, current_user)
         %tr
           %th{colspan: 8} April Total (Q08b, Row 2, Column 1)
-          %td{colspan: 4}= f.input :utilization_apr, label: false, disabled: @report.locked?(:utilization_apr, current_user)
+          %td{colspan: 4}= f.input :utilization_apr, label: false, **@report.form_input_as(:utilization_apr, current_user)
         %tr
           %th{colspan: 8} July Total (Q08b, Row 3, Column 1)
-          %td{colspan: 4}= f.input :utilization_jul, label: false, disabled: @report.locked?(:utilization_jul, current_user)
+          %td{colspan: 4}= f.input :utilization_jul, label: false, **@report.form_input_as(:utilization_jul, current_user)
         %tr
           %th{colspan: 8} October Total (Q08b, Row 4, Column 1)
-          %td{colspan: 4}= f.input :utilization_oct, label: false, disabled: @report.locked?(:utilization_oct, current_user)
+          %td{colspan: 4}= f.input :utilization_oct, label: false, **@report.form_input_as(:utilization_oct, current_user)
         %tr
           %th{colspan: 8} Adjusted Total from 2017 Project Application (Auto Calculates)
           %td{colspan: 4}= @report.adjusted_utilization
         %tr
           %th{colspan: 8} Proposed number of households served
-          %td{colspan: 4}= f.input :utilization_proposed, label: false, disabled: @report.locked?(:utilization_proposed, current_user)
+          %td{colspan: 4}= f.input :utilization_proposed, label: false, **@report.form_input_as(:utilization_proposed, current_user)
   %td= @report.utilization_percentage
   %th 90% - 150%
   %th 80% - 89%
@@ -44,13 +44,13 @@
     Sage APR Q26a
   %th{colspan: 3}
     %table.table.table-sm
-      %body
+      %tbody
         %tr
           %th{colspan: 8} Total Chronically Homeless Households served
-          %td{colspan: 4}= f.input :chronic_households_served, label: false, disabled: @report.locked?(:chronic_households_served, current_user)
+          %td{colspan: 4}= f.input :chronic_households_served, label: false, **@report.form_input_as(:chronic_households_served, current_user)
         %tr
           %th{colspan: 8} Total Households served
-          %td{colspan: 4}= f.input :total_households_served, label: false, disabled: @report.locked?(:total_households_served, current_user)
+          %td{colspan: 4}= f.input :total_households_served, label: false, **@report.form_input_as(:total_households_served, current_user)
   %td= @report.chronic_service_percentage
   %th
     PSH: >=75%
@@ -71,16 +71,16 @@
       %tbody
         %tr
           %th{colspan: 8} Total Number of Persons Served (Q05a, Row 1)
-          %td{colspan: 4}= f.input :total_persons_served, label: false, disabled: @report.locked?(:total_persons_served, current_user)
+          %td{colspan: 4}= f.input :total_persons_served, label: false, **@report.form_input_as(:total_persons_served, current_user)
         %tr
           %th{colspan: 8} Total Persons exiting to positive destinations (Q23c, 3rd row from bottom)
-          %td{colspan: 4}= f.input :total_persons_with_positive_exit, label: false, disabled: @report.locked?(:total_persons_with_positive_exit, current_user)
+          %td{colspan: 4}= f.input :total_persons_with_positive_exit, label: false, **@report.form_input_as(:total_persons_with_positive_exit, current_user)
         %tr
           %th{colspan: 8} Total Exits (Q23c, 4th row from bottom)
-          %td{colspan: 4}= f.input :total_persons_exited, label: false, disabled: @report.locked?(:total_persons_exited, current_user)
+          %td{colspan: 4}= f.input :total_persons_exited, label: false, **@report.form_input_as(:total_persons_exited, current_user)
         %tr
           %th{colspan: 8} Total persons whose destinations excluded them from the calculation (Q23c, 2nd row from bottom)
-          %td{colspan: 4}= f.input :excluded_exits, label: false, disabled: @report.locked?(:excluded_exits, current_user)
+          %td{colspan: 4}= f.input :excluded_exits, label: false, **@report.form_input_as(:excluded_exits, current_user)
         %tr
           %th{colspan: 8} Unsuccessful exits (Auto Calculated)
           %td{colspan: 4}= @report.unsuccessful_exits
@@ -107,7 +107,7 @@
     Sage APR Q22b
   %th{colspan: 3}
     N/A
-  %td= f.input :average_los_leavers, label: false, disabled: @report.locked?(:average_los_leavers, current_user)
+  %td= f.input :average_los_leavers, label: false, **@report.form_input_as(:average_los_leavers, current_user)
   %th
     RRH: >=3-18 months
   %th
@@ -124,7 +124,7 @@
     Sage APR Q19a1, Q19a2
   %th{colspan: 3}
 
-  %td= f.input :percent_increased_employment_income_at_exit, label: false, disabled: @report.locked?(:percent_increased_employment_income_at_exit, current_user)
+  %td= f.input :percent_increased_employment_income_at_exit, label: false, **@report.form_input_as(:percent_increased_employment_income_at_exit, current_user)
   %th
     PSH: >= 15%
     %br
@@ -147,7 +147,7 @@
     Sage APR Q19a1, Q19a2
   %th{colspan: 3}
 
-  %td= f.input :percent_increased_other_cash_income_at_exit, label: false, disabled: @report.locked?(:percent_increased_other_cash_income_at_exit, current_user)
+  %td= f.input :percent_increased_other_cash_income_at_exit, label: false, **@report.form_input_as(:percent_increased_other_cash_income_at_exit, current_user)
   %th
     PSH: >= 61%
     %br
@@ -168,7 +168,7 @@
     = simple_format(_('Reducing returns to homelessness is one of the most important measures of program success and is HUD System Performance Measure 2a.'))
   %th{colspan: 3}
 
-  %td= f.input :percent_returns_to_homelessness, label: false, disabled: @report.locked?(:percent_returns_to_homelessness, current_user)
+  %td= f.input :percent_returns_to_homelessness, label: false, **@report.form_input_as(:percent_returns_to_homelessness, current_user)
   %th
     <= 5%
   %th

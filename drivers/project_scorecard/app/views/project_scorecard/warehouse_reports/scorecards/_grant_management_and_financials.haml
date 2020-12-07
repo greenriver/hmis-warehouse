@@ -17,17 +17,17 @@
           %th{colspan: 8}
             = _('Funds expended to date, as reflected in eLOCCS')
           %td{colspan: 4}
-            = f.input :funds_expended, label: false, disabled: @report.locked?(:funds_expended, current_user)
+            = f.input :funds_expended, label: false, **@report.form_input_as(:funds_expended, current_user)
         %tr
           %th{colspan: 8}
             Total Grant Amount Awarded
           %td{colspan: 4}
-            = f.input :amount_awarded, label: false, disabled: @report.locked?(:amount_awarded, current_user)
+            = f.input :amount_awarded, label: false, **@report.form_input_as(:amount_awarded, current_user)
         %tr
           %th{colspan: 8}
             Number of months since start of grant term to present
           %td{colspan: 4}
-            = f.input :months_since_start, label: false, disabled: @report.locked?(:months_since_start, current_user)
+            = f.input :months_since_start, label: false, **@report.form_input_as(:months_since_start, current_user)
   %td{colspan: 1}
     = @report.spend_down_percentage
   %th{colspan: 1}
@@ -119,7 +119,7 @@
   %th{colspan: 3}
     N/A
   %td{colspan: 1}
-    = f.input :pit_participation, label: false, disabled: @report.locked?(:pit_participation, current_user)
+    = f.input :pit_participation, label: false, **@report.form_input_as(:pit_participation, current_user)
   %th{colspan: 1}
     Yes
   %th{colspan: 1}
@@ -142,12 +142,12 @@
           %th{colspan: 8}
             Number of Meetings
           %td{colspan: 4}
-            = f.input :coc_meetings, label: false, disabled: @report.locked?(:coc_meetings, current_user)
+            = f.input :coc_meetings, label: false, **@report.form_input_as(:coc_meetings, current_user)
         %tr
           %th{colspan: 8}
             Number Attended
           %td{colspan: 4}
-            = f.input :coc_meetings_attended, label: false, disabled: @report.locked?(:coc_meetings_attended, current_user)
+            = f.input :coc_meetings_attended, label: false, **@report.form_input_as(:coc_meetings_attended, current_user)
   %td{colspan: 1}
     = @report.percentage_meetings_attended
   %th{colspan: 1}

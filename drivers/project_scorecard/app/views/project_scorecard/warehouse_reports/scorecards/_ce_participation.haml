@@ -13,7 +13,7 @@
   %th{colspan: 3}
     Average Time to Lease Up
   %td{colspan: 1}
-    = f.input :days_to_lease_up, label: false, disabled: @report.locked?(:days_to_lease_up, current_user)
+    = f.input :days_to_lease_up, label: false, **@report.form_input_as(:days_to_lease_up, current_user)
   %th{colspan: 1}
     <=30 days
   %th{colspan: 1}
@@ -36,15 +36,12 @@
           %th{colspan: 8}
             Number of CES Referrals
           %td{colspan: 4}
-            - as = {}
-            - if @report.locked?(:number_referrals, current_user)
-              - as = { as: :read_only }
-            = f.input :number_referrals, label: false, **as
+            = f.input :number_referrals, label: false, **@report.form_input_as(:number_referrals, current_user)
         %tr
           %th{colspan: 8}
             Number of Accepted Referrals
           %td{colspan: 4}
-            = f.input :accepted_referrals, label: false, disabled: @report.locked?(:accepted_referrals, current_user)
+            = f.input :accepted_referrals, label: false, **@report.form_input_as(:accepted_referrals, current_user)
   %td{colspan: 1}
     = @report.accepted_referrals_percentage
   %th{colspan: 1}

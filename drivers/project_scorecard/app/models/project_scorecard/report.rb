@@ -52,6 +52,14 @@ module ProjectScorecard
       end
     end
 
+    def form_input_as(field, user)
+      if locked?(field, user)
+        { as: :read_only }
+      else
+        {}
+      end
+    end
+
     private def score(value, ten_range, five_range = nil)
       return nil if value.blank?
 
