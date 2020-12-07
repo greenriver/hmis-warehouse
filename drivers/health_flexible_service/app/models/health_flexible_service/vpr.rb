@@ -15,7 +15,7 @@ module HealthFlexibleService
     def set_defaults
       cha = patient.recent_cha_form
       ssm = patient.recent_ssm_form
-      mmis_name = ::Health::Cp.sender.mmis_enrollment_name
+      mmis_name = ::Health::Cp.sender.first.mmis_enrollment_name
 
       self.planned_on = Date.current
       self.first_name = patient.client.FirstName
