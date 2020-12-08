@@ -10,8 +10,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
       enrollment_batch = []
 
       es_with_no_service = enrollment_scope.
-        merge(HmisCsvTwentyTwenty::Importer::Project.es).
-        merge(HmisCsvTwentyTwenty::Importer::Project.night_by_night).
+        merge(HmisCsvTwentyTwenty::Importer::Project.es.night_by_night).
         where.not(id: enrollment_scope.joins(:services).select(:id))
 
       es_with_no_service.find_each do |enrollment|
