@@ -35,6 +35,7 @@ class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
       HmisCsvTwentyTwenty::HmisCsvCleanup::MoveInOutsideEnrollment,
       HmisCsvTwentyTwenty::HmisCsvCleanup::PrependProjectId,
       HmisCsvTwentyTwenty::Aggregated::CombineEnrollments,
+      HmisCsvTwentyTwenty::HmisCsvCleanup::DeleteEmptyEnrollments,
     ].sort_by(&:associated_model).
       freeze
   end
