@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_03_140706) do
+ActiveRecord::Schema.define(version: 2020_12_08_140125) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1807,6 +1807,12 @@ ActiveRecord::Schema.define(version: 2020_12_03_140706) do
     t.date "dashboard_lookback", default: "2014-07-01"
     t.integer "domestic_violence_lookback_days", default: 0, null: false
     t.string "support_contact_email"
+    t.integer "completeness_goal", default: 90
+    t.integer "excess_goal", default: 105
+    t.integer "timeliness_goal", default: 14
+    t.integer "income_increase_goal", default: 75
+    t.integer "ph_destination_increase_goal", default: 60
+    t.integer "move_in_date_threshold", default: 30
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
