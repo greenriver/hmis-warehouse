@@ -98,26 +98,120 @@ module ClaimsReporting
     # Currently Assigned - If the member is still assigned to the CP as of the most recent member_roster
     attr_accessor :currently_assigned
 
+    DETAIL_COLS = {
+      member_count: 'member_count',
+      paid_amount_sum: 'paid_amount_sum',
+      annual_admits_per_mille: 'Annual Admissions per 1,000', # admits
+      avg_length_of_stay: 'Length of Stay', # days
+      utilization_per_mille: 'Annual Utilization per 1,000', # days/cases/procedures/visits/scripts/etc
+      pct_of_cohorit_with_utilization: '% of Selected Cohort with Utilization',
+      avg_cost_per_service: 'Average Cost per Service (Paid $)',
+      cohort_per_member_month_spend: 'Selected Cohort PMPM (Paid $)',
+      pct_of_pop_spend_cohort: 'Cohort Spend as a % of Total Population Spend',
+      pct_of_service_sepend_cohort: 'Selected Cohort Spend as a % of Service Line Population Spend',
+      pct_of_admissions_acs: 'Percent of Admissions that are Ambulatory Care Sensitive',
+      pct_of_cost_acs: 'Percent of Admission Cost that is Ambulatory Care Sensitive',
+      pct_of_visits_perventable: 'Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable',
+      pct_of_cost_perventable: 'Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable',
+    }.freeze
+
+    include ActiveSupport::NumberHelper
+
+    def formatted_value(fld, row)
+      val = row[fld.to_s]
+      if fld.in?([:paid_amount_sum, :avg_cost_per_service, :cohort_per_member_month_spend])
+        number_to_currency val
+      elsif fld.to_s =~ /pct_of/
+        number_to_percentage val, precision: 2
+      elsif val.is_a? Numeric
+        number_to_delimited val, precision: 2, separator: ','
+      else
+        val
+      end
+    end
+
+    ## Member
+    # ENGAGEMENT_STATUS
+    # ACO
+    # AGE
+    # sex
+    # race
+    # High_Util
+    # COI
+    # High_ER_Flag
+    # Psychoses_Flag
+    # OthIPPsych_Flag
+    # CURRENTLY_ASSIGNED
+    # CURRENTLY_ENGAGED
+    # ENGAGED_MONTHS
+
+    ## medical claim
+    # css_id
+    # assigned
+    # is_acs
+    # is_acs_demon
+    # is_pp
+    # is_pp_denom
+
     def initialize(member_roster: ClaimsReporting::MemberRoster.all)
       @member_roster = member_roster
     end
 
-    def data
-      t = filtered_medical_claims.arel_table
+    def total_members
+      medical_claims.distinct.count(:member_id)
+    end
+    # memoize :total_members
 
-      scope = filtered_medical_claims.group(
+    def selected_members
+      selected_medical_claims.distinct.count(:member_id)
+    end
+    # memoize :selected_members
+
+    def percent_members_selected
+      return unless total_members&.positive? && selected_members&.positive?
+
+      selected_members * 100.0 / total_members
+    end
+    # memoize :selected_members
+
+    def member_months
+      0
+    end
+
+    def average_per_member_per_month_spend
+    end
+
+    def average_raw_dxcg_score
+      selected_member_roster.average('raw_dxcg_risk_score::decimal').round(2)
+    end
+
+    def detail_cols
+      DETAIL_COLS
+    end
+
+    def claims_query
+      t = medical_claims.arel_table
+
+      selected_medical_claims.group(
         :ccs_id,
       ).select(
         :ccs_id,
-        Arel.sql('*').count.as('count'),
-        t[:member_id].count(true).as('member_count'),
+        Arel.star.count.as('count'),
         t[:paid_amount].sum.as('paid_amount_sum'),
-      ).order('4 DESC NULLS LAST')
-
-      connection.select_all(scope)
+        t[:paid_amount].sum.as('paid_amount_sum'),
+        Arel.sql('ROUND(AVG(discharge_date-admit_date))').as('avg_length_of_stay'),
+      ).order('1 ASC NULLS LAST')
     end
 
-    def filtered_member_roster
+    private def connection
+      HealthBase.connection
+    end
+
+    def data
+      connection.select_all(claims_query)
+    end
+
+    def selected_member_roster
       scope = member_roster
       if age_bucket.present? && age_bucket.in?(age_bucket_options)
         range = age_bucket.split('-')
@@ -134,12 +228,12 @@ module ClaimsReporting
       scope
     end
 
-    private def filtered_medical_claims
-      ClaimsReporting::MedicalClaim.where(member_id: filtered_member_roster.select(:member_id))
+    private def medical_claims
+      ClaimsReporting::MedicalClaim
     end
 
-    private def connection
-      ClaimsReporting::MedicalClaim.connection
+    private def selected_medical_claims
+      medical_claims.joins(:member_roster).merge(selected_member_roster)
     end
   end
 end

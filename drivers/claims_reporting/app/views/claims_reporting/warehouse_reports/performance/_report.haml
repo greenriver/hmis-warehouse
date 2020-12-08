@@ -1,14 +1,38 @@
-= debug report.filtered_member_roster.to_sql
-- table = report.data
-%table{rules: 'all'}
-  %thead
-    %tr
-      - table.columns.each do |col|
-        %th= col
-
-  %tbody
-    - report.data.each do |row|
+.row
+  .col-12
+    - table = report.data
+    %table.table.table-condensed{style: 'width: initial;'}
       %tr
-        - row.each do |_, col|
-          %td= col
+        %th Selected Members
+        %td
+          = number_with_delimiter report.selected_members
+          = " (#{number_to_percentage report.percent_members_selected, precision: 1, strip_insignificant_zeros: true} of Members)"
+      %tr
+        %th Average $PMPM
+        %td
+          = number_to_currency report.average_per_member_per_month_spend
+      %tr
+        %th Average Raw DxCG Score
+        %td
+          = number_with_delimiter report.average_raw_dxcg_score
+      %tr
+        %th Member Months
+        %td
+          = number_with_delimiter report.member_months
+    %details
+      %summary Query
+      = debug report.claims_query.to_sql
+    .table-responsive
+      %table.table.table-bordered.table-condensed.table-striped
+        %thead
+          %tr
+            %th= ''
+            - report.detail_cols.each do |_fld, label|
+              %th= label
 
+        %tbody
+          - table.each do |row|
+            %tr
+              %th{axis: :row}= row['ccs_id']
+              - report.detail_cols.each do |fld, _label|
+                %td.text-right= report.formatted_value fld, row

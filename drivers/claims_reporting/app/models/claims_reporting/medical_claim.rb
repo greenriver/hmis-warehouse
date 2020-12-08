@@ -157,8 +157,12 @@ module ClaimsReporting
 
     belongs_to :patient,
                class_name: 'Health::Patient',
-               primary_key: :medicaid_id,
+               primary_key: :member_id,
                foreign_key: :medicaid_id
+
+    belongs_to :member_roster,
+               primary_key: :member_id,
+               foreign_key: :member_id
 
     def modifiers
       [
