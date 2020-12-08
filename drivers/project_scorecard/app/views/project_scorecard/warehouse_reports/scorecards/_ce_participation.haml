@@ -1,54 +1,63 @@
-%tr
-  %th{colspan: 12}
-    = _('Coordinated Entry System Particpation 20%')
-    %br
-    = simple_format(_('24 CFR 578.(a)(8) states that CoCs must establish and operate a Coordinated Entry System to allocate assistance as effectivley as possible, prioritizing services to those that need it the most.'))
-%tr
-  %th{colspan: 2}
-    Time to Lease Up
-  %th{colspan: 2}
-    = simple_format(_('TX-601 established Community-wide performance expectations in 2016 and identified that well-functioning Housing Crisis Response System moves households from homelessness to permanent housing in less than 30 days.'))
-    %br
-    Sage APR Q22c
-  %th{colspan: 3}
-    Average Time to Lease Up
-  %td{colspan: 1}
-    = f.input :days_to_lease_up, label: false, **@report.form_input_as(:days_to_lease_up, current_user)
-  %th{colspan: 1}
-    <=30 days
-  %th{colspan: 1}
-    31 - 45 Days
-  %th{colspan: 1}
-    >=46 Days
-  %td{colspan: 1}
-    = @report.lease_up_score
-%tr
-  %th{colspan: 2}
-    Accepted Referrals
-  %th{colspan: 2}
-    = simple_format(_('TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most.'))
-    %br
-    [FIXME: which report? - add link]
-  %td{colspan: 3}
-    %table.table-table-sm
-      %tbody
-        %tr
-          %th{colspan: 8}
-            Number of CES Referrals
-          %td{colspan: 4}
-            = f.input :number_referrals, label: false, **@report.form_input_as(:number_referrals, current_user)
-        %tr
-          %th{colspan: 8}
-            Number of Accepted Referrals
-          %td{colspan: 4}
-            = f.input :accepted_referrals, label: false, **@report.form_input_as(:accepted_referrals, current_user)
-  %td{colspan: 1}
-    = @report.accepted_referrals_percentage
-  %th{colspan: 1}
-    >=90%
-  %th{colspan: 1}
+%h3= _('Coordinated Entry System Particpation 20%')
+%p= simple_format(_('24 CFR 578.(a)(8) states that CoCs must establish and operate a Coordinated Entry System to allocate assistance as effectivley as possible, prioritizing services to those that need it the most.'))
+%table.table.table-bordered
+  %thead
+    %tr
+      %th{colspan: 2} Performance Criteria
+      %th{colspan: 2} Purpose & Source of Measurement
+      %th{colspan: 3} Formula Information
+      %th Performance Calculation
+      %th Points: 10
+      %th Points: 5
+      %th Points: 0
+      %th Total
+  %tbody
+    %tr
+      %th{colspan: 2}
+        Time to Lease Up
+      %th{colspan: 2}
+        = simple_format(_('TX-601 established Community-wide performance expectations in 2016 and identified that well-functioning Housing Crisis Response System moves households from homelessness to permanent housing in less than 30 days.'))
+        %br
+        Sage APR Q22c
+      %th{colspan: 3}
+        Average Time to Lease Up
+      %td{colspan: 1}
+        = f.input :days_to_lease_up, label: false, **@report.form_input_as(:days_to_lease_up, current_user)
+      %th{colspan: 1}
+        <=30 days
+      %th{colspan: 1}
+        31 - 45 Days
+      %th{colspan: 1}
+        >=46 Days
+      %td{colspan: 1}
+        = @report.lease_up_score
+    %tr
+      %th{colspan: 2}
+        Accepted Referrals
+      %th{colspan: 2}
+        = simple_format(_('TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most.'))
+        %br
+        [FIXME: which report? - add link]
+      %td.p-0{colspan: 3}
+        %table.table-table-sm
+          %tbody
+            %tr
+              %th{colspan: 8}
+                Number of CES Referrals
+              %td{colspan: 4}
+                = f.input :number_referrals, label: false, **@report.form_input_as(:number_referrals, current_user)
+            %tr
+              %th{colspan: 8}
+                Number of Accepted Referrals
+              %td{colspan: 4}
+                = f.input :accepted_referrals, label: false, **@report.form_input_as(:accepted_referrals, current_user)
+      %td{colspan: 1}
+        = @report.accepted_referrals_percentage
+      %th{colspan: 1}
+        >=90%
+      %th{colspan: 1}
 
-  %th{colspan: 1}
-    <=89%
-  %td{colspan: 1}
-    = @report.accepted_referrals_score
+      %th{colspan: 1}
+        <=89%
+      %td{colspan: 1}
+        = @report.accepted_referrals_score

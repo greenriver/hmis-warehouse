@@ -8,19 +8,9 @@
 %section.o-container--constrained.mb-6
   %p
     The following list of organizations and projects can be used to generate and send scorecards to contacts at each entity.
-    To generate a new version of a scorecard, check-off the
-    %strong Select
-    checkbox next to the particular project, or organization.  Then select the
-    %strong Generate
-    option at the bottom of the page.  If you would like the generated scorecards sent immediately to the contacts associated
-    with the organizations or projects, select the
-    %strong Email
-    option as well.
   %p
     Organization contacts will receive an email for each performance scorecard generated within that organization.
-    Project contacts will only receive reports for the project for which they are associated.  No email will be sent unless the
-    %strong Email
-    checkbox is checked.
+    Project contacts will only receive reports for the project for which they are associated.
 
 = simple_form_for :scorecard, url: project_scorecard_warehouse_reports_scorecards_path() do |f|
   - select_scope = 'allOrgsProjects'
@@ -43,4 +33,3 @@
     new App.SelectableList({
       title: 'Organizations & Projects'
     })
-

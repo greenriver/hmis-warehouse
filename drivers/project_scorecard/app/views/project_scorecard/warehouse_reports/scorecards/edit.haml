@@ -1,21 +1,20 @@
 = render 'breadcrumbs'
 
-= simple_form_for @report, url: project_scorecard_warehouse_reports_scorecard_path(@report) do |f|
+= simple_form_for @report, url: project_scorecard_warehouse_reports_scorecard_path(@report), html: { class: 'report-form' } do |f|
 
-  .row
-    .col-sm-8
-      %h1= @report.title
-    .col-sm-4
-      .text-right
-        - if @report.status.in?(['pre-filled', 'ready'])
-          = f.submit 'Save & Complete', class: 'btn btn-secondary mr-1'
-        = f.submit 'Save Changes', class: 'btn btn-primary'
+  .d-flex.mb-4
+    %h1= @report.title
+    .ml-auto
+      - if @report.status.in?(['pre-filled', 'ready'])
+        = f.submit 'Save & Complete', class: 'btn btn-secondary mr-1'
+      = f.submit 'Save Changes', class: 'btn btn-primary'
 
   = render 'form', f: f
 
-  .row
-    .col-sm-12
-      .text-right
-        - if @report.status.in?(['pre-filled', 'ready'])
-          = f.submit 'Save & Complete', class: 'btn btn-secondary mr-1'
-        = f.submit 'Save Changes', class: 'btn btn-primary'
+  .d-flex
+    .ml-auto
+      - if @report.status.in?(['pre-filled', 'ready'])
+        = f.submit 'Save & Complete', class: 'btn btn-secondary mr-1'
+      = f.submit 'Save Changes', class: 'btn btn-primary'
+
+= render 'edit_js'

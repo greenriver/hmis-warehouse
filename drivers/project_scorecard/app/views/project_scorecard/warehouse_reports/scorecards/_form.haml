@@ -1,24 +1,13 @@
-.well.mt-4.container.text-center
-  = render 'project_scorecard/warehouse_reports/scorecards/header', f: f
-  %p
-  = render 'project_scorecard/warehouse_reports/scorecards/total_score', f: f
-  %p
-  %table.table.table-bordered
-    %tbody
-      %tr
-        %th{colspan: 2} Performance Criteria
-        %th{colspan: 2} Purpose & Source of Measurement
-        %th{colspan: 3} Formula Information
-        %th Performance Calculation
-        %th Points: 10
-        %th Points: 5
-        %th Points: 0
-        %th Total
-      = render 'project_scorecard/warehouse_reports/scorecards/project_performance', f: f
-      = render 'project_scorecard/warehouse_reports/scorecards/data_quality', f: f
-      = render 'project_scorecard/warehouse_reports/scorecards/ce_participation', f: f
-      = render 'project_scorecard/warehouse_reports/scorecards/grant_management_and_financials', f: f
-      %p
-      = render 'project_scorecard/warehouse_reports/scorecards/review_only', f: f
-  %p
-  = render 'project_scorecard/warehouse_reports/scorecards/agency_response', f: f
+= render 'project_scorecard/warehouse_reports/scorecards/header', f: f
+%p
+= render 'project_scorecard/warehouse_reports/scorecards/total_score', f: f
+%p
+
+= render 'project_scorecard/warehouse_reports/scorecards/project_performance', f: f
+= render 'project_scorecard/warehouse_reports/scorecards/data_quality', f: f
+= render 'project_scorecard/warehouse_reports/scorecards/ce_participation', f: f
+= render 'project_scorecard/warehouse_reports/scorecards/grant_management_and_financials', f: f
+%p
+= render 'project_scorecard/warehouse_reports/scorecards/review_only', f: f
+%p
+= render 'project_scorecard/warehouse_reports/scorecards/agency_response', f: f
