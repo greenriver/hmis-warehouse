@@ -229,7 +229,8 @@ module ProjectScorecard
       assessment_answers.merge!(
         {
           amount_awarded: previous&.amount_awarded,
-
+          budget_plus_match: previous&.budget_plus_match,
+          prior_amount_awarded: previous&.prior_amount_awarded,
           status: 'pre-filled',
         },
       )
