@@ -14,6 +14,13 @@ module HmisCsvTwentyTwenty::Importer
 
     has_one :destination_record, **hud_assoc(:ProjectID, 'Project')
 
+    GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.each do |k, v|
+      scope k, -> { where(ProjectType: v) }
+      define_method "#{k}?" do
+        v.include? self[ProjectType]
+      end
+    end
+
     scope :night_by_night, -> do
       where(TrackingMethod: 3)
     end

@@ -9,13 +9,22 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
     def cleanup!
       enrollment_batch = []
 
-      enrollments_with_no_service = enrollment_scope.where.not(id: enrollment_scope.joins(:services).select(:id))
-      enrollments_with_no_cls = enrollment_scope.where.not(id: enrollment_scope.joins(:current_living_situations).select(:id))
-      empty_enrollments = enrollment_scope.
-        where(id: enrollments_with_no_service.select(:id)).
-        where(id: enrollments_with_no_cls.select(:id))
+      es_with_no_service = enrollment_scope.
+        merge(HmisCsvTwentyTwenty::Importer::Project.es).
+        merge(HmisCsvTwentyTwenty::Importer::Project.night_by_night).
+        where.not(id: enrollment_scope.joins(:services).select(:id))
 
-      empty_enrollments.find_each do |enrollment|
+      es_with_no_service.find_each do |enrollment|
+        enrollment.DateDeleted = Date.current
+        enrollment.set_source_hash
+        enrollment_batch << enrollment
+      end
+
+      so_with_no_cls = enrollment_scope.
+        merge(HmisCsvTwentyTwenty::Importer::Project.so).
+        where.not(id: enrollment_scope.joins(:current_living_situations).select(:id))
+
+      so_with_no_cls.find_each do |enrollment|
         enrollment.DateDeleted = Date.current
         enrollment.set_source_hash
         enrollment_batch << enrollment
@@ -33,7 +42,6 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
     def enrollment_scope
       enrollment_source.
         joins(:project).
-        merge(HmisCsvTwentyTwenty::Importer::Project.night_by_night).
         where(importer_log_id: @importer_log.id)
     end
 

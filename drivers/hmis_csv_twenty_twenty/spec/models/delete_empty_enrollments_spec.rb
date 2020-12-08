@@ -34,8 +34,12 @@ RSpec.describe 'Delete empty SO enrollments', type: :model do
       expect(GrdaWarehouse::Hud::Enrollment.where(ProjectID: 'SAFE').count).to eq(2)
     end
 
-    it 'has 3 NBN enrollments' do
-      expect(GrdaWarehouse::Hud::Enrollment.where(ProjectID: 'PROJECT').count).to eq(3)
+    it 'has 1 ES enrollments' do
+      expect(GrdaWarehouse::Hud::Enrollment.where(ProjectID: 'ES').count).to eq(1)
+    end
+
+    it 'has 2 SO enrollments' do
+      expect(GrdaWarehouse::Hud::Enrollment.where(ProjectID: 'SO').count).to eq(2)
     end
 
     it 'has 5 total enrollments' do
