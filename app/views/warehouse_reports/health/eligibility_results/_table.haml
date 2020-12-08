@@ -1,4 +1,5 @@
-%table.table.table-sm.datatable
+- datatable_class = tab + '-datatable'
+%table.table.table-sm{class: datatable_class}
   %thead
     %tr
       %th Name
@@ -25,7 +26,7 @@
 
 = content_for :page_js do
   :javascript
-    $('.datatable').DataTable({
+    $('.#{datatable_class}').DataTable({
       searching: true,
       ordering: true,
       paging: false,

@@ -16,10 +16,10 @@
 
 .tab-content
   #eligible-patients.tab-pane.active{role: :tabpanel}
-    = render "table", patients: @eligible
+    = render "table", patients: @eligible, tab: 'eligible'
 
   #ineligible-patients.tab-pane{role: :tabpanel}
-    = render "table", patients: @ineligible
+    = render "table", patients: @ineligible, tab: 'ineligible'
 
   #aco-changed-patients.tab-pane{role: :tabpanel}
     = render "aco_changes"
