@@ -9,7 +9,9 @@ module ClaimsReporting::WarehouseReports
     before_action :require_can_view_member_health_reports!
 
     def index
-      @report = ClaimsReporting::PerformanceReport.new(**filter_params)
+      @report = ClaimsReporting::PerformanceReport.new
+
+      @report.attributes = params.fetch(:f, {}).permit(@report.available_filters).to_h
     end
 
     private def available_months

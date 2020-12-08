@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_03_212706) do
+ActiveRecord::Schema.define(version: 2020_12_08_220623) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -406,7 +406,7 @@ ActiveRecord::Schema.define(version: 2020_12_03_212706) do
   end
 
   create_table "claims_reporting_member_rosters", force: :cascade do |t|
-    t.string "member_id", limit: 50
+    t.string "member_id", limit: 50, null: false
     t.string "nam_first", limit: 255
     t.string "nam_last", limit: 255
     t.string "cp_pidsl", limit: 50
@@ -450,6 +450,11 @@ ActiveRecord::Schema.define(version: 2020_12_03_212706) do
     t.string "qualifying_dsc", limit: 512
     t.string "email", limit: 512
     t.string "head_of_household", limit: 512
+    t.index ["aco_name"], name: "index_claims_reporting_member_rosters_on_aco_name"
+    t.index ["date_of_birth"], name: "index_claims_reporting_member_rosters_on_date_of_birth"
+    t.index ["member_id"], name: "index_claims_reporting_member_rosters_on_member_id", unique: true
+    t.index ["race"], name: "index_claims_reporting_member_rosters_on_race"
+    t.index ["sex"], name: "index_claims_reporting_member_rosters_on_sex"
   end
 
   create_table "claims_reporting_rx_claims", force: :cascade do |t|
