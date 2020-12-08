@@ -1,4 +1,5 @@
-%table.table.table-sm
+- datatable_class = tab + '-datatable'
+%table.table.table-sm{class: datatable_class}
   %thead
     %tr
       %th Name
@@ -22,3 +23,12 @@
           = patient.aco_name
         %td= patient.health_agency&.name
         %td= "#{patient.care_coordinator&.first_name} #{patient.care_coordinator&.last_name}"
+
+= content_for :page_js do
+  :javascript
+    $('.#{datatable_class}').DataTable({
+      searching: true,
+      ordering: true,
+      paging: false,
+      info: false
+    });

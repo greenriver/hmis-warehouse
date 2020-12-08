@@ -628,12 +628,15 @@ module Health
     end
 
 
-    # For the date of ac date_of_activity did the patient have
-    # a care plan that MassHealth would consider
-    # valid covering the date_of_activity. This is much
-    # slower and more complex than patient_has_valid_care_plan?
-    # which cares only about the patients status now
-    def patient_had_valid_care_plan?
+    # Is a valid care_plan missing for the date_of_activity?. This is much
+    # slower and more complex than patient_has_valid_care_plan? which
+    # can be used to determine if a patent currently has a care plan more efficiently.
+    #
+    # This will return:
+    #   nil if there was no referral containing the activity
+    #   false if the QA was during an enrollment where a valid care plan can be found
+    #   true if no such care plan can be found.
+    def missing_care_plan?
       # These have changed over time but this report
       # cares only about the current rules for now
       engagement_period_in_days = ::Health::PatientReferral::ENGAGEMENT_IN_DAYS
@@ -676,12 +679,18 @@ module Health
       end
       last_possible_enrollment_date = enrolled_dates.sort.first(engagement_period_in_days).last
 
+      # We have not yet been enrolled 150 days so there is still time for a careplan to arrive
+      return false if enrolled_dates.size < engagement_period_in_days
+
       care_plan_date_range = contributing_referrals.first.enrollment_start_date .. last_possible_enrollment_date
 
-      # we just need a boolean
-      patient.careplans.any? do |cp|
+      # It's not missing if we can find a signed one within care_plan_date_range
+      return false if patient.careplans.any? do |cp|
         cp.provider_signed_on && care_plan_date_range.cover?(cp.provider_signed_on)
       end
+
+      # Couldn't find it thus it's missing
+      return true
     end
 
     def patient_has_signed_careplan?

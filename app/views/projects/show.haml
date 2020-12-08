@@ -42,9 +42,19 @@
               = @project.OperatingStartDate&.to_date
             - if @project.operating_start_date_override.present?
               .ml-2
+                Overridden as:
                 %em
-                  Overridden as
                   = @project.operating_start_date_override.to_date
+        %tr
+          %th Operating End Date
+          %td.d-flex
+            .project__operating-start-date
+              = @project.OperatingEndDate&.to_date || 'ongoing'
+            - if @project.operating_end_date_override.present?
+              .ml-2
+                Overridden as:
+                %em
+                  = @project.operating_end_date_override.to_date
         %tr
           %th Continuum Project
           %td.d-flex
@@ -123,10 +133,22 @@
           %td= @project.data_source.short_name
         %tr
           %th Tracking Method
-          %td= HUD.tracking_method(@project.TrackingMethod || 0)
+          %td
+            = HUD.tracking_method(@project.TrackingMethod || 0)
+            - if @project.tracking_method_override.present?
+              .mt-2
+                Overridden as:
+                %br
+                %em= HUD.tracking_method(@project.tracking_method_override)
         %tr
           %th Target Population
-          %td= HUD.target_population @project.TargetPopulation
+          %td
+            = HUD.target_population @project.TargetPopulation
+            - if @project.target_population_override.present?
+              .mt-2
+                Overridden as:
+                %br
+                %em= HUD.target_population(@project.target_population_override)
         %tr
           %th Household Type
           %td
