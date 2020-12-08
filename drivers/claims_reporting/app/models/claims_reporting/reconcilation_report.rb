@@ -105,7 +105,7 @@ module ClaimsReporting
           'Medicaid ID',
           'First Name',
           'Last Name',
-          'Qualifying Activities',
+          'Submitted QAs',
           'QAs Outside Enrollment',
           'QAs Without Required Careplan',
           'Careplan PCP signatures',
