@@ -86,7 +86,7 @@ module HealthFlexibleService
         service_entity = "service_#{i}_delivering_entity"
         vpr[service_entity] if vpr[service_category] == category
       end
-      entity_names.compact.join(', ')
+      entity_names.compact.uniq.join(', ')
     end
   end
 end

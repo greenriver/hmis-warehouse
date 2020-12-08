@@ -133,10 +133,10 @@ module Health::Tasks
 
     # keep pilot patients in sync with epic export
     def sync_epic_pilot_patients
-      referral_patients = Health::Patient.bh_cp.pluck(:medicaid_id)
+      patients_by_datasource = Health::Patient.pluck(:medicaid_id, :data_source_id).to_h
 
       Health::EpicPatient.pilot.each do |ep|
-        next if referral_patients.include?(ep.medicaid_id)
+        next if patients_by_datasource[ep.medicaid_id] != ep.data_source_id
 
         patient = Health::Patient.where(id_in_source: ep.id_in_source, data_source_id: ep.data_source_id).first_or_create
         attributes = ep.attributes.select{|k,_| k.to_sym.in?(Health::EpicPatient.csv_map.values)}

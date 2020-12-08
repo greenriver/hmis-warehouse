@@ -44,7 +44,7 @@ module ServiceScanning::WarehouseReports
 
     def most_recent_hmis_service
       most_recent_dates_of_service = @services.map do |service|
-        service.client.date_of_last_service
+        service.client&.date_of_last_service
       end.compact
       @most_recent_hmis_service ||= GrdaWarehouse::ServiceHistoryService.
         joins(:service_history_enrollment, :client).

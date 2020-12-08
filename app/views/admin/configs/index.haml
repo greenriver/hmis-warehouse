@@ -39,6 +39,12 @@
         %h3 Reporting Options
         .c-card.c-card--flush.c-card--padded.flex-wrap
           = f.input :dashboard_lookback, as: :date_picker, label: 'Dashboard Lookback Date'
+          = f.input :completeness_goal, label: 'Data Quality Completeness Goal', hint: 'Percent'
+          = f.input :excess_goal, label: 'Data Quality Excess Goal', hint: 'Percent'
+          = f.input :timeliness_goal, label: 'Data Quality Timeliness Goal', hint: 'Days'
+          = f.input :income_increase_goal, label: 'Data Quality Income Increase Goal', hint: 'Percent'
+          = f.input :ph_destination_increase_goal, label: 'Data Quality PH Destination Increase Goal', hint: 'Percent'
+          = f.input :move_in_date_threshold, label: 'Data Quality Move-in-Date Threshold', hint: 'Days'
     .col-sm-4
       %section.o-section-card
         %h3 Connections
