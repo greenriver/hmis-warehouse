@@ -19,10 +19,6 @@ module ProjectScorecard
         score(spend_down_percentage.abs, 0..10, 11..15) if spend_down_percentage.present?
       end
 
-      def budget_plus_match
-        amount_awarded * 1.25 if amount_awarded.present?
-      end
-
       def participants_in_psh
         return nil unless [total_persons_served, unsuccessful_exits, excluded_exits].all?
 
@@ -43,16 +39,16 @@ module ProjectScorecard
         end
       end
 
-      def unspent_amount
-        return nil unless [amount_awarded, funds_expended].all?
+      def prior_unspent_amount
+        return nil unless [prior_amount_awarded, prior_funds_expended].all?
 
-        amount_awarded - funds_expended
+        prior_amount_awarded - prior_funds_expended
       end
 
       def percentage_recaptured
-        return nil unless [unspent_amount, amount_awarded].all?
+        return nil unless [prior_unspent_amount].all?
 
-        ((unspent_amount / amount_awarded.to_f) * 100).round
+        ((prior_unspent_amount / prior_amount_awarded.to_f) * 100).round
       end
 
       def recaptured_score

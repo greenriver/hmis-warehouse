@@ -110,6 +110,9 @@ module ProjectScorecard
         :funds_expended,
         :amount_awarded,
         :months_since_start,
+        :budget_plus_match,
+        :prior_amount_awarded,
+        :prior_funds_expended,
         :pit_participation,
         :coc_meetings,
         :coc_meetings_attended,
@@ -226,6 +229,7 @@ module ProjectScorecard
       assessment_answers.merge!(
         {
           amount_awarded: previous&.amount_awarded,
+
           status: 'pre-filled',
         },
       )

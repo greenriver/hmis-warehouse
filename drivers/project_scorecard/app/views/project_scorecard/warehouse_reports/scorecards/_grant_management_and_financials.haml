@@ -61,7 +61,7 @@
               %th{colspan: 8}
                 = _('FY17 Total CoC Budget Plus 25% Required Match')
               %td{colspan: 4}
-                = @report.budget_plus_match
+                = f.input :budget_plus_match, label: false, **@report.form_input_as(:budget_plus_match, current_user)
             %tr
               %th{colspan: 8}
                 = _('Number of participants who exited to or remained in permanent supportive housing during the reporting period')
@@ -97,17 +97,17 @@
               %th{colspan: 8}
                 Total Grant Award
               %td{colspan: 4}
-                = @report.amount_awarded
+                = f.input :prior_amount_awarded, label: false, **@report.form_input_as(:prior_amount_awarded, current_user)
             %tr
               %th{colspan: 8}
                 Total Spent
               %td{colspan: 4}
-                = @report.funds_expended
+                = f.input :prior_funds_expended, label: false, **@report.form_input_as(:prior_funds_expended, current_user)
             %tr
               %th{colspan: 8}
                 Unspent Amount
               %td{colspan: 4}
-                = @report.unspent_amount
+                = @report.prior_unspent_amount
       %td{colspan: 1}
         = @report.percentage_recaptured
       %th{colspan: 1}
