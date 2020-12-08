@@ -1,7 +1,6 @@
 # Class to handle upsert style inserts from a CSV (and potentially other flat file formats
-# into ClaimsReporting:: models,  They need to define a CSV_SCHEMA constant
+# into ClaimsReporting:: models,  They need to define a schema_def class method
 require 'csv'
-require 'net/sftp'
 require 'active_support/concern'
 
 module ClaimsReporting::CsvHelpers

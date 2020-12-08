@@ -1,7 +1,8 @@
+require 'memoist'
 module ClaimsReporting
   class PerformanceReport
     include ActiveModel::Model
-
+    extend Memoist
     attr_reader :member_roster
 
     def available_filters
@@ -10,7 +11,7 @@ module ClaimsReporting
         :gender,
         :race,
         :aco,
-      ]
+      ].freeze
     end
 
     def filter_options(filter)
@@ -28,14 +29,14 @@ module ClaimsReporting
         '40-49',
         '50-59',
         '60-64',
-      ]
+      ].freeze
     end
 
     # Gender – The member’s gender
     attr_accessor :gender
     def gender_options
       # member_roster.group(:sex).count.keys
-      ['Female', 'Male']
+      ['Female', 'Male'].freeze
     end
 
     # Race – The member’s race
@@ -51,13 +52,13 @@ module ClaimsReporting
         'HISPANIC',
         'INTERRACIAL',
         'RACE UNKNOWN',
-      ]
+      ].freeze
     end
 
     # ACO – The ACO that the member was assigned to at the time the claim is incurred
     attr_accessor :aco
     def aco_options
-      member_roster.distinct.pluck(:aco_name).sort
+      member_roster.distinct.pluck(:aco_name).sort.freeze
     end
 
     # Mental Health Diagnosis Category –
@@ -100,7 +101,7 @@ module ClaimsReporting
 
     DETAIL_COLS = {
       member_count: 'member_count',
-      paid_amount_sum: 'paid_amount_sum',
+      # paid_amount_sum: 'paid_amount_sum',
       annual_admits_per_mille: 'Annual Admissions per 1,000', # admits
       avg_length_of_stay: 'Length of Stay', # days
       utilization_per_mille: 'Annual Utilization per 1,000', # days/cases/procedures/visits/scripts/etc
@@ -160,30 +161,34 @@ module ClaimsReporting
     def total_members
       medical_claims.distinct.count(:member_id)
     end
-    # memoize :total_members
+    memoize :total_members
 
     def selected_members
       selected_medical_claims.distinct.count(:member_id)
     end
-    # memoize :selected_members
+    memoize :selected_members
 
     def percent_members_selected
-      return unless total_members&.positive? && selected_members&.positive?
+      return 0 unless total_members&.positive? && selected_members&.positive?
 
       selected_members * 100.0 / total_members
     end
-    # memoize :selected_members
+    memoize :selected_members
 
     def member_months
-      0
+      'TODO'
     end
+    memoize :member_months
 
     def average_per_member_per_month_spend
+      'TODO'
     end
+    memoize :average_per_member_per_month_spend
 
     def average_raw_dxcg_score
-      selected_member_roster.average('raw_dxcg_risk_score::decimal').round(2)
+      selected_member_roster.average('raw_dxcg_risk_score::decimal')&.round(2)
     end
+    memoize :average_raw_dxcg_score
 
     def detail_cols
       DETAIL_COLS
@@ -197,8 +202,9 @@ module ClaimsReporting
       ).select(
         :ccs_id,
         Arel.star.count.as('count'),
-        t[:paid_amount].sum.as('paid_amount_sum'),
-        t[:paid_amount].sum.as('paid_amount_sum'),
+        t[:member_id].count(true).as('member_count'),
+        # t[:paid_amount].sum.as('paid_amount_sum'),
+        Arel.sql('ROUND(AVG(paid_amount), 2)').as('avg_cost_per_service'),
         Arel.sql('ROUND(AVG(discharge_date-admit_date))').as('avg_length_of_stay'),
       ).order('1 ASC NULLS LAST')
     end
