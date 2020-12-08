@@ -23,8 +23,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     scope :complete, -> do
       where.not(completed_at: nil).
-      where(processing_errors: nil).
-      order(created_at: :asc)
+        where(processing_errors: nil).
+        order(created_at: :asc)
     end
 
     scope :incomplete, -> do
@@ -32,31 +32,27 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def self.process!
-      advisory_lock_key = "project_data_quality_reports"
-      if self.advisory_lock_exists?(advisory_lock_key)
+      advisory_lock_key = 'project_data_quality_reports'
+      if advisory_lock_exists?(advisory_lock_key)
         Rails.logger.info 'Exiting, project data quality reports already running'
         exit
       end
-      @notifier = self.new
+      @notifier = new
       @notifier.setup_notifier('Project Data Quality Report Runner')
-      self.with_advisory_lock(advisory_lock_key) do
-        self.where(completed_at: nil).each do |r|
-          begin
-            r.run!
-          rescue Exception => e
-            Rails.logger.error e.message
-            @notifier.ping(e) if @notifier.instance_variable_get(:@send_notifications)
-          end
+      with_advisory_lock(advisory_lock_key) do
+        where(completed_at: nil).each do |r|
+          r.run!
+        rescue Exception => e
+          Rails.logger.error e.message
+          @notifier.ping(e) if @notifier.instance_variable_get(:@send_notifications)
         end
       end
     end
 
     def display
-
     end
 
     def print
-
     end
 
     def title
@@ -73,7 +69,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def clients
       @clients ||= begin
-        Rails.logger.debug "Loading Clients"
+        Rails.logger.debug 'Loading Clients'
         clients = client_scope.entry.select(*client_columns.values).
           distinct.
           pluck(*client_columns.values.map { |column| Arel.sql(column) }).
@@ -86,8 +82,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         end
 
         # min_enrollment_date = clients.map{|c| c[:first_date_in_program]}.min
-        max_exit_date = (clients.map{|c| c[:last_date_in_program]}.compact + [Date.current]).max
-        max_dates = max_dates_served(enrollment_ids, range: (self.start..max_exit_date))
+        max_exit_date = (clients.map { |c| c[:last_date_in_program]}.compact + [Date.current]).max
+        max_dates = max_dates_served(enrollment_ids, range: (start..max_exit_date))
         clients.each do |client|
           client[:most_recent_service] = max_dates[client[:enrollment_id]] || 'Before report start'
         end
@@ -97,11 +93,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def max_dates_served(enrollment_ids, range:)
       GrdaWarehouse::ServiceHistoryService.where(
         date: range,
-        service_history_enrollment_id: enrollment_ids
+        service_history_enrollment_id: enrollment_ids,
       ).group(:service_history_enrollment_id).maximum(:date)
     end
 
-    def source_clients_for_source_client source_client_id:, data_source_id:
+    def source_clients_for_source_client(source_client_id:, data_source_id:)
       @source_clients ||= begin
         destination_ids = client_scope.entry.select(:client_id)
         client_source.joins(:warehouse_client_source).
@@ -122,7 +118,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def clients_for_project project_id
-      client_scope.entry.where(Project: {id: project_id}).
+      client_scope.entry.where(Project: { id: project_id }).
         select(*client_columns.values).
         distinct.
         pluck(*client_columns.values.map { |column| Arel.sql(column) }).
@@ -134,12 +130,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def enrollments
       @enrollments ||= begin
-        Rails.logger.debug "Loading Enrollments"
+        Rails.logger.debug 'Loading Enrollments'
         client_scope.entry.pluck(*enrollment_columns.values.map { |column| Arel.sql(column) }).
-        map do |row|
+          map do |row|
           Hash[enrollment_columns.keys.zip(row)]
         end.
-        group_by{|m| m[:id]}
+          group_by { |m| m[:id]}
       end
     end
 
@@ -194,7 +190,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def disabilities
-      project_entry_ids = enrollments.values.flatten.map{|en| en[:project_entry_id]}.uniq
+      project_entry_ids = enrollments.values.flatten.map { |en| en[:project_entry_id]}.uniq
       @disabilities ||= disability_source.joins(enrollment: :client).
         where(d_t[:InformationDate].lteq(self.end)).
         where(EnrollmentID: project_entry_ids).
@@ -250,11 +246,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def beds
-      @beds ||= projects.flat_map(&:inventories).map{|i| i[:BedInventory] || 0}.reduce(:+) || 0
+      @beds ||= projects.flat_map(&:inventories).map { |i| i[:BedInventory] || 0}.reduce(:+) || 0
     end
 
     def hmis_beds
-      @hmis_beds ||= projects.flat_map(&:inventories).map{|i| i[:HMISParticipatingBeds] || 0}.reduce(:+) || 0
+      @hmis_beds ||= projects.flat_map(&:inventories).map { |i| i[:HMISParticipatingBeds] || 0}.reduce(:+) || 0
     end
 
     def income_columns
@@ -339,24 +335,24 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def common_client_columns
       @common_client_columns ||= {
-          id: c_t[:id].to_sql,
-          first_name: c_t[:FirstName].to_sql,
-          last_name: c_t[:LastName].to_sql,
-          name_data_quality: c_t[:NameDataQuality].to_sql,
-          ssn: c_t[:SSN].to_sql,
-          ssn_data_quality: c_t[:SSNDataQuality].to_sql,
-          dob: c_t[:DOB].to_sql,
-          dob_data_quality: c_t[:DOBDataQuality].to_sql,
-          veteran_status: c_t[:VeteranStatus].to_sql,
-          ethnicity: c_t[:Ethnicity].to_sql,
-          gender: c_t[:Gender].to_sql,
-          race_none: c_t[:RaceNone].to_sql,
-          am_ind_ak_native: c_t[:AmIndAKNative].to_sql,
-          asian: c_t[:Asian].to_sql,
-          black_af_american: c_t[:BlackAfAmerican].to_sql,
-          native_hi_other_pacific: c_t[:NativeHIOtherPacific].to_sql,
-          white: c_t[:White].to_sql,
-          data_source_id:  c_t[:data_source_id].to_sql,
+        id: c_t[:id].to_sql,
+        first_name: c_t[:FirstName].to_sql,
+        last_name: c_t[:LastName].to_sql,
+        name_data_quality: c_t[:NameDataQuality].to_sql,
+        ssn: c_t[:SSN].to_sql,
+        ssn_data_quality: c_t[:SSNDataQuality].to_sql,
+        dob: c_t[:DOB].to_sql,
+        dob_data_quality: c_t[:DOBDataQuality].to_sql,
+        veteran_status: c_t[:VeteranStatus].to_sql,
+        ethnicity: c_t[:Ethnicity].to_sql,
+        gender: c_t[:Gender].to_sql,
+        race_none: c_t[:RaceNone].to_sql,
+        am_ind_ak_native: c_t[:AmIndAKNative].to_sql,
+        asian: c_t[:Asian].to_sql,
+        black_af_american: c_t[:BlackAfAmerican].to_sql,
+        native_hi_other_pacific: c_t[:NativeHIOtherPacific].to_sql,
+        white: c_t[:White].to_sql,
+        data_source_id: c_t[:data_source_id].to_sql,
       }
     end
 
@@ -372,7 +368,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def source_client_columns
       @source_client_columns ||= {
-          destination_id: wc_t[:destination_id].to_sql,
+        destination_id: wc_t[:destination_id].to_sql,
       }.merge(common_client_columns)
     end
 
@@ -398,7 +394,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def finish_report
       self.completed_at = Time.now
-      save()
+      save
       notify_requestor
     end
 
@@ -411,15 +407,15 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def status
-      return 'Error' if self.processing_errors.present?
-      return 'Incomplete' if self.completed_at.blank?
-      return "#{self.start} - #{self.end}" if self.completed_at.present?
+      return 'Error' if processing_errors.present?
+      return 'Incomplete' if completed_at.blank?
+      return "#{start} - #{self.end}" if completed_at.present?
     end
 
-    def add_answers(answers, support={})
-      self.assign_attributes(report: self.report.merge(answers))
-      self.assign_attributes(support: self.support.merge(support)) if support.present?
-      self.save
+    def add_answers(answers, support = {})
+      assign_attributes(report: report.merge(answers))
+      assign_attributes(support: self.support.merge(support)) if support.present?
+      save
     end
 
     def send_notifications
@@ -427,21 +423,23 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       contacts.index_by(&:email).values.each do |contact|
         ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
       end
-      notifications_sent()
+      notifications_sent
     end
 
     def notify_requestor
       return unless requestor.present?
+
       ProjectDataQualityReportMailer.report_complete(projects, self, requestor).deliver
     end
 
     def requestor
       return nil unless requestor_id.present?
+
       @requestor ||= User.active.find(requestor_id)
     end
 
     def notifications_sent
-      self.update(sent_at: Time.now)
+      update(sent_at: Time.now)
     end
 
     def refused?(value)
@@ -454,26 +452,30 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def missing?(value)
       return true if value.blank?
+
       [99].include?(value.to_i)
     end
 
     def missing_race?(value)
       return true if value.blank?
+
       [0, 99].include?(value.to_i)
     end
 
     def adult?(age)
       return true if age.blank?
+
       age >= 18
     end
 
     def age dob
-      GrdaWarehouse::Hud::Client.age date: self.start, dob: dob
+      GrdaWarehouse::Hud::Client.age date: start, dob: dob
     end
 
     def missing_disability? disabilities
       return true if disabilities.blank?
-      max_information_date = disabilities.map{|dis| dis[:information_date]}.max
+
+      max_information_date = disabilities.map { |dis| dis[:information_date]}.max
       disabilities.select do |dis|
         dis[:information_date] == max_information_date
       end.map do |dis|
@@ -483,7 +485,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def refused_diability? disabilities
       return false if disabilities.blank?
-      max_information_date = disabilities.map{|dis| dis[:information_date]}.max
+
+      max_information_date = disabilities.map { |dis| dis[:information_date]}.max
       disabilities.select do |dis|
         dis[:information_date] == max_information_date
       end.map do |dis|
@@ -493,7 +496,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def unknown_disability? disabilities
       return false if disabilities.blank?
-      max_information_date = disabilities.map{|dis| dis[:information_date]}.max
+
+      max_information_date = disabilities.map { |dis| dis[:information_date]}.max
       disabilities.select do |dis|
         dis[:information_date] == max_information_date
       end.map do |dis|
@@ -502,7 +506,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def in_percentage numerator, denominator
-      percentage = ((numerator.to_f/denominator) * 100)
+      percentage = ((numerator.to_f / denominator) * 100)
       if percentage.finite?
         percentage.round(2)
       else
@@ -516,14 +520,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def boolean(value)
-      value ? 'Yes': 'No'
+      value ? 'Yes' : 'No'
     end
 
     def days(value)
       "#{value} days"
     end
 
-    def destination_id_for_client source_id
+    def destination_id_for_client(source_id)
       @destination_ids ||= begin
         GrdaWarehouse::WarehouseClient.where(source_id: client_scope.entry.select(c_t[:id])).
           pluck(:source_id, :destination_id).
@@ -543,34 +547,34 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def service_history_enrollment_scope
       service_source.
         joins(:project, :enrollment, enrollment: :client).
-          includes(enrollment: :exit).
-          references(enrollment: :exit)
+        includes(enrollment: :exit).
+        references(enrollment: :exit)
     end
 
     def client_scope
       service_source.
-        open_between(start_date: self.start.to_date - 1.day,
-          end_date: self.end).
+        open_between(start_date: start.to_date - 1.day,
+                     end_date: self.end).
         joins(:project, :enrollment, enrollment: :client).
         includes(enrollment: :exit).
         references(enrollment: :exit).
-        where(Project: {id: projects.map(&:id)})
+        where(Project: { id: projects.map(&:id) })
     end
 
     def service_scope
       service_source.includes(:service_history_services).
         references(:service_history_services).
-        open_between(start_date: self.start.to_date - 1.day,
-          end_date: self.end).
+        open_between(start_date: start.to_date - 1.day,
+                     end_date: self.end).
         joins(:project, enrollment: :client).
         includes(enrollment: :exit).
         references(enrollment: :exit).
-        where(Project: {id: projects.map(&:id)})
+        where(Project: { id: projects.map(&:id) })
     end
 
     def projects
       @projects ||= begin
-        if self.project_group_id.present?
+        if project_group_id.present?
           project_group.projects
         else
           [project]
@@ -581,11 +585,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def self.length_of_stay_buckets
       {
         '0 days' => (0..0),
-        '1 - 90 days'  => (1..90),
+        '1 - 90 days' => (1..90),
         '91 - 364 days' => (91..364),
         '1 - 2 years' => (365..729),
         '2 - 3 years' => (730..1094),
-        '3 years or more' => (1095..1.0/0),
+        '3 years or more' => (1095..1.0 / 0),
       }
     end
 
@@ -604,6 +608,5 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def disability_source
       GrdaWarehouse::Hud::Disability
     end
-
   end
 end
