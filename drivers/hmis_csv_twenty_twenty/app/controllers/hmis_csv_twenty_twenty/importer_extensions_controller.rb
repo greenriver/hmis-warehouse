@@ -26,6 +26,8 @@ class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
     end
 
     @data_source.update(config)
+
+    flash[:notice] = 'Configuration updated'
     redirect_to action: :edit
   end
 
