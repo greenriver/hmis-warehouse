@@ -49,7 +49,7 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
     end
 
     def self.description
-      'Delete enrollments in night-by-night projects that do not have any associated services or current living situations'
+      'Delete enrollments in ES or SO projects that do not have any associated services or current living situations'
     end
   end
 end
