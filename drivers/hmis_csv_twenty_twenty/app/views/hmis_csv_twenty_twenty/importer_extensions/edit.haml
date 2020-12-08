@@ -1,11 +1,28 @@
 = content_for :crumbs do
-  = link_to hmis_csv_twenty_twenty_importer_extension_path(@data_source) do
-    &laquo; #{@data_source.name} Extensions
+  = link_to data_source_path(@data_source) do
+    &laquo; #{@data_source.name}
 
 %h2
-  Edit Importer Extensions for #{@data_source.name}
+  Importer Extensions for #{@data_source.name}
+
+- editable = current_user.can_manage_config?
 
 = simple_form_for :extensions, url: hmis_csv_twenty_twenty_importer_extension_path(@data_source), method: :put do |f|
-  - allowed_extensions.each do |extension|
-    = f.input extension.to_s, as: :boolean, required: false, label: extension.description, input_html: {checked: extension.checked?(@data_source)}
-  = f.submit 'Update Extensions'
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Model
+        %th Extension
+        %th Enabled?
+    %tbody
+    - allowed_extensions.each do |extension|
+      %tr
+        %td= extension.associated_model
+        %td= extension.description
+        - if editable
+          %td.text-center= f.input extension.to_s, as: :boolean, required: false, label: false, input_html: {checked: extension.checked?(@data_source)}
+        - else
+          %td.text-center= checkmark(extension.checked?(@data_source))
+  - if editable
+    %div.text-right
+      = f.submit 'Update Extensions'

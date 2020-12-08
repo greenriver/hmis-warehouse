@@ -6,17 +6,15 @@
 
 class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
   before_action :require_can_view_imports!
-  before_action :require_can_manage_config!, only: [:edit, :update]
+  before_action :require_can_manage_config!, only: [:update]
   before_action :set_data_source
-
-  def show
-  end
 
   def edit
   end
 
   def update
     config = {
+      import_aggregators: {},
       import_cleanups: {},
     }
     allowed_extensions.each do |extension|
@@ -28,7 +26,7 @@ class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
     end
 
     @data_source.update(config)
-    redirect_to action: :show
+    redirect_to action: :edit
   end
 
   def allowed_extensions
@@ -36,7 +34,9 @@ class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
       HmisCsvTwentyTwenty::HmisCsvCleanup::ForceValidEnrollmentCoc,
       HmisCsvTwentyTwenty::HmisCsvCleanup::MoveInOutsideEnrollment,
       HmisCsvTwentyTwenty::HmisCsvCleanup::PrependProjectId,
-    ].freeze
+      HmisCsvTwentyTwenty::Aggregated::CombineEnrollments,
+    ].sort_by(&:associated_model).
+      freeze
   end
   helper_method :allowed_extensions
 
