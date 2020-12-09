@@ -1,7 +1,5 @@
 .fixed-bottom.pdq_actions
   .d-flex
-    .mr-4
-      = f.input :action, as: :radio_buttons, collection: {generate: 'Generate new versions of selected scorecards', email: 'Email selected scorecards'}.invert, checked: @action
     .mr-2
       = f.input :start, as: :date_picker, input_html: {class: 'form-control', value: @range.start}
     .mr-2

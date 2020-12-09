@@ -32,8 +32,6 @@ module ProjectScorecard::WarehouseReports
     end
 
     def create
-      @action = create_params[:action]
-
       @range = ::Filters::FilterBase.new
       @range.set_from_params(filter_params)
       errors = @range.errors.messages.map { |k, v| "#{k}: #{v.join(', ')}".humanize }
@@ -45,10 +43,8 @@ module ProjectScorecard::WarehouseReports
 
       if errors.any?
         flash[:error] = errors.join('<br />'.html_safe)
-      elsif @action == 'generate'
+      else
         generate_for_projects(@project_ids, @range, current_user)
-      elsif @action == 'email'
-        email_to_projects(@project_ids)
       end
 
       render action: :index
@@ -64,9 +60,21 @@ module ProjectScorecard::WarehouseReports
 
     def update
       @report.update!(scorecard_params)
-      advance_workflow if params[:commit] == 'Save & Complete'
+      advance_workflow if params[:commit] == workflow_action
       redirect_to action: :show
     end
+
+    def workflow_action
+      case @report.status
+      when 'pre-filled'
+        'Save & Send to Contacts'
+      when 'ready'
+        'Save & Submit'
+      when 'completed'
+        nil
+      end
+    end
+    helper_method :workflow_action
 
     private def advance_workflow
       case @report.status
@@ -95,13 +103,6 @@ module ProjectScorecard::WarehouseReports
       ids.each do |id|
         @current_reports[id]&.send_email
       end
-    end
-
-    private def create_params
-      params.require(:scorecard).
-        permit(
-          :action,
-        )
     end
 
     private def filter_params
