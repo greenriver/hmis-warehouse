@@ -7,6 +7,9 @@
       %h1= @report.title
     .col-sm-4
       .text-right
+        - if @report.status != 'pre-filled' && @report.admin?(current_user)
+          = link_to rewind_project_scorecard_warehouse_reports_scorecard_path(@report), class: 'btn btn-secondary mr-2' do
+            Back
         - if @report.status == 'completed'
           %a.btn.btn-primary.j-document-exports{href: "#", data: @pdf_export.pdf_data}
             %i.icon-download2

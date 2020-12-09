@@ -10,7 +10,7 @@ module ProjectScorecard::WarehouseReports
     include ArelHelper
     # TODO: wjat are the access rules?
     before_action :set_projects, :set_current_reports
-    before_action :set_report, only: [:show, :edit, :complete, :update]
+    before_action :set_report, only: [:show, :edit, :rewind, :complete, :update]
 
     def index
       start_date = Date.current.prev_month.beginning_of_month
@@ -53,6 +53,11 @@ module ProjectScorecard::WarehouseReports
     def edit
     end
 
+    def rewind
+      rewind_workflow
+      redirect_to action: :show
+    end
+
     def complete
       advance_workflow
       redirect_to action: :show
@@ -75,6 +80,18 @@ module ProjectScorecard::WarehouseReports
       end
     end
     helper_method :workflow_action
+
+    private def rewind_workflow
+      case @report.status
+      when 'ready'
+        @report.update!(status: 'pre-filled')
+      when 'completed'
+        @report.update!(
+          completed_at: Time.current,
+          status: 'ready',
+        )
+      end
+    end
 
     private def advance_workflow
       case @report.status

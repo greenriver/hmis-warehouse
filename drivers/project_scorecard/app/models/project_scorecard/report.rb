@@ -45,6 +45,7 @@ module ProjectScorecard
         else
           false
         end
+
       when 'ready'
         case field
         when :improvement_plan, :financial_plan
@@ -52,9 +53,15 @@ module ProjectScorecard
         else
           true
         end
+
       else
         true
       end
+    end
+
+    def admin?(user)
+      # The user that created the report is the admin
+      user_id == user.id
     end
 
     def form_input_as(field, user)

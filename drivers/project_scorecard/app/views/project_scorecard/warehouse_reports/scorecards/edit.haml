@@ -5,6 +5,8 @@
   .d-flex.mb-4
     %h1= @report.title
     .ml-auto
+      - if @report.status != 'pre-filled' && @report.admin?(current_user)
+        = f.submit 'Back', class: 'btn btn-secondary mr-2 mb-2'
       - if action.present?
         = f.submit action, class: 'btn btn-secondary mb-2'
       = f.submit 'Save Changes', class: 'btn btn-primary ml-2 mb-2'
