@@ -222,6 +222,16 @@ module Filters
       @effective_project_ids.uniq.reject(&:blank?)
     end
 
+    def anded_effective_project_ids
+      ids = []
+      ids << effective_project_ids_from_projects
+      ids << effective_project_ids_from_project_groups
+      ids << effective_project_ids_from_organizations
+      ids << effective_project_ids_from_data_sources
+      ids << effective_project_ids_from_coc_codes
+      ids.reject(&:empty?).reduce(&:&)
+    end
+
     def all_projects?
       effective_project_ids.sort == all_project_ids.sort
     end

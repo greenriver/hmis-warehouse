@@ -11,7 +11,7 @@
   %p
     Organization contacts will receive an email for each performance scorecard generated within that organization.
     Project contacts will only receive reports for the project for which they are associated.
-
+= render 'filter'
 = simple_form_for :scorecard, url: project_scorecard_warehouse_reports_scorecards_path() do |f|
   - select_scope = 'allOrgsProjects'
   %div{id: select_scope}
@@ -21,8 +21,8 @@
           %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
           %h2.mb-0.mt-0 Organizations and Projects
         .ml-auto
-          %p= page_entries_info @organizations, entry_name: _('organizations')
-          %p= paginate @organizations
+          %p=# page_entries_info @projects, entry_name: _('organizations')
+          %p=# paginate @projects
       - @projects.each do |(data_source, organization), projects|
         = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
 

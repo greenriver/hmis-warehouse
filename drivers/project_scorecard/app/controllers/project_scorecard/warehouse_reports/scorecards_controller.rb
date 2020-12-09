@@ -9,13 +9,12 @@ module ProjectScorecard::WarehouseReports
     include WarehouseReportAuthorization
     include ArelHelper
     # TODO: wjat are the access rules?
-    before_action :set_projects, :set_current_reports
+    before_action :set_projects, :set_current_reports, only: [:index]
     before_action :set_report, only: [:show, :edit, :rewind, :complete, :update]
 
     def index
       start_date = Date.current.prev_month.beginning_of_month
       end_date = Date.current.prev_month.end_of_month
-
       @range = ::Filters::FilterBase.new(start: start_date, end: end_date)
     end
 
@@ -135,6 +134,21 @@ module ProjectScorecard::WarehouseReports
         )
     end
 
+    private def initial_filter_params
+      return {} unless params[:filters]
+
+      params.require(:filters).
+        permit(
+          coc_codes: [],
+          project_types: [],
+          project_type_numbers: [],
+          data_source_ids: [],
+          organization_ids: [],
+          project_ids: [],
+          project_group_ids: [],
+        )
+    end
+
     private def scorecard_params
       parameter_names = []
       @report.controlled_parameters.each do |name|
@@ -156,17 +170,18 @@ module ProjectScorecard::WarehouseReports
     end
 
     private def set_projects
-      @organizations = organization_scope.order(OrganizationName: :asc).
-        page(params[:page]).
-        per(100)
-
-      base_scope = project_scope.joins(:organization, :data_source).
-        merge(organization_scope.where(id: @organizations.select(:id))).
-        order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
-        preload(:contacts, :data_source, organization: :contacts)
-
-      @projects = base_scope.ph.or(base_scope.rrh).
-        group_by { |m| [m.data_source.short_name, m.organization] }
+      @filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id))
+      project_ids = @filter.anded_effective_project_ids
+      @projects = if project_ids.any?
+        project_scope.where(id: project_ids).
+          joins(:organization, :data_source).
+          order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
+          preload(:contacts, :data_source, organization: :contacts)
+      else
+        project_scope.none
+      end
+      @projects = @projects.page(params[:page]).per(50).
+        group_by { |p| [p.data_source.short_name, p.organization] }
     end
 
     private def set_report
