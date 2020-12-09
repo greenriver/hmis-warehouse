@@ -1,20 +1,20 @@
 = render 'breadcrumbs'
 
 = simple_form_for @report, url: project_scorecard_warehouse_reports_scorecard_path(@report), html: { class: 'report-form' } do |f|
-
+  - action = workflow_action
   .d-flex.mb-4
     %h1= @report.title
     .ml-auto
-      - if @report.status.in?(['pre-filled', 'ready'])
-        = f.submit 'Save & Complete', class: 'btn btn-secondary mr-1'
+      - if action.present?
+        = f.submit action, class: 'btn btn-secondary mr-1'
       = f.submit 'Save Changes', class: 'btn btn-primary'
 
   = render 'form', f: f
 
   .d-flex
     .ml-auto
-      - if @report.status.in?(['pre-filled', 'ready'])
-        = f.submit 'Save & Complete', class: 'btn btn-secondary mr-1'
+      - if action.present?
+        = f.submit action, class: 'btn btn-secondary mr-1'
       = f.submit 'Save Changes', class: 'btn btn-primary'
 
 = render 'edit_js'
