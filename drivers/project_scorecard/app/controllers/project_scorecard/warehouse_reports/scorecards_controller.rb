@@ -95,7 +95,8 @@ module ProjectScorecard::WarehouseReports
         @report.update!(status: 'pre-filled')
       when 'completed'
         @report.update!(
-          completed_at: Time.current,
+          completed_at: nil,
+          archive: nil,
           status: 'ready',
         )
       end
@@ -110,6 +111,7 @@ module ProjectScorecard::WarehouseReports
         @report.update!(
           completed_at: Time.current,
           status: 'completed',
+          archive: render_to_string(partial: 'archive'),
         )
         @report.send_email_to_owner
       end
