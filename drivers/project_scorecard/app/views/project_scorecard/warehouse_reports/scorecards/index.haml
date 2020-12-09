@@ -6,27 +6,29 @@
     &laquo; Performance
 
 %section.o-container--constrained.mb-6
-  %p
-    The following list of organizations and projects can be used to generate and send scorecards to contacts at each entity.
-  %p
-    Organization contacts will receive an email for each performance scorecard generated within that organization.
-    Project contacts will only receive reports for the project for which they are associated.
-= render 'filter'
-= simple_form_for :scorecard, url: project_scorecard_warehouse_reports_scorecards_path() do |f|
-  - select_scope = 'allOrgsProjects'
-  %div{id: select_scope}
-    %section.mb-6
-      .d-flex.mb-5.ml-4
-        .header.d-flex.align-items-center.justify-content-center
-          %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
-          %h2.mb-0.mt-0 Organizations and Projects
-        .ml-auto
-          %p=# page_entries_info @projects, entry_name: _('organizations')
-          %p=# paginate @projects
-      - @projects.each do |(data_source, organization), projects|
-        = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
+  %p Generating Project Scorecards is a multi-step process.
+  #scorecard-accordion.panel-group.panel-collapsible
+    - content_for :panel_collapse_content, flush: true do
+      %p Step one is to select a set of projects or project groups on which you would like to run reports.
+      = render 'filter'
+  = render 'common/panel_collapse', id: 'scorecard-info', title: 'Project Search', default_open: if @projects.blank? then 'yes' else 'no' end
+- if @projects.present?
+  %p Step two is to choose the projects or project groups and queue the reports.
+  = simple_form_for :scorecard, url: project_scorecard_warehouse_reports_scorecards_path() do |f|
+    - select_scope = 'allOrgsProjects'
+    %div{id: select_scope}
+      %section.mb-6
+        .d-flex.mb-5.ml-4
+          .header.d-flex.align-items-center.justify-content-center
+            %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
+            %h2.mb-0.mt-0 Organizations and Projects
+          .ml-auto
+            %p=# page_entries_info @projects, entry_name: _('organizations')
+            %p=# paginate @projects
+        - @projects.each do |(data_source, organization), projects|
+          = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
 
-  = render 'actions', f: f
+    = render 'actions', f: f
 
 = content_for :page_js do
   :javascript

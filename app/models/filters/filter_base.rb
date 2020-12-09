@@ -229,6 +229,7 @@ module Filters
       ids << effective_project_ids_from_organizations
       ids << effective_project_ids_from_data_sources
       ids << effective_project_ids_from_coc_codes
+      ids << effective_project_ids_from_project_types
       ids.reject(&:empty?).reduce(&:&)
     end
 
@@ -293,6 +294,14 @@ module Filters
 
       all_data_sources_scope.
         where(id: sources).
+        pluck(p_t[:id].as('project_id'))
+    end
+
+    def effective_project_ids_from_project_types
+      return [] if project_type_ids.empty?
+
+      all_project_scope.
+        with_project_type(project_type_ids).
         pluck(p_t[:id].as('project_id'))
     end
 

@@ -8,7 +8,7 @@ module ProjectScorecard::WarehouseReports
   class ScorecardsController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
-    # TODO: wjat are the access rules?
+    # TODO: what are the access rules?
     before_action :set_projects, :set_current_reports, only: [:index]
     before_action :set_report, only: [:show, :edit, :rewind, :complete, :update]
 
@@ -172,9 +172,10 @@ module ProjectScorecard::WarehouseReports
     end
 
     private def set_projects
-      @filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id))
+      @filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id, project_type_codes: []))
       project_ids = @filter.anded_effective_project_ids
       @projects = if project_ids&.any?
+
         project_scope.where(id: project_ids).
           joins(:organization, :data_source).
           order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
@@ -182,6 +183,7 @@ module ProjectScorecard::WarehouseReports
       else
         project_scope.none
       end
+
       @projects = @projects.page(params[:page]).per(50).
         group_by { |p| [p.data_source.short_name, p.organization] }
     end
