@@ -21,7 +21,7 @@ class PrettyBooleanInput < SimpleForm::Inputs::BooleanInput
       end
       template.content_tag :div, class: 'c-checkbox' do
         template.concat(svg_checkbox(template, wrapper_class, style, symbol_name))
-        template.concat(template.content_tag(:label, label_text, for: id))
+        template.concat(template.content_tag(:label, label_text, for: id)) unless input_options[:label] == false
       end
     else
       merged_input_options = merge_wrapper_options(input_html_options, wrapper_options)

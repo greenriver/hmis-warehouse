@@ -46,7 +46,7 @@ module ProjectScorecard::WarehouseReports
         render action: :index
       else
         generate_for_projects(@project_ids, @range, current_user)
-        flash[:info] = 'Reports queued for processing'
+        flash[:notice] = 'Reports queued for processing'
         redirect_to action: :index
       end
     end
@@ -56,7 +56,7 @@ module ProjectScorecard::WarehouseReports
 
     def rewind
       rewind_workflow
-      redirect_to action: :show
+      redirect_to action: appropriate_action
     end
 
     def complete
@@ -68,9 +68,8 @@ module ProjectScorecard::WarehouseReports
       @report.update!(scorecard_params)
       advance_workflow if params[:commit] == workflow_action
       rewind_workflow if params[:commit] == 'Back'
-      action = :edit
-      action = :show if @report.status == 'completed'
-      redirect_to action: action
+      flash[:notice] = 'Changes Saved'
+      redirect_to action: appropriate_action
     end
 
     def workflow_action
@@ -84,6 +83,12 @@ module ProjectScorecard::WarehouseReports
       end
     end
     helper_method :workflow_action
+
+    private def appropriate_action
+      return :show if @report.status == 'completed'
+
+      :edit
+    end
 
     private def rewind_workflow
       case @report.status
