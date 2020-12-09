@@ -67,6 +67,7 @@ module ProjectScorecard::WarehouseReports
     def update
       @report.update!(scorecard_params)
       advance_workflow if params[:commit] == workflow_action
+      rewind_workflow if params[:commit] == 'Back'
       action = :edit
       action = :show if @report.status == 'completed'
       redirect_to action: action
