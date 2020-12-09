@@ -27,6 +27,7 @@ module ProjectScorecard
 
       def chronic_service_percentage
         return nil unless [chronic_households_served, total_households_served].all?
+        return 0 unless total_households_served.positive?
 
         ((chronic_households_served / total_households_served.to_f) * 100).round
       end
@@ -43,6 +44,7 @@ module ProjectScorecard
 
       def exit_to_ph_percentage
         return nil unless [total_persons_served, unsuccessful_exits, excluded_exits].all?
+        return 0 unless (total_persons_served - excluded_exits).positive?
 
         (((total_persons_served - unsuccessful_exits - excluded_exits) / (total_persons_served - excluded_exits).to_f) * 100).round
       end

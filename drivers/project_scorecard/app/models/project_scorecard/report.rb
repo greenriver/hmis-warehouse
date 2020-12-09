@@ -244,10 +244,13 @@ module ProjectScorecard
 
     def send_email
       update(status: 'ready')
-      contacts = project_contacts + organization_contacts
       contacts.index_by(&:email).values.each do |contact|
         ProjectScorecard::ScorecardMailer.scorecard_ready(self, contact).deliver
       end
+    end
+
+    def contacts
+      @contacts ||= project_contacts + organization_contacts
     end
 
     # TODO: When the SPM is updated, this should be too
