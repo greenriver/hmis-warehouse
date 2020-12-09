@@ -22,4 +22,13 @@ class ProjectScorecard::ScorecardMailer < ::DatabaseMailer
 
     mail(to: @contact.email, subject: "Scorecard For #{@project_name}")
   end
+
+  def scorecard_complete(report)
+    @report = report
+    @contact = report.user
+
+    @project_name = @report.project.ProjectName
+
+    mail(to: @contact.email, subject: "Scorecard For #{@project_name} Completed")
+  end
 end

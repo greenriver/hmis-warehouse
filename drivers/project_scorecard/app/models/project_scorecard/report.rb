@@ -249,15 +249,18 @@ module ProjectScorecard
       update(assessment_answers)
     end
 
-    def send_email
-      update(status: 'ready')
+    def send_email_to_contacts
       contacts.index_by(&:email).values.each do |contact|
-        ProjectScorecard::ScorecardMailer.scorecard_ready(self, contact).deliver
+        ProjectScorecard::ScorecardMailer.scorecard_ready(self, contact).deliver_later
       end
     end
 
     def contacts
       @contacts ||= project_contacts + organization_contacts
+    end
+
+    def send_email_to_owner
+      ProjectScorecard::ScorecardMailer.scorecard_complete(self).deliver_later
     end
 
     # TODO: When the SPM is updated, this should be too

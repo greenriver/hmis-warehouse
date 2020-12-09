@@ -101,11 +101,13 @@ module ProjectScorecard::WarehouseReports
       case @report.status
       when 'pre-filled'
         @report.update!(status: 'ready')
+        @report.send_email_to_contacts
       when 'ready'
         @report.update!(
           completed_at: Time.current,
           status: 'completed',
         )
+        @report.send_email_to_owner
       end
     end
 
@@ -117,12 +119,6 @@ module ProjectScorecard::WarehouseReports
           report_class: report.class.name,
           report_id: report.id,
         )
-      end
-    end
-
-    private def email_to_projects(ids)
-      ids.each do |id|
-        @current_reports[id]&.send_email
       end
     end
 
