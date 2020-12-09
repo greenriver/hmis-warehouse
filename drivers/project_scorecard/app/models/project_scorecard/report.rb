@@ -38,8 +38,13 @@ module ProjectScorecard
         end
 
       when 'pre-filled'
-        false
-
+        # Prevent editing the response during initial review
+        case field
+        when :improvement_plan, :financial_plan
+          true
+        else
+          false
+        end
       when 'ready'
         case field
         when :improvement_plan, :financial_plan

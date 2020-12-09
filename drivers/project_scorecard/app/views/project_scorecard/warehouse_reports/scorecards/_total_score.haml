@@ -16,62 +16,63 @@
         %table.table.table-sm
           %tbody
             %tr
-              %th{colspan: 4}
+              %th
                 Scoring Category
-              %th{colspan: 2}
+              %th
                 Total Points Achieved
-              %th{colspan: 2}
+              %th
                 Total Points Available
-              %th{colspan: 2}
+              %th
                 Category Weight
-              %th{colspan: 2}
+              %th
                 Percentage Achieved
             %tr
-              %th{colspan: 4}
+              %th
                 Project Performance
-              %td{colspan: 2}
+              %td.text-center
                 = @report.project_performance_score
-              %th{colspan: 2}
+              %th.text-center
                 60
-              %th{colspan: 2}
+              %th.text-center
                 50%
-              %td{colspan: 2}
+              %td.text-center
                 #{@report.project_performance_percentage}%
             %tr
-              %th{colspan: 4}
+              %th
                 HMIS Data Quality
-              %td{colspan: 2}
+              %td.text-center
                 = @report.data_quality_score
-              %th{colspan: 2}
+              %th.text-center
                 30
-              %th{colspan: 2}
+              %th.text-center
                 20%
-              %td{colspan: 2}
+              %td.text-center
                 #{@report.data_quality_percentage}%
             %tr
-              %th{colspan: 4}
+              %th
                 Coordinated Entry Participation
-              %td{colspan: 2}
+              %td.text-center
                 = @report.ce_score
-              %th{colspan: 2}
+              %th.text-center
                 20
-              %th{colspan: 2}
+              %th.text-center
                 20%
-              %td{colspan: 2}
+              %td.text-center
                 #{@report.ce_percentage}%
             %tr
-              %th{colspan: 4}
+              %th
                 Grant Management & Financials
-              %td{colspan: 2}
+              %td.text-center
                 = @report.m_and_f_score
-              %th{colspan: 2}
+              %th.text-center
                 50
-              %th{colspan: 2}
+              %th.text-center
                 10%
-              %td{colspan: 2}
+              %td.text-center
                 #{@report.m_and_f_percentage}%
             %tr
-              %th{colspan: 4}
+              %th
                 Total Score
-              %td{colspan: 8}
+              %td{colspan: 3}
+              %td.text-center
                 #{@report.project_performance_percentage + @report.data_quality_percentage + @report.ce_percentage + @report.m_and_f_percentage}%
