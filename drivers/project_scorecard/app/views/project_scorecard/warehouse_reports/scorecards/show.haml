@@ -21,4 +21,7 @@
             %i.icon.icon-pencil
             Edit
 
-  = render 'form', f: f
+  - if @report.archive.blank?
+    = render 'form', f: f
+  - else
+    = @report.archive.html_safe
