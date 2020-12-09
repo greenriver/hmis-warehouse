@@ -43,11 +43,12 @@ module ProjectScorecard::WarehouseReports
 
       if errors.any?
         flash[:error] = errors.join('<br />'.html_safe)
+        render action: :index
       else
         generate_for_projects(@project_ids, @range, current_user)
+        flash[:info] = 'Reports queued for processing'
+        redirect_to action: :index
       end
-
-      render action: :index
     end
 
     def edit
@@ -66,7 +67,9 @@ module ProjectScorecard::WarehouseReports
     def update
       @report.update!(scorecard_params)
       advance_workflow if params[:commit] == workflow_action
-      redirect_to action: :show
+      action = :edit
+      action = :show if @report.status == 'completed'
+      redirect_to action: action
     end
 
     def workflow_action
