@@ -174,7 +174,7 @@ module ProjectScorecard::WarehouseReports
     private def set_projects
       @filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id))
       project_ids = @filter.anded_effective_project_ids
-      @projects = if project_ids.any?
+      @projects = if project_ids&.any?
         project_scope.where(id: project_ids).
           joins(:organization, :data_source).
           order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
