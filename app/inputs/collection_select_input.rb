@@ -6,7 +6,7 @@
 
 class CollectionSelectInput < SimpleForm::Inputs::CollectionSelectInput
   def input(wrapper_options = nil)
-    if @builder.options[:wrapper] == :readonly
+    if @builder.options[:wrapper] == :readonly || input_options[:readonly] == true
       # Rails.logger.info 'ELLIOT' << detect_collection_methods.inspect
       # Rails.logger.info 'ELLIOT' << collection.inspect
       # Rails.logger.info 'ELLIOT' << object.send(attribute_name).inspect

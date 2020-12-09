@@ -6,7 +6,7 @@
 
 class BooleanInput < SimpleForm::Inputs::BooleanInput
   def input(wrapper_options = nil)
-    if @builder.options[:wrapper] == :readonly
+    if @builder.options[:wrapper] == :readonly || input_options[:readonly] == true
       display_value = object.send(attribute_name)
       if display_value
         template.content_tag(:span, nil, label_html_options.merge(class: 'icon-checkmark o-color--positive mr-2'))

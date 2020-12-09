@@ -1,16 +1,16 @@
 %h3= _('Coordinated Entry System Particpation 20%')
 %p= simple_format(_('24 CFR 578.(a)(8) states that CoCs must establish and operate a Coordinated Entry System to allocate assistance as effectivley as possible, prioritizing services to those that need it the most.'))
-%table.table.table-bordered
+%table.table.table-bordered.align-middle
   %thead
     %tr
-      %th Performance Criteria
-      %th Purpose & Source of Measurement
-      %th Formula Information
-      %th Performance Calculation
-      %th Points: 10
-      %th Points: 5
-      %th Points: 0
-      %th Total
+      %th.text-nowrap Performance Criteria
+      %th.text-nowrap Purpose & Source of Measurement
+      %th.text-nowrap Formula Information
+      %th.text-nowrap Performance Calculation
+      %th.text-nowrap Points: 10
+      %th.text-nowrap Points: 5
+      %th.text-nowrap Points: 0
+      %th.text-nowrap Total
   %tbody
     %tr
       %th
@@ -23,39 +23,27 @@
         Average Time to Lease Up
       %td
         = f.input :days_to_lease_up, label: false, as: :read_only
-      %th
-        <=30 days
-      %th
-        31 - 45 Days
-      %th
-        >=46 Days
-      %td
-        = @report.lease_up_score
+      %th.text-nowrap <=30 Days
+      %th.text-nowrap 31 - 45 Days
+      %th.text-nowrap >=46 Days
+      %td= @report.lease_up_score
     %tr
       %th
         Accepted Referrals
       %th
         = simple_format(_('TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most.'))
       %td.p-0
-        %table.table-table-sm
+        %table.table.mb-0
           %tbody
             %tr
-              %th
-                Number of CES Referrals
-              %td
-                = f.input :number_referrals, label: false, **@report.form_input_as(:number_referrals, current_user)
+              %th Number of CES Referrals
+              %td= f.input :number_referrals, label: false, **@report.field_input_options(:number_referrals, current_user)
             %tr
-              %th
-                Number of Accepted Referrals
-              %td
-                = f.input :accepted_referrals, label: false, **@report.form_input_as(:accepted_referrals, current_user)
+              %th Number of Accepted Referrals
+              %td= f.input :accepted_referrals, label: false, **@report.field_input_options(:accepted_referrals, current_user)
       %td
         = @report.accepted_referrals_percentage
+      %th >=90%
       %th
-        >=90%
-      %th
-
-      %th
-        <=89%
-      %td
-        = @report.accepted_referrals_score
+      %th <=89%
+      %td= @report.accepted_referrals_score

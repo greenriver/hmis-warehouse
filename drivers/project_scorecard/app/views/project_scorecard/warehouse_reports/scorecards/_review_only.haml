@@ -22,7 +22,7 @@
       %th
         N/A
       %td
-        = f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, **@report.form_input_as(:site_monitoring, current_user)
+        = f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, **@report.field_input_options(:site_monitoring, current_user)
       %th
         No Findings
       %th
@@ -43,12 +43,12 @@
               %th
                 Number of CES Referrals
               %td
-                = f.input :total_ces_referrals, label: false, **@report.form_input_as(:total_ces_referrals, current_user)
+                = f.input :total_ces_referrals, label: false, **@report.field_input_options(:total_ces_referrals, current_user)
             %tr
               %th
                 Number of Accepted Referrals
               %td
-                = f.input :accepted_ces_referrals, label: false, **@report.form_input_as(:accepted_ces_referrals, current_user)
+                = f.input :accepted_ces_referrals, label: false, **@report.field_input_options(:accepted_ces_referrals, current_user)
       %td
         = @report.ces_rejected_referral_percentage
       %th
