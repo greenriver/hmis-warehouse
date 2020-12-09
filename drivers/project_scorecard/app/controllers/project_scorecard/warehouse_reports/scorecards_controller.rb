@@ -9,6 +9,7 @@ module ProjectScorecard::WarehouseReports
     include WarehouseReportAuthorization
     include ArelHelper
     # TODO: what are the access rules?
+    before_action :set_filter, only: [:index, :create]
     before_action :set_projects, :set_current_reports, only: [:index]
     before_action :set_report, only: [:show, :edit, :rewind, :complete, :update]
 
@@ -171,8 +172,11 @@ module ProjectScorecard::WarehouseReports
       ProjectScorecard::Report
     end
 
-    private def set_projects
+    private def set_filter
       @filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id, project_type_codes: []))
+    end
+
+    private def set_projects
       project_ids = @filter.anded_effective_project_ids
       @projects = if project_ids&.any?
 
@@ -183,8 +187,8 @@ module ProjectScorecard::WarehouseReports
       else
         project_scope.none
       end
-
-      @projects = @projects.page(params[:page]).per(50).
+      @project_scope = @projects.page(params[:page]).per(50)
+      @projects = @project_scope.
         group_by { |p| [p.data_source.short_name, p.organization] }
     end
 
@@ -197,6 +201,10 @@ module ProjectScorecard::WarehouseReports
         where.not(project_id: nil).
         order(id: :asc).
         index_by(&:project_id)
+      @current_project_group_reports = reports_scope.
+        where.not(project_group_id: nil).
+        order(id: :asc).
+        index_by(&:project_group_id)
     end
   end
 end
