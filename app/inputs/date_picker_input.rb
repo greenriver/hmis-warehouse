@@ -9,7 +9,7 @@ class DatePickerInput < SimpleForm::Inputs::StringInput
     set_html_options
     set_value_html_option
 
-    if @builder.options[:wrapper] == :readonly
+    if @builder.options[:wrapper] == :readonly || input_options[:readonly] == true
       display_value = object.send(attribute_name)
       if display_value.present?
         template.content_tag(:p, display_value, label_html_options)

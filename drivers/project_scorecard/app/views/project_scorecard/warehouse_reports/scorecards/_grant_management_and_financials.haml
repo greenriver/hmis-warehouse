@@ -3,14 +3,14 @@
 %table.table.table-bordered
   %thead
     %tr
-      %th Performance Criteria
-      %th Purpose & Source of Measurement
-      %th Formula Information
-      %th Performance Calculation
-      %th Points: 10
-      %th Points: 5
-      %th Points: 0
-      %th Total
+      %th.text-nowrap Performance Criteria
+      %th.text-nowrap Purpose & Source of Measurement
+      %th.text-nowrap Formula Information
+      %th.text-nowrap Performance Calculation
+      %th.text-nowrap Points: 10
+      %th.text-nowrap Points: 5
+      %th.text-nowrap Points: 0
+      %th.text-nowrap Total
   %tbody
     %tr
       %th
@@ -20,33 +20,28 @@
         %br
         = simple_format(_('Agency Self-Report and eLOCCS data'))
       %td.p-0
-        %table.table.table-sm
+        %table.table.mb-0
           %tbody
             %tr
               %th
                 = _('Funds expended to date, as reflected in eLOCCS')
               %td
-                = f.input :funds_expended, label: false, **@report.form_input_as(:funds_expended, current_user)
+                = f.input :funds_expended, label: false, **@report.field_input_options(:funds_expended, current_user)
             %tr
               %th
                 Total Grant Amount Awarded
               %td
-                = f.input :amount_awarded, label: false, **@report.form_input_as(:amount_awarded, current_user)
+                = f.input :amount_awarded, label: false, **@report.field_input_options(:amount_awarded, current_user)
             %tr
               %th
                 Number of months since start of grant term to present
               %td
-                = f.input :months_since_start, label: false, **@report.form_input_as(:months_since_start, current_user)
-      %td
-        = @report.spend_down_percentage
-      %th
-        (+/-) 0 - 10%
-      %th
-        (+/-) 11 - 15%
-      %th
-        (+/-) 16% +
-      %td
-        = @report.spend_down_score
+                = f.input :months_since_start, label: false, **@report.field_input_options(:months_since_start, current_user)
+      %td= @report.spend_down_percentage
+      %th.text-nowrap (+/-) 0 - 10%
+      %th.text-nowrap (+/-) 11 - 15%
+      %th.text-nowrap (+/-) 16% +
+      %td= @report.spend_down_score
     %tr
       %th
         Cost Efficiency
@@ -55,13 +50,13 @@
         %br
         = _('Project Application & APR Data')
       %td.p-0
-        %table.table.table-sm
+        %table.table.mb-0
           %tbody
             %tr
               %th
                 = _('Total CoC Budget Plus 25% Required Match')
               %td
-                = f.input :budget_plus_match, label: false, **@report.form_input_as(:budget_plus_match, current_user)
+                = f.input :budget_plus_match, label: false, **@report.field_input_options(:budget_plus_match, current_user)
             %tr
               %th
                 = _('Number of participants who exited to or remained in permanent supportive housing during the reporting period')
@@ -69,15 +64,15 @@
                 = @report.participants_in_psh
       %td
         = @report.cost_per_participant
-      %th
+      %th.text-nowrap.text-nowrap
         PSH <=$8,999
         %br
         RRH <=$2,499
-      %th
+      %th.text-nowrap
         PSH $9,000 - 11,000
         %br
         RRH $2,500 - 4,500
-      %th
+      %th.text-nowrap
         PSH >=$11,001
         %br
         RRH >=$4,501
@@ -91,33 +86,26 @@
         %br
         APR Data
       %td.p-0
-        %table.table.table-sm
+        %table.table.mb-0
           %tbody
             %tr
               %th
                 Total Grant Award
               %td
-                = f.input :prior_amount_awarded, label: false, **@report.form_input_as(:prior_amount_awarded, current_user)
+                = f.input :prior_amount_awarded, label: false, **@report.field_input_options(:prior_amount_awarded, current_user)
             %tr
               %th
                 Total Spent
               %td
-                = f.input :prior_funds_expended, label: false, **@report.form_input_as(:prior_funds_expended, current_user)
+                = f.input :prior_funds_expended, label: false, **@report.field_input_options(:prior_funds_expended, current_user)
             %tr
-              %th
-                Unspent Amount
-              %td
-                = @report.prior_unspent_amount
-      %td
-        = @report.percentage_recaptured
-      %th
-        0-2%
-      %th
-        3-5%
-      %th
-        >=6%
-      %td
-        = @report.recaptured_score
+              %th Unspent Amount
+              %td= @report.prior_unspent_amount
+      %td= @report.percentage_recaptured
+      %th.text-nowrap 0-2%
+      %th.text-nowrap 3-5%
+      %th.text-nowrap >=6%
+      %td= @report.recaptured_score
     %tr
       %th
         = _('PIT Count Participation')
@@ -125,45 +113,33 @@
         = _('The measure indicates if agency is participating in CoC-related activities')
         %br
         = _('PIT Registration or PIT Data')
+      %th N/A
+      %td= f.input :pit_participation, label: false, **@report.field_input_options(:pit_participation, current_user)
+      %th Yes
       %th
-        N/A
-      %td
-        = f.input :pit_participation, label: false, **@report.form_input_as(:pit_participation, current_user)
-      %th
-        Yes
-      %th
-
-      %th
-        No
-      %td
-        = @report.pit_participation_score
+      %th No
+      %td= @report.pit_participation_score
     %tr
-      %th
-        CoC General Meeting Attendance
+      %th CoC General Meeting Attendance
       %th
         = simple_format(_('To support collaboration between agencies and knowledge of local resources at the CoC will provides CoC wide meetings with varying topics related to homelessness and housing services. The measure indicates agency participation.'))
         %br
         = _('TCHC Sign-In Sheets')
       %td.p-0
-        %table.table.table-sm
+        %table.table.mb-0
           %tbody
             %tr
               %th
                 Number of Meetings
               %td
-                = f.input :coc_meetings, label: false, **@report.form_input_as(:coc_meetings, current_user)
+                = f.input :coc_meetings, label: false, **@report.field_input_options(:coc_meetings, current_user)
             %tr
               %th
                 Number Attended
               %td
-                = f.input :coc_meetings_attended, label: false, **@report.form_input_as(:coc_meetings_attended, current_user)
-      %td
-        = @report.percentage_meetings_attended
-      %th
-        >= 75%
-      %th
-        50 - 74%
-      %th
-        <= 49%
-      %td
-        = @report.meetings_attended_score
+                = f.input :coc_meetings_attended, label: false, **@report.field_input_options(:coc_meetings_attended, current_user)
+      %td= @report.percentage_meetings_attended
+      %th.text-nowrap >= 75%
+      %th.text-nowrap 50 - 74%
+      %th.text-nowrap <= 49%
+      %td= @report.meetings_attended_score

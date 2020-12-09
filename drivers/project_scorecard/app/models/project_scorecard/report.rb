@@ -64,9 +64,9 @@ module ProjectScorecard
       user_id == user.id
     end
 
-    def form_input_as(field, user)
+    def field_input_options(field, user)
       if locked?(field, user)
-        { as: :read_only }
+        { readonly: true }
       else
         {}
       end

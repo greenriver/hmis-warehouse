@@ -3,14 +3,14 @@
 %table.table.table-bordered
   %thead
     %tr
-      %th Performance Criteria
-      %th Purpose & Source of Measurement
-      %th Formula Information
-      %th Performance Calculation
-      %th Points: 10
-      %th Points: 5
-      %th Points: 0
-      %th Total
+      %th.text-nowrap Performance Criteria
+      %th.text-nowrap Purpose & Source of Measurement
+      %th.text-nowrap Formula Information
+      %th.text-nowrap Performance Calculation
+      %th.text-nowrap Points: 10
+      %th.text-nowrap Points: 5
+      %th.text-nowrap Points: 0
+      %th.text-nowrap Total
   %tbody
     %tr
       %th Quarterly Occupancy Utilization Rate
@@ -19,7 +19,7 @@
         %br
         APR Q8b & Application
       %td.p-0
-        %table.table.table-sm
+        %table.table.mb-0
           %tbody
             %tr
               %th January Total (Q8b, Row 1, Column 1)
@@ -38,12 +38,11 @@
               %td= @report.adjusted_utilization
             %tr
               %th Proposed number of households served
-              %td= f.input :utilization_proposed, label: false, **@report.form_input_as(:utilization_proposed, current_user)
+              %td= f.input :utilization_proposed, label: false, **@report.field_input_options(:utilization_proposed, current_user)
       %td= @report.utilization_percentage
-      %th 90% - 150%
-      %th 80% - 89%
-      %th
-        >= 151% or <= 79%
+      %th.text-nowrap 90% - 150%
+      %th.text-nowrap 80% - 89%
+      %th.text-nowrap >= 151% or <= 79%
       %td= @report.utilization_score
     %tr
       %th Percentage of chronically homeless households served
@@ -52,7 +51,7 @@
         %br
         APR Q26a
       %td.p-0
-        %table.table.table-sm
+        %table.table.mb-0
           %tbody
             %tr
               %th Total Chronically Homeless Households served
@@ -61,12 +60,9 @@
               %th Total Households served
               %td= f.input :total_households_served, label: false, as: :read_only
       %td= @report.chronic_service_percentage
-      %th
-        PSH: >=75%
-      %th
-        PSH: 65% - 74%
-      %th
-        PSH: <= 64%
+      %th.text-nowrap PSH: >=75%
+      %th.text-nowrap PSH: 65% - 74%
+      %th.text-nowrap PSH: <= 64%
       %td= @report.chronic_service_score
     %tr
       %th
@@ -76,7 +72,7 @@
         %br
         APR Q23c
       %td.p-0
-        %table.table.table-sm
+        %table.table.mb-0
           %tbody
             %tr
               %th Total Number of Persons Served (Q05a, Row 1)
@@ -94,15 +90,15 @@
               %th Unsuccessful exits (Auto Calculated)
               %td= @report.unsuccessful_exits
       %td= @report.exit_to_ph_percentage
-      %th
+      %th.text-nowrap
         PSH: >= 98%
         %br
         RRH: >= 95%
-      %th
+      %th.text-nowrap
         PSH: 90-97%
         %br
         RRH: 90% - 94%
-      %th
+      %th.text-nowrap
         PSH: <= 89%
         %br
         RRH: <= 89%

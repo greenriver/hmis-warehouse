@@ -9,7 +9,7 @@ class PrettyBooleanInput < SimpleForm::Inputs::BooleanInput
     checked = object.send(attribute_name)
     name = "#{object_name}[#{attribute_name}]"
     id = name.to_s.parameterize
-    if @builder.options[:wrapper] == :readonly
+    if @builder.options[:wrapper] == :readonly || input_options[:readonly] == true
       if checked
         style = '' # rubocop:disable Style/IdenticalConditionalBranches
         symbol_name = 'checkmark'

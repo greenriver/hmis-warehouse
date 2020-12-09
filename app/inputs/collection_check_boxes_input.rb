@@ -6,7 +6,7 @@
 
 class CollectionCheckBoxesInput < SimpleForm::Inputs::CollectionCheckBoxesInput
   def input(wrapper_options = nil)
-    if @builder.options[:wrapper] == :readonly
+    if @builder.options[:wrapper] == :readonly || input_options[:readonly] == true
       label_method = detect_collection_methods.first
       value_method = detect_collection_methods.last
       selected_value = object.send(attribute_name) || []
