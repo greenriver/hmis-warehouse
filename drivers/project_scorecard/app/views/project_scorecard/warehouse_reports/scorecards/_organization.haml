@@ -32,14 +32,14 @@
           %td<
             .c-checkbox.c-checkbox--round
               = check_box_tag("project[#{project.id}]", 1, false, {class: 'j-child-select'})
-              %label{for:"project_#{project.id}", tabindex:'1' }
+              %label{ for:"project_#{project.id}", tabindex: '1' }
           %td<
             = link_to project.ProjectName, for_project_project_scorecard_warehouse_reports_scorecards_path(project_id: project.id)
           %td<
             = HUD.project_type_brief(project[GrdaWarehouse::Hud::Project.project_type_column])
           %td<
             - if last_status = last_report&.status
-              = link_to last_status, project_scorecard_warehouse_reports_scorecard_path(last_report)
+              = link_to last_status, edit_project_scorecard_warehouse_reports_scorecard_path(last_report)
             -else
               = content_tag( :em, 'not available')
           %td<
