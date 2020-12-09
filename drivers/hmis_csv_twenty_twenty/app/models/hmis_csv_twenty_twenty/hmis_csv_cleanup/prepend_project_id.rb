@@ -36,5 +36,13 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
     def self.description
       'Prepend the HMIS ProjectID to the ProjectName field'
     end
+
+    def self.enable
+      {
+        import_cleanups: {
+          'Project': ['HmisCsvTwentyTwenty::HmisCsvCleanup::PrependProjectId'],
+        },
+      }
+    end
   end
 end

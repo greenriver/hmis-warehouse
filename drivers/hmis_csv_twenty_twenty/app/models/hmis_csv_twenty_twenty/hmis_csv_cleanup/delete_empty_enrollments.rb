@@ -51,5 +51,13 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
     def self.description
       'Delete enrollments in ES or SO projects that do not have any associated services or current living situations'
     end
+
+    def self.enable
+      {
+        import_cleanups: {
+          'Enrollment': ['HmisCsvTwentyTwenty::HmisCsvCleanup::DeleteEmptyEnrollments'],
+        },
+      }
+    end
   end
 end

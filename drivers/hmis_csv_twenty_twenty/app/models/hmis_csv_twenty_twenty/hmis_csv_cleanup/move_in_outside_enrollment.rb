@@ -49,5 +49,13 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
     def self.description
       'Remove move-in dates the occur before the entry, or after the exit'
     end
+
+    def self.enable
+      {
+        import_cleanups: {
+          'Enrollment': ['HmisCsvTwentyTwenty::HmisCsvCleanup::MoveInOutsideEnrollment'],
+        },
+      }
+    end
   end
 end
