@@ -212,7 +212,15 @@ module Health
     def re_enroll_patient(referral, transaction)
       patient = referral.patient
       referral_data = referral_data(transaction, change_description: 'Re-enroll patient via 834')
-      referral_data[:agency_id] = referral.agency_id unless referral.enrollment_start_date != referral_data[:enrollment_start_date]
+      if referral.enrollment_start_date == referral_data[:enrollment_start_date]
+        # This is a consecutive enrollment, so carry data forward
+        referral_data[:agency_id] = referral.agency_id # Agency
+        # CC / NCM / ACO are preserved
+      else
+        # the Agency will be cleared when creating a new referral
+        patient.update(care_coordinator_id: nil, nurse_case_manager_id: nil) # Clear CC.NCM
+        # The ACO is preserved
+      end
       Health::PatientReferral.create_referral(patient, referral_data)
     end
 
