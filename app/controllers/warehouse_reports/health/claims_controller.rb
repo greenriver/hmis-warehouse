@@ -83,6 +83,20 @@ module WarehouseReports::Health
       Health::QualifyingActivity.unsubmitted.where(id: no_force_list).
         update_all(force_payable: false)
 
+      ignore_list = []
+      no_ignore_list = []
+      params[:ignored].each do |qa_id, ignore|
+        if ignore == 'true'
+          ignore_list << qa_id.to_i
+        else
+          no_ignore_list << qa_id.to_i
+        end
+      end
+      Health::QualifyingActivity.unsubmitted.where(id: ignore_list).
+        update_all(ignored: true)
+      Health::QualifyingActivity.unsubmitted.where(id: no_ignore_list).
+        update_all(ignored: false)
+
       redirect_to action: :index
     end
 

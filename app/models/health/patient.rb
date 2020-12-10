@@ -235,7 +235,7 @@ module Health
         select(hp_t[:id].to_sql)
 
       pctp_signed_patient_id_scope = Health::Careplan.distinct.
-        locked.
+        pcp_signed.
         select(:patient_id)
       # epic_careplan_patient_id_scope = Health::EpicCareplan.distinct.joins(:patient).select(hp_t[:id].to_sql)
 

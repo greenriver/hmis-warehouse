@@ -66,6 +66,12 @@ module Admin
         :dashboard_lookback,
         :domestic_violence_lookback_days,
         :support_contact_email,
+        :completeness_goal,
+        :excess_goal,
+        :timeliness_goal,
+        :income_increase_goal,
+        :ph_destination_increase_goal,
+        :move_in_date_threshold,
         client_details: [],
       )
     end

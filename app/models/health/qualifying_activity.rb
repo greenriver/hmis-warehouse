@@ -591,6 +591,7 @@ module Health
     end
 
     def validity_class
+      return 'qa-ignored' if ignored?
       return 'qa-valid-unpayable'if valid_unpayable?
       return 'qa-valid' if procedure_valid?
 

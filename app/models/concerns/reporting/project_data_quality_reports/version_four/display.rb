@@ -40,11 +40,11 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def completeness_goal
-      90
+      GrdaWarehouse::Config.get(:completeness_goal)
     end
 
     def excess_goal
-      105
+      GrdaWarehouse::Config.get(:excess_goal)
     end
 
     def mininum_completeness_threshold
@@ -52,19 +52,19 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     def timeliness_goal
-      14 # days
+      GrdaWarehouse::Config.get(:timeliness_goal) # days
     end
 
     def income_increase_goal
-      75
+      GrdaWarehouse::Config.get(:income_increase_goal)
     end
 
     def ph_destination_increase_goal
-      60
+      GrdaWarehouse::Config.get(:ph_destination_increase_goal)
     end
 
     def move_in_date_threshold
-      30 # days
+      GrdaWarehouse::Config.get(:move_in_date_threshold) # days
     end
 
     def hide_beds_and_units
