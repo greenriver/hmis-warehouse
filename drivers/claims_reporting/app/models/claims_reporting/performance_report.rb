@@ -5,6 +5,29 @@ module ClaimsReporting
     extend Memoist
     attr_reader :member_roster
 
+    # member classifcation bits from Milliman
+
+    # High_Util High Utilizing
+    # COI Cohorts of Interest - All
+    # High_ER_Flag Cohorts of Interest - 5+ ER Visits with No Psych Admissions
+    # Psychoses_Flag Cohorts of Interest - 1+ Psychoses Admission
+    # OthIPPsych_Flag Cohorts of Interest - 1+ Other IP Psych Admission
+
+    # ENGAGEMENT_STATUS
+    # CURRENTLY_ASSIGNED
+    # CURRENTLY_ENGAGED
+
+    # ENGAGED_MEMBER_DAYS
+
+    # ANTIPSY_DAY
+    # ANTIPSY_DENOM
+
+    # ANTIDEP_DAY
+    # ANTIDEP_DENOM
+
+    # MOODSTAB_DAY
+    # MOODSTAB_DENOM
+
     def available_filters
       [
         :age_bucket,
@@ -23,12 +46,14 @@ module ClaimsReporting
     attr_accessor :age_bucket
     def age_bucket_options
       [
+        '<18',
         '18-21',
         '22-29',
         '30-39',
         '40-49',
         '50-59',
         '60-64',
+        '65+',
       ].freeze
     end
 
@@ -43,8 +68,15 @@ module ClaimsReporting
     attr_accessor :race
     def race_options
       # member_roster.group(:race).count.keys
+      # American Indian Or Alaskan American
+      # Asian Or Pacific Islander
+      # Black-Not Of Hispanic Origin
+      # Caucasian
+      # Hispanic
+      # Interracial
+      # Race Unknown
       [
-        '',
+        # FIXME: '(blank)',
         'AMERICAN INDIAN OR ALASKAN AMERICAN',
         'ASIAN OR PACIFIC ISLANDER',
         'BLACK-NOT OF HISPANIC ORIGIN',
@@ -58,7 +90,8 @@ module ClaimsReporting
     # ACO – The ACO that the member was assigned to at the time the claim is incurred
     attr_accessor :aco
     def aco_options
-      member_roster.distinct.pluck(:aco_name).sort.freeze
+      # FIXME: '(blank)',
+      medical_claims.distinct.pluck(:aco_name).compact.sort.freeze
     end
 
     # Mental Health Diagnosis Category –
@@ -66,25 +99,31 @@ module ClaimsReporting
     # classified by mental health and substance abuse categories included
     # in the Clinical Classification Software (CCS) available at
     # https://www.hcup-us.ahrq.gov/toolssoftware/ccs/ccsfactsheet.jsp.
-    # Schizophrenia
-    # Psychoses/Bipolar Disorders (excludes schizophrenia)
-    # Depression/Anxiety/Stress Reactions
-    # Personality/Impulse Disorder
-    # Suicidal Ideation/Attempt
-    # Substance Abuse Disorder
-    # Other
+    #
+    # SCH_Flag Schizophrenia
+    # PBD_Flag Psychoses/Bipolar Disorders
+    # DAS_flag Depression/Anxiety/Stress Reactions
+    # PID_Flag Personality/Impulse Disorder
+    # SIA_Flag Suicidal Ideation/Attempt
+    # SUD_Flag Substance Abuse Disorder
+    # OthBH_Flag Other
     attr_accessor :mental_health_diagnosis_category
 
-    # Medical Diagnosis Category – The medical diagnosis category represents a group of conditions classified by medical diagnoses of specific interest in the Clinical Classification Software (CCS). Every member is categorized as having a medical diagnosis based on the claims they incurred - a member can be assigned to more than one category. Possible medical diagnosis categories include:
-    # Asthma
-    # Chronic Obstructive Pulmonary Disease (COPD)
-    # Diabetes
-    # Cardiac Disease
-    # GI Tract and Biliary Disease
-    # Degenerative Spinal Disease/Chronic Pain
-    # Obesity
-    # Hypertension
-    # Hepatitis
+    # Medical Diagnosis Category – The medical diagnosis category represents a group of conditions
+    # classified by medical diagnoses of specific interest in the Clinical Classification Software (CCS).
+    # Every member is categorized as having a medical diagnosis based on the claims they
+    # incurred - a member can be assigned to more than one category.
+    # Possible medical diagnosis categories include:
+    #
+    # AST_MEM Asthma
+    # CPD_MEM COPD
+    # CIR_MEM Cardiac Disease
+    # DIA_MEM Diabetes
+    # SPN_MEM Degenerative Spinal Disease/Chronic Pain
+    # GBT_MEM GI and Bilary Tract Disease
+    # OBS_MEM Obesity
+    # HYP_MEM Hypertension
+    # HEP_MEM Hepatitis
     attr_accessor :medical_diagnosis_category
 
     # High Utilizing Member – ‘High Utilizing’ represents high utilizers (3+ inpatient stays or 5+ emergency room visits throughout their claims experience).
@@ -186,12 +225,17 @@ module ClaimsReporting
     memoize :average_per_member_per_month_spend
 
     def average_raw_dxcg_score
-      selected_member_roster.average('raw_dxcg_risk_score::decimal')&.round(2)
+      selected_member_roster.average(%(NULLIF(raw_dxcg_risk_score,'')::decimal))&.round(2)
     end
     memoize :average_raw_dxcg_score
 
     def detail_cols
       DETAIL_COLS
+    end
+
+    def engagement_span
+      # from the Milliman prototype -- mix max stay in days
+      0 .. 9_999
     end
 
     def claims_query
@@ -205,7 +249,13 @@ module ClaimsReporting
         t[:member_id].count(true).as('member_count'),
         # t[:paid_amount].sum.as('paid_amount_sum'),
         Arel.sql('ROUND(AVG(paid_amount), 2)').as('avg_cost_per_service'),
-        Arel.sql('ROUND(AVG(discharge_date-admit_date))').as('avg_length_of_stay'),
+        Arel.sql("ROUND(AVG(
+          CASE
+            WHEN discharge_date-admit_date < #{engagement_span.min} THEN NULL
+            WHEN discharge_date-admit_date > #{engagement_span.max} THEN NULL
+            ELSE discharge_date-admit_date
+          END
+        ))").as('avg_length_of_stay'),
       ).order('1 ASC NULLS LAST')
     end
 
@@ -220,16 +270,16 @@ module ClaimsReporting
     def selected_member_roster
       scope = member_roster
       if age_bucket.present? && age_bucket.in?(age_bucket_options)
-        range = age_bucket.split('-')
+        min, max = *age_bucket.split(/[^\d]*/)
+        min = (min.presence || 0).to_i
+        max = (max.presence || 1_000).to_i
         # FIXME: Do we mean age at the time of service or age now?
-        scope = scope.where(date_of_birth: range.max.to_i.years.ago .. range.min.to_i.years.ago)
+        scope = scope.where(date_of_birth: max.years.ago .. min.years.ago)
       end
 
       scope = scope.where(race: race) if race.present? && race.in?(race_options)
 
       scope = scope.where(sex: gender) if gender.present? && gender.in?(gender_options)
-
-      scope = scope.where(aco_name: aco) if aco.present? && aco.in?(aco_options)
 
       scope
     end
@@ -239,7 +289,11 @@ module ClaimsReporting
     end
 
     private def selected_medical_claims
-      medical_claims.joins(:member_roster).merge(selected_member_roster)
+      scope = medical_claims.joins(:member_roster).merge(selected_member_roster)
+      # aco at the time of service
+      scope = scope.where(aco_name: aco) if aco.present? && aco.in?(aco_options)
+
+      scope
     end
   end
 end

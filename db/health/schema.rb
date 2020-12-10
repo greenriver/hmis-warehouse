@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_08_220623) do
+ActiveRecord::Schema.define(version: 2020_12_10_200633) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -402,7 +402,41 @@ ActiveRecord::Schema.define(version: 2020_12_08_220623) do
     t.string "ccs_id"
     t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
     t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
-    t.index ["member_id"], name: "claims_reporting_medical_claims_member_id_idx"
+  end
+
+  create_table "claims_reporting_member_diagnosis_classifications", force: :cascade do |t|
+    t.string "member_id", null: false
+    t.boolean "currently_assigned"
+    t.boolean "currently_engaged"
+    t.boolean "ast"
+    t.boolean "cpd"
+    t.boolean "cir"
+    t.boolean "dia"
+    t.boolean "spn"
+    t.boolean "gbt"
+    t.boolean "obs"
+    t.boolean "hyp"
+    t.boolean "hep"
+    t.boolean "sch"
+    t.boolean "pbd"
+    t.boolean "das"
+    t.boolean "pid"
+    t.boolean "sia"
+    t.boolean "sud"
+    t.boolean "coi"
+    t.boolean "high_er"
+    t.boolean "psychoses"
+    t.boolean "other_ip_psych"
+    t.integer "engaged_member_days"
+    t.integer "antipsy_day"
+    t.integer "antipsy_denom"
+    t.integer "antidep_day"
+    t.integer "antidep_denom"
+    t.integer "moodstab_day"
+    t.integer "moodstab_denom"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["member_id"], name: "unk_crmd"
   end
 
   create_table "claims_reporting_member_rosters", force: :cascade do |t|
