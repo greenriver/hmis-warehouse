@@ -34,12 +34,15 @@ module ClaimsReporting
         :gender,
         :race,
         :aco,
+        :mental_health_diagnosis_category,
+        :medical_diagnosis_category,
+        :currently_assigned,
       ].freeze
     end
 
     def filter_options(filter)
-      method = "#{filter}_options"
-      respond_to?(method) ? send(method) : nil
+      msg = "#{filter}_options"
+      respond_to?(msg) ? send(msg) : nil
     end
 
     # Age Bucket – The age of the member as of the report
@@ -100,31 +103,39 @@ module ClaimsReporting
     # in the Clinical Classification Software (CCS) available at
     # https://www.hcup-us.ahrq.gov/toolssoftware/ccs/ccsfactsheet.jsp.
     #
-    # SCH_Flag Schizophrenia
-    # PBD_Flag Psychoses/Bipolar Disorders
-    # DAS_flag Depression/Anxiety/Stress Reactions
-    # PID_Flag Personality/Impulse Disorder
-    # SIA_Flag Suicidal Ideation/Attempt
-    # SUD_Flag Substance Abuse Disorder
-    # OthBH_Flag Other
     attr_accessor :mental_health_diagnosis_category
+    def mental_health_diagnosis_category_options
+      {
+        sch: 'Schizophrenia',
+        pbd: 'Psychoses/Bipolar Disorders',
+        das: 'Depression/Anxiety/Stress Reactions',
+        pid: 'Personality/Impulse Disorder',
+        sia: 'Suicidal Ideation/Attempt',
+        sud: 'Substance Abuse Disorder',
+        othbh: 'Other',
+      }.invert.to_a
+    end
 
     # Medical Diagnosis Category – The medical diagnosis category represents a group of conditions
     # classified by medical diagnoses of specific interest in the Clinical Classification Software (CCS).
     # Every member is categorized as having a medical diagnosis based on the claims they
     # incurred - a member can be assigned to more than one category.
-    # Possible medical diagnosis categories include:
-    #
-    # AST_MEM Asthma
-    # CPD_MEM COPD
-    # CIR_MEM Cardiac Disease
-    # DIA_MEM Diabetes
-    # SPN_MEM Degenerative Spinal Disease/Chronic Pain
-    # GBT_MEM GI and Bilary Tract Disease
-    # OBS_MEM Obesity
-    # HYP_MEM Hypertension
-    # HEP_MEM Hepatitis
+    # Possible medical diagnosis 'categories include:
+    # ''
     attr_accessor :medical_diagnosis_category
+    def medical_diagnosis_category_options
+      {
+        ast: 'Asthma',
+        cpd: 'COPD',
+        cir: 'Cardiac Disease',
+        dia: 'Diabetes',
+        spn: 'Degenerative Spinal Disease/Chronic Pain',
+        gbt: 'GI and Biliary Tract Disease',
+        obs: 'Obesity',
+        hyp: 'Hypertension',
+        hep: 'Hepatitis',
+      }.invert.to_a
+    end
 
     # High Utilizing Member – ‘High Utilizing’ represents high utilizers (3+ inpatient stays or 5+ emergency room visits throughout their claims experience).
     attr_accessor :high_utilization_member
@@ -137,6 +148,29 @@ module ClaimsReporting
 
     # Currently Assigned - If the member is still assigned to the CP as of the most recent member_roster
     attr_accessor :currently_assigned
+
+    ## Member,
+    # ENGAGEMENT_STATUS
+    # ACO
+    # AGE
+    # sex
+    # race
+    # High_Util
+    # COI
+    # High_ER_Flag
+    # Psychoses_Flag
+    # OthIPPsych_Flag
+    # CURRENTLY_ASSIGNED
+    # CURRENTLY_ENGAGED
+    # ENGAGED_MONTHS
+
+    ## medical claim
+    # css_id
+    # assigned
+    # is_acs
+    # is_acs_demon
+    # is_pp
+    # is_pp_denom
 
     DETAIL_COLS = {
       member_count: 'member_count',
@@ -169,29 +203,6 @@ module ClaimsReporting
         val
       end
     end
-
-    ## Member
-    # ENGAGEMENT_STATUS
-    # ACO
-    # AGE
-    # sex
-    # race
-    # High_Util
-    # COI
-    # High_ER_Flag
-    # Psychoses_Flag
-    # OthIPPsych_Flag
-    # CURRENTLY_ASSIGNED
-    # CURRENTLY_ENGAGED
-    # ENGAGED_MONTHS
-
-    ## medical claim
-    # css_id
-    # assigned
-    # is_acs
-    # is_acs_demon
-    # is_pp
-    # is_pp_denom
 
     def initialize(member_roster: ClaimsReporting::MemberRoster.all)
       @member_roster = member_roster
@@ -267,19 +278,35 @@ module ClaimsReporting
       connection.select_all(claims_query)
     end
 
+    private def valid_option?(value, options)
+      return unless value.present?
+
+      options.detect do |opt|
+        opt = opt.second if opt.is_a?(Array)
+        opt.to_s == value.to_s
+      end
+    end
+
     def selected_member_roster
-      scope = member_roster
-      if age_bucket.present? && age_bucket.in?(age_bucket_options)
-        min, max = *age_bucket.split(/[^\d]*/)
+      dct = ClaimsReporting::MemberDiagnosisClassification
+      scope = member_roster.left_joins(:diagnosis_classification)
+      if valid_option?(age_bucket, age_bucket_options)
+        min, max = *age_bucket.split(/[^\d]+/)
         min = (min.presence || 0).to_i
         max = (max.presence || 1_000).to_i
         # FIXME: Do we mean age at the time of service or age now?
-        scope = scope.where(date_of_birth: max.years.ago .. min.years.ago)
+        scope = scope.where(date_of_birth: max.years.ago.to_date .. min.years.ago.to_date)
       end
 
-      scope = scope.where(race: race) if race.present? && race.in?(race_options)
+      scope = scope.where(race: race) if valid_option?(race, race_options)
 
-      scope = scope.where(sex: gender) if gender.present? && gender.in?(gender_options)
+      scope = scope.where(sex: gender) if valid_option?(gender, gender_options)
+
+      scope = scope.merge(dct.where(mental_health_diagnosis_category.to_sym => true)) if valid_option?(mental_health_diagnosis_category, mental_health_diagnosis_category_options)
+
+      scope = scope.merge(dct.where(medical_diagnosis_category.to_sym => true)) if valid_option?(medical_diagnosis_category, medical_diagnosis_category_options)
+
+      scope = scope.merge(dct.where(currently_assigned: true)) if currently_assigned.present?
 
       scope
     end

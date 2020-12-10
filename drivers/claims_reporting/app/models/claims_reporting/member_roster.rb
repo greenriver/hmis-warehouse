@@ -1,5 +1,10 @@
 module ClaimsReporting
   class MemberRoster < HealthBase
+    has_one :diagnosis_classification,
+            primary_key: 'member_id',
+            foreign_key: 'member_id',
+            class_name: 'ClaimsReporting::MemberDiagnosisClassification'
+
     include ClaimsReporting::CsvHelpers
     def self.schema_def
       <<~CSV.freeze

@@ -21,7 +21,7 @@
           = number_with_delimiter report.member_months
     %details
       %summary Query
-      = debug report.claims_query.to_sql
+      %code= report.claims_query.to_sql
     .table-responsive
       %table.table.table-bordered.table-condensed.table-striped
         %thead
