@@ -1,11 +1,13 @@
-= render 'health/qualifying_activities/payability_key'
+.d-flex
+  .mr-4
+    = render 'health/qualifying_activities/payability_key'
 .o-card-grid
   - qa_group.each do |_, qas|
     - sample_qa = qas.first
     .c-card.c-card--padded.c-card--flex
       .c-card__content
         .c-card__title= link_to sample_qa.patient.name, polymorphic_path(careplans_path_generator, client_id: sample_qa.patient.client_id)
-        .c-card__description
+        .c-card__description.overflow-scroll
           %table.table.table-sm.table-striped.table-hover
             %thead
               %tr
