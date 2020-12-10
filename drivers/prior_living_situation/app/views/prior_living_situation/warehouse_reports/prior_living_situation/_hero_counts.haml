@@ -1,8 +1,7 @@
 :ruby
   reports = [@report]
-  if @report.include_comparison?
-    reports << @comparison
-  end
+  reports << @comparison if @report.include_comparison?
+
 - reports.each_with_index do |report, index|
   - if @report.include_comparison?
     %h4.d-flex

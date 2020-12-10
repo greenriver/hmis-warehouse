@@ -1,5 +1,8 @@
 module ClaimsReporting
   class ReconcilationReport
+    require 'memoist'
+    extend Memoist
+
     attr_accessor :month
     attr_accessor :aco_ids
 
@@ -51,7 +54,7 @@ module ClaimsReporting
 
     def qa_missing_enrollment_count_for_patient(patient)
       patient_qas(patient.id).reject do |qa|
-        # This is logically occurred_during_any_enrollment? but is
+        # This is logically QualifyingActivity#occurred_during_any_enrollment? but is
         # faster since we will already have the full patient_referrals history
         qa.date_of_activity.present? && patient.patient_referrals.select do |r|
           r.active_on?(qa.date_of_activity)
@@ -67,22 +70,21 @@ module ClaimsReporting
       patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco&.name }.compact.uniq
     end
 
-    private def patient_qas(patient_id)
-      qualifying_activities_by_patient_id[patient_id] || []
+    private def patients_without_payments_by_id
+      patients_without_payments.index_by(&:id)
     end
+    memoize :patients_without_payments_by_id
 
-    def qualifying_activities_by_patient_id
-      @qualifying_activities_by_patient_id ||= ::Health::QualifyingActivity.where(
-        patient: active_patients,
-      ).submitted.in_range(
-        report_date_range,
-      ).group_by(&:patient_id)
+    private def patient_qas(patient_id)
+      qas = patients_without_payments_by_id[patient_id]&.qualifying_activities || []
+      qas.select { |r| r.submitted? && report_date_range.cover?(r.date_of_activity) }
     end
+    memoize :patient_qas
 
     def patients_without_payments
       active_patients.where.not(
         medicaid_id: payment_details.select(:medicaid_id),
-      ).preload(:careplans, patient_referrals: :aco)
+      ).preload(:careplans, :qualifying_activities, patient_referrals: :aco)
     end
 
     def payments_without_patients

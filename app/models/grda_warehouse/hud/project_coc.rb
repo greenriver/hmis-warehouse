@@ -53,6 +53,10 @@ module GrdaWarehouse::Hud
       hud_coc_code.presence || self.CoCCode
     end
 
+    def effective_geocode
+      geocode_override.presence || self.Geocode
+    end
+
     def self.related_item_keys
       [:ProjectID]
     end

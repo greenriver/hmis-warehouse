@@ -24,7 +24,7 @@
       %strong no,
       will remain on this list until they are adjusted such that they are payable, or until they are 6 months old.
     = simple_form_for :force_payable, url: qualifying_activities_warehouse_reports_health_claims_path do |f|
-      .unpayable-wrapper.overflow-scroll
+      .unpayable-wrapper
         %p Found #{pluralize(@unpayable.count, 'client')} with #{pluralize(@unpayable.values.flatten.count, 'unpayable qualifying activity')}.
         = render 'unpayable', qa_group: @unpayable, f: f
       .d-flex
@@ -33,13 +33,13 @@
   .tab-pane#duplicate
     %p
       The following qualifying activities are payable once per day, the procedure codes are valid, but the qualifying activities have occurred more than once per day per patient.  One of each of the qualifying activities below has either been submitted to #{@sender.receiver_name} or will be included in this claims file.
-    .duplicate-wrapper.overflow-scroll
+    .duplicate-wrapper
       %p Found #{pluralize(@duplicate.count, 'client')} with #{pluralize(@duplicate.values.flatten.count, 'duplicate qualifying activity')}.
       = render 'payable', qa_group: @duplicate
   .tab-pane#valid-unpayable
     %p
       The following qualifying activities will be included in this claims file for submission to #{@sender.receiver_name} even though it is fairly certain the claim will be denied.
-    .payable-wrapper.overflow-scroll
+    .payable-wrapper
       %p Found #{pluralize(@valid_unpayable.count, 'client')} with #{pluralize(@valid_unpayable.values.flatten.count, 'valid, unpayable qualifying activity')}.
       = render 'payable', qa_group: @valid_unpayable
 
@@ -50,7 +50,6 @@
       on the
       %strong Invalid
       tab will be included.
-    .payable-wrapper.overflow-scroll
+    .payable-wrapper
       %p Found #{pluralize(@payable.count, 'client')} with #{pluralize(@payable.values.flatten.count, 'payable qualifying activity')}.
       = render 'payable', qa_group: @payable
-

@@ -591,6 +591,7 @@ module Health
     end
 
     def validity_class
+      return 'qa-ignored' if ignored?
       return 'qa-valid-unpayable'if valid_unpayable?
       return 'qa-valid' if procedure_valid?
 
@@ -662,7 +663,7 @@ module Health
         next if r.in?(contributing_referrals)
         next if r.enrollment_start_date > date_of_activity # dont need to consider this one, it started after the QA
         close_enough = contributing_referrals.any? do |r2|
-          (r2.enrollment_start_date - r.disenrollment_date).to_i.between?(0, allowed_gap_in_days)
+          r.disenrollment_date.nil? || (r2.enrollment_start_date - r.disenrollment_date).to_i.between?(0, allowed_gap_in_days)
         end
         contributing_referrals << r if close_enough
       end

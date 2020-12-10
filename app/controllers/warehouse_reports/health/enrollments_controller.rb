@@ -59,8 +59,16 @@ module WarehouseReports::Health
     end
 
     def download
-      enrollment = Health::Enrollment.find(params[:id].to_i)
-      send_data(enrollment.content, filename: "Enrollments #{enrollment.created_at}.edi")
+      @enrollment = Health::Enrollment.find(params[:id].to_i)
+      filename = "Enrollments #{@enrollment.created_at.to_s(:db)}"
+      respond_to do |format|
+        format.xlsx do
+          headers['Content-Disposition'] = "attachment; filename=#{filename}.xlsx"
+        end
+        format.edi do
+          send_data(@enrollment.content, filename: "#{filename}.edi")
+        end
+      end
     end
 
     def enrollment_params

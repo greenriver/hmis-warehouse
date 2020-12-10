@@ -448,7 +448,7 @@ module HmisCsvTwentyTwenty::Importer
 
       # if the incoming DateUpdated is strictly less than the existing one
       # trust the warehouse is correct
-      unchanged = existing.select { |k, v| incoming[k] < v }.keys
+      unchanged = existing.select { |k, v| incoming[k].to_date < v.to_date }.keys
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
         query = klass.warehouse_class.where(
           data_source_id: data_source.id,

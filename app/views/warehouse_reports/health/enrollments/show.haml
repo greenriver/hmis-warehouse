@@ -7,9 +7,12 @@
 %h1= content_for :title
 
 .text-right
-  = link_to download_warehouse_reports_health_enrollment_path(@file), class: 'btn btn-secondary mt-4 ml-2' do
+  = link_to download_warehouse_reports_health_enrollment_path(@file, format: :edi), class: 'btn btn-secondary mt-4 ml-4' do
     %span.icon-download2
     Download EDI
+  = link_to download_warehouse_reports_health_enrollment_path(@file, format: :xlsx), class: 'btn btn-primary mt-4 ml-2' do
+    %span.icon-download2
+    Download Excel
 
 - if @file.processing_errors.present?
   %h2 Processing Errors
