@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_08_140125) do
+ActiveRecord::Schema.define(version: 2020_12_09_163906) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -5191,6 +5191,10 @@ ActiveRecord::Schema.define(version: 2020_12_08_140125) do
     t.integer "accepted_ces_referrals"
     t.integer "clients_with_vispdats"
     t.integer "average_vispdat_score"
+    t.integer "budget_plus_match"
+    t.integer "prior_amount_awarded"
+    t.integer "prior_funds_expended"
+    t.string "archive"
     t.index ["project_group_id"], name: "index_project_scorecard_reports_on_project_group_id"
     t.index ["project_id"], name: "index_project_scorecard_reports_on_project_id"
     t.index ["user_id"], name: "index_project_scorecard_reports_on_user_id"

@@ -168,6 +168,14 @@
   border-left: 4px solid $cob-sg-blue-005;
 }
 
+.qa-ignored
+{
+  border-left: 4px solid $gray;
+  td {
+    background-color: $gray-lighter;
+  }
+}
+
 .health_claims__success {
   color: $cob-sg-optimistic-blue;
 }
