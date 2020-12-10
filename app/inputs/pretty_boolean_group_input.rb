@@ -20,7 +20,7 @@ class PrettyBooleanGroupInput < SimpleForm::Inputs::CollectionRadioButtonsInput
           tag_name = :radio_button_tag
         end
         id = name.to_s.parameterize + '_' + value.to_s
-        if @builder.options[:wrapper] == :readonly
+        if @builder.options[:wrapper] == :readonly || input_options[:readonly] == true
           if checked
             style = '' # rubocop:disable Style/IdenticalConditionalBranches
             symbol_name = 'checkmark'

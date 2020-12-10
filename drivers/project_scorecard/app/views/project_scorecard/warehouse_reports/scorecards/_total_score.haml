@@ -1,0 +1,78 @@
+%h3 Total Project Score
+%table.table.table-bordered
+  %tbody
+    %tr
+      %th{colspan: 6}
+        Total Project Score =
+        .ml-2
+          Project Performance Percentage Achieved
+        .ml-2
+          + HMIS Data Quality Percentage Achieved
+        .ml-2
+          + Coordinated Entry Participation Percentage Achieved
+        .ml-2
+          + Grant Management & Financials Percentage Achieved
+      %td.p-0{colspan: 6}
+        %table.table.mb-0
+          %tbody
+            %tr
+              %th
+                Scoring Category
+              %th
+                Total Points Achieved
+              %th
+                Total Points Available
+              %th
+                Category Weight
+              %th
+                Percentage Achieved
+            %tr
+              %th
+                Project Performance
+              %td.text-center
+                = @report.project_performance_score
+              %th.text-center
+                60
+              %th.text-center
+                50%
+              %td.text-center
+                #{@report.project_performance_percentage}%
+            %tr
+              %th
+                HMIS Data Quality
+              %td.text-center
+                = @report.data_quality_score
+              %th.text-center
+                30
+              %th.text-center
+                20%
+              %td.text-center
+                #{@report.data_quality_percentage}%
+            %tr
+              %th
+                Coordinated Entry Participation
+              %td.text-center
+                = @report.ce_score
+              %th.text-center
+                20
+              %th.text-center
+                20%
+              %td.text-center
+                #{@report.ce_percentage}%
+            %tr
+              %th
+                Grant Management & Financials
+              %td.text-center
+                = @report.m_and_f_score
+              %th.text-center
+                50
+              %th.text-center
+                10%
+              %td.text-center
+                #{@report.m_and_f_percentage}%
+            %tr
+              %th
+                Total Score
+              %td{colspan: 3}
+              %td.text-center
+                #{@report.project_performance_percentage + @report.data_quality_percentage + @report.ce_percentage + @report.m_and_f_percentage}%
