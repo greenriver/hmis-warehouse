@@ -2,6 +2,8 @@
   %h1= "Case Management Note for #{@patient.name}"
   - unless @note.new_record?
     %small= "Entered by #{@note.user.name}, #{@note.completed_on&.strftime('%b %d, %Y')}"
+    %p
+  %small Housing status, placement date, and phone number may have been populated from a previous note.
 .row
   .col-md-12.col-lg-10.col-xl-8
     = simple_form_for @note, url: form_url, html: {class: 'sdh-cmn-form', data: {url: form_url({format: :js}), multipart: true}} do |f|
