@@ -21,20 +21,14 @@
         %table.table.mb-0
           %tbody
             %tr
-              %th
-                = _('Funds expended to date, as reflected in eLOCCS')
-              %td
-                = f.input :funds_expended, label: false, **@report.field_input_options(:funds_expended, current_user)
+              %th= _('Funds expended to date, as reflected in eLOCCS')
+              %td.text-center= f.input :funds_expended, label: false, **@report.field_input_options(:funds_expended, current_user)
             %tr
-              %th
-                Total Grant Amount Awarded
-              %td
-                = f.input :amount_awarded, label: false, **@report.field_input_options(:amount_awarded, current_user)
+              %th Total Grant Amount Awarded
+              %td.text-center= f.input :amount_awarded, label: false, **@report.field_input_options(:amount_awarded, current_user)
             %tr
-              %th
-                Number of months since start of grant term to present
-              %td
-                = f.input :months_since_start, label: false, **@report.field_input_options(:months_since_start, current_user)
+              %th Number of months since start of grant term to present
+              %td.text-center= f.input :months_since_start, label: false, **@report.field_input_options(:months_since_start, current_user)
       %td= @report.spend_down_percentage
       %th.text-nowrap
         .mb-4
@@ -61,15 +55,11 @@
         %table.table.mb-0
           %tbody
             %tr
-              %th
-                = _('Total CoC Budget Plus 25% Required Match')
-              %td
-                = f.input :budget_plus_match, label: false, **@report.field_input_options(:budget_plus_match, current_user)
+              %th= _('Total CoC Budget Plus 25% Required Match')
+              %td.text-center= f.input :budget_plus_match, label: false, **@report.field_input_options(:budget_plus_match, current_user)
             %tr
-              %th
-                = _('Number of participants who exited to or remained in permanent supportive housing during the reporting period')
-              %td
-                = @report.participants_in_psh
+              %th= _('Number of participants who exited to or remained in permanent supportive housing during the reporting period')
+              %td.text-center= @report.participants_in_psh
       %td
         = @report.cost_per_participant
       %th.text-nowrap
@@ -91,8 +81,7 @@
           PSH >=$11,001
           %br
           RRH >=$4,501
-      %td
-        = @report.cost_efficiency_score
+      %td.text-center= @report.cost_efficiency_score
     %tr
       %th
         = ('Percentage of total grant funds that were recaptured in the most recent grant closeout')
@@ -104,19 +93,15 @@
         %table.table.mb-0
           %tbody
             %tr
-              %th
-                Total Grant Award
-              %td
-                = f.input :prior_amount_awarded, label: false, **@report.field_input_options(:prior_amount_awarded, current_user)
+              %th Total Grant Award
+              %td.text-center= f.input :prior_amount_awarded, label: false, **@report.field_input_options(:prior_amount_awarded, current_user)
             %tr
-              %th
-                Total Spent
-              %td
-                = f.input :prior_funds_expended, label: false, **@report.field_input_options(:prior_funds_expended, current_user)
+              %th Total Spent
+              %td.text-center= f.input :prior_funds_expended, label: false, **@report.field_input_options(:prior_funds_expended, current_user)
             %tr
               %th Unspent Amount
-              %td= @report.prior_unspent_amount
-      %td= @report.percentage_recaptured
+              %td.text-center= @report.prior_unspent_amount
+      %td.text-center= @report.percentage_recaptured
       %th.text-nowrap
         .mb-4
           Points: 10
@@ -130,7 +115,7 @@
           Points: 0
           %br
           >=6%
-      %td= @report.recaptured_score
+      %td.text-center= @report.recaptured_score
     %tr
       %th
         = _('PIT Count Participation')
@@ -139,7 +124,7 @@
         %br
         = _('PIT Registration or PIT Data')
       %th N/A
-      %td= f.input :pit_participation, label: false, as: :pretty_boolean, **@report.field_input_options(:pit_participation, current_user)
+      %td.text-center= f.input :pit_participation, label: false, as: :pretty_boolean, **@report.field_input_options(:pit_participation, current_user)
       %th
         .mb-4
           Points: 10
@@ -150,7 +135,7 @@
           Points: 0
           %br
           No
-      %td= @report.pit_participation_score
+      %td.text-center= @report.pit_participation_score
     %tr
       %th CoC General Meeting Attendance
       %th
@@ -161,16 +146,12 @@
         %table.table.mb-0
           %tbody
             %tr
-              %th
-                Number of Meetings
-              %td
-                = f.input :coc_meetings, label: false, **@report.field_input_options(:coc_meetings, current_user)
+              %th Number of Meetings
+              %td.text-center= f.input :coc_meetings, label: false, **@report.field_input_options(:coc_meetings, current_user)
             %tr
-              %th
-                Number Attended
-              %td
-                = f.input :coc_meetings_attended, label: false, **@report.field_input_options(:coc_meetings_attended, current_user)
-      %td= @report.percentage_meetings_attended
+              %th Number Attended
+              %td.text-center= f.input :coc_meetings_attended, label: false, **@report.field_input_options(:coc_meetings_attended, current_user)
+      %td.text-center= @report.percentage_meetings_attended
       %th.text-nowrap
         .mb-4
           Points: 10
@@ -184,4 +165,4 @@
           Points: 0
           %br
           <= 49%
-      %td= @report.meetings_attended_score
+      %td.text-center= @report.meetings_attended_score

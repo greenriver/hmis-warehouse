@@ -19,8 +19,7 @@
         TCHC Monitoring Reports
       %th
         N/A
-      %td
-        = f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, **@report.field_input_options(:site_monitoring, current_user)
+      %td.text-center= f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, **@report.field_input_options(:site_monitoring, current_user)
       %th.text-nowrap
         .mb-4
           Points: 10
@@ -34,28 +33,22 @@
           Points: 0
           %br
           Findings with No Resolution
-      %td
+      %td.text-center
         = # TODO
     %tr
-      %th
-        CES Rejected Referrals
+      %th CES Rejected Referrals
       %th
         = simple_format(_('TX-601 established Community-wide performance expectations in 2016 to allocate assistance as effectively as possible, prioritizing services to those that need it the most. Projects are allowed to reject up to 10% of  CES referrals for reasons stated in the CES Operation Manual.'))
       %td.p-0
         %table.table.table-sm
           %tbody
             %tr
-              %th
-                Number of CES Referrals
-              %td
-                = f.input :total_ces_referrals, label: false, **@report.field_input_options(:total_ces_referrals, current_user)
+              %th Number of CES Referrals
+              %td.text-center= f.input :total_ces_referrals, label: false, **@report.field_input_options(:total_ces_referrals, current_user)
             %tr
-              %th
-                Number of Accepted Referrals
-              %td
-                = f.input :accepted_ces_referrals, label: false, **@report.field_input_options(:accepted_ces_referrals, current_user)
-      %td
-        = @report.ces_rejected_referral_percentage
+              %th Number of Accepted Referrals
+              %td.text-center= f.input :accepted_ces_referrals, label: false, **@report.field_input_options(:accepted_ces_referrals, current_user)
+      %td.text-center= @report.ces_rejected_referral_percentage
       %th.text-nowrap
         .mb-4
           Points: 10
@@ -65,33 +58,26 @@
           Points: 5
           %br
           <=11%
-      %td
+      %td.text-center
         = # TODO
     %tr
-      %th
-        VI-SPDAT
+      %th VI-SPDAT
       %th
 
       %td.p-0
         %table.table-table-sm
           %tbody
             %tr
-              %th
-                Number of clients enrolled
-              %td
-                = @report.total_persons_served
+              %th Number of clients enrolled
+              %td.text-center= @report.total_persons_served
             %tr
-              %th
-                Number of clients with VI-SPDATs
-              %td
-                = f.input :clients_with_vispdats, label: false, as: :read_only
+              %th Number of clients with VI-SPDATs
+              %td.text-center= f.input :clients_with_vispdats, label: false, as: :read_only
             %tr
-              %th
-                Average VI-SPDAT score
-              %td
-                = f.input :average_vispdat_score, label: false, as: :read_only
-      %td
+              %th Average VI-SPDAT score
+              %td.text-center= f.input :average_vispdat_score, label: false, as: :read_only
+      %td.text-center
         = # TODO
       %th
-      %td
+      %td.text-center
         = # TODO

@@ -21,23 +21,23 @@
           %tbody
             %tr
               %th January Total (Q8b, Row 1, Column 1)
-              %td= f.input :utilization_jan, label: false, as: :read_only
+              %td.text-center= f.input :utilization_jan, label: false, as: :read_only
             %tr
               %th April Total (Q8b, Row 2, Column 1)
-              %td= f.input :utilization_apr, label: false, as: :read_only
+              %td.text-center= f.input :utilization_apr, label: false, as: :read_only
             %tr
               %th July Total (Q8b, Row 3, Column 1)
-              %td= f.input :utilization_jul, label: false, as: :read_only
+              %td.text-center= f.input :utilization_jul, label: false, as: :read_only
             %tr
               %th October Total (Q8b, Row 4, Column 1)
-              %td= f.input :utilization_oct, label: false, as: :read_only
+              %td.text-center= f.input :utilization_oct, label: false, as: :read_only
             %tr
               %th Adjusted Total from 2017 Project Application (Auto Calculates)
-              %td= @report.adjusted_utilization
+              %td.text-center= @report.adjusted_utilization
             %tr
               %th Proposed number of households served
-              %td= f.input :utilization_proposed, label: false, **@report.field_input_options(:utilization_proposed, current_user)
-      %td= @report.utilization_percentage
+              %td.text-center= f.input :utilization_proposed, label: false, **@report.field_input_options(:utilization_proposed, current_user)
+      %td.text-center= @report.utilization_percentage
       %th.text-nowrap
         .mb-4
           Points: 10
@@ -51,7 +51,7 @@
           Points: 0
           %br
           >= 151% or <= 79%
-      %td= @report.utilization_score
+      %td.text-center= @report.utilization_score
     %tr
       %th Percentage of chronically homeless households served
       %th
@@ -63,11 +63,11 @@
           %tbody
             %tr
               %th Total Chronically Homeless Households served
-              %td= f.input :chronic_households_served, label: false, as: :read_only
+              %td.text-center= f.input :chronic_households_served, label: false, as: :read_only
             %tr
               %th Total Households served
-              %td= f.input :total_households_served, label: false, as: :read_only
-      %td= @report.chronic_service_percentage
+              %td.text-center= f.input :total_households_served, label: false, as: :read_only
+      %td.text-center= @report.chronic_service_percentage
       %th.text-nowrap
         .mb-4
           Points: 10
@@ -81,7 +81,7 @@
           Points: 0
           %br
           PSH: <= 64%
-      %td= @report.chronic_service_score
+      %td.text-center= @report.chronic_service_score
     %tr
       %th
         Percentage of participants who remained in PSH or exited to permanent housing
@@ -94,20 +94,20 @@
           %tbody
             %tr
               %th Total Number of Persons Served (Q05a, Row 1)
-              %td= f.input :total_persons_served, label: false, as: :read_only
+              %td.text-center= f.input :total_persons_served, label: false, as: :read_only
             %tr
               %th Total Persons exiting to positive destinations (Q23c, 3rd row from bottom)
-              %td= f.input :total_persons_with_positive_exit, label: false, as: :read_only
+              %td.text-center= f.input :total_persons_with_positive_exit, label: false, as: :read_only
             %tr
               %th Total Exits (Q23c, 4th row from bottom)
-              %td= f.input :total_persons_exited, label: false, as: :read_only
+              %td.text-center= f.input :total_persons_exited, label: false, as: :read_only
             %tr
               %th Total persons whose destinations excluded them from the calculation (Q23c, 2nd row from bottom)
-              %td= f.input :excluded_exits, label: false, as: :read_only
+              %td.text-center= f.input :excluded_exits, label: false, as: :read_only
             %tr
               %th Unsuccessful exits (Auto Calculated)
-              %td= @report.unsuccessful_exits
-      %td= @report.exit_to_ph_percentage
+              %td.text-center= @report.unsuccessful_exits
+      %td.text-center= @report.exit_to_ph_percentage
       %th.text-nowrap
         .mb-4
           PSH: >= 98%
@@ -125,7 +125,7 @@
           PSH: <= 89%
           %br
           RRH: <= 89%
-      %td= @report.exit_to_ph_score
+      %td.text-center= @report.exit_to_ph_score
     %tr
       %th
         Average length of stay of program leavers
@@ -135,7 +135,7 @@
         APR Q22b
       %th
         N/A
-      %td= f.input :average_los_leavers, label: false, as: :read_only
+      %td.text-center= f.input :average_los_leavers, label: false, as: :read_only
       %th.text-nowrap
         .mb-4
           Points: 10
@@ -149,7 +149,7 @@
           Points: 0
           %br
           RRH: >=25 / <=2 months
-      %td= @report.leavers_los_score
+      %td.text-center= @report.leavers_los_score
     %tr
       %th
         Percentage of adults at exit or annual assessment who gained or increased employment income
@@ -159,7 +159,7 @@
         APR Q19a1, Q19a2
       %th
 
-      %td= f.input :percent_increased_employment_income_at_exit, label: false, as: :read_only
+      %td.text-center= f.input :percent_increased_employment_income_at_exit, label: false, as: :read_only
       %th
         .mb-4
           Points: 10
@@ -179,7 +179,7 @@
           PSH: <= 8%
           %br
           RRH: <= 49%
-      %td= @report.increased_employment_income_score
+      %td.text-center= @report.increased_employment_income_score
     %tr
       %th
         Percentage of adults at exit or annual assessment who gained or increased non-employment cash income
@@ -189,7 +189,7 @@
         APR Q19a1, Q19a2
       %th
 
-      %td= f.input :percent_increased_other_cash_income_at_exit, label: false, as: :read_only
+      %td.text-center= f.input :percent_increased_other_cash_income_at_exit, label: false, as: :read_only
       %th.text-nowrap
         .mb-4
           Points: 10
@@ -209,7 +209,7 @@
           PSH: <= 54%
           %br
           RRH: <= 14%
-      %td= @report.increased_other_cash_income_score
+      %td.text-center= @report.increased_other_cash_income_score
     %tr
       %th
         Returns to Homelessness
@@ -217,7 +217,7 @@
         = simple_format(_('Reducing returns to homelessness is one of the most important measures of program success and is HUD System Performance Measure 2a.'))
       %th
 
-      %td= f.input :percent_returns_to_homelessness, label: false, as: :read_only
+      %td.text-center= f.input :percent_returns_to_homelessness, label: false, as: :read_only
       %th
         .mb-4
           Points: 10
@@ -231,4 +231,4 @@
           Points: 0
           %br
           >= 16%
-      %td= @report.returns_to_homelessness_score
+      %td.text-center= @report.returns_to_homelessness_score

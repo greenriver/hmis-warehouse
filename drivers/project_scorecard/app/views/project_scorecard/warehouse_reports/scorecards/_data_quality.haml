@@ -12,16 +12,14 @@
         %th.text-nowrap Total
     %tbody
       %tr
-        %th
-          Personal Identifying Information Error Rate
+        %th Personal Identifying Information Error Rate
         %th{rowspan: 3}
           To achieve accurate data collection and to satisfy HUD HMIS data requirements, projects must ensure that data entered into the local HMIS system is complete.
           %br
             HUD Data Quality Report; APR Q6a, Q6b, Q6c
         %th
 
-        %td
-          = f.input :percent_pii_errors, label: false, as: :read_only
+        %td.text-center= f.input :percent_pii_errors, label: false, as: :read_only
         %th.text-nowrap{rowspan: 3}
           .mb-4
             Points: 10
@@ -35,27 +33,18 @@
             Points: 0
             %br
             >= 6%
-        %td
-          = @report.pii_errors_score
+        %td.text-center= @report.pii_errors_score
       %tr
-        %th
-          Universal Data Elements Error Rate
-        -# %th
+        %th Universal Data Elements Error Rate
         %th
 
-        %td
-          = f.input :percent_ude_errors, label: false, as: :read_only
+        %td.text-center= f.input :percent_ude_errors, label: false, as: :read_only
 
-        %td
-          = @report.ude_errors_score
+        %td.text-center= @report.ude_errors_score
       %tr
-        %th
-          Income and Housing Data Quality
-        -# %th
+        %th Income and Housing Data Quality
         %th
 
-        %td
-          = f.input :percent_income_and_housing_errors, label: false, as: :read_only
+        %td.text-center= f.input :percent_income_and_housing_errors, label: false, as: :read_only
 
-        %td
-          = @report.income_and_housing_errors_score
+        %td.text-center= @report.income_and_housing_errors_score
