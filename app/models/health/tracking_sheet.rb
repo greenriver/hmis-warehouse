@@ -45,6 +45,10 @@ module Health
       @cha_reviewed_dates[patient_id]&.to_date
     end
 
+    def cha_reviewed? patient_id
+      cha_reviewed_date(patient_id).present?
+    end
+
     def most_recent_face_to_face_qa_date patient_id
       @most_recent_face_to_face_qa_dates ||= Health::QualifyingActivity.direct_contact.face_to_face.
         where(patient_id: patient_ids).
@@ -184,7 +188,7 @@ module Health
         # Limit SSM and CHA to warehouse versions only (per spec)
         'SSM_DATE' => ssm_completed_date(patient.id),
         'CHA_DATE' => cha_completed_date(patient.id),
-        'CHA_REVIEWED' => if patient.recent_cha_form&.reviewed_by_id.present?  then 'Yes' else 'No' end,
+        'CHA_REVIEWED' =>  cha_reviewed?(patient.id) ? 'Yes' : 'No',
         'CHA_RENEWAL_DATE' => cha_renewal_date(patient.id),
         'PCTP_PT_SIGN' => care_plan_patient_signed_date(patient.id),
         'CP_CARE_PLAN_SENT_PCP_DATE' => care_plan_sent_to_provider_date(patient.id),
