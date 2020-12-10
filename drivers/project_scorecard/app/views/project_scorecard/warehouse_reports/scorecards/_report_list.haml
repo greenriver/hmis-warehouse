@@ -1,0 +1,24 @@
+- if @reports.exists?
+  %p= paginate @reports
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Organization / Project
+          %th Data Source
+          %th Date Range
+          %th Run On
+          %th Completed On
+          %th Author
+      %tbody
+        - @reports.each do |report|
+          %tr
+            %td= report.project.organization_and_name
+            %td= report.project.data_source.name
+            %td= link_to report.status, project_scorecard_warehouse_reports_scorecard_path(report)
+            %td= report.started_at
+            %td= report.completed_at
+            %td= report&.user&.name
+- else
+  %p
+    No reports on file

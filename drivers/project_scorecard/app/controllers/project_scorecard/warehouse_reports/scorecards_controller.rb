@@ -22,8 +22,17 @@ module ProjectScorecard::WarehouseReports
     def for_project
       project = project_scope.find(params[:project_id].to_i)
       @name = project.name
-      @reports = reports_scope.where(project_id: project.id)
-      render :report_list
+      @reports = reports_scope.where(project_id: project.id).
+        page(params[:page]).per(50)
+    end
+
+    def history
+      @reports = reports_scope.
+        order(id: :desc).
+        joins(project: [:organization, :data_source]).
+        merge(project_scope).
+        preload(project: [:organization, :data_source]).
+        page(params[:page]).per(50)
     end
 
     def show
@@ -161,11 +170,11 @@ module ProjectScorecard::WarehouseReports
     end
 
     private def organization_scope
-      GrdaWarehouse::Hud::Organization.viewable_by current_user
+      GrdaWarehouse::Hud::Organization.viewable_by(current_user)
     end
 
     private def project_scope
-      GrdaWarehouse::Hud::Project.viewable_by current_user
+      GrdaWarehouse::Hud::Project.viewable_by(current_user)
     end
 
     private def reports_scope
