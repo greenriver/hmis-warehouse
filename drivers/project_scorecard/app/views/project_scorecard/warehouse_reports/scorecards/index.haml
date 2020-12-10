@@ -19,7 +19,7 @@
   = render 'common/panel_collapse', id: 'scorecard-info', title: 'Project Search', default_open: if @projects.blank? then 'yes' else 'no' end
 - if @projects.present?
   %p Step two is to choose the projects or project groups and queue the reports.
-  = simple_form_for :scorecard, url: project_scorecard_warehouse_reports_scorecards_path() do |f|
+  = simple_form_for :scorecard, url: project_scorecard_warehouse_reports_scorecards_path(@filter.for_params) do |f|
     - select_scope = 'allOrgsProjects'
     %div{id: select_scope}
       %section.mb-6

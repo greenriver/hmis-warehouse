@@ -7,9 +7,7 @@
       %th Purpose & Source of Measurement
       %th Formula Information
       %th Performance Calculation
-      %th Points: 10
-      %th Points: 5
-      %th Points: 0
+      %th Scoring
       %th Total
   %tbody
     %tr
@@ -23,12 +21,19 @@
         N/A
       %td
         = f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, **@report.field_input_options(:site_monitoring, current_user)
-      %th
-        No Findings
-      %th
-        Findings but Resolved
-      %th
-        Findings with No Resolution
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          No Findings
+        .mb-4
+          Points: 5
+          %br
+          Findings but Resolved
+        .mb-4
+          Points: 0
+          %br
+          Findings with No Resolution
       %td
         = # TODO
     %tr
@@ -51,12 +56,15 @@
                 = f.input :accepted_ces_referrals, label: false, **@report.field_input_options(:accepted_ces_referrals, current_user)
       %td
         = @report.ces_rejected_referral_percentage
-      %th
-        <=10%
-      %th
-
-      %th
-        <=11%
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          <=10%
+        .mb-4
+          Points: 5
+          %br
+          <=11%
       %td
         = # TODO
     %tr
@@ -85,10 +93,5 @@
       %td
         = # TODO
       %th
-
-      %th
-
-      %th
-
       %td
         = # TODO

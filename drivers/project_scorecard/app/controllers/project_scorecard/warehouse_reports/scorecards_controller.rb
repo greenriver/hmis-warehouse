@@ -56,7 +56,7 @@ module ProjectScorecard::WarehouseReports
       else
         generate_for_projects(@project_ids, @range, current_user)
         flash[:notice] = 'Reports queued for processing'
-        redirect_to action: :index
+        redirect_to(project_scorecard_warehouse_reports_scorecards_path(filters: initial_filter_params))
       end
     end
 

@@ -25,6 +25,14 @@ module ProjectScorecard
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
 
+    def completed?
+      status == 'completed'
+    end
+
+    def pending?
+      status == 'pending'
+    end
+
     def locked?(field, _user)
       # TODO: Implement field access rules for users
       case status

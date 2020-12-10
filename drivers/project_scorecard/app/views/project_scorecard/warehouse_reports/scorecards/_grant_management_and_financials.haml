@@ -7,9 +7,7 @@
       %th.text-nowrap Purpose & Source of Measurement
       %th.text-nowrap Formula Information
       %th.text-nowrap Performance Calculation
-      %th.text-nowrap Points: 10
-      %th.text-nowrap Points: 5
-      %th.text-nowrap Points: 0
+      %th.text-nowrap Scoring
       %th.text-nowrap Total
   %tbody
     %tr
@@ -38,9 +36,19 @@
               %td
                 = f.input :months_since_start, label: false, **@report.field_input_options(:months_since_start, current_user)
       %td= @report.spend_down_percentage
-      %th.text-nowrap (+/-) 0 - 10%
-      %th.text-nowrap (+/-) 11 - 15%
-      %th.text-nowrap (+/-) 16% +
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          (+/-) 0 - 10%
+        .mb-4
+          Points: 5
+          %br
+          (+/-) 11 - 15%
+        .mb-4
+          Points: 0
+          %br
+          (+/-) 16% +
       %td= @report.spend_down_score
     %tr
       %th
@@ -64,18 +72,25 @@
                 = @report.participants_in_psh
       %td
         = @report.cost_per_participant
-      %th.text-nowrap.text-nowrap
-        PSH <=$8,999
-        %br
-        RRH <=$2,499
       %th.text-nowrap
-        PSH $9,000 - 11,000
-        %br
-        RRH $2,500 - 4,500
-      %th.text-nowrap
-        PSH >=$11,001
-        %br
-        RRH >=$4,501
+        .mb-4
+          Points: 10
+          %br
+          PSH <=$8,999
+          %br
+          RRH <=$2,499
+        .mb-4
+          Points: 5
+          %br
+          PSH $9,000 - 11,000
+          %br
+          RRH $2,500 - 4,500
+        .mb-4
+          Points: 0
+          %br
+          PSH >=$11,001
+          %br
+          RRH >=$4,501
       %td
         = @report.cost_efficiency_score
     %tr
@@ -102,9 +117,19 @@
               %th Unspent Amount
               %td= @report.prior_unspent_amount
       %td= @report.percentage_recaptured
-      %th.text-nowrap 0-2%
-      %th.text-nowrap 3-5%
-      %th.text-nowrap >=6%
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          0-2%
+        .mb-4
+          Points: 5
+          %br
+          3-5%
+        .mb-4
+          Points: 0
+          %br
+          >=6%
       %td= @report.recaptured_score
     %tr
       %th
@@ -115,9 +140,16 @@
         = _('PIT Registration or PIT Data')
       %th N/A
       %td= f.input :pit_participation, label: false, as: :pretty_boolean, **@report.field_input_options(:pit_participation, current_user)
-      %th Yes
       %th
-      %th No
+        .mb-4
+          Points: 10
+          %br
+          Yes
+
+        .mb-4
+          Points: 0
+          %br
+          No
       %td= @report.pit_participation_score
     %tr
       %th CoC General Meeting Attendance
@@ -139,7 +171,17 @@
               %td
                 = f.input :coc_meetings_attended, label: false, **@report.field_input_options(:coc_meetings_attended, current_user)
       %td= @report.percentage_meetings_attended
-      %th.text-nowrap >= 75%
-      %th.text-nowrap 50 - 74%
-      %th.text-nowrap <= 49%
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          >= 75%
+        .mb-4
+          Points: 5
+          %br
+          50 - 74%
+        .mb-4
+          Points: 0
+          %br
+          <= 49%
       %td= @report.meetings_attended_score
