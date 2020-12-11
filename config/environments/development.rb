@@ -25,11 +25,11 @@ Rails.application.configure do
       'Cache-Control' => "public, max-age=#{2.days.to_i}"
     }
   else
-    config.action_controller.perform_caching = false
+    config.action_controller.perform_caching = true
 
     cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
     cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-    config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 2.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace}
+    config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 5.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace}
   end
 
   if ENV['SMTP_SERVER']
