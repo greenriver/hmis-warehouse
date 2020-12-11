@@ -481,13 +481,18 @@ module GrdaWarehouse::Hud
     RESIDENTIAL_PROJECT_TYPES.each do |k,v|
       scope k, -> { where(self.project_type_column => v) }
       define_method "#{k}?" do
-        v.include? self[self.class.project_type_column]
+        v.include? project_type_to_use
       end
     end
 
-    scope :rrh, -> { where(self.project_type_column => 13) }
+    scope :rrh, -> { where(self.project_type_column => PERFORMANCE_REPORTING[:rrh]) }
     def rrh?
-      self[self.class.project_type_column].to_i == 13
+      project_type_to_use.to_i == PERFORMANCE_REPORTING[:rrh]
+    end
+
+    scope :psh, -> { where(self.project_type_column => PERFORMANCE_REPORTING[:psh]) }
+    def psh?
+      project_type_to_use.in?(PERFORMANCE_REPORTING[:psh])
     end
 
     alias_attribute :name, :ProjectName
@@ -674,6 +679,10 @@ module GrdaWarehouse::Hud
       'Confidential Project'
     end
 
+    def project_type_to_use
+      self[self.class.project_type_column]
+    end
+
     def self.project_type_column
       if GrdaWarehouse::Config.get(:project_type_override)
         :computed_project_type
@@ -683,7 +692,7 @@ module GrdaWarehouse::Hud
     end
 
     def human_readable_project_type
-      HUD.project_type(self[self.class.project_type_column])
+      HUD.project_type(project_type_to_use)
     end
 
     def main_population
