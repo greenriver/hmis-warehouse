@@ -13,10 +13,10 @@ wb.add_worksheet(name: 'Services') do |sheet|
       'Date',
       'Service Type',
       'Service Detail',
-      'Last Seen',
-      'Last Seen Location',
-      'Last Seen Blackout',
-      'Last Seen Blackout Location',
+      # 'Last Seen',
+      # 'Last Seen Location',
+      # 'Last Seen Blackout',
+      # 'Last Seen Blackout Location',
     ], style: title
   )
 
@@ -33,10 +33,10 @@ wb.add_worksheet(name: 'Services') do |sheet|
       service.provided_at,
       service.title_only,
       service.other_type,
-      most_recent_hmis_service[client.id]&.second,
-      most_recent_hmis_service[client.id]&.last,
-      most_recent_scan_service[client.id]&.second,
-      most_recent_scan_service[client.id]&.last,
+      # most_recent_hmis_service[client.id]&.second,
+      # most_recent_hmis_service[client.id]&.last,
+      # most_recent_scan_service[client.id]&.second,
+      # most_recent_scan_service[client.id]&.last,
     ]
     sheet.add_row(row)
   end
