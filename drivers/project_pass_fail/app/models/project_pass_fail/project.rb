@@ -14,17 +14,19 @@ module ProjectPassFail
 
     # Data quality acceptable error rates
     def self.universal_data_element_threshold
-      0.02
+      GrdaWarehouse::Config.get(:pf_universal_data_element_threshold) / 100.0
     end
 
     # Acceptable utilization rates
     def self.utilization_range
-      (0.66..1.04)
+      min = GrdaWarehouse::Config.get(:pf_utilization_min) / 100.0
+      max = GrdaWarehouse::Config.get(:pf_utilization_max) / 100.0
+      (min..max)
     end
 
     # Days allowed for entering entry assessments
     def self.timeliness_threshold
-      3
+      GrdaWarehouse::Config.get(:pf_timeliness_threshold)
     end
 
     def utilization_rate_as_percent

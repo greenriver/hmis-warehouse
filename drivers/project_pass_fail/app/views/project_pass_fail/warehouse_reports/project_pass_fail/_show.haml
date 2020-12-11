@@ -2,6 +2,23 @@
 .reports
   = render 'filters/report_parameters', options: @report.options['filters'], report: @report
 
+.well
+  %p In calculating this report, the following thresholds were used:
+  .d-flex.justify-content-center
+    %dl.text-center
+      %dt Universal Data Elements Error Threshold
+      %dd #{GrdaWarehouse::Config.get(:pf_universal_data_element_threshold)} Percent
+    %dl.ml-4.text-center
+      %dt Utilization Minimum Threshold
+      %dd #{GrdaWarehouse::Config.get(:pf_utilization_min)} Percent
+    %dl.ml-4.text-center
+      %dt Utilization Maximum Threshold
+      %dd #{GrdaWarehouse::Config.get(:pf_utilization_max)} Percent
+    %dl.ml-4.text-center
+      %dt Timeliness Threshold
+      %dd #{GrdaWarehouse::Config.get(:pf_timeliness_threshold)} Days
+
+
 - if @report.projects.count > 1
   %h2 Overall
   .well.page-break-after
