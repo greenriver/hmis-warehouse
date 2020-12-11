@@ -1,5 +1,7 @@
 .row
   .col-12
+    %p
+      Based on claims Incurred from #{report.claim_date_range.first} to #{report.claim_date_range.last}. Paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
     %table.table.table-sm.table-striped{style: 'width: initial;'}
       - report.summary_rows.each do |label, html_value|
         %tr
@@ -20,6 +22,6 @@
         %tbody
           - table.each do |row|
             %tr
-              %th{axis: :row}= row['ccs_id']
+              %th{axis: :row}= row['ccs_id'].presence || 'All claims'
               - report.detail_cols.each do |fld, _label|
                 %td.text-right= report.formatted_value fld, row

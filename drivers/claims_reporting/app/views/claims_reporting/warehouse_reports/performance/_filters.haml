@@ -4,8 +4,10 @@
       .row
         - row.each do |filter|
           .col-sm-3
-            = f.input filter, collection: @report.filter_options(filter), include_blank: '(all)'
+            = f.input filter, **@report.filter_inputs[filter]
     .row
       .col-sm-12
         = f.submit 'Update Report', class: 'btn btn-primary mt-no-label'
+    .row
+      .col-sm-12
   = render 'warehouse_reports/filters', f:f, submit_button: nil

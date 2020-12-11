@@ -1,30 +1,84 @@
+###
+# Copyright 2016 - 2020 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
 require 'memoist'
 module ClaimsReporting
   class PerformanceReport
     include ActiveModel::Model
     extend Memoist
+    attr_reader :medical_claims
     attr_reader :member_roster
+    attr_reader :claim_date_range
 
-    # ANTIPSY_DAY
-    # ANTIPSY_DENOM
-
-    # ANTIDEP_DAY
-    # ANTIDEP_DENOM
-
-    # MOODSTAB_DAY
-    # MOODSTAB_DENOM
+    def initialize(
+      member_roster: ClaimsReporting::MemberRoster.all,
+      claim_date_range: Date.iso8601('2010-08-01') .. Date.iso8601('2020-07-31')
+    )
+      @claim_date_range = claim_date_range
+      @medical_claims = ClaimsReporting::MedicalClaim.where(
+        service_start_date: claim_date_range,
+      )
+      @member_roster = member_roster.where(member_id: medical_claims.select(:member_id))
+    end
 
     # Member classification bits from Milliman
     def available_filters
-      [
-        :age_bucket,
-        :gender,
-        :race,
-        :aco,
-        :mental_health_diagnosis_category,
-        :medical_diagnosis_category,
-        :currently_assigned,
-      ].freeze
+      filter_inputs.keys
+    end
+
+    # a Hash of filter attributes
+    # mapping to
+    # https://www.rubydoc.info/github/plataformatec/simple_form/SimpleForm%2FFormBuilder:input options for them
+    def filter_inputs
+      {
+        age_bucket: {
+          label: _('Age Bucket'),
+          collection: age_bucket_options, include_blank: '(all)',
+          hint: "As of #{roster_as_of}"
+        },
+        gender: {
+          label: _('Gender'),
+          collection: gender_options, include_blank: '(all)'
+        },
+        race: {
+          label: _('Race'),
+          collection: race_options,
+          include_blank: '(all)',
+        },
+        aco: {
+          label: _('ACO'),
+          collection: aco_options,
+          include_blank: '(all)',
+          hint: 'The ACO that the member was assigned to at the time the claim is incurred',
+        },
+        mental_health_diagnosis_category: {
+          label: _('Mental Health Diagnosis Category'),
+          collection: mental_health_diagnosis_category_options,
+          include_blank: '(all)',
+        },
+        medical_diagnosis_category: {
+          label: _('Medical Diagnosis Category'),
+          collection: medical_diagnosis_category_options,
+          include_blank: '(all)',
+        },
+        coi: {
+          label: _('Cohorts of Interest'),
+          collection: age_bucket_options,
+          include_blank: '(any member)',
+        },
+        high_util: {
+          label: _('High Utilizing'),
+          as: :boolean,
+          hint: 'High Utilizing consists of members with either 3+ inpatient admissions or 5+ emergency room visits',
+        },
+        currently_assigned: {
+          label: _('Currently Assigned'),
+          as: :boolean,
+          hint: "Member assigned to the CP as of the date of #{roster_as_of}",
+        },
+      }.freeze
     end
 
     def filter_options(filter)
@@ -100,7 +154,7 @@ module ClaimsReporting
         pid: 'Personality/Impulse Disorder',
         sia: 'Suicidal Ideation/Attempt',
         sud: 'Substance Abuse Disorder',
-        othbh: 'Other',
+        other_bh: 'Other',
       }.invert.to_a
     end
 
@@ -124,17 +178,18 @@ module ClaimsReporting
     end
 
     # High Utilizing Member – ‘High Utilizing’ represents high utilizers (3+ inpatient stays or 5+ emergency room visits throughout their claims experience).
-    attr_accessor :high_utilization_member
+    attr_accessor :high_util
 
     # Cohorts of Interest– The user may select members based on their psychiatric inpatient and emergency room utilization history. The user can select the following utilization categories:
-    # Cohorts of Interest– 1+ Psychoses Admission: patients that have had at least 1 inpatient admission for psychoses.
-    # Cohorts of Interest– 1+ IP Psych Admission: patients that have had at least 1 non-psychoses psychiatric inpatient admission
-    # Cohorts of Interest– 5+ ER Visits with No IP Psych Admission: patients that had at least 5 emergency room visits and no inpatient psychiatric admissions
-    # COI
-    # High_ER_Flag
-    # Psychoses_Flag
-    # OthIPPsych_Flag
-    attr_accessor :cohort
+    attr_accessor :coi
+    def coi_options
+      {
+        coi: 'All COIs',
+        psychoses: '1+ Psychoses Admission: patients that have had at least 1 inpatient admission for psychoses.',
+        other_ip_psych: '1+ IP Psych Admission: patients that have had at least 1 non-psychoses psychiatric inpatient admission',
+        high_er: '5+ ER Visits with No IP Psych Admission: patients that had at least 5 emergency room visits and no inpatient psychiatric admissions',
+      }.invert.to_a
+    end
 
     # Currently Assigned - If the member is still assigned to the CP as of the most recent member_roster
     attr_accessor :currently_assigned
@@ -148,28 +203,72 @@ module ClaimsReporting
     # is_pp_denom
 
     DETAIL_COLS = {
-      member_count: 'member_count',
+      member_count: {
+        label: _('member_count'),
+      },
       # paid_amount_sum: 'paid_amount_sum',
-      annual_admits_per_mille: 'Annual Admissions per 1,000', # admits
-      avg_length_of_stay: 'Length of Stay', # days
-      utilization_per_mille: 'Annual Utilization per 1,000', # days/cases/procedures/visits/scripts/etc
-      pct_of_cohorit_with_utilization: '% of Selected Cohort with Utilization',
-      avg_cost_per_service: 'Average Cost per Service (Paid $)',
-      cohort_per_member_month_spend: 'Selected Cohort PMPM (Paid $)',
-      pct_of_pop_spend_cohort: 'Cohort Spend as a % of Total Population Spend',
-      pct_of_service_sepend_cohort: 'Selected Cohort Spend as a % of Service Line Population Spend',
-      pct_of_admissions_acs: 'Percent of Admissions that are Ambulatory Care Sensitive',
-      pct_of_cost_acs: 'Percent of Admission Cost that is Ambulatory Care Sensitive',
-      pct_of_visits_perventable: 'Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable',
-      pct_of_cost_perventable: 'Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable',
+      annual_admits_per_mille: {
+        label: _('Annual Admissions per 1,000'),
+        units: 'admits',
+      },
+      avg_length_of_stay: {
+        label: _('Length of Stay'),
+        units: 'days',
+      },
+      utilization_per_mille: {
+        label: _('Annual Utilization per 1,000'),
+        units: lambda { |_row| 'days/cases/procedures/visits/scripts/etc' },
+      },
+      pct_of_cohorit_with_utilization: {
+        label: _('% of Selected Cohort with Utilization'),
+      },
+      avg_cost_per_service: {
+        label: _('Average Cost per Service (Paid $)'),
+      },
+      cohort_per_member_month_spend: {
+        label: _('Selected Cohort PMPM (Paid $)'),
+      },
+      pct_of_pop_spend_cohort: {
+        label: _('Cohort Spend as a % of Total Population Spend'),
+      },
+      pct_of_service_sepend_cohort: {
+        label: _('Selected Cohort Spend as a % of Service Line Population Spend'),
+      },
+      pct_of_admissions_acs: {
+        label: _('Percent of Admissions that are Ambulatory Care Sensitive'),
+        note: '¹',
+      },
+      pct_of_cost_acs: {
+        label: _('Percent of Admission Cost that is Ambulatory Care Sensitive'),
+        note: '¹',
+      },
+      pct_of_visits_perventable: {
+        label: _('Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable'),
+        note: '²',
+      },
+      pct_of_cost_perventable: {
+        label: _('Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable'),
+        note: '²',
+      },
     }.freeze
 
-    def initialize(member_roster: ClaimsReporting::MemberRoster.all)
-      @member_roster = member_roster
+    def detail_cols
+      DETAIL_COLS
     end
 
-    def report_time
-      Time.current
+    def detail_footnotes
+      {
+        '¹' => 'TODO',
+        '²' => 'TODO',
+      }
+    end
+
+    def roster_as_of
+      claim_date_range.last
+    end
+
+    def latest_payment_date
+      medical_claims.maximum(:paid_date)
     end
 
     def member_totals
@@ -185,7 +284,7 @@ module ClaimsReporting
                               Arel.sql(%[SUM(CASE WHEN sex = 'Female' THEN 1 ELSE 0 END)]).as('selected_females'),
                               Arel.sql(%[SUM(pbd::int)]).as('selected_pbd'),
                               Arel.sql(%[SUM(das::int)]).as('selected_das'),
-                              Arel.sql(%[AVG(ABS(EXTRACT(YEAR FROM AGE(date_of_birth, #{connection.quote report_time}))))]).as('average_age'),
+                              Arel.sql(%[AVG(ABS(EXTRACT(YEAR FROM AGE(date_of_birth, #{connection.quote roster_as_of}))))]).as('average_age'),
                               Arel.sql(%[AVG(NULLIF(raw_dxcg_risk_score,'')::decimal)]).as('average_raw_dxcg_score'),
                             ), 'selection_summary').with_indifferent_access
     end
@@ -303,10 +402,6 @@ module ClaimsReporting
       pct_of_cost_perventable: 'Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable',
     }.freeze
 
-    def detail_cols
-      DETAIL_COLS
-    end
-
     def engagement_span
       # from the Milliman prototype -- mix max stay in days
       0 .. 9_999
@@ -322,9 +417,9 @@ module ClaimsReporting
 
     def claims_query
       selected_medical_claims.group(
-        :ccs_id,
+        Arel.sql(%[ROLLUP(1)]),
       ).select(
-        :ccs_id,
+        Arel.sql(%[COALESCE(ccs_id,'Unclassified')]).as('ccs_id'),
         Arel.star.count.as('count'),
         mct[:member_id].count(true).as('member_count'),
         # t[:paid_amount].sum.as('paid_amount_sum'),
@@ -375,16 +470,15 @@ module ClaimsReporting
 
       scope = scope.merge(dct.where(medical_diagnosis_category.to_sym => true)) if valid_option?(medical_diagnosis_category, medical_diagnosis_category_options)
 
+      scope = scope.merge(dct.where(coi.to_sym => true)) if valid_option?(coi, coi_options)
+
       scope = scope.merge(dct.where(currently_assigned: true)) if currently_assigned.present?
+
+      scope = scope.merge(dct.where(high_util: true)) if high_util.present?
 
       # aco at the time of service
       scope = scope.where(member_id: medical_claims.where(aco_name: aco).select(:member_id)) if valid_option?(aco, aco_options)
-
       scope
-    end
-
-    private def medical_claims
-      ClaimsReporting::MedicalClaim
     end
 
     private def selected_medical_claims
