@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_10_200633) do
+ActiveRecord::Schema.define(version: 2020_12_11_162854) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -400,6 +400,8 @@ ActiveRecord::Schema.define(version: 2020_12_10_200633) do
     t.decimal "quantity", precision: 12, scale: 4
     t.string "price_method", limit: 50
     t.string "ccs_id"
+    t.index ["aco_name"], name: "index_claims_reporting_medical_claims_on_aco_name"
+    t.index ["aco_pidsl"], name: "index_claims_reporting_medical_claims_on_aco_pidsl"
     t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
     t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
   end

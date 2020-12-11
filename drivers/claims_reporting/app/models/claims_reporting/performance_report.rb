@@ -5,20 +5,6 @@ module ClaimsReporting
     extend Memoist
     attr_reader :member_roster
 
-    # member classifcation bits from Milliman
-
-    # High_Util High Utilizing
-    # COI Cohorts of Interest - All
-    # High_ER_Flag Cohorts of Interest - 5+ ER Visits with No Psych Admissions
-    # Psychoses_Flag Cohorts of Interest - 1+ Psychoses Admission
-    # OthIPPsych_Flag Cohorts of Interest - 1+ Other IP Psych Admission
-
-    # ENGAGEMENT_STATUS
-    # CURRENTLY_ASSIGNED
-    # CURRENTLY_ENGAGED
-
-    # ENGAGED_MEMBER_DAYS
-
     # ANTIPSY_DAY
     # ANTIPSY_DENOM
 
@@ -28,6 +14,7 @@ module ClaimsReporting
     # MOODSTAB_DAY
     # MOODSTAB_DENOM
 
+    # Member classification bits from Milliman
     def available_filters
       [
         :age_bucket,
@@ -49,14 +36,14 @@ module ClaimsReporting
     attr_accessor :age_bucket
     def age_bucket_options
       [
-        '<18',
+        '<18', # never used
         '18-21',
         '22-29',
         '30-39',
         '40-49',
         '50-59',
         '60-64',
-        '65+',
+        '65+', # never used
       ].freeze
     end
 
@@ -96,6 +83,7 @@ module ClaimsReporting
       # FIXME: '(blank)',
       medical_claims.distinct.pluck(:aco_name).compact.sort.freeze
     end
+    memoize :aco_options
 
     # Mental Health Diagnosis Category –
     # The mental health diagnosis category represents a group of conditions
@@ -120,8 +108,6 @@ module ClaimsReporting
     # classified by medical diagnoses of specific interest in the Clinical Classification Software (CCS).
     # Every member is categorized as having a medical diagnosis based on the claims they
     # incurred - a member can be assigned to more than one category.
-    # Possible medical diagnosis 'categories include:
-    # ''
     attr_accessor :medical_diagnosis_category
     def medical_diagnosis_category_options
       {
@@ -144,27 +130,16 @@ module ClaimsReporting
     # Cohorts of Interest– 1+ Psychoses Admission: patients that have had at least 1 inpatient admission for psychoses.
     # Cohorts of Interest– 1+ IP Psych Admission: patients that have had at least 1 non-psychoses psychiatric inpatient admission
     # Cohorts of Interest– 5+ ER Visits with No IP Psych Admission: patients that had at least 5 emergency room visits and no inpatient psychiatric admissions
+    # COI
+    # High_ER_Flag
+    # Psychoses_Flag
+    # OthIPPsych_Flag
     attr_accessor :cohort
 
     # Currently Assigned - If the member is still assigned to the CP as of the most recent member_roster
     attr_accessor :currently_assigned
 
-    ## Member,
-    # ENGAGEMENT_STATUS
-    # ACO
-    # AGE
-    # sex
-    # race
-    # High_Util
-    # COI
-    # High_ER_Flag
-    # Psychoses_Flag
-    # OthIPPsych_Flag
-    # CURRENTLY_ASSIGNED
-    # CURRENTLY_ENGAGED
-    # ENGAGED_MONTHS
-
-    ## medical claim
+    ## medical claim calcs
     # css_id
     # assigned
     # is_acs
@@ -189,56 +164,144 @@ module ClaimsReporting
       pct_of_cost_perventable: 'Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable',
     }.freeze
 
-    include ActiveSupport::NumberHelper
+    def initialize(member_roster: ClaimsReporting::MemberRoster.all)
+      @member_roster = member_roster
+    end
+
+    def report_time
+      Time.current
+    end
+
+    def member_totals
+      connection.select_one(member_roster.select(
+                              mrt[:member_id].count(true).as('total_members'),
+                            ), 'member_totals').with_indifferent_access
+    end
+    memoize :member_totals
+
+    def selection_summary
+      connection.select_one(selected_member_roster.select(
+                              mrt[:member_id].count(true).as('selected_members'),
+                              Arel.sql(%[SUM(CASE WHEN sex = 'Female' THEN 1 ELSE 0 END)]).as('selected_females'),
+                              Arel.sql(%[SUM(pbd::int)]).as('selected_pbd'),
+                              Arel.sql(%[SUM(das::int)]).as('selected_das'),
+                              Arel.sql(%[AVG(ABS(EXTRACT(YEAR FROM AGE(date_of_birth, #{connection.quote report_time}))))]).as('average_age'),
+                              Arel.sql(%[AVG(NULLIF(raw_dxcg_risk_score,'')::decimal)]).as('average_raw_dxcg_score'),
+                            ), 'selection_summary').with_indifferent_access
+    end
+    memoize :selection_summary
+
+    def total_members
+      member_totals[:total_members]
+    end
+
+    def selected_members
+      selection_summary[:selected_members]
+    end
+
+    def percent_members_selected
+      return 0 unless total_members&.positive?
+
+      selected_members * 100.0 / total_members
+    end
+
+    def member_months
+      'TODO'
+    end
+
+    def average_per_member_per_month_spend
+      'TODO'
+    end
+
+    def average_raw_dxcg_score
+      selection_summary[:average_raw_dxcg_score]&.to_d
+    end
+
+    def average_age
+      selection_summary[:average_age]&.to_d
+    end
+
+    def pct_female
+      return unless selected_members&.positive?
+
+      (selection_summary[:selected_females].to_d * 100.0 / selected_members)
+    end
+
+    def pct_with_pbd
+      return unless selected_members&.positive?
+
+      (selection_summary[:selected_pbd].to_d * 100.0 / selected_members)
+    end
+
+    def pct_with_das
+      return unless selected_members&.positive?
+
+      (selection_summary[:selected_das].to_d * 100.0 / selected_members)
+    end
+
+    def normalized_dxcg_score
+      'TODO'
+    end
+
+    include ActionView::Helpers::NumberHelper
+    private def format_d(value, precision: 1)
+      number_with_precision value, precision: precision, strip_insignificant_zeros: true, delimiter: ','
+    end
+
+    private def format_i(value, precision: 0)
+      format_d value, precision: precision
+    end
+
+    private def format_pct(value, precision: 1)
+      too_small = 10**-precision
+      return "<#{number_to_percentage too_small, precision: precision}" if value.to_d.positive? && value.to_d < too_small
+
+      number_to_percentage value, precision: precision, strip_insignificant_zeros: true
+    end
 
     def formatted_value(fld, row)
       val = row[fld.to_s]
       if fld.in?([:paid_amount_sum, :avg_cost_per_service, :cohort_per_member_month_spend])
         number_to_currency val
       elsif fld.to_s =~ /pct_of/
-        number_to_percentage val, precision: 2
+        format_pct val, precision: 2
       elsif val.is_a? Numeric
-        number_to_delimited val, precision: 2, separator: ','
+        format_d val, precision: 2
       else
         val
       end
     end
 
-    def initialize(member_roster: ClaimsReporting::MemberRoster.all)
-      @member_roster = member_roster
+    def summary_rows
+      [
+        ['Selected Members', "#{format_i selected_members} (#{format_pct percent_members_selected, precision: 1} of members)"],
+        ['Average $PMPM', number_to_currency(average_per_member_per_month_spend)],
+        ['Average Raw DxCG Score', format_d(average_raw_dxcg_score)],
+        ['Member Months', format_d(member_months)],
+        ['Average Age', format_d(average_age)],
+        ['% Female', format_pct(pct_female)],
+        ['% with Psychoses/Bipolar/Schizophrenia', format_pct(pct_with_pbd)],
+        ['% with Depression/Anxiety/Stress Disorders', format_pct(pct_with_das)],
+        ['Normalized DxCG Score', format_d(normalized_dxcg_score)],
+      ]
     end
 
-    def total_members
-      medical_claims.distinct.count(:member_id)
-    end
-    memoize :total_members
-
-    def selected_members
-      selected_medical_claims.distinct.count(:member_id)
-    end
-    memoize :selected_members
-
-    def percent_members_selected
-      return 0 unless total_members&.positive? && selected_members&.positive?
-
-      selected_members * 100.0 / total_members
-    end
-    memoize :selected_members
-
-    def member_months
-      'TODO'
-    end
-    memoize :member_months
-
-    def average_per_member_per_month_spend
-      'TODO'
-    end
-    memoize :average_per_member_per_month_spend
-
-    def average_raw_dxcg_score
-      selected_member_roster.average(%(NULLIF(raw_dxcg_risk_score,'')::decimal))&.round(2)
-    end
-    memoize :average_raw_dxcg_score
+    DETAIL_COLS = {
+      member_count: 'member_count',
+      # paid_amount_sum: 'paid_amount_sum',
+      annual_admits_per_mille: 'Annual Admissions per 1,000', # admits
+      avg_length_of_stay: 'Length of Stay', # days
+      utilization_per_mille: 'Annual Utilization per 1,000', # days/cases/procedures/visits/scripts/etc
+      pct_of_cohorit_with_utilization: '% of Selected Cohort with Utilization',
+      avg_cost_per_service: 'Average Cost per Service (Paid $)',
+      cohort_per_member_month_spend: 'Selected Cohort PMPM (Paid $)',
+      pct_of_pop_spend_cohort: 'Cohort Spend as a % of Total Population Spend',
+      pct_of_service_sepend_cohort: 'Selected Cohort Spend as a % of Service Line Population Spend',
+      pct_of_admissions_acs: 'Percent of Admissions that are Ambulatory Care Sensitive',
+      pct_of_cost_acs: 'Percent of Admission Cost that is Ambulatory Care Sensitive',
+      pct_of_visits_perventable: 'Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable',
+      pct_of_cost_perventable: 'Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable',
+    }.freeze
 
     def detail_cols
       DETAIL_COLS
@@ -249,15 +312,21 @@ module ClaimsReporting
       0 .. 9_999
     end
 
-    def claims_query
-      t = medical_claims.arel_table
+    def mrt
+      member_roster.arel_table
+    end
 
+    def mct
+      medical_claims.arel_table
+    end
+
+    def claims_query
       selected_medical_claims.group(
         :ccs_id,
       ).select(
         :ccs_id,
         Arel.star.count.as('count'),
-        t[:member_id].count(true).as('member_count'),
+        mct[:member_id].count(true).as('member_count'),
         # t[:paid_amount].sum.as('paid_amount_sum'),
         Arel.sql('ROUND(AVG(paid_amount), 2)').as('avg_cost_per_service'),
         Arel.sql("ROUND(AVG(
@@ -274,7 +343,7 @@ module ClaimsReporting
       HealthBase.connection
     end
 
-    def data
+    def detail_rows
       connection.select_all(claims_query)
     end
 
@@ -308,6 +377,9 @@ module ClaimsReporting
 
       scope = scope.merge(dct.where(currently_assigned: true)) if currently_assigned.present?
 
+      # aco at the time of service
+      scope = scope.where(member_id: medical_claims.where(aco_name: aco).select(:member_id)) if valid_option?(aco, aco_options)
+
       scope
     end
 
@@ -317,9 +389,7 @@ module ClaimsReporting
 
     private def selected_medical_claims
       scope = medical_claims.joins(:member_roster).merge(selected_member_roster)
-      # aco at the time of service
-      scope = scope.where(aco_name: aco) if aco.present? && aco.in?(aco_options)
-
+      scope = medical_claims.where(aco_name: aco) if valid_option?(aco, aco_options)
       scope
     end
   end

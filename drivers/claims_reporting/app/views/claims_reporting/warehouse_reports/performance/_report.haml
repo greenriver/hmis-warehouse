@@ -1,29 +1,16 @@
 .row
   .col-12
-    - table = report.data
-    %table.table.table-condensed{style: 'width: initial;'}
-      %tr
-        %th Selected Members
-        %td
-          = number_with_delimiter report.selected_members
-          = " (#{number_to_percentage report.percent_members_selected, precision: 1, strip_insignificant_zeros: true} of Members)"
-      %tr
-        %th Average $PMPM
-        %td
-          = number_to_currency report.average_per_member_per_month_spend
-      %tr
-        %th Average Raw DxCG Score
-        %td
-          = number_with_delimiter report.average_raw_dxcg_score
-      %tr
-        %th Member Months
-        %td
-          = number_with_delimiter report.member_months
+    %table.table.table-sm.table-striped{style: 'width: initial;'}
+      - report.summary_rows.each do |label, html_value|
+        %tr
+          %th= label
+          %td= html_value
     %details
       %summary Query
       %code= report.claims_query.to_sql
+    - table = report.detail_rows
     .table-responsive
-      %table.table.table-bordered.table-condensed.table-striped
+      %table.table.table-bordered.table-sm.table-striped
         %thead
           %tr
             %th= ''
