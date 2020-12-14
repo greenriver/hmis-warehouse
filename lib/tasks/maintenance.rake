@@ -1,21 +1,20 @@
 namespace :maintenance do
   desc 'Create maintenance page'
   task create: [:environment] do
-    # if Rails.env.development?
-    #   puts 'This will only run if the web server is accessible'
-    #   exit
-    # end
-
     require 'aws-sdk-s3'
     include Rails.application.routes.url_helpers
-    destination = 'public/m_503.html'
-    source = maintenance_index_url(host: ENV['FQDN'], protocol: 'https')
-    source = 'https://qa-warehouse.openpath.host/502'
+    destination = 'public/maintenance.html'
+    # This will only run if the web server is accessible
+    source = if Rails.env.development?
+      'https://qa-warehouse.openpath.host/maintenance'
+    else
+      maintenance_index_url(host: ENV['FQDN'], protocol: 'https')
+    end
     premailer = Premailer.new(source)
 
-    File.open(destination, 'wb') do |file|
-      file.puts(premailer.to_inline_css)
-    end
+    # File.open(destination, 'wb') do |file|
+    #   file.puts(premailer.to_inline_css)
+    # end
 
     client = Aws::S3::Client.new
     bucket = ENV.fetch('ASSETS_BUCKET_NAME')
@@ -26,13 +25,17 @@ namespace :maintenance do
       exit
     end
 
-    resp = client.list_objects(
-      {
-        bucket: bucket,
-        prefix: prefix,
-      }
+    key = File.join(prefix, destination)
+    puts "Uploading #{key} to #{bucket}"
+    resp = client.put_object(
+      bucket: bucket,
+      key: key,
+      body: premailer.to_inline_css,
     )
-    keys = resp.to_h[:contents]&.map { |r| r[:key] }
-    puts keys.inspect
+    if resp.etag
+      puts 'Successfully uploaded maintenance file to s3'
+    else
+      puts 'Unable to upload maintenance file'
+    end
   end
 end
