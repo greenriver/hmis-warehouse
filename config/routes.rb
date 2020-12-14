@@ -142,6 +142,7 @@ Rails.application.routes.draw do
 
   resources :secure_files, only: [:show, :create, :index, :destroy]
   resources :help
+  resources :maintenance, only: [:index]
 
   namespace :reports do
     namespace :hic do

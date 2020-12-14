@@ -30,9 +30,10 @@
               = _('Boston DND Warehouse')
         .o-header--page__sub-title.tagline
           = _('Ending Veteran & Chronic Homelessness in Boston')
-        - content_for :prepended_nav_items do
-          = render 'layouts/warehouse_alert'
-        = render 'layouts/header_nav'
+        - unless @maintenance
+          - content_for :prepended_nav_items do
+            = render 'layouts/warehouse_alert'
+          = render 'layouts/header_nav'
 
     .l-main__wrapper
       - if user_signed_in?
@@ -61,7 +62,8 @@
             = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
           - if GrdaWarehouse::Config.get(:support_contact_email)
             .ml-4.custom-footer-content
-              = mail_to GrdaWarehouse::Config.get(:support_contact_email), _('Contact Support'), subject: "#{_('Boston DND Warehouse')} Support Request"
+              .text-right
+                = mail_to GrdaWarehouse::Config.get(:support_contact_email), _('Contact Support'), subject: "#{_('Boston DND Warehouse')} Support Request"
 
 
     #d3-tooltip
