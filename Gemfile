@@ -18,6 +18,9 @@ gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/a
 gem 'activerecord-import'
 gem 'active_record_extended'
 
+# style-inliner https://github.com/premailer/premailer
+gem 'premailer'
+
 # spatial manipulations
 gem 'activerecord-postgis-adapter'
 gem 'ffi-geos'
