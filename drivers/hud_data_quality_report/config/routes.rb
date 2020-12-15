@@ -9,5 +9,8 @@ BostonHmis::Application.routes.draw do
         resources :cells, only: :show
       end
     end
+    resources :legacy_dqs, only: [:index, :show] do
+      resources :legacy_results, only: [:show]
+    end
   end
 end

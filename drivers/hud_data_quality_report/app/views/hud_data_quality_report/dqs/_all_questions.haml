@@ -11,4 +11,10 @@
   %p
     = link_to new_hud_reports_dq_path do
       Generate New Data Quality Report
+
 = render 'hud_data_quality_report/shared/all_questions_table'
+
+.well
+  %p
+    Previously run FY2017 Data Quality Reports can be accessed from
+    = link_to 'here.',  hud_reports_legacy_dqs_path
