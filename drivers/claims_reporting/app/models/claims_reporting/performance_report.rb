@@ -35,38 +35,43 @@ module ClaimsReporting
       {
         age_bucket: {
           label: _('Age Bucket'),
-          collection: age_bucket_options, include_blank: '(all)',
-          hint: "As of #{roster_as_of}"
+          collection: age_bucket_options, include_blank: '(any)',
+          hint: "Member's reported age as of #{roster_as_of}"
         },
         gender: {
           label: _('Gender'),
-          collection: gender_options, include_blank: '(all)'
+          collection: gender_options, include_blank: '(any)',
+          hint: "Member's reported gender as of #{roster_as_of}"
         },
         race: {
           label: _('Race'),
           collection: race_options,
-          include_blank: '(all)',
+          include_blank: '(any)',
+          hint: "Member's reported race as of #{roster_as_of}",
         },
         aco: {
           label: _('ACO'),
           collection: aco_options,
-          include_blank: '(all)',
+          include_blank: '(any)',
           hint: 'The ACO that the member was assigned to at the time the claim is incurred',
         },
         mental_health_diagnosis_category: {
           label: _('Mental Health Diagnosis Category'),
           collection: mental_health_diagnosis_category_options,
-          include_blank: '(all)',
+          include_blank: '(any)',
+          hint: 'The mental health diagnosis category represents a group of conditions classified by mental health and substance abuse categories included in the Clinical Classification Software (CCS)',
         },
         medical_diagnosis_category: {
           label: _('Medical Diagnosis Category'),
           collection: medical_diagnosis_category_options,
-          include_blank: '(all)',
+          include_blank: '(any)',
+          hint: 'The medical diagnosis category represents a group of conditions classified by medical diagnoses of specific interest in the Clinical Classification Software (CCS',
         },
         coi: {
           label: _('Cohorts of Interest'),
           collection: age_bucket_options,
-          include_blank: '(any member)',
+          include_blank: '(any)',
+          hint: 'Selects members based on their psychiatric inpatient and emergency room utilization history',
         },
         high_util: {
           label: _('High Utilizing'),
