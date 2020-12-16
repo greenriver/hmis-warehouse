@@ -1,0 +1,9 @@
+= content_for :crumbs do
+  = link_to warehouse_reports_project_data_quality_path do
+    &laquo; Project Data Quality Reports
+
+- content_for :title, 'Project Data Quality Reports'
+%h1= content_for :title
+
+= render 'report_list', reports: @project_reports, report_type: :project
+= render 'report_list', reports: @project_group_reports, report_type: :project_group

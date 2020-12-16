@@ -210,10 +210,6 @@ module ProjectScorecard::WarehouseReports
         where.not(project_id: nil).
         order(id: :asc).
         index_by(&:project_id)
-      @current_project_group_reports = reports_scope.
-        where.not(project_group_id: nil).
-        order(id: :asc).
-        index_by(&:project_group_id)
     end
   end
 end
