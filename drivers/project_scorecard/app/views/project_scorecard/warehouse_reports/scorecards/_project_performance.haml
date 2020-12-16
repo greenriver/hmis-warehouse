@@ -42,7 +42,7 @@
         .mb-4
           Points: 10
           %br
-          90% - 150%
+          90% +
         .mb-4
           Points: 5
           %br
@@ -50,7 +50,7 @@
         .mb-4
           Points: 0
           %br
-          >= 151% or <= 79%
+          <= 79%
       %td.text-center= @report.utilization_score
     %tr
       %th Percentage of chronically homeless households served
@@ -81,7 +81,11 @@
           Points: 0
           %br
           PSH: <= 64%
-      %td.text-center= @report.chronic_service_score
+      %td.text-center
+        - if @report.project.psh?
+          = @report.chronic_service_score
+        - else
+          N/A (PSH only)
     %tr
       %th
         Percentage of participants who remained in PSH or exited to permanent housing
@@ -134,7 +138,8 @@
         %br
         APR Q22b
       %th
-        N/A
+        - unless @report.project.rrh?
+          N/A (RRH Only)
       %td.text-center= f.input :average_los_leavers, label: false, as: :read_only
       %th.text-nowrap
         .mb-4
@@ -149,7 +154,11 @@
           Points: 0
           %br
           RRH: >=25 / <=2 months
-      %td.text-center= @report.leavers_los_score
+      %td.text-center
+        - if @report.project.rrh?
+          = @report.leavers_los_score
+        - else
+          N/A (RRH Only)
     %tr
       %th
         Percentage of adults at exit or annual assessment who gained or increased employment income
@@ -179,7 +188,11 @@
           PSH: <= 8%
           %br
           RRH: <= 49%
-      %td.text-center= @report.increased_employment_income_score
+      %td.text-center
+        - if @report.project.psh? || @report.project.rrh?
+          = @report.increased_employment_income_score
+        - else
+          N/A (Only RRH & PSH)
     %tr
       %th
         Percentage of adults at exit or annual assessment who gained or increased non-employment cash income
@@ -209,7 +222,11 @@
           PSH: <= 54%
           %br
           RRH: <= 14%
-      %td.text-center= @report.increased_other_cash_income_score
+      %td.text-center
+        - if @report.project.psh? || @report.project.rrh?
+          = @report.increased_other_cash_income_score
+        - else
+          N/A (Only RRH & PSH)
     %tr
       %th
         Returns to Homelessness

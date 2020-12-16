@@ -14,7 +14,7 @@
       %th
         Projected Project Spend Down
       %th
-        = simple_format(_('Ensure the program is on track to spend down all project funds by the end of its current grant term'))
+        = simple_format(_('Ensure the program is on track to spend down all project funds by the end of its current grant term Agency Self-Report and eLOCCS data. For sub-contracted programs, subtract one month for the "number of months since start of grant term" to allow for the HUD billing delay in sub-contracted programs.'))
         %br
         = simple_format(_('Agency Self-Report and eLOCCS data'))
       %td.p-0
@@ -48,14 +48,14 @@
       %th
         Cost Efficiency
       %th
-        = simple_format(_('It is important to HUD that programs demonstrate cost efficiency - the annual cost to retain or move someone into permanent housing.'))
+        = simple_format(_('It is important to HUD that programs demonstrate cost efficiency - the annual cost to retain or move someone into permanent housing. For projects that had an expansion, this question is marked N/A.'))
         %br
         = _('Project Application & APR Data')
       %td.p-0
         %table.table.mb-0
           %tbody
             %tr
-              %th= _('Total CoC Budget Plus 25% Required Match')
+              %th= _('Actual Expenditures in eLOCCS')
               %td.text-center= f.input :budget_plus_match, label: false, **@report.field_input_options(:budget_plus_match, current_user)
             %tr
               %th= _('Number of participants who exited to or remained in permanent supportive housing during the reporting period')
@@ -81,7 +81,11 @@
           PSH >=$11,001
           %br
           RRH >=$4,501
-      %td.text-center= @report.cost_efficiency_score
+      %td.text-center
+        - if @report.project.psh? || @report.project.rrh?
+          = @report.cost_efficiency_score
+        - else
+          N/A (Only RRH & PSH)
     %tr
       %th
         = ('Percentage of total grant funds that were recaptured in the most recent grant closeout')
@@ -123,8 +127,7 @@
         = _('The measure indicates if agency is participating in CoC-related activities')
         %br
         = _('PIT Registration or PIT Data')
-      %th N/A
-      %td.text-center= f.input :pit_participation, label: false, as: :pretty_boolean, **@report.field_input_options(:pit_participation, current_user)
+      %td.text-center{colspan: 2}= f.input :pit_participation, label: false, as: :pretty_boolean, **@report.field_input_options(:pit_participation, current_user)
       %th
         .mb-4
           Points: 10

@@ -143,6 +143,10 @@ module ProjectScorecard
         :average_vispdat_score,
         :improvement_plan,
         :financial_plan,
+        :expansion_year,
+        :special_population_only,
+        :project_less_than_two,
+        :geographic_location,
       ].freeze
     end
 
