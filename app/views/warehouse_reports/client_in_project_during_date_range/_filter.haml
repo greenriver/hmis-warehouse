@@ -2,11 +2,11 @@
   - content_for :filters_col_full do
     .row
       .col-sm-3
-        = f.input :start, as: :date_picker, input_html: {value: @start}, label: false
+        = f.input :start, as: :date_picker, input_html: {value: @start}
       .col-sm-3
-        = f.input :end, as: :date_picker, input_html: {value: @end}, label: false
+        = f.input :end, as: :date_picker, input_html: {value: @end}
       .col-sm-3
-        = f.input :id, label: false, as: :select, collection: available_projects, selected: @project_id.to_s, input_html: {class: :select2}
+        = f.input :id, label: 'Projects', collection: [], as: :select_two, input_html: {data: {'collection-path' => api_projects_path(selected_project_ids: [@project_id])}}, include_blank: false
 
   - content_for :filter_actions do
     .row
