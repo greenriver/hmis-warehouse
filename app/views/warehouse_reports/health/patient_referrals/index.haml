@@ -1,9 +1,8 @@
 - title = "Patient Referrals"
 - content_for :title, title
 %h1= content_for :title
-= render '/warehouse_reports/breadcrumbs', tab: 'health'
+= render '/warehouse_reports/breadcrumbs', tab: 'health-member-status-tracking'
 
 = render 'filter'
 
 = render 'table', detail_path: [:detail, :warehouse_reports, :health_agency_performance, :index], permission: current_user.has_some_patient_access?
-

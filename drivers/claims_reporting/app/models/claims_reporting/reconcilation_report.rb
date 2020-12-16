@@ -1,6 +1,8 @@
+require 'csv'
+require 'memoist'
+
 module ClaimsReporting
   class ReconcilationReport
-    require 'memoist'
     extend Memoist
 
     attr_accessor :month
@@ -118,7 +120,7 @@ module ClaimsReporting
             qa_count_for_patient(patient),
             qa_missing_enrollment_count_for_patient(patient),
             qa_missing_careplan_count_for_patient(patient),
-            patient.careplans.map { |d| l d.provider_signed_on }.to_sentence,
+            patient.careplans.map(&:provider_signed_on).to_sentence,
           ]
         end
       end
