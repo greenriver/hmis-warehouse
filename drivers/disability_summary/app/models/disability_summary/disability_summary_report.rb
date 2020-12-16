@@ -117,7 +117,7 @@ module DisabilitySummary
       @data_for_disabilities ||= begin
         data = {}
         report_scope.joins(enrollment: :disabilities, project: :project_cocs).
-          order(d_t[:InformationDate].desc).
+          order(:CoCCode, d_t[:InformationDate].desc).
           pluck(
             :client_id,
             :DisabilityType,

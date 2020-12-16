@@ -116,7 +116,7 @@ module PriorLivingSituation
       @data_for_living_situations ||= begin
         data = {}
         report_scope.joins(:enrollment, project: :project_cocs).
-          order(:first_date_in_program).
+          order(:CoCCode, :first_date_in_program).
           pluck(
             :client_id,
             :LivingSituation,
