@@ -72,6 +72,31 @@ module GrdaWarehouse::WarehouseReports::Youth
       end
     end
 
+    private def new_intake_during_report_range_stably_housed
+      @new_intake_during_report_range_stably_housed ||= begin
+        ids_from_intakes = open_during_report_range.
+          opened_after(@start_date).
+          pluck(:client_id)
+        ids_from_case_notes = open_during_report_range.
+          opened_after(@start_date).joins(:case_managements).
+          merge(
+            with_case_note_in_range,
+          ).pluck(:client_id)
+        at_risk_client_ids = new_intake_during_report_range_some_indication_of_at_risk.pluck(:client_id)
+        homeless_client_ids = new_intake_during_report_range_some_indication_of_homeless.pluck(:client_id)
+        open_during_report_range.opened_after(@start_date).
+          where(client_id: ids_from_intakes + ids_from_case_notes).
+          where.not(client_id: at_risk_client_ids + homeless_client_ids)
+      end
+    end
+
+    private def stably_housed_case_management_during_range
+      at_risk_case_notes = at_risk_case_management_during_range.pluck(:client_id)
+      homeless_case_notes = homeless_case_management_during_range.pluck(:client_id)
+      with_case_note_in_range.
+        where.not(client_id: at_risk_case_notes + homeless_case_notes)
+    end
+
     private def transitioned_to_stabilized_housing_scope
       GrdaWarehouse::Youth::YouthFollowUp.
         initial_action_housed.
@@ -154,6 +179,16 @@ module GrdaWarehouse::WarehouseReports::Youth
         not_served,
       )
     end
+
+    # Non-at-risk, Non-homeless
+    def stably_housed_a
+      @stably_housed_a ||= get_client_ids(new_intake_during_report_range_stably_housed.served)
+    end
+
+    def stably_housed_b
+      @stably_housed_b ||= get_client_ids(stably_housed_case_management_during_range) - stably_housed_a
+    end
+
 
     def five_a
       @five_a ||= get_client_ids(received_flex_funds_scope)
@@ -719,6 +754,8 @@ module GrdaWarehouse::WarehouseReports::Youth
         :four_b,
         :four_c,
         :four_d,
+        :stably_housed_a,
+        :stably_housed_b,
         :five_a,
         :five_b,
         :five_c,

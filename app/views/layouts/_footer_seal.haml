@@ -1,5 +1,5 @@
 - logo = ENV['LOGO']
-- if logo.present?
+- if logo.present? && ! @maintenance
   %span.seal-image
     - if SerializedAsset.exists?(logo)
       %img.seal{src: SerializedAsset.get_src(logo)}

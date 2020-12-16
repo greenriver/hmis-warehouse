@@ -216,6 +216,10 @@ module EtoApi::Tasks
             when 'sexual_orientation'
               value = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
               defined_demographic_value(value: value, cdid: cdid, site_id: client.site_id_in_data_source)
+            when 'phone'
+              hmis_client.phone = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
+            when 'email'
+              hmis_client.email = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
             else
               hmis_client[key] = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
             end
@@ -236,6 +240,8 @@ module EtoApi::Tasks
           consent_confirmed_on: hmis_client&.consent_confirmed_on,
           consent_expires_on: hmis_client&.consent_expires_on,
           sexual_orientation: hmis_client&.sexual_orientation,
+          phone: hmis_client&.phone,
+          email: hmis_client&.email,
         }
         hmis_client.eto_last_updated = @api.parse_date(api_response['AuditDate'])
         if hmis_client.changed?

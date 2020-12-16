@@ -43,7 +43,11 @@
           - destination_client = client.destination_client
           - project = en.project
           %tr
-            %td= link_to_if can_view_clients_or_window? && destination_client&.id, destination_client&.name || 'Not yet Processed', appropriate_client_path(destination_client)
+            %td
+              - if destination_client
+                = link_to_if(can_view_clients_or_window?, destination_client&.name, appropriate_client_path(destination_client))
+              - else
+                Not yet Processed
             %td= project.name
             %td
               = link_to_if destination_client&.hmis_source_visible_by?(current_user), en.EntryDate, hmi_path(en.id, type: 'Enrollment')

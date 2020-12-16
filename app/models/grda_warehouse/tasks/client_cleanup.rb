@@ -79,7 +79,7 @@ module GrdaWarehouse::Tasks
 
       incorrect_households.transform_values! do |households|
         households.each do |row|
-          # make a new unique household id based on enrollment, existing household id, project, and data source
+          # make a new unique household id based on enrollment id, project, and data source
           row[:fixed_household_id] = Digest::MD5.hexdigest("e_#{row[:data_source_id]}_#{row[:project_id]}_#{row[:enrollment_id]}")
         end
       end
@@ -89,18 +89,20 @@ module GrdaWarehouse::Tasks
       # Fix all individual enrollments
       individuals = GrdaWarehouse::Hud::Enrollment.
         where(HouseholdID: incorrect_households.keys.map(&:last)).
-        group(:PersonalID, :data_source_id, :HouseholdID).
+        group(:ProjectID, :data_source_id, :HouseholdID).
         having('count(distinct("PersonalID")) = 1').
         count.
         keys
       individuals.each do |key|
+        # NOTE: use delete to return value and remove key (in-place) from hash
         households = incorrect_households.delete(key)
         households&.each do |row|
           to_update += cleanup_household(row, individual: true)
         end
       end
 
-      incorrect_households.each do |_, households|
+      # Fix families
+      incorrect_households.each_value do |households|
         households.each do |row|
           to_update += cleanup_household(row)
         end
