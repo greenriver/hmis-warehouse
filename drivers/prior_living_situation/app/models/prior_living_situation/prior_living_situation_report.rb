@@ -123,30 +123,35 @@ module PriorLivingSituation
             :LengthOfStay,
             :CoCCode,
           ).each do |client_id, living_situation_id, length_of_stay, coc_code|
-            data[coc_code] ||= {}
-            data[coc_code][:clients] ||= {}
-            next if data[coc_code][:clients][client_id]
-
             living_situation = HUD.situation_type(living_situation_id, include_homeless_breakout: true)
-            data[coc_code][:clients][client_id] ||= {
+
+            data[:all] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
+            data[:all][living_situation] << client_id
+
+            data[:by_coc] ||= {}
+            data[:by_coc][coc_code] ||= {}
+            data[:by_coc][coc_code][:clients] ||= {}
+            next if data[:by_coc][coc_code][:clients][client_id]
+
+            data[:by_coc][coc_code][:clients][client_id] ||= {
               living_situation_id: living_situation_id,
               living_situation: living_situation,
               length_of_stay: length_of_stay,
               coc_code: coc_code,
             }
 
-            data[coc_code][:situations] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
+            data[:by_coc][coc_code][:situations] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
 
-            # data[coc_code][:situations_length] ||= living_situation_buckets.product(HUD.residence_prior_length_of_stays_brief.values.uniq).map { |b| [b, Set.new] }.to_h
-            data[coc_code][:situations_length] ||= living_situation_buckets.map { |b| [b, {}] }.to_h
+            # data[:by_coc][coc_code][:situations_length] ||= living_situation_buckets.product(HUD.residence_prior_length_of_stays_brief.values.uniq).map { |b| [b, Set.new] }.to_h
+            data[:by_coc][coc_code][:situations_length] ||= living_situation_buckets.map { |b| [b, {}] }.to_h
             living_situation_buckets.each do |b|
               HUD.residence_prior_length_of_stays_brief.values.uniq.each do |l|
-                data[coc_code][:situations_length][b][l] ||= Set.new
+                data[:by_coc][coc_code][:situations_length][b][l] ||= Set.new
               end
             end
 
-            data[coc_code][:situations][living_situation] << client_id
-            data[coc_code][:situations_length][living_situation][HUD.residence_prior_length_of_stay_brief(length_of_stay) || ''] << client_id
+            data[:by_coc][coc_code][:situations][living_situation] << client_id
+            data[:by_coc][coc_code][:situations_length][living_situation][HUD.residence_prior_length_of_stay_brief(length_of_stay) || ''] << client_id
           end
         data
       end

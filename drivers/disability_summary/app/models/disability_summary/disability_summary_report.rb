@@ -41,6 +41,16 @@ module DisabilitySummary
       true
     end
 
+    protected def build_control_sections
+      [
+        build_general_control_section,
+        build_coc_control_section,
+        build_household_control_section,
+        add_demographic_disabilities_control_section,
+        build_enrollment_control_section,
+      ]
+    end
+
     def report_path_array
       [
         :disability_summary,
@@ -112,10 +122,11 @@ module DisabilitySummary
       end
     end
 
-    # most recent response for each client for each disability type
+    # most recent response for each client for each disability type per CoC
     def data_for_disabilities
       @data_for_disabilities ||= begin
         data = {}
+        # binding.pry
         report_scope.joins(enrollment: :disabilities, project: :project_cocs).
           order(:CoCCode, d_t[:InformationDate].desc).
           pluck(
@@ -125,19 +136,29 @@ module DisabilitySummary
             :IndefiniteAndImpairs,
             :CoCCode,
           ).each do |client_id, disability_type, disability_response, indefinite, coc_code|
-            data[coc_code] ||= {}
-            data[coc_code][:clients] ||= {}
-            # NOTE: counting clients more than once because they may have multiple disabilities
-            # next if data[coc_code][:clients][client_id]
-
-            # disability_type ||= 99
-            # disability_response ||= 99
-            indefinite ||= 99
             disability = HUD.disability_type(disability_type)
+
+            # only count the first response for a client in each type per coc
+            data[:counted_by_coc] ||= {}
+            data[:counted_by_coc][coc_code] ||= disability_options(Set)
+            next if data[:counted_by_coc][coc_code][disability].include?(client_id)
+
+            data[:counted_by_coc][coc_code][disability] << client_id
+
+            # ignore no/doesn't know/not collected
+            next unless disability_response.in?(GrdaWarehouse::Hud::Disability.positive_responses)
+
+            indefinite ||= 99
             response = HUD.disability_type(disability_response)
 
-            data[coc_code][:clients][client_id] ||= {}
-            data[coc_code][:clients][client_id][disability_type] ||= {
+            data[:all] ||= disability_options(Set)
+            data[:all][disability] << client_id
+
+            data[:by_coc] ||= {}
+            data[:by_coc][coc_code] ||= {}
+            data[:by_coc][coc_code][:clients] ||= {}
+            data[:by_coc][coc_code][:clients][disability] ||= {}
+            data[:by_coc][coc_code][:clients][disability][client_id] ||= {
               disability_type: disability_type,
               disability: disability,
               response: response,
@@ -145,21 +166,31 @@ module DisabilitySummary
               coc_code: coc_code,
             }
 
-            data[coc_code][:disabilities] ||= disability_options(indefinite_options)
-            data[coc_code][:disabilities][disability_type][indefinite] << client_id
-            data[coc_code][:disabilities_summary] ||= disability_options(Set.new)
-            data[coc_code][:disabilities_summary][disability_type] << client_id
+            data[:by_coc][coc_code][:disabilities] ||= disability_options(indefinite_options)
+            data[:by_coc][coc_code][:disabilities][disability][HUD.no_yes_reasons_for_missing_data(indefinite)] << client_id
+            data[:by_coc][coc_code][:disabilities_summary] ||= disability_options(Set)
+            data[:by_coc][coc_code][:disabilities_summary][disability] << client_id
           end
         data
       end
     end
 
     private def disability_options(hash_or_set)
-      HUD.disability_types.keys.map { |k| [k, hash_or_set] }.to_h
+      HUD.disability_types.values.map do |v|
+        value = if hash_or_set.is_a?(Class)
+          hash_or_set.new
+        else
+          hash_or_set.deep_dup
+        end
+        [
+          v,
+          value,
+        ]
+      end.to_h
     end
 
     private def indefinite_options
-      HUD.no_yes_reasons_for_missing_data_options.keys.map { |k| [k, Set.new] }.to_h
+      HUD.no_yes_reasons_for_missing_data_options.values.map { |k| [k, Set.new] }.to_h
     end
 
     def self.data_for_export(reports)

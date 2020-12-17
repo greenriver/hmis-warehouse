@@ -24,7 +24,7 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
 
     scope :disabled, -> do
-      where(DisabilityResponse: [1, 2, 3])
+      where(DisabilityResponse: positive_responses)
     end
 
     scope :response_present, -> do
@@ -89,6 +89,10 @@ module GrdaWarehouse::Hud
         9 => :mental,
         10 => :substance,
       }
+    end
+
+    def self.positive_responses
+      [1, 2, 3].freeze
     end
 
     # This defines ? methods for each disability type, eg: physical?
