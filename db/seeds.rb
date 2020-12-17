@@ -1092,6 +1092,20 @@ def ensure_db_triggers_and_functions
   Reporting::MonthlyReports::Base.ensure_triggers
 end
 
+def maintain_system_groups
+  all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
+
+  all_hmis_reports = AccessGroup.where(name: 'All HMIS Reports').first_or_create
+  all_hmis_reports.update(system: ['Entities'], required: :true)
+  hmis_report_ids = all_reports.where(health: false).pluck(:id)
+  all_hmis_reports.set_viewables( { reports: hmis_report_ids } )
+
+  all_health_reports = AccessGroup.where(name: 'All Health Reports').first_or_create
+  all_health_reports.update(system: ['Entities'], required: :true)
+  health_report_ids = all_reports.where(health: true).pluck(:id)
+  all_health_reports.set_viewables( { reports: health_report_ids } )
+end
+
 ensure_db_triggers_and_functions()
 setup_fake_user() if Rails.env.development?
 maintain_data_sources()
@@ -1099,3 +1113,4 @@ maintain_report_definitions()
 maintain_health_seeds()
 install_shapes()
 maintain_lookups()
+maintain_system_groups()
