@@ -28,12 +28,12 @@ every 1.day, at: daily_schedule do
   rake "grda_warehouse:daily"
 end
 shifted_time = Time.parse(daily_schedule) - 2.hours
-every 1.day, at: shifted_time.strftime('%H:%M %P') do
+every 1.day, at: shifted_time.strftime('%I:%M %P') do
   # Defers to delayed jobs
   rake "grda_warehouse:process_recurring_hmis_exports"
 end
 shifted_time = Time.parse(daily_schedule) - 5.minutes
-every 1.day, at: shifted_time.strftime('%H:%M %P') do
+every 1.day, at: shifted_time.strftime('%I:%M %P') do
   # Fast and low RAM
   rake "grda_warehouse:secure_files:clean_expired"
 end
@@ -83,7 +83,7 @@ every 1.day, at: import_schedule do
   rake "grda_warehouse:import_data_sources_s3"
 end
 shifted_time = Time.parse(import_schedule) - 4.hours
-every 1.day, at: shifted_time.strftime('%H:%M %P') do
+every 1.day, at: shifted_time.strftime('%I:%M %P') do
   rake "grda_warehouse:ftps_s3_sync"
 end
 

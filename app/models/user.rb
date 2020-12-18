@@ -137,6 +137,12 @@ class User < ApplicationRecord
     super && active
   end
 
+  # Allow logins to be case insensitive at login time
+  def self.find_for_authentication(conditions)
+    conditions[:email].downcase!
+    super(conditions)
+  end
+
   def future_expiration?
     expired_at.present? && expired_at > Time.current
   end

@@ -13,16 +13,12 @@ module WarehouseReports
       @end   = (params.try(:[], :project).try(:[], :end) || nov_30).to_date
       if params[:project].blank?
         @project = project_source.first
-        @project_id = [@project.ProjectID, @project.data_source_id]
+        @project_id = @project.id
       else
-        @project_id = JSON.parse(params[:project][:id])
-        @project = project_source.where(ProjectID: @project_id.first, data_source_id: @project_id.last).first
+        @project_id = params[:project][:id].to_i
+        @project = project_source.find_by(id: @project_id)
       end
-
-      @project = project_source.where(ProjectID: @project_id.first, data_source_id: @project_id.last).first
-
-      @enrollments = service_history_source.entry.
-        where(project_id: @project.ProjectID, data_source_id: @project.data_source_id).
+      @enrollments = @project.service_history_enrollments.entry.
         open_between(start_date: @start, end_date: @end).
         joins(:client).
         preload(:client).
@@ -39,13 +35,6 @@ module WarehouseReports
         end
       end
     end
-
-    def available_projects
-      project_source.joins(:data_source).merge(GrdaWarehouse::DataSource.order(:short_name)).order(:ProjectName).pluck(:ProjectName, :ProjectID, :data_source_id, :short_name).map do |name, id, ds_id, short_name|
-        ["#{name} - #{short_name}", [id, ds_id]]
-      end
-    end
-    helper_method :available_projects
 
     # AHAR reporting dates
     private def oct_1

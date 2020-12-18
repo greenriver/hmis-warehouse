@@ -78,7 +78,21 @@
         %th d. Number of YYA turned away
         %td= data_link(:four_c)
         %td Include YYA who were not served due to ineligibility
+      %tr
+        %th{rowspan: 2}
+          Stably Housed
+          %br
+          %em.text-xs This section is not reported to EOHHS, but included for completeness.
+        %th a. Number of YYA completing new intake: YYA not at risk and not homeless
+        %td= data_link(:stably_housed_a)
+        %td Include brief & full intakes (unduplicated clients) and clients who enrolled in case management provided through EOHHS funds
 
+      %tr
+        %th
+          %i.icon-info{data: {toggle: :tooltip, title: 'Youth with at least one case management note during the reporting period who\'s intake was started before the reporting period and no case management notes indicating the youth was at risk or homeless.'}}
+          b. Number of YYA continuing in case management
+        %td= data_link(:stably_housed_b)
+        %td Clients who received case management through EOHHS funds, excluding new enrollments
       %tr
         %th{rowspan: 14} 5. Direct Financial Assistance (Flex Funds)
         %th a. Total number of YYA who received direct financial assistance/ flex funds

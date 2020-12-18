@@ -1431,7 +1431,10 @@ module GrdaWarehouse::Hud
     def email
       return unless hmis_client_response.present?
 
-      hmis_client_response['Email']
+      data = hmis_client_response['Email']
+      return data if data
+
+      hmis_client.processed_fields['email']
     end
 
     def home_phone
@@ -1443,7 +1446,10 @@ module GrdaWarehouse::Hud
     def cell_phone
       return unless hmis_client_response.present?
 
-      hmis_client_response['CellPhone']
+      data = hmis_client_response['CellPhone']
+      return data if data
+
+      hmis_client.processed_fields['phone']
     end
 
     def work_phone

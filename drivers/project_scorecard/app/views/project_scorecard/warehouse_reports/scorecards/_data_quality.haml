@@ -1,0 +1,50 @@
+%h3= _('HMIS Data Quality 20%')
+%p= simple_format(_('HMIS participation and data quality are priorities for TX-601 & HUD. Accurate, complete & timely data is crucial to determine how projects are contributing to ending homelessness.  High quality data is key to understanding what projects are doing and how the CoC & HUD can make informed decisions about the project.'))
+.overflow-scroll
+  %table.table.table-bordered
+    %thead
+      %tr
+        %th.text-nowrap Performance Criteria
+        %th.text-nowrap Purpose & Source of Measurement
+        %th.text-nowrap Formula Information
+        %th.text-nowrap Performance Calculation
+        %th.text-nowrap Scoring
+        %th.text-nowrap Total
+    %tbody
+      %tr
+        %th Personal Identifying Information Error Rate
+        %th{rowspan: 3}
+          To achieve accurate data collection and to satisfy HUD HMIS data requirements, projects must ensure that data entered into the local HMIS system is complete.
+          %br
+            HUD Data Quality Report; APR Q6a, Q6b, Q6c
+        %th
+
+        %td.text-center= f.input :percent_pii_errors, label: false, as: :read_only
+        %th.text-nowrap{rowspan: 3}
+          .mb-4
+            Points: 10
+            %br
+            0% - 1%
+          .mb-4
+            Points: 5
+            %br
+            2% - 5%
+          .mb-4
+            Points: 0
+            %br
+            >= 6%
+        %td.text-center= @report.pii_errors_score
+      %tr
+        %th Universal Data Elements Error Rate
+        %th
+
+        %td.text-center= f.input :percent_ude_errors, label: false, as: :read_only
+
+        %td.text-center= @report.ude_errors_score
+      %tr
+        %th Income and Housing Data Quality
+        %th
+
+        %td.text-center= f.input :percent_income_and_housing_errors, label: false, as: :read_only
+
+        %td.text-center= @report.income_and_housing_errors_score

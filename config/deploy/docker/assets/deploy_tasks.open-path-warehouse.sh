@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
+echo Storing Themed Maintenance Page
+bundle exec rake maintenance:create
+
 echo Migrating with individual rake tasks
 
 echo Migrating app database

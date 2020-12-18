@@ -1,0 +1,168 @@
+%h3= _('Grant Management & Financials 10%')
+%p= simple_format(_('Projects must demonstrate understanding of compliance with federal & local regulations of project operations.'))
+%table.table.table-bordered
+  %thead
+    %tr
+      %th.text-nowrap Performance Criteria
+      %th.text-nowrap Purpose & Source of Measurement
+      %th.text-nowrap Formula Information
+      %th.text-nowrap Performance Calculation
+      %th.text-nowrap Scoring
+      %th.text-nowrap Total
+  %tbody
+    %tr
+      %th
+        Projected Project Spend Down
+      %th
+        = simple_format(_('Ensure the program is on track to spend down all project funds by the end of its current grant term'))
+        %br
+        = simple_format(_('Agency Self-Report and eLOCCS data'))
+      %td.p-0
+        %table.table.mb-0
+          %tbody
+            %tr
+              %th= _('Funds expended to date, as reflected in eLOCCS')
+              %td.text-center= f.input :funds_expended, label: false, **@report.field_input_options(:funds_expended, current_user)
+            %tr
+              %th Total Grant Amount Awarded
+              %td.text-center= f.input :amount_awarded, label: false, **@report.field_input_options(:amount_awarded, current_user)
+            %tr
+              %th Number of months since start of grant term to present
+              %td.text-center= f.input :months_since_start, label: false, **@report.field_input_options(:months_since_start, current_user)
+      %td= @report.spend_down_percentage
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          (+/-) 0 - 10%
+        .mb-4
+          Points: 5
+          %br
+          (+/-) 11 - 15%
+        .mb-4
+          Points: 0
+          %br
+          (+/-) 16% +
+      %td= @report.spend_down_score
+    %tr
+      %th
+        Cost Efficiency
+      %th
+        = simple_format(_('It is important to HUD that programs demonstrate cost efficiency - the annual cost to retain or move someone into permanent housing.'))
+        %br
+        = _('Project Application & APR Data')
+      %td.p-0
+        %table.table.mb-0
+          %tbody
+            %tr
+              %th= _('Total CoC Budget Plus 25% Required Match')
+              %td.text-center= f.input :budget_plus_match, label: false, **@report.field_input_options(:budget_plus_match, current_user)
+            %tr
+              %th= _('Number of participants who exited to or remained in permanent supportive housing during the reporting period')
+              %td.text-center= @report.participants_in_psh
+      %td
+        = @report.cost_per_participant
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          PSH <=$8,999
+          %br
+          RRH <=$2,499
+        .mb-4
+          Points: 5
+          %br
+          PSH $9,000 - 11,000
+          %br
+          RRH $2,500 - 4,500
+        .mb-4
+          Points: 0
+          %br
+          PSH >=$11,001
+          %br
+          RRH >=$4,501
+      %td.text-center= @report.cost_efficiency_score
+    %tr
+      %th
+        = ('Percentage of total grant funds that were recaptured in the most recent grant closeout')
+      %th
+        = simple_format(_('It is important to HUD that programs show agency capacity to spend funds allocated in a timely manner and in full and allows for potential fund reallocation of unspent funds during the HUD CoC Competition.'))
+        %br
+        APR Data
+      %td.p-0
+        %table.table.mb-0
+          %tbody
+            %tr
+              %th Total Grant Award
+              %td.text-center= f.input :prior_amount_awarded, label: false, **@report.field_input_options(:prior_amount_awarded, current_user)
+            %tr
+              %th Total Spent
+              %td.text-center= f.input :prior_funds_expended, label: false, **@report.field_input_options(:prior_funds_expended, current_user)
+            %tr
+              %th Unspent Amount
+              %td.text-center= @report.prior_unspent_amount
+      %td.text-center= @report.percentage_recaptured
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          0-2%
+        .mb-4
+          Points: 5
+          %br
+          3-5%
+        .mb-4
+          Points: 0
+          %br
+          >=6%
+      %td.text-center= @report.recaptured_score
+    %tr
+      %th
+        = _('PIT Count Participation')
+      %th
+        = _('The measure indicates if agency is participating in CoC-related activities')
+        %br
+        = _('PIT Registration or PIT Data')
+      %th N/A
+      %td.text-center= f.input :pit_participation, label: false, as: :pretty_boolean, **@report.field_input_options(:pit_participation, current_user)
+      %th
+        .mb-4
+          Points: 10
+          %br
+          Yes
+
+        .mb-4
+          Points: 0
+          %br
+          No
+      %td.text-center= @report.pit_participation_score
+    %tr
+      %th CoC General Meeting Attendance
+      %th
+        = simple_format(_('To support collaboration between agencies and knowledge of local resources at the CoC will provides CoC wide meetings with varying topics related to homelessness and housing services. The measure indicates agency participation.'))
+        %br
+        = _('TCHC Sign-In Sheets')
+      %td.p-0
+        %table.table.mb-0
+          %tbody
+            %tr
+              %th Number of Meetings
+              %td.text-center= f.input :coc_meetings, label: false, **@report.field_input_options(:coc_meetings, current_user)
+            %tr
+              %th Number Attended
+              %td.text-center= f.input :coc_meetings_attended, label: false, **@report.field_input_options(:coc_meetings_attended, current_user)
+      %td.text-center= @report.percentage_meetings_attended
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          >= 75%
+        .mb-4
+          Points: 5
+          %br
+          50 - 74%
+        .mb-4
+          Points: 0
+          %br
+          <= 49%
+      %td.text-center= @report.meetings_attended_score
