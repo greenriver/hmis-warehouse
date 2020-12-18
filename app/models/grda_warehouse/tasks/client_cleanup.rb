@@ -121,15 +121,15 @@ module GrdaWarehouse::Tasks
         data_source_id: household[:data_source_id],
         ProjectID: household[:project_id],
       )
-      # If we are cleaning up an individuals enrollment, use the enrollment ID to find it
+      # If we are cleaning up an individual's enrollment, use the enrollment ID to find it
       # if we have a household, use the household ID
       if individual
         enrollments = enrollments.where(EnrollmentID: household[:enrollment_id])
       else
         enrollments = enrollments.where(HouseholdID: household[:household_id])
-        # for ongoing enrollments, only look for matching entry dates
+        # for ongoing enrollments, only look for entry dates greater than the HoH entry date
         if household[:exit_date].blank?
-          enrollments = enrollments.where(EntryDate: household[:entry_date]).
+          enrollments = enrollments.where(EntryDate: household[:entry_date]..Date.current).
             left_outer_joins(:exit).
             where(ex_t[:ExitDate].eq(nil))
         else
