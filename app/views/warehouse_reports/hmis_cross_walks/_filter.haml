@@ -6,18 +6,18 @@
       .col-3
         = f.input :end, label: 'End Date', as: :date_picker
       .col-3
-        = f.input :project_type_numbers, collection: @filter.available_project_type_numbers, as: :select_two, required: false, input_html: { multiple: true }, label: 'Project Types'
+        = f.input :project_type_numbers, collection: @filter.available_project_type_numbers, as: :select_two, required: false, placeholder: 'Any Project Type', input_html: { multiple: true }, label: 'Project Types'
       .col-3
-        = f.input :project_ids, collection: @filter.project_options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: ['select2'] }, label: 'Projects', required: false
+        = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
     .row
       .col-3
-        = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, required: false, input_html: { multiple: true }, label: 'Project Groups'
+        = f.input :project_group_ids, collection: @filter.project_groups_options_for_select(user: current_user), as: :select_two, required: false, placeholder: 'Any Project Group', input_html: { multiple: true }, label: 'Project Groups'
       .col-3
-        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select, group_method: :last, input_html: {multiple: true, class: ['select2'] }, label: 'Organizations', required: false
+        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select, group_method: :last, placeholder: 'Any Organization', input_html: {multiple: true, class: ['select2'] }, label: 'Organizations', required: false
       .col-3
-        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, group_method: :last, input_html: {multiple: true }, label: 'Data Sources', required: false
+        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, group_method: :last, placeholder: 'Any Data Source', input_html: {multiple: true }, label: 'Data Sources', required: false
       .col-3
-        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, group_method: :last, input_html: {multiple: true }, label: 'Data Sources', required: false
+        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, group_method: :last, placeholder: 'Any CoC', input_html: {multiple: true }, label: 'CoCs', required: false
   - content_for :filter_actions do
     .row
       .col-sm-2.mt-no-label
