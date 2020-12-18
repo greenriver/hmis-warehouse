@@ -37,7 +37,7 @@ window.App.ViewableEntities = class {
     $('.j-remove-all').on('click', function (event) {
       self.removeAll(getSelect2(this), $(this).closest('.j-column'))
     })
-    $('.j-list').on('click', 'li', function (event) {
+    $('.j-list.j-editable').on('click', 'li', function (event) {
       self.removeItem(this, getSelect2(this))
     })
   }
@@ -45,6 +45,7 @@ window.App.ViewableEntities = class {
   renderList(items, $list) {
     const $container = $list.closest('.j-column')
     const $listContainer = $container.find('.j-list')
+    const editable = $listContainer.hasClass('j-editable')
     const ids = Object.keys(items)
     const unlimitableIds = ($list.data('unlimitable') || [])
     const itemValues = []
@@ -58,11 +59,15 @@ window.App.ViewableEntities = class {
       if ( unlimitableIds.includes( parseInt( ids[i] ) ) ) {
         unlimitable = '<span data-toggle="tooltip" data-title="This report is not limitable"><i class="ml-2 mr-2 icon-notification"></i></span>'
       }
+      let icon_span = '<span/>'
+      if ( editable ) {
+        icon_span = '<span> <i class=\'icon-cross\'></i></span>'
+      }
       return `
         <li class='c-columns__column-list-item' data-id=${ids[i]}>
           <span>${item}</span>
           ${unlimitable}
-          <span> <i class='icon-cross'></i></span>
+          ${icon_span}
         </li>
       `
     }).join('')
