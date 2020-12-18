@@ -79,14 +79,14 @@ module ViewableEntities
     end
     helper_method :coc_viewability
 
-    private def reports_assignability(base)
+    private def user_reports_assignability(base)
       model = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled.assignable_by(current_user)
       collection = model.order(:report_group, :name).map do |rd|
         ["#{rd.report_group}: #{rd.name}", rd.id]
       end
       unlimitable = model.where(limitable: false).pluck(:id)
       {
-        selected: @user.reports.map(&:id),
+        selected: @user.access_group.reports.pluck(:id),
         collection: collection,
         placeholder: 'Report',
         multiple: true,
@@ -97,7 +97,7 @@ module ViewableEntities
         },
       }
     end
-    helper_method :reports_assignability
+    helper_method :user_reports_assignability
 
     private def project_groups_editability(base)
       model = GrdaWarehouse::ProjectGroup.editable_by(current_user)
