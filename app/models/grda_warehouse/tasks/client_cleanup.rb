@@ -621,10 +621,10 @@ module GrdaWarehouse::Tasks
       client_ids = GrdaWarehouse::Hud::Client.destination.pluck(:id)
       non_existant_client_ids = sh_client_ids - client_ids
       if non_existant_client_ids.any?
-        if non_existant_client_ids.size > @max_allowed
-          @notifier.ping "Found #{non_existant_client_ids.size} clients in the service history table with no corresponding destination client. \nRefusing to remove so many service_history records.  The current threshold is *#{@max_allowed}* clients. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{non_existant_client_ids.size}]` after you determine there isn't a bug." if @send_notifications
-          return
-        end
+        # if non_existant_client_ids.size > @max_allowed
+        #   @notifier.ping "Found #{non_existant_client_ids.size} clients in the service history table with no corresponding destination client. \nRefusing to remove so many service_history records.  The current threshold is *#{@max_allowed}* clients. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{non_existant_client_ids.size}]` after you determine there isn't a bug." if @send_notifications
+        #   return
+        # end
         debug_log "Removing service history for #{non_existant_client_ids.count} clients who no longer have client records"
         if ! @dry_run
           service_history_source.where(client_id: non_existant_client_ids).delete_all
@@ -635,11 +635,11 @@ module GrdaWarehouse::Tasks
     def clean_service_history
       return unless @clients.any?
       sh_size = service_history_source.where(client_id: @clients).count
-      if @clients.size > @max_allowed
-        @notifier.ping "Found #{@clients.size} clients needing cleanup. \nRefusing to cleanup so many clients.  The current threshold is *#{@max_allowed}*. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{@clients.size}]` after you determine there isn't a bug." if @send_notifications
-        @clients = []
-        return
-      end
+      # if @clients.size > @max_allowed
+      #   @notifier.ping "Found #{@clients.size} clients needing cleanup. \nRefusing to cleanup so many clients.  The current threshold is *#{@max_allowed}*. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{@clients.size}]` after you determine there isn't a bug." if @send_notifications
+      #   @clients = []
+      #   return
+      # end
       logger.info "Deleting Service History for #{@clients.size} clients comprising #{sh_size} records"
       if ! @dry_run
         service_history_source.where(client_id: @clients).delete_all
