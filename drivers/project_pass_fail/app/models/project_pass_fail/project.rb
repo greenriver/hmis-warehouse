@@ -13,20 +13,18 @@ module ProjectPassFail
     has_many :clients, inverse_of: :project, dependent: :destroy
 
     # Data quality acceptable error rates
-    def self.universal_data_element_threshold
-      GrdaWarehouse::Config.get(:pf_universal_data_element_threshold) / 100.0
+    def universal_data_element_threshold
+      project_pass_fail.universal_data_element_threshold
     end
 
     # Acceptable utilization rates
-    def self.utilization_range
-      min = GrdaWarehouse::Config.get(:pf_utilization_min) / 100.0
-      max = GrdaWarehouse::Config.get(:pf_utilization_max) / 100.0
-      (min..max)
+    def utilization_range
+      project_pass_fail.utilization_range
     end
 
     # Days allowed for entering entry assessments
-    def self.timeliness_threshold
-      GrdaWarehouse::Config.get(:pf_timeliness_threshold)
+    def timeliness_threshold
+      project_pass_fail.timeliness_threshold
     end
 
     def utilization_rate_as_percent
@@ -34,15 +32,15 @@ module ProjectPassFail
     end
 
     def within_utilization_threshold?
-      utilization_rate.in?(self.class.utilization_range)
+      utilization_rate.in?(utilization_range)
     end
 
     def within_universal_data_element_threshold?
-      universal_data_element_rates.values.max <= self.class.universal_data_element_threshold
+      universal_data_element_rates.values.max <= universal_data_element_threshold
     end
 
     def within_timeliness_threshold?
-      average_days_to_enter_entry_date <= self.class.timeliness_threshold
+      average_days_to_enter_entry_date <= timeliness_threshold
     end
 
     def universal_data_element_rates
