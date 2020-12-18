@@ -137,6 +137,12 @@ class User < ApplicationRecord
     super && active
   end
 
+  # Allow logins to be case insensitive at login time
+  def self.find_for_authentication(conditions)
+    conditions[:email].downcase!
+    super(conditions)
+  end
+
   def future_expiration?
     expired_at.present? && expired_at > Time.current
   end
@@ -445,7 +451,8 @@ class User < ApplicationRecord
   end
 
   private def viewable(model)
-    if can_edit_anything_super_user?
+    # NOTE: can_edit_anything_super_user? is deprecated and will eventually be removed
+    if can_edit_anything_super_user? && ! model.in?(restricted_models)
       model.all
     else
       model.where(
@@ -457,4 +464,16 @@ class User < ApplicationRecord
     end
   end
 
+  # These models have been migrated to only allow access
+  # if granted explicitly
+  private def restricted_models
+    [
+      # GrdaWarehouse::DataSource,
+      # GrdaWarehouse::Hud::Organization,
+      # GrdaWarehouse::Hud::Project,
+      GrdaWarehouse::WarehouseReports::ReportDefinition,
+      GrdaWarehouse::Cohort,
+      GrdaWarehouse::ProjectGroup,
+    ]
+  end
 end
