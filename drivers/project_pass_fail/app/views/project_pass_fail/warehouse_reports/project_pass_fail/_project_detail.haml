@@ -19,9 +19,10 @@
           %th Metric
           %th Error Rate
         - project.universal_data_element_rates.each do |label, value|
-          %tr
-            %th= label
-            %td= number_to_percentage(value * 100, precision: 2)
+          - if value
+            %tr
+              %th= label
+              %td= number_to_percentage(value * 100, precision: 2)
   .col-sm-3
     %dl
       %dt Minimum Days to Enter
