@@ -451,6 +451,7 @@ class User < ApplicationRecord
   end
 
   private def viewable(model)
+    # NOTE: can_edit_anything_super_user? is deprecated and will eventually be removed
     if can_edit_anything_super_user? && ! model.in?(restricted_models)
       model.all
     else
@@ -471,8 +472,8 @@ class User < ApplicationRecord
       # GrdaWarehouse::Hud::Organization,
       # GrdaWarehouse::Hud::Project,
       GrdaWarehouse::WarehouseReports::ReportDefinition,
-      # GrdaWarehouse::Cohort,
-      # GrdaWarehouse::ProjectGroup,
+      GrdaWarehouse::Cohort,
+      GrdaWarehouse::ProjectGroup,
     ]
   end
 end

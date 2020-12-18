@@ -33,7 +33,7 @@ module GrdaWarehouse::WarehouseReports
     scope :assignable_by, ->(user) do
       return none unless user
 
-      if user.can_view_all_reports?
+      if user.can_assign_reports?
         current_scope
       else
         none
