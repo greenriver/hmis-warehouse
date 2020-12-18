@@ -451,7 +451,7 @@ class User < ApplicationRecord
   end
 
   private def viewable(model)
-    if can_edit_anything_super_user?
+    if can_edit_anything_super_user? && ! model.in?(restricted_models)
       model.all
     else
       model.where(
@@ -463,4 +463,16 @@ class User < ApplicationRecord
     end
   end
 
+  # These models have been migrated to only allow access
+  # if granted explicitly
+  private def restricted_models
+    [
+      # GrdaWarehouse::DataSource,
+      # GrdaWarehouse::Hud::Organization,
+      # GrdaWarehouse::Hud::Project,
+      GrdaWarehouse::WarehouseReports::ReportDefinition,
+      # GrdaWarehouse::Cohort,
+      # GrdaWarehouse::ProjectGroup,
+    ]
+  end
 end
