@@ -55,6 +55,8 @@ Date:  4/20/2020
 						 should be included in SystemPath.)
 	12/3/2020 - 7.7.2-7.7.4 - correct so that SystemPath includes enrollments with entry dates prior
 						to 10/1/2012 when LastInactive = 9/30/2012 and the enrollments extend beyond that date
+	12/17/2020 - 7.7.3 & 7.7.4 - correct hhid household type columns
+			- 7.4.1 - limit setting HHVet to 1 to people over 18 during the relevant cohort period.
 
 	7.1 Identify Qualifying Exits in Exit Cohort Periods
 */
@@ -210,6 +212,10 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 		from tlsa_Enrollment n
 		inner join hmis_Client c on c.PersonalID = n.PersonalID
 		inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
+		where case hhid.ExitCohort 
+			when 0 then n.ActiveAge
+			when -1 then n.Exit1Age
+			when -2 then n.Exit2Age end between 18 and 65
 		group by n.HouseholdID, hhid.ExitCohort) vet on vet.HouseholdID = ex.QualifyingExitHHID and vet.ExitCohort = ex.Cohort
 
 update ex
@@ -479,25 +485,25 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 			and (es.EntryDate > ex.LastInactive
 					or (ex.LastInactive = '9/30/2012' and (es.ExitDate > '9/30/2012' or es.ExitDate is NULL))
 				)
-			and (es.ActiveHHType = ex.HHType)
+			and (es.Exit1HHType = ex.HHType)
 		left outer join tlsa_HHID th on th.ProjectType = 2
 			and th.HoHID = ex.HoHID and th.EntryDate <= qx.ExitDate 
 			and (th.EntryDate > ex.LastInactive
 					or (ex.LastInactive = '9/30/2012' and (th.ExitDate > '9/30/2012' or th.ExitDate is NULL))
 				)
-			and (th.ActiveHHType = ex.HHType)
+			and (th.Exit1HHType = ex.HHType)
 		left outer join tlsa_HHID rrh on rrh.ProjectType = 13
 			and rrh.HoHID = ex.HoHID and rrh.EntryDate <= qx.ExitDate 
 			and (rrh.EntryDate > ex.LastInactive
 				or (ex.LastInactive = '9/30/2012' and (rrh.ExitDate > '9/30/2012' or rrh.ExitDate is NULL))
 				)
-			and (rrh.ActiveHHType = ex.HHType)
+			and (rrh.Exit1HHType = ex.HHType)
 		left outer join tlsa_HHID psh on psh.ProjectType = 3
 			and psh.HoHID = ex.HoHID and psh.EntryDate <= qx.ExitDate 
 			and (psh.EntryDate > ex.LastInactive
 					or (ex.LastInactive = '9/30/2012' and (psh.ExitDate > '9/30/2012' or psh.ExitDate is NULL))
 				)
-			and (psh.ActiveHHType = ex.HHType)
+			and (psh.Exit1HHType = ex.HHType)
 		) ptype on ptype.HoHID = ex.HoHID and ptype.HHType = ex.HHType 
 		and ptype.Cohort = ex.Cohort
 where ex.Cohort = -1 and ex.SystemPath is null
@@ -531,25 +537,25 @@ inner join (select distinct ex.HoHID, ex.HHType, ex.Cohort
 			and (es.EntryDate > ex.LastInactive
 					or (ex.LastInactive = '9/30/2012' and (es.ExitDate > '9/30/2012' or es.ExitDate is NULL))
 				)
-			and (es.ActiveHHType = ex.HHType)
+			and (es.Exit2HHType = ex.HHType)
 		left outer join tlsa_HHID th on th.ProjectType = 2
 			and th.HoHID = ex.HoHID and th.EntryDate <= qx.ExitDate 
 			and (th.EntryDate > ex.LastInactive
 					or (ex.LastInactive = '9/30/2012' and (th.ExitDate > '9/30/2012' or th.ExitDate is NULL))
 				)
-			and (th.ActiveHHType = ex.HHType)
+			and (th.Exit2HHType = ex.HHType)
 		left outer join tlsa_HHID rrh on rrh.ProjectType = 13
 			and rrh.HoHID = ex.HoHID and rrh.EntryDate <= qx.ExitDate 
 			and (rrh.EntryDate > ex.LastInactive
 				or (ex.LastInactive = '9/30/2012' and (rrh.ExitDate > '9/30/2012' or rrh.ExitDate is NULL))
 				)
-			and (rrh.ActiveHHType = ex.HHType)
+			and (rrh.Exit2HHType = ex.HHType)
 		left outer join tlsa_HHID psh on psh.ProjectType = 3
 			and psh.HoHID = ex.HoHID and psh.EntryDate <= qx.ExitDate 
 			and (psh.EntryDate > ex.LastInactive
 					or (ex.LastInactive = '9/30/2012' and (psh.ExitDate > '9/30/2012' or psh.ExitDate is NULL))
 				)
-			and (psh.ActiveHHType = ex.HHType)
+			and (psh.Exit2HHType = ex.HHType)
 		) ptype on ptype.HoHID = ex.HoHID and ptype.HHType = ex.HHType 
 		and ptype.Cohort = ex.Cohort
 where ex.Cohort = -2 and ex.SystemPath is null
