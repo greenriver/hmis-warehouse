@@ -32,7 +32,7 @@
                 %td
                   = group.users.count
                 %td
-                  - unless group.users.count > 0
+                  - unless group.users.count.positive? || group.required?
                     = link_to admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
                       %span.icon-cross
                       Delete
