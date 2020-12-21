@@ -30,9 +30,9 @@
           %tr
             %td= link_to group.name, edit_admin_group_path(group)
             %td.text-center= group.users.count
-            %td.text-center= checkmark(group.system.present?, style: :svg)
+            %td.text-center= checkmark(group.must_exist?, style: :svg)
             %td
-              - unless group.users.count.positive? || group.required?
+              - unless group.users.count.positive? || group.must_exist?
                 = link_to admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
                   %span.icon-cross
                   Delete

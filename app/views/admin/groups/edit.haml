@@ -13,8 +13,8 @@
   = f.error_notification
   .form-inputs
     = render 'form', f: f
-
-  .form_actions.mt-4
-    = f.button :submit, value: 'Update Group'
+  - unless @group.must_exist?
+    .form_actions.mt-4
+      = f.button :submit, value: 'Update Group'
 .mt-4
   = render 'users'
