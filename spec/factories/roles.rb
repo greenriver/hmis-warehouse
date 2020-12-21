@@ -8,7 +8,6 @@ FactoryBot.define do
     verb { nil }
     can_view_clients { true }
     can_edit_clients { true }
-    can_view_all_reports { true }
     can_view_assigned_reports { true }
     can_assign_reports { true }
     can_view_censuses { true }
@@ -85,13 +84,8 @@ FactoryBot.define do
     can_view_assigned_cohorts { true }
   end
 
-  factory :report_viewer, class: 'Role' do
-    name { 'cohort client viewer' }
-    can_view_all_reports { true }
-  end
-
   factory :assigned_report_viewer, class: 'Role' do
-    name { 'cohort client viewer' }
+    name { 'assigned review viewer' }
     can_view_assigned_reports { true }
   end
 

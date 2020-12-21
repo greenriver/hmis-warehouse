@@ -7,22 +7,26 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
 
     let!(:report) { create :confidential_touch_point_report }
     let!(:other_report) { create :touch_point_report }
+    let!(:access_group) { AccessGroup.find_by(name: AccessGroup::ALL_HMIS_REPORTS_GROUP_NAME) }
 
     let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
+    let(:other_report_viewer) { create :assigned_report_viewer }
 
     before(:each) do
       user.roles << admin_role
+      access_group.add_viewable(report)
       add_random_user_with_report_access
 
       sign_in(user)
     end
+
     describe 'should not be able to access the index path' do
       it 'and should receive a redirect' do
         get warehouse_reports_confidential_touch_point_exports_path
         expect(response).to have_http_status(:redirect)
       end
     end
+
     describe 'should be able to access the index path if they can also see the report' do
       it 'returns http success' do
         user.add_viewable(report)
@@ -37,34 +41,11 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     let!(:report) { create :confidential_touch_point_report }
 
     let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
+    let(:other_report_viewer) { create :assigned_report_viewer }
 
     before(:each) do
       add_random_user_with_report_access
 
-      sign_in(user)
-    end
-
-    describe 'should not be able to access the index path' do
-      it 'and should receive a redirect' do
-        get warehouse_reports_confidential_touch_point_exports_path
-        expect(response).to have_http_status(:redirect)
-      end
-    end
-  end
-
-  describe 'Report viewer' do
-    let(:user) { create :user }
-    let(:role) { create :report_viewer }
-    let!(:report) { create :confidential_touch_point_report }
-
-    let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
-
-    before(:each) do
-      add_random_user_with_report_access
-
-      user.roles << role
       sign_in(user)
     end
 
@@ -82,7 +63,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
     let(:report) { create :confidential_touch_point_report }
 
     let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
+    let(:other_report_viewer) { create :assigned_report_viewer }
 
     before(:each) do
       add_random_user_with_report_access

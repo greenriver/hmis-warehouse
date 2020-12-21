@@ -7,6 +7,9 @@
 class AccessGroup < ApplicationRecord
   acts_as_paranoid
 
+  ALL_HMIS_REPORTS_GROUP_NAME = 'All HMIS Reports'
+  ALL_HEALTH_REPORTS_GROUP_NAME = 'All Health Reports'
+
   has_many :access_group_members
   has_many :users, through: :access_group_members
 
@@ -58,6 +61,10 @@ class AccessGroup < ApplicationRecord
 
   def remove(user)
     access_group_members.where(user_id: user.id).destroy_all
+  end
+
+  def member?(user)
+    access_group_members.where(user_id: user.id).exists?
   end
 
   def set_viewables(viewables)

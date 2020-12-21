@@ -5,13 +5,16 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
     let(:user) { create :user }
     let(:role) { create :admin_role }
     let!(:report) { create :touch_point_report }
+    let!(:access_group) { AccessGroup.find_by(name: AccessGroup::ALL_HMIS_REPORTS_GROUP_NAME) }
 
     let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
+    let(:other_report_viewer) { create :assigned_report_viewer }
 
     before(:each) do
       add_random_user_with_report_access
       user.roles << role
+      access_group.add_viewable(report)
+      access_group.add(user)
       sign_in(user)
     end
 
@@ -27,7 +30,7 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
     let(:user) { create :user }
     let!(:report) { create :touch_point_report }
     let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
+    let(:other_report_viewer) { create :assigned_report_viewer }
 
     before(:each) do
       add_random_user_with_report_access
@@ -43,33 +46,12 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
     end
   end
 
-  describe 'Report viewer' do
-    let(:user) { create :user }
-    let(:role) { create :report_viewer }
-    let!(:report) { create :touch_point_report }
-    let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
-
-    before(:each) do
-      add_random_user_with_report_access
-      user.roles << role
-      sign_in(user)
-    end
-
-    describe 'should be able to access the index path' do
-      it 'returns http success' do
-        get warehouse_reports_touch_point_exports_path
-        expect(response).to have_http_status(:success)
-      end
-    end
-  end
-
   describe 'Assigned Report viewer' do
     let(:user) { create :user }
     let(:role) { create :assigned_report_viewer }
     let!(:report) { create :touch_point_report }
     let(:other_user) { create :user }
-    let(:other_report_viewer) { create :report_viewer }
+    let(:other_report_viewer) { create :assigned_report_viewer }
 
     before(:each) do
       add_random_user_with_report_access

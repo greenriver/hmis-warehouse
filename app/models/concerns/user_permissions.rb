@@ -14,6 +14,7 @@ module UserPermissions
     # for everything listed here there should also be a method below
     def self.additional_permissions
       [
+        :can_view_all_reports,
         :can_see_admin_menu,
         :can_see_raw_hmis_data,
         :can_receive_secure_files,
@@ -53,6 +54,11 @@ module UserPermissions
 
     def self.can_receive_secure_files?
       can_view_assigned_secure_uploads || can_view_all_secure_uploads
+    end
+
+    def can_view_all_reports
+      AccessGroup.find_by(name: AccessGroup::ALL_HMIS_REPORTS_GROUP_NAME)&.member?(self) ||
+        AccessGroup.find_by(name: AccessGroup::ALL_HEALTH_REPORTS_GROUP_NAME)&.member?(self)
     end
 
     def can_see_admin_menu

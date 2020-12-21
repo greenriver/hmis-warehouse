@@ -529,13 +529,6 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
-      can_view_all_reports: {
-        description: 'Access to all reports, regardless of assignment to the user',
-        administrative: true,
-        categories: [
-          'Reporting',
-        ],
-      },
       can_assign_reports: {
         description: 'Ability to specify which reports other users can see, the other users must have the "Can view assigned reports" permission and reports assigned on the user edit screen',
         administrative: true,
