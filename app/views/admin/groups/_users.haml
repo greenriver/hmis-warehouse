@@ -1,0 +1,17 @@
+- if @group.users.count.positive?
+  %h3= pluralize(@group.users.count, 'User')
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Name
+          %th email
+      %tbody
+        - @group.users.each do |user|
+          %tr
+            %td= link_to_if can_edit_users?, user.name, edit_admin_user_path(user)
+            %td= user.email
+- else
+  %h3 Users
+  %p.none-found
+    No users found.
