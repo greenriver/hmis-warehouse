@@ -21,7 +21,7 @@
       %h1.mb-5= title
       .mb-4= render 'hero_counts'
       .main-inner-prs1
-        - if false
+        - if false # Disabled until the report structure has settled
           .text-right.mb-4
             = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: disability_summary_warehouse_reports_disability_summary_index_path({format: :xlsx}.merge(@filter.for_params))
         .row
