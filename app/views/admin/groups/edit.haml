@@ -13,7 +13,7 @@
   = f.error_notification
   .form-inputs
     = render 'form', f: f
-  - unless @group.system.include?('Entities')
+  - unless @group.entities_locked?
     .form_actions.mt-4
       = f.button :submit, value: 'Update Group'
 .mt-4

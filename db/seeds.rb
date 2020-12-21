@@ -1103,36 +1103,7 @@ def ensure_db_triggers_and_functions
 end
 
 def maintain_system_groups
-  # Reports
-  all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
-
-  all_hmis_reports = AccessGroup.where(name: 'All HMIS Reports').first_or_create
-  all_hmis_reports.update(system: ['Entities'], must_exist: :true)
-  ids = all_reports.where(health: false).pluck(:id)
-  all_hmis_reports.set_viewables( { reports: ids } )
-
-  all_health_reports = AccessGroup.where(name: 'All Health Reports').first_or_create
-  all_health_reports.update(system: ['Entities'], must_exist: :true)
-  ids = all_reports.where(health: true).pluck(:id)
-  all_health_reports.set_viewables( { reports: ids } )
-
-  # Cohorts
-  all_cohorts = AccessGroup.where(name: 'All Cohorts').first_or_create
-  all_cohorts.update(system: ['Entities'], must_exist: :true)
-  ids = GrdaWarehouse::Cohort.pluck(:id)
-  all_cohorts.set_viewables( { cohorts: ids } )
-
-  # Project Groups
-  all_project_groups = AccessGroup.where(name: 'All Project Groups').first_or_create
-  all_project_groups.update(system: ['Entities'], must_exist: :true)
-  ids = GrdaWarehouse::ProjectGroup.pluck(:id)
-  all_project_groups.set_viewables( { project_groups: ids } )
-
-  # Data Sources
-  all_data_sources = AccessGroup.where(name: 'All Data Sources').first_or_create
-  all_data_sources.update(system: ['Entities'], must_exist: :true)
-  ids = GrdaWarehouse::DataSource.pluck(:id)
-  all_data_sources.set_viewables( { data_sources: ids } )
+  AccessGroup.maintain_system_groups
 end
 
 ensure_db_triggers_and_functions()
