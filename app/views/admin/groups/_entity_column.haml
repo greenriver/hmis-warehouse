@@ -1,6 +1,6 @@
 - associated_items ||= @group.associated_by(associations: associations) rescue []
 - name = entity[:label] || entity[:placeholder]
-- locked = @group.system.include?("Entities")
+- locked = @group.entities_locked?
 
 .c-columns__column.j-column{data: {title: name.pluralize}}
   .c-columns__column-header

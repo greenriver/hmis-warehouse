@@ -13,6 +13,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   validates :name, presence: true
   validates :short_name, presence: true
 
+  after_create :maintain_system_group
+
   CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
 
   has_many :import_logs
@@ -421,6 +423,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def project_count
     projects.count
+  end
+
+  private def maintain_system_group
+    AccessGroup.delay.maintain_system_groups(group: :data_sources)
   end
 
   class << self
