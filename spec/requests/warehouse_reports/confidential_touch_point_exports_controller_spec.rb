@@ -7,7 +7,7 @@ RSpec.describe WarehouseReports::ConfidentialTouchPointExportsController, type: 
 
     let!(:report) { create :confidential_touch_point_report }
     let!(:other_report) { create :touch_point_report }
-    let!(:access_group) { AccessGroup.find_by(name: AccessGroup::ALL_HMIS_REPORTS_GROUP_NAME) }
+    let!(:access_group) { AccessGroup.where(name: AccessGroup::ALL_HMIS_REPORTS_GROUP_NAME).first_or_create }
 
     let(:other_user) { create :user }
     let(:other_report_viewer) { create :assigned_report_viewer }

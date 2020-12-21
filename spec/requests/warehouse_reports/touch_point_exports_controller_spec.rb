@@ -5,7 +5,7 @@ RSpec.describe WarehouseReports::TouchPointExportsController, type: :request do
     let(:user) { create :user }
     let(:role) { create :admin_role }
     let!(:report) { create :touch_point_report }
-    let!(:access_group) { AccessGroup.find_by(name: AccessGroup::ALL_HMIS_REPORTS_GROUP_NAME) }
+    let!(:access_group) { AccessGroup.where(name: AccessGroup::ALL_HMIS_REPORTS_GROUP_NAME).first_or_create }
 
     let(:other_user) { create :user }
     let(:other_report_viewer) { create :assigned_report_viewer }
