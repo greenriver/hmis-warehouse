@@ -3791,6 +3791,9 @@ msgstr ""
 msgid "This is an Individual VI-SPDAT"
 msgstr ""
 
+msgid "This list of agencies will change over time.  Please revisit this page for the updated list."
+msgstr ""
+
 msgid "U.S Citizen or Permanent Resident"
 msgstr ""
 
