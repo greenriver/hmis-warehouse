@@ -72,6 +72,12 @@ module Admin
         :income_increase_goal,
         :ph_destination_increase_goal,
         :move_in_date_threshold,
+        :pf_universal_data_element_threshold,
+        :pf_utilization_min,
+        :pf_utilization_max,
+        :pf_timeliness_threshold,
+        :pf_show_income,
+        :pf_show_additional_timeliness,
         client_details: [],
       )
     end
