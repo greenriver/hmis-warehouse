@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_16_164355) do
+ActiveRecord::Schema.define(version: 2020_12_18_180004) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1813,12 +1813,12 @@ ActiveRecord::Schema.define(version: 2020_12_16_164355) do
     t.integer "income_increase_goal", default: 75
     t.integer "ph_destination_increase_goal", default: 60
     t.integer "move_in_date_threshold", default: 30
-    t.integer "pf_universal_data_element_threshold", default: 2
-    t.integer "pf_utilization_min", default: 66
-    t.integer "pf_utilization_max", default: 104
-    t.integer "pf_timeliness_threshold", default: 3
-    t.boolean "pf_show_income", default: false
-    t.boolean "pf_show_additional_timeliness", default: false
+    t.integer "pf_universal_data_element_threshold", default: 2, null: false
+    t.integer "pf_utilization_min", default: 66, null: false
+    t.integer "pf_utilization_max", default: 104, null: false
+    t.integer "pf_timeliness_threshold", default: 3, null: false
+    t.boolean "pf_show_income", default: false, null: false
+    t.boolean "pf_show_additional_timeliness", default: false, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -5178,6 +5178,7 @@ ActiveRecord::Schema.define(version: 2020_12_16_164355) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.jsonb "thresholds", default: {}
     t.index ["created_at"], name: "index_project_pass_fails_on_created_at"
     t.index ["deleted_at"], name: "index_project_pass_fails_on_deleted_at"
     t.index ["updated_at"], name: "index_project_pass_fails_on_updated_at"
@@ -5210,6 +5211,7 @@ ActiveRecord::Schema.define(version: 2020_12_16_164355) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.integer "income_at_entry"
     t.index ["client_id"], name: "index_project_pass_fails_clients_on_client_id"
     t.index ["created_at"], name: "index_project_pass_fails_clients_on_created_at"
     t.index ["deleted_at"], name: "index_project_pass_fails_clients_on_deleted_at"
@@ -5251,6 +5253,8 @@ ActiveRecord::Schema.define(version: 2020_12_16_164355) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.float "income_at_entry_error_rate"
+    t.integer "income_at_entry_error_count"
     t.index ["apr_id"], name: "index_project_pass_fails_projects_on_apr_id"
     t.index ["created_at"], name: "index_project_pass_fails_projects_on_created_at"
     t.index ["deleted_at"], name: "index_project_pass_fails_projects_on_deleted_at"

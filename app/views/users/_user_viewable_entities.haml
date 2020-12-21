@@ -49,17 +49,10 @@
         .c-columns__veil
 
   .tab-pane.fade#reports-cohorts{role: 'tabpanel', aria: {labelledby: 'reports-cohorts'}}
-    - if can_view_all_entities
-      .c-columns__message
-        %p
-          %i.icon-info.mr-2
-          = can_view_all_entities_message
-    .c-columns{class: ('static' if can_view_all_entities)}
-      = render 'users/entity_column', entity: reports_assignability(base), f: f
+    .c-columns
+      = render 'users/entity_column', entity: user_reports_assignability(base), f: f
       = render 'users/entity_column', entity: project_groups_editability(base), f: f
       = render 'users/entity_column', entity: cohort_editability(base), f: f
-      - if can_view_all_entities
-        .c-columns__veil
 
 - content_for :page_js do
   :javascript
