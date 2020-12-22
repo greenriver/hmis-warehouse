@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_17_155258) do
+ActiveRecord::Schema.define(version: 2020_12_21_183603) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -29,7 +29,7 @@ ActiveRecord::Schema.define(version: 2020_12_17_155258) do
     t.string "coc_codes", default: [], array: true
     t.datetime "deleted_at"
     t.jsonb "system", default: []
-    t.boolean "required", default: false, null: false
+    t.boolean "must_exist", default: false, null: false
   end
 
   create_table "account_requests", force: :cascade do |t|

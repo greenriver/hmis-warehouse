@@ -1114,17 +1114,7 @@ def ensure_db_triggers_and_functions
 end
 
 def maintain_system_groups
-  all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
-
-  all_hmis_reports = AccessGroup.where(name: 'All HMIS Reports').first_or_create
-  all_hmis_reports.update(system: ['Entities'], required: :true)
-  hmis_report_ids = all_reports.where(health: false).pluck(:id)
-  all_hmis_reports.set_viewables( { reports: hmis_report_ids } )
-
-  all_health_reports = AccessGroup.where(name: 'All Health Reports').first_or_create
-  all_health_reports.update(system: ['Entities'], required: :true)
-  health_report_ids = all_reports.where(health: true).pluck(:id)
-  all_health_reports.set_viewables( { reports: health_report_ids } )
+  AccessGroup.maintain_system_groups
 end
 
 ensure_db_triggers_and_functions()

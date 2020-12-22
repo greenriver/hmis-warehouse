@@ -40,12 +40,10 @@ module ApplicationHelper
     boolean ? 'Y' : 'N'
   end
 
-  def checkmark(boolean)
+  def checkmark(boolean, tooltip = nil, size: :xs, style: :font)
     return unless boolean
 
-    capture do
-      concat content_tag :span, nil, class: 'icon-checkmark o-color--positive'
-    end
+    checkmark_or_x(boolean, tooltip, size: size, style: style)
   end
 
   def checkmark_or_x(boolean, tooltip = nil, size: :xs, style: :font)
