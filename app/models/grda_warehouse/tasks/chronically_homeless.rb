@@ -23,7 +23,6 @@
 # ch = GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: '2017-06-01'.to_date, dry_run: true, client_ids: [123456,123457], debug: true);
 
 module GrdaWarehouse::Tasks
-  require 'ruby-progressbar'
   class ChronicallyHomeless
     include TsqlImport
     include ArelHelper
@@ -40,16 +39,9 @@ module GrdaWarehouse::Tasks
       dry_run: false,
       client_ids: nil,
       debug: false,
-      sanity_check: false,
-      show_progress: false
+      sanity_check: false
     )
       self.logger = Rails.logger
-      @progress_format = '%a: '
-      @show_progress = show_progress
-      if @show_progress
-        @progress = ProgressBar.create(starting_at: 0, total: nil, format: @progress_format)
-        @pb_output_for_log = ProgressBar::Outputs::NonTty.new(bar: @progress)
-      end
       @date = date
       @hard_stop = @date.beginning_of_month
       @count_so_as_full_month = GrdaWarehouse::Config.get(:so_day_as_month)
@@ -110,9 +102,6 @@ module GrdaWarehouse::Tasks
               add_client_details(client: client, days_served: adjusted_homeless_dates_served, months_homeless: homeless_months.size, chronic_trigger: @chronic_trigger)
             end
           end
-        end
-        if @show_progress
-          @progress.format = "#{@progress_format}Found chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}" unless @debug
         end
       end
       logger.info "Found #{@chronically_homeless.size} chronically homeless clients"

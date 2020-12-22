@@ -12,7 +12,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
   class Add < Base
     include TsqlImport
     include ActiveSupport::Benchmarkable
-    require 'ruby-progressbar'
     attr_accessor :logger
 
     def run!

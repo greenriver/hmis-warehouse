@@ -880,7 +880,6 @@ DEPENDENCIES
   ruby-filemagic
   ruby-mailchecker
   ruby-prof
-  ruby-progressbar
   rubyXL
   ruby_parser
   rubyzip (>= 1.2.1)
