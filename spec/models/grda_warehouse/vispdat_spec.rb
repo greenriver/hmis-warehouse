@@ -43,6 +43,8 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
       let(:vispat) { create :vispdat, completed: Time.now }
 
       before(:each) do
+        # Ensure there are no jobs in the queue
+        Delayed::Job.delete_all
         vispdat.update(nickname: 'Joey')
       end
 
