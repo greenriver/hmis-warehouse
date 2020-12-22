@@ -8,9 +8,9 @@
       - if @report.patients_without_payments.any?
         %p No record of payment could be found for the following #{pluralize(@report.patients_without_payments&.size, 'patient')}:
     .ml-auto
-      = link_to(link_params.merge({format: :csv}),{class: 'btn btn-secondary'}) do
-        %i.icon.icon-download2
-        Download
+      = link_to(link_params.merge({format: :xlsx}),{class: 'btn btn-secondary'}) do
+        %i.icon-icon-download2
+        Download Excel
   .card
     %table.table.table-striped.datatable
       %thead
@@ -31,7 +31,7 @@
             %td= @report.qa_count_for_patient(patient)
             %td= @report.qa_missing_enrollment_count_for_patient(patient)
             %td= @report.qa_missing_careplan_count_for_patient(patient)
-            %td= patient.careplans.select(&:provider_signed_on).map{|d| d.provider_signed_on.to_date }.to_sentence
+            %td= @report.careplan_dates_for_patient(patient)
 = content_for :page_js do
   :javascript
     $('.datatable').DataTable({
