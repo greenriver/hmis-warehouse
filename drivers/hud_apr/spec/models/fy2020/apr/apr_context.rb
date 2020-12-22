@@ -8,7 +8,7 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
       start: Date.parse('2019-01-01'),
       end: Date.parse('2019-12-31'),
       coc_codes: ['XX-500'],
-      user_id: 0,
+      user_id: User.setup_system_user.id,
     }.freeze
   end
 
@@ -37,16 +37,16 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
 
   def default_setup
     # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
-    warehouse = GrdaWarehouseBase.connection
+    # warehouse = GrdaWarehouseBase.connection
 
-    if Fixpoint.exists? :hud_hmis_export_app
-      restore_fixpoint :hud_hmis_export_app
-      restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
-    else
-      setup(default_setup_path)
-      store_fixpoint :hud_hmis_export_app
-      store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
-    end
+    # if Fixpoint.exists? :hud_hmis_export_app
+    #   restore_fixpoint :hud_hmis_export_app
+    #   restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+    # else
+    setup(default_setup_path)
+    #   store_fixpoint :hud_hmis_export_app
+    #   store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
+    # end
   end
 
   def setup(file_path)
@@ -55,12 +55,15 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
 
     @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
     GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
+
     import(file_path, @data_source)
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
 
-    Delayed::Worker.new.work_off(2)
+    Delayed::Worker.new.work_off
+    puts '----------------------- JOB COUNT:'
+    puts Delayed::Job.count
   end
 
   def import(file_path, data_source)

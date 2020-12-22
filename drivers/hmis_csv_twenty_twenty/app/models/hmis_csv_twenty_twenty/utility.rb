@@ -21,7 +21,12 @@ class HmisCsvTwentyTwenty::Utility
       HmisCsvTwentyTwenty::Aggregated::Exit,
       HmisCsvTwentyTwenty::Loader::LoaderLog,
       HmisCsvTwentyTwenty::Importer::ImporterLog,
+      HmisCsvTwentyTwenty::Importer::ImportError,
+      HmisCsvTwentyTwenty::Loader::LoadError,
+      GrdaWarehouse::Upload,
+      GrdaWarehouse::HudCreateLog,
       HmisCsvValidation::Base,
+      GrdaWarehouse::ImportLog,
     ].each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
     end
