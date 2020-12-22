@@ -9,6 +9,11 @@ class AccessGroup < ApplicationRecord
 
   ALL_HMIS_REPORTS_GROUP_NAME = 'All HMIS Reports'
   ALL_HEALTH_REPORTS_GROUP_NAME = 'All Health Reports'
+  ALL_COHORTS_GROUP_NAME = 'All Cohorts'
+  ALL_PROJECT_GROUPS_GROUP_NAME = 'All Project Groups'
+  ALL_DATA_SOURCES_GROUP_NAME = 'All Data Sources'
+
+  SYSTEM_CONTROLLED_ENTITIES = 'Entities'
 
   has_many :access_group_members
   has_many :users, through: :access_group_members
@@ -67,6 +72,47 @@ class AccessGroup < ApplicationRecord
     access_group_members.where(user_id: user.id).exists?
   end
 
+  def self.maintain_system_groups(group: nil)
+    if group.blank? || group == :reports
+      # Reports
+      all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
+
+      all_hmis_reports = AccessGroup.where(name: ALL_HMIS_REPORTS_GROUP_NAME).first_or_create
+      all_hmis_reports.update(system: [SYSTEM_CONTROLLED_ENTITIES], must_exist: true)
+      ids = all_reports.where(health: false).pluck(:id)
+      all_hmis_reports.set_viewables( { reports: ids } )
+
+      all_health_reports = AccessGroup.where(name: ALL_HEALTH_REPORTS_GROUP_NAME).first_or_create
+      all_health_reports.update(system: [SYSTEM_CONTROLLED_ENTITIES], must_exist: true)
+      ids = all_reports.where(health: true).pluck(:id)
+      all_health_reports.set_viewables( { reports: ids } )
+    end
+
+    if group.blank? || group == :cohorts
+      # Cohorts
+      all_cohorts = AccessGroup.where(name: ALL_COHORTS_GROUP_NAME).first_or_create
+      all_cohorts.update(system: [SYSTEM_CONTROLLED_ENTITIES], must_exist: true)
+      ids = GrdaWarehouse::Cohort.pluck(:id)
+      all_cohorts.set_viewables( { cohorts: ids } )
+    end
+
+    if group.blank? || group == :project_groups
+      # Project Groups
+      all_project_groups = AccessGroup.where(name: ALL_PROJECT_GROUPS_GROUP_NAME).first_or_create
+      all_project_groups.update(system: [SYSTEM_CONTROLLED_ENTITIES], must_exist: true)
+      ids = GrdaWarehouse::ProjectGroup.pluck(:id)
+      all_project_groups.set_viewables( { project_groups: ids } )
+    end
+
+    if group.blank? || group == :data_sources
+      # Data Sources
+      all_data_sources = AccessGroup.where(name: ALL_DATA_SOURCES_GROUP_NAME).first_or_create
+      all_data_sources.update(system: [SYSTEM_CONTROLLED_ENTITIES], must_exist: true)
+      ids = GrdaWarehouse::DataSource.pluck(:id)
+      all_data_sources.set_viewables( { data_sources: ids } )
+    end
+  end
+
   def set_viewables(viewables)
     return unless persisted?
     GrdaWarehouse::GroupViewableEntity.transaction do
@@ -107,6 +153,10 @@ class AccessGroup < ApplicationRecord
       entity_type: viewable.class.sti_name,
       entity_id: viewable.id,
     ).destroy_all
+  end
+
+  def entities_locked?
+    system.include?(SYSTEM_CONTROLLED_ENTITIES)
   end
 
   # Provides a means of showing projects associated through other entities
