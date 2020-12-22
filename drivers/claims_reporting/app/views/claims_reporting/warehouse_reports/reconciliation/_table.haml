@@ -9,7 +9,7 @@
         %p No record of payment could be found for the following #{pluralize(@report.patients_without_payments&.size, 'patient')}:
     .ml-auto
       = link_to(link_params.merge({format: :xlsx}),{class: 'btn btn-secondary'}) do
-        %i.icon-icon-download2
+        %i.icon.icon-download2
         Download Excel
   .card
     %table.table.table-striped.datatable
