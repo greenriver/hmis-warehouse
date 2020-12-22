@@ -59,6 +59,7 @@ class GrdaWarehouse::Utility
       Reporting::Housed,
       Reporting::MonthlyClientIds,
       Reporting::Return,
+      Delayed::Job,
       ReportResult,
     ]
     tables.each do |klass|
