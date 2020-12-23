@@ -251,6 +251,13 @@ def report_list
         limitable: true,
         health: false,
       },
+      {
+        url: 'client_matches',
+        name: 'Process Duplicates',
+        description: 'Merge identified possible duplicate clients.',
+        limitable: false,
+        health: false,
+      },
     ],
     'Data Quality' => [
       {
