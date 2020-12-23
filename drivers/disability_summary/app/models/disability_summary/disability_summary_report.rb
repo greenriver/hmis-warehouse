@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-module PriorLivingSituation
-  class PriorLivingSituationReport
+module DisabilitySummary
+  class DisabilitySummaryReport
     include Filter::ControlSections
     include Filter::FilterScopes
     include ActionView::Helpers::NumberHelper
@@ -34,18 +34,28 @@ module PriorLivingSituation
     end
 
     def self.url
-      'prior_living_situation/warehouse_reports/prior_living_situation'
+      'disability_summary/warehouse_reports/disability_summary'
     end
 
     def multiple_project_types?
       true
     end
 
+    protected def build_control_sections
+      [
+        build_general_control_section,
+        build_coc_control_section,
+        build_household_control_section,
+        add_demographic_disabilities_control_section,
+        build_enrollment_control_section,
+      ]
+    end
+
     def report_path_array
       [
-        :prior_living_situation,
+        :disability_summary,
         :warehouse_reports,
-        :prior_living_situation,
+        :disability_summary,
         :index,
       ]
     end
@@ -112,64 +122,75 @@ module PriorLivingSituation
       end
     end
 
-    def data_for_living_situations
-      @data_for_living_situations ||= begin
+    # most recent response for each client for each disability type per CoC
+    def data_for_disabilities
+      @data_for_disabilities ||= begin
         data = {}
-        report_scope.joins(:enrollment, project: :project_cocs).
-          order(:CoCCode, :first_date_in_program).
+        # binding.pry
+        report_scope.joins(enrollment: :disabilities, project: :project_cocs).
+          order(:CoCCode, d_t[:InformationDate].desc).
           pluck(
             :client_id,
-            :LivingSituation,
-            :LengthOfStay,
+            :DisabilityType,
+            :DisabilityResponse,
+            :IndefiniteAndImpairs,
             :CoCCode,
-          ).each do |client_id, living_situation_id, length_of_stay, coc_code|
-            living_situation = HUD.situation_type(living_situation_id, include_homeless_breakout: true)
+          ).each do |client_id, disability_type, disability_response, indefinite, coc_code|
+            disability = HUD.disability_type(disability_type)
 
-            data[:all] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
-            data[:all][living_situation] << client_id
+            # only count the first response for a client in each type per coc
+            data[:counted_by_coc] ||= {}
+            data[:counted_by_coc][coc_code] ||= disability_options(Set)
+            next if data[:counted_by_coc][coc_code][disability].include?(client_id)
+
+            data[:counted_by_coc][coc_code][disability] << client_id
+
+            # ignore no/doesn't know/not collected
+            next unless disability_response.in?(GrdaWarehouse::Hud::Disability.positive_responses)
+
+            indefinite ||= 99
+            response = HUD.disability_type(disability_response)
+
+            data[:all] ||= disability_options(Set)
+            data[:all][disability] << client_id
 
             data[:by_coc] ||= {}
             data[:by_coc][coc_code] ||= {}
             data[:by_coc][coc_code][:clients] ||= {}
-            next if data[:by_coc][coc_code][:clients][client_id]
-
-            data[:by_coc][coc_code][:clients][client_id] ||= {
-              living_situation_id: living_situation_id,
-              living_situation: living_situation,
-              length_of_stay: length_of_stay,
+            data[:by_coc][coc_code][:clients][disability] ||= {}
+            data[:by_coc][coc_code][:clients][disability][client_id] ||= {
+              disability_type: disability_type,
+              disability: disability,
+              response: response,
+              indefinite: indefinite,
               coc_code: coc_code,
             }
 
-            data[:by_coc][coc_code][:situations] ||= living_situation_buckets.map { |b| [b, Set.new] }.to_h
-
-            # data[:by_coc][coc_code][:situations_length] ||= living_situation_buckets.product(HUD.residence_prior_length_of_stays_brief.values.uniq).map { |b| [b, Set.new] }.to_h
-            data[:by_coc][coc_code][:situations_length] ||= living_situation_buckets.map { |b| [b, {}] }.to_h
-            living_situation_buckets.each do |b|
-              HUD.residence_prior_length_of_stays_brief.values.uniq.each do |l|
-                data[:by_coc][coc_code][:situations_length][b][l] ||= Set.new
-              end
-            end
-
-            data[:by_coc][coc_code][:situations][living_situation] << client_id
-            data[:by_coc][coc_code][:situations_length][living_situation][HUD.residence_prior_length_of_stay_brief(length_of_stay) || ''] << client_id
+            data[:by_coc][coc_code][:disabilities] ||= disability_options(indefinite_options)
+            data[:by_coc][coc_code][:disabilities][disability][HUD.no_yes_reasons_for_missing_data(indefinite)] << client_id
+            data[:by_coc][coc_code][:disabilities_summary] ||= disability_options(Set)
+            data[:by_coc][coc_code][:disabilities_summary][disability] << client_id
           end
         data
       end
-      # By ProjectCoc.CoCCode
-      # include total by location
-
-      # columns:
-      #   'location' ()
-      #   'length of stay' HUD.residence_prior_length_of_stay_brief
     end
 
-    private def living_situation_buckets
-      [
-        'Homeless',
-        'Institutional',
-        'Temporary or Permanent',
-        'Other',
-      ]
+    private def disability_options(hash_or_set)
+      HUD.disability_types.values.map do |v|
+        value = if hash_or_set.is_a?(Class)
+          hash_or_set.new
+        else
+          hash_or_set.deep_dup
+        end
+        [
+          v,
+          value,
+        ]
+      end.to_h
+    end
+
+    private def indefinite_options
+      HUD.no_yes_reasons_for_missing_data_options.values.map { |k| [k, Set.new] }.to_h
     end
 
     def self.data_for_export(reports)
@@ -184,15 +205,15 @@ module PriorLivingSituation
           rows['Households'] ||= []
           rows['Households'] += [report.household_count, nil, nil, nil]
 
-          rows = report.age_data_for_export(rows)
-          rows = report.gender_data_for_export(rows)
-          rows = report.race_data_for_export(rows)
-          rows = report.ethnicity_data_for_export(rows)
-          rows = report.relationship_data_for_export(rows)
-          rows = report.disability_data_for_export(rows)
-          rows = report.dv_status_data_for_export(rows)
-          rows = report.priors_data_for_export(rows)
-          rows = report.household_type_data_for_export(rows)
+          # rows = report.age_data_for_export(rows)
+          # rows = report.gender_data_for_export(rows)
+          # rows = report.race_data_for_export(rows)
+          # rows = report.ethnicity_data_for_export(rows)
+          # rows = report.relationship_data_for_export(rows)
+          # rows = report.disability_data_for_export(rows)
+          # rows = report.dv_status_data_for_export(rows)
+          # rows = report.priors_data_for_export(rows)
+          # rows = report.household_type_data_for_export(rows)
         end
       end
     end

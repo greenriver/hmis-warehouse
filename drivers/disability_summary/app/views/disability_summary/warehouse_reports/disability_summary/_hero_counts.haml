@@ -1,0 +1,31 @@
+:ruby
+  reports = [@report]
+  reports << @comparison if @report.include_comparison?
+
+- reports.each_with_index do |report, index|
+  - if @report.include_comparison?
+    %h4.d-flex
+      .pb-4.mr-2.c-swatch__display{class: "c-swatch__display--chart-#{index}"}
+      .title= report.filter.date_range_words
+  .d-flex.flex-wrap
+    :ruby
+      items = [
+        {
+          name: 'Unique Clients',
+          value: report.total_client_count,
+        },
+        {
+          name: 'Heads of Household',
+          value: report.hoh_count
+        },
+        {
+          name: 'Households',
+          value: report.household_count
+        },
+      ]
+    - items.each do |item|
+      .hero-prs1
+        .d-flex.align-items-center
+          .h1.hero-value-prs1.mr-3= number_with_delimiter item[:value]
+          %div
+            .hero-label-prs1.h5-prs1= item[:name]
