@@ -2526,6 +2526,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::HealthEmergency::Isolation,
         GrdaWarehouse::HealthEmergency::Quarantine,
         GrdaWarehouse::HealthEmergency::UploadedTest,
+        GrdaWarehouse::HealthEmergency::Vaccination,
       ]
     end
 
@@ -2534,6 +2535,7 @@ module GrdaWarehouse::Hud
         Health::Patient,
         Health::HealthFile,
         Health::Tracing::Case,
+        Health::Vaccination,
       ]
     end
 

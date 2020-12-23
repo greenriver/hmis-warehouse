@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_11_123325) do
+ActiveRecord::Schema.define(version: 2021_01_13_151049) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -2288,6 +2288,7 @@ ActiveRecord::Schema.define(version: 2021_01_11_123325) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.integer "health_vaccination_id"
     t.index ["agency_id"], name: "index_health_emergency_vaccinations_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_vaccinations_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_vaccinations_on_created_at"
