@@ -426,7 +426,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   private def maintain_system_group
-    AccessGroup.delay.maintain_system_groups(group: :data_sources)
+    AccessGroup.delayed_system_group_maintenance(group: :data_sources)
   end
 
   class << self

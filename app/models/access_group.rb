@@ -72,6 +72,11 @@ class AccessGroup < ApplicationRecord
     access_group_members.where(user_id: user.id).exists?
   end
 
+  def self.delayed_system_group_maintenance(group: nil)
+    delay.maintain_system_groups(group: group)
+    Delayed::Worker.new.work_off if Rails.env.test?
+  end
+
   def self.maintain_system_groups(group: nil)
     if group.blank? || group == :reports
       # Reports

@@ -54,7 +54,7 @@ module GrdaWarehouse
     end
 
     private def maintain_system_group
-      AccessGroup.delay.maintain_system_groups(group: :project_groups)
+      AccessGroup.delayed_system_group_maintenance(group: :project_groups)
     end
   end
 end
