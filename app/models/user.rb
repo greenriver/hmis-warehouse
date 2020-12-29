@@ -294,29 +294,30 @@ class User < ApplicationRecord
     viewable GrdaWarehouse::ProjectGroup
   end
 
-  def associated_by associations:
+  def associated_by(associations:)
     return [] unless associations.present?
+
     associations.flat_map do |association|
       case association
       when :coc_code
         coc_codes.map do |code|
           [
             code,
-            GrdaWarehouse::Hud::Project.project_names_for_coc(code)
+            GrdaWarehouse::Hud::Project.project_names_for_coc(code),
           ]
         end
       when :organization
         organizations.preload(:projects).map do |org|
           [
             org.OrganizationName,
-            org.projects.map(&:ProjectName)
+            org.projects.map(&:ProjectName),
           ]
         end
       when :data_source
         data_sources.preload(:projects).map do |ds|
           [
             ds.name,
-            ds.projects.map(&:ProjectName)
+            ds.projects.map(&:ProjectName),
           ]
         end
       else
@@ -354,6 +355,7 @@ class User < ApplicationRecord
 
   def set_viewables(viewables)
     return unless persisted?
+
     access_group.set_viewables(viewables)
   end
 
@@ -452,25 +454,25 @@ class User < ApplicationRecord
 
   private def viewable(model)
     # NOTE: can_edit_anything_super_user? is deprecated and will eventually be removed
-    if can_edit_anything_super_user? && ! model.in?(restricted_models)
-      model.all
-    else
+    # if can_edit_anything_super_user? && ! model.in?(restricted_models)
+    #   model.all
+    # else
       model.where(
         id: GrdaWarehouse::GroupViewableEntity.where(
           access_group_id: access_groups.pluck(:id),
           entity_type: model.sti_name,
         ).select(:entity_id),
       )
-    end
+    # end
   end
 
   # These models have been migrated to only allow access
   # if granted explicitly
   private def restricted_models
     [
-      # GrdaWarehouse::DataSource,
-      # GrdaWarehouse::Hud::Organization,
-      # GrdaWarehouse::Hud::Project,
+      GrdaWarehouse::DataSource,
+      GrdaWarehouse::Hud::Organization,
+      GrdaWarehouse::Hud::Project,
       GrdaWarehouse::WarehouseReports::ReportDefinition,
       GrdaWarehouse::Cohort,
       GrdaWarehouse::ProjectGroup,

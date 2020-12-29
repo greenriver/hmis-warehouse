@@ -30,12 +30,12 @@ class AccessGroup < ApplicationRecord
     joins(:users)
   end
 
-  scope :for_user, -> (user) do
+  scope :for_user, ->(user) do
     return none unless user.id
     where(user_id: user.id)
   end
 
-  scope :contains, -> (entity) do
+  scope :contains, ->(entity) do
     where(
       id: GrdaWarehouse::GroupViewableEntity.where(
         entity_type: entity.class.sti_name,
@@ -73,12 +73,12 @@ class AccessGroup < ApplicationRecord
       all_hmis_reports = AccessGroup.where(name: 'All HMIS Reports').first_or_create
       all_hmis_reports.update(system: ['Entities'], must_exist: true)
       ids = all_reports.where(health: false).pluck(:id)
-      all_hmis_reports.set_viewables( { reports: ids } )
+      all_hmis_reports.set_viewables({ reports: ids })
 
       all_health_reports = AccessGroup.where(name: 'All Health Reports').first_or_create
       all_health_reports.update(system: ['Entities'], must_exist: true)
       ids = all_reports.where(health: true).pluck(:id)
-      all_health_reports.set_viewables( { reports: ids } )
+      all_health_reports.set_viewables({ reports: ids })
     end
 
     if group.blank? || group == :cohorts
@@ -86,7 +86,7 @@ class AccessGroup < ApplicationRecord
       all_cohorts = AccessGroup.where(name: 'All Cohorts').first_or_create
       all_cohorts.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::Cohort.pluck(:id)
-      all_cohorts.set_viewables( { cohorts: ids } )
+      all_cohorts.set_viewables({ cohorts: ids })
     end
 
     if group.blank? || group == :project_groups
@@ -94,7 +94,7 @@ class AccessGroup < ApplicationRecord
       all_project_groups = AccessGroup.where(name: 'All Project Groups').first_or_create
       all_project_groups.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::ProjectGroup.pluck(:id)
-      all_project_groups.set_viewables( { project_groups: ids } )
+      all_project_groups.set_viewables({ project_groups: ids })
     end
 
     if group.blank? || group == :data_sources
@@ -102,13 +102,13 @@ class AccessGroup < ApplicationRecord
       all_data_sources = AccessGroup.where(name: 'All Data Sources').first_or_create
       all_data_sources.update(system: ['Entities'], must_exist: true)
       ids = GrdaWarehouse::DataSource.pluck(:id)
-      all_data_sources.set_viewables( { data_sources: ids } )
+      all_data_sources.set_viewables({ data_sources: ids })
     end
   end
 
-
-  def set_viewables(viewables)
+  def set_viewables(viewables) # rubocop:disable Naming/AccessorMethodName
     return unless persisted?
+
     GrdaWarehouse::GroupViewableEntity.transaction do
       [
         :data_sources,
@@ -118,16 +118,16 @@ class AccessGroup < ApplicationRecord
         :cohorts,
         :project_groups,
       ].each do |type|
-        ids = ( viewables[type] || [] ).map(&:to_i)
+        ids = (viewables[type] || []).map(&:to_i)
         scope = GrdaWarehouse::GroupViewableEntity.where(
           access_group_id: id,
           entity_type: viewable_types[type],
         )
-        scope.where.not( entity_id: ids ).destroy_all
+        scope.where.not(entity_id: ids).destroy_all
         # Allow re-use of previous assignments
-        ( ids - scope.pluck(:id) ).each do |id|
+        (ids - scope.pluck(:id)).each do |id|
           scope.with_deleted.
-            where( entity_id: id ).
+            where(entity_id: id).
             first_or_create.
             restore
         end
@@ -156,31 +156,32 @@ class AccessGroup < ApplicationRecord
   # Provides a means of showing projects associated through other entities
   def associated_by(associations:)
     return [] unless associations.present?
+
     associations.flat_map do |association|
       case association
-        when :coc_code
-          coc_codes.map do |code|
-            [
-              code,
-              GrdaWarehouse::Hud::Project.project_names_for_coc(code)
-            ]
-          end
-        when :organization
-          organizations.preload(:projects).map do |org|
-            [
-              org.OrganizationName,
-              org.projects.map(&:ProjectName)
-            ]
-          end
-        when :data_source
-          data_sources.preload(:projects).map do |ds|
-            [
-              ds.name,
-              ds.projects.map(&:ProjectName)
-            ]
-          end
-        else
-          []
+      when :coc_code
+        coc_codes.map do |code|
+          [
+            code,
+            GrdaWarehouse::Hud::Project.project_names_for_coc(code),
+          ]
+        end
+      when :organization
+        organizations.preload(:projects).map do |org|
+          [
+            org.OrganizationName,
+            org.projects.map(&:ProjectName),
+          ]
+        end
+      when :data_source
+        data_sources.preload(:projects).map do |ds|
+          [
+            ds.name,
+            ds.projects.map(&:ProjectName),
+          ]
+        end
+      else
+        []
       end
     end
   end
