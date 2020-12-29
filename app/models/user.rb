@@ -466,6 +466,56 @@ class User < ApplicationRecord
     # end
   end
 
+  # Returns an array of hashes of access group name => [item names]
+  def inherited_for_type(entity_type)
+    case entity_type
+    when :coc_codes
+      access_groups.general.map do |group|
+        [
+          group.name,
+          group.coc_codes,
+        ]
+      end
+    when :projects
+      # directly inherited projects
+      groups = access_groups.general.map do |group|
+        [
+          group.name,
+          group.public_send(entity_type).map(&:name).select(&:presence).compact,
+        ]
+      end
+      # indirectly inherited projects from data sources
+      access_groups.general.each do |group|
+        groups << [
+          group.name,
+          group.data_sources.map(&:projects).flatten.map(&:name).select(&:presence).compact,
+        ]
+      end
+      # indirectly inherited projects from organizations
+      access_groups.general.each do |group|
+        groups << [
+          group.name,
+          group.organizations.map(&:projects).flatten.map(&:name).select(&:presence).compact,
+        ]
+      end
+      # indirectly inherited projects from coc_codes
+      access_groups.general.each do |group|
+        groups << [
+          group.name,
+          GrdaWarehouse::Hud::Project.in_coc(coc_code: group.coc_codes).map(&:name).select(&:presence).compact,
+        ]
+      end
+      groups
+    else
+      access_groups.general.map do |group|
+        [
+          group.name,
+          group.public_send(entity_type).map(&:name).select(&:presence).compact,
+        ]
+      end
+    end
+  end
+
   # These models have been migrated to only allow access
   # if granted explicitly
   private def restricted_models
