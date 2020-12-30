@@ -49,6 +49,7 @@ module GrdaWarehouse::Tasks
       fix_incorrect_ages_in_service_history
       add_missing_ages_to_service_history
       fix_incorrect_household_ids
+      fix_incorrect_enrollment_coc_household_ids
       rebuild_service_history_for_incorrect_clients
     end
 
@@ -111,6 +112,23 @@ module GrdaWarehouse::Tasks
         @notifier.ping "Not updating #{to_update} enrollments (dry-run)"
       else
         @notifier.ping "Updated #{to_update} enrollments with incorrect HouseholdIDs"
+      end
+    end
+
+    # Set any EnrollmentCoC.HouseholdIDs that don't match their
+    # enrollments, to whatever is in their enrollment
+    private def fix_incorrect_enrollment_coc_household_ids
+      batch_size = 10_000
+      ids = GrdaWarehouse::Hud::EnrollmentCoc.joins(:enrollment).where(
+        ec_t[:HouseholdID].not_eq(e_t[:HouseholdID]).
+        or(ec_t[:HouseholdID].eq(nil).and(e_t[:HouseholdID].not_eq(nil)))
+      ).pluck(:id, e_t[:HouseholdID])
+      ids.each_slice(batch_size) do |batch|
+        GrdaWarehouse::Hud::EnrollmentCoc.import(
+          [:id, :HouseholdID],
+          batch,
+          on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID]},
+        )
       end
     end
 
