@@ -27,7 +27,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 402,
+      "line": 398,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"DROP VIEW IF EXISTS #{name}\")",
       "render_path": null,
@@ -67,7 +67,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 422,
+      "line": 418,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"CREATE OR REPLACE VIEW #{name} AS #{sql_definition}\")",
       "render_path": null,
@@ -742,7 +742,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 62,
+      "line": 57,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -762,7 +762,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 47,
+      "line": 45,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -778,51 +778,11 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "925523f71ada7a1abc12b8cb2c1195c5176794d72afd3c632fd4fc17280a4b0c",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 502,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"#{quoted_table_name}.consented_coc_codes ?| array[#{(Array.wrap(coc_codes) + [\"All CoCs\"]).map do\n connection.quote(s)\n end.join(\",\")}]\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Client",
-        "method": null
-      },
-      "user_input": "(Array.wrap(coc_codes) + [\"All CoCs\"]).map do\n connection.quote(s)\n end.join(\",\")",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "94f0e64c5acc071a901163d39ebce6861e109a286a0157b979408b31ce9c6a17",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 67,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::DataSource",
-        "method": null
-      },
-      "user_input": "has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "a005f0450a283e9aa0cfbb7447941c9b23a6b49277b9e02d914765b5ccf577cc",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 322,
+      "line": 319,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -902,7 +862,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 416,
+      "line": 412,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"DO $$\\nBEGIN\\n  CREATE ROLE #{role} WITH NOLOGIN;\\n  EXCEPTION WHEN DUPLICATE_OBJECT THEN\\n  RAISE NOTICE 'not creating role #{role} -- it already exists';\\nEND\\n$$;\\n\")",
       "render_path": null,
@@ -1136,6 +1096,26 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "d0db0f94e468ce21f16882f84459d11a69c3f0273668cd7da46a06bb0f14dff9",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/grda_warehouse/data_source.rb",
+      "line": 66,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "GrdaWarehouse::DataSource",
+        "method": "viewable_by"
+      },
+      "user_input": "has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Mass Assignment",
       "warning_code": 70,
       "fingerprint": "d1df65ed70bfef4890bb44d788400c8da08fb84c088d9b9219c66745d0998cc6",
@@ -1162,7 +1142,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called with model attribute",
       "file": "app/models/filters/filter_base.rb",
-      "line": 454,
+      "line": 533,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Reporting::MonthlyReports::Base.available_types[sub_population].constantize",
       "render_path": null,
@@ -1222,7 +1202,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/bi/view_maintainer.rb",
-      "line": 425,
+      "line": 421,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "GrdaWarehouseBase.connection.execute(\"GRANT SELECT ON #{name} TO #{\"bi\"}\")",
       "render_path": null,
@@ -1335,6 +1315,6 @@
       "note": ""
     }
   ],
-  "updated": "2020-11-05 18:57:51 +0000",
-  "brakeman_version": "4.10.0"
+  "updated": "2020-12-30 17:31:55 +0000",
+  "brakeman_version": "4.10.1"
 }
