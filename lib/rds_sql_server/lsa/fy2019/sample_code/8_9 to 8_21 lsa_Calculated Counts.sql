@@ -56,10 +56,11 @@ Date:  4/15/2020
 		, n.ProjectID		
 		, cd.ReportID, '8.9'
 	from tlsa_Enrollment n 
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
+	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
 		and bn.DateDeleted is null
-	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
@@ -106,10 +107,11 @@ Date:  4/15/2020
 		, pop.PopID, -1, 53
 		, cd.ReportID, '8.10.1'
 	from tlsa_Enrollment n 
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
-		and bn.RecordType = 200
-		and bn.DateDeleted is null
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
+		and bn.RecordType = 200
+		and bn.DateDeleted is null	
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
@@ -151,10 +153,11 @@ Date:  4/15/2020
 		, pop.PopID, -1, 53
 		, cd.ReportID, '8.10.2'
 	from tlsa_Enrollment n 
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
-		and bn.RecordType = 200
-		and bn.DateDeleted is null
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
+		and bn.RecordType = 200
+		and bn.DateDeleted is null	
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
@@ -196,6 +199,7 @@ Date:  4/15/2020
 	from tlsa_HHID hhid 
 	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
+		and bn.DateProvided >= hhid.EntryDate and (bn.DateProvided < hhid.ExitDate or hhid.ExitDate is null)
 		and bn.DateDeleted is null
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
@@ -247,6 +251,7 @@ Date:  4/15/2020
 	from tlsa_HHID hhid 
 	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
+		and bn.DateProvided >= hhid.EntryDate and (bn.DateProvided < hhid.ExitDate or hhid.ExitDate is null)
 		and bn.DateDeleted is null
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
@@ -294,6 +299,7 @@ Date:  4/15/2020
 	from tlsa_HHID hhid 
 	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
+		and bn.DateProvided >= hhid.EntryDate and (bn.DateProvided < hhid.ExitDate or hhid.ExitDate is null)
 		and bn.DateDeleted is null
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
@@ -334,10 +340,11 @@ Date:  4/15/2020
 		, n.ProjectID, cd.ReportID, '8.13'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
-		and bn.RecordType = 200
-		and bn.DateDeleted is null
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
+		and bn.RecordType = 200
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
+		and bn.DateDeleted is null	
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
@@ -397,10 +404,11 @@ Date:  4/15/2020
 		, cd.ReportID, '8.14.1'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
-		and bn.RecordType = 200
-		and bn.DateDeleted is null
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
+		and bn.RecordType = 200
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
+		and bn.DateDeleted is null
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
@@ -462,10 +470,11 @@ Date:  4/15/2020
 		, cd.ReportID, '8.14.2'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
-		and bn.RecordType = 200
-		and bn.DateDeleted is null
 	inner join tlsa_HHID hhid on hhid.EnrollmentID = n.EnrollmentID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
+		and bn.RecordType = 200
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
+		and bn.DateDeleted is null	
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
@@ -523,10 +532,11 @@ Date:  4/15/2020
 		, cd.ReportID, '8.14.3'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
-		and bn.RecordType = 200
-		and bn.DateDeleted is null
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
+		and bn.RecordType = 200
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
+		and bn.DateDeleted is null
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
@@ -581,10 +591,11 @@ Date:  4/15/2020
 		, cd.ReportID, '8.14.4'
 	from tlsa_Person lp
 	inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
-		and bn.RecordType = 200
-		and bn.DateDeleted is null
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID and hhid.HoHID = n.PersonalID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
+		and bn.RecordType = 200
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
+		and bn.DateDeleted is null
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
@@ -643,9 +654,10 @@ Date:  4/15/2020
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
-		and n.ProjectType = 1 and n.TrackingMethod = 3
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
+		and n.ProjectType = 1 and hhid.TrackingMethod = 3
 		and bn.DateDeleted is null
 	inner join lsa_Report rpt on rpt.ReportEnd >= n.EntryDate
 	left outer join ref_Calendar est on est.theDate >= n.EntryDate
@@ -687,8 +699,9 @@ Date:  4/15/2020
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
 		and bn.DateDeleted is null
 	inner join lsa_Report rpt on rpt.ReportEnd >= n.EntryDate
 	left outer join ref_Calendar est on est.theDate >= n.EntryDate
@@ -721,8 +734,9 @@ Date:  4/15/2020
 	inner join ref_Populations pop on
 		(hhid.ActiveHHType = pop.HHType or pop.HHType is null)
 		and (hhid.HHAdultAge = pop.HHAdultAge or pop.HHAdultAge is null)
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
 		and bn.DateDeleted is null
 	inner join lsa_Report rpt on rpt.ReportEnd >= n.EntryDate
 	left outer join ref_Calendar est on est.theDate >= n.EntryDate
@@ -759,8 +773,9 @@ Date:  4/15/2020
 			 or pop.CHTime is null)
 		and (lp.DisabilityStatus = pop.DisabilityStatus or pop.DisabilityStatus is null)
 		and (lp.VetStatus = pop.VetStatus or pop.VetStatus is null)
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
 		and bn.DateDeleted is null
 	inner join lsa_Report rpt on rpt.ReportEnd >= n.EntryDate
 	left outer join ref_Calendar est on est.theDate >= n.EntryDate
@@ -806,8 +821,9 @@ Date:  4/15/2020
 			 or pop.CHTime is null)
 		and (lp.DisabilityStatus = pop.DisabilityStatus or pop.DisabilityStatus is null)
 		and (lp.VetStatus = pop.VetStatus or pop.VetStatus is null)
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
 		and bn.DateDeleted is null
 	inner join lsa_Report rpt on rpt.ReportEnd >= n.EntryDate
 	left outer join ref_Calendar est on est.theDate >= n.EntryDate
@@ -845,8 +861,9 @@ Date:  4/15/2020
 			 or pop.CHTime is null)
 		and (lp.DisabilityStatus = pop.DisabilityStatus or pop.DisabilityStatus is null)
 		and (lp.VetStatus = pop.VetStatus or pop.VetStatus is null)
-	left outer join hmis_Services bn on bn.EnrollmentID = n.EnrollmentID
+	left outer join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 		and bn.RecordType = 200
+		and bn.DateProvided >= n.EntryDate and (bn.DateProvided < n.ExitDate or n.ExitDate is null)
 		and bn.DateDeleted is null
 	inner join lsa_Report rpt on rpt.ReportEnd >= n.EntryDate
 	left outer join ref_Calendar est on est.theDate >= n.EntryDate
@@ -909,7 +926,7 @@ Date:  4/15/2020
 			and svc.DateProvided between cd.CohortStart and cd.CohortEnd
 		where svc.RecordType = 200 and svc.DateDeleted is null
 		group by svc.EnrollmentID
-		) bn on bn.EnrollmentID = n.EnrollmentID
+		) bn on bn.EnrollmentID = hhid.EnrollmentID
 	where (hx.ExitDate is null and bn.LastBednight <= dateadd(dd, -90, cd.CohortEnd))
 		or (hx.ExitDate <> dateadd(dd, 1, bn.LastBednight))
 	group by case when hx.ExitDate is null then 60
