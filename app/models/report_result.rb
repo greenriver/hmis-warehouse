@@ -69,7 +69,7 @@ class ReportResult < ApplicationRecord
   end
 
   def completed_in
-    if percent_complete == 100
+    if percent_complete == 100 && completed_at
       seconds = ((completed_at - created_at)/1.minute).round * 60
       distance_of_time_in_words(seconds)
     else
