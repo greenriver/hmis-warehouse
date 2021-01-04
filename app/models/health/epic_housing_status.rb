@@ -10,9 +10,9 @@
 module Health
   class EpicHousingStatus < EpicBase
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier
-    phi_attr :collected_on, Phi::Date
-    phi_attr :status, Phi::FreeText
+    phi_attr :id, Phi::OtherIdentifier, "ID of housing status"
+    phi_attr :collected_on, Phi::Date, "Date of collection"
+    phi_attr :status, Phi::FreeText, "Description of housing status"
 
     belongs_to :epic_patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :epic_housing_statuses
     has_many :patient, through: :epic_patient

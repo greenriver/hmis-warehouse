@@ -11,7 +11,7 @@ module Health
   class AgencyPatientReferral < HealthBase
     acts_as_paranoid
 
-    phi_attr :patient_referral_id, Phi::OtherIdentifier
+    phi_attr :patient_referral_id, Phi::OtherIdentifier, "ID of patient referral"
 
     scope :claimed, -> {where(claimed: true)}
     scope :unclaimed, -> {where(claimed: false)}
