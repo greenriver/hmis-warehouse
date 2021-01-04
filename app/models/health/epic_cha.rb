@@ -12,12 +12,12 @@ module Health
     phi_patient :patient_id
 
     phi_attr :id_in_source, Phi::OtherIdentifier
-    phi_attr :encounter_id, Phi::OtherIdentifier
+    phi_attr :encounter_id, Phi::OtherIdentifier, "ID of encounter"
     # phi_attr :encounter_type
     phi_attr :cha_updated_at, Phi::Date
-    phi_attr :staff, Phi::SmallPopulation
+    phi_attr :staff, Phi::SmallPopulation, "Name of staffs"
     # phi_attr :provider_type
-    phi_attr :reviewer_name, Phi::SmallPopulation
+    phi_attr :reviewer_name, Phi::SmallPopulation, "Name of reviewer"
     # phi_attr :reviewer_provider_type
     phi_attr :part_1, Phi::FreeText
     phi_attr :part_2, Phi::FreeText
