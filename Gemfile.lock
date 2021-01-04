@@ -170,7 +170,7 @@ GEM
       sassc-rails (>= 2.0.0)
     bootstrap3-datetimepicker-rails (4.17.47)
       momentjs-rails (>= 2.8.1)
-    brakeman (4.10.0)
+    brakeman (4.10.1)
     builder (3.2.4)
     bumbler (0.6.0)
     bundler-audit (0.6.1)
@@ -430,7 +430,7 @@ GEM
     mimemagic (0.3.5)
     mini_magick (4.9.5)
     mini_mime (1.0.2)
-    mini_portile2 (2.4.0)
+    mini_portile2 (2.5.0)
     minitest (5.14.2)
     minitest-reporters (1.4.2)
       ansi
@@ -450,8 +450,9 @@ GEM
     net-ssh (5.2.0)
     netrc (0.11.0)
     nio4r (2.5.4)
-    nokogiri (1.10.10)
-      mini_portile2 (~> 2.4.0)
+    nokogiri (1.11.0.rc4)
+      mini_portile2 (~> 2.5.0)
+      racc (~> 1.4)
     nominatim (0.0.6)
       faraday
       multi_json
@@ -489,6 +490,7 @@ GEM
     public_suffix (4.0.1)
     puma (3.12.6)
     pwned (1.2.1)
+    racc (1.5.2)
     rack (2.2.3)
     rack-attack (6.2.1)
       rack (>= 1.0, < 3)
@@ -850,7 +852,7 @@ DEPENDENCIES
   mini_magick
   minitest-reporters
   net-sftp
-  nokogiri (>= 1.7.1)
+  nokogiri (>= 1.11.0.rc4)
   nominatim
   overcommit
   paper_trail
