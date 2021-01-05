@@ -247,12 +247,6 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       GrdaWarehouse::Utility.clear!
     end
-    # let!(:data_source) { create :data_source_fixed_id }
-    # let!(:fixed_date) { Date.parse('2019-01-01') }
-
-    # let!(:project_1) { create :grda_warehouse_hud_project, ProjectID: 1 }
-    # let!(:project_2) { create :grda_warehouse_hud_project, ProjectID: 2 }
-    # let!(:geography) { create :grda_warehouse_hud_geography, GeographyID: 10, DateDeleted: fixed_date, ProjectID: project_2.ProjectID }
 
     it 'has one deleted geography record' do
       expect(GrdaWarehouse::Hud::Geography.only_deleted.count).to eq(1)
@@ -334,12 +328,6 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
       # Because we are only running the import once, we have to do our own DB and file cleanup
       GrdaWarehouse::Utility.clear!
     end
-    # let!(:data_source) { create :data_source_fixed_id }
-    # let!(:fixed_date) { Date.parse('2019-01-01') }
-
-    # let!(:project_1) { create :grda_warehouse_hud_project, ProjectID: 1 }
-    # let!(:project_2) { create :grda_warehouse_hud_project, ProjectID: 2 }
-    # let!(:geography) { create :grda_warehouse_hud_geography, GeographyID: 10, DateDeleted: fixed_date, DateUpdated: Date.current, ProjectID: project_2.ProjectID }
 
     describe 'with project 1' do
       # This is a before instead of a before(:all) because we can't reference 'let's in a before(:all)
@@ -360,12 +348,6 @@ RSpec.describe Importers::HMISSixOneOne::Base, type: :model do
   end
 
   describe 'When processing geographies with updates on the date of the last updated timestamp' do
-    # let!(:data_source) { create :data_source_fixed_id }
-    # let!(:fixed_date) { Date.parse('2019-01-01') }
-
-    # let!(:project_1) { create :grda_warehouse_hud_project, ProjectID: 1 }
-    # let!(:project_2) { create :grda_warehouse_hud_project, ProjectID: 2 }
-    # let!(:geography) { create :grda_warehouse_hud_geography, GeographyID: 10, DateDeleted: fixed_date, DateUpdated: fixed_date + 1.day, ProjectID: project_2.ProjectID }
     before(:all) do
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       @fixed_date = Date.parse('2019-01-01')

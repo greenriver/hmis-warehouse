@@ -510,17 +510,4 @@ class User < ApplicationRecord
       end
     end
   end
-
-  # These models have been migrated to only allow access
-  # if granted explicitly
-  private def restricted_models
-    [
-      GrdaWarehouse::DataSource,
-      GrdaWarehouse::Hud::Organization,
-      GrdaWarehouse::Hud::Project,
-      GrdaWarehouse::WarehouseReports::ReportDefinition,
-      GrdaWarehouse::Cohort,
-      GrdaWarehouse::ProjectGroup,
-    ]
-  end
 end

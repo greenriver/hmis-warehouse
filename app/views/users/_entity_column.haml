@@ -33,15 +33,9 @@
   - if @user
     .c-columns__column
       .c-columns__column-header
-        %h3.c-columns__column-title= "Inherited #{name.pluralize}"
+        %h3.c-columns__column-title= "#{name.pluralize} Inherited from Groups"
       .c-columns__column-content
         %ul.c-columns__column-list.c-columns__column-list--associated
-          -# - @user.access_groups.general.each do |group|
-          -#   - group.public_send(entity_type).each do |item|
-          -#     %li.c-columns__column-list-item--read-only
-          -#       %span.d-block{data: {toggle: 'tooltip'}, title: "Access by through #{group.name} group"}
-          -#         = item.name
-          -#         %em.d-block.text-small.c-columns__column-list-item-description=group.name
           - @user.inherited_for_type(entity_type).each do |group_name, items|
             - items.each do |item|
               %li.c-columns__column-list-item--read-only

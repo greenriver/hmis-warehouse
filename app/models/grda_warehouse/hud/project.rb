@@ -333,7 +333,8 @@ module GrdaWarehouse::Hud
     end
 
     def self.can_see_all_projects?(user)
-      viewable_by(user).count.positive? && viewable_by(user).count == all.count
+      visible_count = viewable_by(user).distinct.count
+      visible_count.positive? && visible_count == all.count
     end
 
     def self.has_access_to_project_through_viewable_entities(user, q, qc)

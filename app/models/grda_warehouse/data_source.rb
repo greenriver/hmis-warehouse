@@ -140,7 +140,12 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def self.can_see_all_data_sources?(user)
-    viewable_by(user).count.positive? && viewable_by(user).count >= source.count
+    visible_source_ds = viewable_by(user).source.distinct
+    # If we can't see any, it may be because there are none
+    # Ensure we can see at least one
+    return false unless visible_source_ds.count.positive?
+
+    visible_source_ds.count == source.count
   end
 
   def self.view_column_names

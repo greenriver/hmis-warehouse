@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# NOTE: This file is only used for user related entities, see
+# Admin::GroupsController for those used in the access group pages
 module ViewableEntities
   extend ActiveSupport::Concern
   included do
