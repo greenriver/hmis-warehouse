@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe 'Combine Enrollments', type: :model do
+RSpec.describe 'Validate import files', type: :model do
   before(:all) do
     GrdaWarehouse::Utility.clear!
     HmisCsvTwentyTwenty::Utility.clear!
@@ -35,5 +35,9 @@ RSpec.describe 'Combine Enrollments', type: :model do
 
   it 'has two entry after exit validation errors' do
     expect(HmisCsvValidation::EntryAfterExit.count).to eq(2)
+  end
+
+  it 'does not include any Export errors' do
+    expect(HmisCsvValidation::Base.where(source_type: 'HmisCsvTwentyTwenty::Loader::Export').count).to eq(0)
   end
 end

@@ -208,25 +208,33 @@ module HUD
 
   # 1.1
   def export_period_type(id, reverse = false)
-    map = {
-      1 => 'Updated',
-      2 => 'Effective',
-      3 => 'Reporting period',
-      4 => 'Other',
-    }
+    map = period_types
 
     _translate map, id, reverse
   end
 
+  def period_types
+    {
+      1 => 'Updated',
+      2 => 'Effective',
+      3 => 'Reporting period',
+      4 => 'Other',
+    }.freeze
+  end
+
   # 1.2
   def export_directive(id, reverse = false)
-    map = {
+    map = export_directives
+
+    _translate map, id, reverse
+  end
+
+  def export_directives
+    {
       1 => 'Delta refresh',
       2 => 'Full refresh',
       3 => 'Other',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 1.3
@@ -268,14 +276,18 @@ module HUD
 
   # 1.5
   def hash_status(id, reverse = false)
-    map = {
+    map = hash_statuses
+
+    _translate map, id, reverse
+  end
+
+  def hash_statuses
+    {
       1 => 'Unhashed',
       2 => 'SHA-1 RHY',
       3 => 'Hashed - other',
       4 => 'SHA-256 (RHY)',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 1.6
@@ -339,14 +351,18 @@ module HUD
 
   # 1.9
   def source_type(id, reverse = false)
-    map = {
+    map = source_types
+
+    _translate map, id, reverse
+  end
+
+  def source_types
+    {
       1 => 'CoC HMIS',
       2 => 'Standalone/agency-specific application',
       3 => 'Data warehouse',
       4 => 'Other',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 2.4.2
@@ -408,7 +424,7 @@ module HUD
     end
   end
 
-  # 2.5.1
+  # 2.5.1 / 2.02.C
   def tracking_method(id, reverse = false)
     map = tracking_methods
 
@@ -539,7 +555,7 @@ module HUD
     }
   end
 
-  # 2.8.8
+  # 2.8.8 / 2.02.D
   def housing_type(id, reverse = false)
     map = housing_types
 
@@ -554,7 +570,7 @@ module HUD
     }
   end
 
-  # 2.9.1
+  # 2.9.1 / 2.02.8
   def target_population(id, reverse = false)
     map = target_populations
 
