@@ -12,11 +12,18 @@ RSpec.describe model, type: :model do
 
   let!(:user) { create :user }
 
+  let!(:access_group) { AccessGroup.where(name: AccessGroup::ALL_HMIS_REPORTS_GROUP_NAME).first_or_create }
+
   let!(:r1) { create :touch_point_report }
   let!(:r2) { create :confidential_touch_point_report }
 
   user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
   ids      = ->(*reports) { reports.map(&:id).sort }
+
+  before(:each) do
+    access_group.add_viewable(r1)
+    access_group.add_viewable(r2)
+  end
 
   describe 'scopes' do
     describe 'viewability' do
@@ -29,9 +36,11 @@ RSpec.describe model, type: :model do
       describe 'admin user' do
         before do
           user.roles << admin_role
+          access_group.add(user)
         end
         after do
           user.roles = []
+          access_group.remove(user)
         end
         it 'sees both' do
           expect(user_ids[user]).to eq ids[r1, r2]

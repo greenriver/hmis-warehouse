@@ -7,7 +7,7 @@
 module WarehouseReports
   class SupportController < ApplicationController
     include AjaxModalRails::Controller
-    before_action :require_can_view_all_reports!
+    before_action :require_can_administer_assigned_reports!
     before_action :set_report
 
     # Requires a key to fetch the appropriate chunk of support

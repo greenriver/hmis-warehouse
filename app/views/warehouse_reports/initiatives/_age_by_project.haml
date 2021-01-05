@@ -29,4 +29,4 @@
             %td
               - key = "#{p_id}__#{age_bucket[:name].parameterize.underscore}"
               - count = data[key] || 0
-              = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_name}—#{age_bucket[:name]}"), data: { loads_in_pjax_modal: true })
+              = link_to_if(count > 0 && can_administer_assigned_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_name}—#{age_bucket[:name]}"), data: { loads_in_pjax_modal: true })

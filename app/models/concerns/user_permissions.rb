@@ -125,7 +125,7 @@ module UserPermissions
     end
 
     def can_view_any_reports
-      can_view_all_reports? || can_view_assigned_reports?
+      can_administer_assigned_reports? || can_view_assigned_reports?
     end
 
     def can_view_user_audit_report

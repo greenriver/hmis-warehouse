@@ -20,7 +20,7 @@ module GrdaWarehouse::WarehouseReports
     scope :viewable_by, ->(user) do
       return none unless user
 
-      if user.can_view_all_reports?
+      if user.can_administer_assigned_reports?
         current_scope
       elsif user.can_view_assigned_reports?
         joins(:group_viewable_entities).

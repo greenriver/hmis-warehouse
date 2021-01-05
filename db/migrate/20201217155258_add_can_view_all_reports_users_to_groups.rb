@@ -1,8 +1,8 @@
 class AddCanViewAllReportsUsersToGroups < ActiveRecord::Migration[5.2]
   def up
     if Role.permissions.include?(:can_view_all_reports)
-      all_hmis_reports = AccessGroup.where(name: 'All HMIS Reports').first_or_create
-      all_health_reports = AccessGroup.where(name: 'All Health Reports').first_or_create
+      all_hmis_reports = AccessGroup.where(name: AccessGroup::ALL_HMIS_REPORTS_GROUP_NAME).first_or_create
+      all_health_reports = AccessGroup.where(name: AccessGroup::ALL_HEALTH_REPORTS_GROUP_NAME).first_or_create
 
       User.can_view_all_reports.find_each do |user|
         all_hmis_reports.add(user)
