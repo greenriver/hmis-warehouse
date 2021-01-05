@@ -1,4 +1,4 @@
-class AddCanAdminsterAssignedReportsPermission < ActiveRecord::Migration[5.2]
+class AddCanAdministerAssignedReportsPermission < ActiveRecord::Migration[5.2]
   def up
     Role.ensure_permissions_exist
     Role.reset_column_information
