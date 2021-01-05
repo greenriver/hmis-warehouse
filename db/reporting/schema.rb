@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_24_150305) do
+ActiveRecord::Schema.define(version: 2020_06_20_192228) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -144,12 +144,6 @@ ActiveRecord::Schema.define(version: 2020_07_24_150305) do
     t.integer "income_at_penultimate_non_employment_cash"
     t.integer "income_at_penultimate_overall"
     t.integer "income_at_penultimate_response"
-    t.string "encrypted_first_name"
-    t.string "encrypted_first_name_iv"
-    t.string "encrypted_last_name"
-    t.string "encrypted_last_name_iv"
-    t.string "encrypted_ssn"
-    t.string "encrypted_ssn_iv"
     t.index ["report_id", "active", "entered", "head_of_household", "enrolled"], name: "pdq_rep_act_ent_head_enr"
     t.index ["report_id", "active", "exited", "head_of_household", "enrolled"], name: "pdq_rep_act_ext_head_enr"
   end
