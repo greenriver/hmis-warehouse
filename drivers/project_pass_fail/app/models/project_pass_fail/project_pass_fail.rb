@@ -17,7 +17,7 @@ module ProjectPassFail
     has_many :clients, inverse_of: :project_pass_fail
 
     scope :viewable_by, ->(user) do
-      return all if user.can_view_all_reports?
+      return all if user.can_administer_assigned_reports?
       return where(user_id: user.id) if user.can_view_assigned_reports?
 
       none

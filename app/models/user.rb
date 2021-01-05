@@ -98,7 +98,7 @@ class User < ApplicationRecord
   # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
   # scope :dnd_staff, -> { includes(:roles).where(roles: {name: :dnd_staff}) }
 
-  # load a hash of permission names (e.g. 'can_view_all_reports')
+  # load a hash of permission names (e.g. 'can_view_clients')
   # to a boolean true if the user has the permission through one
   # of their roles
   def load_effective_permissions

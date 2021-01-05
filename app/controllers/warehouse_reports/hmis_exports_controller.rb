@@ -77,7 +77,7 @@ module WarehouseReports
     end
 
     def can_cancel?(report)
-      report.user_id == current_user.id || can_view_all_reports?
+      report.user_id == current_user.id || can_administer_assigned_reports?
     end
     helper_method :can_cancel?
 

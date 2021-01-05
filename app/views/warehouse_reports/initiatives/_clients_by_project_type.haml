@@ -17,5 +17,5 @@
             %td
               - key = "#{p_type}__count"
               - count = data[key] || 0 
-              = link_to_if(count > 0 && can_view_all_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_type}—Client Count"), data: { loads_in_pjax_modal: true })
+              = link_to_if(count > 0 && can_administer_assigned_reports?, count, warehouse_report_support_index_path(@report.id, key: key, section: section, title: "#{section.to_s.titleize} for: #{p_type}—Client Count"), data: { loads_in_pjax_modal: true })
 
