@@ -42,11 +42,11 @@ module HmisCsvTwentyTwenty::Importer
           class: HmisCsvValidation::NonBlank,
         ],
         OrganizationName: [
-          class: HmisCsvValidation::NonBlank,
+          class: HmisCsvValidation::NonBlankValidation,
         ],
         VictimServicesProvider: [
           {
-            class: HmisCsvValidation::NonBlank,
+            class: HmisCsvValidation::NonBlankValidation,
           },
           {
             class: HmisCsvValidation::InclusionInSet,

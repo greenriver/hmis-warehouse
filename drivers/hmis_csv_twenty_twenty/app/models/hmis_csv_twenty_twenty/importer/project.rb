@@ -47,11 +47,11 @@ module HmisCsvTwentyTwenty::Importer
           class: HmisCsvValidation::NonBlank,
         ],
         OperatingStartDate: [
-          class: HmisCsvValidation::NonBlank,
+          class: HmisCsvValidation::NonBlankValidation,
         ],
         ContinuumProject: [
           {
-            class: HmisCsvValidation::NonBlank,
+            class: HmisCsvValidation::NonBlankValidation,
           },
           {
             class: HmisCsvValidation::InclusionInSet,
@@ -84,7 +84,7 @@ module HmisCsvTwentyTwenty::Importer
         ],
         HMISParticipatingProject: [
           {
-            class: HmisCsvValidation::NonBlank,
+            class: HmisCsvValidation::NonBlankValidation,
           },
           {
             class: HmisCsvValidation::InclusionInSet,
@@ -98,7 +98,7 @@ module HmisCsvTwentyTwenty::Importer
           },
         ],
         PITCount: [
-          class: HmisCsvValidation::NonBlank,
+          class: HmisCsvValidation::NonBlankValidation,
         ],
       }
     end
