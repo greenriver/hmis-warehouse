@@ -12,8 +12,8 @@ module Health
     acts_as_paranoid
     require 'csv'
 
-    phi_attr :file, Phi::FreeText
-    phi_attr :content, Phi::FreeText
+    phi_attr :file, Phi::FreeText, "Name of file"
+    phi_attr :content, Phi::FreeText, "Content of file"
 
     belongs_to :user
 

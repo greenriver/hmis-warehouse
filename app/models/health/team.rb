@@ -12,7 +12,7 @@ module Health
     acts_as_paranoid
 
     phi_patient :patient_id
-    phi_attr :id, ::Phi::OtherIdentifier
+    phi_attr :id, ::Phi::OtherIdentifier, "ID of team"
 
     has_many :members, class_name: 'Health::Team::Member'
     # has_one :pcp_designee, class_name: 'Health::Team::PcpDesignee'

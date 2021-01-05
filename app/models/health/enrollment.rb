@@ -12,7 +12,7 @@ require "stupidedi"
 module Health
   class Enrollment < HealthBase
 
-    phi_attr :content, Phi::Bulk # contains EDI serialized PHI
+    phi_attr :content, Phi::Bulk, "Description of content of enrollment file" # contains EDI serialized PHI
 
     mount_uploader :file, EnrollmentFileUploader
 
