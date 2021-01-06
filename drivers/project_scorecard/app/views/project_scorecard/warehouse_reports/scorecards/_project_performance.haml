@@ -248,4 +248,8 @@
           Points: 0
           %br
           >= 16%
-      %td.text-center= @report.returns_to_homelessness_score
+      %td.text-center
+        - if @report.returns_to_homelessness_score.present?
+          = @report.returns_to_homelessness_score
+        - else
+          N/A

@@ -300,6 +300,8 @@ module ProjectScorecard
       number_of_exits = spm.results['two_b7']['value']
       number_of_returns = spm.results['two_i7']['value']
 
+      return nil if number_of_exits.blank? || number_of_exits.zero?
+
       percentage(number_of_returns / number_of_exits.to_f)
     end
 
@@ -326,7 +328,9 @@ module ProjectScorecard
     end
 
     private def percentage(value)
-      format('%1.4f', value.round(4))
+      return 0 if value.nan?
+
+      (value * 100).to_i
     end
   end
 end
