@@ -59,10 +59,37 @@ module HmisCsvTwentyTwenty::Importer
         validate_data_set!
         aggregate!
         cleanup_data_set!
-        ingest!
-        invalidate_aggregated_enrollments!
-        complete_import
+        # refuse to proceed with the import if there are any errors and that setting is in effect
+        if should_pause?
+          pause_import
+        else
+          ingest!
+          invalidate_aggregated_enrollments!
+          complete_import
+        end
       end
+    end
+
+    def resume!
+      return unless importer_log.paused?
+
+      ingest!
+      invalidate_aggregated_enrollments!
+      complete_import
+    end
+
+    def should_pause?
+      return false unless @data_source.refuse_imports_with_errors
+
+      db_errors = HmisCsvTwentyTwenty::Importer::ImportError.where(
+        importer_log_id: importer_log.id,
+      )
+
+      validation_errors = HmisCsvValidation::Base.where(
+        type: HmisCsvValidation::Error.subclasses.map(&:name),
+        importer_log_id: importer_log.id,
+      )
+      db_errors.count.positive? || validation_errors.count.positive?
     end
 
     # Move all data from the data lake to either the structured, or aggregated tables
@@ -523,6 +550,10 @@ module HmisCsvTwentyTwenty::Importer
       log("Import Completed in #{distance_of_time_in_words(elapsed)} data_source: #{data_source.id} importer log: #{importer_log.id}")
     end
 
+    def pause_import
+      importer_log.update(status: :paused)
+    end
+
     def note_processed(file, line_count, type)
       importer_log.summary[file][type] += line_count
     end
@@ -556,6 +587,8 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def setup_import
+      return if importer_log.present?
+
       importer_log = HmisCsvTwentyTwenty::Importer::ImporterLog.new
       importer_log.created_at = Time.now
       importer_log.data_source = data_source
