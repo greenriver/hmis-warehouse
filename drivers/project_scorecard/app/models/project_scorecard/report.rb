@@ -21,6 +21,7 @@ module ProjectScorecard
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
     belongs_to :user, class_name: 'User'
+    belongs_to :apr, class_name: 'HudReports::ReportInstance'
 
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
@@ -192,6 +193,8 @@ module ProjectScorecard
 
         assessment_answers.merge!(
           {
+            apr_id: apr.id,
+
             utilization_jan: answer(apr, 'Q8b', 'B2'),
             utilization_apr: answer(apr, 'Q8b', 'B3'),
             utilization_jul: answer(apr, 'Q8b', 'B4'),
