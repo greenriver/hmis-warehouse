@@ -519,6 +519,12 @@ module Health
       pending_disenrollment_date.present? || disenrollment_date.present?
     end
 
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
+    end
+
     def self.cleanup_referrals
       referral_source = joins(:patient) # Limit to referrals with patients
       cleanup_time = Date.today.to_time
