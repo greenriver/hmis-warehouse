@@ -256,7 +256,13 @@ module HUD
 
   # 1.4
   def record_type(id, reverse = false)
-    map = {
+    map = record_types
+
+    _translate map, id, reverse
+  end
+
+  def record_types
+    {
       12 => 'Contact', # removed in 2020 spec
       13 => 'Contact', # removed in 2020 spec
       141 => 'PATH service',
@@ -269,9 +275,7 @@ module HUD
       162 => 'RHY referral',
       200 => 'Bed night',
       210 => 'HUD-VASH OTH voucher tracking',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 1.5
@@ -497,13 +501,17 @@ module HUD
 
   # 2.7.2
   def household_type(id, reverse = false)
-    map = {
+    map = household_types
+
+    _translate map, id, reverse
+  end
+
+  def household_types
+    {
       1 => 'Households without children',
       3 => 'Households with at least one adult and one child',
       4 => 'Households with only children',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 2.7.3
@@ -519,13 +527,17 @@ module HUD
 
   # 2.7.4
   def availability(id, reverse = false)
-    map = {
+    map = availabilities
+
+    _translate map, id, reverse
+  end
+
+  def availabilities
+    {
       1 => 'Year-round',
       2 => 'Seasonal',
       3 => 'Overflow',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 2.7.B
@@ -679,7 +691,13 @@ module HUD
 
   # 3.917.2
   def residence_prior_length_of_stay(id, reverse = false)
-    map = {
+    map = length_of_stays
+
+    _translate map, id, reverse
+  end
+
+  def length_of_stays
+    {
       2 => 'One week or more, but less than one month',
       3 => 'One month or more, but less than 90 days',
       4 => '90 days or more but less than one year',
@@ -689,9 +707,7 @@ module HUD
       10 => 'One night or less',
       11 => 'Two to six nights',
       99 => 'Data not collected',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   def residence_prior_length_of_stay_brief(id, reverse = false)
@@ -849,7 +865,7 @@ module HUD
       36 => 'Staying or living in a friend’s room, apartment or house',
       37 => 'Worker unable to determine',
       99 => 'Data not collected',
-    }
+    }.freeze
   end
 
   def homeless_situations(as:, version: nil)
@@ -1115,7 +1131,13 @@ module HUD
 
   # 4.10.2
   def disability_response(id, reverse = false)
-    map = {
+    map = disability_responses
+
+    _translate map, id, reverse
+  end
+
+  def disability_responses
+    {
       0 => 'No',
       1 => 'Alcohol abuse',
       2 => 'Drug abuse',
@@ -1123,9 +1145,7 @@ module HUD
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 4.11.A
@@ -1443,13 +1463,17 @@ module HUD
 
   # 4.19.3
   def assessment_type(id, reverse = false)
-    map = {
+    map = assessment_types
+
+    _translate map, id, reverse
+  end
+
+  def assessment_types
+    {
       1 => 'Phone',
       2 => 'Virtual',
       3 => 'In Person',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 4.19.4
@@ -1498,7 +1522,13 @@ module HUD
 
   # 4.20.2
   def event(id, reverse = false)
-    map = {
+    map = events
+
+    _translate map, id, reverse
+  end
+
+  def events
+    {
       1 => 'Referral to Prevention Assistance project',
       2 => 'Problem Solving/Diversion/Rapid Resolution intervention or service',
       3 => 'Referral to scheduled Coordinated Entry Crisis Needs Assessment',
@@ -1514,9 +1544,7 @@ module HUD
       13 => 'Referral to RRH project resource opening',
       14 => 'Referral to PSH project resource opening',
       15 => 'Referral to Other PH project resource opening',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 4.20.D
@@ -2169,15 +2197,19 @@ module HUD
 
   # 5.03.1
   def data_collection_stage(id, reverse = false)
-    map = {
+    map = data_collection_stages
+
+    _translate map, id, reverse
+  end
+
+  def data_collection_stages
+    {
       1 => 'Project entry',
       2 => 'Update',
       3 => 'Project exit',
       5 => 'Annual assessment',
       6 => 'Post-exit', # not used in CSV
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   def coc_name(coc_code)

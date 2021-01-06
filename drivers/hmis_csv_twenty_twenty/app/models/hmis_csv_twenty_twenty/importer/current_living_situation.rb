@@ -23,7 +23,7 @@ module HmisCsvTwentyTwenty::Importer
           class: HmisCsvValidation::NonBlank,
         ],
         UserID: [
-          class: HmisCsvValidation::NonBlank,
+          class: HmisCsvValidation::NonBlankValidation,
         ],
         DateUpdated: [
           class: HmisCsvValidation::NonBlank,
