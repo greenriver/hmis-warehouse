@@ -865,7 +865,7 @@ module HUD
       36 => 'Staying or living in a friend’s room, apartment or house',
       37 => 'Worker unable to determine',
       99 => 'Data not collected',
-    }.freeze
+    }
   end
 
   def homeless_situations(as:, version: nil)
