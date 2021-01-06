@@ -1,68 +1,65 @@
 = render partial: 'breadcrumbs'
 %h1
   = _("Import Log from #{@import.data_source.name}")
-.row
-  .col-sm-12
-    .table-responsive
-      %table.table.table-sm
-        %tbody
-          %tr
-            %th Imported On
-            %td= @import.created_at
-          %tr
-            %th Completed In
-            %td= @import.import_time(details: true)
-          %tr
-            %th Files Found
-            %td
-              = link_to_if @import&.upload&.content.present?, "#{@import.files.try(:count)} in #{@import.upload.file.to_s.split('/').last}", download_import_path(@import)
 
-          - if @import.loader_log.present?
-            %tr
-              %th Loader Summary
-              %td
-                %table.table.table-sm.import__summary.table-hover
-                  %thead
-                    %tr
-                      %th File
-                      %th Total Rows
-                      %th Rows Loaded
-                      %th Errors
-                  %tbody
-                    - @import.loader_log.summary.with_indifferent_access.sort_by{|f,_| f}.each do |filename,v|
-                      %tr
-                        %td= filename
-                        %td= number_with_delimiter(v['total_lines'])
-                        %td= link_to_if v['lines_loaded']&.positive?, number_with_delimiter(v['lines_loaded']), hmis_csv_twenty_twenty_loaded_path(@import.loader_log, file: filename)
-                        %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_twenty_twenty_loader_error_path(@import.loader_log, file: filename)
+.table-responsive
+  %table.table
+    %tbody
+      %tr
+        %th Imported On
+        %td= @import.created_at
+      %tr
+        %th Completed In
+        %td= @import.import_time(details: true)
+      %tr
+        %th Files Found
+        %td
+          = link_to_if @import&.upload&.content.present?, "#{@import.files.try(:count)} in #{@import.upload.file.to_s.split('/').last}", download_import_path(@import)
 
-          - if @import.importer_log.present?
-            %tr
-              %th Importer Summary
-              %td
-                %table.table.table-sm.import__summary.table-hover
-                  %thead
-                    %tr
-                      %th File
-                      %th Rows Processed
-                      %th Rows Added
-                      %th Rows Removed
-                      %th Rows Updated
-                      %th Rows Unchanged
-                      %th Validation Flags
-                      %th Errors
-                  %tbody
-                    - @import.importer_log.summary.with_indifferent_access.sort_by{|f,_| f}.each do |filename,v|
-                      %tr
-                        %td= filename
-                        %td= link_to_if v['pre_processed']&.positive?, number_with_delimiter(v['pre_processed']), hmis_csv_twenty_twenty_imported_path(@import.importer_log, file: filename)
-                        %td= number_with_delimiter(v['added'])
-                        %td= number_with_delimiter(v['removed'])
-                        %td= number_with_delimiter(v['updated'])
-                        %td= number_with_delimiter(v['unchanged'])
-                        %td= link_to_if v['total_flags']&.positive? || v['total_flags'].blank?, number_with_delimiter(v['total_flags'] || '0'), hmis_csv_twenty_twenty_importer_validation_path(@import.importer_log, file: filename)
+- if @import.loader_log.present?
+  %h3 Loader Summary
+  .card.mb-4
+    %table.table.table-striped.import__summary.mb-0
+      %thead
+        %tr
+          %th File
+          %th Total Rows
+          %th Rows Loaded
+          %th Errors
+      %tbody
+        - @import.loader_log.summary.with_indifferent_access.sort_by{|f,_| f}.each do |filename,v|
+          %tr
+            %td= filename
+            %td= number_with_delimiter(v['total_lines'])
+            %td= link_to_if v['lines_loaded']&.positive?, number_with_delimiter(v['lines_loaded']), hmis_csv_twenty_twenty_loaded_path(@import.loader_log, file: filename)
+            %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_twenty_twenty_loader_error_path(@import.loader_log, file: filename)
 
-                        %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: filename)
+- if @import.importer_log.present?
+  %h3 Importer Summary
+  .card
+    %table.table.table-striped.import__summary.mb-0
+      %thead
+        %tr
+          %th File
+          %th Rows Processed
+          %th Rows Added
+          %th Rows Removed
+          %th Rows Updated
+          %th Rows Unchanged
+          %th Validation Flags
+          %th Errors
+      %tbody
+        - @import.importer_log.summary.with_indifferent_access.sort_by{|f,_| f}.each do |filename,v|
+          %tr
+            %td= filename
+            %td= link_to_if v['pre_processed']&.positive?, number_with_delimiter(v['pre_processed']), hmis_csv_twenty_twenty_imported_path(@import.importer_log, file: filename)
+            %td= number_with_delimiter(v['added'])
+            %td= number_with_delimiter(v['removed'])
+            %td= number_with_delimiter(v['updated'])
+            %td= number_with_delimiter(v['unchanged'])
+            %td= link_to_if v['total_flags']&.positive? || v['total_flags'].blank?, number_with_delimiter(v['total_flags'] || '0'), hmis_csv_twenty_twenty_importer_validation_path(@import.importer_log, file: filename)
+
+            %td= link_to_if v['total_errors']&.positive?, number_with_delimiter(v['total_errors']), hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: filename)
 
 - if @import.import_errors.present? && @import.import_errors.is_a?(Array)
   .row
