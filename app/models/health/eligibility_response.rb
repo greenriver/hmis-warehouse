@@ -13,7 +13,7 @@ module Health
   class EligibilityResponse < HealthBase
     acts_as_paranoid
 
-    phi_attr :response, Phi::Bulk # contains EDI serialized PHI
+    phi_attr :response, Phi::Bulk, "Description of eligibility inquiry response" # contains EDI serialized PHI
 
     mount_uploader :file, EligibilityResponseFileUploader
 

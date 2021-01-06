@@ -17,6 +17,8 @@ module GrdaWarehouse
     validates :static_column_count, numericality: { only_integer: true}
     serialize :column_state, Array
 
+    after_create :maintain_system_group
+
     has_many :cohort_clients, dependent: :destroy
     has_many :clients, through: :cohort_clients, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :tags, class_name: 'Cas::Tag', optional: true
@@ -456,6 +458,10 @@ module GrdaWarehouse
 
     private def days_homeless_plus_overrides(client)
       client.processed_service_history&.days_homeless_plus_overrides
+    end
+
+    private def maintain_system_group
+      AccessGroup.delayed_system_group_maintenance(group: :cohorts)
     end
   end
 end

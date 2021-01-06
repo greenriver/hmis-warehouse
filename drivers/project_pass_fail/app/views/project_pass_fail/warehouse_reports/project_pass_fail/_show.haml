@@ -2,6 +2,24 @@
 .reports
   = render 'filters/report_parameters', options: @report.options['filters'], report: @report
 
+- if @report.universal_data_element_threshold.present?
+  .well
+    %p In calculating this report, the following thresholds were used:
+    .d-flex.justify-content-center
+      %dl.text-center
+        %dt Universal Data Elements Error Threshold
+        %dd #{@report.universal_data_element_threshold * 100} %
+      %dl.ml-4.text-center
+        %dt Utilization Minimum Threshold
+        %dd #{@report.utilization_range.min * 100} %
+      %dl.ml-4.text-center
+        %dt Utilization Maximum Threshold
+        %dd #{@report.utilization_range.max * 100} %
+      %dl.ml-4.text-center
+        %dt Timeliness Threshold
+        %dd #{@report.timeliness_threshold} Days
+
+
 - if @report.projects.count > 1
   %h2 Overall
   .well.page-break-after

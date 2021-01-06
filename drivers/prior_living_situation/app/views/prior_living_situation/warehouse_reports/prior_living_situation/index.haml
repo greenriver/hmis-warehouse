@@ -30,10 +30,23 @@
             - if reports.count > 1
               - comparison_class = "c-swatch__border-left--td-#{index}"
             %div{class: column_class}
-              - report.data_for_living_situations.each do |coc_code, data|
+              - data = report.data_for_living_situations[:all]
+              .mb-4
+                %h3 Universe
+                .card.overflow-scroll.mb-4{class: comparison_class}
+                  %table.table.table-striped
+                    %thead
+                      %tr
+                        - data.each do |situation, _|
+                          %th.text-center= situation
+                    %tbody
+                      %tr
+                        - data.each do |_, ids|
+                          %th.text-center= number_with_delimiter(ids.count)
+              - report.data_for_living_situations[:by_coc].each do |coc_code, data|
                 .mb-4
                   %h3= coc_code
-                  .card.mb-4{class: comparison_class}
+                  .card.overflow-scroll.mb-4{class: comparison_class}
                     %table.table.table-striped
                       %thead
                         %tr
@@ -54,8 +67,9 @@
                         - data[:situations_length].each do |situation, sit_data|
                           - sit_data.each_with_index do |(length, ids), index|
                             %tr
-                              %td
+                              %th
                                 - if index.zero?
                                   = situation
                               %td= length.presence || 'unknown'
                               %td= number_with_delimiter(ids.count)
+      = render 'computation_description'

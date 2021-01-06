@@ -1433,6 +1433,7 @@ module GrdaWarehouse::Hud
 
       data = hmis_client_response['Email']
       return data if data
+      return unless hmis_client.processed_fields
 
       hmis_client.processed_fields['email']
     end
@@ -1448,6 +1449,7 @@ module GrdaWarehouse::Hud
 
       data = hmis_client_response['CellPhone']
       return data if data
+      return unless hmis_client.processed_fields
 
       hmis_client.processed_fields['phone']
     end

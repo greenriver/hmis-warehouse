@@ -57,6 +57,9 @@ Date:  4/20/2020
 						to 10/1/2012 when LastInactive = 9/30/2012 and the enrollments extend beyond that date
 	12/17/2020 - 7.7.3 & 7.7.4 - correct hhid household type columns
 			- 7.4.1 - limit setting HHVet to 1 to people over 18 during the relevant cohort period.
+	12/29/2020	- 7.4.1 - switch from inner to outer join to vet subquery (was leaving HH population identifiers null after previous update)
+						and add case statement to HHVet to set 0 if subquery result is NULL
+					
 
 	7.1 Identify Qualifying Exits in Exit Cohort Periods
 */
@@ -174,7 +177,7 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 */
 
 	update ex
-	set HHVet = vet.vet
+	set HHVet = case when vet.vet is null then 0 else vet.vet end
 		, HHDisability = (select max(case when disability.DisabilityStatus = 1 then 1 else 0 end)
 			from tlsa_Enrollment disability
 			where disability.HouseholdID = hh.HouseholdID)
@@ -207,8 +210,9 @@ inner join tlsa_HHID qx on qx.HouseholdID = ex.QualifyingExitHHID
 		select n.HouseholdID, n.PersonalID, n.EnrollmentID, hhid.ExitCohort
 			, n.RelationshipToHoH
 		from tlsa_Enrollment n
-		inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID) hh on hh.HouseholdID = ex.QualifyingExitHHID and hh.ExitCohort = ex.Cohort
-	inner join (select n.HouseholdID, hhid.ExitCohort, max(case when c.VeteranStatus = 1 then 1 else 0 end) as vet
+		inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
+			) hh on hh.HouseholdID = ex.QualifyingExitHHID and hh.ExitCohort = ex.Cohort
+	left outer join (select n.HouseholdID, hhid.ExitCohort, max(case when c.VeteranStatus = 1 then 1 else 0 end) as vet
 		from tlsa_Enrollment n
 		inner join hmis_Client c on c.PersonalID = n.PersonalID
 		inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
