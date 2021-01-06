@@ -15,9 +15,9 @@ module Health
     acts_as_paranoid
 
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier
-    phi_attr :user_id, Phi::SmallPopulation
-    phi_attr :last_contact, Phi::Date
+    phi_attr :id, Phi::OtherIdentifier, "ID of team member"
+    phi_attr :user_id, Phi::SmallPopulation, "ID of user"
+    phi_attr :last_contact, Phi::Date, "Date of last contact"
 
 
     # belongs_to :team, class_name: 'Health::Team'

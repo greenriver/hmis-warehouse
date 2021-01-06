@@ -14,15 +14,15 @@ module Health
     acts_as_paranoid
 
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier
-    phi_attr :user_id, Phi::SmallPopulation
+    phi_attr :id, Phi::OtherIdentifier, "ID of goal"
+    phi_attr :user_id, Phi::SmallPopulation, "ID of user"
     # phi_attr :type,
     # phi_attr :number,
-    phi_attr :name, Phi::FreeText
+    phi_attr :name, Phi::FreeText, "Name of goal"
     phi_attr :associated_dx, Phi::FreeText
-    phi_attr :barriers, Phi::FreeText
-    phi_attr :provider_plan, Phi::FreeText
-    phi_attr :case_manager_plan, Phi::FreeText
+    phi_attr :barriers, Phi::FreeText, "Description of barriers to goal"
+    phi_attr :provider_plan, Phi::FreeText, "Plan of provider"
+    phi_attr :case_manager_plan, Phi::FreeText, "Plan of case manager"
     phi_attr :rn_plan, Phi::FreeText
     phi_attr :bh_plan, Phi::FreeText
     phi_attr :other_plan, Phi::FreeText
@@ -47,12 +47,12 @@ module Health
     phi_attr :az_family, Phi::FreeText
     phi_attr :az_community, Phi::FreeText
     phi_attr :az_time_management, Phi::FreeText
-    phi_attr :goal_details, Phi::FreeText
+    phi_attr :goal_details, Phi::FreeText, "Details of goal"
     phi_attr :problem, Phi::FreeText
-    phi_attr :start_date, Phi::Date
+    phi_attr :start_date, Phi::Date, "Start date of goal"
     phi_attr :intervention, Phi::FreeText
     # phi_attr :status,
-    phi_attr :responsible_team_member_id, Phi::SmallPopulation
+    phi_attr :responsible_team_member_id, Phi::SmallPopulation, "ID of responsible team member"
 
 
     # belongs_to :careplan, class_name: 'Health::Careplan'

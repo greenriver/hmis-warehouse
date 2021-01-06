@@ -551,6 +551,13 @@ class Role < ApplicationRecord
           'Reporting',
         ],
       },
+      can_administer_assigned_reports: {
+        description: 'Ability to view and delete reports assigned to other users',
+        administrative: true,
+        categories: [
+          'Reporting',
+        ],
+      },
       # Removed 11/24/2019 -- no longer in use
       # can_view_project_data_quality_client_details: {
       #   description: 'Drill-down access to client level details on project data quality reports',

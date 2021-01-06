@@ -14,8 +14,8 @@ module Health
     before_create :assign_control_numbers
     after_initialize :set_batch
 
-    phi_attr :inquiry, Phi::Bulk # contains EDI serialized PHI
-    phi_attr :result, Phi::Bulk # contains EDI serialized PHI
+    phi_attr :inquiry, Phi::Bulk, "Description of inquiry" # contains EDI serialized PHI
+    phi_attr :result, Phi::Bulk, "Result of inquiry" # contains EDI serialized PHI
     attr_accessor :batch
 
     has_one :eligibility_response, dependent: :destroy
