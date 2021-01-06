@@ -58,7 +58,7 @@ module ClaimsReporting
       patient_qas(patient.id).reject do |qa|
         # This is logically QualifyingActivity#occurred_during_any_enrollment? but is
         # faster since we will already have the full patient_referrals history
-        qa.date_of_activity.present? && patient.patient_referrals.select do |r|
+        qa.date_of_activity.present? && patient.patient_referrals.detect do |r|
           r.active_on?(qa.date_of_activity)
         end
       end.size
