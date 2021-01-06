@@ -24,5 +24,16 @@ module HmisCsvTwentyTwenty::Importer
     def self.warehouse_class
       GrdaWarehouse::Hud::Affiliation
     end
+
+    def self.hmis_validations
+      {
+        ProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        ResProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+      }
+    end
   end
 end

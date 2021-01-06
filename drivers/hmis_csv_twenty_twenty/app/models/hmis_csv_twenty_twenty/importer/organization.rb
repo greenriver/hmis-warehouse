@@ -35,5 +35,25 @@ module HmisCsvTwentyTwenty::Importer
     #     date_range: date_range,
     #   )
     # end
+
+    def self.hmis_validations
+      {
+        OrganizationID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        OrganizationName: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        VictimServicesProvider: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
+          },
+        ],
+      }
+    end
   end
 end

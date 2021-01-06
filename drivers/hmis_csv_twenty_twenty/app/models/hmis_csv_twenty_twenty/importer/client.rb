@@ -40,6 +40,33 @@ module HmisCsvTwentyTwenty::Importer
             arguments: { valid_options: HUD.ssn_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
+        Ethnicity: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.ethnicities.keys.map(&:to_s).freeze },
+          },
+        ],
+        Gender: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.genders.keys.map(&:to_s).freeze },
+          },
+        ],
+        VeteranStatus: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
+          },
+        ],
       }
     end
 
