@@ -10,13 +10,13 @@
 module Health
   class EpicCaseNote < EpicBase
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier
+    phi_attr :id, Phi::OtherIdentifier, "ID of Epic case note"
     phi_attr :id_in_source, Phi::OtherIdentifier
-    phi_attr :contact_date, Phi::Date
+    phi_attr :contact_date, Phi::Date, "Date of contact"
     # phi_attr :closed
     # phi_attr :encounter_type
-    phi_attr :provider_name, Phi::SmallPopulation
-    phi_attr :location, Phi::Location
+    phi_attr :provider_name, Phi::SmallPopulation, "Name of provider"
+    phi_attr :location, Phi::Location, "Location of encounter"
     phi_attr :chief_complaint_1, Phi::FreeText
     phi_attr :chief_complaint_1_comment, Phi::FreeText
     phi_attr :chief_complaint_2, Phi::FreeText

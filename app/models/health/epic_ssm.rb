@@ -12,10 +12,10 @@ module Health
     phi_patient :patient_id
 
     phi_attr :id_in_source, Phi::OtherIdentifier
-    phi_attr :encounter_id, Phi::OtherIdentifier
+    phi_attr :encounter_id, Phi::OtherIdentifier, "ID of encounter"
     # phi_attr :encounter_type
-    phi_attr :ssm_updated_at, Phi::Date
-    phi_attr :staff, Phi::SmallPopulation
+    phi_attr :ssm_updated_at, Phi::Date, "Date of update of SSM"
+    phi_attr :staff, Phi::SmallPopulation, "Name of staff"
     phi_attr :part_1, Phi::FreeText
     phi_attr :part_2, Phi::FreeText
     phi_attr :part_3, Phi::FreeText

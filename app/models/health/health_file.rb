@@ -11,9 +11,9 @@ module Health
   class HealthFile < HealthBase
     acts_as_paranoid
 
-    phi_attr :file, Phi::FreeText
-    phi_attr :content, Phi::FreeText
-    phi_attr :note, Phi::FreeText
+    phi_attr :file, Phi::FreeText, "Name of health file"
+    phi_attr :content, Phi::FreeText, "Content of health file"
+    phi_attr :note, Phi::FreeText, "Notes on health file"
 
     belongs_to :user
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
