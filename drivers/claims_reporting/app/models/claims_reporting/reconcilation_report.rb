@@ -108,8 +108,8 @@ module ClaimsReporting
     def patients_without_payments_columns
       [
         'Medicaid ID',
-        'First Name',
         'Last Name',
+        'First Name',
         'Submitted QAs',
         'QAs Outside Enrollment',
         'QAs Without Required Careplan',
@@ -121,8 +121,8 @@ module ClaimsReporting
       patients_without_payments.map do |patient|
         [
           patient.medicaid_id,
-          patient.first_name,
           patient.last_name,
+          patient.first_name,
           qa_count_for_patient(patient),
           qa_missing_enrollment_count_for_patient(patient),
           qa_missing_careplan_count_for_patient(patient),

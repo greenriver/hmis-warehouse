@@ -16,8 +16,8 @@
       %thead
         %tr
           %th Medicaid ID
-          %th First Name
           %th Last Name
+          %th First Name
           %th Submitted QAs
           %th QAs Outside Enrollment
           %th QAs Without Required Careplan
@@ -26,8 +26,8 @@
         - @report.patients_without_payments.each do |patient|
           %tr
             %td= link_to patient.medicaid_id, client_health_qualifying_activities_path(patient.client)
-            %td= patient.first_name
             %td= patient.last_name
+            %td= patient.first_name
             %td= @report.qa_count_for_patient(patient)
             %td= @report.qa_missing_enrollment_count_for_patient(patient)
             %td= @report.qa_missing_careplan_count_for_patient(patient)
