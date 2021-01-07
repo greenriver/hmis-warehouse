@@ -81,7 +81,6 @@ window.App.RoleTable = class TableSearch {
             return $.ajax({
               type: 'PATCH',
               dataType: 'JSON',
-              // url: `/admin/roles/${id}`,
               url: `${this.patch_url}/${id}`,
               data: this.$tableContainer.find(inputBaseQuery).serialize(),
             })

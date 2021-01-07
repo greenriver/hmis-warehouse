@@ -26,17 +26,8 @@
             .c-table__icon-key
               Displaying
               = pluralize(@roles.count, 'role')
-            -# .d-flex.ml-12.align-items-center
-              = link_to new_admin_role_path, class: 'btn btn-secondary btn-sm ml-auto' do
-                %span.icon-plus
-                Add a role
       %tr.c-table__header.c-table__header--secondary
         %th.c-table__cell--border-r-primary{colspan:1}
-          -# .mb-2
-            %select.j-table__search.form-control.w-100.select2{multiple: true, placeholder: 'Select permission categories'}
-              %option.disabled{disabled: true} Select cateories
-              - Role.permission_categories.each do |cat|
-                %option{value: cat}= cat
           %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
         - @roles.each do |role|
           %th.c-table__cell--border-r-secondary.c-table__header-title.text-center.j-table__object{data:{role: role.id}}
@@ -44,8 +35,6 @@
 
     %tbody
       - Role.health_permissions.each do |permission|
-        -# - categories = Role.category_for(permission: permission)
-        -# %tr.j-table__row{'data-title' => permission.to_s.humanize, 'data-categories' => categories.to_s.html_safe}
         %tr.j-table__row{'data-title' => permission.to_s.humanize}
           %td.c-table__cell--border-r-primary{colspan:1}
             .c-table__cell-title.d-flex.align-items-center.flex-wrap
@@ -53,9 +42,6 @@
                 = permission.to_s.humanize
                 - if Role.administrative?(permission: permission)
                   %i.icon-lock.ml-2{data: {toggle: :tooltip, title: 'Administrative Permission'}}
-              -# %div
-                - categories.each do |cat|
-                  %span.badge.badge-primary.mr-1=cat
             .c-table__cell-description
               = Role.description_for(permission: permission)
           - @roles.each do |role|
@@ -73,28 +59,3 @@
 - content_for :page_js do
   :javascript
     new App.RoleTable({patch_url: '/admin/health/roles'})
-
--# .table-responsive
--#   %table.table.table-sm
--#     %thead
--#       %th Permission:
--#       - @roles.each do |role|
--#         %th
--#           = link_to role.name, action: :edit, id: role
-
--#     %tbody
--#       - Role.health_permissions.each do |permission|
--#         %tr
--#           %td
--#             .permission__name
--#               - if Role.administrative?(permission: permission)
--#                 %i.icon-lock{data: {toggle: :tooltip, title: 'Administrative Permission'}}
--#               = permission.to_s.humanize
--#             .permission__description
--#               %em.text-small.text-muted= Role.description_for permission: permission
--#           - @roles.each do |role|
--#             %td
--#               =checkmark(role.send(permission))
-
-
--#     %p= paginate @roles

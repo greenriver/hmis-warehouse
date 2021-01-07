@@ -1,4 +1,3 @@
--# = render 'breadcrumbs'
 = content_for :crumbs do
   = link_to admin_health_roles_path do
     &laquo; Health Roles
@@ -29,9 +28,3 @@
             %td= user.first_name
             %td= user.last_name
             %td= user.email
-
--# = render 'breadcrumbs'
--# %h1
--#   Edit Role:
--#   = @role.name
--# = render 'form'
