@@ -50,7 +50,7 @@ gem 'carrierwave-i18n'
 gem 'carrierwave-aws'
 gem 'ruby-filemagic'
 gem 'mini_magick'
-gem 'acts-as-taggable-on', '~> 6.0'
+gem 'acts-as-taggable-on', '~> 7.0'
 # this doesn't install cleanly on a Mac
 # We aren't currently using this anyway
 gem 'seven_zip_ruby'
@@ -79,7 +79,9 @@ gem 'lograge'
 gem 'logstop'
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
-gem 'delayed_job_active_record'
+#locking temporarily to protect the delayed job monkey patch
+gem 'delayed_job'
+gem 'delayed_job_active_record', '4.1.4'
 gem 'uglifier'
 gem 'daemons'
 
@@ -87,7 +89,7 @@ gem 'simple_form'
 gem 'virtus'
 
 # Asset related
-gem 'bootstrap', '~> 4.3.1'
+gem 'bootstrap', '~> 4.3'
 gem 'jquery-rails'
 gem 'coffee-rails'
 gem 'handlebars_assets'
@@ -146,6 +148,9 @@ gem 'exception_notification'
 # gem 'bcrypt', '~> 3.1.7'
 
 # Use Unicorn as the app server
+# there doesn't seem to be any immediately obvious breaking
+# changes on the 4.x versions, but since it's so behind
+# i'll just put this comment here as information
 gem 'puma', '~> 3.12.6'
 
 # gem 'newrelic_rpm', require: false
