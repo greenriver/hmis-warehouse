@@ -33,6 +33,7 @@ module HmisCsvTwentyTwenty::GrdaWarehouse
         end
         if percent_complete == 100
           return 'Paused for error review' if importer_log&.paused?
+          return 'Resuming...' if importer_log&.resuming?
 
           begin
             seconds = ((completed_at - created_at) / 1.minute).round * 60

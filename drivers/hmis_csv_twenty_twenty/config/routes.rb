@@ -7,5 +7,6 @@ BostonHmis::Application.routes.draw do
     resources :importer_extensions, only: [:edit, :update]
     resources :loaded, only: [:show]
     resources :imported, only: [:show]
+    resources :importer_restarts, only: [:update]
   end
 end

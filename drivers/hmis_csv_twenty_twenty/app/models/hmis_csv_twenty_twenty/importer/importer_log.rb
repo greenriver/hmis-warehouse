@@ -15,5 +15,9 @@ module HmisCsvTwentyTwenty::Importer
     def paused?
       status.to_s == 'paused'
     end
+
+    def resuming?
+      status.to_s == 'resuming'
+    end
   end
 end

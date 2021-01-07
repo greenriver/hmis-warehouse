@@ -71,8 +71,11 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def resume!
-      return unless importer_log.paused?
+      return unless importer_log.resuming?
 
+      # this isn't quite right, but we don't store it,
+      # and we may have paused for a significant amount of time
+      @started_at = Time.current
       ingest!
       invalidate_aggregated_enrollments!
       complete_import
@@ -209,6 +212,7 @@ module HmisCsvTwentyTwenty::Importer
     # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
     # In here, add history_generated_on date to enrollment record
     def ingest!
+      importer_log.update(status: :importing)
       # Mark everything that exists in the warehouse, that would be covered by this import
       # as pending deletion.  We'll remove the pending where appropriate
       mark_tree_as_dead(Date.current)

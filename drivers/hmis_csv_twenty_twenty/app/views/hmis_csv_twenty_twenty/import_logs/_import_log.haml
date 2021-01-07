@@ -1,7 +1,12 @@
 = render partial: 'breadcrumbs'
+- status = @import.import_time(details: true)
+- ds_name = @import.data_source.name
 %h1
-  = _("Import Log from #{@import.data_source.name}")
-
+  = _("Import Log from #{ds_name}")
+- if @import.importer_log&.paused?
+  .alert.alert-warning
+    %i.icon-warning.mr-2
+    %p #{ds_name} is currently set to prevent imports from loading if they contain any errors.  This import contained at least one error, which you can review below.  If the errors are unacceptable, fix them in the HMIS CSV files and re-upload.
 .table-responsive
   %table.table
     %tbody
@@ -10,7 +15,13 @@
         %td= @import.created_at
       %tr
         %th Completed In
-        %td= @import.import_time(details: true)
+        %td
+          = status
+          - if @import.importer_log&.paused?
+            = link_to hmis_csv_twenty_twenty_importer_restart_path(@import), class: 'ml-4 btn btn-primary btn-sm', method: :put do
+              %i.icon-enter
+              Resume Import
+
       %tr
         %th Files Found
         %td
