@@ -75,7 +75,14 @@ module Health
     phi_attr :exported_on, Phi::Date
     # phi_attr :removal_acknowledge
     phi_attr :disenrollment_date, Phi::Date
-    phi_attr :stop_reason_description, Phi::FreeText
+    phi_attr :pending_disenrollment_date, Phi::Date, <<~DESC
+      A disenrollment date received via ANSI 834. Once acknowledged it is copied
+      to disenrollment_date. However for the purposes of payments it can be
+      considered to be the effective disenrollment date.
+    DESC
+    phi_attr :stop_reason_description, Phi::FreeText, <<~DESC
+      A description of why the enrollment was cancelled.
+    DESC
 
     before_validation :update_rejected_from_reason
 
@@ -320,11 +327,6 @@ module Health
     # Note: respects pending_disenrollment_date if there is no disenrollment_date
     def active_on?(date)
       was_active_range&.cover?(range)
-    end
-
-
-    def disenrolled?
-      actual_or_pending_disenrollment_date.present? || removal_acknowledged? || rejected?
     end
 
     def re_enrollment_blackout?(on_date)
