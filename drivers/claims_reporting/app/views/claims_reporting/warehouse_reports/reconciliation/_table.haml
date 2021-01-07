@@ -11,7 +11,7 @@
       = link_to(link_params.merge({format: :xlsx}),{class: 'btn btn-secondary'}) do
         %i.icon.icon-download2
         Download Excel
-  .card
+  .card.p-0.pt-2
     %table.table.table-striped.datatable
       %thead
         %tr
@@ -34,9 +34,12 @@
             %td= @report.careplan_dates_for_patient(patient)
 = content_for :page_js do
   :javascript
-    $('.datatable').DataTable({
-      searching: true,
-      ordering: true,
-      paging: false,
-      info: false
-    });
+    $(function() {
+      $('.datatable').DataTable({
+        searching: true,
+        ordering: true,
+        paging: false,
+        info: false,
+        scrollY: '300px'
+      })
+    })
