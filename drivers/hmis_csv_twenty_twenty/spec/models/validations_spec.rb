@@ -5,7 +5,7 @@ RSpec.describe 'Validate import files', type: :model do
     GrdaWarehouse::Utility.clear!
     HmisCsvTwentyTwenty::Utility.clear!
 
-    file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/enrollment_validation_files'
+    file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/validation_files'
 
     @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
 
