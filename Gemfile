@@ -79,9 +79,9 @@ gem 'lograge'
 gem 'logstop'
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
-#locking temporarily to protect the delayed job monkey patch
 gem 'delayed_job'
-gem 'delayed_job_active_record', '4.1.4'
+#locking temporarily to protect the delayed job monkey patch
+gem 'delayed_job_active_record'#, '4.1.4'
 gem 'uglifier'
 gem 'daemons'
 
