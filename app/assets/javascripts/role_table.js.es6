@@ -1,5 +1,5 @@
 window.App.RoleTable = class TableSearch {
-  constructor(props) {
+  constructor({props, patch_url} = {props, patch_url:'/admin/roles'}) {
     this.isDirty = false
     this.props = Object.assign({
       tableContainerSelector: '.j-table',
@@ -11,6 +11,9 @@ window.App.RoleTable = class TableSearch {
 
     this.isSaving = false
     this.$tableContainer = $(this.props.tableContainerSelector)
+
+    this.patch_url = patch_url
+
     this.init()
   }
 
@@ -78,7 +81,8 @@ window.App.RoleTable = class TableSearch {
             return $.ajax({
               type: 'PATCH',
               dataType: 'JSON',
-              url: `/admin/roles/${id}`,
+              // url: `/admin/roles/${id}`,
+              url: `${this.patch_url}/${id}`,
               data: this.$tableContainer.find(inputBaseQuery).serialize(),
             })
           } else {

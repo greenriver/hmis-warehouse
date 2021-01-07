@@ -72,7 +72,7 @@
 
 - content_for :page_js do
   :javascript
-    new App.RoleTable()
+    new App.RoleTable({patch_url: '/admin/health/roles'})
 
 -# .table-responsive
 -#   %table.table.table-sm
