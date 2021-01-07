@@ -186,7 +186,7 @@ module GrdaWarehouse
       Importing::RunAddServiceHistoryJob.perform_later
     end
 
-    def flag_as(user: nil, status: status)
+    def flag_as(user: nil, status:)
       user ||= User.setup_system_user
       update(
         updated_by_id: user.id,
