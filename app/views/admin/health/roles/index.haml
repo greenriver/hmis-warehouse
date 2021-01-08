@@ -3,27 +3,59 @@
 = render 'breadcrumbs'
 
 = render 'menus/health_admin_tabs'
-.table-responsive
-  %table.table.table-sm
+
+.table-responsive.j-table.c-save-table{data: {objects: @roles.map(&:id).to_json.html_safe}}
+  .c-save-table__submit-container.j-table__submit-container
+    .c-save-table__submit-container-error-text
+    = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
+    = link_to 'Cancel', '', class: 'btn btn-link j-table__cancel'
+    %button.j-table__submit-changes.c-save-table__submit-changes.btn.btn-primary{type: 'button'} Save changes
+  %table.table.c-table.c-table--striped.j-table__table
     %thead
-      %th Permission:
-      - @roles.each do |role|
-        %th
-          = link_to role.name, action: :edit, id: role
+      %tr.c-table__header.c-table__header--primary
+        %th.c-table__cell--border-r-primary.v-align-middle{colspan:1, style: 'min-width: 400px'}
+          .d-flex.align-items-center.flex-wrap
+            %span.c-table__header-title Permissions
+            %span.c-table__icon-key.c-table__icon-key--right
+              %i.icon-lock
+              %span Administrative Permission
+
+        %th{colspan:@roles.length}
+          %div.d-flex.align-items-center
+            %span.c-table__header-title.mr-4 Roles
+            .c-table__icon-key
+              Displaying
+              = pluralize(@roles.count, 'role')
+      %tr.c-table__header.c-table__header--secondary
+        %th.c-table__cell--border-r-primary{colspan:1}
+          %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
+        - @roles.each do |role|
+          %th.c-table__cell--border-r-secondary.c-table__header-title.text-center.j-table__object{data:{role: role.id}}
+            = link_to role.name, action: :edit, id: role
 
     %tbody
       - Role.health_permissions.each do |permission|
-        %tr
-          %td
-            .permission__name
-              - if Role.administrative?(permission: permission)
-                %i.icon-lock{data: {toggle: :tooltip, title: 'Administrative Permission'}}
-              = permission.to_s.humanize
-            .permission__description
-              %em.text-small.text-muted= Role.description_for permission: permission
+        %tr.j-table__row{'data-title' => permission.to_s.humanize}
+          %td.c-table__cell--border-r-primary{colspan:1}
+            .c-table__cell-title.d-flex.align-items-center.flex-wrap
+              %span.mr-1
+                = permission.to_s.humanize
+                - if Role.administrative?(permission: permission)
+                  %i.icon-lock.ml-2{data: {toggle: :tooltip, title: 'Administrative Permission'}}
+            .c-table__cell-description
+              = Role.description_for(permission: permission)
           - @roles.each do |role|
-            %td
-              =checkmark(role.send(permission))
+            - permitted = role.send(permission)
+            %td.c-table__cell--border-r-secondary.text-center.v-align-middle.c-table__cell-icon.j-table__input{data:{role: role.id}, class: (permitted ? 'c-table__cell-icon--active' : 'c-table__cell-icon--inactive')}
+              .form-check.text-center
+                - id = permission.to_s
+                - name = "role[#{id}]"
+                - id += "_#{role.id}"
+                %input{name: name, type: 'hidden', value: 0}
+                .c-checkbox.d-flex.align-items-center.justify-content-center
+                  %input{id: id, name:name, type: 'checkbox', value: 1, checked: permitted}
+                  %label{for: id}
 
-
-    %p= paginate @roles
+- content_for :page_js do
+  :javascript
+    new App.RoleTable({patch_url: '/admin/health/roles'})

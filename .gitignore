@@ -112,3 +112,6 @@ shape_files/**/*
 !/shape_files/zip_codes.census.2018
 !/shape_files/zip_codes.census.2018/README.md
 !/shape_files/zip_codes.census.2018/make.inserts
+
+# vendor cache folder
+/vendor/cache
