@@ -115,6 +115,66 @@ RSpec.describe 'Validate import files', type: :model do
     expect(GrdaWarehouse::Hud::CurrentLivingSituation.where(EnrollmentID: 'FAILURE').count).to eq(0)
   end
 
+  # Disability
+  it 'includes expected disabilities' do
+    expect(GrdaWarehouse::Hud::Disability.count).to eq(2)
+  end
+
+  it 'includes expected disabilities failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Disability').count).to eq(4)
+  end
+
+  it 'includes expected disabilities validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Disability').count).to eq(6)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Disability').count).to eq(1)
+    end
+  end
+
+  it 'excludes expected disabilities failures' do
+    expect(GrdaWarehouse::Hud::Disability.where(EnrollmentID: 'FAILURE').count).to eq(0)
+  end
+
+  # EmploymentEducation
+  it 'includes expected employment educations' do
+    expect(GrdaWarehouse::Hud::EmploymentEducation.count).to eq(2)
+  end
+
+  it 'includes expected employment educations failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::EmploymentEducation').count).to eq(2)
+  end
+
+  it 'includes expected employment educations validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::EmploymentEducation').count).to eq(1)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::EmploymentEducation').count).to eq(2)
+    end
+  end
+
+  it 'excludes expected employment educations failures' do
+    expect(GrdaWarehouse::Hud::EmploymentEducation.where(EnrollmentID: 'FAILURE').count).to eq(0)
+  end
+
+  # Enrollment
+  it 'includes expected enrollments' do
+    expect(GrdaWarehouse::Hud::Enrollment.count).to eq(2)
+  end
+
+  it 'includes expected enrollments failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Enrollment').count).to eq(3)
+  end
+
+  it 'includes expected enrollments validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Enrollment').count).to eq(4)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Enrollment').count).to eq(4)
+    end
+  end
+
+  it 'excludes expected enrollments failures' do
+    expect(GrdaWarehouse::Hud::Enrollment.where(ProjectID: 'FAILURE').count).to eq(0)
+  end
+
   # it 'has two entry after exit validation errors' do
   #   expect(HmisCsvValidation::EntryAfterExit.count).to eq(2)
   # end
