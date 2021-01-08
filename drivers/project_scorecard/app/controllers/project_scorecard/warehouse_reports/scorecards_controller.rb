@@ -93,6 +93,11 @@ module ProjectScorecard::WarehouseReports
     end
     helper_method :workflow_action
 
+    def link_to_apr(text, question)
+      helpers.link_to_if(current_user.can_view_hud_reports && @report.apr_id.present?, text, result_hud_reports_apr_question_path(@report.apr_id || 0, question))
+    end
+    helper_method :link_to_apr
+
     private def appropriate_action
       return :show if @report.status == 'completed'
 
@@ -188,7 +193,6 @@ module ProjectScorecard::WarehouseReports
     private def set_projects
       project_ids = @filter.anded_effective_project_ids
       @projects = if project_ids&.any?
-
         project_scope.where(id: project_ids).
           joins(:organization, :data_source).
           order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).

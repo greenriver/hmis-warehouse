@@ -20,8 +20,16 @@ module ProjectScorecard
         ].compact.sum
       end
 
+      def project_performance_max
+        if returns_to_homelessness_score.blank?
+          50
+        else
+          60
+        end
+      end
+
       def project_performance_percentage
-        (((project_performance_score / 60.0) * 0.5) * 100).round
+        (((project_performance_score / project_performance_max.to_f) * 0.5) * 100).round
       end
 
       def data_quality_score

@@ -13,6 +13,21 @@ module ProjectScorecard
 
         ((accepted_ces_referrals / total_ces_referrals.to_f) * 100).round
       end
+
+      def ces_rejected_score
+        score(ces_rejected_referral_percentage, 0..10)
+      end
+
+      def site_monitoring_score
+        case site_monitoring
+        when 'No Findings'
+          10
+        when 'Findings but Resolved'
+          5
+        else
+          0
+        end
+      end
     end
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_06_173839) do
+ActiveRecord::Schema.define(version: 2021_01_06_195019) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -5352,6 +5352,8 @@ ActiveRecord::Schema.define(version: 2021_01_06_173839) do
     t.string "special_population_only"
     t.boolean "project_less_than_two"
     t.string "geographic_location"
+    t.bigint "apr_id"
+    t.index ["apr_id"], name: "index_project_scorecard_reports_on_apr_id"
     t.index ["project_group_id"], name: "index_project_scorecard_reports_on_project_group_id"
     t.index ["project_id"], name: "index_project_scorecard_reports_on_project_id"
     t.index ["user_id"], name: "index_project_scorecard_reports_on_user_id"
