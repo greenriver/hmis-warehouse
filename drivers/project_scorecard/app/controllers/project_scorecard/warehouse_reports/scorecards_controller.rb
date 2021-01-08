@@ -93,10 +93,10 @@ module ProjectScorecard::WarehouseReports
     end
     helper_method :workflow_action
 
-    def apr_url(text, question)
-      helpers.link_to_if(current_user.can_view_hud_reports && @report.apr_id.present?, text, result_hud_reports_apr_question_path(@report.apr_id, question))
+    def link_to_apr(text, question)
+      helpers.link_to_if(current_user.can_view_hud_reports && @report.apr_id.present?, text, result_hud_reports_apr_question_path(@report.apr_id || 0, question))
     end
-    helper_method :apr_url
+    helper_method :link_to_apr
 
     private def appropriate_action
       return :show if @report.status == 'completed'

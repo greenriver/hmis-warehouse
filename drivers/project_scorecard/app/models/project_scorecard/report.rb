@@ -21,7 +21,7 @@ module ProjectScorecard
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
     belongs_to :user, class_name: 'User'
-    belongs_to :apr, class_name: 'HudReports::ReportInstance'
+    belongs_to :apr, class_name: 'HudReports::ReportInstance', optional: true
 
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project

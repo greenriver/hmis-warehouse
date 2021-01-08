@@ -16,7 +16,7 @@
         %th
           = simple_format(_('TX-601 established Community-wide performance expectations in 2016 and identified that well-functioning Housing Crisis Response System moves households from homelessness to permanent housing in less than 30 days.'))
           %br
-          = apr_url('APR Q22c', 'Question 22')
+          = link_to_apr('APR Q22c', 'Question 22')
         %th Average Time to Lease Up
         %td.text-center= f.input :days_to_lease_up, label: false, as: :read_only
         %th.text-nowrap
