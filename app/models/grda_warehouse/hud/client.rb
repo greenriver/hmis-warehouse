@@ -2093,31 +2093,41 @@ module GrdaWarehouse::Hud
       ::HUD.gender(self.Gender)
     end
 
-    def self.age date:, dob:
+    def self.age(date:, dob:)
       return nil unless date.present? && dob.present?
+
       age = date.year - dob.year
       age -= 1 if dob > date.years_ago(age)
-      return age
+      age
     end
 
-    def age date=Date.current
+    def age(date=Date.current)
       return unless attributes['DOB'].present?
+
       date = date.to_date
       dob = attributes['DOB'].to_date
       self.class.age(date: date, dob: dob)
     end
-    alias_method :age_on, :age
+    alias age_on age
+
+    def youth_on?(date=Date.current)
+      (18..24).cover?(age)
+    end
 
     def uuid
       @uuid ||= if data_source&.munged_personal_id
-        self.PersonalID.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject{ |c| c.empty? || c == '__#' }.join('-')
+        self.PersonalID.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject do |c|
+          c.empty? || c == '__#'
+        end.join('-')
       else
         self.PersonalID
       end
     end
 
-    def self.uuid personal_id
-      personal_id.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject{ |c| c.empty? || c == '__#' }.join('-')
+    def self.uuid(personal_id)
+      personal_id.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject do |c|
+        c.empty? || c == '__#'
+      end.join('-')
     end
 
     def veteran?
@@ -2136,7 +2146,7 @@ module GrdaWarehouse::Hud
       else
         source_clients.order(DateUpdated: :desc).limit(1).pluck(:VeteranStatus).first
       end
-      save()
+      save
       self.class.clear_view_cache(self.id)
     end
 
@@ -2585,6 +2595,22 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # Determine which vi-spdat to use based on dates
+    def most_recent_vispdat_object
+      internal = most_recent_vispdat
+      external = source_hmis_forms.vispdat.newest_first.first
+      vispdats = []
+      vispdats << [internal.submitted_at, internal] if internal
+      vispdats << [external.collected_at, external] if external
+      # return the newest vispdat
+      vispdats.sort_by(&:first)&.last.last
+    end
+
+    def most_recent_vispdat_family_vispdat?
+      return most_recent_vispdat_object.family? if most_recent_vispdat_object.respond_to?(:family?)
+      return most_recent_vispdat_object.vispdat_family_score&.positive? if most_recent_vispdat_object.respond_to?(:vispdat_family_score)
+    end
+
     def days_homeless_for_vispdat_prioritization
       vispdat_prioritization_days_homeless || days_homeless_in_last_three_years
     end
@@ -2594,9 +2620,14 @@ module GrdaWarehouse::Hud
       return nil unless vispdat_score.present?
       if GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'veteran_status'
         prioritization_bump = 0
-        if veteran?
-          prioritization_bump = 100
-        end
+        prioritization_bump += 100 if veteran?
+        vispdat_score + prioritization_bump
+      elsif GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'vets_family_youth'
+        prioritization_bump = 0
+        prioritization_bump += 100 if veteran?
+        prioritization_bump += 50 if most_recent_vispdat_family_vispdat?
+        prioritization_bump += 25 if youth_on?
+
         vispdat_score + prioritization_bump
       else # Default GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'length_of_time'
         vispdat_length_homeless_in_days = days_homeless_for_vispdat_prioritization || 0
