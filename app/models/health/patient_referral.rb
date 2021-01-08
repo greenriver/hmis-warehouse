@@ -528,7 +528,7 @@ module Health
     end
 
     def disenrolled?
-      pending_disenrollment_date.present? || disenrollment_date.present?
+      actual_or_pending_disenrollment_date.present?
     end
 
     def self.encounter_report_details
