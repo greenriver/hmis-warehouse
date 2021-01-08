@@ -40,6 +40,12 @@ module HmisCsvTwentyTwenty::Importer
             arguments: { valid_options: HUD.ssn_data_quality_options.keys.map(&:to_s).freeze },
           },
         ],
+        DOBDataQuality: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.dob_data_quality_options.keys.map(&:to_s).freeze },
+          },
+        ],
         Ethnicity: [
           {
             class: HmisCsvValidation::NonBlankValidation,

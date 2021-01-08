@@ -29,13 +29,95 @@ RSpec.describe 'Validate import files', type: :model do
     FileUtils.rm_rf(@import_path)
   end
 
-  it 'includes all clients' do
-    expect(GrdaWarehouse::Hud::Client.count).to eq(3)
+  # Affiliations
+  it 'includes expected affiliations' do
+    expect(GrdaWarehouse::Hud::Affiliation.count).to eq(2)
   end
 
-  it 'has two entry after exit validation errors' do
-    expect(HmisCsvValidation::EntryAfterExit.count).to eq(2)
+  it 'includes expected affiliations failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Affiliation').count).to eq(2)
   end
+
+  it 'excludes expected affiliations failures' do
+    expect(GrdaWarehouse::Hud::Affiliation.where(ProjectID: 'FAILURE').count).to eq(0)
+  end
+
+  # Assessments
+  it 'includes expected assessments' do
+    expect(GrdaWarehouse::Hud::Assessment.count).to eq(2)
+  end
+
+  it 'includes expected assessments failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(4)
+  end
+
+  it 'includes expected assessments validations' do
+    expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(2)
+  end
+
+  it 'excludes expected assessments failures' do
+    expect(GrdaWarehouse::Hud::Assessment.where(AssessmentID: 'FAILURE').count).to eq(0)
+  end
+
+  # AssessmentQuestions
+  it 'includes expected assessment questions' do
+    expect(GrdaWarehouse::Hud::AssessmentQuestion.count).to eq(2)
+  end
+
+  it 'includes expected assessment questions failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::AssessmentQuestion').count).to eq(3)
+  end
+
+  it 'excludes expected assessment questions validations' do
+    expect(GrdaWarehouse::Hud::AssessmentQuestion.where(AssessmentQuestionID: 'FAILURE').count).to eq(0)
+  end
+
+  # AssessmentResults
+  it 'includes expected assessment questions' do
+    expect(GrdaWarehouse::Hud::AssessmentResult.count).to eq(2)
+  end
+
+  it 'includes expected assessment questions failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::AssessmentResult').count).to eq(3)
+  end
+
+  it 'excludes expected assessment questions failures' do
+    expect(GrdaWarehouse::Hud::AssessmentResult.where(AssessmentResultID: 'FAILURE').count).to eq(0)
+  end
+
+  # Client
+  it 'includes expected clients' do
+    # NOTE: it is extremely difficult for a client record to fail to import
+    expect(GrdaWarehouse::Hud::Client.source.count).to eq(4)
+  end
+
+  it 'includes expected client validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Client').count).to eq(4)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Client').count).to eq(2)
+    end
+  end
+
+  it 'excludes expected client failures' do
+    expect(GrdaWarehouse::Hud::Client.where(PersonalID: 'FAILURE').count).to eq(1)
+  end
+
+  # CurrentLivingSituations
+  it 'includes expected current_living_situation' do
+    expect(GrdaWarehouse::Hud::CurrentLivingSituation.count).to eq(2)
+  end
+
+  it 'includes expected current_living_situation failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::CurrentLivingSituation').count).to eq(5)
+  end
+
+  it 'excludes expected current_living_situation failures' do
+    expect(GrdaWarehouse::Hud::CurrentLivingSituation.where(EnrollmentID: 'FAILURE').count).to eq(0)
+  end
+
+  # it 'has two entry after exit validation errors' do
+  #   expect(HmisCsvValidation::EntryAfterExit.count).to eq(2)
+  # end
 
   it 'does not include any Export errors' do
     expect(HmisCsvValidation::Base.where(source_type: 'HmisCsvTwentyTwenty::Loader::Export').count).to eq(0)

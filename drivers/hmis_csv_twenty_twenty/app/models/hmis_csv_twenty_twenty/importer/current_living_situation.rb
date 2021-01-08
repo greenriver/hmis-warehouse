@@ -16,14 +16,14 @@ module HmisCsvTwentyTwenty::Importer
 
     def self.hmis_validations
       {
-        CurrentLivingSituation: [
+        EnrollmentID: [
           class: HmisCsvValidation::NonBlank,
         ],
         InformationDate: [
           class: HmisCsvValidation::NonBlank,
         ],
-        UserID: [
-          class: HmisCsvValidation::NonBlankValidation,
+        CurrentLivingSituation: [
+          class: HmisCsvValidation::NonBlank,
         ],
         DateUpdated: [
           class: HmisCsvValidation::NonBlank,
@@ -31,7 +31,7 @@ module HmisCsvTwentyTwenty::Importer
         DateCreated: [
           class: HmisCsvValidation::NonBlank,
         ],
-        EnrollmentID: [
+        UserID: [
           class: HmisCsvValidation::NonBlank,
         ],
       }
