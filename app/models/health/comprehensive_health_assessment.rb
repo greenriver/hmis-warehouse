@@ -11,12 +11,12 @@ module Health
   class ComprehensiveHealthAssessment < HealthBase
     acts_as_paranoid
     phi_patient :patient_id
-    phi_attr :user_id, Phi::SmallPopulation
-    phi_attr :reviewed_by_id, Phi::SmallPopulation
+    phi_attr :user_id, Phi::SmallPopulation, "ID of user"
+    phi_attr :reviewed_by_id, Phi::SmallPopulation, "ID of reviewer"
     phi_attr :reviewer, Phi::SmallPopulation
-    phi_attr :completed_at, Phi::Date
-    phi_attr :reviewed_at, Phi::Date
-    phi_attr :health_file_id, Phi::OtherIdentifier
+    phi_attr :completed_at, Phi::Date, "Date of assessment completion"
+    phi_attr :reviewed_at, Phi::Date, "Date of review"
+    phi_attr :health_file_id, Phi::OtherIdentifier, "ID of health file"
     phi_attr :answers, Phi::FreeText
 
     # Generates translation keys of the form "CHA A_Q5_A6"

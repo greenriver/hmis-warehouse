@@ -36,7 +36,7 @@ class Role < ApplicationRecord
     [
       :can_edit_roles,
       :can_edit_users,
-      :can_edit_anything_super_user,
+      :can_edit_anything_super_user, # deprecated
       :can_manage_config,
       :can_edit_access_groups,
     ]
@@ -547,6 +547,13 @@ class Role < ApplicationRecord
       can_view_assigned_reports: {
         description: 'Required for access to reports assigned to a user',
         administrative: false,
+        categories: [
+          'Reporting',
+        ],
+      },
+      can_administer_assigned_reports: {
+        description: 'Ability to view and delete reports assigned to other users',
+        administrative: true,
         categories: [
           'Reporting',
         ],

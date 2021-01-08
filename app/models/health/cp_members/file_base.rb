@@ -13,8 +13,8 @@ module Health::CpMembers
 
     self.table_name = :cp_member_files
 
-    phi_attr :file, Phi::FreeText
-    phi_attr :content, Phi::FreeText
+    phi_attr :file, Phi::FreeText, "Name of file"
+    phi_attr :content, Phi::FreeText, "Content of file"
 
     belongs_to :user
 

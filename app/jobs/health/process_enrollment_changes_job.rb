@@ -218,7 +218,7 @@ module Health
         # CC / NCM / ACO are preserved
       else
         # the Agency will be cleared when creating a new referral
-        patient.update(care_coordinator_id: nil, nurse_case_manager_id: nil) # Clear CC.NCM
+        patient.update(care_coordinator_id: nil, nurse_care_manager_id: nil) # Clear CC.NCM
         # The ACO is preserved
       end
       Health::PatientReferral.create_referral(patient, referral_data)

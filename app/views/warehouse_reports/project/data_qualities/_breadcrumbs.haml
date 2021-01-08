@@ -1,3 +1,7 @@
 = content_for :crumbs do
-  = link_to warehouse_reports_path(anchor: 'data-quality') do
-    &laquo; Data Quality Reports
+  - if @projects.blank?
+    = link_to warehouse_reports_path(anchor: 'data-quality') do
+      &laquo; Data Quality Reports
+  - else
+    = link_to warehouse_reports_project_data_quality_path do
+      &laquo; Step One

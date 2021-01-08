@@ -13,18 +13,18 @@ module ProjectPassFail
     has_many :clients, inverse_of: :project, dependent: :destroy
 
     # Data quality acceptable error rates
-    def self.universal_data_element_threshold
-      0.02
+    def universal_data_element_threshold
+      project_pass_fail.universal_data_element_threshold
     end
 
     # Acceptable utilization rates
-    def self.utilization_range
-      (0.66..1.04)
+    def utilization_range
+      project_pass_fail.utilization_range
     end
 
     # Days allowed for entering entry assessments
-    def self.timeliness_threshold
-      3
+    def timeliness_threshold
+      project_pass_fail.timeliness_threshold
     end
 
     def utilization_rate_as_percent
@@ -32,19 +32,19 @@ module ProjectPassFail
     end
 
     def within_utilization_threshold?
-      utilization_rate.in?(self.class.utilization_range)
+      utilization_rate.in?(utilization_range)
     end
 
     def within_universal_data_element_threshold?
-      universal_data_element_rates.values.max <= self.class.universal_data_element_threshold
+      universal_data_element_rates.values.compact.max <= universal_data_element_threshold
     end
 
     def within_timeliness_threshold?
-      average_days_to_enter_entry_date <= self.class.timeliness_threshold
+      average_days_to_enter_entry_date <= timeliness_threshold
     end
 
     def universal_data_element_rates
-      {
+      ude = {
         'Name' => name_error_rate,
         'SSN' => ssn_error_rate,
         'DOB' => dob_error_rate,
@@ -57,6 +57,8 @@ module ProjectPassFail
         'Location' => location_error_rate,
         'Disabling Condition' => disabling_condition_error_rate,
       }
+      ude['Income at Entry'] = income_at_entry_error_rate if GrdaWarehouse::Config.get(:pf_show_income)
+      ude
     end
 
     def calculate_utilization_rate
@@ -99,6 +101,7 @@ module ProjectPassFail
       self.relationship_to_hoh_error_rate = apr.answer(question: 'Q6b', cell: 'C4').summary.to_f
       self.location_error_rate = apr.answer(question: 'Q6b', cell: 'C5').summary.to_f
       self.disabling_condition_error_rate = apr.answer(question: 'Q6b', cell: 'C6').summary.to_f
+      self.income_at_entry_error_rate = apr.answer(question: 'Q6c', cell: 'C3').summary.to_f
 
       self.name_error_count = apr.answer(question: 'Q6a', cell: 'E2').summary.to_f
       self.ssn_error_count = apr.answer(question: 'Q6a', cell: 'E3').summary.to_f
@@ -111,6 +114,7 @@ module ProjectPassFail
       self.relationship_to_hoh_error_count = apr.answer(question: 'Q6b', cell: 'B4').summary.to_f
       self.location_error_count = apr.answer(question: 'Q6b', cell: 'B5').summary.to_f
       self.disabling_condition_error_count = apr.answer(question: 'Q6b', cell: 'B6').summary.to_f
+      self.income_at_entry_error_count = apr.answer(question: 'Q6c', cell: 'B3').summary.to_f
     end
 
     def calculate_timeliness

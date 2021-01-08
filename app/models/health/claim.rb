@@ -14,7 +14,7 @@ module Health
     include ArelHelper
     acts_as_paranoid
 
-    phi_attr :id, Phi::SmallPopulation
+    phi_attr :id, Phi::SmallPopulation, "ID of claim"
     phi_attr :claims_file, Phi::Bulk # contains EDI serialized PHI
 
     has_many :qualifying_activities

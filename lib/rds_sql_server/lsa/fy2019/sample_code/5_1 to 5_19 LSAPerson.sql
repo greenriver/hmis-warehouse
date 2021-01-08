@@ -232,7 +232,8 @@ Date:  4/7/2020
 	select distinct lp.PersonalID, cal.theDate, '5.8.2'
 	from tlsa_Person lp
 		inner join tlsa_Enrollment chn on chn.PersonalID = lp.PersonalID and chn.CH = 1
-		inner join hmis_Services bn on bn.EnrollmentID = chn.EnrollmentID
+		inner join tlsa_HHID hhid on hhid.HouseholdID = chn.HouseholdID
+		inner join hmis_Services bn on bn.EnrollmentID = hhid.EnrollmentID
 			and bn.RecordType = 200 
 			and bn.DateProvided >= chn.EntryDate 
 			and (bn.DateProvided < chn.ExitDate or chn.ExitDate is null)
