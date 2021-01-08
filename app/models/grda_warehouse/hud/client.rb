@@ -2111,7 +2111,7 @@ module GrdaWarehouse::Hud
     alias age_on age
 
     def youth_on?(date=Date.current)
-      (18..24).cover?(age)
+      (18..24).cover?(age(date))
     end
 
     def uuid
