@@ -17,7 +17,7 @@ jobs:
    runs-on: ubuntu-18.04
 
    # Docker Hub image that the job executes in
-   container: ruby:2.6.5-slim-buster
+   container: ruby:2.7.2-slim-buster
 
    # Service containers to run with job
    services:
