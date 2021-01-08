@@ -480,8 +480,8 @@ module Health
       ).where(
         hqa_t[:date_of_activity].lteq(date_of_activity),
       ).group(
-        Arel.sql("DATE_TRUNC('month', date_of_activity)")
-      ).count
+        Arel.sql("date_trunc('month', date_of_activity)")
+      ).count#.pluck(Arel.sql('count(*)')).first
       outreaches_by_month.reject{|k, v| v.zero?}.keys.count
     end
 

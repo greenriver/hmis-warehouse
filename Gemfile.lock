@@ -50,10 +50,10 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    active_record_extended (2.0.0)
-      activerecord (>= 5.1, < 6.2)
+    active_record_extended (1.4.0)
+      activerecord (>= 5.0, < 6.1)
       ar_outer_joins (~> 0.2)
-      pg (< 3.0)
+      pg (< 2.0)
     active_record_query_trace (1.8)
     activejob (5.2.4.4)
       activesupport (= 5.2.4.4)
@@ -780,7 +780,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  active_record_extended
+  active_record_extended (~> 1.4.0)
   active_record_query_trace
   activerecord-import
   activerecord-postgis-adapter
