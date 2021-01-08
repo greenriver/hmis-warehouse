@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_18_180004) do
+ActiveRecord::Schema.define(version: 2021_01_06_173839) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1881,6 +1881,7 @@ ActiveRecord::Schema.define(version: 2020_12_18_180004) do
     t.boolean "service_scannable", default: false, null: false
     t.jsonb "import_aggregators", default: {}
     t.jsonb "import_cleanups", default: {}
+    t.boolean "refuse_imports_with_errors", default: false
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
@@ -2270,6 +2271,27 @@ ActiveRecord::Schema.define(version: 2020_12_18_180004) do
     t.index ["created_at"], name: "index_health_emergency_uploaded_tests_on_created_at"
     t.index ["deleted_at"], name: "index_health_emergency_uploaded_tests_on_deleted_at"
     t.index ["updated_at"], name: "index_health_emergency_uploaded_tests_on_updated_at"
+  end
+
+  create_table "health_emergency_vaccinations", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.date "vaccinated_on", null: false
+    t.string "vaccinated_at"
+    t.date "follow_up_on"
+    t.datetime "follow_up_notification_sent_at"
+    t.string "vaccination_type", null: false
+    t.string "follow_up_cell_phone"
+    t.string "emergency_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["agency_id"], name: "index_health_emergency_vaccinations_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_vaccinations_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_vaccinations_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_vaccinations_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_vaccinations_on_user_id"
   end
 
   create_table "helps", id: :serial, force: :cascade do |t|

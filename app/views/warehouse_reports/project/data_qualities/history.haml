@@ -3,7 +3,7 @@
     &laquo; Project Data Quality Reports
 
 - content_for :title, 'Project Data Quality Reports'
-%h1= content_for :title
+%h1.mb-6= content_for :title
 
 = render 'report_list', reports: @project_reports, report_type: :project
 = render 'report_list', reports: @project_group_reports, report_type: :project_group

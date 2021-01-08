@@ -1,9 +1,7 @@
+- title = if report_type == :project then 'For Projects' elsif report_type == :project_group then 'For Project Groups' end
 - if reports.exists?
   .d-flex
-    - if report_type == :project
-      %h2 Projects
-    - elsif report_type == :project_group
-      %h2 Project Groups
+    %h2= title
     %p.ml-auto= paginate reports
   .card.mb-6
     %table.table.table-striped.mb-0
@@ -32,5 +30,6 @@
             %td= report.completed_at
             %td= report&.requestor&.name
 - else
-  %p
-    No reports on file
+  %h2= title
+  %p.none-found
+    No reports on file.

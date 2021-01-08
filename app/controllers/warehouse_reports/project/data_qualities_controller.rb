@@ -75,7 +75,7 @@ module WarehouseReports::Project
         # kick off report generation
         queue_report(id_column: :project_id, keys: @project_ids)
         queue_report(id_column: :project_group_id, keys: @project_group_ids)
-        redirect_to action: :show
+        redirect_to({ action: :show }.merge(@filter.for_params))
       end
     end
 
