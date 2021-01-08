@@ -193,7 +193,6 @@ module ProjectScorecard::WarehouseReports
     private def set_projects
       project_ids = @filter.anded_effective_project_ids
       @projects = if project_ids&.any?
-
         project_scope.where(id: project_ids).
           joins(:organization, :data_source).
           order(p_t[:data_source_id].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
@@ -215,10 +214,6 @@ module ProjectScorecard::WarehouseReports
         where.not(project_id: nil).
         order(id: :asc).
         index_by(&:project_id)
-      @current_project_group_reports = reports_scope.
-        where.not(project_group_id: nil).
-        order(id: :asc).
-        index_by(&:project_group_id)
     end
   end
 end
