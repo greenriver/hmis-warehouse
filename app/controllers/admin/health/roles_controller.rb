@@ -16,6 +16,22 @@ module Admin::Health
         per(50)
     end
 
+    def update
+      @role.update role_params
+      respond_to do |format|
+        format.html do
+          # respond_with(@role, location: admin_health_roles_path)
+          flash[:notice] = "#{@role.name} updated."
+          redirect_to(admin_health_roles_path)
+          return
+        end
+        format.json do
+          render(json: nil, status: :ok) if @role.errors.none?
+          return
+        end
+      end
+    end
+
     private
 
     def role_scope

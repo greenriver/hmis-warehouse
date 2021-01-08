@@ -334,7 +334,7 @@ module Health
       referral = patient_referral
       return 0 unless referral
 
-      end_date = referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
+      end_date = referral.actual_or_pending_disenrollment_date || Date.current
       # This only happens with demo data
       return 0 unless referral.enrollment_start_date
 
@@ -363,7 +363,7 @@ module Health
     end
 
     def current_disenrollment_date
-      patient_referral.disenrollment_date || patient_referral.pending_disenrollment_date
+      patient_referral.actual_or_pending_disenrollment_date
     end
 
     def current_enrollment_range
@@ -373,14 +373,13 @@ module Health
 
     def prior_contributed_enrollment_ranges
       patient_referrals.contributing.prior.map do |referral|
-        end_date = referral.disenrollment_date || referral.pending_disenrollment_date
-        (referral.enrollment_start_date..end_date)
+        (referral.enrollment_start_date..referral.actual_or_pending_disenrollment_date)
       end
     end
 
     def contributed_enrollment_ranges
       patient_referrals.contributing.map do |referral|
-        end_date = referral.disenrollment_date || referral.pending_disenrollment_date || Date.current
+        end_date = referral.actual_or_pending_disenrollment_date || Date.current
         (referral.enrollment_start_date..end_date)
       end
     end
