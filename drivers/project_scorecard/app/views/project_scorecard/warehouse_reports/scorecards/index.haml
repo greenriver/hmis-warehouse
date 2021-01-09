@@ -10,7 +10,7 @@
   = link_to warehouse_reports_path(anchor: 'performance') do
     &laquo; Performance
 
-%section.o-container--constrained.mb-6
+%section.o-container.mb-6
   %p Generating Project Scorecards is a multi-step process.
   #scorecard-accordion.panel-group.panel-collapsible
     - content_for :panel_collapse_content, flush: true do
@@ -18,7 +18,7 @@
       = render 'filter'
   = render 'common/panel_collapse', id: 'scorecard-info', title: 'Project Search', default_open: if @projects.blank? then 'yes' else 'no' end
 - if @projects.present?
-  %p Step two is to choose the projects or project groups and queue the reports.
+  %p Step two is to choose the projects and queue the reports.
   = simple_form_for :scorecard, url: project_scorecard_warehouse_reports_scorecards_path(@filter.for_params) do |f|
     - select_scope = 'allOrgsProjects'
     %div{id: select_scope}
