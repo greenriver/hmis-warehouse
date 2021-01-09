@@ -2102,7 +2102,7 @@ module GrdaWarehouse::Hud
     end
 
     def age(date=Date.current)
-      return unless attributes['DOB'].present?
+      return unless attributes['DOB'].present? && date.present?
 
       date = date.to_date
       dob = attributes['DOB'].to_date
