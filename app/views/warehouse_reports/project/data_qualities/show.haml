@@ -1,49 +1,64 @@
-- content_for :title, _("Warehouse Reports")
-%h1= content_for :title
+- content_for :title, _('Project Data Quality Report')
+.d-flex
+  %h1= content_for :title
+  .ml-auto
+    = link_to history_warehouse_reports_project_data_quality_path, class: 'btn btn-secondary' do
+      %i.icon-settings_backup_restore
+      View Previous Reports
 
 = render 'breadcrumbs'
+%section.o-container.mb-6
+  %p Generating Project Data Quality Reports is a multi-step process.
+  #pdq-accordion.panel-group.panel-collapsible
+    - content_for :panel_collapse_content, flush: true do
+      %p Step one: narrow down the set of projects used to run the report.
+      = render 'filter'
+  = render 'common/panel_collapse', id: 'pdq-info', title: 'Project Search', default_open: if @projects.blank? then 'yes' else 'no' end
+- if @projects.present?
+  .well
+    %p Step two is to choose the projects or project groups and queue the reports.
+    %p
+      The following list of organizations and projects can be used to generate and send data quality reports to contacts at each entity.  To generate a new version of a report, check-off the
+      %strong Select
+      checkbox next to the particular project, or organization.  Then select the
+      %strong Generate
+      option at the bottom of the page.  If you would like the generated reports sent immediately to the contacts associated with the organizations or projects, select the
+      %strong Email
+      option as well.
+    %p
+      Organization contacts will receive an email for each project report generated within that organization.  Project contacts will only receive reports for the project for which they are associated.  No email will be sent unless the
+      %strong Email
+      checkbox is checked.
+    %p
+      Contacts will not have access to the client-level details of the report,
+      %strong unless
+      they are logged-in with a user account that has either the
+      %strong Can view project data quality client details
+      or the
+      %strong Can view projects
+      permission.
 
-%section.o-container--constrained.mb-6
-  %p
-    The following list of organizations and projects can be used to generate and send data quality reports to contacts at each entity.  To generate a new version of a report, check-off the
-    %strong Select
-    checkbox next to the particular project, or organization.  Then select the
-    %strong Generate
-    option at the bottom of the page.  If you would like the generated reports sent immediately to the contacts associated with the organizations or projects, select the
-    %strong Email
-    option as well.
-  %p
-    Organization contacts will receive an email for each project report generated within that organization.  Project contacts will only receive reports for the project for which they are associated.  No email will be sent unless the
-    %strong Email
-    checkbox is checked.
-  %p
-    Contacts will not have access to the client-level details of the report,
-    %strong unless
-    they are logged-in with a user account that has either the
-    %strong Can view project data quality client details
-    or the
-    %strong Can view projects
-    permission.
+  = simple_form_for :project_data_quality, url: warehouse_reports_project_data_quality_path(filters: link_params[:filters].to_h) do |f|
+    - select_scope = 'allOrgsProjects'
+    %div{id: select_scope}
+      %section.mb-6
+        .d-flex.mb-5.ml-4
+          .header.d-flex.align-items-center.justify-content-center
+            %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
+            %h2.mb-0.mt-0 Organizations and Projects
+          .ml-auto
+            %p= paginate @project_scope
+        - @projects.each do |(data_source, organization), projects|
+          = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
 
-= simple_form_for :project_data_quality, url: warehouse_reports_project_data_quality_path() do |f|
-  - select_scope = 'allOrgsProjects'
-  %div{id: select_scope}
-    %section.mb-6
-      .d-flex.mb-5.ml-4
-        .header.d-flex.align-items-center.justify-content-center
-          %button.c-btn-select.j-select-all.not-checked.mr-3{data: {state: true, toggle: 'tooltip', 'scope': "##{select_scope}"}, type: 'button', title: 'Select/Deselect all organizations & projects'}
-          %h2.mb-0.mt-0 Organizations and Projects
-        .ml-auto
-          %p= page_entries_info @organizations, entry_name: _('organizations')
-          %p= paginate @organizations
-      - @projects.each do |(data_source, organization), projects|
-        = render 'organization', f: f, data_source: data_source, organization: organization, projects: projects
+      %section.mb-6
+        = render 'project_groups', f: f, project_groups: @project_groups
 
-    %section.mb-6
-      = render 'project_groups', f: f, project_groups: @project_groups
-
-  = render 'actions', f: f
-
+    = render 'actions', f: f
+- elsif params[:filters].present?
+  %p.none-found
+    Your search resulted in no projects,
+    = link_to 'choose a less specific search.', warehouse_reports_project_data_quality_path
 = content_for :page_js do
   :javascript
     new App.SelectableList({
