@@ -40,7 +40,7 @@ module HmisCsvTwentyTwenty::Importer
         ],
         Event: [
           {
-            class: HmisCsvValidation::NonBlankValidation,
+            class: HmisCsvValidation::NonBlank,
           },
           {
             class: HmisCsvValidation::InclusionInSet,

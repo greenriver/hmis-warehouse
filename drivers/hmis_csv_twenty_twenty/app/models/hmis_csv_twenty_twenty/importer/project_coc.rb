@@ -54,7 +54,7 @@ module HmisCsvTwentyTwenty::Importer
             arguments: { regex: /^[a-zA-Z]{2}$/ },
           },
         ],
-        ZIP: [
+        Zip: [
           {
             class: HmisCsvValidation::ValidFormat,
             arguments: { regex: /^[0-9]{5}$/ },

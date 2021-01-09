@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_21_183603) do
+ActiveRecord::Schema.define(version: 2021_01_05_183208) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -471,6 +471,7 @@ ActiveRecord::Schema.define(version: 2020_12_21_183603) do
     t.boolean "can_view_all_window_notes", default: false
     t.boolean "can_decrypt_pii", default: false
     t.boolean "can_delete_youth_intake", default: false
+    t.boolean "can_administer_assigned_reports", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 

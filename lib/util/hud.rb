@@ -629,15 +629,19 @@ module HUD
 
   # 3.3.2
   def dob_data_quality(id, reverse = false)
-    map = {
+    map = dob_data_quality_options
+
+    _translate map, id, reverse
+  end
+
+  def dob_data_quality_options
+    {
       1 => 'Full DOB reported',
       2 => 'Approximate or partial DOB reported',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 3.5.1

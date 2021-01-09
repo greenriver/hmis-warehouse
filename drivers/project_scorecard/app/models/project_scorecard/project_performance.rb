@@ -22,7 +22,7 @@ module ProjectScorecard
       end
 
       def utilization_score
-        score(utilization_percentage, 90..150, 80..89)
+        score(utilization_percentage, 90..Float::INFINITY, 80..89)
       end
 
       def chronic_service_percentage
@@ -53,6 +53,8 @@ module ProjectScorecard
         if project.psh?
           score(exit_to_ph_percentage, 98..100, 90..97)
         elsif project.rrh?
+          score(exit_to_ph_percentage, 95..100, 90..94)
+        else
           score(exit_to_ph_percentage, 95..100, 90..94)
         end
       end

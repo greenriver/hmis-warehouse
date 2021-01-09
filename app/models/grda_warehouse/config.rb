@@ -52,7 +52,8 @@ module GrdaWarehouse
     def self.available_vispdat_prioritization_schemes
       {
         'Length of time Homeless' => :length_of_time,
-        'Veteran status' => :veteran_status,
+        'Veteran status (100)' => :veteran_status,
+        'Vets (100), family (50), youth (25)' => :vets_family_youth,
       }
     end
 
