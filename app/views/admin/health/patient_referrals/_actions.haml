@@ -17,4 +17,6 @@
               = f.input :patient_referral_ids, as: :check_boxes, collection: @patient_referrals, label_method: :first_name, value_method: :id, wrapper_html: {style: 'display:none;'}, label: false
               = f.submit 'Assign Agencies', class: 'btn btn-primary'
     - if current_user.has_patient_referral_review_access?
-      = link_to 'Download Excel', tab_path_params.merge(format: :xlsx), class: 'btn btn-secondary ml-4'
+      = link_to tab_path_params.merge(format: :xlsx), class: 'btn btn-secondary ml-4' do
+        %i.icon-download2
+        Download Excel
