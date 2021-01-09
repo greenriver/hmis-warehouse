@@ -157,7 +157,7 @@ RSpec.describe 'Validate import files', type: :model do
 
   # Enrollment
   it 'includes expected enrollments' do
-    expect(GrdaWarehouse::Hud::Enrollment.count).to eq(2)
+    expect(GrdaWarehouse::Hud::Enrollment.count).to eq(4)
   end
 
   it 'includes expected enrollments failures' do
@@ -175,10 +175,51 @@ RSpec.describe 'Validate import files', type: :model do
     expect(GrdaWarehouse::Hud::Enrollment.where(ProjectID: 'FAILURE').count).to eq(0)
   end
 
-  # it 'has two entry after exit validation errors' do
-  #   expect(HmisCsvValidation::EntryAfterExit.count).to eq(2)
-  # end
+  it 'has two entry after exit validation errors' do
+    expect(HmisCsvValidation::EntryAfterExit.count).to eq(2)
+  end
 
+  # Exit
+  it 'includes expected exits' do
+    expect(GrdaWarehouse::Hud::Exit.count).to eq(4)
+  end
+
+  it 'includes expected exits failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Exit').count).to eq(2)
+  end
+
+  it 'includes expected exits validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Exit').count).to eq(1)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Exit').count).to eq(2)
+    end
+  end
+
+  it 'excludes expected exits failures' do
+    expect(GrdaWarehouse::Hud::Exit.where(EnrollmentID: 'FAILURE').count).to eq(0)
+  end
+
+  # EnrollmentCoc
+  it 'includes expected enrollment_cocs' do
+    expect(GrdaWarehouse::Hud::EnrollmentCoc.count).to eq(2)
+  end
+
+  it 'includes expected enrollment_cocs failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::EnrollmentCoc').count).to eq(3)
+  end
+
+  it 'includes expected enrollment_cocs validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::EnrollmentCoc').count).to eq(2)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::EnrollmentCoc').count).to eq(2)
+    end
+  end
+
+  it 'excludes expected enrollment_cocs failures' do
+    expect(GrdaWarehouse::Hud::EnrollmentCoc.where(EnrollmentID: 'FAILURE').count).to eq(0)
+  end
+
+  # Export
   it 'does not include any Export errors' do
     expect(HmisCsvValidation::Base.where(source_type: 'HmisCsvTwentyTwenty::Loader::Export').count).to eq(0)
   end
