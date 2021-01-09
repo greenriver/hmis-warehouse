@@ -219,8 +219,199 @@ RSpec.describe 'Validate import files', type: :model do
     expect(GrdaWarehouse::Hud::EnrollmentCoc.where(EnrollmentID: 'FAILURE').count).to eq(0)
   end
 
+  # Event
+  it 'includes expected events' do
+    expect(GrdaWarehouse::Hud::Event.count).to eq(2)
+  end
+
+  it 'includes expected events failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Event').count).to eq(4)
+  end
+
+  it 'includes expected events validations' do
+    expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Event').count).to eq(1)
+  end
+
+  it 'excludes expected events failures' do
+    expect(GrdaWarehouse::Hud::Event.where(EnrollmentID: 'FAILURE').count).to eq(0)
+  end
+
   # Export
   it 'does not include any Export errors' do
     expect(HmisCsvValidation::Base.where(source_type: 'HmisCsvTwentyTwenty::Loader::Export').count).to eq(0)
+  end
+
+  # Funder
+  it 'includes expected funders' do
+    expect(GrdaWarehouse::Hud::Funder.count).to eq(2)
+  end
+
+  it 'includes expected funders failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Funder').count).to eq(1)
+  end
+
+  it 'includes expected funders validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Funder').count).to eq(1)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Funder').count).to eq(2)
+    end
+  end
+
+  it 'excludes expected funders failures' do
+    expect(GrdaWarehouse::Hud::Funder.where(ProjectID: 'FAILURE').count).to eq(0)
+  end
+
+  # HealthAndDv
+  it 'includes expected health_and_dvs' do
+    expect(GrdaWarehouse::Hud::HealthAndDv.count).to eq(2)
+  end
+
+  it 'includes expected health_and_dvs failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::HealthAndDv').count).to eq(2)
+  end
+
+  it 'includes expected health_and_dvs validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::HealthAndDv').count).to eq(1)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::HealthAndDv').count).to eq(1)
+    end
+  end
+
+  it 'excludes expected health_and_dvs failures' do
+    expect(GrdaWarehouse::Hud::HealthAndDv.where(EnrollmentID: 'FAILURE').count).to eq(0)
+  end
+
+  # IncomeBenefit
+  it 'includes expected income_benefits' do
+    expect(GrdaWarehouse::Hud::IncomeBenefit.count).to eq(2)
+  end
+
+  it 'includes expected income_benefits failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::IncomeBenefit').count).to eq(2)
+  end
+
+  it 'includes expected income_benefits validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::IncomeBenefit').count).to eq(1)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::IncomeBenefit').count).to eq(1)
+    end
+  end
+
+  it 'excludes expected income_benefits failures' do
+    expect(GrdaWarehouse::Hud::IncomeBenefit.where(EnrollmentID: 'FAILURE').count).to eq(0)
+  end
+
+  # Inventory
+  it 'includes expected inventory' do
+    expect(GrdaWarehouse::Hud::Inventory.count).to eq(2)
+  end
+
+  it 'includes expected inventory failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Inventory').count).to eq(1)
+  end
+
+  it 'includes expected inventory validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Inventory').count).to eq(3)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Inventory').count).to eq(5)
+    end
+  end
+
+  it 'excludes expected inventory failures' do
+    expect(GrdaWarehouse::Hud::Inventory.where(ProjectID: 'FAILURE').count).to eq(0)
+  end
+
+  # Organization
+  it 'includes expected organizations' do
+    expect(GrdaWarehouse::Hud::Organization.count).to eq(2)
+  end
+
+  it 'includes expected organizations failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Organization').count).to eq(1)
+  end
+
+  it 'includes expected organizations validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Organization').count).to eq(1)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Organization').count).to eq(2)
+    end
+  end
+
+  it 'excludes expected organizations failures' do
+    expect(GrdaWarehouse::Hud::Organization.where(OrganizationName: 'FAILURE').count).to eq(0)
+  end
+
+  # Project
+  it 'includes expected projects' do
+    expect(GrdaWarehouse::Hud::Project.count).to eq(2)
+  end
+
+  it 'includes expected projects failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Project').count).to eq(2)
+  end
+
+  it 'includes expected projects validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Project').count).to eq(7)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Project').count).to eq(4)
+    end
+  end
+
+  it 'excludes expected projects failures' do
+    expect(GrdaWarehouse::Hud::Project.where(ProjectName: 'FAILURE').count).to eq(0)
+  end
+
+  # ProjectCoc
+  it 'includes expected project_cocs' do
+    expect(GrdaWarehouse::Hud::ProjectCoc.count).to eq(2)
+  end
+
+  it 'includes expected project_cocs failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::ProjectCoc').count).to eq(2)
+  end
+
+  it 'includes expected project_cocs validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::ProjectCoc').count).to eq(1)
+      expect(HmisCsvValidation::ValidFormat.where(source_type: 'HmisCsvTwentyTwenty::Loader::ProjectCoc').count).to eq(3)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::ProjectCoc').count).to eq(1)
+    end
+  end
+
+  it 'excludes expected project_cocs failures' do
+    expect(GrdaWarehouse::Hud::ProjectCoc.where(ProjectID: 'FAILURE').count).to eq(0)
+  end
+
+  # Service
+  it 'includes expected services' do
+    expect(GrdaWarehouse::Hud::Service.count).to eq(2)
+  end
+
+  it 'includes expected services failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::Service').count).to eq(2)
+  end
+
+  it 'includes expected services validations' do
+    aggregate_failures 'validating' do
+      expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Service').count).to eq(1)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Service').count).to eq(3)
+    end
+  end
+
+  it 'excludes expected services failures' do
+    expect(GrdaWarehouse::Hud::Service.where(EnrollmentID: 'FAILURE').count).to eq(0)
+  end
+
+  # User
+  it 'includes expected users' do
+    expect(GrdaWarehouse::Hud::User.count).to eq(2)
+  end
+
+  it 'includes expected users failures' do
+    expect(HmisCsvValidation::NonBlank.where(source_type: 'HmisCsvTwentyTwenty::Loader::User').count).to eq(1)
+  end
+
+  it 'excludes expected users failures' do
+    expect(GrdaWarehouse::Hud::User.where(UserFirstName: 'FAILURE').count).to eq(0)
   end
 end
