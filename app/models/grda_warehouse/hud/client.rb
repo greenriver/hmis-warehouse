@@ -265,6 +265,9 @@ module GrdaWarehouse::Hud
         joins(:hud_chronics).where(hud_chronics: {date: GrdaWarehouse::HudChronic.most_recent_day})
       when :release_present
         where(housing_release_status: [full_release_string, partial_release_string])
+      when :active_clients
+        range = GrdaWarehouse::Config.cas_sync_range
+        where(id: GrdaWarehouse::ServiceHistoryEnrollment.with_service_between(start_date: range.first, end_date: range.last).select(:client_id))
       else
         raise NotImplementedError
       end
@@ -387,9 +390,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :searchable_by, -> (user) do
-      if user.can_edit_anything_super_user?
-        current_scope
-      elsif user.can_view_clients_with_roi_in_own_coc?
+      if user.can_view_clients_with_roi_in_own_coc?
         current_scope
       elsif user.can_view_clients? || user.can_edit_clients?
         current_scope
@@ -415,63 +416,59 @@ module GrdaWarehouse::Hud
     end
 
     scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
+      project_query = exists_with_inner_clients(visible_by_project_to(user))
+      window_query = exists_with_inner_clients(visible_in_window_to(user))
+      active_consent_query = if GrdaWarehouse::Config.get(:multi_coc_installation)
+        exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
+      else
+        exists_with_inner_clients(consent_form_valid)
+      end
+      if user.can_view_clients_with_roi_in_own_coc?
+        # At a high level if you can see clients with ROI in your COC, you need to be able
+        # to see everyone for searching purposes.
+        # limits will be imposed on accessing the actual client dashboard pages
+        # current_scope
+
+        # If the user has coc-codes specified, this will limit to users
+        # with a valid consent form in the coc or with no-coc specified
+        # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
+        # are included.
+        if user&.can_see_clients_in_window_for_assigned_data_sources?
+          ds_ids = user.data_sources.pluck(:id)
+          sql = arel_table[:data_source_id].in(ds_ids).
+            or(active_consent_query).
+            or(project_query)
+          unless GrdaWarehouse::Config.get(:window_access_requires_release)
+            sql = sql.or(window_query)
+          end
+
+          where(sql)
+        else
+          active_confirmed_consent_in_cocs(user.coc_codes)
+        end
+      elsif user.can_view_clients? || user.can_edit_clients?
         current_scope
       else
-        project_query = exists_with_inner_clients(visible_by_project_to(user))
-        window_query = exists_with_inner_clients(visible_in_window_to(user))
-        active_consent_query = if GrdaWarehouse::Config.get(:multi_coc_installation)
-          exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
-        else
-          exists_with_inner_clients(consent_form_valid)
-        end
-        if user.can_view_clients_with_roi_in_own_coc?
-          # At a high level if you can see clients with ROI in your COC, you need to be able
-          # to see everyone for searching purposes.
-          # limits will be imposed on accessing the actual client dashboard pages
-          # current_scope
-
-          # If the user has coc-codes specified, this will limit to users
-          # with a valid consent form in the coc or with no-coc specified
-          # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
-          # are included.
-          if user&.can_see_clients_in_window_for_assigned_data_sources?
-            ds_ids = user.data_sources.pluck(:id)
-            sql = arel_table[:data_source_id].in(ds_ids).
-              or(active_consent_query).
-              or(project_query)
-            unless GrdaWarehouse::Config.get(:window_access_requires_release)
-              sql = sql.or(window_query)
-            end
-
-            where(sql)
+        ds_ids = user.data_sources.pluck(:id)
+        if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
+          sql = arel_table[:data_source_id].in(ds_ids)
+          sql = sql.or(project_query)
+          if GrdaWarehouse::Config.get(:window_access_requires_release)
+            sql = sql.or(active_consent_query)
           else
-            active_confirmed_consent_in_cocs(user.coc_codes)
+            sql = sql.or(window_query)
           end
-        elsif user.can_view_clients? || user.can_edit_clients?
-          current_scope
+          where(sql)
         else
-          ds_ids = user.data_sources.pluck(:id)
-          if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-            sql = arel_table[:data_source_id].in(ds_ids)
-            sql = sql.or(project_query)
-            if GrdaWarehouse::Config.get(:window_access_requires_release)
-              sql = sql.or(active_consent_query)
-            else
-              sql = sql.or(window_query)
-            end
-            where(sql)
+          sql = arel_table[:id].eq(0) # no client should have a 0 id
+          sql = sql.or(project_query)
+          if GrdaWarehouse::Config.get(:window_access_requires_release)
+            sql = sql.or(active_consent_query)
           else
-            sql = arel_table[:id].eq(0) # no client should have a 0 id
-            sql = sql.or(project_query)
-            if GrdaWarehouse::Config.get(:window_access_requires_release)
-              sql = sql.or(active_consent_query)
-            else
-              sql = sql.or(window_query)
-            end
-
-            where(sql)
+            sql = sql.or(window_query)
           end
+
+          where(sql)
         end
       end
     end
@@ -2102,7 +2099,7 @@ module GrdaWarehouse::Hud
     end
 
     def age(date=Date.current)
-      return unless attributes['DOB'].present?
+      return unless attributes['DOB'].present? && date.present?
 
       date = date.to_date
       dob = attributes['DOB'].to_date

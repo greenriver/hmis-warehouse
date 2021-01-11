@@ -2,7 +2,7 @@
 = render 'tabs'
 .d-flex.mb-4
   = render 'paginate'
-  - if can_administer_health? && can_bulk_assign?
+  - if can_administer_health?
     = render 'actions'
 = render 'patient_referrals'
 =# render 'new_modal'

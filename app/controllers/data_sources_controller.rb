@@ -5,8 +5,8 @@
 ###
 
 class DataSourcesController < ApplicationController
-  before_action :require_can_edit_projects_or_everything!, only: [:update]
-  before_action :require_can_edit_data_sources_or_everything!, only: [:new, :create, :destroy]
+  before_action :require_can_edit_projects!, only: [:update]
+  before_action :require_can_edit_data_sources!, only: [:new, :create, :destroy]
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index]
   before_action :set_data_source, only: [:show, :update, :destroy]
 
