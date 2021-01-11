@@ -316,6 +316,7 @@ Rails.application.routes.draw do
     namespace :project do
       resource :data_quality do
         get :download, on: :member
+        get :history, on: :member
       end
     end
     namespace :health_emergency do

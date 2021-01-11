@@ -23,7 +23,7 @@ module GrdaWarehouse::Hud
     has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :enrollment_coc
 
     scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
+      if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         current_scope
       elsif user.coc_codes.none?
         none

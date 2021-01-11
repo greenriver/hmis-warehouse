@@ -29,9 +29,12 @@ RSpec.describe model, type: :model do
       describe 'admin user' do
         before do
           user.roles << admin_role
+          AccessGroup.maintain_system_groups
+          user.access_groups = AccessGroup.all
         end
         after do
           user.roles = []
+          user.access_groups = []
         end
         it 'sees both' do
           expect(user_ids[user]).to eq ids[s1, s2]
