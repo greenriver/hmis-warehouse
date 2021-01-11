@@ -265,6 +265,9 @@ module GrdaWarehouse::Hud
         joins(:hud_chronics).where(hud_chronics: {date: GrdaWarehouse::HudChronic.most_recent_day})
       when :release_present
         where(housing_release_status: [full_release_string, partial_release_string])
+      when :active_clients
+        range = GrdaWarehouse::Config.cas_sync_range
+        where(id: GrdaWarehouse::ServiceHistoryEnrollment.with_service_between(start_date: range.first, end_date: range.last).select(:client_id))
       else
         raise NotImplementedError
       end
