@@ -16,6 +16,17 @@ module GrdaWarehouse
         'Use potentially chronic report' => :chronic,
         'Use HUD chronic report' => :hud_chronic,
         'All clients with a release on file' => :release_present,
+        'Active clients within range' => :active_clients,
+      }
+    end
+
+    def self.available_cas_sync_months
+      {
+        'One Month' => 1,
+        'Three Months' => 3,
+        'Six Months' => 6,
+        'Nine Months' => 9,
+        'One Year' => 12,
       }
     end
 
@@ -104,6 +115,11 @@ module GrdaWarehouse
 
     def self.current_health_emergency_title
       available_health_emergencies.invert[get(:health_emergency)&.to_sym] || ''
+    end
+
+    def self.cas_sync_range
+      current_range = get(:cas_sync_months) || 3
+      (current_range.months.ago.to_date..Date.current)
     end
 
     def self.cache_store
