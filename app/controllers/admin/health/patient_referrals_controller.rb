@@ -40,8 +40,15 @@ module Admin::Health
       @patient_referrals = Health::PatientReferral.assigned.not_disenrolled.
         includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
-      load_index_vars
-      render 'index'
+      respond_to do |format|
+        format.html do
+          load_index_vars
+          render 'index'
+        end
+        format.xlsx do
+          headers['Content-Disposition'] = 'attachment; filename=AssignedReferrals.xlsx'
+        end
+      end
     end
 
     def rejected
@@ -51,21 +58,43 @@ module Admin::Health
         includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
       load_index_vars
-      render 'index'
+      respond_to do |format|
+        format.html do
+          load_index_vars
+          render 'index'
+        end
+        format.xlsx do
+          headers['Content-Disposition'] = 'attachment; filename=RejectedReferrals.xlsx'
+        end
+      end
     end
 
     def disenrolled
       @active_patient_referral_tab = 'disenrolled'
       @patient_referrals = Health::PatientReferral.pending_disenrollment.not_confirmed_rejected
-      load_index_vars
-      render 'index'
+      respond_to do |format|
+        format.html do
+          load_index_vars
+          render 'index'
+        end
+        format.xlsx do
+          headers['Content-Disposition'] = 'attachment; filename=DisenrolledReferrals.xlsx'
+        end
+      end
     end
 
     def disenrollment_accepted
       @active_patient_referral_tab = 'disenrollment_accepted'
       @patient_referrals = Health::PatientReferral.rejection_confirmed
-      load_index_vars
-      render 'index'
+      respond_to do |format|
+        format.html do
+          load_index_vars
+          render 'index'
+        end
+        format.xlsx do
+          headers['Content-Disposition'] = 'attachment; filename=AcceptedDisenrollmentReferrals.xlsx'
+        end
+      end
     end
 
     def reject

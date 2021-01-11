@@ -75,7 +75,7 @@ module WarehouseReports
     end
 
     def report_scope
-      if current_user.present? && current_user.can_edit_anything_super_user?
+      if current_user.present? && current_user.can_view_all_reports?
         report_source.all
       else
         report_source.where(user_id: current_user.id)

@@ -78,6 +78,7 @@ module Admin
         :pf_timeliness_threshold,
         :pf_show_income,
         :pf_show_additional_timeliness,
+        :cas_sync_months,
         client_details: [],
       )
     end
