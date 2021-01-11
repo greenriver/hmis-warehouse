@@ -1,5 +1,5 @@
 .auth-support-links
-  - if controller_name != 'sessions'
+  - if controller_name != 'sessions' && controller_name != 'root'
     = link_to "Sign in", new_session_path(resource_name)
     %br/
   - if devise_mapping.registerable? && controller_name != 'registrations'
