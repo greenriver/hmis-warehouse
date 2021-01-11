@@ -260,5 +260,3 @@ group :rake do
 end
 
 gem 'ajax_modal_rails', '~> 1.0'
-
-gem 'dropzonejs-rails' #for dragging dropping files

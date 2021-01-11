@@ -59,7 +59,6 @@
 //= require selectable_list
 //= require viewable_entities
 //= require select_2
-//= require dropzone
 //= require_directory ./admin/client_matches
 //= require_directory ./census
 //= require_directory ./filter
@@ -89,5 +88,6 @@
 //= require TableWithToggleRows
 //= require role_table
 //= require documentExport.js
+//= require dropzone
 
 //= require init

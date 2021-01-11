@@ -5,50 +5,11 @@
 = simple_form_for @secure_file, as: :secure_file, url: secure_files_path(@data_source) do |f|
   = f.error_notification
   .form-inputs
-    = f.input :file, as: :file, label: false, input_html: { class: "dropzone", id: "form-dropzone" }
+    = f.input :file, as: :file, label: false
     = f.input :name, label: "Briefly describe this file"
     = f.input :recipient_id, collection: User.can_receive_secure_files?, label: "Who should have access to this file?", input_html: {class: 'select2'}
     = f.hidden_field :file_cache
     = f.hidden_field :import_type, value: :hmis_611
   .form-actions
     = f.button :submit, value: 'Upload'
-
-- content_for :page_js do
-  :javascript
-    var formdz = document.getElementById('form-dropzone');
-
-    showDrag = false;
-    timeout = -1;
-    function showDropZone() {
-      formdz.style.background = "darkgray";
-      formdz.style.border = "dashed gray";
-    }
-    function hideDropZone() {
-      formdz.style.background = "transparent";
-      formdz.style.border = "transparent";
-    }
-
-    window.addEventListener('dragenter', function() {
-      showDropZone();
-      showDrag = true;
-    });
-
-    window.addEventListener('dragover', function() {
-      showDrag = true;
-    });
-
-    window.addEventListener('dragleave', function(e) {
-      showDrag = false;
-      clearTimeout(timeout);
-      timeout = setTimeout(function() {
-        if (!showDrag) {hideDropZone();}
-      }, 200);
-    });
-
-    formdz.addEventListener('drop', function(e) {
-      hideDropZone();
-    });
-
-    Dropzone.options.formdz = {
-      autoProcessQueue: false
-    }
+    
