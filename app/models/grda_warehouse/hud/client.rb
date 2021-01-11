@@ -876,6 +876,7 @@ module GrdaWarehouse::Hud
 
     def active_in_cas?
       return false if deceased? || moved_in_with_ph?
+
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
         sync_with_cas
@@ -885,6 +886,9 @@ module GrdaWarehouse::Hud
         hud_chronics.where(hud_chronics: {date: GrdaWarehouse::HudChronic.most_recent_day}).exists?
       when :release_present
         [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
+      when :active_clients
+        range = GrdaWarehouse::Config.cas_sync_range
+        service_history_enrollments.with_service_between(start_date: range.first, end_date: range.last).exists?
       else
         raise NotImplementedError
       end
