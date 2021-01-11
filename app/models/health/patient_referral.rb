@@ -326,7 +326,7 @@ module Health
 
     # Note: respects pending_disenrollment_date if there is no disenrollment_date
     def active_on?(date)
-      was_active_range&.cover?(range)
+      was_active_range&.cover?(date)
     end
 
     def re_enrollment_blackout?(on_date)
