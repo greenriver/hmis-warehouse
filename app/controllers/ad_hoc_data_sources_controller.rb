@@ -39,7 +39,7 @@ class AdHocDataSourcesController < ApplicationController
 
   def destroy
     @data_source.destroy
-    respond_with(@data_source)
+    respond_with(@data_source, location: ad_hoc_data_sources_path)
   end
 
   private def data_source_params
