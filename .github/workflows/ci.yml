@@ -77,7 +77,7 @@ jobs:
          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
          chmod 600 ~/.pgpass
 
-         gem install bundler --version=1.17.3
+         gem install bundler --version=2.2.4
 
      #- uses: chrislennon/action-aws-cli@v1.1
 

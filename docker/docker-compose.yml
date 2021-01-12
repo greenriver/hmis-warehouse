@@ -9,7 +9,7 @@ x-app: &app
       PG_MAJOR: '12'
       NODE_MAJOR: '12'
       YARN_VERSION: '1.17.3'
-      BUNDLER_VERSION: '1.17.3'
+      BUNDLER_VERSION: '2.2.4'
       ADDITIONAL_PACKAGES: libproj-dev libgeos-dev postgis vim nodejs python2 unzip xvfb google-chrome-stable less freetds-dev freetds-bin phantomjs xfonts-75dpi alien libpng-dev libicu-dev libcurl4-openssl-dev curl libmagic-dev libmagickcore-dev libmagickwand-dev wkhtmltopdf lftp exuberant-ctags zsh postgresql-client ssh silversearcher-ag
   environment: &env
     NODE_ENV: ${NODE_ENV:-development}
