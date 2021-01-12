@@ -84,7 +84,7 @@
 //= require_directory ./cohorts/editors
 //= require_directory ./data_quality_reports
 //= require affix
-//= require table_search
+//= require list_search
 //= require TableWithToggleRows
 //= require role_table
 //= require documentExport.js
