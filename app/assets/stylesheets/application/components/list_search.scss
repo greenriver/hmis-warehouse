@@ -27,6 +27,11 @@
 }
 
 .c-list-search__list-group { }
+.c-list-search__list-group--recently-viewed {
+  .c-list-search__group-title {
+    background: $brand-primary-ll;
+  }
+}
 
 .c-list-search__group-title {
   background: $gray-015;
