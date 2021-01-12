@@ -218,16 +218,8 @@ module Admin::Health
     end
 
     def filters_path
-      case action_name
-      when 'review'
-        review_admin_health_patient_referrals_path
-      when 'assigned'
-        assigned_admin_health_patient_referrals_path
-      when 'rejected'
-        rejected_admin_health_patient_referrals_path
-      else
-        review_admin_health_patient_referrals_path
-      end
+      @filter_paths = load_tabs.map { |tab| [tab[:id], tab[:path]] }.to_h
+      @filter_paths[action_name] || review_admin_health_patient_referrals_path
     end
     helper_method :filters_path
 
