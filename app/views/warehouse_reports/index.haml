@@ -5,27 +5,29 @@
 %h1= content_for :title
 
 .c-list-search
-  .c-list-search__header.mb-4.d-flex
-    %select.form-control.select2.mr-4{multiple: true, placeholder: 'Select permission categories', class: input_classname}
-      - @report_definitions.each do |(group_name, reports)|
-        %option{value: group_name}= group_name
-    %input.form-control{placeholder: 'Search reports', class: input_classname}
+  .c-list-search__header
+    .c-list-search__select
+      %select.form-control.select2{multiple: true, placeholder: 'Select report categories', class: input_classname}
+        - @report_definitions.each do |(group_name, reports)|
+          %option{value: group_name}= group_name
+    .c-list-search__search
+      %input.form-control{placeholder: 'Search reports', class: input_classname}
 
   .mb-4.c-list-search__list
     - @report_definitions.each_with_index do |(group_name, reports), index|
       - dashed_group_name = group_name.parameterize.dasherize
-      %div{class: group_classname, data: {categories: group_name}}
-        %h3 #{group_name}
+      .c-list-search__list-group{class: group_classname, data: {categories: group_name}}
+        %h3.c-list-search__group-title #{group_name}
         %ul{class: "warehouse-reports__#{dashed_group_name}"}
           - reports.each do |report|
             - if report
-              %li.j-item{data: {title: report.name, categories: [group_name].to_s.html_safe}}
+              %li.c-list-search__item-link.j-item{data: {title: report.name, categories: [group_name].to_s.html_safe}}
                 = link_to report.url, class: '' do
-                  .d-flex
+                  .c-list-search__item-title
                     %h5= report.name
                     - unless report.limitable?
-                      %i.icon-notification.ml-auto{data: {toggle: :tooltip, title: 'Report is not limited by assigned projects.'}}
-                  %p= report.description.html_safe
+                      %i.icon-notification{data: {toggle: :tooltip, title: 'Report is not limited by assigned projects.'}}
+                  %p.c-list-search__item-description= report.description.html_safe
 
 - content_for :page_js do
   :javascript

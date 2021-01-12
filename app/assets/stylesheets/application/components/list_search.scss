@@ -1,0 +1,66 @@
+@import '../helpers';
+
+.c-list-search {
+  background: $white;
+  border-radius: $border-radius;
+  border: 2px solid $white;
+}
+
+.c-list-search__header {
+  display: flex;
+  flex: wrap;
+}
+
+.c-list-search__select,
+.c-list-search__search {
+  flex: 1 1 300px;
+  padding: space(4);
+  max-width: 400px;
+}
+
+.c-list-search__list {
+  position: relative;
+}
+
+.c-list-search__list ul {
+  @include list-unstyled();
+}
+
+.c-list-search__list-group { }
+
+.c-list-search__group-title {
+  background: $gray-015;
+  padding: space(4);
+  position: sticky;
+  top: 0;
+  margin-bottom: 1px;
+}
+
+
+.c-list-search__item-link {
+  display: block;
+  padding: space(4);
+  border-bottom: 1px solid $body-bg;
+  &:last-child {
+    border: 0;
+  }
+  @include hover-focus {
+    background: $body-bg;
+  }
+}
+
+.c-list-search__item-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.c-list-search__item-title h5 {
+  margin: 0;
+  padding-right: space(1);
+  font-size: rem(18px);
+}
+
+.c-list-search__item-description {
+  margin: 0;
+}
