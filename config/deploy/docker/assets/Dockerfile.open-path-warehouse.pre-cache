@@ -32,7 +32,7 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-RUN gem install bundler --version=1.17.3 && \
+RUN gem install bundler --version=2.2.4 && \
   mkdir -p app/assets tmp/pids lib/assets vendor/assets && \
   mkdir -p public locale var locale shape_files/CoC shape_files/zip_codes.census.2018
 
