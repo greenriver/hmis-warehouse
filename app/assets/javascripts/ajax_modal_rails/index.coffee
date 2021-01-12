@@ -60,6 +60,7 @@ class window.AjaxModal
   # maybe don't need this for bootstrap
   _registerClose: ->
     @modal.on 'click', @closeSelector, =>
+      @modal.trigger(jQuery.Event('modalClose'))
       @closeModal()
 
   _registerOnHide: ->
