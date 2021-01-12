@@ -310,29 +310,31 @@ module GrdaWarehouse::Hud
     # End Standard Cohort Scopes
     #################################
 
-    scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
-        current_scope
-      else
-        qc = -> (s) { connection.quote_column_name s }
-        q  = -> (s) { connection.quote s }
+    scope :viewable_by, ->(user) do
+      qc = -> (s) { connection.quote_column_name s }
+      q  = -> (s) { connection.quote s }
 
-        where(
-          [
-            has_access_to_project_through_viewable_entities(user, q, qc),
-            has_access_to_project_through_organization(user, q, qc),
-            has_access_to_project_through_data_source(user, q, qc),
-            has_access_to_project_through_coc_codes(user, q, qc)
-          ].join ' OR '
-        )
-      end
+      where(
+        [
+          has_access_to_project_through_viewable_entities(user, q, qc),
+          has_access_to_project_through_organization(user, q, qc),
+          has_access_to_project_through_data_source(user, q, qc),
+          has_access_to_project_through_coc_codes(user, q, qc)
+        ].join ' OR '
+      )
     end
-    scope :editable_by, -> (user) do
+
+    scope :editable_by, ->(user) do
       if user&.can_edit_projects?
-        viewable_by user
+        viewable_by(user)
       else
         none
       end
+    end
+
+    def self.can_see_all_projects?(user)
+      visible_count = viewable_by(user).distinct.count
+      visible_count.positive? && visible_count == all.count
     end
 
     def self.has_access_to_project_through_viewable_entities(user, q, qc)
@@ -487,7 +489,7 @@ module GrdaWarehouse::Hud
 
     scope :rrh, -> { where(self.project_type_column => PERFORMANCE_REPORTING[:rrh]) }
     def rrh?
-      project_type_to_use.to_i == PERFORMANCE_REPORTING[:rrh]
+      project_type_to_use.in?(PERFORMANCE_REPORTING[:rrh])
     end
 
     scope :psh, -> { where(self.project_type_column => PERFORMANCE_REPORTING[:psh]) }

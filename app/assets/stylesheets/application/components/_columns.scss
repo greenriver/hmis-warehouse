@@ -14,7 +14,7 @@ $columns-breakpoint: lg;
   overflow: auto;
   @include scrollbar(10px);
   @include media-breakpoint-up($columns-breakpoint) {
-    max-height: 50vh;
+    max-height: 80vh;
     flex-direction: row;
   }
 }
@@ -46,8 +46,10 @@ $columns-breakpoint: lg;
   border-right: 1px solid $column-border-color;
   border-left: 1px solid $column-border-color;
   @include media-breakpoint-up($columns-breakpoint) {
-    flex: 1 1 25%;
-    width: 25%;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 25%;
+    min-width: 25%;
   }
 }
 

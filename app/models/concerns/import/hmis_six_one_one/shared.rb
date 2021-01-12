@@ -22,6 +22,7 @@ module Import::HMISSixOneOne::Shared
   end
 
   def log(message)
+    puts(message)
     @notifier&.ping message
     logger.info message if @debug
   end
