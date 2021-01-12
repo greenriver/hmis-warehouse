@@ -96,6 +96,32 @@ window.App.ListSearch = class ListSearch {
           hideOrShowElement(allItemsHidden, $groupContainer)
         })
       }
+      // Show message if all hidden
+      this.showHideNoItemsMessage(!$(`${itemClass}:visible`).length)
     })
+  }
+  showHideNoItemsMessage(show=false) {
+    const messageClass = 'no-results'
+    const { containerClass='.DTFC_LeftHeadWrapper' } = this.props
+    if (show) {
+      let categoryMessage = ''
+      let termMessage = ''
+      const {term, searchCategories } = this
+      if (term.length > 2) {
+        termMessage = ` matching <strong>${term}</strong>`
+      }
+      if (searchCategories.length) {
+        categoryMessage = ` in <strong>${searchCategories.join(', ')}</strong>`
+      }
+      const message = `No results found${termMessage}${categoryMessage}.`
+      const messageEl = $(`.${messageClass}`)
+      if (messageEl.length) {
+        messageEl.html(message)
+      } else {
+        $(containerClass).append(`<p class=${messageClass}>${message}</p>`)
+      }
+    } else {
+      $(`.${messageClass}`).remove()
+    }
   }
 }
