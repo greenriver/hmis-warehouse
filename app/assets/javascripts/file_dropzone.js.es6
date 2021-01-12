@@ -1,11 +1,16 @@
-var file_input_query = document.querySelectorAll("input[type='file']")
-if (file_input_query.length == 1) {
-    insert_dropzone(file_input_query[0])
-}
-  
-function insert_dropzone(file_input) {
+window.App.FileDropzone = class FileDropzone {
+  constructor(props) {
+    this.props = props
+
+    let file_input_query = document.querySelectorAll("input[type='file']")
+    if (file_input_query.length == 1) {
+      this.insert_dropzone(file_input_query[0])
+    }
+  }
+
+  insert_dropzone(file_input) {
     //create and insert dropzone
-    var $dropzone_div = $("<div>", {id: "dropzone", text: "Drop Your File to Upload"})
+    let $dropzone_div = $("<div>", {id: "dropzone", text: "Drop Your File to Upload"})
     $dropzone_div.css({
         "box-sizing": "border-box",
         "display": "none",
@@ -27,8 +32,8 @@ function insert_dropzone(file_input) {
     $("body").prepend($dropzone_div)
 
     //add listeners for dropzone logic
-    showDrag = false
-    timeout = -1
+    var showDrag = false
+    var timeout = -1
     function showDropZone() {
       $dropzone_div.css("display", "flex")
     }
@@ -36,17 +41,17 @@ function insert_dropzone(file_input) {
       $dropzone_div.css("display", "none")
     }
 
-    window.addEventListener('dragenter', function(e) {
+    $(window).on('dragenter', function(e) {
       showDropZone()
       showDrag = true
     })
 
-    window.addEventListener('dragover', function(e) {
+    $(window).on('dragover', function(e) {
       e.preventDefault()
       showDrag = true
     })
 
-    window.addEventListener('dragleave', function(e) {
+    $(window).on('dragleave', function(e) {
       showDrag = false
       clearTimeout(timeout)
       timeout = setTimeout(function() {
@@ -54,13 +59,15 @@ function insert_dropzone(file_input) {
       }, 200)
     })
 
-    window.addEventListener('drop', function(e) {
+    $(window).on('drop', function(e) {
       e.preventDefault()
     })
 
-    $dropzone_div.on('drop', function(event) {
+    $dropzone_div.on('drop', function(e) {
       hideDropZone()
-      file_input.files = event.originalEvent.dataTransfer.files
+      file_input.files = e.originalEvent.dataTransfer.files
     })
+  }
 }
-
+  
+new App.FileDropzone()

@@ -1,7 +1,5 @@
 window.App.TableSearch = class TableSearch {
   constructor(props) {
-    console.log("HERE")
-    console.log(props)
     this.props = props
     this.registerEvents()
   }

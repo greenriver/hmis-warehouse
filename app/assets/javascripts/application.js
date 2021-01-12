@@ -88,6 +88,6 @@
 //= require TableWithToggleRows
 //= require role_table
 //= require documentExport.js
-//= require dropzone
+//= require file_dropzone
 
 //= require init
