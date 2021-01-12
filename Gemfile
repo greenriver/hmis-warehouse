@@ -33,7 +33,7 @@ gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'
 gem 'haml-rails'
-gem 'sass-rails'
+gem 'sassc-rails'
 gem 'autoprefixer-rails'
 gem 'kaminari'
 gem 'with_advisory_lock'
@@ -116,10 +116,6 @@ gem 'stupidedi' #, require: false #, git: 'https://github.com/greenriver/stupide
 gem 'redcarpet'
 
 # For exporting
-# As of 2017-05-02 the most recent rubygem version of axlsx
-# depended on nokogiri and rubyzip with active CVE's
-# we needed https://github.com/randym/axlsx/commit/776037c0fc799bb09da8c9ea47980bd3bf296874
-# and https://github.com/randym/axlsx/commit/e977cf5232273fa45734cdb36f6fae4db2cbe781
 gem 'caxlsx'
 gem 'caxlsx_rails'
 gem 'roo', require: false
@@ -129,10 +125,6 @@ gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soun
 
 # PDF Exports
 gem 'wicked_pdf'
-# I've added this package to the dev docker builds and the deployed
-# docker images. We can probably delete this. commenting out as the
-# first step:
-#gem 'wkhtmltopdf-binary', groups: [:development]
 gem 'combine_pdf'
 gem 'grover'
 
@@ -142,14 +134,8 @@ gem 'ruby-progressbar', require: false
 gem 'slack-notifier'
 gem 'exception_notification'
 
-# Use ActiveModel has_secure_password
-# gem 'bcrypt', '~> 3.1.7'
-
-# Use Unicorn as the app server
 gem 'puma', '~> 3.12.6'
 
-# gem 'newrelic_rpm', require: false
-# gem 'temping', require: false
 gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
@@ -171,10 +157,9 @@ gem 'awesome_print'
 gem 'auto-session-timeout'
 
 #Translations
-gem 'gettext_i18n_rails', require: false
-gem 'fast_gettext', require: false
-gem 'gettext', '>=3.0.2', require: false
-gem 'ruby_parser', require: false
+gem 'gettext_i18n_rails'
+gem 'fast_gettext'
+gem 'gettext', '>=3.0.2'
 gem 'grosser-pomo'
 
 gem 'responders'
@@ -250,12 +235,6 @@ end
 # This is really unhappy on travis
 group :production, :development, :staging do
   gem 'tiny_tds'
-end
-
-group :rake do
-  gem 'gettext_i18n_rails' # rubocop:disable Bundler/DuplicatedGem
-  gem 'fast_gettext' # rubocop:disable Bundler/DuplicatedGem
-  gem 'gettext', '>=3.0.2' # rubocop:disable Bundler/DuplicatedGem
 end
 
 gem 'ajax_modal_rails', '~> 1.0'

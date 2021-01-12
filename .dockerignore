@@ -1,0 +1,22 @@
+# build/runtime artifacts from host OS
+node_modules/*
+tmp/*
+log/*
+vendor/cache*
+public/packs*
+docker
+
+# Dev cruft
+*.swp
+*.swo
+.sass-cache
+yarn-error.log
+.irb-history
+.pry_history
+.pryrc
+byebug_history
+.powrc
+.env.*
+untracked
+.bundle
+.github
