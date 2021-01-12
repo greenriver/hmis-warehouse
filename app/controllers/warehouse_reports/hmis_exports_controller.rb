@@ -98,7 +98,7 @@ module WarehouseReports
     end
 
     def export_scope
-      if current_user.can_edit_anything_super_user?
+      if can_view_all_reports?
         export_source.all
       else
         export_source.where(user_id: current_user.id)

@@ -11,15 +11,12 @@
       %th Total
   %tbody
     %tr
-      %th
-        Site Monitoring
+      %th Site Monitoring
       %th
         = simple_format(_('HUD requires that projects meet threshold requirements throughout the life cycle of the project.'))
         %br
         TCHC Monitoring Reports
-      %th
-        N/A
-      %td.text-center= f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, **@report.field_input_options(:site_monitoring, current_user)
+      %td.text-center{colspan: 2}= f.input :site_monitoring, collection: @report.site_monitoring_options, as: :select_two, label: false, **@report.field_input_options(:site_monitoring, current_user)
       %th.text-nowrap
         .mb-4
           Points: 10
@@ -33,8 +30,7 @@
           Points: 0
           %br
           Findings with No Resolution
-      %td.text-center
-        = # TODO
+      %td.text-center= @report.site_monitoring_score
     %tr
       %th CES Rejected Referrals
       %th
@@ -53,13 +49,13 @@
         .mb-4
           Points: 10
           %br
-          <=10%
+          <= 10%
         .mb-4
-          Points: 5
+          Points: 0
           %br
-          <=11%
+          >= 11%
       %td.text-center
-        = # TODO
+        = @report.ces_rejected_score
     %tr
       %th VI-SPDAT
       %th
@@ -77,7 +73,5 @@
               %th Average VI-SPDAT score
               %td.text-center= f.input :average_vispdat_score, label: false, as: :read_only
       %td.text-center
-        = # TODO
       %th
       %td.text-center
-        = # TODO

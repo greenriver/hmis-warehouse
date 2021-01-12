@@ -21,3 +21,13 @@
       %td= f.input :funding_year, label: false, **@report.field_input_options(:funding_year, current_user)
       %th Full Grant Term
       %td= f.input :grant_term, label: false, **@report.field_input_options(:grant_term, current_user)
+    %tr
+      %th Expansion Year?
+      %td= f.input :expansion_year, label: '', as: :pretty_boolean, **@report.field_input_options(:expansion_year, current_user)
+      %th Project Less Than 2 Years Old?
+      %td= f.input :project_less_than_two, label: '', as: :pretty_boolean, **@report.field_input_options(:project_less_than_two, current_user)
+    %tr
+      %th Exclusively Serve a Special Population?
+      %td= f.input :special_population_only, label: false, **@report.field_input_options(:special_population_only, current_user)
+      %th Geographic Location
+      %td= f.input :geographic_location, label: false, **@report.field_input_options(:geographic_location, current_user)
