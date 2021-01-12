@@ -5,7 +5,7 @@
       .form-inputs
         = f.input :email, as: :email, required: true
         - if @user.unconfirmed_email
-          .alert.alert-info A request has been made to change the email address to #{@user.unconfirmed_email}. Please follow the link sent to this address confirm this new address.
+          .alert.alert-info A request has been made to change the email address to #{@user.unconfirmed_email}. Please follow the link sent to this address to confirm this new address.
         = f.input :current_password, required: true, hint: 'Your password is required to update your email address'
 
       .form-actions
