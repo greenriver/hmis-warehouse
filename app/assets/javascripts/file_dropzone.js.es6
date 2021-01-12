@@ -20,7 +20,6 @@ window.App.FileDropzone = class FileDropzone {
     $(document).ajaxComplete((event, xhr, settings) => {
       if (typeof settings.headers !== 'undefined' && settings.headers["X-AJAX-MODAL"]) {
         let file_input_in_model_query = $("div[id='ajax-modal'] input[type='file']")
-        console.log(file_input_in_model_query)
         if (file_input_in_model_query.length == 1) {
           this.process_dropzone(file_input_in_model_query[0])
         }
@@ -79,8 +78,6 @@ window.App.FileDropzone = class FileDropzone {
     //add listeners for dropzone logic
     var showDrag = false
     var timeout = -1
-    
-    console.log("HUH")
 
     $(window).on('dragenter', (e) => {
       this.showDropZone()
