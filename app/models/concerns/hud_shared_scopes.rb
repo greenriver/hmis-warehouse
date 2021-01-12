@@ -15,7 +15,6 @@ module HudSharedScopes
     end
 
     scope :hmis_source_visible_by, ->(user) do
-      return current_scope if user.can_edit_anything_super_user?
       return none unless user.can_upload_hud_zips?
       return none unless GrdaWarehouse::DataSource.editable_by(user).source.exists?
 
@@ -23,7 +22,6 @@ module HudSharedScopes
     end
 
     def hmis_source_visible_by?(user)
-      return true if user.can_edit_anything_super_user?
       return false unless user.can_upload_hud_zips?
       return false unless GrdaWarehouse::DataSource.editable_by(user).source.exists?
 

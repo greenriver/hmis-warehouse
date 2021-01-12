@@ -22,8 +22,6 @@ module Admin::Dashboard
         ).order(id: :desc).first_or_initialize
       end
 
-      return unless can_edit_anything_super_user?
-
       @duplicates = GrdaWarehouse::IdentifyDuplicatesLog.last
       @service_history = GrdaWarehouse::GenerateServiceHistoryLog.last
       source_clients = client_scope.pluck(:id)

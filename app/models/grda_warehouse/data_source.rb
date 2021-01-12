@@ -58,30 +58,23 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :viewable_by, ->(user) do
-    if user.can_edit_anything_super_user?
-      current_scope
-    else
-      qc = ->(s) { connection.quote_column_name s }
-      q  = ->(s) { connection.quote s }
+    qc = ->(s) { connection.quote_column_name s }
+    q  = ->(s) { connection.quote s }
 
-      where(
-        [
-          has_access_to_data_source_through_viewable_entities(user, q, qc),
-          has_access_to_data_source_through_organizations(user, q, qc),
-          has_access_to_data_source_through_projects(user, q, qc),
-        ].join ' OR '
-      )
-    end
+    where(
+      [
+        has_access_to_data_source_through_viewable_entities(user, q, qc),
+        has_access_to_data_source_through_organizations(user, q, qc),
+        has_access_to_data_source_through_projects(user, q, qc),
+      ].join ' OR '
+    )
   end
-  scope :editable_by, ->(user) do
-    if user.can_edit_anything_super_user?
-      current_scope
-    else
-      qc = ->(s) { connection.quote_column_name s }
-      q  = ->(s) { connection.quote s }
 
-      where has_access_to_data_source_through_viewable_entities(user, q, qc)
-    end
+  scope :editable_by, ->(user) do
+    qc = ->(s) { connection.quote_column_name s }
+    q  = ->(s) { connection.quote s }
+
+    where has_access_to_data_source_through_viewable_entities(user, q, qc)
   end
 
   scope :authoritative, -> do
@@ -97,7 +90,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
     ds_ids = user.data_sources.pluck(:id)
 
-    if user.can_edit_anything_super_user? || user.can_view_clients? || user.can_edit_clients?
+    if user.can_view_clients? || user.can_edit_clients?
       current_scope
     elsif user&.can_view_clients_with_roi_in_own_coc?
       if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
@@ -144,6 +137,15 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   scope :coordinated_assessment, -> do
     where(authoritative_type: 'coordinated_assessment')
+  end
+
+  def self.can_see_all_data_sources?(user)
+    visible_source_ds = viewable_by(user).source.distinct
+    # If we can't see any, it may be because there are none
+    # Ensure we can see at least one
+    return false unless visible_source_ds.count.positive?
+
+    visible_source_ds.count == source.count
   end
 
   def self.view_column_names

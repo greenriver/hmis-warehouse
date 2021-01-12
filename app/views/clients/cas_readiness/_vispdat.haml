@@ -14,6 +14,16 @@
             .col-sm-4
               %dt Prioritized VI-SPDAT Score
               %dd= @client.calculate_vispdat_priority_score&.round
+        - elsif GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'vets_family_youth'
+          .row
+            .col-sm-12
+              %p VI-SPDAT scores are weighted for matches in CAS.  The weighting scheme adds 100 if the client is a veteran, 50 for a family, 25 for youth.
+            .col-sm-4
+              %dt Most recent VI-SPDAT Score
+              %dd= @client.most_recent_vispdat_score&.round
+            .col-sm-4
+              %dt Prioritized VI-SPDAT Score
+              %dd= @client.calculate_vispdat_priority_score&.round
         - else
           .row
             .col-sm-12
