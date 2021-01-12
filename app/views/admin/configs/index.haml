@@ -82,7 +82,9 @@
         .c-card.c-card--flush.c-card--padded.flex-wrap
           = f.input :cas_url, label: 'CAS Site URL'
           = f.input :cas_days_homeless_source, collection: GrdaWarehouse::Config.available_days_homeless_sources, label: 'Source of days homeless to send to CAS', input_html: {class: :select2}
-          = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS', input_html: {class: :select2}
+          = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS', as: :select_two, input_html: {class: :jSyncMethod}
+          .jCasSyncMonths
+            = f.input :cas_sync_months, as: :select_two, collection: GrdaWarehouse::Config.available_cas_sync_months, label: 'Clients active within prior'
           = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?', input_html: {class: :select2}
           = f.input :rrh_cas_readiness, label: 'Include RRH section in CAS Readiness?'
           = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', input_html: { multiple: true, class: 'select2' }
@@ -90,3 +92,13 @@
           = f.input :domestic_violence_lookback_days, label: 'How long should a victim of domestic violence be considered a victim?', collection: GrdaWarehouse::Config.dv_days, as: :select_two
 
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'
+= content_for :page_js do
+  :javascript
+    $('.jSyncMethod').on('change', function(e) {
+      if($('.jSyncMethod').val() == 'active_clients') {
+        $('.jCasSyncMonths').show();
+      } else {
+        $('.jCasSyncMonths').hide();
+      }
+    });
+    $('.jSyncMethod').trigger('change');

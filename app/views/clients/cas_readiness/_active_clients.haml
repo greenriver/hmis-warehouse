@@ -1,0 +1,8 @@
+%p
+  Any client with service within the past #{pluralize(GrdaWarehouse::Config.get(:cas_sync_months), 'month')}.
+%p
+  Will
+  %strong= @client.name
+  sync with CAS?
+  %br
+  = yes_no @client.active_in_cas?

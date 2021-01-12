@@ -36,6 +36,7 @@ module Admin
     def edit
       @agencies = Agency.order(:name)
       @user.set_initial_two_factor_secret!
+      @group = @user.access_group
     end
 
     def unlock

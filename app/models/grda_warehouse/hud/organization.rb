@@ -37,33 +37,26 @@ module GrdaWarehouse::Hud
       where(dmh: true)
     end
     scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
-        current_scope
-      else
-        qc = -> (s) { connection.quote_column_name s }
-        q  = -> (s) { connection.quote s }
+      qc = -> (s) { connection.quote_column_name s }
+      q  = -> (s) { connection.quote s }
 
-        where(
-          [
-            has_access_to_organization_through_viewable_entities(user, q, qc),
-            has_access_to_organization_through_data_source(user, q, qc),
-            has_access_to_organization_through_projects(user, q, qc)
-          ].join ' OR '
-        )
-      end
-    end
-    scope :editable_by, -> (user) do
-      if user.can_edit_anything_super_user?
-        current_scope
-      else
-        qc = -> (s) { connection.quote_column_name s }
-        q  = -> (s) { connection.quote s }
-
-        where [
+      where(
+        [
           has_access_to_organization_through_viewable_entities(user, q, qc),
-          has_access_to_organization_through_data_source(user, q, qc)
+          has_access_to_organization_through_data_source(user, q, qc),
+          has_access_to_organization_through_projects(user, q, qc)
         ].join ' OR '
-      end
+      )
+    end
+
+    scope :editable_by, -> (user) do
+      qc = -> (s) { connection.quote_column_name s }
+      q  = -> (s) { connection.quote s }
+
+      where [
+        has_access_to_organization_through_viewable_entities(user, q, qc),
+        has_access_to_organization_through_data_source(user, q, qc)
+      ].join ' OR '
     end
 
     # def self.bed_utilization_by_project filter:

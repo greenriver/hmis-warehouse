@@ -1,8 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureFour, type: :model do
-  let!(:super_user_role) { create :can_edit_anything_super_user }
-  let!(:user) { create :user, roles: [super_user_role] }
+  let!(:all_hud_reports_user_role) { create :can_view_all_hud_reports }
+  let!(:user) { create :user, roles: [all_hud_reports_user_role] }
   let!(:report) { create :spm_measure_four_fy2019 }
   let!(:report_result) do
     create :report_result,
@@ -27,6 +27,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureFour, type: :
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
+    AccessGroup.maintain_system_groups
 
     Delayed::Worker.new.work_off(2)
   end
@@ -39,6 +40,7 @@ RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureFour, type: :
   end
 
   before(:each) do
+    user.access_groups = AccessGroup.all
     measure.run!
     report_result.reload
   end
