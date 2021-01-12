@@ -2,7 +2,7 @@ window.App.FileDropzone = class FileDropzone {
   constructor(props) {
     this.props = props
 
-    let file_input_query = document.querySelectorAll("input[type='file']")
+    let file_input_query = $("input[type='file']")
     if (file_input_query.length == 1) {
       this.insert_dropzone(file_input_query[0])
     }
