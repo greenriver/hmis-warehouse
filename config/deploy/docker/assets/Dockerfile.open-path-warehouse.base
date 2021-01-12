@@ -35,7 +35,7 @@ RUN apk add --no-cache \
 ###########################################
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=2.6.5
+LABEL "ruby-version"=2.7.2
 
 # Get self-signed cert
 COPY --from=builder /key.pem /cert.pem /app/config/
