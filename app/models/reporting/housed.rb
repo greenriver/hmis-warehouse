@@ -26,6 +26,18 @@ module Reporting
       where(project_type: [3, 9, 10])
     end
 
+    scope :es, -> do
+      where(project_type: 1)
+    end
+
+    scope :th, -> do
+      where(project_type: 2)
+    end
+
+    scope :sh, -> do
+      where(project_type: 8)
+    end
+
     scope :youth, -> do
       where(dob: 24.years.ago..18.years.ago)
     end
@@ -287,6 +299,9 @@ module Reporting
 
     def one_project_ids
       one_project_ids = GrdaWarehouse::Hud::Project.ph.
+        or(GrdaWarehouse::Hud::Project.th).
+        or(GrdaWarehouse::Hud::Project.es).
+        or(GrdaWarehouse::Hud::Project.sh).
         where.not(id: two_project_ids).
         distinct.
         pluck(:id)
@@ -337,35 +352,42 @@ module Reporting
       @two_project_data ||= begin
         processed_service_enrollments = Set.new
         from_residential_enrollments = two_project_residential_data.map do |residential_enrollment|
-          key = [
-            residential_enrollment[:client_id],
-            residential_enrollment[:residential_project_id],
-          ]
-          en = default_row.merge(residential_enrollment.slice(*default_row.keys))
-          en[:project_id] = residential_enrollment[:residential_project_id]
-          service_enrollments_for_client = two_project_service_data[key]
-          if service_enrollments_for_client.present?
-            related_service_enrollment = service_enrollments_for_client.select do |ser_en|
-              ser_en[:search_start] <= en[:housed_date]
-            end.first
-            if related_service_enrollment
-              processed_service_enrollments << related_service_enrollment[:enrollment_id]
-              en[:search_start] = related_service_enrollment[:search_start]
-              en[:search_end] = related_service_enrollment[:search_end]
-              en[:service_project] = related_service_enrollment[:service_project]
+          case residential_enrollment[:project_type]
+          when *GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+            key = [
+              residential_enrollment[:client_id],
+              residential_enrollment[:residential_project_id],
+            ]
+            en = default_row.merge(residential_enrollment.slice(*default_row.keys))
+            en[:project_id] = residential_enrollment[:residential_project_id]
+            service_enrollments_for_client = two_project_service_data[key]
+            if service_enrollments_for_client.present?
+              related_service_enrollment = service_enrollments_for_client.detect do |ser_en|
+                ser_en[:search_start] <= en[:housed_date]
+              end
+              if related_service_enrollment
+                residential_enrollment[:project_type]
+                processed_service_enrollments << related_service_enrollment[:enrollment_id]
+                en[:search_start] = related_service_enrollment[:search_start]
+                en[:search_end] = related_service_enrollment[:search_end]
+                en[:service_project] = related_service_enrollment[:service_project]
+              else
+                en[:search_start] = residential_enrollment[:housed_date]
+                en[:search_end] = residential_enrollment[:housed_date]
+                en[:service_project] = 'No Service Enrollment'
+              end
             else
               en[:search_start] = residential_enrollment[:housed_date]
               en[:search_end] = residential_enrollment[:housed_date]
               en[:service_project] = 'No Service Enrollment'
             end
+            en[:source] = 'enrollment_based'
+            en
           else
-            en[:search_start] = residential_enrollment[:housed_date]
-            en[:search_end] = residential_enrollment[:housed_date]
-            en[:service_project] = 'No Service Enrollment'
+            # affiliations don't apply to ES/TH/SH, so ignore them
+            next
           end
-          en[:source] = 'enrollment_based'
-          en
-        end
+        end.compact
 
         from_service_enrollments = two_project_service_data.values.flatten(1).map do |ser_en|
           next if processed_service_enrollments.include? ser_en[:enrollment_id]
@@ -469,7 +491,10 @@ module Reporting
       @affiliated_projects ||= begin
         residential_projects = GrdaWarehouse::Hud::Affiliation.
           joins(:residential_project).
-          merge(GrdaWarehouse::Hud::Project.ph).
+          merge(GrdaWarehouse::Hud::Project.ph.
+            or(GrdaWarehouse::Hud::Project.th).
+            or(GrdaWarehouse::Hud::Project.es).
+            or(GrdaWarehouse::Hud::Project.sh)).
           pluck(*affiliation_columns.values).map do |row|
             Hash[affiliation_columns.keys.zip(row)]
           end
@@ -513,20 +538,28 @@ module Reporting
         pluck(*one_project_columns.values).
         map do |row|
           residential_enrollment = Hash[one_project_columns.keys.zip(row)]
-          # if exit but no move-in-date, set search end to exit and blank exit, no stabilization, only pre-placement
-          if residential_enrollment[:housing_exit].present? && residential_enrollment[:search_end].blank?
-            residential_enrollment[:search_end] = residential_enrollment[:housing_exit]
-            residential_enrollment[:housing_exit] = nil
-          end
-          # if the move-in-date is after the housing exit, set the move-in-date to the housing exit
-          if residential_enrollment[:housed_date].present? && residential_enrollment[:housing_exit].present?
-            if residential_enrollment[:housed_date] > residential_enrollment[:housing_exit]
-              residential_enrollment[:housed_date] = residential_enrollment[:housing_exit]
+          case residential_enrollment[:project_type]
+          when *GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+            # if exit but no move-in-date, set search end to exit and blank exit, no stabilization, only pre-placement
+            if residential_enrollment[:housing_exit].present? && residential_enrollment[:search_end].blank?
+              residential_enrollment[:search_end] = residential_enrollment[:housing_exit]
+              residential_enrollment[:housing_exit] = nil
             end
+            # if the move-in-date is after the housing exit, set the move-in-date to the housing exit
+            if residential_enrollment[:housed_date].present? && residential_enrollment[:housing_exit].present?
+              if residential_enrollment[:housed_date] > residential_enrollment[:housing_exit]
+                residential_enrollment[:housed_date] = residential_enrollment[:housing_exit]
+              end
+            end
+            residential_enrollment[:source] = 'move-in-date'
+          else
+            # ES, TH, and SH don't have two phases, we are using housed to represent time in program
+            residential_enrollment[:housed_date] = residential_enrollment[:search_start]
+            residential_enrollment[:search_start] = nil
+            residential_enrollment[:search_end] = nil
+            residential_enrollment[:source] = 'enrollment_based'
           end
-          residential_enrollment[:source] = 'move-in-date'
-          en = default_row.merge(residential_enrollment)
-          en
+          default_row.merge(residential_enrollment)
         end
       end
     end
