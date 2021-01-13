@@ -17,6 +17,7 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
+      # i dont know how to make rubocop happy with this
       # rubocop:disable Layout/ArgumentAlignment
       let!(:config) do
         create :config_b,
