@@ -11,7 +11,7 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_b, available_cas_methods: cas_method }
+      let!(:config) { create :config_b, cas_available_method: cas_method }
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
@@ -109,7 +109,7 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_s, available_cas_methods: cas_method }
+      let!(:config) { create :config_s, cas_available_method: cas_method }
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
@@ -223,7 +223,7 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_3c, available_cas_methods: cas_method }
+      let!(:config) { create :config_3c, cas_available_method: cas_method }
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
@@ -317,7 +317,7 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_tc, available_cas_methods: cas_method }
+      let!(:config) { create :config_tc, cas_available_method: cas_method }
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
@@ -411,7 +411,7 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_ma, available_cas_methods: cas_method }
+      let!(:config) { create :config_ma, cas_available_method: cas_method }
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
@@ -630,7 +630,7 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_mi, available_cas_methods: cas_method }
+      let!(:config) { create :config_mi, cas_available_method: cas_method }
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
