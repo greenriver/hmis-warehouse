@@ -27,7 +27,7 @@
     %dt Agency
     %dd= item.agency&.name || 'Unknown'
 
- - if can_edit_health_emergency_clinical?
+- if can_edit_health_emergency_clinical?
   .d-flex
     = link_to destroy_vaccination_client_he_clinical_path(client_id: @client.id, id: item.id), method: :delete, class: 'btn btn-danger btn-sm ml-auto', data: { confirm: "Really delete this #{item.title}?"} do
       %i.icon-cross
