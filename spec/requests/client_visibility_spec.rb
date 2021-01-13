@@ -5,13 +5,27 @@ require 'nokogiri'
 RSpec.describe ClientsController, type: :request do
   include_context 'visibility test context'
 
-  GrdaWarehouse::Config.available_cas_methods.each_value do |cas_method|
+  configs_variations = GrdaWarehouse::Config.available_cas_methods.values.product( # cas available method
+    [true, false], # project type override
+    GrdaWarehouse::Config.family_calculation_methods.values, # family calculation method
+    GrdaWarehouse::Config.available_release_durations, # release duration
+  )
+
+  configs_variations.each do |cfg_01, cfg_02, cfg_03, cfg_04|
     context 'when config b is in affect' do
       before do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_b, cas_available_method: cas_method }
+      # rubocop:disable Layout/ArgumentAlignment
+      let!(:config) do
+        create :config_b,
+        cas_available_method: cfg_01,
+        project_type_override: cfg_02,
+        family_calculation_method: cfg_03,
+        release_duration: cfg_04
+      end
+      # rubocop:enable Layout/ArgumentAlignment
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
@@ -109,7 +123,15 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_s, cas_available_method: cas_method }
+      # rubocop:disable Layout/ArgumentAlignment
+      let!(:config) do
+        create :config_b,
+        cas_available_method: cfg_01,
+        project_type_override: cfg_02,
+        family_calculation_method: cfg_03,
+        release_duration: cfg_04
+      end
+      # rubocop:enable Layout/ArgumentAlignment
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
@@ -223,7 +245,15 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_3c, cas_available_method: cas_method }
+      # rubocop:disable Layout/ArgumentAlignment
+      let!(:config) do
+        create :config_b,
+        cas_available_method: cfg_01,
+        project_type_override: cfg_02,
+        family_calculation_method: cfg_03,
+        release_duration: cfg_04
+      end
+      # rubocop:enable Layout/ArgumentAlignment
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
@@ -317,7 +347,15 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_tc, cas_available_method: cas_method }
+      # rubocop:disable Layout/ArgumentAlignment
+      let!(:config) do
+        create :config_b,
+        cas_available_method: cfg_01,
+        project_type_override: cfg_02,
+        family_calculation_method: cfg_03,
+        release_duration: cfg_04
+      end
+      # rubocop:enable Layout/ArgumentAlignment
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
@@ -411,7 +449,15 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_ma, cas_available_method: cas_method }
+      # rubocop:disable Layout/ArgumentAlignment
+      let!(:config) do
+        create :config_b,
+        cas_available_method: cfg_01,
+        project_type_override: cfg_02,
+        family_calculation_method: cfg_03,
+        release_duration: cfg_04
+      end
+      # rubocop:enable Layout/ArgumentAlignment
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
@@ -630,7 +676,15 @@ RSpec.describe ClientsController, type: :request do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
       end
-      let!(:config) { create :config_mi, cas_available_method: cas_method }
+      # rubocop:disable Layout/ArgumentAlignment
+      let!(:config) do
+        create :config_b,
+        cas_available_method: cfg_01,
+        project_type_override: cfg_02,
+        family_calculation_method: cfg_03,
+        release_duration: cfg_04
+      end
+      # rubocop:enable Layout/ArgumentAlignment
       let!(:user) { create :user }
 
       describe 'and the user does not have a role' do
