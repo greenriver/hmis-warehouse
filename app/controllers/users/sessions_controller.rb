@@ -64,6 +64,6 @@ class Users::SessionsController < Devise::SessionsController
   end
 
   private def clean_code
-    user_params[:otp_attempt].gsub(/[^0-9.]/, '')
+    user_params[:otp_attempt].gsub(/[^0-9a-z]/, '')
   end
 end

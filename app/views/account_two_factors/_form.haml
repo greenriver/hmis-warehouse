@@ -12,7 +12,7 @@
       %p
         Note, if you have already generated codes, clicking the button again will invalidate all previous codes and generate new codes.
       %p
-        = link_to account_two_factor_path, class: ['btn', 'btn-secondary'], data: { confirm: 'Clicking OK below will invalidate any prior backup codes. Are you sure you would like to generate new codes?', loads_in_pjax_modal: true } do
+        = link_to account_two_factor_path, class: ['btn', 'btn-secondary'], data: { loads_in_pjax_modal: true } do
           Generate Backup Codes
     - if @user.enforced_2fa?
       .col-sm
