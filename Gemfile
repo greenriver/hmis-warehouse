@@ -16,7 +16,7 @@ gem 'pg'
 # version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
 gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: '5-2-stable', require: false
 gem 'activerecord-import'
-gem 'active_record_extended'
+gem 'active_record_extended', '~> 1.4.0'
 
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
@@ -172,58 +172,54 @@ gem 'attr_encrypted', '~> 3.1.0'
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
-  gem 'pry-rails'
+  gem 'pry-rails', require: false
   gem 'bundler-audit', require: false
   gem 'brakeman', require: false
-  gem 'rspec-rails'
+  gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
   gem 'guard-rspec', require: false
-  # gem 'rb-readline'
 end
 
 group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring'
-  gem 'html2haml'
-  gem 'capistrano-bundler'
-  gem 'capistrano-rvm'
-  gem 'capistrano-passenger'
-  gem 'capistrano-rails'
-  gem 'rails-erd'
+  gem 'spring', require: false
+  gem 'html2haml', require: false
+  gem 'capistrano-bundler', require: false
+  gem 'capistrano-rvm', require: false
+  gem 'capistrano-passenger', require: false
+  gem 'capistrano-rails', require: false
+  gem 'rails-erd', require: false
   gem 'web-console'
   # gem 'quiet_assets'
 
   gem 'list_matcher', require: false # for the forms:desmush rake task
 
-  gem 'ruby-prof'
-  gem 'memory_profiler'
+  gem 'ruby-prof', require: false
+  gem 'memory_profiler', require: false
   gem 'rack-mini-profiler', require: false
-  gem 'flamegraph'
-  gem 'stackprof' # For Ruby MRI 2.1+
+  gem 'flamegraph', require: false
+  gem 'stackprof', require: false
   gem 'active_record_query_trace'
-  # gem 'rb-readline'
-  gem 'overcommit'
+  gem 'overcommit', require: false
   gem 'rubocop', require: false
   gem 'rubocop-rspec', require: false
 
   # boot time/memory profiling
-  gem 'derailed_benchmarks'
-  gem 'bumbler'
+  gem 'derailed_benchmarks', require: false
+  gem 'bumbler', require: false
 end
 
 group :test do
   gem 'capybara'
   gem 'fixpoints', git: 'https://github.com/greenriver/fixpoints.git', branch: 'master'
-  gem 'launchy'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda'
   gem 'timecop'
-  # gem 'test_after_commit'
   gem 'after_commit_exception_notification'
-  gem 'simplecov'
-  gem 'simplecov-console'
   gem 'rails-controller-testing'
+  # gem 'simplecov'
+  # gem 'simplecov-console'
 end
 
 group :development, :staging, :test do
