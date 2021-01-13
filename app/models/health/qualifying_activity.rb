@@ -647,7 +647,8 @@ module Health
       patient_referrals = patient.patient_referrals.sort_by(&:enrollment_start_date)
 
       # Are there any referrals that were active at the time of this activity?
-      # Enrollments are intended to non-overlapping but are not always
+      # Enrollments are intended to non-overlapping but are not always.
+      # We respect a pending disenrollment assumed by insurer but not yet accepted by provider
       contributing_referrals = patient_referrals.select do |r|
         r.active_on?(date_of_activity)
       end.to_set
@@ -660,10 +661,11 @@ module Health
       # and any of our existing contributions is <= allowed_gap_in_days
       # This is O(n^2) but N is expected to stay small
       patient_referrals.reverse_each do |r|
-        next if r.in?(contributing_referrals)
-        next if r.enrollment_start_date > date_of_activity # dont need to consider this one, it started after the QA
+        next if r.enrollment_start_date > date_of_activity # don't need to consider this one, it started after the QA
+        next if r.in?(contributing_referrals) # already found it
         close_enough = contributing_referrals.any? do |r2|
-          r.disenrollment_date.nil? || (r2.enrollment_start_date - r.disenrollment_date).to_i.between?(0, allowed_gap_in_days)
+          r_disnrollment = r.actual_or_pending_disenrollment_date
+          r_disnrollment.nil? || (r2.enrollment_start_date - r_disnrollment).to_i.between?(0, allowed_gap_in_days)
         end
         contributing_referrals << r if close_enough
       end
@@ -671,26 +673,34 @@ module Health
       # Just in case
       contributing_referrals = contributing_referrals.to_a.sort_by(&:enrollment_start_date)
 
-      # We need care plan signed within the first 150 accumulated
-      # days of enrollment from the initial enrollment in the series
+      # We have engagement_period_in_days of *accumulated* enrollment to get a care plan signed
+      # before that date we are in a grace period and the plan is not considered missing yet.
       enrolled_dates = Set.new
       contributing_referrals.each do |r|
         enrolled_dates += r.enrolled_days_to_date
         break if enrolled_dates.size >= engagement_period_in_days
       end
-      last_possible_enrollment_date = enrolled_dates.sort.first(engagement_period_in_days).last
 
-      # We have not yet been enrolled 150 days so there is still time for a careplan to arrive
+      # We have not yet been enrolled 150 days so there is still time for a care plan to arrive
       return false if enrolled_dates.size < engagement_period_in_days
 
-      care_plan_date_range = contributing_referrals.first.enrollment_start_date .. last_possible_enrollment_date
+      pcp_signed_plans = patient.careplans.select(&:provider_signed_on)
+      # Fast fail: no pcp signed plans at all.
+      return true if pcp_signed_plans.none?
 
-      # It's not missing if we can find a signed one within care_plan_date_range
-      return false if patient.careplans.any? do |cp|
-        cp.provider_signed_on && care_plan_date_range.cover?(cp.provider_signed_on)
+      # If a signed care plan was prepared at *any time* within the contributing_referrals containing
+      # this activity than the activity is covered by the plan except for the activities to
+      # create the plan itself. i.e. it does not matter if the plan was signed before or after the care plan.
+      first_enrollment_date = contributing_referrals.first.enrollment_start_date
+      last_enrollment_date = contributing_referrals.last.actual_or_pending_disenrollment_date
+      contributing_care_plans = pcp_signed_plans.select do |cp|
+        # Not sure on this... dont penalize the patient if the provider was late signing it
+        cp_date = [cp.provider_signed_on, cp.patient_signed_on].compact.min
+        cp_date >= first_enrollment_date && (last_enrollment_date.nil? || cp_date <= last_enrollment_date)
       end
+      return false if contributing_care_plans.any? && !activity.in?(%w/care_planning pctp_signed/)
 
-      # Couldn't find it thus it's missing
+      # Couldn't find one meeting any of or conditions, thus it's missing
       return true
     end
 

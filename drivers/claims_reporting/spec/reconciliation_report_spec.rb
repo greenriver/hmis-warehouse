@@ -87,9 +87,10 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
              patient: patient,
              date_of_activity: month.beginning_of_month + 15.days,
              claim_submitted_on: claim_submitted_on)
-      active_patients << [patient, 0, 1, [cp.provider_signed_on.to_date]] # FIXME?
+      active_patients << [patient, 0, 0, [cp.provider_signed_on.to_date]]
     end
     # 6. after grace period, before pending dis-enrollment, before careplan signed after engagement period
+    # this is ok because if a careplan is signed it covers other activities in the plan (but not itself)
     create(:patient).tap do |patient|
       create(:prior_referral,
              patient: patient,
@@ -101,7 +102,7 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
              patient: patient,
              date_of_activity: month.beginning_of_month + 11.days,
              claim_submitted_on: claim_submitted_on)
-      active_patients << [patient, 0, 1, [cp.provider_signed_on.to_date]] # FIXME?
+      active_patients << [patient, 0, 0, [cp.provider_signed_on.to_date]]
     end
     # 7. after pending disenrollment before actual disenrollment, after valid careplan
     create(:patient).tap do |patient|
@@ -143,6 +144,22 @@ RSpec.describe 'ClaimsReporting::ReconcilationReport', type: :model do
              date_of_activity: month.beginning_of_month + 15.days,
              claim_submitted_on: claim_submitted_on)
       active_patients << [patient, 1, 0, [cp.provider_signed_on.to_date]]
+    end
+    # 10. after grace period, before pending dis-enrollment, creating a careplan after engagement period
+    # this is not payable and should be considered as a missed care plan
+    create(:patient).tap do |patient|
+      create(:prior_referral,
+             patient: patient,
+             enrollment_start_date: month.beginning_of_month - (engagement_days - 10.days),
+             pending_disenrollment_date: month.end_of_month,
+             disenrollment_date: nil)
+      cp = create(:careplan, patient: patient, provider_signed_on: month.beginning_of_month + 15.days)
+      create(:qualifying_activity,
+             patient: patient,
+             activity: 'care_planning',
+             date_of_activity: month.beginning_of_month + 11.days,
+             claim_submitted_on: claim_submitted_on)
+      active_patients << [patient, 0, 1, [cp.provider_signed_on.to_date]]
     end
 
     ClaimsReporting::CpPaymentUpload.new.save(
