@@ -121,6 +121,7 @@ module Health
     scope :pending_disenrollment, -> { current.where.not(pending_disenrollment_date: nil) }
     scope :not_disenrolled, -> { current.where(pending_disenrollment_date: nil, disenrollment_date: nil)}
 
+    # Note: respects pending_disenrollment_date if there is no disenrollment_date
     scope :active_within_range, -> (start_date:, end_date:) do
       at = arel_table
       # Excellent discussion of why this works:
@@ -128,7 +129,7 @@ module Health
       d_1_start = start_date
       d_1_end = end_date
       d_2_start = at[:enrollment_start_date]
-      d_2_end = at[:disenrollment_date]
+      d_2_end = cl(at[:disenrollment_date], at[:pending_disenrollment_date])
       # Currently does not count as an overlap if one starts on the end of the other
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
