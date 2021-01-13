@@ -696,7 +696,11 @@ module Health
       contributing_care_plans = pcp_signed_plans.select do |cp|
         # Not sure on this... dont penalize the patient if the provider was late signing it
         cp_date = [cp.provider_signed_on, cp.patient_signed_on].compact.min
-        cp_date >= first_enrollment_date && (last_enrollment_date.nil? || cp_date <= last_enrollment_date)
+        (
+          (cp.expires_on.nil? || date_of_activity <= cp.expires_on) &&
+          (cp_date >= first_enrollment_date) &&
+          (last_enrollment_date.nil? || cp_date <= last_enrollment_date)
+        )
       end
       return false if contributing_care_plans.any? && !activity.in?(%w/care_planning pctp_signed/)
 
