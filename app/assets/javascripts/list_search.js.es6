@@ -76,8 +76,13 @@ window.App.ListSearch = class ListSearch {
         if (term.length <= 2) complete()
         $items.each((i, el) => {
           const title = $(el).data('title') || ''
-          const match = title ? title.match(new RegExp(term, 'i')) : false
-          hideOrShowElement(!match, $(el))
+          const description = $(el).find('p').text()
+          const termRegExp = new RegExp(term, 'i')
+          const matches = [
+            title ? title.match(termRegExp) : false,
+            description ? description.match(termRegExp) : false
+          ]
+          hideOrShowElement(!matches.some(v => v), $(el))
           if (i == $items.length-1) complete()
         })
       } else {
