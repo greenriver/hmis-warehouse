@@ -21,7 +21,6 @@ module HudReports
       @report_urls ||= Rails.application.config.hud_reports.map { |_, report| [report[:title], public_send(report[:helper])] }
     end
 
-    # FIXME: should this be here?
     private def report_param_name
       :id
     end
@@ -49,12 +48,6 @@ module HudReports
       ::HudReports::ReportCell
     end
 
-    # subclasses must implement these methods:
-    private def generator
-      raise 'must be implemented'
-    end
-    helper_method :generator
-
     private def report_short_name
       generator.short_name
     end
@@ -65,13 +58,16 @@ module HudReports
     end
     helper_method :report_name
 
-    # Required methods in subclasses
+    # Required methods in subclasses:
+    #
+    # private def generator
     # private def path_for_question(question, report: nil)
     # private def path_for_question_result(question, report: nil)
     # private def path_for_report(report)
     # private def path_for_reports
     # private def path_for_cell(report:, question:, cell_label:, table:)
 
+    helper_method :generator
     helper_method :path_for_question
     helper_method :path_for_question_result
     helper_method :path_for_report
