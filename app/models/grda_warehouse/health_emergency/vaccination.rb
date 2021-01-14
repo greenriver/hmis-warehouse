@@ -8,6 +8,9 @@ module GrdaWarehouse::HealthEmergency
   class Vaccination < GrdaWarehouseBase
     include ::HealthEmergency
 
+    MODERNA = 'ModernaTX, Inc.'.freeze
+    PFIZER = 'Pfizer, Inc., and BioNTech'.freeze
+
     validates_presence_of :vaccinated_on, :vaccination_type, on: :create
     scope :visible_to, ->(user) do
       return current_scope if user.can_see_health_emergency_clinical?
@@ -47,12 +50,12 @@ module GrdaWarehouse::HealthEmergency
     end
 
     def pill_title
-      'Vaccinated'
+      'Vaccination'
     end
 
     def status
       case vaccination_type
-      when 'ModernaTX, Inc.', 'Pfizer, Inc., and BioNTech'
+      when MODERNA, PFIZER
         case similar_vaccinations.count
         when 1
           if follow_up_on.present?
@@ -74,8 +77,8 @@ module GrdaWarehouse::HealthEmergency
 
     def vaccination_type_options
       {
-        'ModernaTX, Inc.' => 'ModernaTX, Inc.',
-        'Pfizer, Inc., and BioNTech' => 'Pfizer, Inc., and BioNTech',
+        'ModernaTX, Inc.' => MODERNA,
+        'Pfizer, Inc., and BioNTech' => PFIZER,
       }
     end
 
@@ -90,7 +93,7 @@ module GrdaWarehouse::HealthEmergency
     # to determine follow_up_date
     def follow_up_date
       case vaccination_type
-      when 'ModernaTX, Inc.', 'Pfizer, Inc., and BioNTech'
+      when MODERNA, PFIZER
         vaccinated_on + 21.days if similar_vaccinations.count.zero?
       end
     end
