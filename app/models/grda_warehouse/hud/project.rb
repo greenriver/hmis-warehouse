@@ -489,7 +489,7 @@ module GrdaWarehouse::Hud
 
     scope :rrh, -> { where(self.project_type_column => PERFORMANCE_REPORTING[:rrh]) }
     def rrh?
-      project_type_to_use.to_i == PERFORMANCE_REPORTING[:rrh]
+      project_type_to_use.in?(PERFORMANCE_REPORTING[:rrh])
     end
 
     scope :psh, -> { where(self.project_type_column => PERFORMANCE_REPORTING[:psh]) }
