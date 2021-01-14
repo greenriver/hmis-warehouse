@@ -63,9 +63,10 @@
 .c-list-search__item-title h5 {
   margin: 0;
   padding-right: space(1);
-  font-size: rem(18px);
+  @include font-open-sans($size: rem(18px));
 }
 
 .c-list-search__item-description {
   margin: 0;
+  color: $body-color;
 }
