@@ -493,6 +493,7 @@ Rails.application.routes.draw do
     healthcare_routes(window: false)
     namespace :he do
       get :boston_covid_19
+      get :covid_19_vaccinations_only
       resources :triages, only: [:create, :destroy]
       resources :clinicals, only: [:destroy] do
         collection do

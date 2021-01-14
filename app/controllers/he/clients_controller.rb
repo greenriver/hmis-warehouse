@@ -34,6 +34,16 @@ module He
       @last_vaccination = @vaccinations.first
     end
 
+    def covid_19_vaccinations_only
+      @vaccination = GrdaWarehouse::HealthEmergency::Vaccination.new(agency: current_user.agency)
+
+      @vaccinations = @client.health_emergency_vaccinations.newest_first.to_a
+
+      @history = @vaccinations&.sort_by(&:sort_date)&.reverse
+
+      @last_vaccination = @vaccinations.first
+    end
+
     private def calculate_isolations_status
       return unless @isolations.any? || @quarantines.any?
 

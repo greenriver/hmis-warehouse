@@ -68,10 +68,6 @@ module ClaimsReporting
       patient_qas(patient.id).select(&:missing_care_plan?).size
     end
 
-    def acos_for_patient(patient)
-      patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco&.name }.compact.uniq
-    end
-
     def careplan_dates_for_patient(patient)
       patient.careplans.select(&:provider_signed_on).map { |d| d.provider_signed_on.to_date }.to_sentence
     end
