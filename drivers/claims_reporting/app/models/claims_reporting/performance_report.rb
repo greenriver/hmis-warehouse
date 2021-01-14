@@ -224,29 +224,29 @@ module ClaimsReporting
         label: _('Annual Utilization per 1,000'),
         units: lambda { |_row| 'days/cases/procedures/visits/scripts/etc' },
       },
-      pct_of_cohorit_with_utilization: {
-        label: _('% of Selected Cohort with Utilization'),
-      },
-      avg_cost_per_service: {
-        label: _('Average Cost per Service (Paid $)'),
-      },
-      cohort_per_member_month_spend: {
-        label: _('Selected Cohort PMPM (Paid $)'),
-      },
-      pct_of_pop_spend_cohort: {
-        label: _('Cohort Spend as a % of Total Population Spend'),
-      },
-      pct_of_service_sepend_cohort: {
-        label: _('Selected Cohort Spend as a % of Service Line Population Spend'),
-      },
+      # pct_of_cohorit_with_utilization: {
+      #   label: _('% of Selected Cohort with Utilization'),
+      # },
+      # avg_cost_per_service: {
+      #   label: _('Average Cost per Service (Paid $)'),
+      # },
+      # cohort_per_member_month_spend: {
+      #   label: _('Selected Cohort PMPM (Paid $)'),
+      # },
+      # pct_of_pop_spend_cohort: {
+      #   label: _('Cohort Spend as a % of Total Population Spend'),
+      # },
+      # pct_of_service_sepend_cohort: {
+      #   label: _('Selected Cohort Spend as a % of Service Line Population Spend'),
+      # },
       pct_of_admissions_acs: {
         label: _('Percent of Admissions that are Ambulatory Care Sensitive'),
         note: '¹',
       },
-      pct_of_cost_acs: {
-        label: _('Percent of Admission Cost that is Ambulatory Care Sensitive'),
-        note: '¹',
-      },
+      # pct_of_cost_acs: {
+      #   label: _('Percent of Admission Cost that is Ambulatory Care Sensitive'),
+      #   note: '¹',
+      # },
       pct_of_visits_perventable: {
         label: _('Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable'),
         note: '²',
@@ -396,13 +396,13 @@ module ClaimsReporting
       annual_admits_per_mille: 'Annual Admissions per 1,000', # admits
       avg_length_of_stay: 'Length of Stay', # days
       utilization_per_mille: 'Annual Utilization per 1,000', # days/cases/procedures/visits/scripts/etc
-      pct_of_cohorit_with_utilization: '% of Selected Cohort with Utilization',
-      avg_cost_per_service: 'Average Cost per Service (Paid $)',
-      cohort_per_member_month_spend: 'Selected Cohort PMPM (Paid $)',
-      pct_of_pop_spend_cohort: 'Cohort Spend as a % of Total Population Spend',
-      pct_of_service_sepend_cohort: 'Selected Cohort Spend as a % of Service Line Population Spend',
+      # pct_of_cohorit_with_utilization: '% of Selected Cohort with Utilization',
+      # avg_cost_per_service: 'Average Cost per Service (Paid $)',
+      # cohort_per_member_month_spend: 'Selected Cohort PMPM (Paid $)',
+      # pct_of_pop_spend_cohort: 'Cohort Spend as a % of Total Population Spend',
+      # pct_of_service_sepend_cohort: 'Selected Cohort Spend as a % of Service Line Population Spend',
       pct_of_admissions_acs: 'Percent of Admissions that are Ambulatory Care Sensitive',
-      pct_of_cost_acs: 'Percent of Admission Cost that is Ambulatory Care Sensitive',
+      # pct_of_cost_acs: 'Percent of Admission Cost that is Ambulatory Care Sensitive',
       pct_of_visits_perventable: 'Percent of ED/Observation/Urgent Care Visits that are Potentially Preventable',
       pct_of_cost_perventable: 'Percent of ED/Observation/Urgent Care Cost that is Potentially Preventable',
     }.freeze
