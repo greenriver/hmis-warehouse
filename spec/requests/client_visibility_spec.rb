@@ -11,7 +11,7 @@ RSpec.describe ClientsController, type: :request do
     [true, false], # expose coc code
     GrdaWarehouse::Config.available_health_emergencies.values, # health emergency
     GrdaWarehouse::Config.available_health_emergency_tracings.values, # health emergency tracing
-    [0, 1, 20, 65, 200], # health priority age
+    [0, 20, 65], # health priority age
     [true, false], # multi coc installation
   ) do |combination|
     configs_variations.append(
