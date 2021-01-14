@@ -13,11 +13,11 @@
     #{@report.completed_at}
   with the following options:
 .mt-2
-  = render 'hud_data_quality_report/shared/parameters', report: @report
+  = render 'hud_reports/parameters', report: @report
   - if included.any?
     %p Results included in this download will include the following:
     - included.each do |item|
-      = link_to hud_reports_dq_question_path(@report, item), class: 'btn btn-sm btn-secondary mb-2 ml-2' do
+      = link_to path_for_question(item, report: @report), class: 'btn btn-sm btn-secondary mb-2 ml-2' do
         = checkmark_or_x(true)
         = item
   - else

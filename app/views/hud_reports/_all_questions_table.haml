@@ -8,7 +8,10 @@
       %tr
         - answer = klass.most_recent_answer(user: current_user, report_name: report_name)
         %td
-          = link_to name, path_for_question(report_id: answer&.report_instance&.id || 0, question: name)
+          - if answer
+            = link_to name, path_for_question(name, report: answer&.report_instance)
+          - else
+            = link_to name, path_for_question(name)
         %td
           = answer&.created_at
           - if answer&.user

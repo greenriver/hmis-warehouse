@@ -2,9 +2,9 @@
 %header.mb-3
   %h1= content_for :title
 
-= render 'hud_data_quality_report/shared/tabs', tab_name: 'Data Quality Report'
+= render 'hud_reports/tabs', tab_name: 'Data Quality Report'
 
 
 .jReportListing
   = render 'all_questions'
-= render 'hud_data_quality_report/shared/list_refresher'
+= render 'hud_reports/list_refresher'
