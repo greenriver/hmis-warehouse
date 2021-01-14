@@ -88,7 +88,9 @@ module GrdaWarehouse::HealthEmergency
 
     def follow_up_date
       case vaccination_type
-      when 'ModernaTX, Inc.', 'Pfizer, Inc., and BioNTech'
+      when 'ModernaTX, Inc.'
+        vaccinated_on + 28.days if similar_vaccinations.count.zero?
+      when 'Pfizer, Inc., and BioNTech'
         vaccinated_on + 21.days if similar_vaccinations.count.zero?
       end
     end
