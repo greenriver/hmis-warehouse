@@ -93,7 +93,9 @@ module GrdaWarehouse::HealthEmergency
     # to determine follow_up_date
     def follow_up_date
       case vaccination_type
-      when MODERNA, PFIZER
+      when MODERNA
+        vaccinated_on + 28.days if similar_vaccinations.count.zero?
+      when PFIZER
         vaccinated_on + 21.days if similar_vaccinations.count.zero?
       end
     end
