@@ -16,9 +16,7 @@ module GrdaWarehouse::DocumentExports
 
     protected def view_assigns
       comparison_filter = filter.to_comparison
-      if report.include_comparison?
-        comparison_report = report_class.new(comparison_filter)
-      end
+      comparison_report = report_class.new(comparison_filter) if report.include_comparison?
 
       {
         report: report,
@@ -38,9 +36,7 @@ module GrdaWarehouse::DocumentExports
       @filter ||= begin
         f = ::Filters::PerformanceDashboard.new(user_id: user.id)
         filter_params = params['filters'].presence&.deep_symbolize_keys
-        if filter_params
-          f.set_from_params(filter_params)
-        end
+        f.set_from_params(filter_params) if filter_params
         f
       end
     end

@@ -8,17 +8,17 @@
     %span.icon-upload2
     Upload Dashboard Extras
 
-- if can_edit_data_sources_or_everything?
+- if can_edit_data_sources?
   = link_to new_data_source_hmis_import_config_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
     %i.icon.icon-pencil
     Automate HMIS CSV Loads
 
-- if can_edit_data_sources_or_everything? && GrdaWarehouse::Config.get(:eto_api_available)
+- if can_edit_data_sources? && GrdaWarehouse::Config.get(:eto_api_available)
   = link_to new_data_source_api_config_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
     %i.icon.icon-pencil
     Configure ETO API
 
-- if can_edit_data_sources_or_everything? && RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty)
-  = link_to hmis_csv_twenty_twenty_importer_extension_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
+- if can_edit_data_sources? && RailsDrivers.loaded.include?(:hmis_csv_twenty_twenty)
+  = link_to edit_hmis_csv_twenty_twenty_importer_extension_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
     %span.icon-eye
     Show Importer Extensions

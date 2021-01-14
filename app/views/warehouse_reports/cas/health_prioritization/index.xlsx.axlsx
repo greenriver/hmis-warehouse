@@ -11,6 +11,7 @@ wb.add_worksheet(name: 'Health Prioritization') do |sheet|
     'Race',
     'Ethnicity',
     'Prioritize in CAS?',
+    'Auto Prioritized?',
   ]
   sheet.add_row(row, style: title)
   @clients.each do |client|
@@ -37,7 +38,8 @@ wb.add_worksheet(name: 'Health Prioritization') do |sheet|
       yes_no(@vispdats.include?(client.id), include_icon: false),
       client.race_description,
       HUD.ethnicity(client.Ethnicity),
-      client.health_prioritized,
+      client.health_prioritized_for_cas?  ? 'Yes' : 'No',
+      client.auto_health_prioritized_for_cas? ? 'Yes' : 'No',
     ]
     sheet.add_row(row)
   end

@@ -13,7 +13,7 @@ module Exporters::HmisTwentyTwenty
 
     attr_accessor :logger, :notifier_config, :file_path, :export
 
-    def initialize(
+    def initialize( # rubocop:disable  Metrics/ParameterLists
       file_path: 'var/hmis_export',
       logger: Rails.logger,
       debug: true,
@@ -38,50 +38,54 @@ module Exporters::HmisTwentyTwenty
       @directive = directive
       @hash_status = hash_status
       @faked_pii = faked_pii
-      @user = current_user rescue User.find(user_id)
+      @user = begin
+                current_user
+              rescue StandardError
+                User.find(user_id)
+              end
       @include_deleted = include_deleted
       @faked_environment = faked_environment
     end
 
     def export!
-      create_export_directory()
+      create_export_directory
       begin
-        set_time_format()
-        setup_export()
+        set_time_format
+        setup_export
 
         # Project related items
-        export_projects()
-        export_project_cocs()
-        export_organizations()
-        export_inventories()
-        export_funders()
-        export_affiliations()
+        export_projects
+        export_project_cocs
+        export_organizations
+        export_inventories
+        export_funders
+        export_affiliations
 
         # Enrollment related
-        export_enrollments()
-        export_exits()
-        export_clients()
-        export_enrollment_cocs()
-        export_disabilities()
-        export_employment_educations()
-        export_health_and_dvs()
-        export_income_benefits()
-        export_services()
-        export_current_living_situations()
-        export_assessments()
-        export_assessment_questions()
-        export_assessment_results()
-        export_events()
+        export_enrollments
+        export_exits
+        export_clients
+        export_enrollment_cocs
+        export_disabilities
+        export_employment_educations
+        export_health_and_dvs
+        export_income_benefits
+        export_services
+        export_current_living_situations
+        export_assessments
+        export_assessment_questions
+        export_assessment_results
+        export_events
 
-        export_users()
+        export_users
 
-        build_export_file()
-        zip_archive()
-        upload_zip()
-        save_fake_data()
+        build_export_file
+        zip_archive
+        upload_zip
+        save_fake_data
       ensure
-        remove_export_files()
-        reset_time_format()
+        remove_export_files
+        reset_time_format
       end
       @export
     end
@@ -90,8 +94,8 @@ module Exporters::HmisTwentyTwenty
       # We need this for exporting to the appropriate format
       @default_date_format = Date::DATE_FORMATS[:default]
       @default_time_format = Time::DATE_FORMATS[:default]
-      Date::DATE_FORMATS[:default] = "%Y-%m-%d"
-      Time::DATE_FORMATS[:default] = "%Y-%m-%d %H:%M:%S"
+      Date::DATE_FORMATS[:default] = '%Y-%m-%d'
+      Time::DATE_FORMATS[:default] = '%Y-%m-%d %H:%M:%S'
     end
 
     def reset_time_format
@@ -101,6 +105,7 @@ module Exporters::HmisTwentyTwenty
 
     def save_fake_data
       return unless @faked_pii
+
       @export.fake_data.save
     end
 
@@ -109,33 +114,33 @@ module Exporters::HmisTwentyTwenty
     end
 
     def upload_zip
-      @export.file = Pathname.new(zip_path()).open
+      @export.file = Pathname.new(zip_path).open
       @export.content_type = @export.file.content_type
       @export.content = @export.file.read
       @export.save
     end
 
     def zip_archive
-      files = Dir.glob(File.join(@file_path, '*')).map{|f| File.basename(f)}
-      Zip::File.open(zip_path(), Zip::File::CREATE) do |zipfile|
-       files.each do |filename|
-        zipfile.add(
-          File.join(@export.export_id, filename),
-          File.join(@file_path, filename)
-        )
+      files = Dir.glob(File.join(@file_path, '*')).map { |f| File.basename(f) }
+      Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
+        files.each do |filename|
+          zipfile.add(
+            File.join(@export.export_id, filename),
+            File.join(@file_path, filename),
+          )
         end
       end
     end
 
     def remove_export_files
-      FileUtils.rmtree(@file_path) if File.exists? @file_path
+      FileUtils.rmtree(@file_path) if File.exist? @file_path
     end
 
     def export_projects
       project_source.new.export!(
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -143,7 +148,7 @@ module Exporters::HmisTwentyTwenty
       project_coc_source.new.export_project_related!(
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -151,7 +156,7 @@ module Exporters::HmisTwentyTwenty
       organization_source.new.export!(
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -159,7 +164,7 @@ module Exporters::HmisTwentyTwenty
       inventory_source.new.export_project_related!(
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -167,7 +172,7 @@ module Exporters::HmisTwentyTwenty
       funder_source.new.export_project_related!(
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -175,7 +180,7 @@ module Exporters::HmisTwentyTwenty
       affiliation_source.new.export_project_related!(
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -184,7 +189,7 @@ module Exporters::HmisTwentyTwenty
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -193,7 +198,7 @@ module Exporters::HmisTwentyTwenty
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -201,7 +206,7 @@ module Exporters::HmisTwentyTwenty
       client_source.new.export!(
         client_scope: client_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -210,7 +215,7 @@ module Exporters::HmisTwentyTwenty
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -219,7 +224,7 @@ module Exporters::HmisTwentyTwenty
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -228,7 +233,7 @@ module Exporters::HmisTwentyTwenty
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -237,7 +242,7 @@ module Exporters::HmisTwentyTwenty
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -246,7 +251,7 @@ module Exporters::HmisTwentyTwenty
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
@@ -255,63 +260,62 @@ module Exporters::HmisTwentyTwenty
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
     end
 
-     def export_current_living_situations
+    def export_current_living_situations
       current_living_situation_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
-     end
+    end
 
-     def export_assessments
+    def export_assessments
       assessment_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
-     end
+    end
 
-     def export_assessment_questions
+    def export_assessment_questions
       assessment_question_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
-     end
+    end
 
-     def export_assessment_results
+    def export_assessment_results
       assessment_result_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
-     end
+    end
 
-     def export_events
+    def export_events
       event_source.new.export_enrollment_related!(
         enrollment_scope: enrollment_scope,
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
-     end
+    end
 
-     def export_users
+    def export_users
       user_source.new.export!(
         project_scope: project_scope,
         path: @file_path,
-        export: @export
+        export: @export,
       )
-     end
-
+    end
 
     def enrollment_scope
       @enrollment_scope ||= begin
@@ -326,6 +330,7 @@ module Exporters::HmisTwentyTwenty
         when 3
           e_scope = e_scope.open_during_range(@range)
         when 1
+          # no-op
         end
         e_scope
       end
@@ -347,10 +352,8 @@ module Exporters::HmisTwentyTwenty
 
     def project_scope
       @project_scope ||= begin
-       p_scope = project_source.where(id: @projects)
-        if @export.include_deleted
-          p_scope = p_scope.with_deleted
-        end
+        p_scope = project_source.where(id: @projects)
+        p_scope = p_scope.with_deleted if @export.include_deleted
         p_scope
       end
     end
@@ -365,21 +368,20 @@ module Exporters::HmisTwentyTwenty
       when 3
         e_scope = e_scope.open_during_range(@range)
       when 1
-
+        # no-op
       end
       e_scope.where(
         e_t[:PersonalID].eq(c_t[:PersonalID]).
-        and(e_t[:data_source_id].eq(c_t[:data_source_id]))
+        and(e_t[:data_source_id].eq(c_t[:data_source_id])),
       ).where(
-        project_exists_for_enrollment
+        project_exists_for_enrollment,
       ).arel.exists
     end
-
 
     def project_exists_for_enrollment
       project_scope.where(
         p_t[:ProjectID].eq(e_t[:ProjectID]).
-        and(p_t[:data_source_id].eq(e_t[:data_source_id]))
+        and(p_t[:data_source_id].eq(e_t[:data_source_id])),
       ).arel.exists
     end
 
@@ -403,7 +405,7 @@ module Exporters::HmisTwentyTwenty
 
     def create_export_directory
       # make sure the path is clean
-      FileUtils.rmtree(@file_path) if File.exists? @file_path
+      FileUtils.rmtree(@file_path) if File.exist? @file_path
       FileUtils.mkdir_p(@file_path)
     end
 
@@ -411,7 +413,7 @@ module Exporters::HmisTwentyTwenty
       export = export_source.new(path: @file_path)
       export.ExportID = @export.export_id
       export.SourceType = 3 # data warehouse
-      export.SourceID = nil # potentially more than one CoC
+      export.SourceID = _('Boston DND Warehouse')[0..31] # potentially more than one CoC
       export.SourceName = _('Boston DND Warehouse')
       export.SourceContactFirst = @user&.first_name || 'Automated'
       export.SourceContactLast = @user&.last_name || 'Export'
@@ -461,6 +463,7 @@ module Exporters::HmisTwentyTwenty
     def self.affiliation_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Affiliation
     end
+
     def affiliation_source
       self.class.affiliation_source
     end
@@ -468,6 +471,7 @@ module Exporters::HmisTwentyTwenty
     def self.client_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Client
     end
+
     def client_source
       self.class.client_source
     end
@@ -475,6 +479,7 @@ module Exporters::HmisTwentyTwenty
     def self.disability_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Disability
     end
+
     def disability_source
       self.class.disability_source
     end
@@ -482,6 +487,7 @@ module Exporters::HmisTwentyTwenty
     def self.employment_education_source
       GrdaWarehouse::Export::HmisTwentyTwenty::EmploymentEducation
     end
+
     def employment_education_source
       self.class.employment_education_source
     end
@@ -489,6 +495,7 @@ module Exporters::HmisTwentyTwenty
     def self.enrollment_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Enrollment
     end
+
     def enrollment_source
       self.class.enrollment_source
     end
@@ -496,6 +503,7 @@ module Exporters::HmisTwentyTwenty
     def self.enrollment_coc_source
       GrdaWarehouse::Export::HmisTwentyTwenty::EnrollmentCoc
     end
+
     def enrollment_coc_source
       self.class.enrollment_coc_source
     end
@@ -503,6 +511,7 @@ module Exporters::HmisTwentyTwenty
     def self.exit_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Exit
     end
+
     def exit_source
       self.class.exit_source
     end
@@ -510,6 +519,7 @@ module Exporters::HmisTwentyTwenty
     def self.export_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Export
     end
+
     def export_source
       self.class.export_source
     end
@@ -517,6 +527,7 @@ module Exporters::HmisTwentyTwenty
     def self.funder_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Funder
     end
+
     def funder_source
       self.class.funder_source
     end
@@ -524,6 +535,7 @@ module Exporters::HmisTwentyTwenty
     def self.health_and_dv_source
       GrdaWarehouse::Export::HmisTwentyTwenty::HealthAndDv
     end
+
     def health_and_dv_source
       self.class.health_and_dv_source
     end
@@ -531,6 +543,7 @@ module Exporters::HmisTwentyTwenty
     def self.income_benefits_source
       GrdaWarehouse::Export::HmisTwentyTwenty::IncomeBenefit
     end
+
     def income_benefits_source
       self.class.income_benefits_source
     end
@@ -538,6 +551,7 @@ module Exporters::HmisTwentyTwenty
     def self.inventory_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Inventory
     end
+
     def inventory_source
       self.class.inventory_source
     end
@@ -545,6 +559,7 @@ module Exporters::HmisTwentyTwenty
     def self.organization_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Organization
     end
+
     def organization_source
       self.class.organization_source
     end
@@ -552,6 +567,7 @@ module Exporters::HmisTwentyTwenty
     def self.project_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Project
     end
+
     def project_source
       self.class.project_source
     end
@@ -559,6 +575,7 @@ module Exporters::HmisTwentyTwenty
     def self.project_coc_source
       GrdaWarehouse::Export::HmisTwentyTwenty::ProjectCoc
     end
+
     def project_coc_source
       self.class.project_coc_source
     end
@@ -566,6 +583,7 @@ module Exporters::HmisTwentyTwenty
     def self.service_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Service
     end
+
     def service_source
       self.class.service_source
     end
@@ -573,6 +591,7 @@ module Exporters::HmisTwentyTwenty
     def self.current_living_situation_source
       GrdaWarehouse::Export::HmisTwentyTwenty::CurrentLivingSituation
     end
+
     def current_living_situation_source
       self.class.current_living_situation_source
     end
@@ -580,6 +599,7 @@ module Exporters::HmisTwentyTwenty
     def self.assessment_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Assessment
     end
+
     def assessment_source
       self.class.assessment_source
     end
@@ -587,6 +607,7 @@ module Exporters::HmisTwentyTwenty
     def self.assessment_question_source
       GrdaWarehouse::Export::HmisTwentyTwenty::AssessmentQuestion
     end
+
     def assessment_question_source
       self.class.assessment_question_source
     end
@@ -594,6 +615,7 @@ module Exporters::HmisTwentyTwenty
     def self.assessment_result_source
       GrdaWarehouse::Export::HmisTwentyTwenty::AssessmentResult
     end
+
     def assessment_result_source
       self.class.assessment_result_source
     end
@@ -601,6 +623,7 @@ module Exporters::HmisTwentyTwenty
     def self.event_source
       GrdaWarehouse::Export::HmisTwentyTwenty::Event
     end
+
     def event_source
       self.class.event_source
     end
@@ -608,12 +631,13 @@ module Exporters::HmisTwentyTwenty
     def self.user_source
       GrdaWarehouse::Export::HmisTwentyTwenty::User
     end
+
     def user_source
       self.class.user_source
     end
 
     def log(message)
-      @notifier.ping message if @notifier
+      @notifier&.ping message
       logger.info message if @debug
     end
   end

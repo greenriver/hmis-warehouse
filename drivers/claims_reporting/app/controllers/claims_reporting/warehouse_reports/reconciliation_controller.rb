@@ -11,6 +11,16 @@ module ClaimsReporting::WarehouseReports
     def index
       @report = ClaimsReporting::ReconcilationReport.new(**filter_params)
       @file = ::ClaimsReporting::CpPaymentUpload.new
+      export_name = "unmatched-claims-for-#{@report.month.end_of_month.to_s(:number)}"
+      respond_to do |format|
+        format.html {} # render the default template
+        format.xlsx do
+          render xlsx: 'index', filename: "#{export_name}.xlsx"
+        end
+        format.csv do
+          send_data @report.to_csv, filename: "#{export_name}.csv"
+        end
+      end
     end
 
     private def available_months

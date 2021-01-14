@@ -49,10 +49,10 @@ module WarehouseReports
       GrdaWarehouse::WarehouseReports::ActiveVeteransReport
     end
 
-    # If you can see all data sources etc, then show all copies of the report,
+    # If you can see all instances of assigned reports, then show all copies of the report,
     # otherwise just show your own
     def report_scope
-      if can_edit_anything_super_user?
+      if can_view_all_reports?
         report_source
       else
         report_source.where(user_id: current_user.id)

@@ -51,6 +51,11 @@ module GrdaWarehouse
     end
 
     def self.auto_process!
+      # Don't do anything if we don't have any destination clients
+      return unless GrdaWarehouse::Hud::Client.destination.count.positive?
+
+      # Initialize before running if we've never run before
+      SimilarityMetric::Initializer.new.run! if GrdaWarehouse::ClientMatch.count.zero?
       within_auto_accept_threshold.joins(:source_client, :destination_client).
         find_each(&:accept!)
       within_auto_reject_threshold.joins(:source_client, :destination_client).
@@ -172,11 +177,7 @@ module GrdaWarehouse
     end
 
     def accept!(user: nil)
-      user ||= User.setup_system_user
-      update(
-        updated_by_id: user.id,
-        status: 'accepted',
-      )
+      flag_as(user: user, status: 'accepted')
       return unless destination_client && source_client
 
       dst = destination_client.destination_client
@@ -185,12 +186,16 @@ module GrdaWarehouse
       Importing::RunAddServiceHistoryJob.perform_later
     end
 
-    def reject!(user: nil)
+    def flag_as(user: nil, status:)
       user ||= User.setup_system_user
       update(
         updated_by_id: user.id,
-        status: 'rejected',
+        status: status,
       )
+    end
+
+    def reject!(user: nil)
+      flag_as(user: user, status: 'rejected')
       save!
     end
   end

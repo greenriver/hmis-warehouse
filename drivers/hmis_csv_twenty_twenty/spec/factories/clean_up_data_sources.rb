@@ -32,6 +32,17 @@ FactoryBot.define do
     end
   end
 
+  factory :delete_empty_enrollments_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Delete Empty Enrollments' }
+    short_name { 'Empty Enrollments' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'Enrollment': ['HmisCsvTwentyTwenty::HmisCsvCleanup::DeleteEmptyEnrollments'],
+      }
+    end
+  end
+
   factory :dont_cleanup_ds, class: 'GrdaWarehouse::DataSource' do
     name { 'Dont Clean Up Move In Dates' }
     short_name { 'Move In' }

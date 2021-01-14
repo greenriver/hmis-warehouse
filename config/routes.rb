@@ -142,6 +142,7 @@ Rails.application.routes.draw do
 
   resources :secure_files, only: [:show, :create, :index, :destroy]
   resources :help
+  resources :maintenance, only: [:index]
 
   namespace :reports do
     namespace :hic do
@@ -315,6 +316,7 @@ Rails.application.routes.draw do
     namespace :project do
       resource :data_quality do
         get :download, on: :member
+        get :history, on: :member
       end
     end
     namespace :health_emergency do
@@ -825,6 +827,7 @@ Rails.application.routes.draw do
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
   resource :account_two_factor, only: [:show, :edit, :update, :destroy]
+  resources :account_downloads, only: [:index]
 
   resources :document_exports, only: [:show, :create] do
     get :download, on: :member

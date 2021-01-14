@@ -3482,6 +3482,9 @@ msgstr ""
 msgid "Consent form confirmed"
 msgstr ""
 
+msgid "Contact Support"
+msgstr ""
+
 msgid "Contact Tracing"
 msgstr ""
 
@@ -3528,6 +3531,9 @@ msgid "Full HAN Release on File"
 msgstr ""
 
 msgid "Fully signed data sharing agreement"
+msgstr ""
+
+msgid "Green River"
 msgstr ""
 
 msgid "HIV+"
@@ -3785,6 +3791,9 @@ msgstr ""
 msgid "This is an Individual VI-SPDAT"
 msgstr ""
 
+msgid "This list of agencies will change over time.  Please revisit this page for the updated list."
+msgstr ""
+
 msgid "U.S Citizen or Permanent Resident"
 msgstr ""
 
@@ -3854,6 +3863,9 @@ msgstr ""
 msgid "cohort enrollment"
 msgstr ""
 
+msgid "contact us"
+msgstr ""
+
 msgid "enrollment"
 msgstr ""
 
@@ -3861,6 +3873,9 @@ msgid "groups"
 msgstr ""
 
 msgid "housing"
+msgstr ""
+
+msgid "organizations"
 msgstr ""
 
 msgid "patient"

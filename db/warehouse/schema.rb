@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_25_130708) do
+ActiveRecord::Schema.define(version: 2021_01_11_123325) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -965,6 +965,7 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.integer "ESBedType"
     t.string "coc_code_override"
     t.date "inventory_start_date_override"
+    t.date "inventory_end_date_override"
     t.index ["DateCreated"], name: "inventory_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Inventory_on_DateDeleted_and_data_source_id"
     t.index ["DateUpdated"], name: "inventory_date_updated"
@@ -1033,6 +1034,9 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.boolean "extrapolate_contacts", default: false, null: false
     t.boolean "combine_enrollments", default: false
     t.integer "hmis_participating_project_override"
+    t.integer "target_population_override"
+    t.integer "tracking_method_override"
+    t.date "operating_end_date_override"
     t.index "COALESCE(act_as_project_type, \"ProjectType\")", name: "project_project_override_index"
     t.index ["DateCreated"], name: "project_date_created"
     t.index ["DateDeleted", "data_source_id"], name: "index_Project_on_DateDeleted_and_data_source_id"
@@ -1802,6 +1806,20 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.boolean "request_account_available", default: false, null: false
     t.date "dashboard_lookback", default: "2014-07-01"
     t.integer "domestic_violence_lookback_days", default: 0, null: false
+    t.string "support_contact_email"
+    t.integer "completeness_goal", default: 90
+    t.integer "excess_goal", default: 105
+    t.integer "timeliness_goal", default: 14
+    t.integer "income_increase_goal", default: 75
+    t.integer "ph_destination_increase_goal", default: 60
+    t.integer "move_in_date_threshold", default: 30
+    t.integer "pf_universal_data_element_threshold", default: 2, null: false
+    t.integer "pf_utilization_min", default: 66, null: false
+    t.integer "pf_utilization_max", default: 104, null: false
+    t.integer "pf_timeliness_threshold", default: 3, null: false
+    t.boolean "pf_show_income", default: false, null: false
+    t.boolean "pf_show_additional_timeliness", default: false, null: false
+    t.integer "cas_sync_months", default: 3
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -1864,6 +1882,7 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.boolean "service_scannable", default: false, null: false
     t.jsonb "import_aggregators", default: {}
     t.jsonb "import_cleanups", default: {}
+    t.boolean "refuse_imports_with_errors", default: false
   end
 
   create_table "direct_financial_assistances", id: :serial, force: :cascade do |t|
@@ -2253,6 +2272,27 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.index ["created_at"], name: "index_health_emergency_uploaded_tests_on_created_at"
     t.index ["deleted_at"], name: "index_health_emergency_uploaded_tests_on_deleted_at"
     t.index ["updated_at"], name: "index_health_emergency_uploaded_tests_on_updated_at"
+  end
+
+  create_table "health_emergency_vaccinations", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "client_id", null: false
+    t.integer "agency_id"
+    t.date "vaccinated_on", null: false
+    t.string "vaccinated_at"
+    t.date "follow_up_on"
+    t.datetime "follow_up_notification_sent_at"
+    t.string "vaccination_type", null: false
+    t.string "follow_up_cell_phone"
+    t.string "emergency_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["agency_id"], name: "index_health_emergency_vaccinations_on_agency_id"
+    t.index ["client_id"], name: "index_health_emergency_vaccinations_on_client_id"
+    t.index ["created_at"], name: "index_health_emergency_vaccinations_on_created_at"
+    t.index ["updated_at"], name: "index_health_emergency_vaccinations_on_updated_at"
+    t.index ["user_id"], name: "index_health_emergency_vaccinations_on_user_id"
   end
 
   create_table "helps", id: :serial, force: :cascade do |t|
@@ -4521,6 +4561,127 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.index ["report_instance_id"], name: "index_hud_report_cells_on_report_instance_id"
   end
 
+  create_table "hud_report_dq_clients", force: :cascade do |t|
+    t.integer "client_id"
+    t.integer "data_source_id"
+    t.integer "report_instance_id"
+    t.integer "destination_client_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.integer "age"
+    t.boolean "alcohol_abuse_entry"
+    t.boolean "alcohol_abuse_exit"
+    t.boolean "alcohol_abuse_latest"
+    t.boolean "annual_assessment_expected"
+    t.integer "approximate_length_of_stay"
+    t.integer "approximate_time_to_move_in"
+    t.integer "came_from_street_last_night"
+    t.boolean "chronic_disability"
+    t.integer "chronic_disability_entry"
+    t.integer "chronic_disability_exit"
+    t.integer "chronic_disability_latest"
+    t.boolean "chronically_homeless"
+    t.integer "currently_fleeing"
+    t.date "date_homeless"
+    t.date "date_of_engagement"
+    t.date "date_of_last_bed_night"
+    t.date "date_to_street"
+    t.integer "destination"
+    t.boolean "developmental_disability"
+    t.integer "developmental_disability_entry"
+    t.integer "developmental_disability_exit"
+    t.integer "developmental_disability_latest"
+    t.integer "disabling_condition"
+    t.date "dob"
+    t.integer "dob_quality"
+    t.integer "domestic_violence"
+    t.boolean "drug_abuse_entry"
+    t.boolean "drug_abuse_exit"
+    t.boolean "drug_abuse_latest"
+    t.string "enrollment_coc"
+    t.date "enrollment_created"
+    t.integer "ethnicity"
+    t.date "exit_created"
+    t.date "first_date_in_program"
+    t.string "first_name"
+    t.integer "gender"
+    t.boolean "head_of_household"
+    t.string "head_of_household_id"
+    t.boolean "hiv_aids"
+    t.integer "hiv_aids_entry"
+    t.integer "hiv_aids_exit"
+    t.integer "hiv_aids_latest"
+    t.string "household_id"
+    t.jsonb "household_members"
+    t.string "household_type"
+    t.integer "housing_assessment"
+    t.date "income_date_at_annual_assessment"
+    t.date "income_date_at_exit"
+    t.date "income_date_at_start"
+    t.integer "income_from_any_source_at_annual_assessment"
+    t.integer "income_from_any_source_at_exit"
+    t.integer "income_from_any_source_at_start"
+    t.jsonb "income_sources_at_annual_assessment"
+    t.jsonb "income_sources_at_exit"
+    t.jsonb "income_sources_at_start"
+    t.integer "income_total_at_annual_assessment"
+    t.integer "income_total_at_exit"
+    t.integer "income_total_at_start"
+    t.boolean "indefinite_and_impairs"
+    t.integer "insurance_from_any_source_at_annual_assessment"
+    t.integer "insurance_from_any_source_at_exit"
+    t.integer "insurance_from_any_source_at_start"
+    t.date "last_date_in_program"
+    t.string "last_name"
+    t.integer "length_of_stay"
+    t.boolean "mental_health_problem"
+    t.integer "mental_health_problem_entry"
+    t.integer "mental_health_problem_exit"
+    t.integer "mental_health_problem_latest"
+    t.integer "months_homeless"
+    t.date "move_in_date"
+    t.integer "name_quality"
+    t.integer "non_cash_benefits_from_any_source_at_annual_assessment"
+    t.integer "non_cash_benefits_from_any_source_at_exit"
+    t.integer "non_cash_benefits_from_any_source_at_start"
+    t.boolean "other_clients_over_25"
+    t.jsonb "overlapping_enrollments"
+    t.boolean "parenting_juvenil"
+    t.boolean "parenting_youth"
+    t.boolean "physical_disability"
+    t.integer "physical_disability_entry"
+    t.integer "physical_disability_exit"
+    t.integer "physical_disability_latest"
+    t.integer "prior_length_of_stay"
+    t.integer "prior_living_situation"
+    t.integer "project_tracking_method"
+    t.integer "project_type"
+    t.integer "race"
+    t.integer "relationship_to_hoh"
+    t.string "ssn"
+    t.integer "ssn_quality"
+    t.integer "subsidy_information"
+    t.boolean "substance_abuse"
+    t.integer "substance_abuse_entry"
+    t.integer "substance_abuse_exit"
+    t.integer "substance_abuse_latest"
+    t.integer "time_to_move_in"
+    t.integer "times_homeless"
+    t.integer "veteran_status"
+    t.index ["client_id", "data_source_id", "report_instance_id"], name: "dq_client_conflict_columns", unique: true
+  end
+
+  create_table "hud_report_dq_living_situations", force: :cascade do |t|
+    t.bigint "hud_report_dq_client_id"
+    t.integer "living_situation"
+    t.date "information_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["hud_report_dq_client_id"], name: "index_hud_dq_client_liv_sit"
+  end
+
   create_table "hud_report_instances", force: :cascade do |t|
     t.bigint "user_id"
     t.string "coc_code"
@@ -5040,6 +5201,7 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.jsonb "thresholds", default: {}
     t.index ["created_at"], name: "index_project_pass_fails_on_created_at"
     t.index ["deleted_at"], name: "index_project_pass_fails_on_deleted_at"
     t.index ["updated_at"], name: "index_project_pass_fails_on_updated_at"
@@ -5072,6 +5234,7 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.integer "income_at_entry"
     t.index ["client_id"], name: "index_project_pass_fails_clients_on_client_id"
     t.index ["created_at"], name: "index_project_pass_fails_clients_on_created_at"
     t.index ["deleted_at"], name: "index_project_pass_fails_clients_on_deleted_at"
@@ -5113,6 +5276,8 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.float "income_at_entry_error_rate"
+    t.integer "income_at_entry_error_count"
     t.index ["apr_id"], name: "index_project_pass_fails_projects_on_apr_id"
     t.index ["created_at"], name: "index_project_pass_fails_projects_on_created_at"
     t.index ["deleted_at"], name: "index_project_pass_fails_projects_on_deleted_at"
@@ -5180,6 +5345,16 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.integer "accepted_ces_referrals"
     t.integer "clients_with_vispdats"
     t.integer "average_vispdat_score"
+    t.integer "budget_plus_match"
+    t.integer "prior_amount_awarded"
+    t.integer "prior_funds_expended"
+    t.string "archive"
+    t.boolean "expansion_year"
+    t.string "special_population_only"
+    t.boolean "project_less_than_two"
+    t.string "geographic_location"
+    t.bigint "apr_id"
+    t.index ["apr_id"], name: "index_project_scorecard_reports_on_apr_id"
     t.index ["project_group_id"], name: "index_project_scorecard_reports_on_project_group_id"
     t.index ["project_id"], name: "index_project_scorecard_reports_on_project_id"
     t.index ["user_id"], name: "index_project_scorecard_reports_on_user_id"
@@ -5374,6 +5549,7 @@ ActiveRecord::Schema.define(version: 2020_11_25_130708) do
     t.string "encrypted_s3_secret"
     t.string "encrypted_s3_secret_iv"
     t.datetime "deleted_at"
+    t.string "version"
     t.index ["encrypted_s3_access_key_id_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_access_key_id_iv", unique: true
     t.index ["encrypted_s3_secret_iv"], name: "index_recurring_hmis_exports_on_encrypted_s3_secret_iv", unique: true
   end

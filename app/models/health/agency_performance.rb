@@ -14,6 +14,10 @@ module Health
       @agency_scope = agency_scope
     end
 
+    def self.url
+      'warehouse_reports/health/agency_performance'
+    end
+
     def agency_counts
       @agency_counts ||= agencies.map do |id, name|
         patient_ids = patient_referrals.select do |_, (agency_id, _)|

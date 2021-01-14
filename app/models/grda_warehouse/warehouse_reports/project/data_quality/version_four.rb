@@ -27,10 +27,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         :finish_report,
       ]
       progress_methods.each_with_index do |method, i|
-        percent = ((i/progress_methods.size.to_f)* 100)
-        percent = 0.01 if percent == 0
+        percent = ((i / progress_methods.size.to_f) * 100)
+        percent = 0.01 if percent.zero?
         Rails.logger.info "Starting #{method}, #{percent.round(2)}% complete"
-        self.send(method)
+        send(method)
         Rails.logger.info "Completed #{method}"
       end
     end
@@ -40,7 +40,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def report_start
-      self.start.to_date
+      start.to_date
     end
 
     def report_end
@@ -62,7 +62,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         hud_exit = hud_enrollment.exit
 
         report_enrollment = Reporting::DataQualityReports::Enrollment.new(
-          report_id: self.id,
+          report_id: id,
           client_id: client.id,
           project_id: project.id,
           project_name: project.ProjectName,
@@ -89,7 +89,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
           enrollment_date_created: hud_enrollment.DateCreated,
           exit_date_created: hud_exit&.DateCreated,
 
-          calculated_at: self.started_at,
+          calculated_at: started_at,
         )
 
         report_enrollment = set_calculated_fields(hud_enrollment: hud_enrollment, report_enrollment: report_enrollment)
@@ -105,7 +105,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       return @report_enrollments
     end
 
-    def set_calculated_fields hud_enrollment:, report_enrollment:
+    def set_calculated_fields(hud_enrollment:, report_enrollment:)
       project = hud_enrollment.project
       service_dates = service_dates_for_enrollment(hud_enrollment)
       exit_record = hud_enrollment.exit
@@ -131,31 +131,31 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       report_enrollment.age = report_enrollment.calculate_age(date: hud_enrollment.EntryDate)
       report_enrollment.days_to_add_entry_date = report_enrollment.calculate_days_to_add_entry_date(enrollment: hud_enrollment)
       report_enrollment.days_to_add_exit_date = report_enrollment.calculate_days_to_add_exit_date(exit_record: exit_record)
-      report_enrollment.dob_after_entry_date = report_enrollment.calculate_dob_after_entry_date()
+      report_enrollment.dob_after_entry_date = report_enrollment.calculate_dob_after_entry_date
       report_enrollment.most_recent_service_within_range = report_enrollment.calculate_most_recent_service_within_range(
         project: project,
         service_dates: service_dates,
         report_start: report_start,
         report_end: report_end,
-        exit_date: exit_record&.ExitDate
+        exit_date: exit_record&.ExitDate,
       )
       report_enrollment.service_within_last_30_days = report_enrollment.calculate_service_within_last_30_days(
         project: project,
         service_dates: service_dates,
         exit_date: exit_record&.ExitDate,
-        report_end: report_end
+        report_end: report_end,
       )
       report_enrollment.service_after_exit = report_enrollment.calculate_service_after_exit(
         project: project,
         service_dates: service_dates,
-        exit_date: exit_record&.ExitDate
+        exit_date: exit_record&.ExitDate,
       )
       report_enrollment.days_of_service = report_enrollment.calculate_days_of_service(
         project: project,
         service_dates: service_dates,
         entry_date: hud_enrollment.EntryDate,
         exit_date: exit_record&.ExitDate,
-        report_end: report_end
+        report_end: report_end,
       )
 
       report_enrollment.include_in_income_change_calculation = report_enrollment.should_calculate_income_change?(
@@ -277,7 +277,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       return report_enrollment
     end
 
-    def set_completeness_fields report_enrollment:, hud_enrollment:, client:, hud_exit:
+    def set_completeness_fields(report_enrollment:, hud_enrollment:, client:, hud_exit:)
       report_enrollment.set_name_completeness(
         first_name: client.FirstName,
         last_name: client.LastName,
@@ -308,7 +308,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       )
       report_enrollment.set_disabling_condition_completeness(
         disabling_condition: hud_enrollment.DisablingCondition,
-        all_indefinite_and_impairs: most_recent_disability_resonses_for_enrollment(hud_enrollment)
+        all_indefinite_and_impairs: most_recent_disability_responses_for_enrollment(hud_enrollment),
       )
       report_enrollment.set_destination_completeness(
         hud_exit: hud_exit,
@@ -319,7 +319,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         head_of_household: report_enrollment.head_of_household,
       )
       report_enrollment.set_income_at_entry_completeness(
-        income_at_entry: income_at_entry_for_enrollment(hud_enrollment)
+        income_at_entry: income_at_entry_for_enrollment(hud_enrollment),
       )
       report_enrollment.set_income_at_exit_completeness(
         income_at_exit: income_at_exit_for_enrollment(hud_enrollment),
@@ -343,14 +343,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         preload(:inventories, :geographies, :funders, :project_cocs)
       projects.each do |project|
         report_project = Reporting::DataQualityReports::Project.new(
-          report_id: self.id,
+          report_id: id,
           project_id: project.id,
           project_name: project.ProjectName,
           organization_name: project.organization.OrganizationName,
           project_type: project.computed_project_type,
           operating_start_date: project.OperatingStartDate,
           housing_type: project.HousingType,
-          calculated_at: self.started_at,
+          calculated_at: started_at,
         )
 
         report_project = set_project_calculated_fields(project: project, report_project: report_project)
@@ -362,7 +362,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       return @report_projects
     end
 
-    def set_project_calculated_fields project:, report_project:
+    def set_project_calculated_fields(project:, report_project:)
       report_project.coc_code = report_project.calculate_coc_code(project: project)
       report_project.funder = report_project.calculate_funder(project: project)
       report_project.geocode = report_project.calculate_geocode(project: project)
@@ -382,7 +382,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     # These rely on a set_project_calculated_fields being called first
-    def set_project_average_fields report_project:
+    private def set_project_average_fields(report_project:) # rubocop:disable Naming/AccessorMethodName
       report_project.average_nightly_clients = report_project.calculate_average_nightly_clients(report_range: report_range)
       report_project.average_nightly_households = report_project.calculate_average_nightly_households(report_range: report_range)
       report_project.average_bed_utilization = report_project.calculate_average_bed_utilization
@@ -398,10 +398,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     end
 
     def set_report_project_group_details
-      project_ids = self.projects.map(&:id)
+      project_ids = projects.map(&:id)
       @report_project_group = Reporting::DataQualityReports::ProjectGroup.new(
-        report_id: self.id,
-        calculated_at: self.started_at,
+        report_id: id,
+        calculated_at: started_at,
       )
       @report_project_group.unit_inventory = @report_project_group.calculate_unit_inventory(
         project_ids: project_ids,
@@ -434,7 +434,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
-
     # NOTE: since this is a report that is looking specifically at HMIS data quality
     # we are sticking to source data, including source clients
     def source_enrollments
@@ -454,7 +453,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       @exiters_by_enrollment_id ||= exiters.index_by(&:id)
     end
 
-    def exit_for_enrollment_id id
+    def exit_for_enrollment_id(id)
       exiters_by_enrollment_id[id].exit
     end
 
@@ -468,7 +467,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         count
     end
 
-    def household_type_for enrollment:
+    def household_type_for(enrollment:)
       if household_client_counts[enrollment.HouseholdID].blank? || household_client_counts[enrollment.HouseholdID] == 1
         :individual
       else
@@ -488,12 +487,12 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
-    def service_dates_for_enrollment enrollment
+    def service_dates_for_enrollment(enrollment)
       service_dates_by_enrollment[enrollment.id]&.compact || []
     end
 
-    def most_recent_disability_resonses_by_enrollment
-      @most_recent_disability_resonses_by_enrollment ||= begin
+    def most_recent_disability_responses_by_enrollment
+      @most_recent_disability_responses_by_enrollment ||= begin
         responses_by_enrollment = {}
         columns = {
           enrollment_id: :id,
@@ -521,8 +520,8 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
-    def most_recent_disability_resonses_for_enrollment enrollment
-      most_recent_disability_resonses_by_enrollment[enrollment.id]
+    def most_recent_disability_responses_for_enrollment(enrollment)
+      most_recent_disability_responses_by_enrollment[enrollment.id]
     end
 
     def incomes_at_entry_by_enrollment
@@ -536,7 +535,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
-    def income_at_entry_for_enrollment enrollment
+    def income_at_entry_for_enrollment(enrollment)
       incomes_at_entry_by_enrollment[enrollment.id]
     end
 
@@ -551,7 +550,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       end
     end
 
-    def income_at_exit_for_enrollment enrollment
+    def income_at_exit_for_enrollment(enrollment)
       incomes_at_exit_by_enrollment[enrollment.id]
     end
 
@@ -563,17 +562,14 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         source_enrollments.joins(:income_benefits_annual_update).
           where(ib_t[:InformationDate].lteq(report_end)).
           preload(:income_benefits_annual_update).find_each do |enrollment|
-            incomes[enrollment.id] = enrollment.income_benefits_annual_update.max_by do |ib|
-              ib.InformationDate
-            end
+            incomes[enrollment.id] = enrollment.income_benefits_annual_update.max_by(&:InformationDate)
           end
         incomes
       end
     end
 
-    def income_at_annual_for_enrollment enrollment
+    def income_at_annual_for_enrollment(enrollment)
       incomes_at_annual_by_enrollment[enrollment.id]
     end
-
   end
 end

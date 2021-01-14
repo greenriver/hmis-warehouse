@@ -39,12 +39,17 @@ module ProjectPassFail
       'Project Pass/Fail Report'
     end
 
+    def self.url
+      'project_pass_fail/warehouse_reports/project_pass_fail'
+    end
+
     def url
       project_pass_fail_warehouse_reports_project_pass_fail_url(host: ENV.fetch('FQDN'), id: id)
     end
 
     def run_and_save!
       update(started_at: Time.current)
+      store_thresholds
       populate_projects
       populate_clients
       calculate_utilization_rates
@@ -60,11 +65,29 @@ module ProjectPassFail
     end
 
     def within_utilization_threshold?
-      utilization_rate.in?(Project.utilization_range)
+      utilization_rate.in?(utilization_range)
     end
 
     def within_timeliness_threshold?
-      average_days_to_enter_entry_date <= Project.timeliness_threshold
+      average_days_to_enter_entry_date <= timeliness_threshold
+    end
+
+    # Data quality acceptable error rates
+    def universal_data_element_threshold
+      value = (thresholds['universal_data_element_threshold'] || GrdaWarehouse::Config.get(:pf_universal_data_element_threshold))
+      value / 100.0
+    end
+
+    # Acceptable utilization rates
+    def utilization_range
+      min = (thresholds['utilization_range_min'] || GrdaWarehouse::Config.get(:pf_utilization_min)) / 100.0
+      max = (thresholds['utilization_range_max'] || GrdaWarehouse::Config.get(:pf_utilization_max)) / 100.0
+      (min..max)
+    end
+
+    # Days allowed for entering entry assessments
+    def timeliness_threshold
+      thresholds['timeliness_threshold'] || GrdaWarehouse::Config.get(:pf_timeliness_threshold)
     end
 
     private def calculate_utilization_rates
@@ -203,6 +226,17 @@ module ProjectPassFail
       else
         value
       end
+    end
+
+    private def store_thresholds
+      update(
+        thresholds: {
+          universal_data_element_threshold: GrdaWarehouse::Config.get(:pf_universal_data_element_threshold),
+          utilization_range_min: GrdaWarehouse::Config.get(:pf_utilization_min),
+          utilization_range_max: GrdaWarehouse::Config.get(:pf_utilization_max),
+          timeliness_threshold: GrdaWarehouse::Config.get(:pf_timeliness_threshold),
+        },
+      )
     end
 
     def self.option_labels

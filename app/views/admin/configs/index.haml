@@ -39,6 +39,21 @@
         %h3 Reporting Options
         .c-card.c-card--flush.c-card--padded.flex-wrap
           = f.input :dashboard_lookback, as: :date_picker, label: 'Dashboard Lookback Date'
+          %h4 Project Data Quality Report
+          = f.input :completeness_goal, label: 'Completeness Goal', hint: 'Percent'
+          = f.input :excess_goal, label: 'Excess Goal', hint: 'Percent'
+          = f.input :timeliness_goal, label: 'Timeliness Goal', hint: 'Days'
+          = f.input :income_increase_goal, label: 'Income Increase Goal', hint: 'Percent'
+          = f.input :ph_destination_increase_goal, label: 'PH Destination Increase Goal', hint: 'Percent'
+          = f.input :move_in_date_threshold, label: 'Move-in-Date Threshold', hint: 'Days'
+          %h4 Project Pass/Fail Report
+          = f.input :pf_universal_data_element_threshold, label: 'Universal Data Elements Error Threshold', hint: 'Percent'
+          = f.input :pf_utilization_min, label: 'Utilization Minimum Threshold', hint: 'Percent'
+          = f.input :pf_utilization_max, label: 'Utilization Maximum Threshold', hint: 'Percent'
+          = f.input :pf_timeliness_threshold, label: 'Timeliness Threshold', hint: 'Days'
+          = f.input :pf_show_income, label: 'Show Income Section'
+          = f.input :pf_show_additional_timeliness, label: 'Show Additional Timeliness Section'
+
     .col-sm-4
       %section.o-section-card
         %h3 Connections
@@ -51,6 +66,7 @@
           = f.input :continuum_name, as: :string, label: 'Continuum Name'
           = f.input :multi_coc_installation, label: 'Is this a multi-CoC installation?'
           = f.input :only_most_recent_import, label: 'Only allow importing of the most-recent HMIS version'
+          = f.input :support_contact_email
 
           -# f.input :default_coc_zipcodes, as: :string, label: 'Default CoC Zip codes', hint: 'comma separated.  eg. 02108, 02109'
 
@@ -66,7 +82,9 @@
         .c-card.c-card--flush.c-card--padded.flex-wrap
           = f.input :cas_url, label: 'CAS Site URL'
           = f.input :cas_days_homeless_source, collection: GrdaWarehouse::Config.available_days_homeless_sources, label: 'Source of days homeless to send to CAS', input_html: {class: :select2}
-          = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS', input_html: {class: :select2}
+          = f.input :cas_available_method, collection: GrdaWarehouse::Config.available_cas_methods, label: 'Method used to determine which clients to sync with CAS', as: :select_two, input_html: {class: :jSyncMethod}
+          .jCasSyncMonths
+            = f.input :cas_sync_months, as: :select_two, collection: GrdaWarehouse::Config.available_cas_sync_months, label: 'Clients active within prior'
           = f.input :cas_flag_method, collection: GrdaWarehouse::Config.available_cas_flag_methods,  label: 'Should the CAS Readiness form require additional human review, or is the existence of a file flagged with the appropriate tag sufficient for matching in CAS?', input_html: {class: :select2}
           = f.input :rrh_cas_readiness, label: 'Include RRH section in CAS Readiness?'
           = f.input :client_details, collection: GrdaWarehouse::Hud::Client.cas_columns.invert.to_a.sort, label: 'Checkboxes displayed in CAS Readiness', input_html: { multiple: true, class: 'select2' }
@@ -74,3 +92,13 @@
           = f.input :domestic_violence_lookback_days, label: 'How long should a victim of domestic violence be considered a victim?', collection: GrdaWarehouse::Config.dv_days, as: :select_two
 
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'
+= content_for :page_js do
+  :javascript
+    $('.jSyncMethod').on('change', function(e) {
+      if($('.jSyncMethod').val() == 'active_clients') {
+        $('.jCasSyncMonths').show();
+      } else {
+        $('.jCasSyncMonths').hide();
+      }
+    });
+    $('.jSyncMethod').trigger('change');

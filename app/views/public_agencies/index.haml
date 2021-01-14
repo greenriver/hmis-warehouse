@@ -1,18 +1,18 @@
 - content_for :title, 'Agencies'
-.row
-  .col-sm-8
-    %h1= content_for :title
-%table.table.datatable.agency-list
-  %thead
-    %tr
-      %th Agency
-      %th CoC
-  %tbody
-    - @agencies.each do |agency|
-      - agency.consent_limits.each do |coc|
-        %tr
-          %td= agency.name
-          %td= coc.description_and_coc_code
+%h1= content_for :title
+%p= _('This list of agencies will change over time.  Please revisit this page for the updated list.')
+.card.pt-2
+  %table.table.datatable.agency-list
+    %thead
+      %tr
+        %th Agency
+        %th CoC
+    %tbody
+      - @agencies.each do |agency|
+        - agency.consent_limits.each do |coc|
+          %tr
+            %td= agency.name
+            %td= coc.description_and_coc_code
 
 - if @coc_map.present?
   .coc-map

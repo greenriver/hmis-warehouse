@@ -5,7 +5,7 @@
   possible_claims = @patient.medical_claims_by_service_start_date(date_range: activity_date_range)
 
 %h1= "Medicaid ID: #{ redaction_text || @patient.medicaid_id }"
-%h2= "#{qualifying_activities.size} Qualifying Activities matched against #{possible_claims.size} Medical Claims with service starting #{activity_date_range}"
+%h2= "#{qualifying_activities&.size} Qualifying Activities matched against #{possible_claims&.size} Medical Claims with service starting #{activity_date_range}"
 :css
   th, td {padding: 0.25em;}
 %table{rules:'all'}

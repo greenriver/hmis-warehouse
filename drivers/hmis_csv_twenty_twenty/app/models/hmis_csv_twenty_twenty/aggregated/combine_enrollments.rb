@@ -5,14 +5,8 @@
 ###
 
 module HmisCsvTwentyTwenty::Aggregated
-  class CombineEnrollments
+  class CombineEnrollments < Base
     INSERT_BATCH_SIZE = 2_000
-    attr_accessor :importer_log, :date_range
-
-    def initialize(importer_log:, date_range:)
-      @importer_log = importer_log
-      @date_range = date_range
-    end
 
     def aggregate!
       project_ids = combined_project_ids
@@ -224,7 +218,15 @@ module HmisCsvTwentyTwenty::Aggregated
     end
 
     def self.description
-      name.split('::').last.underscore.humanize
+      'Replace multiple contiguous enrollments (the next entry falls immediately after the previous exit) with a single enrollment.'
+    end
+
+    def self.enable
+      {
+        import_aggregators: {
+          'Enrollment': ['HmisCsvTwentyTwenty::Aggregated::CombineEnrollments'],
+        },
+      }
     end
   end
 end

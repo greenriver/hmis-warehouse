@@ -23,21 +23,21 @@ module GrdaWarehouse::Youth
       order(referred_on: :desc)
     end
 
-    scope :between, -> (start_date:, end_date:) do
+    scope :between, ->(start_date:, end_date:) do
       at = arel_table
       where(at[:referred_on].gteq(start_date).and(at[:referred_on].lteq(end_date)))
     end
 
-    scope :visible_by?, -> (user) do
+    scope :visible_by?, ->(user) do
       # users at your agency, plus your own user in case you have no agency.
       agency_user_ids = User.
         with_deleted.
         where.not(agency_id: nil).
         where(agency_id: user.agency_id).
         pluck(:id) + [user.id]
-      # If you can see anything, then show them all
+
       # if you can see all youth intakes, show them all
-      if user.can_edit_anything_super_user? || user.can_view_youth_intake? || user.can_edit_youth_intake?
+      if user.can_view_youth_intake? || user.can_edit_youth_intake?
         all
       # If you can see your agancy's, then show yours and those for your agency
       elsif user.can_view_own_agency_youth_intake? || user.can_edit_own_agency_youth_intake?

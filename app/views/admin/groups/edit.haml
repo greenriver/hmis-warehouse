@@ -8,12 +8,13 @@
 .o-page
   .o-page__title
     %h1= content_for :title
-.row
-  .col-sm-12
-    = simple_form_for @group, url: admin_group_path do |f|
-      = f.error_notification
-      .form-inputs
-        = render 'form', f: f
 
-      .form_actions.mt-4
-        = f.button :submit, value: 'Update Group'
+= simple_form_for @group, url: admin_group_path do |f|
+  = f.error_notification
+  .form-inputs
+    = render 'form', f: f
+  - unless @group.entities_locked?
+    .form_actions.mt-4
+      = f.button :submit, value: 'Update Group'
+.mt-4
+  = render 'users'

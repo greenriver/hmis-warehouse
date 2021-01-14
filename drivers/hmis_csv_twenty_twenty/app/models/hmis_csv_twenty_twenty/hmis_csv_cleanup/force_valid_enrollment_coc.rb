@@ -48,5 +48,13 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
     def self.description
       'Fix Enrollment.CoCCode where possible, remove where not.'
     end
+
+    def self.enable
+      {
+        import_cleanups: {
+          'EnrollmentCoc': ['HmisCsvTwentyTwenty::HmisCsvCleanup::ForceValidEnrollmentCoc'],
+        },
+      }
+    end
   end
 end

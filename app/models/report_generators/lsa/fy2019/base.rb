@@ -23,9 +23,10 @@ module ReportGenerators::Lsa::Fy2019
         project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
         @report.options['project_id'] |= project_group_project_ids
       end
-      data_source_id = @report.options['data_source_id'].presence&.to_i
-      @report.options['project_id'] |= GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id).pluck(:id)  if data_source_id.present?
-
+      # Allow for historical single data source, or new multi-data source
+      data_source_ids = Array.wrap(@report.options['data_source_id'].presence&.to_i).compact
+      data_source_ids += @report.options['data_source_ids']&.select(&:present?)&.map(&:to_i) || []
+      @report.options['project_id'] |= GrdaWarehouse::Hud::Project.where(data_source_id: data_source_ids).pluck(:id) if data_source_ids.present?
       if test?
         @coc_code = 'XX-500'
       else

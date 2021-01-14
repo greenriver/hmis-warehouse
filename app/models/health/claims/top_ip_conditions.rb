@@ -12,7 +12,7 @@ module Health::Claims
     self.table_name = :claims_top_ip_conditions
 
     phi_patient :medicaid_id
-    phi_attr :description, Phi::SmallPopulation
+    phi_attr :description, Phi::SmallPopulation, "Description of IP condition"
 
     def column_headers
       {

@@ -1,0 +1,256 @@
+%h2= _('Project Performance 50%')
+%p= simple_format(_('Achieving project outcomes provides a benchmark for how well projects help to end homelessness. Assessing & monitoring project outcomes is necessary to understand a project\'s rate of success and contribution to CoC-wide performance goals.'))
+%table.table.table-bordered
+  %thead
+    %tr
+      %th.text-nowrap Performance Criteria
+      %th.text-nowrap Purpose & Source of Measurement
+      %th.text-nowrap Formula Information
+      %th.text-nowrap Performance Calculation
+      %th.text-nowrap Scoring
+      %th.text-nowrap Total
+  %tbody
+    %tr
+      %th Quarterly Occupancy Utilization Rate
+      %th
+        = simple_format(_('Household utilization rates demonstrate that the CoC is fully utilizing its inventory.'))
+        %br
+        = link_to_apr('APR Q8b', 'Question 8')
+        = '& Application'
+      %td.p-0
+        %table.table.mb-0
+          %tbody
+            %tr
+              %th January Total (Q8b, Row 1, Column 1)
+              %td.text-center= f.input :utilization_jan, label: false, as: :read_only
+            %tr
+              %th April Total (Q8b, Row 2, Column 1)
+              %td.text-center= f.input :utilization_apr, label: false, as: :read_only
+            %tr
+              %th July Total (Q8b, Row 3, Column 1)
+              %td.text-center= f.input :utilization_jul, label: false, as: :read_only
+            %tr
+              %th October Total (Q8b, Row 4, Column 1)
+              %td.text-center= f.input :utilization_oct, label: false, as: :read_only
+            %tr
+              %th Adjusted Total from 2017 Project Application (Auto Calculates)
+              %td.text-center= @report.adjusted_utilization
+            %tr
+              %th Proposed number of households served
+              %td.text-center= f.input :utilization_proposed, label: false, **@report.field_input_options(:utilization_proposed, current_user)
+      %td.text-center= @report.utilization_percentage
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          90% +
+        .mb-4
+          Points: 5
+          %br
+          80% - 89%
+        .mb-4
+          Points: 0
+          %br
+          <= 79%
+      %td.text-center= @report.utilization_score
+    %tr
+      %th Percentage of chronically homeless households served
+      %th
+        = simple_format(_('Indicates community success in ending chronic homelessness by measuring the number of chronically homeless participants served in the project during the measured year.'))
+        %br
+        = link_to_apr('APR Q26a', 'Question 26')
+      %td.p-0
+        %table.table.mb-0
+          %tbody
+            %tr
+              %th Total Chronically Homeless Households served
+              %td.text-center= f.input :chronic_households_served, label: false, as: :read_only
+            %tr
+              %th Total Households served
+              %td.text-center= f.input :total_households_served, label: false, as: :read_only
+      %td.text-center= @report.chronic_service_percentage
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          PSH: >=75%
+        .mb-4
+          Points: 5
+          %br
+          PSH: 65% - 74%
+        .mb-4
+          Points: 0
+          %br
+          PSH: <= 64%
+      %td.text-center
+        - if @report.project.psh?
+          = @report.chronic_service_score
+        - else
+          N/A (PSH only)
+    %tr
+      %th
+        Percentage of participants who remained in PSH or exited to permanent housing
+      %th
+        = simple_format(_('Successful housing outcomes are one of the most important measures of project success.'))
+        %br
+        = link_to_apr('APR Q23c', 'Question 23')
+      %td.p-0
+        %table.table.mb-0
+          %tbody
+            %tr
+              %th Total Number of Persons Served (Q05a, Row 1)
+              %td.text-center= f.input :total_persons_served, label: false, as: :read_only
+            %tr
+              %th Total Persons exiting to positive destinations (Q23c, 3rd row from bottom)
+              %td.text-center= f.input :total_persons_with_positive_exit, label: false, as: :read_only
+            %tr
+              %th Total Exits (Q23c, 4th row from bottom)
+              %td.text-center= f.input :total_persons_exited, label: false, as: :read_only
+            %tr
+              %th Total persons whose destinations excluded them from the calculation (Q23c, 2nd row from bottom)
+              %td.text-center= f.input :excluded_exits, label: false, as: :read_only
+            %tr
+              %th Unsuccessful exits (Auto Calculated)
+              %td.text-center= @report.unsuccessful_exits
+      %td.text-center= @report.exit_to_ph_percentage
+      %th.text-nowrap
+        .mb-4
+          PSH: >= 98%
+          %br
+          RRH: >= 95%
+        .mb-4
+          Points: 5
+          %br
+          PSH: 90-97%
+          %br
+          RRH: 90% - 94%
+        .mb-4
+          Points: 0
+          %br
+          PSH: <= 89%
+          %br
+          RRH: <= 89%
+      %td.text-center= @report.exit_to_ph_score
+    %tr
+      %th
+        Average length of stay of program leavers
+      %th
+        = simple_format(_('Length of Stay is measured to determine if clients are moving through the programs in an appropriate length of time and are efficiently moving towards a permanent and stable home. It also assists community system modeling efforts.'))
+        %br
+        = link_to_apr('APR Q22b', 'Question 22')
+      %th
+        - unless @report.project.rrh?
+          N/A (RRH Only)
+      %td.text-center= f.input :average_los_leavers, label: false, as: :read_only
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          RRH: >=3-18 months
+        .mb-4
+          Points: 5
+          %br
+          RRH: 19-24 months
+        .mb-4
+          Points: 0
+          %br
+          RRH: >=25 / <=2 months
+      %td.text-center
+        - if @report.project.rrh?
+          = @report.leavers_los_score
+        - else
+          N/A (RRH Only)
+    %tr
+      %th
+        Percentage of adults at exit or annual assessment who gained or increased employment income
+      %th
+        = simple_format(_('Improving household access to financial resources is crucial to reducing vulnerability to homelessness. Increase in income is measured in the NOFA & System Performance Measures'))
+        %br
+        = link_to_apr('APR Q19a1, Q19a2', 'Question 19')
+      %th
+
+      %td.text-center= f.input :percent_increased_employment_income_at_exit, label: false, as: :read_only
+      %th
+        .mb-4
+          Points: 10
+          %br
+          PSH: >= 15%
+          %br
+          RRH: >= 56%
+        .mb-4
+          Points: 5
+          %br
+          PSH: 9% - 14%
+          %br
+          RRH: 50% - 55%
+        .mb-4
+          Points: 0
+          %br
+          PSH: <= 8%
+          %br
+          RRH: <= 49%
+      %td.text-center
+        - if @report.project.psh? || @report.project.rrh?
+          = @report.increased_employment_income_score
+        - else
+          N/A (Only RRH & PSH)
+    %tr
+      %th
+        Percentage of adults at exit or annual assessment who gained or increased non-employment cash income
+      %th
+        = simple_format(_('Improving a household\'s access to financial resources is crucial to reducing vulnerability to homelessness. Increase in income is measured through the NOFA & System Performance Measures.'))
+        %br
+        = link_to_apr('APR Q19a1, Q19a2', 'Question 19')
+      %th
+
+      %td.text-center= f.input :percent_increased_other_cash_income_at_exit, label: false, as: :read_only
+      %th.text-nowrap
+        .mb-4
+          Points: 10
+          %br
+          PSH: >= 61%
+          %br
+          RRH: >= 21%
+        .mb-4
+          Points: 5
+          %br
+          PSH: 55 - 60%
+          %br
+          RRH: 15% - 20%
+        .mb-4
+          Points: 0
+          %br
+          PSH: <= 54%
+          %br
+          RRH: <= 14%
+      %td.text-center
+        - if @report.project.psh? || @report.project.rrh?
+          = @report.increased_other_cash_income_score
+        - else
+          N/A (Only RRH & PSH)
+    %tr
+      %th
+        Returns to Homelessness
+      %th
+        = simple_format(_('Reducing returns to homelessness is one of the most important measures of program success and is HUD System Performance Measure 2a.'))
+      %th
+
+      %td.text-center= f.input :percent_returns_to_homelessness, label: false, as: :read_only
+      %th
+        .mb-4
+          Points: 10
+          %br
+          <= 5%
+        .mb-4
+          Points: 5
+          %br
+          6% - 15%
+        .mb-4
+          Points: 0
+          %br
+          >= 16%
+      %td.text-center
+        - if @report.returns_to_homelessness_score.present?
+          = @report.returns_to_homelessness_score
+        - else
+          N/A

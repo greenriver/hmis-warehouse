@@ -1,26 +1,45 @@
-%p Found #{pluralize @report.active_patient_count, 'active patient'} during this period.
-- if @report.active_patient_count.positive?
-  - if @report.payment_details.none?
-    %p
-      %b No payment details were found for services performed during this period. Have they been loaded yet?
-  - elsif @report.patients_without_payments.none?
-    %p
-      %b Found #{pluralize @report.patients_without_payments.size, 'missing claim'} during this period.
-  - elsif @report.patients_without_payments.any?
-    %p No record of payment could be found for the following #{pluralize @report.patients_without_payments.size, 'patient'}:
-    %table.table.table-hover
+- if @report.payment_details.none?
+  %p
+    %b No payment details were found for services performed during this period. Have they been loaded yet?
+- else
+  %p Found #{pluralize @report.active_patient_count, 'active patient'} during this period.
+  .d-flex.mb-2
+    %div
+      - if @report.patients_without_payments.any?
+        %p No record of payment could be found for the following #{pluralize(@report.patients_without_payments&.size, 'patient')}:
+    .ml-auto
+      = link_to(link_params.merge({format: :xlsx}),{class: 'btn btn-secondary'}) do
+        %i.icon.icon-download2
+        Download Excel
+  .card.p-0.pt-2
+    %table.table.table-striped.datatable
       %thead
         %tr
           %th Medicaid ID
-          %th First Name
           %th Last Name
-          %th Qualifying Activities
-          %th ACO(s)
+          %th First Name
+          %th Submitted QAs
+          %th QAs Outside Enrollment
+          %th QAs Without Required Careplan
+          %th Careplan PCP signatures
       %tbody
         - @report.patients_without_payments.each do |patient|
           %tr
             %td= link_to patient.medicaid_id, client_health_qualifying_activities_path(patient.client)
-            %td= patient.first_name
             %td= patient.last_name
-            %td= @report.qualifying_activity_count_for_patient(patient)
-            %td= @report.acos_for_patient(patient).to_sentence
+            %td= patient.first_name
+            %td= @report.qa_count_for_patient(patient)
+            %td= @report.qa_missing_enrollment_count_for_patient(patient)
+            %td= @report.qa_missing_careplan_count_for_patient(patient)
+            %td= @report.careplan_dates_for_patient(patient)
+= content_for :page_js do
+  :javascript
+    $(function() {
+      $('.datatable').DataTable({
+        searching: true,
+        ordering: true,
+        paging: false,
+        info: false,
+        scrollY: '300px'
+      })
+    })

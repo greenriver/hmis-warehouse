@@ -1,20 +1,23 @@
 - content_for :title, 'Enrollment-Disenrollment Files for ACO/MCOs'
 %h1= content_for :title
-= render '/warehouse_reports/breadcrumbs', tab: 'health'
+= render '/warehouse_reports/breadcrumbs', tab: 'health-member-status-tracking'
 
 = simple_form_for :report do |f|
   - content_for :filters_col_full do
     %p
       This report will generate a zip file containing an enrollment/disenrollment report and summary file for one
-      or more ACO/MCOs. If more than one ACO/MCO is selected, the disenrollments are combined into a single report.
-      ACO/MCOs will appear as available in this report based on their
+      or more ACO/MCOs. If a selected month is later than the current month, the month for the previous year is used
+      (e.g., in January, December is the previous month). If more than one ACO/MCO is selected, the disenrollments
+      are combined into a single report. ACO/MCOs will appear as available in this report based on their
       = link_to 'configuration.', admin_health_accountable_care_organizations_path
 
     .row
       .col-sm-6
         = f.input :acos, collection: available_acos, selected: @acos, input_html: {class: :select2, multiple: true}, label: 'ACO/MCOs to include'
       .col-sm-3
-        = f.input :month, collection: months, label_method: :first, value_method: :last, selected: @month, input_html: {class: :select2}
+        = f.input :start_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @start_month, input_html: {class: :select2}, label: 'From the start of'
+      .col-sm-3
+        = f.input :end_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @end_month, input_html: {class: :select2}, label: 'To the end of'
 
   - content_for :filter_actions do
     = f.submit 'Download Zip File', data: {disable_with: false}

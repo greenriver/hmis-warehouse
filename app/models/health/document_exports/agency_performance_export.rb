@@ -45,6 +45,10 @@ module Health::DocumentExports
       end
     end
 
+    def download_title
+      'Partner Dashboard Report'
+    end
+
     protected def report_class
       Health::AgencyPerformance
     end
@@ -56,11 +60,7 @@ module Health::DocumentExports
       view
     end
 
-    class AgencyPerformanceExportTemplate < ActionView::Base
-      include ActionDispatch::Routing::PolymorphicRoutes
-      include Rails.application.routes.url_helpers
-      include ApplicationHelper
-      attr_accessor :current_user
+    class AgencyPerformanceExportTemplate < PdfExportTemplateBase
       def show_client_details?
         false
       end

@@ -315,7 +315,8 @@ module HmisCsvTwentyTwenty::Importer
         if klass.hud_key.in?([:ProjectID, :OrganizationID, :PersonalID])
           klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil)
         else
-          delete_count = klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
+          delete_count = klass.pending_deletions(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).count
+          klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range).update_all(pending_date_deleted: nil, DateDeleted: Time.current, source_hash: nil)
           note_processed(file_name, delete_count, 'removed')
         end
       end
@@ -447,7 +448,7 @@ module HmisCsvTwentyTwenty::Importer
 
       # if the incoming DateUpdated is strictly less than the existing one
       # trust the warehouse is correct
-      unchanged = existing.select { |k, v| incoming[k] < v }.keys
+      unchanged = existing.select { |k, v| incoming[k].to_date < v.to_date }.keys
       unchanged.each_slice(INSERT_BATCH_SIZE) do |batch|
         query = klass.warehouse_class.where(
           data_source_id: data_source.id,

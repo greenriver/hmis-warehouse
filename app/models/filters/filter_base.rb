@@ -10,15 +10,15 @@ module Filters
     include AvailableSubPopulations
     include ArelHelper
 
-    attribute :start, Date, lazy: true, default: ->(r,_) { r.default_start }
-    attribute :end, Date, lazy: true, default: ->(r,_) { r.default_end }
+    attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
+    attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :sort
     attribute :heads_of_household, Boolean, default: false
-    attribute :comparison_pattern, Symbol, default: ->(r,_) { r.default_comparison_pattern }
+    attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
     attribute :household_type, Symbol, default: :all
     attribute :hoh_only, Boolean, default: false
-    attribute :project_type_codes, Array, default: ->(r,_) { r.default_project_type_codes }
-    attribute :project_type_numbers, Array, default: ->(r,_) { [] }
+    attribute :project_type_codes, Array, default: ->(r, _) { r.default_project_type_codes }
+    attribute :project_type_numbers, Array, default: ->(_r, _) { [] }
     attribute :veteran_statuses, Array, default: []
     attribute :age_ranges, Array, default: []
     attribute :genders, Array, default: []
@@ -65,7 +65,7 @@ module Filters
       ]
     end
 
-    def set_from_params(filters)
+    def set_from_params(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Naming/AccessorMethodName
       return self unless filters.present?
 
       self.start = filters.dig(:start)&.to_date
@@ -133,7 +133,7 @@ module Filters
           dv_status: dv_status,
           chronic_status: chronic_status,
           coordinated_assessment_living_situation_homeless: coordinated_assessment_living_situation_homeless,
-        }
+        },
       }
     end
 
@@ -168,11 +168,11 @@ module Filters
     end
 
     def range
-      self.start .. self.end
+      self.start .. self.end # rubocop:disable Style/RedundantSelf
     end
 
     def as_date_range
-      DateRange.new(start: self.start, end: self.end)
+      DateRange.new(start: self.start, end: self.end) # rubocop:disable Style/RedundantSelf
     end
 
     def first
@@ -206,7 +206,9 @@ module Filters
     end
 
     def length
-      (self.end - self.start).to_i rescue 0
+      (self.end - self.start).to_i # rubocop:disable Style/RedundantSelf
+    rescue StandardError
+      0
     end
 
     def effective_project_ids
@@ -218,6 +220,17 @@ module Filters
       @effective_project_ids = all_project_ids if @effective_project_ids.empty?
 
       @effective_project_ids.uniq.reject(&:blank?)
+    end
+
+    def anded_effective_project_ids
+      ids = []
+      ids << effective_project_ids_from_projects
+      ids << effective_project_ids_from_project_groups
+      ids << effective_project_ids_from_organizations
+      ids << effective_project_ids_from_data_sources
+      ids << effective_project_ids_from_coc_codes
+      ids << effective_project_ids_from_project_types
+      ids.reject(&:empty?).reduce(&:&)
     end
 
     def all_projects?
@@ -281,6 +294,14 @@ module Filters
 
       all_data_sources_scope.
         where(id: sources).
+        pluck(p_t[:id].as('project_id'))
+    end
+
+    def effective_project_ids_from_project_types
+      return [] if project_type_ids.empty?
+
+      all_project_scope.
+        with_project_type(project_type_ids).
         pluck(p_t[:id].as('project_id'))
     end
 
@@ -387,7 +408,7 @@ module Filters
 
     def project_type_ids
       ids = GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.values_at(
-        *project_type_codes.reject(&:blank?).map(&:to_sym)
+        *project_type_codes.reject(&:blank?).map(&:to_sym),
       ).flatten
 
       ids += project_type_numbers if project_type_numbers.any?
@@ -661,7 +682,12 @@ module Filters
     end
 
     def available_prior_living_situations
-      HUD.living_situations.invert
+      HUD.living_situations.invert.map do |title, id|
+        [
+          "#{title} (#{id})",
+          id,
+        ]
+      end.to_h
     end
 
     def available_destinations

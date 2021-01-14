@@ -25,11 +25,11 @@ Rails.application.configure do
       'Cache-Control' => "public, max-age=#{2.days.to_i}"
     }
   else
-    config.action_controller.perform_caching = false
+    config.action_controller.perform_caching = true
 
     cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
     cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-    config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 2.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace}
+    config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 5.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace}
   end
 
   if ENV['SMTP_SERVER']
@@ -93,7 +93,9 @@ Rails.application.configure do
 
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
-  #config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+  if ENV['DISABLE_EVENT_FS_CHECKER'] != '1'
+    config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+  end
 
   # Web console from outside of docker
   config.web_console.whitelisted_ips = ['172.16.0.0/12', '192.168.0.0/16']

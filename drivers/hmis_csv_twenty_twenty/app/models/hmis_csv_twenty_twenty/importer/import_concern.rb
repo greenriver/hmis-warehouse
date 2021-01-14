@@ -97,6 +97,14 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         delete_pending
     end
 
+    def self.pending_deletions(data_source_id:, project_ids:, date_range:)
+      involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      ).delete_pending
+    end
+
     def as_destination_record
       # For some odd reason calling build_destination_record sometimes does a find and update
       # using new seems safer

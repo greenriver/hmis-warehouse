@@ -4,8 +4,16 @@
 
 .patient__engagement.mr-2.text-right
   - if ! patient.engaged?
-    .patient__engagement-countdown
-      = "#{pluralize(patient.days_to_engage, 'day')} remaining to obtain PCTP signatures"
+    - if patient.days_to_engage.zero?
+      - if patient.careplans.active.recent.exists?
+        .patient__engagement-expired
+          Patient engagement is incomplete!
+      - else
+        .patient__engagement-expired
+          PCTP signature is overdue!
+    - else
+      .patient__engagement-countdown
+        = "#{pluralize(patient.days_to_engage, 'day')} remaining to obtain PCTP signatures"
   .patient__engagement-engaged
     = link_to_if patient.client.present?, "#{pluralize(patient.valid_payable_qualified_activities_since(date: Date.current.beginning_of_month).count, 'Payable Qualifying Activities')} in #{Date.current.strftime('%B')}", url
   .patient__engagement-engaged

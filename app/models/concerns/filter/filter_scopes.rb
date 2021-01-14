@@ -182,7 +182,8 @@ module
         merge(
           GrdaWarehouse::Hud::Disability.where(
             InformationDate: @filter.range,
-            DisabilityResponse: @filter.disabilities,
+            DisabilityType: @filter.disabilities,
+            DisabilityResponse: GrdaWarehouse::Hud::Disability.positive_responses,
           ),
         )
     end

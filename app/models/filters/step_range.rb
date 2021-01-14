@@ -6,23 +6,23 @@
 
 module Filters
   class StepRange < ::ModelForm
-    attribute :route, String, lazy: false, default: -> (o,_) { o.available_routes.first }
-    attribute :first,  String, lazy: false, default: -> (o,_) { o.ordered_steps&.first&.first }
-    attribute :second, String, lazy: false, default: -> (o,_) { o.ordered_steps[o.ordered_steps&.first&.first]&.first }
+    attribute :route, String, lazy: false, default: ->(o, _) { o.available_routes.first }
+    attribute :first,  String, lazy: false, default: ->(o, _) { o.ordered_steps&.first&.first }
+    attribute :second, String, lazy: false, default: ->(o, _) { o.ordered_steps[o.ordered_steps&.first&.first]&.first }
     attribute :unit,   String, default: 'day'
 
     def units
       if Rails.env.development?
-        %w( week day hour minute second )
+        ['week', 'day', 'hour', 'minute', 'second']
       else
-        %w( week day )
+        ['week', 'day']
       end
     end
 
     # hash from steps to steps that may follow them
     def ordered_steps
       @ordered_steps ||= begin
-        scope = GrdaWarehouse::CasReport.on_route(route)#.started_between(start_date: @range.start, end_date: @range.end + 1.day)
+        scope = GrdaWarehouse::CasReport.on_route(route) # .started_between(start_date: @range.start, end_date: @range.end + 1.day)
         step_order = scope.distinct.
           pluck(:match_step, :decision_order).to_h
         steps = step_order.keys
@@ -36,19 +36,19 @@ module Filters
               where(at2[:match_id].eq(at[:match_id])).
               where(at2[:decision_order].lt(at[:decision_order])).
               where(at2[:match_step].eq(step)).
-              exists
+              exists,
           ).distinct.pluck(:match_step, :decision_order).
             map do |match_step, decision_order|
               "(#{decision_order}) #{match_step}"
             end
-          [ step, followups ]
+          [step, followups]
         end.to_h
 
         followups.select do |_, followup_steps|
           followup_steps.any?
-        end.sort_by do |step,_|
+        end.sort_by do |step, _|
           step_order[step]
-        end.map do |step,followup_steps|
+        end.map do |step, followup_steps|
           [
             "(#{step_order[step]}) #{step}", followup_steps.sort
           ]

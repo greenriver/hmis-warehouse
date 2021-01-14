@@ -1,5 +1,10 @@
+require 'csv'
+require 'memoist'
+
 module ClaimsReporting
   class ReconcilationReport
+    extend Memoist
+
     attr_accessor :month
     attr_accessor :aco_ids
 
@@ -38,36 +43,55 @@ module ClaimsReporting
     def active_patients
       scope = ::Health::Patient.active_between(report_date_range.min, report_date_range.max)
       if aco_ids.any?
-        scope = scope.merge(
-          ::Health::PatientReferral.where(
-            accountable_care_organization_id: aco_ids,
-          ),
+        scope = scope.where(
+          id: ::Health::PatientReferral.where(accountable_care_organization_id: aco_ids).select(:patient_id),
         )
       end
       scope
     end
 
-    def qualifying_activity_count_for_patient(patient)
-      qualifying_activity_counts_by_patient_id[patient.id]
+    def qa_count_for_patient(patient)
+      patient_qas(patient.id).size
+    end
+
+    def qa_missing_enrollment_count_for_patient(patient)
+      patient_qas(patient.id).reject do |qa|
+        # This is logically QualifyingActivity#occurred_during_any_enrollment? but is
+        # faster since we will already have the full patient_referrals history
+        qa.date_of_activity.present? && patient.patient_referrals.detect do |r|
+          r.active_on?(qa.date_of_activity)
+        end
+      end.size
+    end
+
+    def qa_missing_careplan_count_for_patient(patient)
+      patient_qas(patient.id).select(&:missing_care_plan?).size
     end
 
     def acos_for_patient(patient)
       patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco&.name }.compact.uniq
     end
 
-    def qualifying_activity_counts_by_patient_id
-      @qualifying_activity_counts_by_patient_id ||= ::Health::QualifyingActivity.where(
-        patient: active_patients,
-      ).submitted.in_range(
-        report_date_range,
-      ).group(:patient_id).count
+    def careplan_dates_for_patient(patient)
+      patient.careplans.select(&:provider_signed_on).map { |d| d.provider_signed_on.to_date }.to_sentence
     end
 
     def patients_without_payments
       active_patients.where.not(
         medicaid_id: payment_details.select(:medicaid_id),
-      ).preload(patient_referrals: :aco)
+      ).preload(:careplans, :qualifying_activities, patient_referrals: :aco)
     end
+
+    private def patients_without_payments_by_id
+      patients_without_payments.index_by(&:id)
+    end
+    memoize :patients_without_payments_by_id
+
+    private def patient_qas(patient_id)
+      qas = patients_without_payments_by_id[patient_id]&.qualifying_activities || []
+      qas.select { |r| r.submitted? && report_date_range.cover?(r.date_of_activity) }
+    end
+    memoize :patient_qas
 
     def payments_without_patients
       payment_details.where.not(
@@ -79,6 +103,41 @@ module ClaimsReporting
       CpPaymentDetail.where(
         paid_dos: report_date_range,
       )
+    end
+
+    def patients_without_payments_columns
+      [
+        'Medicaid ID',
+        'Last Name',
+        'First Name',
+        'Submitted QAs',
+        'QAs Outside Enrollment',
+        'QAs Without Required Careplan',
+        'Careplan PCP signatures',
+      ]
+    end
+
+    def patients_without_payments_rows
+      patients_without_payments.map do |patient|
+        [
+          patient.medicaid_id,
+          patient.last_name,
+          patient.first_name,
+          qa_count_for_patient(patient),
+          qa_missing_enrollment_count_for_patient(patient),
+          qa_missing_careplan_count_for_patient(patient),
+          careplan_dates_for_patient(patient),
+        ]
+      end
+    end
+
+    def to_csv
+      CSV.generate(headers: true) do |csv|
+        csv << patients_without_payments_columns
+        patients_without_payments_rows.each do |row|
+          csv << row
+        end
+      end
     end
   end
 end

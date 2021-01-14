@@ -6,10 +6,9 @@
 
 module Health
   class EnrollmentDisenrollment
-    def initialize(month, aco_ids)
-      year = Date.current.year
-      year -= 1 if month > Date.current.month
-      @date = Date.new(year, month, 1)
+    def initialize(start_date, end_date, aco_ids)
+      @start_date = start_date
+      @end_date = end_date
       @acos = Health::AccountableCareOrganization.find(aco_ids)
       @cp = Health::Cp.first
     end
@@ -41,13 +40,13 @@ module Health
 
     def disenrollments
       @disenrollments ||= begin
-        disenrollment_date = format_date(@date.end_of_month)
         referrals = Health::PatientReferral.where(
-          disenrollment_date: (@date.beginning_of_month..@date.end_of_month),
+          disenrollment_date: (@start_date..@end_date),
           accountable_care_organization_id: @acos.map(&:id),
-          removal_acknowledged: true,
+          removal_acknowledged: false,
         )
         referrals.map do |referral|
+          disenrollment_date = referral.pending_disenrollment_date || referral.disenrollment_date || @end_date
           [
             referral.medicaid_id,
             referral.last_name,
@@ -65,7 +64,7 @@ module Health
             @cp.sl,
             format_date(referral.enrollment_start_date),
             '',
-            disenrollment_date,
+            format_date(disenrollment_date.end_of_month),
             referral.rejected_reason&.tr('_', ' '),
             'D',
             format_date(referral.updated_at),

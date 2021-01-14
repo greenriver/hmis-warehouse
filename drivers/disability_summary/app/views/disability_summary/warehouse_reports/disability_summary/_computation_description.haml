@@ -1,0 +1,5 @@
+#computation-accordion.panel-group.panel-collapsible
+  - content_for :panel_collapse_content, flush: true do
+    %p Each client is counted only once per category per CoC.  Disability records are only considered for enrollments that overlap the selected universe. The most recent disability response based on InformationDate is used.
+
+  = render 'common/panel_collapse', id: 'computation-info', title: 'How this Data is Computed'

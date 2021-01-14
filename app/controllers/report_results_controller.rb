@@ -183,6 +183,7 @@ class ReportResultsController < ApplicationController
         :race_code,
         :ethnicity_code,
         :lsa_scope,
+        data_source_ids: [],
         coc_codes: [],
         project_id: [],
         project_type: [],

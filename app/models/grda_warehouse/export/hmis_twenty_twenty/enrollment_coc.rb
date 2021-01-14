@@ -20,9 +20,10 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
     # Also unique the HouseholdID to a data source
     def apply_overrides row, data_source_id:
       row[:ProjectID] = project_id_from_enrollment_id(row[:EnrollmentID], data_source_id) if row[:ProjectID].blank?
+      id_of_enrollment = enrollment_export_id(row[:EnrollmentID], row[:PersonalID], data_source_id)
 
       if row[:HouseholdID].blank?
-        row[:HouseholdID] = Digest::MD5.hexdigest("e_#{data_source_id}_#{row[:ProjectID]}_#{row[:EnrollmentID]}")
+        row[:HouseholdID] = Digest::MD5.hexdigest("e_#{data_source_id}_#{row[:ProjectID]}_#{id_of_enrollment}")
       else
         row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{(row[:HouseholdID])}")
       end

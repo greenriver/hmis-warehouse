@@ -281,7 +281,8 @@ module EtoApi::Tasks
               value = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
               defined_demographic_value(api: api, value: value, cdid: cdid, site_id: site_id)
             else
-              hmis_client[key] = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
+              value = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
+              hmis_client.assign_attributes(key => value)
             end
           end
         end

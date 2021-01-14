@@ -18,7 +18,9 @@ module WarehouseReportsHealthEmergencyController
     end
 
     private def project_ids
-      @filter.effective_project_ids_from_projects.presence || GrdaWarehouse::Hud::Project.viewable_by(current_user).pluck(:id)
+      # NOTE: 12/11 request to remove viewable_by limit
+      # @filter.effective_project_ids_from_projects.presence || GrdaWarehouse::Hud::Project.viewable_by(current_user).pluck(:id)
+      @filter.effective_project_ids_from_projects.presence || GrdaWarehouse::Hud::Project.pluck(:id)
     end
 
     private def set_filter

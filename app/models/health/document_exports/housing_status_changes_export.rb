@@ -41,6 +41,10 @@ module Health::DocumentExports
       end
     end
 
+    def download_title
+      'Housing Status Changes Report'
+    end
+
     protected def report_class
       WarehouseReport::Health::HousingStatusChanges
     end
@@ -52,11 +56,7 @@ module Health::DocumentExports
       view
     end
 
-    class HousingStatusChangesExportTemplate < ActionView::Base
-      include ActionDispatch::Routing::PolymorphicRoutes
-      include Rails.application.routes.url_helpers
-      include ApplicationHelper
-      attr_accessor :current_user
+    class HousingStatusChangesExportTemplate < PdfExportTemplateBase
       def show_client_details?
         false
       end

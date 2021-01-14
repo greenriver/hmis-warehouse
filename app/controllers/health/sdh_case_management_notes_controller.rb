@@ -28,6 +28,8 @@ module Health
         build(
           user: current_user,
           completed_on: DateTime.current,
+          housing_status: last_form&.housing_status,
+          housing_status_other: last_form&.housing_status_other,
           housing_placement_date: last_form&.housing_placement_date,
           client_phone_number: last_form&.client_phone_number,
         )
