@@ -26,6 +26,10 @@
   @include list-unstyled();
 }
 
+.c-list-search__group-title {
+  margin: 0 space(4) 0 0;
+}
+
 .c-list-search__list-group--recently-viewed {
   .c-list-search__list-group-header {
     background: $brand-primary-ll;
@@ -40,12 +44,17 @@
   margin-bottom: 1px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .c-list-search__legend {
   display: flex;
   align-items: center;
   font-size: 14px;
+  i {
+    margin-right: space(1);
+  }
 }
 
 .c-list-search__item-link {

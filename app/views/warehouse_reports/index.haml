@@ -2,7 +2,8 @@
   input_classname = 'j-search'
   group_classname = 'j-category-group'
   recents = @report_definitions.first.clone
-  recents[0] = 'Recently Viewed'
+  recents_name = 'Recently Viewed'
+  recents[0] = recents_name
   definitions_with_recents = [ recents ] + @report_definitions
   limited_statement = 'Report is not limited by assigned projects.'
 
@@ -25,18 +26,22 @@
         .c-list-search__list-group-header
           %h3.c-list-search__group-title #{group_name}
           - if reports.any?{ |r| !r.limitable?}
-            .c-list-search__legend.ml-auto
+            .c-list-search__legend
               %i.icon-notification
               %em= limited_statement
         %ul{class: "warehouse-reports__#{dashed_group_name}"}
           - reports.each do |report|
             - if report
-              %li.c-list-search__item-link.j-item{data: {title: report.name, categories: [group_name].to_s.html_safe}}
+              - categories = [group_name]
+              %li.c-list-search__item-link.j-item{data: {title: report.name, categories: categories.to_s.html_safe}}
                 = link_to report.url, class: '' do
                   .c-list-search__item-title
                     %h5= report.name
                     - unless report.limitable?
                       %i.icon-notification{data: {toggle: :tooltip, title: limited_statement}}
+                    - if group_name == recents_name
+                      - categories.each do |cat|
+                        .badge.badge-primary.mr-1.ml-2=cat
                   %p.c-list-search__item-description= report.description.html_safe
 
 - content_for :page_js do
