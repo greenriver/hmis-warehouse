@@ -1,0 +1,15 @@
+= simple_form_for @vaccination, url: vaccination_client_he_clinicals_path do |f|
+  .row
+    - if can_edit_health_emergency_clinical?
+      .col-md-8
+        = f.input :vaccinated_on,  as: :date_picker, label: 'Vaccination date'
+        = f.input :vaccination_type, collection: @vaccination.vaccination_type_options, include_blank: true, as: :boolean_button_group
+        = f.input :vaccinated_at, label: 'Vaccination location', collection: @vaccination.location_options, as: :select_two, input_html: { data: {tags: true} }, hint: 'Add a new location by typing the name and hitting enter.'
+        = f.input :follow_up_cell_phone, label: 'Cell phone for follow-up', hint: 'This will only be used to send a reminder text about follow-up vaccinations'
+        = f.submit "Add #{@vaccination.title}"
+      - if can_see_health_emergency_clinical?
+        .col-md-4.border-left
+          = render "he/clients/#{health_emergency}/previous_vaccination"
+    - elsif can_see_health_emergency_clinical?
+      .col
+        = render "he/clients/#{health_emergency}/previous_vaccination"
