@@ -26,21 +26,27 @@
   @include list-unstyled();
 }
 
-.c-list-search__list-group { }
 .c-list-search__list-group--recently-viewed {
-  .c-list-search__group-title {
+  .c-list-search__list-group-header {
     background: $brand-primary-ll;
   }
 }
 
-.c-list-search__group-title {
+.c-list-search__list-group-header {
   background: $gray-015;
   padding: space(4);
   position: sticky;
   top: 0;
   margin-bottom: 1px;
+  display: flex;
+  align-items: center;
 }
 
+.c-list-search__legend {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
 
 .c-list-search__item-link {
   display: block;

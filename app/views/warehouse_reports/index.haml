@@ -4,6 +4,7 @@
   recents = @report_definitions.first.clone
   recents[0] = 'Recently Viewed'
   definitions_with_recents = [ recents ] + @report_definitions
+  limited_statement = 'Report is not limited by assigned projects.'
 
 - content_for :title, _("Warehouse Reports")
 %h1= content_for :title
@@ -21,7 +22,12 @@
     - definitions_with_recents.each_with_index do |(group_name, reports), index|
       - dashed_group_name = group_name.parameterize.dasherize
       .c-list-search__list-group{class: [group_classname, "c-list-search__list-group--#{group_name.parameterize}"], data: {categories: group_name}}
-        %h3.c-list-search__group-title #{group_name}
+        .c-list-search__list-group-header
+          %h3.c-list-search__group-title #{group_name}
+          - if reports.any?{ |r| !r.limitable?}
+            .c-list-search__legend.ml-auto
+              %i.icon-notification
+              %em= limited_statement
         %ul{class: "warehouse-reports__#{dashed_group_name}"}
           - reports.each do |report|
             - if report
@@ -30,7 +36,7 @@
                   .c-list-search__item-title
                     %h5= report.name
                     - unless report.limitable?
-                      %i.icon-notification{data: {toggle: :tooltip, title: 'Report is not limited by assigned projects.'}}
+                      %i.icon-notification{data: {toggle: :tooltip, title: limited_statement}}
                   %p.c-list-search__item-description= report.description.html_safe
 
 - content_for :page_js do
