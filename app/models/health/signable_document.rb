@@ -6,7 +6,7 @@
 
 # https://app.hellosign.com/api/reference
 #
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Indirectly relates to a patient
 # Control: PHI attributes documented
 module Health
