@@ -60,7 +60,7 @@ module GrdaWarehouse::HealthEmergency
           else
             "Initial Dose given #{vaccinated_on}"
           end
-        when 2
+        else
           'Vaccinated'
         end
       else
@@ -86,6 +86,8 @@ module GrdaWarehouse::HealthEmergency
         pluck(:vaccinated_at)
     end
 
+    # NOTE: called on initialized vaccination in the controller
+    # to determine follow_up_date
     def follow_up_date
       case vaccination_type
       when 'ModernaTX, Inc.', 'Pfizer, Inc., and BioNTech'
