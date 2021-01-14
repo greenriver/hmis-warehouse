@@ -8,6 +8,7 @@ module GrdaWarehouse::HealthEmergency
   class Test < GrdaWarehouseBase
     include ::HealthEmergency
 
+    validates_presence_of :tested_on, :result, on: :create
     scope :visible_to, -> (user) do
       return current_scope if user.can_see_health_emergency_clinical?
 

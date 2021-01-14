@@ -15,6 +15,8 @@
     - if can_see_health_emergency_clinical?
       = pill_badge labels: [client.health_emergency_isolation_quarantine_pill_title, client.health_emergency_isolation_status]
       = pill_badge labels: [GrdaWarehouse::HealthEmergency::Test.new.pill_title, client.health_emergency_test_status]
+      - if false # NOTE: disabled temporarily
+        = pill_badge labels: [GrdaWarehouse::HealthEmergency::Vaccination.new.pill_title, client.health_emergency_vaccination_status]
     - if show_link
       = link_to link_path, class: 'btn btn-primary btn-sm' do
         Update Information
