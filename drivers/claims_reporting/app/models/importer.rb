@@ -1,7 +1,7 @@
 # Class to handle upsert style inserts from ZIPED CSVs (and potentially other flat file formats
 # into ClaimsReporting::* data tables.
-require 'csv'
 require 'net/sftp'
+require 'zip'
 
 module ClaimsReporting
   class Importer
