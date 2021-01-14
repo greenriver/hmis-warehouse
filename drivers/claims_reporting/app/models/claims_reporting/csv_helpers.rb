@@ -25,13 +25,13 @@ module ClaimsReporting::CsvHelpers
       transaction do
         connection.truncate(table_name) if replace_all
         col_list = csv_cols.join(',')
-        log_timing "Loading #{filename} in #{quoted_table_name} cols:#{col_list}" do
+        log_timing "Loading #{filename} in #{quoted_table_name}" do
           copy_sql = <<~SQL.strip
             COPY #{quoted_table_name} (#{col_list})
             FROM STDIN
             WITH (FORMAT csv,HEADER,QUOTE '"',DELIMITER '|',FORCE_NULL(#{force_null_cols.join(',')}))
           SQL
-          logger.debug { copy_sql }
+          # logger.debug { copy_sql }
           pg_conn = connection.raw_connection
           pg_conn.copy_data copy_sql do
             io.each_line do |line|
@@ -90,14 +90,13 @@ module ClaimsReporting::CsvHelpers
     end
 
     private def log_timing(str)
-      logger.info { "#{self.class}: #{str} started" }
+      logger.info { "#{self}: #{str} started" }
       res = nil
       bm = Benchmark.measure do
         res = yield
       end
-      msg = "#{self.class}: #{str} completed in #{bm.to_s.strip}"
-      puts msg
-      logger.info msg
+      msg = "#{self}: #{str} completed in #{bm.to_s.strip}"
+      logger.info { msg }
       res
     end
   end
