@@ -9,14 +9,14 @@ window.App.FileDropzone = class FileDropzone {
   init() {
     // If we have a single file input on the page, initialize the zone
     if ($("input[type='file']").length == 1) {
-      this.insert_dropzone($("input[type='file']")[0])
+      this.insert_dropzone($("input[type='file']"))
     }
     else {
       // If we have a single file input on the page after an ajax request, initialize the zone
       $(document).ajaxComplete((event, xhr, settings) => {
         if (typeof settings.headers !== 'undefined' && settings.headers['X-AJAX-MODAL']) {
           if ($("input[type='file']").length == 1) {
-            this.insert_dropzone($("input[type='file']")[0])
+            this.insert_dropzone($("input[type='file']"))
           }
         }
       })
@@ -31,7 +31,7 @@ window.App.FileDropzone = class FileDropzone {
     this.zone.css('display', 'none')
   }
 
-  insert_dropzone(file_input) {
+  insert_dropzone($file_input) {
     //create and insert dropzone
     this.zone.css({
       'box-sizing': 'border-box',
@@ -82,7 +82,7 @@ window.App.FileDropzone = class FileDropzone {
 
     this.zone.on('drop', (e) => {
       this.hideDropZone()
-      file_input.files = e.originalEvent.dataTransfer.files
+      $file_input[0].files = e.originalEvent.dataTransfer.files
     })
   }
 }
