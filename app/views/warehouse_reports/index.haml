@@ -49,3 +49,4 @@
                         - categories.each do |cat|
                           .badge.badge-primary.mr-1.ml-2=cat
                     %p.c-list-search__item-description= report.description.html_safe
+      .c-list-search__no-results{class: 'hide', data: {target: "#{stimulus_controller}.noResults"}} No Reports found
