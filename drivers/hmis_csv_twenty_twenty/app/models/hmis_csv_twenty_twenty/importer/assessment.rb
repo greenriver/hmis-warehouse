@@ -37,6 +37,24 @@ module HmisCsvTwentyTwenty::Importer
             arguments: { valid_options: HUD.assessment_types.keys.map(&:to_s).freeze },
           },
         ],
+        AssessmentLevel: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.assessment_levels.keys.map(&:to_s).freeze },
+          },
+        ],
+        PrioritizationStatus: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.prioritization_statuses.keys.map(&:to_s).freeze },
+          },
+        ],
       }
     end
 

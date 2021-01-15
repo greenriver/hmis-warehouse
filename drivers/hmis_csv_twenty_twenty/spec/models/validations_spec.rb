@@ -52,7 +52,7 @@ RSpec.describe 'Validate import files', type: :model do
   end
 
   it 'includes expected assessments validations' do
-    expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(2)
+    expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Assessment').count).to eq(6)
   end
 
   it 'excludes expected assessments failures' do
@@ -353,7 +353,7 @@ RSpec.describe 'Validate import files', type: :model do
   it 'includes expected projects validations' do
     aggregate_failures 'validating' do
       expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Project').count).to eq(7)
-      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Project').count).to eq(4)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Project').count).to eq(3)
     end
   end
 

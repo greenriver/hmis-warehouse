@@ -1482,22 +1482,30 @@ module HUD
 
   # 4.19.4
   def assessment_level(id, reverse = false)
-    map = {
-      1 => 'Crisis Needs Assessment',
-      2 => 'Housing Needs Assessment',
-    }
+    map = assessment_levels
 
     _translate map, id, reverse
   end
 
+  def assessment_levels
+    {
+      1 => 'Crisis Needs Assessment',
+      2 => 'Housing Needs Assessment',
+    }.freeze
+  end
+
   # 4.19.7
   def prioritization_status(id, reverse = false)
-    map = {
-      1 => 'Placed on prioritization list',
-      2 => 'Not placed on prioritization list',
-    }
+    map = prioritization_statuses
 
     _translate map, id, reverse
+  end
+
+  def prioritization_statuses
+    {
+      1 => 'Placed on prioritization list',
+      2 => 'Not placed on prioritization list',
+    }.freeze
   end
 
   # 4.19.A / W5.A

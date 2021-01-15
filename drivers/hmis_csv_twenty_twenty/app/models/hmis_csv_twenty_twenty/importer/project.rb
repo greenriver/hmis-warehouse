@@ -97,9 +97,6 @@ module HmisCsvTwentyTwenty::Importer
             arguments: { valid_options: HUD.target_populations.keys.map(&:to_s).freeze },
           },
         ],
-        PITCount: [
-          class: HmisCsvValidation::NonBlankValidation,
-        ],
       }
     end
   end
