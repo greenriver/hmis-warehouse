@@ -5,8 +5,6 @@ module ClaimsReporting
   class ReconcilationReport
     extend Memoist
 
-    # attr_accessor :month
-    # attr_accessor :aco_ids
     attr_accessor :month, :aco_ids
 
     def initialize(month:, aco_ids: [])

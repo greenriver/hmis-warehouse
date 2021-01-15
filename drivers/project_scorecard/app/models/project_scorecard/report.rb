@@ -265,7 +265,6 @@ module ProjectScorecard
     end
 
     def send_email_to_contacts
-      # contacts.index_by(&:email).values.each do |contact|
       contacts.index_by(&:email).each_value do |contact|
         ProjectScorecard::ScorecardMailer.scorecard_ready(self, contact).deliver_later
       end

@@ -208,3 +208,9 @@ Bundler/OrderedGems:
 
 Style/HashAsLastArrayItem:
   Enabled: false
+
+Style/CaseLikeIf:
+  Enabled: false
+
+Style/CommentAnnotation:
+  Enabled: false
