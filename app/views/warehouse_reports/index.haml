@@ -6,11 +6,12 @@
   recents[0] = recents_name
   definitions_with_recents = [ recents ] + @report_definitions
   limited_statement = 'Report is not limited by assigned projects.'
+  stimulus_controller = 'list-search'
 
 - content_for :title, _("Warehouse Reports")
 %h1= content_for :title
 
-.c-list-search
+.c-list-search{data: {controller: stimulus_controller}}
   .c-list-search__header
     .c-list-search__select
       %select.form-control.select2{multiple: true, placeholder: 'Select report categories', class: input_classname}

@@ -59,6 +59,7 @@
 //= require selectable_list
 //= require viewable_entities
 //= require select_2
+//= require ./init_stimulus
 //= require_directory ./admin/client_matches
 //= require_directory ./census
 //= require_directory ./filter

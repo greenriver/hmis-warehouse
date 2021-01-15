@@ -24,6 +24,18 @@ const hideOrShowElement = (condition, $el, className='hide') => {
   }
 }
 
+App.StimulusApp.register('list-search', class extends Stimulus.Controller {
+  static get targets() {
+    []
+  }
+
+  initialize() { }
+
+  connect() {
+    console.log('List search connected')
+  }
+})
+
 window.App.ListSearch = class ListSearch {
   constructor(props) {
     this.props = props
