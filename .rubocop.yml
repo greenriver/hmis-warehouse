@@ -205,3 +205,6 @@ Style/StringConcatenation:
 
 Bundler/OrderedGems:
   Enabled: false
+
+Style/HashAsLastArrayItem:
+  Enabled: false
