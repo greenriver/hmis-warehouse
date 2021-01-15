@@ -210,13 +210,15 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
       string = string.gsub('/', '-')
       # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
-      return string if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
+      return string if /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.match?(string)
+      return string.to_time.strftime('%Y-%m-%d %H:%M:%S') if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
 
       # Sometimes times come in mm-dd-yyyy hh:mm
       if /\d{1,2}-\d{1,2}-\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
         date, time = string.split(' ')
         month, day, year = date.split('-')
-        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}"
+
+        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}".to_time.strftime('%Y-%m-%d %H:%M:%S')
       elsif /\d{1,2}-\d{1,2}-\d{2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
         date, time = string.split(' ')
         month, day, year = date.split('-')
@@ -234,7 +236,10 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
           year += 1900
         end
 
-        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}"
+        string = "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}"
+        return string if /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.match?(string)
+
+        string.to_time.strftime('%Y-%m-%d %H:%M:%S')
       end
 
       begin
