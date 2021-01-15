@@ -43,6 +43,7 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
     this.selectedCategories = this.activeCategories()
     this.ACTIVE_CLASS = 'active'
     this.ALL_KEY = 'all'
+    this.searchTerm = ''
   }
 
   changeCategory(event) {
@@ -87,6 +88,9 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
     this.categoryContentTargets.forEach((el) => {
       showOrHideElement(!activeCategoryKeys.includes(el.dataset.category), el)
     })
+    if (this.searchTerm.length) {
+      this.search(null)
+    }
   }
 
   activeCategories() {
@@ -95,12 +99,22 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
       .filter(x => x)
   }
 
-  search({target}) {
-    const term =  target.value
+  search(event) {
+    let term = ''
+    if (event) {
+      const { target } = event
+      term = target.value
+    } else {
+      term = this.searchTerm
+    }
     let activeCategoriesEls =
       this.categoryContentTargets.filter( el => !el.classList.contains('hide') )
       activeCategoriesEls.forEach((group) => {
-      [...group.querySelectorAll('li')].forEach((item) => {
+      const matchingItems = [...group.querySelectorAll('li')].filter((item) => {
+        if (!term.length) {
+          showOrHideElement(false, item)
+          return
+        }
         const { title='' } = item.dataset
         const description = item.querySelector('p')
         const termRegExp = new RegExp(term, 'i')
@@ -109,8 +123,11 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
           description ? description.textContent.match(termRegExp) : false
         ]
         showOrHideElement(!matches.some(v => v), item)
+        return matches.some(v => v)
       })
+      showOrHideElement(!matchingItems.length && term.length, group, 'no-results')
     })
+    this.searchTerm = term
   }
 })
 

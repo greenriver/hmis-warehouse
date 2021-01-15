@@ -70,6 +70,12 @@
   margin: 0 space(4) 0 0;
 }
 
+.c-list-search__list-group {
+  &.no-results {
+    display: none;
+  }
+}
+
 .c-list-search__list-group--recently-viewed {
   .c-list-search__list-group-header {
     background: $brand-primary-ll;
