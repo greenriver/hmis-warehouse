@@ -13,44 +13,24 @@ module HudApr::Apr::AprConcern
     end
     helper_method :generator
 
-    private def report_short_name
-      generator.short_name
+    private def path_for_question(question, report: nil)
+      hud_reports_apr_question_path(apr_id: report&.id || 0, id: question)
     end
-    helper_method :report_short_name
 
-    private def report_name
-      generator.title
+    private def path_for_question_result(question, report: nil)
+      result_hud_reports_apr_question_path(apr_id: report&.id || 0, id: question)
     end
-    helper_method :report_name
-
-    private def path_for_question_result(report_id:, id:)
-      result_hud_reports_apr_question_path(apr_id: report_id, id: id)
-    end
-    helper_method :path_for_question_result
-
-    private def path_for_question(report_id:, question:)
-      hud_reports_apr_question_path(apr_id: report_id, id: question)
-    end
-    helper_method :path_for_question
-
-    private def path_for_questions(report_id:, question:)
-      hud_reports_apr_questions_path(apr_id: report_id, question: question)
-    end
-    helper_method :path_for_questions
 
     private def path_for_report(*options)
       hud_reports_apr_path(options)
     end
-    helper_method :path_for_report
 
     private def path_for_reports(*options)
       hud_reports_aprs_path(options)
     end
-    helper_method :path_for_reports
 
-    def path_for_cell(report_id:, question_id:, cell_id:, table:)
-      hud_reports_apr_question_cell_path(apr_id: report_id, question_id: question_id, id: cell_id, table: table)
+    privarte def path_for_cell(report:, question:, cell_label:, table:)
+      hud_reports_apr_question_cell_path(apr_id: report&.id || 0, question_id: question, id: cell_label, table: table)
     end
-    helper_method :path_for_cell
   end
 end

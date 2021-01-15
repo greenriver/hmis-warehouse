@@ -1,8 +1,0 @@
-- if @reports.present?
-  %p= paginate @reports
-  .jReportListing
-    = render 'hud_apr/shared/reports'
-  = render 'hud_apr/shared/list_refresher'
-- else
-  %p.none-found
-    No reports to show

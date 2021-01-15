@@ -55,11 +55,6 @@ module HudDataQualityReport
       @filter.set_from_params(filter_params) if filter_params.present?
     end
 
-    # FIXME: do we need this?
-    private def report_param_name
-      :id
-    end
-
     private def filter_class
       HudDataQualityReport::Filters::DqFilter
     end

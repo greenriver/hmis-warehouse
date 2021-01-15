@@ -6,10 +6,10 @@
 
 %h1= content_for :title
 
-= render 'hud_apr/shared/report_form', url: path_for_questions(report_id: 0, question: @question)
+= render 'hud_apr/shared/report_form', url: path_for_question(@question)
 
 - if @reports.present?
   %p= paginate @reports
 .jReportListing
-  = render 'hud_apr/shared/reports'
-= render 'hud_apr/shared/list_refresher'
+  = render 'hud_reports/reports'
+= render 'hud_reports/list_refresher'
