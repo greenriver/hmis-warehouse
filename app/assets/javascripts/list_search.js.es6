@@ -89,9 +89,10 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
 
   search({target}) {
     const term =  target.value
-    let activeCategories =
+    let activeCategoriesEls =
       this.categoryContentTargets.filter( el => !el.classList.contains('hide') )
-    activeCategories.forEach((group) => {
+    console.log(activeCategoriesEls)
+      activeCategoriesEls.forEach((group) => {
       [...group.querySelectorAll('li')].forEach((item) => {
         const { title='' } = item.dataset
         const description = item.querySelector('p')
