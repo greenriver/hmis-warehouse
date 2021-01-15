@@ -39,17 +39,22 @@ module ClaimsReporting
         while (entry = io.get_next_entry)
           case entry.name
           when /medical_claims.csv\z/
-            logger.info "import_from_zip: found #{entry.name}, reading..."
+            logger.info "found #{entry.name}, importing..."
             entry.get_input_stream do |entry_io|
               MedicalClaim.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
             end
           when /member_roster.csv\z/
-            logger.info "import_from_zip: found #{entry.name}, reading..."
+            logger.info "found #{entry.name}, importing..."
             entry.get_input_stream do |entry_io|
               MemberRoster.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
             end
+          when /member_enrollment_roster.csv/
+            logger.info "found #{entry.name}, importing..."
+            entry.get_input_stream do |entry_io|
+              MemberEnrollmentRoster.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
+            end
           when /rx_claim.csv\z/
-            logger.info "import_from_zip: found #{entry.name}, reading..."
+            logger.info "found #{entry.name}, importing..."
             entry.get_input_stream do |entry_io|
               RxClaim.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
             end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_23_182315) do
+ActiveRecord::Schema.define(version: 2021_01_14_205149) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -203,6 +203,18 @@ ActiveRecord::Schema.define(version: 2020_12_23_182315) do
     t.index ["medicaid_id"], name: "index_claims_ed_nyu_severity_on_medicaid_id"
   end
 
+  create_table "claims_reporting_ccs_lookups", force: :cascade do |t|
+    t.string "hcpcs_start", null: false
+    t.string "hcpcs_end", null: false
+    t.integer "ccs_id", null: false
+    t.string "ccs_label", null: false
+    t.date "effective_start", null: false
+    t.date "effective_end", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["effective_start", "hcpcs_start", "hcpcs_end"], name: "unk_code_range", unique: true
+  end
+
   create_table "claims_reporting_cp_payment_details", force: :cascade do |t|
     t.bigint "cp_payment_upload_id", null: false
     t.string "medicaid_id", null: false
@@ -387,7 +399,205 @@ ActiveRecord::Schema.define(version: 2020_12_23_182315) do
     t.string "e_dx_present_on_admission_12", limit: 50
     t.decimal "quantity", precision: 12, scale: 4
     t.string "price_method", limit: 50
+    t.string "ccs_id"
+    t.index ["aco_name"], name: "index_claims_reporting_medical_claims_on_aco_name"
+    t.index ["aco_pidsl"], name: "index_claims_reporting_medical_claims_on_aco_pidsl"
+    t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
     t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
+  end
+
+  create_table "claims_reporting_member_diagnosis_classifications", force: :cascade do |t|
+    t.string "member_id", null: false
+    t.boolean "currently_assigned"
+    t.boolean "currently_engaged"
+    t.boolean "ast", comment: "asthma"
+    t.boolean "cpd", comment: "copd"
+    t.boolean "cir", comment: "cardiac disease"
+    t.boolean "dia", comment: "diabetes"
+    t.boolean "spn", comment: "degenerative spinal disease/chronic pain"
+    t.boolean "gbt", comment: "gi and biliary tract disease"
+    t.boolean "obs", comment: "obesity"
+    t.boolean "hyp", comment: "hypertension"
+    t.boolean "hep", comment: "hepatitis"
+    t.boolean "sch", comment: "schizophrenia"
+    t.boolean "pbd", comment: "psychoses/bipolar disorders"
+    t.boolean "das", comment: "depression/anxiety/stress reactions"
+    t.boolean "pid", comment: "personality/impulse disorder"
+    t.boolean "sia", comment: "suicidal ideation/attempt"
+    t.boolean "sud", comment: "substance Abuse Disorder"
+    t.boolean "other_bh", comment: "other behavioral health"
+    t.boolean "coi", comment: "cohort of interest"
+    t.boolean "high_er", comment: "5+ ER Visits with No IP Psych Admission"
+    t.boolean "psychoses", comment: "1+ Psychoses Admissions"
+    t.boolean "other_ip_psych", comment: "+ IP Psych Admissions"
+    t.boolean "high_util", comment: "3+ inpatient stays or 5+ emergency room visits throughout their claims experience"
+    t.integer "er_visits"
+    t.integer "ip_admits"
+    t.integer "ip_admits_psychoses"
+    t.integer "antipsy_day"
+    t.integer "engaged_member_days"
+    t.integer "engaged_member_months"
+    t.integer "antipsy_denom"
+    t.integer "antidep_day"
+    t.integer "antidep_denom"
+    t.integer "moodstab_day"
+    t.integer "moodstab_denom"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["member_id"], name: "unk_crmd"
+  end
+
+  create_table "claims_reporting_member_enrollment_rosters", force: :cascade do |t|
+    t.string "member_id", limit: 50
+    t.string "performance_year", limit: 50
+    t.string "region", limit: 50
+    t.string "service_area", limit: 50
+    t.string "aco_pidsl", limit: 50
+    t.string "aco_name", limit: 255
+    t.string "pcc_pidsl", limit: 50
+    t.string "pcc_name", limit: 255
+    t.string "pcc_npi", limit: 50
+    t.string "pcc_taxid", limit: 50
+    t.string "mco_pidsl", limit: 50
+    t.string "mco_name", limit: 50
+    t.string "enrolled_flag", limit: 50
+    t.string "enroll_type", limit: 50
+    t.string "enroll_stop_reason", limit: 50
+    t.string "rating_category_char_cd", limit: 255
+    t.string "ind_dds", limit: 50
+    t.string "ind_dmh", limit: 50
+    t.string "ind_dta", limit: 50
+    t.string "ind_dss", limit: 50
+    t.string "cde_hcb_waiver", limit: 50
+    t.string "cde_waiver_category", limit: 50
+    t.date "span_start_date"
+    t.date "span_end_date"
+    t.integer "span_mem_days"
+    t.string "cp_prov_type", limit: 255
+    t.string "cp_plan_type", limit: 255
+    t.string "cp_pidsl", limit: 50
+    t.string "cp_prov_name", limit: 512
+    t.date "cp_enroll_dt"
+    t.date "cp_disenroll_dt"
+    t.string "cp_start_rsn", limit: 255
+    t.string "cp_stop_rsn", limit: 255
+    t.string "ind_medicare_a", limit: 50
+    t.string "ind_medicare_b", limit: 50
+    t.string "tpl_coverage_cat", limit: 50
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "claims_reporting_member_rosters", force: :cascade do |t|
+    t.string "member_id", limit: 50, null: false
+    t.string "nam_first", limit: 255
+    t.string "nam_last", limit: 255
+    t.string "cp_pidsl", limit: 50
+    t.string "cp_name", limit: 255
+    t.string "aco_pidsl", limit: 50
+    t.string "aco_name", limit: 255
+    t.string "mco_pidsl", limit: 50
+    t.string "mco_name", limit: 50
+    t.string "sex", limit: 50
+    t.date "date_of_birth"
+    t.string "mailing_address_1", limit: 512
+    t.string "mailing_address_2", limit: 512
+    t.string "mailing_city", limit: 255
+    t.string "mailing_state", limit: 255
+    t.string "mailing_zip", limit: 50
+    t.string "residential_address_1", limit: 512
+    t.string "residential_address_2", limit: 512
+    t.string "residential_city", limit: 255
+    t.string "residential_state", limit: 255
+    t.string "residential_zip", limit: 50
+    t.string "race", limit: 50
+    t.string "phone_number", limit: 50
+    t.string "primary_language_s", limit: 255
+    t.string "primary_language_w", limit: 255
+    t.string "sdh_nss7_score", limit: 50
+    t.string "sdh_homelessness", limit: 50
+    t.string "sdh_addresses_flag", limit: 50
+    t.string "sdh_other_disabled", limit: 50
+    t.string "sdh_spmi", limit: 50
+    t.string "raw_risk_score", limit: 50
+    t.string "normalized_risk_score", limit: 50
+    t.string "raw_dxcg_risk_score", limit: 50
+    t.date "last_office_visit"
+    t.date "last_ed_visit"
+    t.date "last_ip_visit"
+    t.string "enrolled_flag", limit: 50
+    t.string "enrollment_status", limit: 50
+    t.date "cp_claim_dt"
+    t.string "qualifying_hcpcs", limit: 50
+    t.string "qualifying_hcpcs_nm", limit: 255
+    t.string "qualifying_dsc", limit: 512
+    t.string "email", limit: 512
+    t.string "head_of_household", limit: 512
+    t.index ["aco_name"], name: "index_claims_reporting_member_rosters_on_aco_name"
+    t.index ["date_of_birth"], name: "index_claims_reporting_member_rosters_on_date_of_birth"
+    t.index ["member_id"], name: "index_claims_reporting_member_rosters_on_member_id", unique: true
+    t.index ["race"], name: "index_claims_reporting_member_rosters_on_race"
+    t.index ["sex"], name: "index_claims_reporting_member_rosters_on_sex"
+  end
+
+  create_table "claims_reporting_rx_claims", force: :cascade do |t|
+    t.string "member_id", limit: 50
+    t.string "claim_number", limit: 30
+    t.string "line_number", limit: 10
+    t.string "cp_pidsl", limit: 50
+    t.string "cp_name", limit: 255
+    t.string "aco_pidsl", limit: 50
+    t.string "aco_name", limit: 255
+    t.string "pcc_pidsl", limit: 50
+    t.string "pcc_name", limit: 255
+    t.string "pcc_npi", limit: 50
+    t.string "pcc_taxid", limit: 50
+    t.string "mco_pidsl", limit: 50
+    t.string "mco_name", limit: 50
+    t.string "source", limit: 50
+    t.string "claim_type", limit: 255
+    t.date "member_dob"
+    t.string "refill_quantity", limit: 20
+    t.date "service_start_date"
+    t.date "service_end_date"
+    t.date "paid_date"
+    t.integer "days_supply"
+    t.decimal "billed_amount", precision: 19, scale: 4
+    t.decimal "allowed_amount", precision: 19, scale: 4
+    t.decimal "paid_amount", precision: 19, scale: 4
+    t.string "prescriber_npi", limit: 50
+    t.string "id_prescriber_servicing", limit: 50
+    t.string "prescriber_taxid", limit: 50
+    t.string "prescriber_name", limit: 255
+    t.string "prescriber_type", limit: 50
+    t.string "prescriber_taxonomy", limit: 50
+    t.string "prescriber_address", limit: 512
+    t.string "prescriber_city", limit: 255
+    t.string "prescriber_state", limit: 255
+    t.string "prescriber_zip", limit: 50
+    t.string "billing_npi", limit: 50
+    t.string "id_provider_billing", limit: 50
+    t.string "billing_taxid", limit: 50
+    t.string "billing_provider_name", limit: 255
+    t.string "billing_provider_type", limit: 50
+    t.string "billing_provider_taxonomy", limit: 50
+    t.string "billing_address", limit: 512
+    t.string "billing_city", limit: 255
+    t.string "billing_state", limit: 255
+    t.string "billing_zip", limit: 50
+    t.string "ndc_code", limit: 50
+    t.string "dosage_form_code", limit: 50
+    t.string "therapeutic_class", limit: 50
+    t.string "daw_ind", limit: 50
+    t.string "gcn", limit: 50
+    t.string "claim_status", limit: 50
+    t.string "disbursement_code", limit: 50
+    t.string "enrolled_flag", limit: 50
+    t.string "drug_name", limit: 512
+    t.integer "brand_vs_generic_indicator"
+    t.string "price_method", limit: 50
+    t.decimal "quantity", precision: 12, scale: 4
+    t.string "route_of_administration", limit: 255
   end
 
   create_table "claims_roster", id: :serial, force: :cascade do |t|
@@ -1827,19 +2037,6 @@ ActiveRecord::Schema.define(version: 2020_12_23_182315) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
-  end
-
-  create_table "vaccinations", force: :cascade do |t|
-    t.string "medicaid_id"
-    t.date "vaccinated_on"
-    t.string "vaccinated_at"
-    t.string "vaccination_type", null: false
-    t.string "follow_up_cell_phone"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "deleted_at"
-    t.index ["created_at"], name: "index_vaccinations_on_created_at"
-    t.index ["updated_at"], name: "index_vaccinations_on_updated_at"
   end
 
   create_table "versions", id: :serial, force: :cascade do |t|
