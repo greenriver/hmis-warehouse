@@ -92,6 +92,8 @@ module GrdaWarehouse::HealthEmergency
     # NOTE: called on initialized vaccination in the controller
     # to determine follow_up_date
     def follow_up_date
+      return unless vaccinated_on
+
       case vaccination_type
       when MODERNA
         vaccinated_on + 28.days if similar_vaccinations.count.zero?
