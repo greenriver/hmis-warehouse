@@ -17,7 +17,7 @@ module He
         agency_id: current_user.agency&.id,
         emergency_type: health_emergency,
       }
-      @test = GrdaWarehouse::HealthEmergency::ClinicalTriage.create(triage_params.merge(user_data))
+      @triage = GrdaWarehouse::HealthEmergency::ClinicalTriage.create(triage_params.merge(user_data))
       redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
     end
 
@@ -37,7 +37,12 @@ module He
         agency_id: current_user.agency&.id,
         emergency_type: health_emergency,
       }
-      @test = GrdaWarehouse::HealthEmergency::Test.create(test_params.merge(user_data))
+      @test = GrdaWarehouse::HealthEmergency::Test.new(test_params.merge(user_data))
+      if @test.save
+        flash[:notice] = 'Test result added successfully'
+      else
+        flash[:error] = @test.errors.full_messages.to_sentence
+      end
       redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
     end
 
@@ -48,6 +53,33 @@ module He
           :tested_on,
           :result,
           :notes,
+        )
+    end
+
+    def vaccination
+      user_data = {
+        user_id: current_user.id,
+        client_id: params[:client_id],
+        agency_id: current_user.agency&.id,
+        emergency_type: health_emergency,
+      }
+      @vaccination = GrdaWarehouse::HealthEmergency::Vaccination.new(vaccination_params.merge(user_data))
+      @vaccination.follow_up_on = @vaccination.follow_up_date
+      if @vaccination.save
+        flash[:notice] = 'Vaccination added successfully'
+      else
+        flash[:error] = @vaccination.errors.full_messages.to_sentence
+      end
+      redirect_to(polymorphic_path(['client_he', health_emergency], client_id: @client))
+    end
+
+    def vaccination_params
+      params.require(:grda_warehouse_health_emergency_vaccination).
+        permit(
+          :vaccinated_at,
+          :vaccinated_on,
+          :vaccination_type,
+          :follow_up_cell_phone,
         )
     end
 
@@ -115,6 +147,13 @@ module He
       @isolation = GrdaWarehouse::HealthEmergency::IsolationBase.find(params[:id].to_i)
       @isolation.destroy
       flash[:notice] = "#{@isolation.title} Activity Removed"
+      redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
+    end
+
+    def destroy_vaccination
+      @vaccination = GrdaWarehouse::HealthEmergency::Vaccination.find(params[:id].to_i)
+      @vaccination.destroy
+      flash[:notice] = "#{@vaccination.title} Activity Removed"
       redirect_to polymorphic_path(['client_he', health_emergency], client_id: @client)
     end
   end

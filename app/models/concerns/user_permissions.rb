@@ -34,8 +34,6 @@ module UserPermissions
         :can_view_client_and_history,
         :can_view_or_edit_client_health,
         :can_view_imports_projects_or_organizations,
-        :can_edit_projects_or_everything,
-        :can_edit_data_sources_or_everything,
         :can_view_some_secure_files,
         :has_administrative_access_to_health,
         :has_patient_referral_review_access,
@@ -145,15 +143,7 @@ module UserPermissions
     end
 
     def can_view_imports_projects_or_organizations
-      can_view_imports? || can_view_projects? || can_view_organizations? || can_edit_anything_super_user?
-    end
-
-    def can_edit_projects_or_everything
-      can_edit_projects? || can_edit_anything_super_user?
-    end
-
-    def can_edit_data_sources_or_everything
-      can_edit_data_sources? || can_edit_anything_super_user?
+      can_view_imports? || can_view_projects? || can_view_organizations?
     end
 
     def can_view_some_secure_files

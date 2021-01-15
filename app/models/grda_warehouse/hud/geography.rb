@@ -23,13 +23,13 @@ module GrdaWarehouse::Hud
     has_one :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :geographies
     belongs_to :data_source
 
-    scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
+    scope :viewable_by, ->(user) do
+      if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         current_scope
       elsif user.coc_codes.none?
         none
       else
-        joins(:project_coc).merge( GrdaWarehouse::Hud::ProjectCoc.viewable_by user )
+        joins(:project_coc).merge(GrdaWarehouse::Hud::ProjectCoc.viewable_by(user))
       end
     end
 
