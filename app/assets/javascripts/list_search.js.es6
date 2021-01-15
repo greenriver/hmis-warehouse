@@ -24,15 +24,85 @@ const hideOrShowElement = (condition, $el, className='hide') => {
   }
 }
 
+// If condition is true, `$el` gets given class if not it's removed
+const showOrHideElement = (condition, el, className='hide') => {
+  if (condition) {
+    el.classList.add(className)
+  } else {
+    el.classList.remove(className)
+  }
+}
+
 App.StimulusApp.register('list-search', class extends Stimulus.Controller {
   static get targets() {
-    []
+    return [ 'category', 'categoryContent', 'item' ]
   }
 
-  initialize() { }
+  initialize() {
+    this.search = debounce(this.search, 200)
+    this.selectedCategories = this.activeCategories()
+  }
 
-  connect() {
-    console.log('List search connected')
+  changeCategory(event) {
+    const el = event.target
+    const activeClass = 'active'
+    const allKey = 'all'
+    if (!el) return
+    const { category } = el.dataset
+    const allSelected = category === allKey
+    if (allSelected) {
+      this.hideCategories(true)
+      el.classList.add(activeClass)
+    } else if ( this.selectedCategories.includes(category) ) {
+      el.classList.remove(activeClass)
+    } else {
+      this.categoryTargets[0].classList.remove(activeClass)
+      el.classList.add(activeClass)
+    }
+    this.selectedCategories = this.activeCategories()
+    this.updateCategoryContent()
+  }
+
+  hideCategories(categoriesToHide) {
+    if (typeof(categoriesToHide) === 'boolean') {
+      this.categoryTargets.forEach(el => el.classList.remove('active'))
+      return
+    }
+  }
+
+  updateCategoryContent() {
+    let activeCategoryKeys = this.activeCategories()
+    if (activeCategoryKeys[0] === 'all') {
+      activeCategoryKeys =
+        this.categoryContentTargets.map(el => el.dataset.category)
+    }
+    this.categoryContentTargets.forEach((el) => {
+      showOrHideElement(!activeCategoryKeys.includes(el.dataset.category), el)
+    })
+  }
+
+  activeCategories() {
+    return this.categoryTargets
+      .map(el => el.classList.contains('active') ? el.dataset.category : null)
+      .filter(x => x)
+  }
+
+  search({target}) {
+    const term =  target.value
+    let activeCategories =
+      this.categoryContentTargets.filter( el => !el.classList.contains('hide') )
+    activeCategories.forEach((group) => {
+      [...group.querySelectorAll('li')].forEach((item) => {
+        const { title='' } = item.dataset
+        const description = item.querySelector('p')
+        const termRegExp = new RegExp(term, 'i')
+        const matches = [
+          title ? title.match(termRegExp) : false,
+          description ? description.textContent.match(termRegExp) : false
+        ]
+        showOrHideElement(!matches.some(v => v), item)
+      })
+    })
   }
 })
 

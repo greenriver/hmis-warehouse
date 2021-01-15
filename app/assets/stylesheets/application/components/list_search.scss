@@ -9,16 +9,56 @@
 .c-list-search__header {
   display: flex;
   flex: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: space(2) space(4);
 }
 
-.c-list-search__select,
 .c-list-search__search {
-  flex: 1 1 300px;
-  padding: space(4);
+  flex: 1 1 250px;
   max-width: 400px;
+  margin-top: space(1);
+  margin-bottom: space(1);
+}
+
+.c-list-search__container {
+  display: flex;
+  position: relative;
+}
+
+.c-list-search__filtration-nav {
+  background: $body-bg;
+  border-right: 5px solid $white;
+  position: relative;
+  flex: 0 1 300px;
+}
+
+.c-list-search__filtration-nav-wrapper {
+  position: sticky;
+  top: 0;
+  ul {
+    @include list-unstyled;
+    padding: 5px;
+  }
+  li {
+    padding: space(2) calc(#{space(4)} - 5px);
+    border-radius: $border-radius;
+    font-size: 18px;
+    cursor: pointer;
+    &:hover,
+    &:focus {
+      background: rgba($white, .5);
+    }
+    &.active {
+      color: $brand-primary;
+      background: $white;
+      font-weight: bold;
+    }
+  }
 }
 
 .c-list-search__list {
+  flex: 1 1 auto;
   position: relative;
 }
 
@@ -46,6 +86,10 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
+}
+
+.c-list-search__list-group-header--static {
+  position: static;
 }
 
 .c-list-search__legend {

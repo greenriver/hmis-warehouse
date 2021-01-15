@@ -8,42 +8,50 @@
   limited_statement = 'Report is not limited by assigned projects.'
   stimulus_controller = 'list-search'
 
-- content_for :title, _("Warehouse Reports")
-%h1= content_for :title
-
 .c-list-search{data: {controller: stimulus_controller}}
   .c-list-search__header
-    .c-list-search__select
-      %select.form-control.select2{multiple: true, placeholder: 'Select report categories', class: input_classname}
-        - definitions_with_recents.each do |(group_name, reports)|
-          %option{value: group_name}= group_name
-    .c-list-search__search
-      %input.form-control{placeholder: 'Search reports', class: input_classname}
+    .c-list-search__title
+      - content_for :title, _("Warehouse Reports")
+      %h1= content_for :title
 
-  .mb-4.c-list-search__list
-    - definitions_with_recents.each_with_index do |(group_name, reports), index|
-      - dashed_group_name = group_name.parameterize.dasherize
-      .c-list-search__list-group{class: [group_classname, "c-list-search__list-group--#{group_name.parameterize}"], data: {categories: group_name}}
-        .c-list-search__list-group-header
-          %h3.c-list-search__group-title #{group_name}
-          - if reports.any?{ |r| !r.limitable?}
-            .c-list-search__legend
-              %i.icon-notification
-              %em= limited_statement
-        %ul{class: "warehouse-reports__#{dashed_group_name}"}
-          - reports.each do |report|
-            - if report
-              - categories = [group_name]
-              %li.c-list-search__item-link.j-item{data: {title: report.name, categories: categories.to_s.html_safe}}
-                = link_to report.url, class: '' do
-                  .c-list-search__item-title
-                    %h5= report.name
-                    - unless report.limitable?
-                      %i.icon-notification{data: {toggle: :tooltip, title: limited_statement}}
-                    - if group_name == recents_name
-                      - categories.each do |cat|
-                        .badge.badge-primary.mr-1.ml-2=cat
-                  %p.c-list-search__item-description= report.description.html_safe
+    .c-list-search__search
+      %input.form-control{placeholder: 'Search reports', class: input_classname, data: {action: "input->#{stimulus_controller}#search"}}
+
+
+  .c-list-search__container
+    %nav.c-list-search__filtration-nav
+      .c-list-search__filtration-nav-wrapper
+        .c-list-search__list-group-header.c-list-search__list-group-header--static
+          %h3.c-list-search__group-title Report Categories
+        %ul
+          - base_data = {action: "click->#{stimulus_controller}#changeCategory", target: "#{stimulus_controller}.category"}
+          %li.active{data: base_data.merge(category:'all')} All Reports
+          - definitions_with_recents.each do |(category_name, reports)|
+            %li{data: base_data.merge(category:category_name)}= category_name
+    .mb-4.c-list-search__list
+      - definitions_with_recents.each_with_index do |(group_name, reports), index|
+        - dashed_group_name = group_name.parameterize.dasherize
+        .c-list-search__list-group{class: [group_classname, "c-list-search__list-group--#{group_name.parameterize}"], data: {category: group_name, target: "#{stimulus_controller}.categoryContent"}}
+          .c-list-search__list-group-header
+            %h3.c-list-search__group-title #{group_name}
+            - if reports.any?{ |r| !r.limitable?}
+              .c-list-search__legend
+                %i.icon-notification
+                %em= limited_statement
+          %ul{class: "warehouse-reports__#{dashed_group_name}"}
+            - reports.each do |report|
+              - if report
+                - categories = [group_name]
+                %li.c-list-search__item-link.j-item{data: {title: report.name, categories: categories.to_s.html_safe, target: "#{stimulus_controller}.item"}}
+                  = link_to report.url, class: '' do
+                    .c-list-search__item-title
+                      %h5= report.name
+                      - unless report.limitable?
+                        %i.icon-notification{data: {toggle: :tooltip, title: limited_statement}}
+                      - if group_name == recents_name
+                        - categories.each do |cat|
+                          .badge.badge-primary.mr-1.ml-2=cat
+                    %p.c-list-search__item-description= report.description.html_safe
 
 - content_for :page_js do
   :javascript
