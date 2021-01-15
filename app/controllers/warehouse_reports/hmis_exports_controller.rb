@@ -49,9 +49,15 @@ module WarehouseReports
           flash[:error] = 'Invalid S3 Configuration'
           render :index
         else
-          if @filter.version == '6.11'
+          # if @filter.version == '6.11'
+          #   WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
+          # elsif @filter.version == '2020'
+          #   WarehouseReports::HmisTwentyTwentyExportJob.perform_later(@filter.options_for_hmis_export(2020).as_json, report_url: warehouse_reports_hmis_exports_url)
+          # end
+          case @filter.version
+          when '6.11'
             WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
-          elsif @filter.version == '2020'
+          when '2020'
             WarehouseReports::HmisTwentyTwentyExportJob.perform_later(@filter.options_for_hmis_export(2020).as_json, report_url: warehouse_reports_hmis_exports_url)
           end
           redirect_to warehouse_reports_hmis_exports_path
@@ -98,7 +104,7 @@ module WarehouseReports
     end
 
     def export_scope
-      if current_user.can_edit_anything_super_user?
+      if can_view_all_reports?
         export_source.all
       else
         export_source.where(user_id: current_user.id)

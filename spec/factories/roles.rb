@@ -30,7 +30,6 @@ FactoryBot.define do
     can_upload_hud_zips { true }
     can_edit_translations { true }
     can_manage_assessments { true }
-    can_edit_anything_super_user { true }
     can_administer_health { true }
     can_edit_client_health { true }
     can_view_client_health { true }
@@ -110,9 +109,9 @@ FactoryBot.define do
     can_view_all_secure_uploads { true }
   end
 
-  factory :can_edit_anything_super_user, class: 'Role' do
-    name { 'can edit anything' }
-    can_edit_anything_super_user { true }
+  factory :can_view_all_hud_reports, class: 'Role' do
+    name { 'can view all hud reports' }
+    can_view_all_hud_reports { true }
   end
 
   factory :can_view_youth_intake, class: 'Role' do

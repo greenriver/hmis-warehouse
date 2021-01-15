@@ -16,7 +16,8 @@
         %th{rowspan: 3}
           To achieve accurate data collection and to satisfy HUD HMIS data requirements, projects must ensure that data entered into the local HMIS system is complete.
           %br
-            HUD Data Quality Report; APR Q6a, Q6b, Q6c
+            HUD Data Quality Report;
+            = link_to_apr('APR Q6a, Q6b, Q6c', 'Question 6')
         %th
 
         %td.text-center= f.input :percent_pii_errors, label: false, as: :read_only

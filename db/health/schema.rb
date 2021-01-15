@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_09_193543) do
+ActiveRecord::Schema.define(version: 2021_01_11_195511) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -697,6 +697,7 @@ ActiveRecord::Schema.define(version: 2020_12_09_193543) do
     t.datetime "updated_at"
     t.integer "updated_patients"
     t.jsonb "processing_errors", default: []
+    t.jsonb "audit_actions", default: {}
   end
 
   create_table "epic_careplans", id: :serial, force: :cascade do |t|
@@ -1827,6 +1828,19 @@ ActiveRecord::Schema.define(version: 2020_12_09_193543) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+  end
+
+  create_table "vaccinations", force: :cascade do |t|
+    t.string "medicaid_id"
+    t.date "vaccinated_on"
+    t.string "vaccinated_at"
+    t.string "vaccination_type", null: false
+    t.string "follow_up_cell_phone"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_vaccinations_on_created_at"
+    t.index ["updated_at"], name: "index_vaccinations_on_updated_at"
   end
 
   create_table "versions", id: :serial, force: :cascade do |t|

@@ -5,8 +5,9 @@ module ClaimsReporting
   class ReconcilationReport
     extend Memoist
 
-    attr_accessor :month
-    attr_accessor :aco_ids
+    # attr_accessor :month
+    # attr_accessor :aco_ids
+    attr_accessor :month, :aco_ids
 
     def initialize(month:, aco_ids: [])
       @month = month
@@ -58,7 +59,7 @@ module ClaimsReporting
       patient_qas(patient.id).reject do |qa|
         # This is logically QualifyingActivity#occurred_during_any_enrollment? but is
         # faster since we will already have the full patient_referrals history
-        qa.date_of_activity.present? && patient.patient_referrals.select do |r|
+        qa.date_of_activity.present? && patient.patient_referrals.detect do |r|
           r.active_on?(qa.date_of_activity)
         end
       end.size
@@ -66,10 +67,6 @@ module ClaimsReporting
 
     def qa_missing_careplan_count_for_patient(patient)
       patient_qas(patient.id).select(&:missing_care_plan?).size
-    end
-
-    def acos_for_patient(patient)
-      patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco&.name }.compact.uniq
     end
 
     def careplan_dates_for_patient(patient)
@@ -108,8 +105,8 @@ module ClaimsReporting
     def patients_without_payments_columns
       [
         'Medicaid ID',
-        'First Name',
         'Last Name',
+        'First Name',
         'Submitted QAs',
         'QAs Outside Enrollment',
         'QAs Without Required Careplan',
@@ -121,8 +118,8 @@ module ClaimsReporting
       patients_without_payments.map do |patient|
         [
           patient.medicaid_id,
-          patient.first_name,
           patient.last_name,
+          patient.first_name,
           qa_count_for_patient(patient),
           qa_missing_enrollment_count_for_patient(patient),
           qa_missing_careplan_count_for_patient(patient),

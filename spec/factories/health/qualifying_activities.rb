@@ -28,7 +28,7 @@ FactoryBot.define do
     activity { :outreach }
     association :source, factory: :qa_source
     user
-    association :patient, factory: :patient_a
+    association :patient
   end
 
   trait :old_qa do

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Indirectly relates to a patient. Binary data may contain PHI
 # Control: PHI attributes documented
 module Health

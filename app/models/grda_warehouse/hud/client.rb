@@ -265,6 +265,9 @@ module GrdaWarehouse::Hud
         joins(:hud_chronics).where(hud_chronics: {date: GrdaWarehouse::HudChronic.most_recent_day})
       when :release_present
         where(housing_release_status: [full_release_string, partial_release_string])
+      when :active_clients
+        range = GrdaWarehouse::Config.cas_sync_range
+        where(id: GrdaWarehouse::ServiceHistoryEnrollment.with_service_between(start_date: range.first, end_date: range.last).select(:client_id))
       else
         raise NotImplementedError
       end
@@ -387,9 +390,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :searchable_by, -> (user) do
-      if user.can_edit_anything_super_user?
-        current_scope
-      elsif user.can_view_clients_with_roi_in_own_coc?
+      if user.can_view_clients_with_roi_in_own_coc?
         current_scope
       elsif user.can_view_clients? || user.can_edit_clients?
         current_scope
@@ -415,63 +416,59 @@ module GrdaWarehouse::Hud
     end
 
     scope :viewable_by, -> (user) do
-      if user.can_edit_anything_super_user?
+      project_query = exists_with_inner_clients(visible_by_project_to(user))
+      window_query = exists_with_inner_clients(visible_in_window_to(user))
+      active_consent_query = if GrdaWarehouse::Config.get(:multi_coc_installation)
+        exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
+      else
+        exists_with_inner_clients(consent_form_valid)
+      end
+      if user.can_view_clients_with_roi_in_own_coc?
+        # At a high level if you can see clients with ROI in your COC, you need to be able
+        # to see everyone for searching purposes.
+        # limits will be imposed on accessing the actual client dashboard pages
+        # current_scope
+
+        # If the user has coc-codes specified, this will limit to users
+        # with a valid consent form in the coc or with no-coc specified
+        # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
+        # are included.
+        if user&.can_see_clients_in_window_for_assigned_data_sources?
+          ds_ids = user.data_sources.pluck(:id)
+          sql = arel_table[:data_source_id].in(ds_ids).
+            or(active_consent_query).
+            or(project_query)
+          unless GrdaWarehouse::Config.get(:window_access_requires_release)
+            sql = sql.or(window_query)
+          end
+
+          where(sql)
+        else
+          active_confirmed_consent_in_cocs(user.coc_codes)
+        end
+      elsif user.can_view_clients? || user.can_edit_clients?
         current_scope
       else
-        project_query = exists_with_inner_clients(visible_by_project_to(user))
-        window_query = exists_with_inner_clients(visible_in_window_to(user))
-        active_consent_query = if GrdaWarehouse::Config.get(:multi_coc_installation)
-          exists_with_inner_clients(active_confirmed_consent_in_cocs(user.coc_codes))
-        else
-          exists_with_inner_clients(consent_form_valid)
-        end
-        if user.can_view_clients_with_roi_in_own_coc?
-          # At a high level if you can see clients with ROI in your COC, you need to be able
-          # to see everyone for searching purposes.
-          # limits will be imposed on accessing the actual client dashboard pages
-          # current_scope
-
-          # If the user has coc-codes specified, this will limit to users
-          # with a valid consent form in the coc or with no-coc specified
-          # If the user does not have a coc-code specified, only clients with a full (CoC not specified) release
-          # are included.
-          if user&.can_see_clients_in_window_for_assigned_data_sources?
-            ds_ids = user.data_sources.pluck(:id)
-            sql = arel_table[:data_source_id].in(ds_ids).
-              or(active_consent_query).
-              or(project_query)
-            unless GrdaWarehouse::Config.get(:window_access_requires_release)
-              sql = sql.or(window_query)
-            end
-
-            where(sql)
+        ds_ids = user.data_sources.pluck(:id)
+        if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
+          sql = arel_table[:data_source_id].in(ds_ids)
+          sql = sql.or(project_query)
+          if GrdaWarehouse::Config.get(:window_access_requires_release)
+            sql = sql.or(active_consent_query)
           else
-            active_confirmed_consent_in_cocs(user.coc_codes)
+            sql = sql.or(window_query)
           end
-        elsif user.can_view_clients? || user.can_edit_clients?
-          current_scope
+          where(sql)
         else
-          ds_ids = user.data_sources.pluck(:id)
-          if user&.can_see_clients_in_window_for_assigned_data_sources? && ds_ids.present?
-            sql = arel_table[:data_source_id].in(ds_ids)
-            sql = sql.or(project_query)
-            if GrdaWarehouse::Config.get(:window_access_requires_release)
-              sql = sql.or(active_consent_query)
-            else
-              sql = sql.or(window_query)
-            end
-            where(sql)
+          sql = arel_table[:id].eq(0) # no client should have a 0 id
+          sql = sql.or(project_query)
+          if GrdaWarehouse::Config.get(:window_access_requires_release)
+            sql = sql.or(active_consent_query)
           else
-            sql = arel_table[:id].eq(0) # no client should have a 0 id
-            sql = sql.or(project_query)
-            if GrdaWarehouse::Config.get(:window_access_requires_release)
-              sql = sql.or(active_consent_query)
-            else
-              sql = sql.or(window_query)
-            end
-
-            where(sql)
+            sql = sql.or(window_query)
           end
+
+          where(sql)
         end
       end
     end
@@ -497,6 +494,13 @@ module GrdaWarehouse::Hud
       query = viewable_by(user)
       query = query.where(id: id) if id.present?
       Arel.sql(query.select(:id).to_sql)
+    end
+
+    def hmis_source_visible_by?(user)
+      return false unless user.can_upload_hud_zips?
+      return false unless GrdaWarehouse::DataSource.editable_by(user).source.exists?
+
+      self.class.hmis_source_visible_by(user).where(id: source_client_ids).exists?
     end
 
     scope :active_confirmed_consent_in_cocs, ->(coc_codes) do
@@ -879,6 +883,7 @@ module GrdaWarehouse::Hud
 
     def active_in_cas?
       return false if deceased? || moved_in_with_ph?
+
       case GrdaWarehouse::Config.get(:cas_available_method).to_sym
       when :cas_flag
         sync_with_cas
@@ -888,6 +893,9 @@ module GrdaWarehouse::Hud
         hud_chronics.where(hud_chronics: {date: GrdaWarehouse::HudChronic.most_recent_day}).exists?
       when :release_present
         [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
+      when :active_clients
+        range = GrdaWarehouse::Config.cas_sync_range
+        service_history_enrollments.with_service_between(start_date: range.first, end_date: range.last).exists?
       else
         raise NotImplementedError
       end
@@ -2093,31 +2101,41 @@ module GrdaWarehouse::Hud
       ::HUD.gender(self.Gender)
     end
 
-    def self.age date:, dob:
+    def self.age(date:, dob:)
       return nil unless date.present? && dob.present?
+
       age = date.year - dob.year
       age -= 1 if dob > date.years_ago(age)
-      return age
+      age
     end
 
-    def age date=Date.current
-      return unless attributes['DOB'].present?
+    def age(date=Date.current)
+      return unless attributes['DOB'].present? && date.present?
+
       date = date.to_date
       dob = attributes['DOB'].to_date
       self.class.age(date: date, dob: dob)
     end
-    alias_method :age_on, :age
+    alias age_on age
+
+    def youth_on?(date=Date.current)
+      (18..24).cover?(age(date))
+    end
 
     def uuid
       @uuid ||= if data_source&.munged_personal_id
-        self.PersonalID.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject{ |c| c.empty? || c == '__#' }.join('-')
+        self.PersonalID.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject do |c|
+          c.empty? || c == '__#'
+        end.join('-')
       else
         self.PersonalID
       end
     end
 
-    def self.uuid personal_id
-      personal_id.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject{ |c| c.empty? || c == '__#' }.join('-')
+    def self.uuid(personal_id)
+      personal_id.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject do |c|
+        c.empty? || c == '__#'
+      end.join('-')
     end
 
     def veteran?
@@ -2136,7 +2154,7 @@ module GrdaWarehouse::Hud
       else
         source_clients.order(DateUpdated: :desc).limit(1).pluck(:VeteranStatus).first
       end
-      save()
+      save
       self.class.clear_view_cache(self.id)
     end
 
@@ -2515,6 +2533,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::HealthEmergency::Isolation,
         GrdaWarehouse::HealthEmergency::Quarantine,
         GrdaWarehouse::HealthEmergency::UploadedTest,
+        GrdaWarehouse::HealthEmergency::Vaccination,
       ]
     end
 
@@ -2585,6 +2604,22 @@ module GrdaWarehouse::Hud
       end
     end
 
+    # Determine which vi-spdat to use based on dates
+    def most_recent_vispdat_object
+      internal = most_recent_vispdat
+      external = source_hmis_forms.vispdat.newest_first.first
+      vispdats = []
+      vispdats << [internal.submitted_at, internal] if internal
+      vispdats << [external.collected_at, external] if external
+      # return the newest vispdat
+      vispdats.sort_by(&:first)&.last.last
+    end
+
+    def most_recent_vispdat_family_vispdat?
+      return most_recent_vispdat_object.family? if most_recent_vispdat_object.respond_to?(:family?)
+      return most_recent_vispdat_object.vispdat_family_score&.positive? if most_recent_vispdat_object.respond_to?(:vispdat_family_score)
+    end
+
     def days_homeless_for_vispdat_prioritization
       vispdat_prioritization_days_homeless || days_homeless_in_last_three_years
     end
@@ -2594,9 +2629,14 @@ module GrdaWarehouse::Hud
       return nil unless vispdat_score.present?
       if GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'veteran_status'
         prioritization_bump = 0
-        if veteran?
-          prioritization_bump = 100
-        end
+        prioritization_bump += 100 if veteran?
+        vispdat_score + prioritization_bump
+      elsif GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'vets_family_youth'
+        prioritization_bump = 0
+        prioritization_bump += 100 if veteran?
+        prioritization_bump += 50 if most_recent_vispdat_family_vispdat?
+        prioritization_bump += 25 if youth_on?
+
         vispdat_score + prioritization_bump
       else # Default GrdaWarehouse::Config.get(:vispdat_prioritization_scheme) == 'length_of_time'
         vispdat_length_homeless_in_days = days_homeless_for_vispdat_prioritization || 0
