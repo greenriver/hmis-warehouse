@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_13_151049) do
+ActiveRecord::Schema.define(version: 2021_01_16_192833) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -6882,6 +6882,49 @@ ActiveRecord::Schema.define(version: 2021_01_13_151049) do
     t.string "encrypted_password_iv"
     t.integer "lms_user_id"
     t.index ["user_id"], name: "index_talentlms_logins_on_user_id"
+  end
+
+  create_table "text_message_messages", force: :cascade do |t|
+    t.bigint "topic_id"
+    t.bigint "subscriber_id"
+    t.datetime "sent_at"
+    t.string "sent_to"
+    t.string "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_text_message_messages_on_created_at"
+    t.index ["subscriber_id"], name: "index_text_message_messages_on_subscriber_id"
+    t.index ["topic_id"], name: "index_text_message_messages_on_topic_id"
+    t.index ["updated_at"], name: "index_text_message_messages_on_updated_at"
+  end
+
+  create_table "text_message_topic_subscribers", force: :cascade do |t|
+    t.bigint "topic_id"
+    t.datetime "subscribed_at"
+    t.datetime "unsubscribed_at"
+    t.string "first_name"
+    t.string "last_name"
+    t.string "phone_number"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_text_message_topic_subscribers_on_created_at"
+    t.index ["topic_id"], name: "index_text_message_topic_subscribers_on_topic_id"
+    t.index ["updated_at"], name: "index_text_message_topic_subscribers_on_updated_at"
+  end
+
+  create_table "text_message_topics", force: :cascade do |t|
+    t.string "arn"
+    t.string "content"
+    t.boolean "active_topic", default: true, null: false
+    t.bigint "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_text_message_topics_on_created_at"
+    t.index ["updated_at"], name: "index_text_message_topics_on_updated_at"
+    t.index ["user_id"], name: "index_text_message_topics_on_user_id"
   end
 
   create_table "uploads", id: :serial, force: :cascade do |t|
