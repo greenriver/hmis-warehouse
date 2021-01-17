@@ -90,6 +90,13 @@ module GrdaWarehouse::HealthEmergency
         pluck(:vaccinated_at)
     end
 
+    def language_options
+      {
+        'English' => :en,
+        'Español' => :es,
+      }
+    end
+
     # NOTE: called on initialized vaccination in the controller
     # to determine follow_up_date
     def follow_up_date

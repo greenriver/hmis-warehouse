@@ -2289,6 +2289,7 @@ ActiveRecord::Schema.define(version: 2021_01_16_192833) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.integer "health_vaccination_id"
+    t.string "preferred_language", default: "en"
     t.index ["agency_id"], name: "index_health_emergency_vaccinations_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_vaccinations_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_vaccinations_on_created_at"
@@ -6891,6 +6892,8 @@ ActiveRecord::Schema.define(version: 2021_01_16_192833) do
     t.datetime "sent_at"
     t.string "sent_to"
     t.string "content"
+    t.integer "source_id"
+    t.string "source_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
@@ -6907,6 +6910,7 @@ ActiveRecord::Schema.define(version: 2021_01_16_192833) do
     t.string "first_name"
     t.string "last_name"
     t.string "phone_number"
+    t.string "preferred_language"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"

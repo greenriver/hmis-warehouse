@@ -10,6 +10,7 @@ module TextMessage
     acts_as_paranoid
     belongs_to :topic
     belongs_to :topic_subscriber, foreign_key: :subscriber_id
+    belongs_to :source, polymorphic: true, optional: true
 
     scope :unsent, -> do
       where(sent_at: nil)
@@ -26,6 +27,7 @@ module TextMessage
       return unless phone_number.present?
 
       update(sent_at: Time.current, sent_to: phone_number)
+      source&.mark_sent
 
       sns = Aws::SNS::Client.new
       sns.publish(phone_number: phone_number, message: content)

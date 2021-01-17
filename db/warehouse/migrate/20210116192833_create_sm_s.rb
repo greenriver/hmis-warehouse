@@ -14,6 +14,7 @@ class CreateSmS < ActiveRecord::Migration[5.2]
       t.string :first_name
       t.string :last_name
       t.string :phone_number
+      t.string :preferred_language
       t.timestamps index: true, null: false
       t.datetime :deleted_at
     end
@@ -24,8 +25,12 @@ class CreateSmS < ActiveRecord::Migration[5.2]
       t.datetime :sent_at
       t.string :sent_to
       t.string :content, length: 160
+      t.integer :source_id
+      t.string :source_type
       t.timestamps index: true, null: false
       t.datetime :deleted_at
     end
+
+    add_column :health_emergency_vaccinations, :preferred_language, :string, default: :en
   end
 end

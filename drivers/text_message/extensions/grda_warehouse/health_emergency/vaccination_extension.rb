@@ -4,6 +4,10 @@ module TextMessage::GrdaWarehouse::HealthEmergency
     included do
       after_create_commit :add_text_message_subscription
 
+      def mark_sent
+        update(follow_up_notification_sent_at: Time.current)
+      end
+
       def add_text_message_subscription
         # Don't queue for imported vaccinations, that will happen
         # via a different mechanism
@@ -17,33 +21,46 @@ module TextMessage::GrdaWarehouse::HealthEmergency
             first_name: client.FirstName,
             last_name: client.LastName,
             phone_number: follow_up_cell_phone.tr('^0-9', ''),
-          ).first_or_create do |sub|
-          sub.subscribed_at = Time.current
+          ).first_or_create do |subs|
+          subs.subscribed_at = Time.current
+          subs.preferred_language = preferred_language
         end
 
         # Initial reminder
         subscriber.messages.where(
           topic: topic,
           send_on_or_after: follow_up_on - 1.weeks,
-        ).first_or_create do |mes|
-          mes.content = initial_reminder_content
+        ).first_or_create do |message|
+          message.content = initial_reminder_content
+          message.source = self
         end
 
         # Second reminder
         subscriber.messages.where(
           topic: topic,
           send_on_or_after: follow_up_on - 1.days,
-        ).first_or_create do |mes|
-          mes.content = second_reminder_content
+        ).first_or_create do |message|
+          message.content = second_reminder_content
+          message.source = self
         end
       end
 
       private def initial_reminder_content
-        "REMINDER: Your second dose of the COVID-19 vaccine is due on #{follow_up_on.strftime('%m/%d/%Y')}. Please follow up at the site you received your first vaccine for your second dose."
+        case preferred_language.to_s
+        when 'es'
+          "REQUERDE: Your second dose of the COVID-19 vaccine is due on #{follow_up_on.strftime('%m/%d/%Y')}. Please follow up at the site you received your first vaccine for your second dose."
+        else
+          "REMINDER: Your second dose of the COVID-19 vaccine is due on #{follow_up_on.strftime('%m/%d/%Y')}. Please follow up at the site you received your first vaccine for your second dose."
+        end
       end
 
       private def second_reminder_content
-        "REMINDER: Your second dose of the COVID-19 vaccine is due on #{follow_up_on.strftime('%m/%d/%Y')}. Please follow up at the site you received your first vaccine for your second dose."
+        case preferred_language.to_s
+        when 'es'
+          "REQUERDE: Your second dose of the COVID-19 vaccine is due on #{follow_up_on.strftime('%m/%d/%Y')}. Please follow up at the site you received your first vaccine for your second dose."
+        else
+          "REMINDER: Your second dose of the COVID-19 vaccine is due on #{follow_up_on.strftime('%m/%d/%Y')}. Please follow up at the site you received your first vaccine for your second dose."
+        end
       end
     end
   end
