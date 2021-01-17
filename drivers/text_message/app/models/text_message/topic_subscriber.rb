@@ -6,8 +6,9 @@
 
 module TextMessage
   class TopicSubscriber < GrdaWarehouseBase
+    acts_as_paranoid
     belongs_to :topic
-    has_many :messages
+    has_many :messages, foreign_key: :subscriber_id
 
     scope :active, -> do
       where(unsubscribed_at: nil)

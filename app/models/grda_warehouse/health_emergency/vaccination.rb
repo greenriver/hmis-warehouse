@@ -7,6 +7,7 @@
 module GrdaWarehouse::HealthEmergency
   class Vaccination < GrdaWarehouseBase
     include ::HealthEmergency
+    include RailsDrivers::Extensions
 
     MODERNA = 'ModernaTX, Inc.'.freeze
     PFIZER = 'Pfizer, Inc., and BioNTech'.freeze

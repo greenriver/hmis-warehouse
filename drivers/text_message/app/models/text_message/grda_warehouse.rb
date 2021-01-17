@@ -4,8 +4,5 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module TextMessage
-  def self.table_name_prefix
-    'text_message_'
-  end
+module TextMessage::GrdaWarehouse
 end

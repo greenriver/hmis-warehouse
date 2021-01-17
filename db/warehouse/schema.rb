@@ -6887,6 +6887,7 @@ ActiveRecord::Schema.define(version: 2021_01_16_192833) do
   create_table "text_message_messages", force: :cascade do |t|
     t.bigint "topic_id"
     t.bigint "subscriber_id"
+    t.date "send_on_or_after"
     t.datetime "sent_at"
     t.string "sent_to"
     t.string "content"
@@ -6916,15 +6917,14 @@ ActiveRecord::Schema.define(version: 2021_01_16_192833) do
 
   create_table "text_message_topics", force: :cascade do |t|
     t.string "arn"
-    t.string "content"
+    t.string "title"
     t.boolean "active_topic", default: true, null: false
-    t.bigint "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.index ["created_at"], name: "index_text_message_topics_on_created_at"
+    t.index ["title"], name: "index_text_message_topics_on_title"
     t.index ["updated_at"], name: "index_text_message_topics_on_updated_at"
-    t.index ["user_id"], name: "index_text_message_topics_on_user_id"
   end
 
   create_table "uploads", id: :serial, force: :cascade do |t|

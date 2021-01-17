@@ -2,9 +2,8 @@ class CreateSmS < ActiveRecord::Migration[5.2]
   def change
     create_table :text_message_topics do |t|
       t.string :arn
-      t.string :content, length: 160
+      t.string :title, index: true, unique: true
       t.boolean :active_topic, default: :true, null: false
-      t.references :user
       t.timestamps index: true, null: false
       t.datetime :deleted_at
     end
@@ -21,9 +20,10 @@ class CreateSmS < ActiveRecord::Migration[5.2]
     create_table :text_message_messages do |t|
       t.references :topic
       t.references :subscriber
+      t.date :send_on_or_after
       t.datetime :sent_at
       t.string :sent_to
-      t.string :content
+      t.string :content, length: 160
       t.timestamps index: true, null: false
       t.datetime :deleted_at
     end

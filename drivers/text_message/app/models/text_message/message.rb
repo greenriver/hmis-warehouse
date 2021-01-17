@@ -7,6 +7,7 @@
 require 'aws-sdk-sns'
 module TextMessage
   class Message < GrdaWarehouseBase
+    acts_as_paranoid
     belongs_to :topic
     belongs_to :topic_subscriber, foreign_key: :subscriber_id
 

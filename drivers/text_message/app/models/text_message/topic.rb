@@ -6,6 +6,7 @@
 
 module TextMessage
   class Topic < GrdaWarehouseBase
+    acts_as_paranoid
     has_many :messages
     has_many :topic_subscribers
 
