@@ -2,6 +2,8 @@ module TextMessage::GrdaWarehouse::HealthEmergency
   module VaccinationExtension
     extend ActiveSupport::Concern
     included do
+      has_many :text_messages, class_name: 'TextMessage::Message', as: :source
+
       after_create_commit :add_text_message_subscription
 
       def mark_sent
@@ -9,6 +11,7 @@ module TextMessage::GrdaWarehouse::HealthEmergency
       end
 
       def add_text_message_subscription
+        return unless GrdaWarehouse::Config.get(:send_sms_for_covid_reminders)
         # Don't queue for imported vaccinations, that will happen
         # via a different mechanism
         return if health_vaccination_id.present?

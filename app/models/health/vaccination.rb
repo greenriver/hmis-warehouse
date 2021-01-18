@@ -37,6 +37,10 @@ module Health
       where.not(client_id: nil)
     end
 
+    scope :with_phone, -> do
+      where.not(follow_up_cell_phone: nil)
+    end
+
     def self.csv_map(version: nil)
       {
         PAT_ID: :epic_patient_id,
@@ -52,6 +56,7 @@ module Health
       }
     end
 
+    # Called from ImportEpic
     def self.process_new_data(values)
       # Remove any that were removed from the source
       remove_missing!(values)
@@ -64,6 +69,8 @@ module Health
           columns: [:first_name, :last_name, :ssn, :dob, :vaccinated_at, :vaccination_type, :follow_up_cell_phone],
         },
       )
+      propagate_to_clients
+      queue_sms if RailsDrivers.loaded.include?(:text_message)
     end
 
     def self.conflict_key
@@ -85,7 +92,7 @@ module Health
       # Update existing Health Emergency vaccinations if they've changed
       assigned.preload(:he_vaccination).find_each do |vaccination|
         vaccination.he_vaccination.vaccinated_on = vaccination.vaccinated_on
-        vaccination.he_vaccination.vaccinated_type = vaccination.vaccinated_type
+        vaccination.he_vaccination.vaccinated_type = vaccination.clean_vaccination_type
         vaccination.he_vaccination.vaccinated_at = vaccination.vaccinated_at
         vaccination.he_vaccination.follow_up_cell_phone = vaccination.follow_up_cell_phone
         vaccination.he_vaccination.save if vaccination.he_vaccination.changed?
@@ -110,13 +117,11 @@ module Health
             last_name: vaccination.last_name,
           )
 
-          obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1)}.compact
-          if obvious_matches.any?
-            # Return first matching client_id
-            obvious_matches.first[:id]
-          else
-            nil
-          end
+          obvious_matches = all_matches.uniq.map { |i| i if all_matches.count(i) > 1 }.compact
+          # Return first matching client_id
+          return obvious_matches.first[:id] if obvious_matches.any?
+
+          nil
         end
         if client_id.present?
           he_vaccination = GrdaWarehouse::HealthEmergency::Vaccination.new(
@@ -125,10 +130,9 @@ module Health
             emergency_type: GrdaWarehouse::Config.get(:health_emergency),
             user_id: system_user_id,
             vaccinated_on: vaccination.vaccinated_on,
-            vaccinated_type: vaccination.vaccinated_type,
+            vaccinated_type: vaccination.clean_vaccination_type,
             vaccinated_at: vaccination.vaccinated_at,
             follow_up_cell_phone: vaccination.follow_up_cell_phone,
-
           )
           he_vaccination.follow_up_on = he_vaccination.follow_up_date
           new_vaccinations << he_vaccination
@@ -139,6 +143,22 @@ module Health
 
     def self.use_tsql_import?
       false
+    end
+
+    private def clean_vaccination_type
+      # TODO: adjust based on real data
+      vaccination_type
+    end
+
+    def follow_up_date
+      return unless vaccinated_on
+
+      case vaccination_type
+      when MODERNA
+        vaccinated_on + 28.days if similar_vaccinations.count.zero?
+      when PFIZER
+        vaccinated_on + 21.days if similar_vaccinations.count.zero?
+      end
     end
   end
 end
