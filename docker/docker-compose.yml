@@ -1,7 +1,7 @@
 version: '3.7'
 
 x-app: &app
-  image: hmis-warehouse:1.0
+  image: hmis-warehouse:2.0
   build:
     context: .
     args:
