@@ -9,7 +9,7 @@ module
             title: "Gender - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_gender(key)).distinct },
+            scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_gender(key)).distinct },
           }
         end
       end
@@ -108,7 +108,7 @@ module
     private def client_genders_and_ages
       @client_genders_and_ages ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          report_scope.joins(:client).order(first_date_in_program: :desc).
+          reporting_scope.joins(:client).order(first_date_in_program: :desc).
             distinct.
             pluck(:client_id, age_calculation, c_t[:Gender], :first_date_in_program).
             each do |client_id, age, gender, _|

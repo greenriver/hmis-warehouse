@@ -28,7 +28,7 @@ module
 
     def detail_scope_from_key(key)
       detail = detail_hash[key]
-      return report_scope.none unless detail
+      return reporting_scope.none unless detail
 
       detail[:scope].call.distinct
     end

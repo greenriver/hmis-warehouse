@@ -9,7 +9,7 @@ module
             title: "DV Response #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_dv(key)).distinct },
+            scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_dv(key)).distinct },
           }
         end
         ::HUD.when_occurreds.each do |key, title|
@@ -17,7 +17,7 @@ module
             title: "DV Occurrence Timing #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_dv_occurrence(key)).distinct },
+            scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_dv_occurrence(key)).distinct },
           }
         end
       end
@@ -50,7 +50,7 @@ module
     private def client_dv_occurrences
       @client_dv_occurrences ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          report_scope.joins(enrollment: :health_and_dvs).order(hdv_t[:InformationDate].desc).
+          reporting_scope.joins(enrollment: :health_and_dvs).order(hdv_t[:InformationDate].desc).
             merge(
               GrdaWarehouse::Hud::HealthAndDv.where(
                 InformationDate: @filter.range,
@@ -122,7 +122,7 @@ module
     private def client_dv_stati
       @client_dv_stati ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          report_scope.joins(enrollment: :health_and_dvs).order(hdv_t[:InformationDate].desc).
+          reporting_scope.joins(enrollment: :health_and_dvs).order(hdv_t[:InformationDate].desc).
             merge(GrdaWarehouse::Hud::HealthAndDv.where(InformationDate: @filter.range)).
             distinct.
             pluck(:client_id, hdv_t[:DomesticViolenceVictim], hdv_t[:InformationDate]).

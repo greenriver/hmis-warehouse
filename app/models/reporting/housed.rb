@@ -75,7 +75,7 @@ module Reporting
     end
 
     scope :ph_destinations, -> do
-      where(destination: HUD.permanent_destinations)
+      where(destination: ::HUD.permanent_destinations)
     end
 
     # Pre-placement
@@ -195,19 +195,19 @@ module Reporting
     end
 
     def self.available_races
-      HUD.races
+      ::HUD.races
     end
 
     def self.available_ethnicities
-      HUD.ethnicities
+      ::HUD.ethnicities
     end
 
     def self.available_genders
-      HUD.genders
+      ::HUD.genders
     end
 
     def self.available_veteran_stati
-      HUD.no_yes_reasons_for_missing_data_options
+      ::HUD.no_yes_reasons_for_missing_data_options
     end
 
 

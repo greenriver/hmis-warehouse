@@ -9,7 +9,7 @@ module
             title: "Number of Times on the Streets, ES, or SH in The Past 3 Years #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_times(id)).distinct },
+            scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_prior_times(id)).distinct },
           }
         end
         ::HUD.month_categories.each do |id, title|
@@ -17,7 +17,7 @@ module
             title: "Number of Months on the Streets, ES, or SH in The Past 3 Years #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_months(id)).distinct },
+            scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_prior_months(id)).distinct },
           }
         end
         ::HUD.living_situations.each do |id, title|
@@ -25,7 +25,7 @@ module
             title: "Prior Living Situation #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_prior_situation(id)).distinct },
+            scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_prior_situation(id)).distinct },
           }
         end
       end
@@ -148,7 +148,7 @@ module
     private def client_entry_data
       @client_entry_data ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          report_scope.joins(:enrollment).order(first_date_in_program: :desc).
+          reporting_scope.joins(:enrollment).order(first_date_in_program: :desc).
             distinct.
             pluck(:client_id, e_t[:TimesHomelessPastThreeYears], e_t[:MonthsHomelessPastThreeYears], e_t[:LivingSituation], :first_date_in_program).
             each do |client_id, times_homeless, months_homeless, living_situation, _|

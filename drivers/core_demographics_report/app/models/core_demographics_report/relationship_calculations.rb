@@ -9,7 +9,7 @@ module
             title: "Relationship #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_relationship(key)).distinct },
+            scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_relationship(key)).distinct },
           }
         end
       end
@@ -58,7 +58,7 @@ module
     private def client_relationships
       @client_relationships ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          report_scope.joins(:enrollment).order(first_date_in_program: :desc).
+          reporting_scope.joins(:enrollment).order(first_date_in_program: :desc).
             distinct.
             pluck(:client_id, e_t[:RelationshipToHoH], :first_date_in_program).
             each do |client_id, relationship, _|
