@@ -24,7 +24,7 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
 
   def run(filter, question_name)
     generator = HudApr::Generators::Apr::Fy2020::Generator
-    generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: [question_name])).run!
+    generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: [question_name])).run!(email: false)
   end
 
   def default_setup_path

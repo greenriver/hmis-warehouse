@@ -34,5 +34,70 @@ module HmisCsvTwentyTwenty::Importer
     def self.warehouse_class
       GrdaWarehouse::Hud::Project
     end
+
+    def self.hmis_validations
+      {
+        ProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        OrganizationID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        ProjectName: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        OperatingStartDate: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        ContinuumProject: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        ProjectType: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.project_types.keys.map(&:to_s).freeze },
+          },
+        ],
+        HousingType: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.housing_types.keys.map(&:to_s).freeze },
+          },
+        ],
+        ResidentialAffiliation: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        TrackingMethod: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.tracking_methods.keys.map(&:to_s).freeze },
+          },
+        ],
+        HMISParticipatingProject: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.yes_no_missing_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        TargetPopulation: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.target_populations.keys.map(&:to_s).freeze },
+          },
+        ],
+      }
+    end
   end
 end

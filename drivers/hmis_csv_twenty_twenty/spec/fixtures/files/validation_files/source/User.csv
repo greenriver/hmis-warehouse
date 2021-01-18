@@ -1,0 +1,5 @@
+"UserID","UserFirstName","UserLastName","UserPhone","UserExtension","UserEmail","DateCreated","DateUpdated","DateDeleted","ExportID"
+"VALID","VALID","VALID","1112223333","44444","freddie@example.com","2016-09-02 15:36:23","2016-09-02 15:36:23","","b6585c2320f69a2b920adb507cc9d82f"
+"VALIDATION","VALIDATION","VALIDATION","","","ryleigh@example.com","2016-09-02 15:36:23","2016-09-02 15:36:23","","b6585c2320f69a2b920adb507cc9d82f"
+"","ERROR","ERROR","5551231234","","jackson@example.com","2016-09-02 15:36:23","2016-09-02 15:36:23","","b6585c2320f69a2b920adb507cc9d82f"
+"VALID","FAILURE","FAILURE","","","tamara@example.com","2016-09-02 15:36:23","2016-09-02 15:36:23","","b6585c2320f69a2b920adb507cc9d82f"
