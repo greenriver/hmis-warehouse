@@ -9,7 +9,8 @@ VCR.configure do |c|
   c.configure_rspec_metadata!
 end
 
-RSpec.describe ClientsController, type: :request, vcr: true do
+# RSpec.describe ClientsController, type: :request, vcr: true do
+RSpec.describe ClientsController, type: :request, vcr: { cassette_name: 'client_visibility_spec' } do
   include_context 'visibility test context'
 
   configs_variations = []
