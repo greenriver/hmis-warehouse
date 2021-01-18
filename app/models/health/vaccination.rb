@@ -9,6 +9,7 @@
 # Control: PHI attributes documented
 module Health
   class Vaccination < EpicBase
+    include RailsDrivers::Extensions
     include ObviousClientMatcher
 
     phi_patient :medicaid_id
@@ -70,6 +71,7 @@ module Health
         },
       )
       propagate_to_clients
+
       queue_sms if RailsDrivers.loaded.include?(:text_message)
     end
 
@@ -110,7 +112,7 @@ module Health
         client_id = if vaccination.patient&.client_id.present?
           vaccination.patient.client_id
         else
-          all_matches = matching_clients(
+          all_matches = new.matching_clients(
             ssn: vaccination.ssn,
             dob: vaccination.dob,
             first_name: vaccination.first_name,

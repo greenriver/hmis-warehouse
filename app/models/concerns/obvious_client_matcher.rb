@@ -8,7 +8,7 @@ module ObviousClientMatcher
   extend ActiveSupport::Concern
 
   included do
-    private def clients
+    def clients
       @clients ||= hashed(client_destinations.pluck(*client_columns), client_columns)
     end
 
@@ -50,7 +50,7 @@ module ObviousClientMatcher
       "#{incoming_first} #{incoming_last}".downcase == "#{client_first} #{client_last}".downcase
     end
 
-    def self.matching_clients(ssn:, dob:, first_name:, last_name:)
+    def matching_clients(ssn:, dob:, first_name:, last_name:)
       ssn_matches = []
       birthdate_matches = []
       name_matches = []
