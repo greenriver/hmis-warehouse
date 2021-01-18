@@ -11,4 +11,21 @@ class HmisCsvValidation::Base < GrdaWarehouseBase
   def skip_row?
     false
   end
+
+  def self.validation_classes
+    [
+      HmisCsvValidation::EntryAfterExit,
+      HmisCsvValidation::InclusionInSet,
+      HmisCsvValidation::NonBlankValidation,
+      HmisCsvValidation::OneHeadOfHousehold,
+      HmisCsvValidation::ValidFormat,
+    ].freeze
+  end
+
+  def self.error_classes
+    [
+      HmisCsvValidation::Length,
+      HmisCsvValidation::NonBlank,
+    ].freeze
+  end
 end

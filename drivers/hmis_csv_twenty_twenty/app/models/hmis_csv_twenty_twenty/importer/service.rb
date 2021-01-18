@@ -26,5 +26,33 @@ module HmisCsvTwentyTwenty::Importer
     def self.warehouse_class
       GrdaWarehouse::Hud::Service
     end
+
+    def self.hmis_validations
+      {
+        EnrollmentID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        PersonalID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        DateProvided: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        RecordType: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.record_types.keys.map(&:to_s).freeze },
+          },
+        ],
+        TypeProvided: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+        ],
+      }
+    end
   end
 end

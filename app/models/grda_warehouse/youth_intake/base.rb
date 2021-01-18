@@ -12,8 +12,7 @@ module GrdaWarehouse::YouthIntake
     has_paper_trail
     acts_as_paranoid
 
-    attr_accessor :other_language
-    attr_accessor :other_how_hear
+    attr_accessor :other_language, :other_how_hear
 
     # serialize :client_race, Array
     # serialize :disabilities, Array

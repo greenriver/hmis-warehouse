@@ -30,8 +30,41 @@ module HmisCsvTwentyTwenty::Importer
       {
         HouseholdID: [
           {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
             class: HmisCsvValidation::Length,
             arguments: { max: 32 },
+          },
+        ],
+        EnrollmentID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        ProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        PersonalID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        InformationDate: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        CoCCode: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.cocs.keys.freeze },
+          },
+        ],
+        DataCollectionStage: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.data_collection_stages.keys.map(&:to_s).freeze },
           },
         ],
       }
