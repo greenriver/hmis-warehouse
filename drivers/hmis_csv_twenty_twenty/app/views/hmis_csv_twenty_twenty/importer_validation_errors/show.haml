@@ -5,9 +5,9 @@
 %h1= "Validation Flags for #{@filename}"
 
 %ul.nav.nav-tabs{role: "presentation"}
-  %li.nav-item.active{role: 'presentation'}
-    = link_to 'Validation Flags', hmis_csv_twenty_twenty_importer_validation_path(@import.importer_log, file: @filename), class: 'nav-link'
   %li.nav-item{role: 'presentation'}
+    = link_to 'Validation Flags', hmis_csv_twenty_twenty_importer_validation_path(@import.importer_log, file: @filename), class: 'nav-link'
+  %li.nav-item.active{role: 'presentation'}
     = link_to 'Import Error Flags', hmis_csv_twenty_twenty_importer_validation_error_path(@import.importer_log, file: @filename), class: 'nav-link'
   %li.nav-item{role: 'presentation'}
     = link_to 'Importer Failures', hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: @filename), class: 'nav-link'

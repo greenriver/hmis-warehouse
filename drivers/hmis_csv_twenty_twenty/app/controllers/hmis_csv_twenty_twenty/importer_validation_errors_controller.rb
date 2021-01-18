@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
-class HmisCsvTwentyTwenty::ImporterValidationsController < ApplicationController
+class HmisCsvTwentyTwenty::ImporterValidationErrorsController < ApplicationController
   before_action :require_can_view_imports!
 
   def show
@@ -16,7 +16,7 @@ class HmisCsvTwentyTwenty::ImporterValidationsController < ApplicationController
 
     @validations = importer_log.import_validations.
       where(HmisCsvValidation::Base.arel_table[:source_type].lower.matches(pattern)).
-      where(type: HmisCsvValidation::Base.validation_classes.map(&:name)).
+      where(type: HmisCsvValidation::Base.error_classes.map(&:name)).
       page(params[:page])
   end
 end
