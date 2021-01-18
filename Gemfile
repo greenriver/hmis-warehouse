@@ -194,7 +194,7 @@ group :development, :test do
   gem 'rspec-rails'
   gem 'factory_bot_rails'
   gem 'guard-rspec', require: false
-  gem 'vcr', '~> 6.0'
+  gem 'vcr'
   gem 'webmock'
   # gem 'rb-readline'
 end

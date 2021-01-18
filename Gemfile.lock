@@ -923,7 +923,7 @@ DEPENDENCIES
   uglifier
   validate_url
   validates_email_format_of
-  vcr (~> 6.0)
+  vcr
   virtus
   web-console
   webmock
