@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_18_133014) do
+ActiveRecord::Schema.define(version: 2021_01_18_160904) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -2291,6 +2291,7 @@ ActiveRecord::Schema.define(version: 2021_01_18_133014) do
     t.datetime "deleted_at"
     t.integer "health_vaccination_id"
     t.string "preferred_language", default: "en"
+    t.text "notification_status"
     t.index ["agency_id"], name: "index_health_emergency_vaccinations_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_vaccinations_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_vaccinations_on_created_at"
@@ -6898,6 +6899,7 @@ ActiveRecord::Schema.define(version: 2021_01_18_133014) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.string "delivery_status"
     t.index ["created_at"], name: "index_text_message_messages_on_created_at"
     t.index ["subscriber_id"], name: "index_text_message_messages_on_subscriber_id"
     t.index ["topic_id"], name: "index_text_message_messages_on_topic_id"
@@ -6915,6 +6917,7 @@ ActiveRecord::Schema.define(version: 2021_01_18_133014) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.integer "client_id"
     t.index ["created_at"], name: "index_text_message_topic_subscribers_on_created_at"
     t.index ["topic_id"], name: "index_text_message_topic_subscribers_on_topic_id"
     t.index ["updated_at"], name: "index_text_message_topic_subscribers_on_updated_at"
@@ -6927,6 +6930,7 @@ ActiveRecord::Schema.define(version: 2021_01_18_133014) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.integer "send_hour"
     t.index ["created_at"], name: "index_text_message_topics_on_created_at"
     t.index ["title"], name: "index_text_message_topics_on_title"
     t.index ["updated_at"], name: "index_text_message_topics_on_updated_at"

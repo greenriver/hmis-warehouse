@@ -4,13 +4,17 @@ module TextMessage::Health
     included do
       has_many :text_messages, class_name: 'TextMessage::Message', as: :source
 
+      after_destroy :remove_text_messages
+
       def self.queue_sms
         return unless GrdaWarehouse::Config.get(:send_sms_for_covid_reminders)
 
         # Find any vaccinations with contact information
         # where we haven't already setup follow-up messages
         with_phone.where.not(id: joins(:text_messages).select(:id)).find_each do |vaccination|
-          topic = TextMessage::Topic.where(title: 'COVID-19 Second Dose Reminders').first_or_create
+          topic = TextMessage::Topic.where(title: 'COVID-19 Second Dose Reminders').first_or_create do |new_topic|
+            new_topic.send_hour = 9
+          end
           subscriber = topic.topic_subscribers.
             where(
               first_name: vaccination.first_name,
@@ -44,6 +48,10 @@ module TextMessage::Health
       private def clean_preferred_language
         # TODO: adjust based on real data
         preferred_language
+      end
+
+      private def remove_text_messages
+        text_messages.unsent.destroy_all
       end
 
       private def initial_reminder_content

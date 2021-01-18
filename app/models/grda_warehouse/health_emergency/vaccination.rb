@@ -11,6 +11,7 @@ module GrdaWarehouse::HealthEmergency
 
     MODERNA = 'ModernaTX, Inc.'.freeze
     PFIZER = 'Pfizer, Inc., and BioNTech'.freeze
+    VACCINATED = 'Vaccinated'
 
     validates_presence_of :vaccinated_on, :vaccination_type, on: :create
     scope :visible_to, ->(user) do
@@ -65,10 +66,10 @@ module GrdaWarehouse::HealthEmergency
             "Initial Dose given #{vaccinated_on}"
           end
         else
-          'Vaccinated'
+          VACCINATED
         end
       else
-        'Vaccinated'
+        VACCINATED
       end
     end
 

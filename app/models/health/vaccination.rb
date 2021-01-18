@@ -100,7 +100,7 @@ module Health
       # Remove any imported Health Emergency vaccinations where we've deleted the imported one
       GrdaWarehouse::HealthEmergency::Vaccination.imported.
         where.not(health_vaccination_id: assigned.pluck(:id)).
-        update_all(deleted_at: Time.current)
+        destroy_all
 
       # Add new vaccinations
       system_user_id = User.setup_system_user.id

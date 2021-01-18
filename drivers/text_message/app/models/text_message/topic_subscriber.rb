@@ -17,5 +17,10 @@ module TextMessage
     def name
       "#{first_name} #{last_name}"
     end
+
+    def mark_as_opted_out
+      self.unsubscribed_at ||= Time.current
+      save
+    end
   end
 end

@@ -10,6 +10,14 @@ module TextMessage
     has_many :messages
     has_many :topic_subscribers
 
+    scope :active, -> do
+      where(active_topic: true)
+    end
+
+    scope :send_during, ->(hour) do
+      where(arel_table[:send_hour].eq(nil).or(arel_table[:send_hour].eq(hour)))
+    end
+
     def send_batch
       return unless active_topic
 
