@@ -16,7 +16,11 @@ gem 'pg'
 # version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
 gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: '5-2-stable', require: false
 gem 'activerecord-import'
-gem 'active_record_extended'
+
+# locking active record extended here temporarily since upgrading it to 2.0.0 gives
+# NoMethodError: undefined method `relation' for "DATE_TRUNC('month', date_of_activity)":Arel::Nodes::SqlLiteral
+# on .count for active record queries of Arel
+gem 'active_record_extended', '~> 1.4.0'
 
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
@@ -50,7 +54,10 @@ gem 'carrierwave-i18n'
 gem 'carrierwave-aws'
 gem 'ruby-filemagic'
 gem 'mini_magick'
-gem 'acts-as-taggable-on', '~> 6.0'
+# there are no obvious breaking changes but
+# since there are no tests for this
+# it should be tested manually
+gem 'acts-as-taggable-on', '~> 7.0'
 # this doesn't install cleanly on a Mac
 # We aren't currently using this anyway
 gem 'seven_zip_ruby'
@@ -79,7 +86,9 @@ gem 'lograge'
 gem 'logstop'
 gem 'activerecord-session_store'
 gem 'attribute_normalizer'
-gem 'delayed_job_active_record'
+gem 'delayed_job'
+#locking temporarily to protect the delayed job monkey patch
+gem 'delayed_job_active_record'#, '4.1.4'
 gem 'uglifier'
 gem 'daemons'
 
@@ -87,7 +96,7 @@ gem 'simple_form'
 gem 'virtus'
 
 # Asset related
-gem 'bootstrap', '~> 4.3.1'
+gem 'bootstrap', '~> 4.3'
 gem 'jquery-rails'
 gem 'coffee-rails'
 gem 'handlebars_assets'
@@ -146,6 +155,9 @@ gem 'exception_notification'
 # gem 'bcrypt', '~> 3.1.7'
 
 # Use Unicorn as the app server
+# there doesn't seem to be any immediately obvious breaking
+# changes on the 4.x versions, but since it's so behind
+# i'll just put this comment here as information
 gem 'puma', '~> 3.12.6'
 
 # gem 'newrelic_rpm', require: false
