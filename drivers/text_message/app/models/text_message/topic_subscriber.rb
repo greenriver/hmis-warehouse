@@ -13,5 +13,9 @@ module TextMessage
     scope :active, -> do
       where(unsubscribed_at: nil)
     end
+
+    def name
+      "#{first_name} #{last_name}"
+    end
   end
 end

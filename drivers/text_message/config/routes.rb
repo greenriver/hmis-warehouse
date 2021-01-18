@@ -1,6 +1,7 @@
 BostonHmis::Application.routes.draw do
-  scope :text_message do
-    # TODO
-    # get '/my_path', to: 'text_message/my_controller'
+  namespace :text_message do
+    namespace :warehouse_reports do
+      resources :queue, only: [:index]
+    end
   end
 end
