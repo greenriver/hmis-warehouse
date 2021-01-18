@@ -1,8 +1,15 @@
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 require 'nokogiri'
+require 'vcr'
 
-RSpec.describe ClientsController, type: :request do
+VCR.configure do |c|
+  c.cassette_library_dir = 'spec/vcr'
+  c.hook_into :webmock
+  c.configure_rspec_metadata!
+end
+
+RSpec.describe ClientsController, type: :request, vcr: { cassette_name: 'clients_visibility_spec' } do
   include_context 'visibility test context'
 
   configs_variations = []
