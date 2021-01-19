@@ -205,3 +205,12 @@ Style/StringConcatenation:
 
 Bundler/OrderedGems:
   Enabled: false
+
+Style/HashAsLastArrayItem:
+  Enabled: false
+
+Style/CaseLikeIf:
+  Enabled: false
+
+Style/CommentAnnotation:
+  Enabled: false

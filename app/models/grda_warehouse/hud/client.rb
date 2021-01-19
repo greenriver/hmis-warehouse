@@ -496,6 +496,13 @@ module GrdaWarehouse::Hud
       Arel.sql(query.select(:id).to_sql)
     end
 
+    def hmis_source_visible_by?(user)
+      return false unless user.can_upload_hud_zips?
+      return false unless GrdaWarehouse::DataSource.editable_by(user).source.exists?
+
+      self.class.hmis_source_visible_by(user).where(id: source_client_ids).exists?
+    end
+
     scope :active_confirmed_consent_in_cocs, ->(coc_codes) do
       coc_codes = Array.wrap(coc_codes) + ['All CoCs']
       # if the client has a release in "my" cocs, or all cocs
@@ -2526,6 +2533,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::HealthEmergency::Isolation,
         GrdaWarehouse::HealthEmergency::Quarantine,
         GrdaWarehouse::HealthEmergency::UploadedTest,
+        GrdaWarehouse::HealthEmergency::Vaccination,
       ]
     end
 

@@ -84,8 +84,8 @@ GEM
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    acts-as-taggable-on (6.5.0)
-      activerecord (>= 5.0, < 6.1)
+    acts-as-taggable-on (7.0.0)
+      activerecord (>= 5.0, < 6.2)
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
     after_commit_exception_notification (0.2.0)
@@ -768,7 +768,7 @@ DEPENDENCIES
   activerecord-postgis-adapter
   activerecord-session_store
   activerecord-sqlserver-adapter!
-  acts-as-taggable-on (~> 6.0)
+  acts-as-taggable-on (~> 7.0)
   after_commit_exception_notification
   ajax_modal_rails (~> 1.0)
   attr_encrypted (~> 3.1.0)
@@ -788,7 +788,7 @@ DEPENDENCIES
   aws-sdk-ses (~> 1)
   bcrypt
   bootsnap
-  bootstrap (~> 4.3.1)
+  bootstrap (~> 4.3)
   bootstrap3-datetimepicker-rails (~> 4.17.42)
   brakeman
   bumbler
@@ -810,6 +810,7 @@ DEPENDENCIES
   composite_primary_keys!
   curb
   daemons
+  delayed_job
   delayed_job_active_record
   derailed_benchmarks
   devise (~> 4)
@@ -921,4 +922,4 @@ DEPENDENCIES
   with_advisory_lock
 
 BUNDLED WITH
-   2.2.4
+   2.2.5

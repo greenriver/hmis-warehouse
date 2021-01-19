@@ -14,6 +14,9 @@ class HmisCsvTwentyTwenty::ImporterValidationsController < ApplicationController
     @filename = HmisCsvTwentyTwenty::Importer::Importer.importable_files_map.keys.detect { |v| v == params[:file] }
     pattern = '%::' + HmisCsvTwentyTwenty::Importer::Importer.importable_files_map[@filename].downcase
 
-    @validations = importer_log.import_validations.where(HmisCsvValidation::Base.arel_table[:source_type].lower.matches(pattern)).page(params[:page])
+    @validations = importer_log.import_validations.
+      where(HmisCsvValidation::Base.arel_table[:source_type].lower.matches(pattern)).
+      where(type: HmisCsvValidation::Base.validation_classes.map(&:name)).
+      page(params[:page])
   end
 end

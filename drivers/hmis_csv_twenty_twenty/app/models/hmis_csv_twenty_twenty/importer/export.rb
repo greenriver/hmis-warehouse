@@ -25,5 +25,55 @@ module HmisCsvTwentyTwenty::Importer
     # Don't ever mark these for deletion
     def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
     end
+
+    def self.hmis_validations
+      {
+        ExportID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        SourceType: [
+          {
+            class: HmisCsvValidation::NonBlank,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.source_types.keys.map(&:to_s).freeze },
+          },
+        ],
+        ExportStartDate: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        ExportEndDate: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        ExportPeriodType: [
+          {
+            class: HmisCsvValidation::NonBlank,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.period_types.keys.map(&:to_s).freeze },
+          },
+        ],
+        ExportDirective: [
+          {
+            class: HmisCsvValidation::NonBlank,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.export_directives.keys.map(&:to_s).freeze },
+          },
+        ],
+        HashStatus: [
+          {
+            class: HmisCsvValidation::NonBlank,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.hash_statuses.keys.map(&:to_s).freeze },
+          },
+        ],
+      }
+    end
   end
 end

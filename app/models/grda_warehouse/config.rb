@@ -78,6 +78,7 @@ module GrdaWarehouse
     def self.available_health_emergencies
       {
         'Boston COVID-19' => :boston_covid_19,
+        'COVID-19 -- Vaccination Only' => :covid_19_vaccinations_only,
       }
     end
 

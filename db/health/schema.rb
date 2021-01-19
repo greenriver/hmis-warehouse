@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_23_182315) do
+ActiveRecord::Schema.define(version: 2021_01_11_195511) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -697,6 +697,7 @@ ActiveRecord::Schema.define(version: 2020_12_23_182315) do
     t.datetime "updated_at"
     t.integer "updated_patients"
     t.jsonb "processing_errors", default: []
+    t.jsonb "audit_actions", default: {}
   end
 
   create_table "epic_careplans", id: :serial, force: :cascade do |t|

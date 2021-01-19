@@ -2,6 +2,7 @@ wb = xlsx_package.workbook
 
 columns = [
   'Maintenance Type',
+  'Maintenance Type Detail',
   'Medicaid ID',
   'Last Name',
   'First Name',
@@ -13,12 +14,15 @@ wb.add_worksheet(name: 'Transactions') do |sheet|
   sheet.add_row(columns, style: title)
 
   @enrollment.transactions.each do |transaction|
+    subscriber_id = Health::Enrollment.subscriber_id(transaction)
+    maintenance_type_detail = Health::Enrollment.maintenance_code_to_string(@enrollment.audit_actions[subscriber_id])
     row = [
       Health::Enrollment.maintenance_type_name(transaction),
-      Health::Enrollment.subscriber_id(transaction),
+      maintenance_type_detail,
+      subscriber_id,
       Health::Enrollment.last_name(transaction),
       Health::Enrollment.first_name(transaction),
     ]
-    sheet.add_row(row, types: [nil, :string, nil, nil]) # Force subscriber id to string to avoid formatting problems
+    sheet.add_row(row, types: [nil, nil, :string, nil, nil]) # Force subscriber id to string to avoid formatting problems
   end
 end

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
 module Health
@@ -239,7 +239,7 @@ module Health
     end
 
     def enrolled_days_to_date
-      (enrollment_start_date .. (disenrollment_date || Date.current)).to_a
+      (enrollment_start_date .. (actual_or_pending_disenrollment_date || Date.current)).to_a
     end
 
     def name
