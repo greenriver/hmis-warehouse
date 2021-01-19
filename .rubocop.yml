@@ -75,6 +75,12 @@ Style/TrailingCommaInArrayLiteral:
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
 
+Style/OptionalBooleanParameter:
+  Enabled: false
+
+Lint/ConstantDefinitionInBlock:
+  Enabled: false
+
 # Cop supports --auto-correct.
 # Configuration parameters: PreferredDelimiters.
 Style/PercentLiteralDelimiters:
@@ -213,4 +219,56 @@ Style/CaseLikeIf:
   Enabled: false
 
 Style/CommentAnnotation:
+  Enabled: false
+
+# side-step ruby 2.7.2 upgrade issues
+Layout/BeginEndAlignment:
+  Enabled: false
+Layout/EmptyLineBetweenDefs:
+  Enabled: false
+Layout/EmptyLinesAroundAttributeAccessor:
+  Enabled: false
+Lint/EmptyConditionalBody:
+  Enabled: false
+Lint/FloatComparison:
+  Enabled: false
+Lint/MissingSuper:
+  Enabled: false
+Lint/StructNewOverride:
+  Enabled: false
+Lint/UselessMethodDefinition:
+  Enabled: false
+Style/AccessorGrouping:
+  Enabled: false
+Style/CombinableLoops:
+  Enabled: false
+Style/ExplicitBlockArgument:
+  Enabled: false
+Style/HashEachMethods:
+  Enabled: false
+Style/HashLikeCase:
+  Enabled: false
+Style/HashTransformKeys:
+  Enabled: false
+Style/HashTransformValues:
+  Enabled: false
+Style/KeywordParametersOrder:
+  Enabled: false
+Style/MethodDefParentheses:
+  Enabled: false
+Style/RedundantAssignment:
+  Enabled: false
+Style/RedundantFetchBlock:
+  Enabled: false
+Style/RedundantFileExtensionInRequire:
+  Enabled: false
+Style/RedundantRegexpCharacterClass:
+  Enabled: false
+Style/RedundantRegexpEscape:
+  Enabled: false
+Style/RedundantSelfAssignment:
+  Enabled: false
+Style/SingleArgumentDig:
+  Enabled: false
+Style/SoleNestedConditional:
   Enabled: false
