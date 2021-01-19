@@ -224,8 +224,6 @@ Style/CommentAnnotation:
 # side-step ruby 2.7.2 upgrade issues
 Layout/BeginEndAlignment:
   Enabled: false
-Layout/EmptyLineBetweenDefs:
-  Enabled: false
 Layout/EmptyLinesAroundAttributeAccessor:
   Enabled: false
 Lint/EmptyConditionalBody:
@@ -242,8 +240,6 @@ Style/AccessorGrouping:
   Enabled: false
 Style/CombinableLoops:
   Enabled: false
-Style/ExplicitBlockArgument:
-  Enabled: false
 Style/HashEachMethods:
   Enabled: false
 Style/HashLikeCase:
@@ -259,8 +255,6 @@ Style/MethodDefParentheses:
 Style/RedundantAssignment:
   Enabled: false
 Style/RedundantFetchBlock:
-  Enabled: false
-Style/RedundantFileExtensionInRequire:
   Enabled: false
 Style/RedundantRegexpCharacterClass:
   Enabled: false
