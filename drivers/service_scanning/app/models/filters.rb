@@ -6,5 +6,6 @@
 
 module ServiceScanning::Filters
 end
+
 module Filters
 end

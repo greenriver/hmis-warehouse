@@ -1,5 +1,6 @@
 module ServiceScanning::GrdaWarehouse
 end
+
 module ServiceScanning::GrdaWarehouse::Hud
   module ProjectExtension
     extend ActiveSupport::Concern
