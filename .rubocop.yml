@@ -266,3 +266,5 @@ Style/SingleArgumentDig:
   Enabled: false
 Style/SoleNestedConditional:
   Enabled: false
+Style/ExplicitBlockArgument:
+  Enabled: false
