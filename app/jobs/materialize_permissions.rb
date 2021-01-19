@@ -58,11 +58,9 @@ class MaterializePermissions < BaseJob
     wh_db.execute(sql)
   end
 
-  private def reduce_logging
+  private def reduce_logging(&block)
     User.logger.silence(Logger::INFO) do
-      GrdaWarehouse::Hud::Client.logger.silence(Logger::INFO) do
-        yield
-      end
+      GrdaWarehouse::Hud::Client.logger.silence(Logger::INFO, &block)
     end
   end
 end
