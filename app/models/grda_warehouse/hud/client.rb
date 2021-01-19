@@ -2617,8 +2617,11 @@ module GrdaWarehouse::Hud
     end
 
     def most_recent_vispdat_family_vispdat?
+      # From local warehouse VI-SPDAT
       return most_recent_vispdat_object.family? if most_recent_vispdat_object.respond_to?(:family?)
-      return most_recent_vispdat_object.vispdat_family_score&.positive? if most_recent_vispdat_object.respond_to?(:vispdat_family_score)
+
+      # From ETO VI-SPDAT, this is pre-calculated GrdaWarehouse::HmisForm.set_part_of_a_family
+      return family_member
     end
 
     def days_homeless_for_vispdat_prioritization
