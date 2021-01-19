@@ -263,7 +263,7 @@ namespace :grda_warehouse do
     rescue StandardError => e
       puts e.message
     end
-    TextMessage::Message.send_pending! if RailsDrivers.loaded.include?(:text_message)
+    # TextMessage::Message.send_pending! if RailsDrivers.loaded.include?(:text_message)
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
