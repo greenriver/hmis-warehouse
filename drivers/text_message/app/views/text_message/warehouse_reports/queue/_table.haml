@@ -1,0 +1,24 @@
+
+- if @text_messages.exists?
+  .row
+    .col-8
+      %p= page_entries_info @text_messages, entry_name: _('Messages')
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Subscriber
+          %th Topic
+          %th Scheduled
+          %th Sent
+      %tbody.report-listing.warehouse-reports__completed
+        - @text_messages.each do |message|
+          %tr
+            %td= message.topic_subscriber.name
+
+            %td= message.topic.title
+            %td= message.send_on_or_after
+            %td= message.sent_at
+- else
+  %p.none-found
+    No messages queued.

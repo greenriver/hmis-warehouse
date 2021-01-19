@@ -15,7 +15,7 @@ module HmisCsvTwentyTwenty::GrdaWarehouse
       def status
         if percent_complete.zero?
           'Queued'
-        elsif percent_complete == 0.01
+        elsif percent_complete.to_d == 0.01.to_d
           'Started'
         elsif percent_complete == 100
           return 'Paused for error review' if importer_log&.paused?

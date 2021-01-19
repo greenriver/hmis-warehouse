@@ -177,6 +177,7 @@ gem 'aws-sdk-s3', '~> 1'
 gem 'aws-sdk-secretsmanager', '~> 1'
 gem 'aws-sdk-ses', '~> 1'
 gem 'aws-sdk-iam', '~> 1'
+gem 'aws-sdk-sns', require: false
 gem 'json'
 gem 'amazing_print'
 
