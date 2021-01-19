@@ -35,6 +35,12 @@ class WorkoffArbiter
   # workoff job
   SPOT_CAPACITY_PROVIDER_NAME = 'spot-capacity-provider'.freeze
 
+  def initialize
+    self.class.include NotifierConfig
+
+    setup_notifier('Workoff Worker')
+  end
+
   def needs_worker?
     metric > CUTOFF && _current_worker_count < MAX_WORKOFF_WORKERS
   end
@@ -54,6 +60,8 @@ class WorkoffArbiter
     }
 
     ecs.run_task(payload)
+
+    @notifier.ping("Added a workoff worker. Metric was #{metric} with #{_current_worker_count} workers right now (this might include the just-created one).")
   end
 
   private
@@ -99,15 +107,18 @@ class WorkoffArbiter
   end
 
   def metric
-    # Get all non-failed, non-running jobs
-    scope = Delayed::Job.
-      select('created_at, priority, queue').
-      where(failed_at: nil, locked_at: nil, locked_by: nil)
+    @metric ||=
+      begin
+        # Get all non-failed, non-running jobs
+        scope = Delayed::Job.
+          select('created_at, priority, queue').
+          where(failed_at: nil, locked_at: nil, locked_by: nil)
 
-    scope.sum do |job|
-      # puts  "#{job.queue} job: 1 + #{priority_factor(job.priority)} + #{age_factor(job.created_at)}"
-      1 + priority_factor(job.priority) + age_factor(job.created_at)
-    end
+        scope.sum do |job|
+          # puts  "#{job.queue} job: 1 + #{priority_factor(job.priority)} + #{age_factor(job.created_at)}"
+          1 + priority_factor(job.priority) + age_factor(job.created_at)
+        end
+      end
   end
 
   def _task_family

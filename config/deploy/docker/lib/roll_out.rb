@@ -483,7 +483,7 @@ class RollOut
       end
 
       # In the interim before switching everything over to capacity providers, we only allow workoff workers
-      # to use capacity providers.
+      # and deploy tasks to use capacity providers.
       # FIXME: Eventually, we will remove this if-statement and replace with
       # running DJ services with the on-demand, non-default capacity provider
       # strategy. We need
@@ -492,7 +492,7 @@ class RollOut
       #   3) redeploy everything
       #   4) spin down the (at this point) defunct auto-scaling group to no instances
 
-      if !name.match?(/workoff/)
+      if !name.match?(/workoff/) && !name.match?(/deploy-tasks/)
         puts "[INFO][CONST] Not constraining #{name} based on spot/non-spot"
         pc << {
           type: 'memberOf',
@@ -541,6 +541,19 @@ class RollOut
       cluster: cluster,
       task_definition: task_definition,
     }
+
+    if _capacity_providers.length > 0 && _capacity_providers.include?(SPOT_CAPACITY_PROVIDER_NAME)
+      puts "[INFO] Using spot capacity provider: #{SPOT_CAPACITY_PROVIDER_NAME}"
+      run_task_payload[:capacity_provider_strategy] = [
+        {
+          capacity_provider: SPOT_CAPACITY_PROVIDER_NAME,
+          weight: 1,
+          base: 1,
+        },
+      ]
+    else
+      puts "[ERROR] No dynamic work capacity provider found. Just running the task."
+    end
 
     while (incomplete) do
       results = ecs.run_task(run_task_payload)
