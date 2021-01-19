@@ -77,7 +77,7 @@ module TextMessage::GrdaWarehouse::HealthEmergency
       private def initial_reminder_content
         case preferred_language.to_s
         when 'es'
-          "RECORDATORIO: Su segunda dosis de la vacuna COVID-19 vence el #{follow_up_on.strftime('%m/%d/%Y')}. Haga un seguimiento en el lugar donde recibió su primera vacuna para su segunda dosis."
+          "Recordatorio: La fecha para su segunda dosis de la vacuna para el Covid-19 se cumple el #{follow_up_on.strftime('%m/%d/%Y')}. Por favor comuniquese con el sitio donde recibio la primera vacuna para recibir la segunda dosis."
         else
           "REMINDER: Your second dose of the COVID-19 vaccine is due on #{follow_up_on.strftime('%m/%d/%Y')}. Please follow up at the site you received your first vaccine for your second dose."
         end
@@ -86,7 +86,7 @@ module TextMessage::GrdaWarehouse::HealthEmergency
       private def second_reminder_content
         case preferred_language.to_s
         when 'es'
-          "RECORDATORIO: Su segunda dosis de la vacuna COVID-19 vence el #{follow_up_on.strftime('%m/%d/%Y')}. Haga un seguimiento en el lugar donde recibió su primera vacuna para su segunda dosis."
+          "Recordatorio: La fecha para su segunda dosis de la vacuna para el Covid-19 se cumple el #{follow_up_on.strftime('%m/%d/%Y')}. Por favor comuniquese con el sitio donde recibio la primera vacuna para recibir la segunda dosis."
         else
           "REMINDER: Your second dose of the COVID-19 vaccine is due on #{follow_up_on.strftime('%m/%d/%Y')}. Please follow up at the site you received your first vaccine for your second dose."
         end
