@@ -74,8 +74,10 @@ module Stupidedi
             @node = node
           end
 
-          def call(&block)
-            node.children.map(&block)
+          def call
+            node.children.map do |c|
+              yield(c)
+            end
           end
         end
 
@@ -87,7 +89,9 @@ module Stupidedi
           end
 
           def call
-            node.children.map(&block)
+            node.children.map do |c|
+              yield(c)
+            end
           end
         end
 

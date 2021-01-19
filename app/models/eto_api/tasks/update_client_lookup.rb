@@ -14,7 +14,6 @@ class Object
     Date.parse(date).strftime('%d-%b-%Y')
   end
 end
-
 module EtoApi::Tasks
   class UpdateClientLookup
     include TsqlImport

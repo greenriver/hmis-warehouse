@@ -10,8 +10,12 @@ public/packs*
 *.swo
 .sass-cache
 yarn-error.log
+.irb-history
+.pry_history
+.pryrc
 byebug_history
 .powrc
+.env.*
 untracked
 .bundle
 .github

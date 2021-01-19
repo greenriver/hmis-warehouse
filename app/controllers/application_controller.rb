@@ -40,8 +40,10 @@ class ApplicationController < ActionController::Base
 
   prepend_before_action :skip_timeout
 
-  def cache_grda_warehouse_base_queries(&block)
-    GrdaWarehouseBase.cache(&block)
+  def cache_grda_warehouse_base_queries
+    GrdaWarehouseBase.cache do
+      yield
+    end
   end
 
   # Send any exceptions on production to slack

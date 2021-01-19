@@ -12,13 +12,15 @@ module Stupidedi
           @node = node
         end
 
-        def reduce(memo, &block)
+        def reduce(memo)
           return memo if node.empty?
 
           memo[key] = if single_child?
             yield(child)
           else
-            children.map(&block)
+            children.map do |c|
+              yield(c)
+            end
           end
         end
 

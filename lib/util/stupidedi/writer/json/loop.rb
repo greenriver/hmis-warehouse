@@ -13,8 +13,10 @@ module Stupidedi
           @node = node
         end
 
-        def reduce(memo, &block)
-          memo[key] = children.map(&block)
+        def reduce(memo)
+          memo[key] = children.map do |c|
+            yield(c)
+          end
         end
 
         def key
