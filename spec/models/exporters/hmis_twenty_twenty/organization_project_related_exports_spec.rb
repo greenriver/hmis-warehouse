@@ -1,8 +1,8 @@
 require 'rails_helper'
-require 'models/exporters/hmis_twenty_twenty/project_setup.rb'
-require 'models/exporters/hmis_twenty_twenty/single_project_tests.rb'
-require 'models/exporters/hmis_twenty_twenty/enrollment_setup.rb'
-require 'models/exporters/hmis_twenty_twenty/single_enrollment_tests.rb'
+require 'models/exporters/hmis_twenty_twenty/project_setup'
+require 'models/exporters/hmis_twenty_twenty/single_project_tests'
+require 'models/exporters/hmis_twenty_twenty/enrollment_setup'
+require 'models/exporters/hmis_twenty_twenty/single_enrollment_tests'
 
 def project_test_type
   'organization-based'
