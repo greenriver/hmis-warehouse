@@ -8,7 +8,7 @@ module ObviousClientMatcher
   extend ActiveSupport::Concern
 
   included do
-    def clients
+    private def clients
       @clients ||= hashed(client_destinations.pluck(*client_columns), client_columns)
     end
 
@@ -28,19 +28,19 @@ module ObviousClientMatcher
       ]
     end
 
-    def hashed(results, columns)
+    private def hashed(results, columns)
       results.map do |row|
         Hash[columns.zip(row)]
       end
     end
 
-    def check_social(incoming_ssn, client_ssn)
+    private def check_social(incoming_ssn, client_ssn)
       return false unless ::HUD.valid_social?(incoming_ssn)
 
       incoming_ssn == client_ssn
     end
 
-    def check_birthday(incoming_dob, client_dob)
+    private def check_birthday(incoming_dob, client_dob)
       return false if incoming_dob.blank?
 
       incoming_dob == client_dob

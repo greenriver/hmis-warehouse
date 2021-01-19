@@ -1,4 +1,4 @@
-class CreateImmunizations < ActiveRecord::Migration[5.2]
+class CreateVaccinations < ActiveRecord::Migration[5.2]
   def change
     create_table :vaccinations do |t|
       t.integer :client_id

@@ -820,7 +820,7 @@ def report_list
       health: false,
     }
   end
-  if RailsDrivers.loaded.include?(:disability_summary)
+  if RailsDrivers.loaded.include?(:text_message)
     r_list['Operational'] << {
       url: 'text_message/warehouse_reports/queue',
       name: 'Text Message Queue Review',

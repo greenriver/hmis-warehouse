@@ -107,12 +107,15 @@ module Health
       # Add new vaccinations
       system_user_id = User.setup_system_user.id
       new_vaccinations = []
+      # a list of destination clients gets cached in #clients per instance
+      # setup a temporary instance to hold the cache
+      lookup_cache = new
       unassigned.preload(:patient).find_each do |vaccination|
         # Attempt to find the client based on medicaid_id
         client_id = if vaccination.patient&.client_id.present?
           vaccination.patient.client_id
         else
-          all_matches = new.matching_clients(
+          all_matches = lookup_cache.matching_clients(
             ssn: vaccination.ssn,
             dob: vaccination.dob,
             first_name: vaccination.first_name,
@@ -152,6 +155,8 @@ module Health
       vaccination_type
     end
 
+    # NOTE: called on initialized vaccination in the controller
+    # to determine follow_up_date
     def follow_up_date
       return unless vaccinated_on
 
