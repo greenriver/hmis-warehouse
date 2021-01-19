@@ -1,6 +1,6 @@
 - readonly = anomaly.status == 'resolved'
 - wrapper = {}
-- wrapper = {wrapper: :readonly} if readonly
+-# - wrapper = {wrapper: :readonly} if readonly
 = simple_form_for(anomaly, {as: :anomaly, url: client_anomaly_path(client_id: @client.id, id: anomaly.id)}.merge(wrapper))do |f|
   %tr.anomaly-current
     %td
@@ -9,7 +9,7 @@
       = f.input :status, collection: anomaly.class.available_stati.invert, label: false, include_blank: false
     %td= anomaly.updated_at
     %td= User.find(anomaly.versions.last.whodunnit)&.name
-    %td= f.submit class: 'btn btn-secondary', value: 'Update' unless readonly
+    -# %td= f.submit class: 'btn btn-secondary', value: 'Update' unless readonly
     
   %tr.anomaly-history
     %td= simple_format anomaly.description
