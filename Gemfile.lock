@@ -158,6 +158,9 @@ GEM
     aws-sdk-ses (1.36.0)
       aws-sdk-core (~> 3, >= 3.109.0)
       aws-sigv4 (~> 1.1)
+    aws-sdk-sns (1.21.0)
+      aws-sdk-core (~> 3, >= 3.71.0)
+      aws-sigv4 (~> 1.1)
     aws-sdk-sqs (1.35.0)
       aws-sdk-core (~> 3, >= 3.109.0)
       aws-sigv4 (~> 1.1)
@@ -790,6 +793,7 @@ DEPENDENCIES
   aws-sdk-s3 (~> 1)
   aws-sdk-secretsmanager (~> 1)
   aws-sdk-ses (~> 1)
+  aws-sdk-sns
   bcrypt
   bootsnap
   bootstrap (~> 4.3)
