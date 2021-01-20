@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~>5.2.4'
+gem 'rails', '~>6.0.0'
 gem 'rails_drivers'
 
 # bundle exec rake doc:rails generates the API under doc/api.
@@ -10,11 +10,11 @@ gem 'nokogiri', '>= 1.11.0.rc4' # >= 1.11.0.rc4 due to CVE-2020-26247
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-# gem 'composite_primary_keys', '~> 11'
-gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
+gem 'composite_primary_keys', '~>12'
+# gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
 gem 'pg'
 # version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
-gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: '5-2-stable', require: false
+gem 'activerecord-sqlserver-adapter'#, git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: '5-2-stable', require: false
 gem 'activerecord-import'
 
 # locking active record extended here temporarily since upgrading it to 2.0.0 gives
@@ -49,7 +49,7 @@ gem 'rserve-simpler', require: false
 gem 'encryptor'
 
 # File processing
-gem 'carrierwave', '~> 1'
+gem 'carrierwave'
 gem 'carrierwave-i18n'
 gem 'carrierwave-aws'
 gem 'ruby-filemagic'
@@ -70,7 +70,7 @@ gem 'devise-security'
 gem 'devise-two-factor'
 gem 'pretender'
 gem 'rqrcode-rails3'
-gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
+gem 'rqrcode', '~> 0.4.2' # pin to support current version of rqrcode-rails3
 
 gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
@@ -101,7 +101,7 @@ gem 'jquery-rails'
 gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
-gem 'sprockets', '~> 3'
+gem 'sprockets', '~> 3.0'
 gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
