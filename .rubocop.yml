@@ -214,3 +214,9 @@ Style/CaseLikeIf:
 
 Style/CommentAnnotation:
   Enabled: false
+
+Style/OptionalBooleanParameter:
+  Enabled: false
+
+Style/SingleArgumentDig:
+  Enabled: false
