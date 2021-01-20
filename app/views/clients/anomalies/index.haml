@@ -3,20 +3,23 @@
 = render 'breadcrumbs'
 = render 'clients/aliases'
 %h1= content_for :title
-= render 'form'
-- if @anomalies.any?
-  %ul.nav.nav-tabs{role: :tablist}
-    - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
-      %li.nav-item{role: :presentation}
-        %a{href: "##{slug}", 'aria-controls' => slug, role: :tab, data: {toggle: :tab}, class: 'nav-link'}
-          = status
-  .tab-content#anomalies-tab-content
-    - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
-      .tab-pane{role: :tabpanel, id: slug}
-        = render 'anomalies_table', anomalies: @anomalies[slug.to_s]
-- else
-  %p.note
-    There are no anomalies at this time.
+.row
+  .col-sm-8
+    - if @anomalies.any?
+      %ul.nav.nav-tabs{role: :tablist}
+        - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
+          %li.nav-item{role: :presentation}
+            %a{href: "##{slug}", 'aria-controls' => slug, role: :tab, data: {toggle: :tab}, class: 'nav-link'}
+              = status
+      .tab-content#anomalies-tab-content
+        - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
+          .tab-pane{role: :tabpanel, id: slug}
+            = render 'anomalies_table', anomalies: @anomalies[slug.to_s]
+    - else
+      %p.note
+        There are no anomalies at this time.
+  .col-sm-4
+    = render 'form'
 
 = content_for :page_js do
   :javascript
