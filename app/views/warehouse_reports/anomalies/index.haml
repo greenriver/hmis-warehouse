@@ -21,7 +21,7 @@
     #unresolved.tab-pane{role: :tabpanel}
       = render 'section', group: @unresolved
     #resolved.tab-pane{role: :tabpanel}
-      = render 'section', group: @resolved
+      = render 'section', group: @resolved    
 
 = content_for :page_js do
   :javascript
@@ -40,3 +40,11 @@
     });
     var hash = window.location.hash;
     $('.nav-tabs a[href="' + hash + '"]').tab('show');
+
+    $('.datatable').DataTable({
+      searching: true,
+      ordering: true,
+      pageLength: 15,
+      lengthChange: false,
+      pagingType: 'simple'
+    });
