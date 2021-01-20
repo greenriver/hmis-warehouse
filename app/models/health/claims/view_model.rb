@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: View model. Refers to PHI related models thru their documents public interfaces.
 # Controls should be implemented there
 module Health::Claims

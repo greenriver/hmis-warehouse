@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Audit-log containing PHI
 class Health::HealthVersion < PaperTrail::Version
   establish_connection DB_HEALTH

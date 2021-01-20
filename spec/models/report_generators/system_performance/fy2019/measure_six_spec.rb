@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-# NOTE 6 mirrors measure 2, but we've converted all ES to SH
+# NOTE: 6 mirrors measure 2, but we've converted all ES to SH
 
 RSpec.describe ReportGenerators::SystemPerformance::Fy2019::MeasureSix, type: :model do
   let!(:all_hud_reports_user_role) { create :can_view_all_hud_reports }

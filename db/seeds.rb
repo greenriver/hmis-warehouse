@@ -820,6 +820,15 @@ def report_list
       health: false,
     }
   end
+  if RailsDrivers.loaded.include?(:text_message)
+    r_list['Operational'] << {
+      url: 'text_message/warehouse_reports/queue',
+      name: 'Text Message Queue Review',
+      description: 'Insight into pending and sent Text Messages',
+      limitable: false,
+      health: false,
+    }
+  end
 
   r_list
 end
@@ -838,6 +847,7 @@ def cleanup_unused_reports
   cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
   cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
   cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
+  cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
   cleanup.each do |url|
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
   end

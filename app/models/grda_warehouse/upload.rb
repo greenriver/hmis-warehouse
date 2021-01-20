@@ -28,8 +28,9 @@ module GrdaWarehouse
 
     def import_log_id
       return nil unless has_import_log?
+
       GrdaWarehouse::ImportLog.where.not(completed_at: nil).
-      where(data_source_id: data_source_id, completed_at: completed_at).pluck(:id).first
+        where(data_source_id: data_source_id, completed_at: completed_at).pluck(:id).first
     end
 
     def status
@@ -46,11 +47,8 @@ module GrdaWarehouse
 
     def import_time(details: false)
       if delayed_job.present?
-        if delayed_job.last_error.present? && details
-          return "Failed with: #{delayed_job.last_error.split("\n").first}"
-        elsif delayed_job.failed_at.present? || delayed_job.last_error.present?
-          return  'failed'
-        end
+        return "Failed with: #{delayed_job.last_error.split("\n").first}" if delayed_job.last_error.present? && details
+        return 'failed' if delayed_job.failed_at.present? || delayed_job.last_error.present?
       end
       if percent_complete == 100
         begin
@@ -67,6 +65,7 @@ module GrdaWarehouse
         end
       end
     end
-
+    # Overrides some methods, so must be included at the end
+    include RailsDrivers::Extensions
   end
 end

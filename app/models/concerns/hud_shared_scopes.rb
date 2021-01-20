@@ -20,12 +20,5 @@ module HudSharedScopes
 
       where(data_source_id: GrdaWarehouse::DataSource.editable_by(user).source.select(:id))
     end
-
-    def hmis_source_visible_by?(user)
-      return false unless user.can_upload_hud_zips?
-      return false unless GrdaWarehouse::DataSource.editable_by(user).source.exists?
-
-      self.class.hmis_source_visible_by(user).where(id: id).exists?
-    end
   end
 end

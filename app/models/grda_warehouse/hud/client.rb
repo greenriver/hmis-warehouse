@@ -496,6 +496,13 @@ module GrdaWarehouse::Hud
       Arel.sql(query.select(:id).to_sql)
     end
 
+    def hmis_source_visible_by?(user)
+      return false unless user.can_upload_hud_zips?
+      return false unless GrdaWarehouse::DataSource.editable_by(user).source.exists?
+
+      self.class.hmis_source_visible_by(user).where(id: source_client_ids).exists?
+    end
+
     scope :active_confirmed_consent_in_cocs, ->(coc_codes) do
       coc_codes = Array.wrap(coc_codes) + ['All CoCs']
       # if the client has a release in "my" cocs, or all cocs
@@ -2526,6 +2533,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::HealthEmergency::Isolation,
         GrdaWarehouse::HealthEmergency::Quarantine,
         GrdaWarehouse::HealthEmergency::UploadedTest,
+        GrdaWarehouse::HealthEmergency::Vaccination,
       ]
     end
 
@@ -2534,6 +2542,7 @@ module GrdaWarehouse::Hud
         Health::Patient,
         Health::HealthFile,
         Health::Tracing::Case,
+        Health::Vaccination,
       ]
     end
 
@@ -2608,8 +2617,11 @@ module GrdaWarehouse::Hud
     end
 
     def most_recent_vispdat_family_vispdat?
+      # From local warehouse VI-SPDAT
       return most_recent_vispdat_object.family? if most_recent_vispdat_object.respond_to?(:family?)
-      return most_recent_vispdat_object.vispdat_family_score&.positive? if most_recent_vispdat_object.respond_to?(:vispdat_family_score)
+
+      # From ETO VI-SPDAT, this is pre-calculated GrdaWarehouse::HmisForm.set_part_of_a_family
+      return family_member
     end
 
     def days_homeless_for_vispdat_prioritization

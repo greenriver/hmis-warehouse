@@ -27,9 +27,6 @@ module WarehouseReports
           sort_clients if @clients&.any?
         end
         format.xlsx do
-          # range = @report.parameters['range'] || {}
-          # start_date = range['start']
-          # end_date = range['end']
           filename = 'Homeless Veterans.xlsx'
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end

@@ -32,14 +32,28 @@ module Delayed
       end
     end
   end
-  class Job
-    def self.jobs_for_class(handlers)
-      handlers = Array.wrap(handlers)
-      sql = arel_table[:id].eq(0) # This will never happen
-      handlers.each do |handler|
-        sql = sql.or(arel_table[:handler].matches("%#{handler}%"))
+  # class Job
+  #   def self.jobs_for_class(handlers)
+  #     handlers = Array.wrap(handlers)
+  #     sql = arel_table[:id].eq(0) # This will never happen
+  #     handlers.each do |handler|
+  #       sql = sql.or(arel_table[:handler].matches("%#{handler}%"))
+  #     end
+  #     where(sql)
+  #   end
+  # end
+  module Backend
+    module ActiveRecord
+      class Job < ::ActiveRecord::Base
+        def self.jobs_for_class(handlers)
+          handlers = Array.wrap(handlers)
+          sql = arel_table[:id].eq(0) # This will never happen
+          handlers.each do |handler|
+            sql = sql.or(arel_table[:handler].matches("%#{handler}%"))
+          end
+          where(sql)
+        end
       end
-      where(sql)
     end
   end
 end

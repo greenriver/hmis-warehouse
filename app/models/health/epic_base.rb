@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: None - contains no PHI
 module Health
   class EpicBase < Base
@@ -13,6 +13,7 @@ module Health
     def self.source_key= key
       @source_key = key
     end
+
     def self.source_key
       @source_key
     end
@@ -28,8 +29,12 @@ module Health
     end
 
     # override as necessary
-    def clean_row row:, data_source_id:
+    def clean_row(row:, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
       row
+    end
+
+    def self.use_tsql_import?
+      true
     end
   end
 end
