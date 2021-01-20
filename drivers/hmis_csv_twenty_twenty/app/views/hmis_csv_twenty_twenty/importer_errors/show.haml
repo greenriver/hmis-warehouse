@@ -7,21 +7,24 @@
 %ul.nav.nav-tabs{role: "presentation"}
   %li.nav-item{role: 'presentation'}
     = link_to 'Validation Flags', hmis_csv_twenty_twenty_importer_validation_path(@import.importer_log, file: @filename), class: 'nav-link'
+  %li.nav-item{role: 'presentation'}
+    = link_to 'Import Error Flags', hmis_csv_twenty_twenty_importer_validation_error_path(@import.importer_log, file: @filename), class: 'nav-link'
   %li.nav-item.active{role: 'presentation'}
     = link_to 'Importer Errors', hmis_csv_twenty_twenty_importer_error_path(@import.importer_log, file: @filename), class: 'nav-link'
 
 - if @errors.present?
   = paginate @errors
-  %table.table
-    %thead
-      %tr
-        %th Error
-        %th HUD ID
-    %tbody
-      - @errors.each do |error|
+  .card
+    %table.table.table-striped.mb-0
+      %thead
         %tr
-          %td= error.details
-          - source = error.source
-          %td= source.send(source.class.hud_key) if source.present?
+          %th Error
+          %th HUD ID
+      %tbody
+        - @errors.each do |error|
+          %tr
+            %td= error.details
+            - source = error.source
+            %td= source.send(source.class.hud_key) if source.present?
 - else
   %p.well.none-found No importer errors.

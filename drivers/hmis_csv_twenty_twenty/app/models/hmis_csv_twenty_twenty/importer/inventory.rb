@@ -24,5 +24,46 @@ module HmisCsvTwentyTwenty::Importer
     def self.warehouse_class
       GrdaWarehouse::Hud::Inventory
     end
+
+    def self.hmis_validations
+      {
+        ProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        CoCCode: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.cocs.keys.freeze },
+          },
+        ],
+        HouseholdType: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.household_types.keys.map(&:to_s).freeze },
+          },
+        ],
+        Availability: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.availabilities.keys.map(&:to_s).freeze },
+          },
+        ],
+        UnitInventory: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        BedInventory: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        InventoryStartDate: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+      }
+    end
   end
 end

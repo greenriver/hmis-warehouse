@@ -66,12 +66,10 @@ module Admin
     end
 
     def update
-      if adding_admin?
-        unless current_user.valid_password?(confirmation_params[:confirmation_password])
-          flash[:error] = 'User not updated. Incorrect password'
-          render :confirm
-          return
-        end
+      if adding_admin? && !current_user.valid_password?(confirmation_params[:confirmation_password])
+        flash[:error] = 'User not updated. Incorrect password'
+        render :confirm
+        return
       end
       existing_health_roles = @user.roles.health.to_a
       begin

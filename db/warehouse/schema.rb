@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_11_123325) do
+ActiveRecord::Schema.define(version: 2021_01_18_160904) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1820,6 +1820,7 @@ ActiveRecord::Schema.define(version: 2021_01_11_123325) do
     t.boolean "pf_show_income", default: false, null: false
     t.boolean "pf_show_additional_timeliness", default: false, null: false
     t.integer "cas_sync_months", default: 3
+    t.boolean "send_sms_for_covid_reminders", default: false, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -2288,6 +2289,9 @@ ActiveRecord::Schema.define(version: 2021_01_11_123325) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.integer "health_vaccination_id"
+    t.string "preferred_language", default: "en"
+    t.text "notification_status"
     t.index ["agency_id"], name: "index_health_emergency_vaccinations_on_agency_id"
     t.index ["client_id"], name: "index_health_emergency_vaccinations_on_client_id"
     t.index ["created_at"], name: "index_health_emergency_vaccinations_on_created_at"
@@ -6881,6 +6885,55 @@ ActiveRecord::Schema.define(version: 2021_01_11_123325) do
     t.string "encrypted_password_iv"
     t.integer "lms_user_id"
     t.index ["user_id"], name: "index_talentlms_logins_on_user_id"
+  end
+
+  create_table "text_message_messages", force: :cascade do |t|
+    t.bigint "topic_id"
+    t.bigint "subscriber_id"
+    t.date "send_on_or_after"
+    t.datetime "sent_at"
+    t.string "sent_to"
+    t.string "content"
+    t.integer "source_id"
+    t.string "source_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.string "delivery_status"
+    t.index ["created_at"], name: "index_text_message_messages_on_created_at"
+    t.index ["subscriber_id"], name: "index_text_message_messages_on_subscriber_id"
+    t.index ["topic_id"], name: "index_text_message_messages_on_topic_id"
+    t.index ["updated_at"], name: "index_text_message_messages_on_updated_at"
+  end
+
+  create_table "text_message_topic_subscribers", force: :cascade do |t|
+    t.bigint "topic_id"
+    t.datetime "subscribed_at"
+    t.datetime "unsubscribed_at"
+    t.string "first_name"
+    t.string "last_name"
+    t.string "phone_number"
+    t.string "preferred_language"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.integer "client_id"
+    t.index ["created_at"], name: "index_text_message_topic_subscribers_on_created_at"
+    t.index ["topic_id"], name: "index_text_message_topic_subscribers_on_topic_id"
+    t.index ["updated_at"], name: "index_text_message_topic_subscribers_on_updated_at"
+  end
+
+  create_table "text_message_topics", force: :cascade do |t|
+    t.string "arn"
+    t.string "title"
+    t.boolean "active_topic", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.integer "send_hour"
+    t.index ["created_at"], name: "index_text_message_topics_on_created_at"
+    t.index ["title"], name: "index_text_message_topics_on_title"
+    t.index ["updated_at"], name: "index_text_message_topics_on_updated_at"
   end
 
   create_table "uploads", id: :serial, force: :cascade do |t|

@@ -2542,6 +2542,7 @@ module GrdaWarehouse::Hud
         Health::Patient,
         Health::HealthFile,
         Health::Tracing::Case,
+        Health::Vaccination,
       ]
     end
 
