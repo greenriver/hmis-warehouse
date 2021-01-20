@@ -21,6 +21,11 @@ class MemoryAnalyzer
   TWO_WEEKS = 14*24*60*60
   TWO_WEEKS_AGO = (Time.now - TWO_WEEKS).to_date
 
+  # Number of metric values needed before we try to estimate RAM. If metrics
+  # come in every 5 minutes, then this number represents
+  # (MIN_SAMPLES * 5 / 60 / 24) days of data
+  MIN_SAMPLES = 2_000
+
   class TaskDefinition
     def initialize(name)
       @name = name
@@ -86,7 +91,7 @@ class MemoryAnalyzer
       return
     end
 
-    if _overall_stats.sample_count > 1_000
+    if _overall_stats.sample_count > MIN_SAMPLES
       puts "[INFO][MEMORY_ANALYZER] With #{_overall_stats.sample_count.to_i} samples, we found #{_overall_stats.average.round(1)}% average memory utilization and #{_overall_stats.maximum.round(1)}% maximum memory utilization"
 
       # recommend 5% above maximum utilizataion in recent past
