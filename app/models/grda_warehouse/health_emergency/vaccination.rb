@@ -61,7 +61,7 @@ module GrdaWarehouse::HealthEmergency
         case similar_vaccinations.count
         when 1
           if follow_up_on.present?
-            "Follow-up dose needed #{follow_up_on}"
+            "Second dose needed #{follow_up_on}"
           else
             "Initial Dose given #{vaccinated_on}"
           end
