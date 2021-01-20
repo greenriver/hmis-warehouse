@@ -13,9 +13,8 @@ RSpec.describe HudDataQualityReport::Generators::Fy2020::QuestionFour, type: :mo
     cleanup
   end
 
-  it 'counts at least one income' do
+  it 'counts one income' do
     answer = report_result.answer(question: 'Q4', cell: 'C3').summary
-    expect(answer).not_to eq(nil)
-    expect(answer).not_to eq('1.0000')
+    expect(answer).to eq('0.7500')
   end
 end
