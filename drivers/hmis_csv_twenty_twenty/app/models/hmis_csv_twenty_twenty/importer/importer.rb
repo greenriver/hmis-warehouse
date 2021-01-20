@@ -500,7 +500,7 @@ module HmisCsvTwentyTwenty::Importer
       @track_dirty_enrollment
     end
 
-    private def process_batch!(klass, batch, file_name, columns: klass.upsert_column_names(version: '2020'), type:, upsert:) # rubocop:disable Metrics/ParameterLists
+    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names(version: '2020')) # rubocop:disable Metrics/ParameterLists
       errors = []
       if upsert
         klass.import(batch, on_duplicate_key_update:

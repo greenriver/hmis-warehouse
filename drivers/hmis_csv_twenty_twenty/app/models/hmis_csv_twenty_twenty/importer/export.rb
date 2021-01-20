@@ -33,7 +33,7 @@ module HmisCsvTwentyTwenty::Importer
         ],
         SourceType: [
           {
-            class: HmisCsvValidation::NonBlank,
+            class: HmisCsvValidation::NonBlankValidation,
           },
           {
             class: HmisCsvValidation::InclusionInSet,
@@ -48,7 +48,7 @@ module HmisCsvTwentyTwenty::Importer
         ],
         ExportPeriodType: [
           {
-            class: HmisCsvValidation::NonBlank,
+            class: HmisCsvValidation::NonBlankValidation,
           },
           {
             class: HmisCsvValidation::InclusionInSet,
@@ -57,7 +57,7 @@ module HmisCsvTwentyTwenty::Importer
         ],
         ExportDirective: [
           {
-            class: HmisCsvValidation::NonBlank,
+            class: HmisCsvValidation::NonBlankValidation,
           },
           {
             class: HmisCsvValidation::InclusionInSet,
@@ -66,7 +66,7 @@ module HmisCsvTwentyTwenty::Importer
         ],
         HashStatus: [
           {
-            class: HmisCsvValidation::NonBlank,
+            class: HmisCsvValidation::NonBlankValidation,
           },
           {
             class: HmisCsvValidation::InclusionInSet,

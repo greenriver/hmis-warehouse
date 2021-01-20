@@ -135,6 +135,7 @@ module WarehouseReports
         :hash_status,
         :period_type,
         :include_deleted,
+        :directive,
         :faked_pii,
         :every_n_days,
         :reporting_range,

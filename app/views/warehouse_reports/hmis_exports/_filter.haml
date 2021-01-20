@@ -26,6 +26,7 @@
         %label.control-label
           Export Directive
         %p Full Refresh
+        = f.input :directive, as: :hidden, input_html: { value: 2 }
       .col-sm-3
         = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, input_html: {class: 'select2'}
       .col-sm-3
