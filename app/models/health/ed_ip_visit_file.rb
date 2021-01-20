@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
 module Health
@@ -12,8 +12,8 @@ module Health
     acts_as_paranoid
     require 'csv'
 
-    phi_attr :file, Phi::FreeText
-    phi_attr :content, Phi::FreeText
+    phi_attr :file, Phi::FreeText, "Name of file"
+    phi_attr :content, Phi::FreeText, "Content of file"
 
     belongs_to :user
 

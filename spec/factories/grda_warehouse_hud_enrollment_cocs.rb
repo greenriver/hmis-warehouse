@@ -4,6 +4,6 @@ FactoryBot.define do
     sequence(:EnrollmentID, 1)
     sequence(:ProjectID, 100)
     sequence(:PersonalID, 10)
-    association :data_source, factory: :grda_warehouse_data_source
+    association :data_source, factory: :source_data_source
   end
 end

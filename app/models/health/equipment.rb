@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
 module Health
@@ -13,9 +13,9 @@ module Health
 
     phi_patient :patient_id
 
-    phi_attr :effective_date, Phi::Date
-    phi_attr :provider, Phi::FreeText
-    phi_attr :comments, Phi::FreeText
+    phi_attr :effective_date, Phi::Date, "Effective date of equipment"
+    phi_attr :provider, Phi::FreeText, "Name of provider"
+    phi_attr :comments, Phi::FreeText, "Comments on equipment"
 
     has_many :careplans
     belongs_to :patient

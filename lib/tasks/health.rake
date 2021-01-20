@@ -9,6 +9,7 @@ namespace :health do
   task daily: [:environment, "log:info_to_stdout"] do
     Importing::RunHealthImportJob.new.perform
     Health::Tasks::NotifyCareCoordinatorsOfPatientEligibilityProblems.new.notify!
+    Health::Vaccination.import!
     Health::Tasks::CalculateValidUnpayableQas.new.run!
   end
 
@@ -266,7 +267,7 @@ namespace :health do
     ApplicationRecord.setup_config
   end
 
-  #print out phi_dictionary of all descendants of HealthBase
+  desc "Generate data dictionary of health database"
   task generate_data_dict: [:environment] do
     #loading namespace info
     Rails.configuration.eager_load_namespaces.each(&:eager_load!)

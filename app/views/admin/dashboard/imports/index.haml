@@ -8,8 +8,8 @@
   .col-sm-4
     = render 'import_status'
   .col-sm-4
-    = render 'match_status' if can_edit_anything_super_user?
+    = render 'match_status' if can_edit_clients?
   .col-sm-4
-    = render 'service_status' if can_edit_anything_super_user?
+    = render 'service_status' if can_view_imports?
 
-= link_to 'Debugging Dashboard', admin_dashboard_debug_index_path if can_edit_anything_super_user?
+= link_to 'Debugging Dashboard', admin_dashboard_debug_index_path if can_view_imports?

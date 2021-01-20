@@ -177,11 +177,7 @@ module GrdaWarehouse
     end
 
     def accept!(user: nil)
-      user ||= User.setup_system_user
-      update(
-        updated_by_id: user.id,
-        status: 'accepted',
-      )
+      flag_as(user: user, status: 'accepted')
       return unless destination_client && source_client
 
       dst = destination_client.destination_client
@@ -190,12 +186,16 @@ module GrdaWarehouse
       Importing::RunAddServiceHistoryJob.perform_later
     end
 
-    def reject!(user: nil)
+    def flag_as(user: nil, status:)
       user ||= User.setup_system_user
       update(
         updated_by_id: user.id,
-        status: 'rejected',
+        status: status,
       )
+    end
+
+    def reject!(user: nil)
+      flag_as(user: user, status: 'rejected')
       save!
     end
   end

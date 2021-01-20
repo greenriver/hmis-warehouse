@@ -49,6 +49,7 @@ module GrdaWarehouse::Tasks
       fix_incorrect_ages_in_service_history
       add_missing_ages_to_service_history
       fix_incorrect_household_ids
+      fix_incorrect_enrollment_coc_household_ids
       rebuild_service_history_for_incorrect_clients
     end
 
@@ -114,6 +115,23 @@ module GrdaWarehouse::Tasks
       end
     end
 
+    # Set any EnrollmentCoC.HouseholdIDs that don't match their
+    # enrollments, to whatever is in their enrollment
+    private def fix_incorrect_enrollment_coc_household_ids
+      batch_size = 10_000
+      ids = GrdaWarehouse::Hud::EnrollmentCoc.joins(:enrollment).where(
+        ec_t[:HouseholdID].not_eq(e_t[:HouseholdID]).
+        or(ec_t[:HouseholdID].eq(nil).and(e_t[:HouseholdID].not_eq(nil)))
+      ).pluck(:id, e_t[:HouseholdID])
+      ids.each_slice(batch_size) do |batch|
+        GrdaWarehouse::Hud::EnrollmentCoc.import(
+          [:id, :HouseholdID],
+          batch,
+          on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID]},
+        )
+      end
+    end
+
     private def cleanup_household(household, individual: false)
       # If the enrollment is open, only update other open enrollments started on the same day
       # If the enrollment is closed, find any closed enrollment overlapping the range
@@ -121,15 +139,15 @@ module GrdaWarehouse::Tasks
         data_source_id: household[:data_source_id],
         ProjectID: household[:project_id],
       )
-      # If we are cleaning up an individuals enrollment, use the enrollment ID to find it
+      # If we are cleaning up an individual's enrollment, use the enrollment ID to find it
       # if we have a household, use the household ID
       if individual
         enrollments = enrollments.where(EnrollmentID: household[:enrollment_id])
       else
         enrollments = enrollments.where(HouseholdID: household[:household_id])
-        # for ongoing enrollments, only look for matching entry dates
+        # for ongoing enrollments, only look for entry dates greater than the HoH entry date
         if household[:exit_date].blank?
-          enrollments = enrollments.where(EntryDate: household[:entry_date]).
+          enrollments = enrollments.where(EntryDate: household[:entry_date]..Date.current).
             left_outer_joins(:exit).
             where(ex_t[:ExitDate].eq(nil))
         else
@@ -621,10 +639,10 @@ module GrdaWarehouse::Tasks
       client_ids = GrdaWarehouse::Hud::Client.destination.pluck(:id)
       non_existant_client_ids = sh_client_ids - client_ids
       if non_existant_client_ids.any?
-        if non_existant_client_ids.size > @max_allowed
-          @notifier.ping "Found #{non_existant_client_ids.size} clients in the service history table with no corresponding destination client. \nRefusing to remove so many service_history records.  The current threshold is *#{@max_allowed}* clients. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{non_existant_client_ids.size}]` after you determine there isn't a bug." if @send_notifications
-          return
-        end
+        # if non_existant_client_ids.size > @max_allowed
+        #   @notifier.ping "Found #{non_existant_client_ids.size} clients in the service history table with no corresponding destination client. \nRefusing to remove so many service_history records.  The current threshold is *#{@max_allowed}* clients. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{non_existant_client_ids.size}]` after you determine there isn't a bug." if @send_notifications
+        #   return
+        # end
         debug_log "Removing service history for #{non_existant_client_ids.count} clients who no longer have client records"
         if ! @dry_run
           service_history_source.where(client_id: non_existant_client_ids).delete_all
@@ -635,11 +653,11 @@ module GrdaWarehouse::Tasks
     def clean_service_history
       return unless @clients.any?
       sh_size = service_history_source.where(client_id: @clients).count
-      if @clients.size > @max_allowed
-        @notifier.ping "Found #{@clients.size} clients needing cleanup. \nRefusing to cleanup so many clients.  The current threshold is *#{@max_allowed}*. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{@clients.size}]` after you determine there isn't a bug." if @send_notifications
-        @clients = []
-        return
-      end
+      # if @clients.size > @max_allowed
+      #   @notifier.ping "Found #{@clients.size} clients needing cleanup. \nRefusing to cleanup so many clients.  The current threshold is *#{@max_allowed}*. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{@clients.size}]` after you determine there isn't a bug." if @send_notifications
+      #   @clients = []
+      #   return
+      # end
       logger.info "Deleting Service History for #{@clients.size} clients comprising #{sh_size} records"
       if ! @dry_run
         service_history_source.where(client_id: @clients).delete_all

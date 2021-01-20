@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Describes a patient and contains PHI
 # Control: PHI attributes documented
 module Health::Claims
@@ -12,7 +12,7 @@ module Health::Claims
     self.table_name = :claims_top_providers
 
     phi_patient :medicaid_id
-    phi_attr :provider_name, Phi::SmallPopulation
+    phi_attr :provider_name, Phi::SmallPopulation, "Name of provider"
 
     def column_headers
       {

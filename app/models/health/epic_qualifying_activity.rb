@@ -4,18 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Indirectly relates to a patient and contains PHI
 # Control: PHI attributes documented
 module Health
   class EpicQualifyingActivity < EpicBase
     phi_patient :patient_id
-    phi_attr :epic_patient_id, Phi::OtherIdentifier
-    phi_attr :id, Phi::OtherIdentifier
+    phi_attr :epic_patient_id, Phi::OtherIdentifier, "ID of patient"
+    phi_attr :id, Phi::OtherIdentifier, "ID of qualifying activity"
     phi_attr :id_in_source, Phi::OtherIdentifier
-    phi_attr :entered_by, Phi::SmallPopulation
+    phi_attr :entered_by, Phi::SmallPopulation, "Name of person who entered the information"
     # phi_attr :role
-    phi_attr :date_of_activity, Phi::Date
+    phi_attr :date_of_activity, Phi::Date, "Date of activity"
     # phi_attr :activity
     # phi_attr :mode
     # phi_attr :reached

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
 module Health
@@ -12,32 +12,32 @@ module Health
     acts_as_paranoid
 
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier
-    phi_attr :user_id, Phi::SmallPopulation
+    phi_attr :id, Phi::OtherIdentifier, "ID of Careplan"
+    phi_attr :user_id, Phi::SmallPopulation, "ID of user"
     phi_attr :sdh_enroll_date, Phi::SmallPopulation
-    phi_attr :first_meeting_with_case_manager_date, Phi::Date
+    phi_attr :first_meeting_with_case_manager_date, Phi::Date, "Date of first meeting with case manager"
     phi_attr :self_sufficiency_baseline_due_date, Phi::Date
     phi_attr :self_sufficiency_final_due_date, Phi::Date
     phi_attr :self_sufficiency_baseline_completed_date, Phi::Date
     phi_attr :self_sufficiency_final_completed_date, Phi::Date
-    phi_attr :patient_signed_on, Phi::Date
-    phi_attr :provider_signed_on, Phi::Date
-    phi_attr :initial_date, Phi::Date
-    phi_attr :patient_health_problems, Phi::FreeText
-    phi_attr :patient_strengths, Phi::FreeText
-    phi_attr :patient_goals, Phi::FreeText
-    phi_attr :patient_barriers, Phi::FreeText
-    phi_attr :responsible_team_member_id, Phi::SmallPopulation
-    phi_attr :provider_id, Phi::SmallPopulation
-    phi_attr :representative_id, Phi::SmallPopulation
-    phi_attr :responsible_team_member_signed_on, Phi::Date
-    phi_attr :representative_signed_on, Phi::Date
+    phi_attr :patient_signed_on, Phi::Date, "Date of patient signature"
+    phi_attr :provider_signed_on, Phi::Date, "Date of provider signature"
+    phi_attr :initial_date, Phi::Date, "Starting date of careplan"
+    phi_attr :patient_health_problems, Phi::FreeText, "Description of health problems of patient"
+    phi_attr :patient_strengths, Phi::FreeText, "Description of strengths of patient"
+    phi_attr :patient_goals, Phi::FreeText, "Description of goals of patient"
+    phi_attr :patient_barriers, Phi::FreeText, "Description of barriers of patient"
+    phi_attr :responsible_team_member_id, Phi::SmallPopulation, "ID of responsible team member"
+    phi_attr :provider_id, Phi::SmallPopulation, "ID of provider"
+    phi_attr :representative_id, Phi::SmallPopulation, "ID of representative"
+    phi_attr :responsible_team_member_signed_on, Phi::Date, "Date of responsible team member signature"
+    phi_attr :representative_signed_on, Phi::Date, "Date of representative signature"
     phi_attr :service_archive, Phi::FreeText
     phi_attr :equipment_archive, Phi::FreeText
     phi_attr :team_members_archive, Phi::FreeText
-    phi_attr :patient_signature_requested_at, Phi::Date
-    phi_attr :provider_signature_requested_at, Phi::Date
-    phi_attr :health_file_id, Phi::OtherIdentifier
+    phi_attr :patient_signature_requested_at, Phi::Date, "Date of request for patient signature"
+    phi_attr :provider_signature_requested_at, Phi::Date, "Date of request for provider signature"
+    phi_attr :health_file_id, Phi::OtherIdentifier, "ID of health file"
 
     # has_many :goals, class_name: 'Health::Goal::Base'
     # has_many :hpc_goals, class_name: 'Health::Goal::Hpc'

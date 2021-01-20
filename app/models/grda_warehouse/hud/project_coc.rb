@@ -40,7 +40,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :viewable_by, ->(user) do
-      if user.can_edit_anything_super_user?
+      if GrdaWarehouse::DataSource.can_see_all_data_sources?(user)
         current_scope
       elsif user.coc_codes.none?
         none

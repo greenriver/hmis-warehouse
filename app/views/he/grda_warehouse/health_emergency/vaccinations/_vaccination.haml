@@ -1,0 +1,38 @@
+- item = vaccination
+%div{class: flex}
+  %dl.mr-4
+    %dt Vaccination Date
+    %dd= item.vaccinated_on.presence || 'Blank'
+  %dl.mr-4
+    %dt Vaccine Type
+    %dd= item.vaccination_type.presence || 'Blank'
+  - if item.vaccinated_at
+    %dl.mr-4
+      %dt Location
+      %dd= item.vaccinated_at
+  - if item.follow_up_on
+    %dl.mr-4
+      %dt Second Vaccination Required
+      %dd= item.follow_up_on
+  - if item.notification_status.present?
+    %dl.mr-4
+      %dt Reminders
+      %dd= simple_format(item.notification_status)
+  %dl.mr-4
+    %dt Follow-up Phone
+    %dd= item.follow_up_cell_phone || 'Blank'
+  %dl.mr-4
+    %dt Entered By
+    %dd= item.user&.name
+  %dl.mr-4
+    %dt Entered At
+    %dd= item.created_at
+  %dl.mr-4
+    %dt Agency
+    %dd= item.agency&.name || 'Unknown'
+
+- if can_edit_health_emergency_clinical? && ! item.health_vaccination_id.present?
+  .d-flex
+    = link_to destroy_vaccination_client_he_clinical_path(client_id: @client.id, id: item.id), method: :delete, class: 'btn btn-danger btn-sm ml-auto', data: { confirm: "Really delete this #{item.title}?"} do
+      %i.icon-cross
+      Delete

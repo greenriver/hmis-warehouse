@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Attached claims_file contains EDI serialized PHI
 # Control: PHI attributes documented
 
@@ -14,7 +14,7 @@ module Health
     include ArelHelper
     acts_as_paranoid
 
-    phi_attr :id, Phi::SmallPopulation
+    phi_attr :id, Phi::SmallPopulation, "ID of claim"
     phi_attr :claims_file, Phi::Bulk # contains EDI serialized PHI
 
     has_many :qualifying_activities

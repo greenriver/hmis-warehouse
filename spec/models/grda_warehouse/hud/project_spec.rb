@@ -54,9 +54,12 @@ RSpec.describe model, type: :model do
       describe 'admin user' do
         before do
           user.roles << admin_role
+          AccessGroup.maintain_system_groups
+          user.access_groups = AccessGroup.all
         end
         after do
           user.roles = []
+          user.access_groups = []
         end
         it 'sees all 8' do
           expect(u[user]).to eq p[p1, p2, p3, p4, p5, p6, p7, p8]

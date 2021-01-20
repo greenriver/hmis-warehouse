@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Indirectly relates to a patient. Binary data may contain PHI
 # Control: PHI attributes documented
 module Health::CpMembers
@@ -13,8 +13,8 @@ module Health::CpMembers
 
     self.table_name = :cp_member_files
 
-    phi_attr :file, Phi::FreeText
-    phi_attr :content, Phi::FreeText
+    phi_attr :file, Phi::FreeText, "Name of file"
+    phi_attr :content, Phi::FreeText, "Content of file"
 
     belongs_to :user
 

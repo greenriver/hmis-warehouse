@@ -137,6 +137,12 @@ class User < ApplicationRecord
     super && active
   end
 
+  # Allow logins to be case insensitive at login time
+  def self.find_for_authentication(conditions)
+    conditions[:email].downcase!
+    super(conditions)
+  end
+
   def future_expiration?
     expired_at.present? && expired_at > Time.current
   end
@@ -288,29 +294,30 @@ class User < ApplicationRecord
     viewable GrdaWarehouse::ProjectGroup
   end
 
-  def associated_by associations:
+  def associated_by(associations:)
     return [] unless associations.present?
+
     associations.flat_map do |association|
       case association
       when :coc_code
         coc_codes.map do |code|
           [
             code,
-            GrdaWarehouse::Hud::Project.project_names_for_coc(code)
+            GrdaWarehouse::Hud::Project.project_names_for_coc(code),
           ]
         end
       when :organization
         organizations.preload(:projects).map do |org|
           [
             org.OrganizationName,
-            org.projects.map(&:ProjectName)
+            org.projects.map(&:ProjectName),
           ]
         end
       when :data_source
         data_sources.preload(:projects).map do |ds|
           [
             ds.name,
-            ds.projects.map(&:ProjectName)
+            ds.projects.map(&:ProjectName),
           ]
         end
       else
@@ -348,6 +355,7 @@ class User < ApplicationRecord
 
   def set_viewables(viewables)
     return unless persisted?
+
     access_group.set_viewables(viewables)
   end
 
@@ -445,16 +453,61 @@ class User < ApplicationRecord
   end
 
   private def viewable(model)
-    if can_edit_anything_super_user?
-      model.all
-    else
-      model.where(
-        id: GrdaWarehouse::GroupViewableEntity.where(
-          access_group_id: access_groups.pluck(:id),
-          entity_type: model.sti_name,
-        ).select(:entity_id),
-      )
-    end
+    model.where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        access_group_id: access_groups.pluck(:id),
+        entity_type: model.sti_name,
+      ).select(:entity_id),
+    )
   end
 
+  # Returns an array of hashes of access group name => [item names]
+  def inherited_for_type(entity_type)
+    case entity_type
+    when :coc_codes
+      access_groups.general.map do |group|
+        [
+          group.name,
+          group.coc_codes,
+        ]
+      end
+    when :projects
+      # directly inherited projects
+      groups = access_groups.general.map do |group|
+        [
+          group.name,
+          group.public_send(entity_type).map(&:name).select(&:presence).compact,
+        ]
+      end
+      # indirectly inherited projects from data sources
+      access_groups.general.each do |group|
+        groups << [
+          group.name,
+          group.data_sources.map(&:projects).flatten.map(&:name).select(&:presence).compact,
+        ]
+      end
+      # indirectly inherited projects from organizations
+      access_groups.general.each do |group|
+        groups << [
+          group.name,
+          group.organizations.map(&:projects).flatten.map(&:name).select(&:presence).compact,
+        ]
+      end
+      # indirectly inherited projects from coc_codes
+      access_groups.general.each do |group|
+        groups << [
+          group.name,
+          GrdaWarehouse::Hud::Project.in_coc(coc_code: group.coc_codes).map(&:name).select(&:presence).compact,
+        ]
+      end
+      groups
+    else
+      access_groups.general.map do |group|
+        [
+          group.name,
+          group.public_send(entity_type).map(&:name).select(&:presence).compact,
+        ]
+      end
+    end
+  end
 end

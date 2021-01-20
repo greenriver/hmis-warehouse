@@ -85,6 +85,14 @@ module GrdaWarehouse::Tasks
       user = User.setup_system_user
 
       @to_merge.each do |destination_id, source_id|
+        # If this pair was previously a candidate match, mark it as accepted
+        GrdaWarehouse::ClientMatch.processed_or_candidate.where(
+          source_client_id: source_id,
+          destination_client_id: destination_id,
+        ).find_each do |client_match|
+          client_match.flag_as(status: 'accepted')
+        end
+
         # Detect a previous merge
         destination_id = find_current_id_for(destination_id)
         next unless destination_id.present?

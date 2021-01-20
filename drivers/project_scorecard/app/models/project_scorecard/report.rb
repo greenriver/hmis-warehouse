@@ -21,6 +21,7 @@ module ProjectScorecard
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
     belongs_to :user, class_name: 'User'
+    belongs_to :apr, class_name: 'HudReports::ReportInstance', optional: true
 
     has_many :project_contacts, through: :project, source: :contacts
     has_many :organization_contacts, through: :project
@@ -143,6 +144,10 @@ module ProjectScorecard
         :average_vispdat_score,
         :improvement_plan,
         :financial_plan,
+        :expansion_year,
+        :special_population_only,
+        :project_less_than_two,
+        :geographic_location,
       ].freeze
     end
 
@@ -188,6 +193,8 @@ module ProjectScorecard
 
         assessment_answers.merge!(
           {
+            apr_id: apr.id,
+
             utilization_jan: answer(apr, 'Q8b', 'B2'),
             utilization_apr: answer(apr, 'Q8b', 'B3'),
             utilization_jul: answer(apr, 'Q8b', 'B4'),
@@ -258,7 +265,7 @@ module ProjectScorecard
     end
 
     def send_email_to_contacts
-      contacts.index_by(&:email).values.each do |contact|
+      contacts.index_by(&:email).each_value do |contact|
         ProjectScorecard::ScorecardMailer.scorecard_ready(self, contact).deliver_later
       end
     end
@@ -296,6 +303,8 @@ module ProjectScorecard
       number_of_exits = spm.results['two_b7']['value']
       number_of_returns = spm.results['two_i7']['value']
 
+      return nil if number_of_exits.blank? || number_of_exits.zero?
+
       percentage(number_of_returns / number_of_exits.to_f)
     end
 
@@ -322,7 +331,9 @@ module ProjectScorecard
     end
 
     private def percentage(value)
-      format('%1.4f', value.round(4))
+      return 0 if value.nan?
+
+      (value * 100).to_i
     end
   end
 end

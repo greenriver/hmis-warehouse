@@ -4,16 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Indirectly relates to a patient. Binary data may contain PHI
 # Control: PHI attributes documented
 module Health
   class HealthFile < HealthBase
     acts_as_paranoid
 
-    phi_attr :file, Phi::FreeText
-    phi_attr :content, Phi::FreeText
-    phi_attr :note, Phi::FreeText
+    phi_attr :file, Phi::FreeText, "Name of health file"
+    phi_attr :content, Phi::FreeText, "Content of health file"
+    phi_attr :note, Phi::FreeText, "Notes on health file"
 
     belongs_to :user
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'

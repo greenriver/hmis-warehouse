@@ -82,9 +82,11 @@ module Health
           errors << conflict_message(transaction)
         end
 
+        audit_actions = {}
         enrollment.audits.each do |transaction|
           referral = referral(transaction)
           disenrollment_date = Health::Enrollment.disenrollment_date(transaction)
+          subscriber_id = Health::Enrollment.subscriber_id(transaction)
 
           if disenrollment_date.present?
             next if referral.nil? # This is a disenrollment, but we never enrolled this patient
@@ -92,12 +94,14 @@ module Health
 
             # This is a missed disenrollment
             disenroll_patient(transaction, referral, file_date)
+            audit_actions[subscriber_id] = Health::Enrollment::DISENROLLMENT
             disenrolled_patients += 1
 
           elsif referral.nil?
             # This is a missed enrollment
             begin
               enroll_patient(transaction)
+              audit_actions[subscriber_id] = Health::Enrollment::ENROLLMENT
               new_patients += 1
             rescue Health::MedicaidIdConflict
               errors << conflict_message(transaction)
@@ -105,6 +109,7 @@ module Health
 
           elsif referral.disenrolled?
             # This is a missed re-enrollment
+            audit_actions[subscriber_id] = Health::Enrollment::ENROLLMENT
             if referral.re_enrollment_blackout?(file_date)
               errors << blackout_message(transaction)
             else
@@ -119,6 +124,7 @@ module Health
             # This is just an update
             begin
               update_patient_referrals(referral.patient, transaction)
+              audit_actions[subscriber_id] = Health::Enrollment::CHANGE
               updated_patients += 1
             rescue Health::MedicaidIdConflict
               errors << conflict_message(transaction)
@@ -132,6 +138,7 @@ module Health
           disenrolled_patients: disenrolled_patients,
           updated_patients: updated_patients,
           processing_errors: errors,
+          audit_actions: audit_actions,
           status: 'complete',
         )
 
@@ -218,7 +225,7 @@ module Health
         # CC / NCM / ACO are preserved
       else
         # the Agency will be cleared when creating a new referral
-        patient.update(care_coordinator_id: nil, nurse_case_manager_id: nil) # Clear CC.NCM
+        patient.update(care_coordinator_id: nil, nurse_care_manager_id: nil) # Clear CC.NCM
         # The ACO is preserved
       end
       Health::PatientReferral.create_referral(patient, referral_data)

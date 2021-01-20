@@ -251,6 +251,13 @@ def report_list
         limitable: true,
         health: false,
       },
+      {
+        url: 'client_matches',
+        name: 'Process Duplicates',
+        description: 'Merge identified possible duplicate clients.',
+        limitable: false,
+        health: false,
+      },
     ],
     'Data Quality' => [
       {
@@ -804,6 +811,25 @@ def report_list
       health: false,
     }
   end
+  if RailsDrivers.loaded.include?(:disability_summary)
+    r_list['Operational'] << {
+      url: 'disability_summary/warehouse_reports/disability_summary',
+      name: 'Disability Summary',
+      description: 'Details of client disabilities by CoC',
+      limitable: true,
+      health: false,
+    }
+  end
+  if RailsDrivers.loaded.include?(:text_message)
+    r_list['Operational'] << {
+      url: 'text_message/warehouse_reports/queue',
+      name: 'Text Message Queue Review',
+      description: 'Insight into pending and sent Text Messages',
+      limitable: false,
+      health: false,
+    }
+  end
+
   r_list
 end
 
@@ -820,6 +846,8 @@ def cleanup_unused_reports
   cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
   cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
   cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
+  cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
+  cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
   cleanup.each do |url|
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
   end
@@ -1102,6 +1130,10 @@ def ensure_db_triggers_and_functions
   Reporting::MonthlyReports::Base.ensure_triggers
 end
 
+def maintain_system_groups
+  AccessGroup.maintain_system_groups
+end
+
 ensure_db_triggers_and_functions()
 setup_fake_user() if Rails.env.development?
 maintain_data_sources()
@@ -1109,3 +1141,4 @@ maintain_report_definitions()
 maintain_health_seeds()
 install_shapes()
 maintain_lookups()
+maintain_system_groups()

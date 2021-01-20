@@ -12,20 +12,29 @@ require "stupidedi"
 module Health
   class Enrollment < HealthBase
 
-    phi_attr :content, Phi::Bulk # contains EDI serialized PHI
+    phi_attr :content, Phi::Bulk, "Description of content of enrollment file" # contains EDI serialized PHI
 
     mount_uploader :file, EnrollmentFileUploader
 
     belongs_to :user
 
-    def self.maintenance_type_name(transaction)
+    ENROLLMENT = '021'
+    DISENROLLMENT = '024'
+    CHANGE = '001'
+    AUDIT = '030'
+
+    def self.maintenance_code_to_string(code)
       @maintenance_types ||= {
-        '021' => 'Enrollment',
-        '024' => 'Disenrollment',
-        '001' => 'Change',
-        '030' => 'Audit',
+        ENROLLMENT => 'Enrollment',
+        DISENROLLMENT => 'Disenrollment',
+        CHANGE => 'Change',
+        AUDIT => 'Audit',
       }.freeze
-      @maintenance_types[maintenance_type(transaction)]
+      @maintenance_types[code]
+    end
+
+    def self.maintenance_type_name(transaction)
+      maintenance_code_to_string(maintenance_type(transaction))
     end
 
     def self.describe(transaction)

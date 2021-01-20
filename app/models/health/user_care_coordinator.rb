@@ -4,12 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Indirectly relates to a patient
 # Control: PHI attributes documented
 module Health
   class UserCareCoordinator < HealthBase
-    phi_attr :care_coordinator_id, Phi::SmallPopulation
+    phi_attr :care_coordinator_id, Phi::SmallPopulation, "ID of care coordinator"
 
     belongs_to :user
     belongs_to :care_coordinator, class_name: 'User'

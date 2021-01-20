@@ -22,6 +22,7 @@ module Import::HMISSixOneOne::Shared
   end
 
   def log(message)
+    puts(message)
     @notifier&.ping message
     logger.info message if @debug
   end
@@ -56,8 +57,7 @@ module Import::HMISSixOneOne::Shared
       row[:DateUpdated] = row[:DateUpdated]&.to_time
       row[:DateCreated] = row[:DateCreated]&.to_time
       row[:DateDeleted] = row[:DateDeleted]&.to_time
-      row = translate_to_db_headers(row)
-      row
+      translate_to_db_headers(row)
     end
 
     def should_add?(existing)

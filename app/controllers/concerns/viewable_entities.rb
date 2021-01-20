@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# NOTE: This file is only used for user related entities, see
+# Admin::GroupsController for those used in the access group pages
 module ViewableEntities
   extend ActiveSupport::Concern
   included do
@@ -11,7 +13,7 @@ module ViewableEntities
 
     private def data_source_viewability(base)
       {
-        selected: @user.data_sources.map(&:id),
+        selected: @user.access_group.data_sources.pluck(:id), # Only show directly attached DS
         label: 'Data Sources',
         input_html: { class: 'jUserViewable jDataSources', name: "#{base}[data_sources][]" },
         collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).order(:name),
@@ -30,7 +32,7 @@ module ViewableEntities
       {
         as: :grouped_select,
         group_method: :last,
-        selected: @user.organizations.map(&:id),
+        selected: @user.access_group.organizations.pluck(:id),
         collection: collection,
         placeholder: 'Organization',
         multiple: true,
@@ -51,7 +53,7 @@ module ViewableEntities
       {
         as: :grouped_select,
         group_method: :last,
-        selected: @user.projects.map(&:id),
+        selected: @user.access_group.projects.pluck(:id),
         collection: collection,
         label_method: :name_and_type,
         placeholder: 'Project',
@@ -67,7 +69,7 @@ module ViewableEntities
     private def coc_viewability(base)
       {
         label: 'CoC Codes',
-        selected: @user.coc_codes,
+        selected: @user.access_group.coc_codes,
         collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact,
         placeholder: 'CoC',
         multiple: true,
@@ -79,14 +81,14 @@ module ViewableEntities
     end
     helper_method :coc_viewability
 
-    private def reports_assignability(base)
+    private def user_reports_assignability(base)
       model = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled.assignable_by(current_user)
       collection = model.order(:report_group, :name).map do |rd|
         ["#{rd.report_group}: #{rd.name}", rd.id]
       end
       unlimitable = model.where(limitable: false).pluck(:id)
       {
-        selected: @user.reports.map(&:id),
+        selected: @user.access_group.reports.pluck(:id),
         collection: collection,
         placeholder: 'Report',
         multiple: true,
@@ -97,13 +99,13 @@ module ViewableEntities
         },
       }
     end
-    helper_method :reports_assignability
+    helper_method :user_reports_assignability
 
     private def project_groups_editability(base)
       model = GrdaWarehouse::ProjectGroup.editable_by(current_user)
       collection = model.order(:name).pluck(:name, :id)
       {
-        selected: @user.project_groups.map(&:id),
+        selected: @user.access_group.project_groups.pluck(:id),
         collection: collection,
         placeholder: 'Project Group',
         multiple: true,
@@ -118,7 +120,7 @@ module ViewableEntities
     private def cohort_editability(base)
       model = GrdaWarehouse::Cohort.active.editable_by(current_user)
       {
-        selected: @user.cohorts.map(&:id),
+        selected: @user.access_group.cohorts.pluck(:id),
         collection: model.order(:name),
         placeholder: 'Cohort',
         multiple: true,

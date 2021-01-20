@@ -12,8 +12,7 @@ module GrdaWarehouse::YouthIntake
     has_paper_trail
     acts_as_paranoid
 
-    attr_accessor :other_language
-    attr_accessor :other_how_hear
+    attr_accessor :other_language, :other_how_hear
 
     # serialize :client_race, Array
     # serialize :disabilities, Array
@@ -33,9 +32,9 @@ module GrdaWarehouse::YouthIntake
         where.not(agency_id: nil).
         where(agency_id: user.agency_id).
         pluck(:id) + [user.id]
-      # If you can see anything, then show them all
+
       # if you can see all youth intakes, show them all
-      if user.can_edit_anything_super_user? || user.can_view_youth_intake? || user.can_edit_youth_intake?
+      if user.can_view_youth_intake? || user.can_edit_youth_intake?
         all
       # If you can see your agancy's, then show yours and those for your agency
       elsif user.can_view_own_agency_youth_intake? || user.can_edit_own_agency_youth_intake?
@@ -51,9 +50,9 @@ module GrdaWarehouse::YouthIntake
         where.not(agency_id: nil).
         where(agency_id: user.agency_id).
         pluck(:id) + [user.id]
-      # If you can see anything, then show them all
+
       # if you can see all youth intakes, show them all
-      if user.can_edit_anything_super_user? || user.can_edit_youth_intake?
+      if user.can_edit_youth_intake?
         all
       # If you can edit your agancy's, then show yours and those for your agency
       elsif user.can_edit_own_agency_youth_intake?

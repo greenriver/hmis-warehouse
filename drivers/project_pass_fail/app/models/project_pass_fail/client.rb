@@ -31,6 +31,7 @@ module ProjectPassFail
         relationship_to_hoh: apr_client.relationship_to_hoh,
         enrollment_created: apr_client.enrollment_created,
         enrollment_coc: apr_client.enrollment_coc,
+        income_at_entry: apr_client.income_from_any_source_at_start,
       )
     end
 
@@ -61,6 +62,7 @@ module ProjectPassFail
         enrollment_created: 'Enrollment Added On',
         days_to_enter_entry_date: 'Days Between Entry and Date Added',
         days_served: 'Days Served',
+        income_at_entry: 'Income at Entry',
       }
     end
   end

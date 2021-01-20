@@ -53,7 +53,7 @@ module Importers::HmisAutoDetect
     end
 
     def log(message)
-      @notifier.ping(message) if @notifier
+      @notifier&.ping(message)
       Rails.logger.info(message)
     end
 

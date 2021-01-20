@@ -242,10 +242,10 @@ module EtoApi::Tasks
       hmis_client = nil
       # puts "requesting client #{client_id} (#{participant_site_identifier}), from #{site_id}"
       api_response = begin
-                       api.client_demographic(client_id: participant_site_identifier, site_id: site_id)
-                     rescue StandardError
-                       nil
-                     end
+        api.client_demographic(client_id: participant_site_identifier, site_id: site_id)
+      rescue StandardError
+        nil
+      end
       # puts api_response.present?
       if api_response
         hmis_client = GrdaWarehouse::HmisClient.where(client_id: client_id, subject_id: subject_id).first_or_initialize
@@ -281,7 +281,8 @@ module EtoApi::Tasks
               value = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
               defined_demographic_value(api: api, value: value, cdid: cdid, site_id: site_id)
             else
-              hmis_client[key] = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
+              value = api_response['CustomDemoData'].select { |m| m['CDID'] == cdid }&.first&.try(:[], 'value')
+              hmis_client.assign_attributes(key => value)
             end
           end
         end

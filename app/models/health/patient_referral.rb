@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ### HIPPA Risk Assessment
+# ### HIPAA Risk Assessment
 # Risk: Relates to a patient and contains PHI
 # Control: PHI attributes documented
 module Health
@@ -75,7 +75,14 @@ module Health
     phi_attr :exported_on, Phi::Date
     # phi_attr :removal_acknowledge
     phi_attr :disenrollment_date, Phi::Date
-    phi_attr :stop_reason_description, Phi::FreeText
+    phi_attr :pending_disenrollment_date, Phi::Date, <<~DESC
+      A disenrollment date received via ANSI 834. Once acknowledged it is copied
+      to disenrollment_date. However for the purposes of payments it can be
+      considered to be the effective disenrollment date.
+    DESC
+    phi_attr :stop_reason_description, Phi::FreeText, <<~DESC
+      A description of why the enrollment was cancelled.
+    DESC
 
     before_validation :update_rejected_from_reason
 
@@ -114,6 +121,7 @@ module Health
     scope :pending_disenrollment, -> { current.where.not(pending_disenrollment_date: nil) }
     scope :not_disenrolled, -> { current.where(pending_disenrollment_date: nil, disenrollment_date: nil)}
 
+    # Note: respects pending_disenrollment_date if there is no disenrollment_date
     scope :active_within_range, -> (start_date:, end_date:) do
       at = arel_table
       # Excellent discussion of why this works:
@@ -121,22 +129,9 @@ module Health
       d_1_start = start_date
       d_1_end = end_date
       d_2_start = at[:enrollment_start_date]
-      d_2_end = at[:disenrollment_date]
+      d_2_end = cl(at[:disenrollment_date], at[:pending_disenrollment_date])
       # Currently does not count as an overlap if one starts on the end of the other
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
-    end
-
-    def active_within?(range)
-      return nil unless enrollment_start_date
-      # disenrollment_date date might be nil but Range handles that for us
-      (enrollment_start_date .. disenrollment_date).overlaps?(range)
-    end
-
-    # Note: respects pending_disenrollment_date if there is no disenrollment_date
-    def active_on?(date)
-      return nil unless enrollment_start_date
-      # disenrollment_date date might be nil but Range handles that for us
-      (enrollment_start_date .. (disenrollment_date || pending_disenrollment_date)).cover?(date)
     end
 
     scope :referred_on, -> (date) do
@@ -170,7 +165,7 @@ module Health
         patient.patient_referrals.contributing.update_all(current: false)
 
         enrollment_start_date = referral_args[:enrollment_start_date]
-        last_disenrollment_date = current_referral.disenrollment_date || current_referral.pending_disenrollment_date
+        last_disenrollment_date = current_referral.actual_or_pending_disenrollment_date
         if last_disenrollment_date.nil?
           # Last referral was not disenrolled. For record keeping, close the last enrollment, and immediately open a new one
           current_referral.update(
@@ -244,7 +239,7 @@ module Health
     end
 
     def enrolled_days_to_date
-      (enrollment_start_date .. (disenrollment_date || Date.current)).to_a
+      (enrollment_start_date .. (actual_or_pending_disenrollment_date || Date.current)).to_a
     end
 
     def name
@@ -313,8 +308,26 @@ module Health
       end
     end
 
-    def disenrolled?
-      disenrollment_date.present? || pending_disenrollment_date.present? || removal_acknowledged? || rejected?
+    # In many cases it is handy to consider a pending_disenrollment
+    # if no disenrollment has been yet been recorded
+    def actual_or_pending_disenrollment_date
+      disenrollment_date || pending_disenrollment_date
+    end
+
+    private def was_active_range
+      return nil unless enrollment_start_date
+      # disenrollment_date date might be nil but Range handles that for us
+      (enrollment_start_date ..actual_or_pending_disenrollment_date)
+    end
+
+    # Note: respects pending_disenrollment_date if there is no disenrollment_date
+    def active_within?(range)
+      was_active_range&.overlaps?(range)
+    end
+
+    # Note: respects pending_disenrollment_date if there is no disenrollment_date
+    def active_on?(date)
+      was_active_range&.cover?(date)
     end
 
     def re_enrollment_blackout?(on_date)
@@ -516,7 +529,13 @@ module Health
     end
 
     def disenrolled?
-      pending_disenrollment_date.present? || disenrollment_date.present?
+      actual_or_pending_disenrollment_date.present?
+    end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
     end
 
     def self.cleanup_referrals
