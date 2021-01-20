@@ -80,6 +80,7 @@ module He
           :vaccinated_on,
           :vaccination_type,
           :follow_up_cell_phone,
+          :preferred_language,
         )
     end
 
