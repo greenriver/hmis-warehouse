@@ -12,7 +12,9 @@
             = link_to_if can_view_projects?, project.name, project_path(project_id)
             %br
           - if compacted.size > 5
-            #{compacted.size - 5} more...
+            - tooltip = compacted.map { |project_id| GrdaWarehouse::Hud::Project.find(project_id).name }.join('<br />').html_safe
+            %span.action{data: {toggle: :tooltip, html: 'true', title: tooltip}}
+              #{compacted.size - 5} more...
     - else
       %label.label.label-default.parameter-label
         = param.to_s.humanize

@@ -11,7 +11,6 @@ module HudApr::Apr::AprConcern
     def generator
       @generator ||= HudApr::Generators::Apr::Fy2020::Generator
     end
-    helper_method :generator
 
     private def path_for_question(question, report: nil)
       hud_reports_apr_question_path(apr_id: report&.id || 0, id: question)
@@ -29,7 +28,7 @@ module HudApr::Apr::AprConcern
       hud_reports_aprs_path(options)
     end
 
-    privarte def path_for_cell(report:, question:, cell_label:, table:)
+    private def path_for_cell(report:, question:, cell_label:, table:)
       hud_reports_apr_question_cell_path(apr_id: report&.id || 0, question_id: question, id: cell_label, table: table)
     end
   end
