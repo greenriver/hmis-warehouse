@@ -80,14 +80,17 @@ other_db: &other_db
   warehouse:
     <<: *default_warehouse_db
     database: <%= ENV['WAREHOUSE_DATABASE_DB'] %>
+    migrations_paths: db/warehouse/migrate
 
   health:
     <<: *default_health_db
     database: <%= ENV['HEALTH_DATABASE_DB'] %>
+    migrations_paths: db/health/migrate
 
   reporting:
     <<: *default_reporting_db
     database: <%= ENV['REPORTING_DATABASE_DB'] %>
+    migrations_paths: db/reporting/migrate
 
 ssl: &ssl
   sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
