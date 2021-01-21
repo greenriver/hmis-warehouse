@@ -1,3 +1,9 @@
+# please wake me up when this is a feature
+# https://github.com/rails/rails/pull/38721
+# for now, since rails strip all erb from yaml before loading config
+# https://github.com/rails/rails/issues/38924#issuecomment-612881746
+# i have to unroll some parts so that it's simple enough for rails to figure out that I want to use multi-db
+
 default_app_db: &default_app_db
   adapter: <%= ENV['DATABASE_ADAPTER'] %>
   host: <%= ENV['DATABASE_HOST'] %>
@@ -70,15 +76,7 @@ default_reporting_db: &default_reporting_db
   host: <%= ENV['REPORTING_DATABASE_HOST'] %>
   <% end %>
 
-<%= ENV['RAILS_ENV'] %>:
-  primary:
-    <<: *default_app_db
-    database: <%= ENV['DATABASE_APP_DB'] %>
-    <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
-    sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
-    sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
-    <% end %>
-  
+other_db: &other_db
   warehouse:
     <<: *default_warehouse_db
     database: <%= ENV['WAREHOUSE_DATABASE_DB'] %>
@@ -91,14 +89,47 @@ default_reporting_db: &default_reporting_db
     <<: *default_reporting_db
     database: <%= ENV['REPORTING_DATABASE_DB'] %>
 
-<%= ENV['RAILS_ENV'] %>_cas:
+ssl: &ssl
+  sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
+  sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
+
+# unrolled from ENV['RAILS_ENV']
+development:
   primary:
+    database: <%= ENV['DATABASE_APP_DB'] %>
     <<: *default_app_db
+  <<: *other_db
+  
+staging:
+  primary:
+    database: <%= ENV['DATABASE_APP_DB'] %>
+    <<: *default_app_db
+    <<: *ssl
+  <<: *other_db
+
+production:
+  primary:
+    database: <%= ENV['DATABASE_APP_DB'] %>
+    <<: *default_app_db
+    <<: *ssl
+  <<: *other_db
+
+development_cas:
+  primary:
     database: <%= ENV['DATABASE_CAS_DB'] %>
-    <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
-    sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
-    sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
-    <% end %>
+    <<: *default_app_db
+    
+staging_cas:
+  primary:
+    database: <%= ENV['DATABASE_CAS_DB'] %>
+    <<: *default_app_db
+    <<: *ssl
+
+production_cas:
+  primary:
+    database: <%= ENV['DATABASE_CAS_DB'] %>
+    <<: *default_app_db
+    <<: *ssl
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

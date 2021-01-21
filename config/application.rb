@@ -9,10 +9,10 @@ require_relative '../lib/util/id_protector'
 
 module BostonHmis
   class Application < Rails::Application
-    config.load_defaults 5.2
+    config.load_defaults 6.1
 
     # FIXME Suppress the Rails 5 belongs_to requirement
-    Rails.application.config.active_record.belongs_to_required_by_default = false
+    # Rails.application.config.active_record.belongs_to_required_by_default = false
 
     # Use the responders controller from the responders gem
     config.app_generators.scaffold_controller :responders_controller
