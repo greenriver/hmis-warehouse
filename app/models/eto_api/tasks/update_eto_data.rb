@@ -242,10 +242,10 @@ module EtoApi::Tasks
       hmis_client = nil
       # puts "requesting client #{client_id} (#{participant_site_identifier}), from #{site_id}"
       api_response = begin
-                       api.client_demographic(client_id: participant_site_identifier, site_id: site_id)
-                     rescue StandardError
-                       nil
-                     end
+        api.client_demographic(client_id: participant_site_identifier, site_id: site_id)
+      rescue StandardError
+        nil
+      end
       # puts api_response.present?
       if api_response
         hmis_client = GrdaWarehouse::HmisClient.where(client_id: client_id, subject_id: subject_id).first_or_initialize
