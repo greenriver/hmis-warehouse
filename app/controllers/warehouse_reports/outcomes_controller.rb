@@ -20,13 +20,13 @@ module WarehouseReports
     def available_reports
       {
         rrh: {
-          class: WarehouseReport::RrhReport,
+          class: WarehouseReport::Outcomes::RrhReport,
           index_path: warehouse_reports_rrh_index_path,
           scope: ::Reporting::Housed.rrh,
           project_types: [13],
         },
         psh: {
-          class: WarehouseReport::PshReport,
+          class: WarehouseReport::Outcomes::PshReport,
           index_path: warehouse_reports_psh_index_path,
           scope: ::Reporting::Housed.psh,
           project_types: [3, 9, 10],
