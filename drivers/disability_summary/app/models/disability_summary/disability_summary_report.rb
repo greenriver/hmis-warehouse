@@ -92,8 +92,7 @@ module DisabilitySummary
       scope = filter_for_chronic_status(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_prior_living_situation(scope)
-      scope = filter_for_destination(scope)
-      scope
+      filter_for_destination(scope)
     end
 
     def report_scope_source
