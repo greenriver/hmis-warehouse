@@ -162,7 +162,7 @@ gem 'aws-sdk-ses', '~> 1'
 gem 'aws-sdk-iam', '~> 1'
 gem 'aws-sdk-sns', require: false
 gem 'json'
-gem 'awesome_print'
+gem 'amazing_print'
 
 gem 'auto-session-timeout'
 
