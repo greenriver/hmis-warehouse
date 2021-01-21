@@ -1,4 +1,4 @@
-- if can_track_anomalies?
+- if can_track_anomalies? && controller_name != 'anomalies'
   .text-center
     = link_to client_anomalies_path(client_id: @client.id), class: 'btn btn-secondary btn-sm' do
       %i.icon-flag
