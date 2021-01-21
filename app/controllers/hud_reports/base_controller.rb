@@ -62,6 +62,7 @@ module HudReports
     #
     # private def generator
     # private def path_for_question(question, report: nil)
+    # private def path_for_questions(question)
     # private def path_for_question_result(question, report: nil)
     # private def path_for_report(report)
     # private def path_for_reports
@@ -69,6 +70,7 @@ module HudReports
 
     helper_method :generator
     helper_method :path_for_question
+    helper_method :path_for_questions
     helper_method :path_for_question_result
     helper_method :path_for_report
     helper_method :path_for_reports

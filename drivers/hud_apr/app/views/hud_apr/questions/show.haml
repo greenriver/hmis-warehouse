@@ -6,7 +6,7 @@
 
 %h1= content_for :title
 
-= render 'hud_apr/shared/report_form', url: path_for_question(@question)
+= render 'hud_apr/shared/report_form', url: path_for_questions(@question)
 
 - if @reports.present?
   %p= paginate @reports
