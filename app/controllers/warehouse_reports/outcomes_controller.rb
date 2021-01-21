@@ -31,6 +31,18 @@ module WarehouseReports
           scope: ::Reporting::Housed.psh,
           project_types: [3, 9, 10],
         },
+        es: {
+          class: WarehouseReport::Outcomes::EsReport,
+          index_path: warehouse_reports_shelter_index_path,
+          scope: ::Reporting::Housed.es,
+          project_types: [1],
+        },
+        th: {
+          class: WarehouseReport::Outcomes::ThReport,
+          index_path: warehouse_reports_th_index_path,
+          scope: ::Reporting::Housed.th,
+          project_types: [2],
+        },
       }
     end
 
@@ -67,7 +79,7 @@ module WarehouseReports
     end
 
     private def set_months
-      start_date = reporting_scope.minimum(:search_start)
+      start_date = reporting_scope.minimum(:search_start) || reporting_scope.minimum(:housed_date)
       end_date = reporting_scope.maximum(:housing_exit)
       @start_months = (start_date.to_date..end_date.to_date).map do |m|
         [m.strftime('%b %Y'), m.beginning_of_month]

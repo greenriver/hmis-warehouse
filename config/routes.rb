@@ -218,6 +218,16 @@ Rails.application.routes.draw do
         get :clients
       end
     end
+    resources :shelter, only: [:index], defaults: {scope: :es}, controller: :outcomes do
+      collection do
+        get :clients
+      end
+    end
+    resources :th, only: [:index], defaults: {scope: :th}, controller: :outcomes do
+      collection do
+        get :clients
+      end
+    end
     resources :consent, only: [:index] do
       post :update_clients, on: :collection
     end
