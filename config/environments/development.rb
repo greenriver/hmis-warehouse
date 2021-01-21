@@ -19,6 +19,7 @@ Rails.application.configure do
   # Run rails dev:cache to toggle caching.
   if Rails.root.join('tmp', 'caching-dev.txt').exist?
     config.action_controller.perform_caching = true
+    config.action_controller.enable_fragment_cache_logging = true
 
     config.cache_store = :memory_store
     config.public_file_server.headers = {
@@ -31,6 +32,20 @@ Rails.application.configure do
     cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
     config.cache_store = :redis_store, Rails.application.config_for(:cache_store), { expires_in: 5.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace}
   end
+
+  # You're using a cache store that doesn't support native cache versioning.
+  # Your best option is to upgrade to a newer version of ActiveSupport::Cache::RedisStore
+  # that supports cache versioning (ActiveSupport::Cache::RedisStore.supports_cache_versioning? #=> true).
+
+  # Next best, switch to a different cache store that does support cache versioning:
+  # https://guides.rubyonrails.org/caching_with_rails.html#cache-stores.
+
+  # To keep using the current cache store, you can turn off cache versioning entirely:
+  config.active_record.cache_versioning = false
+
+  # Store uploaded files on the local file system (see config/storage.yml for options).
+  config.active_storage.service = :local
+
 
   if ENV['SMTP_SERVER']
     config.action_mailer.delivery_method = :smtp
@@ -67,6 +82,9 @@ Rails.application.configure do
   # Raise an error on page load if there are pending migrations.
   config.active_record.migration_error = :page_load
 
+  # Highlight code that triggered database queries in logs.
+  config.active_record.verbose_query_logs = true
+
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
@@ -76,7 +94,7 @@ Rails.application.configure do
   # Suppress logger output for asset requests.
   config.assets.quiet = false
 
-  # Raises error for missing translations
+  # Raises error for missing translations.
   # config.action_view.raise_on_missing_translations = true
 
   # Devise requires a default URL
@@ -98,7 +116,7 @@ Rails.application.configure do
   end
 
   # Web console from outside of docker
-  config.web_console.whitelisted_ips = ['172.16.0.0/12', '192.168.0.0/16']
+  config.web_console.allowed_ips = ['172.16.0.0/12', '192.168.0.0/16']
 
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}

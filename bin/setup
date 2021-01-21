@@ -5,10 +5,10 @@ require 'fileutils'
 # path to your application root.
 APP_ROOT = Pathname.new File.expand_path('..', __dir__)
 
-Dir.chdir APP_ROOT do
+FileUtils.chdir APP_ROOT do
   puts '== Installing dependencies =='
-  system 'gem install bundler --conservative'
-  system 'bundle check || bundle install --without seven_zip'
+  system! 'gem install bundler --conservative'
+  system('bundle check') || system!('bundle install --without seven_zip')
 
   puts '== Installing NPM =='
   system 'npm install'
@@ -28,7 +28,7 @@ Dir.chdir APP_ROOT do
     FileUtils.cp 'sample.env', '.env.local'
   end
 
-  system 'bin/db_prep'
+  system! 'bin/db_prep'
 
   puts "\n== Setting up test databases"
   system 'RAILS_ENV=test bundle exec rake db:setup_test'
