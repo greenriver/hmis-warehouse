@@ -32,7 +32,8 @@ Date:  4/7/2020
 				 - 5.8.3 - remove 'or ProjectType in (1,8)' added to the WHERE clause on 8/27 (regardless of project type 
 						- and consistent with the specs - we are not counting ES/SH/Street dates prior to project entry  
 						if LivingSituation indicates that the client was not in ES/SH or on the street)
-				
+		1/21/2021 - 5.18.7 - use only ACTIVE enrollments to set HHAdultAgeACRRH	(was missing 'n.Active = 1')
+		
 	5.1 Get Active HMIS HouseholdIDs
 */
 
@@ -1224,7 +1225,8 @@ Date:  4/7/2020
 				inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID
 					and hhid.HHAdultAge between 18 and 55 and hhid.ActiveHHType = 2
 					and hhid.ProjectType = 13
-				where n.PersonalID = lp.PersonalID), -1)
+				where n.PersonalID = lp.PersonalID
+					and n.Active = 1), -1)
 		, lp.HHAdultAgeAOPSH = coalesce((select case when min(hhid.HHAdultAge) between 18 and 24
 					then min(hhid.HHAdultAge) 
 				else max(hhid.HHAdultAge) end

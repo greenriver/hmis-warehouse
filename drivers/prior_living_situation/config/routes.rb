@@ -3,7 +3,7 @@ BostonHmis::Application.routes.draw do
     namespace :warehouse_reports do
       resources :prior_living_situation, only: [:index] do
         get :details, on: :collection
-        get 'section/:partial', on: :collection, to: 'core#section', as: :section
+        get 'section/:partial', on: :collection, to: 'prior_living_situation#section', as: :section
         get :filters, on: :collection
         get :download, on: :collection
       end
