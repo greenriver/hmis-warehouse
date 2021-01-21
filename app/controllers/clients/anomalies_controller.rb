@@ -14,7 +14,7 @@ module Clients
     after_action :log_client
 
     def index
-      @anomalies = @client.anomalies.group_by(&:status)
+      @anomalies = @client.anomalies.order(updated_at: :desc).group_by(&:status)
     end
 
     def edit
@@ -32,16 +32,18 @@ module Clients
     end
 
     def create
-      @anomaly = @client.anomalies.build(anomaly_params.merge(
-                                           status: :new,
-                                           submitted_by: current_user.id,
-                                         ))
+      @anomaly = @client.anomalies.build(
+        anomaly_params.merge(
+          status: :new,
+          submitted_by: current_user.id,
+        ),
+      )
       @anomaly.save
       NotifyUser.anomaly_identified(
         client_id: @client.id,
         user_id: current_user.id,
       ).deliver_later
-      respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id))
+      respond_with(@anomaly, location: client_anomalies_path(client_id: @client.id, anchor: :new))
     end
 
     def destroy
