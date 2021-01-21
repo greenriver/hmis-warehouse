@@ -14,15 +14,12 @@ gem 'composite_primary_keys', git: 'https://github.com/codeodor/composite_primar
 # gem 'composite_primary_keys', '~>12'
 # gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
 gem 'pg'
-# version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
-#gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: '5-2-stable', require: false
+# temporarily pushing up activerecord requirement so that it can be updated to 6.1
 gem 'activerecord-sqlserver-adapter', git: 'https://github.com/tquang1708/activerecord-sqlserver-adapter.git', branch: 'master', require: false
 gem 'activerecord-import'
 
-# locking active record extended here temporarily since upgrading it to 2.0.0 gives
-# NoMethodError: undefined method `relation' for "DATE_TRUNC('month', date_of_activity)":Arel::Nodes::SqlLiteral
-# on .count for active record queries of Arel
-gem 'active_record_extended'
+# a fix for a duplicated constant warning on 6.1 is on the master branch
+gem 'active_record_extended', git: 'https://github.com/GeorgeKaraszi/ActiveRecordExtended.git', branch: 'master'
 
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'

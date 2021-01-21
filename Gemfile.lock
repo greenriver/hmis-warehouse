@@ -1,4 +1,14 @@
 GIT
+  remote: https://github.com/GeorgeKaraszi/ActiveRecordExtended.git
+  revision: 0dc6201b0dca646f6b94726596c17c0ea3067811
+  branch: master
+  specs:
+    active_record_extended (2.0.0)
+      activerecord (>= 5.1, < 6.2)
+      ar_outer_joins (~> 0.2)
+      pg (< 3.0)
+
+GIT
   remote: https://github.com/codeodor/composite_primary_keys.git
   revision: 3404e440d34d9aa06ac121721b72f2c6b4978285
   branch: ar6.1
@@ -77,10 +87,6 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
-    active_record_extended (2.0.0)
-      activerecord (>= 5.1, < 6.2)
-      ar_outer_joins (~> 0.2)
-      pg (< 3.0)
     active_record_query_trace (1.8)
     activejob (6.1.1)
       activesupport (= 6.1.1)
@@ -800,7 +806,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  active_record_extended
+  active_record_extended!
   active_record_query_trace
   activerecord-import
   activerecord-postgis-adapter
