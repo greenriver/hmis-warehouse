@@ -13,6 +13,10 @@ class ApplicationController < ActionController::Base
 
   # Don't start in development if you have pending migrations
   # moved to top for dockerization
+  # https://github.com/rails/rails/issues/37524
+  # it's currently an issue at the time of writing that an error is not raised
+  # when there are pending migrations on non-primary db, so we will still have
+  # to work out a way to manually check for pending db migrations
   prepend_before_action :check_all_db_migrations
 
   include ControllerAuthorization
