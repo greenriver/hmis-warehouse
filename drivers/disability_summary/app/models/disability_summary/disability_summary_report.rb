@@ -37,6 +37,31 @@ module DisabilitySummary
       'disability_summary/warehouse_reports/disability_summary'
     end
 
+    def section_subpath
+      "#{self.class.url}/"
+    end
+
+    def self.available_section_types
+      [
+        'disabilities',
+      ]
+    end
+
+    def section_ready?(section)
+      Rails.cache.exist?(cache_key_for_section(section))
+    end
+
+    private def cache_key_for_section(section)
+      case section
+      when 'disabilities'
+        disabilities_cache_key
+      end
+    end
+
+    private def disabilities_cache_key
+      [self.class.name, cache_slug, 'disabilities']
+    end
+
     def multiple_project_types?
       true
     end
@@ -123,7 +148,7 @@ module DisabilitySummary
 
     # most recent response for each client for each disability type per CoC
     def data_for_disabilities
-      @data_for_disabilities ||= begin
+      @data_for_disabilities ||= Rails.cache.fetch(disabilities_cache_key, expires_in: expiration_length) do
         data = {}
         # binding.pry
         report_scope.joins(enrollment: :disabilities, project: :project_cocs).

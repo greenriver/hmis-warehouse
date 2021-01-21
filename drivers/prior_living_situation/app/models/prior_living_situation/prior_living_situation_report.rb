@@ -41,6 +41,16 @@ module PriorLivingSituation
       true
     end
 
+    protected def build_control_sections
+      [
+        build_general_control_section,
+        build_coc_control_section,
+        build_household_control_section,
+        add_demographic_disabilities_control_section,
+        build_enrollment_control_section,
+      ]
+    end
+
     def report_path_array
       [
         :prior_living_situation,
