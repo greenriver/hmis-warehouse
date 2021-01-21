@@ -68,6 +68,10 @@ module HudDataQualityReport
       hud_reports_dq_question_path(dq_id: report&.id || 0, id: question)
     end
 
+    private def path_for_questions(question)
+      hud_reports_dq_questions_path(dq_id: 0, question: question)
+    end
+
     private def path_for_question_result(question, report: nil)
       result_hud_reports_dq_question_path(dq_id: report&.id || 0, id: question)
     end
