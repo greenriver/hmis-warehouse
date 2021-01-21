@@ -1,4 +1,12 @@
 GIT
+  remote: https://github.com/codeodor/composite_primary_keys.git
+  revision: 3404e440d34d9aa06ac121721b72f2c6b4978285
+  branch: ar6.1
+  specs:
+    composite_primary_keys (12.0.3)
+      activerecord (~> 6.1.0)
+
+GIT
   remote: https://github.com/greenriver/fixpoints.git
   revision: 3a1e1916511aa2f60bb4422d5cccabd6f1a96b71
   branch: master
@@ -7,83 +15,105 @@ GIT
       activerecord (>= 5.0.0)
       rspec
 
+GIT
+  remote: https://github.com/jason-hobbs/devise-two-factor.git
+  revision: e153f16ab86de01df034672dfffa321acd891c45
+  branch: master
+  specs:
+    devise-two-factor (3.1.0)
+      activesupport (< 7.0)
+      attr_encrypted (>= 1.3, < 4, != 2)
+      devise
+      railties (< 7.0)
+      rotp (~> 6)
+
+GIT
+  remote: https://github.com/tquang1708/activerecord-sqlserver-adapter.git
+  revision: 725a11040ab7c42e7b381e3b58fe0cab925b5a71
+  branch: master
+  specs:
+    activerecord-sqlserver-adapter (6.0.0)
+      activerecord (~> 6.1.0)
+      tiny_tds
+
 GEM
   remote: https://rubygems.org/
   specs:
-    actioncable (6.0.3.4)
-      actionpack (= 6.0.3.4)
+    actioncable (6.1.1)
+      actionpack (= 6.1.1)
+      activesupport (= 6.1.1)
       nio4r (~> 2.0)
       websocket-driver (>= 0.6.1)
-    actionmailbox (6.0.3.4)
-      actionpack (= 6.0.3.4)
-      activejob (= 6.0.3.4)
-      activerecord (= 6.0.3.4)
-      activestorage (= 6.0.3.4)
-      activesupport (= 6.0.3.4)
+    actionmailbox (6.1.1)
+      actionpack (= 6.1.1)
+      activejob (= 6.1.1)
+      activerecord (= 6.1.1)
+      activestorage (= 6.1.1)
+      activesupport (= 6.1.1)
       mail (>= 2.7.1)
-    actionmailer (6.0.3.4)
-      actionpack (= 6.0.3.4)
-      actionview (= 6.0.3.4)
-      activejob (= 6.0.3.4)
+    actionmailer (6.1.1)
+      actionpack (= 6.1.1)
+      actionview (= 6.1.1)
+      activejob (= 6.1.1)
+      activesupport (= 6.1.1)
       mail (~> 2.5, >= 2.5.4)
       rails-dom-testing (~> 2.0)
-    actionpack (6.0.3.4)
-      actionview (= 6.0.3.4)
-      activesupport (= 6.0.3.4)
-      rack (~> 2.0, >= 2.0.8)
+    actionpack (6.1.1)
+      actionview (= 6.1.1)
+      activesupport (= 6.1.1)
+      rack (~> 2.0, >= 2.0.9)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.2.0)
-    actiontext (6.0.3.4)
-      actionpack (= 6.0.3.4)
-      activerecord (= 6.0.3.4)
-      activestorage (= 6.0.3.4)
-      activesupport (= 6.0.3.4)
+    actiontext (6.1.1)
+      actionpack (= 6.1.1)
+      activerecord (= 6.1.1)
+      activestorage (= 6.1.1)
+      activesupport (= 6.1.1)
       nokogiri (>= 1.8.5)
-    actionview (6.0.3.4)
-      activesupport (= 6.0.3.4)
+    actionview (6.1.1)
+      activesupport (= 6.1.1)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
-    active_record_extended (1.4.0)
-      activerecord (>= 5.0, < 6.1)
+    active_record_extended (2.0.0)
+      activerecord (>= 5.1, < 6.2)
       ar_outer_joins (~> 0.2)
-      pg (< 2.0)
+      pg (< 3.0)
     active_record_query_trace (1.8)
-    activejob (6.0.3.4)
-      activesupport (= 6.0.3.4)
+    activejob (6.1.1)
+      activesupport (= 6.1.1)
       globalid (>= 0.3.6)
-    activemodel (6.0.3.4)
-      activesupport (= 6.0.3.4)
-    activerecord (6.0.3.4)
-      activemodel (= 6.0.3.4)
-      activesupport (= 6.0.3.4)
+    activemodel (6.1.1)
+      activesupport (= 6.1.1)
+    activerecord (6.1.1)
+      activemodel (= 6.1.1)
+      activesupport (= 6.1.1)
     activerecord-import (1.0.7)
       activerecord (>= 3.2)
-    activerecord-postgis-adapter (6.0.1)
-      activerecord (~> 6.0)
-      rgeo-activerecord (~> 6.0)
+    activerecord-postgis-adapter (7.0.1)
+      activerecord (~> 6.1)
+      rgeo-activerecord (~> 7.0.0)
     activerecord-session_store (1.1.3)
       actionpack (>= 4.0)
       activerecord (>= 4.0)
       multi_json (~> 1.11, >= 1.11.2)
       rack (>= 1.5.2, < 3)
       railties (>= 4.0)
-    activerecord-sqlserver-adapter (6.0.0)
-      activerecord (~> 6.0.0)
-      tiny_tds
-    activestorage (6.0.3.4)
-      actionpack (= 6.0.3.4)
-      activejob (= 6.0.3.4)
-      activerecord (= 6.0.3.4)
+    activestorage (6.1.1)
+      actionpack (= 6.1.1)
+      activejob (= 6.1.1)
+      activerecord (= 6.1.1)
+      activesupport (= 6.1.1)
       marcel (~> 0.3.1)
-    activesupport (6.0.3.4)
+      mimemagic (~> 0.3.2)
+    activesupport (6.1.1)
       concurrent-ruby (~> 1.0, >= 1.0.2)
-      i18n (>= 0.7, < 2)
-      minitest (~> 5.1)
-      tzinfo (~> 1.1)
-      zeitwerk (~> 2.2, >= 2.2.2)
+      i18n (>= 1.6, < 2)
+      minitest (>= 5.1)
+      tzinfo (~> 2.0)
+      zeitwerk (~> 2.3)
     acts-as-taggable-on (7.0.0)
       activerecord (>= 5.0, < 6.2)
     addressable (2.7.0)
@@ -253,8 +283,6 @@ GEM
     coffee-script-source (1.12.2)
     combine_pdf (1.0.21)
       ruby-rc4 (>= 0.1.5)
-    composite_primary_keys (12.0.6)
-      activerecord (~> 6.0.0)
     concurrent-ruby (1.1.8)
     crass (1.0.6)
     css_parser (1.7.1)
@@ -291,12 +319,6 @@ GEM
       pwned (~> 2.0.0)
     devise-security (0.15.0)
       devise (>= 4.3.0, < 5.0)
-    devise-two-factor (3.1.0)
-      activesupport (< 6.1)
-      attr_encrypted (>= 1.3, < 4, != 2)
-      devise (~> 4.0)
-      railties (< 6.1)
-      rotp (~> 2.0)
     devise_invitable (2.0.3)
       actionmailer (>= 5.0)
       devise (>= 4.6)
@@ -520,20 +542,20 @@ GEM
       rack (>= 1.2.0)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
-    rails (6.0.3.4)
-      actioncable (= 6.0.3.4)
-      actionmailbox (= 6.0.3.4)
-      actionmailer (= 6.0.3.4)
-      actionpack (= 6.0.3.4)
-      actiontext (= 6.0.3.4)
-      actionview (= 6.0.3.4)
-      activejob (= 6.0.3.4)
-      activemodel (= 6.0.3.4)
-      activerecord (= 6.0.3.4)
-      activestorage (= 6.0.3.4)
-      activesupport (= 6.0.3.4)
-      bundler (>= 1.3.0)
-      railties (= 6.0.3.4)
+    rails (6.1.1)
+      actioncable (= 6.1.1)
+      actionmailbox (= 6.1.1)
+      actionmailer (= 6.1.1)
+      actionpack (= 6.1.1)
+      actiontext (= 6.1.1)
+      actionview (= 6.1.1)
+      activejob (= 6.1.1)
+      activemodel (= 6.1.1)
+      activerecord (= 6.1.1)
+      activestorage (= 6.1.1)
+      activesupport (= 6.1.1)
+      bundler (>= 1.15.0)
+      railties (= 6.1.1)
       sprockets-rails (>= 2.0.0)
     rails-controller-testing (1.0.5)
       actionpack (>= 5.0.1.rc1)
@@ -551,12 +573,12 @@ GEM
       loofah (~> 2.3)
     rails_drivers (1.2.0)
       rails (>= 5.2)
-    railties (6.0.3.4)
-      actionpack (= 6.0.3.4)
-      activesupport (= 6.0.3.4)
+    railties (6.1.1)
+      actionpack (= 6.1.1)
+      activesupport (= 6.1.1)
       method_source
       rake (>= 0.8.7)
-      thor (>= 0.20.3, < 2.0)
+      thor (~> 1.0)
     rainbow (3.0.0)
     rake (13.0.3)
     ransack (2.4.1)
@@ -598,7 +620,7 @@ GEM
       netrc (~> 0.8)
     rexml (3.2.4)
     rgeo (2.2.0)
-    rgeo-activerecord (6.2.2)
+    rgeo-activerecord (7.0.0)
       activerecord (>= 5.0)
       rgeo (>= 1.0.0)
     rgeo-geojson (2.1.1)
@@ -612,7 +634,7 @@ GEM
       nokogiri
       roo (>= 2.0.0, < 3)
       spreadsheet (> 0.9.0)
-    rotp (2.1.2)
+    rotp (6.2.0)
     rqrcode (0.4.2)
     rqrcode-rails3 (0.1.7)
       rqrcode (>= 0.4.2)
@@ -736,8 +758,8 @@ GEM
     tins (1.28.0)
       sync
     tiny_tds (2.1.3)
-    tzinfo (1.2.9)
-      thread_safe (~> 0.1)
+    tzinfo (2.0.4)
+      concurrent-ruby (~> 1.0)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)
     unf (0.1.4)
@@ -778,12 +800,12 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  active_record_extended (~> 1.4.0)
+  active_record_extended
   active_record_query_trace
   activerecord-import
   activerecord-postgis-adapter
   activerecord-session_store
-  activerecord-sqlserver-adapter
+  activerecord-sqlserver-adapter!
   acts-as-taggable-on (~> 7.0)
   after_commit_exception_notification
   ajax_modal_rails (~> 1.0)
@@ -824,7 +846,7 @@ DEPENDENCIES
   charlock_holmes
   coffee-rails
   combine_pdf
-  composite_primary_keys (~> 12)
+  composite_primary_keys!
   curb
   daemons
   delayed_job
@@ -833,7 +855,7 @@ DEPENDENCIES
   devise (~> 4)
   devise-pwned_password
   devise-security
-  devise-two-factor
+  devise-two-factor!
   devise_invitable (~> 2.0)
   dotenv-rails
   email_check
@@ -884,7 +906,7 @@ DEPENDENCIES
   puma (~> 3.12.6)
   rack-attack
   rack-mini-profiler
-  rails (~> 6.0.0)
+  rails (~> 6.1.1)
   rails-controller-testing
   rails-erd
   rails_drivers
@@ -940,4 +962,4 @@ DEPENDENCIES
   with_advisory_lock
 
 BUNDLED WITH
-   2.2.5
+   2.2.6
