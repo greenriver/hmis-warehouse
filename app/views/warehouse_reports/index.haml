@@ -1,8 +1,7 @@
 :ruby
-  recents = @report_definitions.first.clone
   recents_name = 'Recently Viewed'
-  recents[0] = recents_name
-  definitions_with_recents = [ recents ] + @report_definitions
+  recents = [[recents_name, @recent_reports]]
+  definitions_with_recents = recents + @report_definitions
   limited_statement = 'Report is not limited by assigned projects.'
   stimulus_controller = 'list-search'
 
