@@ -272,59 +272,6 @@ module HudDataQualityReport::Generators::Fy2020
       @a_t ||= report_client_universe.arel_table
     end
 
-    # NOTE: HMIS allows for clients to report multiple races. The APR however, does not, and has a single
-    # race field. The order that the races appear in the report is encoded in the 'order' of this hash.
-    # This practice is very brittle, so we'll copy those here and hard code those relationships
-    private def races
-      {
-        'AmIndAKNative' => {
-          order: 1,
-          label: 'American Indian or Alaska Native',
-          clause: a_t[:race].eq(race_number('AmIndAKNative')),
-        },
-        'Asian' => {
-          order: 2,
-          label: 'Asian',
-          clause: a_t[:race].eq(race_number('Asian')),
-        },
-        'BlackAfAmerican' => {
-          order: 3,
-          label: 'Black or African American',
-          clause: a_t[:race].eq(race_number('BlackAfAmerican')),
-        },
-        'NativeHIOtherPacific' => {
-          order: 4,
-          label: 'Native Hawaiian or Other Pacific Islander',
-          clause: a_t[:race].eq(race_number('NativeHIOtherPacific')),
-        },
-        'White' => {
-          order: 5,
-          label: 'White',
-          clause: a_t[:race].eq(race_number('White')),
-        },
-        'Multiple' => {
-          order: 7,
-          label: 'Multiple Races',
-          clause: a_t[:race].eq(6),
-        },
-        'Unknown' => {
-          order: 7,
-          label: "Client Doesn't Know/Client Refused",
-          clause: a_t[:race].in([8, 9]),
-        },
-        'Data Not Collected' => {
-          order: 8,
-          label: 'Data Not Collected',
-          clause: a_t[:race].eq(99),
-        },
-        'Total' => {
-          order: 9,
-          label: 'Total',
-          clause: Arel.sql('1=1'),
-        },
-      }.sort_by { |_, m| m[:order] }.freeze
-    end
-
     private def race_fields
       {
         'AmIndAKNative' => 1,
@@ -339,44 +286,14 @@ module HudDataQualityReport::Generators::Fy2020
       race_fields[code]
     end
 
+    #  HMIS allows for clients to report multiple races. The APR however, does not, and has a single
+    # race field.
     def calculate_race(client)
       return client.RaceNone if client.RaceNone.in?([8, 9, 99]) # bad data
       return 6 if client.race_fields.count > 1 # multi-racial
       return 99 if client.race_fields.empty?
 
       race_number(client.race_fields.first) # return the HUD numeral equivalent
-    end
-
-    private def income_types(suffix)
-      {
-        'Earned Income' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { Earned: 1 } } },
-        'Unemployment Insurance' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { Unemployment: 1 } } },
-        'Supplemental Security Income (SSI)' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { SSI: 1 } } },
-        'Social Security Disability Insurance (SSDI)' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { SSDI: 1 } } },
-        'VA Service – Connected Disability Compensation' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { VADisabilityService: 1 } } },
-        'VA Non-Service Connected Disability Pension' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { VADisabilityNonService: 1 } } },
-        'Private Disability Insurance' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { PrivateDisability: 1 } } },
-        "Worker's Compensation" => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { WorkersComp: 1 } } },
-        'Temporary Assistance for Needy Families (TANF)' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { TANF: 1 } } },
-        'General Assistance (GA)' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { GA: 1 } } },
-        'Retirement Income from Social Security' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { SocSecRetirement: 1 } } },
-        'Pension or retirement income from a former job' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { Pension: 1 } } },
-        'Child Support' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { ChildSupport: 1 } } },
-        'Alimony and other spousal support' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { Alimony: 1 } } },
-        'Other Source' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { OtherIncomeSource: 1 } } },
-        'Adults with Income Information at Start and Annual Assessment/Exit' => a_t['income_from_any_source_at_start'].in([0, 1]).and(a_t["income_from_any_source_at_#{suffix}"].in([0, 1])),
-      }
-    end
-
-    private def non_cash_benefit_types(suffix)
-      {
-        'Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { SNAP: 1 } } },
-        'Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { WIC: 1 } } },
-        'TANF Child Care Services' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { TANFChildCare: 1 } } },
-        'TANF Transportation Services' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { TANFTransportation: 1 } } },
-        'Other TANF-Funded Services' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { OtherTANF: 1 } } },
-        'Other Source' => { hud_report_dq_clients: { "income_sources_at_#{suffix}" => { OtherBenefitsSource: 1 } } },
-      }
     end
   end
 end
