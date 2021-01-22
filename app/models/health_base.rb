@@ -61,8 +61,7 @@ class HealthBase < ActiveRecord::Base
   #   ActiveRecord::Base.establish_connection YAML.load(ERB.new(File.read(db_config)).result)[Rails.env]
   # end
 
-  # def self.needs_migration?
-  #   # integers from file list
-  #   (ActiveRecord::MigrationContext.new('db/health/migrate').migrations.collect(&:version) - Health::SchemaMigration.pluck(:version).map(&:to_i)).any?
-  # end
+  def self.needs_migration?
+    ActiveRecord::MigrationContext.new('db/health/migrate', Health::SchemaMigration).needs_migration?
+  end
 end

@@ -6,6 +6,8 @@
 
 module Reporting
   class SchemaMigration < ReportingBase
-
+    def self.all_versions
+      order(:version).pluck(:version)
+    end
   end
 end

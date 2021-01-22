@@ -27,9 +27,7 @@ class ReportingBase < ActiveRecord::Base
   #   ActiveRecord::Base.establish_connection YAML.load(ERB.new(File.read(db_config)).result)[Rails.env]
   # end
 
-  # def self.needs_migration?
-  #   # integers from file list
-  #   (ActiveRecord::MigrationContext.new('db/reporting/migrate').migrations.collect(&:version) - Reporting::SchemaMigration.pluck(:version).map(&:to_i)).any?
-  # end
-
+  def self.needs_migration?
+    ActiveRecord::MigrationContext.new('db/reporting/migrate', Reporting::SchemaMigration).needs_migration?
+  end
 end

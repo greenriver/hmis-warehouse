@@ -57,6 +57,7 @@ namespace :warehouse do
         Rake::Task["db:schema:dump"].invoke
       end
 
+      # keep this but with alternations
       desc "Conditionally load the database schema"
       task :conditional_load, [] => [:environment] do |t, args|
         if GrdaWarehouseBase.connection.tables.length < 2
@@ -76,6 +77,7 @@ namespace :warehouse do
         Rake::Task["db:structure:dump"].invoke
       end
 
+      # keep this but with alternations
       desc "Conditionally load the database structure"
       task :conditional_load, [] => [:environment] do |t, args|
         if GrdaWarehouseBase.connection.tables.length == 0

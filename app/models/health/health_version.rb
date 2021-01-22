@@ -7,6 +7,7 @@
 # ### HIPAA Risk Assessment
 # Risk: Audit-log containing PHI
 class Health::HealthVersion < PaperTrail::Version
+  #read paper trail documentation for rails 6
   establish_connection DB_HEALTH
 
   # phi_attr :object, Phi::Bulk # contains serialize model data that depends on the model
