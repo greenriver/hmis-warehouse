@@ -41,7 +41,7 @@ module
             title: title,
             headers: client_headers,
             columns: client_columns,
-            scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_age_range(key)).distinct },
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_age_range(key)).distinct },
           }
         end
         age_categories.each do |age_key, age_title|
@@ -50,7 +50,7 @@ module
               title: "Age - #{age_title} #{gender_title}",
               headers: client_headers,
               columns: client_columns,
-              scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_gender_age(gender, age_key)).distinct },
+              scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_gender_age(gender, age_key)).distinct },
             }
           end
         end
@@ -64,7 +64,7 @@ module
     end
 
     def adult_scope
-      reporting_scope.joins(:client).where(adult_clause)
+      report_scope.joins(:client).where(adult_clause)
     end
 
     def adult_female_count
@@ -74,7 +74,7 @@ module
     end
 
     def adult_female_scope
-      reporting_scope.joins(:client).where(adult_clause.and(female_clause))
+      report_scope.joins(:client).where(adult_clause.and(female_clause))
     end
 
     def adult_male_count
@@ -84,7 +84,7 @@ module
     end
 
     def adult_male_scope
-      reporting_scope.joins(:client).where(adult_clause.and(male_clause))
+      report_scope.joins(:client).where(adult_clause.and(male_clause))
     end
 
     def child_count
@@ -94,7 +94,7 @@ module
     end
 
     def child_scope
-      reporting_scope.joins(:client).where(child_clause)
+      report_scope.joins(:client).where(child_clause)
     end
 
     def child_female_count
@@ -104,7 +104,7 @@ module
     end
 
     def child_female_scope
-      reporting_scope.joins(:client).where(child_clause.and(female_clause))
+      report_scope.joins(:client).where(child_clause.and(female_clause))
     end
 
     def child_male_count
@@ -114,7 +114,7 @@ module
     end
 
     def child_male_scope
-      reporting_scope.joins(:client).where(child_clause.and(male_clause))
+      report_scope.joins(:client).where(child_clause.and(male_clause))
     end
 
     def average_adult_age
@@ -213,7 +213,7 @@ module
     private def client_ages
       @client_ages ||= Rails.cache.fetch(age_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
-          reporting_scope.joins(:client).order(first_date_in_program: :desc).
+          report_scope.joins(:client).order(first_date_in_program: :desc).
             distinct.
             pluck(:client_id, age_calculation, :first_date_in_program).
             each do |client_id, age, _|

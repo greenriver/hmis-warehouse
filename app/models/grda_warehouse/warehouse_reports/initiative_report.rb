@@ -91,7 +91,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        date_counts_by_project_type: :reporting_scope,
+        date_counts_by_project_type: :report_scope,
         comparison_date_counts_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -118,7 +118,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        date_counts_by_project: :reporting_scope,
+        date_counts_by_project: :report_scope,
         comparison_date_counts_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -144,7 +144,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        client_counts_by_project_type: :reporting_scope,
+        client_counts_by_project_type: :report_scope,
         comparison_client_counts_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -165,7 +165,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        client_counts_by_project: :reporting_scope,
+        client_counts_by_project: :report_scope,
         comparison_client_counts_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -187,7 +187,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        destination_breakdowns_by_project_type: :reporting_scope,
+        destination_breakdowns_by_project_type: :report_scope,
         comparison_destination_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -210,7 +210,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        destination_breakdowns_by_project: :reporting_scope,
+        destination_breakdowns_by_project: :report_scope,
         comparison_destination_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -233,7 +233,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        zip_breakdowns_by_project_type: :reporting_scope,
+        zip_breakdowns_by_project_type: :report_scope,
         comparison_zip_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -257,7 +257,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        zip_breakdowns_by_project: :reporting_scope,
+        zip_breakdowns_by_project: :report_scope,
         comparison_zip_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -282,7 +282,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        income_most_recent_breakdowns_by_project_type: :reporting_scope,
+        income_most_recent_breakdowns_by_project_type: :report_scope,
         comparison_income_most_recent_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -321,7 +321,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        income_most_recent_breakdowns_by_project: :reporting_scope,
+        income_most_recent_breakdowns_by_project: :report_scope,
         comparison_income_most_recent_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -359,7 +359,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        income_at_entry_breakdowns_by_project_type: :reporting_scope,
+        income_at_entry_breakdowns_by_project_type: :report_scope,
         comparison_income_at_entry_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -387,7 +387,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        income_at_entry_breakdowns_by_project: :reporting_scope,
+        income_at_entry_breakdowns_by_project: :report_scope,
         comparison_income_at_entry_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -415,7 +415,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        living_situation_breakdowns_by_project_type: :reporting_scope,
+        living_situation_breakdowns_by_project_type: :report_scope,
         comparison_living_situation_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -438,7 +438,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        living_situation_breakdowns_by_project: :reporting_scope,
+        living_situation_breakdowns_by_project: :report_scope,
         comparison_living_situation_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -461,7 +461,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        length_of_stay_breakdowns_by_project_type: :reporting_scope,
+        length_of_stay_breakdowns_by_project_type: :report_scope,
         comparison_length_of_stay_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -501,7 +501,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        length_of_stay_breakdowns_by_project: :reporting_scope,
+        length_of_stay_breakdowns_by_project: :report_scope,
         comparison_length_of_stay_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -539,7 +539,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        age_breakdowns_by_project_type: :reporting_scope,
+        age_breakdowns_by_project_type: :report_scope,
         comparison_age_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -568,7 +568,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        age_breakdowns_by_project: :reporting_scope,
+        age_breakdowns_by_project: :report_scope,
         comparison_age_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -599,7 +599,7 @@ module GrdaWarehouse::WarehouseReports
         columns[key.parameterize.underscore] = c_t[column.to_sym].to_sql
       end
       groups = {
-        race_breakdowns_by_project_type: :reporting_scope,
+        race_breakdowns_by_project_type: :report_scope,
         comparison_race_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -629,7 +629,7 @@ module GrdaWarehouse::WarehouseReports
         columns[key.parameterize.underscore] = c_t[column.to_sym].to_sql
       end
       groups = {
-        race_breakdowns_by_project: :reporting_scope,
+        race_breakdowns_by_project: :report_scope,
         comparison_race_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -657,7 +657,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        ethnicity_breakdowns_by_project_type: :reporting_scope,
+        ethnicity_breakdowns_by_project_type: :report_scope,
         comparison_ethnicity_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -679,7 +679,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        ethnicity_breakdowns_by_project: :reporting_scope,
+        ethnicity_breakdowns_by_project: :report_scope,
         comparison_ethnicity_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -701,7 +701,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        veteran_breakdowns_by_project_type: :reporting_scope,
+        veteran_breakdowns_by_project_type: :report_scope,
         comparison_veteran_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -723,7 +723,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        veteran_breakdowns_by_project: :reporting_scope,
+        veteran_breakdowns_by_project: :report_scope,
         comparison_veteran_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -745,7 +745,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        gender_breakdowns_by_project_type: :reporting_scope,
+        gender_breakdowns_by_project_type: :report_scope,
         comparison_gender_breakdowns_by_project_type: :comparison_scope,
       }
       groups.each do |key, r_scope|
@@ -767,7 +767,7 @@ module GrdaWarehouse::WarehouseReports
         last_name: c_t[:LastName].to_sql,
       }
       groups = {
-        gender_breakdowns_by_project: :reporting_scope,
+        gender_breakdowns_by_project: :report_scope,
         comparison_gender_breakdowns_by_project: :comparison_scope,
       }
       groups.each do |key, r_scope|

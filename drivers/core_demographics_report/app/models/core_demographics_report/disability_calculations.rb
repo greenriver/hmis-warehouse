@@ -9,7 +9,7 @@ module
             title: "Disability #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_disability(key)).distinct },
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_disability(key)).distinct },
           }
         end
       end

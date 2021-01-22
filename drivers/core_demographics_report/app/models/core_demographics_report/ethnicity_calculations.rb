@@ -9,7 +9,7 @@ module
             title: "Ethnicity - #{title}",
             headers: client_headers,
             columns: client_columns,
-            scope: -> { reporting_scope.joins(:client).where(client_id: client_ids_in_ethnicity(key)).distinct },
+            scope: -> { report_scope.joins(:client).where(client_id: client_ids_in_ethnicity(key)).distinct },
           }
         end
       end
@@ -58,7 +58,7 @@ module
     private def client_ethnicities
       @client_ethnicities ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          reporting_scope.joins(:client).order(first_date_in_program: :desc).
+          report_scope.joins(:client).order(first_date_in_program: :desc).
             distinct.
             pluck(:client_id, c_t[:Ethnicity], :first_date_in_program).
             each do |client_id, ethnicity, _|
