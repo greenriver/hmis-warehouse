@@ -173,7 +173,7 @@ module Health
             emergency_type: GrdaWarehouse::Config.get(:health_emergency),
             user_id: system_user_id,
             vaccinated_on: vaccination.vaccinated_on,
-            vaccinated_type: vaccination.clean_vaccination_type,
+            vaccination_type: vaccination.clean_vaccination_type,
             vaccinated_at: vaccination.vaccinated_at,
             follow_up_cell_phone: vaccination.follow_up_cell_phone,
           )
@@ -188,7 +188,7 @@ module Health
       false
     end
 
-    private def clean_vaccination_type
+    def clean_vaccination_type
       {
         'Moderna' => MODERNA,
         'Pfizer' => PFIZER,
