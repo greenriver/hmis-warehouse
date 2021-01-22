@@ -8,8 +8,6 @@ class ReportingBase < ActiveRecord::Base
   self.abstract_class = true
 
   connects_to database: { writing: :reporting, reading: :reporting }
-  # establish_connection DB_REPORTING
-  # self.abstract_class = true
 
   # def self.setup_config
   #   new_config = {

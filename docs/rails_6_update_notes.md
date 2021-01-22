@@ -85,7 +85,7 @@ end
 
 Zeitwerk is a new code reloader/autoloader that is replacing the classic reloader in Rails 6, the latter of which is being deprecated.
 
-While running some tasks, I ran into a lot of `NameError: uninitialized constant` and `Zeitwerk::NameError: expected file to define constant, but didn't`. Most of this was due to the fact that, according to the official Zeitwerk mode guide [here](https://edgeguides.rubyonrails.org/autoloading_and_reloading_constants.html#underscore-vs-camelize):
+While running some tasks, I ran into a lot of `NameError: uninitialized constant` and `Zeitwerk::NameError: expected file to define constant, but didn't`. Most of this was due to the fact that, according to the official update guide [here](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#autoloading):
 
 ```
 In classic mode, given a missing constant Rails underscores its name and performs a file lookup. On the other hand, zeitwerk mode checks first the file system, and camelizes file names to know the constant those files are expected to define.
@@ -94,3 +94,5 @@ In classic mode, given a missing constant Rails underscores its name and perform
 In other words, Zeitwerk will camelize filenames and expect the file to have the constant it is looking for. Therefore, if a file is called `hud` but the module defined is `HUD` in all caps, Zeitwerk would not pick this up, since `"hud".camelize` gives `Hud` instead. This was also a problem for files in our project with `coc` in the name, like `project_coc`, since `"project_coc".camelize` gives `ProjectCoC`, while the module defined is `ProjectCoc`, with the last c having different cases.
 
 The fix for this of course is to simply rename the files to match the module/constant name, though if this doesn't look right aesthetically then an alternative would be to rename all occurences of the module/constant name in the project to match the camelized filename instead.
+
+It's also good to note that a `bin/rails zeitwerk:check` task is provided, that would help with the process of searching for violating files.

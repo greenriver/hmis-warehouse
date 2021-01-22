@@ -6,8 +6,8 @@
 
 class GrdaWarehouse::Lookups::CocCode < GrdaWarehouseBase
   belongs_to :project_coc, class_name: '::GrdaWarehouse::Hud::ProjectCoc', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :lookup_coc
-  belongs_to :overridden_project_coc, class_name: '::GrdaWarehouse::Hud::ProjectCoc', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :overridden_lookup_coc
-  belongs_to :enrollment_coc, class_name: '::GrdaWarehouse::Hud::EnrollmentCoc', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :lookup_coc
+  belongs_to :overridden_project_coc, class_name: '::GrdaWarehouse::Hud::ProjectCoc', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :overridden_lookup_coc
+  belongs_to :enrollment_coc, class_name: '::GrdaWarehouse::Hud::EnrollmentCoc', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :lookup_coc
 
   scope :active, -> do
     where(active: true)

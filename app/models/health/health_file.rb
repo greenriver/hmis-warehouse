@@ -10,7 +10,6 @@
 module Health
   class HealthFile < HealthBase
     acts_as_paranoid
-
     phi_attr :file, Phi::FreeText, "Name of health file"
     phi_attr :content, Phi::FreeText, "Content of health file"
     phi_attr :note, Phi::FreeText, "Notes on health file"

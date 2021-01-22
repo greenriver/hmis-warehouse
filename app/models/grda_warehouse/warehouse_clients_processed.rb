@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'util/hud'
+require 'util/HUD'
 
 class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   include RandomScope

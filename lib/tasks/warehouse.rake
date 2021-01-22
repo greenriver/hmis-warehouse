@@ -7,43 +7,7 @@ namespace :warehouse do
 
   # DB related, provides warehouse:db:migrate etc.
   namespace :db do |ns|
-
-    task :drop do
-      Rake::Task["db:drop"].invoke
-    end
-
-    task :create do
-      Rake::Task["db:create"].invoke
-    end
-
-    task :setup do
-      Rake::Task["db:setup"].invoke
-    end
-
-    task :migrate do
-      Rake::Task["db:migrate"].invoke
-    end
-
-    namespace :migrate do
-      task :redo do
-        Rake::Task["db:migrate:redo"].invoke
-      end
-      task :up do
-        Rake::Task["db:migrate:up"].invoke
-      end
-      task :down do
-        Rake::Task["db:migrate:down"].invoke
-      end
-    end
-
-    task :rollback do
-      Rake::Task["db:rollback"].invoke
-    end
-
-    task :seed do
-      Rake::Task["db:seed"].invoke
-    end
-
+    
     task :version do
       Rake::Task["db:version"].invoke
     end

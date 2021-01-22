@@ -9,11 +9,14 @@ def setup_fake_user
 
     # Add a user.  This should not be added in production
     unless Rails.env =~ /production|staging/
+      agency = Agency.where(name: 'Green River').first_or_create
+
       inital_password = Faker::Internet.password(min_length: 16)
       user = User.new
       user.email = 'noreply@example.com'
       user.first_name = "Sample"
       user.last_name = 'Admin'
+      user.agency = agency      
       user.password = user.password_confirmation = inital_password
       user.confirmed_at = Time.now
       user.roles = [admin, dnd_staff]
@@ -1134,11 +1137,11 @@ def maintain_system_groups
   AccessGroup.maintain_system_groups
 end
 
-ensure_db_triggers_and_functions()
-setup_fake_user() if Rails.env.development?
-maintain_data_sources()
-maintain_report_definitions()
-maintain_health_seeds()
-install_shapes()
+# ensure_db_triggers_and_functions()
+# setup_fake_user() if Rails.env.development?
+# maintain_data_sources()
+# maintain_report_definitions()
+# maintain_health_seeds()
+# install_shapes()
 maintain_lookups()
-maintain_system_groups()
+# maintain_system_groups()
