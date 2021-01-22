@@ -27,7 +27,7 @@
           - base_data = {action: "click->#{stimulus_controller}#changeCategory", target: "#{stimulus_controller}.category"}
           %li.active{data: base_data.merge(category:'all')} All Reports
           - definitions_with_recents.each do |(category_name, reports)|
-            %li{data: base_data.merge(category:category_name)}= category_name
+            %li{data: base_data.merge(category:category_name, hash:category_name.parameterize)}= category_name
     .mb-4.c-list-search__list{data: {target: "#{stimulus_controller}.results"}}
       - definitions_with_recents.each_with_index do |(group_name, reports), index|
         - dashed_group_name = group_name.parameterize.dasherize

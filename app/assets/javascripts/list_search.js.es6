@@ -46,17 +46,32 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
   }
 
   initialize() {
-    this.search = debounce(this.search, 300)
-    this.selectedCategories = this.activeCategories()
     this.ACTIVE_CLASS = 'active'
     this.ALL_KEY = 'all'
     this.searchTerm = ''
+    this.search = debounce(this.search, 300)
+    this.initCategories()
   }
 
-  changeCategory(event) {
-    const el = event.target
-    const { ACTIVE_CLASS, ALL_KEY } = this
+  initCategories() {
+    this.selectedCategories = this.activeCategories()
+    // If there's a category from the URL,
+    // Change the selected category to it and update DOM
+    const activeCategoryHash = window.location.hash
+    if (activeCategoryHash) {
+      this.changeCategory(
+        null,
+        this.categoryTargets.find((el) => {
+          return el.dataset.hash === activeCategoryHash.substring(1)
+        })
+      )
+    }
+  }
+
+  changeCategory(event, categoryTarget=null) {
+    const el = categoryTarget || event.target
     if (!el) return
+    const { ACTIVE_CLASS, ALL_KEY } = this
     const { category } = el.dataset
     const allSelected = category === ALL_KEY
     if (allSelected) {
