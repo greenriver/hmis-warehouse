@@ -79,8 +79,8 @@ module WarehouseReports
     end
 
     private def set_months
-      start_date = reporting_scope.minimum(:search_start) || reporting_scope.minimum(:housed_date)
-      end_date = reporting_scope.maximum(:housing_exit)
+      start_date = reporting_scope.minimum(:search_start).presence || reporting_scope.minimum(:housed_date).presence || 1.years.ago.to_date
+      end_date = reporting_scope.maximum(:housing_exit).presence || Date.current
       @start_months = (start_date.to_date..end_date.to_date).map do |m|
         [m.strftime('%b %Y'), m.beginning_of_month]
       end.uniq.reverse.drop(1).to_h
