@@ -3,11 +3,11 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'operational'
 = render 'warehouse_reports/outcomes/shared/form'
-= render 'warehouse_reports/outcomes/es_report/overview'
-= render 'warehouse_reports/outcomes/es_report/time_in_program'
-= render 'warehouse_reports/outcomes/es_report/program_makeup'
-= render 'warehouse_reports/outcomes/es_report/outcomes'
-= render 'warehouse_reports/outcomes/es_report/returns'
+= render 'warehouse_reports/outcomes/th_report/overview'
+= render 'warehouse_reports/outcomes/th_report/time_in_program'
+= render 'warehouse_reports/outcomes/th_report/program_makeup'
+= render 'warehouse_reports/outcomes/th_report/outcomes'
+= render 'warehouse_reports/outcomes/th_report/returns'
 = render 'warehouse_reports/outcomes/shared/computation_description'
 - content_for :page_js do
   :javascript
