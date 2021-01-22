@@ -12,6 +12,10 @@
       %h1= content_for :title
 
     .c-list-search__search
+      .c-list-search__search-found-count.hide{data: {target: "#{stimulus_controller}.foundCount"}}
+        %p
+          %span Number of reports found:
+          %span.count
       %input.form-control{placeholder: 'Search reports', data: {action: "input->#{stimulus_controller}#search"}}
 
   .c-list-search__container
@@ -24,7 +28,7 @@
           %li.active{data: base_data.merge(category:'all')} All Reports
           - definitions_with_recents.each do |(category_name, reports)|
             %li{data: base_data.merge(category:category_name)}= category_name
-    .mb-4.c-list-search__list
+    .mb-4.c-list-search__list{data: {target: "#{stimulus_controller}.results"}}
       - definitions_with_recents.each_with_index do |(group_name, reports), index|
         - dashed_group_name = group_name.parameterize.dasherize
         .c-list-search__list-group{class: ["c-list-search__list-group--#{group_name.parameterize}"], data: {category: group_name, target: "#{stimulus_controller}.categoryContent"}}

@@ -35,11 +35,18 @@ const showOrHideElement = (condition, el, className='hide') => {
 
 App.StimulusApp.register('list-search', class extends Stimulus.Controller {
   static get targets() {
-    return [ 'category', 'categoryContent', 'item', 'noResults' ]
+    return [
+      'category',
+      'categoryContent',
+      'item',
+      'results',
+      'noResults',
+      'foundCount'
+    ]
   }
 
   initialize() {
-    this.search = debounce(this.search, 200)
+    this.search = debounce(this.search, 300)
     this.selectedCategories = this.activeCategories()
     this.ACTIVE_CLASS = 'active'
     this.ALL_KEY = 'all'
@@ -99,6 +106,24 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
       .filter(x => x)
   }
 
+  setSearchingState(state) {
+    if (state) {
+      this.resultsTarget.classList.add('searching')
+    } else {
+      this.resultsTarget.classList.remove('searching')
+    }
+  }
+
+  updateFoundCount(show=false, count) {
+    if (!this.foundCountTarget) return
+    if (show) {
+      this.foundCountTarget.classList.remove('hide')
+      this.foundCountTarget.querySelector('.count').innerHTML = count
+    } else {
+      this.foundCountTarget.classList.add('hide')
+    }
+  }
+
   search(event) {
     let term = ''
     let foundCount = 0
@@ -108,30 +133,49 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
     } else {
       term = this.searchTerm
     }
-    let activeCategoriesEls =
-      this.categoryContentTargets.filter( el => !el.classList.contains('hide') )
-      activeCategoriesEls.forEach((group) => {
-        const matchingItems = [...group.querySelectorAll('li')].filter((item) => {
-          if (!term.length) {
-            showOrHideElement(false, item)
-            return true
-          }
-          const { title='' } = item.dataset
-          const description = item.querySelector('p')
-          const termRegExp = new RegExp(term, 'i')
-          const matches = [
-            title ? title.match(termRegExp) : false,
-            description ? description.textContent.match(termRegExp) : false
-          ]
-          const itemMatches = matches.some(v => v)
-          showOrHideElement(!itemMatches, item)
-          return itemMatches
-        })
-        foundCount += matchingItems.length
-        showOrHideElement(!matchingItems.length && term.length, group, 'no-results')
+    this.setSearchingState(true)
+    return new Promise((finishSearch) =>{
+      this.categoryContentTargets.forEach((group, groupIndex) => {
+        const searchGroupItems = (groupItems) => {
+          return new Promise((finishItemSearch) => {
+            foundItemCount = 0
+            groupItems.forEach((item, itemIndex) => {
+              if (!term.length) {
+                showOrHideElement(false, item)
+                finishItemSearch(groupItems.length)
+              }
+              const { title='' } = item.dataset
+              const description = item.querySelector('p')
+              const termRegExp = new RegExp(term, 'i')
+              const matches = [
+                title ? title.match(termRegExp) : false,
+                description ? description.textContent.match(termRegExp) : false
+              ]
+              const itemMatches = matches.some(v => v)
+              showOrHideElement(!itemMatches, item)
+              if (itemMatches) {
+                foundItemCount++
+              }
+              if (groupItems.length === itemIndex+1) {
+                finishItemSearch(foundItemCount)
+              }
+            })
+          })
+        }
+        searchGroupItems([...group.querySelectorAll('li')])
+          .then((groupItemCount) => {
+            foundCount += groupItemCount
+            showOrHideElement(!groupItemCount && term.length, group, 'no-results')
+            if (this.categoryContentTargets.length === groupIndex+1) {
+              this.updateFoundCount(term.length, foundCount)
+              showOrHideElement(foundCount, this.noResultsTarget)
+              this.setSearchingState(false)
+              this.searchTerm = term
+              finishSearch(foundCount)
+            }
+          })
       })
-    this.searchTerm = term
-    showOrHideElement(foundCount, this.noResultsTarget)
+    })
   }
 })
 
