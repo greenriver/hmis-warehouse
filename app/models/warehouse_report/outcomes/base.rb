@@ -845,23 +845,6 @@ class WarehouseReport::Outcomes::Base
     }
   end
 
-  def columns_for_returns_after_exit
-    {
-      exit_date: _('Housing Exit'),
-      return_date: _('Date of Return'),
-      days_to_return: _('Days to Return'),
-    }
-  end
-
-  def columns_for_percent_exiting_stabilization
-    {
-      residential_project: _('Stabilization Project'),
-      destination: _('Destination'),
-      housed_date: _('Date Housed'),
-      housing_exit: _('Housing Exit'),
-    }
-  end
-
   # returns array of clients with id, first name, last name who match the metric
   def support_for(metric, params = nil) # rubocop:disable Metrics/AbcSize
     columns = default_support_columns

@@ -11,32 +11,26 @@ class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
 
   def default_support_columns
     {
-      service_project: _('Housing Search'),
-      search_start: _('Search Start'),
-      search_end: _('Search End'),
-      residential_project: _('Stabilization Project'),
-      housed_date: _('Date Housed'),
-      housing_exit: _('Housing Exit'),
+      residential_project: _('Project Name'),
+      housed_date: _('Entry Date'),
+      housing_exit: _('Exit Date'),
     }
   end
 
-  def columns_for_percent_exiting_pre_placement
+  def columns_for_percent_exiting_stabilization
     {
-      service_project: _('Housing Search'),
-      search_start: _('Search Start'),
-      search_end: _('Search End'),
-      housed_date: _('Date Housed'),
+      residential_project: _('Project Name'),
+      destination: _('Destination'),
+      housed_date: _('Entry Date'),
+      housing_exit: _('Exit Date'),
     }
   end
 
-  def columns_for_percent_in_stabilization
+  def columns_for_returns_after_exit
     {
-      service_project: _('Housing Search'),
-      search_start: _('Search Start'),
-      search_end: _('Search End'),
-      residential_project: _('Stabilization Project'),
-      housed_date: _('Date Housed'),
-      housing_exit: _('Housing Exit'),
+      exit_date: _('Exit Date'),
+      return_date: _('Date of Return'),
+      days_to_return: _('Days to Return'),
     }
   end
 
