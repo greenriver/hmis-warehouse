@@ -994,12 +994,7 @@ class WarehouseReport::Outcomes::Base
         ]
       end
     when :destination
-      columns = {
-        residential_project: _('Stabilization Project'),
-        destination: _('Destination'),
-        housed_date: _('Date Housed'),
-        housing_exit: _('Housing Exit'),
-      }
+      columns = columns_for_destination
       support = destinations[:support][params[:destination]].try(:[], :support)
       rows = support.map do |row|
         [

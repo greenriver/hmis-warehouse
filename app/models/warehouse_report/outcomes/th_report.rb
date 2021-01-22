@@ -38,6 +38,15 @@ class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
     Reporting::Housed.th
   end
 
+  def columns_for_destination
+    {
+      residential_project: _('Project Name'),
+      destination: _('Destination'),
+      housed_date: _('Entry Date'),
+      housing_exit: _('Exit Date'),
+    }
+  end
+
   def project_types
     [2]
   end

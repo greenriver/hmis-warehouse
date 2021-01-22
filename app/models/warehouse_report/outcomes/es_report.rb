@@ -34,6 +34,15 @@ class WarehouseReport::Outcomes::EsReport < WarehouseReport::Outcomes::Base
     }
   end
 
+  def columns_for_destination
+    {
+      residential_project: _('Project Name'),
+      destination: _('Destination'),
+      housed_date: _('Entry Date'),
+      housing_exit: _('Exit Date'),
+    }
+  end
+
   def housed_source
     Reporting::Housed.es
   end

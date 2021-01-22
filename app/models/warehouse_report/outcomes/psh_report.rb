@@ -57,6 +57,15 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
     }
   end
 
+  def columns_for_destination
+    {
+      residential_project: _('Stabilization Project'),
+      destination: _('Destination'),
+      housed_date: _('Date Housed'),
+      housing_exit: _('Housing Exit'),
+    }
+  end
+
   def housed_source
     Reporting::Housed.psh
   end
