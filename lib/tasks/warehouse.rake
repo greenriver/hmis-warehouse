@@ -4,7 +4,6 @@ require 'dotenv'
 Dotenv.load('.env', '.env.local')
 
 namespace :warehouse do
-  # DB related, provides warehouse:db:migrate etc.
   namespace :db do |ns|
     namespace :schema do
       desc "Conditionally load the database schema"
