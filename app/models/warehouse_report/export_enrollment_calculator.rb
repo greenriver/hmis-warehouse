@@ -6,12 +6,12 @@
 
 class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   include ArelHelper
-  attr_accessor :batch_scope
-  attr_accessor :filter
+  attr_accessor :batch_scope, :filter
 
   def initialize(batch_scope:, filter:)
     @batch_scope = batch_scope
     @filter = filter
+    super()
   end
 
   def clients
@@ -106,10 +106,12 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
-          physical_disabilities[client_record.id] = client_record.source_disabilities.
-            merge(enrollment_universe).
+          physical_disabilities[client_record.id] = client_record.
+            source_disabilities.
             physical.
-            max_by(&:InformationDate)
+            where(
+              id: enrollment_universe.joins(:disabilities).select(d_t[:id]),
+            ).max_by(&:InformationDate)
         end
       physical_disabilities
     end
@@ -123,10 +125,12 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
-          developmental_disabilities[client_record.id] = client_record.source_disabilities.
-            merge(enrollment_universe).
+          developmental_disabilities[client_record.id] = client_record.
+            source_disabilities.
             developmental.
-            max_by(&:InformationDate)
+            where(
+              id: enrollment_universe.joins(:disabilities).select(d_t[:id]),
+            ).max_by(&:InformationDate)
         end
       developmental_disabilities
     end
@@ -140,10 +144,12 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
-          chronic_disabilities[client_record.id] = client_record.source_disabilities.
-            merge(enrollment_universe).
+          chronic_disabilities[client_record.id] = client_record.
+            source_disabilities.
             chronic.
-            max_by(&:InformationDate)
+            where(
+              id: enrollment_universe.joins(:disabilities).select(d_t[:id]),
+            ).max_by(&:InformationDate)
         end
       chronic_disabilities
     end
@@ -157,10 +163,12 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
-          hiv_disabilities[client_record.id] = client_record.source_disabilities.
-            merge(enrollment_universe).
+          hiv_disabilities[client_record.id] = client_record.
+            source_disabilities.
             hiv.
-            max_by(&:InformationDate)
+            where(
+              id: enrollment_universe.joins(:disabilities).select(d_t[:id]),
+            ).max_by(&:InformationDate)
         end
       hiv_disabilities
     end
@@ -174,10 +182,12 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
-          mental_disabilities[client_record.id] = client_record.source_disabilities.
-            merge(enrollment_universe).
+          mental_disabilities[client_record.id] = client_record.
+            source_disabilities.
             mental.
-            max_by(&:InformationDate)
+            where(
+              id: enrollment_universe.joins(:disabilities).select(d_t[:id]),
+            ).max_by(&:InformationDate)
         end
       mental_disabilities
     end
@@ -191,10 +201,12 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
         includes(:source_disabilities).
         merge(enrollment_universe).
         find_each do |client_record|
-          substance_disabilities[client_record.id] = client_record.source_disabilities.
-            merge(enrollment_universe).
+          substance_disabilities[client_record.id] = client_record.
+            source_disabilities.
             substance.
-            max_by(&:InformationDate)
+            where(
+              id: enrollment_universe.joins(:disabilities).select(d_t[:id]),
+            ).max_by(&:InformationDate)
         end
       substance_disabilities
     end
