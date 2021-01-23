@@ -296,7 +296,7 @@ module GrdaWarehouse::YouthIntake
 
     def how_hear_options
       @how_hear_options ||= ([
-        'Friend of family',
+        'Friend or Family',
         'Other community agency / organization',
         'Social media / agency website',
         'Referred from Street Outreach',

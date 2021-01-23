@@ -18,7 +18,7 @@ module GrdaWarehouse
 
     def self.available_stati
       {
-        new: 'New',
+        new: 'Identified',
         in_process: 'In Process',
         needs_feedback: 'Needs Feedback',
         resolved: 'Resolved',

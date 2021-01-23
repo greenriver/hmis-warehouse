@@ -18,4 +18,4 @@
             - cell_color = 'table-primary' if value.nil? || value == ''
             - value = '0.0000' if value == 'NaN'
             %td{class: cell_color}
-              = link_to_if value.is_a?(Integer) && value.positive?, value, path_for_cell(report_id: @report.id, question_id: @question, cell_id: cell, table: exporter.table)
+              = link_to_if value.is_a?(Integer) && value.positive?, value, path_for_cell(report: @report, question: @question, cell_label: cell, table: exporter.table)

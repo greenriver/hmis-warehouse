@@ -1,28 +1,29 @@
 - if group.blank?
   %p None at this time.
 - else
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Client
-        %th Description
-        %th Reported
-        %th Last Changed
-        %th Reported By
-    %tbody
-      - group.each do |anomaly|
-        - object = anomaly.versions.where(event: :update).first&.reify || anomaly
+  .mb-4
+    %table.table.table-striped.datatable
+      %thead
         %tr
-          %td
-            - if anomaly.client.present?
-              = link_to_if can_view_clients_or_window?, anomaly.client.name, appropriate_client_path(anomaly.client)
-            - else
-              Client no longer available
-          %td
-            = object.description
-          %td
-            = anomaly.created_at
-          %td
-            = anomaly.updated_at
-          %td
-            = User.find(anomaly.versions.first.whodunnit)&.name
+          %th Client
+          %th Description
+          %th Reported
+          %th Last Changed
+          %th Reported By
+      %tbody
+        - group.each do |anomaly|
+          - object = anomaly.versions.where(event: :update).first&.reify || anomaly
+          %tr
+            %td
+              - if anomaly.client.present?
+                = link_to_if can_view_clients_or_window?, anomaly.client.name, appropriate_client_path(anomaly.client)
+              - else
+                Client no longer available
+            %td
+              = object.description
+            %td
+              = anomaly.created_at
+            %td
+              = anomaly.updated_at
+            %td
+              = User.find(anomaly.versions.first.whodunnit)&.name
