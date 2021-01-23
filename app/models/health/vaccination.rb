@@ -12,6 +12,9 @@ module Health
     include RailsDrivers::Extensions
     include ObviousClientMatcher
 
+    MODERNA = 'ModernaTX, Inc.'.freeze
+    PFIZER = 'Pfizer, Inc., and BioNTech'.freeze
+
     phi_patient :medicaid_id
     phi_attr :id, Phi::OtherIdentifier
     phi_attr :vaccinated_on, Phi::Date
@@ -54,7 +57,42 @@ module Health
         VACCINATION_DATE: :vaccinated_on,
         VACCINATION_TYPE: :vaccination_type,
         DEPARTMENT_NAME: :vaccinated_at,
+        LANG: :preferred_language,
+        row_created: :epic_row_created,
+        row_updated: :epic_row_updated,
       }
+    end
+
+    def self.clean_value(key, value)
+      value = case key
+      when :ssn
+        if value == '999-99-9999'
+          nil
+        else
+          value
+        end
+      when :follow_up_cell_phone
+        if value == 'NONE'
+          nil
+        else
+          value
+        end
+      when :dob, :vaccinated_on
+        value = value.tr('/', '-')&.split(' ')&.first
+        if /\d{1,2}-\d{1,2}-\d{4}/.match?(value)
+          month, day, year = value.split('-')
+          value = Date.new(year.to_i, month.to_i, day.to_i)
+        end
+
+        value
+      else
+        if value == 'NULL'
+          nil
+        else
+          value.presence
+        end
+      end
+      super(key, value)
     end
 
     # Called from ImportEpic
@@ -135,7 +173,7 @@ module Health
             emergency_type: GrdaWarehouse::Config.get(:health_emergency),
             user_id: system_user_id,
             vaccinated_on: vaccination.vaccinated_on,
-            vaccinated_type: vaccination.clean_vaccination_type,
+            vaccination_type: vaccination.clean_vaccination_type,
             vaccinated_at: vaccination.vaccinated_at,
             follow_up_cell_phone: vaccination.follow_up_cell_phone,
           )
@@ -150,9 +188,12 @@ module Health
       false
     end
 
-    private def clean_vaccination_type
-      # TODO: adjust based on real data
-      vaccination_type
+    def clean_vaccination_type
+      {
+        'Moderna' => MODERNA,
+        'Pfizer' => PFIZER,
+
+      }[vaccination_type]
     end
 
     # NOTE: called on initialized vaccination in the controller
@@ -160,7 +201,7 @@ module Health
     def follow_up_date
       return unless vaccinated_on
 
-      case vaccination_type
+      case clean_vaccination_type
       when MODERNA
         vaccinated_on + 28.days if similar_vaccinations.count.zero?
       when PFIZER
