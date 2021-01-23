@@ -162,9 +162,11 @@ module Health
 
           obvious_matches = all_matches.uniq.map { |i| i if all_matches.count(i) > 1 }.compact
           # Return first matching client_id
-          return obvious_matches.first[:id] if obvious_matches.any?
-
-          nil
+          if obvious_matches.any?
+            obvious_matches.first[:id]
+          else # rubocop:disable Style/EmptyElse
+            nil
+          end
         end
         if client_id.present?
           he_vaccination = GrdaWarehouse::HealthEmergency::Vaccination.new(
