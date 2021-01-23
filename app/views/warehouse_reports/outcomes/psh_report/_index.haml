@@ -2,13 +2,13 @@
 - content_for :title, title
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'operational'
-= render 'form'
-= render 'overview'
-= render 'time_in_program'
-= render 'program_makeup'
-= render 'outcomes'
-= render 'returns'
-= render 'computation_description'
+= render 'warehouse_reports/outcomes/shared/form'
+= render 'warehouse_reports/outcomes/psh_report/overview'
+= render 'warehouse_reports/outcomes/psh_report/time_in_program'
+= render 'warehouse_reports/outcomes/psh_report/program_makeup'
+= render 'warehouse_reports/outcomes/psh_report/outcomes'
+= render 'warehouse_reports/outcomes/psh_report/returns'
+= render 'warehouse_reports/outcomes/shared/computation_description'
 - content_for :page_js do
   :javascript
     var pre_placement_leavers_chart_data = #{@report.time_in_pre_placement_leavers_data.to_json.html_safe}
