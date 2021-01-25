@@ -314,7 +314,7 @@ module GrdaWarehouse::Hud
       qc = -> (s) { connection.quote_column_name s }
       q  = -> (s) { connection.quote s }
 
-      where(
+      where sanitize_sql(
         [
           has_access_to_project_through_viewable_entities(user, q, qc),
           has_access_to_project_through_organization(user, q, qc),

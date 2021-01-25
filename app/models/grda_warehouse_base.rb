@@ -19,10 +19,10 @@ class GrdaWarehouseBase < ApplicationRecord
     connection.adapter_name.in?(['PostgreSQL', 'PostGIS'])
   end
 
-  # def self.reset_connection
-  #   self.connection.disconnect!
-  #   self.establish_connection DB_WAREHOUSE
-  # end
+  def self.reset_connection
+    self.connection.disconnect!
+    self.establish_connection DB_WAREHOUSE
+  end
 
   # def self.setup_config
   #   new_config = {

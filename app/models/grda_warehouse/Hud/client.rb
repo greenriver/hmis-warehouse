@@ -386,7 +386,7 @@ module GrdaWarehouse::Hud
 
     def self.exists_with_inner_clients(inner_scope)
       inner_scope = inner_scope.to_sql.gsub('"Client".', '"inner_clients".').gsub('"Client"', '"Client" as "inner_clients"')
-      Arel.sql("EXISTS (#{inner_scope} and \"Client\".\"id\" = \"inner_clients\".\"id\")")
+      Arel.sql("EXISTS (? and \"Client\".\"id\" = \"inner_clients\".\"id\")", "#{inner_scope}")
     end
 
     scope :searchable_by, -> (user) do
