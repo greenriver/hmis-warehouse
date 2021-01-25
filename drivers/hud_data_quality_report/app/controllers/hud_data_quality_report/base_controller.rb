@@ -5,7 +5,7 @@
 ###
 
 module HudDataQualityReport
-  class BaseController < HudReports::BaseController
+  class BaseController < ::HudReports::BaseController
     before_action :filter
 
     def filter_params
