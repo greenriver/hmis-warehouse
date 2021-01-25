@@ -71,34 +71,33 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
   changeCategory(event, categoryTarget=null) {
     const el = categoryTarget || event.target
     if (!el) return
+    // No-op if user clicks current category
+    if (this.selectedCategories === el) {
+      return
+    }
     const { ACTIVE_CLASS, ALL_KEY } = this
     const { category } = el.dataset
-    const allSelected = category === ALL_KEY
-    if (allSelected) {
+    // Update state of selected categories
+    if (category === ALL_KEY) {
       this.selectAll()
-    } else if ( this.selectedCategories.includes(category) ) {
-      el.classList.remove(ACTIVE_CLASS)
     } else {
-      this.categoryTargets[0].classList.remove(ACTIVE_CLASS)
+      this.hideAllCategories()
       el.classList.add(ACTIVE_CLASS)
     }
+
     this.selectedCategories = this.activeCategories()
-    if (!this.selectedCategories.length) {
-      this.selectAll()
-    }
     this.updateCategoryContent()
   }
 
   selectAll() {
-    this.hideCategories(true)
+    this.hideAllCategories()
     this.categoryTargets[0].classList.add(this.ACTIVE_CLASS)
   }
 
-  hideCategories(categoriesToHide) {
-    if (typeof(categoriesToHide) === 'boolean') {
-      this.categoryTargets.forEach(el => el.classList.remove(this.ACTIVE_CLASS))
-      return
-    }
+  hideAllCategories() {
+    this.categoryTargets.forEach(el => {
+      el.classList.remove(this.ACTIVE_CLASS)
+    })
   }
 
   updateCategoryContent() {
