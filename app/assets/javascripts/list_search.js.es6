@@ -114,10 +114,16 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
     }
   }
 
-  activeCategories() {
-    return this.categoryTargets
-      .map(el => el.classList.contains(this.ACTIVE_CLASS) ? el.dataset.category : null)
-      .filter(x => x)
+  activeCategories(getContentElements=false) {
+    if (getContentElements) {
+      return this.categoryContentTargets.filter((el) => (
+        !el.classList.contains('hide')
+      ))
+    } else {
+      return this.categoryTargets
+        .map(el => el.classList.contains(this.ACTIVE_CLASS) ? el.dataset.category : null)
+        .filter(x => x)
+    }
   }
 
   setSearchingState(state) {
@@ -148,8 +154,9 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
       term = this.searchTerm
     }
     this.setSearchingState(true)
+    const activeCategoryContent = this.activeCategories(true)
     return new Promise((finishSearch) =>{
-      this.categoryContentTargets.forEach((group, groupIndex) => {
+      activeCategoryContent.forEach((group, groupIndex) => {
         const searchGroupItems = (groupItems) => {
           return new Promise((finishItemSearch) => {
             foundItemCount = 0
@@ -180,7 +187,7 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
           .then((groupItemCount) => {
             foundCount += groupItemCount
             showOrHideElement(!groupItemCount && term.length, group, 'no-results')
-            if (this.categoryContentTargets.length === groupIndex+1) {
+            if (activeCategoryContent.length === groupIndex+1) {
               this.updateFoundCount(term.length, foundCount)
               showOrHideElement(foundCount, this.noResultsTarget)
               this.setSearchingState(false)
