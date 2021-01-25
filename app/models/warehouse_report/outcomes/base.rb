@@ -539,7 +539,7 @@ class WarehouseReport::Outcomes::Base
       month_data[month_year]['All'] ||= {}
       month_data[month_year]['All']['data'] ||= []
       service_project_names.each do |project_name|
-        if @project_ids != :all
+        if @project_ids != []
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
@@ -550,7 +550,7 @@ class WarehouseReport::Outcomes::Base
           next unless (beginning_of_month..end_of_month).include?(row[:search_end])
 
           month_data[month_year]['All']['data'] << row
-          month_data[month_year][project_name]['data'] << row if @project_ids != :all
+          month_data[month_year][project_name]['data'] << row if @project_ids != []
         end
       end
       month_data.each do |m_y, counts|
@@ -616,7 +616,7 @@ class WarehouseReport::Outcomes::Base
           next unless (beginning_of_month..end_of_month).include?(row[:housing_exit])
 
           month_data[month_year]['All']['data'] << row
-          month_data[month_year][project_name]['data'] << row if @project_ids != :all
+          month_data[month_year][project_name]['data'] << row if @project_ids != []
         end
       end
       month_data.each do |m_y, counts|
@@ -670,7 +670,7 @@ class WarehouseReport::Outcomes::Base
       month_data[month_year]['All'] ||= {}
       month_data[month_year]['All']['data'] ||= []
       residential_project_names.each do |project_name|
-        if @project_ids != :all
+        if @project_ids != []
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
@@ -681,7 +681,7 @@ class WarehouseReport::Outcomes::Base
           next unless row[:housed_date].present? && row[:housed_date] <= end_of_month && (row[:housing_exit].blank? || row[:housing_exit] >= beginning_of_month)
 
           month_data[month_year]['All']['data'] << row
-          month_data[month_year][project_name]['data'] << row if @project_ids != :all
+          month_data[month_year][project_name]['data'] << row if @project_ids != []
         end
       end
       month_data.each do |m_y, counts|
@@ -719,7 +719,7 @@ class WarehouseReport::Outcomes::Base
       month_data[month_year]['All'] ||= {}
       month_data[month_year]['All']['data'] ||= []
       service_project_names.each do |project_name|
-        if @project_ids != :all
+        if @project_ids != []
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
@@ -727,7 +727,7 @@ class WarehouseReport::Outcomes::Base
         if clients[project_name].blank?
           # comment this out to remove blanks from the average
           # month_data[month_year]['All']['data'] << nil
-          # month_data[month_year][project_name]['data'] << nil if @project_ids != :all
+          # month_data[month_year][project_name]['data'] << nil if @project_ids != []
         else
           # only include clients who exited this month
           clients[project_name].each do |row|
@@ -739,7 +739,7 @@ class WarehouseReport::Outcomes::Base
             use_end_date = row[:search_end]
             days_in_project = (use_end_date - row[:search_start]).to_i
             month_data[month_year]['All']['data'] << days_in_project
-            month_data[month_year][project_name]['data'] << days_in_project if @project_ids != :all
+            month_data[month_year][project_name]['data'] << days_in_project if @project_ids != []
           end
         end
       end
@@ -774,14 +774,14 @@ class WarehouseReport::Outcomes::Base
       month_data[month_year]['All'] ||= {}
       month_data[month_year]['All']['data'] ||= []
       residential_project_names.each do |project_name|
-        if @project_ids != :all
+        if @project_ids != []
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
         if clients[project_name].blank?
           # comment this out to remove blanks from the average
           month_data[month_year]['All']['data'] << nil
-          month_data[month_year][project_name]['data'] << nil if @project_ids != :all
+          month_data[month_year][project_name]['data'] << nil if @project_ids != []
         else
           clients[project_name].each do |row|
             next if row[:housing_exit].blank?
@@ -791,7 +791,7 @@ class WarehouseReport::Outcomes::Base
 
             use_end_date = row[:housing_exit]
             month_data[month_year]['All']['data'] << (use_end_date - row[:housed_date]).to_i
-            month_data[month_year][project_name]['data'] << (use_end_date - row[:housed_date]).to_i if @project_ids != :all
+            month_data[month_year][project_name]['data'] << (use_end_date - row[:housed_date]).to_i if @project_ids != []
           end
         end
       end
@@ -1059,7 +1059,7 @@ class WarehouseReport::Outcomes::Base
   end
 
   def all_projects
-    @project_ids == :all
+    @project_ids == []
   end
 
   def ho_t
