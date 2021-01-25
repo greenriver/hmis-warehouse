@@ -21,6 +21,10 @@ module HmisCsvTwentyTwenty::Importer
       end
     end
 
+    scope :residential, -> do
+      where(ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+    end
+
     scope :night_by_night, -> do
       where(TrackingMethod: 3)
     end
