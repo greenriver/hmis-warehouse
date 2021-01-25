@@ -229,7 +229,7 @@ group :development do
   gem 'rack-mini-profiler', require: false
   gem 'flamegraph'
   gem 'stackprof' # For Ruby MRI 2.1+
-  gem 'active_record_query_trace'
+  gem 'active_record_query_trace', require: false
   # gem 'rb-readline'
   gem 'overcommit'
   gem 'rubocop', require: false
