@@ -7291,7 +7291,7 @@ ActiveRecord::Schema.define(version: 2021_01_18_160904) do
               cohort_client_changes.changed_at,
               cohort_client_changes.reason
              FROM cohort_client_changes
-            WHERE ((cohort_client_changes.change)::text = ANY ((ARRAY['create'::character varying, 'activate'::character varying])::text[]))) cc
+            WHERE ((cohort_client_changes.change)::text = ANY (ARRAY[('create'::character varying)::text, ('activate'::character varying)::text]))) cc
        LEFT JOIN LATERAL ( SELECT cohort_client_changes.id,
               cohort_client_changes.cohort_client_id,
               cohort_client_changes.cohort_id,
@@ -7300,7 +7300,7 @@ ActiveRecord::Schema.define(version: 2021_01_18_160904) do
               cohort_client_changes.changed_at,
               cohort_client_changes.reason
              FROM cohort_client_changes
-            WHERE (((cohort_client_changes.change)::text = ANY ((ARRAY['destroy'::character varying, 'deactivate'::character varying])::text[])) AND (cc.cohort_client_id = cohort_client_changes.cohort_client_id) AND (cc.cohort_id = cohort_client_changes.cohort_id) AND (cc.changed_at < cohort_client_changes.changed_at))
+            WHERE (((cohort_client_changes.change)::text = ANY (ARRAY[('destroy'::character varying)::text, ('deactivate'::character varying)::text])) AND (cc.cohort_client_id = cohort_client_changes.cohort_client_id) AND (cc.cohort_id = cohort_client_changes.cohort_id) AND (cc.changed_at < cohort_client_changes.changed_at))
             ORDER BY cohort_client_changes.changed_at
            LIMIT 1) cc_ex ON (true))
        JOIN cohort_clients ON ((cc.cohort_client_id = cohort_clients.id)))

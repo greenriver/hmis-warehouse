@@ -20,9 +20,6 @@ chdir APP_ROOT do
 
   puts "\n== Updating database schemas =="
   system! 'bundle exec rake db:migrate'
-  system! 'bundle exec rake warehouse:db:migrate'
-  system! 'bundle exec rake health:db:migrate'
-  system! 'bundle exec rake reporting:db:migrate'
 
   puts "\n== Updating NPM =="
   system! 'npm install'

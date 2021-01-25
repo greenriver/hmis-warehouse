@@ -5,7 +5,7 @@ set -eo pipefail
 echo Migrating with individual rake tasks
 
 echo Migrating app database
-bundle exec rake db:migrate
+bundle exec rake db:migrate:primary
 
 echo bundle exec rake gettext:sync_to_po_and_db
 bundle exec rake gettext:sync_to_po_and_db
