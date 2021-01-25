@@ -292,9 +292,9 @@ module HmisCsvTwentyTwenty::Loader
       pg_conn = conn.raw_connection
       klass.transaction do
         pg_conn.copy_data copy_sql do
+          read_from.rewind
           CSV.parse(read_from, headers: false, liberal_parsing: true) do |row|
             pg_row = (row + meta_data).to_csv
-            # puts pg_row if base_name == 'Export.csv'
             pg_conn.put_copy_data pg_row
             lines_loaded += 1
           end
