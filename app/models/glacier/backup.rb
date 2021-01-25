@@ -71,7 +71,7 @@ module Glacier
 
         self.uploader.init!
 
-        self.archive.update_attributes({
+        self.archive.update({
           upload_id: self.uploader.upload_id,
           upload_started_at: Time.now,
           archive_name: self.archive_name,
@@ -85,7 +85,7 @@ module Glacier
 
     def _save_results!
       if self.uploader.successful?
-        self.archive.update_attributes({
+        self.archive.update({
           archive_id: self.uploader.archive_id,
           archive_name: self.archive_name,
           checksum: self.uploader.checksum,

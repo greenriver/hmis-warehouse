@@ -15,9 +15,9 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     def import!
       @existing = self.class.find_by(ExportID: export_id, data_source_id: data_source_id)
       if @existing.present?
-        @existing.update_attributes(attributes.slice(*hud_csv_headers.map(&:to_s)))
+        @existing.update(attributes.slice(*hud_csv_headers.map(&:to_s)))
         # Include any changed max date
-        @existing.update_attributes(effective_export_end_date: effective_export_end_date)
+        @existing.update(effective_export_end_date: effective_export_end_date)
       else
         save
       end

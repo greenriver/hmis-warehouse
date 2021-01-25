@@ -12,6 +12,7 @@ As of writing, I am attempting to update the application to work with Rails 6.1.
   - [database.yml ERB and Rails 6.1.1 Multiple database support](#databaseyml-erb-and-rails-611-multiple-database-support)
   - [Non-primary database and missing Rails 6.1 pending migration error](#non-primary-database-and-missing-rails-61-pending-migration-error)
   - [Zeitwerk autoloading and camelized filenames](#zeitwerk-autoloading-and-camelized-filenames)
+  - [Rails 6.1 and update_attributes (and future deprecated methods)](#rails-61-and-update_attributes-and-future-deprecated-methods)
 
 ## Gems update and Rails 6.1.1 compatibility
 
@@ -96,3 +97,11 @@ In other words, Zeitwerk will camelize filenames and expect the file to have the
 The fix for this of course is to simply rename the files to match the module/constant name, though if this doesn't look right aesthetically then an alternative would be to rename all occurences of the module/constant name in the project to match the camelized filename instead.
 
 It's also good to note that a `bin/rails zeitwerk:check` task is provided, that would help with the process of searching for violating files.
+
+## Rails 6.1 and update_attributes (and future deprecated methods)
+
+Since I updated straight to 6.1 instead of going through 6, I didn't catch this until I read about it in [this post](https://blog.saeloun.com/2019/04/15/rails-6-deprecates-update-attributes.html). `update_attributes` as well as `update_attributes!` are deprecated in Rails 6, and are removed in 6.1, meaning it would have shown a warning regarding this in 6.
+
+What this means is that there might be other methods that are deprecated in Rails 6 that I do not know of. This section will be for those instances in the future.
+
+(It should be noted that this was not mentioned in the official Rails 6 update guide)
