@@ -293,7 +293,9 @@ module HmisCsvTwentyTwenty::Loader
       klass.transaction do
         pg_conn.copy_data copy_sql do
           CSV.parse(read_from, headers: false, liberal_parsing: true) do |row|
-            pg_conn.put_copy_data (row + meta_data).to_csv
+            pg_row = (row + meta_data).to_csv
+            # puts pg_row if base_name == 'Export.csv'
+            pg_conn.put_copy_data pg_row
             lines_loaded += 1
           end
         end
@@ -383,7 +385,7 @@ module HmisCsvTwentyTwenty::Loader
 
     def start_load
       @loaded_at = Time.current
-      log("Starting HMIS CSV Data Load for data source: #{data_source.id} loader log: #{@loader_log.id}")
+      log("Starting HMIS CSV Data Load for data_source_id:#{data_source.id} loader_log_id:#{@loader_log.id}")
     end
 
     def complete_load(status:, err: nil)
@@ -392,7 +394,7 @@ module HmisCsvTwentyTwenty::Loader
         completed_at: Time.current,
         status: status,
       )
-      log("Completed HMIS CSV Data Load for data source: #{data_source.id} in #{elapsed_time(elapsed)}. Status: #{status} #{err.message if err}")
+      log("Completed HMIS CSV Data Load for data_source_id:#{data_source.id} in #{elapsed_time(elapsed)}. Status: #{status} #{err.message if err}")
     end
 
     private def elapsed_time(total_seconds)
