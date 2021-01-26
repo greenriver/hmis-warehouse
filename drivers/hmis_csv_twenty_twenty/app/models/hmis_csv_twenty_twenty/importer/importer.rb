@@ -130,7 +130,7 @@ module HmisCsvTwentyTwenty::Importer
         row_failures = []
         scope.find_each(batch_size: SELECT_BATCH_SIZE) do |source|
           row_failures = []
-          destination = klass.attrs_from(source, deidentified: @deidentified)
+          destination = klass.new_from(source, deidentified: @deidentified)
           destination['importer_log_id'] = importer_log_id
           destination['pre_processed_at'] = pre_processed_at
           # FIXME: are we sure this source_hash algo matches
@@ -141,7 +141,7 @@ module HmisCsvTwentyTwenty::Importer
 
           # FIXME: put validations back in but in a way that
           # doesnt need a AR model
-          # row_failures = destination.run_row_validations(file_name, importer_log)
+          row_failures = destination.run_row_validations(file_name, importer_log)
           failures.concat row_failures.compact
           # Don't insert any where we have actual errors
           batch << destination unless validation_failures_contain_errors?(row_failures)
