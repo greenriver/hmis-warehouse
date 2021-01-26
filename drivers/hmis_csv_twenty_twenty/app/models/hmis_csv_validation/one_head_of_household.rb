@@ -23,7 +23,7 @@ class HmisCsvValidation::OneHeadOfHousehold < HmisCsvValidation::Validation
         source_id: item.source_id,
         source_type: item.source_type,
         status: 'More than one Head of Household',
-        validated_column: column,
+        validated_column: :RelationshipToHoH,
       )
     end
     failures

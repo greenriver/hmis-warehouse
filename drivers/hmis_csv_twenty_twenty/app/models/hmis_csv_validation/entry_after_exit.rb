@@ -25,7 +25,7 @@ class HmisCsvValidation::EntryAfterExit < HmisCsvValidation::Validation
         source_id: item.source_id,
         source_type: item.source_type,
         status: 'Enrollment Entry Date is on or after Exit Date',
-        validated_column: column,
+        validated_column: :EntryDate,
       )
     end
     failures
