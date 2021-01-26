@@ -130,18 +130,21 @@ module HmisCsvTwentyTwenty::Importer
         row_failures = []
         scope.find_each(batch_size: SELECT_BATCH_SIZE) do |source|
           row_failures = []
-          destination = klass.new_from(source, deidentified: @deidentified)
+
+          # Avoiding newing up a AR model here is faster
+          # run_row_validations and process_batch are both fine
+          # to with with the raw source.hmis_data as a ActiveSupport::HashWithIndifferentAccess
+          destination = klass.attrs_from(source, deidentified: @deidentified)
           destination['importer_log_id'] = importer_log_id
           destination['pre_processed_at'] = pre_processed_at
+
           # FIXME: are we sure this source_hash algo matches
           # existing import logic. If not all records will be considered modified on the next run
           sha256.reset
           sha256 << source.hmis_data.except(:ExportID).to_s
           destination['source_hash'] = sha256.hexdigest
 
-          # FIXME: put validations back in but in a way that
-          # doesnt need a AR model
-          row_failures = destination.run_row_validations(file_name, importer_log)
+          row_failures = run_row_validations(klass, destination, file_name, importer_log)
           failures.concat row_failures.compact
           # Don't insert any where we have actual errors
           batch << destination unless validation_failures_contain_errors?(row_failures)
@@ -160,6 +163,22 @@ module HmisCsvTwentyTwenty::Importer
       records = scope.count
       log("  #{records} processed. #{(records / bm.real).round(3)} rec/s. #{bm.to_s.strip} ")
       return nil
+    end
+
+    private def run_row_validations(klass, row, filename, importer_log)
+      failures = []
+      klass.hmis_validations.each do |column, checks|
+        next unless checks.present?
+
+        checks.each do |check|
+          arguments = check.dig(:arguments)
+          failures << check[:class].check_validity!(row, column, arguments)
+        end
+      end
+      failures.compact!
+      importer_log.summary[filename]['total_flags'] ||= 0
+      importer_log.summary[filename]['total_flags'] += failures.count
+      failures
     end
 
     private def validation_failures_contain_errors?(failures)
@@ -541,9 +560,8 @@ module HmisCsvTwentyTwenty::Importer
       end
       return nil
     rescue StandardError => e
-      # FIXME: Rescue StandardError is probably a bad idea
-      # slow path, try records one by one
-      log("process failed: #{e.message} #{e.backtrace}")
+      log("process failed: #{e.message}")
+      errors = []
       batch.each do |row|
         row.save(validate: use_ar_model_validations)
         note_processed(file_name, 1, type)

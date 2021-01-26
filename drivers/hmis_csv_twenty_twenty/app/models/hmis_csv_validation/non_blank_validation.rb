@@ -10,9 +10,9 @@ class HmisCsvValidation::NonBlankValidation < HmisCsvValidation::Validation
     return if value.present?
 
     new(
-      importer_log_id: item.importer_log_id,
-      source_id: item.source_id,
-      source_type: item.source_type,
+      importer_log_id: item['importer_log_id'],
+      source_id: item['source_id'],
+      source_type: item['source_type'],
       status: "A value is required for #{column}",
     )
   end

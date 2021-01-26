@@ -73,7 +73,6 @@ module HmisCsvTwentyTwenty::Loader
         complete_load(status: :loaded)
       rescue StandardError => e
         complete_load(status: :failed, err: e)
-        raise if Rails.env.development?
       ensure
         remove_import_files if @remove_files
       end
@@ -292,11 +291,18 @@ module HmisCsvTwentyTwenty::Loader
       # logger.debug { copy_sql }
       log("Copying #{base_name} into #{klass.table_name}")
       pg_conn = conn.raw_connection
+      expected_cols = headers.size
       klass.transaction do
         conn.logger&.debug { copy_sql }
         pg_conn.copy_data copy_sql do
           read_from.rewind
           CSV.parse(read_from, headers: false, liberal_parsing: true) do |row|
+            # ensure the row is long enough before
+            # we put the typed meta_data at the end
+            # all loader tables should handle nil data for columns
+            # with missing values
+            row << nil while row.size < expected_cols
+
             pg_row = (row + meta_data).to_csv
             pg_conn.put_copy_data pg_row
             lines_loaded += 1
