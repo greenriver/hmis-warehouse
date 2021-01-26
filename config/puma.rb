@@ -12,6 +12,7 @@ if ENV['PUMA_BIND']
   bind ENV['PUMA_BIND']
 else
   # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
+  #
   port (ENV["PROXY_PORT"] || ENV["PUMA_PORT"] || ENV['PORT'] || '3000').to_i
 end
 
