@@ -58,13 +58,21 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
     # memoize :time_columns
 
-    def self.new_from(loaded, deidentified: false)
+    def self.attrs_from(loaded, deidentified: false)
       # we need to attempt a fix of date columns before ruby auto converts them
       csv_data = loaded.hmis_data
       csv_data = fix_date_columns(csv_data)
       csv_data = fix_time_columns(csv_data)
       csv_data = clean_row_for_import(csv_data, deidentified: deidentified)
-      new(csv_data.merge(source_type: loaded.class.name, source_id: loaded.id, data_source_id: loaded.data_source_id))
+      csv_data.merge(
+        source_type: loaded.class.name,
+        source_id: loaded.id,
+        data_source_id: loaded.data_source_id,
+      )
+    end
+
+    def self.new_from(loaded, deidentified: false)
+      new attrs_from(loaded, deidentified: deidentified)
     end
 
     # Override as necessary
@@ -148,7 +156,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     def self.accepted_date_pattern
-      /\d{4}-\d{2}-\d{2}/.freeze
+      /\A\d{4}-\d{2}-\d{2}/.freeze
     end
 
     def self.correct_time_format?(string)
@@ -156,7 +164,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     def self.accepted_time_pattern
-      @accepted_time_pattern ||= /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.freeze
+      @accepted_time_pattern ||= /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.freeze
     end
 
     # We sometimes see very odd dates, this will attempt to make them sane.
@@ -191,6 +199,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')}"
       end
 
+      puts 'fix_date_format slow path'
       begin
         d = Date.parse(string, false)
       rescue ArgumentError
@@ -242,6 +251,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         string.to_time.strftime('%Y-%m-%d %H:%M:%S')
       end
 
+      puts 'fix_time_format slow path'
       begin
         d = DateTime.parse(string, false)
       rescue ArgumentError
@@ -265,9 +275,12 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       []
     end
 
+    def hmis_data
+      @hmis_data ||= attributes_before_type_cast.slice(*self.class.hmis_structure(version: '2020').keys)
+    end
+
     def calculate_source_hash
-      keys = self.class.hmis_structure(version: '2020').keys - [:ExportID]
-      Digest::SHA256.hexdigest(slice(keys).to_s)
+      Digest::SHA256.hexdigest(hmis_data.except(:ExportID).to_s)
     end
 
     # NOTE: this may be way faster, but would need to be done as a second step
@@ -278,10 +291,6 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
     def set_source_hash
       self.source_hash = calculate_source_hash
-    end
-
-    def hmis_data
-      slice(*self.class.hmis_structure(version: '2020').keys)
     end
 
     def run_row_validations(filename, importer_log)
@@ -303,6 +312,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     def self.run_complex_validations!(importer_log, filename)
       failures = []
       complex_validations.each do |check|
+        logger.debug { "Running #{check[:class]} for #{self}" }
         arguments = check.dig(:arguments)
         failures += check[:class].check_validity!(self, importer_log, arguments)
       end

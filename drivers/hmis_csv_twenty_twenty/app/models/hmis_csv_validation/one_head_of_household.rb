@@ -4,8 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
 ###
 
+# Validate that for any given importer_log_id there is only
+# one head of household identified. This SELECT COUNT(...) ... GROUP BY
+# so should happen only once after the import is complete
 class HmisCsvValidation::OneHeadOfHousehold < HmisCsvValidation::Validation
   def self.check_validity!(klass, importer_log, _options)
+    # FIXME: Very slow!!!
     incorrect_household_ids = klass.
       where(importer_log_id: importer_log.id, RelationshipToHoH: 1).
       group(:HouseholdID).

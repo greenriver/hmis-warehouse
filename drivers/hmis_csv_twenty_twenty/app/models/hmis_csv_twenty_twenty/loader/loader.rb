@@ -21,7 +21,6 @@ module HmisCsvTwentyTwenty::Loader
     include TsqlImport
     include NotifierConfig
     include HmisTwentyTwenty
-    include ActionView::Helpers::DateHelper
     # The HMIS spec limits the field to 50 characters
     # EXPORT_ID_FIELD_WIDTH = 50
     # SELECT_BATCH_SIZE = 10_000
@@ -179,7 +178,8 @@ module HmisCsvTwentyTwenty::Loader
             load_source_file_pg(read_from: file, klass: klass)
           end
         end
-        log(bm.to_s)
+        records = klass.where(loader_id: @loader_log.id).count
+        log "  Loaded (loader_id=#{@loader_log.id}) #{records} records into #{klass.quoted_table_name}. #{(records / bm.real).round(3)} rec/s. #{bm.to_s.strip}"
       end
     end
 
@@ -291,6 +291,7 @@ module HmisCsvTwentyTwenty::Loader
       log("Copying #{base_name} into #{klass.table_name}")
       pg_conn = conn.raw_connection
       klass.transaction do
+        conn.logger&.debug { copy_sql }
         pg_conn.copy_data copy_sql do
           read_from.rewind
           CSV.parse(read_from, headers: false, liberal_parsing: true) do |row|
@@ -302,11 +303,6 @@ module HmisCsvTwentyTwenty::Loader
       end
       @loader_log.summary[base_name].tap do |stat|
         log("  Read #{lines_loaded} lines")
-        if lines_loaded.positive?
-          records = klass.where(loader_id: @loader_log.id).count
-          logger.debug { "  Found #{records} records from loader_id=#{@loader_log.id} in #{klass.quoted_table_name}" }
-          lines_loaded = klass.count
-        end
         stat['total_lines'] = lines_loaded
         stat['lines_loaded'] = lines_loaded
       end
@@ -340,7 +336,7 @@ module HmisCsvTwentyTwenty::Loader
     end
 
     def build_loader_log(data_source:)
-      HmisCsvTwentyTwenty::Loader::LoaderLog.create(
+      HmisCsvTwentyTwenty::Loader::LoaderLog.create!(
         data_source_id: data_source.id,
         started_at: Time.current,
         status: :started,
@@ -385,7 +381,7 @@ module HmisCsvTwentyTwenty::Loader
 
     def start_load
       @loaded_at = Time.current
-      log("Starting HMIS CSV Data Load for data_source_id:#{data_source.id} loader_log_id:#{@loader_log.id}")
+      log("Starting HMIS CSV Data Load data_source_id:#{data_source.id} loader_log_id:#{@loader_log.id}")
     end
 
     def complete_load(status:, err: nil)
@@ -394,23 +390,7 @@ module HmisCsvTwentyTwenty::Loader
         completed_at: Time.current,
         status: status,
       )
-      log("Completed HMIS CSV Data Load for data_source_id:#{data_source.id} in #{elapsed_time(elapsed)}. Status: #{status} #{err.message if err}")
-    end
-
-    private def elapsed_time(total_seconds)
-      d = total_seconds / 86_400
-      h = total_seconds / 3600 % 24
-      m = total_seconds / 60 % 60
-      s = total_seconds % 60
-      if d >= 1
-        format('%id%ih%im%.3fs', d, h, m, s)
-      elsif h >= 1
-        format('%ih%im%.3fs', h, m, s)
-      elsif m >= 1
-        format('%im%.3fs', m, s)
-      else
-        format('%.3fs', s)
-      end
+      log("Completed HMIS CSV Data Load data_source_id:#{data_source.id} loader_log_id:#{@loader_log.id} in #{elapsed_time(elapsed)}. Status: #{status} #{err.message if err}")
     end
 
     def setup_summary(file)

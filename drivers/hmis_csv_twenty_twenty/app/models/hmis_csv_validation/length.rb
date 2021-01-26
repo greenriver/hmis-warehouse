@@ -5,7 +5,7 @@
 ###
 
 class HmisCsvValidation::Length < HmisCsvValidation::Error
-  def self.check_validity!(item, column, min: 0, max:)
+  def self.check_validity!(item, column, max:, min: 0)
     value = item[column].to_s
     return if value.size >= min && value.size <= max
 

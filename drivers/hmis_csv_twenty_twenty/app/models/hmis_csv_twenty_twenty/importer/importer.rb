@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2020 Green River Data Analysis, LLC
 #
@@ -17,7 +19,6 @@ module HmisCsvTwentyTwenty::Importer
     include TsqlImport
     include NotifierConfig
     include HmisTwentyTwenty
-    include ActionView::Helpers::DateHelper
 
     attr_accessor :logger, :notifier_config, :import, :range, :data_source, :importer_log
 
@@ -48,6 +49,10 @@ module HmisCsvTwentyTwenty::Importer
 
     def self.module_scope
       'HmisCsvTwentyTwenty::Importer'
+    end
+
+    private def log_ids
+      "data_source_id:#{@data_source.id} importer_log_id:#{@importer_log.id} loader_log_id:#{@loader_log&.id}"
     end
 
     def import!
@@ -100,7 +105,6 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.update(status: :pre_processing)
 
       importable_files.each do |file_name, klass|
-        log("Pre-processing #{klass.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
         pre_process_class!(file_name, klass)
       end
     end
@@ -109,32 +113,53 @@ module HmisCsvTwentyTwenty::Importer
       ['Export.csv', 'Project.csv']
     end
 
-    def pre_process_class!(file_name, klass)
-      batch = []
-      failures = []
-      source_data_scope_for(file_name).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
-        destination = klass.new_from(source, deidentified: @deidentified)
-        destination.importer_log_id = importer_log.id
-        destination.pre_processed_at = Time.current
-        destination.set_source_hash
-        row_failures = destination.run_row_validations(file_name, importer_log)
-        failures += row_failures
-        # Don't insert any where we have actual errors
-        batch << destination unless validation_failures_contain_errors?(row_failures)
-        if batch.count == INSERT_BATCH_SIZE
-          process_batch!(klass, batch, file_name, type: 'pre_processed', upsert: klass.upsert?)
-          batch = []
-          importer_log.save
-        end
-        if failures.count == INSERT_BATCH_SIZE
-          HmisCsvValidation::Base.import(failures.compact)
-          failures = []
-        end
-      end
+    private def use_ar_model_validations
+      false
+    end
 
-      process_batch!(klass, batch, file_name, type: 'pre_processed', upsert: klass.upsert?) if batch.present? # ensure we get the last batch
-      HmisCsvValidation::Base.import(failures.compact) if failures.present?
-      importer_log.save
+    def pre_process_class!(file_name, klass)
+      log("Pre-processing #{klass.name} ")
+      scope = source_data_scope_for(file_name)
+      # save some allocations be doing these only once
+      pre_processed_at = Time.current
+      importer_log_id = importer_log.id
+      sha256 = Digest::SHA256.new
+      bm = Benchmark.measure do
+        batch = []
+        failures = []
+        row_failures = []
+        scope.find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+          row_failures = []
+          destination = klass.attrs_from(source, deidentified: @deidentified)
+          destination['importer_log_id'] = importer_log_id
+          destination['pre_processed_at'] = pre_processed_at
+          # FIXME: are we sure this source_hash algo matches
+          # existing import logic. If not all records will be considered modified on the next run
+          sha256.reset
+          sha256 << source.hmis_data.except(:ExportID).to_s
+          destination['source_hash'] = sha256.hexdigest
+
+          # FIXME: put validations back in but in a way that
+          # doesnt need a AR model
+          # row_failures = destination.run_row_validations(file_name, importer_log)
+          failures.concat row_failures.compact
+          # Don't insert any where we have actual errors
+          batch << destination unless validation_failures_contain_errors?(row_failures)
+          if batch.count == INSERT_BATCH_SIZE
+            process_batch!(klass, batch, file_name, type: 'pre_processed', upsert: klass.upsert?)
+            batch = []
+          end
+          if failures.count == INSERT_BATCH_SIZE
+            HmisCsvValidation::Base.import(failures, validate: use_ar_model_validations)
+            failures = []
+          end
+        end
+        process_batch!(klass, batch, file_name, type: 'pre_processed', upsert: klass.upsert?) if batch.present? # ensure we get the last batch
+        HmisCsvValidation::Base.import(failures, validate: use_ar_model_validations) if failures.present?
+      end
+      records = scope.count
+      log("  #{records} processed. #{(records / bm.real).round(3)} rec/s. #{bm.to_s.strip} ")
+      return nil
     end
 
     private def validation_failures_contain_errors?(failures)
@@ -317,7 +342,7 @@ module HmisCsvTwentyTwenty::Importer
           columns = batch.first.attributes.keys - ['id']
           process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
         end
-        log("Added #{summary_for(file_name, 'added')} new #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
+        log("Added #{summary_for(file_name, 'added')} new #{destination_class.name} #{log_ids}")
       end
     end
 
@@ -434,7 +459,7 @@ module HmisCsvTwentyTwenty::Importer
         GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
           update_all(processed_as: nil)
       end
-      log("Updated #{summary_for(file_name, 'updated')} existing #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
+      log("Updated #{summary_for(file_name, 'updated')} existing #{destination_class.name} #{log_ids}")
     end
 
     private def mark_unchanged(klass, file_name)
@@ -501,31 +526,36 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names(version: '2020')) # rubocop:disable Metrics/ParameterLists
-      errors = []
-      if upsert
-        klass.import(batch, on_duplicate_key_update:
-          {
-            conflict_target: klass.conflict_target,
-            columns: columns,
-          })
-      else
-        klass.import(batch)
-      end
-      note_processed(file_name, batch.count, type)
-      rescue StandardError => e
-        log("process failed: #{e.message} #{e.backtrace}")
-        batch.each do |row|
-          row.save!
-          note_processed(file_name, 1, type)
-        rescue StandardError => e
-          errors << add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
+      klass.logger.debug { "process_batch! #{klass} #{upsert ? 'upsert' : 'import'} #{batch.size} records" }
+      klass.logger.silence(Logger::WARN) do
+        if upsert
+          klass.import(batch, on_duplicate_key_update:
+            {
+              conflict_target: klass.conflict_target,
+              columns: columns,
+            }, validate: use_ar_model_validations)
+        else
+          klass.import(batch, validate: use_ar_model_validations)
         end
-        @importer_log.import_errors.import(errors)
+        note_processed(file_name, batch.count, type)
+      end
+      return nil
+    rescue StandardError => e
+      # FIXME: Rescue StandardError is probably a bad idea
+      # slow path, try records one by one
+      log("process failed: #{e.message} #{e.backtrace}")
+      batch.each do |row|
+        row.save(validate: use_ar_model_validations)
+        note_processed(file_name, 1, type)
+      rescue StandardError => e
+        errors << add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
+      end
+      @importer_log.import_errors.import(errors)
     end
 
     private def source_data_scope_for(file_name)
-      @loaded_files ||= @loader_log.class.importable_files
-      @loaded_files[file_name].unscoped.where(loader_id: @loader_log.id)
+      scope = @loader_log.class.importable_files[file_name]
+      scope.unscoped.where(loader_id: @loader_log.id)
     end
 
     private def date_range
@@ -551,7 +581,7 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.upload_id = @upload.id if @upload.present?
       importer_log.save
       elapsed = Time.current - @started_at
-      log("Import Completed in #{distance_of_time_in_words(elapsed)} data_source: #{data_source.id} importer log: #{importer_log.id}")
+      log("Import Completed in #{elapsed_time(elapsed)} for #{log_ids}")
     end
 
     def pause_import
@@ -591,21 +621,25 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def setup_import
-      return if importer_log.present?
+      return importer_log if importer_log.present?
 
-      importer_log = HmisCsvTwentyTwenty::Importer::ImporterLog.new
-      importer_log.created_at = Time.now
-      importer_log.data_source = data_source
-      importer_log.summary = {}
-      importer_log.save
-      importer_log
+      @importer_log = HmisCsvTwentyTwenty::Importer::ImporterLog.create!(
+        data_source: data_source,
+        summary: {},
+      )
     end
 
     def start_import
-      importer_log.update(status: :started)
-      @loader_log.update(importer_log_id: importer_log.id)
-      @started_at = Time.current
-      log("Starting import for data source: #{@data_source.id} importer log: #{importer_log.id}")
+      db_transaction do
+        importer_log.update(status: :started)
+        @loader_log.update(importer_log_id: importer_log.id)
+        @started_at = Time.current
+        log("Starting import #{log_ids}")
+      end
+    end
+
+    private def db_transaction(&block)
+      GrdaWarehouse::Hud::Base.transaction(&block)
     end
 
     def log(message)
