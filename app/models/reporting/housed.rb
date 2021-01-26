@@ -259,9 +259,7 @@ module Reporting
       cache_client = GrdaWarehouse::Hud::Client.new
       client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_ids)
 
-      i = 0
       data = enrollment_data.map do |en|
-        i += 1
         client = client_details[en[:client_id]]
         next unless client.present?
 
