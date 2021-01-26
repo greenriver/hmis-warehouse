@@ -199,7 +199,6 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')}"
       end
 
-      puts 'fix_date_format slow path'
       begin
         d = Date.parse(string, false)
       rescue ArgumentError
@@ -251,7 +250,6 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         string.to_time.strftime('%Y-%m-%d %H:%M:%S')
       end
 
-      puts 'fix_time_format slow path'
       begin
         d = DateTime.parse(string, false)
       rescue ArgumentError
