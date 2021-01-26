@@ -6,8 +6,9 @@
 
 # dev projects -- with affiliation: 61; single RRH: 44
 
-class WarehouseReport::PshReport < WarehouseReport::RrhReport
+class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
   include ArelHelper
+
   def default_support_columns
     {
       service_project: _('Housing Search'),
@@ -34,6 +35,32 @@ class WarehouseReport::PshReport < WarehouseReport::RrhReport
       search_start: _('Search Start'),
       search_end: _('Search End'),
       residential_project: _('Stabilization Project'),
+      housed_date: _('Date Housed'),
+      housing_exit: _('Housing Exit'),
+    }
+  end
+
+  def columns_for_returns_after_exit
+    {
+      exit_date: _('Housing Exit'),
+      return_date: _('Date of Return'),
+      days_to_return: _('Days to Return'),
+    }
+  end
+
+  def columns_for_percent_exiting_stabilization
+    {
+      residential_project: _('Stabilization Project'),
+      destination: _('Destination'),
+      housed_date: _('Date Housed'),
+      housing_exit: _('Housing Exit'),
+    }
+  end
+
+  def columns_for_destination
+    {
+      residential_project: _('Stabilization Project'),
+      destination: _('Destination'),
       housed_date: _('Date Housed'),
       housing_exit: _('Housing Exit'),
     }
