@@ -253,6 +253,9 @@ module HmisCsvTwentyTwenty::Loader
     # end
 
     def load_source_file_pg(read_from:, klass:)
+      file_name = read_from.path
+      base_name = File.basename(file_name)
+
       headers = CSV.parse_line(read_from, headers: false, liberal_parsing: true)
       if headers.none?
         err = 'No data.'
@@ -287,7 +290,6 @@ module HmisCsvTwentyTwenty::Loader
       SQL
       # logger.debug { meta_data }
       # logger.debug { copy_sql }
-      base_name = File.basename(read_from.path)
       log("Copying #{base_name} into #{klass.table_name}")
       pg_conn = conn.raw_connection
       klass.transaction do
@@ -306,6 +308,8 @@ module HmisCsvTwentyTwenty::Loader
         stat['total_lines'] = lines_loaded
         stat['lines_loaded'] = lines_loaded
       end
+    rescue PG::Error => e
+      add_error(file_path: read_from.path, message: e.message, line: '')
     end
 
     # Headers need to match our style
