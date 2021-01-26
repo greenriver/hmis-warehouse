@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_18_145142) do
+ActiveRecord::Schema.define(version: 2021_01_22_155335) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1848,6 +1848,8 @@ ActiveRecord::Schema.define(version: 2021_01_18_145142) do
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
     t.string "preferred_language", default: "en"
+    t.datetime "epic_row_created"
+    t.datetime "epic_row_updated"
     t.index ["created_at"], name: "index_vaccinations_on_created_at"
     t.index ["epic_patient_id", "vaccinated_on"], name: "index_vaccinations_on_epic_patient_id_and_vaccinated_on", unique: true
     t.index ["updated_at"], name: "index_vaccinations_on_updated_at"

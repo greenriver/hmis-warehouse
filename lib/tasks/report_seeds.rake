@@ -43,6 +43,13 @@ namespace :reports do
       'Reports::DataQuality::Fy2016::Q5',
       'Reports::DataQuality::Fy2016::Q6',
       'Reports::DataQuality::Fy2016::Q7',
+      'Reports::DataQuality::Fy2017::Q1',
+      'Reports::DataQuality::Fy2017::Q2',
+      'Reports::DataQuality::Fy2017::Q3',
+      'Reports::DataQuality::Fy2017::Q4',
+      'Reports::DataQuality::Fy2017::Q5',
+      'Reports::DataQuality::Fy2017::Q6',
+      'Reports::DataQuality::Fy2017::Q7',
       # 'Reports::Lsa::Fy2018::All',
     ]
     # SPM 2018 should be removed after 10/1/2020 to allow for comparisons
@@ -217,23 +224,23 @@ namespace :reports do
     # r = Reports::DataQuality::Fy2016::Q7.where(name: 'HUD Data Quality Report FY 2016 - Q7').first_or_create
     # r.update(weight: 7, report_results_summary: rs, enabled: true)
 
-    rs = ReportResultsSummaries::DataQuality::Fy2017.where(name: 'HUD Data Quality Report 2017').first_or_create
-    rs.update(weight: 0)
-
-    r = Reports::DataQuality::Fy2017::Q1.where(name: 'HUD Data Quality Report FY 2017 - Q1').first_or_create
-    r.update(weight: 1, report_results_summary: rs, enabled: true)
-    r = Reports::DataQuality::Fy2017::Q2.where(name: 'HUD Data Quality Report FY 2017 - Q2').first_or_create
-    r.update(weight: 2, report_results_summary: rs, enabled: true)
-    r = Reports::DataQuality::Fy2017::Q3.where(name: 'HUD Data Quality Report FY 2017 - Q3').first_or_create
-    r.update(weight: 3, report_results_summary: rs, enabled: true)
-    r = Reports::DataQuality::Fy2017::Q4.where(name: 'HUD Data Quality Report FY 2017 - Q4').first_or_create
-    r.update(weight: 4, report_results_summary: rs, enabled: true)
-    r = Reports::DataQuality::Fy2017::Q5.where(name: 'HUD Data Quality Report FY 2017 - Q5').first_or_create
-    r.update(weight: 5, report_results_summary: rs, enabled: true)
-    r = Reports::DataQuality::Fy2017::Q6.where(name: 'HUD Data Quality Report FY 2017 - Q6').first_or_create
-    r.update(weight: 6, report_results_summary: rs, enabled: true)
-    r = Reports::DataQuality::Fy2017::Q7.where(name: 'HUD Data Quality Report FY 2017 - Q7').first_or_create
-    r.update(weight: 7, report_results_summary: rs, enabled: true)
+    # rs = ReportResultsSummaries::DataQuality::Fy2017.where(name: 'HUD Data Quality Report 2017').first_or_create
+    # rs.update(weight: 0)
+    #
+    # r = Reports::DataQuality::Fy2017::Q1.where(name: 'HUD Data Quality Report FY 2017 - Q1').first_or_create
+    # r.update(weight: 1, report_results_summary: rs, enabled: true)
+    # r = Reports::DataQuality::Fy2017::Q2.where(name: 'HUD Data Quality Report FY 2017 - Q2').first_or_create
+    # r.update(weight: 2, report_results_summary: rs, enabled: true)
+    # r = Reports::DataQuality::Fy2017::Q3.where(name: 'HUD Data Quality Report FY 2017 - Q3').first_or_create
+    # r.update(weight: 3, report_results_summary: rs, enabled: true)
+    # r = Reports::DataQuality::Fy2017::Q4.where(name: 'HUD Data Quality Report FY 2017 - Q4').first_or_create
+    # r.update(weight: 4, report_results_summary: rs, enabled: true)
+    # r = Reports::DataQuality::Fy2017::Q5.where(name: 'HUD Data Quality Report FY 2017 - Q5').first_or_create
+    # r.update(weight: 5, report_results_summary: rs, enabled: true)
+    # r = Reports::DataQuality::Fy2017::Q6.where(name: 'HUD Data Quality Report FY 2017 - Q6').first_or_create
+    # r.update(weight: 6, report_results_summary: rs, enabled: true)
+    # r = Reports::DataQuality::Fy2017::Q7.where(name: 'HUD Data Quality Report FY 2017 - Q7').first_or_create
+    # r.update(weight: 7, report_results_summary: rs, enabled: true)
 
     rs = ReportResultsSummaries::Lsa::Fy2018.where(name: 'LSA 2018').first_or_create
     rs.update(weight: 0)
