@@ -171,6 +171,7 @@ module Health
           current_referral.update(
             disenrollment_date: enrollment_start_date,
             change_description: 'Close open enrollment',
+            removal_acknowledged: true, # Synthetic removals do not need to be acknowledged
           )
           referral = create(referral_args)
         else

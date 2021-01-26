@@ -1,16 +1,47 @@
 - if anomalies.present?
-  %table.table.table-sm
-    %thead
-      %tr
-        %th
-          Description
-        %th
-          Status
-        %th
-          Changed On
-        %th
-          Reported By
-        %th
-    %tbody
-      - anomalies.each do |anomaly|
-        = render 'row', anomaly: anomaly
+  - anomalies.each do |anomaly|
+    - readonly = anomaly.status == 'resolved'
+    - wrapper = {}
+    - wrapper = {wrapper: :readonly} if readonly
+    = simple_form_for(anomaly, {as: :anomaly, url: client_anomaly_path(client_id: @client.id, id: anomaly.id)}.merge(wrapper))do |f|
+      - first_version = anomaly.versions.first
+      %h3 Reported By #{User.find(first_version.whodunnit)&.name} on #{first_version.created_at.to_date}
+      .card.mb-4
+        %table.table.table-striped.mb-0
+          %thead
+            %tr
+              %th
+                Description
+              %th
+                Status
+              %th
+                Changed On
+              %th
+                Reported By
+              %th
+          %tbody
+            - if anomaly.versions
+              - anomaly.versions.each do |version|
+                - user = User.find(version.whodunnit)
+                - object = version.next&.reify
+                - next if object.blank?
+                %tr.anomaly-history
+                  %td= simple_format object.description
+                  %td= object.current_status
+                  %td= object.updated_at
+                  %td= user&.name
+                  %td
+            %tr.anomaly-history
+              %td= simple_format anomaly.description
+              %td= anomaly.current_status
+              %td= anomaly.updated_at
+              %td= User.find(anomaly.versions.last.whodunnit)&.name
+              %td
+
+            %tr.anomaly-current
+              - unless readonly
+                %td{colspan: 3}
+                  = f.input :description, label: 'Updates?', as: :text, input_html: {rows: 8, value: '', placeholder: 'Provide any updates here.'}
+                %td
+                  = f.input :status, collection: anomaly.class.available_stati.invert, label: 'New status', include_blank: false, as: :select_two, input_html: {id: "anomaly_status_#{f.object.id}"}
+                %td= f.submit class: 'btn btn-secondary mt-no-label', value: 'Update'

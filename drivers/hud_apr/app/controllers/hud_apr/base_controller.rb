@@ -5,22 +5,8 @@
 ###
 
 module HudApr
-  class BaseController < ApplicationController
-    before_action :require_can_view_hud_reports!
+  class BaseController < ::HudReports::BaseController
     before_action :filter
-
-    def set_reports
-      title = generator.title
-      @reports = report_scope.where(report_name: title).
-        preload(:user, :universe_cells)
-      @reports = @reports.where(user_id: current_user.id) unless can_view_all_hud_reports?
-      @reports = @reports.order(created_at: :desc).
-        page(params[:page]).per(25)
-    end
-
-    def report_urls
-      @report_urls ||= Rails.application.config.hud_reports.map { |_, report| [report[:title], public_send(report[:helper])] }
-    end
 
     def filter_params
       return {} unless params[:filter]
@@ -65,33 +51,6 @@ module HudApr
       end
       # Override with params if set
       @filter.set_from_params(filter_params) if filter_params.present?
-    end
-
-    private def report_param_name
-      :id
-    end
-
-    private def set_report
-      report_id = params[report_param_name].to_i
-      return if report_id.zero?
-
-      @report = if can_view_all_hud_reports?
-        report_scope.find(report_id)
-      else
-        report_scope.where(user_id: current_user.id).find(report_id)
-      end
-    end
-
-    private def report_scope
-      report_source.where(report_name: report_name)
-    end
-
-    def report_source
-      ::HudReports::ReportInstance
-    end
-
-    def report_cell_source
-      ::HudReports::ReportCell
     end
 
     private def filter_class
