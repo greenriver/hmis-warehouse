@@ -257,15 +257,14 @@ module Reporting
 
     def populate!
       cache_client = GrdaWarehouse::Hud::Client.new
-      puts "enrollment_data: #{enrollment_data.count}"
-      puts "client_details: #{client_details.count}"
+      client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_ids)
+
       i = 0
       data = enrollment_data.map do |en|
         i += 1
         client = client_details[en[:client_id]]
         next unless client.present?
 
-        puts "Loopin #{i}"
         client.delete(:id)
         en.merge!(client)
         en[:month_year] = en[:housed_date]&.strftime('%Y-%m-01')
@@ -274,13 +273,12 @@ module Reporting
         else
           en[:ph_destination] = :not_ph
         end
-        # en[:race] = cache_client.race_string(scope_limit: GrdaWarehouse::Hud::Client.where(id: client_ids), destination_id: en[:client_id])
+        en[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: en[:client_id])
 
         en[:age_at_search_start] = GrdaWarehouse::Hud::Client.age(date: en[:search_start], dob: en[:dob])
         en[:age_at_search_end] = GrdaWarehouse::Hud::Client.age(date: en[:search_end], dob: en[:dob])
         en[:age_at_housed_date] = GrdaWarehouse::Hud::Client.age(date: en[:housed_date], dob: en[:dob])
         en[:age_at_housing_exit] = GrdaWarehouse::Hud::Client.age(date: en[:housing_exit], dob: en[:dob])
-        puts 'Done loopin'
         en
       end
       return unless data.present?

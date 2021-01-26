@@ -2183,45 +2183,31 @@ module GrdaWarehouse::Hud
 
     # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
     # advantage of caching
-    def race_string scope_limit: self.class.destination, destination_id:
-      limited_scope = self.class.destination.merge(scope_limit)
+    def race_string(destination_id:, scope_limit: self.class.destination)
+      @limited_scope ||= self.class.destination.merge(scope_limit)
 
-      @race_am_ind_ak_native ||= limited_scope.where(id: self.class.race_am_ind_ak_native.select(:id)).distinct.pluck(:id).to_set
-      @race_asian ||= limited_scope.where(id: self.class.race_asian.select(:id)).distinct.pluck(:id).to_set
-      @race_black_af_american ||= limited_scope.where(id: self.class.race_black_af_american.select(:id)).distinct.pluck(:id).to_set
-      @race_native_hi_other_pacific ||= limited_scope.where(id: self.class.race_native_hi_other_pacific.select(:id)).distinct.pluck(:id).to_set
-      @race_white ||= limited_scope.where(id: self.class.race_white.select(:id)).distinct.pluck(:id).to_set
-
-      race_string = ''
-      race_count = 0
-      if @race_am_ind_ak_native.include?(destination_id)
-        race_string = 'AmIndAKNative'
-        race_count += 1
-      end
-      if @race_asian.include?(destination_id)
-        race_string = 'Asian'
-        race_count += 1
-      end
-      if @race_black_af_american.include?(destination_id)
-        race_string = 'BlackAfAmerican'
-        race_count += 1
-      end
-      if @race_native_hi_other_pacific.include?(destination_id)
-        race_string = 'NativeHIOtherPacific'
-        race_count += 1
-      end
-      if @race_white.include?(destination_id)
-        race_string = 'White'
-        race_count += 1
+      @race_am_ind_ak_native ||= @limited_scope.where(id: self.class.race_am_ind_ak_native.select(:id)).distinct.pluck(:id).to_set
+      @race_asian ||= @limited_scope.where(id: self.class.race_asian.select(:id)).distinct.pluck(:id).to_set
+      @race_black_af_american ||= @limited_scope.where(id: self.class.race_black_af_american.select(:id)).distinct.pluck(:id).to_set
+      @race_native_hi_other_pacific ||= @limited_scope.where(id: self.class.race_native_hi_other_pacific.select(:id)).distinct.pluck(:id).to_set
+      @race_white ||= @limited_scope.where(id: self.class.race_white.select(:id)).distinct.pluck(:id).to_set
+      @multiracial ||= begin
+        multi = @race_am_ind_ak_native.to_a +
+        @race_asian.to_a +
+        @race_black_af_american.to_a +
+        @race_native_hi_other_pacific.to_a +
+        @race_white.to_a
+        multi.select { |m| multi.count(m) > 1 }.to_set
       end
 
-      if race_count > 1
-        'MultiRacial'
-      elsif race_count.zero?
-        'RaceNone'
-      else
-        race_string
-      end
+      return 'MultiRacial' if @multiracial.include?(destination_id)
+      return 'AmIndAKNative' if @race_am_ind_ak_native.include?(destination_id)
+      return 'Asian' if @race_asian.include?(destination_id)
+      return 'BlackAfAmerican' if @race_black_af_american.include?(destination_id)
+      return 'NativeHIOtherPacific' if @race_native_hi_other_pacific.include?(destination_id)
+      return 'White' if @race_white.include?(destination_id)
+
+      'RaceNone'
     end
 
     def self_and_sources
