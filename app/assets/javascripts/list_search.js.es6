@@ -41,7 +41,8 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
       'item',
       'results',
       'noResults',
-      'foundCount'
+      'foundCount',
+      'searchAll'
     ]
   }
 
@@ -76,7 +77,13 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
       return
     }
     const { ACTIVE_CLASS, ALL_KEY } = this
-    const { category } = el.dataset
+    const { category, hash } = el.dataset
+    if(hash) {
+      window.location.hash = hash
+    }
+    else {
+      window.location.hash = ''
+    }
     // Update state of selected categories
     if (category === ALL_KEY) {
       this.selectAll()
@@ -84,6 +91,7 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
       this.hideAllCategories()
       el.classList.add(ACTIVE_CLASS)
     }
+    showOrHideElement(category === ALL_KEY, this.searchAllTarget)
 
     this.selectedCategories = this.activeCategories()
     this.updateCategoryContent()

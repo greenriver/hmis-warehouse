@@ -12,11 +12,13 @@
       %h1= content_for :title
 
     .c-list-search__search
-      .c-list-search__search-found-count.hide{data: {target: "#{stimulus_controller}.foundCount"}}
+      .c-list-search__search-found-count.text-right.hide{data: {target: "#{stimulus_controller}.foundCount"}}
         %p
           %span Number of reports found:
           %span.count
-      %input.form-control{placeholder: 'Search reports', data: {action: "input->#{stimulus_controller}#search"}}
+        %p.hide{data: {target: "#{stimulus_controller}.searchAll"}}
+          %a{href: '#', data: {action: "click->#{stimulus_controller}#changeCategory", category: 'all'}} Search all reports
+      %input.form-control{placeholder: 'Filter visible reports', data: {action: "input->#{stimulus_controller}#search"}}
 
   .c-list-search__container
     %nav.c-list-search__filtration-nav
