@@ -8,31 +8,32 @@ module Reporting
   class Return < ReportingBase
     self.table_name = :warehouse_returns
     include ArelHelper
-    include TsqlImport
 
     def populate!
       return unless source_data.present?
+
       headers = stays.first.keys
-      self.transaction do
+      transaction do
         self.class.delete_all
-        insert_batch(self.class, headers, stays.map(&:values))
+        self.class.import(headers, stays.map(&:values))
       end
     end
 
     def source_data
       @source_data ||= begin
         GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: [:project, :organization]).
-        homeless.
-        # in_project_type([1,2,4,8]).
-        where(client_id: client_ids).
-        where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current)).
-        order(service_history_enrollment_id: :asc, date: :asc).
-        pluck(*source_columns.values).map do |row|
-          Hash[source_columns.keys.zip(row)]
-        end
+          homeless.
+          # in_project_type([1,2,4,8]).
+          where(client_id: client_ids).
+          where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current)).
+          order(service_history_enrollment_id: :asc, date: :asc).
+          pluck(*source_columns.values).map do |row|
+            Hash[source_columns.keys.zip(row)]
+          end
       end
     end
-      # Collapse all days into consecutive stays
+
+    # Collapse all days into consecutive stays
     def stays
       @stays ||= begin
         stays = []
@@ -69,7 +70,6 @@ module Reporting
           stay
         end
       end
-
     end
 
     def source_columns
@@ -95,6 +95,5 @@ module Reporting
     def client_ids
       @client_ids ||= Reporting::Housed.distinct.pluck(:client_id)
     end
-
   end
 end
