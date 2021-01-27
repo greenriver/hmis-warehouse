@@ -5,7 +5,8 @@
 ###
 
 class CensusesController < ApplicationController
-  before_action :require_can_view_censuses!, except: [:date_range]
+  include WarehouseReportAuthorization
+
   before_action :require_can_view_clients!, only: [:details]
   include ArelHelper
   # default view grouped by project

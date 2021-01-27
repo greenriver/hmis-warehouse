@@ -9,12 +9,12 @@ def setup_fake_user
 
     # Add a user.  This should not be added in production
     unless Rails.env =~ /production|staging/
-      inital_password = Faker::Internet.password(min_length: 16)
+      initial_password = Faker::Internet.password(min_length: 16)
       user = User.new
       user.email = 'noreply@example.com'
       user.first_name = "Sample"
       user.last_name = 'Admin'
-      user.password = user.password_confirmation = inital_password
+      user.password = user.password_confirmation = initial_password
       user.confirmed_at = Time.now
       user.roles = [admin, dnd_staff]
       user.save!
@@ -757,6 +757,59 @@ def report_list
         url: 'warehouse_reports/export_covid_impact_assessments',
         name: 'COVID-19 Impact Assessment Export',
         description: 'Export Data from ETO COVID-19 impact assessments',
+        limitable: true,
+        health: false,
+      },
+    ],
+    'High Level Dashboards' => [
+      {
+        url: 'dashboards/adult_only_households',
+        name: 'Adult only Households',
+        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and no children (< 18).',
+        limitable: true,
+        health: false,
+      },
+      {
+        url: 'dashboards/adults_with_children',
+        name: 'Adult and Child Households',
+        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (< 18).',
+        limitable: true,
+        health: false,
+      },
+      {
+        url: 'dashboards/child_only_households',
+        name: 'Child only Households',
+        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (< 18) and no adults (+ 18).',
+        limitable: true,
+        health: false,
+      },
+      {
+        url: 'dashboards/https://hmis-warehouse.dev.test/dashboards/child_only_households',
+        name: 'All Clients',
+        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH).',
+        limitable: true,
+        health: false,
+      },
+      {
+        url: 'dashboards/non_veterans',
+        name: 'Non-Veteran',
+        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is not a veteran.',
+        limitable: true,
+        health: false,
+      },
+      {
+        url: 'dashboards/veterans',
+        name: 'Veteran',
+        description: 'Veteran clients enrolled in homeless projects (ES, SH, SO, TH).',
+        limitable: true,
+        health: false,
+      },
+    ],
+    'Census' => [
+      {
+        url: 'censuses',
+        name: 'Nightly Census',
+        description: 'Daily utilization charts for projects and residential project types.',
         limitable: true,
         health: false,
       },
