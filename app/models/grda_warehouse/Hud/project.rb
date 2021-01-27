@@ -57,7 +57,11 @@ module GrdaWarehouse::Hud
       so: 'Street Outreach (SO)',
       rrh: 'Rapid Re-Housing (RRH)',
       ca: 'Coordinated Assessment (CA)',
-      psh: 'Permanent Supportive Housing (PSH)'
+      psh: 'Permanent Supportive Housing (PSH)',
+      other: 'Other',
+      day_shelter: 'Day Shelter',
+      prevention: 'Homelessness Prevention',
+      services_only: 'Services Only',
     }
     PROJECT_TYPE_TITLES = PROJECT_GROUP_TITLES.select{|k,_| k.in?([:ph, :es, :th, :sh, :so])}
     HOMELESS_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
@@ -76,14 +80,18 @@ module GrdaWarehouse::Hud
     PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
     WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
     PERFORMANCE_REPORTING = {   # duplicate of code in various places
-      ph: [3,9,10,13],
+      ph: [3, 9, 10, 13],
       th: [2],
       es: [1],
       so: [4],
       sh: [8],
       ca: [14],
       rrh: [13],
-      psh: [3, 10]
+      psh: [3, 10],
+      other: [7],
+      day_shelter: [11],
+      prevention: [12],
+      services_only: [6],
     }
 
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override, :zip_override

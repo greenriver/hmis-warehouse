@@ -261,6 +261,20 @@ def report_list
         limitable: false,
         health: false,
       },
+      {
+        url: 'warehouse_reports/shelter',
+        name: 'Emergency Shelter Dashboard',
+        description: 'Overview of ES performance and data exploration.',
+        limitable: true,
+        health: false,
+      },
+      {
+        url: 'warehouse_reports/th',
+        name: 'Transitional Housing Dashboard',
+        description: 'Overview of TH performance and data exploration.',
+        limitable: true,
+        health: false,
+      },
     ],
     'Data Quality' => [
       {

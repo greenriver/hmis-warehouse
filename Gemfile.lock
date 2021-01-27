@@ -128,6 +128,7 @@ GEM
       sshkit (>= 1.6.1, != 1.7.0)
     ajax_modal_rails (1.0.12)
       rails (>= 4)
+    amazing_print (1.2.2)
     ansi (1.5.0)
     ar_outer_joins (0.2.0)
       activerecord (>= 3.2)
@@ -143,7 +144,6 @@ GEM
     auto-session-timeout (0.9.6)
     autoprefixer-rails (10.2.0.0)
       execjs
-    awesome_print (1.8.0)
     aws-eventstream (1.1.0)
     aws-partitions (1.417.0)
     aws-record (2.5.0)
@@ -221,7 +221,7 @@ GEM
       sassc-rails (>= 2.0.0)
     bootstrap3-datetimepicker-rails (4.17.47)
       momentjs-rails (>= 2.8.1)
-    brakeman (4.10.1)
+    brakeman (5.0.0)
     builder (3.2.4)
     bumbler (0.8.0)
     bundler-audit (0.7.0.1)
@@ -812,12 +812,12 @@ DEPENDENCIES
   activerecord-sqlserver-adapter!
   acts-as-taggable-on (~> 7.0)
   ajax_modal_rails (~> 1.0)
+  amazing_print
   attr_encrypted (~> 3.1.0)
   attribute_normalizer
   authtrail
   auto-session-timeout
   autoprefixer-rails
-  awesome_print
   aws-sdk-cloudwatchevents (~> 1)
   aws-sdk-ecs (~> 1)
   aws-sdk-glacier (~> 1)

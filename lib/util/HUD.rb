@@ -1021,7 +1021,7 @@ module HUD
         31,
         33,
         34,
-      ]
+      ].freeze
     end
   end
 
