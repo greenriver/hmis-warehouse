@@ -9,17 +9,9 @@ module Admin::Dashboard
     before_action :require_can_view_imports!
     def index
       @imports = data_source_scope.map do |d|
-        GrdaWarehouse::ImportLog.where(
-          data_source_id: d.id,
-        ).select(
-          :id,
-          :data_source_id,
-          :completed_at,
-          :created_at,
-          :updated_at,
-          :files,
-          :upload_id,
-        ).order(id: :desc).first_or_initialize
+        GrdaWarehouse::ImportLog.where(data_source_id: d.id).
+          diet.
+          order(id: :desc).first_or_initialize
       end
 
       @duplicates = GrdaWarehouse::IdentifyDuplicatesLog.last
