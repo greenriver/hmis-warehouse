@@ -3,7 +3,7 @@ require "active_support/core_ext/integer/time"
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
   deliver_method = ENV.fetch('MAIL_DELIVERY_METHOD') { 'smtp' }.to_sym
-  slack_config = Rails.application.config_for(:exception_notifier)['slack']
+  slack_config = Rails.application.config_for(:exception_notifier).fetch(:slack, nil)
 
   # Code is not reloaded between requests.
   config.cache_classes = true

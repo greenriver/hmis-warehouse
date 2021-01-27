@@ -7,7 +7,7 @@
       mrkdwn: true
       icon_url: <%= ENV.fetch('EXCEPTION_WEBHOOK_ICON') %>
 <% else %>
-unknown:
+<%= ENV.fetch('RAILS_ENV') { 'unknown' } %>:
   slack:
     webhook_url: www.unknown.com
     channel: '#unknown'
