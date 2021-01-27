@@ -7,8 +7,7 @@
 module AdultOnlyHouseholdsSubPop::Dashboards
   class AdultOnlyHouseholdsController < ::Dashboards::BaseController
     include ArelHelper
-
-    before_action :require_can_view_censuses!
+    include WarehouseReportAuthorization
 
     def sub_population_key
       :adult_only_households

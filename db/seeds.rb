@@ -761,7 +761,7 @@ def report_list
         health: false,
       },
     ],
-    'High Level Dashboards' => [
+    'Population Dashboards' => [
       {
         url: 'dashboards/adult_only_households',
         name: 'Adult only Households',
@@ -784,7 +784,7 @@ def report_list
         health: false,
       },
       {
-        url: 'dashboards/https://hmis-warehouse.dev.test/dashboards/child_only_households',
+        url: 'dashboards/clients',
         name: 'All Clients',
         description: 'Clients enrolled in homeless projects (ES, SH, SO, TH).',
         limitable: true,
