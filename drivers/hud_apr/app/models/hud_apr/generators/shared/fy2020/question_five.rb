@@ -100,7 +100,7 @@ module HudApr::Generators::Shared::Fy2020
         # Number of veterans
         {
           cell: 'B10',
-          clause: a_t[:veteran_status].eq(1),
+          clause: veteran_clause,
         },
         # Number of chronically homeless
         {
