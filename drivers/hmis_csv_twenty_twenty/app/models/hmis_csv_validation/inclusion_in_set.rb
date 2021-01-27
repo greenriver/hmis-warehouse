@@ -21,7 +21,7 @@ class HmisCsvValidation::InclusionInSet < HmisCsvValidation::Validation
   def self.short_list(options)
     return options if options.length < 10
 
-    options[0..10] + ['...']
+    options[0..9] + ['...']
   end
 
   def self.title
