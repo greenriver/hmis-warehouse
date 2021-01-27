@@ -5,7 +5,7 @@
 ###
 
 class HmisCsvTwentyTwenty::ImporterValidationErrorsController < ApplicationController
-  include ValidationFiltering
+  include HmisCsvTwentyTwenty::ValidationFiltering
   before_action :require_can_view_imports!
 
   def show
