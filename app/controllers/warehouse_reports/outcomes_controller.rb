@@ -91,12 +91,12 @@ module WarehouseReports
 
     private def set_filter
       @filter = WarehouseReport::Outcomes::OutcomesFilter.new(
-        project_type_numbers: available_reports[params[:scope]][:project_types],
         default_start: @start_months.values[5],
         default_end: @end_months.values[0],
         user_id: current_user.id,
       )
       @filter.set_from_params(report_params) if params[:filter].present?
+      @filter.project_type_numbers = available_reports[params[:scope]][:project_types]
 
       # force at least a 2 month coverage
       @filter.start = (@filter.end - 1.months).beginning_of_month if @filter.start > @filter.end
@@ -108,6 +108,8 @@ module WarehouseReports
 
     private def set_report
       @report = report_class.new(
+        data_source_ids: @filter.data_source_ids,
+        organization_ids: @filter.organization_ids,
         project_ids: @filter.project_ids,
         start_date: @filter.start,
         end_date: @filter.end,
@@ -139,6 +141,8 @@ module WarehouseReports
         :ethnicity,
         :gender,
         :veteran_status,
+        data_source_ids: [],
+        organization_ids: [],
         project_ids: [],
       )
     end
@@ -154,6 +158,8 @@ module WarehouseReports
           :ethnicity,
           :gender,
           :veteran_status,
+          data_source_ids: [],
+          organization_ids: [],
           project_ids: [],
         ])
     end

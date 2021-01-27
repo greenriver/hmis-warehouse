@@ -14,18 +14,21 @@ class WarehouseReport::Outcomes::OutcomesFilter < Filters::FilterBase
   def set_from_params(filters) # rubocop:disable Naming/AccessorMethodName
     super(filters)
 
-    self.genders = [allow(housed_scope.available_genders, filters.dig(:gender)&.to_i)]
+    self.genders = [allow(housed_scope.available_genders, filters.dig(:gender).to_i)] if filters.dig(:gender).present?
     self.gender = genders.first
     self.races = [allow(housed_scope.available_races, filters.dig(:race))]
     self.race = races.first
-    self.ethnicities = [allow(housed_scope.available_ethnicities, filters.dig(:ethnicity)&.to_i)]
+    self.ethnicities = [allow(housed_scope.available_ethnicities, filters.dig(:ethnicity).to_i)] if filters.dig(:ethnicity).present?
     self.ethnicity = ethnicities.first
-    self.veteran_statuses = [allow(housed_scope.available_veteran_stati, filters.dig(:veteran_status)&.to_i)]
+    self.veteran_statuses = [allow(housed_scope.available_veteran_stati, filters.dig(:veteran_status).to_i)] if filters.dig(:veteran_status).present?
     self.veteran_status = veteran_statuses.first
   end
 
   def all_project_scope
-    GrdaWarehouse::Hud::Project.viewable_by(user).with_project_type(project_type_numbers)
+    scope = GrdaWarehouse::Hud::Project.viewable_by(user)
+    scope = scope.with_project_type(project_type_numbers) if project_type_numbers.present?
+
+    scope
   end
 
   def project_id

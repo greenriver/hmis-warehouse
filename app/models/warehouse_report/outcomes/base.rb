@@ -7,9 +7,11 @@
 class WarehouseReport::Outcomes::Base
   include ArelHelper
 
-  attr_accessor :project_ids, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status
+  attr_accessor :organization_ids, :data_source_ids, :project_ids, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status
 
-  def initialize(project_ids:, start_date:, end_date:, subpopulation:, household_type:, race:, ethnicity:, gender:, veteran_status:) # rubocop:disable Metrics/ParameterLists
+  def initialize(organization_ids:, data_source_ids:, project_ids:, start_date:, end_date:, subpopulation:, household_type:, race:, ethnicity:, gender:, veteran_status:) # rubocop:disable Metrics/ParameterLists
+    @organization_ids = organization_ids
+    @data_source_ids = data_source_ids
     @project_ids = project_ids
     @start_date = start_date
     @end_date = end_date
@@ -1033,18 +1035,20 @@ class WarehouseReport::Outcomes::Base
   # Not all of the data for determining if someone is in a family is available in the
   # Housed table, so we'll defer that off to ServiceHistoryEnrollment
   def service_history_enrollment_scope
-    GrdaWarehouse::ServiceHistoryEnrollment.
+    scope = GrdaWarehouse::ServiceHistoryEnrollment.
       in_project_type(project_types).
       send(@household_type).
       open_between(start_date: @start_date, end_date: @end_date)
+    scope = scope.where(data_source_id: @data_source_ids) if @data_source_ids.present?
+    scope = scope.where(organization_id: @organization_ids) if @organization_ids.present?
+
+    scope
   end
 
   def housed_scope
-    scope = if ! all_projects
-      housed_source.where(project_id: @project_ids)
-    else
-      housed_source.all
-    end
+    scope = housed_source.all
+    scope = scope.where(project_id: @project_ids) unless all_projects
+
     scope = scope.
       where(client_id: service_history_enrollment_scope.distinct.pluck(:client_id)).
       send(@subpopulation).
