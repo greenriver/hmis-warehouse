@@ -9,27 +9,26 @@
           %span.icon-plus
           Upload HUD CSV
 
-.row.table-utilities
-  .col-sm-12
-    .table-responsive
-      %table.table.table-sm.table-hover
-        %thead
-          %tr
-            %th Filename
-            %th Uploaded By
-            %th Uploaded On
-            %th Completed In
-          %tbody
-            - @uploads.each do |upload|
-              %tr
-                %td= upload.file.to_s.split('/').last
-                %td= upload.user&.name
-                %td= upload.created_at
-                %td
-                  - if upload.import_log.present?
-                    = link_to upload.import_time, import_path(id: upload.import_log.id)
-                  - else
-                    = upload.import_time
+.card
+  .table-responsive
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Filename
+          %th Uploaded By
+          %th Uploaded On
+          %th Completed In
+        %tbody
+          - @uploads.each do |upload|
+            %tr
+              %td= upload.file.to_s.split('/').last
+              %td= upload.user&.name
+              %td= upload.created_at
+              %td
+                - if upload.import_log.present?
+                  = link_to upload.import_time, import_path(id: upload.import_log.id)
+                - else
+                  = upload.import_time
 
 
 %p= paginate @uploads

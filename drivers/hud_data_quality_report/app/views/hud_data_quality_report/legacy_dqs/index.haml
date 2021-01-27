@@ -1,0 +1,26 @@
+= content_for :crumbs do
+  = link_to hud_reports_dqs_path do
+    = "« Data Quality Reports"
+
+%h1 Legacy Data Quality Reports
+
+%table.table.table-hover.table-striped.mt-4
+  %thead
+    %tr.report-base
+      %th
+        = link_to "HUD Data Quality Reports - FY 2017", report_results_summary_path(@reports.first[:report_results_summary_id])
+      %th
+        Last Run
+      %th
+        Status
+      %th
+        Completed In
+  %tbody
+    - @reports.each do |report|
+      %tr
+        %td= link_to report.name, hud_reports_legacy_dq_path(report)
+        %td= report.last_result(current_user).try(:last_run)
+        %td
+          - if status = report.last_result(current_user).try(:last_run_status)
+            = link_to status, hud_reports_legacy_dq_legacy_result_path(report, report.last_result(current_user))
+        %td= report.last_result(current_user).try(:completed_in)

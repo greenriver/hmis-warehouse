@@ -35,5 +35,28 @@ module HmisCsvTwentyTwenty::Importer
     def self.warehouse_class
       GrdaWarehouse::Hud::Exit
     end
+
+    def self.hmis_validations
+      {
+        EnrollmentID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        PersonalID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        ExitDate: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        Destination: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.available_situations.keys.map(&:to_s).freeze },
+          },
+        ],
+      }
+    end
   end
 end

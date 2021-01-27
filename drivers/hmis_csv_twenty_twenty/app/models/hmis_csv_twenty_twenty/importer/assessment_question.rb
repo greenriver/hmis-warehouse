@@ -25,5 +25,19 @@ module HmisCsvTwentyTwenty::Importer
     def self.warehouse_class
       GrdaWarehouse::Hud::AssessmentQuestion
     end
+
+    def self.hmis_validations
+      {
+        AssessmentID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        EnrollmentID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        PersonalID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+      }
+    end
   end
 end

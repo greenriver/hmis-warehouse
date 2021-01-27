@@ -26,5 +26,52 @@ module HmisCsvTwentyTwenty::Importer
     def self.warehouse_class
       GrdaWarehouse::Hud::Disability
     end
+
+    def self.hmis_validations
+      {
+        EnrollmentID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        PersonalID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        InformationDate: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        DataCollectionStage: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.data_collection_stages.keys.map(&:to_s).freeze },
+          },
+        ],
+        DisabilityType: [
+          {
+            class: HmisCsvValidation::NonBlank,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.disability_types.keys.map(&:to_s).freeze },
+          },
+        ],
+        DisabilityResponse: [
+          {
+            class: HmisCsvValidation::NonBlank,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.disability_responses.keys.map(&:to_s).freeze },
+          },
+        ],
+        IndefiniteAndImpairs: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
+          },
+        ],
+      }
+    end
   end
 end

@@ -12,8 +12,7 @@ module GrdaWarehouse::YouthIntake
     has_paper_trail
     acts_as_paranoid
 
-    attr_accessor :other_language
-    attr_accessor :other_how_hear
+    attr_accessor :other_language, :other_how_hear
 
     # serialize :client_race, Array
     # serialize :disabilities, Array
@@ -297,7 +296,7 @@ module GrdaWarehouse::YouthIntake
 
     def how_hear_options
       @how_hear_options ||= ([
-        'Friend of family',
+        'Friend or Family',
         'Other community agency / organization',
         'Social media / agency website',
         'Referred from Street Outreach',
