@@ -496,6 +496,26 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
+      "fingerprint": "6939d235d9f32e7a2694b926a5cf73222ec7b924323cb268a68c11d2a20ea082",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/deploy/docker/lib/deployer.rb",
+      "line": 315,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}--pre-cache`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Deployer",
+        "method": "_pre_cache_image_exists?"
+      },
+      "user_input": "repo_name",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
       "fingerprint": "6cfd47b3522f879e176ed00c1639c8431e26cf5798564e7ba8e89633bdda9f61",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -1282,7 +1302,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 58,
+      "line": 63,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -1595,6 +1615,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-01-27 09:09:39 -0500",
+  "updated": "2021-01-27 16:10:05 +0000",
   "brakeman_version": "5.0.0"
 }
