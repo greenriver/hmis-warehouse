@@ -14,6 +14,11 @@ class HmisCsvValidation::ValidFormat < HmisCsvValidation::Validation
       source_id: item.source_id,
       source_type: item.source_type,
       status: "Expected #{value} to match regular expression #{regex} for #{column}",
+      validated_column: column,
     )
+  end
+
+  def self.title
+    'Expected pattern was not found'
   end
 end
