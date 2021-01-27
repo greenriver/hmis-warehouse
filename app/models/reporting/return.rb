@@ -10,7 +10,7 @@ module Reporting
     include ArelHelper
 
     def populate!
-      return unless source_data.present?
+      return unless source_data_scope(client_ids).exists?
 
       headers = stays.first.keys
       transaction do
@@ -19,51 +19,58 @@ module Reporting
       end
     end
 
-    def source_data
-      @source_data ||= begin
-        GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: [:project, :organization]).
-          homeless.
-          # in_project_type([1,2,4,8]).
-          where(client_id: client_ids).
-          where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current)).
-          order(service_history_enrollment_id: :asc, date: :asc).
-          pluck(*source_columns.values).map do |row|
-            Hash[source_columns.keys.zip(row)]
-          end
-      end
+    def source_data(ids)
+      source_data_scope(ids).
+        pluck(*source_columns.values).map do |row|
+          Hash[source_columns.keys.zip(row)]
+        end
+    end
+
+    private def source_data_scope(ids)
+      GrdaWarehouse::ServiceHistoryService.joins(service_history_enrollment: [:project, :organization]).
+        homeless.
+        # in_project_type([1,2,4,8]).
+        where(client_id: ids).
+        where(date: (Reporting::MonthlyReports::Base.lookback_start..Date.current)).
+        order(service_history_enrollment_id: :asc, date: :asc)
     end
 
     # Collapse all days into consecutive stays
     def stays
       @stays ||= begin
         stays = []
-        last_day = source_data.first
+        # The end result isn't huge, but we need to process this
+        # in batches because the number of service records is.
+        # It is safe to batch by client because this only cares about the client level detail
+        client_ids.each_slice(5_000) do |ids|
+          data = source_data(ids)
+          last_day = data.first
 
-        start_date = nil
-        end_date = nil
-        length_of_stay = 0
-        source_data.each do |day|
-          # add a new row
-          if day[:service_history_enrollment_id] != last_day[:service_history_enrollment_id] || last_day[:date] < (day[:date] - 1.day)
-            # save off the previous stay
-            day[:length_of_stay] = length_of_stay
-            day[:start_date] = start_date
-            day[:end_date] = end_date
+          start_date = nil
+          end_date = nil
+          length_of_stay = 0
+          # create an array with a record for each enrollment that includes the first and last date seen
+          data.each do |day|
+            # add a new row
+            if day[:service_history_enrollment_id] != last_day[:service_history_enrollment_id] || last_day[:date] < (day[:date] - 1.day)
+              # save off the previous stay
+              day[:length_of_stay] = length_of_stay
+              day[:start_date] = start_date
+              day[:end_date] = end_date
 
-            stays << day
+              stays << day
 
-            # reset
-            last_enrollment = day[:service_history_enrollment_id]
-            last_date = day[:date]
-            length_of_stay = 0
-            start_date = nil
-            end_date = nil
+              # reset
+              length_of_stay = 0
+              start_date = nil
+              end_date = nil
+            end
+
+            start_date ||= day[:date]
+            end_date = day[:date]
+            length_of_stay += 1
+            last_day = day
           end
-
-          start_date ||= day[:date]
-          end_date = day[:date]
-          length_of_stay += 1
-          last_day = day
         end
         stays.map do |stay|
           stay.delete(:date)
@@ -89,7 +96,7 @@ module Reporting
         organization_id: o_t[:id],
         unaccompanied_youth: she_t[:unaccompanied_youth],
         parenting_youth: she_t[:parenting_youth],
-      }
+      }.freeze
     end
 
     def client_ids
