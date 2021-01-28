@@ -47,7 +47,6 @@ App.Form.Select2Input = class Select2Input {
       if (field.hasAttribute('multiple')) {
         options.closeOnSelect = false
         this.$select.select2(options)
-        console.log(this.$select, options)
         this.initToggleSelectAll()
       }
       else {
@@ -77,7 +76,7 @@ App.Form.Select2Input = class Select2Input {
   }
 
   allItemsSelected() {
-    return this.numberOfSelectedItems() === this.$select.find('option').length
+    return this.numberOfSelectedItems() === this.$select.find('option').length && this.$select.find('option').length > 0
   }
 
   toggleSelectAll(isManualChange=false) {
@@ -122,8 +121,11 @@ App.Form.Select2Input = class Select2Input {
         ${this.selectAllHtml()}
       </div>
     `))
-    $label.prependTo($labelWrapper)
-    this.$formGroup.prepend($labelWrapper)
+    // only add it if we don't already have it
+    if(this.$formGroup.find('.j-select2-select-all').length == 0) {
+      $label.prependTo($labelWrapper)
+      this.$formGroup.prepend($labelWrapper)
+    }
 
     // Init events on select2
     // Trigger toggle on manual update: 'select2:select select2:unselect
