@@ -136,13 +136,14 @@ module Importers::HmisTwentyTwenty
 
     def fetch_most_recent
       files = []
-      @s3.fetch_key_list(prefix: @s3_path).sort.each do |entry|
+      # Returns oldest first
+      @s3.fetch_key_list(prefix: @s3_path).each do |entry|
         files << entry if entry.include?(@s3_path)
       end
       return nil if files.empty?
 
       # Fetch the most recent file
-      file = files.first
+      file = files.last
       return file if file.present?
 
       nil
