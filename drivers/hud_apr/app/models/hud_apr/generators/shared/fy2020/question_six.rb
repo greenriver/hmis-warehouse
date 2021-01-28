@@ -467,6 +467,7 @@ module HudApr::Generators::Shared::Fy2020
 
       # totals
       answer = @report.answer(question: table_name, cell: 'B5')
+      answer.add_members(adults_and_hohs)
       answer.update(summary: adults_and_hohs.count)
 
       # percent
@@ -579,7 +580,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def ph(table_name, adults_and_hohs)
-      ph = adults_and_hohs.where(a_t[:project_type].eq([3, 9, 10, 13]))
+      ph = adults_and_hohs.where(a_t[:project_type].in([3, 9, 10, 13]))
 
       ph_buckets = [
         # count
