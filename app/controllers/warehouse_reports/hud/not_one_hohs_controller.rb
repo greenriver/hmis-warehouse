@@ -35,7 +35,8 @@ module WarehouseReports::Hud
 
       respond_to do |format|
         format.html do
-          @enrollments = @enrollments.page(params[:page]).per(50)
+          @enrollments = @enrollments.page(params[:page]).per(25)
+          @enrollmnts_array = @enrollments.to_a
         end
         format.xlsx {}
       end

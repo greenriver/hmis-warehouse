@@ -3,7 +3,7 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 = render 'filter'
-- if @enrollments.exists?
+- if @enrollmnts_array.present?
   #computation-accordion.panel-group.panel-collapsible
     - content_for :panel_collapse_content, flush: true do
       %h3 Household Identifier
@@ -25,7 +25,6 @@
         %i.icon-download2
         Download
   .d-flex
-    %p= page_entries_info @enrollments, entry_name: _('enrollment')
     %p.ml-auto= paginate @enrollments
   .table-responsive
     %table.table.table-sm.table-hover
@@ -38,7 +37,7 @@
           %th Household ID
           %th Relationship to HoH
       %tbody
-        - @enrollments.each do |en|
+        - @enrollmnts_array.each do |en|
           - client = en.client
           - destination_client = client.destination_client
           - project = en.project
@@ -56,5 +55,3 @@
             %td
               = HUD.relationship_to_hoh(en.RelationshipToHoH)
               (#{en.RelationshipToHoH})
-  .d-flex
-    %p.ml-auto= paginate @enrollments
