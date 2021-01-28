@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class HealthBase < ActiveRecord::Base
+class HealthBase < ApplicationRecord
   self.abstract_class = true
   connects_to database: { writing: :health, reading: :health }
   # has_paper_trail versions: {class_name: 'Health::HealthVersion'}

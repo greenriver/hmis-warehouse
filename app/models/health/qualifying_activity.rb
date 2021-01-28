@@ -110,7 +110,7 @@ module Health
     end
 
     belongs_to :source, polymorphic: true
-    belongs_to :epic_source, polymorphic: true
+    belongs_to :epic_source, polymorphic: true, optional: true
     belongs_to :user
     belongs_to :patient
 

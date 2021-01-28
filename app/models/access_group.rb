@@ -18,7 +18,7 @@ class AccessGroup < ApplicationRecord
   has_many :project_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectGroup'
   has_many :cohorts, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Cohort'
 
-  belongs_to :user
+  belongs_to :user, optional: true
 
   validates_presence_of :name, unless: :user_id
 

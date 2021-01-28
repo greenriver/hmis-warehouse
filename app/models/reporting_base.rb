@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class ReportingBase < ActiveRecord::Base
+class ReportingBase < ApplicationRecord
   self.abstract_class = true
 
   connects_to database: { writing: :reporting, reading: :reporting }

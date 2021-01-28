@@ -5,7 +5,8 @@
 ###
 
 class CasBase < ActiveRecord::Base
-  establish_connection "#{Rails.env}_cas".parameterize.underscore.to_sym
+  cas_db = Rails.env == "test" ? :test : "#{Rails.env}_cas".parameterize.underscore.to_sym
+  establish_connection cas_db
   self.abstract_class = true
 
   def self.db_exists?

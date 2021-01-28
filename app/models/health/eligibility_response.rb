@@ -18,7 +18,7 @@ module Health
     mount_uploader :file, EligibilityResponseFileUploader
 
     belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry'
-    belongs_to :user
+    belongs_to :user, optional: true
 
     def subscriber_ids_with_errors
       @error_ids ||= subscribers.select{|s| AAA(s)}.map{|s| TRN(s)}
