@@ -1,0 +1,8 @@
+- if can_edit_health_emergency_clinical? || can_see_health_emergency_clinical?
+  - id = 'vaccination-info'
+  #vaccination-accordion.panel-group.panel-collapsible
+    - content_for :panel_collapse_content, flush: true do
+      = render "he/clients/#{health_emergency}/vaccination_form"
+    - content_for "panel_collapse_heading_content_under_title_#{id}" do
+      = render "he/clients/#{health_emergency}/in_header_status", labels: ['Vaccination', @client.health_emergency_vaccination_status]
+    = render 'common/panel_collapse', id: id, title: @vaccination.title, default_open: 'yes'

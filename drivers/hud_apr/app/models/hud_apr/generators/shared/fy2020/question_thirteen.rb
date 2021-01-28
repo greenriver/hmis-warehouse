@@ -29,6 +29,7 @@ module HudApr::Generators::Shared::Fy2020
         {
           table_name: 'Q13b1',
           suffix: :exit,
+          extra_limit: disability_at_exit_clause,
         },
         {
           table_name: 'Q13c1',
@@ -47,6 +48,7 @@ module HudApr::Generators::Shared::Fy2020
         {
           table_name: 'Q13b2',
           suffix: :exit,
+          extra_limit: disability_at_exit_clause,
         },
         {
           table_name: 'Q13c2',
@@ -54,6 +56,11 @@ module HudApr::Generators::Shared::Fy2020
           extra_limit: stayers_clause,
         },
       ]
+    end
+
+    private def disability_at_exit_clause
+      # Check that there is some data in the disability exit
+      a_t[:physical_disability_exit].not_eq(nil)
     end
 
     private def adjusted_sub_populations

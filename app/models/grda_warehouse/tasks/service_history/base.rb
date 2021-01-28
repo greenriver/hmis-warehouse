@@ -70,7 +70,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # Limit the scope of the check to only rebuilding service history jobs
         dj_t = Delayed::Job.arel_table
         dj_scope = Delayed::Job.where(queue: :long_running, failed_at: nil).
-          jobs_for_class('ServiceHistory::RebuildEnrollments')
+         jobs_for_class('ServiceHistory::RebuildEnrollments')
         while dj_scope.count > 0 do
           break if (Time.current - started) > max_wait_seconds
 

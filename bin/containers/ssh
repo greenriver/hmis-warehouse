@@ -99,7 +99,7 @@ class ContainerList
   def ensure_profile_and_ip
     my_ip = `dig +short myip.opendns.com @resolver1.opendns.com`.chomp
 
-    raise 'Wrong IP' unless my_ip.match?(/^(54\.85|64.223)/)
+    raise 'Check you VPN. Your public IP seems incorrect' unless my_ip.match?(/^(54\.85|64.223)/)
 
     raise 'set AWS_PROFILE' if ENV['AWS_PROFILE'].nil?
   end

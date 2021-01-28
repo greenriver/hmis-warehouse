@@ -16,6 +16,7 @@ class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
     config = {
       import_aggregators: {},
       import_cleanups: {},
+      refuse_imports_with_errors: params.dig(:extensions, :refuse_imports_with_errors),
     }
     allowed_extensions.each do |extension|
       next unless params[:extensions][extension.to_s] == '1'

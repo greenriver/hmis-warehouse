@@ -27,7 +27,7 @@ class AccessGroup < ApplicationRecord
   end
 
   scope :user, -> do
-    joins(:users)
+    joins(:user)
   end
 
   scope :for_user, ->(user) do
