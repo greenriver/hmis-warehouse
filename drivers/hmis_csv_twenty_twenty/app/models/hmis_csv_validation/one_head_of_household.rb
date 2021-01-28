@@ -23,8 +23,13 @@ class HmisCsvValidation::OneHeadOfHousehold < HmisCsvValidation::Validation
         source_id: item.source_id,
         source_type: item.source_type,
         status: 'More than one Head of Household',
+        validated_column: :RelationshipToHoH,
       )
     end
     failures
+  end
+
+  def self.title
+    'Households must have exactly one head of household'
   end
 end
