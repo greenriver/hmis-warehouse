@@ -38,17 +38,6 @@ module GrdaWarehouse
       viewable_by(user)
     end
 
-    def self.available_projects(user)
-      GrdaWarehouse::Hud::Project.viewable_by(user).
-        joins(:organization).
-        map do |project|
-          [
-            project.organization_and_name,
-            project.id,
-          ]
-        end
-    end
-
     def self.options_for_select(user:)
       viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
     end
