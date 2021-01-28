@@ -6,6 +6,10 @@ module ClaimsReporting
             class_name: 'ClaimsReporting::MemberDiagnosisClassification'
 
     include ClaimsReporting::CsvHelpers
+    def self.conflict_target
+      ['member_id']
+    end
+
     def self.schema_def
       <<~CSV.freeze
         ID,Field name,Description,Length,Data type,PRIVACY: former members,PRIVACY: virtually assigned members2,PRIVACY: former members3

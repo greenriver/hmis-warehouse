@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_14_205149) do
+ActiveRecord::Schema.define(version: 2021_01_28_183759) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -251,9 +251,9 @@ ActiveRecord::Schema.define(version: 2021_01_14_205149) do
   end
 
   create_table "claims_reporting_medical_claims", force: :cascade do |t|
-    t.string "member_id", limit: 50
-    t.string "claim_number", limit: 30
-    t.string "line_number", limit: 10
+    t.string "member_id", limit: 50, null: false
+    t.string "claim_number", limit: 30, null: false
+    t.string "line_number", limit: 10, null: false
     t.string "cp_pidsl", limit: 50
     t.string "cp_name", limit: 255
     t.string "aco_pidsl", limit: 50
@@ -403,6 +403,7 @@ ActiveRecord::Schema.define(version: 2021_01_14_205149) do
     t.index ["aco_name"], name: "index_claims_reporting_medical_claims_on_aco_name"
     t.index ["aco_pidsl"], name: "index_claims_reporting_medical_claims_on_aco_pidsl"
     t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
+    t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_medical_claim", unique: true
     t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
   end
 
@@ -448,7 +449,7 @@ ActiveRecord::Schema.define(version: 2021_01_14_205149) do
   end
 
   create_table "claims_reporting_member_enrollment_rosters", force: :cascade do |t|
-    t.string "member_id", limit: 50
+    t.string "member_id", limit: 50, null: false
     t.string "performance_year", limit: 50
     t.string "region", limit: 50
     t.string "service_area", limit: 50
@@ -470,7 +471,7 @@ ActiveRecord::Schema.define(version: 2021_01_14_205149) do
     t.string "ind_dss", limit: 50
     t.string "cde_hcb_waiver", limit: 50
     t.string "cde_waiver_category", limit: 50
-    t.date "span_start_date"
+    t.date "span_start_date", null: false
     t.date "span_end_date"
     t.integer "span_mem_days"
     t.string "cp_prov_type", limit: 255
@@ -486,6 +487,7 @@ ActiveRecord::Schema.define(version: 2021_01_14_205149) do
     t.string "tpl_coverage_cat", limit: 50
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.index ["member_id", "span_start_date"], name: "unk_cr_member_enrollment_roster", unique: true
   end
 
   create_table "claims_reporting_member_rosters", force: :cascade do |t|
@@ -536,14 +538,15 @@ ActiveRecord::Schema.define(version: 2021_01_14_205149) do
     t.index ["aco_name"], name: "index_claims_reporting_member_rosters_on_aco_name"
     t.index ["date_of_birth"], name: "index_claims_reporting_member_rosters_on_date_of_birth"
     t.index ["member_id"], name: "index_claims_reporting_member_rosters_on_member_id", unique: true
+    t.index ["member_id"], name: "unk_cr_member_roster", unique: true
     t.index ["race"], name: "index_claims_reporting_member_rosters_on_race"
     t.index ["sex"], name: "index_claims_reporting_member_rosters_on_sex"
   end
 
   create_table "claims_reporting_rx_claims", force: :cascade do |t|
-    t.string "member_id", limit: 50
-    t.string "claim_number", limit: 30
-    t.string "line_number", limit: 10
+    t.string "member_id", limit: 50, null: false
+    t.string "claim_number", limit: 30, null: false
+    t.string "line_number", limit: 10, null: false
     t.string "cp_pidsl", limit: 50
     t.string "cp_name", limit: 255
     t.string "aco_pidsl", limit: 50
@@ -598,6 +601,7 @@ ActiveRecord::Schema.define(version: 2021_01_14_205149) do
     t.string "price_method", limit: 50
     t.decimal "quantity", precision: 12, scale: 4
     t.string "route_of_administration", limit: 255
+    t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_rx_claims", unique: true
   end
 
   create_table "claims_roster", id: :serial, force: :cascade do |t|
@@ -907,6 +911,7 @@ ActiveRecord::Schema.define(version: 2021_01_14_205149) do
     t.datetime "updated_at"
     t.integer "updated_patients"
     t.jsonb "processing_errors", default: []
+    t.jsonb "audit_actions", default: {}
   end
 
   create_table "epic_careplans", id: :serial, force: :cascade do |t|
@@ -2037,6 +2042,31 @@ ActiveRecord::Schema.define(version: 2021_01_14_205149) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+  end
+
+  create_table "vaccinations", force: :cascade do |t|
+    t.integer "client_id"
+    t.string "epic_patient_id", null: false
+    t.string "medicaid_id"
+    t.string "first_name"
+    t.string "last_name"
+    t.date "dob"
+    t.string "ssn"
+    t.date "vaccinated_on", null: false
+    t.string "vaccinated_at"
+    t.string "vaccination_type", null: false
+    t.string "follow_up_cell_phone"
+    t.boolean "existed_previously", default: false, null: false
+    t.integer "data_source_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.string "preferred_language", default: "en"
+    t.datetime "epic_row_created"
+    t.datetime "epic_row_updated"
+    t.index ["created_at"], name: "index_vaccinations_on_created_at"
+    t.index ["epic_patient_id", "vaccinated_on"], name: "index_vaccinations_on_epic_patient_id_and_vaccinated_on", unique: true
+    t.index ["updated_at"], name: "index_vaccinations_on_updated_at"
   end
 
   create_table "versions", id: :serial, force: :cascade do |t|

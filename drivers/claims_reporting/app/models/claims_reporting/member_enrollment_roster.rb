@@ -1,8 +1,10 @@
 module ClaimsReporting
   class MemberEnrollmentRoster < HealthBase
     include ClaimsReporting::CsvHelpers
+    def self.conflict_target
+      ['member_id', 'span_start_date']
+    end
 
-    # key columns? member_id, claim_number line_number
     def self.schema_def
       <<~CSV.freeze
         ID,Field name,Description,Length,Data type,PRIVACY: former members

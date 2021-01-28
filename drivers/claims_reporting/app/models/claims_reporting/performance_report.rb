@@ -8,9 +8,7 @@ module ClaimsReporting
   class PerformanceReport
     include ActiveModel::Model
     extend Memoist
-    attr_reader :medical_claims
-    attr_reader :member_roster
-    attr_reader :claim_date_range
+    attr_reader :medical_claims, :member_roster, :claim_date_range
 
     def initialize(
       member_roster: ClaimsReporting::MemberRoster.all,
@@ -93,6 +91,7 @@ module ClaimsReporting
 
     # Age Bucket – The age of the member as of the report
     attr_accessor :age_bucket
+
     def age_bucket_options
       [
         '<18', # never used
@@ -108,6 +107,7 @@ module ClaimsReporting
 
     # Gender – The member’s gender
     attr_accessor :gender
+
     def gender_options
       # member_roster.group(:sex).count.keys
       ['Female', 'Male'].freeze
@@ -115,6 +115,7 @@ module ClaimsReporting
 
     # Race – The member’s race
     attr_accessor :race
+
     def race_options
       # member_roster.group(:race).count.keys
       # American Indian Or Alaskan American
@@ -138,6 +139,7 @@ module ClaimsReporting
 
     # ACO – The ACO that the member was assigned to at the time the claim is incurred
     attr_accessor :aco
+
     def aco_options
       # FIXME: '(blank)',
       medical_claims.distinct.pluck(:aco_name).compact.sort.freeze
@@ -151,6 +153,7 @@ module ClaimsReporting
     # https://www.hcup-us.ahrq.gov/toolssoftware/ccs/ccsfactsheet.jsp.
     #
     attr_accessor :mental_health_diagnosis_category
+
     def mental_health_diagnosis_category_options
       {
         sch: 'Schizophrenia',
@@ -168,6 +171,7 @@ module ClaimsReporting
     # Every member is categorized as having a medical diagnosis based on the claims they
     # incurred - a member can be assigned to more than one category.
     attr_accessor :medical_diagnosis_category
+
     def medical_diagnosis_category_options
       {
         ast: 'Asthma',
@@ -187,6 +191,7 @@ module ClaimsReporting
 
     # Cohorts of Interest– The user may select members based on their psychiatric inpatient and emergency room utilization history. The user can select the following utilization categories:
     attr_accessor :coi
+
     def coi_options
       {
         coi: 'All COIs',

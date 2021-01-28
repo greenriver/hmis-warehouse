@@ -13,6 +13,16 @@ module ClaimsReporting
       HealthBase.logger
     end
 
+    def self.clear!
+      raise 'Disabled' unless Rails.env.development? || Rails.env.test?
+
+      HealthBase.logger.warn { "#{self}.clear! truncating/clearing all tables" }
+      [MemberRoster, MemberEnrollmentRoster, MedicalClaim, RxClaim].each do |klass|
+        klass.connection.truncate(klass.table_name)
+      end
+      nil
+    end
+
     # credentials is a Hash containing host, username, password
     # defaults to one from config/health_sftp.yml
     def pull_from_health_sftp(zip_path, replace_all: false, credentials: nil)
@@ -33,34 +43,38 @@ module ClaimsReporting
     end
 
     # zip_path_or_io is passed Zip::InputStream.open
+    # returns a hash of counts found per CSV file
     def import_from_zip(zip_path_or_io, replace_all: true)
       logger.info "import_from_zip(#{zip_path_or_io}, replace_all: #{replace_all})"
+      results = {}
+      # TODO? If the database CPU is available this could be parallelized
       Zip::InputStream.open(zip_path_or_io) do |io|
         while (entry = io.get_next_entry)
           case entry.name
           when /medical_claims.csv\z/
             logger.info "found #{entry.name}, importing..."
             entry.get_input_stream do |entry_io|
-              MedicalClaim.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
+              results['medical_claims.csv'] = MedicalClaim.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
             end
           when /member_roster.csv\z/
             logger.info "found #{entry.name}, importing..."
             entry.get_input_stream do |entry_io|
-              MemberRoster.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
+              results['member_roster.csv'] = MemberRoster.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
             end
           when /member_enrollment_roster.csv/
             logger.info "found #{entry.name}, importing..."
             entry.get_input_stream do |entry_io|
-              MemberEnrollmentRoster.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
+              results['member_enrollment_roster.csv'] = MemberEnrollmentRoster.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
             end
           when /rx_claim.csv\z/
             logger.info "found #{entry.name}, importing..."
             entry.get_input_stream do |entry_io|
-              RxClaim.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
+              results['rx_claim.csv'] = RxClaim.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
             end
           end
         end
       end
+      results
     end
   end
 end

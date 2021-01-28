@@ -2,7 +2,10 @@ module ClaimsReporting
   class RxClaim < HealthBase
     include ClaimsReporting::CsvHelpers
 
-    # key columns? member_id, claim_number line_number
+    def self.conflict_target
+      ['member_id', 'claim_number', 'line_number']
+    end
+
     def self.schema_def
       <<~CSV.freeze
         ID,Field name,Description,Length,Data type,PRIVACY: Encounter pricing,,
