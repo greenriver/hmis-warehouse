@@ -43,12 +43,16 @@ App.Form.Select2Input = class Select2Input {
         }
       }
 
-      // Init!
-      this.$select.select2(options)
-
       // Add select all functionality if has `multiple` attribute
       if (field.hasAttribute('multiple')) {
+        options.closeOnSelect = false
+        this.$select.select2(options)
+        console.log(this.$select, options)
         this.initToggleSelectAll()
+      }
+      else {
+        // Init!
+        this.$select.select2(options)
       }
 
       // Parenthetical
@@ -88,7 +92,6 @@ App.Form.Select2Input = class Select2Input {
       }
     }
     this.$select.trigger('change')
-    this.$select.select2('close')
 
     // Update DOM element to reflect selections
     const $selectAllLink = this.$formGroup.find('.select2-select-all')

@@ -25,8 +25,13 @@
   box-shadow: none;
   border-color: $input-border-color;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   // background-color: #f9f9f9;
+}
+
+.select2-container .select2-selection--multiple {
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 .select2-container--bootstrap .select2-results__option--highlighted[aria-selected] {
