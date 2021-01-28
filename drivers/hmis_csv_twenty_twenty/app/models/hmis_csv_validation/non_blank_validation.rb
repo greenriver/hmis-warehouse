@@ -14,6 +14,11 @@ class HmisCsvValidation::NonBlankValidation < HmisCsvValidation::Validation
       source_id: item.source_id,
       source_type: item.source_type,
       status: "A value is required for #{column}",
+      validated_column: column,
     )
+  end
+
+  def self.title
+    'Missing required value'
   end
 end

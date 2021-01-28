@@ -68,10 +68,10 @@ module HudReports::Households
     end
 
     private def only_youth?(universe_client)
-      youth_household_members(universe_client).count == universe_client.household_members.count
+      youth_and_child_household_members(universe_client).count == universe_client.household_members.count
     end
 
-    private def youth_household_members(universe_client)
+    private def youth_and_child_household_members(universe_client)
       return [] unless universe_client.household_members
 
       date = [universe_client.first_date_in_program, @report.start_date].max
@@ -79,12 +79,12 @@ module HudReports::Households
         next false if member['dob'].blank?
 
         age = GrdaWarehouse::Hud::Client.age(date: date, dob: member['dob'].to_date)
-        age.present? && age >= 24
+        age.present? && age <= 24
       end
     end
 
     private def youth_child_members(universe_client)
-      youth_household_members(universe_client).select do |member|
+      youth_and_child_household_members(universe_client).select do |member|
         member['relationship_to_hoh'] == 2
       end
     end

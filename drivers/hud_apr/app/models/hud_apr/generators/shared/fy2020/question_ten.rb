@@ -88,7 +88,7 @@ module HudApr::Generators::Shared::Fy2020
         'F' => a_t[:household_type].eq(:unknown),
       }
 
-      no_age_clause = a_t[:age].eq(nil)
+      no_age_clause = a_t[:age].eq(nil).or(a_t[:age].lt(0))
       generate_table(table_name, no_age_clause, header_row, columns)
     end
 
