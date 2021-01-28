@@ -3,7 +3,7 @@
 %h1= title
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 = render 'filter'
-- if @enrollmnts_array.present?
+- if @enrollments_array.present?
   #computation-accordion.panel-group.panel-collapsible
     - content_for :panel_collapse_content, flush: true do
       %h3 Household Identifier
@@ -37,7 +37,7 @@
           %th Household ID
           %th Relationship to HoH
       %tbody
-        - @enrollmnts_array.each do |en|
+        - @enrollments_array.each do |en|
           - client = en.client
           - destination_client = client.destination_client
           - project = en.project
