@@ -13,6 +13,7 @@ As of writing, I am attempting to update the application to work with Rails 6.1.
   - [Non-primary database and missing Rails 6.1 pending migration error](#non-primary-database-and-missing-rails-61-pending-migration-error)
   - [Zeitwerk autoloading and camelized filenames](#zeitwerk-autoloading-and-camelized-filenames)
   - [Rails 6.1 and update_attributes (and future deprecated methods)](#rails-61-and-update_attributes-and-future-deprecated-methods)
+  - [Arel::Nodes::Values removed in 6.1.1](#arelnodesvalues-removed-in-611)
 
 ## Gems update and Rails 6.1.1 compatibility
 
@@ -105,3 +106,7 @@ Since I updated straight to 6.1 instead of going through 6, I didn't catch this 
 What this means is that there might be other methods that are deprecated in Rails 6 that I do not know of. This section will be for those instances in the future.
 
 (It should be noted that this was not mentioned in the official Rails 6 update guide)
+
+## Arel::Nodes::Values removed in 6.1.1
+
+The commit for that is [here](https://github.com/rails/rails/commit/187870db2fcc58aa0da8bb3f26711664fd5ed611)

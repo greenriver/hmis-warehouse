@@ -153,11 +153,11 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     def build_service_history_enrollment_insert day
-      insert = Arel::Nodes::InsertStatement.new
-      insert.relation = she_t
-      insert.columns = day.keys.map{|k| she_t[k]}
-      insert.values = Arel::Nodes::Values.new(day.values, insert.columns)
-      insert
+      insert_manager = Arel::InsertManager.new
+      insert_manager.into she_t
+      insert_manager.columns.push(*(day.keys.map{|k| she_t[k]}))
+      insert_manager.values = Arel::Nodes::ValuesList.new([day.values])
+      insert_manager
     end
 
     def entry_record(date)
