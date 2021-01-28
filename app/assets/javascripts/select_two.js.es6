@@ -56,6 +56,10 @@ App.Form.Select2Input = class Select2Input {
 
       // Parenthetical
       $(".select2-search__field").attr('aria-label', 'Search')
+
+      // Trigger toggle select of sub-items for opt-groups
+      this.$select.on('select2:open', this.initToggleChildren)
+      this.$select.on('select2:close', this.removeToggleChildren)
     }
   }
 
@@ -102,6 +106,27 @@ App.Form.Select2Input = class Select2Input {
     $selectAllLink.html(html)
   }
 
+  initToggleChildren(e) {
+    const self = this
+    $('body').on('click', '.select2-results__group', function(e){
+
+      let ids = $(this).next('ul').find('li.select2-results__option').map(function() {
+        // Trigger change.select2 should really do this, but it doesn't, so we manually set the selected nature
+        $(this).attr('aria-selected', 'true')
+        return this.id.split('-').pop()
+      }).get()
+      let selected = $(self).find(':selected').map(function(){
+        return this.value
+      }).get()
+      // select anything within the opt group and the previously selected items
+      $(self).val(selected.concat(ids))
+      $(self).trigger('change.select2')
+    })
+  }
+
+  removeToggleChildren(e){
+    $('body').off('click', '.select2-results__group')
+  }
 
   noneSelected() {
     return (this.$formGroup.find('select').val() === 0) ||
@@ -131,8 +156,8 @@ App.Form.Select2Input = class Select2Input {
     // Trigger toggle on manual update: 'select2:select select2:unselect
     // Trigger toggle on select all/ none click: '.j-select2-select-all'
     this.$select.closest('.form-group')
-      .on( 'click', '.j-select2-select-all', this.toggleSelectAll.bind(this, false) )
-    this.$select.on( 'select2:select select2:unselect', this.toggleSelectAll.bind(this, true) )
+      .on('click', '.j-select2-select-all', this.toggleSelectAll.bind(this, false))
+    this.$select.on('select2:select select2:unselect', this.toggleSelectAll.bind(this, true))
 
     // Initial state based on existing options
     this.allItemsAreSelected = this.numberOfSelectedItems()
