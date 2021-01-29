@@ -43,7 +43,7 @@ module HmisCsvTwentyTwenty::Importer
         setup_summary(file_name)
       end
       log('De-identifying clients') if @deidentified
-      log('Limiting to white-listed projects') if @project_whitelist
+      log('Limiting to pre-approved projects') if @project_whitelist
     end
 
     def self.module_scope
@@ -51,7 +51,8 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def import!
-      return if already_running_for_data_source?
+      # log that we're waiting, but then continue on.
+      already_running_for_data_source?
 
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
         start_import
@@ -541,7 +542,7 @@ module HmisCsvTwentyTwenty::Importer
 
     def already_running_for_data_source?
       running = GrdaWarehouse::DataSource.advisory_lock_exists?("hud_import_#{data_source.id}")
-      logger.warn "Import of Data Source: #{data_source.short_name} already running...exiting" if running
+      log("Import of Data Source: #{data_source.short_name} already running...waiting") if running
       running
     end
 
