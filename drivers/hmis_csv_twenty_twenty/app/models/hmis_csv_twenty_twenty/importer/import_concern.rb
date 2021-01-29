@@ -213,6 +213,9 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       d.strftime('%Y-%m-%d')
     end
 
+    # returns a TimeWithZone instead of a string so that we have
+    # more info for things like ActiveRecord::Import which wont know
+    # the intended timezone otherwise
     def self.fix_time_format(string)
       return unless string
 
@@ -225,8 +228,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       if /\d{1,2}-\d{1,2}-\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
         date, time = string.split(' ')
         month, day, year = date.split('-')
-
-        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}".to_time.strftime('%Y-%m-%d %H:%M:%S')
+        return Time.zone.parse("#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}")
       elsif /\d{1,2}-\d{1,2}-\d{2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
         date, time = string.split(' ')
         month, day, year = date.split('-')
@@ -245,9 +247,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         end
 
         string = "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}"
-        return string if /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.match?(string)
-
-        string.to_time.strftime('%Y-%m-%d %H:%M:%S')
+        return Time.zone.parse("#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}")
       end
 
       begin
