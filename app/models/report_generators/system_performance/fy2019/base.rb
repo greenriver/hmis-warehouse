@@ -1,4 +1,3 @@
-
 ###
 # Copyright 2016 - 2021 Green River Data Analysis, LLC
 #

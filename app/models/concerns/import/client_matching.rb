@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 module Import::ClientMatching
   CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
 

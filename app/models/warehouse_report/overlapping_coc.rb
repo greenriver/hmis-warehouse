@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 require 'memoist'
 
 class WarehouseReport::OverlappingCoc < WarehouseReport

@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 require 'roo'
 class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   acts_as_paranoid
