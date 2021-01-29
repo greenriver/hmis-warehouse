@@ -85,16 +85,17 @@ module Importers::HmisAutoDetect
 
     def fetch_most_recent
       files = []
+      # Returns oldest first
       @s3.fetch_key_list(prefix: @s3_path).each do |entry|
         files << entry if entry.include?(@s3_path)
       end
       return nil if files.empty?
+
       # Fetch the most recent file
-      file = files.max
-      if file.present?
-        return file
-      end
-      return nil
+      file = files.last
+      return file if file.present?
+
+      nil
     end
 
     private def previous_import
