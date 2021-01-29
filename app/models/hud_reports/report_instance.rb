@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # A HUD Report instance, identified by report name (e.g., report_name: 'CE APR - 2020')

@@ -1,7 +1,7 @@
 ###
 # Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module CoreDemographicsReport
@@ -129,8 +129,7 @@ module CoreDemographicsReport
       scope = filter_for_indefinite_disabilities(scope)
       scope = filter_for_dv_status(scope)
       scope = filter_for_chronic_status(scope)
-      scope = filter_for_ca_homeless(scope)
-      scope
+      filter_for_ca_homeless(scope)
     end
 
     def report_scope_source

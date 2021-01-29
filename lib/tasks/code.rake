@@ -25,7 +25,7 @@ namespace :code do
   end
 
   def files
-    Dir.glob("#{Rails.root}/app/{**/}*.rb")
+    Dir.glob("#{Rails.root}/app/{**/}*.rb") + Dir.glob("#{Rails.root}/drivers/{**/}*.rb")
   end
 
   def add_copyright_to_file path
