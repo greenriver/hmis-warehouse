@@ -2,6 +2,7 @@ require 'aws-sdk-ecs'
 require 'aws-sdk-ecr'
 require_relative 'deployer'
 require 'awesome_print'
+require 'aws-sdk-cloudwatchevents'
 
 class EcsTools
   HOST  = 'ecs0.openpath.host'
@@ -135,6 +136,23 @@ class EcsTools
       end
     end
   end
+
+  def list_cron!(args)
+    args.deployments.each do |deployment|
+      resp = cloudwatchevents.list_rules(
+        name_prefix: deployment[:target_group_name],
+      )
+
+      resp.rules.each do |rule|
+        puts "%-60s %-60s %-40s" % [
+          rule[:description],
+          rule[:schedule_expression],
+          rule[:name],
+        ]
+      end
+    end
+  end
+  define_method(:cloudwatchevents) { Aws::CloudWatchEvents::Client.new }
 
   # Rebuild the slow parts we hope to not have to build frequently like
   # installing packages, gems, and precompiling assets.

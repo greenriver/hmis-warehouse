@@ -43,16 +43,23 @@ App.Form.Select2Input = class Select2Input {
         }
       }
 
-      // Init!
-      this.$select.select2(options)
-
       // Add select all functionality if has `multiple` attribute
       if (field.hasAttribute('multiple')) {
+        options.closeOnSelect = false
+        this.$select.select2(options)
         this.initToggleSelectAll()
+      }
+      else {
+        // Init!
+        this.$select.select2(options)
       }
 
       // Parenthetical
       $(".select2-search__field").attr('aria-label', 'Search')
+
+      // Trigger toggle select of sub-items for opt-groups
+      this.$select.on('select2:open', this.initToggleChildren)
+      this.$select.on('select2:close', this.removeToggleChildren)
     }
   }
 
@@ -73,7 +80,7 @@ App.Form.Select2Input = class Select2Input {
   }
 
   allItemsSelected() {
-    return this.numberOfSelectedItems() === this.$select.find('option').length
+    return this.numberOfSelectedItems() === this.$select.find('option').length && this.$select.find('option').length > 0
   }
 
   toggleSelectAll(isManualChange=false) {
@@ -88,7 +95,6 @@ App.Form.Select2Input = class Select2Input {
       }
     }
     this.$select.trigger('change')
-    this.$select.select2('close')
 
     // Update DOM element to reflect selections
     const $selectAllLink = this.$formGroup.find('.select2-select-all')
@@ -100,6 +106,27 @@ App.Form.Select2Input = class Select2Input {
     $selectAllLink.html(html)
   }
 
+  initToggleChildren(e) {
+    const self = this
+    $('body').on('click', '.select2-results__group', function(e){
+
+      let ids = $(this).next('ul').find('li.select2-results__option').map(function() {
+        // Trigger change.select2 should really do this, but it doesn't, so we manually set the selected nature
+        $(this).attr('aria-selected', 'true')
+        return this.id.split('-').pop()
+      }).get()
+      let selected = $(self).find(':selected').map(function(){
+        return this.value
+      }).get()
+      // select anything within the opt group and the previously selected items
+      $(self).val(selected.concat(ids))
+      $(self).trigger('change.select2')
+    })
+  }
+
+  removeToggleChildren(e){
+    $('body').off('click', '.select2-results__group')
+  }
 
   noneSelected() {
     return (this.$formGroup.find('select').val() === 0) ||
@@ -119,15 +146,18 @@ App.Form.Select2Input = class Select2Input {
         ${this.selectAllHtml()}
       </div>
     `))
-    $label.prependTo($labelWrapper)
-    this.$formGroup.prepend($labelWrapper)
+    // only add it if we don't already have it
+    if(this.$formGroup.find('.j-select2-select-all').length == 0) {
+      $label.prependTo($labelWrapper)
+      this.$formGroup.prepend($labelWrapper)
+    }
 
     // Init events on select2
     // Trigger toggle on manual update: 'select2:select select2:unselect
     // Trigger toggle on select all/ none click: '.j-select2-select-all'
     this.$select.closest('.form-group')
-      .on( 'click', '.j-select2-select-all', this.toggleSelectAll.bind(this, false) )
-    this.$select.on( 'select2:select select2:unselect', this.toggleSelectAll.bind(this, true) )
+      .on('click', '.j-select2-select-all', this.toggleSelectAll.bind(this, false))
+    this.$select.on('select2:select select2:unselect', this.toggleSelectAll.bind(this, true))
 
     // Initial state based on existing options
     this.allItemsAreSelected = this.numberOfSelectedItems()
