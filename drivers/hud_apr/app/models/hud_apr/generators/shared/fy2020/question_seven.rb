@@ -83,13 +83,17 @@ module HudApr::Generators::Shared::Fy2020
 
     private def pit_universe(month:)
       pit_date = pit_date(month: month, before: @report.end_date)
-      psh_rrh_universe = universe.members.where(
+      # For PSH/RRH we care if the HoH has a move in date
+      psh_rrh_households = universe.members.where(
         a_t[:first_date_in_program].lteq(pit_date).
           and(a_t[:last_date_in_program].gt(pit_date).
             or(a_t[:last_date_in_program].eq(nil))).
           and(a_t[:move_in_date].lteq(pit_date)).
-          and(a_t[:project_type].in([3, 13])),
-      )
+          and(a_t[:project_type].in([3, 13])).
+          and(a_t[:head_of_household].eq(true)),
+      ).pluck(:household_id)
+      psh_rrh_universe = where(a_t[:household_id].in(psh_rrh_households))
+
       so_serv_ce_universe = universe.members.where(
         a_t[:first_date_in_program].lteq(pit_date).
           and(a_t[:last_date_in_program].gteq(pit_date).
@@ -100,7 +104,7 @@ module HudApr::Generators::Shared::Fy2020
         a_t[:first_date_in_program].lteq(pit_date).
           and(a_t[:last_date_in_program].gt(pit_date).
             or(a_t[:last_date_in_program].eq(nil))).
-          and(a_t[:project_type].in([2, 3, 8, 9, 10, 13])),
+          and(a_t[:project_type].in([2, 8, 9, 10])),
       )
 
       psh_rrh_universe.or(so_serv_ce_universe).or(other_universe)
@@ -263,14 +267,6 @@ module HudApr::Generators::Shared::Fy2020
         {
           cell: 'F6',
           clause: a_t[:household_type].eq(:unknown),
-        },
-        {
-          cell: 'B5',
-          clause: a_t[:dob_quality].eq(99),
-        },
-        {
-          cell: 'B5',
-          clause: a_t[:dob_quality].eq(99),
         },
       ].each do |cell|
         answer = @report.answer(question: table_name, cell: cell[:cell])
