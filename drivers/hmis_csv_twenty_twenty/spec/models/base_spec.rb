@@ -57,7 +57,7 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     end
 
     it 'the database will have two living situations' do
-      # FIXME: expect(GrdaWarehouse::Hud::CurrentLivingSituation.count).to eq(2)
+      expect(GrdaWarehouse::Hud::CurrentLivingSituation.count).to eq(2)
     end
 
     it 'the database will have four users' do

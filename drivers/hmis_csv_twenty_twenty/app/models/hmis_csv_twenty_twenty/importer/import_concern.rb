@@ -274,7 +274,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     end
 
     def hmis_data
-      @hmis_data ||= attributes_before_type_cast.slice(*self.class.hmis_structure(version: '2020').keys)
+      slice(*self.class.hmis_structure(version: '2020').keys)
     end
 
     def calculate_source_hash

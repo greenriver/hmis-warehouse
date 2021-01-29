@@ -11,7 +11,6 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
-      puts "Running in #{Time.zone.name}"
       @delete_later = []
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data'
