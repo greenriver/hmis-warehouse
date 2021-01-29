@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 FactoryBot.define do
   factory :vpr_patient, class: 'Health::Patient' do
     sequence(:id_in_source)
