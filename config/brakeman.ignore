@@ -500,7 +500,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 315,
+      "line": 314,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}--pre-cache`",
       "render_path": null,
@@ -511,7 +511,7 @@
       },
       "user_input": "repo_name",
       "confidence": "Medium",
-      "note": ""
+      "note": "This is all internal code."
     },
     {
       "warning_type": "Command Injection",
