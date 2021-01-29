@@ -1151,11 +1151,11 @@ def maintain_system_groups
   AccessGroup.maintain_system_groups
 end
 
-# ensure_db_triggers_and_functions()
-# setup_fake_user() if Rails.env.development?
-# maintain_data_sources()
-# maintain_report_definitions()
-# maintain_health_seeds()
-# install_shapes()
+ensure_db_triggers_and_functions()
+setup_fake_user() if Rails.env.development?
+maintain_data_sources()
+maintain_report_definitions()
+maintain_health_seeds()
+install_shapes()
 maintain_lookups()
-# maintain_system_groups()
+maintain_system_groups()

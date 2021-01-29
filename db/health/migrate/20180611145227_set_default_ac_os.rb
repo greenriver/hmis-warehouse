@@ -1,8 +1,8 @@
 class SetDefaultAcOs < ActiveRecord::Migration[4.2]
   def up
-    acos.each do |short_name, name|
-      Health::AccountableCareOrganization.where(name: name, short_name: short_name).first_or_create
-    end
+    # acos.each do |short_name, name|
+    #   Health::AccountableCareOrganization.where(name: name, short_name: short_name).first_or_create
+    # end
   end
 
   def acos

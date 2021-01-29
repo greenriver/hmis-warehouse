@@ -14,9 +14,9 @@ module Health
 
     phi_attr :content, Phi::Bulk, "Description of content of enrollment file" # contains EDI serialized PHI
 
-    mount_uploader :file, EnrollmentFileUploader
+    # mount_uploader :file, EnrollmentFileUploader
 
-    belongs_to :user
+    belongs_to :user, optional: true
 
     ENROLLMENT = '021'
     DISENROLLMENT = '024'

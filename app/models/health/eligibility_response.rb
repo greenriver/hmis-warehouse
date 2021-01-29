@@ -15,7 +15,7 @@ module Health
 
     phi_attr :response, Phi::Bulk, "Description of eligibility inquiry response" # contains EDI serialized PHI
 
-    mount_uploader :file, EligibilityResponseFileUploader
+    # mount_uploader :file, EligibilityResponseFileUploader
 
     belongs_to :eligibility_inquiry, class_name: 'Health::EligibilityInquiry'
     belongs_to :user, optional: true

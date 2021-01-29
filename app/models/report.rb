@@ -10,7 +10,7 @@ class Report < ApplicationRecord
 
   self.table_name = :reports
 
-  belongs_to :report_results_summary
+  belongs_to :report_results_summary, optional: true
   has_many :report_results
 
   scope :active, -> do
@@ -137,6 +137,12 @@ class Report < ApplicationRecord
 
   def has_race_options?
     false
+  end
+
+  # monkey patch to make gettext_i18n_rails work with rails 6
+  def humanize_class_name(name=nil)
+    name ||= self.to_s
+    name.underscore.humanize
   end
 end
 

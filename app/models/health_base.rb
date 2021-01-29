@@ -7,7 +7,7 @@
 class HealthBase < ApplicationRecord
   self.abstract_class = true
   connects_to database: { writing: :health, reading: :health }
-  # has_paper_trail versions: {class_name: 'Health::HealthVersion'}
+  has_paper_trail versions: {class_name: 'Health::HealthVersion'}
 
   include ArelHelper
   cattr_accessor :phi_dictionary

@@ -155,8 +155,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def build_service_history_enrollment_insert day
       insert_manager = Arel::InsertManager.new
       insert_manager.into she_t
-      insert_manager.columns.push(*(day.keys.map{|k| she_t[k]}))
-      insert_manager.values = Arel::Nodes::ValuesList.new([day.values])
+      insert_manager.insert(day.keys.map{|k| she_t[k]}.zip(day.values))
       insert_manager
     end
 
