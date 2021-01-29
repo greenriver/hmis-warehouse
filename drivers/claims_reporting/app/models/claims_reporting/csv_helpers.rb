@@ -67,6 +67,8 @@ module ClaimsReporting::CsvHelpers
       records_read = nil
       col_list = csv_cols.join(',')
       log_timing "copy_data_into(#{filename}) => #{table_name}" do
+        # the claims data is actually quoted pipe delimited
+
         copy_sql = <<~SQL.strip
           COPY #{table_name} (#{col_list})
           FROM STDIN

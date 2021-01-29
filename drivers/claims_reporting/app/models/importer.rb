@@ -66,10 +66,10 @@ module ClaimsReporting
             entry.get_input_stream do |entry_io|
               results['member_enrollment_roster.csv'] = MemberEnrollmentRoster.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
             end
-          when /rx_claim.csv\z/
+          when /rx_claims.csv\z/
             logger.info "found #{entry.name}, importing..."
             entry.get_input_stream do |entry_io|
-              results['rx_claim.csv'] = RxClaim.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
+              results['rx_claims.csv'] = RxClaim.import_csv_data(entry_io, filename: entry.name, replace_all: replace_all)
             end
           end
         end
