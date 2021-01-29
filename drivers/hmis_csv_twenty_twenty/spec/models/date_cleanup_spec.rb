@@ -96,7 +96,9 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
     it 'returns expected times' do
       aggregate_failures do
         times.each do |source, dest|
-          expect(HmisCsvTwentyTwenty::Importer::Client.fix_time_format(source)).to eq(dest)
+          fixed = HmisCsvTwentyTwenty::Importer::Client.fix_time_format(source)
+          fixed = fixed.strftime('%Y-%m-%d %H:%M:%S') unless fixed.is_a? String
+          expect(fixed).to eq(dest)
         end
       end
     end

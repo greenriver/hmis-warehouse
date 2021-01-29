@@ -222,7 +222,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       string = string.gsub('/', '-')
       # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
       return string if /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.match?(string)
-      return string.to_time.strftime('%Y-%m-%d %H:%M:%S') if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
+      return Time.zone.parse(string) if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
 
       # Sometimes times come in mm-dd-yyyy hh:mm
       if /\d{1,2}-\d{1,2}-\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
@@ -262,7 +262,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       elsif d.year < 100
         d = d.next_year(1900)
       end
-      d.strftime('%Y-%m-%d %H:%M:%S')
+      d
     end
 
     def self.hmis_validations
