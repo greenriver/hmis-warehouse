@@ -7,13 +7,13 @@
         = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), placeholder: 'All', as: :grouped_select, group_method: :last, input_html: { multiple: true, class: 'select2' }, include_blank: false, label: 'Organizations'
       - unless GrdaWarehouse::Config.get(:multi_coc_installation)
         .col
-          = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'All', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
+          = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'All', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, project_type_ids: @filter.project_type_numbers)}}, include_blank: false
     - if GrdaWarehouse::Config.get(:multi_coc_installation)
       .row
         .col
           = f.input :coc_codes, collection: GrdaWarehouse::Lookups::CocCode.options_for_select(user: current_user), placeholder: 'All', as: :select_two, input_html: { multiple: true }, include_blank: false, label: 'CoC Codes'
         .col
-          = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'All', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
+          = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'All', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, project_type_ids: @filter.project_type_numbers)}}, include_blank: false
     .row
       .col-sm-3
         = f.input :start, collection: @start_months, label: 'Start', as: :select_two
