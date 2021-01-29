@@ -6,6 +6,6 @@
 
 class SelectTwoInput < CollectionSelectInput
   def input_html_classes
-    super + ['select2']
+    super.push('select2')
   end
 end
