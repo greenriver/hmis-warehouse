@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -674,10 +674,13 @@ module GrdaWarehouse::Hud
     # Sometimes all we have is a name, we still want to try and
     # protect those
     def self.confidentialize(name:)
-      @confidential_project_names ||= GrdaWarehouse::Hud::Project.where(confidential: true).
-        pluck(:ProjectName).
-        map(&:downcase).
-        map(&:strip)
+      # cache for a short amount of time to avoid multiple fetches
+      @confidential_project_names = Rails.cache.fetch('confidential_project_names', expires_in: 1.minutes) do
+        GrdaWarehouse::Hud::Project.where(confidential: true).
+          pluck(:ProjectName).
+          map(&:downcase).
+          map(&:strip)
+      end
       if @confidential_project_names.include?(name&.downcase&.strip) || /healthcare/i.match(name).present?
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
@@ -731,11 +734,11 @@ module GrdaWarehouse::Hud
 
       where(
         arel_table[:ProjectName].matches(query)
-        .or(org_matches)
+        .or(org_matches),
       )
     end
 
-    def self.options_for_select user:, scope: nil
+    def self.options_for_select(user:, scope: nil)
       # don't cache this, it's a class method
       @options = begin
         options = {}
@@ -750,7 +753,9 @@ module GrdaWarehouse::Hud
             org_name = project.organization.OrganizationName
             org_name += " at #{project.data_source.short_name}" if Rails.env.development?
             options[org_name] ||= []
-            text = "#{project.ProjectName} (#{HUD.project_type_brief(project.computed_project_type)})"
+            name = confidentialize(name: project.ProjectName)
+            name = project.ProjectName if user.can_view_confidential_enrollment_details?
+            text = "#{name} (#{HUD.project_type_brief(project.computed_project_type)})"
             # text += "#{project.ContinuumProject.inspect} #{project.hud_continuum_funded.inspect}"
             options[org_name] << [
               text,
