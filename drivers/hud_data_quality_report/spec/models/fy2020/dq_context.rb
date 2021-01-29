@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.configure do |config| # rubocop:disable Lint/UnusedBlockArgument
   RSpec.configuration.fixpoints_path = 'drivers/hud_data_quality_report/spec/fixpoints'
 end
