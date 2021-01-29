@@ -44,16 +44,9 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = youth_or_unknown.where(population_clause).
+          members = youth_or_unknown.
+            where(population_clause).
             where(response_clause)
-          # because we need to use the age for the given enrollment within the context of the report
-          # we need to further limit this to only clients who are in households with only youth
-          ids = Set.new
-          members.preload(:universe_membership).find_each do |member|
-            apr_client = member.universe_membership
-            ids << member.id if only_youth?(apr_client)
-          end
-          members = members.where(id: ids)
           value = members.count
 
           answer.add_members(members)
