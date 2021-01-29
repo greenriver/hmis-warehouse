@@ -44,8 +44,9 @@ class AwsS3
     end
   end
 
+  # Return oldest first
   def fetch_key_list(prefix: '')
-    @bucket.objects(prefix: prefix).map do |obj|
+    @bucket.objects(prefix: prefix).sort_by(&:last_modified).map do |obj|
       obj.key
     end
   end
