@@ -1,17 +1,17 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# dev projects -- with affiliation: 61; single RRH: 44
-
-class WarehouseReport::RrhReport
+class WarehouseReport::Outcomes::Base
   include ArelHelper
 
-  attr_accessor :project_ids, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status
+  attr_accessor :organization_ids, :data_source_ids, :project_ids, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status
 
-  def initialize(project_ids:, start_date:, end_date:, subpopulation:, household_type:, race:, ethnicity:, gender:, veteran_status:) # rubocop:disable Metrics/ParameterLists
+  def initialize(organization_ids:, data_source_ids:, project_ids:, start_date:, end_date:, subpopulation:, household_type:, race:, ethnicity:, gender:, veteran_status:) # rubocop:disable Metrics/ParameterLists
+    @organization_ids = organization_ids
+    @data_source_ids = data_source_ids
     @project_ids = project_ids
     @start_date = start_date
     @end_date = end_date
@@ -50,7 +50,7 @@ class WarehouseReport::RrhReport
     @project_names ||=
       (
         pre_placement_project_name.split(', ') +
-        stabilization_project_name.split(', ')
+          stabilization_project_name.split(', ')
       ).uniq.
         join(', ')
   end
@@ -172,8 +172,8 @@ class WarehouseReport::RrhReport
       stayers_pre_placement(start_date: start_date, end_date: end_date).
       distinct.
       pluck(:search_start, :project_id, :client_id).compact.map do |entry_date, _, _|
-        [entry_date, end_date]
-      end
+      [entry_date, end_date]
+    end
   end
 
   def stayers_average_days_in_pre_placement
@@ -207,8 +207,8 @@ class WarehouseReport::RrhReport
       distinct.
       where.not(housed_date: nil).
       pluck(:housed_date, :project_id, :client_id).compact.map do |entry_date, _, _|
-        [entry_date, end_date]
-      end
+      [entry_date, end_date]
+    end
   end
 
   def stayers_average_days_in_stabilization
@@ -247,8 +247,8 @@ class WarehouseReport::RrhReport
       stayers(start_date: start_date, end_date: end_date).
       distinct.
       pluck(:search_start, :project_id, :client_id).compact.map do |entry_date, _, _|
-        [entry_date, end_date]
-      end
+      [entry_date, end_date]
+    end
   end
 
   def stayers_average_days
@@ -282,22 +282,22 @@ class WarehouseReport::RrhReport
         where(ho_t[:destination].not_eq(nil)).
         distinct.
         pluck(*columns).map do |row|
-          row = Hash[columns.zip(row)]
-          destination = destination_bucket(row[:client_id], row[:destination])
-          destinations[destination][:destination] ||= destination_bucket(row[:client_id], row[:destination])
-          destinations[destination][:count] ||= 0
-          destinations[destination][:client_ids] ||= Set.new
-          # Only count each client once per bucket
-          destinations[destination][:count] += 1 unless destinations[destination][:client_ids].include?(row[:client_id])
-          destinations[destination][:client_ids] << row[:client_id]
-          destinations[destination][:detailed_destinations] ||= {}
-          destinations[destination][:detailed_destinations][HUD.destination(row[:destination])] ||= 0
-          destinations[destination][:detailed_destinations][HUD.destination(row[:destination])] += 1
+        row = Hash[columns.zip(row)]
+        destination = destination_bucket(row[:client_id], row[:destination])
+        destinations[destination][:destination] ||= destination_bucket(row[:client_id], row[:destination])
+        destinations[destination][:count] ||= 0
+        destinations[destination][:client_ids] ||= Set.new
+        # Only count each client once per bucket
+        destinations[destination][:count] += 1 unless destinations[destination][:client_ids].include?(row[:client_id])
+        destinations[destination][:client_ids] << row[:client_id]
+        destinations[destination][:detailed_destinations] ||= {}
+        destinations[destination][:detailed_destinations][HUD.destination(row[:destination])] ||= 0
+        destinations[destination][:detailed_destinations][HUD.destination(row[:destination])] += 1
 
-          # Support for later
-          destinations[destination][:support] ||= []
-          destinations[destination][:support] << row
-        end
+        # Support for later
+        destinations[destination][:support] ||= []
+        destinations[destination][:support] << row
+      end
       destinations.delete_if { |_, v| v == {} }
       @destinations[:support] = destinations
       @destinations[:projects_selected] = ! all_projects
@@ -362,9 +362,9 @@ class WarehouseReport::RrhReport
         order(first_date_in_program: :asc).
         pluck(:client_id, :first_date_in_program).
         each do |id, d|
-          dates_by_client[id] ||= []
-          dates_by_client[id] << d
-        end
+        dates_by_client[id] ||= []
+        dates_by_client[id] << d
+      end
       dates_by_client
     end
     @entry_dates_by_client[client_id]&.detect { |d| d > date }
@@ -541,7 +541,7 @@ class WarehouseReport::RrhReport
       month_data[month_year]['All'] ||= {}
       month_data[month_year]['All']['data'] ||= []
       service_project_names.each do |project_name|
-        if @project_ids != :all
+        if @project_ids != []
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
@@ -552,7 +552,7 @@ class WarehouseReport::RrhReport
           next unless (beginning_of_month..end_of_month).include?(row[:search_end])
 
           month_data[month_year]['All']['data'] << row
-          month_data[month_year][project_name]['data'] << row if @project_ids != :all
+          month_data[month_year][project_name]['data'] << row if @project_ids != []
         end
       end
       month_data.each do |m_y, counts|
@@ -618,7 +618,7 @@ class WarehouseReport::RrhReport
           next unless (beginning_of_month..end_of_month).include?(row[:housing_exit])
 
           month_data[month_year]['All']['data'] << row
-          month_data[month_year][project_name]['data'] << row if @project_ids != :all
+          month_data[month_year][project_name]['data'] << row if @project_ids != []
         end
       end
       month_data.each do |m_y, counts|
@@ -672,7 +672,7 @@ class WarehouseReport::RrhReport
       month_data[month_year]['All'] ||= {}
       month_data[month_year]['All']['data'] ||= []
       residential_project_names.each do |project_name|
-        if @project_ids != :all
+        if @project_ids != []
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
@@ -683,7 +683,7 @@ class WarehouseReport::RrhReport
           next unless row[:housed_date].present? && row[:housed_date] <= end_of_month && (row[:housing_exit].blank? || row[:housing_exit] >= beginning_of_month)
 
           month_data[month_year]['All']['data'] << row
-          month_data[month_year][project_name]['data'] << row if @project_ids != :all
+          month_data[month_year][project_name]['data'] << row if @project_ids != []
         end
       end
       month_data.each do |m_y, counts|
@@ -721,7 +721,7 @@ class WarehouseReport::RrhReport
       month_data[month_year]['All'] ||= {}
       month_data[month_year]['All']['data'] ||= []
       service_project_names.each do |project_name|
-        if @project_ids != :all
+        if @project_ids != []
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
@@ -729,7 +729,7 @@ class WarehouseReport::RrhReport
         if clients[project_name].blank?
           # comment this out to remove blanks from the average
           # month_data[month_year]['All']['data'] << nil
-          # month_data[month_year][project_name]['data'] << nil if @project_ids != :all
+          # month_data[month_year][project_name]['data'] << nil if @project_ids != []
         else
           # only include clients who exited this month
           clients[project_name].each do |row|
@@ -741,7 +741,7 @@ class WarehouseReport::RrhReport
             use_end_date = row[:search_end]
             days_in_project = (use_end_date - row[:search_start]).to_i
             month_data[month_year]['All']['data'] << days_in_project
-            month_data[month_year][project_name]['data'] << days_in_project if @project_ids != :all
+            month_data[month_year][project_name]['data'] << days_in_project if @project_ids != []
           end
         end
       end
@@ -776,14 +776,14 @@ class WarehouseReport::RrhReport
       month_data[month_year]['All'] ||= {}
       month_data[month_year]['All']['data'] ||= []
       residential_project_names.each do |project_name|
-        if @project_ids != :all
+        if @project_ids != []
           month_data[month_year][project_name] ||= {}
           month_data[month_year][project_name]['data'] ||= []
         end
         if clients[project_name].blank?
           # comment this out to remove blanks from the average
           month_data[month_year]['All']['data'] << nil
-          month_data[month_year][project_name]['data'] << nil if @project_ids != :all
+          month_data[month_year][project_name]['data'] << nil if @project_ids != []
         else
           clients[project_name].each do |row|
             next if row[:housing_exit].blank?
@@ -793,7 +793,7 @@ class WarehouseReport::RrhReport
 
             use_end_date = row[:housing_exit]
             month_data[month_year]['All']['data'] << (use_end_date - row[:housed_date]).to_i
-            month_data[month_year][project_name]['data'] << (use_end_date - row[:housed_date]).to_i if @project_ids != :all
+            month_data[month_year][project_name]['data'] << (use_end_date - row[:housed_date]).to_i if @project_ids != []
           end
         end
       end
@@ -844,54 +844,6 @@ class WarehouseReport::RrhReport
       (183..364) => '6 months to 1 year',
       (365..728) => '1 year to 2 years',
       (729..Float::INFINITY) => '2 years or more',
-    }
-  end
-
-  def default_support_columns
-    {
-      service_project: _('Pre-Placement Project'),
-      search_start: _('Search Start'),
-      search_end: _('Search End'),
-      residential_project: _('Stabilization Project'),
-      housed_date: _('Date Housed'),
-      housing_exit: _('Housing Exit'),
-    }
-  end
-
-  def columns_for_returns_after_exit
-    {
-      exit_date: _('Housing Exit'),
-      return_date: _('Date of Return'),
-      days_to_return: _('Days to Return'),
-    }
-  end
-
-  def columns_for_percent_exiting_pre_placement
-    {
-      service_project: _('Pre-Placement Project'),
-      search_start: _('Search Start'),
-      search_end: _('Search End'),
-      housed_date: _('Date Housed'),
-    }
-  end
-
-  def columns_for_percent_in_stabilization
-    {
-      service_project: _('Pre-Placement Project'),
-      search_start: _('Search Start'),
-      search_end: _('Search End'),
-      residential_project: _('Stabilization Project'),
-      housed_date: _('Date Housed'),
-      housing_exit: _('Housing Exit'),
-    }
-  end
-
-  def columns_for_percent_exiting_stabilization
-    {
-      residential_project: _('Stabilization Project'),
-      destination: _('Destination'),
-      housed_date: _('Date Housed'),
-      housing_exit: _('Housing Exit'),
     }
   end
 
@@ -1044,12 +996,7 @@ class WarehouseReport::RrhReport
         ]
       end
     when :destination
-      columns = {
-        residential_project: _('Stabilization Project'),
-        destination: _('Destination'),
-        housed_date: _('Date Housed'),
-        housing_exit: _('Housing Exit'),
-      }
+      columns = columns_for_destination
       support = destinations[:support][params[:destination]].try(:[], :support)
       rows = support.map do |row|
         [
@@ -1060,7 +1007,6 @@ class WarehouseReport::RrhReport
           row[:housing_exit],
         ]
       end
-
     end
 
     clients = client_source.where(id: rows.map(&:first)).
@@ -1086,29 +1032,23 @@ class WarehouseReport::RrhReport
     GrdaWarehouse::Hud::Client
   end
 
-  def housed_source
-    Reporting::Housed.rrh
-  end
-
-  def project_types
-    [13]
-  end
-
   # Not all of the data for determining if someone is in a family is available in the
   # Housed table, so we'll defer that off to ServiceHistoryEnrollment
   def service_history_enrollment_scope
-    GrdaWarehouse::ServiceHistoryEnrollment.
+    scope = GrdaWarehouse::ServiceHistoryEnrollment.
       in_project_type(project_types).
       send(@household_type).
       open_between(start_date: @start_date, end_date: @end_date)
+    scope = scope.where(data_source_id: @data_source_ids) if @data_source_ids.present?
+    scope = scope.where(organization_id: @organization_ids) if @organization_ids.present?
+
+    scope
   end
 
   def housed_scope
-    scope = if ! all_projects
-      housed_source.where(project_id: @project_ids)
-    else
-      housed_source.all
-    end
+    scope = housed_source.all
+    scope = scope.where(project_id: @project_ids) unless all_projects
+
     scope = scope.
       where(client_id: service_history_enrollment_scope.distinct.pluck(:client_id)).
       send(@subpopulation).
@@ -1123,7 +1063,7 @@ class WarehouseReport::RrhReport
   end
 
   def all_projects
-    @project_ids == :all
+    @project_ids == []
   end
 
   def ho_t

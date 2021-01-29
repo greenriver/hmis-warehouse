@@ -32,4 +32,8 @@ class CommandArgs
   def self.cluster
     ENV.fetch('AWS_CLUSTER') { ENV.fetch('AWS_PROFILE') }
   end
+
+  def cluster
+    CommandArgs.cluster
+  end
 end

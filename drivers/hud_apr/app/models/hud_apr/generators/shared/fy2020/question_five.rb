@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HudApr::Generators::Shared::Fy2020
@@ -100,7 +100,7 @@ module HudApr::Generators::Shared::Fy2020
         # Number of veterans
         {
           cell: 'B10',
-          clause: a_t[:veteran_status].eq(1),
+          clause: veteran_clause,
         },
         # Number of chronically homeless
         {

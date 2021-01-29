@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 require 'zip'
@@ -36,7 +36,8 @@ module HmisCsvTwentyTwenty::Loader
     # remove_files: The directory will be removed after calling #load!
     # deidentified: Passed to HmisCsvTwentyTwenty::Importer::Importer when #import! is called
     def initialize( # rubocop:disable Metrics/ParameterLists
-      data_source_id:, file_path: File.join('tmp', 'hmis_import'),
+      data_source_id:,
+      file_path: File.join('tmp', 'hmis_import'),
       logger: Rails.logger,
       debug: true,
       remove_files: true,

@@ -208,12 +208,22 @@ Rails.application.routes.draw do
     resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
     resources :export_covid_impact_assessments, only: [:index]
-    resources :rrh, only: [:index] do
+    resources :rrh, only: [:index], defaults: {scope: :rrh}, controller: :outcomes do
       collection do
         get :clients
       end
     end
-    resources :psh, only: [:index] do
+    resources :psh, only: [:index], defaults: {scope: :psh}, controller: :outcomes do
+      collection do
+        get :clients
+      end
+    end
+    resources :shelter, only: [:index], defaults: {scope: :es}, controller: :outcomes do
+      collection do
+        get :clients
+      end
+    end
+    resources :th, only: [:index], defaults: {scope: :th}, controller: :outcomes do
       collection do
         get :clients
       end

@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HudApr::Generators::Shared::Fy2020
@@ -88,7 +88,7 @@ module HudApr::Generators::Shared::Fy2020
         'F' => a_t[:household_type].eq(:unknown),
       }
 
-      no_age_clause = a_t[:age].eq(nil)
+      no_age_clause = a_t[:age].eq(nil).or(a_t[:age].lt(0))
       generate_table(table_name, no_age_clause, header_row, columns)
     end
 

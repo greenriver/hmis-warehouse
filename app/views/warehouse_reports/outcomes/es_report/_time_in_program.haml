@@ -1,0 +1,15 @@
+.ho-container.rrh.jTimeInProgram
+  .ho-container__header
+    %h3 Time in Program
+    - content_for :panel_collapse_content, flush: true do
+      .row
+        .col-sm-9.rrh__time.chunk
+          .jTimeInStabilizationChart
+        .col-sm-3.metric.text-center.rrh__time.chunk
+          %h4.title
+            Average Time in Program for the Reporting Period
+          %i.icon-calendar.metric
+          .metric
+            = pluralize(@report.average_days_in_stabilization, 'day')
+          %p.description For clients exiting to any destination.
+    = render 'common/panel_collapse', id: 'jTimeInStabilizationChart', title: "Time in Program with an Exit to any Destination", default_open: 'yes'

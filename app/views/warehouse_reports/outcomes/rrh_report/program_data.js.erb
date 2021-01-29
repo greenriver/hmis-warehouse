@@ -1,0 +1,7 @@
+var data = <%= raw @charts.all.to_json %>
+var charts = new App.D3Chart.RRHCharts('#rrh-report__container', '#program-1-filter', '#program-2-filter', data)
+var container = $('#rrh-report__container');
+container.empty();
+container.append("<%= j render(partial: 'charts') %>");
+charts.draw();
+charts.listen();

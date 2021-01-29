@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # Validate that for any given importer_log_id there
@@ -12,7 +12,8 @@ class HmisCsvValidation::EntryAfterExit < HmisCsvValidation::Validation
     # FIXME: Very slow!!!
     e_t = HmisCsvTwentyTwenty::Importer::Enrollment.arel_table
     ex_t = HmisCsvTwentyTwenty::Importer::Exit.arel_table
-    incorrect_ids = klass.joins(:exit).
+    incorrect_ids = klass.joins(:exit, :project).
+      merge(HmisCsvTwentyTwenty::Importer::Project.residential).
       where(importer_log_id: importer_log.id).
       where(e_t[:EntryDate].gteq(ex_t[:ExitDate])).
       pluck(:EnrollmentID)
@@ -28,8 +29,13 @@ class HmisCsvValidation::EntryAfterExit < HmisCsvValidation::Validation
         source_id: item.source_id,
         source_type: item.source_type,
         status: 'Enrollment Entry Date is on or after Exit Date',
+        validated_column: :EntryDate,
       )
     end
     failures
+  end
+
+  def self.title
+    'Exit must occur after Entry'
   end
 end
