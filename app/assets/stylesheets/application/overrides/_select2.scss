@@ -42,13 +42,17 @@
   display: flex;
   justify-content: space-between;
   cursor: pointer;
-  &.j-all-selected {
-    background-color: red;
-  }
   &::after {
     font-weight: normal;
     font-family: 'icons';
     content: 'select all #{get-icon-code('checkmark2')}'
+  }
+  &.j-all-selected {
+    &::after {
+      font-weight: normal;
+      font-family: 'icons';
+      content: 'select none #{get-icon-code('checkmark')}'
+    }
   }
 }
 
