@@ -58,8 +58,11 @@ App.Form.Select2Input = class Select2Input {
       $(".select2-search__field").attr('aria-label', 'Search')
 
       // Trigger toggle select of sub-items for opt-groups
-      this.$select.on('select2:open', this.initToggleChildren)
-      this.$select.on('select2:close', this.removeToggleChildren)
+      this.$select.on('select2:open', this.initToggleChildren.bind(this))
+      this.$select.on('select2:select', this.updateOptGroupState)
+      this.$select.on('select2:unselect', this.updateOptGroupState)
+      this.$select.on('select2:open', this.updateOptGroupState)
+      this.$select.on('select2:close', this.removeToggleChildren.bind(this))
     }
   }
 
@@ -106,22 +109,92 @@ App.Form.Select2Input = class Select2Input {
     $selectAllLink.html(html)
   }
 
+  // called on every open
   initToggleChildren(e) {
     const self = this
     $('body').on('click', '.select2-results__group', function(e){
-
-      let ids = $(this).next('ul').find('li.select2-results__option').map(function() {
+      if ($(this).hasClass('j-all-selected')) {
+      }
+      else {
         // Trigger change.select2 should really do this, but it doesn't, so we manually set the selected nature
-        $(this).attr('aria-selected', 'true')
-        return this.id.split('-').pop()
-      }).get()
-      let selected = $(self).find(':selected').map(function(){
-        return this.value
-      }).get()
-      // select anything within the opt group and the previously selected items
-      $(self).val(selected.concat(ids))
-      $(self).trigger('change.select2')
+        self.optionsForGroup($(this)).each(function () {
+          $(this).attr('aria-selected', 'true')
+        })
+
+        let group_ids = self.optionGroupOptionIds(self.optionsForGroup($(this)))
+        let previously_selected = self.$select.find(':selected').map(function () {
+          return this.value
+        }).get()
+        // select anything within the opt group and the previously selected items
+        self.$select.val(previously_selected.concat(group_ids))
+        self.$select.trigger('change.select2')
+        // update the optgroup to reflect selected state
+        $(this).addClass('j-all-selected')
+      }
+
     })
+  }
+
+  updateOptGroupState(e) {
+    if (e.type == 'select2:open') {
+      $(this).find('.j-all-selected').removeClass('j-all-selected')
+    }
+    else {
+      $(e.params.originalEvent.delegateTarget)
+        .closest('.select2-dropdown')
+        .find('.j-all-selected')
+        .removeClass('j-all-selected')
+    }
+
+    if ($(this).select2('data').length) {
+      let selected_ids = $(this).select2('data').map(function(e){
+        return e.id
+      })
+
+      $($(this).select2('data')).each(function () {
+        let sibs = $(this.element).parent().children().get().map(function (e) {
+          return $(e).val()
+        })
+        // console.log($(this.element).parent().children(), sibs, selected_ids)
+        let all_selected = sibs.every(val => selected_ids.includes(val))
+        let optgroup = $(`#${this._resultId}`).parent().siblings('.select2-results__group')
+        if(all_selected) {
+          optgroup.addClass('j-all-selected')
+        }
+      })
+    }
+
+    // $('body').find('.select2-results__group').each(function () {
+    //   let all_selected = self.allOptionsSelected($(this))
+    //   if (all_selected) {
+    //     console.log($(this).text(), $(this), all_selected)
+    //     $(this).parent().addClass('j-all-selected')
+    //     console.log($(this).parent())
+    //   }
+    //   else {
+    //     $(this).parent().removeClass('j-all-selected')
+    //   }
+    // })
+  }
+
+  optionsForGroup(opt_group) {
+    return opt_group.next('ul').find('li.select2-results__option')
+  }
+
+  selectedOptionsForGroup(opt_group) {
+    return opt_group.next('ul').find('li.select2-results__option[aria-selected=true]')
+  }
+
+  allOptionsSelected(opt_group) {
+    let group_ids = this.optionGroupOptionIds(this.optionsForGroup(opt_group))
+    let selected_ids = this.optionGroupOptionIds(this.selectedOptionsForGroup(opt_group))
+    return group_ids.every(val => selected_ids.includes(val))
+  }
+
+  optionGroupOptionIds(options) {
+    return options.map(function () {
+      return this.id.split('-').pop()
+    }).get()
   }
 
   removeToggleChildren(e){
