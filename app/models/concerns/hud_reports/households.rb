@@ -43,7 +43,7 @@ module HudReports::Households
             veteran_status: enrollment.enrollment.client.VeteranStatus,
             chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
             relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
-          }
+          }.with_indifferent_access
         end
       end
     end

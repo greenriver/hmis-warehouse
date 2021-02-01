@@ -20,7 +20,7 @@ RSpec.describe HudDataQualityReport::Generators::Fy2020::QuestionSix, type: :mod
   end
 
   it 'sees the starts' do
-    expect(report_result.answer(question: 'Q6', cell: 'B2').summary).to eq(9)
+    expect(report_result.answer(question: 'Q6', cell: 'B2').summary).to eq(1)
   end
 
   it 'sees the exits' do
