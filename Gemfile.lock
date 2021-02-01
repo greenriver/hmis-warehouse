@@ -253,6 +253,8 @@ GEM
     combine_pdf (1.0.21)
       ruby-rc4 (>= 0.1.5)
     concurrent-ruby (1.1.7)
+    crack (0.4.5)
+      rexml
     crass (1.0.6)
     css_parser (1.7.1)
       addressable
@@ -376,6 +378,7 @@ GEM
       execjs (~> 2.0)
       sprockets (>= 2.0.0)
       tilt (>= 1.2)
+    hashdiff (1.0.1)
     heapy (0.2.0)
       thor
     hellosign-ruby-sdk (3.7.7)
@@ -741,6 +744,7 @@ GEM
       public_suffix
     validates_email_format_of (1.6.3)
       i18n
+    vcr (6.0.0)
     virtus (1.0.5)
       axiom-types (~> 0.1)
       coercible (~> 1.0)
@@ -753,6 +757,10 @@ GEM
       activemodel (>= 5.0)
       bindex (>= 0.4.0)
       railties (>= 5.0)
+    webmock (3.11.1)
+      addressable (>= 2.3.6)
+      crack (>= 0.3.2)
+      hashdiff (>= 0.4.0, < 2.0.0)
     websocket-driver (0.7.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
@@ -924,8 +932,10 @@ DEPENDENCIES
   uglifier
   validate_url
   validates_email_format_of
+  vcr
   virtus
   web-console
+  webmock
   whenever
   wicked_pdf
   with_advisory_lock

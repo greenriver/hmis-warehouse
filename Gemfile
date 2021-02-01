@@ -188,6 +188,9 @@ group :development, :test do
   gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
   gem 'guard-rspec', require: false
+  gem 'vcr'
+  gem 'webmock'
+  # gem 'rb-readline'
 end
 
 group :development do
