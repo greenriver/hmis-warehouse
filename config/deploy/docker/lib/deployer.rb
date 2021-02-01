@@ -220,14 +220,19 @@ class Deployer
     exit
   end
 
+  def _ruby_version
+    @_ruby_version ||= File.read('.ruby-version').chomp
+  end
+
   def _set_image_tag!
     if variant == 'pre-cache'
-      self.image_tag = 'latest--pre-cache'
+      #self.image_tag = "latest--pre-cache"
+      self.image_tag = "#{_ruby_version}--pre-cache"
     elsif ENV['IMAGE_TAG']
       self.image_tag = ENV['IMAGE_TAG'] + "--#{variant}"
     else
       version = `git rev-parse --short=9 HEAD`.chomp
-      self.image_tag = "#{version}--#{variant}"
+      self.image_tag = "githash-#{version}--#{variant}"
     end
 
     # puts "Setting image tag to #{image_tag}"
@@ -307,7 +312,7 @@ class Deployer
   end
 
   def _pre_cache_image_exists?
-    result = `docker image ls -f 'reference=#{repo_name}' | grep latest--pre-cache`
+    result = `docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}--pre-cache`
 
     !result.match?(/^\s*$/)
   end

@@ -15,7 +15,6 @@ RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
     -subj "/C=US/ST=Vermont/L=Brattleboro/O=greenriver/CN=www.example.com" \
     -keyout key.pem -out cert.pem
 
-
 ##################
 ## Actual Build ##
 ##################
@@ -24,18 +23,8 @@ FROM open-path-warehouse:latest--pre-cache
 
 ARG BUILDER
 
-#############################################
-# START Remove after pre-cache gets rebuilt #
-#############################################
-RUN apk add --no-cache \
-  postgis geos geos-dev && \
-  mkdir -p shape_files/CoC shape_files/zip_codes.census.2018
-###########################################
-# END Remove after pre-cache gets rebuilt #
-###########################################
-
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=2.6.5
+LABEL "ruby-version"=2.7.2
 
 # Get self-signed cert
 COPY --from=builder /key.pem /cert.pem /app/config/
@@ -77,7 +66,7 @@ RUN RAILS_ENV=production bundle exec rake assets:precompile && \
   rm .env && \
   mkdir tmp/pids
 
-COPY config/deploy/docker/assets/REVISION ./
+#COPY config/deploy/docker/assets/REVISION ./
 
 COPY config/deploy/docker/assets/entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
