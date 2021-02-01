@@ -22,7 +22,7 @@ module Import::HMISSixOneOne::Shared
   end
 
   def log(message)
-    puts(message)
+    # puts(message)
     @notifier&.ping message
     logger.info message if @debug
   end
@@ -206,9 +206,10 @@ module Import::HMISSixOneOne::Shared
     # we need to match the postgres format
     def string_for_source_hash(values)
       values.compact.map do |m|
-        if m.is_a?(Date)
+        case m
+        when Date
           m.strftime('%F')
-        elsif m.is_a?(Time)
+        when Time
           m.utc.strftime('%F %T')
         else
           m

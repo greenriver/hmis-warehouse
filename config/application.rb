@@ -68,8 +68,6 @@ module BostonHmis
     # rather than using static error pages in public/.
     config.exceptions_app = self.routes
 
-    config.assets.paths << Rails.root.join('node_modules')
-
     config.middleware.use Rack::Attack # needed pre rails 5.1
     config.middleware.use IdProtector
 

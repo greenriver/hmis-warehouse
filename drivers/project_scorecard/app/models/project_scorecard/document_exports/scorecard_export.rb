@@ -62,6 +62,7 @@ module ProjectScorecard::DocumentExports
       include Rails.application.routes.url_helpers
       include ApplicationHelper
       attr_accessor :current_user
+
       def show_client_details?
         false
       end
