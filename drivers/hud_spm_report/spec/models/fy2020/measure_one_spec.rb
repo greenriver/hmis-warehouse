@@ -11,15 +11,16 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
   include_context 'HudSpmReport context'
 
   before(:all) do
-    default_setup
     run(default_filter, described_class.question_number)
   end
 
-  after(:all) do
-    cleanup
+  it 'parses' do
+    assert true, 'code loads OK'
   end
 
-  it 'parses' do
+  it 'handles example 2' do
+    pp report_result
+    puts @user.email
     assert true, 'code loads OK'
   end
 end

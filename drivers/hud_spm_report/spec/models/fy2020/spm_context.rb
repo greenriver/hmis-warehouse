@@ -9,17 +9,30 @@ RSpec.configure do |config| # rubocop:disable Lint/UnusedBlockArgument
 end
 
 RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
+  USER_EMAIL = 'spm_reporter@example.com'.freeze
+
+  before(:context) do
+    cleanup
+
+    @user = create(:user, email: USER_EMAIL)
+  end
+
+  after(:context) do
+    cleanup
+  end
+
+  def cleanup
+    puts '  Cleaning up'
+    User.with_deleted.where(email: USER_EMAIL).delete_all
+  end
+
   def shared_filter
     {
       start: Date.parse('2020-01-01'),
       end: Date.parse('2020-12-31'),
       coc_codes: ['XX-500'],
-      user_id: default_user.id,
+      user_id: @user.id,
     }.freeze
-  end
-
-  def default_user
-    @default_user ||= User.first || create(:user, email: "#{SecureRandom.hex}@example.com")
   end
 
   def default_filter
@@ -29,6 +42,8 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   end
 
   def run(filter, question_number)
+    # puts "Running #{filter} for #{question_number}"
+
     klass = HudSpmReport::Generators::Fy2020::Generator
     klass.new(
       ::HudReports::ReportInstance.from_filter(
@@ -37,29 +52,16 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
         build_for_questions: [question_number],
       ),
     ).run!
+    @result = ::HudReports::ReportInstance.last
   end
 
   def report_result
     ::HudReports::ReportInstance.last
   end
 
-  def default_setup
-    # Will use stored fixed point if one exists, instead of reprocessing the fixture, delete the fixpoint to regenerate
-    # warehouse = GrdaWarehouseBase.connection
-    # if Fixpoint.exists? :hud_hmis_export_app
-    #   restore_fixpoint :hud_hmis_export_app
-    #   restore_fixpoint :hud_hmis_export_warehouse, connection: warehouse
-    # else
-    #   setup('drivers/hud_spm_report/spec/fixtures/files/fy2020/default')
-    #   store_fixpoint :hud_hmis_export_app
-    #   store_fixpoint :hud_hmis_export_warehouse, connection: warehouse
-    # end
-  end
-
   def setup(_file_path)
-    @delete_later = []
-    GrdaWarehouse::Utility.clear!
-
+    # @delete_later = []
+    # GrdaWarehouse::Utility.clear!
     # @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
     # GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
     # import(file_path, @data_source)
@@ -80,15 +82,4 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   #   importer = Importers::HmisTwentyTwenty::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
   #   importer.import!
   # end
-
-  def cleanup
-    # Because we are only running the import once, we have to do our own DB and file cleanup
-    GrdaWarehouse::Utility.clear!
-    if @delete_later # rubocop:disable Style/SafeNavigation
-      @delete_later.each do |path|
-        FileUtils.rm_rf(path)
-      end
-    end
-    Delayed::Job.delete_all
-  end
 end
