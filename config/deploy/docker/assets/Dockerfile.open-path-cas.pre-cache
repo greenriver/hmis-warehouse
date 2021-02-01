@@ -2,7 +2,7 @@
 ## Multi-stage build to speed up subsequent builds ##
 #####################################################
 
-FROM ruby:2.6.5-alpine
+FROM ruby:2.7.2-alpine
 
 #freetds-dev \
 # maybe can get rid of icu?
@@ -18,7 +18,7 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-RUN gem install bundler --version=1.17.3 && \
+RUN gem install bundler --version=2.2.4 && \
   mkdir -p app/assets tmp/pids lib/assets vendor/assets public locale var drivers shape_files
 
 COPY Gemfile Gemfile.lock Rakefile config.ru ./
@@ -40,9 +40,10 @@ COPY config/deploy/docker/assets/dotenv.temporary ./.env
 ENV BUNDLE_BUILD__SASSC=--disable-march-tune-native
 
 # If assets or gems don't change, those steps in the final build should be fast
-RUN mkdir -p app/assets/stylesheets/theme/styles && \
+RUN bundle config set --local without 'development' && \
+    bundle install --jobs `nproc` && \
+    mkdir -p app/assets/stylesheets/theme/styles && \
     touch app/assets/stylesheets/theme/styles/_variables.scss && \
-    bundle install --without=development && \
     RAILS_ENV=production bundle exec rake assets:precompile && \
     cp config/deploy/docker/assets/database.open-path-cas.yml config/database.yml && \
     rm -rf tmp/* && \

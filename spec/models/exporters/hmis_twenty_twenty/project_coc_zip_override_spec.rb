@@ -1,6 +1,6 @@
 require 'rails_helper'
-require 'models/exporters/hmis_twenty_twenty/project_coc_zip_override_setup.rb'
-require 'models/exporters/hmis_twenty_twenty/project_coc_zip_override_tests.rb'
+require 'models/exporters/hmis_twenty_twenty/project_coc_zip_override_setup'
+require 'models/exporters/hmis_twenty_twenty/project_coc_zip_override_tests'
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
   include_context '2020 project coc zip override setup'

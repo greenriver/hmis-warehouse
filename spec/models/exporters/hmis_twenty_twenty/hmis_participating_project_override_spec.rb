@@ -1,6 +1,6 @@
 require 'rails_helper'
-require 'models/exporters/hmis_twenty_twenty/hmis_participating_project_override_setup.rb'
-require 'models/exporters/hmis_twenty_twenty/hmis_participating_project_override_tests.rb'
+require 'models/exporters/hmis_twenty_twenty/hmis_participating_project_override_setup'
+require 'models/exporters/hmis_twenty_twenty/hmis_participating_project_override_tests'
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
   include_context '2020 HMIS Participating Project override setup'

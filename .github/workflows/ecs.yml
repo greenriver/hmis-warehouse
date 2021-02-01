@@ -62,41 +62,58 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        DOCKER_ASSETS_PATH: config/deploy/docker/assets
         SHA: ${{ github.sha }}
       run: |
-        export IMAGE_TAG=${SHA::9}
+        export IMAGE_TAG="githash-${SHA::9}"
+        export RUBY_VERSION=`cat .ruby-version`
 
-        echo $SHA > config/deploy/docker/assets/REVISION
+        echo $SHA > REVISION
         echo 'no tag generated' > image-tag.txt
 
-        # Pull the image that speeds up builds. Build it if we have to.
-        # Delete from ECR to re-cache
-        echo pulling or building pre-cache image
-        docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest--pre-cache || docker build --file=config/deploy/docker/assets/Dockerfile.${ECR_REPOSITORY}.pre-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:latest--pre-cache .
-        echo pushing pre-cache
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest--pre-cache
+        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.pre-cache ];
+        then
+          # Pull the image that speeds up builds. Build it if we have to.
+          # Delete from ECR to re-cache
+          echo Pulling or building pre-cache image
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${RUBY_VERSION}--pre-cache || docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.pre-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:${RUBY_VERSION}--pre-cache .
 
-        # tag it the way the subsequent Dockerfiles know it
-        echo tagging pre-cache
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:latest--pre-cache ${ECR_REPOSITORY}:latest--pre-cache
+          echo Tagging pre-cache so local dockerfiles will work
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:${RUBY_VERSION}--pre-cache ${ECR_REPOSITORY}:latest--pre-cache
+
+          echo Pushing pre-cache
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${RUBY_VERSION}--pre-cache
+        fi
 
         # the pre-cache image is like a stale version of the code. This builds the most recent things
-        echo building base
-        docker build --file=config/deploy/docker/assets/Dockerfile.${ECR_REPOSITORY}.base -t ${ECR_REPOSITORY}:latest--base .
+        echo Building base
+        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.base -t ${ECR_REPOSITORY}:latest--base .
 
         # tag it so we can push it remotely
-        echo tagging base
+        echo Tagging base
         docker tag ${ECR_REPOSITORY}:latest--base $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
 
-        echo building web
-        docker build --file=config/deploy/docker/assets/Dockerfile.${ECR_REPOSITORY}.web -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web .
-        echo building dj
-        docker build --file=config/deploy/docker/assets/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
+        echo Building web
+        docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.web -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web .
 
-        echo pushing base web and dj
+        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
+        then
+          echo Building dj
+          docker build --file=$DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj .
+        else
+          echo Not building dj
+        fi
+
+        echo Pushing base and web images
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
+        if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];
+        then
+          echo pushing dj
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--dj
+        else
+          echo not pushing dj
+        fi
 
         echo $IMAGE_TAG--base > image-tag.txt
         echo $IMAGE_TAG--web >> image-tag.txt
