@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,8 @@
 module Health::Tasks
   class PatientClientMatcher
     include NotifierConfig
+    include ObviousClientMatcher
+
     attr_accessor :send_notifications, :notifier_config
 
     def run!
@@ -28,7 +30,7 @@ module Health::Tasks
     # This is only valid for pilot patients, so this is commented out
     def unmatched
       {
-        unmatched: 0 # Health::Patient.pilot.unprocessed.count
+        unmatched: 0, # Health::Patient.pilot.unprocessed.count
       }
     end
 
@@ -43,27 +45,26 @@ module Health::Tasks
       ]
     end
 
-    def match_patient_to_client patient
+    def match_patient_to_client(patient)
       patient_first_name = patient[:first_name].downcase
       patient_last_name = patient[:last_name].downcase
       patient_dob = patient[:birthdate]
       patient_ssn = patient[:ssn]
-      ssn_matches = []
-      birthdate_matches = []
-      name_matches = []
-      clients.select do |client|
-        ssn_matches << client if check_social(patient_ssn, client[:SSN])
-        birthdate_matches << client if check_birthday(patient_dob, client[:DOB])
-        name_matches << client if check_name(patient_first_name, patient_last_name, client[:FirstName], client[:LastName])
-      end
-      all_matches = ssn_matches + birthdate_matches + name_matches
+
+      all_matches = matching_clients(
+        ssn: patient_ssn,
+        dob: patient_dob,
+        first_name: patient_first_name,
+        last_name: patient_last_name,
+      )
+
       obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1)}.compact
       if obvious_matches.any?
         patient_record = Health::Patient.find(patient[:id])
         begin
           patient_record.update(
             client_id: obvious_matches.first[:id],
-            updated_at: patient_record.updated_at
+            updated_at: patient_record.updated_at,
           )
         rescue ActiveRecord::RecordNotUnique => e
           msg = "Unable to match patient, failed with the following error #{e}\n"
@@ -75,50 +76,9 @@ module Health::Tasks
       end
     end
 
-    def clients
-      @clients ||= hashed(client_destinations.pluck(*client_columns), client_columns)
-    end
-
-    # fetch a list of existing clients from the DND Warehouse DataSource (current destinations)
-    def client_destinations
-      GrdaWarehouse::Hud::Client.destination
-    end
-
-    def client_columns
-      [
-        :id,
-        :FirstName,
-        :LastName,
-        :MiddleName,
-        :SSN,
-        :DOB,
-      ]
-    end
-
-    def hashed(results, columns)
-      results.map do |row|
-        Hash[columns.zip(row)]
-      end
-    end
-
-    def check_social patient_ssn, client_ssn
-      return false if ! ::HUD.valid_social?(patient_ssn)
-      patient_ssn == client_ssn
-    end
-
-    def check_birthday patient_dob, client_dob
-      return false if patient_dob.blank?
-      patient_dob == client_dob
-    end
-
-    def check_name patient_first, patient_last, client_first, client_last
-      "#{patient_first} #{patient_last}" == "#{client_first.downcase} #{client_last.downcase}"
-    end
-
-    def notify msg
+    def notify(msg)
       Rails.logger.info msg
       @notifier.ping msg if @send_notifications
     end
-
   end
 end

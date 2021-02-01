@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,7 @@ module Health
     def self.source_key= key
       @source_key = key
     end
+
     def self.source_key
       @source_key
     end
@@ -28,8 +29,12 @@ module Health
     end
 
     # override as necessary
-    def clean_row row:, data_source_id:
+    def clean_row(row:, data_source_id:) # rubocop:disable Lint/UnusedMethodArgument
       row
+    end
+
+    def self.use_tsql_import?
+      true
     end
   end
 end

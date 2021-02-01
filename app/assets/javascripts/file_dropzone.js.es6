@@ -1,73 +1,90 @@
 window.App.FileDropzone = class FileDropzone {
   constructor(props) {
     this.props = props
+    this.zone = $('<div>', { id: 'dropzone', text: 'Drop Your File to Upload' })
 
-    let file_input_query = $("input[type='file']")
-    if (file_input_query.length == 1) {
-      this.insert_dropzone(file_input_query[0])
+    this.init()
+  }
+
+  init() {
+    // If we have a single file input on the page, initialize the zone
+    if ($("input[type='file']").length == 1) {
+      this.insert_dropzone($("input[type='file']"))
+    }
+    else {
+      // If we have a single file input on the page after an ajax request, initialize the zone
+      $(document).ajaxComplete((event, xhr, settings) => {
+        if (typeof settings.headers !== 'undefined' && settings.headers['X-AJAX-MODAL']) {
+          if ($("input[type='file']").length == 1) {
+            this.insert_dropzone($("input[type='file']"))
+          }
+        }
+      })
     }
   }
 
-  insert_dropzone(file_input) {
-    //create and insert dropzone
-    let $dropzone_div = $("<div>", {id: "dropzone", text: "Drop Your File to Upload"})
-    $dropzone_div.css({
-        "box-sizing": "border-box",
-        "display": "none",
-        "position": "fixed",
-        "justify-content": "center",
-        "align-items": "center",
-        "width": "100%",
-        "height": "100%",
-        "left": "0",
-        "top": "0",
-        "z-index": "99999",
+  showDropZone() {
+    this.zone.css('display', 'flex')
+  }
 
-        "background": "rgba(0, 0, 0, 0.5)",
-        "border": "dashed gray",
-        "color": "white",
-        "font-weight": "bold",
-        "font-size": "40px"
+  hideDropZone() {
+    this.zone.css('display', 'none')
+  }
+
+  insert_dropzone($file_input) {
+    //create and insert dropzone
+    this.zone.css({
+      'box-sizing': 'border-box',
+      'display': 'none',
+      'position': 'fixed',
+      'justify-content': 'center',
+      'align-items': 'center',
+      'width': '100%',
+      'height': '100%',
+      'left': '0',
+      'top': '0',
+      'z-index': '99999',
+
+      'background': 'rgba(0, 0, 0, 0.5)',
+      'border': 'dashed gray',
+      'color': 'white',
+      'font-weight': 'bold',
+      'font-size': '40px'
     })
-    $("body").prepend($dropzone_div)
+    $('body').prepend(this.zone)
 
     //add listeners for dropzone logic
     var showDrag = false
     var timeout = -1
-    function showDropZone() {
-      $dropzone_div.css("display", "flex")
-    }
-    function hideDropZone() {
-      $dropzone_div.css("display", "none")
-    }
 
-    $(window).on('dragenter', function(e) {
-      showDropZone()
+    $(window).on('dragenter', (e) => {
+      this.showDropZone()
       showDrag = true
     })
 
-    $(window).on('dragover', function(e) {
+    $(window).on('dragover', (e) => {
       e.preventDefault()
       showDrag = true
     })
 
-    $(window).on('dragleave', function(e) {
+    $(window).on('dragleave', (e) => {
       showDrag = false
       clearTimeout(timeout)
-      timeout = setTimeout(function() {
-        if (!showDrag) {hideDropZone()}
+      timeout = setTimeout(() => {
+        if (!showDrag) { this.hideDropZone() }
       }, 200)
     })
 
-    $(window).on('drop', function(e) {
+    $(window).on('drop', (e) => {
       e.preventDefault()
+      this.hideDropZone()
     })
 
-    $dropzone_div.on('drop', function(e) {
-      hideDropZone()
-      file_input.files = e.originalEvent.dataTransfer.files
+    this.zone.on('drop', (e) => {
+      this.hideDropZone()
+      $file_input[0].files = e.originalEvent.dataTransfer.files
     })
   }
 }
-  
+
 new App.FileDropzone()

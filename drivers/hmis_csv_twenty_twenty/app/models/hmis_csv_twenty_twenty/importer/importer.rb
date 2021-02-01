@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # Assumptions:
@@ -43,7 +43,7 @@ module HmisCsvTwentyTwenty::Importer
         setup_summary(file_name)
       end
       log('De-identifying clients') if @deidentified
-      log('Limiting to white-listed projects') if @project_whitelist
+      log('Limiting to pre-approved projects') if @project_whitelist
     end
 
     def self.module_scope
@@ -51,7 +51,8 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def import!
-      return if already_running_for_data_source?
+      # log that we're waiting, but then continue on.
+      already_running_for_data_source?
 
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
         start_import
@@ -59,10 +60,40 @@ module HmisCsvTwentyTwenty::Importer
         validate_data_set!
         aggregate!
         cleanup_data_set!
-        ingest!
-        invalidate_aggregated_enrollments!
-        complete_import
+        # refuse to proceed with the import if there are any errors and that setting is in effect
+        if should_pause?
+          pause_import
+        else
+          ingest!
+          invalidate_aggregated_enrollments!
+          complete_import
+        end
       end
+    end
+
+    def resume!
+      return unless importer_log.resuming?
+
+      # this isn't quite right, but we don't store it,
+      # and we may have paused for a significant amount of time
+      @started_at = Time.current
+      ingest!
+      invalidate_aggregated_enrollments!
+      complete_import
+    end
+
+    def should_pause?
+      return false unless @data_source.refuse_imports_with_errors
+
+      db_errors = HmisCsvTwentyTwenty::Importer::ImportError.where(
+        importer_log_id: importer_log.id,
+      )
+
+      validation_errors = HmisCsvValidation::Base.where(
+        type: HmisCsvValidation::Error.subclasses.map(&:name),
+        importer_log_id: importer_log.id,
+      )
+      db_errors.count.positive? || validation_errors.count.positive?
     end
 
     # Move all data from the data lake to either the structured, or aggregated tables
@@ -182,6 +213,7 @@ module HmisCsvTwentyTwenty::Importer
     # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
     # In here, add history_generated_on date to enrollment record
     def ingest!
+      importer_log.update(status: :importing)
       # Mark everything that exists in the warehouse, that would be covered by this import
       # as pending deletion.  We'll remove the pending where appropriate
       mark_tree_as_dead(Date.current)
@@ -469,7 +501,7 @@ module HmisCsvTwentyTwenty::Importer
       @track_dirty_enrollment
     end
 
-    private def process_batch!(klass, batch, file_name, columns: klass.upsert_column_names(version: '2020'), type:, upsert:) # rubocop:disable Metrics/ParameterLists
+    private def process_batch!(klass, batch, file_name, type:, upsert:, columns: klass.upsert_column_names(version: '2020')) # rubocop:disable Metrics/ParameterLists
       errors = []
       if upsert
         klass.import(batch, on_duplicate_key_update:
@@ -510,7 +542,7 @@ module HmisCsvTwentyTwenty::Importer
 
     def already_running_for_data_source?
       running = GrdaWarehouse::DataSource.advisory_lock_exists?("hud_import_#{data_source.id}")
-      logger.warn "Import of Data Source: #{data_source.short_name} already running...exiting" if running
+      log("Import of Data Source: #{data_source.short_name} already running...waiting") if running
       running
     end
 
@@ -521,6 +553,10 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.save
       elapsed = Time.current - @started_at
       log("Import Completed in #{distance_of_time_in_words(elapsed)} data_source: #{data_source.id} importer log: #{importer_log.id}")
+    end
+
+    def pause_import
+      importer_log.update(status: :paused)
     end
 
     def note_processed(file, line_count, type)
@@ -556,6 +592,8 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def setup_import
+      return if importer_log.present?
+
       importer_log = HmisCsvTwentyTwenty::Importer::ImporterLog.new
       importer_log.created_at = Time.now
       importer_log.data_source = data_source

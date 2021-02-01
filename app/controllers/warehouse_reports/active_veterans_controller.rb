@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,9 +27,6 @@ module WarehouseReports
           sort_clients if @clients&.any?
         end
         format.xlsx do
-          # range = @report.parameters['range'] || {}
-          # start_date = range['start']
-          # end_date = range['end']
           filename = 'Homeless Veterans.xlsx'
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end

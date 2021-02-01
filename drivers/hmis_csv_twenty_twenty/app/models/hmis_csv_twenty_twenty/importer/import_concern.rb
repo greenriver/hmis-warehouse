@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisCsvTwentyTwenty::Importer::ImportConcern
@@ -164,28 +164,42 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     # Than a year out
     def self.fix_date_format(string)
       return unless string
+
+      string = string.gsub('/', '-')
       # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
       return string if /\d{4}-\d{1,2}-\d{1,2}/.match?(string)
 
       # Sometimes dates come in mm-dd-yyyy and Ruby Date really doesn't like that.
       if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
         month, day, year = string.split('-')
-        return "#{year}-#{month}-#{day}"
+        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')}"
+      elsif /\d{1,2}-\d{1,2}-\d{2}/.match?(string) # Handle m/d/yy
+        month, day, year = string.split('-')
+        year = year.to_i
+        # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
+        # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
+        # Since we're almost always dealing with dates that are in the past
+        # If the year is between 00 and next year, we'll add 2000,
+        # otherwise, we'll add 1900
+        next_year = Date.current.next_year.strftime('%y').to_i
+
+        if year <= next_year
+          year += 2000
+        elsif year < 100
+          year += 1900
+        end
+        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')}"
       end
-      # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
-      # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
-      # Since we're almost always dealing with dates that are in the past
-      # If the year is between 00 and next year, we'll add 2000,
-      # otherwise, we'll add 1900
-      next_year = Date.current.next_year.strftime('%y').to_i
+
       begin
-        d = Date.parse(string, false) # false to not guess at century
+        d = Date.parse(string, false)
       rescue ArgumentError
-        return
+        return nil
       end
+      next_year = Date.current.next_year.strftime('%y').to_i
       if d.year <= next_year
         d = d.next_year(2000)
-      else
+      elsif d.year < 100
         d = d.next_year(1900)
       end
       d.strftime('%Y-%m-%d')
@@ -193,33 +207,54 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
     def self.fix_time_format(string)
       return unless string
-      # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
-      return string if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
 
-      # Sometimes times come in mm/dd/yyyy hh:mm
-      if /\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string) # rubocop:disable Style/RegexpLiteral
+      string = string.gsub('/', '-')
+      # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
+      return string if /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.match?(string)
+      return string.to_time.strftime('%Y-%m-%d %H:%M:%S') if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
+
+      # Sometimes times come in mm-dd-yyyy hh:mm
+      if /\d{1,2}-\d{1,2}-\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
         date, time = string.split(' ')
-        month, day, year = date.split('/')
-        return "#{year}-#{month}-#{day} #{time}"
+        month, day, year = date.split('-')
+
+        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}".to_time.strftime('%Y-%m-%d %H:%M:%S')
+      elsif /\d{1,2}-\d{1,2}-\d{2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
+        date, time = string.split(' ')
+        month, day, year = date.split('-')
+        year = year.to_i
+
+        # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
+        # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
+        # Since we're almost always dealing with dates that are in the past
+        # If the year is between 00 and next year, we'll add 2000,
+        # otherwise, we'll add 1900
+        next_year = Date.current.next_year.strftime('%y').to_i
+        if year <= next_year
+          year += 2000
+        else
+          year += 1900
+        end
+
+        string = "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}"
+        return string if /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.match?(string)
+
+        string.to_time.strftime('%Y-%m-%d %H:%M:%S')
       end
-      # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
-      # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
-      # Since we're almost always dealing with dates that are in the past
-      # If the year is between 00 and next year, we'll add 2000,
-      # otherwise, we'll add 1900
-      next_year = Date.current.next_year.strftime('%y').to_i
+
       begin
-        d = DateTime.parse(string, false) # false to not guess at century
+        d = DateTime.parse(string, false)
       rescue ArgumentError
         # If there is still garbage in a date field, return an nil
         return nil
       end
+      next_year = Date.current.next_year.strftime('%y').to_i
       if d.year <= next_year
         d = d.next_year(2000)
-      else
+      elsif d.year < 100
         d = d.next_year(1900)
       end
-      d.strftime('%Y-%m-%d %H%M%S')
+      d.strftime('%Y-%m-%d %H:%M:%S')
     end
 
     def self.hmis_validations

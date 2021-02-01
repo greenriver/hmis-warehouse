@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -494,6 +494,13 @@ module GrdaWarehouse::Hud
       query = viewable_by(user)
       query = query.where(id: id) if id.present?
       Arel.sql(query.select(:id).to_sql)
+    end
+
+    def hmis_source_visible_by?(user)
+      return false unless user.can_upload_hud_zips?
+      return false unless GrdaWarehouse::DataSource.editable_by(user).source.exists?
+
+      self.class.hmis_source_visible_by(user).where(id: source_client_ids).exists?
     end
 
     scope :active_confirmed_consent_in_cocs, ->(coc_codes) do
@@ -2176,33 +2183,31 @@ module GrdaWarehouse::Hud
 
     # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
     # advantage of caching
-    def race_string scope_limit: self.class.destination, destination_id:
-      limited_scope = self.class.destination.merge(scope_limit)
+    def race_string(destination_id:, scope_limit: self.class.destination)
+      @limited_scope ||= self.class.destination.merge(scope_limit)
 
-      @race_am_ind_ak_native ||= limited_scope.where(
-        id: self.class.race_am_ind_ak_native.select(:id)
-      ).distinct.pluck(:id)
-      @race_asian ||= limited_scope.where(
-        id: self.class.race_asian.select(:id)
-      ).distinct.pluck(:id)
-      @race_black_af_american ||= limited_scope.where(
-        id: self.class.race_black_af_american.select(:id)
-      ).distinct.pluck(:id)
-      @race_native_hi_other_pacific ||= limited_scope.where(
-        id: self.class.race_native_hi_other_pacific.select(:id)
-      ).distinct.pluck(:id)
-      @race_white ||= limited_scope.where(
-        id: self.class.race_white.select(:id)
-      ).distinct.pluck(:id)
-      if (@race_am_ind_ak_native + @race_asian + @race_black_af_american + @race_native_hi_other_pacific + @race_white).count(destination_id) > 1
-        return 'MultiRacial'
+      @race_am_ind_ak_native ||= @limited_scope.where(id: self.class.race_am_ind_ak_native.select(:id)).distinct.pluck(:id).to_set
+      @race_asian ||= @limited_scope.where(id: self.class.race_asian.select(:id)).distinct.pluck(:id).to_set
+      @race_black_af_american ||= @limited_scope.where(id: self.class.race_black_af_american.select(:id)).distinct.pluck(:id).to_set
+      @race_native_hi_other_pacific ||= @limited_scope.where(id: self.class.race_native_hi_other_pacific.select(:id)).distinct.pluck(:id).to_set
+      @race_white ||= @limited_scope.where(id: self.class.race_white.select(:id)).distinct.pluck(:id).to_set
+      @multiracial ||= begin
+        multi = @race_am_ind_ak_native.to_a +
+        @race_asian.to_a +
+        @race_black_af_american.to_a +
+        @race_native_hi_other_pacific.to_a +
+        @race_white.to_a
+        multi.select { |m| multi.count(m) > 1 }.to_set
       end
+
+      return 'MultiRacial' if @multiracial.include?(destination_id)
       return 'AmIndAKNative' if @race_am_ind_ak_native.include?(destination_id)
       return 'Asian' if @race_asian.include?(destination_id)
       return 'BlackAfAmerican' if @race_black_af_american.include?(destination_id)
       return 'NativeHIOtherPacific' if @race_native_hi_other_pacific.include?(destination_id)
       return 'White' if @race_white.include?(destination_id)
-      return 'RaceNone'
+
+      'RaceNone'
     end
 
     def self_and_sources
@@ -2526,6 +2531,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::HealthEmergency::Isolation,
         GrdaWarehouse::HealthEmergency::Quarantine,
         GrdaWarehouse::HealthEmergency::UploadedTest,
+        GrdaWarehouse::HealthEmergency::Vaccination,
       ]
     end
 
@@ -2534,6 +2540,7 @@ module GrdaWarehouse::Hud
         Health::Patient,
         Health::HealthFile,
         Health::Tracing::Case,
+        Health::Vaccination,
       ]
     end
 
@@ -2608,8 +2615,11 @@ module GrdaWarehouse::Hud
     end
 
     def most_recent_vispdat_family_vispdat?
+      # From local warehouse VI-SPDAT
       return most_recent_vispdat_object.family? if most_recent_vispdat_object.respond_to?(:family?)
-      return most_recent_vispdat_object.vispdat_family_score&.positive? if most_recent_vispdat_object.respond_to?(:vispdat_family_score)
+
+      # From ETO VI-SPDAT, this is pre-calculated GrdaWarehouse::HmisForm.set_part_of_a_family
+      return family_member
     end
 
     def days_homeless_for_vispdat_prioritization

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'csv'
 require 'memoist'
 
@@ -5,8 +11,7 @@ module ClaimsReporting
   class ReconcilationReport
     extend Memoist
 
-    attr_accessor :month
-    attr_accessor :aco_ids
+    attr_accessor :month, :aco_ids
 
     def initialize(month:, aco_ids: [])
       @month = month
@@ -66,10 +71,6 @@ module ClaimsReporting
 
     def qa_missing_careplan_count_for_patient(patient)
       patient_qas(patient.id).select(&:missing_care_plan?).size
-    end
-
-    def acos_for_patient(patient)
-      patient.patient_referrals.select { |r| r.active_within?(report_date_range) }.map { |r| r.aco&.name }.compact.uniq
     end
 
     def careplan_dates_for_patient(patient)

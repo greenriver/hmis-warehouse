@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module ProjectScorecard
@@ -265,7 +265,7 @@ module ProjectScorecard
     end
 
     def send_email_to_contacts
-      contacts.index_by(&:email).values.each do |contact|
+      contacts.index_by(&:email).each_value do |contact|
         ProjectScorecard::ScorecardMailer.scorecard_ready(self, contact).deliver_later
       end
     end

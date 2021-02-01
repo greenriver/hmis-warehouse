@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class HmisCsvValidation::Base < GrdaWarehouseBase
@@ -10,5 +10,22 @@ class HmisCsvValidation::Base < GrdaWarehouseBase
 
   def skip_row?
     false
+  end
+
+  def self.validation_classes
+    [
+      HmisCsvValidation::EntryAfterExit,
+      HmisCsvValidation::InclusionInSet,
+      HmisCsvValidation::NonBlankValidation,
+      HmisCsvValidation::OneHeadOfHousehold,
+      HmisCsvValidation::ValidFormat,
+    ].freeze
+  end
+
+  def self.error_classes
+    [
+      HmisCsvValidation::Length,
+      HmisCsvValidation::NonBlank,
+    ].freeze
   end
 end

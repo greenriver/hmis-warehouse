@@ -1,0 +1,38 @@
+= simple_form_for @filter, as: :filter, url: report_index_path, method: :get do |f|
+  - content_for :filters_col_full do
+    .row
+      .col
+        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), placeholder: 'All', as: :select_two, input_html: { multiple: true }, include_blank: false, label: 'Data Sources'
+      .col
+        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), placeholder: 'All', as: :grouped_select_two, group_method: :last, input_html: { multiple: true }, include_blank: false, label: 'Organizations'
+      - unless GrdaWarehouse::Config.get(:multi_coc_installation)
+        .col
+          = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'All', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, project_type_ids: @filter.project_type_numbers)}}, include_blank: false
+    - if GrdaWarehouse::Config.get(:multi_coc_installation)
+      .row
+        .col
+          = f.input :coc_codes, collection: GrdaWarehouse::Lookups::CocCode.options_for_select(user: current_user), placeholder: 'All', as: :select_two, input_html: { multiple: true }, include_blank: false, label: 'CoC Codes'
+        .col
+          = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'All', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, project_type_ids: @filter.project_type_numbers)}}, include_blank: false
+    .row
+      .col-sm-3
+        = f.input :start, collection: @start_months, label: 'Start', as: :select_two
+      .col-sm-3
+        = f.input :end, collection: @end_months, label: 'End', as: :select_two
+      .col-sm-3
+        = f.input :sub_population, collection: Reporting::Housed.available_subpopulations.invert, as: :select_two, include_blank: 'All'
+      .col-sm-3
+        = f.input :household_type, collection: Reporting::Housed.available_household_types.invert, as: :select_two, include_blank: 'All'
+    .row
+      .col-sm-3
+        = f.input :race, collection: Reporting::Housed.available_races.invert, as: :select_two, include_blank: 'All'
+      .col-sm-3
+        = f.input :ethnicity, collection: Reporting::Housed.available_ethnicities.invert, as: :select_two, include_blank: 'All'
+      .col-sm-3
+        = f.input :gender, collection: Reporting::Housed.available_genders.invert, as: :select_two, include_blank: 'All'
+      .col-sm-3
+        = f.input :veteran_status, collection: Reporting::Housed.available_veteran_stati.invert, as: :select_two, include_blank: 'All'
+  - content_for :filter_actions do
+    = f.submit 'Update', class: ['btn', 'btn-primary']
+
+  = render 'warehouse_reports/filters', f:f

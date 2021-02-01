@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisCsvTwentyTwenty::Importer
@@ -24,6 +24,14 @@ module HmisCsvTwentyTwenty::Importer
 
     # Don't ever mark these for deletion
     def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:)
+    end
+
+    def self.hmis_validations
+      {
+        UserID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+      }
     end
   end
 end

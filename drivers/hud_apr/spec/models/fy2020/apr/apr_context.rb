@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 RSpec.configure do |config| # rubocop:disable Lint/UnusedBlockArgument
   RSpec.configuration.fixpoints_path = 'drivers/hud_apr/spec/fixpoints'
 end
@@ -24,7 +30,7 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
 
   def run(filter, question_name)
     generator = HudApr::Generators::Apr::Fy2020::Generator
-    generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: [question_name])).run!
+    generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: [question_name])).run!(email: false)
   end
 
   def default_setup_path

@@ -208,25 +208,33 @@ module HUD
 
   # 1.1
   def export_period_type(id, reverse = false)
-    map = {
-      1 => 'Updated',
-      2 => 'Effective',
-      3 => 'Reporting period',
-      4 => 'Other',
-    }
+    map = period_types
 
     _translate map, id, reverse
   end
 
+  def period_types
+    {
+      1 => 'Updated',
+      2 => 'Effective',
+      3 => 'Reporting period',
+      4 => 'Other',
+    }.freeze
+  end
+
   # 1.2
   def export_directive(id, reverse = false)
-    map = {
+    map = export_directives
+
+    _translate map, id, reverse
+  end
+
+  def export_directives
+    {
       1 => 'Delta refresh',
       2 => 'Full refresh',
       3 => 'Other',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 1.3
@@ -248,7 +256,13 @@ module HUD
 
   # 1.4
   def record_type(id, reverse = false)
-    map = {
+    map = record_types
+
+    _translate map, id, reverse
+  end
+
+  def record_types
+    {
       12 => 'Contact', # removed in 2020 spec
       13 => 'Contact', # removed in 2020 spec
       141 => 'PATH service',
@@ -261,21 +275,23 @@ module HUD
       162 => 'RHY referral',
       200 => 'Bed night',
       210 => 'HUD-VASH OTH voucher tracking',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 1.5
   def hash_status(id, reverse = false)
-    map = {
+    map = hash_statuses
+
+    _translate map, id, reverse
+  end
+
+  def hash_statuses
+    {
       1 => 'Unhashed',
       2 => 'SHA-1 RHY',
       3 => 'Hashed - other',
       4 => 'SHA-256 (RHY)',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 1.6
@@ -339,14 +355,18 @@ module HUD
 
   # 1.9
   def source_type(id, reverse = false)
-    map = {
+    map = source_types
+
+    _translate map, id, reverse
+  end
+
+  def source_types
+    {
       1 => 'CoC HMIS',
       2 => 'Standalone/agency-specific application',
       3 => 'Data warehouse',
       4 => 'Other',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 2.4.2
@@ -408,7 +428,7 @@ module HUD
     end
   end
 
-  # 2.5.1
+  # 2.5.1 / 2.02.C
   def tracking_method(id, reverse = false)
     map = tracking_methods
 
@@ -481,13 +501,17 @@ module HUD
 
   # 2.7.2
   def household_type(id, reverse = false)
-    map = {
+    map = household_types
+
+    _translate map, id, reverse
+  end
+
+  def household_types
+    {
       1 => 'Households without children',
       3 => 'Households with at least one adult and one child',
       4 => 'Households with only children',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 2.7.3
@@ -503,13 +527,17 @@ module HUD
 
   # 2.7.4
   def availability(id, reverse = false)
-    map = {
+    map = availabilities
+
+    _translate map, id, reverse
+  end
+
+  def availabilities
+    {
       1 => 'Year-round',
       2 => 'Seasonal',
       3 => 'Overflow',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 2.7.B
@@ -539,7 +567,7 @@ module HUD
     }
   end
 
-  # 2.8.8
+  # 2.8.8 / 2.02.D
   def housing_type(id, reverse = false)
     map = housing_types
 
@@ -554,7 +582,7 @@ module HUD
     }
   end
 
-  # 2.9.1
+  # 2.9.1 / 2.02.8
   def target_population(id, reverse = false)
     map = target_populations
 
@@ -601,15 +629,19 @@ module HUD
 
   # 3.3.2
   def dob_data_quality(id, reverse = false)
-    map = {
+    map = dob_data_quality_options
+
+    _translate map, id, reverse
+  end
+
+  def dob_data_quality_options
+    {
       1 => 'Full DOB reported',
       2 => 'Approximate or partial DOB reported',
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 3.5.1
@@ -663,7 +695,13 @@ module HUD
 
   # 3.917.2
   def residence_prior_length_of_stay(id, reverse = false)
-    map = {
+    map = length_of_stays
+
+    _translate map, id, reverse
+  end
+
+  def length_of_stays
+    {
       2 => 'One week or more, but less than one month',
       3 => 'One month or more, but less than 90 days',
       4 => '90 days or more but less than one year',
@@ -673,9 +711,7 @@ module HUD
       10 => 'One night or less',
       11 => 'Two to six nights',
       99 => 'Data not collected',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   def residence_prior_length_of_stay_brief(id, reverse = false)
@@ -983,7 +1019,7 @@ module HUD
         31,
         33,
         34,
-      ]
+      ].freeze
     end
   end
 
@@ -1099,7 +1135,13 @@ module HUD
 
   # 4.10.2
   def disability_response(id, reverse = false)
-    map = {
+    map = disability_responses
+
+    _translate map, id, reverse
+  end
+
+  def disability_responses
+    {
       0 => 'No',
       1 => 'Alcohol abuse',
       2 => 'Drug abuse',
@@ -1107,9 +1149,7 @@ module HUD
       8 => 'Client doesn’t know',
       9 => 'Client refused',
       99 => 'Data not collected',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 4.11.A
@@ -1427,33 +1467,45 @@ module HUD
 
   # 4.19.3
   def assessment_type(id, reverse = false)
-    map = {
+    map = assessment_types
+
+    _translate map, id, reverse
+  end
+
+  def assessment_types
+    {
       1 => 'Phone',
       2 => 'Virtual',
       3 => 'In Person',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 4.19.4
   def assessment_level(id, reverse = false)
-    map = {
-      1 => 'Crisis Needs Assessment',
-      2 => 'Housing Needs Assessment',
-    }
+    map = assessment_levels
 
     _translate map, id, reverse
   end
 
+  def assessment_levels
+    {
+      1 => 'Crisis Needs Assessment',
+      2 => 'Housing Needs Assessment',
+    }.freeze
+  end
+
   # 4.19.7
   def prioritization_status(id, reverse = false)
-    map = {
-      1 => 'Placed on prioritization list',
-      2 => 'Not placed on prioritization list',
-    }
+    map = prioritization_statuses
 
     _translate map, id, reverse
+  end
+
+  def prioritization_statuses
+    {
+      1 => 'Placed on prioritization list',
+      2 => 'Not placed on prioritization list',
+    }.freeze
   end
 
   # 4.19.A / W5.A
@@ -1482,7 +1534,13 @@ module HUD
 
   # 4.20.2
   def event(id, reverse = false)
-    map = {
+    map = events
+
+    _translate map, id, reverse
+  end
+
+  def events
+    {
       1 => 'Referral to Prevention Assistance project',
       2 => 'Problem Solving/Diversion/Rapid Resolution intervention or service',
       3 => 'Referral to scheduled Coordinated Entry Crisis Needs Assessment',
@@ -1498,9 +1556,7 @@ module HUD
       13 => 'Referral to RRH project resource opening',
       14 => 'Referral to PSH project resource opening',
       15 => 'Referral to Other PH project resource opening',
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   # 4.20.D
@@ -2153,15 +2209,19 @@ module HUD
 
   # 5.03.1
   def data_collection_stage(id, reverse = false)
-    map = {
+    map = data_collection_stages
+
+    _translate map, id, reverse
+  end
+
+  def data_collection_stages
+    {
       1 => 'Project entry',
       2 => 'Update',
       3 => 'Project exit',
       5 => 'Annual assessment',
       6 => 'Post-exit', # not used in CSV
-    }
-
-    _translate map, id, reverse
+    }.freeze
   end
 
   def coc_name(coc_code)

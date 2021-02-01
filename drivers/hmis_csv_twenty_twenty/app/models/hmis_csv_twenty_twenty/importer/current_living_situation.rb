@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisCsvTwentyTwenty::Importer
@@ -16,13 +16,13 @@ module HmisCsvTwentyTwenty::Importer
 
     def self.hmis_validations
       {
-        CurrentLivingSituation: [
+        EnrollmentID: [
           class: HmisCsvValidation::NonBlank,
         ],
         InformationDate: [
           class: HmisCsvValidation::NonBlank,
         ],
-        UserID: [
+        CurrentLivingSituation: [
           class: HmisCsvValidation::NonBlank,
         ],
         DateUpdated: [
@@ -31,7 +31,7 @@ module HmisCsvTwentyTwenty::Importer
         DateCreated: [
           class: HmisCsvValidation::NonBlank,
         ],
-        EnrollmentID: [
+        UserID: [
           class: HmisCsvValidation::NonBlank,
         ],
       }

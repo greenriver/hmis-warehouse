@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module PriorLivingSituation
@@ -39,6 +39,16 @@ module PriorLivingSituation
 
     def multiple_project_types?
       true
+    end
+
+    protected def build_control_sections
+      [
+        build_general_control_section,
+        build_coc_control_section,
+        build_household_control_section,
+        add_demographic_disabilities_control_section,
+        build_enrollment_control_section,
+      ]
     end
 
     def report_path_array
@@ -82,8 +92,7 @@ module PriorLivingSituation
       scope = filter_for_chronic_status(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_prior_living_situation(scope)
-      scope = filter_for_destination(scope)
-      scope
+      filter_for_destination(scope)
     end
 
     def report_scope_source

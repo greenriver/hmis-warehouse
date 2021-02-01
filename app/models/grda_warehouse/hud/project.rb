@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -57,7 +57,11 @@ module GrdaWarehouse::Hud
       so: 'Street Outreach (SO)',
       rrh: 'Rapid Re-Housing (RRH)',
       ca: 'Coordinated Assessment (CA)',
-      psh: 'Permanent Supportive Housing (PSH)'
+      psh: 'Permanent Supportive Housing (PSH)',
+      other: 'Other',
+      day_shelter: 'Day Shelter',
+      prevention: 'Homelessness Prevention',
+      services_only: 'Services Only',
     }
     PROJECT_TYPE_TITLES = PROJECT_GROUP_TITLES.select{|k,_| k.in?([:ph, :es, :th, :sh, :so])}
     HOMELESS_TYPE_TITLES = PROJECT_TYPE_TITLES.except(:ph)
@@ -76,14 +80,18 @@ module GrdaWarehouse::Hud
     PROJECT_TYPES_WITH_INVENTORY = ALL_PROJECT_TYPES - PROJECT_TYPES_WITHOUT_INVENTORY
     WITH_MOVE_IN_DATES = RESIDENTIAL_PROJECT_TYPES[:ph]
     PERFORMANCE_REPORTING = {   # duplicate of code in various places
-      ph: [3,9,10,13],
+      ph: [3, 9, 10, 13],
       th: [2],
       es: [1],
       so: [4],
       sh: [8],
       ca: [14],
       rrh: [13],
-      psh: [3, 10]
+      psh: [3, 10],
+      other: [7],
+      day_shelter: [11],
+      prevention: [12],
+      services_only: [6],
     }
 
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override, :zip_override
@@ -666,10 +674,13 @@ module GrdaWarehouse::Hud
     # Sometimes all we have is a name, we still want to try and
     # protect those
     def self.confidentialize(name:)
-      @confidential_project_names ||= GrdaWarehouse::Hud::Project.where(confidential: true).
-        pluck(:ProjectName).
-        map(&:downcase).
-        map(&:strip)
+      # cache for a short amount of time to avoid multiple fetches
+      @confidential_project_names = Rails.cache.fetch('confidential_project_names', expires_in: 1.minutes) do
+        GrdaWarehouse::Hud::Project.where(confidential: true).
+          pluck(:ProjectName).
+          map(&:downcase).
+          map(&:strip)
+      end
       if @confidential_project_names.include?(name&.downcase&.strip) || /healthcare/i.match(name).present?
         GrdaWarehouse::Hud::Project.confidential_project_name
       else
@@ -723,11 +734,11 @@ module GrdaWarehouse::Hud
 
       where(
         arel_table[:ProjectName].matches(query)
-        .or(org_matches)
+        .or(org_matches),
       )
     end
 
-    def self.options_for_select user:, scope: nil
+    def self.options_for_select(user:, scope: nil)
       # don't cache this, it's a class method
       @options = begin
         options = {}
@@ -742,7 +753,9 @@ module GrdaWarehouse::Hud
             org_name = project.organization.OrganizationName
             org_name += " at #{project.data_source.short_name}" if Rails.env.development?
             options[org_name] ||= []
-            text = "#{project.ProjectName} (#{HUD.project_type_brief(project.computed_project_type)})"
+            name = confidentialize(name: project.ProjectName)
+            name = project.ProjectName if user.can_view_confidential_enrollment_details?
+            text = "#{name} (#{HUD.project_type_brief(project.computed_project_type)})"
             # text += "#{project.ContinuumProject.inspect} #{project.hud_continuum_funded.inspect}"
             options[org_name] << [
               text,

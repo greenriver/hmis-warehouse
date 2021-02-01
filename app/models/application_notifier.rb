@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,8 @@
 class ApplicationNotifier < Slack::Notifier
 
   def ping(message, options={})
+    return unless @endpoint&.host
+
     # Rate limit pings because Slack wants us to
     sleep(0.7)
     begin

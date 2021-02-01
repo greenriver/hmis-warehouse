@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -48,6 +48,7 @@ class SecureFilesController < ApplicationController
       redirect_to action: :index
     else
       flash[:alert] = _('Upload failed, did you attach a file?')
+      @secure_files = file_scope
       render :index
     end
   end

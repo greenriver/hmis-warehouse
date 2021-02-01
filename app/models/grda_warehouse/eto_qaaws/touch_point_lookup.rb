@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module GrdaWarehouse::EtoQaaws
   class TouchPointLookup < GrdaWarehouseBase
     self.table_name = :eto_touch_point_lookups

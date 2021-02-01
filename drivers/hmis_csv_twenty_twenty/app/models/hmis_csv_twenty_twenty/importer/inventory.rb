@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisCsvTwentyTwenty::Importer
@@ -23,6 +23,47 @@ module HmisCsvTwentyTwenty::Importer
 
     def self.warehouse_class
       GrdaWarehouse::Hud::Inventory
+    end
+
+    def self.hmis_validations
+      {
+        ProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        CoCCode: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.cocs.keys.freeze },
+          },
+        ],
+        HouseholdType: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.household_types.keys.map(&:to_s).freeze },
+          },
+        ],
+        Availability: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.availabilities.keys.map(&:to_s).freeze },
+          },
+        ],
+        UnitInventory: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        BedInventory: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        InventoryStartDate: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+      }
     end
   end
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -49,9 +49,10 @@ module WarehouseReports
           flash[:error] = 'Invalid S3 Configuration'
           render :index
         else
-          if @filter.version == '6.11'
+          case @filter.version
+          when '6.11'
             WarehouseReports::HmisSixOneOneExportJob.perform_later(@filter.options_for_hmis_export(:six_one_one).as_json, report_url: warehouse_reports_hmis_exports_url)
-          elsif @filter.version == '2020'
+          when '2020'
             WarehouseReports::HmisTwentyTwentyExportJob.perform_later(@filter.options_for_hmis_export(2020).as_json, report_url: warehouse_reports_hmis_exports_url)
           end
           redirect_to warehouse_reports_hmis_exports_path
@@ -134,6 +135,7 @@ module WarehouseReports
         :hash_status,
         :period_type,
         :include_deleted,
+        :directive,
         :faked_pii,
         :every_n_days,
         :reporting_range,

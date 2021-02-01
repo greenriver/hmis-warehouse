@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -171,6 +171,7 @@ module Health
           current_referral.update(
             disenrollment_date: enrollment_start_date,
             change_description: 'Close open enrollment',
+            removal_acknowledged: true, # Synthetic removals do not need to be acknowledged
           )
           referral = create(referral_args)
         else
@@ -239,7 +240,7 @@ module Health
     end
 
     def enrolled_days_to_date
-      (enrollment_start_date .. (disenrollment_date || Date.current)).to_a
+      (enrollment_start_date .. (actual_or_pending_disenrollment_date || Date.current)).to_a
     end
 
     def name

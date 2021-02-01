@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -78,6 +78,7 @@ module GrdaWarehouse
     def self.available_health_emergencies
       {
         'Boston COVID-19' => :boston_covid_19,
+        'COVID-19 -- Vaccination Only' => :covid_19_vaccinations_only,
       }
     end
 

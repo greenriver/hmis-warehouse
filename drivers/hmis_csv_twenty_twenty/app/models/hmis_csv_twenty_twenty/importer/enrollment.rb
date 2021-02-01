@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisCsvTwentyTwenty::Importer
@@ -57,6 +57,58 @@ module HmisCsvTwentyTwenty::Importer
           class: HmisCsvValidation::EntryAfterExit,
         },
       ]
+    end
+
+    def self.hmis_validations
+      {
+        PersonalID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        ProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        EntryDate: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        HouseholdID: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        RelationshipToHoH: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.relationships_to_hoh.keys.map(&:to_s).freeze },
+          },
+        ],
+        LivingSituation: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.available_situations.keys.map(&:to_s).freeze },
+          },
+        ],
+        LengthOfStay: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.length_of_stays.keys.map(&:to_s).freeze },
+          },
+        ],
+        DateToStreetESSH: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+        ],
+        DisablingCondition: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
+          },
+        ],
+      }
     end
   end
 end

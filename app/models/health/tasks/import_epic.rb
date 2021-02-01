@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,12 +15,13 @@ module Health::Tasks
     attr_accessor :send_notifications, :notifier_config, :logger
 
     # if load_locally, then the files must be in 'var/health'
-    def initialize(logger: Rails.logger, load_locally: false, configs: nil, prevent_massive_change: true)
+    def initialize(logger: Rails.logger, load_locally: false, configs: nil, prevent_massive_change: true, local_path: nil)
       setup_notifier('HealthImporter')
 
       @logger = logger
 
       @load_locally = load_locally
+      @local_path = local_path
 
       @to_revoke = []
       @to_restore = []
@@ -44,9 +45,8 @@ module Health::Tasks
       end
     end
 
-    # This does not remove any data coming from EPIC, only upsert
     def import(klass:, file:)
-      path = "#{@config['destination']}/#{file}"
+      path = File.join((@local_path || @config['destination']), file)
       handle = read_csv_file(path: path)
       if ! header_row_matches(file: handle, klass: klass)
         msg = "Incorrect file format for #{file}"
@@ -71,8 +71,12 @@ module Health::Tasks
       end
 
       klass.transaction do
-        klass.delete_all
-        insert_batch klass, clean_values.first.keys, clean_values.map(&:values), transaction: false, batch_size: 500
+        if klass.use_tsql_import?
+          klass.delete_all
+          insert_batch(klass, clean_values.first.keys, clean_values.map(&:values), transaction: false, batch_size: 500)
+        else
+          klass.process_new_data(clean_values)
+        end
       end
     end
 

@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisCsvTwentyTwenty::Importer
@@ -23,6 +23,44 @@ module HmisCsvTwentyTwenty::Importer
 
     def self.warehouse_class
       GrdaWarehouse::Hud::ProjectCoc
+    end
+
+    def self.hmis_validations
+      {
+        ProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        CoCCode: [
+          {
+            class: HmisCsvValidation::NonBlank,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.cocs.keys.freeze },
+          },
+        ],
+        Geocode: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::ValidFormat,
+            arguments: { regex: /^[0-9]{6}$/ },
+          },
+        ],
+        State: [
+          {
+            class: HmisCsvValidation::ValidFormat,
+            arguments: { regex: /^[a-zA-Z]{2}$/ },
+          },
+        ],
+        Zip: [
+          {
+            class: HmisCsvValidation::ValidFormat,
+            arguments: { regex: /^[0-9]{5}$/ },
+          },
+        ],
+      }
     end
   end
 end

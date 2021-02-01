@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisCsvTwentyTwenty::Importer
@@ -23,6 +23,17 @@ module HmisCsvTwentyTwenty::Importer
 
     def self.warehouse_class
       GrdaWarehouse::Hud::Affiliation
+    end
+
+    def self.hmis_validations
+      {
+        ProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        ResProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+      }
     end
   end
 end

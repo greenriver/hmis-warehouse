@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -53,7 +53,7 @@ module Importers::HmisAutoDetect
     end
 
     def log(message)
-      @notifier.ping(message) if @notifier
+      @notifier&.ping(message)
       Rails.logger.info(message)
     end
 

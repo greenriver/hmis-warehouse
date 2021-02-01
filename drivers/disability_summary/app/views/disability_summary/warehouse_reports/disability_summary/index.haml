@@ -1,10 +1,4 @@
 :ruby
-  reports = [@report]
-  column_class = 'col-sm-12'
-  if @report.include_comparison?
-    reports << @comparison
-    column_class = 'col-sm-6'
-  end
   @layout__plain_inner = true
   @layout__width = 'lg'
 
@@ -24,53 +18,13 @@
         - if false # Disabled until the report structure has settled
           .text-right.mb-4
             = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: disability_summary_warehouse_reports_disability_summary_index_path({format: :xlsx}.merge(@filter.for_params))
-        .row
-          - reports.each_with_index do |report, index|
-            - comparison_class = ''
-            - if reports.count > 1
-              - comparison_class = "c-swatch__border-left--td-#{index}"
-            %div{class: column_class}
-              - data = report.data_for_disabilities[:all]
-              - if data
-                .mb-4
-                  %h3 Universe
-                  .card.overflow-scroll.mb-4{class: comparison_class}
-                    %table.table.table-striped
-                      %thead
-                        %tr
-                          - data.each do |disability, _|
-                            %th.text-center= disability
-                      %tbody
-                        %tr
-                          - data.each do |_, ids|
-                            %th.text-center= number_with_delimiter(ids.count)
-                - report.data_for_disabilities[:by_coc].each do |coc_code, data|
-                  .mb-4
-                    %h3= coc_code
-                    .card.overflow-scroll.mb-4{class: comparison_class}
-                      %table.table.table-striped
-                        %thead
-                          %tr
-                            - data[:disabilities_summary].each do |disability, _|
-                              %th.text-center= disability
-                        %tbody
-                          %tr
-                            - data[:disabilities_summary].each do |_, ids|
-                              %th.text-center= number_with_delimiter(ids.count)
-                    .card{class: comparison_class}
-                      %table.table.table-striped
-                        %thead
-                          %tr
-                            %th Disability
-                            %th Indefinite and Impairing
-                            %th Client Count
-                        %tbody
-                          - data[:disabilities].each do |disability, indefinite_data|
-                            - indefinite_data.each_with_index do |(indefinite, ids), index|
-                              %tr
-                                %th
-                                  - if index.zero?
-                                    = disability
-                                %td= indefinite.presence
-                                %td= number_with_delimiter(ids.count)
-      = render 'computation_description'
+      - @report.class.available_section_types.each do |section|
+        .rollup{data: {partial: section}}
+
+= render 'computation_description'
+-# load in all the bits of aggregate statistics via ajax
+= content_for :page_js do
+  :javascript
+    'use strict';
+    var section_path = #{(url_for(action: 'index') + '/section/').to_json.html_safe};
+    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});

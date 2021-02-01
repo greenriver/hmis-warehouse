@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,6 +29,7 @@ module Health
       'CHA.csv' => Health::EpicCha,
       'SSM.csv' => Health::EpicSsm,
       'QA_enc.csv' => Health::EpicCaseNoteQualifyingActivity,
+      'covid_vaccine.csv' => Health::Vaccination,
     }.freeze
   end
 end

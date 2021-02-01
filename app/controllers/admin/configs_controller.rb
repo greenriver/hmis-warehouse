@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -79,6 +79,7 @@ module Admin
         :pf_show_income,
         :pf_show_additional_timeliness,
         :cas_sync_months,
+        :send_sms_for_covid_reminders,
         client_details: [],
       )
     end

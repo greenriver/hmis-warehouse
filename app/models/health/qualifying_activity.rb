@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,8 +32,8 @@ module Health
     phi_attr :duplicate_id, Phi::OtherIdentifier
     phi_attr :epic_source_id, Phi::OtherIdentifier
 
-    MODE_OF_CONTACT_OTHER = 'other'
-    REACHED_CLIENT_OTHER = 'collateral'
+    MODE_OF_CONTACT_OTHER = 'other'.freeze
+    REACHED_CLIENT_OTHER = 'collateral'.freeze
 
     scope :submitted, -> do
       where.not(claim_submitted_on: nil)
@@ -101,11 +101,11 @@ module Health
         and(
           hpr_t[:disenrollment_date].eq(nil).
           or(
-            arel_table[:date_of_activity].lteq(hpr_t[:disenrollment_date])
-          )
-        )
+            arel_table[:date_of_activity].lteq(hpr_t[:disenrollment_date]),
+          ),
+        ),
       ).
-      joins(patient: :patient_referrals).
+        joins(patient: :patient_referrals).
         merge(Health::PatientReferral.contributing)
     end
 
@@ -141,7 +141,7 @@ module Health
           code: '',
           weight: 40,
         },
-      }.sort_by{|_, m| m[:weight]}.to_h
+      }.sort_by { |_, m| m[:weight]}.to_h
     end
 
     def self.client_reached
@@ -166,7 +166,7 @@ module Health
           code: 'UK',
           weight: 30,
         },
-      }.sort_by{|_, m| m[:weight]}.to_h
+      }.sort_by { |_, m| m[:weight]}.to_h
     end
 
     def self.activities
@@ -231,22 +231,22 @@ module Health
           code: 'T2024>U4',
           weight: 100,
         },
-      }.sort_by{|_, m| m[:weight]}.to_h
+      }.sort_by { |_, m| m[:weight]}.to_h
     end
 
     def self.date_search(start_date, end_date)
       if start_date.present? && end_date.present?
-        self.where("date_of_activity >= ? AND date_of_activity <= ?", start_date, end_date)
+        where('date_of_activity >= ? AND date_of_activity <= ?', start_date, end_date)
       elsif start_date.present?
-        self.where("date_of_activity >= ?", start_date)
+        where('date_of_activity >= ?', start_date)
       elsif end_date.present?
-        self.where("date_of_activity <= ?", end_date)
+        where('date_of_activity <= ?', end_date)
       else
         QualifyingActivity.all
       end
     end
 
-    def self.face_to_face? value
+    def self.face_to_face?(value)
       face_to_face_modes.include?(value&.to_sym)
     end
 
@@ -255,14 +255,14 @@ module Health
       keys = [
         :in_person,
       ]
-      Health::QualifyingActivity.modes_of_contact.select{ |k,_| keys.include? k }.
-        map{ |_,m| m[:title] } + keys
+      Health::QualifyingActivity.modes_of_contact.select { |k, _| keys.include? k }.
+        map { |_, m| m[:title] } + keys
     end
 
     # These validations must come after the above methods
-    validates :mode_of_contact, inclusion: {in: Health::QualifyingActivity.modes_of_contact.keys.map(&:to_s)}, allow_blank: true
-    validates :reached_client, inclusion: {in: Health::QualifyingActivity.client_reached.keys.map(&:to_s)}, allow_blank: true
-    validates :activity, inclusion: {in: Health::QualifyingActivity.activities.keys.map(&:to_s)}, allow_blank: true
+    validates :mode_of_contact, inclusion: { in: Health::QualifyingActivity.modes_of_contact.keys.map(&:to_s) }, allow_blank: true
+    validates :reached_client, inclusion: { in: Health::QualifyingActivity.client_reached.keys.map(&:to_s) }, allow_blank: true
+    validates :activity, inclusion: { in: Health::QualifyingActivity.activities.keys.map(&:to_s) }, allow_blank: true
     validates_presence_of(
       :user,
       :user_full_name,
@@ -297,45 +297,48 @@ module Health
     end
 
     def self.load_string_collection(collection)
-      collection.map{|k, v| [v, k]}
+      collection.map { |k, v| [v, k]}
     end
 
     def self.mode_of_contact_collection
-      self.load_string_collection(
+      load_string_collection(
         modes_of_contact.
         # select{ |k,_| k != :other }.
-        map{|k, mode| [k, mode[:title]] }
+        map { |k, mode| [k, mode[:title]] },
       )
     end
 
     def self.reached_client_collection
-      self.load_string_collection(
+      load_string_collection(
         client_reached.
-        map{|k, mode| [k, mode[:title]] }
+        map { |k, mode| [k, mode[:title]] },
       )
     end
 
     def self.activity_collection
       # suppress_from_view = [:pctp_signed]
-      self.load_string_collection(
+      load_string_collection(
         activities.
         # reject{|k| suppress_from_view.include?(k)}.
-        map{|k, mode| [k, mode[:title]] }
+        map { |k, mode| [k, mode[:title]] },
       )
     end
 
     def activity_title key
       return '' unless key
+
       self.class.activities[key&.to_sym].try(:[], :title) || key
     end
 
     def mode_of_contact_title key
       return '' unless key
+
       self.class.modes_of_contact[key&.to_sym].try(:[], :title) || key
     end
 
     def client_reached_title key
       return '' unless key
+
       self.class.client_reached[key&.to_sym].try(:[], :title) || key
     end
 
@@ -357,37 +360,29 @@ module Health
 
     def display_sections(index)
       section = {
-        subtitle: "Qualifying Activity ##{index+1}",
+        subtitle: "Qualifying Activity ##{index + 1}",
         values: [
-          {key: 'Mode of Contact:', value: title_for_mode_of_contact, other: (mode_of_contact_is_other? ? {key: 'Other:', value: mode_of_contact_other} : false)},
-          {key: 'Reached Client:', value: title_for_client_reached, other: (reached_client_is_collateral_contact? ? {key: 'Collateral Contact:', value: reached_client_collateral_contact} : false)},
-          {key: 'Which type of activity took place?', value: title_for_activity, include_br_before: true},
-          {key: 'Date of Activity:', value: date_of_activity&.strftime('%b %d, %Y')},
-          {key: 'Follow up:', value: follow_up, text_area: true}
-        ]
+          { key: 'Mode of Contact:', value: title_for_mode_of_contact, other: (mode_of_contact_is_other? ? { key: 'Other:', value: mode_of_contact_other } : false) },
+          { key: 'Reached Client:', value: title_for_client_reached, other: (reached_client_is_collateral_contact? ? { key: 'Collateral Contact:', value: reached_client_collateral_contact } : false) },
+          { key: 'Which type of activity took place?', value: title_for_activity, include_br_before: true },
+          { key: 'Date of Activity:', value: date_of_activity&.strftime('%b %d, %Y') },
+          { key: 'Follow up:', value: follow_up, text_area: true },
+        ],
       }
-      if claim_submitted_on.present?
-        section[:values].push({key: 'Claim submitted on:', value: claim_submitted_on.strftime('%b %d, %Y')})
-      end
+      section[:values].push({ key: 'Claim submitted on:', value: claim_submitted_on.strftime('%b %d, %Y') }) if claim_submitted_on.present?
       section
     end
 
     def title_for_mode_of_contact
-      if mode_of_contact.present?
-        self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :title)
-      end
+      self.class.modes_of_contact[mode_of_contact&.to_sym].try(:[], :title) if mode_of_contact.present?
     end
 
     def title_for_client_reached
-      if reached_client.present?
-        self.class.client_reached[reached_client&.to_sym].try(:[], :title)
-      end
+      self.class.client_reached[reached_client&.to_sym].try(:[], :title) if reached_client.present?
     end
 
     def title_for_activity
-      if activity.present?
-        self.class.activities[activity&.to_sym].try(:[], :title)
-      end
+      self.class.activities[activity&.to_sym].try(:[], :title) if activity.present?
     end
 
     def procedure_code
@@ -409,7 +404,7 @@ module Health
     end
 
     def compute_procedure_valid?
-      return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && self.reached_client.present?
+      return false unless date_of_activity.present? && activity.present? && mode_of_contact.present? && reached_client.present?
 
       procedure_code = self.procedure_code
       modifiers = self.modifiers
@@ -446,7 +441,7 @@ module Health
     def first_of_type_for_day_for_patient?
       # Assumes ids are strictly increasing, so the lowest id will
       # be the id of the first QA on the day
-      same_of_type_for_day_for_patient.minimum(:id) == self.id
+      same_of_type_for_day_for_patient.minimum(:id) == id
     end
 
     # Find the id of the first_of_type_for_day_for_patient if is
@@ -480,9 +475,9 @@ module Health
       ).where(
         hqa_t[:date_of_activity].lteq(date_of_activity),
       ).group(
-        Arel.sql("DATE_TRUNC('month', date_of_activity)")
+        Arel.sql("DATE_TRUNC('month', date_of_activity)"),
       ).count
-      outreaches_by_month.reject{|k, v| v.zero?}.keys.count
+      outreaches_by_month.reject { |_k, v| v.zero?}.keys.count
     end
 
     def number_of_non_outreach_activity_months
@@ -494,9 +489,9 @@ module Health
       ).where(
         hqa_t[:date_of_activity].lteq(date_of_activity),
       ).group(
-        Arel.sql("DATE_TRUNC('month', date_of_activity)")
+        Arel.sql("DATE_TRUNC('month', date_of_activity)"),
       ).count
-      non_outreaches_by_month.reject{|k, v| v.zero?}.keys.count
+      non_outreaches_by_month.reject { |_k, v| v.zero?}.keys.count
     end
 
     def same_of_type_for_day_for_patient
@@ -512,7 +507,7 @@ module Health
         patient_id: patient_id,
         date_of_activity: (date_of_activity.beginning_of_month..date_of_activity.end_of_month),
       ).where(
-        activity: :outreach
+        activity: :outreach,
       )
     end
 
@@ -521,7 +516,7 @@ module Health
         patient_id: patient_id,
         date_of_activity: (date_of_activity.beginning_of_month..date_of_activity.end_of_month),
       ).where.not(
-        activity: :outreach
+        activity: :outreach,
       )
     end
 
@@ -530,13 +525,13 @@ module Health
       # 10/31/2018 removed meets_date_restrictions? check.  QA that are valid but unpayable
       # will still be submitted
       self.naturally_payable = compute_procedure_valid?
-      if self.naturally_payable && once_per_day_procedure_codes.include?(procedure_code.to_s)
+      if naturally_payable && once_per_day_procedure_codes.include?(procedure_code.to_s)
         # Log duplicates for any that aren't the first of type for a type that can't be repeated on the same day
         self.duplicate_id = first_of_type_for_day_for_patient_not_self
       else
         self.duplicate_id = nil
       end
-      self.save(validate: false) if self.changed?
+      save(validate: false) if changed?
     end
 
     def maintain_cached_values
@@ -546,12 +541,12 @@ module Health
 
     def maintain_valid_unpayable
       self.valid_unpayable = compute_valid_unpayable?
-      self.save(validate: false)
+      save(validate: false)
     end
 
     def maintain_procedure_valid
       self.procedure_valid = compute_procedure_valid?
-      self.save(validate: false)
+      save(validate: false)
     end
 
     def compute_valid_unpayable?
@@ -564,9 +559,7 @@ module Health
       return true if computed_procedure_valid && ! occurred_during_any_enrollment?
 
       # Unpayable if this was a phone/video call where the client wasn't reached
-      if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
-        return true
-      end
+      return true if reached_client == 'no' && ['phone_call', 'video_call'].include?(mode_of_contact)
 
       # Signing a care plan is payable regardless of engagement status
       return false if activity == 'pctp_signed'
@@ -579,7 +572,7 @@ module Health
         return true if number_of_outreach_activity_months > 3
       else
         # Non-outreach activities are payable at 1 per month before engagement unless there is a care-plan
-        if ! patient_has_signed_careplan?
+        unless patient_has_signed_careplan?
           return true unless first_non_outreach_of_month_for_patient?
           return true if patient.engagement_date.blank?
           return true if date_of_activity > patient.engagement_date
@@ -592,7 +585,7 @@ module Health
 
     def validity_class
       return 'qa-ignored' if ignored?
-      return 'qa-valid-unpayable'if valid_unpayable?
+      return 'qa-valid-unpayable' if valid_unpayable?
       return 'qa-valid' if procedure_valid?
 
       'qa-invalid'
@@ -628,7 +621,6 @@ module Health
       date_of_activity >= patient.care_plan_provider_signed_date && date_of_activity < patient.care_plan_renewal_date
     end
 
-
     # Is a valid care_plan missing for the date_of_activity?. This is much
     # slower and more complex than patient_has_valid_care_plan? which
     # can be used to determine if a patent currently has a care plan more efficiently.
@@ -647,7 +639,8 @@ module Health
       patient_referrals = patient.patient_referrals.sort_by(&:enrollment_start_date)
 
       # Are there any referrals that were active at the time of this activity?
-      # Enrollments are intended to non-overlapping but are not always
+      # Enrollments are intended to non-overlapping but are not always.
+      # We respect a pending disenrollment assumed by insurer but not yet accepted by provider
       contributing_referrals = patient_referrals.select do |r|
         r.active_on?(date_of_activity)
       end.to_set
@@ -660,10 +653,12 @@ module Health
       # and any of our existing contributions is <= allowed_gap_in_days
       # This is O(n^2) but N is expected to stay small
       patient_referrals.reverse_each do |r|
-        next if r.in?(contributing_referrals)
-        next if r.enrollment_start_date > date_of_activity # dont need to consider this one, it started after the QA
+        next if r.enrollment_start_date > date_of_activity # don't need to consider this one, it started after the QA
+        next if r.in?(contributing_referrals) # already found it
+
         close_enough = contributing_referrals.any? do |r2|
-          r.disenrollment_date.nil? || (r2.enrollment_start_date - r.disenrollment_date).to_i.between?(0, allowed_gap_in_days)
+          r_disnrollment = r.actual_or_pending_disenrollment_date
+          r_disnrollment.nil? || (r2.enrollment_start_date - r_disnrollment).to_i.between?(0, allowed_gap_in_days)
         end
         contributing_referrals << r if close_enough
       end
@@ -671,26 +666,38 @@ module Health
       # Just in case
       contributing_referrals = contributing_referrals.to_a.sort_by(&:enrollment_start_date)
 
-      # We need care plan signed within the first 150 accumulated
-      # days of enrollment from the initial enrollment in the series
+      # We have engagement_period_in_days of *accumulated* enrollment to get a care plan signed
+      # before that date we are in a grace period and the plan is not considered missing yet.
       enrolled_dates = Set.new
       contributing_referrals.each do |r|
         enrolled_dates += r.enrolled_days_to_date
         break if enrolled_dates.size >= engagement_period_in_days
       end
-      last_possible_enrollment_date = enrolled_dates.sort.first(engagement_period_in_days).last
 
-      # We have not yet been enrolled 150 days so there is still time for a careplan to arrive
+      # We have not yet been enrolled 150 days so there is still time for a care plan to arrive
       return false if enrolled_dates.size < engagement_period_in_days
 
-      care_plan_date_range = contributing_referrals.first.enrollment_start_date .. last_possible_enrollment_date
+      pcp_signed_plans = patient.careplans.select(&:provider_signed_on)
+      # Fast fail: no pcp signed plans at all.
+      return true if pcp_signed_plans.none?
 
-      # It's not missing if we can find a signed one within care_plan_date_range
-      return false if patient.careplans.any? do |cp|
-        cp.provider_signed_on && care_plan_date_range.cover?(cp.provider_signed_on)
+      # If a signed care plan was prepared at *any time* within the contributing_referrals containing
+      # this activity than the activity is covered by the plan except for the activities to
+      # create the plan itself. i.e. it does not matter if the plan was signed before or after the care plan.
+      first_enrollment_date = contributing_referrals.first.enrollment_start_date
+      last_enrollment_date = contributing_referrals.last.actual_or_pending_disenrollment_date
+      contributing_care_plans = pcp_signed_plans.select do |cp|
+        # Not sure on this... dont penalize the patient if the provider was late signing it
+        cp_date = [cp.provider_signed_on, cp.patient_signed_on].compact.min
+        (
+          (cp.expires_on.nil? || date_of_activity <= cp.expires_on) &&
+          (cp_date >= first_enrollment_date) &&
+          (last_enrollment_date.nil? || cp_date <= last_enrollment_date)
+        )
       end
+      return false if contributing_care_plans.any? && !activity.in?(['care_planning', 'pctp_signed'])
 
-      # Couldn't find it thus it's missing
+      # Couldn't find one meeting any of or conditions, thus it's missing
       return true
     end
 

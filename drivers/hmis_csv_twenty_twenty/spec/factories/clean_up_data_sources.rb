@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 FactoryBot.define do
   factory :cleanup_move_ins_ds, class: 'GrdaWarehouse::DataSource' do
     name { 'Clean Up Move In Dates' }

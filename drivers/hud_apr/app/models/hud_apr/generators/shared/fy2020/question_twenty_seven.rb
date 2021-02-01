@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HudApr::Generators::Shared::Fy2020
@@ -27,6 +27,16 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      youth_or_unknown = universe.members.where(
+        a_t[:other_clients_over_25].eq(false).and(
+          a_t[:age].between(12..24).and(a_t[:dob_quality].in([1, 2])).
+          or(
+            a_t[:dob_quality].in([nil, 8, 9, 99]).
+            or(a_t[:age].lt(0)).
+            or(a_t[:age].eq(nil)),
+          ),
+        ),
+      )
       q27_populations.values.each_with_index do |population_clause, col_index|
         youth_age_ranges.values.each_with_index do |response_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
@@ -34,7 +44,7 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(population_clause).
+          members = youth_or_unknown.where(population_clause).
             where(response_clause)
           # because we need to use the age for the given enrollment within the context of the report
           # we need to further limit this to only clients who are in households with only youth
@@ -145,7 +155,9 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(a_t[:age].between(18..24)).
+          members = universe.members.where(
+            a_t[:age].between(18..24).and(a_t[:other_clients_over_25].eq(false)),
+          ).
             where(population_clause).
             where(response_clause)
           value = members.count
@@ -177,7 +189,9 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
-            where(hoh_clause.and(a_t[:age].in(18..24))).
+            where(
+              hoh_clause.and(a_t[:age].in(18..24)).and(a_t[:other_clients_over_25].eq(false)),
+            ).
             where(population_clause).
             where(situation_clause)
           answer.add_members(members)
@@ -207,7 +221,9 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(a_t[:age].between(18..24)).
+          members = universe.members.where(
+            a_t[:age].between(18..24).and(a_t[:other_clients_over_25].eq(false)),
+          ).
             where(population_clause).
             where(length_clause)
 
@@ -242,7 +258,12 @@ module HudApr::Generators::Shared::Fy2020
           if destination_clause.is_a?(Symbol)
             case destination_clause
             when :percentage
-              members = universe.members.where(population_clause).where(a_t[:age].between(18..24))
+              members = universe.members.
+                where(population_clause).
+                where(
+                  a_t[:age].between(18..24).
+                    and(a_t[:other_clients_over_25].eq(false)),
+                )
               positive = members.where(q27f_destinations['Total persons exiting to positive housing destinations']).count
               total = members.count
               excluded = members.where(q27f_destinations['Total persons whose destinations excluded them from the calculation']).count
@@ -281,7 +302,13 @@ module HudApr::Generators::Shared::Fy2020
           members = universe.members.
             # Add youth filter to Q17, but expand universe to include youth adults AND youth
             # heads of household even if they are not adults.
-            where(hoh_clause.and(a_t[:age].between(0..24)).or(a_t[:age].between(18..24)))
+            where(
+              a_t[:other_clients_over_25].eq(false).
+                and(
+                  hoh_clause.and(a_t[:age].between(0..24)).
+                  or(a_t[:age].between(18..24)),
+                ),
+            )
 
           answer.update(summary: 0) and next if members.count.zero?
 
@@ -320,7 +347,13 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
           youth = universe.members.
-            where(hoh_clause.and(a_t[:age].between(0..24)).or(a_t[:age].between(18..24)))
+            where(
+              a_t[:other_clients_over_25].eq(false).
+                and(
+                  hoh_clause.and(a_t[:age].between(0..24)).
+                    or(a_t[:age].between(18..24)),
+                ),
+            )
           youth = youth.where(stayers_clause) if suffix == :annual_assessment
           youth = youth.where(leavers_clause) if suffix == :exit
 
@@ -371,7 +404,13 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
             # Only relevant to youth or < 24 HoH leavers with answers for income at exit and disability
-            where(hoh_clause.and(a_t[:age].between(0..24)).or(a_t[:age].between(18..24))).
+            where(
+              a_t[:other_clients_over_25].eq(false).
+                and(
+                  hoh_clause.and(a_t[:age].between(0..24)).
+                    or(a_t[:age].between(18..24)),
+                ),
+            ).
             where(leavers_clause).
             where(a_t[:disabling_condition].in([0, 1])).
             where(a_t[:income_from_any_source_at_exit].in([0, 1]))

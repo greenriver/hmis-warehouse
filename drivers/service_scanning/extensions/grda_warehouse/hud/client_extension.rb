@@ -1,5 +1,12 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module ServiceScanning::GrdaWarehouse
 end
+
 module ServiceScanning::GrdaWarehouse::Hud
   module ClientExtension
     extend ActiveSupport::Concern

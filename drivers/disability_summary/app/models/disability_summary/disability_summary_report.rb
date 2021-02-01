@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module DisabilitySummary
@@ -35,6 +35,31 @@ module DisabilitySummary
 
     def self.url
       'disability_summary/warehouse_reports/disability_summary'
+    end
+
+    def section_subpath
+      "#{self.class.url}/"
+    end
+
+    def self.available_section_types
+      [
+        'disabilities',
+      ]
+    end
+
+    def section_ready?(section)
+      Rails.cache.exist?(cache_key_for_section(section))
+    end
+
+    private def cache_key_for_section(section)
+      case section
+      when 'disabilities'
+        disabilities_cache_key
+      end
+    end
+
+    private def disabilities_cache_key
+      [self.class.name, cache_slug, 'disabilities']
     end
 
     def multiple_project_types?
@@ -92,8 +117,7 @@ module DisabilitySummary
       scope = filter_for_chronic_status(scope)
       scope = filter_for_ca_homeless(scope)
       scope = filter_for_prior_living_situation(scope)
-      scope = filter_for_destination(scope)
-      scope
+      filter_for_destination(scope)
     end
 
     def report_scope_source
@@ -124,7 +148,7 @@ module DisabilitySummary
 
     # most recent response for each client for each disability type per CoC
     def data_for_disabilities
-      @data_for_disabilities ||= begin
+      @data_for_disabilities ||= Rails.cache.fetch(disabilities_cache_key, expires_in: expiration_length) do
         data = {}
         # binding.pry
         report_scope.joins(enrollment: :disabilities, project: :project_cocs).

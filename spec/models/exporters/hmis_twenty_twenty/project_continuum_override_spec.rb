@@ -1,6 +1,6 @@
 require 'rails_helper'
-require 'models/exporters/hmis_twenty_twenty/project_continuum_override_setup.rb'
-require 'models/exporters/hmis_twenty_twenty/project_continuum_override_tests.rb'
+require 'models/exporters/hmis_twenty_twenty/project_continuum_override_setup'
+require 'models/exporters/hmis_twenty_twenty/project_continuum_override_tests'
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
   include_context '2020 project continuum override setup'

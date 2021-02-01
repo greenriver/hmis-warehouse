@@ -1,5 +1,5 @@
 # config valid only for current version of Capistrano
-lock '~> 3.11.0'
+lock '~> 3.15.0'
 
 set :application, 'warehouse'
 set :repo_url, 'https://github.com/greenriver/hmis-warehouse.git'

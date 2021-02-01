@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisCsvTwentyTwenty::Importer
@@ -38,6 +38,39 @@ module HmisCsvTwentyTwenty::Importer
           {
             class: HmisCsvValidation::InclusionInSet,
             arguments: { valid_options: HUD.ssn_data_quality_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        DOBDataQuality: [
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.dob_data_quality_options.keys.map(&:to_s).freeze },
+          },
+        ],
+        Ethnicity: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.ethnicities.keys.map(&:to_s).freeze },
+          },
+        ],
+        Gender: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.genders.keys.map(&:to_s).freeze },
+          },
+        ],
+        VeteranStatus: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.no_yes_reasons_for_missing_data_options.keys.map(&:to_s).freeze },
           },
         ],
       }

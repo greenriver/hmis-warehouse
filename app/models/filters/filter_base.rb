@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -68,8 +68,8 @@ module Filters
     def set_from_params(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Naming/AccessorMethodName
       return self unless filters.present?
 
-      self.start = filters.dig(:start)&.to_date
-      self.end = filters.dig(:end)&.to_date
+      self.start = filters.dig(:start)&.to_date || default_start
+      self.end = filters.dig(:end)&.to_date || default_end
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }
       self.coc_code = filters.dig(:coc_code) if available_coc_codes.include?(filters.dig(:coc_code))

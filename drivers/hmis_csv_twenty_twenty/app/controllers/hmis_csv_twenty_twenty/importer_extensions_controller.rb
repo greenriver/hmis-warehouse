@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
@@ -16,6 +16,7 @@ class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
     config = {
       import_aggregators: {},
       import_cleanups: {},
+      refuse_imports_with_errors: params.dig(:extensions, :refuse_imports_with_errors),
     }
     allowed_extensions.each do |extension|
       next unless params[:extensions][extension.to_s] == '1'

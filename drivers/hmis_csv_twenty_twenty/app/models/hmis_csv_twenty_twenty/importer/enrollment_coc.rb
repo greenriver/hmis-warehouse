@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HmisCsvTwentyTwenty::Importer
@@ -30,8 +30,41 @@ module HmisCsvTwentyTwenty::Importer
       {
         HouseholdID: [
           {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
             class: HmisCsvValidation::Length,
             arguments: { max: 32 },
+          },
+        ],
+        EnrollmentID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        ProjectID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        PersonalID: [
+          class: HmisCsvValidation::NonBlank,
+        ],
+        InformationDate: [
+          class: HmisCsvValidation::NonBlankValidation,
+        ],
+        CoCCode: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.cocs.keys.freeze },
+          },
+        ],
+        DataCollectionStage: [
+          {
+            class: HmisCsvValidation::NonBlankValidation,
+          },
+          {
+            class: HmisCsvValidation::InclusionInSet,
+            arguments: { valid_options: HUD.data_collection_stages.keys.map(&:to_s).freeze },
           },
         ],
       }

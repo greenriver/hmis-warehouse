@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,7 @@ module GrdaWarehouse::HealthEmergency
   class Test < GrdaWarehouseBase
     include ::HealthEmergency
 
+    validates_presence_of :tested_on, :result, on: :create
     scope :visible_to, -> (user) do
       return current_scope if user.can_see_health_emergency_clinical?
 

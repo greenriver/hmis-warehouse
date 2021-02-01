@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,9 +14,6 @@ module Exporters::HmisTwentyTwenty
     attr_accessor :logger, :notifier_config, :file_path, :export
 
     def initialize( # rubocop:disable  Metrics/ParameterLists
-      file_path: 'var/hmis_export',
-      logger: Rails.logger,
-      debug: true,
       start_date:,
       end_date:,
       projects:,
@@ -26,7 +23,10 @@ module Exporters::HmisTwentyTwenty
       faked_pii: false,
       include_deleted: false,
       user_id: nil,
-      faked_environment: :development
+      faked_environment: :development,
+      file_path: 'var/hmis_export',
+      logger: Rails.logger,
+      debug: true
     )
       setup_notifier('HMIS Exporter 2020')
       @file_path = "#{file_path}/#{Time.now.to_f}"
@@ -34,15 +34,15 @@ module Exporters::HmisTwentyTwenty
       @debug = debug
       @range = ::Filters::DateRange.new(start: start_date, end: end_date)
       @projects = projects
-      @period_type = period_type
-      @directive = directive
-      @hash_status = hash_status
+      @period_type = period_type.presence || 3
+      @directive = directive.presence || 2
+      @hash_status = hash_status.presence || 1
       @faked_pii = faked_pii
       @user = begin
-                current_user
-              rescue StandardError
-                User.find(user_id)
-              end
+        current_user
+      rescue StandardError
+        User.find(user_id)
+      end
       @include_deleted = include_deleted
       @faked_environment = faked_environment
     end
@@ -424,7 +424,7 @@ module Exporters::HmisTwentyTwenty
       export.SoftwareName = _('OpenPath HMIS Warehouse')
       export.SoftwareVersion = 1
       export.ExportPeriodType = @period_type
-      export.ExportDirective = @directive
+      export.ExportDirective = @directive || 2
       export.HashStatus = @hash_status
       export.export!
     end
