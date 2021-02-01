@@ -174,7 +174,7 @@ module HudApr::Generators::Shared::Fy2020
             non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
             non_cash_benefits_from_any_source_at_start: income_at_start&.BenefitsFromAnySource,
             # SHE other_clients_over_25 is computed at entry date, and we need to consider the report start date
-            other_clients_over_25: only_youth?(
+            other_clients_over_25: ! only_youth?(
               OpenStruct.new(
                 household_members: household_member_data(last_service_history_enrollment),
                 first_date_in_program: last_service_history_enrollment.first_date_in_program,
