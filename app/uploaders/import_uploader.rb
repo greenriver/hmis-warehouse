@@ -12,7 +12,7 @@ class ImportUploader < CarrierWave::Uploader::Base
   # include CarrierWave::MiniMagick
 
   # Choose what kind of storage to use for this uploader:
-  if ENV['S3_TMP_ACCESS_KEY_SECRET'].present?
+  if ENV['S3_TMP_ACCESS_KEY_SECRET'].present? && ENV['RAILS_ENV'] != 'test'
     storage :aws
   else
     storage :file

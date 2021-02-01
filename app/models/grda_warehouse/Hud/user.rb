@@ -31,7 +31,7 @@ module GrdaWarehouse::Hud
     has_many :project_coss, **hud_assoc(:UserID, 'ProjectCoc')
     has_many :services, **hud_assoc(:UserID, 'Service')
 
-    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :users
+    belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :users, optional: true
     belongs_to :data_source
 
   end

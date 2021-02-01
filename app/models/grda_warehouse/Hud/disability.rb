@@ -15,7 +15,7 @@ module GrdaWarehouse::Hud
 
     attr_accessor :source_id
 
-    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities
+    belongs_to :enrollment, **hud_enrollment_belongs, inverse_of: :disabilities, optional: true
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_disabilities
     has_one :client, through: :enrollment, inverse_of: :disabilities
     has_one :project, through: :enrollment
