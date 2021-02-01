@@ -28,7 +28,7 @@ module TextMessage::Health
             where(
               first_name: vaccination.first_name,
               last_name: vaccination.last_name,
-              phone_number: follow_up_cell_phone.tr('^0-9', ''),
+              phone_number: vaccination.follow_up_cell_phone&.tr('^0-9', ''),
             ).first_or_create do |subs|
             subs.subscribed_at = Time.current
             subs.preferred_language = clean_preferred_language
