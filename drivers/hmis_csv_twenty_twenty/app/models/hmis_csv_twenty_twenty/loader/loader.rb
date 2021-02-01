@@ -166,20 +166,16 @@ module HmisCsvTwentyTwenty::Loader
         source_file_path = File.join(@file_path, file_name)
         next unless File.file?(source_file_path)
 
-        bm = Benchmark.measure do
-          # Look at the file to see if we can determine the encoding
-          file_mode = if use_encoding_detector && encoding_detector
-            file_encoding = encoding_detector.detect(File.read(source_file_path)).try(:[], :encoding)
-            "r:#{file_encoding}:utf-8"
-          else
-            'r'
-          end
-          File.open(source_file_path, file_mode) do |file|
-            load_source_file_pg(read_from: file, klass: klass)
-          end
+        # Look at the file to see if we can determine the encoding
+        file_mode = if use_encoding_detector && encoding_detector
+          file_encoding = encoding_detector.detect(File.read(source_file_path)).try(:[], :encoding)
+          "r:#{file_encoding}:utf-8"
+        else
+          'r'
         end
-        records = klass.where(loader_id: @loader_log.id).count
-        log "  Loaded (loader_id=#{@loader_log.id}) #{records} records into #{klass.quoted_table_name}. #{(records / bm.real).round(3)} rec/s. #{bm.to_s.strip}"
+        File.open(source_file_path, file_mode) do |file|
+          load_source_file_pg(read_from: file, klass: klass)
+        end
       end
     end
 
@@ -256,77 +252,88 @@ module HmisCsvTwentyTwenty::Loader
       file_name = read_from.path
       base_name = File.basename(file_name)
 
-      headers = CSV.parse_line(read_from, headers: false, liberal_parsing: true)
-      if headers.none?
-        err = 'No data.'
-        msg = "Unable to import #{file_name}: #{err}"
-        log(msg)
-        add_error(file_path: read_from.path, message: err, line: '')
-        return
-      end
-      if header_invalid?(headers, klass)
-        err = "Header invalid: \n#{headers}; \nexpected a subset of: \n#{klass.hud_csv_headers.map(&:to_s)}"
-        msg = "Unable to import #{file_name}, #{err}"
-        log(msg)
-        add_error(file_path: read_from.path, message: err, line: '')
-        return
-      end
-
-      conn = klass.connection
-
-      cols = clean_header_row(headers, klass) + ['data_source_id', 'loader_id', 'loaded_at']
-
-      col_list = cols.map do |col|
-        conn.quote_column_name(col)
-      end.join(',')
+      log("Copying #{base_name} into #{klass.table_name}")
+      raise 'data_source.id must be set' unless data_source.id.present?
+      raise '@loader_log.id must be set' unless @loader_log.id.present?
+      raise '@loaded_at must be set' unless @loaded_at.present?
 
       meta_data = [data_source.id, @loader_log.id, @loaded_at]
 
-      lines_loaded = 0
+      header_row = CSV.parse_line(read_from, headers: false, liberal_parsing: true)
+      copy_cols = clean_header_row(header_row, klass, file_name)
+      return unless copy_cols
+
+      col_list = copy_cols.map { |c| klass.connection.quote_column_name c }.join(',')
       copy_sql = <<~SQL.strip
         COPY #{klass.quoted_table_name} (#{col_list})
         FROM STDIN
         WITH (FORMAT csv,HEADER,QUOTE '"',DELIMITER ',')
       SQL
-      # logger.debug { meta_data }
-      # logger.debug { copy_sql }
-      log("Copying #{base_name} into #{klass.table_name}")
-      pg_conn = conn.raw_connection
-      expected_cols = headers.size
-      klass.transaction do
-        conn.logger&.debug { copy_sql }
-        pg_conn.copy_data copy_sql do
+      # log("   #{copy_sql}")
+
+      total_lines = 0
+      lines_loaded = nil
+      # SLOW_CHECK; klass.connection.transaction do
+      bm = Benchmark.measure do
+        pg_conn = klass.connection.raw_connection
+        pg_result = pg_conn.copy_data copy_sql do
           read_from.rewind
           CSV.parse(read_from, headers: false, liberal_parsing: true) do |row|
+            total_lines += 1
+
             # ensure the row is long enough before
             # we put the typed meta_data at the end
             # all loader tables should handle nil data for columns
             # with missing values
-            row << nil while row.size < expected_cols
+            row << nil while row.size < copy_cols.size - meta_data.size
+            pg_conn.put_copy_data (row + meta_data).to_csv
 
-            pg_row = (row + meta_data).to_csv
-            pg_conn.put_copy_data pg_row
-            lines_loaded += 1
+            # SLOW_CHECK; data = copy_cols.zip(row + meta_data).to_h
+            # SLOW_CHECK;  klass.create! data
           end
         end
+        lines_loaded = pg_result.cmd_tuples
       end
+      # SLOW_CHECK; end
+
       @loader_log.summary[base_name].tap do |stat|
-        log("  Read #{lines_loaded} lines")
-        stat['total_lines'] = lines_loaded
+        stat['total_lines'] = total_lines
         stat['lines_loaded'] = lines_loaded
+        # line_loaded comes from pg directly, if we dont trust it we
+        # can go back for a count
+        # if total_lines > 1
+        #   scope = klass.where(
+        #     data_source_id: data_source.id,
+        #     loader_id: @loader_log.id,
+        #   )
+        #   scope = scope.with_deleted if klass.respond_to?(:with_deleted)
+        #   stat['verified'] = scope.count
+        # end
+        rps = (lines_loaded / bm.real).round(3)
+        log "  Loaded #{base_name} #{JSON.generate({ rps: rps, loader_id: @loader_log.id }.merge(stat))}"
       end
     rescue PG::Error => e
-      add_error(file_path: read_from.path, message: e.message, line: '')
+      add_error(file_path: read_from.path, message: e.message, line: total_lines)
     end
 
     # Headers need to match our style
-    def clean_header_row(source_headers, klass)
+    def clean_header_row(source_headers, klass, file_path)
+      if source_headers.none?
+        add_error(file_path: file_path, message: 'No header row found', line: 1)
+        return
+      end
+      if header_invalid?(source_headers, klass)
+        add_error(file_path: file_path, message: "Header invalid: \n#{source_headers}; \nexpected a subset of: \n#{klass.hud_csv_headers.map(&:to_s)}", line: 1)
+        return
+      end
+
       indexed_headers = klass.hud_csv_headers.map do |k|
         [k.to_s.downcase, k]
       end.to_h
+
       source_headers.map do |k|
         indexed_headers[k&.downcase].to_s
-      end
+      end + ['data_source_id', 'loader_id', 'loaded_at']
     end
 
     def importable_files
@@ -426,8 +433,8 @@ module HmisCsvTwentyTwenty::Loader
         details: message,
         source: line,
       )
-      @loader_log.summary[file]['total_errors'] += 1
       log(message)
+      @loader_log.summary[file]['total_errors'] += 1
     end
   end
 end

@@ -561,10 +561,10 @@ module HmisCsvTwentyTwenty::Importer
       end
       return nil
     rescue StandardError => e
-      log("process failed: #{e.message}")
+      log "batch failed: #{e.message}... processing records one at a time"
       errors = []
       batch.each do |row|
-        row.save(validate: use_ar_model_validations)
+        row.save!(validate: use_ar_model_validations)
         note_processed(file_name, 1, type)
       rescue StandardError => e
         errors << add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
