@@ -20,7 +20,5 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
 
   it 'handles example 2' do
     pp report_result
-    puts @user.email
-    assert true, 'code loads OK'
   end
 end

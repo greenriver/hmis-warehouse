@@ -8,13 +8,13 @@ RSpec.configure do |config| # rubocop:disable Lint/UnusedBlockArgument
   RSpec.configuration.fixpoints_path = 'drivers/hud_spm_report/spec/fixpoints'
 end
 
-RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
-  USER_EMAIL = 'spm_reporter@example.com'.freeze
+SPM_USER_EMAIL = 'spm_reporter@example.com'.freeze
 
+RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   before(:context) do
     cleanup
-
-    @user = create(:user, email: USER_EMAIL)
+    puts '  Setting up DB'
+    @user = create(:user, email: SPM_USER_EMAIL)
   end
 
   after(:context) do
@@ -22,8 +22,9 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   end
 
   def cleanup
-    puts '  Cleaning up'
-    User.with_deleted.where(email: USER_EMAIL).delete_all
+    puts '  Cleaning up DB'
+    @user&.really_destroy!
+    User.with_deleted.where(email: SPM_USER_EMAIL).delete_all
   end
 
   def shared_filter
