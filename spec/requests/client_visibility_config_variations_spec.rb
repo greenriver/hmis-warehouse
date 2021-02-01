@@ -33,7 +33,7 @@ RSpec.describe ClientsController, type: :request, vcr: true do
   end
 
   configs_variations.each do |variation|
-    context 'when config b is in effect' do
+    context 'when using variable configs' do
       before do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
@@ -41,17 +41,40 @@ RSpec.describe ClientsController, type: :request, vcr: true do
       let!(:config) { create :config_b, variation }
       let!(:user) { create :user }
 
-      describe 'and the user has a role granting can view clients' do
+      describe 'and the user has a fairly admin-like role' do
         before do
           user.roles << can_view_clients
           user.roles << can_search_window
+          user.roles << can_view_all_reports
+          user.roles << can_edit_users
+          user.roles << can_manage_config
+          user.roles << can_view_censuses
+          user.roles << can_edit_data_sources
+          GrdaWarehouse::DataSource.all.each do |ds|
+            user.add_viewable(ds)
+          end
           sign_in user
         end
-        it 'user can see all clients' do
-          get clients_path(q: 'bob')
-          doc = Nokogiri::HTML(response.body)
-          expect(doc.text).to include('Displaying all 2 clients')
-          expect(response).to have_http_status(200)
+
+        it 'returns a 200 when visiting various pages' do
+          aggregate_failures 'checking pages' do
+            get clients_path(q: 'bob')
+            expect(response).to have_http_status(200)
+            get(warehouse_reports_path)
+            expect(response).to have_http_status(200)
+            get client_path(window_destination_client)
+            expect(response).to have_http_status(200)
+            get client_path(non_window_destination_client)
+            expect(response).to have_http_status(200)
+            get(dashboards_clients_path)
+            expect(response).to have_http_status(200)
+            get(data_sources_path)
+            expect(response).to have_http_status(200)
+            get(admin_users_path)
+            expect(response).to have_http_status(200)
+            get(admin_configs_path)
+            expect(response).to have_http_status(200)
+          end
         end
       end
     end
