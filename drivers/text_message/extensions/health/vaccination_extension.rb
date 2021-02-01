@@ -16,7 +16,8 @@ module TextMessage::Health
         return unless GrdaWarehouse::Config.get(:send_sms_for_covid_reminders)
 
         # Find any vaccinations with contact information
-        # where we haven't already setup follow-up messages
+        # where we haven't already setup follow-up messages.
+        # Don't create the reminder if the date has passed
         with_phone.where.not(id: joins(:text_messages).select(:id)).find_each do |vaccination|
           topic = TextMessage::Topic.where(title: 'COVID-19 Second Dose Reminders').first_or_create do |new_topic|
             new_topic.send_hour = 9
@@ -31,29 +32,39 @@ module TextMessage::Health
             subs.preferred_language = clean_preferred_language
           end
 
-          # Initial reminder
+          # Second reminder
+          reminder_date = follow_up_date - 1.days
+          next if reminder_date.to_date <= Date.current
+
           subscriber.messages.where(
             topic: topic,
-            send_on_or_after: follow_up_date - 1.weeks,
+            send_on_or_after: reminder_date,
           ).first_or_create do |message|
-            message.content = initial_reminder_content
+            message.content = second_reminder_content
             message.source = self
           end
 
-          # Second reminder
+          # Initial reminder
+          reminder_date = follow_up_date - 1.weeks
+          next if reminder_date.to_date <= Date.current
+
           subscriber.messages.where(
             topic: topic,
-            send_on_or_after: follow_up_date - 1.days,
+            send_on_or_after: reminder_date,
           ).first_or_create do |message|
-            message.content = second_reminder_content
+            message.content = initial_reminder_content
             message.source = self
           end
         end
       end
 
       private def clean_preferred_language
-        # TODO: adjust based on real data
-        preferred_language
+        case preferred_language
+        when 'Spanish'
+          'es'
+        else
+          'en'
+        end
       end
 
       private def remove_text_messages
