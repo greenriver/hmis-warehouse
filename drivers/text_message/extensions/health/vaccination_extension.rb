@@ -18,7 +18,9 @@ module TextMessage::Health
         # Find any vaccinations with contact information
         # where we haven't already setup follow-up messages.
         # Don't create the reminder if the date has passed
-        with_phone.where.not(id: joins(:text_messages).select(:id)).find_each do |vaccination|
+        # NOTE: text messages exist in a different database
+        existing_text_message_vaccination_ids = TextMessage::Message.where(source_type: 'Health::Vaccination').pluck(:source_id)
+        with_phone.where.not(id: existing_text_message_vaccination_ids).find_each do |vaccination|
           topic = TextMessage::Topic.where(title: 'COVID-19 Second Dose Reminders').first_or_create do |new_topic|
             new_topic.send_hour = 9
           end
