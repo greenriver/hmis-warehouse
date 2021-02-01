@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HudApr::Generators::Shared::Fy2020
@@ -373,7 +373,7 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      veterans = universe.members.where(veterans_clause)
+      veterans = universe.members.where(veteran_clause)
       q25i_populations.values.each_with_index do |population_clause, col_index|
         q25i_destinations.values.each_with_index do |destination_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"

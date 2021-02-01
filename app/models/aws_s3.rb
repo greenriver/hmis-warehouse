@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,8 +44,9 @@ class AwsS3
     end
   end
 
+  # Return oldest first
   def fetch_key_list(prefix: '')
-    @bucket.objects(prefix: prefix).map do |obj|
+    @bucket.objects(prefix: prefix).sort_by(&:last_modified).map do |obj|
       obj.key
     end
   end
