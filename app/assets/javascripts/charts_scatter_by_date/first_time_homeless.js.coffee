@@ -22,11 +22,11 @@ class App.ChartsScatterByDate.FirstTimeHomeless extends App.ChartsScatterByDate.
       data.datasets[i].lineTension = 0
       data.datasets[i].borderWidth = 1
     options =
-      tooltips: 
-        callbacks: 
+      tooltips:
+        callbacks:
           label: @_format_tooltip_label
     @_individual_chart(data, id, options)
-  
+
   _follow_link: (event) =>
     chart = @charts[event.target.id.replace('chart-chart-', '')]
 
@@ -35,7 +35,7 @@ class App.ChartsScatterByDate.FirstTimeHomeless extends App.ChartsScatterByDate.
       date = chart.config.data.datasets[point._datasetIndex].data[point._index].x
       $('.jStart, .jEnd').val(date)
       $('.jFilter').submit()
-      # 
+      #
       # params = {type: @type, date: date, project: project}
       # url = @url.replace('date_range', 'details') + '?' + $.param(params)
       # window.open url

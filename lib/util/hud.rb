@@ -956,7 +956,7 @@ module HUD
   def other_situations(as:, version: nil)
     case version
     when '2020', nil
-      case as # rubocop:disable Style/HashLikeCase
+      case as
       when :prior
         [
           8,

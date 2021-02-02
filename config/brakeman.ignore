@@ -167,7 +167,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/ecs_tools.rb",
-      "line": 24,
+      "line": 25,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"ssh #{\"ecs0.openpath.host\"} 'docker commit #{`ssh #{\"ecs0.openpath.host\"} \"docker ps -a -n 10\"`.split(/\\n/).grep(/#{IMAGE}/).first.split(/\\s/).first} shell'\")",
       "render_path": null,
@@ -480,7 +480,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/ecs_tools.rb",
-      "line": 37,
+      "line": 38,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "exec(\"awslogs get #{group} ALL --watch\")",
       "render_path": null,
@@ -510,6 +510,26 @@
         "method": "db_exists?"
       },
       "user_input": "database",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "6939d235d9f32e7a2694b926a5cf73222ec7b924323cb268a68c11d2a20ea082",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/deploy/docker/lib/deployer.rb",
+      "line": 315,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}--pre-cache`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Deployer",
+        "method": "_pre_cache_image_exists?"
+      },
+      "user_input": "repo_name",
       "confidence": "Medium",
       "note": ""
     },
@@ -702,7 +722,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
-      "line": 42,
+      "line": 48,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))\")",
       "render_path": null,
@@ -1083,26 +1103,6 @@
         "method": "_set_revision!"
       },
       "user_input": "_assets_path",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "ba41ee00ac46e7c01186583a87e147f1219d1e2514fdce036bab39280ae325fb",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 310,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`docker image ls -f 'reference=#{repo_name}' | grep latest--pre-cache`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Deployer",
-        "method": "_pre_cache_image_exists?"
-      },
-      "user_input": "repo_name",
       "confidence": "Medium",
       "note": ""
     },
@@ -1615,6 +1615,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-01-27 14:11:14 -0500",
+  "updated": "2021-02-01 12:52:10 +0000",
   "brakeman_version": "5.0.0"
 }

@@ -44,6 +44,7 @@ module Filters
     end
   end
 end
+
 module ServiceScanning::Filters
   class Scan < ::Filters::Scan
   end
