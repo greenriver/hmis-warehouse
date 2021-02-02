@@ -159,7 +159,7 @@ App.Form.Select2Input = class Select2Input {
     }
 
     // If options are selected, update state of all optgroups to match selection
-    if ($(this).select2('data').length) {
+    if ($(this).select2('data').length && $(this).find('optgroup').length) {
       let selected_ids = $(this).select2('data').map(function(e){
         return e.id
       })
