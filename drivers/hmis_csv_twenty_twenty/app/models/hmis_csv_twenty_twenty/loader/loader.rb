@@ -179,83 +179,17 @@ module HmisCsvTwentyTwenty::Loader
       end
     end
 
-    # def load_source_file_ar_import(read_from:, klass:)
-    #   file_name = File.basename(read_from.path)
-    #   csv = CSV.new(read_from, headers: false, liberal_parsing: true)
-    #   # read the first row so we can set the headers
-    #   headers = csv.first
-    #   csv.rewind
-
-    #   if headers.blank?
-    #     err = 'No data.'
-    #     msg = "Unable to import #{file_name}: #{err}"
-    #     log(msg)
-    #     add_error(file_path: read_from.path, message: err, line: '')
-    #     return
-    #   end
-
-    #   if header_invalid?(headers, klass)
-    #     err = "Header invalid: \n#{headers}; \nexpected a subset of: \n#{klass.hud_csv_headers.map(&:to_s)}"
-    #     msg = "Unable to import #{file_name}, #{err}"
-    #     log(msg)
-    #     add_error(file_path: read_from.path, message: err, line: '')
-    #     return
-    #   end
-
-    #   # we need to accept different cased headers, but we need our
-    #   # case for import, so we'll fix that up here and use ours going forward
-    #   csv_headers = clean_header_row(headers, klass)
-
-    #   # Strip internal newlines
-    #   # add data_source_id
-    #   # add loader_id
-    #   csv = CSV.new(
-    #     read_from,
-    #     headers: csv_headers,
-    #     liberal_parsing: true,
-    #     empty_value: nil,
-    #     skip_blanks: true,
-    #   )
-    #   headers = csv_headers + ['data_source_id', 'loader_id', 'loaded_at']
-    #   batch = []
-    #   begin
-    #     csv.drop(1).each do |row|
-    #       row.each do |k, v|
-    #         row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip.presence
-    #       end
-    #       if row.count == csv_headers.count
-    #         batch << row.fields + [data_source.id, @loader_log.id, @loaded_at]
-    #         if batch.count == INSERT_BATCH_SIZE
-    #           insert_batch(file_name, klass, headers, batch)
-    #           batch = []
-    #         end
-    #       else
-    #         msg = "Line length is incorrect: #{row.count}"
-    #         add_error(file_path: read_from.path, message: msg, line: row.to_s)
-    #       end
-    #     end
-    #     insert_batch(file_name, klass, headers, batch) if batch.present?
-    #   rescue ActiveModel::MissingAttributeError
-    #   rescue Errno::ENOENT
-    #     # FIXME
-    #   end
-    # end
-
-    # private def insert_batch(file_name, klass, headers, batch)
-    #   # Cost: validate: true adds about %50 to the runtime
-    #   # using spec/fixtures/files/importers/hmis_twenty_twenty/hud_sample
-    #   klass.import(headers, batch, validate: false)
-    #   @loader_log.summary[file_name]['lines_loaded'] += batch.count
-    # end
-
     def load_source_file_pg(read_from:, klass:)
-      file_name = read_from.path
-      base_name = File.basename(file_name)
-
-      log("Copying #{base_name} into #{klass.table_name}")
       raise 'data_source.id must be set' unless data_source.id.present?
       raise '@loader_log.id must be set' unless @loader_log.id.present?
       raise '@loaded_at must be set' unless @loaded_at.present?
+
+      file_name = read_from.path
+      base_name = File.basename(file_name)
+
+      logger.debug do
+        "Loading #{base_name} into #{klass.table_name} #{hash_as_log_str(loader_id: @loader_log.id)}"
+      end
 
       meta_data = [data_source.id, @loader_log.id, @loaded_at]
 
@@ -269,9 +203,8 @@ module HmisCsvTwentyTwenty::Loader
         FROM STDIN
         WITH (FORMAT csv,HEADER,QUOTE '"',DELIMITER ',')
       SQL
-      # log("   #{copy_sql}")
+      # logger.debug { "   #{copy_sql}" }
 
-      total_lines = 0
       lines_loaded = nil
       # SLOW_CHECK; klass.connection.transaction do
       bm = Benchmark.measure do
@@ -279,8 +212,6 @@ module HmisCsvTwentyTwenty::Loader
         pg_result = pg_conn.copy_data copy_sql do
           read_from.rewind
           CSV.parse(read_from, headers: false, liberal_parsing: true) do |row|
-            total_lines += 1
-
             # ensure the row is long enough before
             # we put the typed meta_data at the end
             # all loader tables should handle nil data for columns
@@ -297,23 +228,22 @@ module HmisCsvTwentyTwenty::Loader
       # SLOW_CHECK; end
 
       @loader_log.summary[base_name].tap do |stat|
-        stat['total_lines'] = total_lines
+        stat['total_lines'] = lines_loaded # the loader now loads all or none
         stat['lines_loaded'] = lines_loaded
-        # line_loaded comes from pg directly, if we dont trust it we
-        # can go back for a count
-        # if total_lines > 1
-        #   scope = klass.where(
-        #     data_source_id: data_source.id,
-        #     loader_id: @loader_log.id,
-        #   )
-        #   scope = scope.with_deleted if klass.respond_to?(:with_deleted)
-        #   stat['verified'] = scope.count
-        # end
-        rps = (lines_loaded / bm.real).round(3)
-        log "  Loaded #{base_name} #{JSON.generate({ rps: rps, loader_id: @loader_log.id }.merge(stat))}"
+        stat['rps'] = (lines_loaded / bm.real).round(3)
+        stat['cpu_secs'] = bm.total.round(3)
+        logger.debug do
+          # line_loaded comes from pg directly, if we dont trust it we can go back for a count
+          # if lines_loaded > 1
+          #   scope = klass.where(data_source_id: data_source.id, loader_id: @loader_log.id)
+          #   scope = scope.with_deleted if klass.respond_to?(:with_deleted)
+          #   stat['verified'] = scope.count
+          # end
+          " Loaded #{base_name} #{hash_as_log_str({ loader_id: @loader_log.id }.merge(stat))}"
+        end
       end
     rescue PG::Error => e
-      add_error(file_path: read_from.path, message: e.message, line: total_lines)
+      add_error(file_path: read_from.path, message: e.message, line: lines_loaded)
     end
 
     # Headers need to match our style
@@ -397,9 +327,13 @@ module HmisCsvTwentyTwenty::Loader
       end
     end
 
+    def log_ids
+      { data_source_id: data_source.id, loader_id: @loader_log.id }
+    end
+
     def start_load
       @loaded_at = Time.current
-      log("Starting HMIS CSV Data Load data_source_id:#{data_source.id} loader_log_id:#{@loader_log.id}")
+      log("Starting #{hash_as_log_str log_ids}.")
     end
 
     def complete_load(status:, err: nil)
@@ -408,7 +342,8 @@ module HmisCsvTwentyTwenty::Loader
         completed_at: Time.current,
         status: status,
       )
-      log("Completed HMIS CSV Data Load data_source_id:#{data_source.id} loader_log_id:#{@loader_log.id} in #{elapsed_time(elapsed)}. Status: #{status} #{err.message if err}")
+      status = "#{status} error:#{err}" if err
+      log("Completed in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}\n#{summary_as_log_str loader_log.summary}")
     end
 
     def setup_summary(file)
@@ -422,7 +357,7 @@ module HmisCsvTwentyTwenty::Loader
 
     def log(message)
       @notifier&.ping message
-      logger.info message if @debug
+      logger.info "#{self.class} #{message}" if @debug
     end
 
     def add_error(file_path:, message:, line:)

@@ -44,6 +44,18 @@ module HmisTwentyTwenty
       "#{module_scope}::#{name}".constantize
     end
 
+    def summary_as_log_str(summary)
+      summary.map do |file, info|
+        hash_as_log_str({ file: file }.merge(info))
+      end.join("\n")
+    end
+
+    def hash_as_log_str(hash, field_sep: ' ')
+      hash.map do |k, v|
+        "#{k}:#{v}"
+      end.join(field_sep)
+    end
+
     def elapsed_time(total_seconds)
       d = total_seconds / 86_400
       h = total_seconds / 3600 % 24

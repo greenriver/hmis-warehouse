@@ -52,7 +52,11 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     private def log_ids
-      "data_source_id:#{@data_source.id} importer_log_id:#{@importer_log.id} loader_log_id:#{@loader_log&.id}"
+      {
+        data_source_id: @data_source.id,
+        loader_log_id: @loader_log&.id,
+        importer_log_id: @importer_log.id,
+      }
     end
 
     def import!
@@ -79,6 +83,8 @@ module HmisCsvTwentyTwenty::Importer
     def resume!
       return unless importer_log.resuming?
 
+      logger.info "resume! #{hash_as_log_str log_ids}"
+
       # this isn't quite right, but we don't store it,
       # and we may have paused for a significant amount of time
       @started_at = Time.current
@@ -103,6 +109,7 @@ module HmisCsvTwentyTwenty::Importer
 
     # Move all data from the data lake to either the structured, or aggregated tables
     def pre_process!
+      logger.info "pre_process! #{hash_as_log_str log_ids}"
       importer_log.update(status: :pre_processing)
 
       importable_files.each do |file_name, klass|
@@ -119,11 +126,12 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def pre_process_class!(file_name, klass)
-      log("Pre-processing #{klass.name} ")
+      importer_log_id = importer_log.id
+      # logger.debug { "Pre-processing #{klass.table_name} #{hash_as_log_str(importer_log_id: importer_log_id)}" }
+
       scope = source_data_scope_for(file_name)
       # save some allocations be doing these only once
       pre_processed_at = Time.current
-      importer_log_id = importer_log.id
       sha256 = Digest::SHA256.new
       bm = Benchmark.measure do
         batch = []
@@ -161,9 +169,16 @@ module HmisCsvTwentyTwenty::Importer
         process_batch!(klass, batch, file_name, type: 'pre_processed', upsert: klass.upsert?) if batch.present? # ensure we get the last batch
         HmisCsvValidation::Base.import(failures, validate: use_ar_model_validations) if failures.present?
       end
-      records = scope.count
-      log("  #{records} processed. #{(records / bm.real).round(3)} rec/s. #{bm.to_s.strip} ")
-      return nil
+
+      detail_for(file_name, 'pre_process_times').tap do |stat|
+        records = scope.count
+        rps = (records / bm.real).round(3)
+        stat['rps'] = rps
+        stat['cpu_secs'] = bm.total.round(3)
+        logger.debug do
+          " Pre-processed #{klass.table_name} #{hash_as_log_str({ importer_log_id: importer_log_id, processed: records }.merge(stat))}"
+        end
+      end
     end
 
     private def run_row_validations(klass, row, filename, importer_log)
@@ -187,6 +202,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def invalidate_aggregated_enrollments!
+      logger.info "invalidate_aggregated_enrollments! #{hash_as_log_str log_ids}"
       importable_files.each_value do |klass|
         aggregators = aggregators_from_class(klass, @data_source)
         next unless aggregators.present?
@@ -199,6 +215,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def aggregate!
+      logger.info "aggregate! #{hash_as_log_str log_ids}"
       importer_log.update(status: :aggregating)
       importable_files.each_value do |klass|
         aggregators = aggregators_from_class(klass, @data_source)
@@ -218,6 +235,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def validate_data_set!
+      logger.info "validate_data_set! #{hash_as_log_str log_ids}"
       importable_files.each do |filename, klass|
         failures = klass.run_complex_validations!(importer_log, filename)
         HmisCsvValidation::Base.import(failures) if failures.any?
@@ -225,6 +243,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def cleanup_data_set!
+      logger.info "cleanup_data_set! #{hash_as_log_str log_ids}"
       importer_log.update(status: :cleaning)
       importable_files.each_value do |klass|
         cleanups = cleanups_from_class(klass, @data_source)
@@ -257,6 +276,7 @@ module HmisCsvTwentyTwenty::Importer
     # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
     # In here, add history_generated_on date to enrollment record
     def ingest!
+      logger.info "ingest! #{hash_as_log_str log_ids}"
       importer_log.update(status: :importing)
       # Mark everything that exists in the warehouse, that would be covered by this import
       # as pending deletion.  We'll remove the pending where appropriate
@@ -331,38 +351,49 @@ module HmisCsvTwentyTwenty::Importer
     def add_new_data
       importable_files.each do |file_name, klass|
         destination_class = klass.reflect_on_association(:destination_record).klass
-        # log("Adding new #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
+        # logger.debug "Adding #{destination_class.table_name} #{hash_as_log_str log_ids}"
         batch = []
-        klass.new_data(
+        scope = klass.new_data(
           data_source_id: data_source.id,
           project_ids: involved_project_ids,
           date_range: date_range,
           importer_log_id: importer_log.id,
-        ).find_each(batch_size: SELECT_BATCH_SIZE) do |row|
-          batch << row.as_destination_record
-          if batch.count == INSERT_BATCH_SIZE
-            # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
-            # for whatever reason doesn't fall within the involved scope
-            # also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect the
-            # entire history of enrollments for aggregated projects because some of the existing enrollments fall
-            # outside of the range, but are necessary to calculate the correctly aggregated set
+        )
+        bm = Benchmark.measure do
+          scope.find_each(batch_size: SELECT_BATCH_SIZE) do |row|
+            batch << row.as_destination_record
+            if batch.count == INSERT_BATCH_SIZE
+              # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
+              # for whatever reason doesn't fall within the involved scope
+              # also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect the
+              # entire history of enrollments for aggregated projects because some of the existing enrollments fall
+              # outside of the range, but are necessary to calculate the correctly aggregated set
+              upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
+              columns = batch.first.attributes.keys - ['id']
+              process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
+              batch = []
+            end
+          end
+          # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
+          # for whatever reason doesn't fall within the involved scope
+          # also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect the
+          # entire history of enrollments for aggregated projects because some of the existing enrollments fall
+          # outside of the range, but are necessary to calculate the correctly aggregated set
+          if batch.present?
             upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
             columns = batch.first.attributes.keys - ['id']
-            process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
-            batch = []
+            process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
           end
         end
-        # NOTE: we are allowing upserts to handle the situation where data is in the warehouse with a HUD key that
-        # for whatever reason doesn't fall within the involved scope
-        # also NOTE: if aggregation is used, the count of added Enrollments and Exits will reflect the
-        # entire history of enrollments for aggregated projects because some of the existing enrollments fall
-        # outside of the range, but are necessary to calculate the correctly aggregated set
-        if batch.present?
-          upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
-          columns = batch.first.attributes.keys - ['id']
-          process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
+        added = summary_for(file_name, 'added')
+        detail_for(file_name, 'add_times').tap do |stat|
+          rps = (added / bm.real).round(3)
+          stat['rps'] = rps
+          stat['cpu_secs'] = bm.total.round(3)
+          logger.info do
+            "  Added #{destination_class.table_name} #{hash_as_log_str({ added: added }.merge(stat).merge(log_ids))}"
+          end
         end
-        log("Added #{summary_for(file_name, 'added')} new #{destination_class.name} #{log_ids}")
       end
     end
 
@@ -417,69 +448,80 @@ module HmisCsvTwentyTwenty::Importer
       # Exports are always inserts, never updates
       return if klass.hud_key == :ExportID
 
+      destination_class = klass.reflect_on_association(:destination_record).klass
+      # logger.debug "Updating #{destination_class.name} #{hash_as_log_str log_ids}"
+
       existing = klass.existing_destination_data(
         data_source_id: data_source.id,
         project_ids: involved_project_ids,
         date_range: date_range,
       ).distinct.pluck(klass.hud_key)
-      destination_class = klass.reflect_on_association(:destination_record).klass
-      # log("Updating #{destination_class.name} data_source: #{data_source.id} importer log: #{importer_log.id}")
-      batch = []
-      existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
-        klass.should_import.where(
-          importer_log_id: @importer_log.id,
-          klass.hud_key => hud_keys,
-        ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
-          destination = source.as_destination_record
-          destination.pending_date_deleted = nil
-          case klass.hud_key
-          when :PersonalID
-            destination.demographic_dirty = true
-          when :EnrollmentID
-            destination.processed_as = nil
-          when :ExitID
-            # These are tracked separately so we can bulk update them at the end
-            track_dirty_enrollment(destination.EnrollmentID)
-          end
-          batch << destination
-          if batch.count == INSERT_BATCH_SIZE
-            # Client model doesn't have a uniqueness constraint because of the warehouse data source
-            # so these must be processed more slowly
-            if klass.hud_key == :PersonalID
-              batch.each do |incoming|
-                destination_class.where(
-                  data_source_id: incoming.data_source_id,
-                  PersonalID: incoming.PersonalID,
-                ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
-              end
-              note_processed(file_name, batch.count, 'updated')
-            else
-              process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
+      bm = Benchmark.measure do
+        batch = []
+        existing.each_slice(SELECT_BATCH_SIZE) do |hud_keys|
+          klass.should_import.where(
+            importer_log_id: @importer_log.id,
+            klass.hud_key => hud_keys,
+          ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+            destination = source.as_destination_record
+            destination.pending_date_deleted = nil
+            case klass.hud_key
+            when :PersonalID
+              destination.demographic_dirty = true
+            when :EnrollmentID
+              destination.processed_as = nil
+            when :ExitID
+              # These are tracked separately so we can bulk update them at the end
+              track_dirty_enrollment(destination.EnrollmentID)
             end
-            batch = []
+            batch << destination
+            if batch.count == INSERT_BATCH_SIZE
+              # Client model doesn't have a uniqueness constraint because of the warehouse data source
+              # so these must be processed more slowly
+              if klass.hud_key == :PersonalID
+                batch.each do |incoming|
+                  destination_class.where(
+                    data_source_id: incoming.data_source_id,
+                    PersonalID: incoming.PersonalID,
+                  ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+                end
+                note_processed(file_name, batch.count, 'updated')
+              else
+                process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
+              end
+              batch = []
+            end
           end
         end
-      end
-      if batch.present? # ensure we get the last batch
-        if klass.hud_key == :PersonalID
-          batch.each do |incoming|
-            destination_class.where(
-              data_source_id: incoming.data_source_id,
-              PersonalID: incoming.PersonalID,
-            ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+        if batch.present? # ensure we get the last batch
+          if klass.hud_key == :PersonalID
+            batch.each do |incoming|
+              destination_class.where(
+                data_source_id: incoming.data_source_id,
+                PersonalID: incoming.PersonalID,
+              ).with_deleted.update_all(incoming.slice(klass.upsert_column_names(version: '2020')))
+            end
+            note_processed(file_name, batch.count, 'updated')
+          else
+            process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
           end
-          note_processed(file_name, batch.count, 'updated')
-        else
-          process_batch!(destination_class, batch, file_name, type: 'updated', upsert: true)
         end
-      end
 
-      # If we tracked any dirty enrollments, we can mark them all dirty now
-      if klass.hud_key == :ExitID
-        GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
-          update_all(processed_as: nil)
+        # If we tracked any dirty enrollments, we can mark them all dirty now
+        if klass.hud_key == :ExitID
+          GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source.id, EnrollmentID: dirty_enrollment_ids).
+            update_all(processed_as: nil)
+        end
       end
-      log("Updated #{summary_for(file_name, 'updated')} existing #{destination_class.name} #{log_ids}")
+      updated = summary_for(file_name, 'updated')
+      detail_for(file_name, 'update_times').tap do |stat|
+        rps = (updated / bm.real).round(3)
+        stat['rps'] = rps
+        stat['cpu_secs'] = bm.total.round(3)
+        logger.info do
+          "  Updated #{destination_class.table_name} #{hash_as_log_str({ updated: updated }.merge(stat).merge(log_ids))}"
+        end
+      end
     end
 
     private def mark_unchanged(klass, file_name)
@@ -594,16 +636,8 @@ module HmisCsvTwentyTwenty::Importer
       running
     end
 
-    def complete_import
-      data_source.update(last_imported_at: Time.zone.now)
-      importer_log.completed_at = Time.zone.now
-      importer_log.upload_id = @upload.id if @upload.present?
-      importer_log.save
-      elapsed = Time.current - @started_at
-      log("Import Completed in #{elapsed_time(elapsed)} for #{log_ids}")
-    end
-
     def pause_import
+      logger.info "pause_import #{hash_as_log_str(importer_log_id: importer_log_id)}"
       importer_log.update(status: :paused)
     end
 
@@ -613,6 +647,10 @@ module HmisCsvTwentyTwenty::Importer
 
     def summary_for(file, type)
       importer_log.summary[file][type]
+    end
+
+    def detail_for(file, type)
+      importer_log.summary[file][type] ||= {}
     end
 
     def setup_summary(file)
@@ -653,8 +691,17 @@ module HmisCsvTwentyTwenty::Importer
         importer_log.update(status: :started)
         @loader_log.update(importer_log_id: importer_log.id)
         @started_at = Time.current
-        log("Starting import #{log_ids}")
+        log("Starting #{hash_as_log_str log_ids}.")
       end
+    end
+
+    def complete_import
+      data_source.update(last_imported_at: Time.zone.now)
+      importer_log.completed_at = Time.zone.now
+      importer_log.upload_id = @upload.id if @upload.present?
+      importer_log.save
+      elapsed = Time.current - @started_at
+      log("Completed in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.\n#{summary_as_log_str importer_log.summary}")
     end
 
     private def db_transaction(&block)
@@ -663,7 +710,7 @@ module HmisCsvTwentyTwenty::Importer
 
     def log(message)
       @notifier&.ping message
-      logger.info message if @debug
+      logger.info "#{self.class} #{message}" if @debug
     end
 
     def add_error(file:, klass:, source_id:, message:)
