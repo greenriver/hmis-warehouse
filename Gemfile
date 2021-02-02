@@ -182,7 +182,7 @@ gem 'attr_encrypted', '~> 3.1.0'
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
-  gem 'pry-rails', require: false
+  gem 'pry-rails'
   gem 'bundler-audit', require: false
   gem 'brakeman', require: false
   gem 'rspec-rails', require: false
