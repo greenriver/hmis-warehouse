@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_22_155335) do
+ActiveRecord::Schema.define(version: 2021_02_02_194001) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -645,6 +645,16 @@ ActiveRecord::Schema.define(version: 2021_01_22_155335) do
     t.index ["user_id"], name: "index_encounter_reports_on_user_id"
   end
 
+  create_table "enrollment_reasons", force: :cascade do |t|
+    t.string "file"
+    t.string "name"
+    t.string "size"
+    t.string "content_type"
+    t.binary "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "enrollment_rosters", id: :serial, force: :cascade do |t|
     t.integer "roster_file_id"
     t.string "member_id"
@@ -750,7 +760,6 @@ ActiveRecord::Schema.define(version: 2021_01_22_155335) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -794,7 +803,6 @@ ActiveRecord::Schema.define(version: 2021_01_22_155335) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
