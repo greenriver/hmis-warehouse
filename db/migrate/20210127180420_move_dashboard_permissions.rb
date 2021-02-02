@@ -1,5 +1,7 @@
 class MoveDashboardPermissions < ActiveRecord::Migration[5.2]
   def up
+    return unless Role.column_names.include?('can_view_censuses')
+
     # Directly assign report access to anyone who had access via can_view_censuses previously
     urls = [
       'dashboards/adult_only_households',

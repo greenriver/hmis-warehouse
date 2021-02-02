@@ -6,9 +6,6 @@
 
 module NonVeteransSubPop::Dashboards
   class NonVeteransController < ::Dashboards::BaseController
-    include ArelHelper
-    include WarehouseReportAuthorization
-
     def sub_population_key
       :non_veterans
     end

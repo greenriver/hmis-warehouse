@@ -6,9 +6,6 @@
 
 module AdultsWithChildrenSubPop::Dashboards
   class AdultsWithChildrenController < ::Dashboards::BaseController
-    include ArelHelper
-    include WarehouseReportAuthorization
-
     def sub_population_key
       :adults_with_children
     end

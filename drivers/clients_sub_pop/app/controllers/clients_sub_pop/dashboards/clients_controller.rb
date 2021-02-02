@@ -6,9 +6,6 @@
 
 module ClientsSubPop::Dashboards
   class ClientsController < ::Dashboards::BaseController
-    include ArelHelper
-    include WarehouseReportAuthorization
-
     def sub_population_key
       :clients
     end

@@ -6,9 +6,6 @@
 
 module AdultOnlyHouseholdsSubPop::Dashboards
   class AdultOnlyHouseholdsController < ::Dashboards::BaseController
-    include ArelHelper
-    include WarehouseReportAuthorization
-
     def sub_population_key
       :adult_only_households
     end

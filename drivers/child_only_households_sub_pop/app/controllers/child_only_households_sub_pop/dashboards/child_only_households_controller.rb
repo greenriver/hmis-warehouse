@@ -6,9 +6,6 @@
 
 module ChildOnlyHouseholdsSubPop::Dashboards
   class ChildOnlyHouseholdsController < ::Dashboards::BaseController
-    include ArelHelper
-    include WarehouseReportAuthorization
-
     def sub_population_key
       :child_only_households
     end
