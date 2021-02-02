@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_18_160904) do
+ActiveRecord::Schema.define(version: 2021_01_25_151501) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4243,6 +4243,7 @@ ActiveRecord::Schema.define(version: 2021_01_18_160904) do
     t.string "source_id", null: false
     t.string "source_type", null: false
     t.string "status"
+    t.string "validated_column"
     t.index ["importer_log_id"], name: "index_hmis_csv_import_validations_on_importer_log_id"
     t.index ["source_type", "source_id"], name: "hmis_csv_validations-ONiu"
     t.index ["type"], name: "index_hmis_csv_import_validations_on_type"

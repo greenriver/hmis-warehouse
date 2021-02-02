@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HudDataQualityReport::Generators::Fy2020
@@ -172,7 +172,7 @@ module HudDataQualityReport::Generators::Fy2020
     end
 
     private def ph(table_name, adults_and_hohs)
-      ph = adults_and_hohs.where(a_t[:project_type].eq([3, 9, 10, 13]))
+      ph = adults_and_hohs.where(a_t[:project_type].in([3, 9, 10, 13]))
 
       ph_buckets = [
         # count

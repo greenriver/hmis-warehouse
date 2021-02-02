@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'rails_helper'
 
 RSpec.describe HmisCsvTwentyTwenty, type: :model do
@@ -97,14 +103,14 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     end
   end
 
-  describe 'When importing enrollments with bad data on 1/1/2018' do
+  describe 'When importing enrollments with bad data on 12/30/2017' do
     before(:all) do
       HmisCsvTwentyTwenty::Utility.clear!
       GrdaWarehouse::Utility.clear!
       @delete_later = []
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       file_path = 'drivers/hmis_csv_twenty_twenty/spec/fixtures/files/bad_data'
-      travel_to Time.local(2018, 1, 1) do
+      travel_to Time.local(2017, 12, 30) do
         import(file_path, @data_source)
       end
     end

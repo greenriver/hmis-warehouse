@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,7 +35,9 @@ module WarehouseReports::Hud
 
       respond_to do |format|
         format.html do
-          @enrollments = @enrollments.page(params[:page]).per(50)
+          @enrollments = @enrollments.page(params[:page]).per(25)
+          # to_a this now to prevent additional count and exist queries in the view
+          @enrollments_array = @enrollments.to_a
         end
         format.xlsx {}
       end

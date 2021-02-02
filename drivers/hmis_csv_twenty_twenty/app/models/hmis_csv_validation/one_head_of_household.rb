@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class HmisCsvValidation::OneHeadOfHousehold < HmisCsvValidation::Validation
@@ -23,8 +23,13 @@ class HmisCsvValidation::OneHeadOfHousehold < HmisCsvValidation::Validation
         source_id: item.source_id,
         source_type: item.source_type,
         status: 'More than one Head of Household',
+        validated_column: :RelationshipToHoH,
       )
     end
     failures
+  end
+
+  def self.title
+    'Households must have exactly one head of household'
   end
 end

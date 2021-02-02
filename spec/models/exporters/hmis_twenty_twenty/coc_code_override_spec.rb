@@ -1,7 +1,7 @@
 require 'rails_helper'
-require 'models/exporters/hmis_twenty_twenty/coc_code_override_setup.rb'
-require 'models/exporters/hmis_twenty_twenty/coc_code_override_tests.rb'
-require 'models/exporters/hmis_twenty_twenty/project_id_override_tests.rb'
+require 'models/exporters/hmis_twenty_twenty/coc_code_override_setup'
+require 'models/exporters/hmis_twenty_twenty/coc_code_override_tests'
+require 'models/exporters/hmis_twenty_twenty/project_id_override_tests'
 
 RSpec.describe Exporters::HmisTwentyTwenty::Base, type: :model do
   include_context '2020 coc code override setup'

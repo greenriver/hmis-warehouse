@@ -167,7 +167,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/ecs_tools.rb",
-      "line": 24,
+      "line": 25,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"ssh #{\"ecs0.openpath.host\"} 'docker commit #{`ssh #{\"ecs0.openpath.host\"} \"docker ps -a -n 10\"`.split(/\\n/).grep(/#{IMAGE}/).first.split(/\\s/).first} shell'\")",
       "render_path": null,
@@ -178,6 +178,26 @@
       },
       "user_input": "`ssh #{\"ecs0.openpath.host\"} \"docker ps -a -n 10\"`.split(/\\n/).grep(/#{IMAGE}/).first.split(/\\s/).first",
       "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "28d61c41e880930af5395b8edac3a820273214c59ba57ac60780f97d10e364fb",
+      "check_name": "FileAccess",
+      "message": "Model attribute used in file name",
+      "file": "app/controllers/warehouse_reports/outcomes_controller.rb",
+      "line": 62,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "File.read(\"app/views/warehouse_reports/outcomes/#{report_class.new(:data_source_ids => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).data_source_ids, :organization_ids => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).organization_ids, :project_ids => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).project_ids, :start_date => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).start, :end_date => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).end, :subpopulation => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).sub_population, :household_type => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).household_type, :race => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).races.first, :ethnicity => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).ethnicities.first, :gender => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).genders.first, :veteran_status => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).veteran_statuses.first).class.name.demodulize.underscore}/README.md\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WarehouseReports::OutcomesController",
+        "method": "describe_computations"
+      },
+      "user_input": "WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).veteran_statuses",
+      "confidence": "Weak",
       "note": ""
     },
     {
@@ -460,7 +480,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/ecs_tools.rb",
-      "line": 37,
+      "line": 38,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "exec(\"awslogs get #{group} ALL --watch\")",
       "render_path": null,
@@ -490,6 +510,26 @@
         "method": "db_exists?"
       },
       "user_input": "database",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "6939d235d9f32e7a2694b926a5cf73222ec7b924323cb268a68c11d2a20ea082",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/deploy/docker/lib/deployer.rb",
+      "line": 315,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`docker image ls -f 'reference=#{repo_name}' | grep #{_ruby_version}--pre-cache`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Deployer",
+        "method": "_pre_cache_image_exists?"
+      },
+      "user_input": "repo_name",
       "confidence": "Medium",
       "note": ""
     },
@@ -682,7 +722,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
-      "line": 42,
+      "line": 48,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))\")",
       "render_path": null,
@@ -1063,26 +1103,6 @@
         "method": "_set_revision!"
       },
       "user_input": "_assets_path",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "ba41ee00ac46e7c01186583a87e147f1219d1e2514fdce036bab39280ae325fb",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 310,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`docker image ls -f 'reference=#{repo_name}' | grep latest--pre-cache`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Deployer",
-        "method": "_pre_cache_image_exists?"
-      },
-      "user_input": "repo_name",
       "confidence": "Medium",
       "note": ""
     },
@@ -1595,6 +1615,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-01-27 09:09:39 -0500",
+  "updated": "2021-02-01 12:52:10 +0000",
   "brakeman_version": "5.0.0"
 }
