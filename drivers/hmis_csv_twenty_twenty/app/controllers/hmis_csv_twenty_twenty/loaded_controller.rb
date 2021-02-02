@@ -10,7 +10,8 @@ class HmisCsvTwentyTwenty::LoadedController < ApplicationController
   def show
     log = HmisCsvTwentyTwenty::Loader::LoaderLog.find(params[:id].to_i)
     @filename = log.summary.keys.detect { |v| v == params[:file] }
-    @import = GrdaWarehouse::ImportLog.find_by(loader_log_id: log.id)
+    @import = GrdaWarehouse::ImportLog.viewable_by(current_user).
+      find_by(loader_log_id: log.id)
     @klass = HmisCsvTwentyTwenty::Loader::LoaderLog.importable_files[@filename]
     @data = @klass.where(loader_id: log.id).
       order(@klass.hud_key => :asc)

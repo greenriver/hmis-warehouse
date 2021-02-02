@@ -45,6 +45,6 @@ class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
   helper_method :allowed_extensions
 
   def set_data_source
-    @data_source = GrdaWarehouse::DataSource.find(params[:id].to_i)
+    @data_source = GrdaWarehouse::DataSource.editable_by(current_user).find(params[:id].to_i)
   end
 end
