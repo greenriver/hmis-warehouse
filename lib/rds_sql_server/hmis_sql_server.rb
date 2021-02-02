@@ -44,36 +44,47 @@ module HmisSqlServer
   class Disability < LsaBase
     self.table_name = :hmis_Disabilities
   end
+
   class EmploymentEducation < LsaBase
     self.table_name = :hmis_EmploymentEducation
   end
+
   class Enrollment < LsaBase
     self.table_name = :hmis_Enrollment
   end
+
   class EnrollmentCoc < LsaBase
     self.table_name = :hmis_EnrollmentCoC
   end
+
   class Exit < LsaBase
     self.table_name = :hmis_Exit
   end
+
   class Export < LsaBase
     self.table_name = :hmis_Export
   end
+
   class Funder < LsaBase
     self.table_name = :hmis_Funder
   end
+
   class HealthAndDv < LsaBase
     self.table_name = :hmis_HealthAndDV
   end
+
   class IncomeBenefit < LsaBase
     self.table_name = :hmis_IncomeBenefits
   end
+
   class Inventory < LsaBase
     self.table_name = :hmis_Inventory
   end
+
   class Organization < LsaBase
     self.table_name = :hmis_Organization
   end
+
   class Project < LsaBase
     self.table_name = :hmis_Project
 
@@ -84,12 +95,15 @@ module HmisSqlServer
       super(row: row, headers: headers)
     end
   end
+
   class ProjectCoc < LsaBase
     self.table_name = :hmis_ProjectCoC
   end
+
   class Service < LsaBase
     self.table_name = :hmis_Services
   end
+
   class Geography < LsaBase
     self.table_name = :hmis_Geography
   end

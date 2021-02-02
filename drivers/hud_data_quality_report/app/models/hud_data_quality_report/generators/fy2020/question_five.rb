@@ -172,7 +172,7 @@ module HudDataQualityReport::Generators::Fy2020
     end
 
     private def ph(table_name, adults_and_hohs)
-      ph = adults_and_hohs.where(a_t[:project_type].eq([3, 9, 10, 13]))
+      ph = adults_and_hohs.where(a_t[:project_type].in([3, 9, 10, 13]))
 
       ph_buckets = [
         # count

@@ -70,7 +70,7 @@ RSpec.describe HudApr::Generators::Apr::Fy2020::QuestionSix, type: :model do
 
     describe 'Q6e: Data Quality: Timeliness' do
       it 'sees the starts' do
-        expect(report_result.answer(question: 'Q6e', cell: 'B2').summary).to eq(9)
+        expect(report_result.answer(question: 'Q6e', cell: 'B2').summary).to eq(1)
       end
 
       it 'sees the exits' do

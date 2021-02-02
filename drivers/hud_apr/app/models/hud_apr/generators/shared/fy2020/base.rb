@@ -173,9 +173,22 @@ module HudApr::Generators::Shared::Fy2020
             non_cash_benefits_from_any_source_at_annual_assessment: income_at_annual_assessment&.BenefitsFromAnySource,
             non_cash_benefits_from_any_source_at_exit: income_at_exit&.BenefitsFromAnySource,
             non_cash_benefits_from_any_source_at_start: income_at_start&.BenefitsFromAnySource,
-            other_clients_over_25: last_service_history_enrollment.other_clients_over_25,
+            # SHE other_clients_over_25 is computed at entry date, and we need to consider the report start date
+            other_clients_over_25: ! only_youth?(
+              OpenStruct.new(
+                household_members: household_member_data(last_service_history_enrollment),
+                first_date_in_program: last_service_history_enrollment.first_date_in_program,
+              ),
+            ),
             overlapping_enrollments: overlapping_enrollments(enrollments, last_service_history_enrollment),
-            parenting_youth: last_service_history_enrollment.parenting_youth,
+            # SHE parenting_youth is computed at entry date, and we need to consider the report start date
+            parenting_youth: youth_parent?(
+              OpenStruct.new(
+                head_of_household: last_service_history_enrollment[:head_of_household],
+                household_members: household_member_data(last_service_history_enrollment),
+                first_date_in_program: last_service_history_enrollment.first_date_in_program,
+              ),
+            ),
             physical_disability_entry: disabilities_at_entry.detect(&:physical?)&.DisabilityResponse,
             physical_disability_exit: disabilities_at_exit.detect(&:physical?)&.DisabilityResponse,
             physical_disability_latest: disabilities_latest.detect(&:physical?)&.DisabilityResponse,

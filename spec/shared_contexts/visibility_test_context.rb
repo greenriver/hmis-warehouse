@@ -57,6 +57,11 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   let!(:can_search_window) { create :role, can_search_window: true }
   let!(:can_view_client_window) { create :role, can_view_client_window: true }
   let!(:can_use_separated_consent) { create :role, can_use_separated_consent: true }
+  let!(:can_view_all_reports) { create :role, can_view_all_reports: true }
+  let!(:can_edit_users) { create :role, can_edit_users: true }
+  let!(:can_manage_config) { create :role, can_manage_config: true }
+  let!(:can_view_censuses) { create :role, can_view_censuses: true }
+  let!(:can_edit_data_sources) { create :role, can_edit_data_sources: true, can_view_projects: true }
 
   # groups
   let!(:window_data_source_viewable) { create :access_group }

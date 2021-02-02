@@ -411,7 +411,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def project_names
-    projects.order(ProjectName: :asc).pluck(:ProjectName)
+    projects.joins(:organization).order(ProjectName: :asc).pluck(:ProjectName)
   end
 
   def destroy_dependents!
@@ -424,7 +424,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def project_count
-    projects.count
+    projects.joins(:organization).count
   end
 
   private def maintain_system_group
