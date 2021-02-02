@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # This class computes a metric (just a number) that gets bigger the more we
 # need additional job workers.
 #
@@ -111,7 +117,6 @@ class WorkoffArbiter
   def _task_definition
     ENV.fetch('WORKOFF_TASK_DEFINITION')
   end
-
 
   define_method(:ecs) { Aws::ECS::Client.new }
 end

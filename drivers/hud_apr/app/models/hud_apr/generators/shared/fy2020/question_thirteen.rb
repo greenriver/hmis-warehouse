@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HudApr::Generators::Shared::Fy2020
@@ -60,7 +60,7 @@ module HudApr::Generators::Shared::Fy2020
 
     private def disability_at_exit_clause
       # Check that there is some data in the disability exit
-      a_t[:physical_disability_exit].not_eq(nil)
+      leavers_clause.and(a_t[:physical_disability_exit].not_eq(nil))
     end
 
     private def adjusted_sub_populations

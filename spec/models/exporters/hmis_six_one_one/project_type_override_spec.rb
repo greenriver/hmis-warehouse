@@ -1,6 +1,6 @@
 require 'rails_helper'
-require 'models/exporters/hmis_six_one_one/project_type_override_setup.rb'
-require 'models/exporters/hmis_six_one_one/project_type_override_tests.rb'
+require 'models/exporters/hmis_six_one_one/project_type_override_setup'
+require 'models/exporters/hmis_six_one_one/project_type_override_tests'
 
 RSpec.describe Exporters::HmisSixOneOne::Base, type: :model do
   include_context 'project type override setup'

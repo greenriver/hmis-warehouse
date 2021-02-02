@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -209,6 +209,11 @@ module Health
       when PFIZER
         vaccinated_on + 21.days if similar_vaccinations.count.zero?
       end
+    end
+
+    private def similar_vaccinations
+      self.class.where(epic_patient_id: epic_patient_id, vaccination_type: vaccination_type).
+        where.not(id: id)
     end
   end
 end

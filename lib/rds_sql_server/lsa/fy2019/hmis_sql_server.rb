@@ -52,38 +52,47 @@ module HmisSqlServer
     self.table_name = :hmis_Disabilities
     include ::HMIS::Structure::Disability
   end
+
   class EmploymentEducation < LsaBase
     self.table_name = :hmis_EmploymentEducation
     include ::HMIS::Structure::EmploymentEducation
   end
+
   class Enrollment < LsaBase
     self.table_name = :hmis_Enrollment
     include ::HMIS::Structure::Enrollment
   end
+
   class EnrollmentCoc < LsaBase
     self.table_name = :hmis_EnrollmentCoC
     include ::HMIS::Structure::EnrollmentCoc
   end
+
   class Exit < LsaBase
     self.table_name = :hmis_Exit
     include ::HMIS::Structure::Exit
   end
+
   class Export < LsaBase
     self.table_name = :hmis_Export
     include ::HMIS::Structure::Export
   end
+
   class Funder < LsaBase
     self.table_name = :hmis_Funder
     include ::HMIS::Structure::Funder
   end
+
   class HealthAndDv < LsaBase
     self.table_name = :hmis_HealthAndDV
     include ::HMIS::Structure::HealthAndDv
   end
+
   class IncomeBenefit < LsaBase
     self.table_name = :hmis_IncomeBenefits
     include ::HMIS::Structure::IncomeBenefit
   end
+
   class Inventory < LsaBase
     self.table_name = :hmis_Inventory
     include ::HMIS::Structure::Inventory
@@ -108,10 +117,12 @@ module HmisSqlServer
       super(row: row, headers: headers)
     end
   end
+
   class Organization < LsaBase
     self.table_name = :hmis_Organization
     include ::HMIS::Structure::Organization
   end
+
   class Project < LsaBase
     self.table_name = :hmis_Project
     include ::HMIS::Structure::Project
@@ -128,10 +139,12 @@ module HmisSqlServer
       super(row: row, headers: headers)
     end
   end
+
   class ProjectCoc < LsaBase
     self.table_name = :hmis_ProjectCoC
     include ::HMIS::Structure::ProjectCoc
   end
+
   class Service < LsaBase
     self.table_name = :hmis_Services
     include ::HMIS::Structure::Service
@@ -154,22 +167,27 @@ module HmisSqlServer
       super(row: row, headers: headers)
     end
   end
+
   class CurrentLivingSituation < LsaBase
     self.table_name = :hmis_CurrentLivingSituation
     include ::HMIS::Structure::CurrentLivingSituation
   end
+
   class Assessment < LsaBase
     self.table_name = :hmis_Assessment
     include ::HMIS::Structure::Assessment
   end
+
   class AssessmentQuestion < LsaBase
     self.table_name = :hmis_AssessmentQuestions
     include ::HMIS::Structure::AssessmentQuestion
   end
+
   class AssessmentResult < LsaBase
     self.table_name = :hmis_AssessmentResults
     include ::HMIS::Structure::AssessmentResult
   end
+
   class Event < LsaBase
     self.table_name = :hmis_Event
     include ::HMIS::Structure::Event

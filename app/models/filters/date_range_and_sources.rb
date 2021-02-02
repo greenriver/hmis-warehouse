@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -153,27 +153,27 @@ module Filters
     end
 
     def project_options_for_select(user:)
-      all_project_scope.options_for_select(user: user)
+      all_project_scope.distinct.options_for_select(user: user)
     end
 
     def organization_options_for_select(user:)
-      all_organizations_scope.options_for_select(user: user)
+      all_organizations_scope.distinct.options_for_select(user: user)
     end
 
     def data_source_options_for_select(user:)
-      all_data_sources_scope.options_for_select(user: user)
+      all_data_sources_scope.distinct.options_for_select(user: user)
     end
 
     def funder_options_for_select(user:)
-      all_funders_scope.options_for_select(user: user)
+      all_funders_scope.distinct.options_for_select(user: user)
     end
 
     def coc_code_options_for_select(user:)
-      all_coc_code_scope.options_for_select(user: user)
+      all_coc_code_scope.distinct.options_for_select(user: user)
     end
 
     def project_groups_options_for_select(user:)
-      all_project_group_scope.options_for_select(user: user)
+      all_project_group_scope.distinct.options_for_select(user: user)
     end
 
     def clients_from_cohorts

@@ -1,11 +1,11 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class HmisCsvValidation::Length < HmisCsvValidation::Error
-  def self.check_validity!(item, column, min: 0, max:)
+  def self.check_validity!(item, column, max:, min: 0)
     value = item[column].to_s
     return if value.size >= min && value.size <= max
 
@@ -14,6 +14,11 @@ class HmisCsvValidation::Length < HmisCsvValidation::Error
       source_id: item.source_id,
       source_type: item.source_type,
       status: "The length of #{column} must be in range #{min}..#{max}",
+      validated_column: column,
     )
+  end
+
+  def self.title
+    'Incorrect column length'
   end
 end

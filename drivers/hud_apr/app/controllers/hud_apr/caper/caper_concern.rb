@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HudApr::Caper::CaperConcern
@@ -29,7 +29,7 @@ module HudApr::Caper::CaperConcern
     end
 
     private def path_for_reports(*options)
-      hud_reports_caper_path(options)
+      hud_reports_capers_path(options)
     end
 
     private def path_for_cell(report:, question:, cell_label:, table:)

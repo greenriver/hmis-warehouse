@@ -81,8 +81,7 @@ ADD Gemfile* /app/
 
 # Upgrade RubyGems and install required Bundler version
 RUN gem update --system \
-    && gem install bundler:$BUNDLER_VERSION \
-    && bundle
+    && gem install bundler:$BUNDLER_VERSION
 
 COPY docker/entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
