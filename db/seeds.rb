@@ -761,50 +761,6 @@ def report_list
         health: false,
       },
     ],
-    'High Level Dashboards' => [
-      {
-        url: 'dashboards/adult_only_households',
-        name: 'Adult only Households',
-        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and no children (< 18).',
-        limitable: true,
-        health: false,
-      },
-      {
-        url: 'dashboards/adults_with_children',
-        name: 'Adult and Child Households',
-        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (< 18).',
-        limitable: true,
-        health: false,
-      },
-      {
-        url: 'dashboards/child_only_households',
-        name: 'Child only Households',
-        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (< 18) and no adults (+ 18).',
-        limitable: true,
-        health: false,
-      },
-      {
-        url: 'dashboards/clients',
-        name: 'All Clients',
-        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH).',
-        limitable: true,
-        health: false,
-      },
-      {
-        url: 'dashboards/non_veterans',
-        name: 'Non-Veteran',
-        description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is not a veteran.',
-        limitable: true,
-        health: false,
-      },
-      {
-        url: 'dashboards/veterans',
-        name: 'Veteran',
-        description: 'Veteran clients enrolled in homeless projects (ES, SH, SO, TH).',
-        limitable: true,
-        health: false,
-      },
-    ],
     'Census' => [
       {
         url: 'censuses',
@@ -814,6 +770,7 @@ def report_list
         health: false,
       },
     ],
+    'High Level Dashboards' => [],
   }
   if RailsDrivers.loaded.include?(:service_scanning)
     r_list['Operational'] << {
@@ -897,6 +854,61 @@ def report_list
     }
   end
 
+  if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
+    r_list['High Level Dashboards'] << {
+      url: 'dashboards/adult_only_households',
+      name: 'Adult only Households',
+      description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and no children (< 18).',
+      limitable: true,
+      health: false,
+    }
+  end
+  if RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
+    r_list['High Level Dashboards'] << {
+      url: 'dashboards/adults_with_children',
+      name: 'Adult and Child Households',
+      description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (< 18).',
+      limitable: true,
+      health: false,
+    }
+  end
+  if RailsDrivers.loaded.include?(:child_only_households_sub_pop)
+    r_list['High Level Dashboards'] << {
+      url: 'dashboards/child_only_households',
+      name: 'Child only Households',
+      description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (< 18) and no adults (+ 18).',
+      limitable: true,
+      health: false,
+    }
+  end
+  if RailsDrivers.loaded.include?(:clients_sub_pop)
+    r_list['High Level Dashboards'] << {
+      url: 'dashboards/clients',
+      name: 'All Clients',
+      description: 'Clients enrolled in homeless projects (ES, SH, SO, TH).',
+      limitable: true,
+      health: false,
+    }
+  end
+  if RailsDrivers.loaded.include?(:non_veterans_sub_pop)
+    r_list['High Level Dashboards'] << {
+      url: 'dashboards/non_veterans',
+      name: 'Non-Veteran',
+      description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is not a veteran.',
+      limitable: true,
+      health: false,
+    }
+  end
+  if RailsDrivers.loaded.include?(:veterans_sub_pop)
+    r_list['High Level Dashboards'] << {
+      url: 'dashboards/veterans',
+      name: 'Veteran',
+      description: 'Veteran clients enrolled in homeless projects (ES, SH, SO, TH).',
+      limitable: true,
+      health: false,
+    }
+  end
+
   r_list
 end
 
@@ -915,6 +927,14 @@ def cleanup_unused_reports
   cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
   cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
   cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
+  cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
+  cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
+  cleanup << 'dashboards/child_only_households' unless RailsDrivers.loaded.include?(:child_only_households_sub_pop)
+  cleanup << 'dashboards/clients' unless RailsDrivers.loaded.include?(:clients_sub_pop)
+  cleanup << 'dashboards/non_veterans' unless RailsDrivers.loaded.include?(:non_veterans_sub_pop)
+  cleanup << 'dashboards/veterans' unless RailsDrivers.loaded.include?(:veterans_sub_pop)
+
+
   cleanup.each do |url|
     GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
   end
