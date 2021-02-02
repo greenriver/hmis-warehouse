@@ -2,6 +2,8 @@ require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 require 'nokogiri'
 require 'vcr'
+# Bring in the reports
+require File.join(Rails.root, 'db', 'seeds.rb')
 
 VCR.configure do |c|
   c.cassette_library_dir = 'spec/vcr'
