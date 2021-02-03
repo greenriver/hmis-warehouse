@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: hmis_warehouse 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-12-21 13:31+0000\n"
-"PO-Revision-Date: 2020-12-21 13:31+0000\n"
+"POT-Creation-Date: 2021-02-03 16:09+0000\n"
+"PO-Revision-Date: 2021-02-03 16:09+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -64,30 +64,6 @@ msgid "Boston DND Warehouse"
 msgstr ""
 
 msgid "Boston HMIS staff at DND"
-msgstr ""
-
-msgid "CHA #{answer_key}"
-msgstr ""
-
-msgid "CHA #{code}_HEADER"
-msgstr ""
-
-msgid "CHA #{field.upcase}"
-msgstr ""
-
-msgid "CHA #{section_code}_SUBTITLE"
-msgstr ""
-
-msgid "CHA #{section_code}_TITLE"
-msgstr ""
-
-msgid "CHA #{section_question.upcase}"
-msgstr ""
-
-msgid "CHA #{section_question.upcase}_HEADER"
-msgstr ""
-
-msgid "CHA #{section_question.upcase}_SUBHEADER"
 msgstr ""
 
 msgid "CHA A_Q1"
@@ -3492,6 +3468,9 @@ msgstr ""
 msgid "Coordinated Entry Assessment"
 msgstr ""
 
+msgid "Coordinated Entry Assessment - "
+msgstr ""
+
 msgid "Coordinated Entry Assessments"
 msgstr ""
 
@@ -3520,6 +3499,12 @@ msgid "Disability Verification on File"
 msgstr ""
 
 msgid "Ending Veteran & Chronic Homelessness in Boston"
+msgstr ""
+
+msgid "Entry Date"
+msgstr ""
+
+msgid "Exit Date"
 msgstr ""
 
 msgid "Files downloaded from this page may contain Personal Protected Information from a secured environment.  Once you download this file, you and your agency are responsible for maintaining all related Privacy, Security and Confidentiality protections."
@@ -3717,7 +3702,13 @@ msgstr ""
 msgid "Process Duplicates"
 msgstr ""
 
+msgid "Project Data Quality Report"
+msgstr ""
+
 msgid "Project Groups"
+msgstr ""
+
+msgid "Project Name"
 msgstr ""
 
 msgid "Projects"
@@ -3874,9 +3865,6 @@ msgid "groups"
 msgstr ""
 
 msgid "housing"
-msgstr ""
-
-msgid "organizations"
 msgstr ""
 
 msgid "patient"
