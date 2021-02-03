@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class HmisCsvTwentyTwenty::ImporterErrorsController < ApplicationController
@@ -10,7 +10,8 @@ class HmisCsvTwentyTwenty::ImporterErrorsController < ApplicationController
 
   def show
     importer_log = HmisCsvTwentyTwenty::Importer::ImporterLog.find(params[:id].to_i)
-    @import = GrdaWarehouse::ImportLog.find_by(importer_log_id: importer_log.id)
+    @import = GrdaWarehouse::ImportLog.viewable_by(current_user).
+      find_by(importer_log_id: importer_log.id)
 
     @filename = detect_filename
 

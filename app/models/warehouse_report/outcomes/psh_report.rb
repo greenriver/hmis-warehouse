@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,6 +17,7 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
       residential_project: _('Stabilization Project'),
       housed_date: _('Date Housed'),
       housing_exit: _('Housing Exit'),
+      project_id: "#{_('Stabilization Project')} ID",
     }
   end
 
@@ -26,6 +27,7 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
       search_start: _('Search Start'),
       search_end: _('Search End'),
       housed_date: _('Date Housed'),
+      project_id: "#{_('Stabilization Project')} ID",
     }
   end
 
@@ -37,6 +39,7 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
       residential_project: _('Stabilization Project'),
       housed_date: _('Date Housed'),
       housing_exit: _('Housing Exit'),
+      project_id: "#{_('Stabilization Project')} ID",
     }
   end
 
@@ -45,6 +48,7 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
       exit_date: _('Housing Exit'),
       return_date: _('Date of Return'),
       days_to_return: _('Days to Return'),
+      project_id: "#{_('Stabilization Project')} ID",
     }
   end
 
@@ -54,6 +58,7 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
       destination: _('Destination'),
       housed_date: _('Date Housed'),
       housing_exit: _('Housing Exit'),
+      project_id: "#{_('Stabilization Project')} ID",
     }
   end
 
@@ -63,6 +68,7 @@ class WarehouseReport::Outcomes::PshReport < WarehouseReport::Outcomes::Base
       destination: _('Destination'),
       housed_date: _('Date Housed'),
       housing_exit: _('Housing Exit'),
+      project_id: "#{_('Stabilization Project')} ID",
     }
   end
 

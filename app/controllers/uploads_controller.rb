@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -71,15 +71,15 @@ class UploadsController < ApplicationController
   end
 
   private def data_source_source
-    GrdaWarehouse::DataSource.viewable_by current_user
+    GrdaWarehouse::DataSource
   end
 
   private def data_source_scope
-    data_source_source.importable
+    data_source_source.importable.directly_viewable_by(current_user)
   end
 
   private def set_data_source
-    @data_source = data_source_source.find(params[:data_source_id].to_i)
+    @data_source = data_source_scope.find(params[:data_source_id].to_i)
   end
 
   private def set_upload

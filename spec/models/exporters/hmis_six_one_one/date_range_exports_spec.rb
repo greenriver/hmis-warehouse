@@ -1,7 +1,7 @@
 require 'rails_helper'
-require 'models/exporters/hmis_six_one_one/project_setup.rb'
-require 'models/exporters/hmis_six_one_one/enrollment_dates_setup.rb'
-require 'models/exporters/hmis_six_one_one/multi_enrollment_tests.rb'
+require 'models/exporters/hmis_six_one_one/project_setup'
+require 'models/exporters/hmis_six_one_one/enrollment_dates_setup'
+require 'models/exporters/hmis_six_one_one/multi_enrollment_tests'
 
 def project_test_type
   'enrollment date-based'

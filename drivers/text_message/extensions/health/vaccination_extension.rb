@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module TextMessage::Health
   module VaccinationExtension
     extend ActiveSupport::Concern
@@ -10,51 +16,67 @@ module TextMessage::Health
         return unless GrdaWarehouse::Config.get(:send_sms_for_covid_reminders)
 
         # Find any vaccinations with contact information
-        # where we haven't already setup follow-up messages
-        with_phone.where.not(id: joins(:text_messages).select(:id)).find_each do |vaccination|
+        # where we haven't already setup follow-up messages.
+        # Don't create the reminder if the date has passed
+        # NOTE: text messages exist in a different database
+        existing_text_message_vaccination_ids = TextMessage::Message.where(source_type: 'Health::Vaccination').pluck(:source_id)
+        with_phone.where.not(id: existing_text_message_vaccination_ids).find_each do |vaccination|
           topic = TextMessage::Topic.where(title: 'COVID-19 Second Dose Reminders').first_or_create do |new_topic|
             new_topic.send_hour = 9
           end
+          # Don't bother if we have already had two vaccinations
+          next unless vaccination.follow_up_date
+
           subscriber = topic.topic_subscribers.
             where(
               first_name: vaccination.first_name,
               last_name: vaccination.last_name,
-              phone_number: follow_up_cell_phone.tr('^0-9', ''),
+              phone_number: vaccination.follow_up_cell_phone&.tr('^0-9', ''),
             ).first_or_create do |subs|
             subs.subscribed_at = Time.current
-            subs.preferred_language = clean_preferred_language
-          end
-
-          # Initial reminder
-          subscriber.messages.where(
-            topic: topic,
-            send_on_or_after: follow_up_date - 1.weeks,
-          ).first_or_create do |message|
-            message.content = initial_reminder_content
-            message.source = self
+            subs.preferred_language = vaccination.clean_preferred_language
           end
 
           # Second reminder
+          reminder_date = vaccination.follow_up_date - 1.days
+          next if reminder_date.to_date <= Date.current
+
           subscriber.messages.where(
             topic: topic,
-            send_on_or_after: follow_up_date - 1.days,
+            send_on_or_after: reminder_date,
           ).first_or_create do |message|
-            message.content = second_reminder_content
-            message.source = self
+            message.content = vaccination.second_reminder_content
+            message.source = vaccination
+          end
+
+          # Initial reminder
+          reminder_date = vaccination.follow_up_date - 1.weeks
+          next if reminder_date.to_date <= Date.current
+
+          subscriber.messages.where(
+            topic: topic,
+            send_on_or_after: reminder_date,
+          ).first_or_create do |message|
+            message.content = vaccination.initial_reminder_content
+            message.source = vaccination
           end
         end
       end
 
-      private def clean_preferred_language
-        # TODO: adjust based on real data
-        preferred_language
+      def clean_preferred_language
+        case preferred_language
+        when 'Spanish'
+          'es'
+        else
+          'en'
+        end
       end
 
       private def remove_text_messages
         text_messages.unsent.destroy_all
       end
 
-      private def initial_reminder_content
+      def initial_reminder_content
         case preferred_language.to_s
         when 'es'
           "RECORDATORIO: Su segunda dosis de la vacuna COVID-19 vence el #{follow_up_date.strftime('%m/%d/%Y')}. Haga un seguimiento en el lugar donde recibió su primera vacuna para su segunda dosis."
@@ -63,7 +85,7 @@ module TextMessage::Health
         end
       end
 
-      private def second_reminder_content
+      def second_reminder_content
         case preferred_language.to_s
         when 'es'
           "RECORDATORIO: Su segunda dosis de la vacuna COVID-19 vence el #{follow_up_date.strftime('%m/%d/%Y')}. Haga un seguimiento en el lugar donde recibió su primera vacuna para su segunda dosis."

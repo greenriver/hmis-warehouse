@@ -11,3 +11,6 @@ args.deployments.each do |deployment|
 end
 
 EcsTools.new.poll_state_until_stable!(CommandArgs.cluster)
+
+puts "Updating one ECS instance agent if needed."
+EcsTools.new.update_ecs_agents!(CommandArgs.cluster)

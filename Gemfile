@@ -37,7 +37,7 @@ gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'
 gem 'haml-rails'
-gem 'sass-rails'
+gem 'sassc-rails'
 gem 'autoprefixer-rails'
 gem 'kaminari'
 gem 'with_advisory_lock'
@@ -125,10 +125,6 @@ gem 'stupidedi' #, require: false #, git: 'https://github.com/greenriver/stupide
 gem 'redcarpet'
 
 # For exporting
-# As of 2017-05-02 the most recent rubygem version of axlsx
-# depended on nokogiri and rubyzip with active CVE's
-# we needed https://github.com/randym/axlsx/commit/776037c0fc799bb09da8c9ea47980bd3bf296874
-# and https://github.com/randym/axlsx/commit/e977cf5232273fa45734cdb36f6fae4db2cbe781
 gem 'caxlsx'
 gem 'caxlsx_rails'
 gem 'roo', require: false
@@ -138,10 +134,6 @@ gem 'soundex', require: false # for HMIS 6.11 + exports that use SHA-256 of soun
 
 # PDF Exports
 gem 'wicked_pdf'
-# I've added this package to the dev docker builds and the deployed
-# docker images. We can probably delete this. commenting out as the
-# first step:
-#gem 'wkhtmltopdf-binary', groups: [:development]
 gem 'combine_pdf'
 gem 'grover'
 
@@ -151,17 +143,8 @@ gem 'progress_bar', require: false
 gem 'slack-notifier'
 gem 'exception_notification'
 
-# Use ActiveModel has_secure_password
-# gem 'bcrypt', '~> 3.1.7'
-
-# Use Unicorn as the app server
-# there doesn't seem to be any immediately obvious breaking
-# changes on the 4.x versions, but since it's so behind
-# i'll just put this comment here as information
 gem 'puma', '~> 3.12.6'
 
-# gem 'newrelic_rpm', require: false
-# gem 'temping', require: false
 gem 'dotenv-rails'
 
 gem 'net-sftp', require: false
@@ -171,6 +154,7 @@ gem 'redis-rails'
 gem 'aws-sdk-rails'
 gem 'aws-sdk-cloudwatchevents', '~> 1'
 gem 'aws-sdk-ecs', '~> 1'
+gem 'aws-sdk-ec2', '~> 1'
 gem 'aws-sdk-glacier', '~> 1'
 gem 'aws-sdk-rds', '~> 1'
 gem 'aws-sdk-s3', '~> 1'
@@ -184,10 +168,9 @@ gem 'amazing_print'
 gem 'auto-session-timeout'
 
 #Translations
-gem 'gettext_i18n_rails', require: false
-gem 'fast_gettext', require: false
-gem 'gettext', '>=3.0.2', require: false
-gem 'ruby_parser', require: false
+gem 'gettext_i18n_rails'
+gem 'fast_gettext'
+gem 'gettext', '>=3.0.2'
 gem 'grosser-pomo'
 
 gem 'responders'
@@ -201,58 +184,57 @@ group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
   gem 'pry-rails'
-  gem 'foreman'
   gem 'bundler-audit', require: false
   gem 'brakeman', require: false
-  gem 'rspec-rails'
+  gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
   gem 'guard-rspec', require: false
+  gem 'vcr'
+  gem 'webmock'
   # gem 'rb-readline'
 end
 
 group :development do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring'
-  gem 'html2haml'
-  gem 'capistrano-bundler'
-  gem 'capistrano-rvm'
-  gem 'capistrano-passenger'
-  gem 'capistrano-rails'
-  gem 'rails-erd'
+  gem 'spring', require: false
+  gem 'html2haml', require: false
+  gem 'capistrano-bundler', require: false
+  gem 'capistrano-rvm', require: false
+  gem 'capistrano-passenger', require: false
+  gem 'capistrano-rails', require: false
+  gem 'rails-erd', require: false
   gem 'web-console'
   # gem 'quiet_assets'
 
   gem 'list_matcher', require: false # for the forms:desmush rake task
 
-  gem 'ruby-prof'
-  gem 'memory_profiler'
+  gem 'ruby-prof', require: false
+  gem 'memory_profiler', require: false
   gem 'rack-mini-profiler', require: false
-  gem 'flamegraph'
-  gem 'stackprof' # For Ruby MRI 2.1+
+  gem 'flamegraph', require: false
+  gem 'stackprof', require: false
   gem 'active_record_query_trace'
-  # gem 'rb-readline'
-  gem 'overcommit'
+  gem 'overcommit', require: false
   gem 'rubocop', require: false
   gem 'rubocop-rspec', require: false
+  gem 'rubocop-rails', require: false
 
   # boot time/memory profiling
-  gem 'derailed_benchmarks'
-  gem 'bumbler'
+  gem 'derailed_benchmarks', require: false
+  gem 'bumbler', require: false
 end
 
 group :test do
   gem 'capybara'
   gem 'fixpoints', git: 'https://github.com/greenriver/fixpoints.git', branch: 'master'
-  gem 'launchy'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
   gem 'shoulda'
   gem 'timecop'
-  # gem 'test_after_commit'
   gem 'after_commit_exception_notification'
-  gem 'simplecov'
-  gem 'simplecov-console'
   gem 'rails-controller-testing'
+  # gem 'simplecov'
+  # gem 'simplecov-console'
 end
 
 group :development, :staging, :test do
@@ -264,12 +246,6 @@ end
 # This is really unhappy on travis
 group :production, :development, :staging do
   gem 'tiny_tds'
-end
-
-group :rake do
-  gem 'gettext_i18n_rails' # rubocop:disable Bundler/DuplicatedGem
-  gem 'fast_gettext' # rubocop:disable Bundler/DuplicatedGem
-  gem 'gettext', '>=3.0.2' # rubocop:disable Bundler/DuplicatedGem
 end
 
 gem 'ajax_modal_rails', '~> 1.0'

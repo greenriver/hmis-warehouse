@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,7 +43,7 @@ module HudReports::Households
             veteran_status: enrollment.enrollment.client.VeteranStatus,
             chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
             relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
-          }
+          }.with_indifferent_access
         end
       end
     end

@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
@@ -45,6 +45,6 @@ class HmisCsvTwentyTwenty::ImporterExtensionsController < ApplicationController
   helper_method :allowed_extensions
 
   def set_data_source
-    @data_source = GrdaWarehouse::DataSource.find(params[:id].to_i)
+    @data_source = GrdaWarehouse::DataSource.editable_by(current_user).find(params[:id].to_i)
   end
 end

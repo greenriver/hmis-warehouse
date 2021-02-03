@@ -10,6 +10,7 @@ wb.add_worksheet(name: 'Missing CoC Codes') do |sheet|
     'Project CoC Codes',
     'Entry Date',
     'Exit Date',
+    'Data Collection Stages',
   ]
   sheet.add_row(headers, :style => title)
   @enrollments.each do |en|
@@ -25,6 +26,7 @@ wb.add_worksheet(name: 'Missing CoC Codes') do |sheet|
       project.project_cocs&.map(&:effective_coc_code)&.join(', '),
       en.EntryDate,
       en.exit&.ExitDate,
+      en.enrollment_cocs.map(&:DataCollectionStage).uniq.compact.join(', ').presence || 'EnrollmentCoC missing',
     ]
     sheet.add_row(values)
   end

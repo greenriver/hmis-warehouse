@@ -1,14 +1,15 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class HmisCsvTwentyTwenty::ImporterRestartsController < ApplicationController
   before_action :require_can_view_imports!
 
   def update
-    @import = GrdaWarehouse::ImportLog.find(params[:id].to_i)
+    @import = GrdaWarehouse::ImportLog.viewable_by(current_user).
+      find(params[:id].to_i)
     @import.update(completed_at: nil)
     importer_log = @import.importer_log
     importer_log.update(status: :resuming, completed_at: nil)

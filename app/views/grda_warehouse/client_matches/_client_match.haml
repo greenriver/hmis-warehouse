@@ -19,7 +19,7 @@
             %br
             = client_a.data_source&.short_name
             - unless match.accepted?
-              = link_to edit_client_path(client_a.destination_client), target: 'client_a', data: {toggle: :tooltip, title: "#{client_a.uuid}"} do
+              = link_to appropriate_client_path(client_a.destination_client), target: 'client_a', data: {toggle: :tooltip, title: "#{client_a.uuid}"} do
                 = client_a.PersonalID.slice(0,4)
               source for:
               = client_a.destination_client.id
@@ -33,7 +33,7 @@
             %br
             = client_b.data_source&.short_name
             - unless match.accepted?
-              = link_to edit_client_path(client_b.destination_client), target: 'client_b', data: {toggle: :tooltip, title: "#{client_b.uuid}"} do
+              = link_to appropriate_client_path(client_b.destination_client), target: 'client_b', data: {toggle: :tooltip, title: "#{client_b.uuid}"} do
                 = client_b.PersonalID.slice(0,4)
               source for:
               = client_b.destination_client.id
@@ -120,7 +120,7 @@
 
       - elsif match.accepted?
         = "Accepted: #{match.updated_at} by #{match.updated_by.try(:name)}"
-        = link_to edit_client_path(client_a.destination_client) do
+        = link_to appropriate_client_path(client_a.destination_client) do
           View Result
       - elsif match.rejected?
         = "Rejected: #{match.updated_at} by #{match.updated_by.try(:name)}"

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -71,6 +71,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :editable_by, ->(user) do
+    directly_viewable_by(user)
+  end
+
+  scope :directly_viewable_by, ->(user) do
     qc = ->(s) { connection.quote_column_name s }
     q  = ->(s) { connection.quote s }
 
@@ -321,6 +325,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
+  def directly_viewable_by?(user)
+    self.class.directly_viewable_by(user).where(id: id).exists?
+  end
+
   def users
     User.where(id: AccessGroup.contains(self).map(&:users).flatten.map(&:id))
   end
@@ -411,7 +419,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def project_names
-    projects.order(ProjectName: :asc).pluck(:ProjectName)
+    projects.joins(:organization).order(ProjectName: :asc).pluck(:ProjectName)
   end
 
   def destroy_dependents!
@@ -424,7 +432,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def project_count
-    projects.count
+    projects.joins(:organization).count
   end
 
   private def maintain_system_group
