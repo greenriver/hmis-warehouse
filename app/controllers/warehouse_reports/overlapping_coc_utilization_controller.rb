@@ -123,7 +123,7 @@ module WarehouseReports
             render_to_string(partial: 'overlap', locals: { report: report })
           end
         rescue WarehouseReport::OverlappingCocByProjectType::Error => e
-          e.message
+          flash[:alert] = e.message
         end
       end
 
