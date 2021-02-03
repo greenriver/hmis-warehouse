@@ -13,7 +13,7 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
     $prompt.toggleClass('d-none', !!value);
   });
 
-  const indicateLoading = (loading) => {
+  const indicateLoading = (loading, error=null) => {
     let opacity = 1;
     let pointerEvents = 'all';
     if (loading) {
@@ -29,6 +29,9 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
       );
     } else {
       $container.find(`.${loaderClass}`).remove();
+      if (error) {
+        alert(error);
+      }
     }
     $submitButton.prop('disabled', loading);
   };
@@ -63,7 +66,7 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
       data: formData,
     })
       .done((data) => {
-        indicateLoading(false);
+        indicateLoading(false, data.error);
         displayResults(data);
       })
       .fail((xhr) => {
