@@ -46,13 +46,13 @@ module HmisTwentyTwenty
 
     def summary_as_log_str(summary)
       summary.map do |file, info|
-        hash_as_log_str({ file: file }.merge(info))
+        "> *#{file}* \n> \t#{hash_as_log_str(info)}"
       end.join("\n")
     end
 
     def hash_as_log_str(hash, field_sep: ' ')
       hash.map do |k, v|
-        "#{k}:#{v}"
+        " #{k}: #{v}"
       end.join(field_sep)
     end
 
