@@ -79,7 +79,7 @@ class EnrollmentReasonsFileUploader < CarrierWave::Uploader::Base
 
   # Add a white list of extensions which are allowed to be uploaded.
   def extension_white_list
-    ['.*']
+    ['.csv', '.xlsx']
   end
 
   # Provide a range of file sizes which are allowed to be uploaded
