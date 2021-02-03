@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_28_183759) do
+ActiveRecord::Schema.define(version: 2021_02_03_164826) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -248,6 +248,22 @@ ActiveRecord::Schema.define(version: 2021_01_28_183759) do
     t.datetime "deleted_at"
     t.index ["deleted_at"], name: "index_claims_reporting_cp_payment_uploads_on_deleted_at"
     t.index ["user_id"], name: "index_claims_reporting_cp_payment_uploads_on_user_id"
+  end
+
+  create_table "claims_reporting_imports", force: :cascade do |t|
+    t.string "source_url", null: false
+    t.string "source_hash", null: false
+    t.string "status_message"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.string "importer"
+    t.string "method"
+    t.jsonb "args"
+    t.jsonb "env"
+    t.jsonb "results"
+    t.binary "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "claims_reporting_medical_claims", force: :cascade do |t|
@@ -857,6 +873,16 @@ ActiveRecord::Schema.define(version: 2021_01_28_183759) do
     t.datetime "completed_at"
     t.datetime "started_at"
     t.index ["user_id"], name: "index_encounter_reports_on_user_id"
+  end
+
+  create_table "enrollment_reasons", force: :cascade do |t|
+    t.string "file"
+    t.string "name"
+    t.string "size"
+    t.string "content_type"
+    t.binary "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "enrollment_rosters", id: :serial, force: :cascade do |t|
