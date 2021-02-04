@@ -181,6 +181,7 @@ module Health
           )
           he_vaccination.follow_up_on = he_vaccination.follow_up_date
           new_vaccinations << he_vaccination
+          vaccination.update(client_id: client_id)
         end
       end
       GrdaWarehouse::HealthEmergency::Vaccination.import(new_vaccinations) if new_vaccinations.present?
