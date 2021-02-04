@@ -23,14 +23,14 @@
 
         %tbody
           - table.group_by{|row| row['cde_cos_rollup']}.each do |cos_rollup, rollup_rows|
-            - rollup_rows.sort_by{|row| report.cos_description(row['cde_cos_category'])||'ZZZZZ'}.each_with_index do |row, idx|
+            - rollup_rows.sort_by{|row| report.cos_description(row['cde_cos_category'])||'AAAA'}.each_with_index do |row, idx|
               - next unless idx.zero? || rollup_rows.size > 2
               %tr
-                - if idx.zero?
+                - if row['cde_cos_category'].blank?
                   %th{axis: :row}= report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
                 - else
                   %td.pl-4{axis: :row}
-                    = report.cos_description(row['cde_cos_category']).presence || '-'
+                    = report.cos_description(row['cde_cos_category']).presence || ''
                 - report.detail_cols.each do |fld, _label|
                   %td.text-right= report.formatted_value fld, row
     - unless Rails.env.production?
