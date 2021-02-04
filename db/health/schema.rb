@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_04_042020) do
+ActiveRecord::Schema.define(version: 2021_02_04_052544) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -426,6 +426,7 @@ ActiveRecord::Schema.define(version: 2021_02_04_042020) do
     t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
     t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_medical_claim", unique: true
     t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
+    t.index ["service_start_date"], name: "index_claims_reporting_medical_claims_on_service_start_date"
   end
 
   create_table "claims_reporting_member_diagnosis_classifications", force: :cascade do |t|
@@ -628,6 +629,7 @@ ActiveRecord::Schema.define(version: 2021_02_04_042020) do
     t.string "cde_cos_subcategory", limit: 50
     t.string "ind_mco_aco_cvd_svc", limit: 50
     t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_rx_claims", unique: true
+    t.index ["service_start_date"], name: "index_claims_reporting_rx_claims_on_service_start_date"
   end
 
   create_table "claims_roster", id: :serial, force: :cascade do |t|

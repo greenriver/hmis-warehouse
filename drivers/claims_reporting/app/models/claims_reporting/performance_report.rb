@@ -8,17 +8,21 @@ module ClaimsReporting
   class PerformanceReport
     include ActiveModel::Model
     extend Memoist
-    attr_reader :medical_claims, :member_roster, :claim_date_range
+    attr_reader :member_roster, :rx_claims, :medical_claims, :claim_date_range
 
     def initialize(
       member_roster: ClaimsReporting::MemberRoster.all,
-      claim_date_range: Date.iso8601('2010-08-01') .. Date.iso8601('2020-07-31')
+      claim_date_range: Date.iso8601('2020-01-01') .. Date.iso8601('2020-12-31')
     )
       @claim_date_range = claim_date_range
       @medical_claims = ClaimsReporting::MedicalClaim.where(
         service_start_date: claim_date_range,
       )
-      @member_roster = member_roster.where(member_id: medical_claims.select(:member_id))
+      @rx_claims = ClaimsReporting::RxClaim.where(
+        service_start_date: claim_date_range,
+      )
+      member_ids = medical_claims.pluck(:member_id) + rx_claims.pluck(:member_id)
+      @member_roster = member_roster.where(member_id: member_ids)
     end
 
     # Member classification bits from Milliman
@@ -278,7 +282,7 @@ module ClaimsReporting
     end
 
     def latest_payment_date
-      medical_claims.maximum(:paid_date)
+      [medical_claims.maximum(:paid_date), rx_claims.maximum(:paid_date)].compact.max
     end
 
     def member_totals
