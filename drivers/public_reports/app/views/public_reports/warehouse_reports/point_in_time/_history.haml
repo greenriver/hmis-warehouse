@@ -1,0 +1,20 @@
+- if @reports.exists?
+  %p= paginate @reports
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Status
+          %th Published?
+          %th Options
+          %th Author
+      %tbody
+        - @reports.each do |report|
+          %tr
+            %td= report.status
+            %td= report.published?
+            %td= report.filter
+            %td= report&.user&.name
+- else
+  %p
+    No reports on file

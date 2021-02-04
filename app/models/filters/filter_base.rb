@@ -12,6 +12,7 @@ module Filters
 
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
+    attribute :enforce_one_year_range, Boolean, default: true
     attribute :sort
     attribute :heads_of_household, Boolean, default: false
     attribute :comparison_pattern, Symbol, default: ->(r, _) { r.default_comparison_pattern }
@@ -70,6 +71,7 @@ module Filters
 
       self.start = filters.dig(:start)&.to_date || default_start
       self.end = filters.dig(:end)&.to_date || default_end
+      self.enforce_one_year_range = filters.dig(:enforce_one_year_range).in?(['1', 'true', true])
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }
       self.coc_code = filters.dig(:coc_code) if available_coc_codes.include?(filters.dig(:coc_code))
@@ -105,6 +107,7 @@ module Filters
     def for_params
       {
         filters: {
+          # NOTE: order specified here is used to echo selections in describe_filter
           start: start,
           end: self.end,
           comparison_pattern: comparison_pattern,
@@ -467,6 +470,7 @@ module Filters
     end
 
     def ensure_date_span
+      return unless enforce_one_year_range
       return if last - first < 365
 
       self.end = first + 1.years - 1.days
@@ -486,6 +490,59 @@ module Filters
 
     def default_project_type_numbers
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
+    end
+
+    def describe_filter
+      html = []
+      for_params[:filters].each_key do |key|
+        html << describe(key)
+      end.compact
+    end
+
+    def describe(key, value = nil)
+      title = case key
+      when :project_type_codes, :project_type_ids, :project_type_numbers
+        'Project Type'
+      when :sub_population
+        'Sub-Population'
+      when :age_ranges
+        'Age Ranges'
+      when :races
+        'Races'
+      when :ethnicities
+        'Ethnicities'
+      when :genders
+        'Genders'
+      when :coc_codes
+        'CoCs'
+      when :organization_ids
+        'Organizations'
+      when :project_ids
+        'Projects'
+      when :data_source_ids
+        'Data Sources'
+      when :project_group_ids
+        'Project Groups'
+      when :veteran_statuses
+        'Veteran Status'
+      when :household_type
+        'Household Type'
+      when :prior_living_situation_ids
+        'Prior Living Situations'
+      when :destination_ids
+        'Destination'
+      when :disabilities
+        'Disabilities'
+      when :indefinite_disabilities
+        'Indefinite Disability'
+      when :dv_status
+        'DV Status'
+      end
+
+      value ||= chosen(key)
+      return unless value.present?
+
+      "#{title}: #{value}"
     end
 
     def chosen(key)
