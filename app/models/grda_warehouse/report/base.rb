@@ -39,7 +39,7 @@ module GrdaWarehouse::Report
 
     # the corresponding model in the GrdaWarehouse::Hud, or other, namespace
     def self.original_class_name
-      @original_class ||= "GrdaWarehouse::Hud::#{name.gsub(/.*::/, '')}"
+      @original_class_name ||= "GrdaWarehouse::Hud::#{name.gsub(/.*::/, '')}"
     end
 
     def readonly?
@@ -121,19 +121,16 @@ module GrdaWarehouse::Report
         e_t[:data_source_id].eq(source_client_table[:data_source_id]).
         and(e_t[:PersonalID].eq source_client_table[:PersonalID]).
         and(source_client_table[:DateDeleted].eq nil),
-        ).join(client_join_table).on(
-          source_client_table[:id].eq client_join_table[:source_id],
-        ).join(destination_client_table).on(
+      ).join(client_join_table).on(source_client_table[:id].eq client_join_table[:source_id]).
+        join(destination_client_table).on(
           destination_client_table[:id].eq(client_join_table[:destination_id]).
           and(destination_client_table[:DateDeleted].eq nil),
         ).distinct.
         project(
           *GrdaWarehouse::Hud::Enrollment.column_names.map(&:to_sym).map { |c| e_t[c] }, # all the enrollment columns
-          source_client_table[:id].as('demographic_id'),                                         # the source client id
-          destination_client_table[:id].as('client_id'),                                          # the destination client id
-        ).where(
-          e_t[:DateDeleted].eq nil,
-        ).
+          source_client_table[:id].as('demographic_id'), # the source client id
+          destination_client_table[:id].as('client_id'), # the destination client id
+        ).where(e_t[:DateDeleted].eq nil).
         join(ex_t, Arel::Nodes::OuterJoin).
         on(e_t[:EnrollmentID].eq(ex_t[:EnrollmentID]).
           and(e_t[:PersonalID].eq(ex_t[:PersonalID]).

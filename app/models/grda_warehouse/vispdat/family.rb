@@ -10,30 +10,13 @@ module GrdaWarehouse::Vispdat
 
     accepts_nested_attributes_for :children, allow_destroy: true, limit: 7, reject_if: :all_blank
 
-    %w[
-      any_member_pregnant
-      family_member_tri_morbidity
-      any_children_removed
-      any_family_legal_issues
-      any_children_lived_with_family
-      any_child_abuse
-      children_attend_school
-      family_members_changed
-      other_family_members
-      planned_family_activities
-      time_spent_alone_13
-      time_spent_alone_12
-      time_spent_helping_siblings
-    ].each do |field|
+    ['any_member_pregnant', 'family_member_tri_morbidity', 'any_children_removed', 'any_family_legal_issues', 'any_children_lived_with_family', 'any_child_abuse', 'children_attend_school', 'family_members_changed', 'other_family_members', 'planned_family_activities', 'time_spent_alone_13', 'time_spent_alone_12', 'time_spent_helping_siblings'].each do |field|
       enum "#{field}_answer".to_sym => { "#{field}_answer_yes".to_sym => 1, "#{field}_answer_no".to_sym => 0, "#{field}_answer_refused".to_sym => 2 }
     end
 
     # Require the refused checkbox to be checked if no answer given
     # Require an answer if the refused checkbox not checked.
-    %w[
-      number_of_children_under_18_with_family
-      number_of_children_under_18_not_with_family
-    ].each do |field|
+    ['number_of_children_under_18_with_family', 'number_of_children_under_18_not_with_family'].each do |field|
       # if both blank, indicate that refused must be checked
       validates [field, '_refused'].join.to_sym, presence: { message: 'should be checked if refusing to answer' }, if: -> { send(field.to_sym).blank? }
 
@@ -67,13 +50,15 @@ module GrdaWarehouse::Vispdat
     # family omits pregnancy question for physical health
     # and asks this under family_size_score
     def physical_health_score
-      
-        leave_answer_yes? ||
-        chronic_answer_yes? ||
-        hiv_answer_yes? ||
-        disability_answer_yes? ||
-        avoid_help_answer_yes?
-       ? 1 : 0
+      if leave_answer_yes? ||
+      chronic_answer_yes? ||
+      hiv_answer_yes? ||
+      disability_answer_yes? ||
+      avoid_help_answer_yes?
+        1
+      else
+        0
+      end
     end
 
     def wellness_score
@@ -87,11 +72,15 @@ module GrdaWarehouse::Vispdat
 
     # family tri morbidity also requires 1 member to have all 3 conditions
     def tri_morbidity_score
-      (
+      if (
         physical_health_score == 1 &&
         substance_abuse_score == 1 &&
         mental_health_score == 1
-      ) && family_member_tri_morbidity_answer_yes? ? 1 : 0
+      ) && family_member_tri_morbidity_answer_yes?
+        1
+      else
+        0
+      end
     end
 
     def family_unit_score
@@ -102,34 +91,42 @@ module GrdaWarehouse::Vispdat
     end
 
     def family_legal_issues_score
-      
-        any_children_removed_answer_yes? ||
-        any_family_legal_issues_answer_yes?
-       ? 1 : 0
+      if any_children_removed_answer_yes? ||
+      any_family_legal_issues_answer_yes?
+        1
+      else
+        0
+      end
     end
 
     def needs_of_children_score
-      
-        any_children_lived_with_family_answer_yes? ||
-        any_child_abuse_answer_yes? ||
-        children_attend_school_answer_no?
-       ? 1 : 0
+      if any_children_lived_with_family_answer_yes? ||
+      any_child_abuse_answer_yes? ||
+      children_attend_school_answer_no?
+        1
+      else
+        0
+      end
     end
 
     def family_stability_score
-      
-        family_members_changed_answer_yes? ||
-        other_family_members_answer_yes?
-       ? 1 : 0
+      if family_members_changed_answer_yes? ||
+      other_family_members_answer_yes?
+        1
+      else
+        0
+      end
     end
 
     def parental_engagement_score
-      
-        planned_family_activities_answer_no? ||
-        time_spent_alone_13_answer_yes? ||
-        time_spent_alone_12_answer_yes? ||
-        time_spent_helping_siblings_answer_yes?
-       ? 1 : 0
+      if planned_family_activities_answer_no? ||
+      time_spent_alone_13_answer_yes? ||
+      time_spent_alone_12_answer_yes? ||
+      time_spent_helping_siblings_answer_yes?
+        1
+      else
+        0
+      end
     end
 
     # score class different for family
@@ -169,20 +166,18 @@ module GrdaWarehouse::Vispdat
       return 0
     end
 
-    def parent2_age
-      return if parent2_dob.blank?
-
-      ((Date.current - parent2_dob) / 365.25).to_i
-    end
-
     def family_size_score
-      single_parent_score > 0 || two_parents_score > 0 ? 1 : 0
+      single_parent_score.positive? || two_parents_score.positive? ? 1 : 0
     end
 
     def single_parent_score
-      single_parent_with_2plus_children? ||
+      if single_parent_with_2plus_children? ||
        child_age_11_or_younger? ||
-       any_member_pregnant_answer_yes? ? 1 : 0
+       any_member_pregnant_answer_yes?
+        1
+      else
+        0
+      end
     end
 
     def two_parents_score
@@ -279,7 +274,7 @@ module GrdaWarehouse::Vispdat
       take_medications: 'Are there any medications that a doctor said you or anyone in your family should be taking that, for whatever reason, they are not taking?',
       sell_medications: 'Are there any medications like painkillers that you or anyone in your family don’t take the way the doctor prescribed or where they sell the medication?',
       abuse_trauma: 'YES OR NO: Has your family’s current period of homelessness been caused by an experience of emotional, physical, psychological, sexual, or other type of abuse, or by any other trauma you or anyone in your family have experienced?',
-    }
+    }.freeze
 
     def question key
       FAMILY_QUESTIONS[key] || super(key)
