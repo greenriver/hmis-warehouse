@@ -65,30 +65,6 @@ msgstr ""
 msgid "Boston HMIS staff at DND"
 msgstr ""
 
-msgid "CHA #{answer_key}"
-msgstr ""
-
-msgid "CHA #{code}_HEADER"
-msgstr ""
-
-msgid "CHA #{field.upcase}"
-msgstr ""
-
-msgid "CHA #{section_code}_SUBTITLE"
-msgstr ""
-
-msgid "CHA #{section_code}_TITLE"
-msgstr ""
-
-msgid "CHA #{section_question.upcase}"
-msgstr ""
-
-msgid "CHA #{section_question.upcase}_HEADER"
-msgstr ""
-
-msgid "CHA #{section_question.upcase}_SUBHEADER"
-msgstr ""
-
 msgid "CHA A_Q1"
 msgstr ""
 
@@ -3491,6 +3467,9 @@ msgstr ""
 msgid "Coordinated Entry Assessment"
 msgstr ""
 
+msgid "Coordinated Entry Assessment - "
+msgstr ""
+
 msgid "Coordinated Entry Assessments"
 msgstr ""
 
@@ -3519,6 +3498,12 @@ msgid "Disability Verification on File"
 msgstr ""
 
 msgid "Ending Veteran & Chronic Homelessness in Boston"
+msgstr ""
+
+msgid "Entry Date"
+msgstr ""
+
+msgid "Exit Date"
 msgstr ""
 
 msgid "Files downloaded from this page may contain Personal Protected Information from a secured environment.  Once you download this file, you and your agency are responsible for maintaining all related Privacy, Security and Confidentiality protections."
@@ -3716,7 +3701,13 @@ msgstr ""
 msgid "Process Duplicates"
 msgstr ""
 
+msgid "Project Data Quality Report"
+msgstr ""
+
 msgid "Project Groups"
+msgstr ""
+
+msgid "Project Name"
 msgstr ""
 
 msgid "Projects"
@@ -3873,9 +3864,6 @@ msgid "groups"
 msgstr ""
 
 msgid "housing"
-msgstr ""
-
-msgid "organizations"
 msgstr ""
 
 msgid "patient"
