@@ -1,5 +1,7 @@
 module ClaimsReporting
   class MemberRoster < HealthBase
+    phi_patient :member_id
+
     has_one :diagnosis_classification,
             primary_key: 'member_id',
             foreign_key: 'member_id',

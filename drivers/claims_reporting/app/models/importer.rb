@@ -35,6 +35,8 @@ module ClaimsReporting
         credentials['username'],
         password: credentials['password'],
         auth_methods: ['publickey', 'password'],
+        keepalive: true,
+        keepalive_interval: 60,
       ) do |connection|
         yield connection
       end
@@ -164,7 +166,7 @@ module ClaimsReporting
       end
 
       import.update!(
-        content: File.read(full_path),
+        # content: File.open(full_path, 'rb', &:read),
         content_hash: Digest::SHA256.file(full_path),
       )
       results = {

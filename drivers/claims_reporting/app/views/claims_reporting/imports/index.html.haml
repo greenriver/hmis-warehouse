@@ -6,7 +6,6 @@
       %tr
         %th File
         %th Status
-        %th Method
         %th Started
         %th Finished
     %tbody
@@ -22,6 +21,5 @@
                   %pre= JSON.pretty_generate import.results
             - else
               = import.status_text
-          %td= import.method
           %td= import.started_at
           %td= import.completed_at

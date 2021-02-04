@@ -2,26 +2,50 @@
   .col-12
     %p
       Based on claims incurred from #{report.claim_date_range.first} to #{report.claim_date_range.last}. Paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
-    %table.table.table-sm.table-striped{style: 'width: initial;'}
-      - report.summary_rows.each do |label, html_value|
-        %tr
-          %th= label
-          %td= html_value
-    %details
-      %summary Query
-      %code= report.claims_query.to_sql
+    .pb-4
+      %h3 Summary
+      %table.table.table-sm.table-striped
+        - report.summary_rows.in_groups_of(3).transpose.each do |group|
+          %tr
+            - group.each do |label, html_value|
+              %th= label
+              %td.pr-4= html_value
+    .pb-4
+      %h3 By Service Category
     - table = report.detail_rows
     .table-responsive
-      %table.table.table-bordered.table-sm.table-striped
+      %table.table.table-sm.table-striped.table-striped.datatable
         %thead
           %tr
-            %th= ''
+            %th Category
             - report.detail_cols.each do |_fld, label|
               %th= label
 
         %tbody
-          - table.each do |row|
-            %tr
-              %th{axis: :row}= row['ccs_id'].presence || 'All claims'
-              - report.detail_cols.each do |fld, _label|
-                %td.text-right= report.formatted_value fld, row
+          - table.group_by{|row| row['cde_cos_rollup']}.each do |cos_rollup, rollup_rows|
+            - rollup_rows.sort_by{|row| report.cos_description(row['cde_cos_category'])||'ZZZZZ'}.each_with_index do |row, idx|
+              - next unless idx.zero? || rollup_rows.size > 2
+              %tr
+                - if idx.zero?
+                  %th{axis: :row}= report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
+                - else
+                  %td.pl-4{axis: :row}
+                    = report.cos_description(row['cde_cos_category']).presence || '-'
+                - report.detail_cols.each do |fld, _label|
+                  %td.text-right= report.formatted_value fld, row
+    - unless Rails.env.production?
+      %details
+        %summary Query
+        %code= report.claims_query.to_sql
+
+= content_for :page_js do
+  :javascript
+    $(function() {
+      $('.datatable').DataTable({
+        searching: false,
+        ordering: false,
+        paging: false,
+        info: false,
+        scrollY: '600px'
+      })
+    })

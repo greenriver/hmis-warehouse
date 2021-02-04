@@ -1,5 +1,7 @@
 module ClaimsReporting
   class MemberEnrollmentRoster < HealthBase
+    phi_patient :member_id
+
     include ClaimsReporting::CsvHelpers
     def self.conflict_target
       ['member_id', 'span_start_date']

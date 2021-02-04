@@ -81,7 +81,7 @@ module ClaimsReporting
       # CCSR lists it under the zeroth factional code
       icd10cm = icd10cm.to_s
 
-      # FIXME?: db/health/DXCCSR-User-Guide-v2021-1.pdf Page 24 says we CANNOT do this
+      # FIXME?: DXCCSR-User-Guide-v2021-1.pdf Page 24 says we CANNOT do this
       # orginal = icd10cm
       # ccsrs = nil
       # but we end up with a bunch of data that seems like it should match
