@@ -29,7 +29,7 @@ class EnrollmentReasonsFileUploader < CarrierWave::Uploader::Base
   process :extract_file_metadata!
 
   # NOTE if you make changes here it would be a good idea to update test/uploaders/attachment_uploader_test.rb
-  WHITELIST = IceNine.deep_freeze(['text/plain', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
+  WHITELIST = IceNine.deep_freeze(['text/plain', 'text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
 
   MANIPULATEABLE = IceNine.deep_freeze(
     [
