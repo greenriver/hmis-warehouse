@@ -7,9 +7,15 @@ This driver supports reporting on claims data received back from health insuranc
 
 Claims data is provided in a Zip file containing CSVs for each table. The CSV format is defined by `def self.schema_def` for each model.
 
+### ClaimsReporting::Importer
+
 - `ClaimsReporting::Importer.clear!` will reset/truncate claims_reporting_* tables in dev/test environments
-- `ClaimsReporting::Importer.new.import_from_zip(zip_file_path_or_io, replace_all: false)` will append/upsert the data into the files. Setting replace_all: true will truncate each table as it goes.
-- `ClaimsReporting::Importer#pull_from_health_sftp` can be used to download and import from a SFTP site (defaults to the one config/health_sftp.yml)
+- `#import_from_zip(zip_file_path_or_io, replace_all: false)` will append/upsert the data into the files. Setting replace_all: true will truncate each table as it goes.
+- `#import_from_health_sftp` can be used to download and import from a SFTP site (defaults to the one config/health_sftp.yml)
+- `#check_sftp` finds potential files matching the expected naming convention on SFTP
+
+- `#import_all_from_health_sftp(root_path: '/prod/Claims Data')` imports any previously un-imported files
+
 
 `ClaimsReporting::Importer` creates `ClaimsReporting::Import` records in the database as it works
 
@@ -21,6 +27,6 @@ HealthBase.logger.level = Logger::INFO
 ClaimsReporting::Importer.clear!
 results = {}
 ['Jul','Aug','Sep','Oct','Nov','Dec'].each do |m|
-  results[m] =  ClaimsReporting::Importer.new.import_from_zip("tmp/Claims Data/BCCH-CP_#{m}_2020.zip", replace_all: false)
+  results[m] =  ClaimsReporting::Importer.new.import_from_zip("tmp/Claims Data/Export_#{m}_2020.zip", replace_all: false)
 end
 ```

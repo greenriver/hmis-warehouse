@@ -8,6 +8,9 @@ module ClaimsReporting
   class Import < HealthBase
     validates :source_url, presence: true
 
+    URI.scheme_list['SFTP'] ||=  URI::Generic
+    URI.scheme_list['FILE'] ||=  URI::Generic
+
     def source_url_parsed
       @source_url_parsed ||= begin
                                URI.parse(source_url)
