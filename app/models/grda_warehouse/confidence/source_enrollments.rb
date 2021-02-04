@@ -35,15 +35,15 @@ module GrdaWarehouse::Confidence
       notifier = new.notifier
       message = 'Generating confidence for source enrollments'
       Rails.logger.info message
-      notifier.ping message if notifier
+      notifier&.ping message
       if should_start_a_new_batch? || force_create
         message = 'Setting up a new batch...'
         Rails.logger.info message
-        notifier.ping message if notifier
+        notifier&.ping message
         create_batch!
         message = '... batch setup complete'
         Rails.logger.info message
-        notifier.ping message if notifier
+        notifier&.ping message
       end
       queued.distinct.pluck(:resource_id).each_slice(250) do |batch|
         Delayed::Job.enqueue(
@@ -59,7 +59,7 @@ module GrdaWarehouse::Confidence
       se = queued.where(resource_id: client_id).first
       se.value = source_enrollment_count
       se.calculated_on = Date.current
-      if previous = previous_census_date(client_id: client_id, source_enrollment: se)
+      if (previous = previous_census_date(client_id: client_id, source_enrollment: se))
         previous_iteration = find_by(
           resource_id: client_id,
           census: previous,

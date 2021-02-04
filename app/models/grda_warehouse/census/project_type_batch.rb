@@ -83,7 +83,6 @@ module GrdaWarehouse::Census
     end
 
     def get_client_counts(project_type, join, client_scope)
-      ids = {}
       GrdaWarehouse::ServiceHistoryService.joins(join).
         service_within_date_range(start_date: @start_date, end_date: @end_date).
         merge(client_scope).
@@ -94,7 +93,6 @@ module GrdaWarehouse::Census
     end
 
     def get_aggregate_client_counts(joins:, client_scope:, second_scope: nil)
-      ids = {}
       query = GrdaWarehouse::ServiceHistoryService.joins(*joins).
         where(date: (@start_date..@end_date)).
         merge(client_scope)

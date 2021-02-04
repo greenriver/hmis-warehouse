@@ -83,7 +83,7 @@ module GrdaWarehouse
     def self.create_candidates!(client, threshold:, metrics:)
       relavent_fields = ([:id, :DateUpdated] + metrics.map(&:field)).uniq.map(&:to_s)
       data = SimilarityMetric.pairwise_candidates(client, threshold: threshold, metrics: metrics)
-      candidates = data.flat_map do |dest, srcs|
+      data.flat_map do |dest, srcs|
         srcs.map do |src, scoring|
           ovarall_score = scoring[:score]
           metrics = scoring[:metrics_with_scores].map do |m, score_on_metric|

@@ -34,7 +34,7 @@ module Glacier
         Rails.logger.info "Creating #{database_name} if it doesn't exist"
         system("psql -d postgres --username=#{db_user} --no-password --host=#{host_to_use} -c 'create database #{database_name}'")
 
-        puts(<<~EOS)
+        puts(<<~SQL)
           Connect to #{database_name} as the RDS superuser and run these commands:
 
           CREATE EXTENSION hstore;
@@ -42,7 +42,7 @@ module Glacier
           CREATE EXTENSION pg_stat_statements;
 
           When complete, rerun this rake task prefixed with ADDED_EXTENSIONS=true
-        EOS
+        SQL
       end
     end
 

@@ -7,4 +7,4 @@
         .c-card.c-card--padded.c-card--flush
           %ul.client-cohorts.list-unstyled
             - @client.cohorts_for_dashboard.uniq.each do |cohort|
-              %li= link_to_if cohort.class.has_some_cohort_access(current_user), cohort.name, cohort_path(cohort)
+              %li= link_to_if cohort.class.some_cohort_access?(current_user), cohort.name, cohort_path(cohort)

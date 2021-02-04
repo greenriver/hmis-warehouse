@@ -69,9 +69,7 @@ module GrdaWarehouse
     end
 
     def self.grouped
-      groups = []
-
-      ordered.group_by { |tag| tag.group }
+      ordered.group_by(&:group)
     end
 
     def self.tag_includes(info_type)

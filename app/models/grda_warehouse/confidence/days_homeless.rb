@@ -21,15 +21,15 @@ module GrdaWarehouse::Confidence
       notifier = new.notifier
       message = 'Generating confidence for days homeless'
       Rails.logger.info message
-      notifier.ping message if notifier
+      notifier&.ping message
       if should_start_a_new_batch? || force_create
         message = 'Setting up a new batch...'
         Rails.logger.info message
-        notifier.ping message if notifier
+        notifier&.ping message
         create_batch!
         message = '... batch setup complete'
         Rails.logger.info message
-        notifier.ping message if notifier
+        notifier&.ping message
       end
       queued.distinct.pluck(:resource_id).each_slice(250) do |batch|
         Delayed::Job.enqueue(
@@ -54,7 +54,7 @@ module GrdaWarehouse::Confidence
           order(iteration: :asc).first
         dh.value = dates_homeless.select { |date| date <= dh.census }.count
         dh.calculated_on = Date.current
-        if dh.iteration > 0
+        if dh.iteration.positive?
           previous_iteration = find_by(
             resource_id: client_id,
             census: dh.census,

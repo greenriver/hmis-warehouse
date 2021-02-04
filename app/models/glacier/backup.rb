@@ -84,19 +84,19 @@ module Glacier
     end
 
     def _save_results!
-      if uploader.successful?
-        archive.update_attributes({
-                                    archive_id: uploader.archive_id,
-                                    archive_name: archive_name,
-                                    checksum: uploader.checksum,
-                                    size_in_bytes: uploader.archive_size,
-                                    location: uploader.location,
-                                    upload_finished_at: Time.now,
-                                    status: 'complete',
-                                  })
+      return unless uploader.successful?
 
-        vault.update_attribute(:last_upload_success_at, Time.now)
-      end
+      archive.update_attributes({
+                                  archive_id: uploader.archive_id,
+                                  archive_name: archive_name,
+                                  checksum: uploader.checksum,
+                                  size_in_bytes: uploader.archive_size,
+                                  location: uploader.location,
+                                  upload_finished_at: Time.now,
+                                  status: 'complete',
+                                })
+
+      vault.update_attribute(:last_upload_success_at, Time.now)
     end
 
     def _remove_incomplete_uploads!

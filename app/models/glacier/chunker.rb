@@ -40,7 +40,7 @@ module Glacier
 
       beginning_byte = 0
       start_time = Time.now
-      while chunk = file_stream.read(part_size)
+      while (chunk = file_stream.read(part_size))
         Rails.logger.info "Processing chunk; elapsed time: #{Time.now - start_time} seconds"
         chunk_shas = _get_chunk_shas(chunk)
         # Rails.logger.info "SHAing chunk; elapsed time: #{(Time.now - start_time)} seconds"
@@ -66,7 +66,7 @@ module Glacier
     private
 
     def _sha_as_string sha256
-      sha256.each_char.to_a.flat_map { |x| '%02x' % x.unpack('C') }.join
+      sha256.each_char.to_a.flat_map { |x| format('%02x', x.unpack('C')) }.join
     end
 
     def _get_chunk_shas(chunk)

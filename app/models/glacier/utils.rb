@@ -66,12 +66,12 @@ module Glacier
         job = _client.describe_job(job_id: job_id, vault_name: vault_name)
       end
 
-      resp = _client.get_job_output({
-                                      response_target: './inventory.csv',
-                                      account_id: '-',
-                                      vault_name: vault_name,
-                                      job_id: job_id,
-                                    })
+      _client.get_job_output({
+                               response_target: './inventory.csv',
+                               account_id: '-',
+                               vault_name: vault_name,
+                               job_id: job_id,
+                             })
     end
 
     # This is very slow
@@ -99,12 +99,12 @@ module Glacier
         job = _client.describe_job(job_id: job_id, vault_name: vault_name)
       end
 
-      resp = _client.get_job_output({
-                                      response_target: './retreived.txt',
-                                      account_id: '-',
-                                      vault_name: vault_name,
-                                      job_id: job_id,
-                                    })
+      _client.get_job_output({
+                               response_target: './retreived.txt',
+                               account_id: '-',
+                               vault_name: vault_name,
+                               job_id: job_id,
+                             })
     end
 
     def partial_uploads(vault_name)

@@ -158,7 +158,7 @@ module GrdaWarehouse
     # paginated/preloaded scope for the last `client_search`
     attr_reader :client_search_result
 
-    def self.has_some_cohort_access user
+    def self.some_cohort_access? user
       user.can_view_assigned_cohorts? || user.can_edit_assigned_cohorts? || user.can_edit_cohort_clients? || user.can_manage_cohorts?
     end
 

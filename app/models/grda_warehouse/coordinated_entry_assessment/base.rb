@@ -96,19 +96,17 @@ module GrdaWarehouse::CoordinatedEntryAssessment
     end
 
     def ce_assessment_completed?
-      if saved_change_to_attribute?(:submitted_at)
-        before, after = saved_change_to_attribute(:submitted_at)
-        return before.nil? && after.present?
-      else
-        return false
-      end
+      return false unless saved_change_to_attribute?(:submitted_at)
+
+      before, after = saved_change_to_attribute(:submitted_at)
+      return before.nil? && after.present?
     end
 
     def add_to_cohorts
-      if ce_assessment_completed?
-        GrdaWarehouse::Cohort.active.where(assessment_trigger: self.class.name).each do |cohort|
-          AddCohortClientsJob.perform_later(cohort.id, client_id.to_s, user_id)
-        end
+      return unless ce_assessment_completed?
+
+      GrdaWarehouse::Cohort.active.where(assessment_trigger: self.class.name).each do |cohort|
+        AddCohortClientsJob.perform_later(cohort.id, client_id.to_s, user_id)
       end
     end
 
@@ -209,10 +207,10 @@ module GrdaWarehouse::CoordinatedEntryAssessment
 
     def self.ensure_active(client)
       most_recent_completed = client.ce_assessments.completed.order(submitted_at: :desc).first
-      if most_recent_completed.present?
-        most_recent_completed.update(active: true)
-        client.ce_assessments.where(active: true).where.not(id: most_recent_completed.id).update_all(active: false)
-      end
+      return unless most_recent_completed.present?
+
+      most_recent_completed.update(active: true)
+      client.ce_assessments.where(active: true).where.not(id: most_recent_completed.id).update_all(active: false)
     end
 
     def self.allowed_parameters

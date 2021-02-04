@@ -16,8 +16,6 @@ module GrdaWarehouse
     end
 
     def copy!
-      success = true
-      # begin
       GrdaWarehouse::CohortClient.transaction do
         @destination_clients.each do |client|
           client.update_attributes(@to_copy_clients[client.client_id])
@@ -34,10 +32,6 @@ module GrdaWarehouse
           end
         end
       end
-      # rescue Exception => e
-      #   success = false
-      # end
-      # return success
     end
 
     private
@@ -47,7 +41,7 @@ module GrdaWarehouse
       @to_copy_clients = @to_copy_cohort.cohort_clients.
         where(client_id: destination_client_ids).
         select(select_columns).
-        group_by { |c| c.client_id }
+        group_by(&:client_id)
 
       @to_copy_clients.keys.each do |key|
         @to_copy_clients[key] = @to_copy_clients[key].first.

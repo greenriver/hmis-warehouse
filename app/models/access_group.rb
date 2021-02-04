@@ -98,13 +98,13 @@ class AccessGroup < ApplicationRecord
       all_project_groups.set_viewables({ project_groups: ids })
     end
 
-    if group.blank? || group == :data_sources
-      # Data Sources
-      all_data_sources = AccessGroup.where(name: 'All Data Sources').first_or_create
-      all_data_sources.update(system: ['Entities'], must_exist: true)
-      ids = GrdaWarehouse::DataSource.pluck(:id)
-      all_data_sources.set_viewables({ data_sources: ids })
-    end
+    return unless group.blank? || group == :data_sources
+
+    # Data Sources
+    all_data_sources = AccessGroup.where(name: 'All Data Sources').first_or_create
+    all_data_sources.update(system: ['Entities'], must_exist: true)
+    ids = GrdaWarehouse::DataSource.pluck(:id)
+    all_data_sources.set_viewables({ data_sources: ids })
   end
 
   def set_viewables(viewables) # rubocop:disable Naming/AccessorMethodName

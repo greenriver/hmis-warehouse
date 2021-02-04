@@ -15,7 +15,7 @@ module GrdaWarehouse
     end
 
     def self.most_recent_day
-      if count > 0
+      if count.positive?
         maximum(:date)
       else
         Date.current

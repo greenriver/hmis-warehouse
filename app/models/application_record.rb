@@ -19,13 +19,13 @@ class ApplicationRecord < ActiveRecord::Base
   end
 
   def self.setup_config
-    new_config = self.original_config
+    new_config = original_config
     ENV['SCHEMA'] = 'db/reporting/schema.rb'
     # set config variables for custom database
     new_config.each do |path, value|
       Rails.application.config.paths[path] = value
     end
     db_config = Rails.application.config.paths['config/database'].to_a.first
-    ActiveRecord::Base.establish_connection YAML.load(ERB.new(File.read(db_config)).result)[Rails.env]
+    ActiveRecord::Base.establish_connection YAML.safe_load(ERB.new(File.read(db_config)).result)[Rails.env]
   end
 end
