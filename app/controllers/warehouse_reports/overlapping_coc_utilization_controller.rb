@@ -113,19 +113,6 @@ module WarehouseReports
     def overlap
       coc1 = filters.coc1
       coc2 = filters.coc2
-      report_html = if coc1 && coc2
-        begin
-          report = load_overlapping_coc_by_project_type_report
-          Rails.cache.fetch(
-            report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: CACHE_VERSION),
-            expires_in: CACHE_LIFETIME,
-          ) do
-            render_to_string(partial: 'overlap', locals: { report: report })
-          end
-        rescue WarehouseReport::OverlappingCocByProjectType::Error => e
-          e.message
-        end
-      end
 
       payload = {
         coc1_id: coc1&.id,
@@ -133,16 +120,29 @@ module WarehouseReports
         coc1: coc1.number_and_name,
         coc2: coc2&.number_and_name,
         map_title: "#{coc1.number_and_name} shared clients with the following CoCs",
-        map: map_data,
-        html: report_html,
         title: 'Overview of Shared Client by Project Type and CoC',
         subtitle: "Served between #{filters.start_date} - #{filters.end_date}",
+        error: nil,
       }
+      payload[:map] = map_data
+      payload[:html] = if coc1 && coc2
+        report = load_overlapping_coc_by_project_type_report
+        Rails.cache.fetch(
+          report.cache_key.merge(user_id: current_user.id, view: :overlap, rev: CACHE_VERSION),
+          expires_in: CACHE_LIFETIME,
+        ) do
+          render_to_string(partial: 'overlap', locals: { report: report })
+        end
+      end
+
       if coc1 && coc2
         payload[:subtitle] = "Served in both #{filters.coc1.number_and_name} and #{filters.coc2.number_and_name}, between #{filters.start_date} - #{filters.end_date}"
       else
         payload[:subtitle] = "Served in #{filters.coc1.number_and_name}, between #{filters.start_date} - #{filters.end_date}"
       end
+    rescue WarehouseReport::OverlappingCocByProjectType::Error, WarehouseReport::OverlappingCoc::Error => e
+      payload[:error] = e.message
+    ensure
       render json: payload
     end
 
