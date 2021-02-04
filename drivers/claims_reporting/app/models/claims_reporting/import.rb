@@ -6,6 +6,8 @@
 
 module ClaimsReporting
   class Import < HealthBase
+    include ElapsedTimeHelper
+
     validates :source_url, presence: true
 
     URI.scheme_list['SFTP'] ||=  URI::Generic
@@ -32,9 +34,9 @@ module ClaimsReporting
 
     def status_text
       if completed_at && successful
-        "Completed after #{processing_time.round} seconds. #{lines_read} lines read."
+        "Completed after #{elapsed_time processing_time} seconds. #{lines_read} lines read."
       elsif completed_at && !successful
-        "Failed after #{processing_time.round} seconds"
+        "Failed after #{elapsed_time processing_time} seconds"
       elsif started_at && !successful
         'Started'
       end
