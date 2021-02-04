@@ -68,15 +68,17 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   private def csv
     return nil unless content.length > 10
 
-    @csv ||= if content_type.in?(['text/plain', 'text/csv'])
-      sheet = ::Roo::CSV.new(StringIO.new(content))
-    else
-      sheet = ::Roo::Excelx.new(StringIO.new(content).binmode)
-      return nil if sheet&.first_row.blank?
-    end
+    @csv ||= begin
+      if content_type.in?(['text/plain', 'text/csv'])
+        sheet = ::Roo::CSV.new(StringIO.new(content))
+      else
+        sheet = ::Roo::Excelx.new(StringIO.new(content).binmode)
+        return nil if sheet&.first_row.blank?
+      end
 
-    @csv_headers = sheet.first
-    sheet.parse(headers: true).drop(1)
+      @csv_headers = sheet.first
+      sheet.parse(headers: true).drop(1)
+    end
   end
 
   private def check_header!
