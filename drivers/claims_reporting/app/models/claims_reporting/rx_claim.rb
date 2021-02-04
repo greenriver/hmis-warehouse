@@ -66,6 +66,10 @@ module ClaimsReporting
         55,price_method,Indicates the pricing method used for payment of the claim,50,string,-,,
         56,quantity,Quantity billed,30,"decimal(12,4)",-,,
         57,route_of_administration,Route of administration,255,string,-,,
+        58,cde_cos_rollup,,50,string,-
+        59,cde_cos_category,,50,string,-
+        60,cde_cos_subcategory,,50,string,-
+        61,ind_mco_aco_cvd_svc,,50,string,-
       CSV
     end
   end

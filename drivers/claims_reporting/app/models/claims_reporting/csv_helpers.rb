@@ -46,9 +46,9 @@ module ClaimsReporting::CsvHelpers
           end
         end
         # we potentially changed a large percentage of the data in this table
-        connection.execute("VACUUM (ANALYZE,VERBOSE) #{quoted_table_name}") if connection.open_transactions.zero?
+        connection.execute("VACUUM (ANALYZE) #{quoted_table_name}") if connection.open_transactions.zero?
       end
-      res[:bm] = bm
+      res[:bm] = bm.to_a
       res[:elapsed_seconds] = bm.real
       res[:cpu_seconds] = bm.total
       res[:rps] = res[:records_read].to_f / bm.real
@@ -65,7 +65,11 @@ module ClaimsReporting::CsvHelpers
 
       lines_read = 0
       records_read = nil
-      col_list = csv_cols.join(',')
+      actual_cols = CSV.parse_line(io, col_sep: '|')
+      extra_cols = actual_cols - csv_cols
+      raise "#{filename} contains unexpected columns: #{extra_cols}" if extra_cols.any?
+
+      col_list = actual_cols.join(',')
       log_timing "copy_data_into(#{filename}) => #{table_name}" do
         # the claims data is actually quoted pipe delimited
 

@@ -57,6 +57,7 @@ module ClaimsReporting
         42,qualifying_dsc,Qualifying activity description,512,string,-,-,-
         43,email,Email,512,string,Redacted,Redacted,Redacted
         44,head_of_household,Head of household,512,string,Redacted,Redacted,Redacted
+        45,sdh_smi,,50,string
       CSV
     end
   end

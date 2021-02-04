@@ -1,0 +1,27 @@
+%h1= "Claims Reporting Imports"
+:css
+  th, td {padding: 0.25em;}
+%table{rules:'all'}
+  %thead
+    %tr
+      %th File
+      %th Status
+      %th Method
+      %th Started
+      %th Finished
+  %tbody
+    - @imports.each do |import|
+      %tr
+        %td= import.source_path
+        %td
+          - if import.results.present? || import.status_message.present?
+            %details{open: import == @imports.first}
+              %summary= import.status_text
+              = import.status_message
+              - if import.results.present?
+                %pre= JSON.pretty_generate import.results
+          - else
+            = import.status_text
+        %td= import.method
+        %td= import.started_at
+        %td= import.completed_at

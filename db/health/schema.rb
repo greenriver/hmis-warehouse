@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_03_164826) do
+ActiveRecord::Schema.define(version: 2021_02_04_042020) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -252,16 +252,17 @@ ActiveRecord::Schema.define(version: 2021_02_03_164826) do
 
   create_table "claims_reporting_imports", force: :cascade do |t|
     t.string "source_url", null: false
-    t.string "source_hash", null: false
-    t.string "status_message"
     t.datetime "started_at"
     t.datetime "completed_at"
+    t.boolean "successful"
+    t.string "status_message"
+    t.string "content_hash"
+    t.binary "content"
     t.string "importer"
     t.string "method"
     t.jsonb "args"
     t.jsonb "env"
     t.jsonb "results"
-    t.binary "content"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -416,6 +417,10 @@ ActiveRecord::Schema.define(version: 2021_02_03_164826) do
     t.decimal "quantity", precision: 12, scale: 4
     t.string "price_method", limit: 50
     t.string "ccs_id"
+    t.string "cde_cos_rollup", limit: 50
+    t.string "cde_cos_category", limit: 50
+    t.string "cde_cos_subcategory", limit: 50
+    t.string "ind_mco_aco_cvd_svc", limit: 50
     t.index ["aco_name"], name: "index_claims_reporting_medical_claims_on_aco_name"
     t.index ["aco_pidsl"], name: "index_claims_reporting_medical_claims_on_aco_pidsl"
     t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
@@ -551,6 +556,7 @@ ActiveRecord::Schema.define(version: 2021_02_03_164826) do
     t.string "qualifying_dsc", limit: 512
     t.string "email", limit: 512
     t.string "head_of_household", limit: 512
+    t.string "sdh_smi", limit: 50
     t.index ["aco_name"], name: "index_claims_reporting_member_rosters_on_aco_name"
     t.index ["date_of_birth"], name: "index_claims_reporting_member_rosters_on_date_of_birth"
     t.index ["member_id"], name: "index_claims_reporting_member_rosters_on_member_id", unique: true
@@ -617,6 +623,10 @@ ActiveRecord::Schema.define(version: 2021_02_03_164826) do
     t.string "price_method", limit: 50
     t.decimal "quantity", precision: 12, scale: 4
     t.string "route_of_administration", limit: 255
+    t.string "cde_cos_rollup", limit: 50
+    t.string "cde_cos_category", limit: 50
+    t.string "cde_cos_subcategory", limit: 50
+    t.string "ind_mco_aco_cvd_svc", limit: 50
     t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_rx_claims", unique: true
   end
 
