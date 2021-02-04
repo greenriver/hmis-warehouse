@@ -6,6 +6,7 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
   const $submitButton = $('.j-submit-button');
   const $prompt = $('.j-submit-button-prompt');
   const $loading = $('.j-submit-button-loading');
+  const $errorContainer = $('.j-submit-button-error');
 
   $('#compare_coc1').on('select2:select', (evt) => {
     const { value } = evt.currentTarget;
@@ -23,6 +24,7 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
     $loading.toggleClass('d-none', !loading);
     const loaderClass = 'j-loading-indicator';
     const $container = $(resultsSelector).css({ opacity, pointerEvents });
+    $errorContainer.text('').addClass('hide');
     if (loading) {
       $container.prepend(
         `<div class="${loaderClass} c-spinner c-spinner--lg c-spinner--center"></div>`,
@@ -30,7 +32,7 @@ App.Reports.cocOverlap = ({ resultsSelector, mapProps, formSelector }) => {
     } else {
       $container.find(`.${loaderClass}`).remove();
       if (error) {
-        alert(error);
+        $errorContainer.text(error).removeClass('hide');
       }
     }
     $submitButton.prop('disabled', loading);
