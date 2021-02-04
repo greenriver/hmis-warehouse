@@ -19,7 +19,7 @@ module Importers::HmisAutoDetect
       bucket_name:,
       path:,
       file_password: nil
-      )
+    )
       setup_notifier('HMIS S3 AutoDetect Importer')
       @data_source_id = data_source_id
       @deidentified = deidentified
@@ -30,12 +30,12 @@ module Importers::HmisAutoDetect
           region: region,
           bucket_name: bucket_name,
           access_key_id: access_key_id,
-          secret_access_key: secret_access_key
+          secret_access_key: secret_access_key,
         )
       else
         AwsS3.new(
           region: region,
-          bucket_name: bucket_name
+          bucket_name: bucket_name,
         )
       end
       @file_password = file_password
@@ -51,7 +51,7 @@ module Importers::HmisAutoDetect
     end
 
     def pre_process
-      file_path = copy_from_s3()
+      file_path = copy_from_s3
       upload_id = upload(file_path: file_path) if file_path.present?
       Importers::HmisAutoDetect::UploadedZip.new(
         upload_id: upload_id,
@@ -66,7 +66,7 @@ module Importers::HmisAutoDetect
     def copy_from_s3
       return unless @s3.present?
 
-      file = fetch_most_recent()
+      file = fetch_most_recent
       return unless file
 
       warn_of_unchanged_file(file)
@@ -78,7 +78,7 @@ module Importers::HmisAutoDetect
       log("Downloading to: #{target_path}")
       @s3.fetch(
         file_name: file,
-        target_path: target_path
+        target_path: target_path,
       )
       target_path
     end

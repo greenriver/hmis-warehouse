@@ -69,7 +69,7 @@ module GrdaWarehouse::HMIS
       where(covid_19_impact_assessment: true)
     end
 
-    scope :health_for_user, -> (user) do
+    scope :health_for_user, ->(user) do
       if user.can_administer_health?
         joins(:hmis_forms).merge(GrdaWarehouse::HmisForm.health_touch_points)
       else
@@ -77,27 +77,23 @@ module GrdaWarehouse::HMIS
       end
     end
 
-    scope :for_user, -> (user) do
+    scope :for_user, ->(user) do
       user_scope = all
       # remove confidential if you don't have health access
-      if ! user.can_administer_health?
-         user_scope = non_confidential
-      end
+      user_scope = non_confidential unless user.can_administer_health?
       # limit to the window if you can't edit clients
-      if ! user.can_edit_clients?
-        user_scope = user_scope.window
-      end
+      user_scope = user_scope.window unless user.can_edit_clients?
       user_scope
     end
 
-    scope :fetch_for_data_source, -> (ds_id) do
+    scope :fetch_for_data_source, ->(ds_id) do
       where(data_source_id: ds_id).where(fetch: true)
     end
 
     def self.update_touch_points
       Rails.logger.info 'Fetching Touch Points'
-      touch_points = fetch_touch_points()
-      assessments = fetch_assessments()
+      touch_points = fetch_touch_points
+      assessments = fetch_assessments
       add_missing(touch_points: touch_points, assessments: assessments)
       # FIXME: temporarily leave all touch points active
       # deactivate_inactive(touch_points: touch_points, assessments: assessments)
@@ -105,14 +101,15 @@ module GrdaWarehouse::HMIS
     end
 
     def self.add_missing touch_points:, assessments:
-      api_configs = EtoApi::Base.api_configs.values.index_by{|m| m['data_source_id']}
+      api_configs = EtoApi::Base.api_configs.values.index_by { |m| m['data_source_id'] }
       touch_points.each do |key, tp|
         next if assessments[key] == tp
+
         assessment_id = key[:assessment_id]
-        assessment = self.where(
+        assessment = where(
           data_source_id: key[:data_source_id],
           site_id: key[:site_id],
-          assessment_id: assessment_id
+          assessment_id: assessment_id,
         ).first_or_create do |assessment|
           assessment.name = tp[:name]
           assessment.active = tp[:active]
@@ -139,12 +136,12 @@ module GrdaWarehouse::HMIS
             {
               data_source_id: data_source_id,
               site_id: site_id,
-              assessment_id: assessment_id
+              assessment_id: assessment_id,
             },
             {
               name: name,
               active: active,
-            }
+            },
           ]
         end.to_h
     end
@@ -156,8 +153,10 @@ module GrdaWarehouse::HMIS
         bo = Bo::ClientIdLookup.new(data_source_id: data_source_id)
         response = bo.fetch_site_touch_point_map
         break unless response.present?
+
         response.each do |row|
           next unless row[:site_unique_identifier].present?
+
           touch_points[
             {
               data_source_id: data_source_id,

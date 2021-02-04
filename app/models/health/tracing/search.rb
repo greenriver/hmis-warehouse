@@ -26,7 +26,7 @@ module Health::Tracing
         end
         OpenStruct.new(
           first: first,
-          last: last
+          last: last,
         )
       end
     end
@@ -42,12 +42,12 @@ module Health::Tracing
       if names.first == names.last
         source_client_scope.where(
           c_t[:FirstName].lower.matches("#{names.first.downcase}%").
-          or(c_t[:LastName].lower.matches("#{names.last.downcase}%"))
+          or(c_t[:LastName].lower.matches("#{names.last.downcase}%")),
         )
       else
         source_client_scope.where(
           c_t[:FirstName].lower.matches("#{names.first.downcase}%").
-          and(c_t[:LastName].lower.matches("#{names.last.downcase}%"))
+          and(c_t[:LastName].lower.matches("#{names.last.downcase}%")),
         )
       end
     end
@@ -60,19 +60,19 @@ module Health::Tracing
           htca_t[:id].in(Arel.sql(case_contacts.select(:case_id).to_sql)).
           or(htca_t[:first_name].lower.matches("#{names.first.downcase}%")).
           or(htca_t[:last_name].lower.matches("#{names.last.downcase}%")).
-          or(htca_t[:aliases].lower.matches("%#{names.last.downcase}%"))
+          or(htca_t[:aliases].lower.matches("%#{names.last.downcase}%")),
         )
       else
         query = query.where(
           htca_t[:id].in(Arel.sql(case_contacts.select(:case_id).to_sql)).
           or(
             htca_t[:first_name].lower.matches("#{names.first.downcase}%").
-            and(htca_t[:last_name].lower.matches("#{names.last.downcase}%"))
+            and(htca_t[:last_name].lower.matches("#{names.last.downcase}%")),
           ).
           or(
             htca_t[:aliases].lower.matches("%#{names.first.downcase}%").
-            or(htca_t[:aliases].lower.matches("%#{names.last.downcase}%"))
-          )
+            or(htca_t[:aliases].lower.matches("%#{names.last.downcase}%")),
+          ),
         )
       end
       query
@@ -83,14 +83,14 @@ module Health::Tracing
         contact_source.where(
           htco_t[:first_name].lower.matches("#{names.first.downcase}%").
           or(htco_t[:last_name].lower.matches("#{names.last.downcase}%")).
-          or(htco_t[:aliases].lower.matches("%#{names.last.downcase}%"))
+          or(htco_t[:aliases].lower.matches("%#{names.last.downcase}%")),
         )
       else
         contact_source.where(
           htco_t[:first_name].lower.matches("#{names.first.downcase}%").
           and(htco_t[:last_name].lower.matches("#{names.last.downcase}%")).
           or(htco_t[:aliases].lower.matches("%#{names.first.downcase}%")).
-          or(htco_t[:aliases].lower.matches("%#{names.last.downcase}%"))
+          or(htco_t[:aliases].lower.matches("%#{names.last.downcase}%")),
         )
       end
     end

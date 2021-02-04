@@ -5,7 +5,6 @@
 ###
 
 module SimilarityMetric
-
   module_function
 
   # for a given client and list of candidates, return a map from those candidates to their scores (for scores below some threshold)
@@ -15,9 +14,7 @@ module SimilarityMetric
     others.map do |other|
       s = single_score client, other, metrics: metrics, just_score: just_score
       sc = just_score ? s : s[:score]
-      if sc < threshold
-        [ other, s ]
-      end
+      [other, s] if sc < threshold
     end.compact.to_h
   end
 
@@ -41,18 +38,18 @@ module SimilarityMetric
     sources = client.destination? ? client.source_clients : [client]
     excludables = sources.map(&:id)
     score_map = sources.map do |client|
-      others = client.merge_candidates.where.not( id: excludables ).limit(limit)
-      score( client, others, metrics: metrics, threshold: threshold, just_score: false )
-    end.reduce({}){ |s1, s2| merge_scores s1, s2, just_score: false }
+      others = client.merge_candidates.where.not(id: excludables).limit(limit)
+      score(client, others, metrics: metrics, threshold: threshold, just_score: false)
+    end.reduce({}) { |s1, s2| merge_scores s1, s2, just_score: false }
     score_map = score_map.map do |client, map|
       value = rescore_amalgam map
       unless just_score
         map[:score] = value
         value = map
       end
-      [ client, value ]
+      [client, value]
     end.to_h
-    score_map = cull_by_zero_crossing( score_map, just_score ) if use_zero_crossing && score_map.size > minimum
+    score_map = cull_by_zero_crossing(score_map, just_score) if use_zero_crossing && score_map.size > minimum
     score_map
   end
 
@@ -75,20 +72,18 @@ module SimilarityMetric
     scores_per_candidate = {}
     sources_to_matches = sources.map do |client|
       # all candidates
-      others = client.merge_candidates.where.not( id: excludables ).limit(limit)
+      others = client.merge_candidates.where.not(id: excludables).limit(limit)
       # map from candidates to score/metric hashes
-      matches = score( client, others, metrics: metrics, threshold: threshold, just_score: false )
+      matches = score(client, others, metrics: metrics, threshold: threshold, just_score: false)
       # cull by threshold
-      matches.select!{ |_,h| h[:score] <= threshold }
+      matches.select! { |_, h| h[:score] <= threshold }
       # cull by zero crossing (edge of score plateau) if appropriate
-      if use_zero_crossing && matches.size > minimum
-        matches = cull_by_zero_crossing matches, false
-      end
+      matches = cull_by_zero_crossing matches, false if use_zero_crossing && matches.size > minimum
       # keep track of scores per candidate so we only show the best pairwise matches
       matches.each do |candidate, hash|
-        ( scores_per_candidate[candidate] ||= [] ) << hash[:score]
+        (scores_per_candidate[candidate] ||= []) << hash[:score]
       end
-      [ client, matches ]
+      [client, matches]
     end.to_h
     # cull pairs down to the highest (lowest) scorers
     sources_to_matches.values.each do |candidates_to_scores|
@@ -100,15 +95,19 @@ module SimilarityMetric
   end
 
   # cull a score map to just those client-score pairs on an initial "score plateau"
-  def cull_by_zero_crossing( score_map, just_score=true )
-    crossing, position, velocity, acceleration, any_acceleration = nil, nil, nil, nil, false
-    score_map.values.sort_by{ |v| just_score ? v : v[:score] }.each do |x|
+  def cull_by_zero_crossing(score_map, just_score = true)
+    crossing = nil
+    position = nil
+    velocity = nil
+    acceleration = nil
+    any_acceleration = false
+    score_map.values.sort_by { |v| just_score ? v : v[:score] }.each do |x|
       x = x[:score] unless just_score
       if position
         v = x - position
         if velocity
           a = v - velocity
-          if any_acceleration && ( ( acceleration < 0 ) ^ ( a < 0 ) )
+          if any_acceleration && ((acceleration < 0) ^ (a < 0))
             crossing = x
             break
           end
@@ -120,7 +119,7 @@ module SimilarityMetric
       position = x
     end
     if crossing
-      score_map.select do |_,score|
+      score_map.select do |_, score|
         score = score[:score] unless just_score
         score <= crossing
       end
@@ -133,14 +132,15 @@ module SimilarityMetric
   def rescore_amalgam(score_map)
     score_map = score_map[:metrics_with_scores]
     return Float::MAX if score_map.empty?
-    score_map.map{ |k,v| k.weight * v }.sum / score_map.size
+
+    score_map.map { |k, v| k.weight * v }.sum / score_map.size
   end
 
   # calculate score for a pair of individuals
   def single_score(c1, c2, metrics: Base.usable.all.reject(&:bogus?), just_score: true)
     weights = []
     scores = metrics.map do |m|
-      if s = m.score( c1, c2 )
+      if s = m.score(c1, c2)
         weights << m
         s
       end
@@ -155,7 +155,7 @@ module SimilarityMetric
     else
       {
         score: s,
-        metrics_with_scores: weights.zip(scores).to_h
+        metrics_with_scores: weights.zip(scores).to_h,
       }
     end
   end
@@ -163,15 +163,16 @@ module SimilarityMetric
   # merge two sets of client -> score maps, keeping higher similarity scores when there are collisions
   # higher similarity means lower (negative) score
   def merge_scores(scores1, scores2, just_score: true)
-    ( scores1.keys + scores2.keys ).uniq.map do |c|
-      v1, v2 = scores1[c], scores2[c]
+    (scores1.keys + scores2.keys).uniq.map do |c|
+      v1 = scores1[c]
+      v2 = scores2[c]
       v = if v1 && v2
-        s1, s2 = [ v1, v2 ].map{ |v| just_score ? v : v[:score] }
+        s1, s2 = [v1, v2].map { |v| just_score ? v : v[:score] }
         s1 < s2 ? v1 : v2
       else
         v1 || v2
       end
-      [ c, v ]
+      [c, v]
     end.to_h
   end
 
@@ -181,8 +182,7 @@ module SimilarityMetric
     metrics = Base.usable.all.reject(&:bogus?)
     return others if metrics.empty?
 
-    similarity_scores_for_others = score( client, others, metrics: metrics, threshold: threshold )
-    similarity_scores_for_others.keys.sort_by{ |c| similarity_scores_for_others[c] }
+    similarity_scores_for_others = score(client, others, metrics: metrics, threshold: threshold)
+    similarity_scores_for_others.keys.sort_by { |c| similarity_scores_for_others[c] }
   end
-
 end

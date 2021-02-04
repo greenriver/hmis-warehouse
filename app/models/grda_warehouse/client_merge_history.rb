@@ -18,6 +18,5 @@ module GrdaWarehouse
         current_destination @dest_id
       end
     end
-
   end
 end

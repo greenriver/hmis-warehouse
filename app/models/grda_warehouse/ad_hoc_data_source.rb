@@ -19,16 +19,16 @@ class GrdaWarehouse::AdHocDataSource < GrdaWarehouseBase
     where(active: true)
   end
 
-  scope :viewable_by, -> (user) do
+  scope :viewable_by, ->(user) do
     return all if user.can_manage_ad_hoc_data_sources?
+
     none
   end
 
   def self.blank_csv
     [
       'First Name,Middle Name,Last Name,SSN,DOB',
-      'First,Middle,Last,000-00-000,2000-01-30'
+      'First,Middle,Last,000-00-000,2000-01-30',
     ].join("\n")
   end
-
 end

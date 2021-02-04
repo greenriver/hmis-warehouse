@@ -9,6 +9,5 @@
 
 module Health
   class DisenrollmentReason < HealthBase
-
   end
 end

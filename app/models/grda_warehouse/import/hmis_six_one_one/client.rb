@@ -9,7 +9,7 @@ module GrdaWarehouse::Import::HMISSixOneOne
     include ::Import::HMISSixOneOne::Shared
     include TsqlImport
     self.hud_key = :PersonalID
-    setup_hud_column_access( GrdaWarehouse::Hud::Client.hud_csv_headers(version: '6.11') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Client.hud_csv_headers(version: '6.11'))
 
     def self.deidentify_client_name row
       row['FirstName'] = "First_#{row['PersonalID']}"

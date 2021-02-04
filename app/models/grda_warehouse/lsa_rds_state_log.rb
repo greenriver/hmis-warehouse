@@ -8,6 +8,5 @@
 # Ruby can't deal with directly, this will fetch and push to S3 for normal processing
 module GrdaWarehouse
   class LsaRdsStateLog < GrdaWarehouseBase
-
   end
 end

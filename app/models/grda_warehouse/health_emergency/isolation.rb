@@ -6,7 +6,6 @@
 
 module GrdaWarehouse::HealthEmergency
   class Isolation < IsolationBase
-
     def title
       'Isolation'
     end

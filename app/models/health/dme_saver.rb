@@ -7,7 +7,6 @@
 # A wrapper around Services form changes to ease Qualifying Activities creation
 module Health
   class DmeSaver
-
     def initialize user:, equipment: Health::Equipment.new, create_qa: false
       @user = user
       @equipment = equipment
@@ -39,10 +38,8 @@ module Health
         follow_up: 'Provide durable medical equipment to patient',
         reached_client: 'Yes (face to face, phone call answered, response to email)',
         mode_of_contact: 'In Person',
-        patient_id: @equipment.patient_id
+        patient_id: @equipment.patient_id,
       )
     end
-
-
   end
 end

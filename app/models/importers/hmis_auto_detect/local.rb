@@ -13,7 +13,7 @@ module Importers::HmisAutoDetect
       deidentified: false,
       allowed_projects: false,
       file_path: 'tmp/hmis_import'
-      )
+    )
       setup_notifier('HMIS Local AutoDetect Importer')
       @data_source_id = data_source_id
       @deidentified = deidentified

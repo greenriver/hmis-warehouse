@@ -76,6 +76,7 @@ module ReportGenerators::Pit::Fy2018
       # Find the first queued report
       report = ReportResult.where(report: report_class.first).where(percent_complete: 0).first
       raise "Report not found #{report_class.first.name}" unless report.present?
+
       Rails.logger.info "Starting report #{report.report.name}"
       report.update(percent_complete: 0.01)
       @answers = setup_answers
@@ -93,14 +94,14 @@ module ReportGenerators::Pit::Fy2018
       ]
 
       answer_methods.each_with_index do |method, i|
-        percent = ((i/answer_methods.size.to_f)* 100)
+        percent = ((i / answer_methods.size.to_f) * 100)
         percent = 0.01 if percent == 0
         Rails.logger.info "Starting #{method}, #{percent.round(2)}% complete"
         report.update(percent_complete: percent)
         GC.start
 
         # Rails.logger.info NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample
-        self.send(method)
+        send(method)
         Rails.logger.info "Completed #{method}"
       end
 
@@ -140,21 +141,20 @@ module ReportGenerators::Pit::Fy2018
     def add_homeless_sub_population_answers
       unsheltered_adults = involved_clients.values.flatten.select do |enrollment|
         PROJECT_TYPES[:so].include?(enrollment[:project_type]) && is_adult?(age: enrollment[:age])
-      end.map{|m| m[:client_id]}
+      end.map { |m| m[:client_id] }
       th_adults = involved_clients.values.flatten.select do |enrollment|
         PROJECT_TYPES[:th].include?(enrollment[:project_type]) && is_adult?(age: enrollment[:age])
-      end.map{|m| m[:client_id]}
+      end.map { |m| m[:client_id] }
       sh_adults = involved_clients.values.flatten.select do |enrollment|
         PROJECT_TYPES[:sh].include?(enrollment[:project_type]) && is_adult?(age: enrollment[:age])
-      end.map{|m| m[:client_id]}
+      end.map { |m| m[:client_id] }
       es_adults = involved_clients.values.flatten.select do |enrollment|
         PROJECT_TYPES[:es].include?(enrollment[:project_type]) && is_adult?(age: enrollment[:age])
-      end.map{|m| m[:client_id]}
-
+      end.map { |m| m[:client_id] }
 
       sheltered_adults = (th_adults + es_adults).uniq
 
-      {es: es_adults, th: th_adults, sh: sh_adults, so: unsheltered_adults}.each do |k, population|
+      { es: es_adults, th: th_adults, sh: sh_adults, so: unsheltered_adults }.each do |k, population|
         # Build an actual client object because we need to run down some relationships
         mental_illness_clients = []
         mental_illness_clients_indefinite_and_impairs = []
@@ -177,8 +177,8 @@ module ReportGenerators::Pit::Fy2018
           disabilities_for(client_id: id).each do |d|
             mental_illness = true if d[:DisabilityType] == 9 && d[:DisabilityResponse] == 1
             mental_illness_indefinite_and_impairs = true if d[:DisabilityType] == 9 && d[:DisabilityResponse] == 1 && d[:IndefiniteAndImpairs] == 1
-            substance_use = true if d[:DisabilityType] == 10 && [1,2,3].include?(d[:DisabilityResponse])
-            substance_use_indefinite_and_impairs = true if d[:DisabilityType] == 10 && [1,2,3].include?(d[:DisabilityResponse]) && d[:IndefiniteAndImpairs] == 1
+            substance_use = true if d[:DisabilityType] == 10 && [1, 2, 3].include?(d[:DisabilityResponse])
+            substance_use_indefinite_and_impairs = true if d[:DisabilityType] == 10 && [1, 2, 3].include?(d[:DisabilityResponse]) && d[:IndefiniteAndImpairs] == 1
             aids = true if d[:DisabilityType] == 8 && d[:DisabilityResponse] == 1
             aids_indefinite_and_impairs = true if d[:DisabilityType] == 8 && d[:DisabilityResponse] == 1 && d[:IndefiniteAndImpairs] == 1
           end
@@ -198,42 +198,42 @@ module ReportGenerators::Pit::Fy2018
         @answers[:homeless_sub][:homeless_subpopulations][:adults_with_serious_mental_illness][k] = mental_illness_clients.size
         @support[:homeless_sub][:homeless_subpopulations][:adults_with_serious_mental_illness][k] = {
           headers: ['Client ID'],
-          counts: mental_illness_clients.map{|m| [m]}
+          counts: mental_illness_clients.map { |m| [m] },
         }
         @answers[:homeless_sub][:homeless_subpopulations][:adults_with_serious_mental_illness_indefinite_and_impairs][k] = mental_illness_clients_indefinite_and_impairs.size
         @support[:homeless_sub][:homeless_subpopulations][:adults_with_serious_mental_illness_indefinite_and_impairs][k] = {
           headers: ['Client ID'],
-          counts: mental_illness_clients_indefinite_and_impairs.map{|m| [m]}
+          counts: mental_illness_clients_indefinite_and_impairs.map { |m| [m] },
         }
         @answers[:homeless_sub][:homeless_subpopulations][:adults_with_substance_use_disorder][k] = substance_use_clients.size
         @support[:homeless_sub][:homeless_subpopulations][:adults_with_substance_use_disorder][k] = {
           headers: ['Client ID'],
-          counts: substance_use_clients.map{|m| [m]}
+          counts: substance_use_clients.map { |m| [m] },
         }
         @answers[:homeless_sub][:homeless_subpopulations][:adults_with_substance_use_disorder_indefinite_and_impairs][k] = substance_use_clients_indefinite_and_impairs.size
         @support[:homeless_sub][:homeless_subpopulations][:adults_with_substance_use_disorder_indefinite_and_impairs][k] = {
           headers: ['Client ID'],
-          counts: substance_use_clients_indefinite_and_impairs.map{|m| [m]}
+          counts: substance_use_clients_indefinite_and_impairs.map { |m| [m] },
         }
         @answers[:homeless_sub][:homeless_subpopulations]['adults with HIV/AIDS'][k] = aids_clients.size
         @support[:homeless_sub][:homeless_subpopulations]['adults with HIV/AIDS'][k] = {
           headers: ['Client ID'],
-          counts: aids_clients.map{|m| [m]}
+          counts: aids_clients.map { |m| [m] },
         }
         @answers[:homeless_sub][:homeless_subpopulations]['adults with HIV/AIDS indefinite and impairs'][k] = aids_clients_indefinite_and_impairs.size
         @support[:homeless_sub][:homeless_subpopulations]['adults with HIV/AIDS indefinite and impairs'][k] = {
           headers: ['Client ID'],
-          counts: aids_clients_indefinite_and_impairs.map{|m| [m]}
+          counts: aids_clients_indefinite_and_impairs.map { |m| [m] },
         }
         @answers[:homeless_sub][:homeless_subpopulations][:victims_of_domestic_violence][k] = dv_clients.size
         @support[:homeless_sub][:homeless_subpopulations][:victims_of_domestic_violence][k] = {
           headers: ['Client ID'],
-          counts: dv_clients.map{|m| [m]}
+          counts: dv_clients.map { |m| [m] },
         }
         @answers[:homeless_sub][:homeless_subpopulations][:victims_of_domestic_violence_currently_fleeing][k] = dv_clients_currently_fleeing_clients.size
         @support[:homeless_sub][:homeless_subpopulations][:victims_of_domestic_violence_currently_fleeing][k] = {
           headers: ['Client ID'],
-          counts: dv_clients_currently_fleeing_clients.map{|m| [m]}
+          counts: dv_clients_currently_fleeing_clients.map { |m| [m] },
         }
       end
     end
@@ -241,7 +241,7 @@ module ReportGenerators::Pit::Fy2018
     def add_chronic_answers
       HOMELESS_SUB_BREAKDOWNS.each do |k, _|
         family_households = filter_households_by_makeup(project_type: k, household_type: :family, households: households)
-        clients_in_families = family_households.values.flatten.map{|m| m[:client_id]}
+        clients_in_families = family_households.values.flatten.map { |m| m[:client_id] }
         chronic_in_project_type = chronic_client_ids & client_ids_in_project_type(project_type: k)
         chronic_clients_in_families = chronic_in_project_type & clients_in_families
 
@@ -257,17 +257,17 @@ module ReportGenerators::Pit::Fy2018
 
         # Children only
         child_only_households = filter_households_by_makeup(project_type: k, household_type: :children, households: households)
-        child_clients = child_only_households.values.flatten.map{|m| m[:client_id]}
+        child_clients = child_only_households.values.flatten.map { |m| m[:client_id] }
         chronic_child_individuals = chronic_individuals & child_clients
 
         # Individual Adults
         adult_only_households = filter_households_by_makeup(project_type: k, household_type: :adults, households: households)
-        adult_clients = adult_only_households.values.flatten.map{|m| m[:client_id]}
+        adult_clients = adult_only_households.values.flatten.map { |m| m[:client_id] }
         chronic_adult_individuals = chronic_individuals & adult_clients
 
         # Youth
         youth_households = filter_households_by_makeup(project_type: k, household_type: :youth, households: households)
-        youth_clients = youth_households.values.flatten.map{|m| m[:client_id]}
+        youth_clients = youth_households.values.flatten.map { |m| m[:client_id] }
 
         chronic_youth_individuals = chronic_individuals & youth_clients
         chronic_youth_in_families = chronic_clients_in_families & youth_clients
@@ -294,7 +294,7 @@ module ReportGenerators::Pit::Fy2018
         @answers[:homeless][:family][:chronically_homeless_persons][k] = chronic_clients_in_families.size
         @support[:homeless][:family][:chronically_homeless_persons][k] = {
           headers: ['Client ID'],
-          counts: chronic_clients_in_families.map{|m| [m]}
+          counts: chronic_clients_in_families.map { |m| [m] },
         }
         @answers[:homeless][:family][:chronically_homeless_households][k] = chronic_households.size
 
@@ -302,28 +302,28 @@ module ReportGenerators::Pit::Fy2018
         @answers[:homeless][:children][:chronically_homeless_persons][k] = chronic_child_individuals.size
         @support[:homeless][:children][:chronically_homeless_persons][k] = {
           headers: ['Client ID'],
-          counts: chronic_child_individuals.map{|m| [m]}
+          counts: chronic_child_individuals.map { |m| [m] },
         }
 
         # Individual Adult
         @answers[:homeless][:adults][:chronically_homeless_persons][k] = chronic_adult_individuals.size
         @support[:homeless][:adults][:chronically_homeless_persons][k] = {
           headers: ['Client ID'],
-          counts: chronic_adult_individuals.map{|m| [m]}
+          counts: chronic_adult_individuals.map { |m| [m] },
         }
 
         # Unaccompanied Youth
         @answers[:youth][:unaccompanied_youth][:chronically_homeless_persons][k] = chronic_youth_individuals.size
         @support[:youth][:unaccompanied_youth][:chronically_homeless_persons][k] = {
           headers: ['Client ID'],
-          counts: chronic_youth_individuals.map{|m| [m]}
+          counts: chronic_youth_individuals.map { |m| [m] },
         }
 
         # Parenting Youth
         @answers[:youth][:youth_family][:chronically_homeless_persons][k] = chronic_youth_in_families.size
         @support[:youth][:youth_family][:chronically_homeless_persons][k] = {
           headers: ['Client ID'],
-          counts: chronic_youth_in_families.map{|m| [m]}
+          counts: chronic_youth_in_families.map { |m| [m] },
         }
         @answers[:youth][:youth_family][:chronically_homeless_households][k] = chronic_youth_households.size
 
@@ -331,14 +331,14 @@ module ReportGenerators::Pit::Fy2018
         @answers[:veteran][:veteran_adults][:chronically_homeless_persons][k] = chronic_veteran_individuals.size
         @support[:veteran][:veteran_adults][:chronically_homeless_persons][k] = {
           headers: ['Client ID'],
-          counts: chronic_veteran_individuals.map{|m| [m]}
+          counts: chronic_veteran_individuals.map { |m| [m] },
         }
 
         # Veterans - Family
         @answers[:veteran][:veteran_family][:chronically_homeless_persons][k] = chronic_veterans_in_families.size
         @support[:veteran][:veteran_family][:chronically_homeless_persons][k] = {
           headers: ['Client ID'],
-          counts: chronic_veterans_in_families.map{|m| [m]}
+          counts: chronic_veterans_in_families.map { |m| [m] },
         }
         @answers[:veteran][:veteran_family][:chronically_homeless_households][k] = veteran_chronic_housenolds.size
       end
@@ -348,12 +348,12 @@ module ReportGenerators::Pit::Fy2018
       breakdown.each do |k, _|
         involved_households = filter_households_by_makeup(project_type: k, household_type: household_type, households: households)
         # get an array of client_ids involved
-        client_ids = involved_households.values.flatten.map{|m| m[:client_id]}.uniq
+        client_ids = involved_households.values.flatten.map { |m| m[:client_id] }.uniq
 
         @answers[section][household_type][:total_number_of_households][k] = involved_households.size
         @support[section][household_type][:total_number_of_households][k] = {
           headers: ['Household Size', 'Client IDs'],
-          counts: involved_households.map{|_,m| [m.size, m.map{|c| c[:client_id]}.join(', ')]}
+          counts: involved_households.map { |_, m| [m.size, m.map { |c| c[:client_id] }.join(', ')] },
         }
 
         # determine age makeup
@@ -363,45 +363,45 @@ module ReportGenerators::Pit::Fy2018
           @answers[section][household_type][:number_of_adults][k] = makeup[:number_of_adults].size
           @support[section][household_type][:number_of_adults][k] = {
             headers: ['Client ID'],
-            counts: makeup[:number_of_adults].map{|m| [m]}
+            counts: makeup[:number_of_adults].map { |m| [m] },
           }
           @answers[section][household_type][:number_of_youth][k] = makeup[:number_of_youth].size
           @support[section][household_type][:number_of_youth][k] = {
             headers: ['Client ID'],
-            counts: makeup[:number_of_youth].map{|m| [m]}
+            counts: makeup[:number_of_youth].map { |m| [m] },
           }
         when :children
           @answers[section][household_type][:number_of_children][k] = makeup[:number_of_children].size
           @support[section][household_type][:number_of_children][k] = {
             headers: ['Client ID'],
-            counts: makeup[:number_of_children].map{|m| [m]}
+            counts: makeup[:number_of_children].map { |m| [m] },
           }
         when :family
           @answers[section][household_type][:number_of_adults][k] = makeup[:number_of_adults].size
           @support[section][household_type][:number_of_adults][k] = {
             headers: ['Client ID'],
-            counts: makeup[:number_of_adults].map{|m| [m]}
+            counts: makeup[:number_of_adults].map { |m| [m] },
           }
           @answers[section][household_type][:number_of_children][k] = makeup[:number_of_children].size
           @support[section][household_type][:number_of_children][k] = {
             headers: ['Client ID'],
-            counts: makeup[:number_of_children].map{|m| [m]}
+            counts: makeup[:number_of_children].map { |m| [m] },
           }
           @answers[section][household_type][:number_of_youth][k] = makeup[:number_of_youth].size
           @support[section][household_type][:number_of_youth][k] = {
             headers: ['Client ID'],
-            counts: makeup[:number_of_youth].map{|m| [m]}
+            counts: makeup[:number_of_youth].map { |m| [m] },
           }
         when :unaccompanied_youth
           @answers[section][household_type][:number_of_children][k] = makeup[:number_of_children].size
           @support[section][household_type][:number_of_children][k] = {
             headers: ['Client ID'],
-            counts: makeup[:number_of_children].map{|m| [m]}
+            counts: makeup[:number_of_children].map { |m| [m] },
           }
           @answers[section][household_type][:number_of_youth][k] = makeup[:number_of_youth].size
           @support[section][household_type][:number_of_youth][k] = {
             headers: ['Client ID'],
-            counts: makeup[:number_of_youth].map{|m| [m]}
+            counts: makeup[:number_of_youth].map { |m| [m] },
           }
         when :youth_family
           child_parents = head_of_households_who_are(life_stage: :child, households: involved_households)
@@ -410,17 +410,17 @@ module ReportGenerators::Pit::Fy2018
           @answers[section][household_type][:number_of_children][k] = (makeup[:number_of_children] - child_parents).size
           @support[section][household_type][:number_of_children][k] = {
             headers: ['Client ID'],
-            counts: (makeup[:number_of_children] - child_parents).map{|m| [m]}
+            counts: (makeup[:number_of_children] - child_parents).map { |m| [m] },
           }
           @answers[section][household_type][:number_of_parenting_children][k] = child_parents.size
           @support[section][household_type][:number_of_parenting_children][k] = {
             headers: ['Client ID'],
-            counts: child_parents.map{|m| [m]}
+            counts: child_parents.map { |m| [m] },
           }
           @answers[section][household_type][:number_of_parenting_youth][k] = youth_parents.size
           @support[section][household_type][:number_of_parenting_youth][k] = {
             headers: ['Client ID'],
-            counts: youth_parents.map{|m| [m]}
+            counts: youth_parents.map { |m| [m] },
           }
           # Limit client details to youth only
           client_ids = youth_parents
@@ -428,14 +428,14 @@ module ReportGenerators::Pit::Fy2018
           @answers[section][household_type][:number_of_persons][k] = client_ids.size
           @support[section][household_type][:number_of_persons][k] = {
             headers: ['Client ID'],
-            counts: client_ids.map{|m| [m]}
+            counts: client_ids.map { |m| [m] },
           }
           @answers[section][household_type][:number_of_veterans][k] = (veteran_client_ids & client_ids).size
           # limit client details to vets only
           client_ids = veteran_client_ids & client_ids
           @support[section][household_type][:number_of_veterans][k] = {
             headers: ['Client ID'],
-            counts: client_ids.map{|m| [m]}
+            counts: client_ids.map { |m| [m] },
           }
         end
 
@@ -476,12 +476,8 @@ module ReportGenerators::Pit::Fy2018
           else
             adult = true
           end
-          if is_youth?(age: age)
-            youth = true
-          end
-          if is_older_adult?(age: age)
-            older_adult = true
-          end
+          youth = true if is_youth?(age: age)
+          older_adult = true if is_older_adult?(age: age)
           case household_type
           when :veteran_family, :veteran_adults
             veteran = true if veteran_client_ids.include?(m[:client_id])
@@ -510,13 +506,13 @@ module ReportGenerators::Pit::Fy2018
       heads = []
       households.each do |_, members|
         members.each do |m|
-          if m[:RelationshipToHoH] == 1
-            case life_stage
-            when :child
-              heads << m[:client_id] if is_child?(age: m[:age])
-            when :youth
-              heads << m[:client_id] if is_youth?(age: m[:age])
-            end
+          next unless m[:RelationshipToHoH] == 1
+
+          case life_stage
+          when :child
+            heads << m[:client_id] if is_child?(age: m[:age])
+          when :youth
+            heads << m[:client_id] if is_youth?(age: m[:age])
           end
         end
       end
@@ -534,6 +530,7 @@ module ReportGenerators::Pit::Fy2018
       households.each do |_, members|
         members.each do |m|
           next if ids.include?(m[:client_id])
+
           age = determine_age(client_id: m[:client_id], age: m[:age])
           if is_child?(age: age)
             makeup[:number_of_children] << m[:client_id]
@@ -562,7 +559,7 @@ module ReportGenerators::Pit::Fy2018
           makeup[:female] << id
         when 1
           makeup[:male] << id
-        when 2,3
+        when 2, 3
           makeup[:transgender] << id
         when 4
           makeup[:gender_non_conforming] << id
@@ -603,8 +600,8 @@ module ReportGenerators::Pit::Fy2018
           :Asian,
           :BlackAfAmerican,
           :NativeHIOtherPacific,
-          :White
-        ).select{|k,v| v == 1}
+          :White,
+        ).select { |_k, v| v == 1 }
         if races.size == 1
           case races.keys.first
           when :AmIndAKNative
@@ -629,12 +626,11 @@ module ReportGenerators::Pit::Fy2018
       @chronic_ids ||= chronic_scope.pluck(:client_id) & involved_clients.keys
     end
 
-
     def veteran_client_ids
       @veteran_ids ||= begin
         client_metadata.values.flatten.
-          select{|m| m[:VeteranStatus] == 1}.
-          map{|m| m[:id]}.uniq
+          select { |m| m[:VeteranStatus] == 1 }.
+          map { |m| m[:id] }.uniq
       end
     end
 
@@ -646,7 +642,7 @@ module ReportGenerators::Pit::Fy2018
           # fake a household id if we don't have one
           service[:household_id] = "hh_#{service[:client_id]}_#{service[:project_id]}" unless service[:household_id].present?
         end.
-        group_by{|m| [m[:household_id], m[:data_source_id]]}
+          group_by { |m| [m[:household_id], m[:data_source_id]] }
       end
     end
 
@@ -659,7 +655,7 @@ module ReportGenerators::Pit::Fy2018
           map do |ar|
             sh_cols.keys.zip(ar).to_h
           end.
-          group_by{|m| m[:client_id]}
+          group_by { |m| m[:client_id] }
       end
     end
 
@@ -685,11 +681,11 @@ module ReportGenerators::Pit::Fy2018
       @involved_clients ||= begin
         # remove anyone in PH
         cleaned = potential_candidates.delete_if do |_, enrollments|
-          enrollments.select{|m| REMOVE_PROJECT_TYPES.include?(m[:project_type])}.any?
+          enrollments.select { |m| REMOVE_PROJECT_TYPES.include?(m[:project_type]) }.any?
         end
         # remove any enrollments that aren't in the PIT Project Types
         cleaned.each do |_, enrollments|
-          enrollments.delete_if{|m| ! PROJECT_TYPES.values.flatten.include?(m[:project_type])}
+          enrollments.delete_if { |m| ! PROJECT_TYPES.values.flatten.include?(m[:project_type]) }
         end
         # remove anyone who no longer has enrollments
         cleaned.delete_if do |_, enrollments|
@@ -698,20 +694,20 @@ module ReportGenerators::Pit::Fy2018
         # Limit each client to only one enrollment in the following priority
         # ES > SH > TH > SO
         cleaned.each do |client_id, enrollments|
-          if enrollments.size > 1
-            es = enrollments.select{|m| PROJECT_TYPES[:es].include?(m[:project_type])}
-            sh = enrollments.select{|m| PROJECT_TYPES[:sh].include?(m[:project_type])}
-            th = enrollments.select{|m| PROJECT_TYPES[:th].include?(m[:project_type])}
-            so = enrollments.select{|m| PROJECT_TYPES[:so].include?(m[:project_type])}
-            if es.any?
-              cleaned[client_id] = [es.first]
-            elsif sh.any?
-              cleaned[client_id] = [sh.first]
-            elsif th.any?
-              cleaned[client_id] = [th.first]
-            elsif so.any?
-              cleaned[client_id] = [so.first]
-            end
+          next unless enrollments.size > 1
+
+          es = enrollments.select { |m| PROJECT_TYPES[:es].include?(m[:project_type]) }
+          sh = enrollments.select { |m| PROJECT_TYPES[:sh].include?(m[:project_type]) }
+          th = enrollments.select { |m| PROJECT_TYPES[:th].include?(m[:project_type]) }
+          so = enrollments.select { |m| PROJECT_TYPES[:so].include?(m[:project_type]) }
+          if es.any?
+            cleaned[client_id] = [es.first]
+          elsif sh.any?
+            cleaned[client_id] = [sh.first]
+          elsif th.any?
+            cleaned[client_id] = [th.first]
+          elsif so.any?
+            cleaned[client_id] = [so.first]
           end
         end
         cleaned
@@ -721,20 +717,20 @@ module ReportGenerators::Pit::Fy2018
     def client_ids_in_project_type project_type:
       involved_clients.values.flatten.select do |m|
         PROJECT_TYPES[project_type].include?(m[:project_type])
-      end.map{|m| m[:client_id]}.uniq
+      end.map { |m| m[:client_id] }.uniq
     end
 
     def determine_age client_id:, age:
       return age if age.present?
+
       infer_age(client_id: client_id)
     end
 
     def infer_age client_id:
       first_entry_date = first_entry_date(client_id: client_id)
       return nil unless first_entry_date.present?
-      if first_entry_date < Date.current - 18.years # happened over 18 years ago
-        return ((Date.current - first_entry_date)/365).to_i
-      end
+      return ((Date.current - first_entry_date) / 365).to_i if first_entry_date < Date.current - 18.years # happened over 18 years ago
+
       return nil
     end
 
@@ -753,7 +749,7 @@ module ReportGenerators::Pit::Fy2018
               map do |ar|
                 client_columns.keys.zip(ar).to_h
               end.
-              index_by{|m| m[:id]}
+              index_by { |m| m[:id] },
             )
           end
         end
@@ -771,12 +767,12 @@ module ReportGenerators::Pit::Fy2018
             m.merge!(
               GrdaWarehouse::Hud::Disability.
               joins(:destination_client).
-              where(warehouse_clients: {destination_id: ids}).
+              where(warehouse_clients: { destination_id: ids }).
               pluck(*disability_columns.values, :destination_id).
               map do |ar|
                 (disability_columns.keys + [:client_id]).zip(ar).to_h
               end.
-              group_by{|m| m[:client_id]}
+              group_by { |m| m[:client_id] },
             )
           end
         end
@@ -795,12 +791,12 @@ module ReportGenerators::Pit::Fy2018
             m.merge!(
               GrdaWarehouse::Hud::HealthAndDv.
               joins(:destination_client).
-              where(warehouse_clients: {destination_id: ids}).
+              where(warehouse_clients: { destination_id: ids }).
               pluck(*health_columns.values, :destination_id).
               map do |ar|
                 (health_columns.keys + [:client_id]).zip(ar).to_h
               end.
-              group_by{|m| m[:client_id]}
+              group_by { |m| m[:client_id] },
             )
           end
         end
@@ -811,7 +807,7 @@ module ReportGenerators::Pit::Fy2018
       @first_entries ||= begin
         GrdaWarehouse::ServiceHistoryEnrollment.
           first_date.where(
-            client_id: involved_clients.keys
+            client_id: involved_clients.keys,
           ).
           pluck(:client_id, :date).to_h
       end
@@ -823,7 +819,7 @@ module ReportGenerators::Pit::Fy2018
         joins(:service_history_services).
         where(
           shs_t[:date].eq(@pit_date).
-          and(shs_t[:record_type].eq('service'))
+          and(shs_t[:record_type].eq('service')),
         ).
         joins(project: :project_cocs).
         where(pc_t[:CoCCode].in(@coc_codes)).
@@ -853,7 +849,7 @@ module ReportGenerators::Pit::Fy2018
     end
 
     def act_as_project_overlay
-      nf( 'COALESCE', [ p_t[:act_as_project_type], shs_t[:project_type] ] ).as('project_type').to_sql
+      nf('COALESCE', [p_t[:act_as_project_type], shs_t[:project_type]]).as('project_type').to_sql
     end
 
     def client_columns

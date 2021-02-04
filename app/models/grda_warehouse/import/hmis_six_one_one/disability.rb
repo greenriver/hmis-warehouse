@@ -9,7 +9,7 @@ module GrdaWarehouse::Import::HMISSixOneOne
     include ::Import::HMISSixOneOne::Shared
     include TsqlImport
     self.hud_key = :DisabilitiesID
-    setup_hud_column_access( GrdaWarehouse::Hud::Disability.hud_csv_headers(version: '6.11') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Disability.hud_csv_headers(version: '6.11'))
 
     def self.date_provided_column
       :InformationDate
@@ -22,10 +22,9 @@ module GrdaWarehouse::Import::HMISSixOneOne
     # Currently this translates back to HMIS 5.1
     # and does other data cleanup as necessary
     def self.translate_to_db_headers(row)
-       # We've seen a bunch of integers come through as floats
+      # We've seen a bunch of integers come through as floats
       row[:TCellCount] = row[:TCellCount].to_i
       return row
     end
-
   end
 end

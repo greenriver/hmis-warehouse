@@ -19,11 +19,11 @@ module GrdaWarehouse::Tasks
     RESIDENTIAL_NON_HOMELESS_PROJECT_TYPE = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS - GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
 
     def run!
-      logger.info "====DRY RUN====" if @dry_run
+      logger.info '====DRY RUN====' if @dry_run
       logger.info "Updating status of DMH chronically homeless clients on #{@date}"
       if @clients.present?
         # limit to those we provided where it intersects with actual DMH clients
-        @clients = @clients #dmh_clients.pluck(:client_id) && @clients
+        @clients = @clients # dmh_clients.pluck(:client_id) && @clients
       else
         @clients = dmh_clients.pluck(:client_id)
       end
@@ -33,7 +33,7 @@ module GrdaWarehouse::Tasks
       extra_work = 0
       @clients.each_with_index do |client_id, index|
         debug_log "Calculating chronicity for #{client_id}"
-        reset_for_batch()
+        reset_for_batch
         dmh_client_scope = service_history_enrollments_source.
           hud_currently_homeless(date: @date, chronic_types_only: true).
           where(client_id: client_id).
@@ -46,7 +46,7 @@ module GrdaWarehouse::Tasks
         dmh_days_homeless = dmh_client_scope.pluck(shs_t[:date].as('date').to_sql).
           uniq.
           count
-          debug_log "Found #{dmh_days_homeless} DMH homeless days"
+        debug_log "Found #{dmh_days_homeless} DMH homeless days"
         mainstream_days_homeless = service_history_enrollments_source.
           hud_homeless(chronic_types_only: true).
           joins(:service_history_services, :project).
@@ -60,7 +60,7 @@ module GrdaWarehouse::Tasks
           @chronic_trigger = "#{dmh_days_homeless + mainstream_days_homeless} days total #{mainstream_days_homeless} of which were mainstream, DMH client"
           homeless_months = adjusted_months_served(dates: adjusted_homeless_dates_served)
           debug_log "Found #{homeless_months.size} homeless months"
-          debug_log "Chronic Triggers: "
+          debug_log 'Chronic Triggers: '
           debug_log @chronic_trigger.inspect
           @chronically_homeless << client_id
           # Add details for any chronically homeless client
@@ -70,7 +70,7 @@ module GrdaWarehouse::Tasks
             days_served: adjusted_homeless_dates_served,
             months_homeless: homeless_months.size,
             chronic_trigger: @chronic_trigger,
-            dmh: true
+            dmh: true,
           )
 
         end
@@ -84,9 +84,7 @@ module GrdaWarehouse::Tasks
       else
         chronic_source.transaction do
           chronic_source.where(date: @date, dmh: true).delete_all
-          if @client_details.present?
-            insert_batch(chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values))
-          end
+          insert_batch(chronic_source, @client_details.values.first.keys, @client_details.values.map(&:values)) if @client_details.present?
         end
         logger.info 'Done updating status of chronically homeless clients'
       end

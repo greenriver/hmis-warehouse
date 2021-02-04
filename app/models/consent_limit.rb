@@ -12,7 +12,7 @@ class ConsentLimit < ApplicationRecord
   has_many :agencies, through: :agencies_consent_limits
 
   validates_presence_of :name, :color
-  validates :name, format: { with: /\A[A-Z][A-Z]-\d\d\d\z/, message: "Must match the format ZZ-000" }
+  validates :name, format: { with: /\A[A-Z][A-Z]-\d\d\d\z/, message: 'Must match the format ZZ-000' }
 
   def self.available_cocs
     all.map do |c|
@@ -33,6 +33,6 @@ class ConsentLimit < ApplicationRecord
   end
 
   def description_and_coc_code
-     "#{description} (#{name})"
+    "#{description} (#{name})"
   end
 end

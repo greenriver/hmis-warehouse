@@ -70,6 +70,7 @@ module Importers::HmisTwentyTwenty
 
     def copy_from_s3
       return unless @s3.present?
+
       file = fetch_most_recent
       return unless file
 
@@ -122,10 +123,10 @@ module Importers::HmisTwentyTwenty
         files = Dir.glob(File.join(tmp_folder, '*')).map { |f| File.basename(f) }
         Zip::File.open(dest_file, Zip::File::CREATE) do |zipfile|
           files.each do |filename|
-          zipfile.add(
-            File.join(File.basename(tmp_folder), filename),
-            File.join(tmp_folder, filename),
-          )
+            zipfile.add(
+              File.join(File.basename(tmp_folder), filename),
+              File.join(tmp_folder, filename),
+            )
           end
         end
         FileUtils.rmtree(tmp_folder) if File.exist? tmp_folder

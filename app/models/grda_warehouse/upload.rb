@@ -52,17 +52,15 @@ module GrdaWarehouse
       end
       if percent_complete == 100
         begin
-          seconds = ((completed_at - created_at)/1.minute).round * 60
+          seconds = ((completed_at - created_at) / 1.minute).round * 60
           distance_of_time_in_words(seconds)
-        rescue
+        rescue StandardError
           'unknown'
         end
+      elsif updated_at < 2.days.ago
+        'failed'
       else
-        if updated_at < 2.days.ago
-          'failed'
-        else
-          'processing...'
-        end
+        'processing...'
       end
     end
     # Overrides some methods, so must be included at the end

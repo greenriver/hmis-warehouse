@@ -10,12 +10,12 @@
 module Health
   class Appointment < EpicBase
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier, "ID of Appointment"
-    phi_attr :notes, Phi::FreeText, "Notes of appointment"
-    phi_attr :doctor, Phi::SmallPopulation, "Name of Doctor"
-    phi_attr :department, Phi::SmallPopulation, "Name of department"
+    phi_attr :id, Phi::OtherIdentifier, 'ID of Appointment'
+    phi_attr :notes, Phi::FreeText, 'Notes of appointment'
+    phi_attr :doctor, Phi::SmallPopulation, 'Name of Doctor'
+    phi_attr :department, Phi::SmallPopulation, 'Name of department'
     phi_attr :sa, Phi::NeedsReview
-    phi_attr :appointment_time, Phi::Date, "Date of appointment"
+    phi_attr :appointment_time, Phi::Date, 'Date of appointment'
     phi_attr :id_in_source, Phi::OtherIdentifier
 
     belongs_to :patient, primary_key: :id_in_source, foreign_key: :patient_id, inverse_of: :appointments
@@ -50,7 +50,11 @@ module Health
     def clean_row row:, data_source_id:
       # these don't include timezone data, using Time.parse puts it in
       # the local timezone with the correct time.
-      row['datetime'] = Time.parse(row['datetime']) rescue nil
+      row['datetime'] = begin
+                          Time.parse(row['datetime'])
+                        rescue StandardError
+                          nil
+                        end
       row
     end
   end

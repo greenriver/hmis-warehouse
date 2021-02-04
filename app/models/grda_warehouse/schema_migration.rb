@@ -6,6 +6,5 @@
 
 module GrdaWarehouse
   class SchemaMigration < GrdaWarehouseBase
-
   end
 end

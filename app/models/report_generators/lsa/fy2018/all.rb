@@ -21,7 +21,6 @@
 #     /*"
 # 5. Remove insert statement for lsa_Report that starts with "INSERT [dbo].[lsa_Report]"
 
-
 # This check is a proxy for all the vars you really need in the rds.rb file
 # This if-statement prevents the lack of the vars from killing the app.
 
@@ -44,8 +43,8 @@ module ReportGenerators::Lsa::Fy2018
       setup_notifier('LSA')
       # Disable logging so we don't fill the disk
       # ActiveRecord::Base.logger.silence do
-        calculate()
-        Rails.logger.info "Done"
+      calculate
+      Rails.logger.info 'Done'
       # end # End silence ActiveRecord Log
     end
 
@@ -53,52 +52,52 @@ module ReportGenerators::Lsa::Fy2018
 
     def calculate
       if start_report(Reports::Lsa::Fy2018::All.first)
-        setup_filters()
+        setup_filters
         @report_start ||= @report.options['report_start'].to_date
         @report_end ||= @report.options['report_end'].to_date
         log_and_ping("Starting report #{@report.report.name}")
         begin
           # error really early if we have issues with the sample code
-          validate_lsa_sample_code()
-          @hmis_export = create_hmis_csv_export()
+          validate_lsa_sample_code
+          @hmis_export = create_hmis_csv_export
           update_report_progress percent: 15
           log_and_ping('HMIS Export complete')
           # puts 'done exporting'
-          setup_temporary_rds()
+          setup_temporary_rds
           update_report_progress percent: 20
           log_and_ping('RDS DB Setup')
           # puts 'RDS setup done'
-          setup_hmis_table_structure()
+          setup_hmis_table_structure
           log_and_ping('HMIS Table Structure')
-          setup_lsa_table_structure()
+          setup_lsa_table_structure
           log_and_ping('LSA Table Structure')
-          setup_lsa_reference_tables()
+          setup_lsa_reference_tables
           log_and_ping('LSA Reference Table Structure')
-          setup_lsa_table_indexes()
+          setup_lsa_table_indexes
           log_and_ping('LSA Indexes')
 
           update_report_progress percent: 22
-          setup_lsa_report()
+          setup_lsa_report
           log_and_ping('LSA Report Setup')
 
-          populate_hmis_tables()
+          populate_hmis_tables
           update_report_progress percent: 30
           log_and_ping('HMIS tables populated')
 
-          run_lsa_queries()
+          run_lsa_queries
           update_report_progress percent: 90
           log_and_ping('LSA Queries complete')
-          fetch_results()
-          fetch_summary_results()
-          zip_report_folder()
-          attach_report_zip()
-          remove_report_files()
+          fetch_results
+          fetch_summary_results
+          zip_report_folder
+          attach_report_zip
+          remove_report_files
           update_report_progress percent: 100
           log_and_ping('LSA Complete')
         ensure
-          remove_temporary_rds()
+          remove_temporary_rds
         end
-        finish_report()
+        finish_report
       else
         log_and_ping('No LSA Report Queued')
       end
@@ -111,7 +110,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def sql_server_identifier
-      "#{ ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '') }-#{ Rails.env }-LSA-#{@report.id}".downcase
+      "#{ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '')}-#{Rails.env}-LSA-#{@report.id}".downcase
     end
 
     def sql_server_database
@@ -120,9 +119,7 @@ module ReportGenerators::Lsa::Fy2018
 
     def create_hmis_csv_export
       # debugging
-      if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
-        return GrdaWarehouse::HmisExport.find(@hmis_export_id)
-      end
+      return GrdaWarehouse::HmisExport.find(@hmis_export_id) if @hmis_export_id && GrdaWarehouse::HmisExport.where(id: @hmis_export_id).exists?
 
       # All LSA reports should have the same HMIS export scope, so reuse the file if available from today
       existing_export = GrdaWarehouse::HmisExport.order(created_at: :desc).limit(1).
@@ -131,10 +128,10 @@ module ReportGenerators::Lsa::Fy2018
           start_date: '2012-10-01',
           period_type: 3,
           directive: 2,
-          hash_status:1,
+          hash_status: 1,
           include_deleted: false,
-        ).where("project_ids @> ?", @project_ids.to_json)
-        &.first
+        ).where('project_ids @> ?', @project_ids.to_json)&.
+        first
       return existing_export if existing_export.present?
 
       Exporters::HmisSixOneOne::Base.new(
@@ -143,9 +140,9 @@ module ReportGenerators::Lsa::Fy2018
         projects: @project_ids,
         period_type: 3,
         directive: 2,
-        hash_status:1,
+        hash_status: 1,
         include_deleted: false,
-        user_id: @report.user_id
+        user_id: @report.user_id,
       ).export!
     end
 
@@ -162,16 +159,16 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def zip_path
-      File.join(unzip_path, "#{@report.id.to_s}.zip")
+      File.join(unzip_path, "#{@report.id}.zip")
     end
 
     def zip_report_folder
-      files = Dir.glob(File.join(unzip_path, '*')).map{|f| File.basename(f)}
+      files = Dir.glob(File.join(unzip_path, '*')).map { |f| File.basename(f) }
       Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
         files.each do |file_name|
           zipfile.add(
             file_name,
-            File.join(unzip_path, file_name)
+            File.join(unzip_path, file_name),
           )
         end
       end
@@ -202,13 +199,13 @@ module ReportGenerators::Lsa::Fy2018
           file.lazy.each_slice(read_rows) do |lines|
             content = CSV.parse(lines.join, headers: headers)
             import_headers = content.first.headers
-            if content.any?
-              # this fixes dates that default to 1900-01-01 if you send an empty string
-              content = content.map do |row|
-                row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
-              end
-              insert_batch(klass, import_headers, content, batch_size: 1_000)
+            next unless content.any?
+
+            # this fixes dates that default to 1900-01-01 if you send an empty string
+            content = content.map do |row|
+              row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
             end
+            insert_batch(klass, import_headers, content, batch_size: 1_000)
           end
         end
       end
@@ -224,7 +221,7 @@ module ReportGenerators::Lsa::Fy2018
         path = File.join(unzip_path, filename)
         # for some reason the example files are quoted, except the LSA files, which are not
         force_quotes = ! klass.name.include?('LSA')
-        CSV.open(path, "wb", force_quotes: force_quotes) do |csv|
+        CSV.open(path, 'wb', force_quotes: force_quotes) do |csv|
           csv << klass.attribute_names
           klass.all.each do |item|
             row = []
@@ -257,17 +254,17 @@ module ReportGenerators::Lsa::Fy2018
         SoftwareName: 'OpenPath HMIS Data Warehouse',
         VendorContact: 'Elliot Anders',
         VendorEmail: 'elliot@greenriver.org',
-        LSAScope: @lsa_scope
+        LSAScope: @lsa_scope,
       )
       # INSERT [dbo].[lsa_Report] ([ReportID]
-        # , [ReportDate], [ReportStart], [ReportEnd], [ReportCoC]
-        # , [SoftwareVendor], [SoftwareName], [VendorContact], [VendorEmail]
-        # , [LSAScope])
+      # , [ReportDate], [ReportStart], [ReportEnd], [ReportCoC]
+      # , [SoftwareVendor], [SoftwareName], [VendorContact], [VendorEmail]
+      # , [LSAScope])
       # VALUES (1009
-        # , CAST(N'2018-05-07T17:47:35.977' AS DateTime), CAST(N'2016-10-01' AS Date)
-          # , CAST(N'2017-09-30' AS Date), N'XX-500'
-        # , N'Tamale Inc.', N'Tamale Online', N'Molly', N'molly@squarepegdata.com'
-        # , 1)
+      # , CAST(N'2018-05-07T17:47:35.977' AS DateTime), CAST(N'2016-10-01' AS Date)
+      # , CAST(N'2017-09-30' AS Date), N'XX-500'
+      # , N'Tamale Inc.', N'Tamale Online', N'Molly', N'molly@squarepegdata.com'
+      # , 1)
     end
 
     def remove_temporary_rds
@@ -281,7 +278,7 @@ module ReportGenerators::Lsa::Fy2018
     end
 
     def setup_lsa_table_indexes
-      SqlServerBase.connection.execute (<<~SQL);
+      SqlServerBase.connection.execute(<<~SQL)
         if not exists (select * from sys.indexes where name = 'ref_Populations_HHType_idx')
         begin
           create index ref_Populations_HHType_idx ON [ref_Populations] ([HHType]);
@@ -486,7 +483,6 @@ module ReportGenerators::Lsa::Fy2018
       SQL
     end
 
-
     def setup_lsa_reference_tables
       ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
       ::Rds.database = sql_server_database
@@ -541,13 +537,11 @@ module ReportGenerators::Lsa::Fy2018
       load 'lib/rds_sql_server/lsa_summary.rb'
       summary = LsaSqlServer::LSAReportSummary.new
       summary_data = summary.fetch_results
-      people = {headers: summary_data.columns.first, data: summary_data.rows.first}
-      enrollments = {headers: summary_data.columns.second, data: summary_data.rows.second}
+      people = { headers: summary_data.columns.first, data: summary_data.rows.first }
+      enrollments = { headers: summary_data.columns.second, data: summary_data.rows.second }
       demographics = summary.fetch_demographics
-      @report.results = {summary: {people: people, enrollments: enrollments, demographics: demographics}}
+      @report.results = { summary: { people: people, enrollments: enrollments, demographics: demographics } }
       @report.save
     end
-
-
   end
 end

@@ -6,8 +6,7 @@
 
 module GrdaWarehouse
   class CasVacancy < GrdaWarehouseBase
-
-    scope :created_between, -> (start_date, end_date) do
+    scope :created_between, ->(start_date, end_date) do
       where(vacancy_created_at: start_date..end_date)
     end
 

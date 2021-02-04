@@ -9,13 +9,13 @@ module GrdaWarehouse::WarehouseReports
     include ArelHelper
     # A simple method to get some test parameters
     def default_params
-      {"initiative_name"=>"RRH",
-       "start"=>"2018-01-22",
-       "end"=>"2018-02-22",
-       "comparison_start"=>"2017-01-22",
-       "comparison_end"=>"2017-02-22",
-       "projects"=>[4, 9, 10, 2],
-       "sub_population"=>"family"}
+      { 'initiative_name' => 'RRH',
+        'start' => '2018-01-22',
+        'end' => '2018-02-22',
+        'comparison_start' => '2017-01-22',
+        'comparison_end' => '2017-02-22',
+        'projects' => [4, 9, 10, 2],
+        'sub_population' => 'family' }
     end
 
     def token_expired
@@ -23,40 +23,40 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def run!
-      setup()
-      involved_genders()
-      involved_project_types()
-      involved_projects()
-      involved_zipcodes()
-      client_counts_by_project_type()
-      client_counts_by_project()
-      gender_breakdowns_by_project_type()
-      gender_breakdowns_by_project()
-      veteran_breakdowns_by_project_type()
-      veteran_breakdowns_by_project()
-      ethnicity_breakdowns_by_project_type()
-      ethnicity_breakdowns_by_project()
-      race_breakdowns_by_project_type()
-      race_breakdowns_by_project()
-      age_breakdowns_by_project_type()
-      age_breakdowns_by_project()
-      length_of_stay_breakdowns_by_project_type()
-      length_of_stay_breakdowns_by_project()
-      living_situation_breakdowns_by_project_type()
-      living_situation_breakdowns_by_project()
-      income_at_entry_breakdowns_by_project_type()
-      income_at_entry_breakdowns_by_project()
-      income_most_recent_breakdowns_by_project_type()
-      income_most_recent_breakdowns_by_project()
-      date_counts_by_project_type()
-      date_counts_by_project()
-      destination_breakdowns_by_project_type()
-      destination_breakdowns_by_project()
-      zip_breakdowns_by_project_type()
-      zip_breakdowns_by_project()
+      setup
+      involved_genders
+      involved_project_types
+      involved_projects
+      involved_zipcodes
+      client_counts_by_project_type
+      client_counts_by_project
+      gender_breakdowns_by_project_type
+      gender_breakdowns_by_project
+      veteran_breakdowns_by_project_type
+      veteran_breakdowns_by_project
+      ethnicity_breakdowns_by_project_type
+      ethnicity_breakdowns_by_project
+      race_breakdowns_by_project_type
+      race_breakdowns_by_project
+      age_breakdowns_by_project_type
+      age_breakdowns_by_project
+      length_of_stay_breakdowns_by_project_type
+      length_of_stay_breakdowns_by_project
+      living_situation_breakdowns_by_project_type
+      living_situation_breakdowns_by_project
+      income_at_entry_breakdowns_by_project_type
+      income_at_entry_breakdowns_by_project
+      income_most_recent_breakdowns_by_project_type
+      income_most_recent_breakdowns_by_project
+      date_counts_by_project_type
+      date_counts_by_project
+      destination_breakdowns_by_project_type
+      destination_breakdowns_by_project
+      zip_breakdowns_by_project_type
+      zip_breakdowns_by_project
 
-      set_token()
-      complete()
+      set_token
+      complete
     end
 
     def involved_projects
@@ -67,13 +67,13 @@ module GrdaWarehouse::WarehouseReports
     def involved_project_types
       p_types = report_scope.distinct.pluck(:project_type)
       p_types += comparison_scope.distinct.pluck(:project_type)
-      @data.merge!(involved_project_types: p_types.uniq.map{|m| ::HUD.project_type_brief(m)})
+      @data.merge!(involved_project_types: p_types.uniq.map { |m| ::HUD.project_type_brief(m) })
     end
 
     def involved_genders
       genders = report_scope.distinct.pluck(c_t[:Gender].to_sql)
       genders += comparison_scope.distinct.pluck(c_t[:Gender].to_sql)
-      @data.merge!(involved_genders: genders.uniq.map{|m| ::HUD.gender(m)})
+      @data.merge!(involved_genders: genders.uniq.map { |m| ::HUD.gender(m) })
     end
 
     def involved_zipcodes
@@ -193,8 +193,8 @@ module GrdaWarehouse::WarehouseReports
       groups.each do |key, r_scope|
         data = send(r_scope).where.not(destination: nil).
           distinct.pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
-        end.group_by do |row|
+                 Hash[columns.keys.zip(row)]
+               end.group_by do |row|
           "#{::HUD.project_type_brief(row[:project_type])}__#{row[:destination]}"
         end
         add_data_and_support(key: key, data: data)
@@ -216,8 +216,8 @@ module GrdaWarehouse::WarehouseReports
       groups.each do |key, r_scope|
         data = send(r_scope).where.not(destination: nil).
           distinct.pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
-        end.group_by do |row|
+                 Hash[columns.keys.zip(row)]
+               end.group_by do |row|
           "#{row[:project_id]}__#{row[:destination]}"
         end
         add_data_and_support(key: key, data: data)
@@ -238,10 +238,10 @@ module GrdaWarehouse::WarehouseReports
       }
       groups.each do |key, r_scope|
         data = send(r_scope).joins(:enrollment).
-          where.not(Enrollment: {LastPermanentZIP: nil}).
+          where.not(Enrollment: { LastPermanentZIP: nil }).
           distinct.pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
-        end.group_by do |row|
+                 Hash[columns.keys.zip(row)]
+               end.group_by do |row|
           "#{::HUD.project_type_brief(row[:project_type])}__#{row[:zipcode].first(5)}"
         end
         add_data_and_support(key: key, data: data)
@@ -262,10 +262,10 @@ module GrdaWarehouse::WarehouseReports
       }
       groups.each do |key, r_scope|
         data = send(r_scope).joins(:enrollment).
-          where.not(Enrollment: {LastPermanentZIP: nil}).
+          where.not(Enrollment: { LastPermanentZIP: nil }).
           distinct.pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
-        end.group_by do |row|
+                 Hash[columns.keys.zip(row)]
+               end.group_by do |row|
           "#{row[:project_id]}__#{row[:zipcode].first(5)}"
         end
         add_data_and_support(key: key, data: data)
@@ -293,15 +293,15 @@ module GrdaWarehouse::WarehouseReports
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
           [row[:project_type], row[:client_id]]
-        end.each do |(project_type, client_id), incomes|
-          row = incomes.sort_by{|row| row[:information_date]}.last
+        end.each do |(project_type, _client_id), incomes|
+          row = incomes.max_by { |row| row[:information_date] }
           GrdaWarehouse::Hud::IncomeBenefit.income_ranges.each do |income_key, income_bucket|
             data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{income_key}"
             data[data_key] ||= []
             data[data_key] << row if income_bucket[:range].include?(row[:income])
           end
           all_incomes[project_type] ||= []
-          most_recent_income = incomes.sort_by{|row| row[:information_date]}.last[:income] || 0
+          most_recent_income = incomes.max_by { |row| row[:information_date] }[:income] || 0
           all_incomes[project_type] << most_recent_income
         end
         add_data_and_support(key: key, data: data)
@@ -332,15 +332,15 @@ module GrdaWarehouse::WarehouseReports
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
           [row[:project_id], row[:client_id]]
-        end.each do |(project_id, client_id), incomes|
-          row = incomes.sort_by{|row| row[:information_date]}.last
+        end.each do |(project_id, _client_id), incomes|
+          row = incomes.max_by { |row| row[:information_date] }
           GrdaWarehouse::Hud::IncomeBenefit.income_ranges.each do |income_key, income_bucket|
             data_key = "#{row[:project_id]}__#{income_key}"
             data[data_key] ||= []
             data[data_key] << row if income_bucket[:range].include?(row[:income])
           end
           all_incomes[project_id] ||= []
-          most_recent_income = incomes.sort_by{|row| row[:information_date]}.last[:income] || 0
+          most_recent_income = incomes.max_by { |row| row[:information_date] }[:income] || 0
           all_incomes[project_id] << most_recent_income
         end
         add_data_and_support(key: key, data: data)
@@ -421,8 +421,8 @@ module GrdaWarehouse::WarehouseReports
       groups.each do |key, r_scope|
         data = send(r_scope).joins(:enrollment).
           distinct.pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
-        end.group_by do |row|
+                 Hash[columns.keys.zip(row)]
+               end.group_by do |row|
           "#{::HUD.project_type_brief(row[:project_type])}__#{::HUD.living_situation(row[:living_situation])}"
         end
         add_data_and_support(key: key, data: data)
@@ -444,8 +444,8 @@ module GrdaWarehouse::WarehouseReports
       groups.each do |key, r_scope|
         data = send(r_scope).joins(:enrollment).
           distinct.pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
-        end.group_by do |row|
+                 Hash[columns.keys.zip(row)]
+               end.group_by do |row|
           "#{row[:project_id]}__#{::HUD.living_situation(row[:living_situation])}"
         end
         add_data_and_support(key: key, data: data)
@@ -472,7 +472,7 @@ module GrdaWarehouse::WarehouseReports
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
           [row[:project_type], row[:client_id]]
-        end.each do |(project_type, client_id), days|
+        end.each do |(project_type, _client_id), days|
           row = days.first
           GrdaWarehouse::Hud::Enrollment.lengths_of_stay.each do |stay_key, range|
             data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{stay_key}"
@@ -486,10 +486,7 @@ module GrdaWarehouse::WarehouseReports
         # Then store all lengths of stay for averaging
         key = "all_#{key}".to_sym
         @data.merge!(key => lengths_of_stay)
-
       end
-
-
     end
 
     def length_of_stay_breakdowns_by_project
@@ -512,7 +509,7 @@ module GrdaWarehouse::WarehouseReports
           Hash[columns.keys.zip(row)]
         end.group_by do |row|
           [row[:project_id], row[:client_id]]
-        end.each do |(project_id, client_id), days|
+        end.each do |(project_id, _client_id), days|
           row = days.first
           GrdaWarehouse::Hud::Enrollment.lengths_of_stay.each do |stay_key, range|
             data_key = "#{row[:project_id]}__#{stay_key}"
@@ -547,7 +544,7 @@ module GrdaWarehouse::WarehouseReports
         send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.each do |row|
-          GrdaWarehouse::Hud::Client.extended_age_groups.each do |age_key, age_bucket|
+          GrdaWarehouse::Hud::Client.extended_age_groups.each do |_age_key, age_bucket|
             label = age_bucket[:name].parameterize.underscore
             data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{label}"
             data[data_key] ||= []
@@ -576,7 +573,7 @@ module GrdaWarehouse::WarehouseReports
         send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.each do |row|
-          GrdaWarehouse::Hud::Client.extended_age_groups.each do |age_key, age_bucket|
+          GrdaWarehouse::Hud::Client.extended_age_groups.each do |_age_key, age_bucket|
             label = age_bucket[:name].parameterize.underscore
             data_key = "#{row[:project_id]}__#{label}"
             data[data_key] ||= []
@@ -607,7 +604,7 @@ module GrdaWarehouse::WarehouseReports
         send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.each do |row|
-          ::HUD.races.each do |column, label|
+          ::HUD.races.each do |_column, label|
             race_label = label.parameterize.underscore
             data_key = "#{::HUD.project_type_brief(row[:project_type])}__#{race_label}"
             data[data_key] ||= []
@@ -637,7 +634,7 @@ module GrdaWarehouse::WarehouseReports
         send(r_scope).distinct.pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]
         end.each do |row|
-          ::HUD.races.each do |column, label|
+          ::HUD.races.each do |_column, label|
             race_label = label.parameterize.underscore
             data_key = "#{row[:project_id]}__#{race_label}"
             data[data_key] ||= []
@@ -786,12 +783,12 @@ module GrdaWarehouse::WarehouseReports
       end.to_h
       support = {
         title: key.to_s.titleize,
-        headers: ['Client ID', 'First Name', 'Last Name']
+        headers: ['Client ID', 'First Name', 'Last Name'],
       }
       support[:counts] = data.map do |k, group|
         [
           k,
-          group.map{|row| [row[:client_id], row[:last_name], row[:first_name]]}
+          group.map { |row| [row[:client_id], row[:last_name], row[:first_name]] },
         ]
       end.to_h
       @data.merge!(key => counts)
@@ -817,7 +814,7 @@ module GrdaWarehouse::WarehouseReports
         with_service_between(
           start_date: @start,
           end_date: @end,
-          service_scope: sub_population_service_scope
+          service_scope: sub_population_service_scope,
         )
     end
 
@@ -826,7 +823,7 @@ module GrdaWarehouse::WarehouseReports
         with_service_between(
           start_date: @comparison_start,
           end_date: @comparison_end,
-          service_scope: sub_population_service_scope
+          service_scope: sub_population_service_scope,
         )
     end
 
@@ -867,7 +864,7 @@ module GrdaWarehouse::WarehouseReports
       begin
         # Sometimes the supporting data is too big, this should fail gracefully such that the report appears complete, and just doesn't have the support
         self.support = @support
-      rescue
+      rescue StandardError
       end
       save!
     end
@@ -895,12 +892,11 @@ module GrdaWarehouse::WarehouseReports
 
     def sub_population_scope
       if GrdaWarehouse::WarehouseReports::Dashboard::Base.
-        available_sub_populations.values.include?(@sub_population)
+          available_sub_populations.values.include?(@sub_population)
         @sub_population
       else
         :none
       end
     end
-
   end
 end

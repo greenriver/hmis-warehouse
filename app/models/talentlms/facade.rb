@@ -6,7 +6,6 @@
 
 module Talentlms
   class Facade
-
     def initialize
       @api = Config.first
     end
@@ -20,7 +19,7 @@ module Talentlms
       if login.nil?
         result = create_account(user)
       else
-        result = @api.post('userlogin', {login: login.login, password: login.password})
+        result = @api.post('userlogin', { login: login.login, password: login.password })
       end
       result['login_key']
     end
@@ -57,7 +56,7 @@ module Talentlms
       login = Login.find_by(user: user)
       return false if login.nil?
 
-      @api.post('addusertocourse', {course_id: course_id, user_id: login.lms_user_id})
+      @api.post('addusertocourse', { course_id: course_id, user_id: login.lms_user_id })
     rescue RuntimeError => e
       raise e unless e.message.include?('already enrolled')
     end
@@ -71,7 +70,7 @@ module Talentlms
       login = Login.find_by(user: user)
       return false if login.nil?
 
-      result = @api.get('getuserstatusincourse', {course_id: course_id, user_id: login.lms_user_id})
+      result = @api.get('getuserstatusincourse', { course_id: course_id, user_id: login.lms_user_id })
       result['completed_on'] if result['completion_status'] == 'Completed'
     end
 
@@ -89,13 +88,12 @@ module Talentlms
       encoded_redirect_url = Base64.strict_encode64(redirect_url)
       encoded_logout_url = Base64.strict_encode64(logout_url)
       result = @api.get('gotocourse',
-        {
-          course_id: course_id,
-          user_id: login.lms_user_id,
-          course_completed_redirect: encoded_redirect_url,
-          logout_redirect: encoded_logout_url,
-        },
-      )
+                        {
+                          course_id: course_id,
+                          user_id: login.lms_user_id,
+                          course_completed_redirect: encoded_redirect_url,
+                          logout_redirect: encoded_logout_url,
+                        })
       result['goto_url']
     end
   end

@@ -20,6 +20,5 @@ module GrdaWarehouse::Hud
     has_one :direct_client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :direct_events
     has_one :client, through: :enrollment, inverse_of: :events
     belongs_to :data_source
-
   end
 end

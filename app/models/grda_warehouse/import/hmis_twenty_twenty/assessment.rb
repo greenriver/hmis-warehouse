@@ -9,7 +9,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     include ::Import::HmisTwentyTwenty::Shared
     include TsqlImport
     self.hud_key = :AssessmentID
-    setup_hud_column_access( GrdaWarehouse::Hud::Assessment.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Assessment.hud_csv_headers(version: '2020'))
 
     def self.date_provided_column
       :AssessmentDate
@@ -29,6 +29,5 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
 
       row
     end
-
   end
 end

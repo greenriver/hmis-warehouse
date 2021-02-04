@@ -27,25 +27,28 @@ module GrdaWarehouse::Census
       end
 
       beds_by_date = {}
-      @by_count.each do | date, _ |
+      @by_count.each do |date, _|
         inventories = GrdaWarehouse::Hud::Inventory.within_range(@start_date..@end_date).
           joins(:project).
           merge(GrdaWarehouse::Hud::Project.with_project_type(project_type))
 
-        bed_counts = inventories.select do | inventory |
+        bed_counts = inventories.select do |inventory|
           ((inventory.InformationDate.blank? && inventory.InventoryStartDate.blank?) &&
-              (inventory.InventoryEndDate.blank?)) ||
+              inventory.InventoryEndDate.blank?) ||
           ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
-              (inventory.InventoryEndDate.blank?)) ||
+              inventory.InventoryEndDate.blank?) ||
           ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
               (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date)) ||
           ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
-              (inventory.InventoryEndDate.blank?)) ||
+              inventory.InventoryEndDate.blank?) ||
           ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
               (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date))
         end.map(&:beds)
-        beds_by_date[date] = bed_counts.compact.sum rescue 0
-
+        beds_by_date[date] = begin
+                               bed_counts.compact.sum
+                             rescue StandardError
+                               0
+                             end
       end
       add_clients_to_census_buckets(beds_by_date, project_type_code, :beds)
     end
@@ -73,7 +76,7 @@ module GrdaWarehouse::Census
 
     def add_clients_to_census_buckets(collection, project_type_code, column_name_part)
       column_name = "#{project_type_code}_#{column_name_part}"
-      collection.each do | date, count |
+      collection.each do |date, count|
         @by_count[date] ||= ByProjectType.new(date: date)
         @by_count[date][column_name] = count
       end
@@ -83,11 +86,11 @@ module GrdaWarehouse::Census
       ids = {}
       GrdaWarehouse::ServiceHistoryService.joins(join).
         service_within_date_range(start_date: @start_date, end_date: @end_date).
-          merge(client_scope).
-          where(project_type: project_type).
-          distinct.
-          group(:date).
-          count(:client_id)
+        merge(client_scope).
+        where(project_type: project_type).
+        distinct.
+        group(:date).
+        count(:client_id)
     end
 
     def get_aggregate_client_counts(joins:, client_scope:, second_scope: nil)
@@ -95,9 +98,7 @@ module GrdaWarehouse::Census
       query = GrdaWarehouse::ServiceHistoryService.joins(*joins).
         where(date: (@start_date..@end_date)).
         merge(client_scope)
-      unless second_scope.nil?
-        query = query.merge(second_scope)
-      end
+      query = query.merge(second_scope) unless second_scope.nil?
 
       query.distinct.group(:date).count(:client_id)
     end
@@ -504,7 +505,5 @@ module GrdaWarehouse::Census
     #     )
     #   end
     # end
-
-    #
   end
 end

@@ -28,14 +28,10 @@ module ReportGenerators::DataQuality::Fy2017
       end
       if @report.options['project_id'].delete_if(&:blank?).any?
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        scope = scope.joins(:project).where(Project: { id: project_ids})
+        scope = scope.joins(:project).where(Project: { id: project_ids })
       end
-      if @report.options['data_source_id'].present?
-        scope = scope.where(data_source_id: @report.options['data_source_id'].to_i)
-      end
-      if @report.options['coc_code'].present?
-        scope = scope.coc_funded_in(coc_code: @report.options['coc_code'])
-      end
+      scope = scope.where(data_source_id: @report.options['data_source_id'].to_i) if @report.options['data_source_id'].present?
+      scope = scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
       if @report.options['project_type'].delete_if(&:blank?).any?
         project_types = @report.options['project_type'].delete_if(&:blank?).map(&:to_i)
         scope = scope.hud_project_type(project_types)
@@ -51,7 +47,7 @@ module ReportGenerators::DataQuality::Fy2017
         joins(:project).
         merge(GrdaWarehouse::Hud::Project.viewable_by(@user)).
         open_between(start_date: @report_start,
-          end_date: @report_end).
+                     end_date: @report_end).
         joins(:client)
 
       add_filters(scope: client_scope)
@@ -59,7 +55,7 @@ module ReportGenerators::DataQuality::Fy2017
 
     def active_client_scope
       all_client_scope.service_within_date_range(start_date: @report_start,
-        end_date: @report_end)
+                                                 end_date: @report_end)
     end
 
     def leavers
@@ -94,11 +90,11 @@ module ReportGenerators::DataQuality::Fy2017
 
         leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           ended_between(start_date: @report_start,
-            end_date: @report_end + 1.days).
+                        end_date: @report_end + 1.days).
           where.not(
             client_id: client_id_scope.
               select(:client_id).
-              distinct
+              distinct,
           ).
           joins(:client, :enrollment)
 
@@ -153,7 +149,7 @@ module ReportGenerators::DataQuality::Fy2017
             Hash[columns.values.zip(row)]
           end.group_by do |row|
             row[:client_id]
-          end.map do |id,enrollments|
+          end.map do |id, enrollments|
             # We only care about the last enrollment
             enrollment = enrollments.last
             enrollment[:age] = age_for_report(dob: enrollment[:DOB], enrollment: enrollment)
@@ -179,6 +175,7 @@ module ReportGenerators::DataQuality::Fy2017
       @report_start ||= @report.options['report_start'].to_date
       entry_date = enrollment[:first_date_in_program]
       return enrollment[:age] if dob.blank? || entry_date > @report_start
+
       GrdaWarehouse::Hud::Client.age(dob: dob, date: @report_start)
     end
 
@@ -210,9 +207,10 @@ module ReportGenerators::DataQuality::Fy2017
       # Find the first queued report
       @report = ReportResult.where(
         report: report,
-        percent_complete: 0
+        percent_complete: 0,
       ).first
       return unless @report.present?
+
       Rails.logger.info "Starting report #{@report.report.name}"
       @report.update(percent_complete: 0.01)
     end
@@ -222,7 +220,7 @@ module ReportGenerators::DataQuality::Fy2017
         percent_complete: 100,
         results: @answers,
         support: @support,
-        completed_at: Time.now
+        completed_at: Time.now,
       )
     end
 
@@ -240,6 +238,7 @@ module ReportGenerators::DataQuality::Fy2017
         support: @support,
       )
     end
+
     def all_client_count
       count ||= @all_client_ids.size
     end
@@ -267,14 +266,11 @@ module ReportGenerators::DataQuality::Fy2017
       @report_end ||= @report.options['report_end'].to_date
       date = date.to_date
       # careful of leap years
-      if date.month == 2 && date.day == 29
-        date += 1.day
-      end
+      date += 1.day if date.month == 2 && date.day == 29
 
       anniversary_date = Date.new(@report_end.year, date.month, date.day)
       anniversary_date = if anniversary_date > @report_end then anniversary_date - 1.year else anniversary_date end
     end
-
 
     # create
     # [{
@@ -365,7 +361,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def adult_heads
-      households.select do |id, household|
+      households.select do |_id, household|
         household[:household].select do |member|
           adult?(member[:age]) && head_of_household?(member[:RelationshipToHoH])
         end.any?
@@ -373,7 +369,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def other_heads
-      households.select do |id, household|
+      households.select do |_id, household|
         household[:household].select do |member|
           ! adult?(member[:age]) && head_of_household?(member[:RelationshipToHoH])
         end.any?
@@ -397,7 +393,7 @@ module ReportGenerators::DataQuality::Fy2017
         where(
           client_id: client_id,
           first_date_in_program: entry_date,
-          enrollment_group_id: enrollment_group_id
+          enrollment_group_id: enrollment_group_id,
         ).joins(:service_history_services).
         select(shs_t[:date].to_sql).
         distinct.
@@ -418,8 +414,7 @@ module ReportGenerators::DataQuality::Fy2017
           ors = clients.map do |client_id, entry_date, enrollment_id|
             she_t[:client_id].eq(client_id).
               and(she_t[:first_date_in_program].eq(entry_date).
-              and(she_t[:enrollment_group_id].eq(enrollment_id))
-              ).to_sql
+              and(she_t[:enrollment_group_id].eq(enrollment_id))).to_sql
           end
           lengths.merge!(
             GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -428,15 +423,15 @@ module ReportGenerators::DataQuality::Fy2017
               group(
                 she_t[:client_id],
                 she_t[:first_date_in_program],
-                she_t[:enrollment_group_id]
+                she_t[:enrollment_group_id],
               ).pluck(
                 nf('COUNT', [nf('DISTINCT', [shs_t[:date]])]).to_sql,
                 :client_id,
                 :first_date_in_program,
-                :enrollment_group_id
-            ).map do |count, client_id, entry_date, enrollment_id|
+                :enrollment_group_id,
+              ).map do |count, client_id, entry_date, enrollment_id|
               [[client_id, entry_date, enrollment_id], count]
-            end.to_h
+            end.to_h,
           )
         end
         lengths
@@ -444,17 +439,18 @@ module ReportGenerators::DataQuality::Fy2017
       @stay_lengths_for_adult_hohs[[
         client_id,
         entry_date,
-        enrollment_group_id
+        enrollment_group_id,
       ]] || 0
     end
 
     def client_disabled?(enrollment:)
       return true if enrollment[:DisablingCondition] == 1
+
       # load disabling conditions for client, we've indicated we don't have any.
       # If we do, we have a problem
       @client_disabilities ||= begin
-        disabilities = [5,6,7,8,9,10]
-        yes_responses = [1,2,3]
+        disabilities = [5, 6, 7, 8, 9, 10]
+        yes_responses = [1, 2, 3]
 
         disabled = {}
         @all_client_ids.each_slice(5000) do |ids|
@@ -469,7 +465,7 @@ module ReportGenerators::DataQuality::Fy2017
               where(ors.join(' or ')).
               group(c_t[:id]).
               pluck(:id, nf('COUNT', [c_t[:id]]).to_sql).
-              to_h
+              to_h,
           )
         end
         disabled
@@ -477,14 +473,13 @@ module ReportGenerators::DataQuality::Fy2017
       @client_disabilities[enrollment[:client_id]].present? && @client_disabilities[enrollment[:client_id]] > 0
     end
 
-
     def living_situation_is_homeless enrollment:
       # [living situation] (3.917.1) = 16, 1, 18 or 27
-      [16,1,18,27].include?(enrollment[:LivingSituation]) ||
+      [16, 1, 18, 27].include?(enrollment[:LivingSituation]) ||
       # [on the night before, did you stay in streets, ES or SH?] (3.917.2c)
       enrollment[:PreviousStreetESSH] == 1 ||
       # [project type] (2.4) = 1 or 4 or 8
-      [1,4,8].include?(enrollment[:project_type])
+      [1, 4, 8].include?(enrollment[:project_type])
     end
 
     def homeless_for_one_year? enrollment:
@@ -503,7 +498,7 @@ module ReportGenerators::DataQuality::Fy2017
         where(destination_id: destination_ids).
         distinct.
         pluck(:destination_id, :id_in_source).
-        group_by(&:first).transform_values{ |v| v.map(&:last).uniq }
+        group_by(&:first).transform_values { |v| v.map(&:last).uniq }
     end
 
     def debug
@@ -514,6 +509,5 @@ module ReportGenerators::DataQuality::Fy2017
     def log_with_memory text
       # Rails.logger.info "#{text}: #{NewRelic::Agent::Samplers::MemorySampler.new.sampler.get_sample} -- DQ DEBUG" if debug
     end
-
   end
 end

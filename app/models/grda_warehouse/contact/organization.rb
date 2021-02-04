@@ -7,6 +7,5 @@
 module GrdaWarehouse::Contact
   class Organization < Base
     belongs_to :Organization, class_name: 'GrdaWarehouse::Hud::Organization', foreign_key: :entity_id
-
   end
 end

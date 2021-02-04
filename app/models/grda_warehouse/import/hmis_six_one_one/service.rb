@@ -9,7 +9,7 @@ module GrdaWarehouse::Import::HMISSixOneOne
     include ::Import::HMISSixOneOne::Shared
     include TsqlImport
     self.hud_key = :ServicesID
-    setup_hud_column_access( GrdaWarehouse::Hud::Service.hud_csv_headers(version: '6.11') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Service.hud_csv_headers(version: '6.11'))
 
     def self.date_provided_column
       :DateProvided
@@ -25,7 +25,7 @@ module GrdaWarehouse::Import::HMISSixOneOne
 
     def self.to_log
       @to_log ||= {
-        hud_key: self.hud_key,
+        hud_key: hud_key,
         personal_id: :PersonalID,
         effective_date: :DateProvided,
         data_source_id: :data_source_id,

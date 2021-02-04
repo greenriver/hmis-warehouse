@@ -118,6 +118,5 @@ class WorkoffArbiter
     ENV.fetch('WORKOFF_TASK_DEFINITION')
   end
 
-
   define_method(:ecs) { Aws::ECS::Client.new }
 end

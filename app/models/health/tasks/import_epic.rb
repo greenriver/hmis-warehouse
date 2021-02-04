@@ -31,7 +31,7 @@ module Health::Tasks
     end
 
     def run!
-      @configs ||= YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
+      @configs ||= YAML.load(ERB.new(File.read(Rails.root.join('config', 'health_sftp.yml'))).result)[Rails.env]
       @configs.each do |_, config|
         @config = config
         ds = Health::DataSource.find_by(name: config['data_source_name'])
@@ -48,7 +48,7 @@ module Health::Tasks
     def import(klass:, file:)
       path = File.join((@local_path || @config['destination']), file)
       handle = read_csv_file(path: path)
-      if ! header_row_matches(file: handle, klass: klass)
+      unless header_row_matches(file: handle, klass: klass)
         msg = "Incorrect file format for #{file}"
         notify msg
         return
@@ -57,7 +57,7 @@ module Health::Tasks
       instance = klass.new # need an instance to cache some queries
       CSV.open(path, 'r:bom|utf-8', headers: true).each do |row|
         row = instance.clean_row(row: row, data_source_id: @data_source_id)
-        clean_values << row.to_h.map do |k,v|
+        clean_values << row.to_h.map do |k, v|
           clean_key = klass.csv_map[k.to_sym] || k.to_sym
           [clean_key, klass.clean_value(clean_key, v)]
         end.to_h.except(nil).merge(data_source_id: @data_source_id)
@@ -82,7 +82,7 @@ module Health::Tasks
 
     # currently just a 10% change will prevent deletion
     # always allow import if we don't have any in the warehouse
-    def above_acceptable_change_threshold klass, incoming, existing
+    def above_acceptable_change_threshold _klass, incoming, existing
       return false unless @prevent_massive_change
       return false if existing.zero?
       return false if incoming > existing
@@ -143,7 +143,7 @@ module Health::Tasks
         next if patients_by_datasource[ep.medicaid_id] != ep.data_source_id
 
         patient = Health::Patient.where(id_in_source: ep.id_in_source, data_source_id: ep.data_source_id).first_or_create
-        attributes = ep.attributes.select{|k,_| k.to_sym.in?(Health::EpicPatient.csv_map.values)}
+        attributes = ep.attributes.select { |k, _| k.to_sym.in?(Health::EpicPatient.csv_map.values) }
         patient.update(attributes)
       end
     end
@@ -154,7 +154,7 @@ module Health::Tasks
         @config['username'],
         password: @config['password'],
         # verbose: :debug,
-        auth_methods: ['publickey','password'],
+        auth_methods: ['publickey', 'password'],
       )
       sftp.download!(@config['path'], @config['destination'], recursive: true)
 
@@ -163,9 +163,9 @@ module Health::Tasks
 
     def read_csv_file path:
       # Look at the file to see if we can determine the encoding
-      @file_encoding = CharlockHolmes::EncodingDetector
-        .detect(File.read(path))
-        .try(:[], :encoding)
+      @file_encoding = CharlockHolmes::EncodingDetector.
+        detect(File.read(path)).
+        try(:[], :encoding)
       file_lines = IO.readlines(path).size - 1
       @logger.info "Processing #{file_lines} lines in: #{path}"
       options = if @file_encoding.starts_with? 'UTF'

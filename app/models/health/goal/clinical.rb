@@ -12,6 +12,5 @@ module Health
     def self.type_name
       'Clinical'
     end
-
   end
 end

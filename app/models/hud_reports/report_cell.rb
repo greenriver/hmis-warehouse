@@ -60,7 +60,7 @@ module HudReports
 
     def completed_in
       if completed?
-        seconds = ((updated_at - created_at)/1.minute).round * 60
+        seconds = ((updated_at - created_at) / 1.minute).round * 60
         distance_of_time_in_words(seconds)
       end
     end

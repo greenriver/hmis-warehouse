@@ -9,7 +9,6 @@
 # Control: PHI attributes documented in base class
 module Health
   class ComprehensiveHealthAssessmentFile < Health::HealthFile
-
     belongs_to :comprehensive_health_assessment, class_name: 'Health::ComprehensiveHealthAssessment', foreign_key: :parent_id
 
     def title

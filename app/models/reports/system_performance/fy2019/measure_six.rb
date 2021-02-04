@@ -6,6 +6,5 @@
 
 module Reports::SystemPerformance::Fy2019
   class MeasureSix < Base
-
   end
 end

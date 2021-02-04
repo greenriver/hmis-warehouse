@@ -6,7 +6,6 @@
 
 module GrdaWarehouse
   class NonHmisUpload < GrdaWarehouseBase
-
     include ActionView::Helpers::DateHelper
     acts_as_paranoid
 
@@ -41,15 +40,14 @@ module GrdaWarehouse
       end
       if percent_complete == 100
         begin
-          seconds = ((completed_at - created_at)/1.minute).round * 60
+          seconds = ((completed_at - created_at) / 1.minute).round * 60
           distance_of_time_in_words(seconds)
-        rescue
+        rescue StandardError
           'unknown'
         end
       else
         'incomplete'
       end
     end
-
   end
 end

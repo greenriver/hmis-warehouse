@@ -12,26 +12,42 @@ module Phi
   end
 
   # blog or attachment contains serialzied bulk PHI
-  class Bulk < Category;
+  class Bulk < Category
   end
 
   # Safe Harbor Identifiers
   class Name < Category; end
+
   class Location < Category; end
+
   class Date < Category; end
+
   class Telephone < Category; end
+
   class Fax < Category; end
+
   class Email < Category; end
+
   class Ssn < Category; end
+
   class MedicalRecordNumber < Category; end
+
   class HealthPlan < Category; end
+
   class AccountNumber < Category; end
+
   class LicenceNumber < Category; end
+
   class VehicleId < Category; end
+
   class DeviceId < Category; end
+
   class IpAddress < Category; end
+
   class BiometricId < Category; end
+
   class PhotoIdentity < Category; end
+
   class OtherIdentifier < Category; end
 
   # Labels for attributes that need

@@ -5,5 +5,4 @@
 ###
 
 class Weather < GrdaWarehouseBase
-
 end

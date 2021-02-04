@@ -9,7 +9,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     include ::Import::HmisTwentyTwenty::Shared
     include TsqlImport
     self.hud_key = :EnrollmentCoCID
-    setup_hud_column_access( GrdaWarehouse::Hud::EnrollmentCoc.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::EnrollmentCoc.hud_csv_headers(version: '2020'))
 
     def self.date_provided_column
       :InformationDate
@@ -18,6 +18,5 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     def self.file_name
       'EnrollmentCoC.csv'
     end
-
   end
 end

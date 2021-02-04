@@ -18,10 +18,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def run!
       @client_ids = destination_client_scope.without_service_history.pluck(:id)
       if @client_ids.empty?
-        logger.info "Nothing to do."
+        logger.info 'Nothing to do.'
         return
       end
-      process()
+      process
     end
 
     def clients_needing_update_count

@@ -94,6 +94,7 @@ module Reports::Lsa::Fy2019
       if (sub_population = options['sub_population']) && sub_population.present?
         return "; Sub Population: #{sub_population.humanize.titleize}"
       end
+
       ''
     end
 

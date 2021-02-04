@@ -7,7 +7,6 @@
 # A wrapper around CHA changes to ease Qualifying Activities creation
 module Health
   class ChaSaver
-
     def initialize user:, cha: Health::ComprehensiveHealthAssessment.new, complete: false, reviewed: false, create_qa: false
       @user = user
       @cha = cha
@@ -22,13 +21,11 @@ module Health
       # and then uncheck before hitting save button
       # some of these values were sticking around
       # clear everything
-      @cha.reviewed_by = nil if !@reviewed
-      @cha.reviewed_at = nil if !@reviewed
-      @cha.reviewer = nil if !@reviewed
+      @cha.reviewed_by = nil unless @reviewed
+      @cha.reviewed_at = nil unless @reviewed
+      @cha.reviewer = nil unless @reviewed
       # fall back to reviewer being reviewed_by if they don't provide a name
-      if @reviewed && !@cha.reviewer.present?
-        @cha.reviewer = @cha.reviewed_by.name
-      end
+      @cha.reviewer = @cha.reviewed_by.name if @reviewed && !@cha.reviewer.present?
     end
 
     def create
@@ -36,7 +33,6 @@ module Health
         @cha.save(validate: false)
       end
     end
-
 
     def update
       @cha.class.transaction do
@@ -59,9 +55,8 @@ module Health
         follow_up: 'Implement Comprehensive Health Assessment',
         reached_client: :yes,
         mode_of_contact: :in_person,
-        patient_id: @cha.patient_id
+        patient_id: @cha.patient_id,
       )
     end
-
   end
 end

@@ -90,7 +90,7 @@ module GrdaWarehouse
     def push
       s3_missing.each do |file_name|
         full_path = File.join(tmp_destination, file_name)
-        s3.put(file_name: full_path, prefix: s3_path.gsub(/\/$/, ''))
+        s3.put(file_name: full_path, prefix: s3_path.gsub(%r{/$}, ''))
       end
     end
 
@@ -99,11 +99,11 @@ module GrdaWarehouse
     end
 
     private def s3_existing
-      s3.fetch_key_list(prefix: s3_path).map{|e| e.gsub(/^#{s3_path}/, '')}
+      s3.fetch_key_list(prefix: s3_path).map { |e| e.gsub(/^#{s3_path}/, '') }
     end
 
     private def lftp_existing
-      Dir.entries(tmp_destination).reject{|e| e.in?(['.', '..'])}
+      Dir.entries(tmp_destination).reject { |e| e.in?(['.', '..']) }
     end
 
     private def s3_path

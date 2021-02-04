@@ -10,11 +10,12 @@ module Health
   class Base < HealthBase
     self.abstract_class = true
 
-    def self.source_key= key
-      @source_key = key
+    class << self
+      attr_writer :source_key
     end
-    def self.source_key
-      @source_key
+
+    class << self
+      attr_reader :source_key
     end
 
     def self.known_sub_classes
@@ -29,6 +30,5 @@ module Health
         Health::EpicGoal,
       ]
     end
-
   end
 end

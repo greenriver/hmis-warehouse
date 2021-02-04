@@ -9,7 +9,7 @@
 # Control: PHI attributes documented
 module Health
   class UserCareCoordinator < HealthBase
-    phi_attr :care_coordinator_id, Phi::SmallPopulation, "ID of care coordinator"
+    phi_attr :care_coordinator_id, Phi::SmallPopulation, 'ID of care coordinator'
 
     belongs_to :user
     belongs_to :care_coordinator, class_name: 'User'

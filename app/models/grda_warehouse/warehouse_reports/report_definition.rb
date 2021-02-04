@@ -6,7 +6,6 @@
 
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
-
     has_many :group_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::GroupViewableEntity'
 
     scope :enabled, -> do

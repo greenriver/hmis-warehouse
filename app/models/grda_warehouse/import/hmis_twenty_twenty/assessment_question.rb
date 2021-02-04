@@ -9,11 +9,10 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     include ::Import::HmisTwentyTwenty::Shared
     include TsqlImport
     self.hud_key = :AssessmentQuestionID
-    setup_hud_column_access( GrdaWarehouse::Hud::AssessmentQuestion.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::AssessmentQuestion.hud_csv_headers(version: '2020'))
 
     def self.file_name
       'AssessmentQuestions.csv'
     end
-
   end
 end

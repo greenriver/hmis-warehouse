@@ -6,7 +6,7 @@
 
 class GrdaWarehouseBase < ActiveRecord::Base
   include ArelHelper
-  include  Efind
+  include Efind
   establish_connection DB_WAREHOUSE
   self.abstract_class = true
 
@@ -19,8 +19,8 @@ class GrdaWarehouseBase < ActiveRecord::Base
   end
 
   def self.reset_connection
-    self.connection.disconnect!
-    self.establish_connection DB_WAREHOUSE
+    connection.disconnect!
+    establish_connection DB_WAREHOUSE
   end
 
   def self.setup_config

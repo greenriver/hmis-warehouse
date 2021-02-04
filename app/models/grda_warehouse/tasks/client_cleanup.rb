@@ -13,7 +13,7 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
-    def initialize(max_allowed=1_000, _bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false, show_progress: false) # rubocop:disable Metrics/ParameterLists
+    def initialize(max_allowed = 1_000, _bogus_notifier = false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false, show_progress: false) # rubocop:disable Metrics/ParameterLists
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger
@@ -121,13 +121,13 @@ module GrdaWarehouse::Tasks
       batch_size = 10_000
       ids = GrdaWarehouse::Hud::EnrollmentCoc.joins(:enrollment).where(
         ec_t[:HouseholdID].not_eq(e_t[:HouseholdID]).
-        or(ec_t[:HouseholdID].eq(nil).and(e_t[:HouseholdID].not_eq(nil)))
+        or(ec_t[:HouseholdID].eq(nil).and(e_t[:HouseholdID].not_eq(nil))),
       ).pluck(:id, e_t[:HouseholdID])
       ids.each_slice(batch_size) do |batch|
         GrdaWarehouse::Hud::EnrollmentCoc.import(
           [:id, :HouseholdID],
           batch,
-          on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID]},
+          on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID] },
         )
       end
     end
@@ -232,7 +232,7 @@ module GrdaWarehouse::Tasks
     end
 
     def invalidate_incorrect_family_enrollments
-      debug_log "Checking for enrollments flagged as individual where they should be family"
+      debug_log 'Checking for enrollments flagged as individual where they should be family'
       if GrdaWarehouse::Config.get(:infer_family_from_household_id)
         invalidate_incorrect_family_when_infer_from_household_id
       else
@@ -241,34 +241,34 @@ module GrdaWarehouse::Tasks
     end
 
     private def invalidate_incorrect_family_when_infer_from_project
-      debug_log "Checking for enrollments flagged as individual where they should be family"
+      debug_log 'Checking for enrollments flagged as individual where they should be family'
       query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
         merge(
           GrdaWarehouse::ServiceHistoryEnrollment.entry.
             joins(:project).merge(
-              GrdaWarehouse::Hud::Project.family
-            ).where(presented_as_individual: true)
+              GrdaWarehouse::Hud::Project.family,
+            ).where(presented_as_individual: true),
         )
       count = query.count
       debug_log "Found #{count}"
 
       if count.positive?
-        @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if @send_notifications
+        @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family" if @send_notifications
         query.invalidate_processing! unless @dry_run
       end
-      debug_log "Checking for enrollments flagged as family where they should be individual"
+      debug_log 'Checking for enrollments flagged as family where they should be individual'
       query = GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
         merge(
           GrdaWarehouse::ServiceHistoryEnrollment.entry.
             joins(:project).merge(
-              GrdaWarehouse::Hud::Project.serves_individuals_only
-            ).where(presented_as_individual: false)
+              GrdaWarehouse::Hud::Project.serves_individuals_only,
+            ).where(presented_as_individual: false),
         )
       count = query.count
       debug_log "Found #{count}"
       return unless count.positive?
 
-      @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if @send_notifications
+      @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual" if @send_notifications
       query.invalidate_processing! unless @dry_run
     end
 
@@ -281,13 +281,13 @@ module GrdaWarehouse::Tasks
       incorrectly_non_individuals = hmis_non_individuals - service_history_non_individuals
 
       count = missing_non_individuals.count
-      @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family"  if count.positive? && @send_notifications
+      @notifier.ping "Invalidating #{count} enrollments marked as individual where they should be family" if count.positive? && @send_notifications
       count = incorrectly_non_individuals.count
-      @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual"  if count.positive? && @send_notifications
+      @notifier.ping "Invalidating #{count} enrollments marked as family where they should be individual" if count.positive? && @send_notifications
       notes = ''
 
       # These are incorrect on the service history side
-      missing_non_individuals.group_by do |household_id, project_id, data_source_id|
+      missing_non_individuals.group_by do |_household_id, project_id, data_source_id|
         [project_id, data_source_id]
       end.each do |(project_id, data_source_id), batch|
         household_ids = batch.map(&:first)
@@ -311,7 +311,7 @@ module GrdaWarehouse::Tasks
       end
 
       # these are incorrect on the enrollment size
-      incorrectly_non_individuals.group_by do |household_id, project_id, data_source_id|
+      incorrectly_non_individuals.group_by do |_household_id, project_id, data_source_id|
         [project_id, data_source_id]
       end.each do |(project_id, data_source_id), batch|
         household_ids = batch.map(&:first)
@@ -330,17 +330,17 @@ module GrdaWarehouse::Tasks
 
     def remove_clients_without_enrollments!
       all_clients = GrdaWarehouse::Hud::Client.where(
-        data_source_id: GrdaWarehouse::DataSource.importable.select(:id)
+        data_source_id: GrdaWarehouse::DataSource.importable.select(:id),
       ).distinct.pluck(:id)
       enrolled_clients = GrdaWarehouse::Hud::Client.joins(:enrollments).
-      where(
-        data_source_id: GrdaWarehouse::DataSource.importable.select(:id)
-      ).distinct.pluck(:id)
+        where(
+          data_source_id: GrdaWarehouse::DataSource.importable.select(:id),
+        ).distinct.pluck(:id)
       un_enrolled_clients = all_clients - enrolled_clients
       if un_enrolled_clients.any?
         deleted_at = Time.now
         debug_log "Removing #{un_enrolled_clients.size} un enrolled source clients and associated records.  Setting DateDeleted: #{deleted_at}"
-        if ! @dry_run
+        unless @dry_run
           GrdaWarehouse::WarehouseClient.where(source_id: un_enrolled_clients).update_all(deleted_at: deleted_at)
           hud_classes = [
             GrdaWarehouse::Hud::Exit,
@@ -357,7 +357,7 @@ module GrdaWarehouse::Tasks
           ]
           hud_classes.each do |klass|
             klass.joins(:direct_client).
-              where(Client: {id: un_enrolled_clients}).
+              where(Client: { id: un_enrolled_clients }).
               update_all(DateDeleted: deleted_at)
           end
 
@@ -380,15 +380,15 @@ module GrdaWarehouse::Tasks
 
     def choose_best_name dest_attr, source_clients
       # Get the best name (has name and quality is full or partial, oldest breaks the tie)
-      non_blank_names = source_clients.select{|sc| (sc[:FirstName].present? or sc[:LastName].present?)}
+      non_blank_names = source_clients.select { |sc| (sc[:FirstName].present? or sc[:LastName].present?) }
       if non_blank_names.any?
-        best_name_client = non_blank_names.sort do |a, b|
+        best_name_client = non_blank_names.max do |a, b|
           comp = b[:NameDataQuality] <=> a[:NameDataQuality] # Desc
           if comp == 0
             comp = b[:DateCreated] <=> a[:DateCreated] # Desc
           end
           comp
-        end.last
+        end
         if best_name_client.present?
           dest_attr[:FirstName] = best_name_client[:FirstName]
           dest_attr[:LastName] = best_name_client[:LastName]
@@ -399,17 +399,17 @@ module GrdaWarehouse::Tasks
 
     def choose_best_ssn dest_attr, source_clients
       # Get the best SSN (has value and quality is full or partial, oldest breaks the tie)
-      non_blank_ssn = source_clients.select{|sc| sc[:SSN].present?}
+      non_blank_ssn = source_clients.select { |sc| sc[:SSN].present? }
       if non_blank_ssn.any?
-        dest_attr[:SSN] = non_blank_ssn.sort do |a, b|
+        dest_attr[:SSN] = non_blank_ssn.max do |a, b|
           comp = b[:SSNDataQuality] <=> a[:SSNDataQuality] # Desc
           if comp == 0
             comp = b[:DateCreated] <=> a[:DateCreated] # Desc
           end
           comp
-        end.last[:SSN]
-      else
-        dest_attr[:SSN] = nil if dest_attr[:SSN].present? # none of the records have one now
+        end[:SSN]
+      elsif dest_attr[:SSN].present?
+        dest_attr[:SSN] = nil
       end
       dest_attr
     end
@@ -422,9 +422,9 @@ module GrdaWarehouse::Tasks
       elsif source_clients.map { |sc| sc[:VeteranStatus] }.include?(1)
         dest_attr[:VeteranStatus] = 1
       else
-        dest_attr[:VeteranStatus] = source_clients.sort do |a, b|
+        dest_attr[:VeteranStatus] = source_clients.max do |a, b|
           a[:DateUpdated] <=> b[:DateUpdated]
-        end.last[:VeteranStatus]
+        end[:VeteranStatus]
       end
 
       dest_attr
@@ -432,17 +432,17 @@ module GrdaWarehouse::Tasks
 
     def choose_best_dob dest_attr, source_clients
       # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
-      non_blank_dob = source_clients.select{|sc| sc[:DOB].present?}
+      non_blank_dob = source_clients.select { |sc| sc[:DOB].present? }
       if non_blank_dob.any?
-        dest_attr[:DOB] = non_blank_dob.sort do |a, b|
+        dest_attr[:DOB] = non_blank_dob.max do |a, b|
           comp = b[:DOBDataQuality] <=> a[:DOBDataQuality] # Desc
           if comp == 0
             comp = b[:DateCreated] <=> a[:DateCreated] # Desc
           end
           comp
-        end.last[:DOB]
-      else
-        dest_attr[:DOB] = nil if dest_attr[:DOB].present? # none of the records have one now
+        end[:DOB]
+      elsif dest_attr[:DOB].present?
+        dest_attr[:DOB] = nil
       end
       dest_attr
     end
@@ -450,10 +450,10 @@ module GrdaWarehouse::Tasks
     def choose_best_gender dest_attr, source_clients
       # Get the best Gender (has 0..4, newest breaks the tie)
       known_values = [0, 1, 2, 3, 4]
-      known_value_gender_clients = source_clients.select{|sc| known_values.include?(sc[:Gender])}
+      known_value_gender_clients = source_clients.select { |sc| known_values.include?(sc[:Gender]) }
       if !known_values.include?(dest_attr[:Gender]) || known_value_gender_clients.any?
-        known_value_gender_clients = source_clients if known_value_gender_clients.none? #if none have known values we consider them all in the sort test
-        dest_attr[:Gender] = known_value_gender_clients.sort{|a, b| a[:DateUpdated] <=> b[:DateUpdated]}.last[:Gender]
+        known_value_gender_clients = source_clients if known_value_gender_clients.none? # if none have known values we consider them all in the sort test
+        dest_attr[:Gender] = known_value_gender_clients.max { |a, b| a[:DateUpdated] <=> b[:DateUpdated] }[:Gender]
       end
       dest_attr
     end
@@ -464,7 +464,7 @@ module GrdaWarehouse::Tasks
       # Valid responses for RaceNone are [8, 9, 99] -- should be null if all other fields are 0 or 99
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
-      sorted_source_clients = source_clients.sort_by.sort{|a, b| b[:DateUpdated] <=> a[:DateUpdated]}
+      sorted_source_clients = source_clients.sort_by.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
 
       race_columns.each do |col|
         sorted_source_clients.each do |source_client|
@@ -483,7 +483,6 @@ module GrdaWarehouse::Tasks
           # Since these are sorted in reverse chronological order, if we hit a 1 or 0, we'll consider that
           # the destination client response
           break if known_values.include?(value)
-
         end
       end
       # if we still don't have any responses, use the most-recent RaceNone response
@@ -499,7 +498,7 @@ module GrdaWarehouse::Tasks
       # Most recent 0 or 1 if no 0 or 1 use the most recent value
       known_values = [0, 1]
       # Sort in reverse chronological order (newest first)
-      sorted_source_clients = source_clients.sort_by.sort{|a, b| b[:DateUpdated] <=> a[:DateUpdated]}
+      sorted_source_clients = source_clients.sort_by.sort { |a, b| b[:DateUpdated] <=> a[:DateUpdated] }
       col = :Ethnicity
       sorted_source_clients.each do |source_client|
         value = source_client[col]
@@ -517,7 +516,6 @@ module GrdaWarehouse::Tasks
         # Since these are sorted in reverse chronological order, if we hit a 1 or 0, we'll consider that
         # the destination client response
         break if known_values.include?(value)
-
       end
       dest_attr
     end
@@ -547,9 +545,7 @@ module GrdaWarehouse::Tasks
       client_source = GrdaWarehouse::Hud::Client
       total_clients = munge_clients.size
       logger.info "Munging #{munge_clients.size} clients"
-      if @show_progress
-        progress = ProgressBar.create(starting_at: 0, total: total_clients, format: 'Munging Client Data: %a %E |%B| %c of %C')
-      end
+      progress = ProgressBar.create(starting_at: 0, total: total_clients, format: 'Munging Client Data: %a %E |%B| %c of %C') if @show_progress
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|
         batch.each do |dest_id|
@@ -575,16 +571,14 @@ module GrdaWarehouse::Tasks
           changed[:veteran_statuses] << dest.id if dest.VeteranStatus != dest_attr[:VeteranStatus]
           changed[:new_vets] << dest.id if dest.VeteranStatus != 1 && dest_attr[:VeteranStatus] == 1
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0
-          if @show_progress
-            progress.progress += 1
-          end
+          progress.progress += 1 if @show_progress
         end
         processed += batch_size
         logger.info "Updated demographics for #{processed} destination clients"
       end
       if @debug
         logger.debug '=========== Changed Counts ============'
-        logger.debug changed.map{|k,ids| [k, ids.count]}.to_h.inspect
+        logger.debug changed.map { |k, ids| [k, ids.count] }.to_h.inspect
         logger.debug changed.inspect
         logger.debug '=========== End Changed Counts ============'
       end
@@ -644,14 +638,13 @@ module GrdaWarehouse::Tasks
         #   return
         # end
         debug_log "Removing service history for #{non_existant_client_ids.count} clients who no longer have client records"
-        if ! @dry_run
-          service_history_source.where(client_id: non_existant_client_ids).delete_all
-        end
+        service_history_source.where(client_id: non_existant_client_ids).delete_all unless @dry_run
       end
     end
 
     def clean_service_history
       return unless @clients.any?
+
       sh_size = service_history_source.where(client_id: @clients).count
       # if @clients.size > @max_allowed
       #   @notifier.ping "Found #{@clients.size} clients needing cleanup. \nRefusing to cleanup so many clients.  The current threshold is *#{@max_allowed}*. You should come back and run this manually `bin/rake grda_warehouse:clean_clients[#{@clients.size}]` after you determine there isn't a bug." if @send_notifications
@@ -659,9 +652,7 @@ module GrdaWarehouse::Tasks
       #   return
       # end
       logger.info "Deleting Service History for #{@clients.size} clients comprising #{sh_size} records"
-      if ! @dry_run
-        service_history_source.where(client_id: @clients).delete_all
-      end
+      service_history_source.where(client_id: @clients).delete_all unless @dry_run
     end
 
     private def clean_warehouse_clients_processed
@@ -702,38 +693,39 @@ module GrdaWarehouse::Tasks
     end
 
     def fix_incorrect_ages_in_service_history
-      logger.info "Finding any clients with incorrect ages in the last 3 years of service history and invalidating them."
+      logger.info 'Finding any clients with incorrect ages in the last 3 years of service history and invalidating them.'
       incorrect_age_clients = Set.new
       less_than_zero = Set.new
       invalidate_clients = Set.new
       service_history_ages = service_history_source.entry.
         pluck(:client_id, :age, :first_date_in_program)
       clients = GrdaWarehouse::Hud::Client.
-        where(id:service_history_source.entry.
+        where(id: service_history_source.entry.
           distinct.select(:client_id)).
         pluck(:id, :DOB).
         map.to_h
 
       service_history_ages.each do |id, age, entry_date|
         next unless dob = clients[id] # ignore blanks
+
         client_age = GrdaWarehouse::Hud::Client.age(date: entry_date, dob: dob)
         incorrect_age_clients << id if age.present? && (age != client_age || age < 0)
         less_than_zero << id if age.present? && age < 0
         invalidate_clients << id if age.present? && age != client_age
       end
-      msg =  "Invalidating #{incorrect_age_clients.size} clients because ages don't match the service history."
-      msg +=  " Of the #{incorrect_age_clients.size} clients found, #{less_than_zero.size} have ages in at least one enrollment where they are less than 0." if less_than_zero.size.positive?
+      msg = "Invalidating #{incorrect_age_clients.size} clients because ages don't match the service history."
+      msg += " Of the #{incorrect_age_clients.size} clients found, #{less_than_zero.size} have ages in at least one enrollment where they are less than 0." if less_than_zero.size.positive?
       logger.info msg
       @notifier.ping msg if @send_notifications
       # Only invalidate clients if the age is wrong, if it's less than zero but hasn't changed, this is just wasted effort
-      if ! @dry_run
+      unless @dry_run
         GrdaWarehouse::Hud::Client.where(id: invalidate_clients.to_a).
           each(&:invalidate_service_history)
       end
     end
 
     def add_missing_ages_to_service_history
-      logger.info "Finding any clients with DOBs with service histories missing ages..."
+      logger.info 'Finding any clients with DOBs with service histories missing ages...'
       with_dob = GrdaWarehouse::Hud::Client.destination.where.not(DOB: nil).pluck(:id)
       without_dob = service_history_source.where.not(record_type: 'first').
         where(age: nil).select(:client_id).distinct.pluck(:client_id)
@@ -742,14 +734,14 @@ module GrdaWarehouse::Tasks
       if to_fix.size > 100
         @notifier.ping "Found #{to_fix.size} clients with dates of birth and service histories missing those dates.  This should not be happening.  \n\nLogical reasons include: a new import brought along a client DOB where we didn't have one before, but also had changes to enrollment, exit or services." if @send_notifications
       end
-      if ! @dry_run
+      unless @dry_run
         to_fix.each do |client_id|
           client = GrdaWarehouse::Hud::Client.find(client_id)
           GrdaWarehouse::Hud::Enrollment.where(
             id: client.service_history_enrollments.
               where(age: nil).
               joins(:enrollment).
-              select(e_t[:id].as('id').to_sql)
+              select(e_t[:id].as('id').to_sql),
           ).invalidate_processing!
           client.invalidate_service_history
         end
@@ -758,9 +750,10 @@ module GrdaWarehouse::Tasks
 
     private def client_age_at date
       return unless @client.DOB.present? && date.present?
+
       dob = @client.DOB
       age = date.year - dob.to_date.year
-      age -= 1 if dob.to_date > date.years_ago( age )
+      age -= 1 if dob.to_date > date.years_ago(age)
       age
     end
 

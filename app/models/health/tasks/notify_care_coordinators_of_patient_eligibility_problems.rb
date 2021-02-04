@@ -24,8 +24,8 @@ module Health::Tasks
           pluck(:id, :client_id).to_h
 
         IneligiblePatientMailer.patients_with_eligibility_problems(care_coordinator_email: user.email,
-          ineligible_patient_ids: ineligible_patients.values,
-          non_aco_patient_ids: no_aco_patients.values).deliver_now
+                                                                   ineligible_patient_ids: ineligible_patients.values,
+                                                                   non_aco_patient_ids: no_aco_patients.values).deliver_now
 
         Health::Patient.find(ineligible_patients.keys + no_aco_patients.keys).each do |patient|
           patient.update!(eligibility_notification: Time.now)

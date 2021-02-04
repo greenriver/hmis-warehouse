@@ -9,6 +9,8 @@ class CasBase < ActiveRecord::Base
   self.abstract_class = true
 
   def self.db_exists?
-    self.connection_pool.with_connection(&:active?) rescue false
+    connection_pool.with_connection(&:active?)
+  rescue StandardError
+    false
   end
 end

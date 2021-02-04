@@ -11,13 +11,12 @@ module Health
   class AgencyPatientReferral < HealthBase
     acts_as_paranoid
 
-    phi_attr :patient_referral_id, Phi::OtherIdentifier, "ID of patient referral"
+    phi_attr :patient_referral_id, Phi::OtherIdentifier, 'ID of patient referral'
 
-    scope :claimed, -> {where(claimed: true)}
-    scope :unclaimed, -> {where(claimed: false)}
+    scope :claimed, -> { where(claimed: true) }
+    scope :unclaimed, -> { where(claimed: false) }
 
     belongs_to :agency
     belongs_to :patient_referral
-
   end
 end

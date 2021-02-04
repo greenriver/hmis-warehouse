@@ -7,7 +7,7 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Geography < GrdaWarehouse::Import::HMISSixOneOne::Geography
     include ::Export::HMISSixOneOne::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::Geography.hud_csv_headers(version: '6.11') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Geography.hud_csv_headers(version: '6.11'))
 
     self.hud_key = :GeographyID
 
@@ -31,13 +31,13 @@ module GrdaWarehouse::Export::HMISSixOneOne
         where(d_t2[:CoCCode].eq(d_t1[:CoCCode])).
         where(d_t2[:data_source_id].eq(d_t1[:data_source_id])).
         where(d_t2[:id].gt(d_t1[:id])).
-        exists.not
+        exists.not,
       )
 
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
 
@@ -65,11 +65,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       @geography_type_overrides ||= self.class.where.not(geography_type_override: nil).
         pluck(:data_source_id, :id, :geography_type_override).
         map do |data_source_id, geography_id, geography_type_override|
-          if geography_type_override.present?
-            [[data_source_id, geography_id], geography_type_override]
-          else
-            nil
-          end
+          [[data_source_id, geography_id], geography_type_override] if geography_type_override.present?
         end.compact.to_h
       @geography_type_overrides[[data_source_id, geography_id]]
     end
@@ -78,11 +74,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       @geocode_overrides ||= self.class.where.not(geocode_override: nil).
         pluck(:data_source_id, :id, :geocode_override).
         map do |data_source_id, geography_id, geocode_override|
-          if geocode_override.present?
-            [[data_source_id, geography_id], geocode_override]
-          else
-            nil
-          end
+          [[data_source_id, geography_id], geocode_override] if geocode_override.present?
         end.compact.to_h
       @geocode_overrides[[data_source_id, geography_id]]
     end
@@ -91,11 +83,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       @information_date_overrides ||= self.class.where.not(information_date_override: nil).
         pluck(:data_source_id, :id, :information_date_override).
         map do |data_source_id, geography_id, information_date_override|
-          if information_date_override.present?
-            [[data_source_id, geography_id], information_date_override]
-          else
-            nil
-          end
+          [[data_source_id, geography_id], information_date_override] if information_date_override.present?
         end.compact.to_h
       @information_date_overrides[[data_source_id, geography_id]]
     end

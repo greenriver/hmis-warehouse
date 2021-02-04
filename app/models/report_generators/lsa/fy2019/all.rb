@@ -46,8 +46,8 @@ module ReportGenerators::Lsa::Fy2019
       setup_notifier('LSA')
       # Disable logging so we don't fill the disk
       # ActiveRecord::Base.logger.silence do
-        calculate
-        Rails.logger.info "Done"
+      calculate
+      Rails.logger.info 'Done'
       # end # End silence ActiveRecord Log
     end
 
@@ -121,7 +121,7 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def sql_server_identifier
-      "#{ ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '') }-#{ Rails.env }-LSA-#{@report.id}".downcase
+      "#{ENV.fetch('CLIENT')&.gsub(/[^0-9a-z]/i, '')}-#{Rails.env}-LSA-#{@report.id}".downcase
     end
 
     def sql_server_database
@@ -179,33 +179,33 @@ module ReportGenerators::Lsa::Fy2019
 
     def unzip_path
       path = File.join('tmp', 'lsa', @report.id.to_s)
-      FileUtils.mkdir_p(path) unless Dir.exists?(path)
+      FileUtils.mkdir_p(path) unless Dir.exist?(path)
       path
     end
 
     def zip_path
-      File.join(unzip_path, "#{@report.id.to_s}.zip")
+      File.join(unzip_path, "#{@report.id}.zip")
     end
 
     def zip_report_folder
-      files = Dir.glob(File.join(unzip_path, '*')).map{|f| File.basename(f)}
+      files = Dir.glob(File.join(unzip_path, '*')).map { |f| File.basename(f) }
       Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
         files.each do |file_name|
           zipfile.add(
             file_name,
-            File.join(unzip_path, file_name)
+            File.join(unzip_path, file_name),
           )
         end
       end
     end
 
     def zip_intermediate_report_folder
-      files = Dir.glob(File.join(unzip_path, '*')).map{|f| File.basename(f)}
+      files = Dir.glob(File.join(unzip_path, '*')).map { |f| File.basename(f) }
       Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
         files.each do |file_name|
           zipfile.add(
             file_name,
-            File.join(unzip_path, file_name)
+            File.join(unzip_path, file_name),
           )
         end
       end
@@ -254,13 +254,13 @@ module ReportGenerators::Lsa::Fy2019
           file.lazy.each_slice(read_rows) do |lines|
             content = CSV.parse(lines.join, headers: headers)
             import_headers = content.first.headers
-            if content.any?
-              # this fixes dates that default to 1900-01-01 if you send an empty string
-              content = content.map do |row|
-                row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
-              end.compact
-              insert_batch(klass, import_headers, content, batch_size: 1_000)
-            end
+            next unless content.any?
+
+            # this fixes dates that default to 1900-01-01 if you send an empty string
+            content = content.map do |row|
+              row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+            end.compact
+            insert_batch(klass, import_headers, content, batch_size: 1_000)
           end
         end
       end
@@ -285,7 +285,7 @@ module ReportGenerators::Lsa::Fy2019
           remove_primary_key = true
         end
         CSV.open(path, 'wb', force_quotes: force_quotes) do |csv|
-          headers = klass.csv_columns.map{ |m| if m == :Zip then :ZIP else m end }.map(&:to_s)
+          headers = klass.csv_columns.map { |m| if m == :Zip then :ZIP else m end }.map(&:to_s)
           csv << headers
           klass.find_each(batch_size: 10_000) do |item|
             row = []
@@ -344,7 +344,7 @@ module ReportGenerators::Lsa::Fy2019
       load 'lib/rds_sql_server/lsa/fy2019/lsa_sql_server.rb'
       if test?
         ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
-      ::Rds.database = sql_server_database
+        ::Rds.database = sql_server_database
         ::Rds.timeout = 60_000_000
         load 'lib/rds_sql_server/lsa/fy2019/lsa_queries.rb'
         LsaSqlServer::LSAQueries.new.setup_test_report
@@ -373,10 +373,10 @@ module ReportGenerators::Lsa::Fy2019
           @rds&.terminate!
         else
           begin
-            SqlServerBase.connection.execute (<<~SQL);
+            SqlServerBase.connection.execute(<<~SQL)
               use master
             SQL
-            SqlServerBase.connection.execute (<<~SQL);
+            SqlServerBase.connection.execute(<<~SQL)
               drop database #{@rds.database}
             SQL
           rescue Exception => e
@@ -397,7 +397,7 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def setup_lsa_table_indexes
-      SqlServerBase.connection.execute (<<~SQL);
+      SqlServerBase.connection.execute(<<~SQL)
         if not exists (select * from sys.indexes where name = 'IX_sys_Time_sysStatus')
         begin
           CREATE INDEX [IX_sys_Time_sysStatus] ON [sys_Time] ([sysStatus])
@@ -630,7 +630,7 @@ module ReportGenerators::Lsa::Fy2019
         start_time = Time.current
         rep.run_query(step)
         end_time = Time.current
-        seconds = ((end_time - start_time)/1.minute).round * 60
+        seconds = ((end_time - start_time) / 1.minute).round * 60
         log_and_ping("LSA Query #{step} complete in #{distance_of_time_in_words(seconds)}")
       end
     end

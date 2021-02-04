@@ -13,8 +13,8 @@ module Health::CpMembers
 
     self.table_name = :cp_member_files
 
-    phi_attr :file, Phi::FreeText, "Name of file"
-    phi_attr :content, Phi::FreeText, "Content of file"
+    phi_attr :file, Phi::FreeText, 'Name of file'
+    phi_attr :content, Phi::FreeText, 'Content of file'
 
     belongs_to :user
 
@@ -24,7 +24,7 @@ module Health::CpMembers
       if check_header
         CSV.parse(content, headers: true) do |row|
           model_row = row.to_h
-          model_row[:roster_file_id] = self.id
+          model_row[:roster_file_id] = id
 
           model.create(model_row)
         end
@@ -47,8 +47,8 @@ module Health::CpMembers
     end
 
     private def check_header
-      incoming = CSV.parse(content.lines.first).flatten.map{|m| m&.strip}
-      expected = parsed_expected_header.map{|m| m&.strip}
+      incoming = CSV.parse(content.lines.first).flatten.map { |m| m&.strip }
+      expected = parsed_expected_header.map { |m| m&.strip }
       # You can update the header string with File.read('path/to/file.csv').lines.first
       # Using CSV parse in case the quoting styles differ
       if incoming == expected
@@ -58,6 +58,7 @@ module Health::CpMembers
         Rails.logger.error (incoming - expected).inspect
         Rails.logger.error (expected - incoming).inspect
       end
+
       return false
     end
 

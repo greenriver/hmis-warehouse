@@ -9,7 +9,6 @@
 # Control: PHI attributes documented in base class
 module Health
   class SignatureRequests::AcoSignatureRequest < SignatureRequest
-
     def self.expires_in
       if Rails.env.development?
         1.hours
@@ -21,9 +20,11 @@ module Health
     def pcp_request?
       false
     end
+
     def aco_request?
       true
     end
+
     def patient_request?
       false
     end

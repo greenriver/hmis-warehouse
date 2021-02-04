@@ -18,7 +18,11 @@ module GrdaWarehouse::HMIS
     def source_object
       (
         @source_object ||= if respond_to?(:source_class)
-          source = source_class.constantize.find(source_id) rescue nil   # if we can't establish the source connection, just return nil
+          source = begin
+                     source_class.constantize.find(source_id)
+                   rescue StandardError
+                     nil
+                   end   # if we can't establish the source connection, just return nil
           [source]
         else
           []

@@ -7,7 +7,6 @@
 # A wrapper around Services form changes to ease Qualifying Activities creation
 module Health
   class ServiceSaver
-
     def initialize user:, service: Health::Service.new, create_qa: false
       @user = user
       @service = service
@@ -39,10 +38,8 @@ module Health
         follow_up: 'Provide services to patient',
         reached_client: 'Yes (face to face, phone call answered, response to email)',
         mode_of_contact: 'In Person',
-        patient_id: @service.patient_id
+        patient_id: @service.patient_id,
       )
     end
-
-
   end
 end

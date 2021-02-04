@@ -12,7 +12,6 @@
 # R
 # install.packages('Rserve',,"http://rforge.net/",type="source")
 
-
 # NOTE: to use this in development, you'll need to do the following
 # R
 # pkg_url <- "https://cran.r-project.org/bin/macosx/el-capitan/contrib/3.5/Rserve_1.7-3.tgz"
@@ -31,7 +30,6 @@ require 'rserve/simpler'
 # require 'rinruby'
 module Reporting
   class RrhReport
-
     attr_accessor :program_1_id, :program_2_id
     def initialize program_1_id:, program_2_id:
       self.program_1_id = program_1_id || ''
@@ -77,114 +75,133 @@ module Reporting
         @project_1_data[:num_housed]
       end
     end
+
     def housed_plot_1
       @housedPlot_1 ||= begin
         set_r_variables
         @project_1_data[:housed_plot]
       end
     end
+
     def time_to_housing_1
       @time_to_housing_1 ||= begin
         set_r_variables
         @project_1_data[:time_to_housing]
       end
     end
+
     def time_in_housing_1
       @time_in_housing_1 ||= begin
         set_r_variables
         @project_1_data[:time_in_housing]
       end
     end
+
     def success_failure_1
       @success_failure_1 ||= begin
         set_r_variables
         @project_1_data[:success_failure]
       end
     end
+
     def ph_exits_1
       @ph_exits_1 ||= begin
         set_r_variables
         @project_1_data[:ph_exits]
       end
     end
+
     def shelter_exits_1
       @shelter_exits_1 ||= begin
         set_r_variables
         @project_1_data[:shelter_exits]
       end
     end
+
     def return_1
       @return_1 ||= begin
         set_r_variables
         @project_1_data[:return]
       end
     end
+
     def return_length_1
       @return_length_1 ||= begin
         set_r_variables
         @project_1_data[:return_length]
       end
     end
+
     def demographic_plot_1
       @demographic_plot_1 ||= begin
         set_r_variables
         @project_1_data[:demographic_plot]
       end
     end
+
     def num_housed_2
       @num_housed_2 ||= begin
         set_r_variables
         @project_2_data[:num_housed]
       end
     end
+
     def housed_plot_2
       @housedPlot_2 ||= begin
         set_r_variables
         @project_2_data[:housed_plot]
       end
     end
+
     def time_to_housing_2
       @time_to_housing_2 ||= begin
         set_r_variables
         @project_2_data[:time_to_housing]
       end
     end
+
     def time_in_housing_2
       @time_in_housing_2 ||= begin
         set_r_variables
         @project_2_data[:time_in_housing]
       end
     end
+
     def success_failure_2
       @success_failure_2 ||= begin
         set_r_variables
         @project_2_data[:success_failure]
       end
     end
+
     def ph_exits_2
       @ph_exits_2 ||= begin
         set_r_variables
         @project_2_data[:ph_exits]
       end
     end
+
     def shelter_exits_2
       @shelter_exits_2 ||= begin
         set_r_variables
         @project_2_data[:shelter_exits]
       end
     end
+
     def return_2
       @return_2 ||= begin
         set_r_variables
         @project_2_data[:return]
       end
     end
+
     def return_length_2
       @return_length_2 ||= begin
         set_r_variables
         @project_2_data[:return_length]
       end
     end
+
     def demographic_plot_2
       @demographic_plot_2 ||= begin
         set_r_variables
@@ -211,7 +228,6 @@ module Reporting
     def should_rebuild?
       ! (Rails.cache.exist?(cache_key_for_program(program_1_id)) && Rails.cache.exist?(cache_key_for_program(program_2_id)))
     end
-
 
     def set_r_variables
       # Don't bother building things if we've already cached them both
@@ -253,16 +269,24 @@ module Reporting
         r.converse(
           program_1: program_id,
           housed_file_path: housed_file_path,
-          returns_file_path: returns_file_path
+          returns_file_path: returns_file_path,
         ) do
           File.read('lib/r/rrh_report.r')
         end
         project_data = {}
         project_data[:num_housed] = r.converse('num_housed_1')
-        project_data[:housed_plot] = JSON.parse(r.converse('housedPlot_1')) rescue '[]'
+        project_data[:housed_plot] = begin
+                                       JSON.parse(r.converse('housedPlot_1'))
+                                     rescue StandardError
+                                       '[]'
+                                     end
         project_data[:time_to_housing] = r.converse('time_to_housing_1') || 'unknown days to find housing'
         project_data[:time_in_housing] = r.converse('time_in_housing_1') || 'unknown days in find housing'
-        project_data[:success_failure] = JSON.parse(r.converse('success_failure_1')) rescue '[]'
+        project_data[:success_failure] = begin
+                                           JSON.parse(r.converse('success_failure_1'))
+                                         rescue StandardError
+                                           '[]'
+                                         end
         project_data[:ph_exits] = r.converse('ph_exits_1')
         project_data[:shelter_exits] = r.converse('shelter_exits_1')
         project_data[:return] = r.converse('return_1')
@@ -272,7 +296,7 @@ module Reporting
             row[:count] = row['clients']
             row
           end
-        rescue
+        rescue StandardError
           []
         end
         project_data[:demographic_plot] = JSON.parse r.converse('demographic_plot_1')

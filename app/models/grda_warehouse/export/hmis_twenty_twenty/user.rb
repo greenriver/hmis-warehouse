@@ -7,7 +7,7 @@
 module GrdaWarehouse::Export::HmisTwentyTwenty
   class User < GrdaWarehouse::Import::HmisTwentyTwenty::User
     include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::User.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::User.hud_csv_headers(version: '2020'))
 
     self.hud_key = :UserID
 
@@ -18,9 +18,8 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
-
   end
 end

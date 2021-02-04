@@ -9,7 +9,7 @@ class ActivityLog < ApplicationRecord
 
   belongs_to :user
 
-  scope :created_in_range, -> (range:) do
+  scope :created_in_range, ->(range:) do
     where(created_at: range)
   end
 
@@ -20,17 +20,18 @@ class ActivityLog < ApplicationRecord
   # increment can be: minute, hour, day, week, month, year
   def self.for_chart(increment: 'hour', range: 1.weeks.ago..Time.current)
     return [] unless valid_increments.include?(increment)
+
     data = {}
     where(created_at: range).
-    group(:created_at_trunc, :user_id).
-    pluck(Arel.sql("date_trunc('#{increment}', created_at) as created_at_trunc"), :user_id).
-    each do |time, user_id|
+      group(:created_at_trunc, :user_id).
+      pluck(Arel.sql("date_trunc('#{increment}', created_at) as created_at_trunc"), :user_id).
+      each do |time, _user_id|
       data[time.strftime('%Y-%m-%d %H:%M')] ||= 0
       data[time.strftime('%Y-%m-%d %H:%M')] += 1
     end
     [
       ['x'] + data.keys,
-      ['Active Users'] + data.values
+      ['Active Users'] + data.values,
     ]
   end
 

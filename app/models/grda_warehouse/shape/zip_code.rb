@@ -15,7 +15,7 @@ module GrdaWarehouse
 
       def additional_geo_json_properties
         {
-          'metric' => Random.rand
+          'metric' => Random.rand,
         }
       end
 

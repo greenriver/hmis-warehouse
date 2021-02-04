@@ -54,7 +54,6 @@ module Reports::SystemPerformance::Fy2018
     end
 
     def self.available_ethnicities
-
     end
 
     def self.available_sub_populations
@@ -73,6 +72,7 @@ module Reports::SystemPerformance::Fy2018
 
     def value_for_options options
       return '' unless options.present?
+
       display_string = "Report Start: #{options['report_start']}; Report End: #{options['report_end']}"
       display_string << "; CoC-Code: #{options['coc_code']}" if options['coc_code'].present?
       display_string << "; Data Source: #{GrdaWarehouse::DataSource.short_name(options['data_source_id'].to_i)}" if options['data_source_id'].present?
@@ -91,7 +91,11 @@ module Reports::SystemPerformance::Fy2018
       if options['project_id'].present?
         if options['project_id'].is_a?(Array)
           if options['project_id'].delete_if(&:blank?).any?
-            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present? rescue m}.compact.join(', ')}"
+            str = "; Projects: #{options['project_id'].map do |m|
+                                   GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present?
+                                 rescue StandardError
+                                   m
+                                 end.compact.join(', ')}"
           end
         else
           str = "; Project: #{GrdaWarehouse::Hud::Project.find(options['project_id'].to_i).name}"
@@ -112,6 +116,7 @@ module Reports::SystemPerformance::Fy2018
       if (sub_population = options['sub_population']) && sub_population.present?
         return "; Sub Population: #{sub_population.humanize.titleize}"
       end
+
       ''
     end
 
@@ -132,7 +137,5 @@ module Reports::SystemPerformance::Fy2018
         ''
       end
     end
-
-
   end
 end

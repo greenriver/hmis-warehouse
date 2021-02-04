@@ -22,6 +22,5 @@ module GrdaWarehouse::Hud
     belongs_to :data_source
     has_many :assessment_questions, **hud_assoc(:AssessmentID, 'AssessmentQuestion')
     has_many :assessment_results, **hud_assoc(:AssessmentID, 'AssessmentResult')
-
   end
 end

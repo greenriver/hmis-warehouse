@@ -13,7 +13,7 @@ module Glacier
       @databases = databases
       @db_user = user
       @snapshot_date = snapshot_date
-      setup_notifier("Glacier Backups")
+      setup_notifier('Glacier Backups')
     end
 
     attr_accessor :databases
@@ -34,16 +34,15 @@ module Glacier
 
         databases.each do |database_name|
           Backup.new({
-            # cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9 | gpg -e -r #{recipient}",
-            cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9",
-            archive_name: "#{client}-#{Rails.env}-#{database_name}-no-gpg-#{@snapshot_date}",
-            # notes: "Database backup of #{database_name}. Compressed with gzip and encrypted for #{recipient}. Ensure your .pgpass file has the needed password. Restore command will be of the form `gpg -d | gunzip | psql --host= --username= --no-password -d <database>`"
-            notes: "Database backup of #{database_name}. Compressed with gzip. Not encrypted. Ensure your .pgpass file has the needed password. Restore command will be of the form `gunzip | psql --host= --username= --no-password -d <database>`"
-          }).run!
+                       # cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9 | gpg -e -r #{recipient}",
+                       cmd: "pg_dump -d #{database_name} --username=#{db_user} --no-password --host=#{db_host} --compress=9",
+                       archive_name: "#{client}-#{Rails.env}-#{database_name}-no-gpg-#{@snapshot_date}",
+                       # notes: "Database backup of #{database_name}. Compressed with gzip and encrypted for #{recipient}. Ensure your .pgpass file has the needed password. Restore command will be of the form `gpg -d | gunzip | psql --host= --username= --no-password -d <database>`"
+                       notes: "Database backup of #{database_name}. Compressed with gzip. Not encrypted. Ensure your .pgpass file has the needed password. Restore command will be of the form `gunzip | psql --host= --username= --no-password -d <database>`",
+                     }).run!
         end
       end
     end
-
 
     private
 
@@ -51,12 +50,10 @@ module Glacier
     define_method(:recipient) { ENV.fetch('ENCRYPTION_RECIPIENT') }
 
     def _safely
-      begin
-        yield
-      rescue StandardError => e
-        @notifier.ping("Glacier backups failed\n#{e.message}\n #{e.backtrace.join("\n")}") if @send_notifications
-        raise e
-      end
+      yield
+    rescue StandardError => e
+      @notifier.ping("Glacier backups failed\n#{e.message}\n #{e.backtrace.join("\n")}") if @send_notifications
+      raise e
     end
   end
 end

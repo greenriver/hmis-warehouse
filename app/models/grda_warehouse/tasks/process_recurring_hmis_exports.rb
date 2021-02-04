@@ -8,9 +8,7 @@ module GrdaWarehouse::Tasks
   class ProcessRecurringHmisExports
     def run!
       recurring_exports_scope.each do |export|
-        if export.should_run?
-          export.run
-        end
+        export.run if export.should_run?
       end
     end
 

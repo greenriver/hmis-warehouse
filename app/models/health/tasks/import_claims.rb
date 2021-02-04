@@ -7,7 +7,6 @@
 require 'roo'
 module Health::Tasks
   class ImportClaims
-
     attr_accessor :claims_file_path, :claims_file
     def initialize(claims_file_path: 'var/health/claims_metrics_sample.xlsx')
       @claims_file_path = claims_file_path

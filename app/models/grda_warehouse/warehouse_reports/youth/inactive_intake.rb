@@ -39,7 +39,7 @@ module GrdaWarehouse::WarehouseReports::Youth
               referral: referral&.to_date,
               follow_up: follow_up&.to_date,
               max_date: dates.max&.to_date,
-            }
+            },
           )
         end
       end.compact.uniq
@@ -88,6 +88,5 @@ module GrdaWarehouse::WarehouseReports::Youth
       GrdaWarehouse::Youth::YouthReferral.visible_by?(filter.user).
         where(client_id: open_intakes.select(:client_id))
     end
-
   end
 end

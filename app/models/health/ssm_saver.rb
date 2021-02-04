@@ -7,7 +7,6 @@
 # A wrapper around SSM form changes to ease Qualifying Activities creation
 module Health
   class SsmSaver
-
     def initialize user:, ssm:, create_qa: false
       @user = user
       @ssm = ssm
@@ -35,7 +34,7 @@ module Health
             follow_up: 'Improve Patient Outcomes',
             reached_client: :yes,
             mode_of_contact: :in_person,
-            patient_id: @ssm.patient_id
+            patient_id: @ssm.patient_id,
           )
         end
         @ssm.save!

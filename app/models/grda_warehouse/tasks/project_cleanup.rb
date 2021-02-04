@@ -11,7 +11,7 @@ module GrdaWarehouse::Tasks
     attr_accessor :logger, :send_notifications, :notifier_config
 
     def initialize(
-      bogus_notifier=false,
+      _bogus_notifier = false,
       project_ids: GrdaWarehouse::Hud::Project.select(:id),
       debug: false
     )
@@ -22,14 +22,14 @@ module GrdaWarehouse::Tasks
     end
 
     def run!
-      debug_log("Cleaning projects")
-      @projects = load_projects()
+      debug_log('Cleaning projects')
+      @projects = load_projects
 
       @projects.each do |project|
         if should_update_type?(project)
           blank_initial_computed_project_type = project.computed_project_type.blank?
           debug_log("Updating type for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}...#{project.ProjectType} #{project.act_as_project_type} #{sh_project_types(project).inspect}") unless blank_initial_computed_project_type
-          project_type = project.compute_project_type()
+          project_type = project.compute_project_type
           # Force a rebuild of all related enrollments
           project_source.transaction do
             project.enrollments.invalidate_processing!
@@ -44,17 +44,17 @@ module GrdaWarehouse::Tasks
           debug_log("done invalidating enrollments for #{project.ProjectName}")
         end
 
-        if should_update_name?(project)
-          debug_log("Updating name for #{project.ProjectName}")
-          project_source.transaction do
-            # Update any service records with this project
-            service_history_enrollment_source.
-              where(project_id: project.ProjectID, data_source_id: project.data_source_id).
-              where.not(project_name: project.ProjectName).
-              update_all(project_name: project.ProjectName)
-          end
-          debug_log("done updating name for #{project.ProjectName}")
+        next unless should_update_name?(project)
+
+        debug_log("Updating name for #{project.ProjectName}")
+        project_source.transaction do
+          # Update any service records with this project
+          service_history_enrollment_source.
+            where(project_id: project.ProjectID, data_source_id: project.data_source_id).
+            where.not(project_name: project.ProjectName).
+            update_all(project_name: project.ProjectName)
         end
+        debug_log("done updating name for #{project.ProjectName}")
       end
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!(max_wait_seconds: 1_800)
     end
@@ -114,7 +114,7 @@ module GrdaWarehouse::Tasks
     # Just check the last two years for discrepancies to speed checking
     private def literally_homeless_status_correct?(project)
       literally_homeless_status_correct = true
-      if  GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
+      if GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES.include?(project.computed_project_type)
         # ES, SO, SH
         any_non_literally_homeless_history = service_history_service_source.
           where(date: 2.years.ago..Date.current).

@@ -10,7 +10,7 @@ module GrdaWarehouse::WarehouseReports
   class HudLot
     attr_accessor :filter, :client
 
-    def initialize(client:, filter: )
+    def initialize(client:, filter:)
       @client = client
       @filter = filter
     end
@@ -37,7 +37,7 @@ module GrdaWarehouse::WarehouseReports
           summary[key] ||= Set.new
           summary[key] << type
         end
-        summary.sort_by{|k, _|}.reverse
+        summary.sort_by { |k, _| }.reverse
       end
     end
 
@@ -45,7 +45,7 @@ module GrdaWarehouse::WarehouseReports
       @details_by_range ||= begin
         details = []
         (start_date, current_location) = locations_by_date&.first
-        locations_by_date.each_with_index do |(date, type), index|
+        locations_by_date.each_with_index do |(date, type), _index|
           next_date = date + 1.days
           next_location = locations_by_date[next_date]
           # we've reached the end
@@ -104,17 +104,17 @@ module GrdaWarehouse::WarehouseReports
         extra_days = {}
         # Fill in any gaps of < 7 days
         lit_dates.to_a.each_with_index do |(date, _), i|
-          (next_date, _) = lit_dates.to_a[i + 1]
+          (next_date,) = lit_dates.to_a[i + 1]
           next if next_date.blank? || next_date > filter.end
 
-          if next_date < date + 7.days
-            (date..next_date).each do |d|
-              extra_days[d] = shelter_stay unless lit_dates.key?(d)
-            end
+          next unless next_date < date + 7.days
+
+          (date..next_date).each do |d|
+            extra_days[d] = shelter_stay unless lit_dates.key?(d)
           end
         end
 
-        lit_dates.merge(extra_days).sort_by{|k,_| k}.to_h
+        lit_dates.merge(extra_days).sort_by { |k, _| k }.to_h
       end
     end
 
@@ -127,10 +127,11 @@ module GrdaWarehouse::WarehouseReports
     private def breaks(un_processed_dates)
       breaks = {}
       a_dates = un_processed_dates.to_a
-      dates_present = a_dates.select{|_, v| v.present?}
+      dates_present = a_dates.select { |_, v| v.present? }
       dates_present.each_with_index do |(date, type), i|
         next if i.zero?
         next if shelter_stay?(type)
+
         previous_i = i - 1
         next unless shelter_stay?(dates_present[previous_i].last)
         break unless dates_present.map(&:last)[i..].include?(shelter_stay)
@@ -145,10 +146,10 @@ module GrdaWarehouse::WarehouseReports
     end
 
     # For any date not already assigned a status, or which has a status of Self-reported street/shelter, assign a status of Self- reported/potential break for the date immediately prior to Project Start Date for any continuum enrollment where all of the following are true:
-      # Project Start Date minus 1 day is between any two dates with a status of Documented street/shelter or Self- reported street/shelter.
-      # AND Living Situation is one of the following:
-        # a. Institutional stay of more than 90 days
-        # b. OR Transitional or permanent housing situation of 7 nights or more
+    # Project Start Date minus 1 day is between any two dates with a status of Documented street/shelter or Self- reported street/shelter.
+    # AND Living Situation is one of the following:
+    # a. Institutional stay of more than 90 days
+    # b. OR Transitional or permanent housing situation of 7 nights or more
 
     private def self_reported_breaks(un_processed_dates)
       self_reported_breaks = {}
@@ -163,11 +164,11 @@ module GrdaWarehouse::WarehouseReports
         # From there, find the maximum 'street/shelter' and TH/PH
         # If the TH/PH date is > street shelter, do nothing
         # If the street shelter is present, set a self reported break
-        max_unknown_date = un_processed_dates.select{|d, type| d < date_prior_to_entry && type.blank?}.keys.max
+        max_unknown_date = un_processed_dates.select { |d, type| d < date_prior_to_entry && type.blank? }.keys.max
         next unless max_unknown_date.present?
 
-        max_th_ph_date = un_processed_dates.select{|d, type| d < max_unknown_date && type&.in?([th_stay, ph_stay])}.keys.max
-        max_es_date = un_processed_dates.select{|d, type| d < max_unknown_date && type&.include?(any_shelter_stay)}.keys.max
+        max_th_ph_date = un_processed_dates.select { |d, type| d < max_unknown_date && type&.in?([th_stay, ph_stay]) }.keys.max
+        max_es_date = un_processed_dates.select { |d, type| d < max_unknown_date && type&.include?(any_shelter_stay) }.keys.max
         # Must fall between two street/shelter
         next unless max_es_date.present?
         # If we have a PH/TH date, we the street date must be newer
@@ -210,6 +211,7 @@ module GrdaWarehouse::WarehouseReports
         else
           next unless project.ContinuumProject == 1
           next unless en.computed_project_type.in?([1, 2, 4, 8, 11, 12, 14])
+
           # Homeless enrollment, or institutional stay
           if en.es? || en.sh? || en.so? || HUD.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
             (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|
@@ -258,7 +260,6 @@ module GrdaWarehouse::WarehouseReports
       entry.enrollment.LivingSituation.in?(HUD.temporary_and_permanent_housing_situations(as: :prior)) &&
         entry.enrollment.LengthOfStay.in?([2, 3, 4, 5])
     end
-
 
     def break_marker
       'Documented break entering TH/PH'
@@ -310,7 +311,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def services
-     client.service_history_services.
+      client.service_history_services.
         service_within_date_range(start_date: filter.start, end_date: filter.end)
     end
 

@@ -11,14 +11,16 @@ module SimilarityMetric
 
     # bin up scores into a histogram with `bins` bins
     def histogram(bins, scores)
-      raise "no scores" if scores.empty?
+      raise 'no scores' if scores.empty?
+
       min = scores.min
       max = scores.max
-      bin_size = ( max - min ) / bins
+      bin_size = (max - min) / bins
       lim = min + bin_size
       bin_map = {}
       bins.times do |i|
-        s, e = min, min += bin_size
+        s = min
+        e = min += bin_size
         range = if i == bins - 1
           s..e
         else
@@ -32,7 +34,7 @@ module SimilarityMetric
       scores.sort.each do |s|
         unless bin.include? s
           previous = bin
-          bin = bins.shift || previous    # this is necessary because of floating point monkey business
+          bin = bins.shift || previous # this is necessary because of floating point monkey business
         end
         bin_map[bin] += 1
       end
@@ -41,39 +43,35 @@ module SimilarityMetric
 
     # print binned up data into a nice histogram
     def draw_histogram(h, stars)
-      formatter = Range === h.keys.first ? RangeFormatter : IntegerFormatter
+      formatter = h.keys.first.is_a?(Range) ? RangeFormatter : IntegerFormatter
       formatter = formatter.new h.keys
-      cs = -> (v) { Array === v ? v : [ v, v ] }
-      max_count = h.values.map{ |v| cs.(v).first }.max
-      position = h.values.map{ |v| cs.(v).last }
+      cs = ->(v) { v.is_a?(Array) ? v : [v, v] }
+      max_count = h.values.map { |v| cs.call(v).first }.max
+      position = h.values.map { |v| cs.call(v).last }
       velocity = {}.tap do |velocity|
-        position.each_with_index do |v,i|
-          if i > 0
-            velocity[i] = position[i] - position[i - 1]
-          end
+        position.each_with_index do |_v, i|
+          velocity[i] = position[i] - position[i - 1] if i > 0
         end
       end
       acceleration = {}.tap do |dd|
         velocity.each do |i, v|
-          if i > 1
-            dd[i] = v - velocity[i - 1]
-          end
+          dd[i] = v - velocity[i - 1] if i > 1
         end
       end
-      count_formatter, delta_formatter, acc_formatter = [ position, velocity.values, acceleration.values ].map do |values|
-        f = Integer === values.first ? IntegerFormatter : FloatFormatter
+      count_formatter, delta_formatter, acc_formatter = [position, velocity.values, acceleration.values].map do |values|
+        f = values.first.is_a?(Integer) ? IntegerFormatter : FloatFormatter
         f.new values
       end
       star_size = max_count / stars.to_f
       h.each_with_index do |(range, count), i|
-        count, show = cs.(count)
+        count, show = cs.call(count)
         print formatter.format(range)
         print ' '
-        nstars = ( count / star_size ).ceil
-        nstars = stars if nstars > stars   # prevent floating point shenanigans
+        nstars = (count / star_size).ceil
+        nstars = stars if nstars > stars # prevent floating point shenanigans
         nspaces = stars - nstars
-        nstars.times{ print '*' }
-        nspaces.times{ print ' ' }
+        nstars.times { print '*' }
+        nspaces.times { print ' ' }
         print ' '
         print count_formatter.format(show)
         if v = velocity[i]
@@ -87,12 +85,12 @@ module SimilarityMetric
     end
 
     # obtain a random sample of destination clients
-    def destination_sample(size=500)
+    def destination_sample(size = 500)
       GrdaWarehouse::Hud::Client.destination.random.limit(size).preload(:source_clients)
     end
 
     # obtain a random sample of source clients
-    def source_sample(size=500)
+    def source_sample(size = 500)
       GrdaWarehouse::Hud::Client.source.random.limit(size)
     end
   end

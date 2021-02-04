@@ -22,8 +22,6 @@ module GrdaWarehouse::Hud
     has_one :client, through: :assessments, inverse_of: :assessment_results
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client')
 
-
     belongs_to :data_source
-
   end
 end

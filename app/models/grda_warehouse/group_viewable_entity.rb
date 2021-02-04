@@ -11,7 +11,7 @@ module GrdaWarehouse
     belongs_to :access_group
     belongs_to :entity, polymorphic: true
 
-    scope :viewable_by, -> (user) do
+    scope :viewable_by, ->(user) do
       where(access_group_id: user.access_groups.pluck(:id))
     end
   end

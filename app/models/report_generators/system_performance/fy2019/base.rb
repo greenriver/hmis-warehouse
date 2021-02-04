@@ -6,7 +6,7 @@
 
 module ReportGenerators::SystemPerformance::Fy2019
   class Base
-  include ArelHelper
+    include ArelHelper
 
     def initialize options
       @options = options
@@ -23,23 +23,13 @@ module ReportGenerators::SystemPerformance::Fy2019
       end
       if @report.options['project_id'].delete_if(&:blank?).any?
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        scope = scope.joins(:project).where(Project: { id: project_ids})
+        scope = scope.joins(:project).where(Project: { id: project_ids })
       end
-      if @report.options['data_source_id'].present?
-        scope = scope.where(data_source_id: @report.options['data_source_id'].to_i)
-      end
-      if @report.options['coc_code'].present?
-        scope = scope.coc_funded_in(coc_code: @report.options['coc_code'])
-      end
-      if @report.options['sub_population'].present?
-        scope = sub_population_scope scope, @report.options['sub_population']
-      end
-      if @report.options['race_code'].present?
-        scope = race_scope scope, @report.options['race_code']
-      end
-      if @report.options['ethnicity_code'].present?
-        scope = ethnicity_scope scope, @report.options['ethnicity_code']
-      end
+      scope = scope.where(data_source_id: @report.options['data_source_id'].to_i) if @report.options['data_source_id'].present?
+      scope = scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
+      scope = sub_population_scope scope, @report.options['sub_population'] if @report.options['sub_population'].present?
+      scope = race_scope scope, @report.options['race_code'] if @report.options['race_code'].present?
+      scope = ethnicity_scope scope, @report.options['ethnicity_code'] if @report.options['ethnicity_code'].present?
       return scope
     end
 
@@ -70,6 +60,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         :race_none,
       ]
       return scope unless available_scopes.include?(race_code.to_sym)
+
       scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(race_code.to_sym))
     end
 
@@ -83,14 +74,15 @@ module ReportGenerators::SystemPerformance::Fy2019
       }
       ethnicity_scope = available_scopes[ethnicity_code&.to_i]
       return scope unless ethnicity_scope.present?
+
       scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(ethnicity_scope))
     end
-
 
     # Age should be calculated at report start or enrollment start, whichever is greater
     def age_for_report(dob:, entry_date:, age:)
       @report_start ||= @report.options['report_start'].to_date
       return age if dob.blank? || entry_date > @report_start
+
       GrdaWarehouse::Hud::Client.age(dob: dob, date: @report_start)
     end
 
@@ -118,9 +110,10 @@ module ReportGenerators::SystemPerformance::Fy2019
       # Find the first queued report
       @report = ReportResult.where(
         report: report,
-        percent_complete: 0
+        percent_complete: 0,
       ).first
       return unless @report.present?
+
       Rails.logger.info "Starting report #{@report.report.name}"
       @report.update(percent_complete: 0.01)
     end
@@ -130,7 +123,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         percent_complete: 100,
         results: @answers,
         support: @support,
-        completed_at: Time.now
+        completed_at: Time.now,
       )
     end
 
@@ -139,7 +132,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         where(destination_id: destination_ids).
         distinct.
         pluck(:destination_id, :id_in_source).
-        group_by(&:first).transform_values{ |v| v.map(&:last).uniq }
+        group_by(&:first).transform_values { |v| v.map(&:last).uniq }
     end
   end
 end

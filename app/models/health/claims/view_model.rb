@@ -9,7 +9,6 @@
 # Controls should be implemented there
 module Health::Claims
   class ViewModel
-
     include ActionView::Helpers::NumberHelper
 
     def initialize(patient, sdh_rosters)
@@ -19,7 +18,7 @@ module Health::Claims
     end
 
     def cost_table
-      result = {patient: {}, sdh: {}, variance: {}}
+      result = { patient: {}, sdh: {}, variance: {} }
       if @patient_roster.present?
         values = load_implementation_baseline_variance(load_cost_values)
         values.each_with_index do |v, index|
@@ -27,7 +26,7 @@ module Health::Claims
           result[key] = {
             Total_Cost: display_value(key, v[0], number_to_currency(v[0], precision: 0)),
             Months: display_value(key, v[1], v[1]),
-            Cost_PMPM: display_value(key, v[2], number_to_currency(v[2], precision: 0))
+            Cost_PMPM: display_value(key, v[2], number_to_currency(v[2], precision: 0)),
           }
         end
       end
@@ -35,7 +34,7 @@ module Health::Claims
     end
 
     def key_metrics_table
-      result = {patient: {}, sdh: {}, variance: {}}
+      result = { patient: {}, sdh: {}, variance: {} }
       if @patient_roster.present?
         values = load_implementation_baseline_variance(load_key_metric_values)
         values.each_with_index do |v, index|
@@ -43,7 +42,7 @@ module Health::Claims
           result[key] = {
             ED_Visits: display_value(key, v[0], v[0]),
             IP_Admits: display_value(key, v[1], v[1]),
-            Average_Days_to_Readmit: display_value(key, v[2], v[2])
+            Average_Days_to_Readmit: display_value(key, v[2], v[2]),
           }
         end
       end
@@ -51,7 +50,7 @@ module Health::Claims
     end
 
     def patient_summary
-      result = {details: [], demographics: []}
+      result = { details: [], demographics: [] }
       if @patient.present?
         if @patient_roster.present?
           team = @patient_roster.epic_team
@@ -68,15 +67,15 @@ module Health::Claims
           # ['Team', team]
         ]
         result[:demographics].push([
-          ['Age', @patient.client.age],
-          ['Gender', @patient.gender],
-          ['Disability Flag', disability_flag],
-        ])
+                                     ['Age', @patient.client.age],
+                                     ['Gender', @patient.gender],
+                                     ['Disability Flag', disability_flag],
+                                   ])
         result[:demographics].push([
-          ['DOB', @patient.birthdate],
-          ['Race / Ethnicity', "#{@patient.race} / #{@patient.ethnicity}"],
-          ['Veteran Status', @patient.veteran_status]
-        ])
+                                     ['DOB', @patient.birthdate],
+                                     ['Race / Ethnicity', "#{@patient.race} / #{@patient.ethnicity}"],
+                                     ['Veteran Status', @patient.veteran_status],
+                                   ])
       end
       result
     end
@@ -99,10 +98,26 @@ module Health::Claims
     def load_key_metric_values
       implementation_months = @patient_roster.member_months_implementation
       baseline_months = @patient_roster.member_months_baseline
-      implementation_ave_ed_visits = @patient.ed_nyu_severities.sum(:implementation_visits).to_f / implementation_months rescue 0
-      baseline_ave_ed_visits = @patient.ed_nyu_severities.sum(:baseline_visits).to_f / baseline_months rescue 0
-      implementation_ip_admit_ave = @patient_roster.implementation_admits.to_f / implementation_months rescue 0
-      baseline_ip_admit_ave = @patient_roster.baseline_admits.to_f / baseline_months rescue 0
+      implementation_ave_ed_visits = begin
+                                       @patient.ed_nyu_severities.sum(:implementation_visits).to_f / implementation_months
+                                     rescue StandardError
+                                       0
+                                     end
+      baseline_ave_ed_visits = begin
+                                 @patient.ed_nyu_severities.sum(:baseline_visits).to_f / baseline_months
+                               rescue StandardError
+                                 0
+                               end
+      implementation_ip_admit_ave = begin
+                                      @patient_roster.implementation_admits.to_f / implementation_months
+                                    rescue StandardError
+                                      0
+                                    end
+      baseline_ip_admit_ave = begin
+                                @patient_roster.baseline_admits.to_f / baseline_months
+                              rescue StandardError
+                                0
+                              end
       implementation = [
         implementation_ave_ed_visits&.round(1),
         implementation_ip_admit_ave&.round(1),
@@ -117,20 +132,34 @@ module Health::Claims
     end
 
     def load_cost_values
-      implementation_sum = @patient.amount_paids.implementation.map(&:total).sum&.round() rescue 0
+      implementation_sum = begin
+                             @patient.amount_paids.implementation.map(&:total).sum&.round()
+                           rescue StandardError
+                             0
+                           end
       implementation_count = @patient.amount_paids.implementation.map(&:total).count&.round()
       patient = [
         implementation_sum,
         implementation_count,
       ]
-      baseline_sum = @patient.amount_paids.baseline.map(&:total).sum&.round() rescue 0
-      baseline_count = @patient.amount_paids.baseline.map(&:total).count&.round() rescue 0
+      baseline_sum = begin
+                       @patient.amount_paids.baseline.map(&:total).sum&.round()
+                     rescue StandardError
+                       0
+                     end
+      baseline_count = begin
+                         @patient.amount_paids.baseline.map(&:total).count&.round()
+                       rescue StandardError
+                         0
+                       end
       sdh = [
         baseline_sum,
         baseline_count,
       ]
       [patient, sdh].each do |arry|
-        arry.push((arry[0]/arry[1].to_f).round()) rescue 0
+        arry.push((arry[0] / arry[1].to_f).round)
+      rescue StandardError
+        0
       end
       [patient, sdh]
     end
@@ -145,16 +174,19 @@ module Health::Claims
 
     def sdh_avg(values)
       values = values.compact
-      (values.inject(0){|sum, v| sum+v})/values.size.to_f
+      (values.inject(0) { |sum, v| sum + v }) / values.size.to_f
     end
 
     def baseline_variance(implementation, baseline)
       if implementation && baseline && baseline != 0
-        (((implementation - baseline)/baseline.to_f)*100).round() rescue 'N/A'
+        begin
+          (((implementation - baseline) / baseline.to_f) * 100).round
+        rescue StandardError
+          'N/A'
+        end
       else
         'N/A'
       end
     end
-
   end
 end

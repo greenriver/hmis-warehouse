@@ -15,10 +15,10 @@ module Health::Claims
 
     def column_headers
       {
-        medicaid_id: "ID_MEDICAID",
-        category: "Category",
-        sdh_pct: "Baseline_pct",
-        indiv_pct: "Implement_pct",
+        medicaid_id: 'ID_MEDICAID',
+        category: 'Category',
+        sdh_pct: 'Baseline_pct',
+        indiv_pct: 'Implement_pct',
         baseline_visits: 'Baseline_visits',
         implementation_visits: 'Implement_visits',
       }
@@ -27,7 +27,7 @@ module Health::Claims
     def clean_rows(dirty)
       dirty.map do |row|
         row.map do |value|
-          if value == "#DIV/0!"
+          if value == '#DIV/0!'
             nil
           else
             value
@@ -35,6 +35,5 @@ module Health::Claims
         end
       end
     end
-
   end
 end

@@ -11,7 +11,7 @@ module SimilarityMetric
     end
 
     def group(v)
-      v if v == 0 || v == 1
+      v if [0, 1].include?(v)
     end
   end
 end

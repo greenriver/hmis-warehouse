@@ -6,7 +6,6 @@
 
 module Reporting
   class D3Charts
-
     attr_reader :report
     def initialize(user, program_1, program_2)
       @user = user
@@ -39,10 +38,10 @@ module Reporting
 
     def all
       {
-        overview: {data: overview, selectors: ['#d3-overview-1', '#d3-overview-2']},
-        outcomes: {data: outcomes, selectors: ['#d3-outcome-1', '#d3-outcome-2'], legend: '#d3-outcome__legend'},
-        shelter_returns: {data: shelter_returns, selectors: ['#d3-return-1', '#d3-return-2']},
-        demographics: {data: demographics, selectors: ['#d3-demographics-1', '#d3-demographics-2'], legend: '#d3-demographics__legend'}
+        overview: { data: overview, selectors: ['#d3-overview-1', '#d3-overview-2'] },
+        outcomes: { data: outcomes, selectors: ['#d3-outcome-1', '#d3-outcome-2'], legend: '#d3-outcome__legend' },
+        shelter_returns: { data: shelter_returns, selectors: ['#d3-return-1', '#d3-return-2'] },
+        demographics: { data: demographics, selectors: ['#d3-demographics-1', '#d3-demographics-2'], legend: '#d3-demographics__legend' },
       }
     end
 
@@ -53,7 +52,7 @@ module Reporting
       {
         program_1: program_1_data,
         program_2: program_2_data,
-        both: both
+        both: both,
       }
     end
 
@@ -61,7 +60,7 @@ module Reporting
       {
         program_1: outcome_1_data,
         program_2: outcome_2_data,
-        both: outcome_1_data + outcome_2_data
+        both: outcome_1_data + outcome_2_data,
       }
     end
 
@@ -70,7 +69,7 @@ module Reporting
         program_1: sr_1_data,
         program_2: sr_2_data,
         both: (sr_1_data + sr_2_data),
-        x_bands: @report.length_of_time_buckets.values
+        x_bands: @report.length_of_time_buckets.values,
       }
     end
 
@@ -78,7 +77,7 @@ module Reporting
       {
         program_1: demo_1_data,
         program_2: demo_2_data,
-        both: (demo_1_data + demo_2_data)
+        both: (demo_1_data + demo_2_data),
       }
     end
 
@@ -107,10 +106,5 @@ module Reporting
     def outcome_2_data
       @report.success_failure_2
     end
-
-    private
-
-
-
   end
 end

@@ -8,7 +8,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
   class Project < GrdaWarehouse::Import::HMISSixOneOne::Project
     include ::Export::HMISSixOneOne::Shared
 
-    setup_hud_column_access( GrdaWarehouse::Hud::Project.hud_csv_headers(version: '6.11') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Project.hud_csv_headers(version: '6.11'))
 
     self.hud_key = :ProjectID
 
@@ -26,7 +26,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
 
@@ -56,15 +56,16 @@ module GrdaWarehouse::Export::HMISSixOneOne
     # If we are not ES and overriding to ES, we need a tracking method of 1
     def tracking_method_override_for project:, data_source_id:
       return nil unless GrdaWarehouse::Config.get(:project_type_override)
+
       project_id = project[:ProjectID].to_i
       project_type = project[:ProjectType].to_i
       project_type_override = project_type_overrides[[data_source_id, project_id]]
       return nil unless project_type_override.present?
+
       es_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:es]
       return nil if es_types.include?(project_type)
-      if es_types.include?(project_type_override)
-        return 0
-      end
+      return 0 if es_types.include?(project_type_override)
+
       return nil
     end
 
@@ -72,11 +73,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       @housing_type_overrides ||= self.class.where.not(housing_type_override: nil).
         pluck(:data_source_id, :id, :housing_type_override).
         map do |data_source_id, project_id, housing_type_override|
-          if housing_type_override.present?
-            [[data_source_id, project_id], housing_type_override]
-          else
-            nil
-          end
+          [[data_source_id, project_id], housing_type_override] if housing_type_override.present?
         end.compact.to_h
       @housing_type_overrides[[data_source_id, project_id]]
     end
@@ -85,15 +82,11 @@ module GrdaWarehouse::Export::HMISSixOneOne
       @continuum_project_overrides ||= self.class.where.not(hud_continuum_funded: nil).
         pluck(:data_source_id, :id, :hud_continuum_funded).
         map do |data_source_id, project_id, hud_continuum_funded|
-          if hud_continuum_funded.in?([true, false])
-            override = 0
-            if hud_continuum_funded
-              override = 1
-            end
-            [[data_source_id, project_id], override]
-          else
-            nil
-          end
+          next unless hud_continuum_funded.in?([true, false])
+
+          override = 0
+          override = 1 if hud_continuum_funded
+          [[data_source_id, project_id], override]
         end.compact.to_h
       return @continuum_project_overrides[[data_source_id, project_id]]
     end
@@ -102,17 +95,14 @@ module GrdaWarehouse::Export::HMISSixOneOne
       @operating_start_date_overrides ||= self.class.where.not(operating_start_date_override: nil).
         pluck(:data_source_id, :id, :operating_start_date_override).
         map do |data_source_id, project_id, operating_start_date_override|
-          if operating_start_date_override.present?
-            [[data_source_id, project_id], operating_start_date_override]
-          else
-            nil
-          end
+          [[data_source_id, project_id], operating_start_date_override] if operating_start_date_override.present?
         end.compact.to_h
       @operating_start_date_overrides[[data_source_id, project_id]]
     end
 
     def project_type_override_for project_id:, data_source_id:
       return nil unless GrdaWarehouse::Config.get(:project_type_override)
+
       project_type_overrides[[data_source_id, project_id]]
     end
 
@@ -120,11 +110,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       @project_type_overrides ||= self.class.where.not(computed_project_type: nil).
         pluck(:data_source_id, :id, :computed_project_type).
         map do |data_source_id, project_id, computed_project_type|
-          if computed_project_type.present?
-            [[data_source_id, project_id], computed_project_type]
-          else
-            nil
-          end
+          [[data_source_id, project_id], computed_project_type] if computed_project_type.present?
         end.compact.to_h
     end
   end

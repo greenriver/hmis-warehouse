@@ -6,6 +6,5 @@
 
 module ReportResultsSummaries::Hic
   class Fy2019 < Base
-
   end
 end

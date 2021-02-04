@@ -9,7 +9,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     include ::Import::HmisTwentyTwenty::Shared
     include TsqlImport
     self.hud_key = :HealthAndDVID
-    setup_hud_column_access( GrdaWarehouse::Hud::HealthAndDv.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::HealthAndDv.hud_csv_headers(version: '2020'))
 
     def self.date_provided_column
       :InformationDate
@@ -18,6 +18,5 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     def self.file_name
       'HealthAndDV.csv'
     end
-
   end
 end

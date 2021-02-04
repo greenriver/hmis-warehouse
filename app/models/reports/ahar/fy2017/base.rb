@@ -76,8 +76,8 @@ module Reports::Ahar::Fy2017
           options['jan_night'],
           options['apr_night'],
           options['jul_night'],
-        ].join(', ')
-      }.map{|k,v| "<strong>#{k}</strong>#{v}"}.join('<br />').html_safe
+        ].join(', '),
+      }.map { |k, v| "<strong>#{k}</strong>#{v}" }.join('<br />').html_safe
     end
 
     def continuum_name
@@ -86,10 +86,10 @@ module Reports::Ahar::Fy2017
 
     def as_xml report_results
       user = report_results.user
-      completed_date = report_results.completed_at.to_date.strftime("%Y-%m-%d")
+      completed_date = report_results.completed_at.to_date.strftime('%Y-%m-%d')
       results = report_results.results
-      coc_name = report_results.options.try(:[], 'continuum_name') || continuum_name()
-      Nokogiri::XML::Builder.new(:encoding => 'UTF-8') do |xml|
+      coc_name = report_results.options.try(:[], 'continuum_name') || continuum_name
+      Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
         xml.AHARReport('xmlns' => 'http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd', 'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance', 'xsi:schemaLocation' => 'http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd') do
           xml.ContactName "#{user.first_name} #{user.last_name}"
           xml.ContinuumName coc_name
@@ -98,16 +98,16 @@ module Reports::Ahar::Fy2017
           xml.ReportType report_type
 
           xml.Category do
-            results.each do |k,section|
+            results.each do |k, section|
               xml.send(k) do
-                section.each do |label,value|
+                section.each do |label, value|
                   xml.send(label, value)
                 end
               end
             end
           end
         end
-        #(AHARReport: {xmlns: 'http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd'})
+        # (AHARReport: {xmlns: 'http://www.hudhdx.info/Resources/Vendors/ahar/2_0_3/HUD_HMIS_AHAR_2_0_3.xsd'})
       end.to_xml
     end
   end

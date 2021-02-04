@@ -10,7 +10,7 @@ class Agency < ApplicationRecord
   has_many :agencies_consent_limits
   has_many :consent_limits, through: :agencies_consent_limits
 
-  scope :text_search, -> (text) do
+  scope :text_search, ->(text) do
     return none unless text.present?
 
     where(arel_table[:name].lower.matches("%#{text.downcase}%"))
@@ -22,9 +22,7 @@ class Agency < ApplicationRecord
 
   def description_and_coc_code
     text = name
-    if consent_limits.exists?
-      text += " in " + consent_limits.map(&:description_and_coc_code).to_sentence
-    end
+    text += ' in ' + consent_limits.map(&:description_and_coc_code).to_sentence if consent_limits.exists?
     text
   end
 end

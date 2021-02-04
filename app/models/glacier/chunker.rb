@@ -18,15 +18,13 @@ module Glacier
     attr_reader :file_stream
     attr_accessor :digest, :part_size, :archive_size
 
-    MEG = 2 ** 20
+    MEG = 2**20
 
     Chunk = Struct.new(:body, :digest, :range)
 
     def initialize file_stream:, part_megs: 16
       exponent = Math.log2(part_megs)
-      if (exponent.to_i - exponent) != 0
-        raise "part_megs must be a power of two"
-      end
+      raise 'part_megs must be a power of two' if (exponent.to_i - exponent) != 0
 
       # each multi-part upload will be 16MB with the possible exception
       # of the last one which can be smaller. This number must be a power
@@ -43,7 +41,7 @@ module Glacier
       beginning_byte = 0
       start_time = Time.now
       while chunk = file_stream.read(part_size)
-        Rails.logger.info "Processing chunk; elapsed time: #{(Time.now - start_time)} seconds"
+        Rails.logger.info "Processing chunk; elapsed time: #{Time.now - start_time} seconds"
         chunk_shas = _get_chunk_shas(chunk)
         # Rails.logger.info "SHAing chunk; elapsed time: #{(Time.now - start_time)} seconds"
         self.archive_size += chunk.length
@@ -52,7 +50,7 @@ module Glacier
         # Rails.logger.info "Tree Hash chunk; elapsed time: #{(Time.now - start_time)} seconds"
         shas << tree_hash
 
-        ending_byte = beginning_byte+chunk.length-1
+        ending_byte = beginning_byte + chunk.length - 1
         range = "bytes #{beginning_byte}-#{ending_byte}/*"
 
         yield(Chunk.new(chunk, _sha_as_string(tree_hash), range))
@@ -68,7 +66,7 @@ module Glacier
     private
 
     def _sha_as_string sha256
-      sha256.each_char.to_a.flat_map { |x| "%02x" % x.unpack('C') }.join
+      sha256.each_char.to_a.flat_map { |x| '%02x' % x.unpack('C') }.join
     end
 
     def _get_chunk_shas(chunk)
@@ -77,7 +75,7 @@ module Glacier
       while offset < chunk.length
         shas << Digest::SHA256.digest(chunk.byteslice(offset, MEG))
 
-        Rails.logger.debug { _sha_as_string(shas.last) + " " + offset.to_s + "-" + (offset+MEG-1).to_s }
+        Rails.logger.debug { _sha_as_string(shas.last) + ' ' + offset.to_s + '-' + (offset + MEG - 1).to_s }
 
         offset += MEG
       end

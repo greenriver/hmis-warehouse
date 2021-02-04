@@ -8,14 +8,13 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
   class Exit < GrdaWarehouse::Import::HmisTwentyTwenty::Exit
     include ::Export::HmisTwentyTwenty::Shared
 
-    setup_hud_column_access( GrdaWarehouse::Hud::Exit.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Exit.hud_csv_headers(version: '2020'))
 
     self.hud_key = :ExitID
 
-     # Setup an association to enrollment that allows us to pull the records even if the
+    # Setup an association to enrollment that allows us to pull the records even if the
     # enrollment has been deleted
     belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
-
 
     def export! enrollment_scope:, project_scope:, path:, export:
       case export.period_type
@@ -28,9 +27,9 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       end
 
       if export.include_deleted || export.period_type == 1
-        join_tables = {enrollment_with_deleted: [{client_with_deleted: :warehouse_client_source}]}
+        join_tables = { enrollment_with_deleted: [{ client_with_deleted: :warehouse_client_source }] }
       else
-        join_tables = {enrollment: [:project, {client: :warehouse_client_source}]}
+        join_tables = { enrollment: [:project, { client: :warehouse_client_source }] }
       end
 
       if columns_to_pluck.include?(:ProjectID)
@@ -47,7 +46,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
 
@@ -68,7 +67,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
           ORDER BY #{ex_t[:DateUpdated].desc.to_sql}
         ) as row_number
       SQL
-      ids = export_scope.pluck(:id, Arel.sql(window)).select{|_, row_number| row_number == 1}.map(&:first)
+      ids = export_scope.pluck(:id, Arel.sql(window)).select { |_, row_number| row_number == 1 }.map(&:first)
     end
   end
 end

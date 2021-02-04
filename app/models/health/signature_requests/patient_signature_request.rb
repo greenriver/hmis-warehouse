@@ -9,7 +9,6 @@
 # Control: PHI attributes documented in base class
 module Health
   class SignatureRequests::PatientSignatureRequest < SignatureRequest
-
     def self.expires_in
       1.hours
     end
@@ -17,9 +16,11 @@ module Health
     def pcp_request?
       false
     end
+
     def aco_request?
       false
     end
+
     def patient_request?
       true
     end

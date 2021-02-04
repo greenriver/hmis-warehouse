@@ -26,7 +26,7 @@ module Health::Tracing
       {
         'Coughing' => 'Coughing',
         'Fever' => 'Fever',
-        'Shortness of breath' => 'Shortness of breath'
+        'Shortness of breath' => 'Shortness of breath',
       }
     end
 

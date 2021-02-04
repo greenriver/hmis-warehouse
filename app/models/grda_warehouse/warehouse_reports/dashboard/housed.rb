@@ -6,10 +6,9 @@
 
 module GrdaWarehouse::WarehouseReports::Dashboard
   class Housed < GrdaWarehouse::WarehouseReports::Dashboard::Base
-
     def self.params
       {
-        start_date: '2014-07-01'.to_date
+        start_date: '2014-07-01'.to_date,
       }
     end
 
@@ -25,20 +24,17 @@ module GrdaWarehouse::WarehouseReports::Dashboard
           Hash[columns.zip([date, destination, client_id])]
         end
 
-
-      all_destinations = all_exits.map{|m| m[:destination]}.uniq
-      all_date_buckets = (@start_date...@end_date).map{|date| date.strftime('%b %Y')}.uniq;
+      all_destinations = all_exits.map { |m| m[:destination] }.uniq
+      all_date_buckets = (@start_date...@end_date).map { |date| date.strftime('%b %Y') }.uniq
       all_date_buckets = all_date_buckets.zip(Array.new(all_date_buckets.size, 0)).to_h
 
-      @ph_clients = all_exits.select{|m| ::HUD.permanent_destinations.include?(m[:destination])}.map{|m| m[:client_id]}.uniq
+      @ph_clients = all_exits.select { |m| ::HUD.permanent_destinations.include?(m[:destination]) }.map { |m| m[:client_id] }.uniq
 
       @buckets = {}
 
       all_destinations.each do |destination|
-        label = ::HUD::destination(destination).to_s
-        if label.is_a? Numeric
-          label = ::HUD::destination(99)
-        end
+        label = ::HUD.destination(destination).to_s
+        label = ::HUD.destination(99) if label.is_a? Numeric
         @buckets[destination] ||= {
           source_data: all_date_buckets.deep_dup,
           label: label.truncate(45),
@@ -56,7 +52,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       end
 
       @all_exits_labels = @buckets&.values&.first.try(:[], :source_data)&.keys
-      @ph_exits = @buckets.deep_dup.select{|_,m| m[:ph]}
+      @ph_exits = @buckets.deep_dup.select { |_, m| m[:ph] }
 
       # Add some chart.js friendly counts
       @ph_exits.each do |destination, group|
@@ -74,7 +70,5 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         end_date: @end_date,
       }
     end
-
-
   end
 end

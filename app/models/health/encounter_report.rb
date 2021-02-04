@@ -52,7 +52,7 @@ module Health
         provider_name: activity.user_full_name,
         encounter_type: activity.source_type.demodulize.titleize,
 
-        encounter_report_id: self.id,
+        encounter_report_id: id,
       )
       if activity.source_type.in?(sources_requiring_preload)
         encounter = activity.source
@@ -68,7 +68,7 @@ module Health
     end
 
     def title
-      "Patient Encounters Export"
+      'Patient Encounters Export'
     end
 
     def url
@@ -77,7 +77,7 @@ module Health
 
     def status
       if started_at.blank?
-        "Queued"
+        'Queued'
       elsif started_at.present? && completed_at.blank?
         if started_at < 24.hours.ago
           'Failed'
@@ -85,7 +85,7 @@ module Health
           "Running since #{started_at}"
         end
       elsif completed?
-        "Complete"
+        'Complete'
       end
     end
 

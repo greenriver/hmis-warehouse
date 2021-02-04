@@ -20,26 +20,27 @@ module ReportGenerators::SystemPerformance::Fy2018
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
 
     RRH = [13]
-    PH_PSH = [3,9,10] # All PH except 13, Measure 7 doesn't count RRH
+    PH_PSH = [3, 9, 10] # All PH except 13, Measure 7 doesn't count RRH
 
     def run!
       # Disable logging so we don't fill the disk
       ActiveRecord::Base.logger.silence do
-        calculate()
-        Rails.logger.info "Done"
+        calculate
+        Rails.logger.info 'Done'
       end # End silence ActiveRecord Log
     end
 
-   private
+    private
+
     def calculate
       if start_report(Reports::SystemPerformance::Fy2018::MeasureSeven.first)
-        set_report_start_and_end()
+        set_report_start_and_end
         Rails.logger.info "Starting report #{@report.report.name}"
         # Overview:
         # 7a.1 Success of placement from Street Outreach (SO) at finding permanent housing
         # 7b.1 Success of placement from ES, SH, TH and PH-Rapid-Re-Housing at finding permanent housing
         # 7b.2 Success of PH (except Rapid Re-Housing) at finding permanent housing
-        @answers = setup_questions()
+        @answers = setup_questions
         @support = @answers.deep_dup
 
         # Relevant Project Types/Program Types
@@ -57,17 +58,16 @@ module ReportGenerators::SystemPerformance::Fy2018
         # 13: Rapid Re-Housing (PH)
         # 14: Coordinated Assessment
 
-        calculate_7a_1()
+        calculate_7a_1
         update_report_progress(percent: 33)
-        calculate_7b_1()
+        calculate_7b_1
         update_report_progress(percent: 66)
-        calculate_7b_2()
+        calculate_7b_2
         Rails.logger.info @answers
-        finish_report()
+        finish_report
       else
         Rails.logger.info 'No Report Queued'
       end
-
     end
 
     def calculate_7a_1
@@ -76,19 +76,18 @@ module ReportGenerators::SystemPerformance::Fy2018
       # eg. Those who were counted by SO, but exited to somewhere else
 
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          ongoing(on_date: @report_end).
-          hud_project_type(SO)
+        ongoing(on_date: @report_end).
+        hud_project_type(SO)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
       universe_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report_start,
-          end_date: @report_end + 1.day).
+                     end_date: @report_end + 1.day).
         hud_project_type(SO).
         where.not(client_id: client_id_scope.
           select(:client_id).
-          distinct
-        )
+          distinct)
 
       universe_scope = add_filters(scope: universe_scope)
 
@@ -101,7 +100,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       universe.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
           ended_between(start_date: @report_start,
-          end_date: @report_end + 1.day).
+                        end_date: @report_end + 1.day).
           hud_project_type(SO).
           where(client_id: id)
 
@@ -112,23 +111,23 @@ module ReportGenerators::SystemPerformance::Fy2018
           limit(1).
           pluck(:destination).first
       end
-      remaining_leavers = destinations.reject{ |id, destination| [6, 29, 24].include?(destination.to_i)}
+      remaining_leavers = destinations.reject { |_id, destination| [6, 29, 24].include?(destination.to_i) }
       @answers[:sevena1_c2][:value] = remaining_leavers.size
       @support[:sevena1_c2][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: remaining_leavers.map { |id, destination| [id, HUD.destination(destination)] },
       }
-      temporary_leavers = destinations.select{ |id, destination| [1, 15, 14, 18, 27, 4, 12, 13, 5, 2, 25].include?(destination.to_i)}
+      temporary_leavers = destinations.select { |_id, destination| [1, 15, 14, 18, 27, 4, 12, 13, 5, 2, 25].include?(destination.to_i) }
       @answers[:sevena1_c3][:value] = temporary_leavers.size
       @support[:sevena1_c3][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: temporary_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: temporary_leavers.map { |id, destination| [id, HUD.destination(destination)] },
       }
-      permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
+      permanent_leavers = destinations.select { |_id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i) }
       @answers[:sevena1_c4][:value] = permanent_leavers.size
       @support[:sevena1_c4][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: permanent_leavers.map { |id, destination| [id, HUD.destination(destination)] },
       }
       top = (@answers[:sevena1_c3][:value].to_f + @answers[:sevena1_c4][:value].to_f)
       bottom = @answers[:sevena1_c2][:value]
@@ -144,19 +143,18 @@ module ReportGenerators::SystemPerformance::Fy2018
       # PH gets special treatment, 13 (RRH) is treated like ES,SH,TH, but 3,9,10
       # looks at housing move-in date and removes any where it is <= report_end
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          ongoing(on_date: @report_end).
-          hud_project_type(ES + SH + TH + PH)
+        ongoing(on_date: @report_end).
+        hud_project_type(ES + SH + TH + PH)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
       universe_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report_start,
-          end_date: @report_end + 1.day).
+                     end_date: @report_end + 1.day).
         hud_project_type(ES + SH + TH + PH).
         where.not(client_id: client_id_scope.
           select(:client_id).
-          distinct
-        )
+          distinct)
 
       universe_scope = add_filters(scope: universe_scope)
 
@@ -169,7 +167,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       universe.each do |id|
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
           ended_between(start_date: @report_start,
-          end_date: @report_end + 1.day).
+                        end_date: @report_end + 1.day).
           hud_project_type(ES + SH + TH + PH).
           where(client_id: id)
 
@@ -188,19 +186,20 @@ module ReportGenerators::SystemPerformance::Fy2018
         next if exit_data.blank?
         # remove anyone who exited from PH, but had already moved into housing
         next if PH_PSH.include?(exit_data[:destination].to_i) && exit_data[:move_in_date].present? && exit_data[:move_in_date] <= @report_end
+
         destinations[id] = exit_data[:destination]
       end
-      remaining_leavers = destinations.reject{ |id, destination| [15, 6, 25, 24].include?(destination.to_i)}
+      remaining_leavers = destinations.reject { |_id, destination| [15, 6, 25, 24].include?(destination.to_i) }
       @answers[:sevenb1_c2][:value] = remaining_leavers.size
       @support[:sevenb1_c2][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: remaining_leavers.map { |id, destination| [id, HUD.destination(destination)] },
       }
-      permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
+      permanent_leavers = destinations.select { |_id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i) }
       @answers[:sevenb1_c3][:value] = permanent_leavers.size
       @support[:sevenb1_c3][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: permanent_leavers.map { |id, destination| [id, HUD.destination(destination)] },
       }
       top = @answers[:sevenb1_c3][:value].to_f
       bottom = @answers[:sevenb1_c2][:value]
@@ -214,19 +213,18 @@ module ReportGenerators::SystemPerformance::Fy2018
       # eg. Those who were counted by PH but not PH-RRH, but exited to somewhere else
 
       client_id_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
-          ongoing(on_date: @report_end).
-          hud_project_type(PH_PSH)
+        ongoing(on_date: @report_end).
+        hud_project_type(PH_PSH)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
       leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report_start,
-        end_date: @report_end + 1.day).
+                     end_date: @report_end + 1.day).
         hud_project_type(PH_PSH).
         where.not(client_id: client_id_scope.
           select(:client_id).
-          distinct
-        )
+          distinct)
 
       leavers_scope = add_filters(scope: leavers_scope)
 
@@ -252,6 +250,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           # remove anyone who hasn't moved in to housing yet
           # Some old enrollments don't have move-in-dates
           next if (move_in_date.blank? || move_in_date > @report_end) && entry_date.to_date > '2015-01-01'.to_date
+
           stayers << client_id
         end
 
@@ -260,7 +259,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         destination_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.
           joins(:enrollment).
           ended_between(start_date: @report_start,
-          end_date: @report_end + 1.day).
+                        end_date: @report_end + 1.day).
           hud_project_type(PH).
           where(client_id: id)
 
@@ -277,19 +276,20 @@ module ReportGenerators::SystemPerformance::Fy2018
           end.first
         # remove anyone who exited from PH, but never moved into housing
         next if exit_data.blank?
+
         destinations[id] = exit_data[:destination]
       end
-      remaining_leavers = destinations.reject{ |id, destination| [15, 6, 25, 24].include?(destination.to_i)}
+      remaining_leavers = destinations.reject { |_id, destination| [15, 6, 25, 24].include?(destination.to_i) }
       @answers[:sevenb2_c2][:value] = remaining_leavers.size + stayers.size
       @support[:sevenb2_c2][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: remaining_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: remaining_leavers.map { |id, destination| [id, HUD.destination(destination)] },
       }
-      permanent_leavers = destinations.select{ |id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i)}
+      permanent_leavers = destinations.select { |_id, destination| (HUD.permanent_destinations - [24]).include?(destination.to_i) }
       @answers[:sevenb2_c3][:value] = permanent_leavers.size + stayers.size
       @support[:sevenb2_c3][:support] = {
         headers: ['Client ID', 'Destination'],
-        counts: permanent_leavers.map{|id, destination| [id, HUD.destination(destination)]},
+        counts: permanent_leavers.map { |id, destination| [id, HUD.destination(destination)] },
       }
       top = @answers[:sevenb2_c3][:value].to_f
       bottom = @answers[:sevenb2_c2][:value]

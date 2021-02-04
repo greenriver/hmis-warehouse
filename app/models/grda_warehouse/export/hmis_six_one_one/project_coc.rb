@@ -7,7 +7,7 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class ProjectCoc < GrdaWarehouse::Import::HMISSixOneOne::ProjectCoc
     include ::Export::HMISSixOneOne::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '6.11') )
+    setup_hud_column_access(GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '6.11'))
 
     self.hud_key = :ProjectCoCID
 
@@ -24,11 +24,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
       @coc_code_overrides ||= self.class.where.not(hud_coc_code: nil).
         pluck(:data_source_id, :id, :hud_coc_code).
         map do |data_source_id, project_coc_id, hud_coc_code|
-          if hud_coc_code.present?
-            [[data_source_id, project_coc_id], hud_coc_code]
-          else
-            nil
-          end
+          [[data_source_id, project_coc_id], hud_coc_code] if hud_coc_code.present?
         end.compact.to_h
       @coc_code_overrides[[data_source_id, project_coc_id]]
     end

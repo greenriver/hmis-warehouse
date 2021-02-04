@@ -13,12 +13,12 @@ class GrdaWarehouse::CensusByProject < GrdaWarehouseBase
   belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: [:data_source_id, :ProjectID], primary_key: [:data_source_id, :ProjectID]
   belongs_to :organization, class_name: 'GrdaWarehouse::Hud::Organization', foreign_key: [:data_source_id, :OrganizationID], primary_key: [:data_source_id, :OrganizationID]
   scope :residential, -> { where(ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values.flatten.uniq) }
-  scope :for_year, -> (year) {
+  scope :for_year, ->(year) {
     fun = if postgres?
-      nf 'date_part', [ 'year', arel_table[:date] ]
+      nf 'date_part', ['year', arel_table[:date]]
     elsif sql_server?
-      nf 'year', [ arel_table[:date] ]
+      nf 'year', [arel_table[:date]]
     end
-    where( fun.eq year )
+    where(fun.eq year)
   }
 end

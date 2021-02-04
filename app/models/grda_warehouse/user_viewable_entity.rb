@@ -5,12 +5,11 @@
 ###
 
 module GrdaWarehouse
-
   # NOTE, this is a join table where the users are in one database and the entities are in another.  You will usually have to pluck ids to be successful.
 
   class UserViewableEntity < GrdaWarehouseBase
     has_paper_trail(
-      meta: { referenced_user_id: :user_id, referenced_entity_name: :entity_name }
+      meta: { referenced_user_id: :user_id, referenced_entity_name: :entity_name },
     )
     acts_as_paranoid
 
@@ -18,7 +17,7 @@ module GrdaWarehouse
     belongs_to :user
 
     scope :data_source, -> do
-      where(entity_type: 'GrdaWarehouse::DataSource' )
+      where(entity_type: 'GrdaWarehouse::DataSource')
     end
 
     def entity_name
@@ -27,10 +26,10 @@ module GrdaWarehouse
 
     def self.describe_changes(version, changes)
       if version.event == 'create'
-        [ "Added #{version.referenced_entity_name} to #{humanize_entity_type_name(changes[:entity_type].last)}." ]
+        ["Added #{version.referenced_entity_name} to #{humanize_entity_type_name(changes[:entity_type].last)}."]
       else
         current = version.reify
-        [ "Removed #{version.referenced_entity_name} from #{humanize_entity_type_name(current.entity_type)}." ]
+        ["Removed #{version.referenced_entity_name} from #{humanize_entity_type_name(current.entity_type)}."]
       end
     end
 

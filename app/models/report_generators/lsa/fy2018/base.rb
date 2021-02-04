@@ -6,7 +6,7 @@
 
 module ReportGenerators::Lsa::Fy2018
   class Base
-  include ArelHelper
+    include ArelHelper
     attr_accessor :report
 
     def initialize destroy_rds: true, hmis_export_id: nil, options: {}
@@ -23,14 +23,12 @@ module ReportGenerators::Lsa::Fy2018
         @report.options['project_id'] |= project_group_project_ids
       end
       data_source_id = @report.options['data_source_id'].presence&.to_i
-      if data_source_id.present?
-        @report.options['project_id'] |= GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id).pluck(:id)
-      end
+      @report.options['project_id'] |= GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id).pluck(:id) if data_source_id.present?
       @coc_code = @report.options['coc_code']
       if @report.options['project_id'].delete_if(&:blank?).any?
         @project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
         # Limit to only those projects the user who queued the report can see
-        @project_ids = @project_ids & GrdaWarehouse::Hud::Project.viewable_by(@report.user).pluck(:id)
+        @project_ids &= GrdaWarehouse::Hud::Project.viewable_by(@report.user).pluck(:id)
         @lsa_scope = 2
       else
         # The export of HMIS CSV 6.11 files involves all Project Descriptor Data Elements (PDDEs) for the following project types: 1, 2, 3, 8, 9, 10, 13
@@ -63,13 +61,14 @@ module ReportGenerators::Lsa::Fy2018
       # Find the first queued report
       @report = ReportResult.where(
         report: report,
-        percent_complete: 0
+        percent_complete: 0,
       ).first
 
       # Debugging
       # @report = ReportResult.find(902)
 
       return unless @report.present?
+
       Rails.logger.info "Starting report #{@report.report.name}"
       @report.update(percent_complete: 0.01)
     end
@@ -77,7 +76,7 @@ module ReportGenerators::Lsa::Fy2018
     def finish_report
       @report.update(
         percent_complete: 100,
-        completed_at: Time.now
+        completed_at: Time.now,
       )
     end
 

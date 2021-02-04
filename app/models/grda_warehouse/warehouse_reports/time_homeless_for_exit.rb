@@ -28,7 +28,7 @@ module GrdaWarehouse::WarehouseReports
               destination: exit_record.destination,
               project_name: entry.project_name,
               project_id: entry.project_id,
-            }
+            },
           )
         end
       end
@@ -69,7 +69,7 @@ module GrdaWarehouse::WarehouseReports
             {
               exit_date: date,
               destination: "#{HUD.destination(destination)} (#{destination})",
-            }
+            },
           )
         end
         # Layer on the first enrollment in PH if it is earlier
@@ -80,7 +80,7 @@ module GrdaWarehouse::WarehouseReports
             {
               exit_date: date,
               destination: project_name,
-            }
+            },
           )
         end
       end

@@ -10,7 +10,7 @@ module GrdaWarehouse::Report
     self.table_name = :report_enrollments
     include ArelHelper
 
-    belongs :demographic   # source client
+    belongs :demographic # source client
     belongs :client
     many :health_and_dvs
     many :disabilities
@@ -18,7 +18,7 @@ module GrdaWarehouse::Report
     many :employment_educations
     one :exit
 
-    scope :open_during_range, -> (range) do
+    scope :open_during_range, ->(range) do
       e_t = arel_table
       ex_t = GrdaWarehouse::Report::Exit.arel_table
       d_1_start = range.start
@@ -30,8 +30,7 @@ module GrdaWarehouse::Report
         on(e_t[:ProjectEntryID].eq(ex_t[:ProjectEntryID]).
         and(e_t[:client_id].eq(ex_t[:client_id]))).
         join_sources).
-      where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
+        where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
     end
-
   end
 end

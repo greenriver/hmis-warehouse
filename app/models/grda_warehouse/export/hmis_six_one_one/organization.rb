@@ -7,7 +7,7 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Organization < GrdaWarehouse::Import::HMISSixOneOne::Organization
     include ::Export::HMISSixOneOne::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '6.11') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '6.11'))
 
     self.hud_key = :OrganizationID
 
@@ -23,14 +23,14 @@ module GrdaWarehouse::Export::HMISSixOneOne
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
 
     def project_exits_for_organization project_scope
       project_scope.where(
         p_t[:OrganizationID].eq(self.class.arel_table[:OrganizationID]).
-        and(p_t[:data_source_id].eq(self.class.arel_table[:data_source_id]))
+        and(p_t[:data_source_id].eq(self.class.arel_table[:data_source_id])),
       ).arel.exists
     end
   end

@@ -18,6 +18,7 @@ module Health::Tasks
       loop do
         batch = patients.limit(batch_size).offset(offset)
         break if batch.count == 0 # No more patients
+
         offset += batch_size
 
         inquiry = Health::EligibilityInquiry.create(service_date: eligibility_date, internal: true, batch: batch, batch_id: owner_id)

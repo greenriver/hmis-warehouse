@@ -7,7 +7,6 @@
 # A wrapper around Participation form changes to ease Qualifying Activities creation
 module Health
   class ReleaseSaver
-
     def initialize user:, form: Health::ReleaseForm.new, create_qa: false
       @user = user
       @form = form
@@ -41,10 +40,8 @@ module Health
         follow_up: 'Engage Patient',
         reached_client: :yes,
         mode_of_contact: :in_person,
-        patient_id: @form.patient_id
+        patient_id: @form.patient_id,
       )
     end
-
-
   end
 end

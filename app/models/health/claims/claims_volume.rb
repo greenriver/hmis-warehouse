@@ -26,20 +26,19 @@ module Health::Claims
 
     def column_headers
       {
-        medicaid_id: "ID_MEDICAID",
-        year: "Year",
-        month: "Month",
+        medicaid_id: 'ID_MEDICAID',
+        year: 'Year',
+        month: 'Month',
         year_month: 'YYYYMM',
         study_period: 'StudyPeriod',
-        ip: "IP",
-        emerg: "Emerg",
-        respite: "Respite",
-        op: "OP",
-        rx: "Rx",
-        other: "Other",
-        total: "Total",
+        ip: 'IP',
+        emerg: 'Emerg',
+        respite: 'Respite',
+        op: 'OP',
+        rx: 'Rx',
+        other: 'Other',
+        total: 'Total',
       }
     end
-
   end
 end

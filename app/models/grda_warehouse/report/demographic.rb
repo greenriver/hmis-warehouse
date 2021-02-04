@@ -19,7 +19,7 @@ module GrdaWarehouse::Report
     many :exits
 
     def self.original_class_name
-      "GrdaWarehouse::Hud::Client"
+      'GrdaWarehouse::Hud::Client'
     end
   end
 end

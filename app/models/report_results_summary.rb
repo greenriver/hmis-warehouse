@@ -16,7 +16,7 @@ class ReportResultsSummary < ApplicationRecord
     nil
   end
 
-  scope :viewable_by, -> (user) do
+  scope :viewable_by, ->(user) do
     if user.can_view_all_hud_reports?
       all
     elsif user.can_view_own_hud_reports?

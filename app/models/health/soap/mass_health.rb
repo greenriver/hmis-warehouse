@@ -28,14 +28,14 @@ module Health::Soap
 
     def realtime_eligibility_inquiry_request(edi_doc:)
       result = request(action: 'RealTimeTransaction',
-        xml: realtime_eligibility_inquiry_request_xml(edi_doc))
+                       xml: realtime_eligibility_inquiry_request_xml(edi_doc))
       return parse_result(result)
     end
 
     def batch_eligibility_inquiry(edi_doc:)
       result = request_with_attachment(action: 'BatchSubmitTransaction',
-        xml: batch_eligibility_request_xml(edi_doc),
-        attachment: edi_doc)
+                                       xml: batch_eligibility_request_xml(edi_doc),
+                                       attachment: edi_doc)
       return parse_result(result)
     end
 
@@ -47,7 +47,7 @@ module Health::Soap
 
     def generic_results_retrieval_request(payload_type:, payload_id:)
       result = request(action: 'GenericBatchRetrievalTransaction',
-        xml: generic_results_retrieval_request_xml(payload_type, payload_id))
+                       xml: generic_results_retrieval_request_xml(payload_type, payload_id))
       return parse_result(result)
     end
 
@@ -81,9 +81,8 @@ module Health::Soap
         curl.headers['charset'] = 'UTF-8'
         curl.headers['SoapAction'] = action
       end
-      if response.response_code != 200 || response.body_str.blank?
-        raise RequestFailed
-      end
+      raise RequestFailed if response.response_code != 200 || response.body_str.blank?
+
       return response
     end
 
@@ -95,9 +94,8 @@ module Health::Soap
         curl.headers['Content-type'] = " multipart/related; type=\"application/xop+xml\"; start=\"rootpart\"; start-info=\"application/soap+xml\"; action=\"#{action}\"; boundary=\"#{boundary}\""
         curl.headers['charset'] = 'UTF-8'
       end
-      if response.response_code != 200 || response.body_str.blank?
-        raise RequestFailed
-      end
+      raise RequestFailed if response.response_code != 200 || response.body_str.blank?
+
       return response
     end
 
@@ -113,16 +111,16 @@ module Health::Soap
       end
       if message.multipart?
         if message.parts.size > 1
-          return SoapResponse.new(self, [ Hash.from_xml(message.parts.first.decoded), message.parts.last.decoded ])
+          return SoapResponse.new(self, [Hash.from_xml(message.parts.first.decoded), message.parts.last.decoded])
         else
-          return SoapResponse.new(self, [ Hash.from_xml(message.parts.first.decoded), nil ])
+          return SoapResponse.new(self, [Hash.from_xml(message.parts.first.decoded), nil])
         end
       else
         decoded = message.decoded
         if decoded[0..4] == '<?xml'
-          return SoapResponse.new(self, [ Hash.from_xml(decoded), nil])
+          return SoapResponse.new(self, [Hash.from_xml(decoded), nil])
         else
-          return SoapResponse.new(self, [ message.decoded, nil ])
+          return SoapResponse.new(self, [message.decoded, nil])
         end
       end
     end
@@ -197,19 +195,19 @@ module Health::Soap
     private def request_with_attachment_xml(body, attachment, boundary)
       # MIME is very picky about whitespace, so, it is important that this not be indented
       <<~HEREDOC
---#{boundary}
-Content-Type: application/xop+xml; charset=UTF-8; type="application/soap+xml"; action="BatchSubmitTransaction"
-Content-Transfer-Encoding: binary
-Content-ID: rootpart
-
- #{request_xml(body)}
---#{boundary}
-Content-Type: application/xml
-Content-Transfer-Encoding: binary
-Content-ID: attachment
-
-#{attachment}
---#{boundary}--
+                --#{boundary}
+                Content-Type: application/xop+xml; charset=UTF-8; type="application/soap+xml"; action="BatchSubmitTransaction"
+                Content-Transfer-Encoding: binary
+                Content-ID: rootpart
+        #{'        '}
+                 #{request_xml(body)}
+                --#{boundary}
+                Content-Type: application/xml
+                Content-Transfer-Encoding: binary
+                Content-ID: attachment
+        #{'        '}
+                #{attachment}
+                --#{boundary}--
       HEREDOC
     end
 

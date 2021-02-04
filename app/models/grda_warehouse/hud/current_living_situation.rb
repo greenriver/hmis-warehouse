@@ -21,6 +21,5 @@ module GrdaWarehouse::Hud
     has_one :client, through: :enrollment, inverse_of: :current_living_situations
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client')
     belongs_to :data_source
-
   end
 end

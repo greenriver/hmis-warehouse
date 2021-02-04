@@ -16,13 +16,13 @@ module GrdaWarehouse::WarehouseReports
       select(column_names - ['data', 'support'])
     end
 
-    scope :for_user, -> (user) do
+    scope :for_user, ->(user) do
       where(user_id: user.id)
     end
 
     def completed_in
       if completed?
-        seconds = ((finished_at - started_at)/1.minute).round * 60
+        seconds = ((finished_at - started_at) / 1.minute).round * 60
         distance_of_time_in_words(seconds)
       else
         'incomplete'
@@ -40,6 +40,5 @@ module GrdaWarehouse::WarehouseReports
     def completed?
       finished_at && started_at
     end
-
   end
 end

@@ -8,7 +8,6 @@ class ReportingBase < ActiveRecord::Base
   establish_connection DB_REPORTING
   self.abstract_class = true
 
-
   def self.setup_config
     new_config = {
       'db' => ['db/reporting'],
@@ -29,5 +28,4 @@ class ReportingBase < ActiveRecord::Base
     # integers from file list
     (ActiveRecord::MigrationContext.new('db/reporting/migrate').migrations.collect(&:version) - Reporting::SchemaMigration.pluck(:version).map(&:to_i)).any?
   end
-
 end

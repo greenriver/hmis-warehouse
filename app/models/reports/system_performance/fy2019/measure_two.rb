@@ -6,6 +6,5 @@
 
 module Reports::SystemPerformance::Fy2019
   class MeasureTwo < Base
-
   end
 end

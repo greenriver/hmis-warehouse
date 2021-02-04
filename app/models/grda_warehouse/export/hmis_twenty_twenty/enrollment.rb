@@ -7,7 +7,7 @@
 module GrdaWarehouse::Export::HmisTwentyTwenty
   class Enrollment < GrdaWarehouse::Import::HmisTwentyTwenty::Enrollment
     include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::Enrollment.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Enrollment.hud_csv_headers(version: '2020'))
 
     self.hud_key = :EnrollmentID
 
@@ -28,7 +28,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
 
@@ -44,7 +44,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       if row[:HouseholdID].blank?
         row[:HouseholdID] = Digest::MD5.hexdigest("e_#{data_source_id}_#{row[:ProjectID]}_#{id_of_enrollment}")
       else
-        row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{(row[:HouseholdID])}")
+        row[:HouseholdID] = Digest::MD5.hexdigest("#{data_source_id}_#{row[:ProjectID]}_#{row[:HouseholdID]}")
       end
 
       # Only use the first 5 of the zip
@@ -54,11 +54,8 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       # is the EntryDate if we don't have a MoveInDate.
       # Usually we won't have a MoveInDate because it isn't required
       # if the project type isn't PH
-      if project_type_overridden_to_psh?(row[:ProjectID], data_source_id)
-        row[:MoveInDate] = row[:MoveInDate].presence || row[:EntryDate]
-      end
+      row[:MoveInDate] = row[:MoveInDate].presence || row[:EntryDate] if project_type_overridden_to_psh?(row[:ProjectID], data_source_id)
       return row
     end
-
   end
 end

@@ -6,14 +6,13 @@
 
 module SimilarityMetric
   class Multinomial < Field
-
-    DESCRIPTION = <<eos
-_{{{human_name}}}_ measures similarity of individuals with respect to
-a property that can take one of several distinct values.
-eos
+    DESCRIPTION = <<~EOS
+      _{{{human_name}}}_ measures similarity of individuals with respect to
+      a property that can take one of several distinct values.
+    EOS
 
     # the maximum additional weight given to similar items
-    MAX_MULTIPLIER = 3.0   # picked by intuition rather than experiment
+    MAX_MULTIPLIER = 3.0 # picked by intuition rather than experiment
 
     def max_multiplier
       self.class::MAX_MULTIPLIER
@@ -32,7 +31,7 @@ eos
         end
         total = grouped.values.sum
         other_state['_total'] = total
-        grouped.each do |k,v|
+        grouped.each do |k, v|
           w = total / v.to_f
           w = MAX_MULTIPLIER if w > MAX_MULTIPLIER
           other_state[k] = w
@@ -43,7 +42,7 @@ eos
     end
 
     def weight_for_key(k)
-      ( @weight_for_key ||= {} )[k] ||= other_state[k.to_s].to_f
+      (@weight_for_key ||= {})[k] ||= other_state[k.to_s].to_f
     end
 
     def count_for_key(k)
@@ -56,8 +55,8 @@ eos
     end
 
     def score(c1, c2)
-      if s = similarity( c1, c2 )
-        sc = weight * ( s - mean ) / standard_deviation
+      if s = similarity(c1, c2)
+        sc = weight * (s - mean) / standard_deviation
         if s == 0
           sc * weight_for_key(value(c1))
         else
@@ -72,7 +71,8 @@ eos
 
     def similarity(c1, c2)
       if field
-        v1, v2 = value(c1), value(c2)
+        v1 = value(c1)
+        v2 = value(c2)
         if v1 && v2
           if v1 == v2
             0
@@ -82,6 +82,5 @@ eos
         end
       end
     end
-
   end
 end

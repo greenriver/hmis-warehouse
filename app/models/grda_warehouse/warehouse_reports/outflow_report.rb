@@ -87,8 +87,7 @@ module GrdaWarehouse::WarehouseReports
         where.not(client_id: scope.
           homeless.
           with_service_between(start_date: @filter.no_service_after_date, end_date: Date.current, service_scope: :homeless).
-          select(:client_id)
-        ).
+          select(:client_id)).
         distinct.
         pluck(:client_id)
       if @filter.no_recent_service_project_ids.any?
@@ -97,7 +96,7 @@ module GrdaWarehouse::WarehouseReports
           with_service_between(start_date: @filter.no_service_after_date, end_date: Date.current).
           distinct.
           pluck(:client_id)
-        without_recent_service = without_recent_service - with_recent_service
+        without_recent_service -= with_recent_service
       end
       without_recent_service.uniq
     end
@@ -171,12 +170,8 @@ module GrdaWarehouse::WarehouseReports
       scope = scope.where(p_t[:id].in(@filter.project_ids)) unless @filter.project_ids.empty?
       scope = scope.where(o_t[:id].in(@filter.organization_ids)) unless @filter.organization_ids.empty?
 
-      if @filter.limit_to_vispdats
-        scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids)
-      end
-      if @filter.ethnicities.present?
-        scope = scope.joins(:client).where(c_t[:Ethnicity].in(@filter.ethnicities))
-      end
+      scope = scope.where(client_id: hmis_vispdat_client_ids + warehouse_vispdat_client_ids) if @filter.limit_to_vispdats
+      scope = scope.joins(:client).where(c_t[:Ethnicity].in(@filter.ethnicities)) if @filter.ethnicities.present?
       race_filter = nil
       @filter.races.each do |race|
         if race_filter

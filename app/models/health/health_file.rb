@@ -11,9 +11,9 @@ module Health
   class HealthFile < HealthBase
     acts_as_paranoid
 
-    phi_attr :file, Phi::FreeText, "Name of health file"
-    phi_attr :content, Phi::FreeText, "Content of health file"
-    phi_attr :note, Phi::FreeText, "Notes on health file"
+    phi_attr :file, Phi::FreeText, 'Name of health file'
+    phi_attr :content, Phi::FreeText, 'Content of health file'
+    phi_attr :note, Phi::FreeText, 'Notes on health file'
 
     belongs_to :user
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
@@ -28,7 +28,7 @@ module Health
     end
 
     def valid_file_type
-      errors.add :file, "File must be a PDF" if content_type != 'application/pdf'
+      errors.add :file, 'File must be a PDF' if content_type != 'application/pdf'
     end
 
     def title
@@ -41,16 +41,17 @@ module Health
 
     def valid_for_current_enrollment
       return nil unless client.patient&.enrollment_start_date.present?
+
       signature.present? && signature > client.patient.enrollment_start_date || signature.blank? && created_at > client.patient.enrollment_start_date
     end
 
     def set_calculated!(user_id, client_id)
       self.user_id = user_id
       self.client_id = client_id
-      self.content = self.file.read
-      self.content_type = self.file.content_type
-      self.size = self.content&.size
-      self.name = self.file.filename
+      self.content = file.read
+      self.content_type = file.content_type
+      self.size = content&.size
+      self.name = file.filename
     end
   end
 end

@@ -52,16 +52,12 @@ module GrdaWarehouse
     end
 
     def store(report)
-      if s3_valid?
-        aws_s3.store(content: report.content, name: object_name(report))
-      end
+      aws_s3.store(content: report.content, name: object_name(report)) if s3_valid?
     end
 
     def object_name(report)
       prefix = ''
-      if s3_prefix.present?
-        prefix = "#{s3_prefix.strip}-"
-      end
+      prefix = "#{s3_prefix.strip}-" if s3_prefix.present?
       date = Date.current.strftime('%Y%m%d')
       "#{prefix}#{date}-#{report.export_id}.zip"
     end
@@ -74,17 +70,18 @@ module GrdaWarehouse
 
     def aws_s3
       return nil unless s3_present?
-      @awsS3 ||= if self.s3_secret_access_key.present?
+
+      @awsS3 ||= if s3_secret_access_key.present?
         AwsS3.new(
           region: s3_region.strip,
           bucket_name: s3_bucket.strip,
-          access_key_id: self.s3_access_key_id.strip,
-          secret_access_key: self.s3_secret_access_key
+          access_key_id: s3_access_key_id.strip,
+          secret_access_key: s3_secret_access_key,
         )
       else
         AwsS3.new(
           region: s3_region.strip,
-          bucket_name: s3_bucket.strip
+          bucket_name: s3_bucket.strip,
         )
       end
     end
@@ -109,9 +106,8 @@ module GrdaWarehouse
       ]
     end
 
-
     def filter_hash
-      hash = self.slice(
+      hash = slice(
         :start_date,
         :end_date,
         :hash_status,
@@ -125,13 +121,11 @@ module GrdaWarehouse
         :user_id,
         :faked_pii,
         :version,
-
         :reporting_range,
         :reporting_range_days,
       )
-      hash[:recurring_hmis_export_id] = self.id
+      hash[:recurring_hmis_export_id] = id
       return hash
     end
-
   end
 end

@@ -10,6 +10,5 @@ module GrdaWarehouse
     belongs_to :user
 
     mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
-
   end
 end

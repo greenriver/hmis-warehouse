@@ -12,6 +12,5 @@ module Health
     include PatientReferralRefreshImporter
     include ArelHelper
     self.table_name = :patient_referrals
-
   end
 end

@@ -35,13 +35,13 @@ module GrdaWarehouse::WarehouseReports::Youth
           :case_managements,
           :direct_financial_assistances,
           :youth_referrals,
-          :youth_follow_ups
+          :youth_follow_ups,
         ).
         references(
           :case_managements,
           :direct_financial_assistances,
           :youth_referrals,
-          :youth_follow_ups
+          :youth_follow_ups,
         ).
         where.not(id: ids_for_seen).
         distinct.

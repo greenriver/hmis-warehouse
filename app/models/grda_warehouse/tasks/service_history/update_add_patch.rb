@@ -16,7 +16,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     attr_accessor :logger
 
     def run!
-      process()
+      process
     end
   end
 end

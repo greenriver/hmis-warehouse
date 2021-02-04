@@ -13,14 +13,14 @@ module ReportGenerators::DataQuality::Fy2017
 
     def run!
       if start_report(Reports::DataQuality::Fy2017::Q7.first)
-        @answers = setup_questions()
+        @answers = setup_questions
         @support = @answers.deep_dup
         @clients_with_issues = Set.new
-        add_es_so_answers()
+        add_es_so_answers
         update_report_progress(percent: 50)
-        add_es_answers()
+        add_es_answers
 
-        finish_report()
+        finish_report
       else
         Rails.logger.info 'No Report Queued'
       end
@@ -35,28 +35,27 @@ module ReportGenerators::DataQuality::Fy2017
           enrollment = enrollments.last
           entry_date = enrollment[:first_date_in_program]
           exit_date = enrollment[:last_date_in_program]
-          if (adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])) &&
+          next unless (adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])) &&
             started_less_than_90_days_before_report(entry_date) &&
             ended_after_report(exit_date)
-            adult_or_hoh_client_ids << client_id
 
-            service_dates = [enrollment[:first_date_in_program]]
-            service_dates += GrdaWarehouse::ServiceHistoryService.
-              where(service_history_enrollment_id: enrollment[:service_history_enrollment_id]).
-              order(date: :asc).
-              distinct.
-              pluck(:date)
-            inactive_client = false
-            service_dates.each_with_index do |date, index|
-              next_date = service_dates[index + 1]
-              if next_date.present? && (next_date - date).abs > 90
-                inactive_client = true
-                next
-              end
+          adult_or_hoh_client_ids << client_id
+
+          service_dates = [enrollment[:first_date_in_program]]
+          service_dates += GrdaWarehouse::ServiceHistoryService.
+            where(service_history_enrollment_id: enrollment[:service_history_enrollment_id]).
+            order(date: :asc).
+            distinct.
+            pluck(:date)
+          inactive_client = false
+          service_dates.each_with_index do |date, index|
+            next_date = service_dates[index + 1]
+            if next_date.present? && (next_date - date).abs > 90
+              inactive_client = true
+              next
             end
-            inactive << [client_id, enrollment] if inactive_client
-
           end
+          inactive << [client_id, enrollment] if inactive_client
         end
       end
       @answers[:q7_b2][:value] = adult_or_hoh_client_ids.size
@@ -67,12 +66,12 @@ module ReportGenerators::DataQuality::Fy2017
         data: inactive.map do |id, enrollment|
           [
             id,
-            client_personal_ids[id],join(', '),
+            client_personal_ids[id], join(', '),
             enrollment[:project_name],
             enrollment[:first_date_in_program],
-            enrollment[:last_date_in_program],
+            enrollment[:last_date_in_program]
           ]
-        end
+        end,
       )
       @answers[:q7_d2][:value] = ((inactive.size.to_f / adult_or_hoh_client_ids.count) * 100).round(2)
     end
@@ -86,16 +85,16 @@ module ReportGenerators::DataQuality::Fy2017
           enrollment = enrollments.last
           entry_date = enrollment[:first_date_in_program]
           exit_date = enrollment[:last_date_in_program]
-          if started_less_than_90_days_before_report(entry_date) && ended_after_report(exit_date)
-            clients << client_id
-            latest_service_date = GrdaWarehouse::ServiceHistoryService.
-              where(service_history_enrollment_id: enrollment[:service_history_enrollment_id]).
-              order(date: :asc).
-              maximum(:date)
+          next unless started_less_than_90_days_before_report(entry_date) && ended_after_report(exit_date)
 
-            inactive_client = latest_service_date.blank? || (latest_service_date - @report.options['report_end'].to_date).abs > 90
-            inactive << [client_id, enrollment] if inactive_client
-          end
+          clients << client_id
+          latest_service_date = GrdaWarehouse::ServiceHistoryService.
+            where(service_history_enrollment_id: enrollment[:service_history_enrollment_id]).
+            order(date: :asc).
+            maximum(:date)
+
+          inactive_client = latest_service_date.blank? || (latest_service_date - @report.options['report_end'].to_date).abs > 90
+          inactive << [client_id, enrollment] if inactive_client
         end
       end
       @answers[:q7_b3][:value] = clients.size
@@ -111,7 +110,7 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
           ]
-        end
+        end,
       )
       @answers[:q7_d3][:value] = ((inactive.size.to_f / clients.count) * 100).round(2)
     end
@@ -172,51 +171,51 @@ module ReportGenerators::DataQuality::Fy2017
     def setup_questions
       {
         q7_a1: {
-          title:  nil,
+          title: nil,
           value: 'Data Element',
         },
         q7_b1: {
-          title:  nil,
+          title: nil,
           value: '# of Records',
         },
         q7_c1: {
-          title:  nil,
+          title: nil,
           value: '# of Inactive Records',
         },
         q7_d1: {
-          title:  nil,
+          title: nil,
           value: '% of Inactive Records',
         },
         q7_a2: {
-          title:  nil,
+          title: nil,
           value: 'Contact (Adults and Heads of Household in Street Outreach or ES – NBN)',
         },
         q7_a3: {
-          title:  nil,
+          title: nil,
           value: 'Bed Night (All clients in ES – NBN)',
         },
         q7_b2: {
-          title:  'Contact (Adults and Heads of Household in Street Outreach or ES – NBN) - # of Records',
+          title: 'Contact (Adults and Heads of Household in Street Outreach or ES – NBN) - # of Records',
           value: 0,
         },
         q7_c2: {
-          title:  'Contact (Adults and Heads of Household in Street Outreach or ES – NBN) - # of Inactive Records',
+          title: 'Contact (Adults and Heads of Household in Street Outreach or ES – NBN) - # of Inactive Records',
           value: 0,
         },
         q7_d2: {
-          title:  'Contact (Adults and Heads of Household in Street Outreach or ES – NBN) - % of Inactive Records',
+          title: 'Contact (Adults and Heads of Household in Street Outreach or ES – NBN) - % of Inactive Records',
           value: 0,
         },
         q7_b3: {
-          title:  'Bed Night (All clients in ES – NBN) - # of Records',
+          title: 'Bed Night (All clients in ES – NBN) - # of Records',
           value: 0,
         },
         q7_c3: {
-          title:  'Bed Night (All clients in ES – NBN) - # of Inactive Records',
+          title: 'Bed Night (All clients in ES – NBN) - # of Inactive Records',
           value: 0,
         },
         q7_d3: {
-          title:  'Bed Night (All clients in ES – NBN) - % of Inactive Records',
+          title: 'Bed Night (All clients in ES – NBN) - % of Inactive Records',
           value: 0,
         },
       }

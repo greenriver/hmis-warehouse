@@ -6,6 +6,5 @@
 
 module ReportResultsSummaries::Lsa
   class Fy2019 < Base
-
   end
 end

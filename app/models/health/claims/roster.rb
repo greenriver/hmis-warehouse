@@ -43,13 +43,13 @@ module Health::Claims
 
     def column_headers
       {
-        medicaid_id: "id_medicaid",
+        medicaid_id: 'id_medicaid',
         member_months_baseline: 'Baseline_mem_mos',
         member_months_implementation: 'Implement_mem_mos',
         baseline_admits: 'Baseline_admits',
         implementation_admits: 'Implement_admits',
-        average_days_to_readmit_baseline: "Baseline_avg_days_readmit",
-        average_days_to_implementation: "Implement_avg_days_readmit",
+        average_days_to_readmit_baseline: 'Baseline_avg_days_readmit',
+        average_days_to_implementation: 'Implement_avg_days_readmit',
       }
     end
 
@@ -69,6 +69,5 @@ module Health::Claims
         end
       end
     end
-
   end
 end

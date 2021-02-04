@@ -442,7 +442,7 @@ module Reporting
             and(
               she_t[:last_date_in_program].gt(lookback_date).
               or(she_t[:last_date_in_program].eq(nil)),
-            )
+            ),
           ).
           order(she_t[:first_date_in_program].desc).
           pluck(*two_project_service_columns.values).
@@ -530,7 +530,7 @@ module Reporting
             and(
               she_t[:last_date_in_program].gt(lookback_date).
               or(she_t[:last_date_in_program].eq(nil)),
-            )
+            ),
           ).
           pluck(*one_project_columns.values).
           map do |row|
@@ -544,9 +544,7 @@ module Reporting
               end
               # if the move-in-date is after the housing exit, set the move-in-date to the housing exit
               if residential_enrollment[:housed_date].present? && residential_enrollment[:housing_exit].present?
-                if residential_enrollment[:housed_date] > residential_enrollment[:housing_exit]
-                  residential_enrollment[:housed_date] = residential_enrollment[:housing_exit]
-                end
+                residential_enrollment[:housed_date] = residential_enrollment[:housing_exit] if residential_enrollment[:housed_date] > residential_enrollment[:housing_exit]
               end
               residential_enrollment[:source] = 'move-in-date'
             else

@@ -22,38 +22,42 @@ module GrdaWarehouse::Census
         scope = GrdaWarehouse::ServiceHistoryEnrollment.public_send(population[:population])
         add_clients_to_census_buckets(
           get_client_and_project_counts(scope),
-          population[:population]
+          population[:population],
         )
       end
 
-      @by_count.each do | project_id, census_collection |
+      @by_count.each do |project_id, census_collection|
         inventories = GrdaWarehouse::Hud::Project.find(project_id).inventories.within_range(@start_date..@end_date)
-        census_collection.each do | date, census_item |
-          census_item.beds = inventories.select do | inventory |
-            ((inventory.InformationDate.blank? && inventory.InventoryStartDate.blank?) &&
-                (inventory.InventoryEndDate.blank?)) ||
-            ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
-                (inventory.InventoryEndDate.blank?)) ||
-            ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
-                (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date)) ||
-            ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
-                (inventory.InventoryEndDate.blank?)) ||
-            ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
-                (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date))
-          end.sum(&:beds) rescue 0
+        census_collection.each do |date, census_item|
+          census_item.beds = begin
+                               inventories.select do |inventory|
+                                 ((inventory.InformationDate.blank? && inventory.InventoryStartDate.blank?) &&
+                                     inventory.InventoryEndDate.blank?) ||
+                                 ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
+                                     inventory.InventoryEndDate.blank?) ||
+                                 ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
+                                     (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date)) ||
+                                 ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
+                                     inventory.InventoryEndDate.blank?) ||
+                                 ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
+                                     (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date))
+                               end.sum(&:beds)
+                             rescue StandardError
+                               0
+                             end
         end
       end
     end
 
-    def add_clients_to_census_buckets (collection, column_name)
-      collection.each do | (date, project_id), count |
+    def add_clients_to_census_buckets(collection, column_name)
+      collection.each do |(date, project_id), count|
         @by_count[project_id] ||= {}
         @by_count[project_id][date] ||= ByProject.new(project_id: project_id, date: date)
         @by_count[project_id][date].write_attribute(column_name, count)
       end
     end
 
-    def get_client_and_project_counts (client_scope)
+    def get_client_and_project_counts(client_scope)
       ids = {}
       GrdaWarehouse::ServiceHistoryService.
         joins(service_history_enrollment: :project).

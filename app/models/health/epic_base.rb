@@ -10,17 +10,17 @@ module Health
   class EpicBase < Base
     self.abstract_class = true
 
-    def self.source_key= key
-      @source_key = key
+    class << self
+      attr_writer :source_key
     end
 
-    def self.source_key
-      @source_key
+    class << self
+      attr_reader :source_key
     end
 
     # override as necessary
     # don't forget to call super
-    def self.clean_value key, value
+    def self.clean_value _key, value
       if value.is_a? FalseClass
         value
       else

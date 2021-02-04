@@ -17,9 +17,9 @@ module Reporting::DataQualityReports
         merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
         map do |inventory|
           inventory.average_daily_inventory(
-          range: report_range,
-          field: :UnitInventory
-        )
+            range: report_range,
+            field: :UnitInventory,
+          )
         end.sum
     end
 
@@ -29,7 +29,7 @@ module Reporting::DataQualityReports
         map do |inventory|
           inventory.average_daily_inventory(
             range: report_range,
-            field: :BedInventory
+            field: :BedInventory,
           )
         end.sum
     end
@@ -72,20 +72,27 @@ module Reporting::DataQualityReports
 
     # these rely on previously calculated values
     def calculate_average_nightly_clients report_range:
-      (self.nightly_client_census.values.sum.to_f / report_range.range.count).round rescue 0
+      (nightly_client_census.values.sum.to_f / report_range.range.count).round
+    rescue StandardError
+      0
     end
 
     def calculate_average_nightly_households report_range:
-      (self.nightly_household_census.values.sum.to_f / report_range.range.count).round rescue 0
+      (nightly_household_census.values.sum.to_f / report_range.range.count).round
+    rescue StandardError
+      0
     end
 
     def calculate_average_bed_utilization
-      ((self.average_nightly_clients / self.bed_inventory.to_f ) * 100).round rescue 0
+      ((average_nightly_clients / bed_inventory.to_f) * 100).round
+    rescue StandardError
+      0
     end
 
     def calculate_average_unit_utilization
-      ((self.average_nightly_households / self.unit_inventory.to_f) * 100).round rescue 0
+      ((average_nightly_households / unit_inventory.to_f) * 100).round
+    rescue StandardError
+      0
     end
-
   end
 end

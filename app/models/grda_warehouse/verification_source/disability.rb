@@ -8,7 +8,6 @@ module GrdaWarehouse
   class VerificationSource::Disability < GrdaWarehouse::VerificationSource
     self.table_name = :verification_sources
 
-
     def title
       'Disability Verification'
     end

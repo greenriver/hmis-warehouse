@@ -126,5 +126,4 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
       client.save
     end
   end
-
 end

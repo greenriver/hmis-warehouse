@@ -8,19 +8,19 @@ module SimilarityMetric
   class Base < ApplicationRecord
     self.table_name = :similarity_metrics
 
-    scope :usable, -> { where arel_table[:n].gt(0).and( arel_table[:weight].gt 0 ) }
+    scope :usable, -> { where arel_table[:n].gt(0).and(arel_table[:weight].gt(0)) }
 
     MD = Redcarpet::Markdown.new(
       Redcarpet::Render::HTML,
-      autolink:  true,
+      autolink: true,
       hard_wrap: false,
-      quote: true
+      quote: true,
     )
 
     # override this as appropriate in subclasses
-    DESCRIPTION = <<eos
-*{{{human_name}}}* does not yet have a description.
-eos
+    DESCRIPTION = <<~EOS
+      *{{{human_name}}}* does not yet have a description.
+    EOS
 
     # take to clients and return a number to be used in ranking; more similar pairs should map to smaller numbers
     # should return nil if the clients aren't comparable by this metric
@@ -31,7 +31,7 @@ eos
     # a description of this metric for display
     def description
       @description ||= begin
-        str = self.class::DESCRIPTION.gsub /[{]{3}([a-z]\w*)[}]{3}/ do
+        str = self.class::DESCRIPTION.gsub(/[{]{3}([a-z]\w*)[}]{3}/) do
           method = Regexp.last_match[1]
           send(method)
         end
@@ -43,19 +43,19 @@ eos
     # this is the normalized and weighted similarity to be used in aggregating metrics for ranking
     def score(c1, c2)
       if quality_data?(c1) && quality_data?(c2)
-        if s = similarity( c1, c2 )
-          weight * ( s - mean ) / standard_deviation
+        if s = similarity(c1, c2)
+          weight * (s - mean) / standard_deviation
         end
       end
     end
 
-    def quality_data?(client)
+    def quality_data?(_client)
       true
     end
 
     # for displaying in forms
     def human_name
-      @human_name ||= self.class.name.gsub( /\A.*::/, '' ).underscore.titleize
+      @human_name ||= self.class.name.gsub(/\A.*::/, '').underscore.titleize
     end
 
     def prepare!
@@ -67,7 +67,7 @@ eos
     end
 
     def bogus?
-      self.class == Base
+      instance_of?(Base)
     end
   end
 end

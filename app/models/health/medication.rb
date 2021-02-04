@@ -10,10 +10,10 @@
 module Health
   class Medication < EpicBase
     phi_patient :patient_id
-    phi_attr :id, Phi::OtherIdentifier, "ID of medication"
-    phi_attr :start_date, Phi::Date, "Start date of medication"
-    phi_attr :ordered_date, Phi::Date, "Ordered date of medication"
-    phi_attr :name, Phi::NeedsReview, "Name of medication"
+    phi_attr :id, Phi::OtherIdentifier, 'ID of medication'
+    phi_attr :start_date, Phi::Date, 'Start date of medication'
+    phi_attr :ordered_date, Phi::Date, 'Ordered date of medication'
+    phi_attr :name, Phi::NeedsReview, 'Name of medication'
     phi_attr :instructions, Phi::FreeText, "Medication's instructions"
     phi_attr :id_in_source, Phi::OtherIdentifier
 

@@ -52,7 +52,7 @@ module GrdaWarehouse::WarehouseReports::Exports
     end
 
     def client_scope
-      @client_scope ||=  begin
+      @client_scope ||= begin
         clients = clients_within_age_range
         clients = clients_with_ongoing_enrollments(clients)
         clients = heads_of_household(clients)

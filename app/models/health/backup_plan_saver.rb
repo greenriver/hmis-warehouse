@@ -7,7 +7,6 @@
 # A wrapper around Services form changes to ease Qualifying Activities creation
 module Health
   class BackupPlanSaver
-
     def initialize user:, backup_plan: Health::BackupPlan.new, create_qa: false
       @user = user
       @backup_plan = backup_plan
@@ -42,7 +41,5 @@ module Health
       #   patient_id: @service.patient_id
       # )
     end
-
-
   end
 end

@@ -22,7 +22,7 @@ module Health::Exporter
         patients: {
           file_name: 'patients.csv',
           columns: [:id, :id_in_source, :first_name, :last_name, :birthdate, :ssn, :created_at, :updated_at, :medicaid_id,
-            :engagement_date, :coverage_level, :coverage_inquiry_date, :aco_name, :previous_aco_name, :invalid_id],
+                    :engagement_date, :coverage_level, :coverage_inquiry_date, :aco_name, :previous_aco_name, :invalid_id],
           ids: {
             id: :patient_id,
           },
@@ -32,8 +32,8 @@ module Health::Exporter
         patient_referrals: {
           file_name: 'patient_referrals.csv',
           columns: [:id, :first_name, :last_name, :birthdate, :medicaid_id, :created_at, :updated_at, :rejected,
-            :rejected_reason, :patient_id, :enrollment_start_date, :disenrollment_date, :stop_reason_description,
-            :pending_disenrollment_date, :contributing, :current],
+                    :rejected_reason, :patient_id, :enrollment_start_date, :disenrollment_date, :stop_reason_description,
+                    :pending_disenrollment_date, :contributing, :current],
           ids: {
             id: :patient_referral_id,
             patient_id: :patient_id,
@@ -84,8 +84,8 @@ module Health::Exporter
         qas: {
           file_name: 'qualifying_activities.csv',
           columns: [:id, :mode_of_contact, :mode_of_contact_other, :reached_client, :reached_client_collateral_contact,
-            :activity, :date_of_activity, :patient_id, :created_at, :updated_at, :naturally_payable, :duplicate_id,
-            :valid_unpayable, :procedure_valid],
+                    :activity, :date_of_activity, :patient_id, :created_at, :updated_at, :naturally_payable, :duplicate_id,
+                    :valid_unpayable, :procedure_valid],
           ids: {
             id: :qa_id,
             patient_id: :patient_id,
@@ -98,11 +98,11 @@ module Health::Exporter
 
     def fakers
       @fakers ||= {
-        id_in_source: [ Faker::IDNumber, :valid ],
-        first_name: [ Faker::Name, :first_name ],
-        last_name: [ Faker::Name, :last_name ],
-        medicaid_id: [ Faker::Number, :number, {digits: 12} ],
-        birthdate: [ Faker::Date, :birthday ],
+        id_in_source: [Faker::IDNumber, :valid],
+        first_name: [Faker::Name, :first_name],
+        last_name: [Faker::Name, :last_name],
+        medicaid_id: [Faker::Number, :number, { digits: 12 }],
+        birthdate: [Faker::Date, :birthday],
         completed_at: :keep,
         ssn: [Faker::IDNumber, :valid],
         created_at: :keep,
@@ -110,8 +110,8 @@ module Health::Exporter
         engagement_date: :keep,
         coverage_level: :keep,
         coverage_inquiry_date: :keep,
-        aco_name: [ Faker::Company, :name ],
-        previous_aco_name: [ Faker::Company, :name ],
+        aco_name: [Faker::Company, :name],
+        previous_aco_name: [Faker::Company, :name],
         invalid_id: :keep,
         enrollment_start_date: :keep,
         disenrollment_date: :keep,
@@ -122,9 +122,9 @@ module Health::Exporter
         rejected: :keep,
         rejected_reason: :keep,
         mode_of_contact: :keep,
-        mode_of_contact_other: [ Faker::App, :name],
+        mode_of_contact_other: [Faker::App, :name],
         reached_client: :keep,
-        reached_client_collateral_contact: [ Faker::Name, :name ],
+        reached_client_collateral_contact: [Faker::Name, :name],
         activity: :keep,
         date_of_activity: :keep,
         naturally_payable: :keep,
@@ -132,9 +132,9 @@ module Health::Exporter
         valid_unpayable: :keep,
         procedure_valid: :keep,
         signature_on: :keep,
-        location: [ Faker::House, :furniture],
+        location: [Faker::House, :furniture],
         reviewed_at: :keep,
-        reviewer: [ Faker::Name, :name ],
+        reviewer: [Faker::Name, :name],
         status: :keep,
         patient_signed_on: :keep,
         provider_signed_on: :keep,
@@ -142,7 +142,7 @@ module Health::Exporter
     end
 
     def export!
-      create_export_directory()
+      create_export_directory
       begin
         configuration.keys.each do |conf_key|
           export_table!(conf_key)
@@ -150,7 +150,7 @@ module Health::Exporter
 
         zip_archive
       ensure
-        remove_export_files()
+        remove_export_files
       end
     end
 
@@ -158,7 +158,7 @@ module Health::Exporter
 
     def create_export_directory
       # make sure the path is clean
-      FileUtils.rmtree(@file_path) if File.exists? @file_path
+      FileUtils.rmtree(@file_path) if File.exist? @file_path
       FileUtils.mkdir_p(@file_path)
     end
 
@@ -208,19 +208,19 @@ module Health::Exporter
     end
 
     def zip_archive
-      files = Dir.glob(File.join(@file_path, '*')).map{|f| File.basename(f)}
+      files = Dir.glob(File.join(@file_path, '*')).map { |f| File.basename(f) }
       Zip::File.open(@zip_file, Zip::File::CREATE) do |zipfile|
         files.each do |filename|
           zipfile.add(
             filename,
-            File.join(@file_path, filename)
+            File.join(@file_path, filename),
           )
         end
       end
     end
 
     def remove_export_files
-      FileUtils.rmtree(@file_path) if File.exists? @file_path
+      FileUtils.rmtree(@file_path) if File.exist? @file_path
     end
   end
 end

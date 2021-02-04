@@ -7,6 +7,7 @@
 class GrdaWarehouse::Utility
   def self.clear!
     raise 'Refusing to wipe a production warehouse' if Rails.env.production?
+
     tables = [
       GrdaWarehouse::ServiceHistoryEnrollment,
       GrdaWarehouse::WarehouseClientsProcessed,
@@ -65,8 +66,10 @@ class GrdaWarehouse::Utility
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")
     end
   end
+
   def self.modifier(model)
-    return 'CASCADE' if [GrdaWarehouse::DataSource,GrdaWarehouse::Hud::Client,GrdaWarehouse::ServiceHistoryEnrollment].include?(model)
+    return 'CASCADE' if [GrdaWarehouse::DataSource, GrdaWarehouse::Hud::Client, GrdaWarehouse::ServiceHistoryEnrollment].include?(model)
+
     'RESTRICT'
   end
 end

@@ -32,7 +32,7 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def client_scope
-      @client_scope ||=  begin
+      @client_scope ||= begin
         clients = clients_within_age_range
         clients = clients.where(id: clients_within_projects.select(:id)) unless filter.all_projects?
         clients = clients.where(id: filter.clients_from_cohorts.select(:id)) if filter.clients_from_cohorts.exists?

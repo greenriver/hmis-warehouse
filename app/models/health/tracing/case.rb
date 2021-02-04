@@ -18,11 +18,11 @@ module Health::Tracing
     has_many :site_leaders
     has_many :staffs
 
-    scope :ongoing, -> () do
+    scope :ongoing, -> do
       where.not(complete: 'Yes')
     end
 
-    scope :completed, -> () do
+    scope :completed, -> do
       where(complete: 'Yes')
     end
 
@@ -45,7 +45,7 @@ module Health::Tracing
       {
         'Coughing' => 'Coughing',
         'Fever' => 'Fever',
-        'Shortness of breath' => 'Shortness of breath'
+        'Shortness of breath' => 'Shortness of breath',
       }
     end
 
@@ -97,7 +97,7 @@ module Health::Tracing
       end
     end
 
-    def age date=Date.current
+    def age date = Date.current
       GrdaWarehouse::Hud::Client.age(date: date.to_date, dob: dob)
     end
   end

@@ -7,7 +7,6 @@
 # A wrapper around careplan changes to ease Qualifying Activities creation
 module Health
   class CareplanSaver
-
     def initialize user:, careplan: Health::Careplan.new, create_qa: false
       @user = user
       @careplan = careplan
@@ -21,7 +20,6 @@ module Health
         @careplan.import_team_members
       end
     end
-
 
     def update
       success = true
@@ -63,6 +61,5 @@ module Health
         patient_id: @careplan.patient_id,
       )
     end
-
   end
 end

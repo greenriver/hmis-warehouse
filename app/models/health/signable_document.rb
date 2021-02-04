@@ -45,7 +45,7 @@ module Health
 
     scope :signed, -> do
       where.not(signed_by: '[]').
-      joins(:signature_request).merge(Health::SignatureRequest.complete)
+        joins(:signature_request).merge(Health::SignatureRequest.complete)
     end
 
     scope :unsigned, -> do
@@ -70,37 +70,36 @@ module Health
       expires_at.blank? || expires_at < Time.now
     end
 
-
     def make_document_signable!
-      cc_email_addresses = (ENV['HELLO_SIGN_CC_EMAILS']||'').split(/;/)
+      cc_email_addresses = (ENV['HELLO_SIGN_CC_EMAILS'] || '').split(/;/)
 
-      raise "Must save first before making a document signable (so we have the id)" if new_record?
+      raise 'Must save first before making a document signable (so we have the id)' if new_record?
 
       request = {
-        test_mode: (ENV.fetch('HELLO_SIGN_TEST_MODE') { Rails.env.production? ? 0 : 1}),
+        test_mode: (ENV.fetch('HELLO_SIGN_TEST_MODE') { Rails.env.production? ? 0 : 1 }),
         client_id: ENV['HELLO_SIGN_CLIENT_ID'],
-        title: self.hs_title,
-        subject: self.hs_subject,
-        message: self.hs_message,
+        title: hs_title,
+        subject: hs_subject,
+        message: hs_message,
         cc_email_addresses: cc_email_addresses,
         metadata: {
-          signable_document_id: self.id,
+          signable_document_id: id,
           rails_env: Rails.env,
-          hostname: `hostname`
+          hostname: `hostname`,
         },
-        signers: self.signers.map { |signer|
+        signers: signers.map do |signer|
           {
             name: signer.name,
             email_address: signer.email,
             # One can impose an order to signing if you want => order: @index
           }
-        }
+        end,
       }
 
       Tempfile.open(encoding: 'ascii-8bit') do |file|
-        file.write self.pdf_content_to_upload
+        file.write pdf_content_to_upload
         file.flush
-        request[:files] = [ file.path ]
+        request[:files] = [file.path]
 
         # Hello Sign's ruby code modifies this, so we must copy it.
         self.hs_initial_request = request.dup
@@ -112,14 +111,14 @@ module Health
 
         # Save a copy of this file to our health file
         @health_file = Health::SignableDocumentFile.new(
-          user_id: self.user_id,
+          user_id: user_id,
           client_id: signable.patient.client.id,
           file: Rails.root.join(file.path).open,
           content: Rails.root.join(file.path).read,
           content_type: 'application/pdf',
           name: 'care_plan.pdf',
           size: Rails.root.join(file.path).size,
-          parent_id: self.id
+          parent_id: id,
         )
         # There are issues with saving this that doesn't come through an upload form
         @health_file.save(validate: false)
@@ -129,19 +128,19 @@ module Health
 
     def update_health_file_from_hello_sign
       Tempfile.open(encoding: 'ascii-8bit') do |file|
-        file.write self.remote_pdf_content
+        file.write remote_pdf_content
         file.flush
         health_file = Health::HealthFile.new(
-            user_id: self.user_id,
-            client_id: signable.patient.client.id,
-            file: Rails.root.join(file.path).open,
-            content: Rails.root.join(file.path).read,
-            content_type: 'application/pdf',
-            name: 'care_plan.pdf',
-            size: Rails.root.join(file.path).size,
-            type: Health::SignableDocumentFile.name,
-            parent_id: self.id
-          )
+          user_id: user_id,
+          client_id: signable.patient.client.id,
+          file: Rails.root.join(file.path).open,
+          content: Rails.root.join(file.path).read,
+          content_type: 'application/pdf',
+          name: 'care_plan.pdf',
+          size: Rails.root.join(file.path).size,
+          type: Health::SignableDocumentFile.name,
+          parent_id: id,
+        )
         health_file.save(validate: false)
         self.health_file_id = health_file.id
       end
@@ -150,34 +149,29 @@ module Health
 
     def update_careplan_and_health_file!(careplan)
       # Process patient signature
-      if careplan.patient_signed_on.blank? && self.signed_by?(careplan.patient.current_email)
+      if careplan.patient_signed_on.blank? && signed_by?(careplan.patient.current_email)
         user = User.setup_system_user
-        careplan.patient_signed_on = self.signed_on(careplan.patient.current_email)
+        careplan.patient_signed_on = signed_on(careplan.patient.current_email)
         Health::CareplanSaver.new(careplan: careplan, user: user, create_qa: true).update
-        self.signature_request.update(completed_at: careplan.patient_signed_on)
+        signature_request.update(completed_at: careplan.patient_signed_on)
 
-        #update_health_file_from_hello_sign
+        # update_health_file_from_hello_sign
         # Need to wait for pdf to be ready
         UpdateHealthFileFromHelloSignJob.
           set(wait: 30.seconds).
-          perform_later(self.id)
-      elsif careplan.provider.present? && self.signed_by?(careplan.provider.email)
+          perform_later(id)
+      elsif careplan.provider.present? && signed_by?(careplan.provider.email)
         # process PCP signature, careplan has already been updated, we just need to fetch the file
         UpdateHealthFileFromHelloSignJob.
           set(wait: 30.seconds).
-          perform_later(self.id)
+          perform_later(id)
       end
-
     end
 
     def signature_request_url(email)
-      if !email.match(EMAIL_REGEX)
-        return nil
-      end
+      return nil unless email.match(EMAIL_REGEX)
 
-      if signed_by?(email)
-        return nil
-      end
+      return nil if signed_by?(email)
 
       signature_id = _signature_id_for(email)
 
@@ -198,14 +192,14 @@ module Health
     end
 
     def signature_request_id
-      self.hs_initial_response&.dig('signature_request_id')
+      hs_initial_response&.dig('signature_request_id')
     end
 
     def remote_pdf_url
-      return nil unless self.signature_request_id.present?
+      return nil unless signature_request_id.present?
 
-      Rails.cache.fetch("signable-document-#{self.id}", expires_in: 5.minutes) do
-        response = hs_client.signature_request_files(get_url: true, file_type: 'pdf', signature_request_id: self.signature_request_id)
+      Rails.cache.fetch("signable-document-#{id}", expires_in: 5.minutes) do
+        response = hs_client.signature_request_files(get_url: true, file_type: 'pdf', signature_request_id: signature_request_id)
         response['file_url']
       end
     rescue HelloSign::Error::Conflict
@@ -213,13 +207,13 @@ module Health
     end
 
     def remote_pdf_content
-      return nil unless self.signature_request_id.present?
+      return nil unless signature_request_id.present?
 
-      hs_client.signature_request_files(get_url: false, file_type: 'pdf', signature_request_id: self.signature_request_id)
+      hs_client.signature_request_files(get_url: false, file_type: 'pdf', signature_request_id: signature_request_id)
     end
 
     def signed_on(email)
-      signature = self.hs_last_response['signatures'].
+      signature = hs_last_response['signatures'].
         find { |sig| opt_data(sig)['status_code'] == 'signed' && opt_data(sig)['signer_email_address']&.downcase == email.downcase }
 
       timestamp = opt_data(signature)['signed_at'] if signature.present?
@@ -230,7 +224,7 @@ module Health
     end
 
     def signer_hash(email)
-      Digest::MD5.hexdigest(_signature_id_for(email)+ENV['HELLO_SIGN_HASH_SALT'].to_s)
+      Digest::MD5.hexdigest(_signature_id_for(email) + ENV['HELLO_SIGN_HASH_SALT'].to_s)
     end
 
     # Can't send reminders through HS when doing embedded documents.
@@ -239,15 +233,15 @@ module Health
     #   HelloSignMailer.careplan_signature_request(doc_id: self.id, email: email).deliver
     # end
 
-    def update_who_signed_from_hello_sign_callback!(callback_payload=fetch_signature_request)
+    def update_who_signed_from_hello_sign_callback!(callback_payload = fetch_signature_request)
       return if all_signed?
 
       self.hs_last_response_at = Time.now
       self.hs_last_response = callback_payload
-      sig_hashes = self.hs_last_response['signatures'].select { |sig| opt_data(sig)['status_code'] == 'signed' }
-      new_signers = sig_hashes.map { |sig| opt_data(sig)['signer_email_address']  }
+      sig_hashes = hs_last_response['signatures'].select { |sig| opt_data(sig)['status_code'] == 'signed' }
+      new_signers = sig_hashes.map { |sig| opt_data(sig)['signer_email_address'] }
       self.signed_by = new_signers
-      self.save!
+      save!
     end
 
     def signed_by?(email)
@@ -264,15 +258,15 @@ module Health
     end
 
     def fetch_signature_request
-      hs_client.get_signature_request(signature_request_id: self.signature_request_id).data
+      hs_client.get_signature_request(signature_request_id: signature_request_id).data
     end
 
     private
 
     def _signature_id_for(email)
-      return nil if self.hs_initial_response.nil?
+      return nil if hs_initial_response.nil?
 
-      sig = Array.wrap(self.hs_initial_response['signatures']).find { |r| opt_data(r).dig('signer_email_address')&.downcase == email.downcase }
+      sig = Array.wrap(hs_initial_response['signatures']).find { |r| opt_data(r).dig('signer_email_address')&.downcase == email.downcase }
       res = opt_data(sig)
 
       res.present? ? res['signature_id'] : 'error'
@@ -280,10 +274,8 @@ module Health
 
     # HelloSign will fail if given bad emails
     def signers_have_reasonable_emails
-      self.signers.each do |signer|
-        if !signer['email'].to_s.match(EMAIL_REGEX)
-          errors[:signers] << "contain at least one bad email address (#{signer['email']})."
-        end
+      signers.each do |signer|
+        errors[:signers] << "contain at least one bad email address (#{signer['email']})." unless signer['email'].to_s.match(EMAIL_REGEX)
       end
     end
 
@@ -295,12 +287,11 @@ module Health
       return if signed_by.nil?
       return if signed_by.length <= signers.length
 
-      errors[:signed_by] << "Cannot be longer than potential number of signers"
+      errors[:signed_by] << 'Cannot be longer than potential number of signers'
     end
 
     def opt_data(json)
       json&.dig('data') || json
     end
-
   end
 end

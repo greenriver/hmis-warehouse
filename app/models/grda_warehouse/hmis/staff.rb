@@ -5,7 +5,7 @@
 ###
 
 module GrdaWarehouse::HMIS
-  class Staff <  Base
+  class Staff < Base
     dub 'staff'
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -14,13 +14,12 @@ module GrdaWarehouse::HMIS
 
     def mi
       if m = middle_initial.presence
-        m.strip.titlecase.sub( /(\w)$/, '\1.' )
+        m.strip.titlecase.sub(/(\w)$/, '\1.')
       end
     end
 
     def name
-      [ first_name.presence, mi, last_name.presence ].compact.join(' ')
+      [first_name.presence, mi, last_name.presence].compact.join(' ')
     end
-
   end
 end

@@ -127,10 +127,10 @@ module GrdaWarehouse
       @cache_store ||= begin
         store = ActiveSupport::Cache::MemoryStore.new
 
-        if ENV["RAILS_LOG_TO_STDOUT"].present?
+        if ENV['RAILS_LOG_TO_STDOUT'].present?
           store.logger = Logger.new(STDOUT)
         else
-          store.logger = Logger.new(Rails.root.join("log/cache.log"))
+          store.logger = Logger.new(Rails.root.join('log/cache.log'))
         end
 
         store.logger.level = Logger::INFO

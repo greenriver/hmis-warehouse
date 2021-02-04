@@ -9,13 +9,13 @@ module GrdaWarehouse::HealthEmergency
     include ::HealthEmergency
 
     validates_presence_of :tested_on, :result, on: :create
-    scope :visible_to, -> (user) do
+    scope :visible_to, ->(user) do
       return current_scope if user.can_see_health_emergency_clinical?
 
       none
     end
 
-    scope :tested_within_range, -> (range=Date.current..Date.current) do
+    scope :tested_within_range, ->(range = Date.current..Date.current) do
       where(tested_on: range)
     end
 
@@ -45,6 +45,7 @@ module GrdaWarehouse::HealthEmergency
 
     def in_batch?(batch_id)
       return false unless batch_id
+
       notification_batch_id == batch_id&.to_i
     end
 

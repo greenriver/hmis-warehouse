@@ -21,12 +21,12 @@ module Health::Tasks
     end
 
     def import!
-      configs = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
+      configs = YAML.load(ERB.new(File.read(Rails.root.join('config', 'health_sftp.yml'))).result)[Rails.env]
       configs.each do |_, config|
         fetch_files(config)
         load_unprocessed
         if @unprocessed.empty?
-          remove_files()
+          remove_files
           return
         end
         process_files @unprocessed, config
@@ -47,16 +47,14 @@ module Health::Tasks
           row = Hash[db_headers.zip(file.row(i))]
           # send a note, and skip if we found anything other than a new or active referral
           # TODO: handle deletions and inactivations
-          if ! row[:record_status].in?(['A', 'N'])
+          unless row[:record_status].in?(['A', 'N'])
             notify "Patient Referral Importer found a record that is not Active or New, please see import_patient_referrals.rb, skipping for now, value: #{row[:record_status]}"
             next
           end
           patient_referral = Health::PatientReferral.where(medicaid_id: row[:medicaid_id]).
             first_or_initialize
           # If we have seen this medicaid id previously (e.g., the patient has cycled back into the program), make sure the referral is active
-          if patient_referral.id != 0
-            ensure_referral_active(patient_referral)
-          end
+          ensure_referral_active(patient_referral) if patient_referral.id != 0
           # attempt to find ACO ID
           aco_id = Health::AccountableCareOrganization.active.find_by(mco_pid: row[:aco_mco_pid], mco_sl: row[:aco_mco_sl])&.id
           patient_referral.accountable_care_organization_id = aco_id if aco_id.present?
@@ -79,9 +77,7 @@ module Health::Tasks
     end
 
     def ensure_referral_active(referral)
-      if referral.rejected
-        referral.update(rejected: false, rejected_reason: :Remove_Removal, removal_acknowledged: false)
-      end
+      referral.update(rejected: false, rejected_reason: :Remove_Removal, removal_acknowledged: false) if referral.rejected
     end
 
     # Are there any ASSIGNMENT_* files we have not yet processed?
@@ -94,8 +90,8 @@ module Health::Tasks
         [
           "#{directory}/*/*#{FULL_STRING}*",
           "#{directory}/*/*#{CHANGE_STRING}*",
-        ]
-      ).map{|m| m.gsub(directory, '')}
+        ],
+      ).map { |m| m.gsub(directory, '') }
     end
 
     def processed
@@ -118,7 +114,7 @@ module Health::Tasks
       source_path = File.join(config['path'], 'referrals')
       sftp.download!(source_path, directory, recursive: true)
 
-      notify "Health patient referrals downloaded"
+      notify 'Health patient referrals downloaded'
     end
 
     def sftp_connect config
@@ -127,14 +123,14 @@ module Health::Tasks
         config['username'],
         password: config['password'],
         # verbose: :debug,
-        auth_methods: ['publickey','password']
+        auth_methods: ['publickey', 'password'],
       )
     end
 
     def update_summary_receipt(local_path, header_count, row_count)
       summary_file_path = local_path.gsub(FULL_STRING, SUMMARY_STRING).gsub(CHANGE_STRING, SUMMARY_CHANGE_STRING)
       notify "Updating summary file #{summary_file_path}"
-      receipt_file_path = summary_file_path.gsub('.xlsx', "R.xlsx")
+      receipt_file_path = summary_file_path.gsub('.xlsx', 'R.xlsx')
       summary_file = RubyXL::Parser.parse(summary_file_path)
       reply_sheet = 0
       reply_row = 1
@@ -144,7 +140,7 @@ module Health::Tasks
       sheet = summary_file.worksheets[reply_sheet]
       sheet[reply_row][received_row_number_column].change_contents(row_count)
       sheet[reply_row][received_column_number_column].change_contents(header_count)
-      sheet[reply_row][received_timestamp_column].change_contents(Date.current.strftime("%Y%m%d"))
+      sheet[reply_row][received_timestamp_column].change_contents(Date.current.strftime('%Y%m%d'))
       summary_file.write(receipt_file_path)
       return receipt_file_path
     end
@@ -153,7 +149,6 @@ module Health::Tasks
       destination_path = File.join(config['path'], *summary_path.split(File::SEPARATOR).last(3))
       sftp = sftp_connect(config)
       sftp.upload!(summary_path, destination_path)
-
     end
 
     def remove_files

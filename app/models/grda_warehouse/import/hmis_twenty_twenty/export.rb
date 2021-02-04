@@ -8,7 +8,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
   class Export < GrdaWarehouse::Hud::Export
     include ::Import::HmisTwentyTwenty::Shared
     self.hud_key = :ExportID
-    setup_hud_column_access( GrdaWarehouse::Hud::Export.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Export.hud_csv_headers(version: '2020'))
 
     validates_presence_of :ExportStartDate, :ExportEndDate, :ExportID, :data_source_id, :ExportDate
 
@@ -23,12 +23,12 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
       end
     end
 
-    def self.load_from_csv(file_path: , data_source_id: )
+    def self.load_from_csv(file_path:, data_source_id:)
       new CSV.read(
         "#{file_path}/#{data_source_id}/#{file_name}",
-        headers: self.hud_csv_headers.map(&:to_s)
+        headers: hud_csv_headers.map(&:to_s),
       ).drop(1).first.to_h.
-      merge({file_path: file_path, data_source_id: data_source_id})
+        merge({ file_path: file_path, data_source_id: data_source_id })
     end
 
     def self.file_name

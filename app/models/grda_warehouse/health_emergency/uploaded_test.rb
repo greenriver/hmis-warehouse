@@ -17,7 +17,7 @@ module GrdaWarehouse::HealthEmergency
 
     scope :test_addition_pending, -> do
       where.not(client_id: nil).
-      where(test_id: nil)
+        where(test_id: nil)
     end
   end
 end

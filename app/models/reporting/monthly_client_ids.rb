@@ -11,6 +11,5 @@ module Reporting
     include ArelHelper
 
     self.table_name = :warehouse_monthly_client_ids
-
   end
 end

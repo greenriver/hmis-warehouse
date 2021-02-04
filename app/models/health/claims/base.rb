@@ -26,7 +26,7 @@ module Health::Claims
       clean_sheet = clean_rows(sheet.drop(1))
       transaction do
         self.class.delete_all
-        insert_batch( self.class, column_headers.keys, clean_sheet)
+        insert_batch(self.class, column_headers.keys, clean_sheet)
       end
     end
 
@@ -34,7 +34,7 @@ module Health::Claims
     def clean_rows(dirty)
       dirty.map do |row|
         row.map do |value|
-          if value == "#DIV/0!"
+          if value == '#DIV/0!'
             nil
           else
             value

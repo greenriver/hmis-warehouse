@@ -33,6 +33,5 @@ module GrdaWarehouse::Hud
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :users
     belongs_to :data_source
-
   end
 end

@@ -9,7 +9,7 @@ module GrdaWarehouse::Tasks
     require 'ruby-progressbar'
     include NotifierConfig
     attr_accessor :logger, :send_notifications, :notifier_config
-    def initialize()
+    def initialize
       setup_notifier('Warehouse-CAS Sync')
       self.logger = Rails.logger
     end
@@ -22,6 +22,7 @@ module GrdaWarehouse::Tasks
     def sync!
       # Fail gracefully if there's no CAS database setup
       return unless CasBase.db_exists?
+
       if GrdaWarehouse::DataSource.advisory_lock_exists?(advisory_lock_key)
         msg = 'Other CAS Sync in progress, exiting.'
         logger.warn msg

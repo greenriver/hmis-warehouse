@@ -23,6 +23,5 @@ module GrdaWarehouse::Hud
     belongs_to :direct_client, **hud_assoc(:PersonalID, 'Client')
 
     belongs_to :data_source
-
   end
 end

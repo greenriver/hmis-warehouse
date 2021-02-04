@@ -19,7 +19,7 @@ module Health::Tasks
       unprocessed.each do |patient|
         match_patient_to_client(patient)
       end
-      return unmatched()
+      return unmatched
     end
 
     # figure out who doesn't yet have an entry in warehouse clients
@@ -58,7 +58,7 @@ module Health::Tasks
         last_name: patient_last_name,
       )
 
-      obvious_matches = all_matches.uniq.map{|i| i if (all_matches.count(i) > 1)}.compact
+      obvious_matches = all_matches.uniq.map { |i| i if all_matches.count(i) > 1 }.compact
       if obvious_matches.any?
         patient_record = Health::Patient.find(patient[:id])
         begin

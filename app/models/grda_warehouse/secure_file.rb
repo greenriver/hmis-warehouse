@@ -15,7 +15,7 @@ module GrdaWarehouse
 
     mount_uploader :file, SecureFileUploader # Tells rails to use this uploader for this model.
 
-    scope :visible_by?, -> (user) do
+    scope :visible_by?, ->(user) do
       # If you can see all client files, show everything
       visible_scope = if user.can_view_all_secure_uploads?
         all
@@ -42,12 +42,13 @@ module GrdaWarehouse
     end
 
     def file_exists_and_not_too_large
-      errors.add :file, "No uploaded file found" if (content&.size || 0) < 100
-      errors.add :file, "File size should be less than 4 MB" if (content&.size || 0) > 4.megabytes
+      errors.add :file, 'No uploaded file found' if (content&.size || 0) < 100
+      errors.add :file, 'File size should be less than 4 MB' if (content&.size || 0) > 4.megabytes
     end
 
     def as_preview
       return content unless content_type == 'image/jpeg'
+
       image = MiniMagick::Image.read(content)
       image.auto_level
       image.strip
@@ -57,12 +58,12 @@ module GrdaWarehouse
 
     def as_thumb
       return nil unless content_type == 'image/jpeg'
+
       image = MiniMagick::Image.read(content)
       image.auto_level
       image.strip
       image.resize('400x400')
       image.to_blob
     end
-
   end
 end

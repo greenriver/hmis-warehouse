@@ -8,7 +8,7 @@ module GrdaWarehouse::HealthEmergency
   class AmaRestriction < GrdaWarehouseBase
     include ::HealthEmergency
 
-    scope :visible_to, -> (user) do
+    scope :visible_to, ->(user) do
       return current_scope if user.can_see_health_emergency_clinical?
 
       none
@@ -18,7 +18,7 @@ module GrdaWarehouse::HealthEmergency
       where(restricted: 'Yes')
     end
 
-    scope :added_within_range, -> (range=DateTime.current..DateTime.current) do
+    scope :added_within_range, ->(range = DateTime.current..DateTime.current) do
       # FIXME: unclear why, but because we get dates and compare to times, postgres gets very unhappy
       end_date = range.last + 2.days
       range = Time.zone.at(range.first.to_time)..Time.zone.at(end_date.to_time)
@@ -44,6 +44,7 @@ module GrdaWarehouse::HealthEmergency
 
     def in_batch?(batch_id)
       return false unless batch_id
+
       notification_batch_id == batch_id&.to_i
     end
 

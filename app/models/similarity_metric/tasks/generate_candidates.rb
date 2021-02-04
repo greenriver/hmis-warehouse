@@ -6,8 +6,8 @@
 
 module SimilarityMetric::Tasks
   class GenerateCandidates
-   def initialize batch_size:10000, threshold:-1.45, run_length:240
-      @opts = {batch_size: batch_size, threshold: threshold, run_length: run_length}
+    def initialize batch_size: 10_000, threshold: -1.45, run_length: 240
+      @opts = { batch_size: batch_size, threshold: threshold, run_length: run_length }
     end
 
     def run!
@@ -21,9 +21,9 @@ module SimilarityMetric::Tasks
       # Find clients who don't have a match in the matches table
       scope = clients_source.
         destination.
-        where( matches_source.where( mt[:destination_client_id].eq ct[:id] ).arel.exists.not ).
+        where(matches_source.where(mt[:destination_client_id].eq ct[:id]).arel.exists.not).
         preload(:source_clients).
-        order( id: :desc ).
+        order(id: :desc).
         limit(@opts[:batch_size])
 
       scope.each do |dest|
@@ -38,9 +38,7 @@ module SimilarityMetric::Tasks
           m.source_client_id = dest.id
           m.status = 'processed_sources'
         end
-        if candidates.size == 0
-          Rails.logger.info "...none found\n"
-        end
+        Rails.logger.info "...none found\n" if candidates.size == 0
         candidates.each do |match|
           Rails.logger.info "...added #{match.source_client_id} #{match.destination_client_id} #{match.score}....\n"
         end

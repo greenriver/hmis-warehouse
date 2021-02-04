@@ -19,17 +19,17 @@ module Health::Tasks
     end
 
     def import!
-      configs = YAML::load(ERB.new(File.read(Rails.root.join("config","health_sftp.yml"))).result)[Rails.env]
+      configs = YAML.load(ERB.new(File.read(Rails.root.join('config', 'health_sftp.yml'))).result)[Rails.env]
       configs.each do |_, config|
         fetch_files(config)
         load_unprocessed
         if @unprocessed.empty?
-          remove_files()
+          remove_files
           return
         end
         process_files @unprocessed
       end
-      remove_files()
+      remove_files
     end
 
     def process_files files
@@ -46,7 +46,7 @@ module Health::Tasks
           row = Hash[db_headers.zip(file.row(i))]
 
           # send a note, and skip if we found anything other than a new or active referral
-          if ! row[:record_status].in?(['A', 'N'])
+          unless row[:record_status].in?(['A', 'N'])
             notify "Patient Referral Refresh Importer found a record that is not Active or New, please see import_patient_referrals.rb, skipping for now, value: #{row[:record_status]}"
             next
           end
@@ -60,19 +60,17 @@ module Health::Tasks
           # if we have a new row or an update
           # save it
           updated_on = Date.strptime(row[:record_updated_on].to_s, '%Y%m%d')
-          if patient_referral.record_updated_on.blank? || updated_on > patient_referral.record_updated_on
-            patient_referral.assign_attributes(row)
-            # Make sure people are not marked rejected if they are appear on this list
-            # and haven't been marked as dis-enrolled
-            if patient_referral.disenrollment_date.blank?
-              patient_referral.assign_attributes(rejected: false, rejected_reason: :Remove_Removal, removal_acknowledged: false)
-            end
-            patient_referral.save!
-          end
+          next unless patient_referral.record_updated_on.blank? || updated_on > patient_referral.record_updated_on
+
+          patient_referral.assign_attributes(row)
+          # Make sure people are not marked rejected if they are appear on this list
+          # and haven't been marked as dis-enrolled
+          patient_referral.assign_attributes(rejected: false, rejected_reason: :Remove_Removal, removal_acknowledged: false) if patient_referral.disenrollment_date.blank?
+          patient_referral.save!
         end
         Health::PatientReferralImport.create(file_name: file_path)
       end
-      reject_any_not_included()
+      reject_any_not_included
     end
 
     def reject_any_not_included
@@ -91,8 +89,8 @@ module Health::Tasks
       Dir.glob(
         [
           "#{directory}/*/*#{FULL_STRING}*",
-        ]
-      ).map{|m| m.gsub(directory, '')}
+        ],
+      ).map { |m| m.gsub(directory, '') }
     end
 
     def processed
@@ -115,7 +113,7 @@ module Health::Tasks
       source_path = File.join(config['path'], 'referrals')
       sftp.download!(source_path, directory, recursive: true)
 
-      notify "Health patient referrals downloaded"
+      notify 'Health patient referrals downloaded'
     end
 
     def sftp_connect config
@@ -124,7 +122,7 @@ module Health::Tasks
         config['username'],
         password: config['password'],
         # verbose: :debug,
-        auth_methods: ['publickey','password']
+        auth_methods: ['publickey', 'password'],
       )
     end
 

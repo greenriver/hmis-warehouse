@@ -38,14 +38,14 @@ module GrdaWarehouse::Hud
     alias_attribute :end_date, :InventoryEndDate
     alias_attribute :beds, :BedInventory
 
-    scope :within_range, -> (range) do
+    scope :within_range, ->(range) do
       i_start = cl(i_t[:inventory_start_date_override], i_t[:InventoryStartDate])
       i_end = i_t[:InventoryEndDate]
       where(
         i_end.gteq(range.first).
         or(i_end.eq(nil)).
         and(i_start.lteq(range.last).
-        or(i_start.eq(nil)))
+        or(i_start.eq(nil))),
       )
     end
 
@@ -73,7 +73,7 @@ module GrdaWarehouse::Hud
     # when we export, we always need to replace InventoryID with the value of id
     # and ProjectID with the id of the related project
     def self.to_csv(scope:)
-      attributes = self.hud_csv_headers.dup
+      attributes = hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:InventoryID)] = :id
       attributes[attributes.index(:ProjectID)] = 'project.id'
@@ -94,7 +94,7 @@ module GrdaWarehouse::Hud
             else
               v = i.send(attr)
               if v.is_a? Date
-                v = v.strftime("%Y-%m-%d")
+                v = v.strftime('%Y-%m-%d')
               elsif v.is_a? Time
                 v = v.to_formatted_s(:db)
               end

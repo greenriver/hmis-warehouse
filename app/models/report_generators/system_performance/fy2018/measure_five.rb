@@ -17,12 +17,11 @@ module ReportGenerators::SystemPerformance::Fy2018
     # SH = [8]
     SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1)
 
-
     def run!
       # Disable logging so we don't fill the disk
       ActiveRecord::Base.logger.silence do
-        calculate()
-        Rails.logger.info "Done"
+        calculate
+        Rails.logger.info 'Done'
       end # End silence ActiveRecord Log
     end
 
@@ -30,11 +29,11 @@ module ReportGenerators::SystemPerformance::Fy2018
 
     def calculate
       if start_report(Reports::SystemPerformance::Fy2018::MeasureFive.first)
-        set_report_start_and_end()
+        set_report_start_and_end
         Rails.logger.info "Starting report #{@report.report.name}"
         # Overview: Determine the number of clients in the system in specific programs during the
         # report period.  Of those, were any active in the two years prior?
-        @answers = setup_questions()
+        @answers = setup_questions
         @support = @answers.deep_dup
 
         # Relevant Project Types/Program Types
@@ -51,10 +50,10 @@ module ReportGenerators::SystemPerformance::Fy2018
         # 12: Homeless Prevention
         # 13: Rapid Re-Housing (PH)
         # 14: Coordinated Assessment
-        add_es_sh_th_answers()
-        add_es_sh_th_ph_answers()
+        add_es_sh_th_answers
+        add_es_sh_th_ph_answers
         Rails.logger.info @answers.inspect
-        finish_report()
+        finish_report
       else
         Rails.logger.info 'No Report Queued'
       end
@@ -67,8 +66,8 @@ module ReportGenerators::SystemPerformance::Fy2018
       set_client_universe(relevent_project_types)
       @answers[:five1_c2][:value] = @clients.size
       @support[:five1_c2][:support] = {
-        headers:['Client ID'],
-        counts: @clients.map{|id, _| [id]}
+        headers: ['Client ID'],
+        counts: @clients.map { |id, _| [id] },
       }
       # save our progress
       @report.update(percent_complete: 1)
@@ -83,7 +82,7 @@ module ReportGenerators::SystemPerformance::Fy2018
             @clients[id][:start_date],
             @clients[id][:earlier_entry],
           ]
-        end
+        end,
       }
       @answers[:five1_c4][:value] = @answers[:five1_c2][:value] - @answers[:five1_c3][:value]
       # save our progress
@@ -99,8 +98,8 @@ module ReportGenerators::SystemPerformance::Fy2018
       @report.update(percent_complete: 51)
       @answers[:five2_c2][:value] = @clients.size
       @support[:five2_c2][:support] = {
-        headers:['Client ID'],
-        counts: @clients.map{|id, _| [id]}
+        headers: ['Client ID'],
+        counts: @clients.map { |id, _| [id] },
       }
       # Determine the client's first start date within the date range
       previous_clients = find_first_entries(relevent_project_types)
@@ -113,10 +112,10 @@ module ReportGenerators::SystemPerformance::Fy2018
             @clients[id][:start_date],
             @clients[id][:earlier_entry],
           ]
-        end
+        end,
       }
       @answers[:five2_c4][:value] = @answers[:five2_c2][:value] - @answers[:five2_c3][:value]
-       # save our progress
+      # save our progress
       update_report_progress(percent: 90)
     end
 
@@ -131,13 +130,13 @@ module ReportGenerators::SystemPerformance::Fy2018
       client_scope.
         select(:client_id).distinct.
         pluck(:client_id).each do |id|
-          @clients[id] = {id: id}
+          @clients[id] = { id: id }
         end
     end
 
     def find_first_entries relevent_project_types
       previous_clients = Set.new
-      @clients.each do |id, client|
+      @clients.each do |id, _client|
         sh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           where(client_id: id).
           hud_project_type(relevent_project_types).
@@ -155,23 +154,21 @@ module ReportGenerators::SystemPerformance::Fy2018
       # This should encompass all project types (same as 5.2)
       all_project_types = ES + SH + TH + PH
       @clients.each do |id, client|
-        look_back_until =  LOOKBACK_STOP_DATE.to_date >= (client[:start_date].to_date - 730.days) ? LOOKBACK_STOP_DATE : (client[:start_date].to_date - 730.days).strftime('%Y-%m-%d')
+        look_back_until = LOOKBACK_STOP_DATE.to_date >= (client[:start_date].to_date - 730.days) ? LOOKBACK_STOP_DATE : (client[:start_date].to_date - 730.days).strftime('%Y-%m-%d')
         earlier_date = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           where(client_id: id).
           hud_project_type(all_project_types).
           where(she_t[:first_date_in_program].lt(client[:start_date]).
             and(she_t[:last_date_in_program].eq(nil).
-              or(she_t[:last_date_in_program].gteq(look_back_until))
-            )
-          ).
+              or(she_t[:last_date_in_program].gteq(look_back_until)))).
           order(first_date_in_program: :asc).
           minimum(:first_date_in_program)
 
-        if earlier_date.present?
-          @clients[id][:earlier_entry] = earlier_date
-          # clients[id][:early_start_date] = @answers.first['first_date_in_program']
-          previous_clients << id
-        end
+        next unless earlier_date.present?
+
+        @clients[id][:earlier_entry] = earlier_date
+        # clients[id][:early_start_date] = @answers.first['first_date_in_program']
+        previous_clients << id
       end
       return previous_clients
     end

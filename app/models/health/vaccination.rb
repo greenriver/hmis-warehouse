@@ -194,7 +194,6 @@ module Health
       {
         'Moderna' => MODERNA,
         'Pfizer' => PFIZER,
-
       }[vaccination_type]
     end
 

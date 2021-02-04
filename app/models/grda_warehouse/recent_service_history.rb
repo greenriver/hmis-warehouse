@@ -11,6 +11,5 @@ module GrdaWarehouse
     def readonly?
       true
     end
-
   end
 end

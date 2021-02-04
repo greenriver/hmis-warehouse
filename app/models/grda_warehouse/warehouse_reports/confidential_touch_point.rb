@@ -6,7 +6,6 @@
 
 module GrdaWarehouse::WarehouseReports
   class ConfidentialTouchPoint < TouchPoint
-
     def title
       'Confidential Touch Point Export'
     end
@@ -27,10 +26,10 @@ module GrdaWarehouse::WarehouseReports
         section_columns = sections(dirty).map do |title, questions|
           column_count = questions.size - 1
           column_count = 0 if column_count < 0
-          [title] + [nil]*(column_count)
+          [title] + [nil] * column_count
         end
         clean[:summary] = ['Selected Range:', start_date, end_date] + section_columns.flatten
-        clean[:headers] = ["Client ID", 'Medicaid ID', "Client Name", "Collected On", "Location", 'SDH Enroll Date', "Staff"] + all_questions(dirty)
+        clean[:headers] = ['Client ID', 'Medicaid ID', 'Client Name', 'Collected On', 'Location', 'SDH Enroll Date', 'Staff'] + all_questions(dirty)
         # NOTE: this is still a second query, but should not bring back the big answers blob a second time
         limited_responses.find_each do |response|
           row = []

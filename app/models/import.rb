@@ -27,15 +27,12 @@ class Import < ApplicationRecord
 
   def import_time
     if percent_complete == 100
-      seconds = ((completed_at - created_at)/1.minute).round * 60
+      seconds = ((completed_at - created_at) / 1.minute).round * 60
       distance_of_time_in_words(seconds)
+    elsif updated_at < 2.days.ago
+      'failed'
     else
-      if updated_at < 2.days.ago
-        'failed'
-      else
-        'processing...'
-      end
+      'processing...'
     end
   end
-
 end

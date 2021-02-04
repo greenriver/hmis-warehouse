@@ -8,6 +8,6 @@
 # that should ignore acts as paranoid completely
 module GrdaWarehouse::Hud::WithDeleted
   class User < GrdaWarehouse::Hud::User
-    default_scope {unscope where: paranoia_column}
+    default_scope { unscope where: paranoia_column }
   end
 end

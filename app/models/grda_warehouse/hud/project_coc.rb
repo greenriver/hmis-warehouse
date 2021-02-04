@@ -25,13 +25,12 @@ module GrdaWarehouse::Hud
     has_one :lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :CoCCode, foreign_key: :coc_code, inverse_of: :project_coc
     has_one :overridden_lookup_coc, class_name: '::GrdaWarehouse::Lookups::CocCode', primary_key: :hud_coc_code, foreign_key: :coc_code, inverse_of: :overridden_project_coc
 
-
     scope :in_coc, ->(coc_code:) do
       # hud_coc_code overrides CoCCode
       coc_code = Array(coc_code)
       where(
         pc_t[:CoCCode].in(coc_code).and(pc_t[:hud_coc_code].eq(nil).or(pc_t[:hud_coc_code].eq(''))).
-        or(pc_t[:hud_coc_code].in(coc_code))
+        or(pc_t[:hud_coc_code].in(coc_code)),
       )
     end
 
@@ -45,7 +44,7 @@ module GrdaWarehouse::Hud
       elsif user.coc_codes.none?
         none
       else
-        in_coc( coc_code: user.coc_codes )
+        in_coc(coc_code: user.coc_codes)
       end
     end
 
@@ -87,7 +86,7 @@ module GrdaWarehouse::Hud
     # when we export, we always need to replace ProjectCoCID with the value of id
     # and ProjectID with the id of the related project
     def self.to_csv(scope:)
-      attributes = self.hud_csv_headers.dup
+      attributes = hud_csv_headers.dup
       headers = attributes.clone
       attributes[attributes.index(:ProjectCoCID)] = :id
       attributes[attributes.index(:ProjectID)] = 'project.id'

@@ -75,13 +75,14 @@ module ReportGenerators::Lsa::Fy2019
       # Find the first queued report
       @report = ReportResult.where(
         report: report,
-        percent_complete: 0
+        percent_complete: 0,
       ).first
 
       # Debugging
       # @report = ReportResult.find(902)
 
       return unless @report.present?
+
       Rails.logger.info "Starting report #{@report.report.name}"
       @report.update(percent_complete: 0.01)
     end
@@ -89,7 +90,7 @@ module ReportGenerators::Lsa::Fy2019
     def finish_report
       @report.update(
         percent_complete: 100,
-        completed_at: Time.now
+        completed_at: Time.now,
       )
     end
 

@@ -6,6 +6,5 @@
 
 module Reports::Lsa::Fy2019
   class All < Base
-
   end
 end

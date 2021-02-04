@@ -6,7 +6,6 @@
 
 module GrdaWarehouse::HealthEmergency
   class Quarantine < IsolationBase
-
     def title
       'Quarantine'
     end

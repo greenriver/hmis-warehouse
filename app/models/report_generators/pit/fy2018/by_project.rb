@@ -21,7 +21,7 @@ module ReportGenerators::Pit::Fy2018
     private def service_history_scope
       super.where(
         project_id: @project_id,
-        data_source_id: @data_source_id
+        data_source_id: @data_source_id,
       )
     end
   end

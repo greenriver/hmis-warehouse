@@ -7,7 +7,7 @@
 module GrdaWarehouse::Export::HMISSixOneOne
   class Inventory < GrdaWarehouse::Import::HMISSixOneOne::Inventory
     include ::Export::HMISSixOneOne::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '6.11') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '6.11'))
 
     self.hud_key = :InventoryID
 
@@ -18,6 +18,5 @@ module GrdaWarehouse::Export::HMISSixOneOne
       row[:InformationDate] = row[:InventoryStartDate] if row[:InformationDate].blank?
       return row
     end
-
   end
 end

@@ -19,7 +19,7 @@ module Glacier
     attr_accessor :uploader
     attr_accessor :notes
 
-    def initialize(cmd:, vault_name:nil, archive_name: nil, notes: nil)
+    def initialize(cmd:, vault_name: nil, archive_name: nil, notes: nil)
       self.cmd          = cmd
       self.vault_name   = vault_name || default_vault_name
       self.archive_name = archive_name || default_archive_name
@@ -39,7 +39,7 @@ module Glacier
       client = ENV.fetch('CLIENT') { 'unknown-client' }
 
       # Just a heuristic. Set your vault name explicitly if you care
-      purpose = self.cmd.match?(/tar/) ? 'logs' : 'backups'
+      purpose = cmd.match?(/tar/) ? 'logs' : 'backups'
 
       "#{client}-#{Rails.env}-#{purpose}"
     end
@@ -50,52 +50,52 @@ module Glacier
 
     def _create_records!
       self.vault = Vault.where(name: vault_name).first_or_initialize
-      self.vault.vault_created_at ||= Time.now
-      self.vault.last_upload_attempt_at = Time.now
-      self.vault.save!
+      vault.vault_created_at ||= Time.now
+      vault.last_upload_attempt_at = Time.now
+      vault.save!
 
       self.archive = vault.archives.build
     end
 
     def _stream_to_glacier!
-      Rails.logger.info "Streaming #{self.archive_name} to #{self.vault_name}"
+      Rails.logger.info "Streaming #{archive_name} to #{vault_name}"
 
-      Open3.popen2(cmd) do |stdin, stdout, wait_thread|
+      Open3.popen2(cmd) do |stdin, stdout, _wait_thread|
         stdin.close
 
         self.uploader = Uploader.new({
-          vault_name: self.vault_name,
-          file_stream: stdout,
-          archive_name: self.archive_name,
-        })
+                                       vault_name: vault_name,
+                                       file_stream: stdout,
+                                       archive_name: archive_name,
+                                     })
 
-        self.uploader.init!
+        uploader.init!
 
-        self.archive.update_attributes({
-          upload_id: self.uploader.upload_id,
-          upload_started_at: Time.now,
-          archive_name: self.archive_name,
-          status: "uploading",
-          notes: self.notes
-        })
+        archive.update_attributes({
+                                    upload_id: uploader.upload_id,
+                                    upload_started_at: Time.now,
+                                    archive_name: archive_name,
+                                    status: 'uploading',
+                                    notes: notes,
+                                  })
 
-        self.uploader.upload!
+        uploader.upload!
       end
     end
 
     def _save_results!
-      if self.uploader.successful?
-        self.archive.update_attributes({
-          archive_id: self.uploader.archive_id,
-          archive_name: self.archive_name,
-          checksum: self.uploader.checksum,
-          size_in_bytes: self.uploader.archive_size,
-          location: self.uploader.location,
-          upload_finished_at: Time.now,
-          status: "complete"
-        })
+      if uploader.successful?
+        archive.update_attributes({
+                                    archive_id: uploader.archive_id,
+                                    archive_name: archive_name,
+                                    checksum: uploader.checksum,
+                                    size_in_bytes: uploader.archive_size,
+                                    location: uploader.location,
+                                    upload_finished_at: Time.now,
+                                    status: 'complete',
+                                  })
 
-        self.vault.update_attribute(:last_upload_success_at, Time.now)
+        vault.update_attribute(:last_upload_success_at, Time.now)
       end
     end
 

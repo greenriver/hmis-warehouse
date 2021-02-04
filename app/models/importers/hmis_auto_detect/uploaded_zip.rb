@@ -13,7 +13,8 @@ module Importers::HmisAutoDetect
       deidentified: false,
       allowed_projects: false,
       file_path: 'tmp/hmis_import',
-      file_password: nil)
+      file_password: nil
+    )
       setup_notifier('HMIS Upload AutoDetect Importer')
       @data_source_id = data_source_id
       @upload = GrdaWarehouse::Upload.find(upload_id.to_i)
@@ -103,7 +104,7 @@ module Importers::HmisAutoDetect
             CSV.open(clean_file, 'wb') do |csv|
               line = File.open(file).readline
               # Make sure header is in our format
-              csv << CSV.parse(line)[0].map {|k| k.downcase.to_sym}
+              csv << CSV.parse(line)[0].map { |k| k.downcase.to_sym }
               CSV.foreach(file, headers: true) do |row|
                 # only keep row if PersonalID is in allowed clients
                 csv << row if @allowed_personal_ids.include?(row['PersonalID'])
@@ -134,7 +135,7 @@ module Importers::HmisAutoDetect
 
     private def remove_import_files
       Rails.logger.info "Removing #{@local_path}"
-      FileUtils.rm_rf(@local_path) if File.exists?(@local_path)
+      FileUtils.rm_rf(@local_path) if File.exist?(@local_path)
     end
   end
 end

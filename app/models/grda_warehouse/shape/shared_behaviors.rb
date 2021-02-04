@@ -38,10 +38,10 @@ module GrdaWarehouse
         # Drastically reduce size of shapes and payload to send to the UI
         def simplify!
           # Save original if not done already
-          where(orig_geom: nil).update_all(Arel.sql("orig_geom = geom"))
+          where(orig_geom: nil).update_all(Arel.sql('orig_geom = geom'))
 
           # Reset geom (no-op the first time)
-          update_all(Arel.sql("geom = orig_geom"))
+          update_all(Arel.sql('geom = orig_geom'))
 
           # Simplify
           # https://postgis.net/docs/ST_Simplify.html

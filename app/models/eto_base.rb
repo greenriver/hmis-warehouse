@@ -6,7 +6,11 @@
 
 # I don't believe this is in use
 class EtoBase < ActiveRecord::Base
-  establish_connection :eto rescue nil
+  begin
+    establish_connection :eto
+  rescue StandardError
+    nil
+  end
   self.abstract_class = true
 
   def readonly?

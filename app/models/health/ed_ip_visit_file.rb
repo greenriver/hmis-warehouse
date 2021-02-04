@@ -12,8 +12,8 @@ module Health
     acts_as_paranoid
     require 'csv'
 
-    phi_attr :file, Phi::FreeText, "Name of file"
-    phi_attr :content, Phi::FreeText, "Content of file"
+    phi_attr :file, Phi::FreeText, 'Name of file'
+    phi_attr :content, Phi::FreeText, 'Content of file'
 
     belongs_to :user
 
@@ -83,7 +83,7 @@ module Health
       if check_header
         ::CSV.parse(content, headers: true).each do |row|
           model_row = {
-            ed_ip_visit_file_id: self.id,
+            ed_ip_visit_file_id: id,
           }
           self.class.header_map.each do |column, title|
             value = row[title]
@@ -113,8 +113,8 @@ module Health
     end
 
     private def check_header
-      incoming = ::CSV.parse(content.lines.first).flatten.map{|m| m&.strip}
-      expected = parsed_expected_header.map{|m| m&.strip}
+      incoming = ::CSV.parse(content.lines.first).flatten.map { |m| m&.strip }
+      expected = parsed_expected_header.map { |m| m&.strip }
       # You can update the header string with File.read('path/to/file.csv').lines.first
       # Using CSV parse in case the quoting styles differ
       if incoming == expected
@@ -124,6 +124,7 @@ module Health
         Rails.logger.error (incoming - expected).inspect
         Rails.logger.error (expected - incoming).inspect
       end
+
       return false
     end
 

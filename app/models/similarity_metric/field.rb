@@ -6,7 +6,6 @@
 
 module SimilarityMetric
   class Field < Base
-
     def field
       nil
     end
@@ -14,6 +13,5 @@ module SimilarityMetric
     def bogus?
       field.nil?
     end
-
   end
 end

@@ -10,32 +10,32 @@ module ReportGenerators::DataQuality::Fy2017
 
     def run!
       if start_report(Reports::DataQuality::Fy2017::Q1.first)
-        @answers = setup_questions()
+        @answers = setup_questions
         @support = @answers.deep_dup
-        @all_client_ids = fetch_all_client_ids()
+        @all_client_ids = fetch_all_client_ids
         @client_personal_ids = personal_ids(@all_client_ids)
         if @all_client_ids.any?
-          add_total_clients_served()
+          add_total_clients_served
           update_report_progress(percent: 10)
           setup_age_categories(@all_client_ids)
           update_report_progress(percent: 25)
-          add_age_answers()
+          add_age_answers
           update_report_progress(percent: 30)
-          add_leaver_answers()
+          add_leaver_answers
           update_report_progress(percent: 40)
-          add_stayer_answers()
+          add_stayer_answers
           update_report_progress(percent: 50)
-          add_veteran_answer()
+          add_veteran_answer
           update_report_progress(percent: 55)
-          add_chronic_answers()
+          add_chronic_answers
           update_report_progress(percent: 60)
-          add_youth_answers()
+          add_youth_answers
           update_report_progress(percent: 65)
-          add_household_head_answers()
+          add_household_head_answers
           update_report_progress(percent: 80)
-          add_lts_answers()
+          add_lts_answers
         end
-        finish_report()
+        finish_report
       else
         Rails.logger.info 'No Report Queued'
       end
@@ -73,7 +73,7 @@ module ReportGenerators::DataQuality::Fy2017
         c_t[:DOB] => :DOB,
         she_t[:computed_project_type] => :project_type,
         c_t[:VeteranStatus] => :VeteranStatus,
-        she_t[:enrollment_group_id] =>  :enrollment_group_id,
+        she_t[:enrollment_group_id] => :enrollment_group_id,
         she_t[:project_id] => :project_id,
         she_t[:project_name] => :project_name,
         she_t[:data_source_id] => :data_source_id,
@@ -106,7 +106,6 @@ module ReportGenerators::DataQuality::Fy2017
         data: support,
       )
     end
-
 
     def add_age_answers
       @answers[:q1_b2][:value] = @adults.size
@@ -146,9 +145,9 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
-            enrollment[:last_date_in_program]
+            enrollment[:last_date_in_program],
           ]
-        end
+        end,
       )
       @support[:q1_b6][:support] = add_support(
         headers: headers,
@@ -159,9 +158,9 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
-            enrollment[:last_date_in_program]
+            enrollment[:last_date_in_program],
           ]
-        end
+        end,
       )
       @support[:q1_b7][:support] = add_support(
         headers: headers,
@@ -172,11 +171,10 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
-            enrollment[:last_date_in_program]
+            enrollment[:last_date_in_program],
           ]
-        end
+        end,
       )
-
     end
 
     def add_stayer_answers
@@ -195,9 +193,9 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
-            enrollment[:last_date_in_program]
+            enrollment[:last_date_in_program],
           ]
-        end
+        end,
       )
       @support[:q1_b9][:support] = add_support(
         headers: headers,
@@ -208,11 +206,10 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:age],
             enrollment[:project_name],
             enrollment[:first_date_in_program],
-            enrollment[:last_date_in_program]
+            enrollment[:last_date_in_program],
           ]
-        end
+        end,
       )
-
     end
 
     def add_veteran_answer
@@ -235,14 +232,14 @@ module ReportGenerators::DataQuality::Fy2017
             HUD.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
             enrollment[:age],
           ]
-        end
+        end,
       )
     end
 
     def add_chronic_answers
-      disabled_clients = Hash.new
-      living_situation_qualifies = Hash.new
-      episodes_and_months_qualifies = Hash.new
+      disabled_clients = {}
+      living_situation_qualifies = {}
+      episodes_and_months_qualifies = {}
 
       @all_client_ids.each_slice(250) do |client_ids|
         client_batch(client_ids).each do |client_id, enrollments|
@@ -256,11 +253,11 @@ module ReportGenerators::DataQuality::Fy2017
       end
 
       chronic_ids = disabled_clients.keys & living_situation_qualifies.keys & episodes_and_months_qualifies.keys
-      chronic = disabled_clients.select{|k,_| chronic_ids.include?(k)}
+      chronic = disabled_clients.select { |k, _| chronic_ids.include?(k) }
       @answers[:q1_b11][:value] = chronic.size
       @support[:q1_b11][:support] = add_support(
         headers: ['Client ID', 'Personal IDs', 'Age', 'Project Name', 'Entry', 'Exit'],
-        data: chronic.map do |id, enrollment|
+        data: chronic.map do |_id, enrollment|
           [
             enrollment[:client_id],
             @client_personal_ids[enrollment[:client_id]].join(', '),
@@ -269,7 +266,7 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
           ]
-        end
+        end,
       )
     end
 
@@ -280,11 +277,11 @@ module ReportGenerators::DataQuality::Fy2017
     def add_youth_answers
       youth_households = households.select do |_, household|
         # Only select each household once, when we hit the head
-        if head_of_household?(household[:household].first[:RelationshipToHoH])
-          household[:household].select do |member|
-            member[:age] >= 12 && member[:age] <= 24 if member[:age].present?
-          end.count == household[:household].count
-        end
+        next unless head_of_household?(household[:household].first[:RelationshipToHoH])
+
+        household[:household].select do |member|
+          member[:age] >= 12 && member[:age] <= 24 if member[:age].present?
+        end.count == household[:household].count
       end
 
       client_personal_ids = personal_ids(youth_households.keys)
@@ -300,12 +297,12 @@ module ReportGenerators::DataQuality::Fy2017
             member[:age],
             member[:household_id],
             household[:household].
-              map{|m| m[:client_id]}.join(', '),
-            household[:household].size
+              map { |m| m[:client_id] }.join(', '),
+            household[:household].size,
           ]
-        end
+        end,
       )
-      parenting_youth = youth_households.select do |id, household|
+      parenting_youth = youth_households.select do |_id, household|
         household[:household].select do |member|
           adult?(member[:age]) && child_in_household?(member[:RelationshipToHoH])
         end.any?
@@ -324,9 +321,9 @@ module ReportGenerators::DataQuality::Fy2017
             household[:household].first[:household_id],
             household[:household].size,
             household[:household].
-              map{|m| m[:client_id]}.join(', '),
+              map { |m| m[:client_id] }.join(', '),
           ]
-        end
+        end,
       )
     end
 
@@ -342,10 +339,10 @@ module ReportGenerators::DataQuality::Fy2017
             client_personal_ids[id].join(', '),
             household[:household].first[:household_id],
             household[:household].
-              map{|m| m[:client_id]}.join(', '),
-            household[:household].size
+              map { |m| m[:client_id] }.join(', '),
+            household[:household].size,
           ]
-        end
+        end,
       )
 
       @answers[:q1_b15][:value] = other_heads.size
@@ -357,12 +354,11 @@ module ReportGenerators::DataQuality::Fy2017
             client_personal_ids[id].join(', '),
             household[:household].first[:household_id],
             household[:household].
-              map{|m| m[:client_id]}.join(', '),
-            household[:household].size
+              map { |m| m[:client_id] }.join(', '),
+            household[:household].size,
           ]
-        end
+        end,
       )
-
     end
 
     def add_lts_answers
@@ -370,8 +366,8 @@ module ReportGenerators::DataQuality::Fy2017
       lts = adult_stayers_and_heads_of_household_stayers.
         map do |id, enrollment|
           enrollment[:stay_length] = stay_length_for_adult_hoh(client_id: id, entry_date: enrollment[:first_date_in_program], enrollment_group_id: enrollment[:enrollment_group_id])
-          [id,enrollment]
-        end.to_h.select do |_,enrollment|
+          [id, enrollment]
+        end.to_h.select do |_, enrollment|
           enrollment[:stay_length] >= 365
         end
       client_personal_ids = personal_ids(lts.keys)
@@ -385,74 +381,74 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:RelationshipToHoH],
             enrollment[:stay_length],
           ]
-        end
+        end,
       )
     end
 
     def setup_questions
       {
         q1_a1: {
-          title:  nil,
+          title: nil,
           value: 'Total number of persons served',
         },
         q1_a2: {
-          title:  nil,
+          title: nil,
           value: 'Number of adults (age 18 or over)',
         },
         q1_a3: {
-          title:  nil,
+          title: nil,
           value: 'Number of children (under age 18)',
         },
         q1_a4: {
-          title:  nil,
+          title: nil,
           value: 'Number of persons with unknown age',
         },
         q1_a5: {
-          title:  nil,
+          title: nil,
           value: 'Number of leavers',
         },
         q1_a6: {
-          title:  nil,
+          title: nil,
           value: 'Number of adult leavers',
         },
         q1_a7: {
-          title:  nil,
+          title: nil,
           value: 'Number of adult and head of household leavers',
         },
         q1_a8: {
-          title:  nil,
+          title: nil,
           value: 'Number of stayers',
         },
         q1_a9: {
-          title:  nil,
+          title: nil,
           value: 'Number of adult stayers',
         },
         q1_a10: {
-          title:  nil,
+          title: nil,
           value: 'Number of veterans',
         },
         q1_a11: {
-          title:  nil,
+          title: nil,
           value: 'Number of chronically homeless persons',
         },
         q1_a12: {
-          title:  nil,
+          title: nil,
           value: 'Number of youth under age 25',
         },
         q1_a13: {
-          title:  nil,
+          title: nil,
           value: 'Number of parenting youth under age 25 with children',
         },
         q1_a14: {
-          title:  nil,
+          title: nil,
           value: 'Number of adult heads of household',
         },
         q1_a15: {
-          title:  nil,
+          title: nil,
           value: 'Number of child and unknown-age heads of household',
         },
         q1_a16: {
-          title:  nil,
+          title: nil,
           value: 'Heads of households and adult stayers in the project 365 days or more',
         },
 
@@ -522,6 +518,5 @@ module ReportGenerators::DataQuality::Fy2017
         },
       }
     end
-
   end
 end

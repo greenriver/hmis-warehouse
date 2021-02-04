@@ -10,30 +10,30 @@ module ReportGenerators::DataQuality::Fy2017
 
     def run!
       if start_report(Reports::DataQuality::Fy2017::Q3.first)
-        @answers = setup_questions()
+        @answers = setup_questions
         @support = @answers.deep_dup
-        @all_client_ids = fetch_all_client_ids()
+        @all_client_ids = fetch_all_client_ids
         @client_personal_ids = personal_ids(@all_client_ids)
         if @all_client_ids.any?
           setup_age_categories(@all_client_ids)
           update_report_progress(percent: 5)
-          log_with_memory("5 percent")
+          log_with_memory('5 percent')
           @clients_with_issues = Set.new
-          add_veteran_answers()
+          add_veteran_answers
           update_report_progress(percent: 15)
-          log_with_memory("15 percent")
-          add_entry_date_answers()
+          log_with_memory('15 percent')
+          add_entry_date_answers
           update_report_progress(percent: 20)
-          log_with_memory("20 percent")
-          add_head_of_household_answers()
+          log_with_memory('20 percent')
+          add_head_of_household_answers
           update_report_progress(percent: 60)
-          log_with_memory("60 percent")
-          add_location_answers()
+          log_with_memory('60 percent')
+          add_location_answers
           update_report_progress(percent: 75)
-          log_with_memory("75 percent")
-          add_disabling_condition_answers()
+          log_with_memory('75 percent')
+          add_disabling_condition_answers
         end
-        finish_report()
+        finish_report
       else
         Rails.logger.info 'No Report Queued'
       end
@@ -91,7 +91,7 @@ module ReportGenerators::DataQuality::Fy2017
           enrollment = enrollments.last
           age = enrollment[:age]
           veteran_status = enrollment[:VeteranStatus]
-          include_client = [8,9,nil].include?(veteran_status) || (veteran_status == 1 && age.present? && age < ADULT)
+          include_client = [8, 9, nil].include?(veteran_status) || (veteran_status == 1 && age.present? && age < ADULT)
 
           poor_quality[client_id] = enrollments.last if include_client
         end
@@ -106,9 +106,9 @@ module ReportGenerators::DataQuality::Fy2017
             id,
             @client_personal_ids[id].join(', '),
             HUD.no_yes_reasons_for_missing_data(enrollment[:VeteranStatus]),
-            enrollment[:age]
+            enrollment[:age],
           ]
-        end
+        end,
       )
       @answers[:q3_c2][:value] = ((counted.size.to_f / @adults.size) * 100).round(2)
     end
@@ -122,7 +122,7 @@ module ReportGenerators::DataQuality::Fy2017
           overlap = false
           more_than_one_at_project = enrollments.group_by do |enrollment|
             [enrollment[:project_id], enrollment[:data_source_id]]
-          end.select {|_,v| v.size > 1}
+          end.select { |_, v| v.size > 1 }
 
           more_than_one_at_project.
             values.
@@ -147,13 +147,13 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
           ]
-        end
+        end,
       )
       @answers[:q3_c3][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
 
     def add_head_of_household_answers
-      log_with_memory("Starting Household Answers")
+      log_with_memory('Starting Household Answers')
       log_with_memory("All Client's size: #{@all_client_ids.size}")
       counted = Set.new # Only count each client once
       poor_quality = {}
@@ -162,11 +162,11 @@ module ReportGenerators::DataQuality::Fy2017
           flag = false
           enrollment = enrollments.last
           if ! valid_household_relationship?(enrollment[:RelationshipToHoH])
-            log_with_memory("non-usable relationship")
+            log_with_memory('non-usable relationship')
             # we have a missing, or non-usable relationship
             flag = true
           else
-            log_with_memory("gathering household members")
+            log_with_memory('gathering household members')
             household = household_members(enrollment)
             # if we had two enrollments on the same day, this may not find us
             next unless household.present?
@@ -177,11 +177,11 @@ module ReportGenerators::DataQuality::Fy2017
             hoh_count = relationships.count(1)
             if hoh_count == 0
               # No one is marked as the head of household
-              log_with_memory("no HOH")
+              log_with_memory('no HOH')
               flag = true
             elsif hoh_count > 1
               # Too many heads of household
-              log_with_memory("too many HOH")
+              log_with_memory('too many HOH')
               flag = true
             end
           end
@@ -203,7 +203,7 @@ module ReportGenerators::DataQuality::Fy2017
             enrollment[:first_date_in_program],
             enrollment[:last_date_in_program],
           ]
-        end
+        end,
       )
       @answers[:q3_c4][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
@@ -234,9 +234,9 @@ module ReportGenerators::DataQuality::Fy2017
             id,
             @client_personal_ids[id].join(', '),
             enrollment[:CoCCode],
-            enrollment[:project_name]
+            enrollment[:project_name],
           ]
-        end
+        end,
       )
       # Only count against heads of household
       @answers[:q3_c5][:value] = ((counted.size.to_f / (adult_heads.count + other_heads.count)) * 100).round(2)
@@ -249,7 +249,7 @@ module ReportGenerators::DataQuality::Fy2017
         client_batch(client_ids).each do |client_id, enrollments|
           enrollment = enrollments.last
           flag = false
-          if [8,9,nil].include?(enrollment[:DisablingCondition])
+          if [8, 9, nil].include?(enrollment[:DisablingCondition])
             flag = true
           elsif enrollment[:DisablingCondition] == 0
             flag = client_disabled?(enrollment: enrollment)
@@ -268,7 +268,7 @@ module ReportGenerators::DataQuality::Fy2017
             @client_personal_ids[id].join(', '),
             HUD.disability_type(enrollment[:DisablingCondition]),
           ]
-        end
+        end,
       )
       @answers[:q3_c6][:value] = ((counted.size.to_f / all_client_count) * 100).round(2)
     end
@@ -329,79 +329,78 @@ module ReportGenerators::DataQuality::Fy2017
     def setup_questions
       {
         q3_a1: {
-          title:  nil,
+          title: nil,
           value: 'Data Element',
         },
         q3_b1: {
-          title:  nil,
+          title: nil,
           value: 'Error Count',
         },
         q3_c1: {
-          title:  nil,
+          title: nil,
           value: '% of Error Rate',
         },
         q3_a2: {
-          title:  nil,
+          title: nil,
           value: 'Veteran Status (3.7)',
         },
         q3_a3: {
-          title:  nil,
+          title: nil,
           value: 'Project Entry Date (3.10)',
         },
         q3_a4: {
-          title:  nil,
+          title: nil,
           value: 'Relationship to Head of Household (3.15)',
         },
         q3_a5: {
-          title:  nil,
+          title: nil,
           value: 'Client Location (3.16)',
         },
         q3_a6: {
-          title:  nil,
+          title: nil,
           value: 'Disabling Condition (3.8)',
         },
         q3_b2: {
-          title:  'Veteran Status (3.7) - Error Count',
+          title: 'Veteran Status (3.7) - Error Count',
           value: 0,
         },
         q3_c2: {
-          title:  'Veteran Status (3.7) - % of Error Rate',
+          title: 'Veteran Status (3.7) - % of Error Rate',
           value: 0,
         },
         q3_b3: {
-          title:  'Project Entry Date (3.10) - Error Count',
+          title: 'Project Entry Date (3.10) - Error Count',
           value: 0,
         },
         q3_c3: {
-          title:  'Project Entry Date (3.10) - % of Error Rate',
+          title: 'Project Entry Date (3.10) - % of Error Rate',
           value: 0,
         },
         q3_b4: {
-          title:  'Relationship to Head of Household (3.15) - Error Rate',
+          title: 'Relationship to Head of Household (3.15) - Error Rate',
           value: 0,
         },
         q3_c4: {
-          title:  'Relationship to Head of Household (3.15) - % of Error Rate',
+          title: 'Relationship to Head of Household (3.15) - % of Error Rate',
           value: 0,
         },
         q3_b5: {
-          title:  'Client Location (3.16) - Error Rate',
+          title: 'Client Location (3.16) - Error Rate',
           value: 0,
         },
         q3_c5: {
-          title:  'Client Location (3.16) - % of Error Rate',
+          title: 'Client Location (3.16) - % of Error Rate',
           value: 0,
         },
         q3_b6: {
-          title:  'Disabling Condition (3.8) - Error Rate',
+          title: 'Disabling Condition (3.8) - Error Rate',
           value: 0,
         },
         q3_c6: {
-          title:  'Disabling Condition (3.8) - % of Error Rate',
+          title: 'Disabling Condition (3.8) - % of Error Rate',
           value: 0,
         },
       }
     end
-
   end
 end

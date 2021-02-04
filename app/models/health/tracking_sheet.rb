@@ -89,10 +89,10 @@ module Health
       @most_recent_qa_from_case_note ||= Health::QualifyingActivity.
         where(
           source_type: [
-            "GrdaWarehouse::HmisForm",
-            "Health::SdhCaseManagementNote",
-            "Health::EpicQualifyingActivity",
-          ]
+            'GrdaWarehouse::HmisForm',
+            'Health::SdhCaseManagementNote',
+            'Health::EpicQualifyingActivity',
+          ],
         ).
         joins(:patient).
         merge(Health::Patient.where(id: patient_ids)).
@@ -104,12 +104,14 @@ module Health
     def cha_renewal_date patient_id
       reviewed_date = cha_reviewed_date(patient_id)
       return nil unless reviewed_date.present?
+
       reviewed_date + 1.years
     end
 
     def care_plan_renewal_date patient_id
       signed_date = care_plan_provider_signed_date(patient_id)
       return nil unless signed_date.present?
+
       signed_date + 1.years
     end
 
@@ -123,7 +125,7 @@ module Health
     def care_coordinator patient_id
       @patient_coordinator_lookup ||= Health::Patient.pluck(:id, :care_coordinator_id).to_h
       @care_coordinators ||= User.where(id: @patient_coordinator_lookup.values).
-        distinct.map{ |m| [m.id, m.name] }.to_h
+        distinct.map { |m| [m.id, m.name] }.to_h
 
       @care_coordinators[@patient_coordinator_lookup[patient_id]]
     end
@@ -136,7 +138,7 @@ module Health
         result = patient_scope.
           with_housing_status.
           pluck(:id, :housing_status, :housing_status_timestamp).
-          map { |(id, status, timestamp)| [id, {status: status, timestamp: timestamp}] }.
+          map { |(id, status, timestamp)| [id, { status: status, timestamp: timestamp }] }.
           to_h
 
         patient_scope.
@@ -144,7 +146,7 @@ module Health
           merge(Health::SdhCaseManagementNote.with_housing_status).
           pluck(:id, h_sdhcmn_t[:housing_status].to_sql, h_sdhcmn_t[:date_of_contact].to_sql).
           each do |(id, status, timestamp)|
-            result[id] ||= {status: status, timestamp: timestamp}
+            result[id] ||= { status: status, timestamp: timestamp }
             result[id][:status] = status if result[id][:timestamp] < timestamp
           end
 
@@ -153,7 +155,7 @@ module Health
           merge(Health::EpicCaseNote.with_housing_status).
           pluck(:id, h_ecn_t[:homeless_status].to_sql, h_ecn_t[:contact_date].to_sql).
           each do |(id, status, timestamp)|
-            result[id] ||= {status: status, timestamp: timestamp}
+            result[id] ||= { status: status, timestamp: timestamp }
             result[id][:status] = status if result[id][:timestamp] < timestamp
           end
 
@@ -166,7 +168,7 @@ module Health
           pluck(:id, hmis_form_t[:housing_status].to_sql, hmis_form_t[:collected_at].to_sql).
           each do |(client_id, status, timestamp)|
             id = client_to_patient[client_id]
-            result[id] ||= {status: status, timestamp: timestamp}
+            result[id] ||= { status: status, timestamp: timestamp }
             result[id][:status] = status if result[id][:timestamp] < timestamp
           end
 
@@ -188,7 +190,7 @@ module Health
         # Limit SSM and CHA to warehouse versions only (per spec)
         'SSM_DATE' => ssm_completed_date(patient.id),
         'CHA_DATE' => cha_completed_date(patient.id),
-        'CHA_REVIEWED' =>  cha_reviewed?(patient.id) ? 'Yes' : 'No',
+        'CHA_REVIEWED' => cha_reviewed?(patient.id) ? 'Yes' : 'No',
         'CHA_RENEWAL_DATE' => cha_renewal_date(patient.id),
         'PCTP_PT_SIGN' => care_plan_patient_signed_date(patient.id),
         'CP_CARE_PLAN_SENT_PCP_DATE' => care_plan_sent_to_provider_date(patient.id),

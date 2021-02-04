@@ -7,7 +7,7 @@
 module GrdaWarehouse::Export::HmisTwentyTwenty
   class ProjectCoc < GrdaWarehouse::Import::HmisTwentyTwenty::ProjectCoc
     include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2020'))
 
     self.hud_key = :ProjectCoCID
 
@@ -31,7 +31,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       row[:Address2] = row[:Address2][0...100] if row[:Address2]
       row[:City] = row[:City][0...50] if row[:City]
       row[:ZIP] = row[:ZIP].to_s.rjust(5, '0')[0...5] if row[:ZIP]
-      row[:Geocode] = "0" * 6 if row[:Geocode].blank?
+      row[:Geocode] = '0' * 6 if row[:Geocode].blank?
 
       return row
     end
@@ -40,11 +40,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @coc_code_overrides ||= self.class.where.not(hud_coc_code: nil).
         pluck(:data_source_id, :id, :hud_coc_code).
         map do |data_source_id, project_coc_id, hud_coc_code|
-          if hud_coc_code.present?
-            [[data_source_id, project_coc_id], hud_coc_code]
-          else
-            nil
-          end
+          [[data_source_id, project_coc_id], hud_coc_code] if hud_coc_code.present?
         end.compact.to_h
       @coc_code_overrides[[data_source_id, project_coc_id]]
     end
@@ -53,11 +49,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @geography_type_overrides ||= self.class.where.not(geography_type_override: nil).
         pluck(:data_source_id, :id, :geography_type_override).
         map do |data_source_id, project_coc_id, geography_type_override|
-          if geography_type_override.present?
-            [[data_source_id, project_coc_id], geography_type_override]
-          else
-            nil
-          end
+          [[data_source_id, project_coc_id], geography_type_override] if geography_type_override.present?
         end.compact.to_h
       @geography_type_overrides[[data_source_id, project_coc_id]]
     end
@@ -66,11 +58,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @geocode_overrides ||= self.class.where.not(geocode_override: nil).
         pluck(:data_source_id, :id, :geocode_override).
         map do |data_source_id, project_coc_id, geocode_override|
-          if geocode_override.present?
-            [[data_source_id, project_coc_id], geocode_override]
-          else
-            nil
-          end
+          [[data_source_id, project_coc_id], geocode_override] if geocode_override.present?
         end.compact.to_h
       @geocode_overrides[[data_source_id, project_coc_id]]
     end
@@ -79,11 +67,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @zip_overrides ||= self.class.where.not(zip_override: nil).
         pluck(:data_source_id, :id, :zip_override).
         map do |data_source_id, project_coc_id, zip_override|
-          if zip_override.present?
-            [[data_source_id, project_coc_id], zip_override]
-          else
-            nil
-          end
+          [[data_source_id, project_coc_id], zip_override] if zip_override.present?
         end.compact.to_h
       @zip_overrides[[data_source_id, project_coc_id]]
     end

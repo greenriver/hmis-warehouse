@@ -38,7 +38,7 @@ module GrdaWarehouse::DocumentExports
         @show_client_details ||= current_user.can_view_clients?
       end
 
-      def details_performance_dashboards_overview_index_path(*args)
+      def details_performance_dashboards_overview_index_path(*_args)
         '#'
       end
 

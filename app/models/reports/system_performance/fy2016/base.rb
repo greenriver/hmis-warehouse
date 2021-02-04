@@ -54,6 +54,7 @@ module Reports::SystemPerformance::Fy2016
 
     def value_for_options options
       return '' unless options.present?
+
       display_string = "Report Start: #{options['report_start']}; Report End: #{options['report_end']}"
       display_string << "; CoC-Code: #{options['coc_code']}" if options['coc_code'].present?
       display_string << "; Data Source: #{GrdaWarehouse::DataSource.short_name(options['data_source_id'].to_i)}" if options['data_source_id'].present?
@@ -70,7 +71,7 @@ module Reports::SystemPerformance::Fy2016
       if options['project_id'].present?
         if options['project_id'].is_a?(Array)
           if options['project_id'].delete_if(&:blank?).any?
-            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present?}.compact.join(', ')}"
+            str = "; Projects: #{options['project_id'].map { |m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present? }.compact.join(', ')}"
           end
         else
           str = "; Project: #{GrdaWarehouse::Hud::Project.find(options['project_id'].to_i).name}"
@@ -91,9 +92,8 @@ module Reports::SystemPerformance::Fy2016
       if (sub_population = options['sub_population']) && sub_population.present?
         return "; Sub Population: #{sub_population.humanize.titleize}"
       end
+
       ''
     end
-
-
   end
 end

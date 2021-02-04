@@ -14,7 +14,7 @@ module Health
     end
 
     def to_partial_path
-      "health/goal/clinicals/clinical"
+      'health/goal/clinicals/clinical'
     end
   end
 end

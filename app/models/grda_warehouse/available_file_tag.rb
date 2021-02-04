@@ -48,34 +48,34 @@ module GrdaWarehouse
       }
     end
 
-    def self.contains_consent_form?(tag_names=[])
+    def self.contains_consent_form?(tag_names = [])
       consent_forms.where(name: tag_names).exists?
     end
 
-    def self.full_release?(tag_names=[])
+    def self.full_release?(tag_names = [])
       full_release.where(name: tag_names).exists?
     end
 
-    def self.coc_level_release?(tag_names=[])
+    def self.coc_level_release?(tag_names = [])
       full_release.where(name: tag_names, coc_available: true).exists?
     end
 
-    def self.partial_consent?(tag_names=[])
+    def self.partial_consent?(tag_names = [])
       partial_consent.where(name: tag_names).exists?
     end
 
-    def self.should_send_notifications?(tag_names=[])
+    def self.should_send_notifications?(tag_names = [])
       notification_triggers.where(name: tag_names).exists?
     end
 
     def self.grouped
       groups = []
 
-      self.ordered.group_by{|tag| tag.group}
+      ordered.group_by { |tag| tag.group }
     end
 
     def self.tag_includes(info_type)
-      self.all.select do |tag|
+      all.select do |tag|
         tag.included_info.present? && tag.included_info.split(',').map(&:strip).include?(info_type)
       end
     end

@@ -19,23 +19,24 @@ class AwsS3
     # self.client = Aws::S3::Client.new
     if secret_access_key.present? && secret_access_key != 'unknown'
       self.client = Aws::S3::Client.new({
-        region: region,
-        access_key_id: access_key_id,
-        secret_access_key: secret_access_key,
-      })
+                                          region: region,
+                                          access_key_id: access_key_id,
+                                          secret_access_key: secret_access_key,
+                                        })
     else
       self.client = Aws::S3::Client.new({
-        region: region,
-      })
+                                          region: region,
+                                        })
     end
 
-    @s3 = Aws::S3::Resource.new(client: self.client)
+    @s3 = Aws::S3::Resource.new(client: client)
     @bucket = @s3.bucket(@bucket_name)
   end
 
-
   def exists?
-    return @bucket.exists? rescue false
+    return @bucket.exists?
+  rescue StandardError
+    false
   end
 
   def list(prefix: '')

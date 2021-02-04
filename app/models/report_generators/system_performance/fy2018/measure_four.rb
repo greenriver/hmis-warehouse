@@ -20,25 +20,24 @@ module ReportGenerators::SystemPerformance::Fy2018
     def run!
       # Disable logging so we don't fill the disk
       ActiveRecord::Base.logger.silence do
-        calculate()
-        Rails.logger.info "Done"
+        calculate
+        Rails.logger.info 'Done'
       end # End silence ActiveRecord Log
     end
 
-
     def calculate
       if start_report(Reports::SystemPerformance::Fy2018::MeasureFour.first)
-        set_report_start_and_end()
+        set_report_start_and_end
         Rails.logger.info "Starting report #{@report.report.name}"
-        @answers = setup_questions()
+        @answers = setup_questions
         @support = @answers.deep_dup
-        add_stayer_answers()
+        add_stayer_answers
         update_report_progress(percent: 50)
-        add_leaver_answers()
+        add_leaver_answers
         update_report_progress(percent: 90)
 
         Rails.logger.info @answers.inspect
-        finish_report()
+        finish_report
       else
         Rails.logger.info 'No Report Queued'
       end
@@ -77,16 +76,16 @@ module ReportGenerators::SystemPerformance::Fy2018
             client[:client_id],
             client[:project_name],
             client[:first_date_in_program],
-            client[:last_date_in_program]
+            client[:last_date_in_program],
           ]
-        end
+        end,
       }
       universe_of_stayers.each do |client|
         if client[:latest_earned_income] - client[:earliest_earned_income] > 0
           @answers[:four1_c3][:value] += 1
           @support[:four1_c3][:support] ||= {
             headers: ['Client ID', 'Latest Earned Income', 'Earliest Earned Income'],
-            counts: []
+            counts: [],
           }
           @support[:four1_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income], client[:earliest_earned_income]]
         end
@@ -94,22 +93,34 @@ module ReportGenerators::SystemPerformance::Fy2018
           @answers[:four2_c3][:value] += 1
           @support[:four2_c3][:support] ||= {
             headers: ['Client ID', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
-            counts: []
+            counts: [],
           }
           @support[:four2_c3][:support][:counts] << [client[:client_id], client[:latest_non_earned_income], client[:earliest_non_earned_income]]
         end
-        if (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
-          @answers[:four3_c3][:value] += 1
-          @support[:four3_c3][:support] ||= {
-            headers: ['Client ID', 'Latest Total Income', 'Earliest Total Income'],
-            counts: []
-          }
-          @support[:four3_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
-        end
+        next unless (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
+
+        @answers[:four3_c3][:value] += 1
+        @support[:four3_c3][:support] ||= {
+          headers: ['Client ID', 'Latest Total Income', 'Earliest Total Income'],
+          counts: [],
+        }
+        @support[:four3_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
       end
-      @answers[:four1_c4][:value] = (@answers[:four1_c3][:value].to_f / @answers[:four1_c2][:value] * 100).round(2) rescue 0
-      @answers[:four2_c4][:value] = (@answers[:four2_c3][:value].to_f / @answers[:four2_c2][:value] * 100).round(2) rescue 0
-      @answers[:four3_c4][:value] = (@answers[:four3_c3][:value].to_f / @answers[:four3_c2][:value] * 100).round(2) rescue 0
+      @answers[:four1_c4][:value] = begin
+                                      (@answers[:four1_c3][:value].to_f / @answers[:four1_c2][:value] * 100).round(2)
+                                    rescue StandardError
+                                      0
+                                    end
+      @answers[:four2_c4][:value] = begin
+                                      (@answers[:four2_c3][:value].to_f / @answers[:four2_c2][:value] * 100).round(2)
+                                    rescue StandardError
+                                      0
+                                    end
+      @answers[:four3_c4][:value] = begin
+                                      (@answers[:four3_c3][:value].to_f / @answers[:four3_c2][:value] * 100).round(2)
+                                    rescue StandardError
+                                      0
+                                    end
     end
 
     def add_leaver_answers
@@ -128,16 +139,16 @@ module ReportGenerators::SystemPerformance::Fy2018
             client[:client_id],
             client[:project_name],
             client[:first_date_in_program],
-            client[:last_date_in_program]
+            client[:last_date_in_program],
           ]
-        end
+        end,
       }
       universe_of_leavers.each do |client|
         if client[:latest_earned_income] - client[:earliest_earned_income] > 0
           @answers[:four4_c3][:value] += 1
           @support[:four4_c3][:support] ||= {
             headers: ['Client ID', 'Latest Earned Income', 'Earliest Earned Income'],
-            counts: []
+            counts: [],
           }
           @support[:four4_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income], client[:earliest_earned_income]]
         end
@@ -145,23 +156,36 @@ module ReportGenerators::SystemPerformance::Fy2018
           @answers[:four5_c3][:value] += 1
           @support[:four5_c3][:support] ||= {
             headers: ['Client ID', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
-            counts: []
+            counts: [],
           }
           @support[:four5_c3][:support][:counts] << [client[:client_id], client[:latest_non_earned_income], client[:earliest_non_earned_income]]
         end
-        if (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
-          @answers[:four6_c3][:value] += 1
-          @support[:four6_c3][:support] ||= {
-            headers: ['Client ID', 'Latest Total Income', 'Earliest Total Income'],
-            counts: []
-          }
-          @support[:four6_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
-        end
+        next unless (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
+
+        @answers[:four6_c3][:value] += 1
+        @support[:four6_c3][:support] ||= {
+          headers: ['Client ID', 'Latest Total Income', 'Earliest Total Income'],
+          counts: [],
+        }
+        @support[:four6_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income] + client[:latest_non_earned_income], client[:earliest_earned_income] + client[:earliest_non_earned_income]]
       end
-      @answers[:four4_c4][:value] = (@answers[:four4_c3][:value].to_f / @answers[:four4_c2][:value] * 100).round(2) rescue 0
-      @answers[:four5_c4][:value] = (@answers[:four5_c3][:value].to_f / @answers[:four5_c2][:value] * 100).round(2) rescue 0
-      @answers[:four6_c4][:value] = (@answers[:four6_c3][:value].to_f / @answers[:four6_c2][:value] * 100).round(2) rescue 0
+      @answers[:four4_c4][:value] = begin
+                                      (@answers[:four4_c3][:value].to_f / @answers[:four4_c2][:value] * 100).round(2)
+                                    rescue StandardError
+                                      0
+                                    end
+      @answers[:four5_c4][:value] = begin
+                                      (@answers[:four5_c3][:value].to_f / @answers[:four5_c2][:value] * 100).round(2)
+                                    rescue StandardError
+                                      0
+                                    end
+      @answers[:four6_c4][:value] = begin
+                                      (@answers[:four6_c3][:value].to_f / @answers[:four6_c2][:value] * 100).round(2)
+                                    rescue StandardError
+                                      0
+                                    end
     end
+
     def calculate_stayers
       # 1. A “system stayer” is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
       # Page 24 of 41
@@ -188,11 +212,9 @@ module ReportGenerators::SystemPerformance::Fy2018
         ongoing(on_date: @report_end).
         hud_project_type(PH + SH + TH).
         joins(:client, project: :funders).
-        where(Funder: {Funder: [2, 3, 4, 5]}).
+        where(Funder: { Funder: [2, 3, 4, 5] }).
         grant_funded_between(start_date: @report_start, end_date: @report_end + 1.day)
-        if @report.options['coc_code'].present?
-          stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
-        end
+      stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
 
       stayers_scope = add_filters(scope: stayers_scope)
 
@@ -205,17 +227,17 @@ module ReportGenerators::SystemPerformance::Fy2018
           enrollment
         end.group_by do |row|
           row[:client_id]
-        end.map do |_,enrollments|
+        end.map do |_, enrollments|
           # Any enrollment with project_tracking_method != 3 will have 365 days
           # based on being open for the full year
-          long_enrollments = enrollments.select{|m| m[:project_tracking_method] != 3}
+          long_enrollments = enrollments.select { |m| m[:project_tracking_method] != 3 }
 
-          bed_night_enrollments = enrollments.select{|m| m[:project_tracking_method] == 3}
+          bed_night_enrollments = enrollments.select { |m| m[:project_tracking_method] == 3 }
           long_enrollments += bed_night_enrollments.select do |enrollment|
             night_count = GrdaWarehouse::ServiceHistoryService.service.
               where(
                 client_id: enrollment[:client_id],
-                service_history_enrollment_id: enrollment[:enrollment_id]
+                service_history_enrollment_id: enrollment[:enrollment_id],
               ).select(:date).
               distinct.
               count
@@ -224,10 +246,8 @@ module ReportGenerators::SystemPerformance::Fy2018
 
           # Keep only the last enrollment for the client
           # Use the client age at the report start or last enrollment, whichever date is later
-          final_enrollment = long_enrollments.sort_by{|m| m[:first_date_in_program]}.last
-          if final_enrollment[:DOB].present? && (final_enrollment[:first_date_in_program] < @report_start)
-            final_enrollment[:age] = GrdaWarehouse::Hud::Client.age(date: @report_start, dob: final_enrollment[:DOB])
-          end
+          final_enrollment = long_enrollments.max_by { |m| m[:first_date_in_program] }
+          final_enrollment[:age] = GrdaWarehouse::Hud::Client.age(date: @report_start, dob: final_enrollment[:DOB]) if final_enrollment[:DOB].present? && (final_enrollment[:first_date_in_program] < @report_start)
           final_enrollment
         end.select do |row|
           # We only look at adults
@@ -258,29 +278,27 @@ module ReportGenerators::SystemPerformance::Fy2018
         ongoing(on_date: @report_end).
         hud_project_type(PH + SH + TH).
         joins(project: :funders).
-        where(Funder: {Funder: [2, 3, 4, 5]}).
+        where(Funder: { Funder: [2, 3, 4, 5] }).
         grant_funded_between(start_date: @report_start,
-          end_date: @report_end + 1.day)
+                             end_date: @report_end + 1.day)
 
       client_id_scope = add_filters(scope: client_id_scope)
 
       leavers_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         ended_between(start_date: @report_start,
-          end_date: @report_end + 1.days).
+                      end_date: @report_end + 1.days).
         hud_project_type(PH + SH + TH).
         where.not(
           client_id: client_id_scope.
             select(:client_id).
-            distinct
+            distinct,
         ).
         joins(:client, project: :funders).
-        where(Funder: {Funder: [2, 3, 4, 5]}).
+        where(Funder: { Funder: [2, 3, 4, 5] }).
         grant_funded_between(start_date: @report_start,
-          end_date: @report_end + 1.day)
+                             end_date: @report_end + 1.day)
 
-      if @report.options['coc_code'].present?
-          leavers_scope = leavers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
-        end
+      leavers_scope = leavers_scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
 
       leavers_scope = add_filters(scope: leavers_scope)
 
@@ -290,7 +308,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           Hash[columns.values.zip(row)]
         end.group_by do |row|
           row[:client_id]
-        end.map do |k,v|
+        end.map do |_k, v|
           # Keep only the last enrollment for the client
           # Use the client age at the report start or last enrollment, whichever date is later
           final_enrollment = v.last
@@ -323,16 +341,14 @@ module ReportGenerators::SystemPerformance::Fy2018
           order(InformationDate: :asc).
           pluck(*columns).map do |row|
             Hash[columns.zip(row)]
-          end.group_by{|m| m[:DataCollectionStage]}
+          end.group_by { |m| m[:DataCollectionStage] }
 
         income_map = {} # make a useful group of income data {1 => date => [rows], 5 => date => [rows]}
         assessments.each do |stage, assessments|
-          income_map[stage] = assessments.group_by{|m| m[:InformationDate]}
+          income_map[stage] = assessments.group_by { |m| m[:InformationDate] }
         end
         # Grab the last day from the 5 (annual assessment) group
-        if income_map[5].present?
-          latest_group = income_map[5].values.last.first
-        end
+        latest_group = income_map[5].values.last.first if income_map[5].present?
         # If we have more than one 5, use the first as the earliest, otherwise if we have a 1 group use that, if not, we won't calculate
         if income_map[5].present? && income_map[5].size > 1
           earliest_group = income_map[5].values.first.first
@@ -357,28 +373,27 @@ module ReportGenerators::SystemPerformance::Fy2018
             universe_of_stayers[index][:latest_non_earned_income] = nil
           end
         end
-        if earliest_group.present?
-          universe_of_stayers[index][:earliest_income] = 0
-          universe_of_stayers[index][:earliest_earned_income] = 0
-          universe_of_stayers[index][:earliest_non_earned_income] = 0
-          if earliest_group[:TotalMonthlyIncome].present?
-            universe_of_stayers[index][:earliest_income] = earliest_group[:TotalMonthlyIncome]
-            universe_of_stayers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
-            universe_of_stayers[index][:earliest_non_earned_income] = universe_of_stayers[index][:earliest_income] - universe_of_stayers[index][:earliest_earned_income]
-          elsif (amounts = earliest_group.values_at(amount_columns).compact).any?
-            universe_of_stayers[index][:earliest_income] = amounts.sum
-            universe_of_stayers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
-            universe_of_stayers[index][:earliest_non_earned_income] = universe_of_stayers[index][:earliest_income] - universe_of_stayers[index][:earliest_earned_income]
-          elsif earliest_group[:IncomeFromAnySource] == 99 || earliest_group[:IncomeFromAnySource] = 8 || earliest_group[:IncomeFromAnySource] = 9
-            universe_of_stayers[index][:earliest_income] = nil
-            universe_of_stayers[index][:earliest_earned_income] = nil
-            universe_of_stayers[index][:earliest_non_earned_income] = nil
-          end
+        next unless earliest_group.present?
+
+        universe_of_stayers[index][:earliest_income] = 0
+        universe_of_stayers[index][:earliest_earned_income] = 0
+        universe_of_stayers[index][:earliest_non_earned_income] = 0
+        if earliest_group[:TotalMonthlyIncome].present?
+          universe_of_stayers[index][:earliest_income] = earliest_group[:TotalMonthlyIncome]
+          universe_of_stayers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
+          universe_of_stayers[index][:earliest_non_earned_income] = universe_of_stayers[index][:earliest_income] - universe_of_stayers[index][:earliest_earned_income]
+        elsif (amounts = earliest_group.values_at(amount_columns).compact).any?
+          universe_of_stayers[index][:earliest_income] = amounts.sum
+          universe_of_stayers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
+          universe_of_stayers[index][:earliest_non_earned_income] = universe_of_stayers[index][:earliest_income] - universe_of_stayers[index][:earliest_earned_income]
+        elsif earliest_group[:IncomeFromAnySource] == 99 || earliest_group[:IncomeFromAnySource] = 8 || earliest_group[:IncomeFromAnySource] = 9
+          universe_of_stayers[index][:earliest_income] = nil
+          universe_of_stayers[index][:earliest_earned_income] = nil
+          universe_of_stayers[index][:earliest_non_earned_income] = nil
         end
       end
-      universe_of_stayers.select{|m| m[:latest_income].present? && m[:earliest_income].present?}
+      universe_of_stayers.select { |m| m[:latest_income].present? && m[:earliest_income].present? }
     end
-
 
     def add_leaver_income universe_of_leavers
       # add columns to each row for the following:
@@ -401,16 +416,15 @@ module ReportGenerators::SystemPerformance::Fy2018
           order(InformationDate: :asc).
           pluck(*columns).map do |row|
             Hash[columns.zip(row)]
-          end.group_by{|m| m[:DataCollectionStage]}
+          end.group_by { |m| m[:DataCollectionStage] }
 
         income_map = {} # make a useful group of income data {1 => date => [rows], 5 => date => [rows]}
         assessments.each do |stage, assessments|
-          income_map[stage] = assessments.group_by{|m| m[:InformationDate]}
+          income_map[stage] = assessments.group_by { |m| m[:InformationDate] }
         end
         # Grab the last day from the 3 (exit assessment) group
         latest_group = income_map[3].values.last.first if income_map[3].present?
         earliest_group = income_map[1].values.first.first if income_map[1].present?
-
 
         if latest_group.present?
           universe_of_leavers[index][:latest_income] = 0
@@ -430,32 +444,32 @@ module ReportGenerators::SystemPerformance::Fy2018
             universe_of_leavers[index][:latest_non_earned_income] = nil
           end
         end
-        if earliest_group.present?
-          universe_of_leavers[index][:earliest_income] = 0
-          universe_of_leavers[index][:earliest_earned_income] = 0
-          universe_of_leavers[index][:earliest_non_earned_income] = 0
-          if earliest_group[:TotalMonthlyIncome].present?
-            universe_of_leavers[index][:earliest_income] = earliest_group[:TotalMonthlyIncome]
-            universe_of_leavers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
-            universe_of_leavers[index][:earliest_non_earned_income] = universe_of_leavers[index][:earliest_income] - universe_of_leavers[index][:earliest_earned_income]
-          elsif (amounts = earliest_group.values_at(amount_columns).compact).any?
-            universe_of_leavers[index][:earliest_income] = amounts.sum
-            universe_of_leavers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
-            universe_of_leavers[index][:earliest_non_earned_income] = universe_of_leavers[index][:earliest_income] - universe_of_leavers[index][:earliest_earned_income]
-          elsif earliest_group[:IncomeFromAnySource] == 99
-            universe_of_leavers[index][:earliest_income] = nil
-            universe_of_leavers[index][:earliest_earned_income] = nil
-            universe_of_leavers[index][:earliest_non_earned_income] = nil
-          end
+        next unless earliest_group.present?
+
+        universe_of_leavers[index][:earliest_income] = 0
+        universe_of_leavers[index][:earliest_earned_income] = 0
+        universe_of_leavers[index][:earliest_non_earned_income] = 0
+        if earliest_group[:TotalMonthlyIncome].present?
+          universe_of_leavers[index][:earliest_income] = earliest_group[:TotalMonthlyIncome]
+          universe_of_leavers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
+          universe_of_leavers[index][:earliest_non_earned_income] = universe_of_leavers[index][:earliest_income] - universe_of_leavers[index][:earliest_earned_income]
+        elsif (amounts = earliest_group.values_at(amount_columns).compact).any?
+          universe_of_leavers[index][:earliest_income] = amounts.sum
+          universe_of_leavers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
+          universe_of_leavers[index][:earliest_non_earned_income] = universe_of_leavers[index][:earliest_income] - universe_of_leavers[index][:earliest_earned_income]
+        elsif earliest_group[:IncomeFromAnySource] == 99
+          universe_of_leavers[index][:earliest_income] = nil
+          universe_of_leavers[index][:earliest_earned_income] = nil
+          universe_of_leavers[index][:earliest_non_earned_income] = nil
         end
       end
-      universe_of_leavers.select{|m| m[:latest_income].present? && m[:earliest_income].present?}
+      universe_of_leavers.select { |m| m[:latest_income].present? && m[:earliest_income].present? }
     end
 
     def setup_questions
       {
         four1_a2: {
-          title:  nil,
+          title: nil,
           value: 'Universe: number of adults (system stayers)',
         },
         four1_a3: {
@@ -515,7 +529,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: nil,
         },
         four2_a2: {
-          title:  nil,
+          title: nil,
           value: 'Universe: number of adults (system stayers)',
         },
         four2_a3: {
@@ -550,7 +564,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           title: 'Universe: number of adults (system stayers - current FY)',
           value: 0,
         },
-        four2_c3:{
+        four2_c3: {
           title: 'Number of adults with increased non-employment cash income (current FY)',
           value: 0,
         },
@@ -575,7 +589,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: nil,
         },
         four3_a2: {
-          title:  nil,
+          title: nil,
           value: 'Universe: number of adults (system stayers)',
         },
         four3_a3: {
@@ -635,7 +649,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: nil,
         },
         four4_a2: {
-          title:  nil,
+          title: nil,
           value: 'Universe: number of adults (system leavers)',
         },
         four4_a3: {
@@ -695,7 +709,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: nil,
         },
         four5_a2: {
-          title:  nil,
+          title: nil,
           value: 'Universe: number of adults (system leavers)',
         },
         four5_a3: {
@@ -730,7 +744,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           title: 'Universe: number of adults (system leavers - current FY)',
           value: 0,
         },
-        four5_c3:{
+        four5_c3: {
           title: 'Number of adults with increased non-employment cash income (current FY)',
           value: 0,
         },
@@ -755,7 +769,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: nil,
         },
         four6_a2: {
-          title:  nil,
+          title: nil,
           value: 'Universe: number of adults (system leavers)',
         },
         four6_a3: {

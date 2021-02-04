@@ -9,7 +9,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
     include ::Export::HMISSixOneOne::Shared
     attr_accessor :path
     self.hud_key = :ExportID
-    setup_hud_column_access( GrdaWarehouse::Hud::Export.hud_csv_headers(version: '6.11') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Export.hud_csv_headers(version: '6.11'))
 
     def initialize(path:)
       super
@@ -38,10 +38,9 @@ module GrdaWarehouse::Export::HMISSixOneOne
     def export!
       export_path = File.join(@path, self.class.file_name)
       CSV.open(export_path, 'wb') do |csv|
-        csv << self.hud_csv_headers
-        csv << self.attributes.slice(*hud_csv_headers.map(&:to_s)).values
+        csv << hud_csv_headers
+        csv << attributes.slice(*hud_csv_headers.map(&:to_s)).values
       end
     end
-
   end
 end

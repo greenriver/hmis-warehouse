@@ -9,7 +9,7 @@ module SimilarityMetric
     def quality_data?(client)
       return true # ditching this logic for now
       if q = client.NameDataQuality
-        !( q == 9 || q == 99 )
+        ![9, 99].include?(q)
       else
         true
       end

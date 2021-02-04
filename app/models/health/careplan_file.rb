@@ -9,12 +9,10 @@
 # Control: PHI attributes documented in base class
 module Health
   class CareplanFile < Health::HealthFile
-
     belongs_to :careplan, class_name: 'Health::Careplan', foreign_key: :parent_id
 
     def title
-      "Careplan"
+      'Careplan'
     end
-
   end
 end

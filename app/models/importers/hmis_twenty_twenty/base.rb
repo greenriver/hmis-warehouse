@@ -23,7 +23,7 @@ module Importers::HmisTwentyTwenty
 
     def initialize(
       file_path: 'var/hmis_import',
-      data_source_id: ,
+      data_source_id:,
       logger: Rails.logger,
       debug: true,
       remove_files: true,
@@ -40,75 +40,75 @@ module Importers::HmisTwentyTwenty
       @deidentified = deidentified
       @project_whitelist = project_whitelist
       setup_import(data_source: @data_source)
-      log("De-identifying clients") if @deidentified
-      log("Limiting to white-listed projects") if @project_whitelist
+      log('De-identifying clients') if @deidentified
+      log('Limiting to white-listed projects') if @project_whitelist
     end
 
     def import!
       # return if already_running_for_data_source?
       # Provide Application locking so we can be sure we aren't already importing this data source
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{@data_source.id}") do
-        @export = load_export_file()
+        @export = load_export_file
         return unless export_file_valid?
 
         begin
-          @range = set_date_range()
-          clean_source_files()
+          @range = set_date_range
+          clean_source_files
           # reload the export file with new export id
           @export = nil
-          @export = load_export_file()
+          @export = load_export_file
           @export.effective_export_end_date = @effective_export_end_date
           @export.import!
-          @projects = set_involved_projects()
+          @projects = set_involved_projects
           @projects.each(&:update_changed_project_types)
           @projects.each(&:import!)
           # Import data that's not directly related to enrollments
-          remove_project_related_data()
-          import_organizations()
-          import_inventories()
-          import_project_cocs()
-          import_funders()
-          import_affiliations()
-          import_users()
+          remove_project_related_data
+          import_organizations
+          import_inventories
+          import_project_cocs
+          import_funders
+          import_affiliations
+          import_users
           @import.save
 
           # Clients
-          import_clients()
+          import_clients
           @import.save
 
           # Enrollment related
-          remove_enrollment_related_data()
-          import_enrollments()
-          import_enrollment_cocs()
-          import_disabilities()
-          import_employment_educations()
-          import_exits()
-          import_health_and_dvs()
-          import_income_benefits()
+          remove_enrollment_related_data
+          import_enrollments
+          import_enrollment_cocs
+          import_disabilities
+          import_employment_educations
+          import_exits
+          import_health_and_dvs
+          import_income_benefits
           @import.save
-          import_services()
+          import_services
           @import.save
-          import_current_living_situations()
-          import_assessments()
-          import_assessment_questions()
-          import_assessment_results()
-          import_events()
+          import_current_living_situations
+          import_assessments
+          import_assessment_questions
+          import_assessment_results
+          import_events
 
-          delete_remaining_pending_deletes()
-          complete_import()
-          match_clients()
-          log("Import complete")
+          delete_remaining_pending_deletes
+          complete_import
+          match_clients
+          log('Import complete')
         ensure
-          cleanup_any_pending_deletes()
-          remove_import_files() if @remove_files
+          cleanup_any_pending_deletes
+          remove_import_files if @remove_files
         end
       end # end with_advisory_lock
-      project_cleanup()
+      project_cleanup
     end
 
     def export_file_valid?
       if @export.blank?
-        log("Exiting, failed to find a valid export file")
+        log('Exiting, failed to find a valid export file')
         return false
       end
       if @data_source.source_id.present?
@@ -123,14 +123,14 @@ module Importers::HmisTwentyTwenty
           # Populate @import for error reporting
           @import.files << 'Export.csv'
           @import.summary['Export.csv'][:total_lines] = 1
-          complete_import()
+          complete_import
           return false
         end
       end
       return true
     end
 
-    def delete_remaining_pending_deletes()
+    def delete_remaining_pending_deletes
       # If a pending delete is still present, the associated record is not in the import, and should be
       # marked as deleted
       soft_deletable_sources.each do |source|
@@ -141,25 +141,25 @@ module Importers::HmisTwentyTwenty
     end
 
     def cleanup_any_pending_deletes
-      log("Resetting pending deletes")
+      log('Resetting pending deletes')
       # If an import fails, it will leave pending deletes. Iterate through the sources and null out any soft deletes
       soft_deletable_sources.each do |source|
         source.where(data_source_id: @data_source.id).
           where.not(pending_date_deleted: nil). # Note, postgres won't index nulls, this speeds this up tremendously
           update_all(pending_date_deleted: nil)
       end
-      log("Pending deletes reset")
+      log('Pending deletes reset')
     end
 
     def remove_import_files
       import_file_path = "#{@file_path}/#{@data_source.id}"
       Rails.logger.info "Removing #{import_file_path}"
-      FileUtils.rm_rf(import_file_path) if File.exists?(import_file_path)
+      FileUtils.rm_rf(import_file_path) if File.exist?(import_file_path)
     end
 
     def project_cleanup
       GrdaWarehouse::Tasks::ProjectCleanup.new(
-        project_ids: GrdaWarehouse::Hud::Project.where(data_source_id: @data_source.id).select(:id)
+        project_ids: GrdaWarehouse::Hud::Project.where(data_source_id: @data_source.id).select(:id),
       ).run!
     end
 
@@ -175,63 +175,61 @@ module Importers::HmisTwentyTwenty
       @import.save
     end
 
-    def import_enrollments()
+    def import_enrollments
       import_class(enrollment_source)
     end
 
-    def import_exits()
+    def import_exits
       import_class(exit_source)
     end
 
-    def import_services()
+    def import_services
       import_class(service_source)
     end
 
-    def import_enrollment_cocs()
+    def import_enrollment_cocs
       import_class(enrollment_coc_source)
     end
 
-    def import_disabilities()
+    def import_disabilities
       import_class(disability_source)
     end
 
-    def import_employment_educations()
+    def import_employment_educations
       import_class(employment_education_source)
     end
 
-    def import_health_and_dvs()
+    def import_health_and_dvs
       import_class(health_and_dv_source)
     end
 
-    def import_income_benefits()
+    def import_income_benefits
       import_class(income_benefits_source)
     end
 
-    def import_users()
+    def import_users
       import_class(user_source)
     end
 
-    def import_current_living_situations()
+    def import_current_living_situations
       import_class(current_living_situation_source)
     end
 
-    def import_assessments()
+    def import_assessments
       import_class(assessment_source)
     end
 
-    def import_assessment_questions()
+    def import_assessment_questions
       import_class(assessment_question_source)
     end
 
-    def import_assessment_results()
+    def import_assessment_results
       import_class(assessment_result_source)
     end
 
-    def import_events()
+    def import_events
       import_class(event_source)
     end
-
-
 
     def self.pre_calculate_source_hashes!
       importable_files.each do |_, klass|
@@ -266,12 +264,13 @@ module Importers::HmisTwentyTwenty
       ].each do |klass|
         file = importable_files.key(klass)
         next unless @import.summary[klass.file_name].present?
+
         @import.summary[klass.file_name][:lines_restored] -= klass.public_send(:delete_involved, {
-          projects: @projects,
-          range: @range,
-          data_source_id: @data_source.id,
-          deleted_at: @soft_delete_time,
-        })
+                                                                                 projects: @projects,
+                                                                                 range: @range,
+                                                                                 data_source_id: @data_source.id,
+                                                                                 deleted_at: @soft_delete_time,
+                                                                               })
       end
 
       # Exit and Enrollment are used in the calculation, so this has to be two steps.
@@ -298,12 +297,13 @@ module Importers::HmisTwentyTwenty
       ].each do |klass|
         file = importable_files.key(klass)
         next unless @import.summary[klass.file_name].present?
+
         @import.summary[klass.file_name][:lines_restored] -= klass.public_send(:delete_involved, {
-          projects: @projects,
-          range: @range,
-          data_source_id: @data_source.id,
-          deleted_at: @soft_delete_time,
-        })
+                                                                                 projects: @projects,
+                                                                                 range: @range,
+                                                                                 data_source_id: @data_source.id,
+                                                                                 deleted_at: @soft_delete_time,
+                                                                               })
       end
     end
 
@@ -312,11 +312,12 @@ module Importers::HmisTwentyTwenty
       begin
         file = importable_files.key(klass)
         return unless @import.summary[file].present?
+
         stats = klass.import_related!(
           data_source_id: @data_source.id,
           file_path: @file_path,
           stats: @import.summary[file],
-          soft_delete_time: @soft_delete_time
+          soft_delete_time: @soft_delete_time,
         )
         errors = stats.delete(:errors)
         setup_summary(klass.file_name)
@@ -326,8 +327,8 @@ module Importers::HmisTwentyTwenty
             add_error(file_path: klass.file_name, message: error[:message], line: error[:line])
           end
         end
-      rescue ActiveRecord::ActiveRecordError => exception
-        message = "Unable to import #{klass.name}: #{exception.message}"
+      rescue ActiveRecord::ActiveRecordError => e
+        message = "Unable to import #{klass.name}: #{e.message}"
         add_error(file_path: klass.file_name, message: message, line: '')
       end
     end
@@ -359,7 +360,7 @@ module Importers::HmisTwentyTwenty
     def set_involved_projects
       project_source.load_from_csv(
         file_path: @file_path,
-        data_source_id: @data_source.id
+        data_source_id: @data_source.id,
       )
     end
 
@@ -371,20 +372,19 @@ module Importers::HmisTwentyTwenty
       begin
         @export ||= export_source.load_from_csv(
           file_path: @file_path,
-          data_source_id: @data_source.id
+          data_source_id: @data_source.id,
         )
-      rescue Errno::ENOENT => exception
+      rescue Errno::ENOENT => e
         log('No valid Export.csv file found')
       end
       return nil unless @export&.valid?
+
       @export
     end
 
     def already_running_for_data_source?
       running = GrdaWarehouse::DataSource.advisory_lock_exists?("hud_import_#{@data_source.id}")
-      if running
-        logger.warn "Import of Data Source: #{@data_source.short_name} already running...exiting"
-      end
+      logger.warn "Import of Data Source: #{@data_source.short_name} already running...exiting" if running
       return running
     end
 
@@ -397,13 +397,13 @@ module Importers::HmisTwentyTwenty
         file = open_csv_file(source_file_path)
         clean_source_file(destination_path: destination_file_path, read_from: file, klass: klass)
         @import.files << [klass.name, file_name]
-        if File.exists?(destination_file_path)
+        if File.exist?(destination_file_path)
           FileUtils.mv(destination_file_path, source_file_path)
-        else
-          # We failed at cleaning the import file, delete the source
-          # So we don't accidentally import an unclean file
-          File.delete(source_file_path) if File.exists?(source_file_path)
+        elsif File.exist?(source_file_path)
+          File.delete(source_file_path)
         end
+        # We failed at cleaning the import file, delete the source
+        # So we don't accidentally import an unclean file
       end
     end
 
@@ -437,10 +437,10 @@ module Importers::HmisTwentyTwenty
           'wb',
           headers: header,
           write_headers: true,
-          force_quotes: true
-          )
+          force_quotes: true,
+        )
       else
-        msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{headers.to_s}; expected a subset of: #{klass.hud_csv_headers}"
+        msg = "Unable to import #{File.basename(read_from.path)}, header invalid: #{headers}; expected a subset of: #{klass.hud_csv_headers}"
         add_error(file_path: read_from.path, message: msg, line: '')
         return
       end
@@ -451,40 +451,38 @@ module Importers::HmisTwentyTwenty
       csv = CSV.new(read_from, headers: header, liberal_parsing: true)
       # since we're providing headers, skip the header row
       csv.drop(1).each do |row|
-        begin
-          # remove any internal newlines
-          row.each{ |k,v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
-          case klass.name
-          when 'GrdaWarehouse::Import::HmisTwentyTwenty::Client'
-            row = klass.deidentify_client_name(row) if @deidentified
-            row['SSN'] = row['SSN'].to_s[0..8] # limit SSNs to 9 characters
-          when 'GrdaWarehouse::Import::HmisTwentyTwenty::Assessment'
-            next unless row['AssessmentDate'].present? && row['AssessmentLocation'].present?
-          when 'GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation'
-            next unless row['CurrentLivingSituation'].present? && row['InformationDate'].present? && row['UserID'].present? && row['DateUpdated'].present? && row['DateCreated'].present? && row['EnrollmentID'].present?
-          end
-          date_columns.each do |col|
-            next if row[col].blank? || correct_date_format?(row[col])
-
-            row[col] = fix_date_format(row[col])
-          end
-          time_columns.each do |col|
-            next if row[col].blank? || correct_time_format?(row[col])
-
-            row[col] = fix_time_format(row[col])
-          end
-          if row.count == header.count
-            row = set_useful_export_id(row: row, export_id: export_id_addition)
-            track_max_updated(row)
-            write_to << row
-          else
-            msg = "Line length is incorrect, unable to import:"
-            add_error(file_path: read_from.path, message: msg, line: row.to_s)
-          end
-        rescue Exception => exception
-          message = "Failed while processing #{read_from.path}, #{exception.message}:"
-          add_error(file_path: read_from.path, message: message, line: row.to_s)
+        # remove any internal newlines
+        row.each { |k, v| row[k] = v&.gsub(/[\r\n]+/, ' ')&.strip }
+        case klass.name
+        when 'GrdaWarehouse::Import::HmisTwentyTwenty::Client'
+          row = klass.deidentify_client_name(row) if @deidentified
+          row['SSN'] = row['SSN'].to_s[0..8] # limit SSNs to 9 characters
+        when 'GrdaWarehouse::Import::HmisTwentyTwenty::Assessment'
+          next unless row['AssessmentDate'].present? && row['AssessmentLocation'].present?
+        when 'GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation'
+          next unless row['CurrentLivingSituation'].present? && row['InformationDate'].present? && row['UserID'].present? && row['DateUpdated'].present? && row['DateCreated'].present? && row['EnrollmentID'].present?
         end
+        date_columns.each do |col|
+          next if row[col].blank? || correct_date_format?(row[col])
+
+          row[col] = fix_date_format(row[col])
+        end
+        time_columns.each do |col|
+          next if row[col].blank? || correct_time_format?(row[col])
+
+          row[col] = fix_time_format(row[col])
+        end
+        if row.count == header.count
+          row = set_useful_export_id(row: row, export_id: export_id_addition)
+          track_max_updated(row)
+          write_to << row
+        else
+          msg = 'Line length is incorrect, unable to import:'
+          add_error(file_path: read_from.path, message: msg, line: row.to_s)
+        end
+      rescue Exception => e
+        message = "Failed while processing #{read_from.path}, #{e.message}:"
+        add_error(file_path: read_from.path, message: message, line: row.to_s)
       end
       write_to.close
     end
@@ -502,7 +500,7 @@ module Importers::HmisTwentyTwenty
         month, day, year = string.split('-')
         return "#{year}-#{month}-#{day}"
       # Sometimes dates come in mm/dd/yyyy
-      elsif /\d{1,2}\/\d{1,2}\/\d{4}/.match?(string)
+      elsif %r{\d{1,2}/\d{1,2}/\d{4}}.match?(string)
         month, day, year = string.split('/')
         return "#{year}-#{month}-#{day}"
       end
@@ -548,7 +546,7 @@ module Importers::HmisTwentyTwenty
         month, day, year = string.split('-')
         return "#{year}-#{month}-#{day}"
       # Sometimes times come in mm/dd/yyyy hh:mm
-      elsif /\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
+      elsif %r{\d{1,2}/\d{1,2}/\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?}.match?(string)
         date, time = string.split(' ')
         month, day, year = date.split('/')
         return "#{year}-#{month}-#{day} #{time}"
@@ -592,11 +590,15 @@ module Importers::HmisTwentyTwenty
     end
 
     def short_line?(line, comma_count)
-      CSV.parse_line(line).count < comma_count rescue line.count(',') < comma_count
+      CSV.parse_line(line).count < comma_count
+    rescue StandardError
+      line.count(',') < comma_count
     end
 
     def long_line?(line, comma_count)
-      CSV.parse_line(line).count > (comma_count + 1) rescue line.count(',') > comma_count
+      CSV.parse_line(line).count > (comma_count + 1)
+    rescue StandardError
+      line.count(',') > comma_count
     end
 
     def export_id_addition
@@ -621,9 +623,7 @@ module Importers::HmisTwentyTwenty
     # figure out the maximum date this export set was updated
     def track_max_updated(row)
       @effective_export_end_date ||= '1900-01-01'.to_date
-      if row['DateUpdated'].present? && row['DateUpdated'].to_date > @effective_export_end_date
-        @effective_export_end_date = row['DateUpdated'].to_date
-      end
+      @effective_export_end_date = row['DateUpdated'].to_date if row['DateUpdated'].present? && row['DateUpdated'].to_date > @effective_export_end_date
     end
 
     def open_csv_file(file_path)
@@ -672,7 +672,7 @@ module Importers::HmisTwentyTwenty
     end
 
     def self.soft_deletable_sources
-      importable_files.values - [ export_source ]
+      importable_files.values - [export_source]
     end
 
     def importable_files
@@ -714,18 +714,19 @@ module Importers::HmisTwentyTwenty
       file_path = "#{@file_path}/#{@data_source.id}"
       Dir.each_child(file_path) do |filename|
         correct_file_name = correct_file_names.detect { |f, _| f == filename.downcase }&.last
-        if correct_file_name.present? && correct_file_name != filename
-          # Ruby complains if the files only differ by case, so we'll move it twice
-          tmp_name = "tmp_#{filename}"
-          FileUtils.mv(File.join(file_path, filename), File.join(file_path, tmp_name))
-          FileUtils.mv(File.join(file_path, tmp_name), File.join(file_path, correct_file_name))
-        end
+        next unless correct_file_name.present? && correct_file_name != filename
+
+        # Ruby complains if the files only differ by case, so we'll move it twice
+        tmp_name = "tmp_#{filename}"
+        FileUtils.mv(File.join(file_path, filename), File.join(file_path, tmp_name))
+        FileUtils.mv(File.join(file_path, tmp_name), File.join(file_path, correct_file_name))
       end
     end
 
     def self.affiliation_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Affiliation
     end
+
     def affiliation_source
       self.class.affiliation_source
     end
@@ -733,6 +734,7 @@ module Importers::HmisTwentyTwenty
     def self.client_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Client
     end
+
     def client_source
       self.class.client_source
     end
@@ -740,6 +742,7 @@ module Importers::HmisTwentyTwenty
     def self.disability_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Disability
     end
+
     def disability_source
       self.class.disability_source
     end
@@ -747,6 +750,7 @@ module Importers::HmisTwentyTwenty
     def self.employment_education_source
       GrdaWarehouse::Import::HmisTwentyTwenty::EmploymentEducation
     end
+
     def employment_education_source
       self.class.employment_education_source
     end
@@ -754,6 +758,7 @@ module Importers::HmisTwentyTwenty
     def self.enrollment_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Enrollment
     end
+
     def enrollment_source
       self.class.enrollment_source
     end
@@ -761,6 +766,7 @@ module Importers::HmisTwentyTwenty
     def self.enrollment_coc_source
       GrdaWarehouse::Import::HmisTwentyTwenty::EnrollmentCoc
     end
+
     def enrollment_coc_source
       self.class.enrollment_coc_source
     end
@@ -768,6 +774,7 @@ module Importers::HmisTwentyTwenty
     def self.exit_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Exit
     end
+
     def exit_source
       self.class.exit_source
     end
@@ -775,6 +782,7 @@ module Importers::HmisTwentyTwenty
     def self.export_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Export
     end
+
     def export_source
       self.class.export_source
     end
@@ -782,6 +790,7 @@ module Importers::HmisTwentyTwenty
     def self.funder_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Funder
     end
+
     def funder_source
       self.class.funder_source
     end
@@ -789,6 +798,7 @@ module Importers::HmisTwentyTwenty
     def self.health_and_dv_source
       GrdaWarehouse::Import::HmisTwentyTwenty::HealthAndDv
     end
+
     def health_and_dv_source
       self.class.health_and_dv_source
     end
@@ -796,6 +806,7 @@ module Importers::HmisTwentyTwenty
     def self.income_benefits_source
       GrdaWarehouse::Import::HmisTwentyTwenty::IncomeBenefit
     end
+
     def income_benefits_source
       self.class.income_benefits_source
     end
@@ -803,6 +814,7 @@ module Importers::HmisTwentyTwenty
     def self.inventory_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Inventory
     end
+
     def inventory_source
       self.class.inventory_source
     end
@@ -810,6 +822,7 @@ module Importers::HmisTwentyTwenty
     def self.organization_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Organization
     end
+
     def organization_source
       self.class.organization_source
     end
@@ -817,6 +830,7 @@ module Importers::HmisTwentyTwenty
     def self.project_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Project
     end
+
     def project_source
       self.class.project_source
     end
@@ -824,6 +838,7 @@ module Importers::HmisTwentyTwenty
     def self.project_coc_source
       GrdaWarehouse::Import::HmisTwentyTwenty::ProjectCoc
     end
+
     def project_coc_source
       self.class.project_coc_source
     end
@@ -831,6 +846,7 @@ module Importers::HmisTwentyTwenty
     def self.service_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Service
     end
+
     def service_source
       self.class.service_source
     end
@@ -838,6 +854,7 @@ module Importers::HmisTwentyTwenty
     def self.current_living_situation_source
       GrdaWarehouse::Import::HmisTwentyTwenty::CurrentLivingSituation
     end
+
     def current_living_situation_source
       self.class.current_living_situation_source
     end
@@ -845,6 +862,7 @@ module Importers::HmisTwentyTwenty
     def self.assessment_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Assessment
     end
+
     def assessment_source
       self.class.assessment_source
     end
@@ -852,6 +870,7 @@ module Importers::HmisTwentyTwenty
     def self.assessment_question_source
       GrdaWarehouse::Import::HmisTwentyTwenty::AssessmentQuestion
     end
+
     def assessment_question_source
       self.class.assessment_question_source
     end
@@ -859,6 +878,7 @@ module Importers::HmisTwentyTwenty
     def self.assessment_result_source
       GrdaWarehouse::Import::HmisTwentyTwenty::AssessmentResult
     end
+
     def assessment_result_source
       self.class.assessment_result_source
     end
@@ -866,6 +886,7 @@ module Importers::HmisTwentyTwenty
     def self.event_source
       GrdaWarehouse::Import::HmisTwentyTwenty::Event
     end
+
     def event_source
       self.class.event_source
     end
@@ -873,6 +894,7 @@ module Importers::HmisTwentyTwenty
     def self.user_source
       GrdaWarehouse::Import::HmisTwentyTwenty::User
     end
+
     def user_source
       self.class.user_source
     end
@@ -897,9 +919,9 @@ module Importers::HmisTwentyTwenty
 
       @import.import_errors[file] ||= []
       @import.import_errors[file] << {
-         text: "Error in #{file}",
-         message: message,
-         line: line,
+        text: "Error in #{file}",
+        message: message,
+        line: line,
       }
       setup_summary(file)
       @import.summary[file][:total_errors] += 1

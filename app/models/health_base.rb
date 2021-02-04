@@ -7,7 +7,7 @@
 class HealthBase < ActiveRecord::Base
   establish_connection DB_HEALTH
   self.abstract_class = true
-  has_paper_trail versions: {class_name: 'Health::HealthVersion'}
+  has_paper_trail versions: { class_name: 'Health::HealthVersion' }
 
   include ArelHelper
   class << self
@@ -15,20 +15,21 @@ class HealthBase < ActiveRecord::Base
 
     def phi_dictionary_entry
       self.phi_dictionary ||= {}
-      self.phi_dictionary[self.name] ||= {
+      self.phi_dictionary[name] ||= {
         patient_id: nil,
-        attrbutes: Set.new
+        attrbutes: Set.new,
       }
     end
 
-    def phi_attr(attribute, category= nil, description= nil)
+    def phi_attr(attribute, category = nil, description = nil)
       raise ArgumentError, "category (#{category}) must be a ::Phi::Category" unless category < ::Phi::Category
       raise ArgumentError, "attr (#{attr})  must method name as a symbol" unless attribute.is_a?(::Symbol)
-      self.phi_dictionary_entry[:attrbutes] << ::Phi::Attribute.new(
-        self.name,
+
+      phi_dictionary_entry[:attrbutes] << ::Phi::Attribute.new(
+        name,
         attribute,
         category,
-        description
+        description,
       )
     end
 
@@ -37,8 +38,9 @@ class HealthBase < ActiveRecord::Base
       if (existing = phi_dictionary_entry[:patient_id]) && existing != attribute
         raise ArgumentError, "Cannot set more then one phi_patient per class: class:#{self} existing: #{existing}, new: #{attribute}"
       end
-      self.phi_dictionary_entry[:table_name] = table_name
-      self.phi_dictionary_entry[:patient_id] = attribute
+
+      phi_dictionary_entry[:table_name] = table_name
+      phi_dictionary_entry[:patient_id] = attribute
     end
   end
 

@@ -30,6 +30,5 @@ module GrdaWarehouse::Hud
         :EnrollmentID,
       ]
     end
-
   end
 end

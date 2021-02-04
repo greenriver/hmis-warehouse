@@ -6,6 +6,5 @@
 
 module Health
   class SchemaMigration < HealthBase
-
   end
 end

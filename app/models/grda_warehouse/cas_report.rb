@@ -12,11 +12,11 @@ module GrdaWarehouse
     end
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :cas_reports
 
-    scope :started_between, -> (start_date:, end_date:) do
+    scope :started_between, ->(start_date:, end_date:) do
       where(match_started_at: (start_date..end_date))
     end
 
-    scope :open_between, -> (start_date:, end_date:) do
+    scope :open_between, ->(start_date:, end_date:) do
       at = arel_table
       # Excellent discussion of why this works:
       # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
@@ -41,14 +41,14 @@ module GrdaWarehouse
     end
 
     scope :declined, -> do
-      where.not( decline_reason: nil )
+      where.not(decline_reason: nil)
     end
 
-    scope :canceled_between, -> (start_date:, end_date:) do
+    scope :canceled_between, ->(start_date:, end_date:) do
       canceled.where(updated_at: (start_date..end_date))
     end
 
-    scope :on_route, -> (route_name) do
+    scope :on_route, ->(route_name) do
       where(match_route: route_name)
     end
 
@@ -68,6 +68,5 @@ module GrdaWarehouse
         match_started_at: 'Match Started',
       }
     end
-
   end
 end

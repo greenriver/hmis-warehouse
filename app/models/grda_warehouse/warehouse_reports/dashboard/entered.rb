@@ -23,12 +23,12 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     def set_date_range
       start_date = parameters.with_indifferent_access[:start]
       end_date = parameters.with_indifferent_access[:end]
-      @range = ::Filters::DateRange.new({start: start_date, end: end_date})
+      @range = ::Filters::DateRange.new({ start: start_date, end: end_date })
       @month_name = @range.start.to_time.strftime('%B')
     end
 
     def init
-      set_date_range()
+      set_date_range
 
       # build hashes suitable for chartjs
       @labels = GrdaWarehouse::Hud::Project::HOMELESS_TYPE_TITLES.sort_by(&:first)
@@ -37,7 +37,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
     end
 
     def run!
-      init()
+      init
 
       # fetch active client counts
       @client_enrollment_totals_by_type = @labels.map do |key, _|
@@ -68,11 +68,11 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       # ensure that the counts are in the same order as the labels
       @labels.each do |project_type_sym, _|
         @buckets.each do |project_type, bucket|
-          project_type_key = ::HUD::project_type_brief(project_type).downcase.to_sym
-          if project_type_sym == project_type_key
-            bucket.each do |group_key, client_count|
-              @data[group_key][:data] << client_count
-            end
+          project_type_key = ::HUD.project_type_brief(project_type).downcase.to_sym
+          next unless project_type_sym == project_type_key
+
+          bucket.each do |group_key, client_count|
+            @data[group_key][:data] << client_count
           end
         end
       end
@@ -89,8 +89,6 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       }
     end
 
-
-
     def bucket_clients clients
       buckets = {
         sixty_plus: 0,
@@ -100,7 +98,7 @@ module GrdaWarehouse::WarehouseReports::Dashboard
       }
 
       clients.each do |client_id, entry_dates|
-        if entry_dates.map{|date| @range.range.include?(date)}.all?
+        if entry_dates.map { |date| @range.range.include?(date) }.all?
           buckets[:first_time] += 1
           @first_time_client_ids << client_id
         else
@@ -145,6 +143,5 @@ module GrdaWarehouse::WarehouseReports::Dashboard
         },
       }
     end
-
   end
 end

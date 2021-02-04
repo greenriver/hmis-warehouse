@@ -42,7 +42,7 @@ module Health
         group(:patient_id).maximum(:date_of_activity) # Most recent signed care plan
     end
 
-   def with_careplans_in_122_days_status
+    def with_careplans_in_122_days_status
       @with_careplans_in_122_days_status ||= patient_referrals.keys.map do |p_id|
         careplan_date = qa_signature_dates[p_id]&.to_date
         enrollment_date = patient_referrals[p_id]&.to_date

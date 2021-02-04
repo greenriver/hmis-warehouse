@@ -19,7 +19,7 @@ module Health
     has_many :member_status_report_patients
     belongs_to :user
 
-    scope :visible_by?, -> (user) do
+    scope :visible_by?, ->(user) do
       if user.can_view_member_health_reports? || user.can_view_aggregate_health? || user.can_administer_health?
         all
       else
@@ -82,8 +82,8 @@ module Health
         }
 
         next if receiver.present? && attributes[:aco_mco_name] != receiver
-        report_patient = member_status_report_patients.create!(attributes)
 
+        report_patient = member_status_report_patients.create!(attributes)
       end
       complete_report
     end
@@ -133,15 +133,13 @@ module Health
       }
     end
 
-    def any_face_to_face_for_patient_in_range patient, range
+    def any_face_to_face_for_patient_in_range patient, _range
       if patient.present?
         if patient.face_to_face_contact_in_range? report_range
           'Y'
         else
           'N'
         end
-      else
-        nil
       end
     end
 
@@ -150,8 +148,6 @@ module Health
         'Y'
       elsif qa.present?
         'N'
-      else
-        nil
       end
     end
 

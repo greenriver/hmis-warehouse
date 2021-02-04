@@ -29,8 +29,8 @@ module Reports::Pit::Fy2017
     end
 
     def self.available_projects_for_filtering
-      GrdaWarehouse::Hud::Project.joins(:data_source).merge(GrdaWarehouse::DataSource.order(:short_name)).order(:ProjectName).pluck(:ProjectName, :ProjectID, :data_source_id, :short_name).map do |name,id,ds_id,short_name|
-        ["#{name} - #{short_name}", [id,ds_id]]
+      GrdaWarehouse::Hud::Project.joins(:data_source).merge(GrdaWarehouse::DataSource.order(:short_name)).order(:ProjectName).pluck(:ProjectName, :ProjectID, :data_source_id, :short_name).map do |name, id, ds_id, short_name|
+        ["#{name} - #{short_name}", [id, ds_id]]
       end
     end
   end

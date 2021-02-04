@@ -6,12 +6,11 @@
 
 module Health
   class AgencyUserSaver
-
     include ActiveModel::Model
 
     attr_accessor :user_id, :agency_ids, :user, :agencies
 
-    def initialize(params={})
+    def initialize(params = {})
       @user_id = params[:user_id]
       @agency_ids = params[:agency_ids]
       @user = User.find(@user_id)
@@ -32,6 +31,5 @@ module Health
       end
       return success
     end
-
   end
 end

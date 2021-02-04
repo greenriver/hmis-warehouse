@@ -5,8 +5,7 @@
 ###
 
 class ApplicationNotifier < Slack::Notifier
-
-  def ping(message, options={})
+  def ping(message, options = {})
     return unless @endpoint&.host
 
     # Rate limit pings because Slack wants us to

@@ -6,7 +6,6 @@
 
 module SimilarityMetric
   class SocialSecurityNumber < Base
-
     FAKES_RX = /   # not using HUD::valid_social? because I think it's too strict for matching purposes
       \A
         (?:

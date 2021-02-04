@@ -35,7 +35,7 @@ module Health
           "Running since #{started_at}"
         end
       elsif completed?
-        "Complete"
+        'Complete'
       end
     end
 
@@ -62,15 +62,15 @@ module Health
 
     def headers_for_report
       {
-        "SSM from Care Hub" => [
+        'SSM from Care Hub' => [
           range_headers,
           carehub_headers,
         ],
-        "SSM from EPIC" => [
+        'SSM from EPIC' => [
           range_headers,
           epic_headers,
         ],
-        "SSM from HMIS" => [
+        'SSM from HMIS' => [
           range_headers,
           hmis_headers,
         ],
@@ -79,9 +79,9 @@ module Health
 
     def rows_for_export
       {
-        "SSM from Care Hub" => carehub_rows,
-        "SSM from EPIC" => epic_rows,
-        "SSM from HMIS" => hmis_rows,
+        'SSM from Care Hub' => carehub_rows,
+        'SSM from EPIC' => epic_rows,
+        'SSM from HMIS' => hmis_rows,
       }
     end
 
@@ -94,15 +94,15 @@ module Health
       questions = Health::SelfSufficiencyMatrixForm::SECTIONS.keys.map do |key|
         ssm.ssm_question_title("#{key}_score")
       end
-      ["Client ID", 'Medicaid ID', "Patient Name", "Completed On", "Location", 'SDH Enroll Date', "Staff"] + questions
+      ['Client ID', 'Medicaid ID', 'Patient Name', 'Completed On', 'Location', 'SDH Enroll Date', 'Staff'] + questions
     end
 
     private def epic_headers
-      ["Client ID", 'Medicaid ID', "Patient Name", "Updated On", "Location", 'SDH Enroll Date', "Staff", 'Part 1', 'Part 2', 'Part 3']
+      ['Client ID', 'Medicaid ID', 'Patient Name', 'Updated On', 'Location', 'SDH Enroll Date', 'Staff', 'Part 1', 'Part 2', 'Part 3']
     end
 
     private def hmis_headers
-      ["Client ID", 'Medicaid ID', "Client Name", "Collected On", "Location", 'SDH Enroll Date', "Staff"] + hmis_data[:questions].to_a
+      ['Client ID', 'Medicaid ID', 'Client Name', 'Collected On', 'Location', 'SDH Enroll Date', 'Staff'] + hmis_data[:questions].to_a
     end
 
     private def carehub_rows
@@ -205,7 +205,7 @@ module Health
         client_ids = hmis_data[:client_ids].to_a
         # from care-hub
         client_ids += ::Health::Patient.where(
-          id: ssms.select(:patient_id)
+          id: ssms.select(:patient_id),
         ).pluck(:client_id)
         # from epic
         client_ids += ::Health::Patient.joins(:epic_ssms).

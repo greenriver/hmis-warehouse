@@ -26,7 +26,7 @@ module Glacier
     # Must be a power of two.
     # We break the upload into parts this big.
     MEGS_PER_PART = 256
-    #MEGS_PER_PART = 2
+    # MEGS_PER_PART = 2
 
     def initialize(vault_name:, file_stream:, archive_name:, start_at_chunk: 0, upload_id: nil)
       self.vault_name = vault_name
@@ -35,16 +35,16 @@ module Glacier
 
       self._client = if ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY').present? && ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY') != 'unknown'
         Aws::Glacier::Client.new({
-          region: 'us-east-1',
-          credentials: Aws::Credentials.new(
-            ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
-            ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY')
-          )
-        })
+                                   region: 'us-east-1',
+                                   credentials: Aws::Credentials.new(
+                                     ENV.fetch('GLACIER_AWS_ACCESS_KEY_ID'),
+                                     ENV.fetch('GLACIER_AWS_SECRET_ACCESS_KEY'),
+                                   ),
+                                 })
       else
         Aws::Glacier::Client.new({
-          region: 'us-east-1',
-        })
+                                   region: 'us-east-1',
+                                 })
       end
       self.start_at_chunk = start_at_chunk
       self.upload_id = upload_id
@@ -62,35 +62,37 @@ module Glacier
     end
 
     def successful?
-      self.final_response.present?
+      final_response.present?
     end
 
     private
 
     def create_vault_if_not_exists!
-      _client.create_vault(vault_name: vault_name) rescue Aws::Glacier::Errors::AccessDeniedException
+      _client.create_vault(vault_name: vault_name)
+    rescue StandardError
+      Aws::Glacier::Errors::AccessDeniedException
     end
 
     def initialize_upload!
       self.chunker = Chunker.new(file_stream: file_stream, part_megs: MEGS_PER_PART)
 
-      if self.upload_id.nil?
+      if upload_id.nil?
         resp = _client.initiate_multipart_upload({
-          part_size: self.chunker.part_size,
-          vault_name: vault_name,
-          archive_description: archive_name,
-        })
+                                                   part_size: chunker.part_size,
+                                                   vault_name: vault_name,
+                                                   archive_description: archive_name,
+                                                 })
 
         self.upload_id = resp.upload_id
       end
 
-      Rails.logger.info "Using upload ID #{self.upload_id} for #{self.archive_name}"
+      Rails.logger.info "Using upload ID #{upload_id} for #{archive_name}"
     end
 
     def upload_multipart!
       chunk_count = -1
 
-      self.chunker.each_chunk do |chunk|
+      chunker.each_chunk do |chunk|
         chunk_count += 1
 
         if chunk_count < start_at_chunk
@@ -106,13 +108,13 @@ module Glacier
           attempt += 1
           begin
             _client.upload_multipart_part({
-              account_id: "-",
-              body: chunk.body,
-              checksum: chunk.digest,
-              range: chunk.range,
-              upload_id: self.upload_id,
-              vault_name: vault_name
-            })
+                                            account_id: '-',
+                                            body: chunk.body,
+                                            checksum: chunk.digest,
+                                            range: chunk.range,
+                                            upload_id: upload_id,
+                                            vault_name: vault_name,
+                                          })
             end_time = Time.now
             Rails.logger.info "Uploaded chunk #{chunk_count} in #{distance_of_time_in_words(end_time - start_time)}"
             break
@@ -123,15 +125,15 @@ module Glacier
         end
       end
 
-      Rails.logger.info("Finishing #{self.archive_name}: #{self.chunker.digest}")
+      Rails.logger.info("Finishing #{archive_name}: #{chunker.digest}")
 
       self.final_response = _client.complete_multipart_upload({
-        account_id: "-",
-        archive_size: self.chunker.archive_size,
-        checksum: self.chunker.digest,
-        upload_id: self.upload_id,
-        vault_name: vault_name
-      })
+                                                                account_id: '-',
+                                                                archive_size: chunker.archive_size,
+                                                                checksum: chunker.digest,
+                                                                upload_id: upload_id,
+                                                                vault_name: vault_name,
+                                                              })
     end
   end
 end

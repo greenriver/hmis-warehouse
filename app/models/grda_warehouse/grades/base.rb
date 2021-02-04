@@ -9,7 +9,7 @@ module GrdaWarehouse::Grades
     self.table_name = :grades
     validates_presence_of :grade
 
-    def self.grade_from_score score
+    def self.grade_from_score _score
       raise 'Implement in sub-class'
     end
 

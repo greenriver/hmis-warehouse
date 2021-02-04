@@ -21,7 +21,7 @@ module Health
 
       {
         pid: pid_sl[0, pid_sl.length - 1],
-        sl:  pid_sl[-1],
+        sl: pid_sl[-1],
       }
     end
 

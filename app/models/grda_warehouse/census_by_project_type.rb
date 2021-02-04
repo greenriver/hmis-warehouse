@@ -9,13 +9,13 @@ class GrdaWarehouse::CensusByProjectType < GrdaWarehouseBase
   include ArelHelper
 
   scope :residential, -> { where(ProjectType: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values.flatten.uniq) }
-  scope :for_year, -> (year) {
+  scope :for_year, ->(year) {
     fun = if postgres?
-      nf 'date_part', [ 'year', arel_table[:date] ]
+      nf 'date_part', ['year', arel_table[:date]]
     elsif sql_server?
-      nf 'year', [ arel_table[:date] ]
+      nf 'year', [arel_table[:date]]
     end
-    where( fun.eq year )
+    where(fun.eq year)
   }
 
   scope :chronic, -> do

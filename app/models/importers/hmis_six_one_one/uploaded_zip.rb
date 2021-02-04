@@ -34,7 +34,7 @@ module Importers::HMISSixOneOne
     end
 
     def pre_process!
-      file_path = reconstitute_upload()
+      file_path = reconstitute_upload
       expand(file_path: file_path)
       if @upload.project_whitelist
         calculate_whitelisted_personal_ids(@local_path)
@@ -46,10 +46,11 @@ module Importers::HMISSixOneOne
 
     def import!
       return unless @upload.present?
-      file_path = reconstitute_upload()
+
+      file_path = reconstitute_upload
       expand(file_path: file_path)
       super()
-      mark_upload_complete()
+      mark_upload_complete
     end
 
     def calculate_whitelisted_personal_ids file_path
@@ -62,9 +63,7 @@ module Importers::HMISSixOneOne
       file = File.join(file_path, importable_files.key(enrollment_source))
 
       CSV.foreach(file, headers: true) do |row|
-        if @whitelisted_project_ids.include?(row['ProjectID'])
-          @whitelisted_personal_ids.add(row['PersonalID'])
-        end
+        @whitelisted_personal_ids.add(row['PersonalID']) if @whitelisted_project_ids.include?(row['ProjectID'])
       end
       log "Found #{@whitelisted_personal_ids.size} Whitelisted Personal IDs"
     end
@@ -87,7 +86,7 @@ module Importers::HMISSixOneOne
         CSV.open(clean_file, 'wb') do |csv|
           line = File.open(file).readline
           # Make sure header is in our format
-          csv << CSV.parse(line)[0].map {|k| k.downcase.to_sym}
+          csv << CSV.parse(line)[0].map { |k| k.downcase.to_sym }
           CSV.foreach(file, headers: true) do |row|
             # only keep row if PersonalID is in whitelisted clients
             csv << row if @whitelisted_personal_ids.include?(row['PersonalID'])
@@ -99,18 +98,18 @@ module Importers::HMISSixOneOne
     end
 
     def replace_original_upload_file zip_file_path
-      #rezip files
-      files = Dir.glob(File.join(@local_path, '*')).map{|f| File.basename(f)}
+      # rezip files
+      files = Dir.glob(File.join(@local_path, '*')).map { |f| File.basename(f) }
       Zip::File.open(zip_file_path, Zip::File::CREATE) do |zipfile|
-       files.each do |filename|
-        zipfile.add(
-          filename,
-          File.join(@local_path, filename)
-        )
+        files.each do |filename|
+          zipfile.add(
+            filename,
+            File.join(@local_path, filename),
+          )
         end
       end
 
-      #update upload with new zip
+      # update upload with new zip
       @upload.file = File.new(zip_file_path)
       @upload.content_type = @upload.file.content_type
       @upload.content = @upload.file.read
@@ -119,7 +118,7 @@ module Importers::HMISSixOneOne
 
     def remove_import_files
       Rails.logger.info "Removing #{@file_path}"
-      FileUtils.rm_rf(@file_path) if File.exists?(@file_path)
+      FileUtils.rm_rf(@file_path) if File.exist?(@file_path)
     end
 
     def reconstitute_upload
@@ -133,14 +132,13 @@ module Importers::HMISSixOneOne
     end
 
     def next_version?
-      file_path = reconstitute_upload()
+      file_path = reconstitute_upload
       file_names = Zip::File.open(file_path) { |zip| zip.entries.map(&:name) }.
-        map{ |m| File.basename(m) }.
-        select{ |m| m.include?('.csv') }
+        map { |m| File.basename(m) }.
+        select { |m| m.include?('.csv') }
       remove_import_files
       check_files = Importers::HmisTwentyTwenty::Base.importable_files.keys - self.class.importable_files.keys
       (check_files & file_names).any?
     end
-
   end
 end

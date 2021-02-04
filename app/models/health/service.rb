@@ -63,6 +63,5 @@ module Health
         source: 'Warehouse',
       }
     end
-
   end
 end

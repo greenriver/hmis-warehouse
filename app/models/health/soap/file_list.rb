@@ -19,7 +19,7 @@ module Health::Soap
 
     private def request_type(response_type)
       @request_type_map ||= {
-        Health::Soap::MassHealth::ENROLLMENT_RESPONSE_PAYLOAD_TYPE => EnrollmentPayload
+        Health::Soap::MassHealth::ENROLLMENT_RESPONSE_PAYLOAD_TYPE => EnrollmentPayload,
       }
       @request_type_map[response_type]
     end

@@ -7,7 +7,7 @@
 module GrdaWarehouse::Export::HmisTwentyTwenty
   class Funder < GrdaWarehouse::Import::HmisTwentyTwenty::Funder
     include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2020'))
 
     self.hud_key = :FunderID
 
@@ -19,6 +19,5 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
 
       return row
     end
-
   end
 end

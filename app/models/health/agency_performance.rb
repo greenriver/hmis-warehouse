@@ -24,19 +24,19 @@ module Health
           agency_id == id
         end.keys
 
-        consented_patients = consent_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
+        consented_patients = consent_dates.select { |p_id, _| p_id.in?(patient_ids) }.keys
         unconsented_patients = patient_ids - consented_patients
 
-        with_ssms = ssm_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
+        with_ssms = ssm_dates.select { |p_id, _| p_id.in?(patient_ids) }.keys
         without_ssms = patient_ids - with_ssms
 
-        with_chas = cha_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
+        with_chas = cha_dates.select { |p_id, _| p_id.in?(patient_ids) }.keys
         without_chas = patient_ids - with_chas
 
-        with_signed_careplans = careplan_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
+        with_signed_careplans = careplan_dates.select { |p_id, _| p_id.in?(patient_ids) }.keys
         without_signed_careplans = patient_ids - with_signed_careplans
 
-        with_qualifying_activities_within_range = qualifying_activity_dates.select{ |p_id, _| p_id.in?(patient_ids) }.keys
+        with_qualifying_activities_within_range = qualifying_activity_dates.select { |p_id, _| p_id.in?(patient_ids) }.keys
         without_qualifying_activities_within_range = patient_ids - with_qualifying_activities_within_range
 
         agency = OpenStruct.new(
@@ -56,7 +56,7 @@ module Health
             with_careplans_signed_within_range: with_careplans_signed_within_range(patient_ids),
             with_qualifying_activities_within_range: with_qualifying_activities_within_range,
             without_qualifying_activities_within_range: without_qualifying_activities_within_range,
-          }
+          },
         )
       end
     end
@@ -79,7 +79,7 @@ module Health
           with_careplans_signed_within_range: agency_counts.map(&:with_careplans_signed_within_range).reduce(&:+),
           with_qualifying_activities_within_range: agency_counts.map(&:with_qualifying_activities_within_range).reduce(&:+),
           without_qualifying_activities_within_range: agency_counts.map(&:without_qualifying_activities_within_range).reduce(&:+),
-        }
+        },
       )
     end
 
@@ -127,9 +127,7 @@ module Health
       patients = {}
       sources.each do |batch|
         batch.each do |p_id, date|
-          if patients[p_id].blank? || patients[p_id] < date
-            patients[p_id] = date
-          end
+          patients[p_id] = date if patients[p_id].blank? || patients[p_id] < date
         end
       end
       return patients
@@ -273,6 +271,5 @@ module Health
         careplan_date.present? && careplan_date.between?(@range.first, @range.last)
       end
     end
-
   end
 end

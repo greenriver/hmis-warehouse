@@ -36,8 +36,8 @@ module Reports::Pit::Fy2018
         merge(GrdaWarehouse::DataSource.order(:short_name)).
         order(:ProjectName).
         pluck(:ProjectName, :ProjectID, :data_source_id, :short_name).
-        map do |name,id,ds_id,short_name|
-        ["#{name} - #{short_name}", [id,ds_id]]
+        map do |name, id, ds_id, short_name|
+        ["#{name} - #{short_name}", [id, ds_id]]
       end
     end
   end

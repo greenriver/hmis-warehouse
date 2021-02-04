@@ -31,23 +31,24 @@ module GrdaWarehouse::Confidence
 
     def self.queue_batch force_run: false, force_create: false
       return unless should_run? || force_run
-      notifier = self.new.notifier
-      message = "Generating confidence for source exits"
+
+      notifier = new.notifier
+      message = 'Generating confidence for source exits'
       Rails.logger.info message
       notifier.ping message if notifier
       if should_start_a_new_batch? || force_create
-        message = "Setting up a new batch..."
+        message = 'Setting up a new batch...'
         Rails.logger.info message
         notifier.ping message if notifier
-        create_batch!()
-        message = "... batch setup complete"
+        create_batch!
+        message = '... batch setup complete'
         Rails.logger.info message
         notifier.ping message if notifier
       end
       queued.distinct.pluck(:resource_id).each_slice(250) do |batch|
         Delayed::Job.enqueue(
           ::Confidence::SourceExitsJob.new(client_ids: batch),
-          queue: :long_running
+          queue: :long_running,
         )
       end
     end
@@ -61,9 +62,13 @@ module GrdaWarehouse::Confidence
       if previous = previous_census_date(client_id: client_id, source_exit: se)
         previous_iteration = find_by(
           resource_id: client_id,
-          census: previous
+          census: previous,
         )
-        se.change = se.value - previous_iteration.value rescue nil
+        se.change = begin
+                      se.value - previous_iteration.value
+                    rescue StandardError
+                      nil
+                    end
       end
       se.save
     end

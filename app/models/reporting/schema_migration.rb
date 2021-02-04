@@ -6,6 +6,5 @@
 
 module Reporting
   class SchemaMigration < ReportingBase
-
   end
 end

@@ -8,22 +8,22 @@
 # Risk: Describes an insurance eligibility inquiry and contains PHI
 # Control: PHI attributes documented
 
-require "stupidedi"
+require 'stupidedi'
 module Health
   class EligibilityInquiry < HealthBase
     before_create :assign_control_numbers
     after_initialize :set_batch
 
-    phi_attr :inquiry, Phi::Bulk, "Description of inquiry" # contains EDI serialized PHI
-    phi_attr :result, Phi::Bulk, "Result of inquiry" # contains EDI serialized PHI
+    phi_attr :inquiry, Phi::Bulk, 'Description of inquiry' # contains EDI serialized PHI
+    phi_attr :result, Phi::Bulk, 'Result of inquiry' # contains EDI serialized PHI
     attr_accessor :batch
 
     has_one :eligibility_response, dependent: :destroy
     has_many :batches, class_name: 'Health::EligibilityInquiry', foreign_key: :batch_id, dependent: :destroy
 
-    scope :pending, -> () do
+    scope :pending, -> do
       where.not(inquiry: nil).
-      where.not(id: Health::EligibilityResponse.select(:eligibility_inquiry_id))
+        where.not(id: Health::EligibilityResponse.select(:eligibility_inquiry_id))
     end
 
     scope :patients, -> do
@@ -38,7 +38,7 @@ module Health
       @eligible_ids ||= begin
         ids = []
         batch_responses.each do |response|
-          ids = ids + response.eligible_ids
+          ids += response.eligible_ids
         end
         ids.uniq
       end
@@ -50,7 +50,7 @@ module Health
       @ineligible_ids ||= begin
         ids = []
         batch_responses.each do |response|
-          ids = ids + response.ineligible_ids
+          ids += response.ineligible_ids
         end
         ids.uniq
       end
@@ -62,7 +62,7 @@ module Health
       @managed_care_ids ||= begin
         ids = []
         batch_responses.each do |response|
-          ids = ids + response.managed_care_ids
+          ids += response.managed_care_ids
         end
         ids.uniq
       end
@@ -135,15 +135,13 @@ module Health
         b.DMG 'D8', patient.birthdate&.strftime('%Y%m%d'), edi_gender(patient.gender)
         b.DTP '291', 'D8', service_date.strftime('%Y%m%d')
         b.EQ(
-            b.repeated '30'
+          b.repeated('30'),
         )
       end
 
       m = b.machine
       st = m
-      while st.segment.fetch.node.id != :ST
-        st = st.parent.fetch
-      end
+      st = st.parent.fetch while st.segment.fetch.node.id != :ST
 
       b.SE 2 + m.distance(st).fetch, transaction_control_number
       b.GE '1', group_control_number
@@ -156,13 +154,13 @@ module Health
       file = ''
       @edi_builder.machine.zipper.tap do |z|
         separators = Stupidedi::Reader::Separators.build(
-            segment: "~\n",
-            element: "*",
-            component: ">",
-            repetition:  "^"
+          segment: "~\n",
+          element: '*',
+          component: '>',
+          repetition: '^',
         )
         w = Stupidedi::Writer::Default.new(z.root, separators)
-        file = w.write().upcase
+        file = w.write.upcase
       end
       file
     end

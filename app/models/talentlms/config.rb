@@ -68,13 +68,12 @@ module Talentlms
       end
     end
 
-
     # Get configuration error messages from TalentLMS
     #
     # @param course_id [Integer] the id of the course
     # @return [String] validation error if the configuration is invalid
     private def configuration_error_message
-      get('courses', {id: courseid})
+      get('courses', { id: courseid })
       nil
     rescue JSON::ParserError => e
       "Cannot contact server #{subdomain}.talentlms.com"
@@ -92,7 +91,7 @@ module Talentlms
     private def generate_url(action, args)
       url = "https://#{subdomain}.talentlms.com/api/v1/#{action}"
       if args.present?
-        arguments = args.map {|k,v| "#{k}:#{v}"}.join(',')
+        arguments = args.map { |k, v| "#{k}:#{v}" }.join(',')
         url = "#{url}/#{arguments}"
       end
       url

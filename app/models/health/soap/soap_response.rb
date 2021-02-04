@@ -6,10 +6,9 @@
 
 module Health::Soap
   class SoapResponse
-
     def initialize(soap, response)
-     @soap = soap
-     @response = response
+      @soap = soap
+      @response = response
     end
 
     def success?

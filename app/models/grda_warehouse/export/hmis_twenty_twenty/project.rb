@@ -8,7 +8,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
   class Project < GrdaWarehouse::Import::HmisTwentyTwenty::Project
     include ::Export::HmisTwentyTwenty::Shared
 
-    setup_hud_column_access( GrdaWarehouse::Hud::Project.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Project.hud_csv_headers(version: '2020'))
 
     self.hud_key = :ProjectID
 
@@ -26,7 +26,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       export_to_path(
         export_scope: export_scope,
         path: path,
-        export: export
+        export: export,
       )
     end
 
@@ -85,11 +85,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @tracking_method_overrides ||= self.class.where.not(tracking_method_override: nil).
         pluck(:data_source_id, :id, :tracking_method_override).
         map do |ds_id, p_id, tracking_method_override|
-          if tracking_method_override.present?
-            [[ds_id, p_id], tracking_method_override]
-          else
-            nil
-          end
+          [[ds_id, p_id], tracking_method_override] if tracking_method_override.present?
         end.compact.to_h
       @tracking_method_overrides[[data_source_id, project_id]]
     end
@@ -98,11 +94,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @target_population_overrides ||= self.class.where.not(target_population_override: nil).
         pluck(:data_source_id, :id, :target_population_override).
         map do |ds_id, p_id, target_population_override|
-          if target_population_override.present?
-            [[ds_id, p_id], target_population_override]
-          else
-            nil
-          end
+          [[ds_id, p_id], target_population_override] if target_population_override.present?
         end.compact.to_h
       @target_population_overrides[[data_source_id, project_id]]
     end
@@ -111,11 +103,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @housing_type_overrides ||= self.class.where.not(housing_type_override: nil).
         pluck(:data_source_id, :id, :housing_type_override).
         map do |ds_id, p_id, housing_type_override|
-          if housing_type_override.present?
-            [[ds_id, p_id], housing_type_override]
-          else
-            nil
-          end
+          [[ds_id, p_id], housing_type_override] if housing_type_override.present?
         end.compact.to_h
       @housing_type_overrides[[data_source_id, project_id]]
     end
@@ -124,15 +112,11 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @continuum_project_overrides ||= self.class.where.not(hud_continuum_funded: nil).
         pluck(:data_source_id, :id, :hud_continuum_funded).
         map do |ds_id, p_id, hud_continuum_funded|
-          if hud_continuum_funded.in?([true, false])
-            override = 0
-            if hud_continuum_funded
-              override = 1
-            end
-            [[ds_id, p_id], override]
-          else
-            nil
-          end
+          next unless hud_continuum_funded.in?([true, false])
+
+          override = 0
+          override = 1 if hud_continuum_funded
+          [[ds_id, p_id], override]
         end.compact.to_h
       return @continuum_project_overrides[[data_source_id, project_id]]
     end
@@ -150,11 +134,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @operating_start_date_overrides ||= self.class.where.not(operating_start_date_override: nil).
         pluck(:data_source_id, :id, :operating_start_date_override).
         map do |ds_id, p_id, operating_start_date_override|
-          if operating_start_date_override.present?
-            [[ds_id, p_id], operating_start_date_override]
-          else
-            nil
-          end
+          [[ds_id, p_id], operating_start_date_override] if operating_start_date_override.present?
         end.compact.to_h
       @operating_start_date_overrides[[data_source_id, project_id]]
     end
@@ -163,11 +143,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @operating_end_date_overrides ||= self.class.where.not(operating_end_date_override: nil).
         pluck(:data_source_id, :id, :operating_end_date_override).
         map do |ds_id, p_id, operating_end_date_override|
-          if operating_end_date_override.present?
-            [[ds_id, p_id], operating_end_date_override]
-          else
-            nil
-          end
+          [[ds_id, p_id], operating_end_date_override] if operating_end_date_override.present?
         end.compact.to_h
       @operating_end_date_overrides[[data_source_id, project_id]]
     end
@@ -182,11 +158,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @project_type_overrides ||= self.class.where.not(computed_project_type: nil).
         pluck(:data_source_id, :id, :computed_project_type).
         map do |data_source_id, project_id, computed_project_type|
-          if computed_project_type.present?
-            [[data_source_id, project_id], computed_project_type]
-          else
-            nil
-          end
+          [[data_source_id, project_id], computed_project_type] if computed_project_type.present?
         end.compact.to_h
     end
   end

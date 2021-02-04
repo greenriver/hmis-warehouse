@@ -126,17 +126,17 @@ module GrdaWarehouse
       where(cohort_column: :primary_housing_track_suggested, value: 'SSVF', active: 1).first_or_create
       where(cohort_column: :primary_housing_track_suggested, value: 'VASH', active: 1).first_or_create
 
-      where(cohort_column: :sensory_impaired , value: '', active: 1).first_or_create
-      where(cohort_column: :sensory_impaired , value: 'No', active: 1).first_or_create
-      where(cohort_column: :sensory_impaired , value: 'Sight', active: 1).first_or_create
-      where(cohort_column: :sensory_impaired , value: 'Hearing', active: 1).first_or_create
-      where(cohort_column: :sensory_impaired , value: 'Sight and Hearing', active: 1).first_or_create
-      where(cohort_column: :sensory_impaired , value: 'Other: Must be in Notes', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: '', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: 'No', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: 'Sight', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: 'Hearing', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: 'Sight and Hearing', active: 1).first_or_create
+      where(cohort_column: :sensory_impaired, value: 'Other: Must be in Notes', active: 1).first_or_create
 
-      where(cohort_column: :st_francis_house , value: '', active: 1).first_or_create
-      where(cohort_column: :st_francis_house , value: 'Infrequent Visitor', active: 1).first_or_create
-      where(cohort_column: :st_francis_house , value: 'Frequent Visitor', active: 1).first_or_create
-      where(cohort_column: :st_francis_house , value: 'Case Management', active: 1).first_or_create
+      where(cohort_column: :st_francis_house, value: '', active: 1).first_or_create
+      where(cohort_column: :st_francis_house, value: 'Infrequent Visitor', active: 1).first_or_create
+      where(cohort_column: :st_francis_house, value: 'Frequent Visitor', active: 1).first_or_create
+      where(cohort_column: :st_francis_house, value: 'Case Management', active: 1).first_or_create
 
       where(cohort_column: :status, value: '', active: 1).first_or_create
       where(cohort_column: :status, value: 'Chronic', active: 1).first_or_create
@@ -188,8 +188,7 @@ module GrdaWarehouse
     end
 
     def available_cohort_columns
-      cohort_columns.map{|c| [c.title, c.column]}.sort_by(&:first).to_h
+      cohort_columns.map { |c| [c.title, c.column] }.sort_by(&:first).to_h
     end
-
   end
 end

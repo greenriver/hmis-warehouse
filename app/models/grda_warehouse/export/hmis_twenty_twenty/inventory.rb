@@ -7,7 +7,7 @@
 module GrdaWarehouse::Export::HmisTwentyTwenty
   class Inventory < GrdaWarehouse::Import::HmisTwentyTwenty::Inventory
     include ::Export::HmisTwentyTwenty::Shared
-    setup_hud_column_access( GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2020'))
 
     self.hud_key = :InventoryID
 
@@ -33,11 +33,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @coc_code_overrides ||= self.class.where.not(coc_code_override: nil).
         pluck(:data_source_id, :id, :coc_code_override).
         map do |ds_id, i_id, coc_code_override|
-          if coc_code_override.present?
-            [[ds_id, i_id], coc_code_override]
-          else
-            nil
-          end
+          [[ds_id, i_id], coc_code_override] if coc_code_override.present?
         end.compact.to_h
       @coc_code_overrides[[data_source_id, inventory_id]]
     end
@@ -46,11 +42,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @inventory_start_date_overrides ||= self.class.where.not(inventory_start_date_override: nil).
         pluck(:data_source_id, :id, :inventory_start_date_override).
         map do |ds_id, i_id, inventory_start_date_override|
-          if inventory_start_date_override.present?
-            [[ds_id, i_id], inventory_start_date_override]
-          else
-            nil
-          end
+          [[ds_id, i_id], inventory_start_date_override] if inventory_start_date_override.present?
         end.compact.to_h
       @inventory_start_date_overrides[[data_source_id, inventory_id]]
     end
@@ -59,11 +51,7 @@ module GrdaWarehouse::Export::HmisTwentyTwenty
       @inventory_end_date_overrides ||= self.class.where.not(inventory_end_date_override: nil).
         pluck(:data_source_id, :id, :inventory_end_date_override).
         map do |ds_id, i_id, inventory_end_date_override|
-          if inventory_end_date_override.present?
-            [[ds_id, i_id], inventory_end_date_override]
-          else
-            nil
-          end
+          [[ds_id, i_id], inventory_end_date_override] if inventory_end_date_override.present?
         end.compact.to_h
       @inventory_end_date_overrides[[data_source_id, inventory_id]]
     end

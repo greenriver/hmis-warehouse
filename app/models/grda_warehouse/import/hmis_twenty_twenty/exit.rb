@@ -9,7 +9,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     include ::Import::HmisTwentyTwenty::Shared
     include TsqlImport
     self.hud_key = :ExitID
-    setup_hud_column_access( GrdaWarehouse::Hud::Exit.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Exit.hud_csv_headers(version: '2020'))
 
     def self.file_name
       'Exit.csv'
@@ -19,8 +19,8 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
       ids = []
       projects.each do |project|
         # Remove any exits that fall within the export range
-        ids += self.joins(:project, :enrollment).
-          where(Project: {ProjectID: project.ProjectID}, data_source_id: data_source_id).
+        ids += joins(:project, :enrollment).
+          where(Project: { ProjectID: project.ProjectID }, data_source_id: data_source_id).
           where(ExitDate: range.range).
           pluck(:id)
       end
@@ -33,7 +33,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
 
     def self.to_log
       @to_log ||= {
-        hud_key: self.hud_key,
+        hud_key: hud_key,
         personal_id: :PersonalID,
         effective_date: :ExitDate,
         data_source_id: :data_source_id,

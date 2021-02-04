@@ -9,7 +9,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     include ::Import::HmisTwentyTwenty::Shared
     include TsqlImport
     self.hud_key = :PersonalID
-    setup_hud_column_access( GrdaWarehouse::Hud::Client.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Client.hud_csv_headers(version: '2020'))
 
     def self.deidentify_client_name row
       row['FirstName'] = "First_#{row['PersonalID']}"

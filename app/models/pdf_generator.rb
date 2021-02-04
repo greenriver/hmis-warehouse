@@ -5,7 +5,6 @@
 ###
 
 class PdfGenerator
-
   def perform(html:, file_name: 'output')
     pdf_data = render_pdf(html)
     Dir.mktmpdir do |dir|

@@ -8,6 +8,6 @@ require 'aws-sdk-glacier'
 
 module Glacier
   class AwsService
-    QUARTER = 2629746
+    QUARTER = 2_629_746
   end
 end

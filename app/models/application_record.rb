@@ -9,7 +9,7 @@ class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
   def self.original_config
-    original_config = {
+    {
       env_schema: nil,
       'db' => ['db'],
       'db/migrate' => ['db/migrate'],
@@ -19,7 +19,7 @@ class ApplicationRecord < ActiveRecord::Base
   end
 
   def self.setup_config
-    new_config = original_config
+    new_config = self.original_config
     ENV['SCHEMA'] = 'db/reporting/schema.rb'
     # set config variables for custom database
     new_config.each do |path, value|

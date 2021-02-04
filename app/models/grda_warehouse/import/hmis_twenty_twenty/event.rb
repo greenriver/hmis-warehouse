@@ -9,7 +9,7 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     include ::Import::HmisTwentyTwenty::Shared
     include TsqlImport
     self.hud_key = :EventID
-    setup_hud_column_access( GrdaWarehouse::Hud::Event.hud_csv_headers(version: '2020') )
+    setup_hud_column_access(GrdaWarehouse::Hud::Event.hud_csv_headers(version: '2020'))
 
     def self.date_provided_column
       :EventDate
@@ -18,6 +18,5 @@ module GrdaWarehouse::Import::HmisTwentyTwenty
     def self.file_name
       'Event.csv'
     end
-
   end
 end
