@@ -73,11 +73,10 @@ module ClaimsReporting
       if show_import_status
         results.each do |r|
           zip_path = r[:path]
-          existing = ClaimsReporting::Import.order(:updated_at).find_by(
+          r[:last_successful_import_id] = ClaimsReporting::Import.where(
             source_url: sftp_url(credentials['host'], zip_path),
-            successful: true,
-          )
-          r[:last_successful_import_id] = existing&.id
+            successful: [true, nil],
+          ).order(updated_at: :desc).limit(1).pluck(:id).first
         end
       end
 
@@ -91,20 +90,31 @@ module ClaimsReporting
       root_path: '',
       credentials: self.class.default_credentials
     )
-      results = check_sftp(
-        naming_convention: naming_convention,
-        root_path: root_path,
-        show_import_status: true,
-        credentials: credentials,
-      )
-      results.map do |r|
-        if r[:last_successful_import_id]
-          r
-        else
-          @import = nil
-          import_from_health_sftp(r[:path], credentials: credentials)
+      # Allow only one in progress call per DB.
+      # We will be read from our db, then an external SFTP
+      # and then sync over any content we cant find. Ugly
+      # race conditions exist if these are interleaved
+      HealthBase.with_advisory_lock('import_all_from_health_sftp') do
+        results = check_sftp(
+          naming_convention: naming_convention,
+          root_path: root_path,
+          show_import_status: true,
+          credentials: credentials,
+        )
+        results.map do |r|
+          if r[:last_successful_import_id].present?
+            logger.debug { "Skipping #{r}" }
+            r
+          else
+            @import = nil
+            import_from_health_sftp(r[:path], credentials: credentials)
+          end
         end
       end
+    end
+
+    private def sftp_url(host, path)
+      "sftp://#{File.join host, path}"
     end
 
     # credentials is a Hash containing host, username, password
@@ -154,7 +164,7 @@ module ClaimsReporting
       end
 
       import.update!(
-        # content: File.read(full_path),
+        content: File.read(full_path),
         content_hash: Digest::SHA256.file(full_path),
       )
       results = {
