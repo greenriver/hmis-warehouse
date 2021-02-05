@@ -21,7 +21,7 @@
 
     .row
       .col
-        - last_upload = "Last Uploaded: #{@enrollment_reasons&.created_at&.to_date}" if @enrollment_reasons.present?
+        - last_upload = "Last Uploaded: #{@enrollment_reasons.created_at&.to_date}" if @enrollment_reasons.created_at.present?
         = f.input :file, as: :file, label: 'Enrollment Reasons File', hint: last_upload, required: false
   - content_for :filter_actions do
     = f.submit 'Download Zip File', data: {disable_with: false}
