@@ -4,4 +4,5 @@
   .col-sm-4
     = simple_form_for(resource, as: resource_name, url: session_path(resource_name), method: :post, wrapper: :vertical_form_hint_first) do |f|
       = f.input :otp_attempt, label: 'Two-Factor Authentication code', required: true, autofocus: true
+      = f.input :remember_device, as: :boolean, label: 'Remember this device for 30 days', checked_value: true, unchecked_value: false, input_html: { checked:false }
       = f.button :submit, "Verify code"

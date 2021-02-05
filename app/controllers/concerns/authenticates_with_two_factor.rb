@@ -53,6 +53,9 @@ module AuthenticatesWithTwoFactor
 
   private def authenticate_with_two_factor_via_otp(user)
     if valid_otp_attempt?(user) || valid_backup_code_attempt?(user)
+      # add 2fa token if true
+      user.add_2fa_token(request.user_agent) if user_params[:remember_device]
+
       # Remove any lingering user data from login
       session.delete(:otp_user_id)
 

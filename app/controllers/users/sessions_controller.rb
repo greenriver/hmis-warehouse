@@ -44,7 +44,7 @@ class Users::SessionsController < Devise::SessionsController
   end
 
   def user_params
-    params.require(:user).permit(:email, :password, :otp_attempt)
+    params.require(:user).permit(:email, :password, :otp_attempt, :remember_device)
   end
 
   def two_factor_enabled?

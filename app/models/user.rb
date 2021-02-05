@@ -238,6 +238,14 @@ class User < ApplicationRecord
     )
   end
 
+  def add_2fa_token(user_agent)
+    raise user_agent
+  end
+
+  def has_2fa_token?
+    # TODO    
+  end
+
   def invitation_status
     if invitation_accepted_at.present? || invitation_sent_at.blank?
       :active
