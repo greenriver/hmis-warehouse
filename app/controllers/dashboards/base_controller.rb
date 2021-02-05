@@ -12,7 +12,6 @@ module Dashboards
 
     CACHE_EXPIRY = Rails.env.production? ? 8.hours : 20.seconds
 
-    before_action :require_can_view_censuses!
     before_action :available_months
     before_action :set_chosen_months
     before_action :set_report_months
