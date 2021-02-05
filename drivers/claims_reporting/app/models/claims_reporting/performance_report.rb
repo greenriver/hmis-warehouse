@@ -388,6 +388,12 @@ module ClaimsReporting
 
     include ActionView::Helpers::NumberHelper
     private def format_d(value, precision: 1)
+      return if value.blank?
+
+      too_small = precision.zero? ? 1 : 10**-precision
+      value = value.to_d
+      return "<#{number_with_precision too_small, precision: precision}" if value.positive? && value < too_small
+
       number_with_precision value, precision: precision, strip_insignificant_zeros: true, delimiter: ','
     end
 
@@ -404,7 +410,9 @@ module ClaimsReporting
 
     def formatted_value(fld, row)
       val = row[fld.to_s]
-      if fld.in?([:paid_amount_sum, :avg_cost_per_service, :cohort_per_member_month_spend])
+      if val.blank?
+        val
+      elsif fld.in?([:paid_amount_sum, :avg_cost_per_service, :cohort_per_member_month_spend])
         number_to_currency val
       elsif fld.to_s =~ /pct_of/
         format_pct val, precision: 2
@@ -468,7 +476,7 @@ module ClaimsReporting
       sql_member_count = %[COUNT(DISTINCT #{sql_member_id})::numeric]
 
       utilization_per_mille = Arel.sql(
-        %[ROUND(count(*)+1000/(#{sql_member_count}/#{report_days}), 2)],
+        %[ROUND(count(*)+1000/(#{sql_member_count}/#{report_days}))],
       ).as('utilization_per_mille')
 
       annual_admits_per_mille = Arel.sql(
@@ -477,7 +485,7 @@ module ClaimsReporting
               COUNT(DISTINCT
                 CASE WHEN admit_date IS NOT NULL THEN CONCAT(#{sql_member_id}, admit_date)
               END
-            )*1000/(#{sql_member_count}/#{report_years}), 0)
+            )*1000/(#{sql_member_count}/#{report_years}))
             , 0)],
       ).as('annual_admits_per_mille')
 
