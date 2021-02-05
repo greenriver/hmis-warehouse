@@ -1,0 +1,16 @@
+- if errors.present?
+  = paginate errors
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th Error
+          %th HUD ID
+      %tbody
+        - errors.each do |error|
+          %tr
+            %td= error.details
+            - source = error.source
+            %td= source.public_send(source.class.hud_key) if source.present?
+- else
+  %p.well.none-found No errors found.

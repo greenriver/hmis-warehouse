@@ -21,6 +21,7 @@
           %th Project CoC Code
           %th Entry Date
           %th Exit Date
+          %th Data Collection Stages
       %tbody
         - @enrollments.each do |en|
           - client = en.client
@@ -32,5 +33,6 @@
             %td= project.project_cocs&.map(&:effective_coc_code)&.join(', ')
             %td= en.EntryDate
             %td= en.exit&.ExitDate
+            %td= en.enrollment_cocs.map(&:DataCollectionStage).uniq.compact.join(', ').presence || 'EnrollmentCoC missing'
   .d-flex
     %p.ml-auto= paginate @enrollments

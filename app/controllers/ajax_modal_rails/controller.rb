@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module AjaxModalRails::Controller
   # This module sets up controllers to load their content in a modal
   # in response to ajax requests.  See ajax-modals.js.coffee for client side details

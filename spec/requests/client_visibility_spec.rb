@@ -5,7 +5,7 @@ require 'nokogiri'
 RSpec.describe ClientsController, type: :request do
   include_context 'visibility test context'
 
-  context 'when config b is in affect' do
+  context 'when config b is in effect' do
     before do
       GrdaWarehouse::Config.delete_all
       GrdaWarehouse::Config.invalidate_cache
@@ -103,7 +103,7 @@ RSpec.describe ClientsController, type: :request do
     end
   end
 
-  context 'when config s is in affect' do
+  context 'when config s is in effect' do
     before do
       GrdaWarehouse::Config.delete_all
       GrdaWarehouse::Config.invalidate_cache
@@ -217,7 +217,7 @@ RSpec.describe ClientsController, type: :request do
     end
   end
 
-  context 'when config 3c is in affect' do
+  context 'when config 3c is in effect' do
     before do
       GrdaWarehouse::Config.delete_all
       GrdaWarehouse::Config.invalidate_cache
@@ -311,7 +311,7 @@ RSpec.describe ClientsController, type: :request do
     end
   end
 
-  context 'when config tc is in affect' do
+  context 'when config tc is in effect' do
     before do
       GrdaWarehouse::Config.delete_all
       GrdaWarehouse::Config.invalidate_cache
@@ -405,7 +405,7 @@ RSpec.describe ClientsController, type: :request do
     end
   end
 
-  context 'when config ma is in affect' do
+  context 'when config ma is in effect' do
     before do
       GrdaWarehouse::Config.delete_all
       GrdaWarehouse::Config.invalidate_cache
@@ -624,7 +624,7 @@ RSpec.describe ClientsController, type: :request do
     end
   end
 
-  context 'when config mi is in affect' do
+  context 'when config mi is in effect' do
     before do
       GrdaWarehouse::Config.delete_all
       GrdaWarehouse::Config.invalidate_cache

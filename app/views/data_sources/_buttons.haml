@@ -1,4 +1,4 @@
-- if ! @data_source.authoritative? && can_upload_hud_zips?
+- if ! @data_source.authoritative? && can_upload_hud_zips? && @data_source.directly_viewable_by?(current_user)
   = link_to new_data_source_upload_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
     %span.icon-upload2
     Upload HUD HMIS ZIP

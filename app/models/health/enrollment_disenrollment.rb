@@ -1,15 +1,16 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module Health
   class EnrollmentDisenrollment
-    def initialize(start_date, end_date, aco_ids)
+    def initialize(start_date, end_date, aco_ids, enrollment_reasons)
       @start_date = start_date
       @end_date = end_date
       @acos = Health::AccountableCareOrganization.find(aco_ids)
+      @enrollment_reasons = enrollment_reasons
       @cp = Health::Cp.first
     end
 
@@ -63,7 +64,7 @@ module Health
             @cp.pid,
             @cp.sl,
             format_date(referral.enrollment_start_date),
-            '',
+            @enrollment_reasons[referral.medicaid_id] || '',
             format_date(disenrollment_date.end_of_month),
             referral.rejected_reason&.tr('_', ' '),
             'D',

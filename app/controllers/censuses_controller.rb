@@ -1,11 +1,12 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class CensusesController < ApplicationController
-  before_action :require_can_view_censuses!, except: [:date_range]
+  include WarehouseReportAuthorization
+
   before_action :require_can_view_clients!, only: [:details]
   include ArelHelper
   # default view grouped by project

@@ -1,7 +1,7 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/master/LICENSE.md
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 module HudDataQualityReport::Generators::Fy2020
@@ -40,6 +40,8 @@ module HudDataQualityReport::Generators::Fy2020
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
+      arrivals = universe.members.where(a_t[:first_date_in_program].gteq(@report.start_date))
+
       [
         # entry on date
         {
@@ -71,7 +73,7 @@ module HudDataQualityReport::Generators::Fy2020
         },
       ].each do |cell|
         answer = @report.answer(question: table_name, cell: cell[:cell])
-        members = universe.members.where(cell[:clause])
+        members = arrivals.where(cell[:clause])
         answer.add_members(members)
         answer.update(summary: members.count)
       end

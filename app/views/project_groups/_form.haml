@@ -2,5 +2,5 @@
 
 .form-inputs
   = f.input :name
-  = f.input :projects, collection: GrdaWarehouse::ProjectGroup.available_projects(current_user),  selected: @project_group.project_ids,  input_html: {class: 'select2', multiple: :multiple}
-  = f.input :users, collection: @groups, as: :grouped_select, group_method: :last, selected: @group_ids, input_html: {class: 'select2', multiple: :multiple},  label: 'Users and groups'
+  = f.input :projects, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, data: {'collection-path' => api_projects_path(selected_project_ids: @project_group.project_ids)}}, include_blank: false
+  = f.input :users, collection: @groups, as: :grouped_select, group_method: :last, selected: @group_ids, input_html: {class: 'select2', multiple: :multiple, placeholder: 'Please choose'},  label: 'Users and groups'

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,8 +9,14 @@ class ActivityLog < ApplicationRecord
 
   belongs_to :user
 
-  scope :created_in_range, -> (range:) do
+  scope :created_in_range, ->(range:) do
     where(created_at: range)
+  end
+
+  scope :warehouse_reports, -> do
+    report_paths = GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map { |u| arel_table[:path].matches("/#{u}%")}
+
+    where(report_paths.map(&:to_sql).join(' OR '))
   end
 
   def clean_object_name

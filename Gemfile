@@ -114,6 +114,7 @@ gem 'htmlentities'
 # gem 'jquery-datatables-rails'
 # gem 'bootstrap4-datetime-picker-rails'
 gem 'bootstrap3-datetimepicker-rails', '~> 4.17.42'
+gem 'stimulusjs-rails', '~> 1.1.1'
 
 # ETO API related
 gem 'rest-client', '~> 2.0'
@@ -156,6 +157,7 @@ gem 'redis-rails'
 gem 'aws-sdk-rails'
 gem 'aws-sdk-cloudwatchevents', '~> 1'
 gem 'aws-sdk-ecs', '~> 1'
+gem 'aws-sdk-ec2', '~> 1'
 gem 'aws-sdk-glacier', '~> 1'
 gem 'aws-sdk-rds', '~> 1'
 gem 'aws-sdk-s3', '~> 1'
@@ -184,12 +186,15 @@ gem 'attr_encrypted', '~> 3.1.0'
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
-  gem 'pry-rails', require: false
+  gem 'pry-rails'
   gem 'bundler-audit', require: false
   gem 'brakeman', require: false
   gem 'rspec-rails', require: false
   gem 'factory_bot_rails'
   gem 'guard-rspec', require: false
+  gem 'vcr'
+  gem 'webmock'
+  # gem 'rb-readline'
 end
 
 group :development do

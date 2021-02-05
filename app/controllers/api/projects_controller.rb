@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2020 Green River Data Analysis, LLC
+# Copyright 2016 - 2021 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,9 +25,11 @@ module Api
             :computed_project_type,
             o_t[:OrganizationName],
           ).each do |id, p_name, type, o_name|
+            name = GrdaWarehouse::Hud::Project.confidentialize(name: p_name)
+            name = p_name if can_view_confidential_enrollment_details?
             @data[o_name] ||= []
             @data[o_name] << [
-              "#{p_name} (#{HUD.project_type_brief(type)})",
+              "#{name} (#{HUD.project_type_brief(type)})",
               id,
               selected_project_ids.include?(id),
             ]
