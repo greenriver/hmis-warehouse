@@ -585,8 +585,6 @@ Rails.application.routes.draw do
     get :details, on: :collection
   end
 
-  resources :dashboards, only: [:index]
-
   namespace :performance_dashboards do
     resources :overview, only: [:index] do
       get :details, on: :collection

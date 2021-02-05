@@ -2,6 +2,8 @@ require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
 require 'nokogiri'
 require 'vcr'
+# Bring in the reports
+require File.join(Rails.root, 'db', 'seeds.rb')
 
 VCR.configure do |c|
   c.cassette_library_dir = 'spec/vcr'
@@ -48,7 +50,6 @@ RSpec.describe ClientsController, type: :request, vcr: true do
           user.roles << can_view_all_reports
           user.roles << can_edit_users
           user.roles << can_manage_config
-          user.roles << can_view_censuses
           user.roles << can_edit_data_sources
           GrdaWarehouse::DataSource.all.each do |ds|
             user.add_viewable(ds)

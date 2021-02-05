@@ -8,10 +8,10 @@ module Dashboards
   class BaseController < ApplicationController
     include ArelHelper
     include Rails.application.routes.url_helpers
+    include WarehouseReportAuthorization
 
     CACHE_EXPIRY = Rails.env.production? ? 8.hours : 20.seconds
 
-    before_action :require_can_view_censuses!
     before_action :available_months
     before_action :set_chosen_months
     before_action :set_report_months
@@ -173,15 +173,15 @@ module Dashboards
     # to_i.to_s to ensure end result is an integer
     def set_chosen_months
       @start_month = begin
-                       JSON.parse(report_params[:start_month]).map(&:to_i).to_s
-                     rescue StandardError
-                       [6.months.ago.year, 6.months.ago.month].to_s
-                     end
+        JSON.parse(report_params[:start_month]).map(&:to_i).to_s
+      rescue StandardError
+        [6.months.ago.year, 6.months.ago.month].to_s
+      end
       @end_month = begin
-                     JSON.parse(report_params[:end_month]).map(&:to_i).to_s
-                   rescue StandardError
-                     [1.months.ago.year, 1.months.ago.month].to_s
-                   end
+        JSON.parse(report_params[:end_month]).map(&:to_i).to_s
+      rescue StandardError
+        [1.months.ago.year, 1.months.ago.month].to_s
+      end
     end
 
     def set_report_months
@@ -189,28 +189,28 @@ module Dashboards
       start_index = all_months_array.index(JSON.parse(@start_month))
       end_index = all_months_array.index(JSON.parse(@end_month)) || 0
       @report_months = begin
-                         all_months_array[end_index..start_index]
-                       rescue StandardError
-                         []
-                       end
+        all_months_array[end_index..start_index]
+      rescue StandardError
+        []
+      end
     end
 
     def set_start_date
       (year, month) = @report_months.last
       @start_date = begin
-                      Date.new(year, month, 1)
-                    rescue StandardError
-                      Date.current
-                    end
+        Date.new(year, month, 1)
+      rescue StandardError
+        Date.current
+      end
     end
 
     def set_end_date
       (year, month) = @report_months.first
       @end_date = begin
-                    Date.new(year, month, -1)
-                  rescue StandardError
-                    Date.current
-                  end
+        Date.new(year, month, -1)
+      rescue StandardError
+        Date.current
+      end
     end
 
     def set_project_and_organization_ids

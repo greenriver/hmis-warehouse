@@ -770,7 +770,7 @@ def report_list
         health: false,
       },
     ],
-    'High Level Dashboards' => [],
+    'Population Dashboards' => [],
   }
   if RailsDrivers.loaded.include?(:service_scanning)
     r_list['Operational'] << {
@@ -855,7 +855,7 @@ def report_list
   end
 
   if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
-    r_list['High Level Dashboards'] << {
+    r_list['Population Dashboards'] << {
       url: 'dashboards/adult_only_households',
       name: 'Adult only Households',
       description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and no children (< 18).',
@@ -864,7 +864,7 @@ def report_list
     }
   end
   if RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
-    r_list['High Level Dashboards'] << {
+    r_list['Population Dashboards'] << {
       url: 'dashboards/adults_with_children',
       name: 'Adult and Child Households',
       description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (< 18).',
@@ -873,7 +873,7 @@ def report_list
     }
   end
   if RailsDrivers.loaded.include?(:child_only_households_sub_pop)
-    r_list['High Level Dashboards'] << {
+    r_list['Population Dashboards'] << {
       url: 'dashboards/child_only_households',
       name: 'Child only Households',
       description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (< 18) and no adults (+ 18).',
@@ -882,7 +882,7 @@ def report_list
     }
   end
   if RailsDrivers.loaded.include?(:clients_sub_pop)
-    r_list['High Level Dashboards'] << {
+    r_list['Population Dashboards'] << {
       url: 'dashboards/clients',
       name: 'All Clients',
       description: 'Clients enrolled in homeless projects (ES, SH, SO, TH).',
@@ -891,7 +891,7 @@ def report_list
     }
   end
   if RailsDrivers.loaded.include?(:non_veterans_sub_pop)
-    r_list['High Level Dashboards'] << {
+    r_list['Population Dashboards'] << {
       url: 'dashboards/non_veterans',
       name: 'Non-Veteran',
       description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is not a veteran.',
@@ -900,7 +900,7 @@ def report_list
     }
   end
   if RailsDrivers.loaded.include?(:veterans_sub_pop)
-    r_list['High Level Dashboards'] << {
+    r_list['Population Dashboards'] << {
       url: 'dashboards/veterans',
       name: 'Veteran',
       description: 'Veteran clients enrolled in homeless projects (ES, SH, SO, TH).',

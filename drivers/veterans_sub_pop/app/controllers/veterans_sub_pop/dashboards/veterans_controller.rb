@@ -6,10 +6,6 @@
 
 module VeteransSubPop::Dashboards
   class VeteransController < ::Dashboards::BaseController
-    include ArelHelper
-
-    before_action :require_can_view_censuses!
-
     def sub_population_key
       :veterans
     end
