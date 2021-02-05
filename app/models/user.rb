@@ -58,6 +58,7 @@ class User < ApplicationRecord
   has_many :messages
   has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
   has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
+  has_many :activity_logs
 
   belongs_to :agency, optional: true
 
@@ -194,12 +195,12 @@ class User < ApplicationRecord
     "#{name} <#{email}>"
   end
 
-  def two_factor_issuer
+  def two_factor_label
     _('Boston DND HMIS Warehouse')
   end
 
-  def two_factor_label
-    "#{two_factor_issuer} #{email}"
+  def two_factor_issuer
+    "#{two_factor_label} #{email}"
   end
 
   def my_root_path

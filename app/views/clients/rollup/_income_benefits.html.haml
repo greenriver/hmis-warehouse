@@ -1,5 +1,10 @@
-= cache(['clients', 'income_benefits', @client, can_view_projects?, controller_path], expires_in: 10.seconds) do
-  - incomes = @client.source_enrollment_income_benefits.preload( :enrollment, :project, :client ).sort_by{ |b| b.enrollment.date }.reverse
+= cache(['clients', 'income_benefits', @client, can_view_projects?, controller_path, current_user], expires_in: 1.hours) do
+  :ruby
+    incomes = @client.source_enrollment_income_benefits.
+      joins(enrollment: :client).
+      merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
+      preload( :enrollment, :project, :client ).
+      sort_by{ |b| b.enrollment.date }.reverse
   - if incomes.any?
     .table-responsive
       %table.table

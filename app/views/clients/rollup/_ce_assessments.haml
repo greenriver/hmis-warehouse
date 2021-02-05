@@ -3,7 +3,8 @@
   a_t = GrdaWarehouse::Hud::Assessment.arel_table
   assessments = @client.
     source_assessments.
-    joins(:enrollment).
+    joins(enrollment: :client).
+    merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
     preload( enrollment: [:client, :project] ).
     order(et[:EntryDate].desc, a_t[:AssessmentDate].desc)
 - if assessments.any?

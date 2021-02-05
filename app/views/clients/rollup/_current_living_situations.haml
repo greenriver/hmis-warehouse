@@ -3,7 +3,8 @@
   clst = GrdaWarehouse::Hud::CurrentLivingSituation.arel_table
   current_living_situations = @client.
     source_current_living_situations.
-    joins(:enrollment).
+    joins(enrollment: :client).
+    merge(GrdaWarehouse::Hud::Client.viewable_by(current_user)).
     preload( enrollment: [:client, :project] ).
     order(et[:EntryDate].desc, clst[:InformationDate].desc)
 - if current_living_situations.any?

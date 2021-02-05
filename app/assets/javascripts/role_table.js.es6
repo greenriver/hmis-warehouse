@@ -1,4 +1,4 @@
-window.App.RoleTable = class TableSearch {
+window.App.RoleTable = class RoleTable {
   constructor({props, patch_url} = {props, patch_url:'/admin/roles'}) {
     this.isDirty = false
     this.props = Object.assign({
@@ -43,9 +43,9 @@ window.App.RoleTable = class TableSearch {
     });
 
     // Init Table search
-    new App.TableSearch({
+    new App.ListSearch({
       inputClass: tableSearchInputSelector,
-      rowClass: tableRowSelector
+      itemClass: tableRowSelector
     })
 
     // Register events
