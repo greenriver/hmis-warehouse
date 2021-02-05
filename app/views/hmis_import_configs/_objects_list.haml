@@ -1,0 +1,10 @@
+%table
+  %thead
+    %tr
+      %th Key
+      %th Last Modified
+  %tbody
+    - @bucket_objects_list.each do |obj|
+      %tr
+        %td= obj.key
+        %td= obj.last_modified
