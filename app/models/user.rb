@@ -195,12 +195,12 @@ class User < ApplicationRecord
     "#{name} <#{email}>"
   end
 
-  def two_factor_issuer
+  def two_factor_label
     _('Boston DND HMIS Warehouse')
   end
 
-  def two_factor_label
-    "#{two_factor_issuer} #{email}"
+  def two_factor_issuer
+    "#{two_factor_label} #{email}"
   end
 
   def my_root_path

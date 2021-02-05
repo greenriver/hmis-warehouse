@@ -9,17 +9,26 @@ module WarehouseReports::Health
     include WarehouseReportAuthorization
     before_action :require_can_administer_health!
     before_action :set_acos
+    before_action :set_enrollment_reasons
     before_action :set_months
 
     def index
     end
 
     def create
+      file = params.dig(:report, :file)
+      if file.present?
+        @enrollment_reasons = Health::EnrollmentReasons.create(
+          file: file,
+          content: file.read,
+        )
+      end
+
       if @acos.blank?
         flash[:error] = 'You must specify an ACO'
         render :index
       else
-        @report = Health::EnrollmentDisenrollment.new(@start_date, @end_date, @acos)
+        @report = Health::EnrollmentDisenrollment.new(@start_date, @end_date, @acos, @enrollment_reasons)
         summary = render_to_string 'summary.xlsx'
         report = render_to_string 'report.xlsx'
         stringio = Zip::OutputStream.write_buffer do |zio|
@@ -45,6 +54,10 @@ module WarehouseReports::Health
 
     def set_acos
       @acos = params.dig(:report, :acos)&.reject(&:blank?)&.map(&:to_i) || []
+    end
+
+    def set_enrollment_reasons
+      @enrollment_reasons = Health::EnrollmentReasons.last
     end
 
     def set_months
