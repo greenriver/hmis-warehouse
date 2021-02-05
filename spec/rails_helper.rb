@@ -75,6 +75,9 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
 
   config.include FixpointTestHelpers
+  config.before(:suite) do
+    AccessGroup.maintain_system_groups
+  end
 end
 
 # Drivers
