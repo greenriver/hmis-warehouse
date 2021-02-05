@@ -64,7 +64,7 @@ module GrdaWarehouse::Hud
     has_one :hmis_client, class_name: 'GrdaWarehouse::HmisClient'
 
     has_many :service_history_enrollments
-    has_many :service_history_services
+    has_many :service_history_services, autosave: false
     has_many :service_history_entries, -> { entry }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment'
     has_many :service_history_entry_in_last_three_years, -> {
       entry_in_last_three_years

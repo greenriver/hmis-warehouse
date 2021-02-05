@@ -206,7 +206,7 @@ class User < ApplicationRecord
   def my_root_path
     return clients_path if GrdaWarehouse::Config.client_search_available? && can_access_some_client_search?
     return warehouse_reports_path if can_view_any_reports?
-    return censuses_path if can_view_censuses?
+    return censuses_path if GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(self).where(url: 'censuses').exists?
 
     root_path
   end
