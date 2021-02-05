@@ -108,7 +108,7 @@ rails generate warehouse_migration foo
 ```
 and run with
 ```
-rake warehouse:db:migrate
+rake db:migrate:warehouse
 ```
 
 Health migrations can be created with
@@ -118,5 +118,5 @@ rails generate health_migration foo
 ```
 and run with
 ```
-rake health:db:migrate
+rake db:migrate:health
 ```
