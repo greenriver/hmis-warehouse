@@ -541,27 +541,6 @@ module Importers::HmisTwentyTwenty
     private def fix_time_format(string)
       return unless string
 
-
-      # HMIS CSV FORMAT SPECIFICATIONS says under "Data Types"
-      # https://hudhdx.info/Resources/Vendors/HMIS%20CSV%20Specifications%20FY2020%20v1.8.pdf
-      #
-      # Datetime aka T fields must be in the format yyyy-mm-dd hh:mm:ss with no reference to timezones.
-      #
-      # In practice HMIS systems send us data in a local timezone and
-      # we run their instance in the same timezone but we currently
-      # store data in a postgres timestamp column in the databases configured
-      # timezone. Be default this is UTC. Rails can handle the timezone math for
-      # us as long as we are passing around ActiveSupport::TimeWithZone objects
-      # so this method is careful to generate those assuming we are in
-      # Time.zone  (the configured timezone for Rails)
-      #
-      # We also need to handle non-compliant data sources as best we can
-      # so we also test for and recognize other common date formats in the US
-      # and handle 2-digit years. Nearly all dates in HMIS are in the past or
-      # current year so we choose an interpretation of a 2 digit year
-      # in that range on import if we have to.
-
-
       # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
       return string if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
 

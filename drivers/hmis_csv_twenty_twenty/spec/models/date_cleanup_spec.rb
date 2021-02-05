@@ -23,11 +23,13 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
       '5-1-2000' => '2000-05-01',
       '12-11-99' => '1999-12-11',
       '12-11-1999' => '1999-12-11',
+      '' => '',
     }
 
     it 'returns expected dates' do
       aggregate_failures do
         dates.each do |source, dest|
+          # puts "#{source} #{dest}"
           expect(HmisCsvTwentyTwenty::Importer::Client.fix_date_format(source)).to eq(dest)
         end
       end
@@ -92,13 +94,19 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
       '5-1-2000 4:39' => '2000-05-01 04:39:00',
       '12-11-99 4:39' => '1999-12-11 04:39:00',
       '12-11-1999 4:39' => '1999-12-11 04:39:00',
+      '' => '',
     }
     it 'returns expected times' do
       aggregate_failures do
         times.each do |source, dest|
-          fixed = HmisCsvTwentyTwenty::Importer::Client.fix_time_format(source)
-          fixed = fixed.strftime('%Y-%m-%d %H:%M:%S') unless fixed.is_a? String
-          expect(fixed).to eq(dest)
+          if source.blank? || source.acts_like?(:time)
+            assert_equal dest, source
+          else
+            fixed = HmisCsvTwentyTwenty::Importer::Client.fix_time_format(source)
+            assert fixed.acts_like?(:time)
+            assert_equal dest, fixed.strftime('%Y-%m-%d %H:%M:%S')
+            assert_equal Time.zone, fixed.time_zone
+          end
         end
       end
     end

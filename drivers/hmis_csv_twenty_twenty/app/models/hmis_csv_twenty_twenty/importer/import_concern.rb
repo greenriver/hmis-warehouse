@@ -167,102 +167,83 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       @accepted_time_pattern ||= /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.freeze
     end
 
-    # We sometimes see very odd dates, this will attempt to make them sane.
-    # Since most dates should be not too far in the future, we'll check for anything less
-    # Than a year out
+    # HMIS CSV FORMAT SPECIFICATIONS says under "Data Types"
+    # https://hudhdx.info/Resources/Vendors/HMIS%20CSV%20Specifications%20FY2020%20v1.8.pdf
+    #
+    # Date fields must be in the format yyyy-mm-dd
+    # Datetime aka T fields must be in the format yyyy-mm-dd hh:mm:ss with no reference to timezones.
+    #
+    # In practice HMIS systems send us data in a local timezone and
+    # we run their instance in the same timezone but we currently
+    # store data in a postgres timestamp column in the databases configured
+    # timezone. Be default this is UTC. Rails can handle the timezone math for
+    # us as long as we are passing around ActiveSupport::TimeWithZone objects
+    # so this method is careful to generate those assuming we are in
+    # Time.zone  (the configured timezone for Rails)
+    #
+    # We also need to handle non-compliant data sources as best we can
+    # so we also test for and recognize other common date formats in the US
+    # and handle 2-digit years. Nearly all dates in HMIS are in the past or
+    # current year so we choose an interpretation of a 2 digit year
+    # in that range on import if we have to.
+
+    RE_YYYYMMDD = /(?<y>\d{4})-(?<m>\d{1,2})-(?<d>\d{1,2})/.freeze
+
+    DATE_FORMATS = [
+      ['%Y-%m-%d', RE_YYYYMMDD],
+      ['%m-%d-%Y'],
+      ['%d-%b-%Y'],
+    ].freeze
+
+    TIME_FORMATS = ([
+      ['%Y-%m-%d %H:%M:%S', RE_YYYYMMDD],
+      ['%m-%d-%Y %H:%M:%S'],
+      ['%d-%b-%Y %H:%M:%S'],
+      ['%Y-%m-%d %H:%M', RE_YYYYMMDD],
+      ['%m-%d-%Y %H:%M'],
+      ['%d-%b-%Y %H:%M'],
+    ] + DATE_FORMATS).freeze # order matters, we need to try more logical and longer patterns first
+
     def self.fix_date_format(string)
-      return unless string
-
-      string = string.gsub('/', '-')
-      # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
-      return string if /\d{4}-\d{1,2}-\d{1,2}/.match?(string)
-
-      # Sometimes dates come in mm-dd-yyyy and Ruby Date really doesn't like that.
-      if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
-        month, day, year = string.split('-')
-        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')}"
-      elsif /\d{1,2}-\d{1,2}-\d{2}/.match?(string) # Handle m/d/yy
-        month, day, year = string.split('-')
-        year = year.to_i
-        # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
-        # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
-        # Since we're almost always dealing with dates that are in the past
-        # If the year is between 00 and next year, we'll add 2000,
-        # otherwise, we'll add 1900
-        next_year = Date.current.next_year.strftime('%y').to_i
-
-        if year <= next_year
-          year += 2000
-        elsif year < 100
-          year += 1900
-        end
-        return "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')}"
-      end
-
-      begin
-        d = Date.parse(string, false)
-      rescue ArgumentError
-        return nil
-      end
-      next_year = Date.current.next_year.strftime('%y').to_i
-      if d.year <= next_year
-        d = d.next_year(2000)
-      elsif d.year < 100
-        d = d.next_year(1900)
-      end
-      d.strftime('%Y-%m-%d')
+      result = fix_time_format(string, formats: DATE_FORMATS)
+      result = result.strftime('%F') if result.respond_to?(:strftime)
+      result
     end
 
-    # returns a TimeWithZone instead of a string so that we have
-    # more info for things like ActiveRecord::Import which wont know
-    # the intended timezone otherwise
-    def self.fix_time_format(string)
-      return unless string
+    def self.fix_time_format(string, formats: TIME_FORMATS)
+      return string if string.blank?
+      return string if string.acts_like?(:time)
 
-      string = string.gsub('/', '-')
-      # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
-      return string if /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.match?(string)
-      return Time.zone.parse(string) if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
+      # We don't care if we have slashes or hyphens
+      normalized = string.tr('/', '-')
 
-      # Sometimes times come in mm-dd-yyyy hh:mm
-      if /\d{1,2}-\d{1,2}-\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
-        date, time = string.split(' ')
-        month, day, year = date.split('-')
-        return Time.zone.parse("#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}")
-      elsif /\d{1,2}-\d{1,2}-\d{2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
-        date, time = string.split(' ')
-        month, day, year = date.split('-')
-        year = year.to_i
+      # We will choose between 19XX and 20XX based such that we dont have a
+      # year to far in the future
+      next_year = Time.current.year + 1
 
-        # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
-        # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
-        # Since we're almost always dealing with dates that are in the past
-        # If the year is between 00 and next year, we'll add 2000,
-        # otherwise, we'll add 1900
-        next_year = Date.current.next_year.strftime('%y').to_i
-        if year <= next_year
-          year += 2000
-        else
-          year += 1900
-        end
+      # try various pattern, starting with the standard
+      t = nil
+      formats.detect do |strptime_pattern, regexp_filter|
+        # puts "#{string} #{normalized} #{strptime_pattern} #{regexp_filter}"
+        next if regexp_filter && !normalized.match?(regexp_filter)
 
-        string = "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}"
-        return Time.zone.parse("#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')} #{time}")
+        t ||= begin
+                Time.zone.strptime(normalized, strptime_pattern)
+              rescue StandardError
+                nil
+              end
+      end
+      t ||= Time.zone.parse(t)
+
+      if t.year > next_year # after nowish
+        t = t.change(year: t.year - 100)
+      elsif t.year < (next_year % 100) # a two digit year we think is in this century
+        t = t.change(year: t.year + 2000)
+      elsif t.year < 100 # a two digit year we think is in the prior century
+        t = t.change(year: t.year + 1900)
       end
 
-      begin
-        d = DateTime.parse(string, false)
-      rescue ArgumentError
-        # If there is still garbage in a date field, return an nil
-        return nil
-      end
-      next_year = Date.current.next_year.strftime('%y').to_i
-      if d.year <= next_year
-        d = d.next_year(2000)
-      elsif d.year < 100
-        d = d.next_year(1900)
-      end
-      d
+      t
     end
 
     def self.hmis_validations
