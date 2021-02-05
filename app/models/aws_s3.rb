@@ -51,6 +51,14 @@ class AwsS3
     end
   end
 
+  def list_objects(max_keys, prefix: '')
+    self.client.list_objects_v2({
+      bucket: self.bucket_name,
+      max_keys: max_keys,
+      prefix: prefix
+    }).contents.sort_by(&:last_modified).reverse!
+  end
+
   def fetch(file_name:, prefix: nil, target_path:)
     if prefix
       file_path = "#{prefix}/#{File.basename(file_name)}"

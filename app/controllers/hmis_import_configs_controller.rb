@@ -16,6 +16,7 @@ class HmisImportConfigsController < ApplicationController
   end
 
   def edit
+    @bucket_objects_list = @config.s3.list_objects
   end
 
   def update
