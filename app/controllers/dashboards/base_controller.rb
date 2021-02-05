@@ -8,6 +8,7 @@ module Dashboards
   class BaseController < ApplicationController
     include ArelHelper
     include Rails.application.routes.url_helpers
+    include WarehouseReportAuthorization
 
     CACHE_EXPIRY = Rails.env.production? ? 8.hours : 20.seconds
 
