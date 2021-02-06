@@ -37,6 +37,8 @@ RSpec.describe ClientsController, type: :request, vcr: true do
       before do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
+        GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+        AccessGroup.maintain_system_groups
       end
       let!(:config) { create :config_b, variation }
       let!(:user) { create :user }
