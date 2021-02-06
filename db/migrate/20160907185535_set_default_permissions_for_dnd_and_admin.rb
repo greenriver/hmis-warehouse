@@ -7,7 +7,6 @@ class SetDefaultPermissionsForDNDAndAdmin < ActiveRecord::Migration[4.2]
     dnd.update_attributes(Role.permissions.map{|m| [m, true]}.to_h)
   end
   def down
-    remove_column :roles, :can_view_censuses
     remove_column :roles, :can_view_census_details
     remove_column :roles, :can_view_projects
     remove_column :roles, :can_view_organizations
