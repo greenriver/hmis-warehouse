@@ -798,6 +798,15 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           },
         ],
+        'Census' => [
+          {
+            url: 'censuses',
+            name: 'Nightly Census',
+            description: 'Daily utilization charts for projects and residential project types.',
+            limitable: true,
+            health: false,
+          },
+        ],
         'Population Dashboards' => [],
       }
       if RailsDrivers.loaded.include?(:service_scanning)
