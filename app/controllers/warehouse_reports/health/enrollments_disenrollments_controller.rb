@@ -42,6 +42,11 @@ module WarehouseReports::Health
       end
     end
 
+    def download
+      reasons = Health::EnrollmentReasons.find(params[:id].to_i)
+      send_data(reasons.content, filename: reasons.name)
+    end
+
     def months_for_select
       @months_for_select ||= Date::MONTHNAMES.reject(&:blank?).each_with_index.map { |m, i| [m, i + 1] }.freeze
     end
