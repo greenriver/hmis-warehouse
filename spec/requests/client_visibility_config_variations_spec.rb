@@ -37,6 +37,8 @@ RSpec.describe ClientsController, type: :request, vcr: true do
       before do
         GrdaWarehouse::Config.delete_all
         GrdaWarehouse::Config.invalidate_cache
+        GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+        AccessGroup.maintain_system_groups
       end
       let!(:config) { create :config_b, variation }
       let!(:user) { create :user }
@@ -48,7 +50,6 @@ RSpec.describe ClientsController, type: :request, vcr: true do
           user.roles << can_view_all_reports
           user.roles << can_edit_users
           user.roles << can_manage_config
-          user.roles << can_view_censuses
           user.roles << can_edit_data_sources
           GrdaWarehouse::DataSource.all.each do |ds|
             user.add_viewable(ds)

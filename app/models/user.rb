@@ -134,6 +134,10 @@ class User < ApplicationRecord
     end
   end
 
+  def can_view_censuses?
+    GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(self).where(url: 'censuses').exists?
+  end
+
   def active_for_authentication?
     super && active
   end
