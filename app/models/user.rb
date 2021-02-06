@@ -238,8 +238,8 @@ class User < ApplicationRecord
     )
   end
 
-  def add_2fa_token(user_agent)
-    raise user_agent
+  def add_2fa_token(name)
+    raise name
   end
 
   def has_2fa_token?
