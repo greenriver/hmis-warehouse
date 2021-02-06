@@ -21,3 +21,9 @@
 .underline-header {
   border-bottom: 1px solid $gray-025;
 }
+
+.no-results {
+  display: block;
+  padding: space(4);
+  text-align: center;
+}

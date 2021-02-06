@@ -19,6 +19,14 @@
       .col-sm-3
         = f.input :end_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @end_month, input_html: {class: :select2}, label: 'To the end of'
 
+    .row
+      .col
+        = f.input :file, as: :file, label: 'Enrollment Reasons File', required: false
+        - if @enrollment_reasons.created_at.present?
+          %small
+            Last Uploaded:
+            = link_to @enrollment_reasons.created_at&.to_date, download_warehouse_reports_health_enrollments_disenrollment_path(@enrollment_reasons)
+
   - content_for :filter_actions do
     = f.submit 'Download Zip File', data: {disable_with: false}
 

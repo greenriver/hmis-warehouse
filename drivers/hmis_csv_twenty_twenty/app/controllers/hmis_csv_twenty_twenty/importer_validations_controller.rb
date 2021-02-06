@@ -10,7 +10,8 @@ class HmisCsvTwentyTwenty::ImporterValidationsController < ApplicationController
 
   def show
     importer_log = HmisCsvTwentyTwenty::Importer::ImporterLog.find(params[:id].to_i)
-    @import = GrdaWarehouse::ImportLog.find_by(importer_log_id: importer_log.id)
+    @import = GrdaWarehouse::ImportLog.viewable_by(current_user).
+      find_by(importer_log_id: importer_log.id)
 
     @filename = detect_filename
 

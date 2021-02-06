@@ -150,9 +150,9 @@ module WarehouseReports
     private def passed_params
       params.permit(filter:
         [
-          :start_date,
-          :end_date,
-          :subpopulation,
+          :start,
+          :end,
+          :sub_population,
           :household_type,
           :race,
           :ethnicity,

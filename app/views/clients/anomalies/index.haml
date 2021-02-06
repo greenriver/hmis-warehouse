@@ -4,25 +4,24 @@
 = render 'clients/aliases'
 
 %h1= content_for :title
-- if @anomalies.any?
-  %ul.nav.nav-tabs{role: :tablist}
+%ul.nav.nav-tabs{role: :tablist}
+  %li.nav-item{role: :presentation}
+    %a{href: "#create", 'aria-controls' => :create, role: :tab, data: {toggle: :tab}, class: 'nav-link'} New
+  - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
     %li.nav-item{role: :presentation}
-      %a{href: "#create", 'aria-controls' => :create, role: :tab, data: {toggle: :tab}, class: 'nav-link'} New
-    - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
-      %li.nav-item{role: :presentation}
-        %a{href: "##{slug}", 'aria-controls' => slug, role: :tab, data: {toggle: :tab}, class: 'nav-link'}
-          = status
-  .tab-content#anomalies-tab-content
-    .tab-pane{role: :tabpanel, id: :create}
-      .well
-        = render 'form'
-    - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
-      .tab-pane{role: :tabpanel, id: slug}
-        - if @anomalies[slug.to_s].present?
-          = render 'anomalies_table', anomalies: @anomalies[slug.to_s]
-        - else
-          %p.none-found
-            There are no identified issues in this category.
+      %a{href: "##{slug}", 'aria-controls' => slug, role: :tab, data: {toggle: :tab}, class: 'nav-link'}
+        = status
+.tab-content#anomalies-tab-content
+  .tab-pane{role: :tabpanel, id: :create}
+    .well
+      = render 'form'
+  - GrdaWarehouse::Anomaly.available_stati.each do |slug, status|
+    .tab-pane{role: :tabpanel, id: slug}
+      - if @anomalies[slug.to_s].present?
+        = render 'anomalies_table', anomalies: @anomalies[slug.to_s]
+      - else
+        %p.none-found
+          There are no identified issues in this category.
 
 = content_for :page_js do
   :javascript

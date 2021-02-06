@@ -13,7 +13,7 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   belongs_to :upload, optional: true
 
   scope :viewable_by, ->(user) do
-    where(data_source_id: GrdaWarehouse::DataSource.viewable_by(user).select(:id))
+    where(data_source_id: GrdaWarehouse::DataSource.directly_viewable_by(user).select(:id))
   end
 
   scope :diet, -> do

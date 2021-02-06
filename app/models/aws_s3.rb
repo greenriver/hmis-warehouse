@@ -33,7 +33,6 @@ class AwsS3
     @bucket = @s3.bucket(@bucket_name)
   end
 
-
   def exists?
     return @bucket.exists? rescue false
   end
@@ -49,6 +48,18 @@ class AwsS3
     @bucket.objects(prefix: prefix).sort_by(&:last_modified).map do |obj|
       obj.key
     end
+  end
+
+  def list_objects(max_keys=1_000, prefix: '')
+    client.list_objects_v2(
+      {
+        bucket: bucket_name,
+        prefix: prefix,
+      },
+    ).contents.
+    sort_by(&:last_modified).
+    reverse!&.
+    first(max_keys)
   end
 
   def fetch(file_name:, prefix: nil, target_path:)
