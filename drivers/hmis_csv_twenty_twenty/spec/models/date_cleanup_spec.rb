@@ -17,9 +17,12 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
       '99-999-9999' => nil,
       '9-99-99' => nil,
       '2019-01-32' => nil,
-      # FIXME: '2/30/50' => nil, this should not work
-      # FIXME:'30-FEB-16' => nil,
       '01-XXX-50' => nil,
+      # this is OK for now, ideally we wouldn't do this but strftime advances days if they overrun by a few
+      '1900-02-29' => '1900-03-01',
+      '31-FEB-16' => '2016-03-02',
+      '2/30/50' => '1950-03-02',
+      # valid dates
       '29-FEB-16' => '2016-02-29',
       '08-MAY-67' => '1967-05-08',
       '17-JUN-20' => '2020-06-17',
@@ -47,6 +50,56 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
       end
     end
   end
+
+  private def old_fix_time_format(string)
+    return unless string
+    # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
+    return string if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
+
+    # Sometimes dates come in mm-dd-yyyy and Ruby Date really doesn't like that.
+    if /\d{1,2}-\d{1,2}-\d{4}/.match?(string)
+      month, day, year = string.split('-')
+      return "#{year}-#{month}-#{day}"
+    # Sometimes times come in mm/dd/yyyy hh:mm
+    elsif %r{\d{1,2}/\d{1,2}/\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?}.match?(string)
+      date, time = string.split(' ')
+      month, day, year = date.split('/')
+      return "#{year}-#{month}-#{day} #{time}"
+    end
+    # NOTE: by default ruby converts 2 digit years between 00 and 68 by adding 2000, 69-99 by adding 1900.
+    # https://pubs.opengroup.org/onlinepubs/009695399/functions/strptime.html
+    # Since we're almost always dealing with dates that are in the past
+    # If the year is between 00 and next year, we'll add 2000,
+    # otherwise, we'll add 1900
+    @next_year ||= Date.current.next_year.strftime('%y').to_i
+    d = DateTime.parse(string, false) # false to not guess at century
+    if d.year <= @next_year
+      d = d.next_year(2000)
+    else
+      d = d.next_year(1900)
+    end
+    d.strftime('%Y-%m-%d %H%M%S')
+  end
+
+  # describe 'performance' do
+  #   it 'is reasonable fast' do
+  #     n = 10_000
+  #     puts "running #{n} iterations of old and new methods"
+  #     res = Benchmark.bm(20) do |x|
+  #       {
+  #         easy: '2020-06-17 21:39',
+  #         hard: '17-JUN-20 21:39'
+  #       }.each do |label, string|
+  #         x.report("new #{label} #{string}")  do
+  #           n.times { HmisCsvTwentyTwenty::Importer::Client.fix_time_format(string) }
+  #         end
+  #         x.report("old #{label} #{string}")  do
+  #           n.times { old_fix_time_format(string) }
+  #         end
+  #       end
+  #     end
+  #   end
+  # end
 
   describe 'dates convert as expected' do
     times = {

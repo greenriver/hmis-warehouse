@@ -8,6 +8,22 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
   extend ActiveSupport::Concern
   SELECT_BATCH_SIZE = 10_000
   INSERT_BATCH_SIZE = 2_000
+  RE_YYYYMMDD = /(?<y>\d{4})-(?<m>\d{1,2})-(?<d>\d{1,2})/.freeze
+
+  HMIS_DATE_FORMATS = [
+    ['%Y-%m-%d', RE_YYYYMMDD],
+    ['%m-%d-%Y'],
+    ['%d-%b-%Y'],
+  ].freeze
+
+  HMIS_TIME_FORMATS = ([
+    ['%Y-%m-%d %H:%M:%S', RE_YYYYMMDD],
+    ['%m-%d-%Y %H:%M:%S'],
+    ['%d-%b-%Y %H:%M:%S'],
+    ['%Y-%m-%d %H:%M', RE_YYYYMMDD],
+    ['%m-%d-%Y %H:%M'],
+    ['%d-%b-%Y %H:%M'],
+  ] + HMIS_DATE_FORMATS).freeze # order matters, we need to try more logical and longer patterns first
 
   included do
     belongs_to :importer_log
@@ -187,30 +203,13 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
     # current year so we choose an interpretation of a 2 digit year
     # in that range on import if we have to.
 
-    RE_YYYYMMDD = /(?<y>\d{4})-(?<m>\d{1,2})-(?<d>\d{1,2})/.freeze
-
-    DATE_FORMATS = [
-      ['%Y-%m-%d', RE_YYYYMMDD],
-      ['%m-%d-%Y'],
-      ['%d-%b-%Y'],
-    ].freeze
-
-    TIME_FORMATS = ([
-      ['%Y-%m-%d %H:%M:%S', RE_YYYYMMDD],
-      ['%m-%d-%Y %H:%M:%S'],
-      ['%d-%b-%Y %H:%M:%S'],
-      ['%Y-%m-%d %H:%M', RE_YYYYMMDD],
-      ['%m-%d-%Y %H:%M'],
-      ['%d-%b-%Y %H:%M'],
-    ] + DATE_FORMATS).freeze # order matters, we need to try more logical and longer patterns first
-
     def self.fix_date_format(string)
-      result = fix_time_format(string, formats: DATE_FORMATS)
+      result = fix_time_format(string, formats: HMIS_DATE_FORMATS)
       result = result.strftime('%F') if result.respond_to?(:strftime)
       result
     end
 
-    def self.fix_time_format(string, formats: TIME_FORMATS)
+    def self.fix_time_format(string, formats: HMIS_TIME_FORMATS)
       return string if string.blank?
       return string if string.acts_like?(:time)
 
@@ -219,7 +218,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
       # We will choose between 19XX and 20XX based such that we dont have a
       # year to far in the future
-      next_year = Time.current.year + 1
+      next_year = Date.current.next_year.strftime('%y').to_i
 
       # try various pattern, starting with the standard
       t = nil
@@ -236,9 +235,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
       return unless t
 
-      if t.year > next_year # after nowish
-        t = t.change(year: t.year - 100)
-      elsif t.year < (next_year % 100) # a two digit year we think is in this century
+      if t.year < next_year # a two digit year we think is in this century
         t = t.change(year: t.year + 2000)
       elsif t.year < 100 # a two digit year we think is in the prior century
         t = t.change(year: t.year + 1900)
