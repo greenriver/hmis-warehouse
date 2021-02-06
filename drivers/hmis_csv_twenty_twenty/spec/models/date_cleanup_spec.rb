@@ -9,6 +9,18 @@ require 'rails_helper'
 RSpec.describe 'Date and Time Cleanup', type: :model do
   describe 'dates convert as expected' do
     dates = {
+      'HI THERE' => nil,
+      'Jan 1' => nil,
+      'Feb' => nil,
+      'Jan 2010' => nil,
+      'Yesterday' => nil,
+      '99-999-9999' => nil,
+      '9-99-99' => nil,
+      '2019-01-32' => nil,
+      # FIXME: '2/30/50' => nil, this should not work
+      # FIXME:'30-FEB-16' => nil,
+      '01-XXX-50' => nil,
+      '29-FEB-16' => '2016-02-29',
       '08-MAY-67' => '1967-05-08',
       '17-JUN-20' => '2020-06-17',
       '17-JUN-2020' => '2020-06-17',

@@ -233,7 +233,8 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
                 nil
               end
       end
-      t ||= Time.zone.parse(t)
+
+      return unless t
 
       if t.year > next_year # after nowish
         t = t.change(year: t.year - 100)
