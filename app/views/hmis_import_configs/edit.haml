@@ -1,12 +1,12 @@
 = render 'breadcrumbs'
 - content_for :title,  _('Set Automated HMIS CSV Loads')
+
+%h1= content_for :title
 .row
-  .col-sm-8
-    %h1= content_for :title
-.row
-  .col-sm-8.well
-    = simple_form_for @config, as: :config, url: data_source_hmis_import_config_path do |f|
-      = render 'form', f: f
-      = f.button :submit, class: 'btn btn-primary', value: 'Save Config'
-  .col
+  .col-sm
+    .well
+      = simple_form_for @config, as: :config, url: data_source_hmis_import_config_path do |f|
+        = render 'form', f: f
+        = f.button :submit, class: 'btn btn-primary', value: 'Save Config'
+  .col-sm
     = render 'objects_list'

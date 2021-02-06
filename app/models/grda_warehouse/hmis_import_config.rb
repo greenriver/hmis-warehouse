@@ -16,11 +16,11 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
   end
 
   def s3
-    AwsS3.new(
-      region: self.s3_region,
-      bucket_name: self.s3_bucket_name,
-      access_key_id: self.s3_access_key_id,
-      secret_access_key: self.s3_secret_access_key,
+    @s3 ||= AwsS3.new(
+      region: s3_region,
+      bucket_name: s3_bucket_name,
+      access_key_id: s3_access_key_id,
+      secret_access_key: s3_secret_access_key,
     )
   end
 end

@@ -16,7 +16,13 @@ class HmisImportConfigsController < ApplicationController
   end
 
   def edit
-    @bucket_objects_list = @config.s3.list_objects(25)
+    @bucket_objects_list = []
+    @error = false
+    begin
+      @bucket_objects_list = @config.s3.list_objects(25, prefix: @config.s3_path)
+    rescue Aws::S3::Errors::InvalidAccessKeyId
+      @error = true
+    end
   end
 
   def update
