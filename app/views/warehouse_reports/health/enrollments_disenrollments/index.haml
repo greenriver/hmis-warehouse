@@ -19,6 +19,10 @@
       .col-sm-3
         = f.input :end_month, collection: months_for_select, label_method: :first, value_method: :last, selected: @end_month, input_html: {class: :select2}, label: 'To the end of'
 
+    .row
+      .col
+        - last_upload = "Last Uploaded: #{@enrollment_reasons.created_at&.to_date}" if @enrollment_reasons.created_at.present?
+        = f.input :file, as: :file, label: 'Enrollment Reasons File', hint: last_upload, required: false
   - content_for :filter_actions do
     = f.submit 'Download Zip File', data: {disable_with: false}
 

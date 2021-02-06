@@ -71,15 +71,15 @@ class UploadsController < ApplicationController
   end
 
   private def data_source_source
-    GrdaWarehouse::DataSource.viewable_by current_user
+    GrdaWarehouse::DataSource
   end
 
   private def data_source_scope
-    data_source_source.importable
+    data_source_source.importable.directly_viewable_by(current_user)
   end
 
   private def set_data_source
-    @data_source = data_source_source.find(params[:data_source_id].to_i)
+    @data_source = data_source_scope.find(params[:data_source_id].to_i)
   end
 
   private def set_upload
