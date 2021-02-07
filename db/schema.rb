@@ -344,7 +344,6 @@ ActiveRecord::Schema.define(version: 2021_02_03_195412) do
     t.datetime "updated_at", null: false
     t.boolean "can_view_clients", default: false
     t.boolean "can_edit_clients", default: false
-    t.boolean "can_view_censuses", default: false
     t.boolean "can_view_census_details", default: false
     t.boolean "can_edit_users", default: false
     t.boolean "can_view_full_ssn", default: false
@@ -472,6 +471,7 @@ ActiveRecord::Schema.define(version: 2021_02_03_195412) do
     t.boolean "can_decrypt_pii", default: false
     t.boolean "can_delete_youth_intake", default: false
     t.boolean "can_administer_assigned_reports", default: false
+    t.boolean "can_view_censuses", default: false
     t.boolean "can_view_enrollment_details", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
