@@ -6,6 +6,7 @@
 
 class User < ApplicationRecord
   include Rails.application.routes.url_helpers
+  include ActionController::Cookies
   include UserPermissions
   include PasswordRules
   has_paper_trail
@@ -59,6 +60,8 @@ class User < ApplicationRecord
   has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
   has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
   has_many :activity_logs
+
+  has_many :two_factors_tokens
 
   belongs_to :agency, optional: true
 
@@ -236,14 +239,6 @@ class User < ApplicationRecord
       otp_required_for_login: false,
       otp_backup_codes: nil,
     )
-  end
-
-  def add_2fa_token(name)
-    raise name
-  end
-
-  def has_2fa_token?
-    # TODO    
   end
 
   def invitation_status

@@ -839,7 +839,9 @@ Rails.application.routes.draw do
   end
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
-  resource :account_two_factor, only: [:show, :edit, :update, :destroy]
+  resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
+    get :remove_token
+  end
   resources :account_downloads, only: [:index]
 
   resources :document_exports, only: [:show, :create] do
