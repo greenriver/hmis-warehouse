@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_25_151501) do
+ActiveRecord::Schema.define(version: 2021_02_01_195631) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1296,6 +1296,29 @@ ActiveRecord::Schema.define(version: 2021_01_25_151501) do
     t.boolean "part_of_a_family", default: false, null: false
     t.integer "age_at_available_on"
     t.index ["cas_client_id"], name: "index_cas_non_hmis_client_histories_on_cas_client_id"
+  end
+
+  create_table "cas_programs_to_projects", force: :cascade do |t|
+    t.bigint "program_id"
+    t.bigint "project_id"
+    t.index ["program_id"], name: "index_cas_programs_to_projects_on_program_id"
+    t.index ["project_id"], name: "index_cas_programs_to_projects_on_project_id"
+  end
+
+  create_table "cas_referral_events", force: :cascade do |t|
+    t.bigint "cas_client_id"
+    t.bigint "hmis_client_id"
+    t.bigint "program_id"
+    t.bigint "client_opportunity_match_id"
+    t.date "referral_date"
+    t.integer "referral_result"
+    t.date "referral_result_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cas_client_id"], name: "index_cas_referral_events_on_cas_client_id"
+    t.index ["client_opportunity_match_id"], name: "index_cas_referral_events_on_client_opportunity_match_id"
+    t.index ["hmis_client_id"], name: "index_cas_referral_events_on_hmis_client_id"
+    t.index ["program_id"], name: "index_cas_referral_events_on_program_id"
   end
 
   create_table "cas_reports", id: :serial, force: :cascade do |t|
