@@ -470,7 +470,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.index ["mid_month", "active", "exited"], name: "index_month_remainder_act_exit"
     t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_remainder_dest_enr"
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_remainder_p_type_hoh"
-    t.check_constraint "(type)::text <> ALL ((ARRAY['adult_only_households'::character varying, 'adults_with_children'::character varying, 'child_only_households'::character varying, 'clients'::character varying, 'non_veterans'::character varying, 'veterans'::character varying])::text[])", name: "warehouse_partitioned_monthly_reports_unknown_type_check"
+    t.check_constraint "(type)::text <> ALL (ARRAY[('adult_only_households'::character varying)::text, ('adults_with_children'::character varying)::text, ('child_only_households'::character varying)::text, ('clients'::character varying)::text, ('non_veterans'::character varying)::text, ('veterans'::character varying)::text])", name: "warehouse_partitioned_monthly_reports_unknown_type_check"
   end
 
   create_table "warehouse_partitioned_monthly_reports_veterans", id: false, force: :cascade do |t|

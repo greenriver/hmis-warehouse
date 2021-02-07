@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_05_183208) do
+ActiveRecord::Schema.define(version: 2021_02_06_022724) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -416,6 +416,7 @@ ActiveRecord::Schema.define(version: 2021_01_05_183208) do
     t.boolean "can_unsubmit_submitted_claims", default: false
     t.boolean "can_edit_health_emergency_contact_tracing", default: false
     t.boolean "health_role", default: false, null: false
+    t.boolean "can_view_enrollment_details", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 
