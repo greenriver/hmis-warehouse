@@ -343,7 +343,7 @@ module HmisCsvTwentyTwenty::Loader
         status: status,
       )
       status = "#{status} error:#{err}" if err
-      log("Completed in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}\n#{summary_as_log_str loader_log.summary}")
+      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}\n#{summary_as_log_str loader_log.summary}")
     end
 
     def setup_summary(file)
