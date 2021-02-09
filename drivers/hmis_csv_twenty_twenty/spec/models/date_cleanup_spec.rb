@@ -102,6 +102,8 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
   # end
 
   describe 'dates convert as expected' do
+    time_with_zone = Time.current
+
     times = {
       '08-MAY-67 21:39:00' => '1967-05-08 21:39:00',
       '17-JUN-20 21:39:00' => '2020-06-17 21:39:00',
@@ -160,6 +162,7 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
       '12-11-99 4:39' => '1999-12-11 04:39:00',
       '12-11-1999 4:39' => '1999-12-11 04:39:00',
       '' => '',
+      time_with_zone => time_with_zone,
     }
     it 'returns expected times' do
       aggregate_failures do
@@ -168,9 +171,7 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
             assert_equal dest, source
           else
             fixed = HmisCsvTwentyTwenty::Importer::Client.fix_time_format(source)
-            assert fixed.acts_like?(:time)
             assert_equal dest, fixed.strftime('%Y-%m-%d %H:%M:%S')
-            assert_equal Time.zone, fixed.time_zone
           end
         end
       end

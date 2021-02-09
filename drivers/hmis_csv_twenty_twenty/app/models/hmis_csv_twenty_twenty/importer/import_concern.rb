@@ -151,8 +151,6 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
     def self.fix_date_columns(row)
       date_columns.each do |col|
-        next if row[col].blank? || correct_date_format?(row[col])
-
         row[col] = fix_date_format(row[col])
       end
       row
@@ -160,27 +158,9 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
     def self.fix_time_columns(row)
       time_columns.each do |col|
-        next if row[col].blank? || correct_time_format?(row[col])
-
         row[col] = fix_time_format(row[col])
       end
       row
-    end
-
-    def self.correct_date_format?(string)
-      accepted_date_pattern.match?(string)
-    end
-
-    def self.accepted_date_pattern
-      /\A\d{4}-\d{2}-\d{2}/.freeze
-    end
-
-    def self.correct_time_format?(string)
-      accepted_time_pattern.match?(string)
-    end
-
-    def self.accepted_time_pattern
-      @accepted_time_pattern ||= /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.freeze
     end
 
     # HMIS CSV FORMAT SPECIFICATIONS says under "Data Types"
@@ -216,10 +196,6 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       # We don't care if we have slashes or hyphens
       normalized = string.tr('/', '-')
 
-      # We will choose between 19XX and 20XX based such that we dont have a
-      # year to far in the future
-      next_year = Date.current.next_year.strftime('%y').to_i
-
       # try various pattern, starting with the standard
       t = nil
       formats.detect do |strptime_pattern, regexp_filter|
@@ -235,10 +211,18 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
 
       return unless t
 
-      if t.year < next_year # a two digit year we think is in this century
-        t = t.change(year: t.year + 2000)
-      elsif t.year < 100 # a two digit year we think is in the prior century
-        t = t.change(year: t.year + 1900)
+      if t.year < 100
+        # We will choose between 19XX and 20XX based on the idea
+        # that our dates are most likely to be in the recent past and not
+        # to far into the future
+        next_year = Date.current.next_year.strftime('%y').to_i
+
+        if t.year < next_year # a two digit year we think is in this century
+          t = t.change(year: t.year + 2000)
+        else
+          # a two digit year we think is in the prior century
+          t = t.change(year: t.year + 1900)
+        end
       end
 
       t
