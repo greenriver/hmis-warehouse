@@ -438,9 +438,9 @@ module Health
     def create_patient destination_client
       linked_patient = Health::Patient.with_deleted.find_by(client_id: destination_client.id)
       patient = Health::Patient.with_deleted.where(medicaid_id: medicaid_id).first_or_initialize
-      if linked_patient.present? && patient.client_id != linked_patient.client_id
+      if linked_patient.present? && patient.client_id != linked_patient.id
         # The medicaid id has changed, or points to a different client!
-        raise MedicaidIdConflict, "Patient: #{patient.client_id}, linked_patient: #{linked_patient.client_id}"
+        raise MedicaidIdConflict, "Patient: #{patient.client_id}, linked_patient: #{linked_patient.id}"
       else
         patient.assign_attributes(
           id_in_source: id,
