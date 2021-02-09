@@ -840,7 +840,7 @@ Rails.application.routes.draw do
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
   resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
-    get :remove_token
+    get :remove_device
   end
   resources :account_downloads, only: [:index]
 

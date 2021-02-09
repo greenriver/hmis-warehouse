@@ -1,0 +1,12 @@
+%table.table.table-sm
+  %thead
+    %tr
+      %th Device Name
+      %th Expires On
+      %th
+  %tbody
+    - @user.two_factors_memorized_devices.active.each do |device|
+      %tr
+        %th= device.name
+        %th= Time.now + TwoFactorsMemorizedDevices.active_duration - (Time.now - device.created_at)
+        %th= link_to("Remove",  remove_device_account_two_factor_path(device_id: device.id), data: {confirm: "Deleting a device means you won't be able to bypass 2FA on the corresponding device in the future. Are you sure?"})

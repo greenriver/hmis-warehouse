@@ -44,8 +44,8 @@ module AuthenticatesWithTwoFactor
     user = resource
     return locked_user_redirect(user) unless user.active?
 
-    # bypass 2fa if user has token
-    if has_2fa_token?(user)
+    # bypass 2fa if user has device
+    if has_2fa_device?(user)
       two_factor_successful(user)
     elsif user_params[:otp_attempt].present? && session[:otp_user_id]
       authenticate_with_two_factor_via_otp(user)
@@ -56,8 +56,8 @@ module AuthenticatesWithTwoFactor
 
   private def authenticate_with_two_factor_via_otp(user)
     if valid_otp_attempt?(user) || valid_backup_code_attempt?(user)
-      # add 2fa token if true
-      add_2fa_token(user, user_params[:device_name]) if user_params[:remember_device]
+      # add 2fa device if true
+      add_2fa_device(user, user_params[:device_name]) if user_params[:remember_device]
       two_factor_successful(user)
     else
       user.increment_failed_attempts
@@ -67,20 +67,20 @@ module AuthenticatesWithTwoFactor
     end
   end
 
-  private def add_2fa_token(user, name)
+  private def add_2fa_device(user, name)
     uuid = SecureRandom.uuid
 
-    # set cookie and add to two_factors_token list
-    cookies.encrypted[:device_token] = { value: uuid, expires: TwoFactorsToken.active_duration.from_now }
-    user.two_factors_tokens.create!(uuid: uuid, name: name)
+    # set cookie and add to two_factors_memorized_devices list
+    cookies.encrypted[:memorized_device] = { value: uuid, expires: TwoFactorsMemorizedDevices.active_duration.from_now }
+    user.two_factors_memorized_devices.create!(uuid: uuid, name: name)
   end
 
-  private def has_2fa_token?(user)
-    cookie_uuid = cookies.encrypted[:device_token]
+  private def has_2fa_device?(user)
+    cookie_uuid = cookies.encrypted[:memorized_device]
     return false unless cookie_uuid
 
     # find if cookie exist in active
-    user.two_factors_tokens.active.exists?(uuid: cookie_uuid)
+    user.two_factors_memorized_devices.active.exists?(uuid: cookie_uuid)
   end
 
   private def two_factor_successful(user)

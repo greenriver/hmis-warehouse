@@ -1,4 +1,4 @@
-class TwoFactorsToken < ApplicationRecord
+class TwoFactorsMemorizedDevices < ApplicationRecord
   belongs_to :user
 
   scope :active, -> do

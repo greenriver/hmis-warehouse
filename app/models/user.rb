@@ -61,7 +61,7 @@ class User < ApplicationRecord
   has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
   has_many :activity_logs
 
-  has_many :two_factors_tokens
+  has_many :two_factors_memorized_devices
 
   belongs_to :agency, optional: true
 
