@@ -57,7 +57,7 @@ module AuthenticatesWithTwoFactor
   private def authenticate_with_two_factor_via_otp(user)
     if valid_otp_attempt?(user) || valid_backup_code_attempt?(user)
       # add 2fa device if true
-      add_2fa_device(user, user_params[:device_name]) if user_params[:remember_device] && bypass_2fa_enabled?
+      add_2fa_device(user, user_params[:device_name]) if user_params[:remember_device] == 'true' && bypass_2fa_enabled?
       two_factor_successful(user)
     else
       user.increment_failed_attempts
