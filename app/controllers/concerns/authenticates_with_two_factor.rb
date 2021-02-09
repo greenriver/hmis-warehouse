@@ -45,7 +45,7 @@ module AuthenticatesWithTwoFactor
     return locked_user_redirect(user) unless user.active?
 
     # bypass 2fa if user has device
-    if using_memorized_device?(user)
+    if using_memorized_device?(user) && bypass_2fa_enabled?
       two_factor_successful(user)
     elsif user_params[:otp_attempt].present? && session[:otp_user_id]
       authenticate_with_two_factor_via_otp(user)
@@ -57,7 +57,7 @@ module AuthenticatesWithTwoFactor
   private def authenticate_with_two_factor_via_otp(user)
     if valid_otp_attempt?(user) || valid_backup_code_attempt?(user)
       # add 2fa device if true
-      add_2fa_device(user, user_params[:device_name]) if user_params[:remember_device]
+      add_2fa_device(user, user_params[:device_name]) if user_params[:remember_device] && bypass_2fa_enabled?
       two_factor_successful(user)
     else
       user.increment_failed_attempts
@@ -71,7 +71,7 @@ module AuthenticatesWithTwoFactor
     uuid = SecureRandom.uuid
 
     # set cookie and add to two_factors_memorized_devices list
-    cookies.encrypted[:memorized_device] = { value: uuid, expires: TwoFactorsMemorizedDevice.active_duration.from_now }
+    cookies.encrypted[:memorized_device] = { value: uuid, expires: GrdaWarehouse::Config.get(:bypass_2fa_duration).days.from_now }
     user.two_factors_memorized_devices.create!(
       uuid: uuid,
       name: name,

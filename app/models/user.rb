@@ -6,7 +6,6 @@
 
 class User < ApplicationRecord
   include Rails.application.routes.url_helpers
-  include ActionController::Cookies
   include UserPermissions
   include PasswordRules
   has_paper_trail

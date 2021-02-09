@@ -14,8 +14,8 @@
       %p
         = link_to account_two_factor_path, class: ['btn', 'btn-secondary'], data: { loads_in_pjax_modal: true } do
           Generate Backup Codes
-      - unless @user.two_factors_memorized_devices.empty?
-        %p You can bypass 2FA on the following devices.
+      - if (!@user.two_factors_memorized_devices.empty?) && bypass_2fa_enabled?
+        %p You can bypass 2FA on the following devices. The expiry date is constant, and will not change if the duration period config is changed.
         %p Note that if you had cleared your cookies manually on one of the following devices, the entry would still be here, but you still would not be able to bypass 2FA on that device.
         = render 'device_table'
     - if @user.enforced_2fa?

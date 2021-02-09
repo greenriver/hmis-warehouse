@@ -12,13 +12,8 @@ class TwoFactorsMemorizedDevice < ApplicationRecord
     where(arel_table[:expires_at].lteq(Time.current))
   end
 
-  def self.active_duration
-    # FIXME use warehouse config
-    30.days
-  end
-
   private def record_expires_at
-    self.expires_at = self.created_at + self.class.active_duration
+    self.expires_at = self.created_at + GrdaWarehouse::Config.get(:bypass_2fa_duration).days
     self.save!
   end
 end
