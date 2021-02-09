@@ -75,6 +75,13 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
 
   config.include FixpointTestHelpers
+
+  config.before(:suite) do
+    GrdaWarehouse::Utility.clear!
+    Delayed::Job.delete_all
+    GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+    AccessGroup.maintain_system_groups
+  end
 end
 
 # Drivers

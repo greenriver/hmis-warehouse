@@ -21,8 +21,12 @@
 
     .row
       .col
-        - last_upload = "Last Uploaded: #{@enrollment_reasons&.created_at&.to_date}" if @enrollment_reasons.present?
-        = f.input :file, as: :file, label: 'Enrollment Reasons File', hint: last_upload, required: false
+        = f.input :file, as: :file, label: 'Enrollment Reasons File', required: false
+        - if @enrollment_reasons.created_at.present?
+          %small
+            Last Uploaded:
+            = link_to @enrollment_reasons.created_at&.to_date, download_warehouse_reports_health_enrollments_disenrollment_path(@enrollment_reasons)
+
   - content_for :filter_actions do
     = f.submit 'Download Zip File', data: {disable_with: false}
 

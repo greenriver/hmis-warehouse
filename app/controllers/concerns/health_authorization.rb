@@ -37,7 +37,7 @@ module HealthAuthorization
     end
 
     def require_some_patient_access!
-      return true if current_user.has_some_patient_access?
+      return true if GrdaWarehouse::Config.get(:healthcare_available) && current_user.has_some_patient_access?
 
       not_authorized!
     end

@@ -6,10 +6,6 @@
 
 module AdultsWithChildrenSubPop::Dashboards
   class AdultsWithChildrenController < ::Dashboards::BaseController
-    include ArelHelper
-
-    before_action :require_can_view_censuses!
-
     def sub_population_key
       :adults_with_children
     end

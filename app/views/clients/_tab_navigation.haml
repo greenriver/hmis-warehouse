@@ -33,7 +33,7 @@
       },
       enrollment_details_client_path(@client) => {
         title: 'Enrollment Details',
-        permission: can_view_clients?,
+        permission: can_view_enrollment_details_tab?,
       },
       polymorphic_path(client_chronic_path_generator, client_id: @client) => {
         title: 'Chronic',

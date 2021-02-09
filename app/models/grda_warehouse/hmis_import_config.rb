@@ -14,4 +14,13 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
   scope :active, -> do
     where(active: true)
   end
+
+  def s3
+    @s3 ||= AwsS3.new(
+      region: s3_region,
+      bucket_name: s3_bucket_name,
+      access_key_id: s3_access_key_id,
+      secret_access_key: s3_secret_access_key,
+    )
+  end
 end
