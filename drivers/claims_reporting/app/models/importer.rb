@@ -128,17 +128,19 @@ module ClaimsReporting
         sftp_url(credentials['host'], zip_path),
       )
 
-      using_sftp(credentials) do |sftp|
-        record_progress(step: :connected)
-        logger.debug 'import_from_health_sftp: connected, downloading...'
-        Tempfile.create(File.basename(zip_path)) do |tmpfile|
+      Tempfile.create(File.basename(zip_path)) do |tmpfile|
+        using_sftp(credentials) do |sftp|
+          record_progress(step: :connected)
+          logger.info 'import_from_health_sftp: connected, downloading...'
           record_progress(step: :downloading)
-          logger.debug "import_from_health_sftp: to #{tmpfile.path}"
+          logger.info "... to #{tmpfile.path}"
           sftp.download!(zip_path, tmpfile.path)
-          record_progress(step: :download)
-          logger.debug "downloaded #{tmpfile.path}"
-          import_from_zip(tmpfile, replace_all: replace_all, new_import: false)
+          sftp.loop # cargo-cult... maybe helps Net::SFTP stay alive
+          record_progress(step: :downloaded)
+          logger.info "... downloaded #{tmpfile.path}; disconnecting"
         end
+        logger.info '... disconnected'
+        import_from_zip(tmpfile, replace_all: replace_all, new_import: false)
       end
     rescue Interrupt
       record_complete(successful: false, status_message: 'Aborted')
