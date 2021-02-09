@@ -215,8 +215,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         # We will choose between 19XX and 20XX based on the idea
         # that our dates are most likely to be in the recent past and not
         # to far into the future
-        next_year = Date.current.next_year.strftime('%y').to_i
-
+        next_year = Date.current.next_year.year % 100
         if t.year <= next_year # a two digit year we think is in this century
           t = t.change(year: t.year + 2000)
         else

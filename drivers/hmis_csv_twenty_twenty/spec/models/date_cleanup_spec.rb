@@ -51,6 +51,23 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
     end
   end
 
+  it 'infers centuries correctly' do
+    # at any point in 2020 in Time.zone any date string
+    # in `21 means 2021 while a date in `22 means 1922
+    aggregate_failures do
+      [Time.zone.local(2020, 1, 1), Time.zone.local(2020, 12, 31)].each do |current_time|
+        travel_to current_time do
+          expect(HmisCsvTwentyTwenty::Importer::Client.fix_date_format('1-JAN-20')).to eq('2020-01-01')
+          expect(HmisCsvTwentyTwenty::Importer::Client.fix_date_format('31-DEC-20')).to eq('2020-12-31')
+          expect(HmisCsvTwentyTwenty::Importer::Client.fix_date_format('1-JAN-21')).to eq('2021-01-01')
+          expect(HmisCsvTwentyTwenty::Importer::Client.fix_date_format('31-DEC-21')).to eq('2021-12-31')
+          expect(HmisCsvTwentyTwenty::Importer::Client.fix_date_format('1-JAN-22')).to eq('1922-01-01')
+          expect(HmisCsvTwentyTwenty::Importer::Client.fix_date_format('31-DEC-22')).to eq('1922-12-31')
+        end
+      end
+    end
+  end
+
   private def old_fix_time_format(string)
     return unless string
     # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
