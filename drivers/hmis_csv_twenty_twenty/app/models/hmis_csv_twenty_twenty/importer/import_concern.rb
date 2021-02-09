@@ -217,7 +217,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
         # to far into the future
         next_year = Date.current.next_year.strftime('%y').to_i
 
-        if t.year < next_year # a two digit year we think is in this century
+        if t.year <= next_year # a two digit year we think is in this century
           t = t.change(year: t.year + 2000)
         else
           # a two digit year we think is in the prior century
