@@ -14,8 +14,7 @@ gem 'composite_primary_keys', git: 'https://github.com/codeodor/composite_primar
 # gem 'composite_primary_keys', '~>12'
 # gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
 gem 'pg'
-# temporarily pushing up activerecord requirement so that it can be updated to 6.1
-gem 'activerecord-sqlserver-adapter', git: 'https://github.com/tquang1708/activerecord-sqlserver-adapter.git', branch: 'master', require: false
+gem 'activerecord-sqlserver-adapter', git: 'https://github.com/lk0001/activerecord-sqlserver-adapter', branch: 'master', require: false
 gem 'activerecord-import'
 
 # a fix for a duplicated constant warning on 6.1 is on the master branch

@@ -25,7 +25,7 @@ As of writing, these are the Gems that didn't yet have official 6.1.1 support, a
   - Currently using codeodor's version [here](https://github.com/codeodor/composite_primary_keys) on branch `ar6.1`
   - PR on official repo is [here](https://github.com/composite-primary-keys/composite_primary_keys/pull/531)
 - activerecord-sqlserver-adapter
-  - Currently using the version I forked [here](https://github.com/tquang1708/activerecord-sqlserver-adapter) on branch `master`, which merely pushes the requirement up to 6.1. It probably will break but I'll look into that when it does.
+  - Currently using lk001's version [here](https://github.com/lk0001/activerecord-sqlserver-adapter) on branch `master`.
   - Issue on official repo is [here](https://github.com/rails-sqlserver/activerecord-sqlserver-adapter/issues/849)
 - active_record_extended
   - Officially already supporting 6.1, but currently using the unreleased version on the Master branch as it fixed a small bug.

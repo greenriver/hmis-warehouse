@@ -38,12 +38,12 @@ GIT
       rotp (~> 6)
 
 GIT
-  remote: https://github.com/tquang1708/activerecord-sqlserver-adapter.git
-  revision: 725a11040ab7c42e7b381e3b58fe0cab925b5a71
+  remote: https://github.com/lk0001/activerecord-sqlserver-adapter
+  revision: d88952e16c5001fae53581974a67b185d7266a8c
   branch: master
   specs:
     activerecord-sqlserver-adapter (6.0.0)
-      activerecord (~> 6.1.0)
+      activerecord (>= 6.0.0)
       tiny_tds
 
 GEM
