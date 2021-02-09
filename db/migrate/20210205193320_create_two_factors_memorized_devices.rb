@@ -5,7 +5,7 @@ class CreateTwoFactorsMemorizedDevices < ActiveRecord::Migration[5.2]
       t.string :uuid
       t.string :name
       t.integer :session_id
-      t.ip_address :log_in_ip
+      t.string :log_in_ip
 
       t.timestamps
     end

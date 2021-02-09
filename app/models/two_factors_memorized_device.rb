@@ -1,4 +1,4 @@
-class TwoFactorsMemorizedDevices < ApplicationRecord
+class TwoFactorsMemorizedDevice < ApplicationRecord
   belongs_to :user
 
   scope :active, -> do
@@ -15,6 +15,6 @@ class TwoFactorsMemorizedDevices < ApplicationRecord
   end
 
   def expires_at
-    self.created_at + self.active_duration
+    self.created_at + self.class.active_duration
   end
 end

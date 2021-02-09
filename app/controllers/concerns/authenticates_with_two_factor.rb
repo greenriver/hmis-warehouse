@@ -71,7 +71,7 @@ module AuthenticatesWithTwoFactor
     uuid = SecureRandom.uuid
 
     # set cookie and add to two_factors_memorized_devices list
-    cookies.encrypted[:memorized_device] = { value: uuid, expires: TwoFactorsMemorizedDevices.active_duration.from_now }
+    cookies.encrypted[:memorized_device] = { value: uuid, expires: TwoFactorsMemorizedDevice.active_duration.from_now }
     user.two_factors_memorized_devices.create!(
       uuid: uuid,
       name: name,
