@@ -383,6 +383,8 @@ module ClaimsReporting
     end
 
     def normalized_dxcg_score
+      return unless selected_members&.positive?
+
       'TODO'
     end
 
@@ -512,6 +514,8 @@ module ClaimsReporting
     end
 
     def detail_rows
+      return [] unless selected_members&.positive?
+
       connection.select_all(claims_query)
     end
 
