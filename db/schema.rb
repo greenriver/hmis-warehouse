@@ -489,6 +489,7 @@ ActiveRecord::Schema.define(version: 2021_02_06_022724) do
     t.bigint "user_id"
     t.string "uuid"
     t.string "name"
+    t.datetime "expires_at"
     t.integer "session_id"
     t.string "log_in_ip"
     t.datetime "created_at", null: false
