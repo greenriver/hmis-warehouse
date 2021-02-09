@@ -13,4 +13,8 @@ class TwoFactorsMemorizedDevices < ApplicationRecord
   def self.active_duration
     30.days
   end
+
+  def expires_at
+    self.created_at + self.active_duration
+  end
 end

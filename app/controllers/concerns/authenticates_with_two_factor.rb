@@ -72,7 +72,12 @@ module AuthenticatesWithTwoFactor
 
     # set cookie and add to two_factors_memorized_devices list
     cookies.encrypted[:memorized_device] = { value: uuid, expires: TwoFactorsMemorizedDevices.active_duration.from_now }
-    user.two_factors_memorized_devices.create!(uuid: uuid, name: name)
+    user.two_factors_memorized_devices.create!(
+      uuid: uuid,
+      name: name,
+      session_id: session.id,
+      log_in_ip: request.remote_ip,
+    )
   end
 
   private def has_2fa_device?(user)
