@@ -139,7 +139,7 @@ gem 'combine_pdf'
 gem 'grover'
 
 gem 'whenever', require: false
-gem 'ruby-progressbar', require: false
+gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 gem 'exception_notification'

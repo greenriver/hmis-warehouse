@@ -55,7 +55,7 @@ module Exporters::Tableau::Income
     end
   end
 
-  def export model, columns, incomes, csv
+  def export(model, columns, incomes, csv)
     headers = columns.keys - [:grouping_variable]
     csv << headers
 

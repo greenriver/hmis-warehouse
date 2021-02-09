@@ -1,0 +1,25 @@
+%h1= "Claims Reporting Imports"
+/ debug ClaimsReporting::Importer.new.check_sftp(root_path: '/prod/MassHealth Claims Data')
+.table-responsive
+  %table.table.table-bordered.table-sm.table-striped
+    %thead
+      %tr
+        %th File
+        %th Status
+        %th Started
+        %th Finished
+    %tbody
+      - @imports.each do |import|
+        %tr
+          %td= import.source_path
+          %td
+            - if import.results.present? || import.status_message.present?
+              %details{open: import.completed_at.nil?}
+                %summary= import.status_text
+                = import.status_message
+                - if import.results.present?
+                  %pre= JSON.pretty_generate import.results
+            - else
+              = import.status_text
+          %td= import.started_at
+          %td= import.completed_at
