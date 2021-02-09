@@ -201,7 +201,7 @@ module HmisCsvTwentyTwenty::Loader
       copy_sql = <<~SQL.strip
         COPY #{klass.quoted_table_name} (#{col_list})
         FROM STDIN
-        WITH (FORMAT csv,HEADER,QUOTE '"',DELIMITER ',')
+        WITH (FORMAT csv,HEADER,QUOTE '"',DELIMITER ',', NULL '')
       SQL
       # logger.debug { "   #{copy_sql}" }
 
