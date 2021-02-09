@@ -45,7 +45,7 @@ module AuthenticatesWithTwoFactor
     return locked_user_redirect(user) unless user.active?
 
     # bypass 2fa if user has device
-    if has_2fa_device?(user)
+    if using_memorized_device?(user)
       two_factor_successful(user)
     elsif user_params[:otp_attempt].present? && session[:otp_user_id]
       authenticate_with_two_factor_via_otp(user)
@@ -80,7 +80,7 @@ module AuthenticatesWithTwoFactor
     )
   end
 
-  private def has_2fa_device?(user)
+  private def using_memorized_device?(user)
     cookie_uuid = cookies.encrypted[:memorized_device]
     return false unless cookie_uuid
 

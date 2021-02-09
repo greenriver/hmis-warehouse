@@ -13,6 +13,7 @@ class TwoFactorsMemorizedDevice < ApplicationRecord
   end
 
   def self.active_duration
+    # FIXME use warehouse config
     30.days
   end
 
