@@ -31,7 +31,7 @@
       .col-4
         = f.input :ethnicity, collection: HUD.ethnicities.invert, selected: @ethnicity, as: :select_two, required: false, include_blank: 'All Ethnicities'
       .col-4
-        = f.input :gender, collection: HUD.genders.invert, selected: @genders, as: :select_two, required: false, include_blank: 'All Genders'
+        = f.input :gender, collection: HUD.genders.invert, selected: @gender, as: :select_two, required: false, include_blank: 'All Genders'
     .w-20
       = f.button :submit, 'Update View'
 

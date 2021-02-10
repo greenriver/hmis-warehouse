@@ -291,5 +291,24 @@ module Dashboards
     def set_race
       @race = report_params[:race] if report_params[:race].present?
     end
+
+    def support_filter
+      {
+        sub_population: @report.sub_population,
+        start: @start_date,
+        end: @end_date,
+        project_type: @report.project_types,
+        project_ids: @project_ids,
+        organization_ids: @organization_ids,
+        project_type_codes: @project_type_codes,
+        age_ranges: @age_ranges,
+        heads_of_household: @heads_of_household,
+        coc_codes: @coc_codes,
+        gender: @gender,
+        race: @race,
+        ethnicity: @ethnicity,
+      }
+    end
+    helper_method :support_filter
   end
 end
