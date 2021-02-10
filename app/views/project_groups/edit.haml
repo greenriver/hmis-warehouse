@@ -20,7 +20,7 @@
           %dt Project Count
           %dd= @project_group.projects.count
           %dt Projects
-          %dd= @project_group.projects.map(&:project_name).join(', ')
+          %dd= @project_group.projects.map(&:ProjectName).join(', ')
 
 - if @project_group.contacts.any? || @project_group.organization_contacts.any?
   .mt-6
