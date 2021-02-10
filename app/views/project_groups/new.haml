@@ -1,5 +1,6 @@
 - title = "New Project Group"
 = content_for(:title, title)
+= render 'breadcrumbs'
 %h1= title
 
 = simple_form_for @project_group, url: project_groups_path() do |f|
