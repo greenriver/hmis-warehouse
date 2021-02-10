@@ -38,6 +38,12 @@ module GrdaWarehouse
       viewable_by(user)
     end
 
+    scope :text_search, -> (text) do
+      return none unless text.present?
+  
+      where(arel_table[:name].lower.matches("%#{text.downcase}%"))
+    end
+
     def self.options_for_select(user:)
       viewable_by(user).distinct.order(name: :asc).pluck(:name, :id)
     end

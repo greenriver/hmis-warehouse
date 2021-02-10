@@ -10,7 +10,13 @@ class ProjectGroupsController < ApplicationController
   before_action :set_access, only: [:edit, :update]
 
   def index
-    @project_groups = project_group_scope
+    @project_groups = if params[:q].present?
+      project_group_scope.text_search(params[:q])
+    else
+      project_group_scope
+    end
+
+    @project_groups = @project_groups.page(params[:page]).per(25)
   end
 
   def new
