@@ -1,7 +1,25 @@
+:ruby
+  browser = Browser.new(request.user_agent)
+  device_name = "#{browser.name} #{browser.platform.name}"
+  button_label = "Remember this device for #{GrdaWarehouse::Config.get(:bypass_2fa_duration)} days"
+
 - @showing_sign_in_form = true
 %h1 Two-Factor Authentication
 .row
   .col-sm-4
     = simple_form_for(resource, as: resource_name, url: session_path(resource_name), method: :post, wrapper: :vertical_form_hint_first) do |f|
       = f.input :otp_attempt, label: 'Two-Factor Authentication code', required: true, autofocus: true
+      - if bypass_2fa_enabled?
+        = f.input :remember_device, as: :boolean, label: button_label, checked_value: true, unchecked_value: false, input_html: { checked:false, class: :jRememberDevice }
+        = f.input :device_name, input_html: { value: device_name }, wrapper_html: { class: :jDeviceName, style: 'display: none' }
       = f.button :submit, "Verify code"
+
+= content_for :page_js do
+  :javascript
+    $(".jRememberDevice").click(function() {
+      if ($(this).is(':checked')) {
+        $(".jDeviceName").show()
+      } else {
+        $(".jDeviceName").hide()
+      }
+    })
