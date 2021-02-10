@@ -1,8 +1,6 @@
 class TwoFactorsMemorizedDevice < ApplicationRecord
   belongs_to :user
 
-  after_create :record_expires_at
-
   scope :active, -> do
     where(arel_table[:expires_at].gt(Time.current))
   end
@@ -12,8 +10,9 @@ class TwoFactorsMemorizedDevice < ApplicationRecord
     where(arel_table[:expires_at].lteq(Time.current))
   end
 
-  private def record_expires_at
-    self.expires_at = self.created_at + GrdaWarehouse::Config.get(:bypass_2fa_duration).days
-    self.save!
+  def self.expiration_timestamp
+    return Time.current unless GrdaWarehouse::Config.get(:bypass_2fa_duration)&.positive?
+
+    GrdaWarehouse::Config.get(:bypass_2fa_duration).days.from_now
   end
 end

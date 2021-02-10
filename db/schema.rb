@@ -471,7 +471,6 @@ ActiveRecord::Schema.define(version: 2021_02_06_022724) do
     t.boolean "can_decrypt_pii", default: false
     t.boolean "can_delete_youth_intake", default: false
     t.boolean "can_administer_assigned_reports", default: false
-    t.boolean "can_view_censuses", default: false
     t.boolean "can_view_enrollment_details", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
@@ -557,6 +556,18 @@ ActiveRecord::Schema.define(version: 2021_02_06_022724) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["translation_key_id"], name: "index_translation_texts_on_translation_key_id"
+  end
+
+  create_table "two_factors_memorized_devices", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "uuid"
+    t.string "name"
+    t.datetime "expires_at"
+    t.integer "session_id"
+    t.string "log_in_ip"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_two_factors_memorized_devices_on_user_id"
   end
 
   create_table "unique_names", id: :serial, force: :cascade do |t|
@@ -688,6 +699,7 @@ ActiveRecord::Schema.define(version: 2021_02_06_022724) do
   add_foreign_key "glacier_archives", "glacier_vaults"
   add_foreign_key "report_results", "users"
   add_foreign_key "reports", "report_results_summaries"
+  add_foreign_key "two_factors_memorized_devices", "users"
   add_foreign_key "user_roles", "roles", on_delete: :cascade
   add_foreign_key "user_roles", "users", on_delete: :cascade
 end

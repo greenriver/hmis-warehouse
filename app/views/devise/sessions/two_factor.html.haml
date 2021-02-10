@@ -1,7 +1,7 @@
 :ruby
   browser = Browser.new(request.user_agent)
-  device_name = format("%s %s", browser.name, browser.platform.name)
-  button_label = format("Remember this device for %s days", GrdaWarehouse::Config.get(:bypass_2fa_duration))
+  device_name = "#{browser.name} #{browser.platform.name}"
+  button_label = "Remember this device for #{GrdaWarehouse::Config.get(:bypass_2fa_duration)} days"
 
 - @showing_sign_in_form = true
 %h1 Two-Factor Authentication

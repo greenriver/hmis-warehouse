@@ -57,7 +57,11 @@ module AuthenticatesWithTwoFactor
   private def authenticate_with_two_factor_via_otp(user)
     if valid_otp_attempt?(user) || valid_backup_code_attempt?(user)
       # add 2fa device if true
-      add_2fa_device(user, user_params[:device_name]) if user_params[:remember_device] == 'true' && bypass_2fa_enabled?
+      browser = Browser.new(request.user_agent)
+      # foce a device name, even if none provided
+      device_name = user_params[:device_name].presence || "#{browser.name} #{browser.platform.name}"
+
+      add_2fa_device(user, device_name) if user_params[:remember_device] == 'true' && bypass_2fa_enabled?
       two_factor_successful(user)
     else
       user.increment_failed_attempts
@@ -69,15 +73,18 @@ module AuthenticatesWithTwoFactor
 
   private def add_2fa_device(user, name)
     uuid = SecureRandom.uuid
+    expiration = TwoFactorsMemorizedDevice.expiration_timestamp
 
-    # set cookie and add to two_factors_memorized_devices list
-    cookies.encrypted[:memorized_device] = { value: uuid, expires: GrdaWarehouse::Config.get(:bypass_2fa_duration).days.from_now }
     user.two_factors_memorized_devices.create!(
       uuid: uuid,
       name: name,
       session_id: session.id,
       log_in_ip: request.remote_ip,
+      expires_at: expiration,
     )
+
+    # set cookie and add to two_factors_memorized_devices list
+    cookies.encrypted[:memorized_device] = { value: uuid, expires: expiration }
   end
 
   private def using_memorized_device?(user)

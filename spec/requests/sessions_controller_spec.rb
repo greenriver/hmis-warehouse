@@ -100,6 +100,8 @@ RSpec.describe Users::SessionsController, type: :request do
 
     describe 'User remembers 2FA device' do
       before(:each) do
+        GrdaWarehouse::Config.update(bypass_2fa_duration: 30)
+        GrdaWarehouse::Config.invalidate_cache
         post user_session_path(user: { otp_attempt: user_2fa.current_otp, remember_device: true, device_name: 'Test Device' })
         sign_out(user_2fa)
         post user_session_path(user: { email: user_2fa.email, password: user_2fa.password })
@@ -124,10 +126,11 @@ RSpec.describe Users::SessionsController, type: :request do
       end
 
       it 'user has to reenter 2fa after device expires' do
-        travel_to Time.current + 31.days
-        sign_out(user_2fa)
-        post user_session_path(user: { email: user_2fa.email, password: user_2fa.password })
-        expect(response).to render_template('devise/sessions/two_factor')
+        travel_to Time.current + 31.days do
+          sign_out(user_2fa)
+          post user_session_path(user: { email: user_2fa.email, password: user_2fa.password })
+          expect(response).to render_template('devise/sessions/two_factor')
+        end
       end
     end
   end

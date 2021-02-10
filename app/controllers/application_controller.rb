@@ -237,7 +237,7 @@ class ApplicationController < ActionController::Base
   helper_method :ajax_modal_request?
 
   def bypass_2fa_enabled?
-    GrdaWarehouse::Config.get(:bypass_2fa_duration).positive?
+    GrdaWarehouse::Config.get(:bypass_2fa_duration)&.positive?
   end
   helper_method :bypass_2fa_enabled?
 
