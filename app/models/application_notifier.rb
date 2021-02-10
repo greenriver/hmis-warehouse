@@ -12,6 +12,8 @@ class ApplicationNotifier < Slack::Notifier
     # Rate limit pings because Slack wants us to
     sleep(0.7)
     begin
+      name = "#{current_user.first_name} #{current_user.last_name}"
+      email = "#{current_user.email}"
       super(message, options)
     rescue OpenSSL::SSL::SSLError # Ignore some intermittant errors so they don't break the app
       Rails.logger.error('Failed to send slack')

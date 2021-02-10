@@ -250,3 +250,4 @@ group :production, :development, :staging do
 end
 
 gem 'ajax_modal_rails', '~> 1.0'
+gem 'browser'
