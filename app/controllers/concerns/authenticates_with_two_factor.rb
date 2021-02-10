@@ -56,12 +56,6 @@ module AuthenticatesWithTwoFactor
 
   private def authenticate_with_two_factor_via_otp(user)
     if valid_otp_attempt?(user) || valid_backup_code_attempt?(user)
-      # add 2fa device if true
-      browser = Browser.new(request.user_agent)
-      # foce a device name, even if none provided
-      device_name = user_params[:device_name].presence || "#{browser.name} #{browser.platform.name}"
-
-      add_2fa_device(user, device_name) if user_params[:remember_device] == 'true' && bypass_2fa_enabled?
       two_factor_successful(user)
     else
       user.increment_failed_attempts
@@ -101,5 +95,13 @@ module AuthenticatesWithTwoFactor
 
     user.save!
     sign_in(user, message: :two_factor_authenticated, event: :authentication)
+
+    # add 2fa device if true
+    return unless user_params[:remember_device] == 'true' && bypass_2fa_enabled?
+
+    # force a device name, even if none provided
+    browser = Browser.new(request.user_agent)
+    device_name = user_params[:device_name].presence || "#{browser.name} #{browser.platform.name}"
+    add_2fa_device(user, device_name)
   end
 end
