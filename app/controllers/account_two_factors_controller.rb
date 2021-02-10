@@ -49,6 +49,11 @@ class AccountTwoFactorsController < ApplicationController
   end
   helper_method :new_2fa?
 
+  def remove_device
+    @user.two_factors_memorized_devices.find(params[:device_id]).destroy!
+    redirect_to edit_account_two_factor_path
+  end
+
   private def account_params
     params.require(:user).
       permit(

@@ -7,13 +7,20 @@
           - if @user.enforced_2fa?
             required and
           enabled for this account.
-      %p
-        You can generate backup codes to use if you lose access to your Two-Factor Authentication app.  Click the button below to generate codes.
-      %p
-        Note, if you have already generated codes, clicking the button again will invalidate all previous codes and generate new codes.
-      %p
-        = link_to account_two_factor_path, class: ['btn', 'btn-secondary'], data: { loads_in_pjax_modal: true } do
-          Generate Backup Codes
+      .well
+        %p
+          You can generate backup codes to use if you lose access to your Two-Factor Authentication app.  Click the button below to generate codes.
+        %p
+          Note, if you have already generated codes, clicking the button again will invalidate all previous codes and generate new codes.
+        %p
+          = link_to account_two_factor_path, class: ['btn', 'btn-secondary'], data: { loads_in_pjax_modal: true } do
+            Generate Backup Codes
+      - if @user.two_factors_memorized_devices.present? && bypass_2fa_enabled?
+        %h3 Known Devices
+        .well
+          %p The following devices or browsers have been approved for login without re-entering a Two-Factor code until the noted expiration date.  If you believe one of these has been compromised, you should remove it below.
+          %p.note Note clearning cookies on a device will require reentering the Two-Factor code.
+          = render 'device_table'
     - if @user.enforced_2fa?
       .col-sm
         .well
