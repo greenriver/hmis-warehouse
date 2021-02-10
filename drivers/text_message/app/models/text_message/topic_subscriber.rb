@@ -14,6 +14,15 @@ module TextMessage
       where(unsubscribed_at: nil)
     end
 
+    scope :valid_phone, -> do
+      where.not(
+        arel_table[:phone_number].matches('999%').
+        or(arel_table[:phone_number].matches('911%')).
+        or(arel_table[:phone_number].matches('0%')).
+        or(arel_table[:phone_number].matches('1%')),
+      )
+    end
+
     def name
       "#{first_name} #{last_name}"
     end

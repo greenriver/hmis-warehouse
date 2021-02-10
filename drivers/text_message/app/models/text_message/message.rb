@@ -26,7 +26,7 @@ module TextMessage
 
     def self.send_pending!
       unsent.pending.joins(topic_subscriber: :topic).
-        merge(TextMessage::TopicSubscriber.active).
+        merge(TextMessage::TopicSubscriber.active.valid_phone).
         merge(TextMessage::Topic.active.send_during(Time.current.hour)).
         find_each(&:send!)
     end
