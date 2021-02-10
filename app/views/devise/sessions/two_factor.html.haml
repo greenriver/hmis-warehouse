@@ -17,5 +17,9 @@
 = content_for :page_js do
   :javascript
     $(".jRememberDevice").click(function() {
-      $(".jDeviceName").toggle(this.checked)
+      if ($(this).is(':checked')) {
+        $(".jDeviceName").show()
+      } else {
+        $(".jDeviceName").hide()
+      }
     })
