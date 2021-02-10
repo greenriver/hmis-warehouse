@@ -71,6 +71,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :editable_by, ->(user) do
+    directly_viewable_by(user)
+  end
+
+  scope :directly_viewable_by, ->(user) do
     qc = ->(s) { connection.quote_column_name s }
     q  = ->(s) { connection.quote s }
 
@@ -319,6 +323,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       end
       spans_by_id
     end
+  end
+
+  def directly_viewable_by?(user)
+    self.class.directly_viewable_by(user).where(id: id).exists?
   end
 
   def users

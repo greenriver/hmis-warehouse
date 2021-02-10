@@ -59,6 +59,7 @@
 //= require selectable_list
 //= require viewable_entities
 //= require select_2
+//= require ./init_stimulus
 //= require_directory ./admin/client_matches
 //= require_directory ./census
 //= require_directory ./filter
@@ -84,7 +85,7 @@
 //= require_directory ./cohorts/editors
 //= require_directory ./data_quality_reports
 //= require affix
-//= require table_search
+//= require list_search
 //= require TableWithToggleRows
 //= require role_table
 //= require documentExport.js

@@ -32,12 +32,12 @@ class App.ChartsScatterByDate.Base
     @_build_chart()
 
   _individual_chart: (data, id, options) ->
-    chart_id = "chart-chart-#{id}" 
+    chart_id = "chart-chart-#{id}"
     @element.append("<canvas id='#{chart_id}' height='#{@height}' width='#{@width}' class='chart-chart'>")
     chart_canvas = $("\##{chart_id}")
-    default_options = 
+    default_options =
       bezierCurve: false,
-      scales: 
+      scales:
         xAxes: [
           type: 'time',
           time:
@@ -46,11 +46,11 @@ class App.ChartsScatterByDate.Base
             max: @end_date,
         ],
         yAxes: [
-          ticks: 
+          ticks:
             beginAtZero: true
         ],
     options = $.extend(true, options, default_options)
-    @charts[id] = new Chart chart_canvas, 
+    @charts[id] = new Chart chart_canvas,
       type: 'scatter',
       data: data,
       options: options,

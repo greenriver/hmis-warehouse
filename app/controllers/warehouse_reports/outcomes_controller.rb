@@ -111,6 +111,7 @@ module WarehouseReports
         data_source_ids: @filter.data_source_ids,
         organization_ids: @filter.organization_ids,
         project_ids: @filter.project_ids,
+        coc_codes: @filter.coc_codes,
         start_date: @filter.start,
         end_date: @filter.end,
         subpopulation: @filter.sub_population,
@@ -144,15 +145,16 @@ module WarehouseReports
         data_source_ids: [],
         organization_ids: [],
         project_ids: [],
+        coc_codes: [],
       )
     end
 
     private def passed_params
       params.permit(filter:
         [
-          :start_date,
-          :end_date,
-          :subpopulation,
+          :start,
+          :end,
+          :sub_population,
           :household_type,
           :race,
           :ethnicity,

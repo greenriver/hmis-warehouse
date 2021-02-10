@@ -29,7 +29,7 @@ module HudApr::Caper::CaperConcern
     end
 
     private def path_for_reports(*options)
-      hud_reports_caper_path(options)
+      hud_reports_capers_path(options)
     end
 
     private def path_for_cell(report:, question:, cell_label:, table:)

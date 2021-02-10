@@ -45,7 +45,14 @@
   &::after {
     font-weight: normal;
     font-family: 'icons';
-    content: 'select all #{get-icon-code('checkmark')}'
+    content: 'select all #{get-icon-code('checkmark2')}'
+  }
+  &.j-all-selected {
+    &::after {
+      font-weight: normal;
+      font-family: 'icons';
+      content: 'select none #{get-icon-code('checkmark')}'
+    }
   }
 }
 
