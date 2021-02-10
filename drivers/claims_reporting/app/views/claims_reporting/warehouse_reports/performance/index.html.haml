@@ -1,0 +1,6 @@
+- title = 'BH CP Claim Performance'
+- content_for :title, title
+%h1= content_for :title
+= render '/warehouse_reports/breadcrumbs', tab: 'health'
+= render 'filters'
+= render 'report', report: @report

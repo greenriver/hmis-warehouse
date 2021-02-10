@@ -108,13 +108,6 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
-      can_view_censuses: {
-        description: 'Access to the nightly census dashboard, only at the aggregate level',
-        administrative: false,
-        categories: [
-          'Reporting',
-        ],
-      },
       can_view_census_details: {
         description: 'Ability to "drill down" on census reports and see who was where on a given day',
         administrative: true,

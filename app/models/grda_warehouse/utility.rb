@@ -60,6 +60,7 @@ class GrdaWarehouse::Utility
       Reporting::MonthlyClientIds,
       Reporting::Return,
       ReportResult,
+      AccessGroup,
     ]
     tables.each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")

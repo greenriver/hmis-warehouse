@@ -424,7 +424,9 @@ Rails.application.routes.draw do
       resources :completed_contact_tracing, only: [:index] do
         get :download, on: :collection
       end
-      resources :enrollments_disenrollments, only: [:index, :create]
+      resources :enrollments_disenrollments, only: [:index, :create] do
+        get :download, on: :member
+      end
     end
   end
 

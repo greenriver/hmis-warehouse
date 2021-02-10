@@ -1,8 +1,1 @@
-%ul.mb-2.nav.nav-tabs{role: :tablist}
-  - AvailableSubPopulations.tabs.each do |key, sub_population|
-    - active_class = ''
-    - if active == key
-      - active_class = 'active'
-    %li.nav-item{role: :presentation}
-      - tab_title = sub_population[:title]
-      = link_to tab_title, polymorphic_path(sub_population[:path]), role: :tab, aria: {controls: tab_title}, class: "nav-link #{active_class}"
+= render '/warehouse_reports/breadcrumbs', tab: 'population-dashboards'
