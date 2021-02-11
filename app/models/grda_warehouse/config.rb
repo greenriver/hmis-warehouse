@@ -106,6 +106,15 @@ module GrdaWarehouse
       }
     end
 
+    def self.available_bypass_2fa_durations
+      {
+        'Disable Bypassing' => 0,
+        '7 Days' => 7,
+        '15 Days' => 15,
+        '30 Days' => 30,
+      }
+    end
+
     def self.client_search_available?
       get(:pii_encryption_type).to_sym.in?([:none])
     end
