@@ -506,7 +506,7 @@ module ClaimsReporting
         Arel.sql(%[COALESCE(cde_cos_rollup,'Unclassified')]).as('cde_cos_rollup'),
         Arel.sql(%[COALESCE(cde_cos_category,'Unclassified')]).as('cde_cos_category'),
         Arel.star.count.as('count'),
-        Arel.sql('sql_member_count as n_members'),
+        Arel.sql(sql_member_count).as('n_members'),
         utilization_per_mille,
         annual_admits_per_mille,
         Arel.sql("ROUND(AVG(
