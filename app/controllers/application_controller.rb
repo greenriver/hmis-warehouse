@@ -38,6 +38,8 @@ class ApplicationController < ActionController::Base
   before_action :require_training!
   before_action :health_emergency?
 
+  before_action :prepare_exception_notifier
+
   prepend_before_action :skip_timeout
 
   def cache_grda_warehouse_base_queries
@@ -242,5 +244,13 @@ class ApplicationController < ActionController::Base
     rescue StandardError
       'test-server'
     end
+  end
+
+  def prepare_exception_notifier
+    browser = Browser.new(request.user_agent)
+    request.env['exception_notifier.exception_data'] = {
+      current_user: current_user,
+      current_user_browser: browser.to_s,
+    }
   end
 end
