@@ -1,0 +1,15 @@
+%table.table.table-striped
+  %thead
+    %tr
+      %th Device Name
+      %th Two-Factor Code Required After
+      %th
+  %tbody
+    - @user.two_factors_memorized_devices.active.each do |device|
+      %tr
+        %th= device.name
+        %th= device.expires_at
+        %th
+          = link_to(remove_device_account_two_factor_path(device_id: device.id), data: {confirm: "Deleting the #{device.name} device will require you to enter a Two-Factor code on next login. Are you sure?" }, class: 'btn btn-danger btn-sm') do
+            %i.icon-cross
+            Remove
