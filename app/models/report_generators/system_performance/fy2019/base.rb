@@ -6,14 +6,14 @@
 
 module ReportGenerators::SystemPerformance::Fy2019
   class Base
-  include ArelHelper
+    include ArelHelper
 
     def initialize options
       @options = options
     end
 
     # Scope coming in is based on GrdaWarehouse::ServiceHistoryEnrollment
-    def add_filters scope:
+    def add_filters(scope:)
       # Limit to only those projects the user who queued the report can see
       scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user))
       project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
@@ -25,22 +25,12 @@ module ReportGenerators::SystemPerformance::Fy2019
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
         scope = scope.joins(:project).where(Project: { id: project_ids})
       end
-      if @report.options['data_source_id'].present?
-        scope = scope.where(data_source_id: @report.options['data_source_id'].to_i)
-      end
-      if @report.options['coc_code'].present?
-        scope = scope.coc_funded_in(coc_code: @report.options['coc_code'])
-      end
-      if @report.options['sub_population'].present?
-        scope = sub_population_scope scope, @report.options['sub_population']
-      end
-      if @report.options['race_code'].present?
-        scope = race_scope scope, @report.options['race_code']
-      end
-      if @report.options['ethnicity_code'].present?
-        scope = ethnicity_scope scope, @report.options['ethnicity_code']
-      end
-      return scope
+      scope = scope.where(data_source_id: @report.options['data_source_id'].to_i) if @report.options['data_source_id'].present?
+      scope = scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
+      scope = sub_population_scope(scope, @report.options['sub_population']) if @report.options['sub_population'].present?
+      scope = race_scope(scope, @report.options['race_code']) if @report.options['race_code'].present?
+      scope = ethnicity_scope(scope, @report.options['ethnicity_code']) if @report.options['ethnicity_code'].present?
+      scope
     end
 
     def sub_population_scope scope, sub_population
@@ -70,7 +60,11 @@ module ReportGenerators::SystemPerformance::Fy2019
         :race_none,
       ]
       return scope unless available_scopes.include?(race_code.to_sym)
-      scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(race_code.to_sym))
+
+      # scope = scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(race_code.to_sym))
+      # ActiveRecord uses the last merge if multiple merges are given on the same model
+      # we need to use the less efficient where in
+      scope.where(client_id: GrdaWarehouse::Hud::Client.send(race_code.to_sym).select(:id))
     end
 
     def ethnicity_scope scope, ethnicity_code
@@ -83,20 +77,24 @@ module ReportGenerators::SystemPerformance::Fy2019
       }
       ethnicity_scope = available_scopes[ethnicity_code&.to_i]
       return scope unless ethnicity_scope.present?
-      scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(ethnicity_scope))
-    end
 
+      # scope = scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(ethnicity_scope))
+      # ActiveRecord uses the last merge if multiple merges are given on the same model
+      # we need to use the less efficient where in
+      scope.where(client_id: GrdaWarehouse::Hud::Client.send(ethnicity_scope).select(:id))
+    end
 
     # Age should be calculated at report start or enrollment start, whichever is greater
     def age_for_report(dob:, entry_date:, age:)
       @report_start ||= @report.options['report_start'].to_date
       return age if dob.blank? || entry_date > @report_start
+
       GrdaWarehouse::Hud::Client.age(dob: dob, date: @report_start)
     end
 
     def set_report_start_and_end
       @report_start ||= @report.options['report_start'].to_date
-      @report_end ||= @report.options['report_end'].to_date
+      @report_end ||= @report.options['report_end'].to_date # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def add_support headers:, data:
@@ -118,9 +116,10 @@ module ReportGenerators::SystemPerformance::Fy2019
       # Find the first queued report
       @report = ReportResult.where(
         report: report,
-        percent_complete: 0
+        percent_complete: 0,
       ).first
       return unless @report.present?
+
       Rails.logger.info "Starting report #{@report.report.name}"
       @report.update(percent_complete: 0.01)
     end
@@ -130,7 +129,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         percent_complete: 100,
         results: @answers,
         support: @support,
-        completed_at: Time.now
+        completed_at: Time.now,
       )
     end
 
