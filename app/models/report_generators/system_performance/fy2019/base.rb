@@ -129,7 +129,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         percent_complete: 100,
         results: @answers,
         support: @support,
-        completed_at: Time.now,
+        completed_at: Time.current,
       )
     end
 
