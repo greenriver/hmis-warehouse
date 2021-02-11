@@ -16,19 +16,19 @@ module GrdaWarehouse
     end
 
     def touchpoint_fields_for_input
-      touchpoint_fields.to_json if touchpoint_fields
+      touchpoint_fields&.to_json
     end
 
     def demographic_fields_for_input
-      demographic_fields.to_json if demographic_fields
+      demographic_fields&.to_json
     end
 
     def demographic_fields_with_attributes_for_input
-      demographic_fields_with_attributes.to_json if demographic_fields_with_attributes
+      demographic_fields_with_attributes&.to_json
     end
 
     def additional_fields_for_input
-      additional_fields.to_json if additional_fields
+      additional_fields&.to_json
     end
   end
 end

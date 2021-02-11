@@ -405,7 +405,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     "/tmp/uploaded#{file_path}"
   end
 
-  def has_data?
+  def data?
     exports.any?
   end
 
