@@ -540,6 +540,7 @@ module Importers::HmisTwentyTwenty
 
     private def fix_time_format(string)
       return unless string
+
       # Ruby handles yyyy-m-d just fine, so we'll allow that even though it doesn't match the spec
       return string if /\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
 
