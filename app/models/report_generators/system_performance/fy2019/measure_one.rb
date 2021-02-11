@@ -184,7 +184,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         where(
           she_t[:first_date_in_program].in(@report_start..@report_end).
           or(e_t[:MoveInDate].in(@report_start..@report_end)).
-          or(e_t[:MoveInDate].eq(nil).and(she_t[:last_date_in_program].in(@report_start..@report_end)))
+          or(e_t[:MoveInDate].eq(nil).and(she_t[:last_date_in_program].in(@report_start..@report_end))),
         )
 
       ph_pre_housed_ids = add_filters(scope: ph_pre_housed_scope).distinct.pluck(:client_id)
@@ -277,11 +277,11 @@ module ReportGenerators::SystemPerformance::Fy2019
       end
     end
 
-    def clients_in_projects_of_type project_types:
+    def clients_in_projects_of_type(project_types:)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report_start - 1.day, end_date: @report_end).
-          hud_project_type(project_types).
-          with_service_between(start_date: @report_start - 1.day, end_date: @report_end)
+        hud_project_type(project_types).
+        with_service_between(start_date: @report_start - 1.day, end_date: @report_end)
     end
 
     def calculate_days_homeless(id, project_types, stop_project_types, include_pre_entry, consider_move_in_date)

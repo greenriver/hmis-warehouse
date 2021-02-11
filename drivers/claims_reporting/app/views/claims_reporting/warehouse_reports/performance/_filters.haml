@@ -5,9 +5,6 @@
         - row.each do |filter|
           .col-sm-3
             = f.input filter, **@report.filter_inputs[filter]
-    .row
-      .col-sm-12
-        = f.submit 'Update Report', class: 'btn btn-primary mt-no-label'
-    .row
-      .col-sm-12
+  - content_for :filter_actions do
+    = f.submit 'Update Report', class: 'btn btn-primary'
   = render 'warehouse_reports/filters', f:f, submit_button: nil
