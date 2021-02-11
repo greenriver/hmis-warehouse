@@ -23,6 +23,8 @@ module GrdaWarehouse::Tasks
     end
 
     def run!
+      # FIXME: this should refuse to run if an import is in-process
+      # See GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}")
       remove_unused_source_clients
       remove_unused_warehouse_clients_processed
       GrdaWarehouseBase.transaction do
