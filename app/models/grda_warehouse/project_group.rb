@@ -38,10 +38,15 @@ module GrdaWarehouse
       viewable_by(user)
     end
 
-    scope :text_search, -> (text) do
-      return none unless text.present?
-  
-      where(arel_table[:name].lower.matches("%#{text.downcase}%"))
+    scope :text_search, ->(text) do
+      query = text.gsub(/[^0-9a-zA-Z ]/, '')
+      return none unless query.present?
+
+      joins(:projects).
+        where(
+          arel_table[:name].lower.matches("%#{query.downcase}%").
+          or(p_t[:ProjectName].lower.matches("%#{query.downcase}%"))
+        )
     end
 
     def self.options_for_select(user:)
