@@ -61,14 +61,10 @@ module ReportGenerators::SystemPerformance::Fy2019
       ]
       return scope unless available_scopes.include?(race_code.to_sym)
 
-<<<<<<< HEAD
-      scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(race_code.to_sym))
-=======
       # scope = scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(race_code.to_sym))
       # ActiveRecord uses the last merge if multiple merges are given on the same model
       # we need to use the less efficient where in
       scope.where(client_id: GrdaWarehouse::Hud::Client.send(race_code.to_sym).select(:id))
->>>>>>> pre-release
     end
 
     def ethnicity_scope scope, ethnicity_code
@@ -81,12 +77,6 @@ module ReportGenerators::SystemPerformance::Fy2019
       }
       ethnicity_scope = available_scopes[ethnicity_code&.to_i]
       return scope unless ethnicity_scope.present?
-<<<<<<< HEAD
-
-      scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(ethnicity_scope))
-    end
-
-=======
 
       # scope = scope.joins(:client).merge(GrdaWarehouse::Hud::Client.send(ethnicity_scope))
       # ActiveRecord uses the last merge if multiple merges are given on the same model
@@ -94,7 +84,6 @@ module ReportGenerators::SystemPerformance::Fy2019
       scope.where(client_id: GrdaWarehouse::Hud::Client.send(ethnicity_scope).select(:id))
     end
 
->>>>>>> pre-release
     # Age should be calculated at report start or enrollment start, whichever is greater
     def age_for_report(dob:, entry_date:, age:)
       @report_start ||= @report.options['report_start'].to_date
@@ -140,11 +129,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         percent_complete: 100,
         results: @answers,
         support: @support,
-<<<<<<< HEAD
-        completed_at: Time.now,
-=======
         completed_at: Time.current,
->>>>>>> pre-release
       )
     end
 

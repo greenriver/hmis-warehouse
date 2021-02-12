@@ -358,13 +358,8 @@ module GrdaWarehouse::Tasks
           ]
           hud_classes.each do |klass|
             klass.joins(:direct_client).
-<<<<<<< HEAD
-              where(Client: { id: un_enrolled_clients }).
-              update_all(DateDeleted: deleted_at)
-=======
               where(Client: {id: un_enrolled_clients}).
               update_all(DateDeleted: deleted_at, source_hash: nil)
->>>>>>> pre-release
           end
 
           GrdaWarehouse::Hud::Client.where(id: un_enrolled_clients).update_all(DateDeleted: deleted_at, source_hash: nil)
@@ -551,10 +546,6 @@ module GrdaWarehouse::Tasks
       client_source = GrdaWarehouse::Hud::Client
       total_clients = munge_clients.size
       logger.info "Munging #{munge_clients.size} clients"
-<<<<<<< HEAD
-      progress = ProgressBar.create(starting_at: 0, total: total_clients, format: 'Munging Client Data: %a %E |%B| %c of %C') if @show_progress
-=======
->>>>>>> pre-release
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|
         batch.each do |dest_id|
@@ -580,10 +571,6 @@ module GrdaWarehouse::Tasks
           changed[:veteran_statuses] << dest.id if dest.VeteranStatus != dest_attr[:VeteranStatus]
           changed[:new_vets] << dest.id if dest.VeteranStatus != 1 && dest_attr[:VeteranStatus] == 1
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0
-<<<<<<< HEAD
-          progress.progress += 1 if @show_progress
-=======
->>>>>>> pre-release
         end
         processed += batch_size
         logger.info "Updated demographics for #{processed} destination clients"

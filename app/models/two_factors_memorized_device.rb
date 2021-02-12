@@ -12,6 +12,7 @@ class TwoFactorsMemorizedDevice < ApplicationRecord
 
   def self.expiration_timestamp
     return Time.current unless GrdaWarehouse::Config.get(:bypass_2fa_duration)&.positive?
+    
     GrdaWarehouse::Config.get(:bypass_2fa_duration).days.from_now
   end
 end

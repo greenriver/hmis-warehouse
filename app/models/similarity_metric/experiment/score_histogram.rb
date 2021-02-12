@@ -8,7 +8,7 @@ module SimilarityMetric
   module Experiment
     class ScoreHistogram
       attr_reader :pairs, :bins, :stars, :metrics, :verbose
-      def initialize(sample: SimilarityMetric.sample, pairs_per_client: sample.count - 1, minimum_sample: 100, bins: 20, stars: 20, verbose: true)
+      def initialize(sample: SimilarityMetric.sample, pairs_per_client: sample.count - 1, minimum_sample: 100, bins: 20, stars: 20, verbose: true) # rubocop:disable Metrics/ParameterLists
         sample            = sample.to_a
         @pairs_per_client = pairs_per_client
         @minimum_sample   = minimum_sample
