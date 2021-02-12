@@ -147,7 +147,7 @@ class ApplicationController < ActionController::Base
   protected
 
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt])
+    devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
   end
 
   # Redirect to window page after signin if you have
@@ -237,6 +237,11 @@ class ApplicationController < ActionController::Base
     false
   end
   helper_method :ajax_modal_request?
+
+  def bypass_2fa_enabled?
+    GrdaWarehouse::Config.get(:bypass_2fa_duration)&.positive?
+  end
+  helper_method :bypass_2fa_enabled?
 
   def set_hostname
     @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName

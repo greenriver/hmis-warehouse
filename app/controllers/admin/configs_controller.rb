@@ -80,6 +80,7 @@ module Admin
         :pf_show_additional_timeliness,
         :cas_sync_months,
         :send_sms_for_covid_reminders,
+        :bypass_2fa_duration,
         client_details: [],
       )
     end

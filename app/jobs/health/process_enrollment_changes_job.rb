@@ -93,15 +93,15 @@ module Health
             next if referral.disenrolled? # This is a disenrollment, and the patient is already disenrolled
 
             # This is a missed disenrollment
-            disenroll_patient(transaction, referral, file_date)
             audit_actions[subscriber_id] = Health::Enrollment::DISENROLLMENT
+            disenroll_patient(transaction, referral, file_date)
             disenrolled_patients += 1
 
           elsif referral.nil?
             # This is a missed enrollment
+            audit_actions[subscriber_id] = Health::Enrollment::ENROLLMENT
             begin
               enroll_patient(transaction)
-              audit_actions[subscriber_id] = Health::Enrollment::ENROLLMENT
               new_patients += 1
             rescue Health::MedicaidIdConflict
               errors << conflict_message(transaction)
@@ -122,14 +122,18 @@ module Health
             end
           else
             # This is just an update
+            audit_actions[subscriber_id] = Health::Enrollment::CHANGE
             begin
               update_patient_referrals(referral.patient, transaction)
-              audit_actions[subscriber_id] = Health::Enrollment::CHANGE
               updated_patients += 1
             rescue Health::MedicaidIdConflict
               errors << conflict_message(transaction)
             end
           end
+
+        rescue Health::MedicaidIdConflict
+          # The conflict prevents uus from knowing the audit action
+          errors << conflict_message(transaction)
         end
 
         enrollment.update(
