@@ -29,7 +29,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       # end # End silence ActiveRecord Log
     end
 
-    def calculate
+    def calculate # rubocop:disable Metrics/AbcSize
       if start_report(Reports::SystemPerformance::Fy2019::MeasureTwo.first)
         set_report_start_and_end
         Rails.logger.info "Starting report #{@report.report.name}"

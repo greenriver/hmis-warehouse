@@ -97,15 +97,15 @@ module ReportGenerators::SystemPerformance::Fy2018
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
         end
       end
-      if clients.size.positive?
-        @answers[:onea_c2][:value] = clients.size
-        @support[:onea_c2][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map { |id, days| [id, days] },
-        }
-        @answers[:onea_e2][:value] = clients.values.reduce(:+) / clients.size
-        @answers[:onea_h2][:value] = median(clients.values)
-      end
+      return unless clients.size.positive?
+
+      @answers[:onea_c2][:value] = clients.size
+      @support[:onea_c2][:support] = {
+        headers: ['Client ID', 'Days'],
+        counts: clients.map { |id, days| [id, days] },
+      }
+      @answers[:onea_e2][:value] = clients.values.reduce(:+) / clients.size
+      @answers[:onea_h2][:value] = median(clients.values)
     end
 
     def calculate_one_a_es_sh_th
@@ -130,15 +130,15 @@ module ReportGenerators::SystemPerformance::Fy2018
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 20).round(2))
         end
       end
-      if clients.size.positive?
-        @answers[:onea_c3][:value] = clients.count
-        @support[:onea_c3][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map { |id, days| [id, days] },
-        }
-        @answers[:onea_e3][:value] = clients.values.reduce(:+) / clients.count
-        @answers[:onea_h3][:value] = median(clients.values)
-      end
+      return unless clients.size.positive?
+
+      @answers[:onea_c3][:value] = clients.count
+      @support[:onea_c3][:support] = {
+        headers: ['Client ID', 'Days'],
+        counts: clients.map { |id, days| [id, days] },
+      }
+      @answers[:onea_e3][:value] = clients.values.reduce(:+) / clients.count
+      @answers[:onea_h3][:value] = median(clients.values)
     end
 
     def add_one_b_answers
@@ -178,15 +178,15 @@ module ReportGenerators::SystemPerformance::Fy2018
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
         end
       end
-      if clients.size.positive?
-        @answers[:oneb_c2][:value] = clients.size
-        @support[:oneb_c2][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map { |id, days| [id, days] },
-        }
-        @answers[:oneb_e2][:value] = clients.values.reduce(:+) / clients.size
-        @answers[:oneb_h2][:value] = median(clients.values)
-      end
+      return unless clients.size.positive?
+
+      @answers[:oneb_c2][:value] = clients.size
+      @support[:oneb_c2][:support] = {
+        headers: ['Client ID', 'Days'],
+        counts: clients.map { |id, days| [id, days] },
+      }
+      @answers[:oneb_e2][:value] = clients.values.reduce(:+) / clients.size
+      @answers[:oneb_h2][:value] = median(clients.values)
     end
 
     def calculate_one_b_es_sh_th_ph
@@ -221,15 +221,15 @@ module ReportGenerators::SystemPerformance::Fy2018
         end
       end
 
-      if clients.size.positive?
-        @answers[:oneb_c3][:value] = clients.count
-        @support[:oneb_c3][:support] = {
-          headers: ['Client ID', 'Days'],
-          counts: clients.map { |id, days| [id, days] },
-        }
-        @answers[:oneb_e3][:value] = clients.values.reduce(:+) / clients.count
-        @answers[:oneb_h3][:value] = median(clients.values)
-      end
+      return unless clients.size.positive?
+
+      @answers[:oneb_c3][:value] = clients.count
+      @support[:oneb_c3][:support] = {
+        headers: ['Client ID', 'Days'],
+        counts: clients.map { |id, days| [id, days] },
+      }
+      @answers[:oneb_e3][:value] = clients.values.reduce(:+) / clients.count
+      @answers[:oneb_h3][:value] = median(clients.values)
     end
 
     def clients_in_projects_of_type project_types:
@@ -344,12 +344,9 @@ module ReportGenerators::SystemPerformance::Fy2018
         # Move new start date back based on contiguous homelessness before the start date above
         new_client_start_date = client_start_date.to_date
         days_before_client_start_date.reverse_each do |d|
-          if d.to_date == new_client_start_date.to_date - 1.day
-            new_client_start_date = d.to_date
-          else
-            # Non-contiguous
-            break
-          end
+          break unless d.to_date == new_client_start_date.to_date - 1.day
+
+          new_client_start_date = d.to_date
         end
         client_start_date = [new_client_start_date.to_date, LOOKBACK_STOP_DATE.to_date].max
         # Rails.logger.info "Client's new start date: #{client_start_date}"

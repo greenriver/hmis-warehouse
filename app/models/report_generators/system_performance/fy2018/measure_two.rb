@@ -28,7 +28,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       # end # End silence ActiveRecord Log
     end
 
-    def calculate
+    def calculate # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
       if start_report(Reports::SystemPerformance::Fy2018::MeasureTwo.first)
         set_report_start_and_end
         Rails.logger.info "Starting report #{@report.report.name}"
@@ -198,13 +198,13 @@ module ReportGenerators::SystemPerformance::Fy2018
           # but update the date.  If we ever have an exit from permanent housing longer than 14 days after the check
           # date, we count it
           ph_check_date = p_exit[:last_date_in_program].to_date
-          client_entries.each do |day, project_types|
+          client_entries.each do |day, i_project_types|
             day_count = (day.to_date - p_exit[:last_date_in_program].to_date).to_i
             # If the entry doesn't contain PH or TH, count it and move on
-            if project_types.exclude?('PH') && project_types.exclude?('TH')
+            if i_project_types.exclude?('PH') && i_project_types.exclude?('TH')
               case day_count
               when (0..180)
-                case p_exit[:project_type].to_i
+                case p_exit[:project_type].to_i # rubocop:disable Metrics/BlockNesting
                 when *SO
                   project_exit_counts[:c_0_180_days][:so][:counts] << day_count
                   project_exit_counts[:c_0_180_days][:so][:support] << [p_exit[:client_id], day_count]
@@ -222,7 +222,7 @@ module ReportGenerators::SystemPerformance::Fy2018
                   project_exit_counts[:c_0_180_days][:ph][:support] << [p_exit[:client_id], day_count]
                 end
               when (181..365)
-                case p_exit[:project_type].to_i
+                case p_exit[:project_type].to_i # rubocop:disable Metrics/BlockNesting
                 when *SO
                   project_exit_counts[:e_181_365_days][:so][:counts] << day_count
                   project_exit_counts[:e_181_365_days][:so][:support] << [p_exit[:client_id], day_count]
@@ -240,7 +240,7 @@ module ReportGenerators::SystemPerformance::Fy2018
                   project_exit_counts[:e_181_365_days][:ph][:support] << [p_exit[:client_id], day_count]
                 end
               when (367..730)
-                case p_exit[:project_type].to_i
+                case p_exit[:project_type].to_i # rubocop:disable Metrics/BlockNesting
                 when *SO
                   project_exit_counts[:g_366_730_days][:so][:counts] << day_count
                   project_exit_counts[:g_366_730_days][:so][:support] << [p_exit[:client_id], day_count]
@@ -260,7 +260,7 @@ module ReportGenerators::SystemPerformance::Fy2018
               end
               break # stop counting for this client
             # If the next destination is PH, it must be > 14 days since exit to count
-            elsif project_types.include?('PH')
+            elsif i_project_types.include?('PH')
               # puts "#{p_exit[:client_id]}: #{day.to_date} ---- #{ph_check_date.to_date} #{(day.to_date - ph_check_date.to_date).to_i}"
               if (day.to_date - ph_check_date.to_date).to_i < 14
                 next_end_date_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
@@ -275,13 +275,13 @@ module ReportGenerators::SystemPerformance::Fy2018
                 next_end_date = next_end_date_scope.
                   order(last_date_in_program: :desc).limit(1).
                   pluck(:last_date_in_program).first
-                break if next_end_date.nil?
+                break if next_end_date.nil? # rubocop:disable Metrics/BlockNesting
 
                 ph_check_date = next_end_date
               else
-                case (day.to_date - p_exit[:last_date_in_program].to_date).to_i
+                case (day.to_date - p_exit[:last_date_in_program].to_date).to_i # rubocop:disable Metrics/BlockNesting
                 when (0..180)
-                  case p_exit[:project_type].to_i
+                  case p_exit[:project_type].to_i # rubocop:disable Metrics/BlockNesting
                   when *SO
                     project_exit_counts[:c_0_180_days][:so][:counts] << day_count
                     project_exit_counts[:c_0_180_days][:so][:support] << [p_exit[:client_id], day_count]
@@ -299,7 +299,7 @@ module ReportGenerators::SystemPerformance::Fy2018
                     project_exit_counts[:c_0_180_days][:ph][:support] << [p_exit[:client_id], day_count]
                   end
                 when (181..365)
-                  case p_exit[:project_type].to_i
+                  case p_exit[:project_type].to_i # rubocop:disable Metrics/BlockNesting
                   when *SO
                     project_exit_counts[:e_181_365_days][:so][:counts] << day_count
                     project_exit_counts[:e_181_365_days][:so][:support] << [p_exit[:client_id], day_count]
@@ -317,7 +317,7 @@ module ReportGenerators::SystemPerformance::Fy2018
                     project_exit_counts[:e_181_365_days][:ph][:support] << [p_exit[:client_id], day_count]
                   end
                 when (367..730)
-                  case p_exit[:project_type].to_i
+                  case p_exit[:project_type].to_i # rubocop:disable Metrics/BlockNesting
                   when *SO
                     project_exit_counts[:g_366_730_days][:so][:counts] << day_count
                     project_exit_counts[:g_366_730_days][:so][:support] << [p_exit[:client_id], day_count]
@@ -338,11 +338,11 @@ module ReportGenerators::SystemPerformance::Fy2018
                 break # stop counting for this client
               end
             # If the next destination is TH, it must be > 14 days since exit to count
-            elsif project_types.include?('TH')
+            elsif i_project_types.include?('TH')
               if day_count > 14
-                case day_count
+                case day_count # rubocop:disable Metrics/BlockNesting
                 when (0..180)
-                  case p_exit[:project_type].to_i
+                  case p_exit[:project_type].to_i # rubocop:disable Metrics/BlockNesting
                   when *SO
                     project_exit_counts[:c_0_180_days][:so][:counts] << day_count
                     project_exit_counts[:c_0_180_days][:so][:support] << [p_exit[:client_id], day_count]
@@ -360,7 +360,7 @@ module ReportGenerators::SystemPerformance::Fy2018
                     project_exit_counts[:c_0_180_days][:ph][:support] << [p_exit[:client_id], day_count]
                   end
                 when (181..365)
-                  case p_exit[:project_type].to_i
+                  case p_exit[:project_type].to_i # rubocop:disable Metrics/BlockNesting
                   when *SO
                     project_exit_counts[:e_181_365_days][:so][:counts] << day_count
                     project_exit_counts[:e_181_365_days][:so][:support] << [p_exit[:client_id], day_count]
@@ -378,7 +378,7 @@ module ReportGenerators::SystemPerformance::Fy2018
                     project_exit_counts[:e_181_365_days][:ph][:support] << [p_exit[:client_id], day_count]
                   end
                 when (367..730)
-                  case p_exit[:project_type].to_i
+                  case p_exit[:project_type].to_i # rubocop:disable Metrics/BlockNesting
                   when *SO
                     project_exit_counts[:g_366_730_days][:so][:counts] << day_count
                     project_exit_counts[:g_366_730_days][:so][:support] << [p_exit[:client_id], day_count]

@@ -21,7 +21,7 @@ class ReportingBase < ActiveRecord::Base
       Rails.application.config.paths[path] = value
     end
     db_config = Rails.application.config.paths['config/database'].to_a.first
-    ActiveRecord::Base.establish_connection YAML.load(ERB.new(File.read(db_config)).result)[Rails.env]
+    ActiveRecord::Base.establish_connection YAML.load(ERB.new(File.read(db_config)).result)[Rails.env] # rubocop:disable Security/YAMLLoad
   end
 
   def self.needs_migration?

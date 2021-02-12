@@ -264,7 +264,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       stayers_scope = add_filters(scope: stayers_scope)
 
-      stayers = stayers_scope.
+      stayers = stayers_scope. # rubocop:disable Lint/UselessAssignment
         order(client_id: :asc, first_date_in_program: :asc).
         pluck(*columns.keys).map do |row|
           Hash[columns.values.zip(row)]
@@ -348,7 +348,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       leavers_scope = add_filters(scope: leavers_scope)
 
-      leavers = leavers_scope.
+      leavers = leavers_scope. # rubocop:disable Lint/UselessAssignment
         order(client_id: :asc, first_date_in_program: :asc).
         pluck(*columns.keys).map do |row|
           Hash[columns.values.zip(row)]
@@ -387,13 +387,13 @@ module ReportGenerators::SystemPerformance::Fy2019
           where(income_table[:InformationDate].lteq(@report_end)).
           where(DataCollectionStage: [5, 1]).
           order(InformationDate: :asc).
-          pluck(*columns).map do |row|
-            Hash[columns.zip(row)]
+          pluck(*columns).map do |r|
+            Hash[columns.zip(r)]
           end.group_by { |m| m[:DataCollectionStage] }
 
         income_map = {} # make a useful group of income data {1 => date => [rows], 5 => date => [rows]}
-        assessments.each do |stage, assessments|
-          income_map[stage] = assessments.group_by { |m| m[:InformationDate] }
+        assessments.each do |stage, i_assessments|
+          income_map[stage] = i_assessments.group_by { |m| m[:InformationDate] }
         end
         # Grab the last day from the 5 (annual assessment) group
         latest_group = income_map[5].values.last.first if income_map[5].present?
@@ -447,13 +447,13 @@ module ReportGenerators::SystemPerformance::Fy2019
           where(income_table[:InformationDate].lteq(@report_end)).
           where(DataCollectionStage: [3, 1]).
           order(InformationDate: :asc).
-          pluck(*columns).map do |row|
-            Hash[columns.zip(row)]
+          pluck(*columns).map do |r|
+            Hash[columns.zip(r)]
           end.group_by { |m| m[:DataCollectionStage] }
 
         income_map = {} # make a useful group of income data {1 => date => [rows], 5 => date => [rows]}
-        assessments.each do |stage, assessments|
-          income_map[stage] = assessments.group_by { |m| m[:InformationDate] }
+        assessments.each do |stage, i_assessments|
+          income_map[stage] = i_assessments.group_by { |m| m[:InformationDate] }
         end
         # Grab the last day from the 3 (exit assessment) group
         latest_group = income_map[3].values.last.first if income_map[3].present?

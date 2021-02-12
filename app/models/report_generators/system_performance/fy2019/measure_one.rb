@@ -101,21 +101,21 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size.positive?
-        @answers[:onea_c2][:value] = clients.size
-        @support[:onea_c2][:support] = {
-          headers: ['Client ID', 'Personal IDs', 'Days'],
-          counts: clients.map do |id, days|
-            [
-              id,
-              client_personal_ids[id].join(', '),
-              days,
-            ]
-          end,
-        }
-        @answers[:onea_e2][:value] = clients.values.reduce(:+) / clients.size
-        @answers[:onea_h2][:value] = median(clients.values)
-      end
+      return unless clients.size.positive?
+
+      @answers[:onea_c2][:value] = clients.size
+      @support[:onea_c2][:support] = {
+        headers: ['Client ID', 'Personal IDs', 'Days'],
+        counts: clients.map do |id, days|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            days,
+          ]
+        end,
+      }
+      @answers[:onea_e2][:value] = clients.values.reduce(:+) / clients.size
+      @answers[:onea_h2][:value] = median(clients.values)
     end
 
     def calculate_one_a_es_sh_th
@@ -143,21 +143,21 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size.positive?
-        @answers[:onea_c3][:value] = clients.count
-        @support[:onea_c3][:support] = {
-          headers: ['Client ID', 'Personal IDs', 'Days'],
-          counts: clients.map do |id, days|
-            [
-              id,
-              client_personal_ids[id].join(', '),
-              days,
-            ]
-          end,
-        }
-        @answers[:onea_e3][:value] = clients.values.reduce(:+) / clients.count
-        @answers[:onea_h3][:value] = median(clients.values)
-      end
+      return unless clients.size.positive?
+
+      @answers[:onea_c3][:value] = clients.count
+      @support[:onea_c3][:support] = {
+        headers: ['Client ID', 'Personal IDs', 'Days'],
+        counts: clients.map do |id, days|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            days,
+          ]
+        end,
+      }
+      @answers[:onea_e3][:value] = clients.values.reduce(:+) / clients.count
+      @answers[:onea_h3][:value] = median(clients.values)
     end
 
     def add_one_b_answers
@@ -200,21 +200,21 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size.positive?
-        @answers[:oneb_c2][:value] = clients.size
-        @support[:oneb_c2][:support] = {
-          headers: ['Client ID', 'Personal IDs', 'Days'],
-          counts: clients.map do |id, days|
-            [
-              id,
-              client_personal_ids[id].join(', '),
-              days,
-            ]
-          end,
-        }
-        @answers[:oneb_e2][:value] = clients.values.reduce(:+) / clients.size
-        @answers[:oneb_h2][:value] = median(clients.values)
-      end
+      return unless clients.size.positive?
+
+      @answers[:oneb_c2][:value] = clients.size
+      @support[:oneb_c2][:support] = {
+        headers: ['Client ID', 'Personal IDs', 'Days'],
+        counts: clients.map do |id, days|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            days,
+          ]
+        end,
+      }
+      @answers[:oneb_e2][:value] = clients.values.reduce(:+) / clients.size
+      @answers[:oneb_h2][:value] = median(clients.values)
     end
 
     def calculate_one_b_es_sh_th_ph
@@ -251,21 +251,21 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size.positive?
-        @answers[:oneb_c3][:value] = clients.count
-        @support[:oneb_c3][:support] = {
-          headers: ['Client ID', 'Personal IDs', 'Days'],
-          counts: clients.map do |id, days|
-            [
-              id,
-              client_personal_ids[id].join(', '),
-              days,
-            ]
-          end,
-        }
-        @answers[:oneb_e3][:value] = clients.values.reduce(:+) / clients.count
-        @answers[:oneb_h3][:value] = median(clients.values)
-      end
+      return unless clients.size.positive?
+
+      @answers[:oneb_c3][:value] = clients.count
+      @support[:oneb_c3][:support] = {
+        headers: ['Client ID', 'Personal IDs', 'Days'],
+        counts: clients.map do |id, days|
+          [
+            id,
+            client_personal_ids[id].join(', '),
+            days,
+          ]
+        end,
+      }
+      @answers[:oneb_e3][:value] = clients.values.reduce(:+) / clients.count
+      @answers[:oneb_h3][:value] = median(clients.values)
     end
 
     def clients_in_projects_of_type(project_types:)
@@ -381,12 +381,9 @@ module ReportGenerators::SystemPerformance::Fy2019
         # Move new start date back based on contiguous homelessness before the start date above
         new_client_start_date = client_start_date.to_date
         days_before_client_start_date.reverse_each do |d|
-          if d.to_date == new_client_start_date.to_date - 1.day
-            new_client_start_date = d.to_date
-          else
-            # Non-contiguous
-            break
-          end
+          break unless d.to_date == new_client_start_date.to_date - 1.day
+
+          new_client_start_date = d.to_date
         end
         client_start_date = [new_client_start_date.to_date, LOOKBACK_STOP_DATE.to_date].max
         # Rails.logger.info "Client's new start date: #{client_start_date}"
@@ -495,9 +492,9 @@ module ReportGenerators::SystemPerformance::Fy2019
         has_countable_project = false
         bed_nights.each do |night|
           # Ignore nights in a project that are on the date of exit
-          next if is_on_exit(night, k)
+          next if on_exit?(night, k)
 
-          has_countable_project ||= has_countable_project_on?(night, stop_project_types)
+          has_countable_project ||= countable_project_on?(night, stop_project_types)
           in_stop_project ||= in_stop_project_on?(night, k, stop_project_types, consider_move_in_dates)
         end
         filtered_days << k if has_countable_project && ! in_stop_project
@@ -507,19 +504,17 @@ module ReportGenerators::SystemPerformance::Fy2019
       return filtered_days.sort
     end
 
-    private def has_countable_project_on?(night, stop_project_types)
+    private def countable_project_on?(night, stop_project_types)
       ! stop_project_types.include?(night[:project_type])
     end
 
     private def in_stop_project_on?(night, date, stop_project_types, consider_move_in_dates)
-      if consider_move_in_dates && PH.include?(night[:project_type])
-        return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].present? && night[:MoveInDate] <= date))
-      else
-        return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))
-      end
+      return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].present? && night[:MoveInDate] <= date)) if consider_move_in_dates && PH.include?(night[:project_type])
+
+      return (stop_project_types.include?(night[:project_type]) && (night[:MoveInDate].blank? || night[:MoveInDate] <= date))
     end
 
-    private def is_on_exit(night, date)
+    private def on_exit?(night, date)
       night[:last_date_in_program] == date
     end
 

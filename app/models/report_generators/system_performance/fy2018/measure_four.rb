@@ -218,7 +218,7 @@ module ReportGenerators::SystemPerformance::Fy2018
 
       stayers_scope = add_filters(scope: stayers_scope)
 
-      stayers_scope.
+      stayers = stayers_scope. # rubocop:disable Lint/UselessAssignment
         order(client_id: :asc, first_date_in_program: :asc).
         pluck(*columns.keys).map do |row|
           Hash[columns.values.zip(row)]
@@ -302,7 +302,7 @@ module ReportGenerators::SystemPerformance::Fy2018
 
       leavers_scope = add_filters(scope: leavers_scope)
 
-      leavers_scope.
+      leavers = leavers_scope. # rubocop:disable Lint/UselessAssignment
         order(client_id: :asc, first_date_in_program: :asc).
         pluck(*columns.keys).map do |row|
           Hash[columns.values.zip(row)]

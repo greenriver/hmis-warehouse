@@ -26,7 +26,7 @@ module SimilarityMetric
   #    minimum    -- minimum number of candidates to return -- this determines application of use_zero_crossing
   #    just_score -- we are only interested in the final score, not the elements it was composed from; if false, you get back a hash rather than a float
   #    use_zero_crossing -- use second derivative of score crossing or touching 0 as an inflection point below which candidates are dropped
-  def candidates(
+  def candidates( # rubocop:disable Metrics/ParameterLists
     client,
     limit:             500,
     threshold:         -1,
@@ -58,7 +58,7 @@ module SimilarityMetric
   #
   #  returns:
   #    { source_clients => { merge_candidates => { score: float, metrics_with_scores: { metrics => scores } } } }
-  def pairwise_candidates(
+  def pairwise_candidates( # rubocop:disable Metrics/ParameterLists
     client,
     limit:             500,
     threshold:         -1,

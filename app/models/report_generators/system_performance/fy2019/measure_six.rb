@@ -78,7 +78,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       # 14: Coordinated Assessment
     end
 
-    def measure_6_a_and_b
+    def measure_6_a_and_b # rubocop:disable Metrics/AbcSize
       project_types = TH + SH + PH
 
       project_exit_scope = GrdaWarehouse::ServiceHistoryEnrollment.exit.

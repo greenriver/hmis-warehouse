@@ -135,7 +135,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       update_report_progress(percent: 90)
     end
 
-    def set_client_universe relevent_project_types
+    def set_client_universe relevent_project_types # rubocop:disable Naming/AccessorMethodName
       @clients = {}
       client_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         started_between(start_date: @report_start, end_date: @report_end + 1.day).

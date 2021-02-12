@@ -23,7 +23,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       end
       if @report.options['project_id'].delete_if(&:blank?).any?
         project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        scope = scope.joins(:project).where(Project: { id: project_ids})
+        scope = scope.joins(:project).where(Project: { id: project_ids })
       end
       scope = scope.where(data_source_id: @report.options['data_source_id'].to_i) if @report.options['data_source_id'].present?
       scope = scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
