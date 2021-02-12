@@ -11,6 +11,8 @@ class ProjectGroupsController < ApplicationController
 
   def index
     @project_groups = project_group_scope
+    @project_groups = @project_groups.text_search(params[:q]) if params[:q].present?
+    @project_groups = @project_groups.page(params[:page]).per(25)
   end
 
   def new

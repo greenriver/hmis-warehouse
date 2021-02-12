@@ -24,6 +24,7 @@ class HmisCsvTwentyTwenty::ImporterValidationErrorsController < ApplicationContr
     @validations = @validations.
       where(type: @filters.selected_validation, validated_column: @filters.column).
       preload(:source).
-      page(params[:page])
+      page(params[:page]).
+      per(200)
   end
 end
