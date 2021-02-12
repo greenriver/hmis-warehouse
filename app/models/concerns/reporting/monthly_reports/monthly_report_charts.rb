@@ -7,12 +7,7 @@
 module Reporting::MonthlyReports::MonthlyReportCharts
   extend ActiveSupport::Concern
   included do
-    attr_accessor :organization_ids
-    attr_accessor :project_ids
-    attr_accessor :months
-    attr_accessor :project_types
-    attr_accessor :filter
-    attr_accessor :age_ranges
+    attr_accessor :organization_ids, :project_ids, :months, :project_types, :filter, :age_ranges, :gender, :race, :ethnicity
 
     # accepts an array of months in the format:
     # [[year, month], [year, month]]
@@ -102,6 +97,9 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       client_scope = client_scope.heads_of_household if filter[:heads_of_household]
       client_scope = client_scope.filter_for_age(filter[:age_ranges])
       client_scope = client_scope.filter_for_coc_codes(filter[:coc_codes])
+      client_scope = client_scope.filter_for_race(filter[:race])
+      client_scope = client_scope.filter_for_ethnicity(filter[:ethnicity])
+      client_scope = client_scope.filter_for_gender(filter[:gender])
 
       client_scope
     end
@@ -126,6 +124,24 @@ module Reporting::MonthlyReports::MonthlyReportCharts
       end
 
       current_scope.where(age_exists.and(accumulative))
+    end
+
+    def self.filter_for_race(race)
+      return current_scope unless race&.present? && HUD.races.keys.include?(race)
+
+      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(race => 1).pluck(:id))
+    end
+
+    def self.filter_for_ethnicity(ethnicity)
+      return current_scope unless ethnicity&.present? && HUD.ethnicities.keys.include?(ethnicity)
+
+      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Ethnicity: ethnicity).pluck(:id))
+    end
+
+    def self.filter_for_gender(gender)
+      return current_scope unless gender&.present? && HUD.genders.keys.include?(gender)
+
+      current_scope.where(client_id: GrdaWarehouse::Hud::Client.destination.where(Gender: gender).pluck(:id))
     end
 
     # This needs to check project_id in the warehouse since we don't store this in the reporting DB

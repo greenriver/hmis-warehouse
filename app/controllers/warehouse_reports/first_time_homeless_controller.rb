@@ -58,6 +58,9 @@ module WarehouseReports
       scope = filter_for_coc_codes(scope)
       scope = filter_for_organizations(scope)
       scope = filter_for_projects(scope)
+      scope = filter_for_gender(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_ethnicity(scope)
       scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
       scope
     end
@@ -91,6 +94,9 @@ module WarehouseReports
         :sub_population,
         :heads_of_household,
         :ph,
+        :gender,
+        :race,
+        :ethnicity,
         age_ranges: [],
         organization_ids: [],
         project_ids: [],
