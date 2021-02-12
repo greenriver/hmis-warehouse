@@ -10,23 +10,6 @@ window.App.FileDropzone = class FileDropzone {
     // If we have a single visible file input on the page, initialize the zone
     if ($("input[type='file']:visible").length == 1) {
       this.insert_dropzone($("input[type='file']:visible"))
-
-      // initialize intersection observer to observe intersection of input node and viewport
-      // handler called when target is 0% visible
-      // https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
-      const targetNodes = $("input[type='file']")
-      const intersectionHandler = (e) => {
-        console.log("OBSERVED")
-        if ($("input[type='file']:visible").length >= 1) {
-          console.log($("input[type='file']:visible"))
-          this.update_dropzone_input($("input[type='file']:visible"))
-        }
-      }
-
-      const observerHidden = new IntersectionObserver(intersectionHandler, { threshold: 0.0 })
-      targetNodes.each (function() {
-        observerHidden.observe(this)
-      })
     }
     else {
       // If we have a single file input on the page after an ajax request, initialize the zone
@@ -74,22 +57,31 @@ window.App.FileDropzone = class FileDropzone {
     var showDrag = false
     var timeout = -1
 
+    // update file input if there's a different visible input on screen
+    // if there are multiple inputs, don't do anything
     $(window).on('dragenter', (e) => {
-      this.showDropZone()
-      showDrag = true
+      if ($("input[type='file']:visible").length == 1) {
+        this.update_dropzone_input($("input[type='file']:visible"))
+        this.showDropZone()
+        showDrag = true
+      }
     })
 
     $(window).on('dragover', (e) => {
       e.preventDefault()
-      showDrag = true
+      if ($("input[type='file']:visible").length == 1) {
+        showDrag = true
+      }
     })
 
     $(window).on('dragleave', (e) => {
-      showDrag = false
-      clearTimeout(timeout)
-      timeout = setTimeout(() => {
-        if (!showDrag) { this.hideDropZone() }
-      }, 200)
+      if ($("input[type='file']:visible").length == 1) {
+        showDrag = false
+        clearTimeout(timeout)
+        timeout = setTimeout(() => {
+          if (!showDrag) { this.hideDropZone() }
+        }, 200)
+      }
     })
 
     $(window).on('drop', (e) => {
