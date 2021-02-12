@@ -3,4 +3,5 @@
 %h1= content_for :title
 = render '/warehouse_reports/breadcrumbs', tab: 'health'
 = render 'filters'
-= render 'report', report: @report
+= render 'mock_metrics_report', report: @report
+

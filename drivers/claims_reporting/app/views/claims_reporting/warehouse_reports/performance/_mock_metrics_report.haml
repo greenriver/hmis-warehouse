@@ -1,0 +1,35 @@
+:ruby
+  metrics = [
+    'BH CP #1: Community Partner Engagement (122 days) - % patients',
+    'BH CP #2: Annual Treatment Plan Completion - % patients',
+    'BH CP #3: Follow-up with BH CP after acute or post- acute stay (3 business days) - % stays',
+    'BH CP #5: Annual Primary Care Visit - % patients',
+    'BH CP #6: Community Tenure',
+    'BH CP #7/#8: Initiation and Engagement of Alcohol, Opioid, or Other Drug Abuse or Dependence Treatment - % events',
+    'BH CP #9: Follow-Up After Hospitalization for Mental Illness (7 days) - % events',
+    'BH CP #10: Diabetes Screening for Individuals With Schizophrenia or Bipolar Disorder Who Are Using Antipsychotic Medications',
+    'BH CP #11: (Cant find this one)',
+    'BH CP #12: Emergency Department Visits for Adults with Mental Illness, Addiction, or Co-occurring Conditions',
+    'BH CP #13: Hospital Readmissions (Adult)',
+  ]
+  periods = ['PY2018','PY2019','PY2020']
+
+  # subpopulations
+  # By ACO
+  # My Patients
+  # Race/Gender/Age?
+.row
+  .col-12
+    .pb-4
+      %h3 MassHealth BH CP Quality Measures
+      %table.table.table-sm.table-striped
+        %thead
+          %tr
+            %th Measure
+            - periods.each do |period|
+              %th= period
+        - metrics.each do |label|
+          %tr
+            %th= label
+            - periods.each do |_|
+              %td.text-right= "#{rand(100)}%"
