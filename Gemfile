@@ -181,6 +181,9 @@ gem 'rack-attack'
 
 gem 'attr_encrypted', '~> 3.1.0'
 
+gem 'ajax_modal_rails', '~> 1.0'
+gem 'browser'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -248,7 +251,3 @@ end
 group :production, :development, :staging do
   gem 'tiny_tds'
 end
-
-gem 'ajax_modal_rails', '~> 1.0'
-
-gem 'browser'
