@@ -58,6 +58,9 @@ module WarehouseReports::ClientDetails
       hsh_scope = filter_for_age_ranges(hsh_scope)
       hsh_scope = filter_for_hoh(hsh_scope)
       hsh_scope = filter_for_coc_codes(hsh_scope)
+      hsh_scope = filter_for_gender(hsh_scope)
+      hsh_scope = filter_for_race(hsh_scope)
+      hsh_scope = filter_for_ethnicity(hsh_scope)
       hsh_scope
     end
 
@@ -70,6 +73,9 @@ module WarehouseReports::ClientDetails
         :sub_population,
         :heads_of_household,
         :ph,
+        :gender,
+        :race,
+        :ethnicity,
         age_ranges: [],
         organization_ids: [],
         project_ids: [],

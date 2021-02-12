@@ -23,6 +23,9 @@ module Dashboards
     before_action :set_limit_to_heads_of_household
     before_action :set_age_ranges
     before_action :set_cocs
+    before_action :set_gender
+    before_action :set_ethnicity
+    before_action :set_race
 
     def index
       @report = active_report_class.new(
@@ -34,6 +37,9 @@ module Dashboards
           vispdat: @limit_to_vispdat,
           heads_of_household: @heads_of_household,
           age_ranges: @age_ranges,
+          gender: @gender,
+          ethnicity: @ethnicity,
+          race: @race,
         },
       )
 
@@ -72,6 +78,9 @@ module Dashboards
           heads_of_household: @heads_of_household,
           age_ranges: @age_ranges,
           coc_codes: @coc_codes,
+          gender: @gender,
+          ethnicity: @ethnicity,
+          race: @race,
         },
       )
       section = allowed_sections.detect do |m|
@@ -157,6 +166,9 @@ module Dashboards
           :end_month,
           :limit_to_vispdat,
           :heads_of_household,
+          :race,
+          :ethnicity,
+          :gender,
           organization_ids: [],
           project_ids: [],
           project_types: [],
@@ -267,5 +279,36 @@ module Dashboards
     def set_cocs
       @coc_codes = report_params[:coc_codes]&.reject(&:blank?)
     end
+
+    def set_gender
+      @gender = report_params[:gender]&.to_i if report_params[:gender].present?
+    end
+
+    def set_ethnicity
+      @ethnicity = report_params[:ethnicity]&.to_i if report_params[:ethnicity].present?
+    end
+
+    def set_race
+      @race = report_params[:race] if report_params[:race].present?
+    end
+
+    def support_filter
+      {
+        sub_population: @report.sub_population,
+        start: @start_date,
+        end: @end_date,
+        project_type: @report.project_types,
+        project_ids: @project_ids,
+        organization_ids: @organization_ids,
+        project_type_codes: @project_type_codes,
+        age_ranges: @age_ranges,
+        heads_of_household: @heads_of_household,
+        coc_codes: @coc_codes,
+        gender: @gender,
+        race: @race,
+        ethnicity: @ethnicity,
+      }
+    end
+    helper_method :support_filter
   end
 end

@@ -28,6 +28,9 @@ module WarehouseReports
       @enrollments = filter_for_projects(@enrollments)
       @enrollments = filter_for_age_ranges(@enrollments)
       @enrollments = filter_for_hoh(@enrollments)
+      @enrollments = filter_for_gender(@enrollments)
+      @enrollments = filter_for_race(@enrollments)
+      @enrollments = filter_for_ethnicity(@enrollments)
       # go back for the re-entries for those we actually have permission to see
       @re_entries = reporting_class.re_entry.where(enrollment_id: @enrollments.pluck(:id)).index_by(&:enrollment_id)
 
@@ -58,6 +61,9 @@ module WarehouseReports
         :sub_population,
         :heads_of_household,
         :ph,
+        :gender,
+        :race,
+        :ethnicity,
         age_ranges: [],
         organization_ids: [],
         project_ids: [],
