@@ -92,11 +92,11 @@ class Report < ApplicationRecord
   def as_html results
   end
 
-  def has_options?
+  def options?
     false
   end
 
-  def has_custom_form?
+  def custom_form?
     false
   end
 
@@ -108,31 +108,31 @@ class Report < ApplicationRecord
     report_report_results_path self
   end
 
-  def has_project_option?
+  def project_option?
     false
   end
 
-  def has_project_id_option?
+  def project_id_option?
     false
   end
 
-  def has_data_source_option?
+  def data_source_option?
     false
   end
 
-  def has_pit_options?
+  def pit_options?
     false
   end
 
-  def has_date_range_options?
+  def date_range_options?
     false
   end
 
-  def has_coc_codes_option?
+  def coc_codes_option?
     false
   end
 
-  def has_race_options?
+  def race_options?
     false
   end
 end

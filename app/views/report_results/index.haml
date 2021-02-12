@@ -17,7 +17,7 @@
           %th
             = sort_link(titles[k], k, directions)
             %i{class: ["fa", "fa-sort-#{directions[k]}"] }
-        - if @report.has_options?
+        - if @report.options?
           %th= @report.title_for_options
         %th Run by
         %th Completed in
@@ -31,7 +31,7 @@
             - else
               = link_to result.last_run_status, report_report_result_path(@report, result)
           %td= result.created_at
-          - if @report.has_options?
+          - if @report.options?
             %td
               = result.value_for_options result.options
           %td= result.user.name

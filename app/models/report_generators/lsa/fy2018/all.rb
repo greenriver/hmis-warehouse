@@ -203,7 +203,7 @@ module ReportGenerators::Lsa::Fy2018
 
             # this fixes dates that default to 1900-01-01 if you send an empty string
             content = content.map do |row|
-              row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+              klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
             end
             insert_batch(klass, import_headers, content, batch_size: 1_000)
           end
@@ -510,10 +510,9 @@ module ReportGenerators::Lsa::Fy2018
       ::Rds.database = sql_server_database
       ::Rds.timeout = 60_000_000
       load 'lib/rds_sql_server/lsa/fy2018/lsa_queries.rb'
-      if @lsa_scope == 1 # System wide
-        rep = LsaSqlServer::LSAQueries.new
-      else # Selected projects
-        rep = LsaSqlServer::LSAQueries.new
+      # System wide
+      rep = LsaSqlServer::LSAQueries.new
+      if @lsa_scope != 1 # Selected projects
         rep.project_ids = @project_ids
       end
 
@@ -524,8 +523,8 @@ module ReportGenerators::Lsa::Fy2018
       # loop through the LSA queries
       report_steps = rep.steps
       # This starts at 30%, ends at 90%
-      step_percent = 60.0 / rep.steps.count
-      rep.steps.each_with_index do |step, i|
+      step_percent = 60.0 / report_steps.count
+      report_steps.each_with_index do |step, i|
         percent = 30 + i * step_percent
         update_report_progress percent: percent.round(2)
         rep.run_query(step)

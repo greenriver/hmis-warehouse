@@ -55,7 +55,7 @@ class ReportResult < ApplicationRecord
       'Report Failed'
     elsif percent_complete == 100
       'Complete'
-    elsif percent_complete == 0
+    elsif percent_complete.zero?
       'Queued'
     elsif percent_complete == 0.01
       'Started'
@@ -104,20 +104,20 @@ class ReportResult < ApplicationRecord
   end
 
   private def project_required_if_report_demands
-    if report.has_project_option?
-      errors.add(:project, 'A project is required') if options['project'].blank?
-    end
+    return unless report.project_option?
+
+    errors.add(:project, 'A project is required') if options['project'].blank?
   end
 
   private def project_id_required_if_report_demands
-    if report.has_project_id_option?
-      errors.add(:project_id, 'is required') if options['project_id'].blank?
-    end
+    return unless report.project_id_option?
+
+    errors.add(:project_id, 'is required') if options['project_id'].blank?
   end
 
   private def data_source_required_if_report_demands
-    if report.has_data_source_option?
-      errors.add(:project, 'A data source is required') if options['data_source'].blank?
-    end
+    return unless report.data_source_option?
+
+    errors.add(:project, 'A data source is required') if options['data_source'].blank?
   end
 end

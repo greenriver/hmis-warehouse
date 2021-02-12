@@ -6,7 +6,7 @@
 
 module ReportGenerators::SystemPerformance::Fy2019
   class MeasureTwo < Base
-    LOOKBACK_STOP_DATE = '2012-10-01'
+    LOOKBACK_STOP_DATE = '2012-10-01'.freeze
 
     # PH = [3,9,10,13]
     PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
@@ -19,8 +19,8 @@ module ReportGenerators::SystemPerformance::Fy2019
     # SO = [4]
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
 
-    PERMANENT_DESTINATIONS = [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34]
-    TEMPORARY_DESTINATIONS = [1, 15, 6, 14, 7, 27, 16, 4, 29, 18, 12, 13, 5, 2, 25, 32]
+    PERMANENT_DESTINATIONS = [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34].freeze
+    TEMPORARY_DESTINATIONS = [1, 15, 6, 14, 7, 27, 16, 4, 29, 18, 12, 13, 5, 2, 25, 32].freeze
 
     def run!
       # Disable logging so we don't fill the disk

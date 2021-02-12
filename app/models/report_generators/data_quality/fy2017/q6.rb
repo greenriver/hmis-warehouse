@@ -26,7 +26,7 @@ module ReportGenerators::DataQuality::Fy2017
     def add_entry_time_answers
       buckets = {
         q6_b2: {
-          range: ->(num) { num == 0 },
+          range: ->(num) { num.zero? },
           clients: {},
         },
         q6_b3: {
@@ -84,7 +84,7 @@ module ReportGenerators::DataQuality::Fy2017
     def add_exit_time_answers
       buckets = {
         q6_c2: {
-          range: ->(num) { num == 0 },
+          range: ->(num) { num.zero? },
           clients: {},
         },
         q6_c3: {

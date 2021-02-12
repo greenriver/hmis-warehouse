@@ -88,7 +88,7 @@ module Admin
 
           # Restore any health roles we previously had
           @user.roles = (@user.roles + existing_health_roles).uniq
-          @user.set_viewables viewable_params
+          @user.viewables = viewable_params
         end
       rescue Exception
         flash[:error] = 'Please review the form problems below'
@@ -118,7 +118,7 @@ module Admin
       @adming_admin ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
         adming_admin = false
         existing_roles = @user.user_roles
-        unless existing_roles.map(&:role).map(&:has_super_admin_permissions?).any?
+        unless existing_roles.map(&:role).map(&:super_admin_permissions?).any?
           assigned_roles = user_params[:role_ids]&.select(&:present?)&.map(&:to_i) || []
           added_role_ids = assigned_roles - existing_roles.pluck(:role_id)
           added_role_ids.select(&:present?).each do |id|

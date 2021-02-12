@@ -262,7 +262,6 @@ module ReportGenerators::DataQuality::Fy2017
       counted = Set.new # Only count each client once
       poor_quality = {}
       missing = {}
-      quality_issues = {}
       @all_client_ids.each_slice(500) do |client_ids|
         client_batch(client_ids).each do |client_id, enrollments|
           enrollment = enrollments.last
@@ -313,7 +312,6 @@ module ReportGenerators::DataQuality::Fy2017
       counted = Set.new # Only count each client once
       poor_quality = {}
       missing = {}
-      quality_issues = {}
       @all_client_ids.each_slice(500) do |client_ids|
         client_batch(client_ids).each do |client_id, enrollments|
           enrollment = enrollments.last
@@ -364,7 +362,6 @@ module ReportGenerators::DataQuality::Fy2017
       counted = Set.new # Only count each client once
       poor_quality = {}
       missing = {}
-      quality_issues = {}
       @all_client_ids.each_slice(500) do |client_ids|
         client_batch(client_ids).each do |client_id, enrollments|
           enrollment = enrollments.last

@@ -22,7 +22,7 @@ module Reports::Hic::Fy2019
       nil
     end
 
-    def has_options?
+    def options?
       false
     end
 

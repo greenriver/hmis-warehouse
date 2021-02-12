@@ -22,19 +22,19 @@ module Reports::Pit::Fy2018
       nil
     end
 
-    def has_options?
+    def options?
       true
     end
 
-    def has_custom_form?
+    def custom_form?
       true
     end
 
-    def has_pit_options?
+    def pit_options?
       true
     end
 
-    def has_coc_codes_option?
+    def coc_codes_option?
       true
     end
 

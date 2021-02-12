@@ -226,11 +226,13 @@ class User < ApplicationRecord
   end
 
   def passed_2fa_confirmation?
-    confirmed_2fa > 0
+    confirmed_2fa.positive?
   end
 
   def disable_2fa!
-    otp_secret = nil
+    # otp_secret is an encrypted column on user
+    # this is blanking the column out
+    otp_secret = nil # rubocop:disable Lint/UselessAssignment
     update(
       confirmed_2fa: 0,
       otp_required_for_login: false,
@@ -354,7 +356,7 @@ class User < ApplicationRecord
     AccessGroup.for_user(self).first_or_initialize
   end
 
-  def set_viewables(viewables)
+  def viewables=(viewables)
     return unless persisted?
 
     access_group.set_viewables(viewables)

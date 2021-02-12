@@ -22,11 +22,11 @@ module Reports::Lsa::Fy2018
       :zip
     end
 
-    def has_options?
+    def options?
       true
     end
 
-    def has_custom_form?
+    def custom_form?
       true
     end
 
@@ -77,15 +77,14 @@ module Reports::Lsa::Fy2018
 
     def project_id_string options
       str = ''
-      if options['project_id'].present?
-        if options['project_id'].is_a?(Array)
-          if options['project_id'].delete_if(&:blank?).any?
-            str = "; Projects: #{options['project_id'].map { |m| GrdaWarehouse::Hud::Project.find_by_id(m.to_i)&.name || m if m.present? }.compact.join(', ')}"
-          end
-        else
-          str = "; Project: #{GrdaWarehouse::Hud::Project.find_by_id(options['project_id'].to_i)&.name || options['project_id']}"
-        end
+      return str unless options['project_id'].present?
+
+      if options['project_id'].is_a?(Array) && options['project_id'].delete_if(&:blank?).any?
+        str = "; Projects: #{options['project_id'].map { |m| GrdaWarehouse::Hud::Project.find_by_id(m.to_i)&.name || m if m.present? }.compact.join(', ')}"
+      else
+        str = "; Project: #{GrdaWarehouse::Hud::Project.find_by_id(options['project_id'].to_i)&.name || options['project_id']}"
       end
+
       return str
     end
 

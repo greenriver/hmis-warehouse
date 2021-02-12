@@ -109,24 +109,24 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       project = hud_enrollment.project
       service_dates = service_dates_for_enrollment(hud_enrollment)
       exit_record = hud_enrollment.exit
-      report_enrollment.head_of_household = report_enrollment.is_head_of_household?(enrollment: hud_enrollment)
-      report_enrollment.active = report_enrollment.is_active?(
+      report_enrollment.head_of_household = report_enrollment.head_of_household?(enrollment: hud_enrollment)
+      report_enrollment.active = report_enrollment.active?(
         project: project,
         service_dates: service_dates,
         report_start: report_start,
         report_end: report_end,
       )
-      report_enrollment.entered = report_enrollment.is_entered?(
+      report_enrollment.entered = report_enrollment.entered?(
         entry_date: hud_enrollment.EntryDate,
         report_start: report_start,
         report_end: report_end,
       )
-      report_enrollment.exited = report_enrollment.is_exited?(
+      report_enrollment.exited = report_enrollment.exited?(
         exit_record: exit_record,
         report_start: report_start,
         report_end: report_end,
       )
-      report_enrollment.adult = report_enrollment.is_adult?(date: hud_enrollment.EntryDate)
+      report_enrollment.adult = report_enrollment.adult?(date: hud_enrollment.EntryDate)
       report_enrollment.household_type = household_type_for(enrollment: hud_enrollment)
       report_enrollment.age = report_enrollment.calculate_age(date: hud_enrollment.EntryDate)
       report_enrollment.days_to_add_entry_date = report_enrollment.calculate_days_to_add_entry_date(enrollment: hud_enrollment)
@@ -187,19 +187,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         income_record: penultimate_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
-        report_end: report_end,
       )
       report_enrollment.income_at_penultimate_non_employment_cash = report_enrollment.calculate_income_at_penultimate_non_employment_cash(
         income_record: penultimate_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
-        report_end: report_end,
       )
       report_enrollment.income_at_penultimate_overall = report_enrollment.calculate_income_at_penultimate_overall(
         income_record: penultimate_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
-        report_end: report_end,
       )
       report_enrollment.income_at_penultimate_response = penultimate_income_record&.IncomeFromAnySource
 
@@ -209,19 +206,16 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         income_record: later_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
-        report_end: report_end,
       )
       report_enrollment.income_at_later_date_non_employment_cash = report_enrollment.calculate_income_at_later_date_non_employment_cash(
         income_record: later_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
-        report_end: report_end,
       )
       report_enrollment.income_at_later_date_overall = report_enrollment.calculate_income_at_later_date_overall(
         income_record: later_income_record,
         entry_date: hud_enrollment.EntryDate,
         head_of_household: report_enrollment.head_of_household,
-        report_end: report_end,
       )
       report_enrollment.income_at_later_date_response = later_income_record&.IncomeFromAnySource
 

@@ -6,7 +6,7 @@
 
 module SimilarityMetric
   class Gender < Multinomial
-    DESCRIPTION = <<~END
+    DESCRIPTION = <<~DESC.freeze
             *{{{human_name}}}* is a complex property stored in HUD data as a multinomial
             category in the field `{{{field}}}` with 9 values, including the null value.
             For the purposes of measuring gender similarity we use the following supercategories:
@@ -23,7 +23,7 @@ module SimilarityMetric
             of the total population size to the size of the subpopulation expressing the given subcategory.
             To prevent odd categories from having an outsize effect, this factor is capped at
             {{{max_multiplier}}}.
-    END
+    DESC
 
     def field
       :Gender

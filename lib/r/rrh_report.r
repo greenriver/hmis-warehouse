@@ -75,7 +75,7 @@ num_housed_1 <- paste(length(unique(housed_1$client_id)), "total clients", sep="
 
 # print(num_housed_1)
 
-housedPlot_1 <- as.character(toJSON(housed_1 %>%
+housed_plot_1 <- as.character(toJSON(housed_1 %>%
   arrange(desc(housed_date)) %>%
   group_by(month_year) %>%
   summarise(

@@ -6,7 +6,7 @@
 
 module ReportGenerators::SystemPerformance::Fy2019
   class MeasureOne < Base
-    LOOKBACK_STOP_DATE = '2012-10-01'
+    LOOKBACK_STOP_DATE = '2012-10-01'.freeze
 
     # PH = [3,9,10,13]
     PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
@@ -92,8 +92,8 @@ module ReportGenerators::SystemPerformance::Fy2019
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
         homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false, true)
-        clients[id] = homeless_day_count if homeless_day_count > 0
-        if index % 100 == 0 && index != 0
+        clients[id] = homeless_day_count if homeless_day_count.positive?
+        if (index % 100).zero? && index != 0
           # save our progress, divide by two because we need to loop over these again
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
         end
@@ -101,7 +101,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size > 0
+      if clients.size.positive?
         @answers[:onea_c2][:value] = clients.size
         @support[:onea_c2][:support] = {
           headers: ['Client ID', 'Personal IDs', 'Days'],
@@ -134,8 +134,8 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       remaining.each_with_index do |id, index|
         homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, false, true)
-        clients[id] = homeless_day_count if homeless_day_count > 0
-        if index % 100 == 0 && index != 0
+        clients[id] = homeless_day_count if homeless_day_count.positive?
+        if (index % 100).zero? && index != 0
           # save our progress, start at 50% because we've already run through once
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 20).round(2))
         end
@@ -143,7 +143,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size > 0
+      if clients.size.positive?
         @answers[:onea_c3][:value] = clients.count
         @support[:onea_c3][:support] = {
           headers: ['Client ID', 'Personal IDs', 'Days'],
@@ -191,8 +191,8 @@ module ReportGenerators::SystemPerformance::Fy2019
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
         homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, true, true)
-        clients[id] = homeless_day_count if homeless_day_count > 0
-        if index % 100 == 0 && index != 0
+        clients[id] = homeless_day_count if homeless_day_count.positive?
+        if (index % 100).zero? && index != 0
           # save our progress, divide by two because we need to loop over these again
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100).round(2))
         end
@@ -200,7 +200,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size > 0
+      if clients.size.positive?
         @answers[:oneb_c2][:value] = clients.size
         @support[:oneb_c2][:support] = {
           headers: ['Client ID', 'Personal IDs', 'Days'],
@@ -242,8 +242,8 @@ module ReportGenerators::SystemPerformance::Fy2019
       clients = {} # Fill this with hashes: {client_id: days_homeless}
       remaining.each_with_index do |id, index|
         homeless_day_count = calculate_days_homeless(id, project_types, stop_project_types, true, true)
-        clients[id] = homeless_day_count if homeless_day_count > 0
-        if index % 100 == 0 && index != 0
+        clients[id] = homeless_day_count if homeless_day_count.positive?
+        if (index % 100).zero? && index != 0
           # save our progress, start at 50% because we've already run through once
           update_report_progress(percent: (((index.to_f / remaining.count) / 4) * 100 + 75).round(2))
         end
@@ -251,7 +251,7 @@ module ReportGenerators::SystemPerformance::Fy2019
 
       client_personal_ids = personal_ids(remaining)
 
-      if clients.size > 0
+      if clients.size.positive?
         @answers[:oneb_c3][:value] = clients.count
         @support[:oneb_c3][:support] = {
           headers: ['Client ID', 'Personal IDs', 'Days'],

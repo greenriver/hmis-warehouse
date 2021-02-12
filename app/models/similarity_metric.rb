@@ -37,17 +37,17 @@ module SimilarityMetric
   )
     sources = client.destination? ? client.source_clients : [client]
     excludables = sources.map(&:id)
-    score_map = sources.map do |client|
-      others = client.merge_candidates.where.not(id: excludables).limit(limit)
-      score(client, others, metrics: metrics, threshold: threshold, just_score: false)
+    score_map = sources.map do |source_client|
+      others = source_client.merge_candidates.where.not(id: excludables).limit(limit)
+      score(source_client, others, metrics: metrics, threshold: threshold, just_score: false)
     end.reduce({}) { |s1, s2| merge_scores s1, s2, just_score: false }
-    score_map = score_map.map do |client, map|
+    score_map = score_map.map do |source_client, map|
       value = rescore_amalgam map
       unless just_score
         map[:score] = value
         value = map
       end
-      [client, value]
+      [source_client, value]
     end.to_h
     score_map = cull_by_zero_crossing(score_map, just_score) if use_zero_crossing && score_map.size > minimum
     score_map
@@ -70,11 +70,11 @@ module SimilarityMetric
     sources              = client.destination? ? client.source_clients : [client]
     excludables          = sources.map(&:id)
     scores_per_candidate = {}
-    sources_to_matches = sources.map do |client|
+    sources_to_matches = sources.map do |source_client|
       # all candidates
-      others = client.merge_candidates.where.not(id: excludables).limit(limit)
+      others = source_client.merge_candidates.where.not(id: excludables).limit(limit)
       # map from candidates to score/metric hashes
-      matches = score(client, others, metrics: metrics, threshold: threshold, just_score: false)
+      matches = score(source_client, others, metrics: metrics, threshold: threshold, just_score: false)
       # cull by threshold
       matches.select! { |_, h| h[:score] <= threshold }
       # cull by zero crossing (edge of score plateau) if appropriate
@@ -83,7 +83,7 @@ module SimilarityMetric
       matches.each do |candidate, hash|
         (scores_per_candidate[candidate] ||= []) << hash[:score]
       end
-      [client, matches]
+      [source_client, matches]
     end.to_h
     # cull pairs down to the highest (lowest) scorers
     sources_to_matches.values.each do |candidates_to_scores|
@@ -107,7 +107,7 @@ module SimilarityMetric
         v = x - position
         if velocity
           a = v - velocity
-          if any_acceleration && ((acceleration < 0) ^ (a < 0))
+          if any_acceleration && ((acceleration.negative?) ^ (a.negative?))
             crossing = x
             break
           end
@@ -140,7 +140,7 @@ module SimilarityMetric
   def single_score(c1, c2, metrics: Base.usable.all.reject(&:bogus?), just_score: true)
     weights = []
     scores = metrics.map do |m|
-      if s = m.score(c1, c2)
+      if (s = m.score(c1, c2))
         weights << m
         s
       end
@@ -167,7 +167,7 @@ module SimilarityMetric
       v1 = scores1[c]
       v2 = scores2[c]
       v = if v1 && v2
-        s1, s2 = [v1, v2].map { |v| just_score ? v : v[:score] }
+        s1, s2 = [v1, v2].map { |i| just_score ? i : i[:score] }
         s1 < s2 ? v1 : v2
       else
         v1 || v2

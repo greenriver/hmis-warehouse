@@ -32,14 +32,14 @@ module SimilarityMetric
         count = 0
         sample.each do |client|
           excludables = client.source_clients.map(&:id)
-          client.source_clients.each do |client|
-            client.merge_candidates.where.not(id: excludables).limit(500).to_a.each do |candidate|
+          client.source_clients.each do |source_client|
+            source_client.merge_candidates.where.not(id: excludables).limit(500).to_a.each do |candidate|
               count += 1
-              if verbose && count % 10 == 0
+              if verbose && (count % 10).zero?
                 print '.'
-                puts " #{count}" if count % 1000 == 0
+                puts " #{count}" if (count % 1000).zero?
               end
-              seen << [candidate, client].sort_by(&:id)
+              seen << [candidate, source_client].sort_by(&:id)
             end
           end
         end
@@ -58,10 +58,10 @@ module SimilarityMetric
             end
           end
           count += 1
-          next unless verbose && count % 10 == 0
+          next unless verbose && (count % 10).zero?
 
           print '.'
-          puts " #{count}" if count % 1000 == 0
+          puts " #{count}" if (count % 1000).zero?
         end
         puts " #{count}" if verbose && count % 1000 != 0
         stats.select { |_, values| values.length >= minimum_sample }.each do |m, values|

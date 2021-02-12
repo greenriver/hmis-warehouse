@@ -377,7 +377,7 @@ module ReportGenerators::DataQuality::Fy2017
         data: lts.map do |id, enrollment|
           [
             id,
-            @client_personal_ids[id].join(', '),
+            client_personal_ids[id].join(', '),
             enrollment[:RelationshipToHoH],
             enrollment[:stay_length],
           ]

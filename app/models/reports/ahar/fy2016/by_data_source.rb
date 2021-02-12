@@ -14,19 +14,19 @@ module Reports::Ahar::Fy2016
       0
     end
 
-    def has_custom_form?
+    def custom_form?
       true
     end
 
-    def has_options?
+    def options?
       true
     end
 
-    def has_data_source_option?
+    def data_source_option?
       true
     end
 
-    def has_date_range_options?
+    def date_range_options?
       true
     end
 

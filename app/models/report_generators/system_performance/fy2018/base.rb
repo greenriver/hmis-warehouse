@@ -86,7 +86,7 @@ module ReportGenerators::SystemPerformance::Fy2018
 
     def set_report_start_and_end
       @report_start ||= @report.options['report_start'].to_date
-      @report_end ||= @report.options['report_end'].to_date
+      @report_end ||= @report.options['report_end'].to_date # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
     def add_support headers:, data:

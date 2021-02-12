@@ -6,7 +6,7 @@
 
 module ReportGenerators::SystemPerformance::Fy2019
   class MeasureSix < Base
-    LOOKBACK_STOP_DATE = '2012-10-01'
+    LOOKBACK_STOP_DATE = '2012-10-01'.freeze
 
     # PH = [3,9,10,13]
     PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
@@ -18,10 +18,10 @@ module ReportGenerators::SystemPerformance::Fy2019
     SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1)
     # SO = [4]
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
-    RRH = [13]
-    PH_PSH = [3, 9, 10]
-    PERMANENT_DESTINATIONS = [3, 10, 11, 19, 20, 21, 22, 23, 26, 28]
-    TEMPORARY_DESTINATIONS = [1, 15, 6, 14, 7, 27, 16, 4, 29, 18, 12, 13, 5, 2, 25]
+    RRH = [13].freeze
+    PH_PSH = [3, 9, 10].freeze
+    PERMANENT_DESTINATIONS = [3, 10, 11, 19, 20, 21, 22, 23, 26, 28].freeze
+    TEMPORARY_DESTINATIONS = [1, 15, 6, 14, 7, 27, 16, 4, 29, 18, 12, 13, 5, 2, 25].freeze
 
     def run!
       # Disable logging so we don't fill the disk

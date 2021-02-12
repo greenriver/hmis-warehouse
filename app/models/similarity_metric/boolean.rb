@@ -6,7 +6,7 @@
 
 module SimilarityMetric
   class Boolean < Multinomial
-    DESCRIPTION = <<~EOS
+    DESCRIPTION = <<~DESC.freeze
             _{{{human_name}}}_ converts the true/false values in the boolean
             HUD field `{{{field}}}` into 0 for same and 1 for different.
       #{'      '}
@@ -16,7 +16,7 @@ module SimilarityMetric
             subpopulation expressing the given value of `{{{field}}}`.
             To prevent rare values from having an outsize effect, this factor is capped at
             {{{max_multiplier}}}.
-    EOS
+    DESC
 
     def field
       nil

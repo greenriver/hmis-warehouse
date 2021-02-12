@@ -258,7 +258,7 @@ module ReportGenerators::Lsa::Fy2019
 
             # this fixes dates that default to 1900-01-01 if you send an empty string
             content = content.map do |row|
-              row = klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
+              klass.new.clean_row_for_import(row: row.fields, headers: import_headers)
             end.compact
             insert_batch(klass, import_headers, content, batch_size: 1_000)
           end
@@ -366,22 +366,22 @@ module ReportGenerators::Lsa::Fy2019
     end
 
     def remove_temporary_rds
-      if destroy_rds?
-        # If we didn't specify a specific host, turn off RDS
-        # Otherwise, just drop the databse
-        if ENV['LSA_DB_HOST'].blank?
-          @rds&.terminate!
-        else
-          begin
-            SqlServerBase.connection.execute(<<~SQL)
-              use master
-            SQL
-            SqlServerBase.connection.execute(<<~SQL)
-              drop database #{@rds.database}
-            SQL
-          rescue Exception => e
-            puts e.inspect
-          end
+      return unless destroy_rds?
+
+      # If we didn't specify a specific host, turn off RDS
+      # Otherwise, just drop the databse
+      if ENV['LSA_DB_HOST'].blank?
+        @rds&.terminate!
+      else
+        begin
+          SqlServerBase.connection.execute(<<~SQL)
+            use master
+          SQL
+          SqlServerBase.connection.execute(<<~SQL)
+            drop database #{@rds.database}
+          SQL
+        rescue Exception => e
+          puts e.inspect
         end
       end
     end
@@ -623,8 +623,8 @@ module ReportGenerators::Lsa::Fy2019
       # loop through the LSA queries
       report_steps = rep.steps
       # This starts at 30%, ends at 90%
-      step_percent = 60.0 / rep.steps.count
-      rep.steps.each_with_index do |step, i|
+      step_percent = 60.0 / report_steps.count
+      report_steps.each_with_index do |step, i|
         percent = 30 + i * step_percent
         update_report_progress(percent: percent.round(2))
         start_time = Time.current

@@ -22,14 +22,14 @@ module SimilarityMetric
         count = 0
         sample.each do |client|
           excludables = client.source_clients.map(&:id)
-          client.source_clients.each do |client|
-            client.merge_candidates.where.not(id: excludables).limit(500).to_a.each do |candidate|
+          client.source_clients.each do |source_client|
+            source_client.merge_candidates.where.not(id: excludables).limit(500).to_a.each do |candidate|
               count += 1
-              if verbose && count % 10 == 0
+              if verbose && (count % 10).zero?
                 print '.'
-                puts " #{count}" if count % 1000 == 0
+                puts " #{count}" if (count % 1000).zero?
               end
-              seen << [candidate, client].sort_by(&:id)
+              seen << [candidate, source_client].sort_by(&:id)
             end
           end
         end
@@ -50,13 +50,13 @@ module SimilarityMetric
         @pairs.each do |c1, c2|
           s = metric.score(c1, c2)
           scores << s unless s.nil?
-          next unless (count += 1) % 10 == 0
+          next unless ((count += 1) % 10).zero?
 
           print '.'
-          puts " #{count}" if count % 1000 == 0
+          puts " #{count}" if (count % 1000).zero?
         end
         t = Time.now - t
-        puts " #{count}" unless count % 1000 == 0
+        puts " #{count}" unless (count % 1000).zero?
         puts "#{t} seconds; #{t.to_f / @pairs.length} seconds per score"
         puts 'binning scores...'
         histogram = SimilarityMetric::Experiment.histogram bins, scores

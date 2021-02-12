@@ -10,11 +10,11 @@ module Reports::Pit::Fy2018
       'PIT By Project - FY 2018'
     end
 
-    def has_options?
+    def options?
       true
     end
 
-    def has_project_option?
+    def project_option?
       true
     end
 

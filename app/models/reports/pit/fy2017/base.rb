@@ -22,15 +22,15 @@ module Reports::Pit::Fy2017
       nil
     end
 
-    def has_options?
+    def options?
       true
     end
 
-    def has_custom_form?
+    def custom_form?
       true
     end
 
-    def has_pit_options?
+    def pit_options?
       true
     end
 

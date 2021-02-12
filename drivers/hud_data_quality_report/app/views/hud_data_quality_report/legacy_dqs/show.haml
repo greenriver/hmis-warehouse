@@ -26,7 +26,7 @@
             - else
               = link_to result.last_run_status, hud_reports_legacy_dq_legacy_result_path(@report, result)
           %td= result.created_at
-          - if @report.has_options?
+          - if @report.options?
             %td
               = result.value_for_options result.options
           %td= result.user.name

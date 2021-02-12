@@ -117,7 +117,7 @@ module ReportGenerators::DataQuality::Fy2017
 
     def stayers
       @report_end ||= @report.options['report_end'].to_date
-      stayers ||= begin
+      stayers || begin
         # 1. A "system stayer" is a client active in any one or more of the relevant projects as of the [report end date]. CoC Performance Measures Programming Specifications
         # 2. The client must have at least 365 days in latest stay to be included in this measure, using either bed-night or entry exit (you have to count the days)
         # 3. The client must be an adult to be included in this measure.
@@ -240,7 +240,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def all_client_count
-      count ||= @all_client_ids.size
+      count || @all_client_ids.size
     end
 
     def setup_age_categories(all_client_ids)
@@ -269,7 +269,7 @@ module ReportGenerators::DataQuality::Fy2017
       date += 1.day if date.month == 2 && date.day == 29
 
       anniversary_date = Date.new(@report_end.year, date.month, date.day)
-      anniversary_date = if anniversary_date > @report_end then anniversary_date - 1.year else anniversary_date end
+      if anniversary_date > @report_end then anniversary_date - 1.year else anniversary_date end
     end
 
     # create
@@ -377,7 +377,7 @@ module ReportGenerators::DataQuality::Fy2017
     end
 
     def adult_leavers_and_heads_of_household_leavers
-      @adult_head_leavers ||= leavers.select do |_, enrollment|
+      @adult_leavers_and_heads_of_household_leavers ||= leavers.select do |_, enrollment|
         adult?(enrollment[:age]) || head_of_household?(enrollment[:RelationshipToHoH])
       end
     end
@@ -411,9 +411,9 @@ module ReportGenerators::DataQuality::Fy2017
         end
         lengths = {}
         keys.each_slice(10) do |clients|
-          ors = clients.map do |client_id, entry_date, enrollment_id|
-            she_t[:client_id].eq(client_id).
-              and(she_t[:first_date_in_program].eq(entry_date).
+          ors = clients.map do |each_client_id, each_entry_date, enrollment_id|
+            she_t[:client_id].eq(each_client_id).
+              and(she_t[:first_date_in_program].eq(each_entry_date).
               and(she_t[:enrollment_group_id].eq(enrollment_id))).to_sql
           end
           lengths.merge!(
@@ -429,8 +429,8 @@ module ReportGenerators::DataQuality::Fy2017
                 :client_id,
                 :first_date_in_program,
                 :enrollment_group_id,
-              ).map do |count, client_id, entry_date, enrollment_id|
-              [[client_id, entry_date, enrollment_id], count]
+              ).map do |count, each_client_id, each_entry_date, enrollment_id|
+              [[each_client_id, each_entry_date, enrollment_id], count]
             end.to_h,
           )
         end
@@ -470,7 +470,7 @@ module ReportGenerators::DataQuality::Fy2017
         end
         disabled
       end
-      @client_disabilities[enrollment[:client_id]].present? && @client_disabilities[enrollment[:client_id]] > 0
+      @client_disabilities[enrollment[:client_id]].present? && (@client_disabilities[enrollment[:client_id]]).positive?
     end
 
     def living_situation_is_homeless enrollment:

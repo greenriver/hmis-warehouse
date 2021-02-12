@@ -34,11 +34,11 @@ module SimilarityMetric
             bin_bin[i] << score_map[c]
           end
           print '.'
-          if (count += 1) % 100 == 0
+          if ((count += 1) % 100).zero?
             puts " #{count}"
           end
         end
-        puts " #{count}" unless count % 100 == 0
+        puts " #{count}" unless (count % 100).zero?
         t = Time.now - t
         puts "#{t} seconds; #{t.to_f / count} seconds per client"
         histogram = {}

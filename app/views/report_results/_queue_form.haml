@@ -1,4 +1,4 @@
-- if @report.has_custom_form?
+- if @report.custom_form?
   = render @report
 - else
   = link_to(report_report_results_path(@report), method: :post, class: 'btn btn-primary pull-right') do

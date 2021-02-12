@@ -18,11 +18,11 @@ module Reports::DataQuality::Fy2017
       :csv
     end
 
-    def has_options?
+    def options?
       true
     end
 
-    def has_custom_form?
+    def custom_form?
       true
     end
 
@@ -66,15 +66,14 @@ module Reports::DataQuality::Fy2017
 
     def project_id_string options
       str = ''
-      if options['project_id'].present?
-        if options['project_id'].is_a?(Array)
-          if options['project_id'].delete_if(&:blank?).any?
-            str = "; Projects: #{options['project_id'].map { |m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present? }.compact.join(', ')}"
-          end
-        else
-          str = "; Project: #{GrdaWarehouse::Hud::Project.find(options['project_id'].to_i).name}"
-        end
+      return str unless options['project_id'].present?
+
+      if options['project_id'].is_a?(Array) && options['project_id'].delete_if(&:blank?).any?
+        str = "; Projects: #{options['project_id'].map { |m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present? }.compact.join(', ')}"
+      else
+        str = "; Project: #{GrdaWarehouse::Hud::Project.find(options['project_id'].to_i).name}"
       end
+
       return str
     end
   end

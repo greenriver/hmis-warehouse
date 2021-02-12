@@ -80,7 +80,7 @@ class ReportResultsController < ApplicationController
   def create
     run_report_engine = false
     @result = report_result_source.new(report: @report, percent_complete: 0.0, user_id: current_user.id)
-    @result.options = report_result_params['options'] if @report.has_options?
+    @result.options = report_result_params['options'] if @report.options?
     if @result.save!
       run_report_engine = true
       flash[:notice] = _('Report queued to start.')
@@ -91,28 +91,28 @@ class ReportResultsController < ApplicationController
       return
     end
     options = { user_id: current_user.id }
-    if @report.has_project_option?
+    if @report.project_option?
       p_id, ds_id = JSON.parse(@result.options['project'])
       options[:project] = p_id
       options[:data_source_id] = ds_id
     end
-    if @report.has_data_source_option?
+    if @report.data_source_option?
       ds_id = @result.options['data_source'].to_i
       options[:data_source_id] = ds_id
     end
-    if @report.has_pit_options?
+    if @report.pit_options?
       pit_date = @result.options['pit_date'].to_date
       chronic_date = @result.options['chronic_date'].to_date
       options[:pit_date] = pit_date
       options[:chronic_date] = chronic_date
     end
-    if @report.has_date_range_options?
+    if @report.date_range_options?
       report_start = @result.options['report_start'].to_date
       report_end = @result.options['report_end'].to_date
       options[:report_start] = report_start
       options[:report_end] = report_end
     end
-    if @report.has_coc_codes_option? && @result.options['coc_codes'].present?
+    if @report.coc_codes_option? && @result.options['coc_codes'].present?
       coc_codes = @result.options['coc_codes'].select(&:present?)
       options[:coc_codes] = coc_codes
     end

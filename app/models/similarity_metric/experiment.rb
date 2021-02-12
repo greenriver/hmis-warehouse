@@ -16,7 +16,7 @@ module SimilarityMetric
       min = scores.min
       max = scores.max
       bin_size = (max - min) / bins
-      lim = min + bin_size
+      # lim = min + bin_size
       bin_map = {}
       bins.times do |i|
         s = min
@@ -48,9 +48,9 @@ module SimilarityMetric
       cs = ->(v) { v.is_a?(Array) ? v : [v, v] }
       max_count = h.values.map { |v| cs.call(v).first }.max
       position = h.values.map { |v| cs.call(v).last }
-      velocity = {}.tap do |velocity|
+      velocity = {}.tap do |vel|
         position.each_with_index do |_v, i|
-          velocity[i] = position[i] - position[i - 1] if i > 0
+          vel[i] = position[i] - position[i - 1] if i.positive?
         end
       end
       acceleration = {}.tap do |dd|
@@ -74,10 +74,10 @@ module SimilarityMetric
         nspaces.times { print ' ' }
         print ' '
         print count_formatter.format(show)
-        if v = velocity[i]
+        if (v = velocity[i])
           print " (#{delta_formatter.format(v)})"
         end
-        if v = acceleration[i]
+        if (v = acceleration[i])
           print " (#{acc_formatter.format(v)})"
         end
         print "\n"

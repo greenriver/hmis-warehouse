@@ -60,12 +60,12 @@ module Talentlms
     # Validator to check this configuration is valid.
     def check_configuration_is_valid
       error = configuration_error_message
-      if error
-        error = ": #{error}"
-        errors.add(:subdomain, error) if error.include?('server')
-        errors.add(:api_key, error) if error.include?('API Key')
-        errors.add(:courseid, error) if error.include?('course')
-      end
+      return unless error
+
+      error = ": #{error}"
+      errors.add(:subdomain, error) if error.include?('server')
+      errors.add(:api_key, error) if error.include?('API Key')
+      errors.add(:courseid, error) if error.include?('course')
     end
 
     # Get configuration error messages from TalentLMS
@@ -75,7 +75,7 @@ module Talentlms
     private def configuration_error_message
       get('courses', { id: courseid })
       nil
-    rescue JSON::ParserError => e
+    rescue JSON::ParserError
       "Cannot contact server #{subdomain}.talentlms.com"
     rescue RuntimeError => e
       e.message

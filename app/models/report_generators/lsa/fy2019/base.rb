@@ -60,7 +60,7 @@ module ReportGenerators::Lsa::Fy2019
       end
     end
 
-    def set_report_start_and_end
+    def set_report_start_and_end # rubocop:disable Naming/MemoizedInstanceVariableName
       @report_start ||= @report.options['report_start'].to_date
       @report_end ||= @report.options['report_end'].to_date
     end

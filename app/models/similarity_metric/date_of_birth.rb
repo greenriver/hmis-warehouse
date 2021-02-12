@@ -6,21 +6,21 @@
 
 module SimilarityMetric
   class DateOfBirth < Base
-    DESCRIPTION = <<~END
+    DESCRIPTION = <<~DESC.freeze
       *{{{human_name}}}* measures the similarity of two individuals by comparing
       how similar their dates of birth are to the dates of birth of arbitrary pairs
       of individuals taken from a reference population.
-    END
+    DESC
 
     def quality_data?(client)
       return client.DOB.present?
 
       # we are ditching this for now
-      if q = client.DOBDataQuality
-        ![9, 99].include?(q)
-      else
-        true
-      end
+      # if q = client.DOBDataQuality
+      #   ![9, 99].include?(q)
+      # else
+      #   true
+      # end
     end
 
     def similarity(c1, c2)

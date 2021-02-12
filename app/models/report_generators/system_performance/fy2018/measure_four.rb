@@ -6,7 +6,7 @@
 
 module ReportGenerators::SystemPerformance::Fy2018
   class MeasureFour < Base
-    LOOKBACK_STOP_DATE = '2012-10-01'
+    LOOKBACK_STOP_DATE = '2012-10-01'.freeze
 
     # PH = [3,9,10,13]
     PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
@@ -81,7 +81,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         end,
       }
       universe_of_stayers.each do |client|
-        if client[:latest_earned_income] - client[:earliest_earned_income] > 0
+        if (client[:latest_earned_income] - client[:earliest_earned_income]).positive?
           @answers[:four1_c3][:value] += 1
           @support[:four1_c3][:support] ||= {
             headers: ['Client ID', 'Latest Earned Income', 'Earliest Earned Income'],
@@ -89,7 +89,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           }
           @support[:four1_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income], client[:earliest_earned_income]]
         end
-        if client[:latest_non_earned_income] - client[:earliest_non_earned_income] > 0
+        if (client[:latest_non_earned_income] - client[:earliest_non_earned_income]).positive?
           @answers[:four2_c3][:value] += 1
           @support[:four2_c3][:support] ||= {
             headers: ['Client ID', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
@@ -97,7 +97,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           }
           @support[:four2_c3][:support][:counts] << [client[:client_id], client[:latest_non_earned_income], client[:earliest_non_earned_income]]
         end
-        next unless (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
+        next unless ((client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income])).positive?
 
         @answers[:four3_c3][:value] += 1
         @support[:four3_c3][:support] ||= {
@@ -144,7 +144,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         end,
       }
       universe_of_leavers.each do |client|
-        if client[:latest_earned_income] - client[:earliest_earned_income] > 0
+        if (client[:latest_earned_income] - client[:earliest_earned_income]).positive?
           @answers[:four4_c3][:value] += 1
           @support[:four4_c3][:support] ||= {
             headers: ['Client ID', 'Latest Earned Income', 'Earliest Earned Income'],
@@ -152,7 +152,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           }
           @support[:four4_c3][:support][:counts] << [client[:client_id], client[:latest_earned_income], client[:earliest_earned_income]]
         end
-        if client[:latest_non_earned_income] - client[:earliest_non_earned_income] > 0
+        if (client[:latest_non_earned_income] - client[:earliest_non_earned_income]).positive?
           @answers[:four5_c3][:value] += 1
           @support[:four5_c3][:support] ||= {
             headers: ['Client ID', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
@@ -160,7 +160,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           }
           @support[:four5_c3][:support][:counts] << [client[:client_id], client[:latest_non_earned_income], client[:earliest_non_earned_income]]
         end
-        next unless (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
+        next unless ((client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income])).positive?
 
         @answers[:four6_c3][:value] += 1
         @support[:four6_c3][:support] ||= {
@@ -218,7 +218,7 @@ module ReportGenerators::SystemPerformance::Fy2018
 
       stayers_scope = add_filters(scope: stayers_scope)
 
-      stayers = stayers_scope.
+      stayers_scope.
         order(client_id: :asc, first_date_in_program: :asc).
         pluck(*columns.keys).map do |row|
           Hash[columns.values.zip(row)]
@@ -230,7 +230,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         end.map do |_, enrollments|
           # Any enrollment with project_tracking_method != 3 will have 365 days
           # based on being open for the full year
-          long_enrollments = enrollments.select { |m| m[:project_tracking_method] != 3 }
+          long_enrollments = enrollments.reject { |m| m[:project_tracking_method] == 3 }
 
           bed_night_enrollments = enrollments.select { |m| m[:project_tracking_method] == 3 }
           long_enrollments += bed_night_enrollments.select do |enrollment|
@@ -302,7 +302,7 @@ module ReportGenerators::SystemPerformance::Fy2018
 
       leavers_scope = add_filters(scope: leavers_scope)
 
-      leavers = leavers_scope.
+      leavers_scope.
         order(client_id: :asc, first_date_in_program: :asc).
         pluck(*columns.keys).map do |row|
           Hash[columns.values.zip(row)]
@@ -339,13 +339,13 @@ module ReportGenerators::SystemPerformance::Fy2018
           where(income_table[:InformationDate].lteq(@report_end)).
           where(DataCollectionStage: [5, 1]).
           order(InformationDate: :asc).
-          pluck(*columns).map do |row|
-            Hash[columns.zip(row)]
+          pluck(*columns).map do |r|
+            Hash[columns.zip(r)]
           end.group_by { |m| m[:DataCollectionStage] }
 
         income_map = {} # make a useful group of income data {1 => date => [rows], 5 => date => [rows]}
-        assessments.each do |stage, assessments|
-          income_map[stage] = assessments.group_by { |m| m[:InformationDate] }
+        assessments.each do |stage, each_assessments|
+          income_map[stage] = each_assessments.group_by { |m| m[:InformationDate] }
         end
         # Grab the last day from the 5 (annual assessment) group
         latest_group = income_map[5].values.last.first if income_map[5].present?
@@ -367,7 +367,7 @@ module ReportGenerators::SystemPerformance::Fy2018
             universe_of_stayers[index][:latest_income] = amounts.sum
             universe_of_stayers[index][:latest_earned_income] = latest_group[:EarnedAmount] || 0
             universe_of_stayers[index][:latest_non_earned_income] = universe_of_stayers[index][:latest_income] - universe_of_stayers[index][:latest_earned_income]
-          elsif latest_group[:IncomeFromAnySource] == 99 || latest_group[:IncomeFromAnySource] = 8 || latest_group[:IncomeFromAnySource] = 9
+          elsif latest_group[:IncomeFromAnySource] == 99 || latest_group[:IncomeFromAnySource] == 8 || latest_group[:IncomeFromAnySource] == 9
             universe_of_stayers[index][:latest_income] = nil
             universe_of_stayers[index][:latest_earned_income] = nil
             universe_of_stayers[index][:latest_non_earned_income] = nil
@@ -386,7 +386,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           universe_of_stayers[index][:earliest_income] = amounts.sum
           universe_of_stayers[index][:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
           universe_of_stayers[index][:earliest_non_earned_income] = universe_of_stayers[index][:earliest_income] - universe_of_stayers[index][:earliest_earned_income]
-        elsif earliest_group[:IncomeFromAnySource] == 99 || earliest_group[:IncomeFromAnySource] = 8 || earliest_group[:IncomeFromAnySource] = 9
+        elsif earliest_group[:IncomeFromAnySource] == 99 || earliest_group[:IncomeFromAnySource] == 8 || earliest_group[:IncomeFromAnySource] == 9
           universe_of_stayers[index][:earliest_income] = nil
           universe_of_stayers[index][:earliest_earned_income] = nil
           universe_of_stayers[index][:earliest_non_earned_income] = nil
@@ -414,13 +414,13 @@ module ReportGenerators::SystemPerformance::Fy2018
           where(income_table[:InformationDate].lteq(@report_end)).
           where(DataCollectionStage: [3, 1]).
           order(InformationDate: :asc).
-          pluck(*columns).map do |row|
-            Hash[columns.zip(row)]
+          pluck(*columns).map do |r|
+            Hash[columns.zip(r)]
           end.group_by { |m| m[:DataCollectionStage] }
 
         income_map = {} # make a useful group of income data {1 => date => [rows], 5 => date => [rows]}
-        assessments.each do |stage, assessments|
-          income_map[stage] = assessments.group_by { |m| m[:InformationDate] }
+        assessments.each do |stage, each_assessments|
+          income_map[stage] = each_assessments.group_by { |m| m[:InformationDate] }
         end
         # Grab the last day from the 3 (exit assessment) group
         latest_group = income_map[3].values.last.first if income_map[3].present?

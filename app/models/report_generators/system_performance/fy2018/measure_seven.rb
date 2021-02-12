@@ -6,7 +6,7 @@
 
 module ReportGenerators::SystemPerformance::Fy2018
   class MeasureSeven < Base
-    LOOKBACK_STOP_DATE = '2012-10-01'
+    LOOKBACK_STOP_DATE = '2012-10-01'.freeze
 
     # PH = [3,9,10,13]
     PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
@@ -19,8 +19,8 @@ module ReportGenerators::SystemPerformance::Fy2018
     # SO = [4]
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
 
-    RRH = [13]
-    PH_PSH = [3, 9, 10] # All PH except 13, Measure 7 doesn't count RRH
+    RRH = [13].freeze
+    PH_PSH = [3, 9, 10].freeze # All PH except 13, Measure 7 doesn't count RRH
 
     def run!
       # Disable logging so we don't fill the disk

@@ -22,19 +22,19 @@ module Reports::Ahar::Fy2017
       0
     end
 
-    def has_custom_form?
+    def custom_form?
       true
     end
 
-    def has_options?
+    def options?
       true
     end
 
-    def has_project_id_option?
+    def project_id_option?
       true
     end
 
-    def has_date_range_options?
+    def date_range_options?
       true
     end
 

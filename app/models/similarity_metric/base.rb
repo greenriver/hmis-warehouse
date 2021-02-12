@@ -18,9 +18,9 @@ module SimilarityMetric
     )
 
     # override this as appropriate in subclasses
-    DESCRIPTION = <<~EOS
+    DESCRIPTION = <<~DESC.freeze
       *{{{human_name}}}* does not yet have a description.
-    EOS
+    DESC
 
     # take to clients and return a number to be used in ranking; more similar pairs should map to smaller numbers
     # should return nil if the clients aren't comparable by this metric
@@ -42,11 +42,10 @@ module SimilarityMetric
     # returns the weight times the z-score of the similarity of these two clients using this metric
     # this is the normalized and weighted similarity to be used in aggregating metrics for ranking
     def score(c1, c2)
-      if quality_data?(c1) && quality_data?(c2)
-        if s = similarity(c1, c2)
-          weight * (s - mean) / standard_deviation
-        end
-      end
+      return unless quality_data?(c1) && quality_data?(c2)
+      return unless (s = similarity(c1, c2))
+
+      weight * (s - mean) / standard_deviation
     end
 
     def quality_data?(_client)
@@ -63,7 +62,7 @@ module SimilarityMetric
     end
 
     def initialized?
-      n > 0
+      n.positive?
     end
 
     def bogus?

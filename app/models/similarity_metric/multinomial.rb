@@ -6,10 +6,10 @@
 
 module SimilarityMetric
   class Multinomial < Field
-    DESCRIPTION = <<~EOS
+    DESCRIPTION = <<~DESC.freeze
       _{{{human_name}}}_ measures similarity of individuals with respect to
       a property that can take one of several distinct values.
-    EOS
+    DESC
 
     # the maximum additional weight given to similar items
     MAX_MULTIPLIER = 3.0 # picked by intuition rather than experiment
@@ -19,26 +19,26 @@ module SimilarityMetric
     end
 
     def prepare!
-      if GrdaWarehouse::Hud::Client.column_names.include?(field.to_s)
-        counts = GrdaWarehouse::Hud::Client.source.group(field).count
-        grouped = {}.tap do |grouped|
-          counts.each do |k, v|
-            if k = group(k)
-              grouped[k] ||= 0
-              grouped[k] += v
-            end
+      return unless GrdaWarehouse::Hud::Client.column_names.include?(field.to_s)
+
+      counts = GrdaWarehouse::Hud::Client.source.group(field).count
+      grouped = {}.tap do |each_grouped|
+        counts.each do |k, v|
+          if (k = group(k))
+            each_grouped[k] ||= 0
+            each_grouped[k] += v
           end
         end
-        total = grouped.values.sum
-        other_state['_total'] = total
-        grouped.each do |k, v|
-          w = total / v.to_f
-          w = MAX_MULTIPLIER if w > MAX_MULTIPLIER
-          other_state[k] = w
-          other_state["_count_#{k}"] = v
-        end
-        save!
       end
+      total = grouped.values.sum
+      other_state['_total'] = total
+      grouped.each do |k, v|
+        w = total / v.to_f
+        w = MAX_MULTIPLIER if w > MAX_MULTIPLIER
+        other_state[k] = w
+        other_state["_count_#{k}"] = v
+      end
+      save!
     end
 
     def weight_for_key(k)
@@ -55,13 +55,13 @@ module SimilarityMetric
     end
 
     def score(c1, c2)
-      if s = similarity(c1, c2)
-        sc = weight * (s - mean) / standard_deviation
-        if s == 0
-          sc * weight_for_key(value(c1))
-        else
-          sc
-        end
+      return unless (s = similarity(c1, c2))
+
+      sc = weight * (s - mean) / standard_deviation
+      if s.zero?
+        sc * weight_for_key(value(c1))
+      else
+        sc
       end
     end
 
@@ -70,16 +70,16 @@ module SimilarityMetric
     end
 
     def similarity(c1, c2)
-      if field
-        v1 = value(c1)
-        v2 = value(c2)
-        if v1 && v2
-          if v1 == v2
-            0
-          else
-            1
-          end
-        end
+      return unless field
+
+      v1 = value(c1)
+      v2 = value(c2)
+      return unless v1 && v2
+
+      if v1 == v2
+        0
+      else
+        1
       end
     end
   end

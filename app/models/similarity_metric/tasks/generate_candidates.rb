@@ -33,12 +33,12 @@ module SimilarityMetric::Tasks
         end
         Rails.logger.info "Checking #{dest.id}..."
         candidates = matches_source.create_candidates!(dest, threshold: @opts[:threshold], metrics: metrics)
-        match = matches_source.create! do |m|
+        matches_source.create! do |m|
           m.destination_client_id = dest.id
           m.source_client_id = dest.id
           m.status = 'processed_sources'
         end
-        Rails.logger.info "...none found\n" if candidates.size == 0
+        Rails.logger.info "...none found\n" if candidates.empty?
         candidates.each do |match|
           Rails.logger.info "...added #{match.source_client_id} #{match.destination_client_id} #{match.score}....\n"
         end

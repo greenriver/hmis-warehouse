@@ -12,8 +12,8 @@ module SimilarityMetric
         @f = "%#{keys.map(&:to_s).map(&:length).max}d" if keys.any?
       end
 
-      def format(i)
-        format @f, i
+      def format(int)
+        format @f, int
       end
     end
   end

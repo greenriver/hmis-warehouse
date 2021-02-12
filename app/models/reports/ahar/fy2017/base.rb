@@ -40,11 +40,11 @@ module Reports::Ahar::Fy2017
       0
     end
 
-    def has_custom_form?
+    def custom_form?
       true
     end
 
-    def has_options?
+    def options?
       true
     end
 

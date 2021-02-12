@@ -6,7 +6,7 @@
 
 module ReportGenerators::SystemPerformance::Fy2019
   class MeasureFour < Base
-    LOOKBACK_STOP_DATE = '2012-10-01'
+    LOOKBACK_STOP_DATE = '2012-10-01'.freeze
 
     # PH = [3,9,10,13]
     PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
@@ -17,7 +17,7 @@ module ReportGenerators::SystemPerformance::Fy2019
     # SH = [8]
     SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1)
 
-    FUNDING_SOURCES = [2, 3, 4, 5, 43, 44]
+    FUNDING_SOURCES = [2, 3, 4, 5, 43, 44].freeze
 
     def run!
       # Disable logging so we don't fill the disk
@@ -88,7 +88,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       universe_of_stayers.each do |client|
         next unless client[:latest_earned_income].present?
 
-        if client[:latest_earned_income] - client[:earliest_earned_income] > 0
+        if (client[:latest_earned_income] - client[:earliest_earned_income]).positive?
           @answers[:four1_c3][:value] += 1
           @support[:four1_c3][:support] ||= {
             headers: ['Client ID', 'Personal IDs', 'Latest Earned Income', 'Earliest Earned Income'],
@@ -102,7 +102,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           ]
         end
 
-        if client[:latest_non_earned_income] - client[:earliest_non_earned_income] > 0
+        if (client[:latest_non_earned_income] - client[:earliest_non_earned_income]).positive?
           @answers[:four2_c3][:value] += 1
           @support[:four2_c3][:support] ||= {
             headers: ['Client ID', 'Personal IDs', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
@@ -116,7 +116,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           ]
         end
 
-        next unless (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
+        next unless ((client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income])).positive?
 
         @answers[:four3_c3][:value] += 1
         @support[:four3_c3][:support] ||= {
@@ -173,7 +173,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       universe_of_leavers.each do |client|
         next unless client[:latest_earned_income].present?
 
-        if client[:latest_earned_income] - client[:earliest_earned_income] > 0
+        if (client[:latest_earned_income] - client[:earliest_earned_income]).positive?
           @answers[:four4_c3][:value] += 1
           @support[:four4_c3][:support] ||= {
             headers: ['Client ID', 'Personal IDs', 'Latest Earned Income', 'Earliest Earned Income'],
@@ -187,7 +187,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           ]
         end
 
-        if client[:latest_non_earned_income] - client[:earliest_non_earned_income] > 0
+        if (client[:latest_non_earned_income] - client[:earliest_non_earned_income]).positive?
           @answers[:four5_c3][:value] += 1
           @support[:four5_c3][:support] ||= {
             headers: ['Client ID', 'Personal IDs', 'Latest Non-Earned Income', 'Earliest Non-Earned Income'],
@@ -201,7 +201,7 @@ module ReportGenerators::SystemPerformance::Fy2019
           ]
         end
 
-        next unless (client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income]) > 0
+        next unless ((client[:latest_earned_income] + client[:latest_non_earned_income]) - (client[:earliest_earned_income] + client[:earliest_non_earned_income])).positive?
 
         @answers[:four6_c3][:value] += 1
         @support[:four6_c3][:support] ||= {
@@ -276,7 +276,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         end.map do |_, enrollments|
           # Any enrollment with project_tracking_method != 3 will have 365 days
           # based on being open for the full year
-          long_enrollments = enrollments.select { |m| m[:project_tracking_method] != 3 }
+          long_enrollments = enrollments.reject { |m| m[:project_tracking_method] == 3 }
 
           bed_night_enrollments = enrollments.select { |m| m[:project_tracking_method] == 3 }
           long_enrollments += bed_night_enrollments.select do |enrollment|

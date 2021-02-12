@@ -77,7 +77,7 @@ module Reporting
     end
 
     def housed_plot_1
-      @housedPlot_1 ||= begin
+      @housed_plot_1 ||= begin
         set_r_variables
         @project_1_data[:housed_plot]
       end
@@ -147,7 +147,7 @@ module Reporting
     end
 
     def housed_plot_2
-      @housedPlot_2 ||= begin
+      @housed_plot_2 ||= begin
         set_r_variables
         @project_2_data[:housed_plot]
       end
@@ -256,12 +256,12 @@ module Reporting
       @project_1_data = fetch_from_r(program_id: program_1_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
       @project_2_data = fetch_from_r(program_id: program_2_id, housed_file_path: housed_file&.path, returns_file_path: returns_file&.path)
 
-      if should_rebuild?
-        housed_file.close
-        housed_file.unlink
-        returns_file.close
-        returns_file.unlink
-      end
+      return unless should_rebuild?
+
+      housed_file.close
+      housed_file.unlink
+      returns_file.close
+      returns_file.unlink
     end
 
     def fetch_from_r program_id:, housed_file_path:, returns_file_path:
@@ -276,7 +276,7 @@ module Reporting
         project_data = {}
         project_data[:num_housed] = r.converse('num_housed_1')
         project_data[:housed_plot] = begin
-                                       JSON.parse(r.converse('housedPlot_1'))
+                                       JSON.parse(r.converse('housed_plot_1'))
                                      rescue StandardError
                                        '[]'
                                      end

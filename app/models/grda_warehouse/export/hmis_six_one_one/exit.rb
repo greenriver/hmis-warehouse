@@ -16,7 +16,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
     # enrollment has been deleted
     belongs_to :enrollment_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Enrollment', primary_key: [:EnrollmentID, :PersonalID, :data_source_id], foreign_key: [:EnrollmentID, :PersonalID, :data_source_id]
 
-    def export! enrollment_scope:, project_scope:, path:, export:
+    def export! enrollment_scope:, path:, export:
       case export.period_type
       when 3
         export_scope = self.class.where(id: enrollment_scope.select(ex_t[:id]))
@@ -60,7 +60,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
           ORDER BY #{ex_t[:DateUpdated].desc.to_sql}
         ) as row_number
       SQL
-      ids = export_scope.pluck(:id, Arel.sql(window)).select { |_, row_number| row_number == 1 }.map(&:first)
+      export_scope.pluck(:id, Arel.sql(window)).select { |_, row_number| row_number == 1 }.map(&:first)
     end
   end
 end

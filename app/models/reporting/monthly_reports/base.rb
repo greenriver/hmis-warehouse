@@ -102,7 +102,7 @@ module Reporting::MonthlyReports
 
     # Group clients by month and client_id
     # Loop over all of the open enrollments,
-    def set_enrollments_by_client ids
+    def set_enrollments_by_client ids # rubocop:disable Naming/AccessorMethodName
       @enrollments_by_client = {}
       # Cleanup RAM before starting the next batch
       GC.start
@@ -439,7 +439,7 @@ module Reporting::MonthlyReports
         BEGIN
         IF "
       trigger += trigger_ifs.join(' ELSIF ')
-      trigger += "
+      trigger + "
         ELSE
           INSERT INTO #{remainder_table} VALUES (NEW.*);
           END IF;

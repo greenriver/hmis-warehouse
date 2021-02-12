@@ -16,7 +16,7 @@ module GrdaWarehouse::Export::HMISSixOneOne
 
     belongs_to :project_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::Project', foreign_key: [:ProjectID, :data_source_id], primary_key: [:ProjectID, :data_source_id], inverse_of: :enrollments
 
-    def export! enrollment_scope:, project_scope:, path:, export:
+    def export! enrollment_scope:, path:, export:
       case export.period_type
       when 3
         export_scope = enrollment_scope

@@ -171,11 +171,11 @@ module ReportGenerators::DataQuality::Fy2017
             # if we had two enrollments on the same day, this may not find us
             next unless household.present?
 
-            relationships = household.map do |enrollment|
-              enrollment[:RelationshipToHoH]
+            relationships = household.map do |each_enrollment|
+              each_enrollment[:RelationshipToHoH]
             end
             hoh_count = relationships.count(1)
-            if hoh_count == 0
+            if hoh_count.zero?
               # No one is marked as the head of household
               log_with_memory('no HOH')
               flag = true
@@ -251,7 +251,7 @@ module ReportGenerators::DataQuality::Fy2017
           flag = false
           if [8, 9, nil].include?(enrollment[:DisablingCondition])
             flag = true
-          elsif enrollment[:DisablingCondition] == 0
+          elsif (enrollment[:DisablingCondition]).zero?
             flag = client_disabled?(enrollment: enrollment)
           end
           poor_quality[client_id] = enrollment if flag

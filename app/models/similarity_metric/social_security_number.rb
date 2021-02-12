@@ -26,7 +26,7 @@ module SimilarityMetric
             )
         )
       \z
-    /x
+    /x.freeze
 
     def field
       :SSN
@@ -36,8 +36,8 @@ module SimilarityMetric
       self.class.quality_data? client
     end
 
-    def similarity(c1, c2)
-      Text::Levenshtein.distance c1.SSN, c2.SSN
+    def similarity(client_1, client_2)
+      Text::Levenshtein.distance client_1.SSN, client_2.SSN
     end
 
     def self.valid_ssn?(str, allow_last_4: true)

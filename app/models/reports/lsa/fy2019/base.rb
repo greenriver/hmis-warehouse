@@ -23,11 +23,11 @@ module Reports::Lsa::Fy2019
       :zip
     end
 
-    def has_options?
+    def options?
       true
     end
 
-    def has_custom_form?
+    def custom_form?
       true
     end
 
