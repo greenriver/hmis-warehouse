@@ -13,5 +13,30 @@ module HudSpmReport
 
     def show
     end
+
+    def running
+      @questions = generator.questions.keys
+      @contents = @report&.completed_questions
+      @path_for_running = running_hud_reports_smps_path(link_params.except('action', 'controller'))
+    end
+
+    def new
+    end
+
+    def create
+      if @filter.valid?
+        @report = report_source.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
+        generator.new(@report).queue
+        redirect_to hud_reports_spm_path(0)
+      else
+        render :new
+      end
+    end
+
+    def destroy
+      @report.destroy
+      flash[:notice] = 'Report removed'
+      redirect_to hud_reports_spm_path(0)
+    end
   end
 end

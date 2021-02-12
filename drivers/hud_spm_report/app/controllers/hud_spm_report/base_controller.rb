@@ -65,16 +65,17 @@ module HudSpmReport
     helper_method :generator
 
     private def path_for_question(question, report: nil)
+      hud_reports_spm_measure_path(spm_id: report&.id || 0, id: question)
       # TODO
     end
 
     private def path_for_questions(question)
-      # TODO
+      hud_reports_spm_measures_path(spm_id: 0, question: question)
     end
 
-    # private def path_for_question_result(question, report: nil)
-    #   #TODO
-    # end
+    private def path_for_question_result(question, report: nil)
+      result_hud_reports_spm_measure_path(spm_id: report&.id || 0, id: question)
+    end
 
     private def path_for_report(report)
       hud_reports_spm_path(report)
