@@ -36,8 +36,7 @@ module HudApr::Generators::Shared::Fy2020
 
           answer = @report.answer(question: table_name, cell: cell)
 
-          members = universe.members.where(adult_clause).
-            where(stage_clause)
+          members = universe.members.where(stage_clause)
 
           answer.update(summary: 0) and next if members.count.zero?
 
