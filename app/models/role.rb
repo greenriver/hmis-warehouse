@@ -113,13 +113,6 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
-      can_view_censuses: {
-        description: 'Access to the nightly census dashboard, only at the aggregate level',
-        administrative: false,
-        categories: [
-          'Reporting',
-        ],
-      },
       can_view_census_details: {
         description: 'Ability to "drill down" on census reports and see who was where on a given day',
         administrative: true,
@@ -424,6 +417,13 @@ class Role < ApplicationRecord
       },
       can_view_client_history_calendar: {
         description: 'Access to the calendar view of client enrollments',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
+      can_view_enrollment_details: {
+        description: 'Access to the enrollment details tab.  Users with Can View Clients get this automatically.',
         administrative: false,
         categories: [
           'Client Extras',

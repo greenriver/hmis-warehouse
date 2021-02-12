@@ -12,7 +12,6 @@
 # 4. 180 nights in ES, SO or SH - non-DMH (ignore 3 year window)
 
 module GrdaWarehouse::Tasks
-  require 'ruby-progressbar'
   class DmhChronicallyHomeless < ChronicallyHomeless
     include TsqlImport
     CHRONIC_PROJECT_TYPES = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
@@ -73,9 +72,6 @@ module GrdaWarehouse::Tasks
             dmh: true,
           )
 
-        end
-        if @show_progress
-          @progress.format = "#{@progress_format}Found DMH chronically homeless: #{@chronically_homeless.size} processed #{index}/#{@clients.size} date: #{@date}" unless @debug
         end
       end
       logger.info "Found #{@chronically_homeless.size} DMH chronically homeless clients"

@@ -9,7 +9,6 @@
 # At this point all it does is walk the existing scopes
 # and output timing data
 
-require 'ruby-progressbar'
 require 'pp'
 require 'benchmark'
 
@@ -23,7 +22,6 @@ class MaterializePermissions < BaseJob
     # TODO: do we add FK to the UserClientPermission model (which will slow things down a lot)
     # TODO: do we keep "deleted_at" records to provide audit history?
 
-    bar = ProgressBar.create(starting_at: 0, total: nil, format: '%c - %R')
     insert_batch_size = 20_000
     reduce_logging do
       wh_db_exec("TRUNCATE TABLE #{GrdaWarehouse::UserClientPermission.quoted_table_name}")
@@ -31,7 +29,6 @@ class MaterializePermissions < BaseJob
       bm = Benchmark.measure do
         User.find_each do |user|
           GrdaWarehouse::Hud::Client.viewable_by(user).pluck(:id).map do |client_id|
-            bar.increment
             batch << [user.id, client_id, true] # see COLS
             if batch.size >= insert_batch_size
               process_batch(batch)
@@ -43,10 +40,6 @@ class MaterializePermissions < BaseJob
       end
       wh_db_exec("ANALYZE VERBOSE #{GrdaWarehouse::UserClientPermission.quoted_table_name}")
       puts "Benchmark.measure: #{bm}"
-      pp(
-        elapsed_time_in_seconds: bar.to_h['elapsed_time_in_seconds'],
-        rows_processed: bar.to_h['progress'],
-      )
     end
     nil
   end

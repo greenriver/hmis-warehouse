@@ -11,6 +11,8 @@ class User < ApplicationRecord
   has_paper_trail
   acts_as_paranoid
 
+  attr_accessor :remember_device, :device_name
+
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :invitable,
@@ -58,6 +60,9 @@ class User < ApplicationRecord
   has_many :messages
   has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
   has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
+  has_many :activity_logs
+
+  has_many :two_factors_memorized_devices
 
   belongs_to :agency, optional: true
 
@@ -133,6 +138,10 @@ class User < ApplicationRecord
     end
   end
 
+  def can_view_censuses?
+    GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(self).where(url: 'censuses').exists?
+  end
+
   def active_for_authentication?
     super && active
   end
@@ -194,12 +203,12 @@ class User < ApplicationRecord
     "#{name} <#{email}>"
   end
 
-  def two_factor_issuer
+  def two_factor_label
     _('Boston DND HMIS Warehouse')
   end
 
-  def two_factor_label
-    "#{two_factor_issuer} #{email}"
+  def two_factor_issuer
+    "#{two_factor_label} #{email}"
   end
 
   def my_root_path

@@ -268,7 +268,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       end
     end
 
-    def clients_in_projects_of_type project_types:
+    def clients_in_projects_of_type(project_types:)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: @report_start - 1.day, end_date: @report_end).
         hud_project_type(project_types).

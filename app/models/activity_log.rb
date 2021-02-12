@@ -13,6 +13,12 @@ class ActivityLog < ApplicationRecord
     where(created_at: range)
   end
 
+  scope :warehouse_reports, -> do
+    report_paths = GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map { |u| arel_table[:path].matches("/#{u}%")}
+
+    where(report_paths.map(&:to_sql).join(' OR '))
+  end
+
   def clean_object_name
     item_model&.gsub('GrdaWarehouse::Hud::', '')
   end

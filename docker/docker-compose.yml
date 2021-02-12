@@ -15,7 +15,6 @@ x-app: &app
     NODE_ENV: ${NODE_ENV:-development}
     BOOTSNAP_CACHE_DIR: /bundle/bootsnap
     WEBPACKER_DEV_SERVER_HOST: webpacker
-    WEB_CONCURRENCY: 4
     HISTFILE: /app/log/.bash_history
     PSQL_HISTFILE: /app/log/.psql_history
     EDITOR: vi

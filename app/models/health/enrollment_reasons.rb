@@ -15,11 +15,7 @@ module Health
 
     mount_uploader :file, EnrollmentReasonsFileUploader
 
-    def enrollment_reason(medicaid_id)
-      reasons[medicaid_id]
-    end
-
-    private def reasons
+    def reasons
       return {} unless content.present?
 
       @reasons ||= begin

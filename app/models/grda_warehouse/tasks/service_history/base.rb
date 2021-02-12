@@ -10,7 +10,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
     include ActiveSupport::Benchmarkable
     include ArelHelper
     include NotifierConfig
-    require 'ruby-progressbar'
 
     attr_accessor :logger, :send_notifications, :notifier_config
 

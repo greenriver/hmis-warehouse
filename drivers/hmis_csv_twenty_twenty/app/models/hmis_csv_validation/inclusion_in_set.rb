@@ -10,9 +10,9 @@ class HmisCsvValidation::InclusionInSet < HmisCsvValidation::Validation
     return if value.blank? || value.to_s.in?(valid_options)
 
     new(
-      importer_log_id: item.importer_log_id,
-      source_id: item.source_id,
-      source_type: item.source_type,
+      importer_log_id: item['importer_log_id'],
+      source_id: item['source_id'],
+      source_type: item['source_type'],
       status: "Expected #{value} to be included in #{short_list(valid_options)} for #{column}",
       validated_column: column,
     )

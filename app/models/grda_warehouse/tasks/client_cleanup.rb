@@ -11,9 +11,8 @@ module GrdaWarehouse::Tasks
   class ClientCleanup
     include NotifierConfig
     include ArelHelper
-    require 'ruby-progressbar'
     attr_accessor :logger, :send_notifications, :notifier_config
-    def initialize(max_allowed = 1_000, _bogus_notifier = false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false, show_progress: false) # rubocop:disable Metrics/ParameterLists
+    def initialize(max_allowed=1_000, _bogus_notifier=false, changed_client_date: 2.weeks.ago.to_date, debug: false, dry_run: false) # rubocop:disable Metrics/ParameterLists
       @max_allowed = max_allowed
       setup_notifier('Client Cleanup')
       self.logger = Rails.logger
@@ -21,10 +20,11 @@ module GrdaWarehouse::Tasks
       @soft_delete_date = Time.now
       @changed_client_date = changed_client_date
       @dry_run = dry_run
-      @show_progress = show_progress
     end
 
     def run!
+      # FIXME: this should refuse to run if an import is in-process
+      # See GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}")
       remove_unused_source_clients
       remove_unused_warehouse_clients_processed
       GrdaWarehouseBase.transaction do
@@ -221,7 +221,7 @@ module GrdaWarehouse::Tasks
       return if @dry_run
 
       without_enrollments.each_slice(500) do |batch|
-        GrdaWarehouse::Hud::Client.where(id: batch).update_all(DateDeleted: deleted_at)
+        GrdaWarehouse::Hud::Client.where(id: batch).update_all(DateDeleted: deleted_at, source_hash: nil)
       end
     end
 
@@ -328,6 +328,7 @@ module GrdaWarehouse::Tasks
       @notifier.ping notes if @dry_run && @send_notifications
     end
 
+    # NOTE: Deprecated/ removed from nightly process
     def remove_clients_without_enrollments!
       all_clients = GrdaWarehouse::Hud::Client.where(
         data_source_id: GrdaWarehouse::DataSource.importable.select(:id),
@@ -357,11 +358,16 @@ module GrdaWarehouse::Tasks
           ]
           hud_classes.each do |klass|
             klass.joins(:direct_client).
+<<<<<<< HEAD
               where(Client: { id: un_enrolled_clients }).
               update_all(DateDeleted: deleted_at)
+=======
+              where(Client: {id: un_enrolled_clients}).
+              update_all(DateDeleted: deleted_at, source_hash: nil)
+>>>>>>> pre-release
           end
 
-          GrdaWarehouse::Hud::Client.where(id: un_enrolled_clients).update_all(DateDeleted: deleted_at)
+          GrdaWarehouse::Hud::Client.where(id: un_enrolled_clients).update_all(DateDeleted: deleted_at, source_hash: nil)
         end
       end
     end
@@ -545,7 +551,10 @@ module GrdaWarehouse::Tasks
       client_source = GrdaWarehouse::Hud::Client
       total_clients = munge_clients.size
       logger.info "Munging #{munge_clients.size} clients"
+<<<<<<< HEAD
       progress = ProgressBar.create(starting_at: 0, total: total_clients, format: 'Munging Client Data: %a %E |%B| %c of %C') if @show_progress
+=======
+>>>>>>> pre-release
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|
         batch.each do |dest_id|
@@ -571,7 +580,10 @@ module GrdaWarehouse::Tasks
           changed[:veteran_statuses] << dest.id if dest.VeteranStatus != dest_attr[:VeteranStatus]
           changed[:new_vets] << dest.id if dest.VeteranStatus != 1 && dest_attr[:VeteranStatus] == 1
           changed[:newly_not_vets] << dest.id if dest.VeteranStatus == 1 && dest_attr[:VeteranStatus] == 0
+<<<<<<< HEAD
           progress.progress += 1 if @show_progress
+=======
+>>>>>>> pre-release
         end
         processed += batch_size
         logger.info "Updated demographics for #{processed} destination clients"

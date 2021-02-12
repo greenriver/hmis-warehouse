@@ -132,7 +132,7 @@ module Health
       # Update existing Health Emergency vaccinations if they've changed
       assigned.preload(:he_vaccination).find_each do |vaccination|
         vaccination.he_vaccination.vaccinated_on = vaccination.vaccinated_on
-        vaccination.he_vaccination.vaccinated_type = vaccination.clean_vaccination_type
+        vaccination.he_vaccination.vaccination_type = vaccination.clean_vaccination_type
         vaccination.he_vaccination.vaccinated_at = vaccination.vaccinated_at
         vaccination.he_vaccination.follow_up_cell_phone = vaccination.follow_up_cell_phone
         vaccination.he_vaccination.save if vaccination.he_vaccination.changed?
@@ -181,6 +181,7 @@ module Health
           )
           he_vaccination.follow_up_on = he_vaccination.follow_up_date
           new_vaccinations << he_vaccination
+          vaccination.update(client_id: client_id)
         end
       end
       GrdaWarehouse::HealthEmergency::Vaccination.import(new_vaccinations) if new_vaccinations.present?

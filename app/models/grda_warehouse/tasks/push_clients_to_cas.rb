@@ -6,7 +6,6 @@
 
 module GrdaWarehouse::Tasks
   class PushClientsToCas
-    require 'ruby-progressbar'
     include NotifierConfig
     attr_accessor :logger, :send_notifications, :notifier_config
     def initialize
