@@ -847,7 +847,7 @@ module GrdaWarehouse::WarehouseReports
         r_list['Health: BH CP Claims/Payments'] << {
           url: 'claims_reporting/warehouse_reports/performance',
           name: 'BH CP Performance',
-          description: 'Explore performance .',
+          description: 'Performance metrics based on paid MassHealth claims.',
           limitable: false,
           health: true,
         }

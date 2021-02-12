@@ -10,9 +10,9 @@ class HmisCsvValidation::Length < HmisCsvValidation::Error
     return if value.size >= min && value.size <= max
 
     new(
-      importer_log_id: item.importer_log_id,
-      source_id: item.source_id,
-      source_type: item.source_type,
+      importer_log_id: item['importer_log_id'],
+      source_id: item['source_id'],
+      source_type: item['source_type'],
       status: "The length of #{column} must be in range #{min}..#{max}",
       validated_column: column,
     )

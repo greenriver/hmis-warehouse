@@ -10,9 +10,9 @@ class HmisCsvValidation::ValidFormat < HmisCsvValidation::Validation
     return if value.blank? || regex.blank? || value.to_s.match?(regex)
 
     new(
-      importer_log_id: item.importer_log_id,
-      source_id: item.source_id,
-      source_type: item.source_type,
+      importer_log_id: item['importer_log_id'],
+      source_id: item['source_id'],
+      source_type: item['source_type'],
       status: "Expected #{value} to match regular expression #{regex} for #{column}",
       validated_column: column,
     )

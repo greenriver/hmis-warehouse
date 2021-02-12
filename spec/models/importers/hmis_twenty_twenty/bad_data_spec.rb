@@ -7,7 +7,7 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
       @delete_later = []
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       file_path = 'spec/fixtures/files/importers/hmis_twenty_twenty/bad_data'
-      travel_to Time.local(2020, 1, 1) do
+      travel_to Time.zone.local(2020, 1, 1) do
         import(file_path, @data_source)
       end
     end
@@ -47,7 +47,7 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
       @delete_later = []
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       file_path = 'spec/fixtures/files/importers/hmis_twenty_twenty/bad_data'
-      travel_to Time.local(2021, 1, 1) do
+      travel_to Time.zone.local(2021, 1, 1) do
         import(file_path, @data_source)
       end
     end
@@ -74,7 +74,7 @@ RSpec.describe Importers::HmisTwentyTwenty::Base, type: :model do
       @delete_later = []
       @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
       file_path = 'spec/fixtures/files/importers/hmis_twenty_twenty/bad_data'
-      travel_to Time.local(2018, 1, 1) do
+      travel_to Time.zone.local(2018, 1, 1) do
         import(file_path, @data_source)
       end
     end

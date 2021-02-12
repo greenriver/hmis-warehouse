@@ -11,6 +11,8 @@ class User < ApplicationRecord
   has_paper_trail
   acts_as_paranoid
 
+  attr_accessor :remember_device, :device_name
+
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable
   devise :invitable,
@@ -59,6 +61,8 @@ class User < ApplicationRecord
   has_many :document_exports, dependent: :destroy, class_name: 'GrdaWarehouse::DocumentExport'
   has_many :health_document_exports, dependent: :destroy, class_name: 'Health::DocumentExport'
   has_many :activity_logs
+
+  has_many :two_factors_memorized_devices
 
   belongs_to :agency, optional: true
 
