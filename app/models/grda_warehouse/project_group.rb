@@ -42,7 +42,7 @@ module GrdaWarehouse
       query = text.gsub(/[^0-9a-zA-Z ]/, '')
       return none unless query.present?
 
-      joins(:projects).
+      distinct.left_outer_joins(:projects).
         where(
           arel_table[:name].lower.matches("%#{query.downcase}%").
           or(p_t[:ProjectName].lower.matches("%#{query.downcase}%"))
