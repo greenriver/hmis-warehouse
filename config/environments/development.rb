@@ -103,10 +103,4 @@ Rails.application.configure do
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name]= ''
-
-  # for testing purposes
-  Rails.application.config.middleware.use ExceptionNotification::Rack,
-  email: {
-    exception_recipients: %w{noreply@greenriver.com}
-  }
 end

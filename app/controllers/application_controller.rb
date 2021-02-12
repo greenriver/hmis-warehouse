@@ -249,7 +249,7 @@ class ApplicationController < ActionController::Base
   def prepare_exception_notifier
     browser = Browser.new(request.user_agent)
     request.env['exception_notifier.exception_data'] = {
-      current_user: current_user,
+      current_user: current_user.email,
       current_user_browser: browser.to_s,
     }
   end
