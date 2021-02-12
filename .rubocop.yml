@@ -122,8 +122,17 @@ Style/CommentedKeyword:
 Naming/VariableNumber:
   Enabled: false
 
+# temporarily disabling this due to the number of less-than-3-character-long names in models
 Naming/MethodParameterName:
   AllowedNames:
+    - c1
+    - c2
+    - c
+    - v
+    - k
+    - h
+    - q
+    - qc
     - as
     - id
     - by
