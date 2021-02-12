@@ -19,7 +19,7 @@
             %th= i + 1
             - ProjectPassFail::Client.detail_headers.each_key do |k|
               %td{style: 'max-width: 600px;'}
-                - if k.in?([:first_name, :last_name])
-                  = link_to_if client.client.present?, client[k], appropriate_client_path(client.client.destination_client)
+                - if k.in?([:first_name, :last_name]) && client.client&.destination_client.present?
+                  = link_to client[k], appropriate_client_path(client.client.destination_client)
                 - else
                   = client[k]
