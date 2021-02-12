@@ -1,4 +1,4 @@
-name: Audit and Test
+name: Rails Tests
 
 on:
   push:
