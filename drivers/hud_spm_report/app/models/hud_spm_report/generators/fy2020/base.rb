@@ -5,7 +5,7 @@
 ###
 
 module HudSpmReport::Generators::Fy2020
-  class Base
+  class Base < ::HudReports::QuestionBase
     def self.question_number
       raise 'TODO'.freeze
     end

@@ -1,0 +1,21 @@
+.well
+  %p
+    - n_measures = HudSpmReport::Generators::Fy2020::Generator.questions.count
+    There are reports for each of the #{n_measures} System Performance Measures.
+    The reports can be run individually below, or can be run all together. Each report run can be downloaded as a
+    zip file suitable for upload to HUD by following the link in the
+    %strong Status
+    column on subsequent pages.
+  %p
+    = link_to hud_reports_spm_path(0) do
+      See the history of all report runs and download zip files
+  %p
+    = link_to new_hud_reports_spm_path do
+      Generate New Report
+
+= render 'hud_reports/all_questions_table', question_label: 'Measure'
+
+.well
+  %p
+    Previously run FY2019 System Performance Measure Reports can be accessed from
+    = link_to 'here.',  hud_reports_legacy_dqs_path

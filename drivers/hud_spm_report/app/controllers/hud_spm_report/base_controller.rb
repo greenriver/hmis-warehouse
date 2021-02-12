@@ -63,5 +63,29 @@ module HudSpmReport
       @generator ||= HudSpmReport::Generators::Fy2020::Generator
     end
     helper_method :generator
+
+    private def path_for_question(question, report: nil)
+      # TODO
+    end
+
+    private def path_for_questions(question)
+      # TODO
+    end
+
+    # private def path_for_question_result(question, report: nil)
+    #   #TODO
+    # end
+
+    private def path_for_report(report)
+      hud_reports_spm_path(report)
+    end
+
+    private def path_for_reports
+      hud_reports_spms_path
+    end
+
+    # private def path_for_cell(report:, question:, cell_label:, table:)
+    #   #TODO
+    # end
   end
 end
