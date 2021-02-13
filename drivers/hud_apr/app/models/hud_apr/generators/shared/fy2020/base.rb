@@ -269,11 +269,14 @@ module HudApr::Generators::Shared::Fy2020
           :exit,
         ],
       }
+      enrollment_scope_without_preloads.preload(preloads)
+    end
+
+    private def enrollment_scope_without_preloads
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
-        joins(:enrollment).
-        preload(preloads)
+        joins(:enrollment)
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
     end

@@ -235,16 +235,6 @@ module HudDataQualityReport::Generators::Fy2020
       enrollment_scope.where(client_id: batch.map(&:id)).group_by(&:client_id)
     end
 
-    private def enrollment_scope_without_preloads
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        entry.
-        open_between(start_date: @report.start_date, end_date: report_end_date).
-        joins(:enrollment)
-
-      scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
-      scope
-    end
-
     private def enrollment_scope
       preloads = {
         enrollment: [
@@ -263,6 +253,15 @@ module HudDataQualityReport::Generators::Fy2020
         ],
       }
       enrollment_scope_without_preloads.preload(preloads)
+    end
+
+    private def enrollment_scope_without_preloads
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.
+        entry.
+        open_between(start_date: @report.start_date, end_date: report_end_date).
+        joins(:enrollment)
+      scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
+      scope
     end
 
     delegate :client_scope, to: :@generator
