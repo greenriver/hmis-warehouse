@@ -132,7 +132,6 @@ module HmisCsvTwentyTwenty::Importer
       scope = source_data_scope_for(file_name)
       # save some allocations be doing these only once
       pre_processed_at = Time.current
-      sha256 = Digest::SHA256.new
       bm = Benchmark.measure do
         batch = []
         failures = []
@@ -149,9 +148,7 @@ module HmisCsvTwentyTwenty::Importer
 
           # FIXME: are we sure this source_hash algo matches
           # existing import logic. If not all records will be considered modified on the next run
-          sha256.reset
-          sha256 << source.hmis_data.except(:ExportID).to_s
-          destination['source_hash'] = sha256.hexdigest
+          destination['source_hash'] = klass.new(destination).calculate_source_hash
 
           row_failures = run_row_validations(klass, destination, file_name, importer_log)
           failures.concat row_failures.compact
