@@ -46,6 +46,10 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       row
     end
 
+    def self.replace_blanks_with_nils(row)
+      row.transform_values!(&:presence)
+    end
+
     def self.upsert_column_names(version: '2020')
       super(version: version) - [:pending_date_deleted, :processed_as, :demographic_dirty]
     end
@@ -80,6 +84,7 @@ module HmisCsvTwentyTwenty::Importer::ImportConcern
       csv_data = fix_date_columns(csv_data)
       csv_data = fix_time_columns(csv_data)
       csv_data = clean_row_for_import(csv_data, deidentified: deidentified)
+      csv_data = replace_blanks_with_nils(csv_data)
       csv_data.merge(
         source_type: loaded.class.name,
         source_id: loaded.id,
