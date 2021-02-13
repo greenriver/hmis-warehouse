@@ -43,5 +43,33 @@ module HmisTwentyTwenty
     def self.importable_file_class(name)
       "#{module_scope}::#{name}".constantize
     end
+
+    def summary_as_log_str(summary)
+      summary.map do |file, info|
+        "> *#{file}* \n> \t#{hash_as_log_str(info)}"
+      end.join("\n")
+    end
+
+    def hash_as_log_str(hash, field_sep: ' ')
+      hash.map do |k, v|
+        " #{k}: #{v}"
+      end.join(field_sep)
+    end
+
+    def elapsed_time(total_seconds)
+      d = total_seconds / 86_400
+      h = total_seconds / 3600 % 24
+      m = total_seconds / 60 % 60
+      s = total_seconds % 60
+      if d >= 1
+        format('%id%ih%im%.3fs', d, h, m, s)
+      elsif h >= 1
+        format('%ih%im%.3fs', h, m, s)
+      elsif m >= 1
+        format('%im%.3fs', m, s)
+      else
+        format('%.3fs', s)
+      end
+    end
   end
 end

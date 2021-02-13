@@ -1,5 +1,6 @@
 - title = "Edit Project Group: #{@project_group.name}"
 = content_for(:title, title)
+= render 'breadcrumbs'
 %h1= title
 .row
   .col-6
@@ -18,6 +19,8 @@
           %dd= @project_group.projects.map(&:PITCount).compact.sum
           %dt Project Count
           %dd= @project_group.projects.count
+          %dt Projects
+          %dd= @project_group.projects.map(&:ProjectName).join(', ')
 
 - if @project_group.contacts.any? || @project_group.organization_contacts.any?
   .mt-6

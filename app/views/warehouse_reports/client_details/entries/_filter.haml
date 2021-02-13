@@ -30,6 +30,13 @@
         = f.input :age_ranges, collection: @filter.available_age_ranges, placeholder: 'Any Age', include_blank: false, input_html: { multiple: true, class: :select2 }
       .col-sm-4.d-flex.align-items-center.pt-no-label
         = f.input :heads_of_household, as: :boolean, label: 'Limit to Heads of Household?'
+    .row
+      .col-4
+        = f.input :race, collection: HUD.races.invert, selected: @filter.race, as: :select_two, required: false, include_blank: 'All Races'
+      .col-4
+        = f.input :ethnicity, collection: HUD.ethnicities.invert, selected: @filter.ethnicity, as: :select_two, required: false, include_blank: 'All Ethnicities'
+      .col-4
+        = f.input :gender, collection: HUD.genders.invert, selected: @filter.gender, as: :select_two, required: false, include_blank: 'All Genders'
 
   - content_for :form_js do
     = render 'warehouse_reports/new_range_js'
