@@ -1,33 +1,39 @@
 - title = 'Project Groups'
 = content_for(:title, title)
+%h1= content_for :title
+
+- @prompt = "Search project groups..."
 .row.mb-4
   .col-sm-8
-    %h1= content_for :title
+    = render 'search_form'
   .col-sm-4.text-right
     = link_to new_project_group_path, class: 'btn btn-primary' do
       %span.icon-plus
       Add Project Group
-.row
-  .col-sm-12
-    %p
-      Project Groups are used in some reporting contexts to run project-based reports against multiple related projects.
-    %p Access to a project group does not imply access to the projects within the group. Projects must still be assigned to users to function correctly.
-    - if @project_groups.any?
-      .card
-        %table.table.table-striped.mb-0
-          %thead
-            %tr
-              %th
-                Name
-              %th
-                Projects
-          %tbody
-            - @project_groups.each do |group|
-              %tr
-                %td
-                  = link_to group.name, edit_project_group_path(group)
-                %td
-                  = group.projects.map(&:ProjectName).join(', ')
-    - else
-      %p
-        There are no project groups.
+.alert.alert-info
+  %ul
+    %li Project Groups are used in some reporting contexts to run project-based reports against multiple related projects.
+    %li Access to a project group does not imply access to the projects within the group, projects must still be assigned to users to grant access.
+- if @project_groups.any?
+  .card
+    %table.table.table-striped.mb-0
+      %thead
+        %tr
+          %th
+            Name
+          %th
+            Projects
+      %tbody
+        - @project_groups.each do |group|
+          %tr
+            %td
+              = link_to group.name, edit_project_group_path(group)
+            %td
+              - if group.projects.count <= 10
+                = group.projects.map(&:ProjectName).join(', ')
+              - else
+                = "#{group.projects.first(10).map(&:ProjectName).join(', ')}... (#{group.projects.count - 10} more)"
+  %p= paginate @project_groups
+- else
+  %p
+    There are no project groups.
