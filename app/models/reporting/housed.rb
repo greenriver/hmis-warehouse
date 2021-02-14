@@ -5,7 +5,7 @@
 ###
 
 # For now, this only deals with RRH projects
-require 'get_process_mem'
+# require 'get_process_mem'
 module Reporting
   class Housed < ReportingBase
     include RailsDrivers::Extensions
