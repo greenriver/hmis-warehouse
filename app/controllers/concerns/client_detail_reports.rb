@@ -54,14 +54,14 @@ module ClientDetailReports
     end
 
     private def filter_for_gender(scope)
-      return scope unless @filter.gender
+      return scope unless @filter.gender.present?
 
       scope.joins(:client).
         merge(GrdaWarehouse::Hud::Client.where(Gender: @filter.gender))
     end
 
     private def filter_for_race(scope)
-      race = @filter.race
+      race = @filter.race.present?
       return scope unless race && HUD.races.keys.include?(race)
 
       scope.joins(:client).
@@ -69,7 +69,7 @@ module ClientDetailReports
     end
 
     private def filter_for_ethnicity(scope)
-      return scope unless @filter.ethnicity
+      return scope unless @filter.ethnicity.present?
 
       scope.joins(:client).
         merge(GrdaWarehouse::Hud::Client.where(Ethnicity: @filter.ethnicity))
