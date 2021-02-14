@@ -5,6 +5,7 @@
 ###
 
 # For now, this only deals with RRH projects
+require 'get_process_mem'
 module Reporting
   class Housed < ReportingBase
     include RailsDrivers::Extensions
@@ -184,7 +185,7 @@ module Reporting
         youth_at_search_start: 'Youth (at search start)',
         youth_at_housed_date: 'Youth (at housed date)',
         veteran: 'Veteran',
-      }
+      }.freeze
     end
 
     def self.available_household_types
@@ -192,7 +193,7 @@ module Reporting
         individual: 'Individuals',
         family: 'Families',
         children_only: 'Children only',
-      }
+      }.freeze
     end
 
     def self.available_races
@@ -257,35 +258,38 @@ module Reporting
 
     def populate!
       cache_client = GrdaWarehouse::Hud::Client.new
-      client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_ids)
+      client_ids.each_slice(1_000) do |client_id_batch|
+        client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_id_batch)
 
-      data = enrollment_data.map do |en|
-        client = client_details[en[:client_id]]
-        next unless client.present?
+        current_client_details = client_details(client_id_batch)
+        data = enrollment_data(client_id_batch).map do |en|
+          client = current_client_details[en[:client_id]]
+          next unless client.present?
 
-        client.delete(:id)
-        en.merge!(client)
-        en[:month_year] = en[:housed_date]&.strftime('%Y-%m-01')
-        if HUD.permanent_destinations.include?(en[:destination])
-          en[:ph_destination] = :ph
-        else
-          en[:ph_destination] = :not_ph
+          client.delete(:id)
+          en.merge!(client)
+          en[:month_year] = en[:housed_date]&.strftime('%Y-%m-01')
+          if HUD.permanent_destinations.include?(en[:destination])
+            en[:ph_destination] = :ph
+          else
+            en[:ph_destination] = :not_ph
+          end
+          en[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: en[:client_id])
+
+          en[:age_at_search_start] = GrdaWarehouse::Hud::Client.age(date: en[:search_start], dob: en[:dob])
+          en[:age_at_search_end] = GrdaWarehouse::Hud::Client.age(date: en[:search_end], dob: en[:dob])
+          en[:age_at_housed_date] = GrdaWarehouse::Hud::Client.age(date: en[:housed_date], dob: en[:dob])
+          en[:age_at_housing_exit] = GrdaWarehouse::Hud::Client.age(date: en[:housing_exit], dob: en[:dob])
+          en
         end
-        en[:race] = cache_client.race_string(scope_limit: client_race_scope_limit, destination_id: en[:client_id])
+        next unless data.present?
 
-        en[:age_at_search_start] = GrdaWarehouse::Hud::Client.age(date: en[:search_start], dob: en[:dob])
-        en[:age_at_search_end] = GrdaWarehouse::Hud::Client.age(date: en[:search_end], dob: en[:dob])
-        en[:age_at_housed_date] = GrdaWarehouse::Hud::Client.age(date: en[:housed_date], dob: en[:dob])
-        en[:age_at_housing_exit] = GrdaWarehouse::Hud::Client.age(date: en[:housing_exit], dob: en[:dob])
-        en
-      end
-      return unless data.present?
+        headers = data.first.keys
 
-      headers = data.first.keys
-
-      transaction do
-        self.class.delete_all
-        self.class.import(headers, data.map(&:values))
+        transaction do
+          self.class.where(client_id: client_id_batch).delete_all
+          self.class.import(headers, data.map(&:values))
+        end
       end
     end
 
@@ -307,8 +311,8 @@ module Reporting
       Reporting::MonthlyReports::Base.lookback_start
     end
 
-    def enrollment_data
-      one_project_data + two_project_data
+    def enrollment_data(client_id_batch)
+      one_project_data(client_id_batch) + two_project_data(client_id_batch)
     end
 
     def default_row
@@ -344,76 +348,75 @@ module Reporting
     # fetch all enrollments for associated pre-placement enrollments
     # comparing by client_id, loop over rrh data and add pre-placement data for record immediately preceding
     #
-    def two_project_data
-      @two_project_data ||= begin
-        processed_service_enrollments = Set.new
-        from_residential_enrollments = two_project_residential_data.map do |residential_enrollment|
-          case residential_enrollment[:project_type]
-          when *GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
-            key = [
-              residential_enrollment[:client_id],
-              residential_enrollment[:residential_project_id],
-            ]
-            en = default_row.merge(residential_enrollment.slice(*default_row.keys))
-            en[:project_id] = residential_enrollment[:residential_project_id]
-            service_enrollments_for_client = two_project_service_data[key]
-            if service_enrollments_for_client.present?
-              related_service_enrollment = service_enrollments_for_client.detect do |ser_en|
-                ser_en[:search_start] <= en[:housed_date]
-              end
-              if related_service_enrollment
-                residential_enrollment[:project_type]
-                processed_service_enrollments << related_service_enrollment[:enrollment_id]
-                en[:search_start] = related_service_enrollment[:search_start]
-                en[:search_end] = related_service_enrollment[:search_end]
-                en[:service_project] = related_service_enrollment[:service_project]
-              else
-                en[:search_start] = residential_enrollment[:housed_date]
-                en[:search_end] = residential_enrollment[:housed_date]
-                en[:service_project] = 'No Service Enrollment'
-              end
+    def two_project_data(client_id_batch)
+      processed_service_enrollments = Set.new
+      service_data = two_project_service_data(client_id_batch)
+      from_residential_enrollments = two_project_residential_data(client_id_batch).map do |residential_enrollment|
+        case residential_enrollment[:project_type]
+        when *GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+          key = [
+            residential_enrollment[:client_id],
+            residential_enrollment[:residential_project_id],
+          ]
+          en = default_row.merge(residential_enrollment.slice(*default_row.keys))
+          en[:project_id] = residential_enrollment[:residential_project_id]
+          service_enrollments_for_client = service_data[key]
+          if service_enrollments_for_client.present?
+            related_service_enrollment = service_enrollments_for_client.detect do |ser_en|
+              ser_en[:search_start] <= en[:housed_date]
+            end
+            if related_service_enrollment
+              residential_enrollment[:project_type]
+              processed_service_enrollments << related_service_enrollment[:enrollment_id]
+              en[:search_start] = related_service_enrollment[:search_start]
+              en[:search_end] = related_service_enrollment[:search_end]
+              en[:service_project] = related_service_enrollment[:service_project]
             else
               en[:search_start] = residential_enrollment[:housed_date]
               en[:search_end] = residential_enrollment[:housed_date]
               en[:service_project] = 'No Service Enrollment'
             end
-            en[:source] = 'enrollment_based'
-            en
           else
-            # affiliations don't apply to ES/TH/SH, so ignore them
-            next
+            en[:search_start] = residential_enrollment[:housed_date]
+            en[:search_end] = residential_enrollment[:housed_date]
+            en[:service_project] = 'No Service Enrollment'
           end
-        end.compact
-
-        from_service_enrollments = two_project_service_data.values.flatten(1).map do |ser_en|
-          next if processed_service_enrollments.include? ser_en[:enrollment_id]
-
-          ser_en[:project_id] = residential_project_id_for(ser_en[:service_project_id])
-          en = default_row.merge(ser_en.slice(*default_row.keys))
           en[:source] = 'enrollment_based'
           en
-        end.compact
+        else
+          # affiliations don't apply to ES/TH/SH, so ignore them
+          next
+        end
+      end.compact
 
-        from_residential_enrollments + from_service_enrollments
-      end
+      from_service_enrollments = service_data.values.flatten(1).map do |ser_en|
+        next if processed_service_enrollments.include? ser_en[:enrollment_id]
+
+        ser_en[:project_id] = residential_project_id_for(ser_en[:service_project_id])
+        en = default_row.merge(ser_en.slice(*default_row.keys))
+        en[:source] = 'enrollment_based'
+        en
+      end.compact
+
+      from_residential_enrollments + from_service_enrollments
     end
 
-    def two_project_residential_data
-      @two_project_residential_data ||= begin
-        GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, :enrollment, :client).
-          merge(GrdaWarehouse::Hud::Project.where(id: two_project_ids)).
-          where(
-            she_t[:first_date_in_program].lt(Date.current).
-            and(
-              she_t[:last_date_in_program].gt(lookback_date).
-              or(she_t[:last_date_in_program].eq(nil)),
-            ),
-          ).
-          pluck(*two_project_residential_columns.values).
-          map do |row|
-            Hash[two_project_residential_columns.keys.zip(row)]
-          end
-      end
+    def two_project_residential_data(client_id_batch)
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        where(client_id: client_id_batch).
+        joins(:project, :enrollment, :client).
+        merge(GrdaWarehouse::Hud::Project.where(id: two_project_ids)).
+        where(
+          she_t[:first_date_in_program].lt(Date.current).
+          and(
+            she_t[:last_date_in_program].gt(lookback_date).
+            or(she_t[:last_date_in_program].eq(nil)),
+          ),
+        ).
+        pluck(*two_project_residential_columns.values).
+        map do |row|
+          Hash[two_project_residential_columns.keys.zip(row)]
+        end
     end
 
     def two_project_residential_columns
@@ -433,28 +436,28 @@ module Reporting
       }.freeze
     end
 
-    def two_project_service_data
-      @two_project_service_data ||= begin
-        GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, :enrollment, :client).
-          merge(GrdaWarehouse::Hud::Project.where(id: affiliated_projects.values)).
-          where(
-            she_t[:first_date_in_program].lt(Date.current).
-            and(
-              she_t[:last_date_in_program].gt(lookback_date).
-              or(she_t[:last_date_in_program].eq(nil)),
-            )
-          ).
-          order(she_t[:first_date_in_program].desc).
-          pluck(*two_project_service_columns.values).
-          map do |row|
-            Hash[two_project_service_columns.keys.zip(row)]
-          end.group_by do |row|
-            [
-              row[:client_id],
-              residential_project_id_for(row[:service_project_id]),
-            ]
-          end
-      end
+    def two_project_service_data(client_id_batch)
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        where(client_id: client_id_batch).
+        joins(:project, :enrollment, :client).
+        merge(GrdaWarehouse::Hud::Project.where(id: affiliated_projects.values)).
+        where(
+          she_t[:first_date_in_program].lt(Date.current).
+          and(
+            she_t[:last_date_in_program].gt(lookback_date).
+            or(she_t[:last_date_in_program].eq(nil)),
+          )
+        ).
+        order(she_t[:first_date_in_program].desc).
+        pluck(*two_project_service_columns.values).
+        map do |row|
+          Hash[two_project_service_columns.keys.zip(row)]
+        end.group_by do |row|
+          [
+            row[:client_id],
+            residential_project_id_for(row[:service_project_id]),
+          ]
+        end
     end
 
     def residential_project_id_for(service_project_id)
@@ -521,44 +524,44 @@ module Reporting
       end
     end
 
-    def one_project_data
-      @one_project_data ||= begin
-        GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:project, :enrollment, :client).
-          merge(GrdaWarehouse::Hud::Project.where(id: one_project_ids)).
-          where(
-            she_t[:first_date_in_program].lt(Date.current).
-            and(
-              she_t[:last_date_in_program].gt(lookback_date).
-              or(she_t[:last_date_in_program].eq(nil)),
-            )
-          ).
-          pluck(*one_project_columns.values).
-          map do |row|
-            residential_enrollment = Hash[one_project_columns.keys.zip(row)]
-            case residential_enrollment[:project_type]
-            when *GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
-              # if exit but no move-in-date, set search end to exit and blank exit, no stabilization, only pre-placement
-              if residential_enrollment[:housing_exit].present? && residential_enrollment[:search_end].blank?
-                residential_enrollment[:search_end] = residential_enrollment[:housing_exit]
-                residential_enrollment[:housing_exit] = nil
-              end
-              # if the move-in-date is after the housing exit, set the move-in-date to the housing exit
-              if residential_enrollment[:housed_date].present? && residential_enrollment[:housing_exit].present?
-                if residential_enrollment[:housed_date] > residential_enrollment[:housing_exit]
-                  residential_enrollment[:housed_date] = residential_enrollment[:housing_exit]
-                end
-              end
-              residential_enrollment[:source] = 'move-in-date'
-            else
-              # ES, TH, and SH don't have two phases, we are using housed to represent time in program
-              residential_enrollment[:housed_date] = residential_enrollment[:search_start]
-              residential_enrollment[:search_start] = nil
-              residential_enrollment[:search_end] = nil
-              residential_enrollment[:source] = 'enrollment_based'
+    def one_project_data(client_id_batch)
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        where(client_id: client_id_batch).
+        joins(:project, :enrollment, :client).
+        merge(GrdaWarehouse::Hud::Project.where(id: one_project_ids)).
+        where(
+          she_t[:first_date_in_program].lt(Date.current).
+          and(
+            she_t[:last_date_in_program].gt(lookback_date).
+            or(she_t[:last_date_in_program].eq(nil)),
+          )
+        ).
+        pluck(*one_project_columns.values).
+        map do |row|
+          residential_enrollment = Hash[one_project_columns.keys.zip(row)]
+          case residential_enrollment[:project_type]
+          when *GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+            # if exit but no move-in-date, set search end to exit and blank exit, no stabilization, only pre-placement
+            if residential_enrollment[:housing_exit].present? && residential_enrollment[:search_end].blank?
+              residential_enrollment[:search_end] = residential_enrollment[:housing_exit]
+              residential_enrollment[:housing_exit] = nil
             end
-            default_row.merge(residential_enrollment)
+            # if the move-in-date is after the housing exit, set the move-in-date to the housing exit
+            if residential_enrollment[:housed_date].present? && residential_enrollment[:housing_exit].present?
+              if residential_enrollment[:housed_date] > residential_enrollment[:housing_exit]
+                residential_enrollment[:housed_date] = residential_enrollment[:housing_exit]
+              end
+            end
+            residential_enrollment[:source] = 'move-in-date'
+          else
+            # ES, TH, and SH don't have two phases, we are using housed to represent time in program
+            residential_enrollment[:housed_date] = residential_enrollment[:search_start]
+            residential_enrollment[:search_start] = nil
+            residential_enrollment[:search_end] = nil
+            residential_enrollment[:source] = 'enrollment_based'
           end
-      end
+          default_row.merge(residential_enrollment)
+        end
     end
 
     def one_project_columns
@@ -581,7 +584,14 @@ module Reporting
     end
 
     def client_ids
-      @client_ids ||= enrollment_data.map { |m| m[:client_id] }.uniq
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        open_between(start_date: lookback_date, end_date: Date.current).
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.ph.
+          or(GrdaWarehouse::Hud::Project.th).
+          or(GrdaWarehouse::Hud::Project.es).
+          or(GrdaWarehouse::Hud::Project.sh),
+        ).distinct.pluck(:client_id)
     end
 
     def client_columns
@@ -597,13 +607,11 @@ module Reporting
       }.freeze
     end
 
-    def client_details
-      @client_details ||= begin
-        GrdaWarehouse::Hud::Client.where(id: client_ids).
-          pluck(*client_columns.keys).map do |row|
-            Hash[client_columns.values.zip(row)]
-          end.index_by { |m| m[:id] }
-      end
+    def client_details(client_id_batch)
+      GrdaWarehouse::Hud::Client.where(id: client_id_batch).
+        pluck(*client_columns.keys).map do |row|
+          Hash[client_columns.values.zip(row)]
+        end.index_by { |m| m[:id] }
     end
   end
 end
