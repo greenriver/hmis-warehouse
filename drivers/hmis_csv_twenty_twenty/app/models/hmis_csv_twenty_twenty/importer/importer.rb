@@ -688,7 +688,7 @@ module HmisCsvTwentyTwenty::Importer
         importer_log.update(status: :started)
         @loader_log.update(importer_log_id: importer_log.id)
         @started_at = Time.current
-        log("Starting #{hash_as_log_str log_ids}.")
+        log("Starting import for #{hash_as_log_str log_ids}.")
       end
     end
 
@@ -698,7 +698,7 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.upload_id = @upload.id if @upload.present?
       importer_log.save
       elapsed = Time.current - @started_at
-      log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.\n#{summary_as_log_str importer_log.summary}")
+      log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.\n#{summary_as_log_str importer_log.summary}\n Import Fully Complete.")
     end
 
     private def db_transaction(&block)
