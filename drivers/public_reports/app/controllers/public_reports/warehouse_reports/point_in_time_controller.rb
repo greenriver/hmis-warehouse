@@ -35,6 +35,7 @@ module PublicReports::WarehouseReports
     end
 
     def raw
+      params[:pp] = 'disabled' # disable rack-mini-profiler
       render(layout: false)
     end
 

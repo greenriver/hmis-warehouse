@@ -12,6 +12,10 @@ module PublicReports
       _('Point-in-Time Report Generator')
     end
 
+    def instance_title
+      _('Point-in-Time Report')
+    end
+
     def url
       public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'))
     end
@@ -24,6 +28,19 @@ module PublicReports
       start_report
 
       complete_report
+    end
+
+    def chart_data
+      x = ['x']
+      y = ['Unique people experiencing homelessness']
+      pit_counts.each do |date, count|
+        x << date
+        y << count
+      end
+      [
+        x,
+        y,
+      ].to_json.html_safe
     end
 
     private def pit_count_dates
@@ -40,7 +57,12 @@ module PublicReports
     end
 
     private def pit_counts
-      GrdaWarehouse::ServiceHistoryService.where(homeless: true, date: date).count
+      pit_count_dates.map do |date|
+        [
+          date,
+          GrdaWarehouse::ServiceHistoryService.where(homeless: true, date: date).count,
+        ]
+      end
     end
 
     private def start_report

@@ -1,0 +1,17 @@
+:javascript
+  var chart = bb.generate({
+    data: {
+      x: 'x',
+      columns: #{@report.chart_data}
+    },
+    bind_to: '.pit-chart',
+    type: 'line',
+    axis: {
+      x: {
+        type: 'timeseries',
+        tick: {
+          format: '%b. %Y'
+        }
+      }
+    },
+  });

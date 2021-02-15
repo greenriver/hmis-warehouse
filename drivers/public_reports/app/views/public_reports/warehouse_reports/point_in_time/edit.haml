@@ -13,4 +13,6 @@
       = f.input :published_url, as: :hidden, input_html: { value: @report.publish_to_url }
       = f.submit 'Publish'
 
+-# FIXME: instead of including the report here, fetch via get/ or iframe
 = render 'report'
+= render 'report_js'

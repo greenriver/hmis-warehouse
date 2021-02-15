@@ -1,0 +1,8 @@
+%html(lang="en")
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+    %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
+    %title= [@report.instance_title, _('Boston DND Warehouse')].join(' :: ')
+    %link{href: @report.font_path, rel: 'stylesheet', type: 'text/css'}
+    = stylesheet_link_tag('https://cdnjs.cloudflare.com/ajax/libs/billboard.js/2.2.2/billboard.min.css')
+  %body

@@ -52,5 +52,10 @@ module PublicReports
       # 2. Populate the published_url field
       # 3. Populate the embed_code field
     end
+
+    def font_path
+      # TODO: use settings object
+      '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700'
+    end
   end
 end
