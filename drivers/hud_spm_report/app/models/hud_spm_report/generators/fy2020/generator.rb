@@ -33,7 +33,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     def self.valid_question_number(question_number)
-      questions.keys.detect { |q| q == question_number } || 'Question 1'
+      questions.keys.detect { |q| q == question_number } || questions.keys.first
     end
   end
 end

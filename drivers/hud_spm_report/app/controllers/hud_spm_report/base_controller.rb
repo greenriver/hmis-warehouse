@@ -85,8 +85,8 @@ module HudSpmReport
       hud_reports_spms_path
     end
 
-    # private def path_for_cell(report:, question:, cell_label:, table:)
-    #   #TODO
-    # end
+    private def path_for_cell(_report:, _question:, _cell_label:, _table:)
+      'javascript:alert("TODO");'
+    end
   end
 end

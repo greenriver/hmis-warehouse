@@ -6,12 +6,28 @@
 
 module HudSpmReport
   class SpmsController < BaseController
+    before_action :set_report, only: [:show, :destroy, :running]
+    before_action :set_reports, except: [:index, :running_all_questions]
+
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq
       @report_urls = report_urls
     end
 
     def show
+      respond_to do |format|
+        format.html do
+          @show_recent = params[:id].to_i.positive?
+          @questions = generator.questions.keys
+          @contents = @report&.completed_questions
+          @path_for_running = running_hud_reports_dqs_path(link_params.except('action', 'controller'))
+        end
+        format.zip do
+          exporter = ::HudReports::ZipExporter.new(@report)
+          date = Date.current.strftime('%Y-%m-%d')
+          send_data exporter.export!, filename: "spm-#{date}.zip"
+        end
+      end
     end
 
     def running

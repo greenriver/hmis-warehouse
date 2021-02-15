@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Generates the HUD SPM Report Data
+# See https://files.hudexchange.info/resources/documents/System-Performance-Measures-HMIS-Programming-Specifications.pdf
+# for specifications
 module HudSpmReport::Generators::Fy2020
   class Base < ::HudReports::QuestionBase
     def self.question_number
@@ -26,29 +29,9 @@ module HudSpmReport::Generators::Fy2020
     RRH = [13].freeze
     PH_PSH = [3, 9, 10].freeze
 
-    def initialize options
-      @options = options
-    end
-
-    # Scope coming in is based on GrdaWarehouse::ServiceHistoryEnrollment
-    def add_filters scope:
-      # Limit to only those projects the user who queued the report can see
-      scope = scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(@report.user))
-      project_group_ids = @report.options['project_group_ids'].delete_if(&:blank?).map(&:to_i)
-      if project_group_ids.any?
-        project_group_project_ids = GrdaWarehouse::ProjectGroup.where(id: project_group_ids).map(&:project_ids).flatten.compact
-        @report.options['project_id'] |= project_group_project_ids
-      end
-      if @report.options['project_id'].delete_if(&:blank?).any?
-        project_ids = @report.options['project_id'].delete_if(&:blank?).map(&:to_i)
-        scope = scope.joins(:project).where(Project: { id: project_ids })
-      end
-      scope = scope.where(data_source_id: @report.options['data_source_id'].to_i) if @report.options['data_source_id'].present?
-      scope = scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
-      scope = sub_population_scope scope, @report.options['sub_population'] if @report.options['sub_population'].present?
-      scope = race_scope scope, @report.options['race_code'] if @report.options['race_code'].present?
-      scope = ethnicity_scope scope, @report.options['ethnicity_code'] if @report.options['ethnicity_code'].present?
-      return scope
+    private def universe
+      add_clients unless clients_populated?
+      @universe ||= @report.universe(self.class.question_number)
     end
 
     def sub_population_scope scope, sub_population
