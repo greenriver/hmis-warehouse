@@ -7,13 +7,20 @@
           - if @user.enforced_2fa?
             required and
           enabled for this account.
-      %p
-        You can generate backup codes to use if you lose access to your Two-Factor Authentication app.  Click the button below to generate codes.
-      %p
-        Note, if you have already generated codes, clicking the button again will invalidate all previous codes and generate new codes.
-      %p
-        = link_to account_two_factor_path, class: ['btn', 'btn-secondary'], data: { loads_in_pjax_modal: true } do
-          Generate Backup Codes
+      .well
+        %p
+          You can generate backup codes to use if you lose access to your Two-Factor Authentication app.  Click the button below to generate codes.
+        %p
+          Note, if you have already generated codes, clicking the button again will invalidate all previous codes and generate new codes.
+        %p
+          = link_to account_two_factor_path, class: ['btn', 'btn-secondary'], data: { loads_in_pjax_modal: true } do
+            Generate Backup Codes
+      - if @user.two_factors_memorized_devices.present? && bypass_2fa_enabled?
+        %h3 Known Devices
+        .well
+          %p The following devices or browsers have been approved for login without re-entering a Two-Factor code until the noted expiration date.  If you believe one of these has been compromised, you should remove it below.
+          %p.note Note clearning cookies on a device will require reentering the Two-Factor code.
+          = render 'device_table'
     - if @user.enforced_2fa?
       .col-sm
         .well
@@ -43,10 +50,14 @@
         or
         = link_to 'https://authy.com', target: '_blank' do
           Authy
-        with the following QR code.  Once the app is setup, you'll be asked to enter two codes to confirm that it is working.
+        with the following QR code or text key.  Once the app is setup, you'll be asked to enter two codes to confirm that it is working.
+
       .text-center
         .mt-4.mb-4.well
-          = raw RQRCode::render_qrcode(@user.otp_provisioning_uri(@user.two_factor_issuer, issuer: @user.two_factor_label), :svg, level: :h, unit: 2)
+          = raw RQRCode::render_qrcode(@user.otp_provisioning_uri(@user.two_factor_label, issuer: @user.two_factor_issuer), :svg, level: :h, unit: 2)
+          %p.mt-2.font-size-md
+            Key:
+            %strong= @user.otp_secret
         = simple_form_for @user, url: account_two_factor_path, remote: false do |f|
           = f.error_notification
           .form-inputs

@@ -798,6 +798,16 @@ module GrdaWarehouse::WarehouseReports
             health: false,
           },
         ],
+        'Census' => [
+          {
+            url: 'censuses',
+            name: 'Nightly Census',
+            description: 'Daily utilization charts for projects and residential project types.',
+            limitable: true,
+            health: false,
+          },
+        ],
+        'Population Dashboards' => [],
       }
       if RailsDrivers.loaded.include?(:service_scanning)
         r_list['Operational'] << {
@@ -831,6 +841,13 @@ module GrdaWarehouse::WarehouseReports
           url: 'claims_reporting/warehouse_reports/reconciliation',
           name: 'BH CP Claim Reconciliation',
           description: 'Verify payment of claims.',
+          limitable: false,
+          health: true,
+        }
+        r_list['Health: BH CP Claims/Payments'] << {
+          url: 'claims_reporting/warehouse_reports/performance',
+          name: 'BH CP Performance',
+          description: 'Performance metrics based on paid MassHealth claims.',
           limitable: false,
           health: true,
         }
@@ -886,6 +903,59 @@ module GrdaWarehouse::WarehouseReports
           name: 'Public Point-in-Time Report Generator',
           description: 'Use this to review and publish Point-in-Time charts for public consumption.',
           limitable: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
+        r_list['Population Dashboards'] << {
+          url: 'dashboards/adult_only_households',
+          name: 'Adult only Households',
+          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and no children (< 18).',
+          limitable: true,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
+        r_list['Population Dashboards'] << {
+          url: 'dashboards/adults_with_children',
+          name: 'Adult and Child Households',
+          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one adult (18+) and one child (< 18).',
+          limitable: true,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:child_only_households_sub_pop)
+        r_list['Population Dashboards'] << {
+          url: 'dashboards/child_only_households',
+          name: 'Child only Households',
+          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the household has at least one child (< 18) and no adults (+ 18).',
+          limitable: true,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:clients_sub_pop)
+        r_list['Population Dashboards'] << {
+          url: 'dashboards/clients',
+          name: 'All Clients',
+          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH).',
+          limitable: true,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:non_veterans_sub_pop)
+        r_list['Population Dashboards'] << {
+          url: 'dashboards/non_veterans',
+          name: 'Non-Veteran',
+          description: 'Clients enrolled in homeless projects (ES, SH, SO, TH) where the client is not a veteran.',
+          limitable: true,
+          health: false,
+        }
+      end
+      if RailsDrivers.loaded.include?(:veterans_sub_pop)
+        r_list['Population Dashboards'] << {
+          url: 'dashboards/veterans',
+          name: 'Veteran',
+          description: 'Veteran clients enrolled in homeless projects (ES, SH, SO, TH).',
+          limitable: true,
           health: false,
         }
       end
@@ -901,7 +971,10 @@ module GrdaWarehouse::WarehouseReports
       ]
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
-      cleanup << 'claims_reporting/warehouse_reports/reconciliation' unless RailsDrivers.loaded.include?(:claims_reporting)
+      unless RailsDrivers.loaded.include?(:claims_reporting)
+        cleanup << 'claims_reporting/warehouse_reports/reconciliation'
+        cleanup << 'claims_reporting/warehouse_reports/performance'
+      end
       cleanup << 'project_pass_fail/warehouse_reports/project_pass_fail' unless RailsDrivers.loaded.include?(:project_pass_fail)
       cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
       cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
@@ -909,6 +982,13 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
       cleanup << 'public_reports/warehouse_reports/point_in_time' unless RailsDrivers.loaded.include?(:public_reports)
+      cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
+      cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
+      cleanup << 'dashboards/child_only_households' unless RailsDrivers.loaded.include?(:child_only_households_sub_pop)
+      cleanup << 'dashboards/clients' unless RailsDrivers.loaded.include?(:clients_sub_pop)
+      cleanup << 'dashboards/non_veterans' unless RailsDrivers.loaded.include?(:non_veterans_sub_pop)
+      cleanup << 'dashboards/veterans' unless RailsDrivers.loaded.include?(:veterans_sub_pop)
+
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
       end

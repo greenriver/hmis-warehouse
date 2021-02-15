@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_04_141807) do
+ActiveRecord::Schema.define(version: 2021_02_09_182423) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1298,6 +1298,29 @@ ActiveRecord::Schema.define(version: 2021_02_04_141807) do
     t.index ["cas_client_id"], name: "index_cas_non_hmis_client_histories_on_cas_client_id"
   end
 
+  create_table "cas_programs_to_projects", force: :cascade do |t|
+    t.bigint "program_id"
+    t.bigint "project_id"
+    t.index ["program_id"], name: "index_cas_programs_to_projects_on_program_id"
+    t.index ["project_id"], name: "index_cas_programs_to_projects_on_project_id"
+  end
+
+  create_table "cas_referral_events", force: :cascade do |t|
+    t.bigint "cas_client_id"
+    t.bigint "hmis_client_id"
+    t.bigint "program_id"
+    t.bigint "client_opportunity_match_id"
+    t.date "referral_date"
+    t.integer "referral_result"
+    t.date "referral_result_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cas_client_id"], name: "index_cas_referral_events_on_cas_client_id"
+    t.index ["client_opportunity_match_id"], name: "index_cas_referral_events_on_client_opportunity_match_id"
+    t.index ["hmis_client_id"], name: "index_cas_referral_events_on_hmis_client_id"
+    t.index ["program_id"], name: "index_cas_referral_events_on_program_id"
+  end
+
   create_table "cas_reports", id: :serial, force: :cascade do |t|
     t.integer "client_id", null: false
     t.integer "match_id", null: false
@@ -1821,6 +1844,7 @@ ActiveRecord::Schema.define(version: 2021_02_04_141807) do
     t.boolean "pf_show_additional_timeliness", default: false, null: false
     t.integer "cas_sync_months", default: 3
     t.boolean "send_sms_for_covid_reminders", default: false, null: false
+    t.integer "bypass_2fa_duration", default: 0, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|
@@ -5365,56 +5389,6 @@ ActiveRecord::Schema.define(version: 2021_02_04_141807) do
     t.index ["user_id"], name: "index_project_scorecard_reports_on_user_id"
   end
 
-  create_table "public_report_reports", force: :cascade do |t|
-    t.bigint "user_id"
-    t.string "type"
-    t.date "start_date"
-    t.date "end_date"
-    t.jsonb "filter"
-    t.string "state"
-    t.text "html"
-    t.string "published_url"
-    t.string "embed_code"
-    t.datetime "started_at"
-    t.datetime "completed_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "deleted_at"
-    t.index ["created_at"], name: "index_public_report_reports_on_created_at"
-    t.index ["updated_at"], name: "index_public_report_reports_on_updated_at"
-    t.index ["user_id"], name: "index_public_report_reports_on_user_id"
-  end
-
-  create_table "public_report_settings", force: :cascade do |t|
-    t.string "s3_region"
-    t.string "s3_bucket"
-    t.string "s3_prefix"
-    t.string "encrypted_s3_access_key_id"
-    t.string "encrypted_s3_access_key_id_iv"
-    t.string "encrypted_s3_secret"
-    t.string "encrypted_s3_secret_iv"
-    t.string "color_0"
-    t.string "color_1"
-    t.string "color_2"
-    t.string "color_3"
-    t.string "color_4"
-    t.string "color_5"
-    t.string "color_6"
-    t.string "color_7"
-    t.string "color_8"
-    t.string "color_9"
-    t.string "color_10"
-    t.string "color_11"
-    t.string "color_12"
-    t.string "color_13"
-    t.string "color_14"
-    t.string "color_15"
-    t.string "color_16"
-    t.string "font_url"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
     t.string "EnrollmentID", limit: 50
     t.string "PersonalID"
@@ -8912,4 +8886,11 @@ ActiveRecord::Schema.define(version: 2021_02_04_141807) do
       service_history_services.literally_homeless
      FROM service_history_services;
   SQL
+  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
+  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
+  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
+
 end

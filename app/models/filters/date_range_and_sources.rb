@@ -21,6 +21,9 @@ module Filters
     attribute :end_age, Integer, default: 25
     attribute :ph, Boolean, default: false
     attribute :project_type_codes, Array, default: []
+    attribute :gender, Integer, default: nil
+    attribute :race, String, default: nil
+    attribute :ethnicity, Integer, default: nil
 
     validates_presence_of :start, :end
 
@@ -34,6 +37,11 @@ module Filters
         sub_population,
         start_age,
         end_age,
+        ph,
+        project_type_codes,
+        gender,
+        race,
+        ethnicity,
       ]
     end
 

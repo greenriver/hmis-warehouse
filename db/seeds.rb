@@ -9,12 +9,12 @@ def setup_fake_user
 
     # Add a user.  This should not be added in production
     unless Rails.env =~ /production|staging/
-      inital_password = Faker::Internet.password(min_length: 16)
+      initial_password = Faker::Internet.password(min_length: 16)
       user = User.new
       user.email = 'noreply@example.com'
       user.first_name = "Sample"
       user.last_name = 'Admin'
-      user.password = user.password_confirmation = inital_password
+      user.password = user.password_confirmation = initial_password
       user.confirmed_at = Time.now
       user.roles = [admin, dnd_staff]
       user.save!
