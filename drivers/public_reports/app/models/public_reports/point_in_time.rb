@@ -16,8 +16,13 @@ module PublicReports
       public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'))
     end
 
+    def publish_to_url
+      'FIXME'
+    end
+
     def run_and_save!
       start_report
+
       complete_report
     end
 

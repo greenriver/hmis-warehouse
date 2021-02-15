@@ -1,7 +1,7 @@
 - if @reports.exists?
   %p= paginate @reports
-  .card
-    %table.table.table-striped.mb-0
+  .card.warehouse-reports__completed
+    %table.table.table-striped.mb-0.table-responsive
       %thead
         %tr
           %th Status
@@ -11,9 +11,13 @@
       %tbody
         - @reports.each do |report|
           %tr
-            %td= report.status
+            %td
+              - if report.published?
+                = link_to report.status, public_reports_warehouse_reports_point_in_time_path(report)
+              - else
+                = link_to_if report.completed?, report.status, edit_public_reports_warehouse_reports_point_in_time_path(report)
             %td.text-center= yes_no(report.published?)
-            %td= report.filter
+            %td.report-parameters.parameter-label= report.filter_object.describe_filter_as_html
             %td= report&.user&.name
 - else
   %p

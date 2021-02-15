@@ -8,7 +8,7 @@ module PublicReports::WarehouseReports
   class PointInTimeController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
-    before_action :set_report, only: [:show, :destroy, :update, :edit]
+    before_action :set_report, only: [:show, :destroy, :update, :edit, :raw]
 
     def index
       @report = report_source.new
@@ -34,7 +34,16 @@ module PublicReports::WarehouseReports
       respond_with(@report, location: public_reports_warehouse_reports_point_in_time_index_path)
     end
 
+    def raw
+      render(layout: false)
+    end
+
     def show
+      redirect_to action: :edit unless @report.published?
+    end
+
+    def edit
+      redirect_to action: :show if @report.published?
     end
 
     def destroy

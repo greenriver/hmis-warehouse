@@ -9,6 +9,9 @@ module Filters
   class FilterBase < ::ModelForm
     include AvailableSubPopulations
     include ArelHelper
+    include ApplicationHelper
+    include ActionView::Helpers::TagHelper
+    include ActionView::Context
 
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
@@ -494,15 +497,35 @@ module Filters
       GrdaWarehouse::Hud::Project::PROJECT_TYPES_WITH_INVENTORY
     end
 
+    def describe_filter_as_html
+      describe_filter.map do |(k, v)|
+        content_tag(:div, class: 'report-parameters__parameter') do
+          label = content_tag(:label, k, class: 'label label-default parameter-label')
+          if v.is_a?(Array)
+            count = v.count
+            v = v.first(5)
+            v << "#{count - 5} more" if count > 5
+            v = v.to_sentence
+          end
+          label.concat(content_tag(:label, v, class: 'label label-primary parameter-value'))
+        end
+      end.join.html_safe
+    end
+
     def describe_filter
-      html = []
-      for_params[:filters].each_key do |key|
-        html << describe(key)
+      [].tap do |descriptions|
+        for_params[:filters].each_key do |key|
+          descriptions << describe(key)
+        end
       end.compact
     end
 
-    def describe(key, value = nil)
+    def describe(key, value = chosen(key))
       title = case key
+      when :start
+        'Report Range'
+      when :end
+        nil
       when :project_type_codes, :project_type_ids, :project_type_numbers
         'Project Type'
       when :sub_population
@@ -539,16 +562,21 @@ module Filters
         'Indefinite Disability'
       when :dv_status
         'DV Status'
+      when :heads_of_household
+        'Heads of Household Only?'
       end
 
-      value ||= chosen(key)
       return unless value.present?
 
-      "#{title}: #{value}"
+      [title, value]
     end
 
     def chosen(key)
       case key
+      when :start
+        date_range_words
+      when :end
+        nil
       when :project_type_codes, :project_type_ids, :project_type_numbers
         chosen_project_types
       when :sub_population
@@ -585,6 +613,8 @@ module Filters
         chosen_indefinite_disabilities
       when :dv_status
         chosen_dv_status
+      when :heads_of_household
+        yes_no(heads_of_household)
       end
     end
 
@@ -661,10 +691,12 @@ module Filters
     end
 
     def chosen_household_type
-      household_type_string(household_type.to_sym)
+      household_type_string(household_type&.to_sym)
     end
 
     def household_type_string(type)
+      return unless type
+
       available_household_types.invert[type] || 'Unknown'
     end
 

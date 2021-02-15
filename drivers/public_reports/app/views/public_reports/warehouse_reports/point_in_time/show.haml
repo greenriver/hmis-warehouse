@@ -1,0 +1,12 @@
+- title = 'Point-in-Time Report'
+- content_for :title, title
+= render 'breadcrumbs'
+%h1.mb-5= title
+
+.well.warehouse-reports__completed
+  %p This report was published on #{@report.published_at.to_date} with the following limits.
+  .report-parameters.parameter-label= @report.filter_object.describe_filter_as_html
+  %p The report is publically available at #{@report.published_url} and can be embedded using the following code.
+  %code= @report.embed_code
+
+= render 'report'
