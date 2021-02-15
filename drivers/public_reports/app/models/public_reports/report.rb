@@ -6,6 +6,7 @@
 
 module PublicReports
   class Report < GrdaWarehouseBase
+    include Rails.application.routes.url_helpers
     belongs_to :user
     scope :viewable_by, ->(user) do
       return current_scope if user.can_view_all_reports?
@@ -32,7 +33,7 @@ module PublicReports
     end
 
     def filter_object
-      @filter_object ||= ::Filters::FilterBase.new.set_from_params(filter.with_indifferent_access)
+      @filter_object ||= ::Filters::FilterBase.new.set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
     end
 
     def published?

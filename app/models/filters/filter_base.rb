@@ -71,7 +71,9 @@ module Filters
 
       self.start = filters.dig(:start)&.to_date || default_start
       self.end = filters.dig(:end)&.to_date || default_end
-      self.enforce_one_year_range = filters.dig(:enforce_one_year_range).in?(['1', 'true', true])
+      # Allow multi-year filters if we explicitly passed in something that isn't truthy
+      enforce_range = filters.dig(:enforce_one_year_range)
+      self.enforce_one_year_range = enforce_range.in?(['1', 'true', true]) unless enforce_range.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes.include?(code) }
       self.coc_code = filters.dig(:coc_code) if available_coc_codes.include?(filters.dig(:coc_code))

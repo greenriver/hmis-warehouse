@@ -64,7 +64,7 @@ module PublicReports::WarehouseReports
           },
         }
       end
-      options[:enforce_one_year_range] = false
+      options[:filters][:enforce_one_year_range] = false
       options
     end
     helper_method :filter_params
