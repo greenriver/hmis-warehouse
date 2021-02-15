@@ -859,6 +859,7 @@ DEPENDENCIES
   ffi-geos
   fixpoints!
   flamegraph
+  get_process_mem
   gettext (>= 3.0.2)
   gettext_i18n_rails
   gmail
@@ -956,4 +957,4 @@ DEPENDENCIES
   with_advisory_lock
 
 BUNDLED WITH
-   2.2.5
+   2.2.6
