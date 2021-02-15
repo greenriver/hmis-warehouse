@@ -5,6 +5,7 @@
 ###
 
 class ReportingBase < ActiveRecord::Base
+  include ArelHelper
   establish_connection DB_REPORTING
   self.abstract_class = true
 
