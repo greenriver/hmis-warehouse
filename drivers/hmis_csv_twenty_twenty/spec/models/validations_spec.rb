@@ -173,7 +173,7 @@ RSpec.describe 'Validate import files', type: :model do
   it 'includes expected enrollments validations' do
     aggregate_failures 'validating' do
       expect(HmisCsvValidation::InclusionInSet.where(source_type: 'HmisCsvTwentyTwenty::Loader::Enrollment').count).to eq(4)
-      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Enrollment').count).to eq(4)
+      expect(HmisCsvValidation::NonBlankValidation.where(source_type: 'HmisCsvTwentyTwenty::Loader::Enrollment').count).to eq(2)
     end
   end
 
