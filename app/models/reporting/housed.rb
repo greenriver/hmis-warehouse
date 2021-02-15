@@ -258,6 +258,7 @@ module Reporting
 
     def populate!
       cache_client = GrdaWarehouse::Hud::Client.new
+      remove_no_longer_used
       client_ids.each_slice(1_000) do |client_id_batch|
         client_race_scope_limit = GrdaWarehouse::Hud::Client.where(id: client_id_batch)
 
@@ -291,6 +292,13 @@ module Reporting
           self.class.import(headers, data.map(&:values))
         end
       end
+    end
+
+    # Remove any we aren't going to cleanup in batches
+    def remove_no_longer_used
+      # Note we're plucking this to avoid having a massive where not in
+      unused_client_ids = self.class.distinct.pluck(:client_id) - client_ids
+      self.class.where(client_id: unused_client_ids).delete_all
     end
 
     def two_project_ids
@@ -584,7 +592,7 @@ module Reporting
     end
 
     def client_ids
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+      @client_ids ||= GrdaWarehouse::ServiceHistoryEnrollment.entry.
         open_between(start_date: lookback_date, end_date: Date.current).
         joins(:project).
         merge(GrdaWarehouse::Hud::Project.ph.
