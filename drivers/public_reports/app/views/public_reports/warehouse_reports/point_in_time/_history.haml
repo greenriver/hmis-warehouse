@@ -12,7 +12,7 @@
         - @reports.each do |report|
           %tr
             %td= report.status
-            %td= report.published?
+            %td.text-center= yes_no(report.published?)
             %td= report.filter
             %td= report&.user&.name
 - else

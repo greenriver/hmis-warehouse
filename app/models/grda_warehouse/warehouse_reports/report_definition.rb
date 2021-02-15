@@ -903,6 +903,7 @@ module GrdaWarehouse::WarehouseReports
           name: 'Public Point-in-Time Report Generator',
           description: 'Use this to review and publish Point-in-Time charts for public consumption.',
           limitable: false,
+          health: false,
         }
       end
       if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
