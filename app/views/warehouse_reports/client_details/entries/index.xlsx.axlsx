@@ -12,7 +12,8 @@ wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboar
     'Organization',
     'Project Type',
     'Group',
-  ], :style => title)
+    'Ethnicity',
+  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m) }, style: title)
   @buckets.each do |group, clients|
     section = @data[group][:label]
     clients.each do |client_id|
@@ -29,7 +30,8 @@ wb.add_worksheet(name: "Entry Detail #{GrdaWarehouse::WarehouseReports::Dashboar
           enrollment[:organization_name],
           HUD.project_type(enrollment[:project_type]),
           section,
-        ]
+          HUD.ethnicity(enrollment[:ethnicity]),
+        ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_missing(enrollment[m.to_sym]) }
         sheet.add_row(row)
       end
     end

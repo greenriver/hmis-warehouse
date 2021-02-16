@@ -89,7 +89,8 @@ module WarehouseReports::ClientDetails
         first_name: c_t[:FirstName].as('first_name'),
         last_name: c_t[:LastName].as('last_name'),
         organization_name: o_t[:OrganizationName].as('organization_name'),
-      }
+        ethnicity: c_t[:Ethnicity].as('ethnicity'),
+      }.merge(GrdaWarehouse::Hud::Client.race_fields.map { |f| [f.to_sym, c_t[f].as(f.to_s)] }.to_h)
     end
 
     def setup_data_structure

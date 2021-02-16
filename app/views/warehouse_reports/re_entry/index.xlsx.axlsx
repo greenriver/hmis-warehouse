@@ -14,13 +14,14 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
       'Days Since Previous Exit',
       'Previous Project Type',
       'Previous Destination',
-    ],
-    :style => title
+      'Ethnicity',
+    ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m) },
+    style: title,
   )
   @enrollments.each do |enrollment|
     client = enrollment.client
     re_entry = @re_entries[enrollment.id]
-    sheet.add_row [
+    sheet.add_row([
       client.id,
       client.FirstName,
       client.LastName,
@@ -32,6 +33,7 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
       re_entry.days_since_last_exit,
       HUD.project_type(re_entry.prior_exit_project_type),
       HUD.destination(re_entry.prior_exit_destination_id),
-    ]
+      ::HUD.ethnicity(client.Ethnicity),
+    ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| ::HUD.no_yes_missing(m) })
   end
 end

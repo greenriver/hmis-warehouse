@@ -14,9 +14,8 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
     'Enrollment ID',
     'Living Situation',
     'Destination',
-    'Race',
     'Ethnicity',
-  ], :style => title)
+  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m) }, style: title)
   @enrollments.each do |client_id, enrollments|
     enrollments.each do |enrollment|
       length_of_stay = if enrollment[:last_date_in_program]
@@ -24,10 +23,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
       else
         Date.current - enrollment[:first_date_in_program]
       end
-      race = @clients[client_id].source_clients.map(&:race_fields)&.flatten&.uniq&.sort&.join('; ')
-      ethnicity = @clients[client_id].source_clients.map(&:Ethnicity)&.select{|v| v.in?([0,1])}&.map do |v|
-        ::HUD.ethnicity(v)
-      end.uniq&.sort&.join('; ')
+
       row = [
         client_id,
         enrollment[:first_name],
@@ -40,9 +36,8 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
         enrollment[:enrollment_group_id],
         HUD.living_situation(enrollment[:living_situation]),
         HUD.destination(enrollment[:destination]),
-        race,
-        ethnicity,
-      ]
+        HUD.ethnicity(enrollment[:ethnicity]),
+      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_missing(enrollment[m.to_sym]) }
       sheet.add_row(row)
     end
   end
