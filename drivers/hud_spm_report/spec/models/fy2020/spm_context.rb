@@ -29,9 +29,8 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
 
   def shared_filter
     {
-      start: Date.parse('2020-01-01'),
-      end: Date.parse('2020-12-31'),
-      coc_codes: ['XX-500'],
+      start: Date.parse('2016-1-1'),
+      end: Date.parse('2019-10-01'),
       user_id: @user.id,
     }.freeze
   end
@@ -46,40 +45,50 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     # puts "Running #{filter} for #{question_number}"
 
     klass = HudSpmReport::Generators::Fy2020::Generator
-    klass.new(
+    @generator = klass.new(
       ::HudReports::ReportInstance.from_filter(
         filter,
         klass.title,
         build_for_questions: [question_number],
       ),
-    ).run!
+    )
+    @generator.run!
   end
 
   def report_result
     ::HudReports::ReportInstance.last
   end
 
-  def setup(_file_path)
-    # @delete_later = []
-    # GrdaWarehouse::Utility.clear!
-    # @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
-    # GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
-    # import(file_path, @data_source)
-    # GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-    # GrdaWarehouse::Tasks::ProjectCleanup.new.run!
-    # GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
+  def setup(file_path)
+    @delete_later = []
+    @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
+    GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
+    import(file_path, @data_source)
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
+    GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
+    AccessGroup.maintain_system_groups
 
-    # Delayed::Worker.new.work_off(2)
+    Delayed::Worker.new.work_off(2)
   end
 
-  # def import(file_path, data_source)
-  #   source_file_path = File.join(file_path, 'source')
-  #   import_path = File.join(file_path, data_source.id.to_s)
-  #   # duplicate the fixture file as it gets manipulated
-  #   FileUtils.cp_r(source_file_path, import_path)
-  #   @delete_later << import_path unless import_path == source_file_path
+  def import(file_path, data_source)
+    # relative to our own spec fixture files
+    file_path = Rails.root.join('drivers/hud_spm_report/spec/fixtures/files', file_path)
+    source_file_path = File.join(file_path, 'source')
+    puts source_file_path
+    import_path = File.join(file_path, data_source.id.to_s)
+    # duplicate the fixture file as it gets manipulated
+    FileUtils.cp_r(source_file_path, import_path)
+    @delete_later << import_path unless import_path == source_file_path
 
-  #   importer = Importers::HmisTwentyTwenty::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
-  #   importer.import!
-  # end
+    importer = Importers::HmisTwentyTwenty::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
+    importer.import!
+  end
+
+  def cleanup_files
+    @delete_later.each do |path|
+      FileUtils.rm_rf(path)
+    end
+  end
 end
