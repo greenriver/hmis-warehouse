@@ -28,6 +28,11 @@ RSpec.shared_context 'apr context', shared_context: :metadata do
     HudApr::Filters::AprFilter.new(shared_filter.merge(project_ids: [project_id]))
   end
 
+  def ph
+    project_id = GrdaWarehouse::Hud::Project.find_by(ProjectID: 'DEFAULT-PH').id
+    HudApr::Filters::AprFilter.new(shared_filter.merge(project_ids: [project_id]))
+  end
+
   def run(filter, question_name)
     generator = HudApr::Generators::Apr::Fy2020::Generator
     generator.new(::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: [question_name])).run!(email: false)
