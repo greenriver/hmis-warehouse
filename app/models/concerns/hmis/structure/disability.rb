@@ -91,7 +91,7 @@ module HMIS::Structure::Disability
             limit: 32,
             null: false,
           },
-        }
+        }.freeze
       end
     end
 
@@ -103,7 +103,7 @@ module HMIS::Structure::Disability
         [:PersonalID] => nil,
         [:DisabilitiesID] => nil,
         [:ExportID] => nil,
-      }
+      }.freeze
     end
   end
 end

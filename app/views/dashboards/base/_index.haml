@@ -28,7 +28,7 @@
 -# From exit.haml
 = content_for :page_js do
   - if can_see_client_details?
-    - support_link = "#{warehouse_reports_client_details_exits_path(filter: { start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, ph: 'true', coc_codes: @coc_codes })}"
+    - support_link = "#{warehouse_reports_client_details_exits_path(filter: support_filter.merge({ start: 'START_DATE', end: 'END_DATE', ph: 'true' }))}"
   :javascript
     var support_link = '#{support_link}'
 
@@ -37,8 +37,8 @@
 -# From entry.haml
 = content_for :page_js do
   - if can_see_client_details?
-    - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], filter: { start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, coc_codes: @coc_codes })}"
-    - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], filter: { start: 'START_DATE', end: 'END_DATE', project_ids: @project_ids, organization_ids: @organization_ids, sub_population: @report.sub_population, project_type_codes: @project_type_codes, age_ranges: @age_ranges, heads_of_household: @heads_of_household, coc_codes: @coc_codes })}"
+    - entry_support_link = "#{polymorphic_path([:warehouse_reports, :first_time_homeless_index], filter:  support_filter.merge({start: 'START_DATE', end: 'END_DATE'}))}"
+    - re_entry_support_link = "#{polymorphic_path([:warehouse_reports, :re_entry, :index], filter:  support_filter.merge({start: 'START_DATE', end: 'END_DATE'}))}"
   :javascript
     var entry_support_link = '#{entry_support_link}'
 

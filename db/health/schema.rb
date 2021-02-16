@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_04_052544) do
+ActiveRecord::Schema.define(version: 2021_02_12_151557) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -423,7 +423,6 @@ ActiveRecord::Schema.define(version: 2021_02_04_052544) do
     t.string "ind_mco_aco_cvd_svc", limit: 50
     t.index ["aco_name"], name: "index_claims_reporting_medical_claims_on_aco_name"
     t.index ["aco_pidsl"], name: "index_claims_reporting_medical_claims_on_aco_pidsl"
-    t.index ["ccs_id"], name: "claims_reporting_medical_claims_ccs_id_idx"
     t.index ["member_id", "claim_number", "line_number"], name: "unk_cr_medical_claim", unique: true
     t.index ["member_id", "service_start_date"], name: "idx_crmc_member_service_start_date"
     t.index ["service_start_date"], name: "index_claims_reporting_medical_claims_on_service_start_date"
@@ -1002,7 +1001,6 @@ ActiveRecord::Schema.define(version: 2021_02_04_052544) do
     t.integer "data_source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["patient_id"], name: "index_epic_case_notes_on_patient_id"
   end
 
   create_table "epic_chas", id: :serial, force: :cascade do |t|
@@ -1046,7 +1044,6 @@ ActiveRecord::Schema.define(version: 2021_02_04_052544) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "data_source_id", default: 6, null: false
-    t.index ["patient_id"], name: "index_epic_goals_on_patient_id"
   end
 
   create_table "epic_housing_statuses", force: :cascade do |t|
@@ -1084,6 +1081,7 @@ ActiveRecord::Schema.define(version: 2021_02_04_052544) do
     t.integer "data_source_id", default: 6, null: false
     t.datetime "deleted_at"
     t.date "death_date"
+    t.index ["deleted_at"], name: "index_epic_patients_on_deleted_at"
   end
 
   create_table "epic_qualifying_activities", id: :serial, force: :cascade do |t|
@@ -1157,6 +1155,7 @@ ActiveRecord::Schema.define(version: 2021_02_04_052544) do
     t.string "name"
     t.float "size"
     t.integer "parent_id"
+    t.index ["deleted_at"], name: "index_health_files_on_deleted_at"
     t.index ["type"], name: "index_health_files_on_type"
   end
 
@@ -1580,6 +1579,8 @@ ActiveRecord::Schema.define(version: 2021_02_04_052544) do
     t.boolean "derived_referral", default: false
     t.datetime "deleted_at"
     t.string "change_description"
+    t.index ["contributing"], name: "index_patient_referrals_on_contributing"
+    t.index ["deleted_at"], name: "index_patient_referrals_on_deleted_at"
   end
 
   create_table "patients", id: :serial, force: :cascade do |t|
@@ -1618,6 +1619,7 @@ ActiveRecord::Schema.define(version: 2021_02_04_052544) do
     t.boolean "invalid_id", default: false
     t.bigint "nurse_care_manager_id"
     t.index ["client_id"], name: "patients_client_id_constraint", unique: true, where: "(deleted_at IS NULL)"
+    t.index ["deleted_at"], name: "index_patients_on_deleted_at"
     t.index ["medicaid_id"], name: "index_patients_on_medicaid_id"
     t.index ["nurse_care_manager_id"], name: "index_patients_on_nurse_care_manager_id"
   end
