@@ -533,6 +533,7 @@ module GrdaWarehouse::Hud
     end
 
     # Race & Ethnicity scopes
+    # Return destination client where any source clients meet the requirement
     scope :race_am_ind_ak_native, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
