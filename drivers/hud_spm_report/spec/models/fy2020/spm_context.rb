@@ -76,7 +76,6 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     # relative to our own spec fixture files
     file_path = Rails.root.join('drivers/hud_spm_report/spec/fixtures/files', file_path)
     source_file_path = File.join(file_path, 'source')
-    puts source_file_path
     import_path = File.join(file_path, data_source.id.to_s)
     # duplicate the fixture file as it gets manipulated
     FileUtils.cp_r(source_file_path, import_path)

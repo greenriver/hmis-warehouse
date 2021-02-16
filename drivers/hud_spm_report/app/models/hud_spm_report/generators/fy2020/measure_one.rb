@@ -12,18 +12,21 @@ module HudSpmReport::Generators::Fy2020
 
     TABLE_NUMBERS = ['1a', '1b'].freeze
     COLS = {
-      'B' => 'Previous FY Universe (Persons)',
+      'B' => 'Previous FY Universe (Persons)', # optional
       'C' => 'Current FY Universe (Persons)',
-      'D' => 'Previous FY Average LOT Homeless',
+      'D' => 'Previous FY Average LOT Homeless', # optional
       'E' => 'Current FY Average LOT Homeless',
-      'F' => 'Difference',
-      'G' => 'Previous FY Median LOT Homeless',
+      'F' => 'Difference', # optional
+      'G' => 'Previous FY Median LOT Homeless', # optional
       'H' => 'Current FY Median LOT Homeless',
-      'I' => 'Difference',
+      'I' => 'Difference', # optional
     }.freeze
 
     def run_question!
       @report.start(self.class.question_number, TABLE_NUMBERS)
+
+      add_clients
+
       TABLE_NUMBERS.each do |table|
         msg = "run_#{table}"
         logger.debug msg
@@ -51,6 +54,7 @@ module HudSpmReport::Generators::Fy2020
 
     private def run_1a
       table_name = '1a'
+
       prepare_table table_name, {
         2 => 'Persons in ES and SH',
         3 => 'Persons in ES, SH, and TH',
