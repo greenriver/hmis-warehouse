@@ -53,7 +53,6 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
         build_for_questions: [question_number],
       ),
     ).run!
-    @result = ::HudReports::ReportInstance.last
   end
 
   def report_result
