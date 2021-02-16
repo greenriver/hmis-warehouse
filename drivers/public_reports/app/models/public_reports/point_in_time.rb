@@ -20,13 +20,17 @@ module PublicReports
       public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'))
     end
 
-    def publish_to_url
-      'FIXME'
+    def generate_publish_url
+      'example.com/FIXME'
+    end
+
+    def generate_embed_code
+      '<div>FIXME</div>'
     end
 
     def run_and_save!
       start_report
-
+      # TODO: should we store an intermediate result here?
       complete_report
     end
 
@@ -50,7 +54,6 @@ module PublicReports
         d = Date.new(year, 1, -1)
         d -= (d.wday - 3) % 7
         dates << d
-        puts d
         year += 1
       end
       dates.select { |date| date.between?(filter_object.start, filter_object.end) }
@@ -66,11 +69,11 @@ module PublicReports
     end
 
     private def start_report
-      update(started_at: Time.current)
+      update(started_at: Time.current, state: :started)
     end
 
     private def complete_report
-      update(completed_at: Time.current)
+      update(completed_at: Time.current, state: 'pre-computed')
     end
   end
 end

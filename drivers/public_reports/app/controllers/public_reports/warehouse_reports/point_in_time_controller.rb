@@ -34,6 +34,15 @@ module PublicReports::WarehouseReports
       respond_with(@report, location: public_reports_warehouse_reports_point_in_time_index_path)
     end
 
+    def update
+      if params.dig(:public_reports_point_in_time, :published_url).present?
+        @report.publish!(render_to_string(:raw, layout: false))
+        respond_with(@report, location: public_reports_warehouse_reports_point_in_time_path(@report))
+      else
+        redirect_to(action: :edit)
+      end
+    end
+
     def raw
       params[:pp] = 'disabled' # disable rack-mini-profiler
       render(layout: false)

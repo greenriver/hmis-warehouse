@@ -46,11 +46,22 @@ module PublicReports
       updated_at
     end
 
-    def publish!
+    def publish!(content)
       # This should:
       # 1. Take the contents of html and push it up to S3
       # 2. Populate the published_url field
       # 3. Populate the embed_code field
+      update(
+        html: content,
+        published_url: generate_publish_url,
+        embed_code: generate_embed_code,
+        state: :published,
+      )
+      push_to_s3
+    end
+
+    private def push_to_s3
+      'TODO'
     end
 
     def font_path
