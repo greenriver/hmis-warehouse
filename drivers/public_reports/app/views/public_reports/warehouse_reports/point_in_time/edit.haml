@@ -1,4 +1,4 @@
-- title = 'Edit Point-in-Time Report'
+- title = "Edit #{@report.instance_title}"
 - content_for :title, title
 = render 'breadcrumbs'
 %h1.mb-5= title
@@ -11,6 +11,6 @@
   .text-right
     = simple_form_for(@report, url: public_reports_warehouse_reports_point_in_time_path) do |f|
       = f.input :published_url, as: :hidden, input_html: { value: @report.generate_publish_url }
-      = f.submit 'Publish'
+      = f.submit 'Publish', data: { confirm: @report.publish_warning }
 .well
   %iframe{src: raw_public_reports_warehouse_reports_point_in_time_path(@report), width: '100%', height: 400, frameBorder: 0}

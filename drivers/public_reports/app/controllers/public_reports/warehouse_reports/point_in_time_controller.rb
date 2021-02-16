@@ -13,7 +13,7 @@ module PublicReports::WarehouseReports
     def index
       @report = report_source.new
       @filter = filter_class.new(user_id: current_user.id).set_from_params(filter_params[:filters])
-      @reports = report_scope.order(id: :desc).page(params[:page]).per(25)
+      @reports = report_scope.diet.order(id: :desc).page(params[:page]).per(25)
     end
 
     def create
