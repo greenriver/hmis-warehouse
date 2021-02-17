@@ -299,8 +299,10 @@ module ClientController
       content_tag(:div) do
         content_tag(:div, org_name_for(source_client_id), class: :org) +
         content_tag(:div) do
-          'PersonalID: ' +
-          content_tag(:span, source_client_personal_id_from(source_client_id), class: :pid)
+          [
+            'PersonalID: ',
+            content_tag(:span, source_client_personal_id_from(source_client_id), class: :pid),
+          ].join.html_safe
         end +
         content_tag(:div, "Data source: #{ds_id}", class: :data_source_id) +
         content_tag(:div, "Source Client ID: #{source_client_id}", class: :source_client_id) +
