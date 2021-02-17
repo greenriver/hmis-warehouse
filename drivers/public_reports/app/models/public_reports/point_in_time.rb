@@ -43,10 +43,7 @@ module PublicReports
         x << date
         y << count
       end
-      [
-        x,
-        y,
-      ].to_json
+      [x, y].to_json
     end
 
     private def pre_calculate_data

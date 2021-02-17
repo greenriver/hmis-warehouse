@@ -105,7 +105,7 @@ module PublicReports::WarehouseReports
     end
 
     private def flash_interpolation_options
-      { resource_name: 'Public Report' }
+      { resource_name: 'Point-in-Time Report' }
     end
   end
 end

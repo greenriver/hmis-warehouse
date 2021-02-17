@@ -30,6 +30,14 @@ module PublicReports
       "Publishing this version of the #{instance_title} will remove any previously published version regardless of who published it.  The currently published version is from #{self.class.published.completed_at.to_date}.  Are you sure you want to un-publish the previous version and publish this version?"
     end
 
+    def settings
+      @settings ||= PublicReports::Setting.first_or_create
+    end
+
+    def chart_color_pattern
+      settings.color_pattern.to_json.html_safe
+    end
+
     def status
       if started_at.blank?
         "Queued at #{created_at}"
@@ -119,8 +127,19 @@ module PublicReports
     end
 
     def font_path
-      # TODO: use settings object
-      '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700'
+      settings.font_path
+    end
+
+    def font_family
+      settings.font_family
+    end
+
+    def font_size
+      settings.font_size
+    end
+
+    def font_weight
+      settings.font_weight
     end
   end
 end

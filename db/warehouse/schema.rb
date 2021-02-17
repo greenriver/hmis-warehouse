@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_16_125622) do
+ActiveRecord::Schema.define(version: 2021_02_17_202610) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -5438,6 +5438,18 @@ ActiveRecord::Schema.define(version: 2021_02_16_125622) do
     t.string "font_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "font_family_0"
+    t.string "font_family_1"
+    t.string "font_family_2"
+    t.string "font_family_3"
+    t.string "font_size_0"
+    t.string "font_size_1"
+    t.string "font_size_2"
+    t.string "font_size_3"
+    t.string "font_weight_0"
+    t.string "font_weight_1"
+    t.string "font_weight_2"
+    t.string "font_weight_3"
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|

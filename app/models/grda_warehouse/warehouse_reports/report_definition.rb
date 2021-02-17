@@ -905,6 +905,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: false,
           health: false,
         }
+        r_list['Public'] << {
+          url: 'public_reports/warehouse_reports/public_configs',
+          name: 'Public Report Configuration',
+          description: 'Settings for colors, fonts, etc. related to reports which can be published publicly.',
+          limitable: false,
+          health: false,
+        }
       end
       if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
         r_list['Population Dashboards'] << {
@@ -982,7 +989,10 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
-      cleanup << 'public_reports/warehouse_reports/point_in_time' unless RailsDrivers.loaded.include?(:public_reports)
+      unless RailsDrivers.loaded.include?(:public_reports)
+        cleanup << 'public_reports/warehouse_reports/point_in_time'
+        cleanup << 'public_reports/warehouse_reports/public_configs'
+      end
       cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
       cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
       cleanup << 'dashboards/child_only_households' unless RailsDrivers.loaded.include?(:child_only_households_sub_pop)

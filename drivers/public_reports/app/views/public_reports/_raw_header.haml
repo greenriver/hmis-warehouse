@@ -8,6 +8,17 @@
     = javascript_include_tag('https://d3js.org/d3.v5.min.js')
     = javascript_include_tag('https://cdnjs.cloudflare.com/ajax/libs/billboard.js/2.2.2/billboard.min.js')
     :css
+      body,
+      .bb-legend-item,
+      .bb svg {
+        font-family: '#{@report.font_family}', sans-serif;
+        font-style: normal;
+        font-weight: #{@report.font_weight};
+        font-size: #{@report.font_size};
+      }
+      .bb-legend-item {
+        font-size: 0.8rem;
+      }
       .completed-at {
         font-size: 0.75rem;
         color: #8D8D8D;

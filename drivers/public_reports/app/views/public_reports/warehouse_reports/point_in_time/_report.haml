@@ -4,16 +4,23 @@
   var chart = bb.generate({
     data: {
       x: 'x',
-      columns: #{@report.precalculated_data&.html_safe}
+      columns: #{@report.precalculated_data&.html_safe},
+      type: 'line'
     },
     bind_to: '.pit-chart',
-    type: 'line',
     axis: {
       x: {
         type: 'timeseries',
         tick: {
           format: '%b. %Y'
+        },
+        padding: {
+          right: 1000*60*60*24*60, // Two months padding to accomodate the tick label
+          left: 1000*60*60*24*60 // Two months padding to accomodate the tick label
         }
       }
     },
+    color: {
+      pattern: #{@report.chart_color_pattern}
+    }
   });
