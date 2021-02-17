@@ -22,7 +22,7 @@ module WarehouseReports
           first_service_history: [:organization, :project],
           source_clients: :data_source,
         ).distinct.
-        select(:id, :FirstName, :LastName, she_t[:date], :VeteranStatus, :DOB).
+        select(:id, :FirstName, :LastName, she_t[:date], :VeteranStatus, :DOB, :Ethnicity, *GrdaWarehouse::Hud::Client.race_fields).
         order(she_t[:date], :LastName, :FirstName)
 
       respond_to do |format|
