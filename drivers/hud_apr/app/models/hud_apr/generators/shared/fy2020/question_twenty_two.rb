@@ -137,7 +137,7 @@ module HudApr::Generators::Shared::Fy2020
           members = universe.members.where(population_clause).
             where(
               a_t[:move_in_date].between(@report.start_date..@report.end_date).
-              or(leavers_clause),
+              or(leavers_clause.and(a_t[:move_in_date].eq(nil))),
             )
 
           if length_clause.is_a?(Symbol)
