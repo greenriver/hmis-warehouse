@@ -15,7 +15,7 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
       'Previous Project Type',
       'Previous Destination',
       'Ethnicity',
-    ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m) },
+    ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') },
     style: title,
   )
   @enrollments.each do |enrollment|
@@ -34,6 +34,6 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
       HUD.project_type(re_entry.prior_exit_project_type),
       HUD.destination(re_entry.prior_exit_destination_id),
       ::HUD.ethnicity(client.Ethnicity),
-    ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| ::HUD.no_yes_missing(m) })
+    ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| ::HUD.no_yes_reasons_for_missing_data(m&.to_i) })
   end
 end

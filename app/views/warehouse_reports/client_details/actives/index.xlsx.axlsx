@@ -15,7 +15,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
     'Living Situation',
     'Destination',
     'Ethnicity',
-  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m) }, style: title)
+  ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') }, style: title)
   @enrollments.each do |client_id, enrollments|
     enrollments.each do |enrollment|
       length_of_stay = if enrollment[:last_date_in_program]
@@ -37,7 +37,7 @@ wb.add_worksheet(name: "Active #{GrdaWarehouse::WarehouseReports::Dashboard::Bas
         HUD.living_situation(enrollment[:living_situation]),
         HUD.destination(enrollment[:destination]),
         HUD.ethnicity(enrollment[:ethnicity]),
-      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_missing(enrollment[m.to_sym]) }
+      ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.no_yes_reasons_for_missing_data(enrollment[m.to_sym]&.to_i) }
       sheet.add_row(row)
     end
   end
