@@ -10,8 +10,8 @@ module PublicReports
     attr_encrypted :s3_secret, key: ENV['ENCRYPTION_KEY'][0..31]
 
     def color_pattern
-      (0..16).to_a.map do |i|
-        send("color_#{i}").presence || default_colors[i % default_colors.count]
+      num_colors.map do |i|
+        color(i)
       end.compact
     end
 
@@ -28,6 +28,14 @@ module PublicReports
         '#4aea99',
         '#bbbbbb',
       ]
+    end
+
+    def color(number = 0)
+      self["color_#{number}"].presence || default_colors[number % default_colors.count]
+    end
+
+    def num_colors
+      (0..16).to_a
     end
 
     def font_path

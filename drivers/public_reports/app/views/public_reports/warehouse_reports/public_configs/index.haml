@@ -22,23 +22,8 @@
       = f.input :font_family_0, label: 'Font family', input_html: { value: @config.font_family }
       = f.input :font_size_0, label: 'Font size', input_html: { value: @config.font_size }
       = f.input :font_weight_0, label: 'Font weight', input_html: { value: @config.font_weight }
-      = f.input :color_0
-      = f.input :color_1
-      = f.input :color_2
-      = f.input :color_3
-      = f.input :color_4
-      = f.input :color_5
-      = f.input :color_6
-      = f.input :color_7
-      = f.input :color_8
-      = f.input :color_9
-      = f.input :color_10
-      = f.input :color_11
-      = f.input :color_12
-      = f.input :color_13
-      = f.input :color_14
-      = f.input :color_15
-      = f.input :color_16
+      - @config.num_colors.each do |i|
+        = f.input "color_#{i}", input_html: { value: @config.color(i)}
 
   - content_for :filter_actions do
     = f.submit 'Update Configuration', class: ['btn', 'btn-primary']
