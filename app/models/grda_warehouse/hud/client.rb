@@ -2166,11 +2166,11 @@ module GrdaWarehouse::Hud
 
     # those race fields which are marked as pertinent to the client
     def race_fields
-      self.class.race_fields.select{ |f| send(f).to_i == 1 }
+      self.class.race_fields.select { |f| send(f).to_i == 1 }
     end
 
     def race_description
-      race_fields.map{ |f| ::HUD::race f }.join ', '
+      race_fields.map { |f| ::HUD.race f }.join ', '
     end
 
     def ethnicity_description
@@ -2178,7 +2178,7 @@ module GrdaWarehouse::Hud
     end
 
     def cas_primary_race_code
-      race_text = ::HUD::race(race_fields.first)
+      race_text = ::HUD.race(race_fields.first)
       Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
     end
 
