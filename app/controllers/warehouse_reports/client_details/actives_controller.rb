@@ -60,7 +60,8 @@ module WarehouseReports::ClientDetails
         enrollment_group_id: she_t[:enrollment_group_id],
         destination: she_t[:destination],
         living_situation: e_t[:LivingSituation],
-      }
+        ethnicity: c_t[:Ethnicity],
+      }.merge(GrdaWarehouse::Hud::Client.race_fields.map { |f| [f.to_sym, c_t[f]] }.to_h)
     end
 
     def active_client_service_history
