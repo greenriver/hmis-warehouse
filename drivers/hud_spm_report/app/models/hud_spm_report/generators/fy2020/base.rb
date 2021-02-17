@@ -27,11 +27,14 @@ module HudSpmReport::Generators::Fy2020
     RRH = [13].freeze
     PH_PSH = [3, 9, 10].freeze
 
-    # private def universe
-    #   add_clients
-    #   # unless clients_populated?
-    #   #@universe ||= @report.universe(self.class.question_number)
-    # end
+    private def universe
+      add_clients unless clients_populated?
+      @universe ||= @report.universe(self.class.question_number)
+    end
+
+    private def clients_populated?
+      @report.report_cells.joins(universe_members: :spm_client).exists?
+    end
 
     private def add_clients
       @debug = true
@@ -42,25 +45,49 @@ module HudSpmReport::Generators::Fy2020
 
         # the enrollments scope does the preloads
         # so use those instances
-        enrollments_for_batch.group_by(
+        content_cols = [:dob, :first_name, :last_name, :m1a_es_sh_days, :m1a_es_sh_th_days, :m1b_es_sh_ph_days, :m1b_es_sh_th_ph_days]
+        pending_associations = enrollments_for_batch.group_by(
           &:client
-        ).each do |client, client_enrollments|
-          row = {
+        ).map do |client, client_enrollments|
+          report_client = report_client_universe.new(
             report_instance_id: @report.id,
             client_id: client.id,
             data_source_id: client.data_source_id,
             dob: client.DOB,
+            first_name: client.first_name,
+            last_name: client.last_name,
             m1a_es_sh_days: calculate_days_homeless(client_enrollments, ES + SH, PH + TH, false, true),
             m1a_es_sh_th_days: calculate_days_homeless(client_enrollments, ES + SH + TH, TH, false, true),
             m1b_es_sh_ph_days: calculate_days_homeless(client_enrollments, ES + SH + PH, TH + PH, true, true),
             m1b_es_sh_th_ph_days: calculate_days_homeless(client_enrollments, ES + SH + TH + PH, PH, true, true),
-            system_stayer: nil,
-            exited_in_days: nil,
-            pit_project_type: nil,
-          }
-          pp row
+            # system_stayer: nil,
+            # exited_in_days: nil,
+            # pit_project_type: nil,
+          )
+
+          [client, report_client]
+        end.to_h
+
+        # Import clients
+        report_client_universe.import(
+          pending_associations.values,
+          on_duplicate_key_update: {
+            conflict_target: [:client_id, :data_source_id, :report_instance_id],
+            columns: content_cols,
+          },
+        )
+        # TODO: verify import result
+
+        # Attach clients to relevant questions
+        @report.build_for_questions.each do |question_number|
+          universe_cell = @report.universe(question_number)
+          universe_cell.add_universe_members(pending_associations)
         end
       end
+    end
+
+    private def report_client_universe
+      HudSpmReport::Fy2020::SpmClient
     end
 
     private def enrollment_scope
@@ -284,6 +311,7 @@ module HudSpmReport::Generators::Fy2020
 
     private def literally_homeless?(_night)
       false
+      # TODO
       # # Literally HUD homeless
       # # Clients from ES, SO SH
       # es_so_sh_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.

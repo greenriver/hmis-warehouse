@@ -52,6 +52,24 @@ module HudSpmReport::Generators::Fy2020
       )
     end
 
+    # ['1a', 'A1', nil],
+    # ['1a', 'C2', 1, 'persons in ES and SH'],
+    # ['1a', 'E2', M1AE2_DAYS, 'mean LOT in ES and SH'],
+    # ['1a', 'H2', 0, 'median LOT in ES and SH'],
+
+    # ['1a', 'C3', 0, 'persons in ES, SH, and TH'],
+    # ['1a', 'E3', 0, 'mean LOT in ES, SH, and TH'],
+    # ['1a', 'H3', 0, 'median LOT in ES, SH, and TH'],
+
+    # ['1b', 'A1', nil],
+    # ['1b', 'C2', 1, 'persons in ES, SH, and PH'],
+    # ['1b', 'E2', M1BE2_DAYS, 'mean LOT in ES, SH, and PH'],
+    # ['1b', 'H2', 0, 'median LOT in ES, SH, and PH'],
+
+    # ['1b', 'C3', 0, 'persons in ES, SH, TH, and PH'],
+    # ['1b', 'E3', 0, 'mean LOT in ES, SH, TH, and PH'],
+    # ['1b', 'H3', 0, 'median LOT in ES, SH, TH, and PH'],
+
     private def run_1a
       table_name = '1a'
 
@@ -60,79 +78,15 @@ module HudSpmReport::Generators::Fy2020
         3 => 'Persons in ES, SH, and TH',
       }, COLS
 
+      t = HudSpmReport::Fy2020::SpmClient.arel_table
       [
         {
-          cell: 'B2',
-          clause: '1=0',
-        },
-        {
           cell: 'C2',
-          clause: '1=0',
-        },
-        {
-          cell: 'D2',
-          clause: '1=0',
-        },
-        {
-          cell: 'E2',
-          clause: '1=0',
-        },
-        {
-          cell: 'F2',
-          clause: '1=0',
-        },
-        {
-          cell: 'G2',
-          clause: '1=0',
-        },
-        {
-          cell: 'H2',
-          clause: '1=0',
-        },
-        {
-          cell: 'I2',
-          clause: '1=0',
-        },
-        {
-          cell: 'A3',
-          clause: '1=0',
-        },
-        {
-          cell: 'B3',
-          clause: '1=0',
-        },
-        {
-          cell: 'C3',
-          clause: '1=0',
-        },
-        {
-          cell: 'D3',
-          clause: '1=0',
-        },
-        {
-          cell: 'E3',
-          clause: '1=0',
-        },
-        {
-          cell: 'F3',
-          clause: '1=0',
-        },
-        {
-          cell: 'G3',
-          clause: '1=0',
-        },
-        {
-          cell: 'H3',
-          clause: '1=0',
-        },
-        {
-          cell: 'I3',
-          clause: '1=0',
+          clause: t[:m1a_es_sh_days].gt(0),
         },
       ].each do |cell|
         answer = @report.answer(question: table_name, cell: cell[:cell])
-        # members = universe.members.where(cell[:clause])
-        members = []
+        members = universe.members.where(cell[:clause])
         answer.add_members(members) if members.any?
         answer.update(summary: members.count)
       end
@@ -146,14 +100,13 @@ module HudSpmReport::Generators::Fy2020
       }
       prepare_table table_name, rows, COLS
 
-      COLS.each do |col, _clabel|
+      COLS.each do |_col, _clabel|
         rows.each do |row, _rlabel|
-          cell = "#{col}#{row}"
-          answer = @report.answer(question: table_name, cell: cell)
-          # members = universe.members.where(cell[:clause])
-          members = []
-          answer.add_members(members) if members.any?
-          answer.update(summary: members.count)
+          # cell_ref = "#{col}#{row}"
+          # answer = @report.answer(question: table_name, cell: cell_ref)
+          # members = []
+          # answer.add_members(members) if members.any?
+          # answer.update(summary: members.count)
         end
       end
     end
