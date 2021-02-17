@@ -81,16 +81,16 @@ module WarehouseReports::ClientDetails
 
     def entered_columns
       {
-        project_type: she_t[service_history_source.project_type_column].as('project_type'),
-        first_date_in_program: she_t[:first_date_in_program].as('first_date_in_program'),
-        last_date_in_program: she_t[:last_date_in_program].as('last_date_in_program'),
-        client_id: she_t[:client_id].as('client_id'),
-        project_name: she_t[:project_name].as('project_name'),
-        first_name: c_t[:FirstName].as('first_name'),
-        last_name: c_t[:LastName].as('last_name'),
-        organization_name: o_t[:OrganizationName].as('organization_name'),
-        ethnicity: c_t[:Ethnicity].as('ethnicity'),
-      }.merge(GrdaWarehouse::Hud::Client.race_fields.map { |f| [f.to_sym, c_t[f].as(f.to_s)] }.to_h)
+        project_type: she_t[service_history_source.project_type_column],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        client_id: she_t[:client_id],
+        project_name: she_t[:project_name],
+        first_name: c_t[:FirstName],
+        last_name: c_t[:LastName],
+        organization_name: o_t[:OrganizationName],
+        ethnicity: c_t[:Ethnicity],
+      }.merge(GrdaWarehouse::Hud::Client.race_fields.map { |f| [f.to_sym, c_t[f]] }.to_h)
     end
 
     def setup_data_structure
