@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# require 'get_process_mem'
 # Required concerns:
 #   HudReports::Ages
 #
@@ -35,16 +36,22 @@ module HudReports::Households
 
     private def households
       @households ||= {}.tap do |hh|
-        enrollment_scope.where(client_id: client_scope).find_each do |enrollment|
-          hh[enrollment.household_id] ||= []
-          hh[enrollment.household_id] << {
-            source_client_id: enrollment.enrollment.client.id,
-            dob: enrollment.enrollment.client.DOB,
-            veteran_status: enrollment.enrollment.client.VeteranStatus,
-            chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
-            relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
-          }.with_indifferent_access
-        end
+        enrollment_scope_without_preloads.preload(enrollment: :client).
+          where(client_id: client_scope).find_in_batches(batch_size: 250) do |batch|
+            # puts 'Household Batch: '
+            # puts GetProcessMem.new.inspect
+            batch.each do |enrollment|
+              hh[enrollment.household_id] ||= []
+              hh[enrollment.household_id] << {
+                source_client_id: enrollment.enrollment.client.id,
+                dob: enrollment.enrollment.client.DOB,
+                veteran_status: enrollment.enrollment.client.VeteranStatus,
+                chronic_status: enrollment.enrollment.chronically_homeless_at_start?,
+                relationship_to_hoh: enrollment.enrollment.RelationshipToHoH,
+              }.with_indifferent_access
+            end
+            GC.start
+          end
       end
     end
 

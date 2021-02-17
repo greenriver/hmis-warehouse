@@ -29,7 +29,7 @@ module HudApr::Generators::Shared::Fy2020
     end
 
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
-      @generator.client_scope.find_in_batches do |batch|
+      @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
 
         # Pre-calculate some values
@@ -269,11 +269,14 @@ module HudApr::Generators::Shared::Fy2020
           :exit,
         ],
       }
+      enrollment_scope_without_preloads.preload(preloads)
+    end
+
+    private def enrollment_scope_without_preloads
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
-        joins(:enrollment).
-        preload(preloads)
+        joins(:enrollment)
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
     end
