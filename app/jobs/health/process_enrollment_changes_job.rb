@@ -90,51 +90,58 @@ module Health
           disenrollment_date = Health::Enrollment.disenrollment_date(transaction)
           subscriber_id = Health::Enrollment.subscriber_id(transaction)
 
-          if disenrollment_date.present?
-            next if referral.nil? # This is a disenrollment, but we never enrolled this patient
-            next if referral.disenrolled? # This is a disenrollment, and the patient is already disenrolled
+          if disenrollment_date.present? && referral.nil?
+            # This is a disenrollment, but we don't have an enrollment
+            audit_actions[subscriber_id] = Health::Enrollment::DISENROLLMENT
+            referral = enroll_patient(transaction)
+            disenroll_patient(transaction, referral, file_date)
+            disenrolled_patients += 1
 
+          elsif disenrollment_date.present? && referral.disenrolled?
+            # This is a disenrollment, and the patient is already disenrolled
+            audit_actions[subscriber_id] = Health::Enrollment::DISENROLLMENT
+
+            if Health::Enrollment.enrollment_date(transaction) > referral.enrollment_start_date
+              # The audit is for an later enrollment than our current one, add it for consistency
+              referral = re_enroll_patient(referral, transaction)
+              disenroll_patient(transaction, referral, file_date)
+              disenrolled_patients += 1
+            end
+
+          elsif disenrollment_date.present?
             # This is a missed disenrollment
             audit_actions[subscriber_id] = Health::Enrollment::DISENROLLMENT
+
             disenroll_patient(transaction, referral, file_date)
             disenrolled_patients += 1
 
           elsif referral.nil?
             # This is a missed enrollment
             audit_actions[subscriber_id] = Health::Enrollment::ENROLLMENT
-            begin
-              enroll_patient(transaction)
-              new_patients += 1
-            rescue Health::MedicaidIdConflict
-              errors << conflict_message(transaction)
-            end
+
+            enroll_patient(transaction)
+            new_patients += 1
 
           elsif referral.disenrolled?
             # This is a missed re-enrollment
             audit_actions[subscriber_id] = Health::Enrollment::ENROLLMENT
+
             if referral.re_enrollment_blackout?(file_date)
               errors << blackout_message(transaction)
             else
-              begin
-                re_enroll_patient(referral, transaction)
-                returning_patients += 1
-              rescue Health::MedicaidIdConflict
-                errors << conflict_message(transaction)
-              end
+              re_enroll_patient(referral, transaction)
+              returning_patients += 1
             end
           else
             # This is just an update
             audit_actions[subscriber_id] = Health::Enrollment::CHANGE
-            begin
-              update_patient_referrals(referral.patient, transaction)
-              updated_patients += 1
-            rescue Health::MedicaidIdConflict
-              errors << conflict_message(transaction)
-            end
+
+            update_patient_referrals(referral.patient, transaction)
+            updated_patients += 1
           end
 
         rescue Health::MedicaidIdConflict
-          # The conflict prevents uus from knowing the audit action
+          # The conflict prevents us from knowing the audit action
           errors << conflict_message(transaction)
         end
 

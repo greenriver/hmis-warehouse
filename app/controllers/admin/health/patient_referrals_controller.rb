@@ -57,7 +57,6 @@ module Admin::Health
         not_confirmed_rejected.
         includes(:relationships, relationships_claimed: :agency).
         preload(:assigned_agency, :aco, :relationships, :relationships_claimed, :relationships_unclaimed, patient: :client)
-      load_index_vars
       respond_to do |format|
         format.html do
           load_index_vars
