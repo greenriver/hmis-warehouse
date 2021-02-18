@@ -36,7 +36,7 @@ module PublicReports::S3Toolset
 
     return false
   rescue StandardError => e
-    puts "Error creating bucket: #{e.message}"
+    Rails.logger.error("Error creating bucket: #{e.message}")
     return false
   end
 
@@ -51,7 +51,7 @@ module PublicReports::S3Toolset
     )
     return true
   rescue StandardError => e
-    puts "Error configuring bucket as a static website: #{e.message}"
+    Rails.logger.error("Error configuring bucket as a static website: #{e.message}")
     return false
   end
 

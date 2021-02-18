@@ -555,7 +555,7 @@ module Filters
       when :prior_living_situation_ids
         'Prior Living Situations'
       when :destination_ids
-        'Destination'
+        'Destinations'
       when :disabilities
         'Disabilities'
       when :indefinite_disabilities
