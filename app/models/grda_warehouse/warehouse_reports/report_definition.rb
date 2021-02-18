@@ -898,20 +898,24 @@ module GrdaWarehouse::WarehouseReports
         }
       end
       if RailsDrivers.loaded.include?(:public_reports)
-        r_list['Public'] << {
-          url: 'public_reports/warehouse_reports/point_in_time',
-          name: 'Public Point-in-Time Report Generator',
-          description: 'Use this to review and publish Point-in-Time charts for public consumption.',
-          limitable: false,
-          health: false,
-        }
-        r_list['Public'] << {
-          url: 'public_reports/warehouse_reports/public_configs',
-          name: 'Public Report Configuration',
-          description: 'Settings for colors, fonts, etc. related to reports which can be published publicly.',
-          limitable: false,
-          health: false,
-        }
+        # Only attempt this if the driver is loaded, and only install the reports
+        # if the bucket can be setup correctly
+        if PublicReports::Report.new.ready_public_s3_bucket!
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/point_in_time',
+            name: 'Public Point-in-Time Report Generator',
+            description: 'Use this to review and publish Point-in-Time charts for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/public_configs',
+            name: 'Public Report Configuration',
+            description: 'Settings for colors, fonts, etc. related to reports which can be published publicly.',
+            limitable: false,
+            health: false,
+          }
+        end
       end
       if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
         r_list['Population Dashboards'] << {

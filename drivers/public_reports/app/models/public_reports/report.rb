@@ -8,6 +8,7 @@ require 'aws-sdk-s3'
 module PublicReports
   class Report < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
+    include S3Toolset
     belongs_to :user
     scope :viewable_by, ->(user) do
       return current_scope if user.can_view_all_reports?
@@ -93,37 +94,6 @@ module PublicReports
 
     private def unpublish_similar
       self.class.update_all(type: type, published_url: nil, embed_code: nil, state: 'pre-calculated')
-    end
-
-    private def s3_bucket
-      ENV.fetch('S3_PUBLIC_BUCKET', "#{ENV.fetch('CLIENT')}-#{Rails.env}-public")
-    end
-
-    private def push_to_s3
-      client = if ENV['S3_PUBLIC_ACCESS_KEY_ID'].present? && ENV['S3_PUBLIC_ACCESS_KEY_SECRET'].present?
-        Aws::S3::Client.new(
-          access_key_id: ENV.fetch('S3_PUBLIC_ACCESS_KEY_ID'),
-          secret_access_key: ENV.fetch('S3_PUBLIC_ACCESS_KEY_SECRET'),
-        )
-      else
-        Aws::S3::Client.new
-      end
-      bucket = s3_bucket
-      prefix = public_s3_directory
-
-      key = File.join(prefix, 'index.html')
-
-      resp = client.put_object(
-        acl: 'public-read',
-        bucket: bucket,
-        key: key,
-        body: html,
-      )
-      if resp.etag
-        Rails.logger.info 'Successfully uploaded maintenance file to s3'
-      else
-        Rails.logger.info 'Unable to upload maintenance file'
-      end
     end
 
     def font_path
