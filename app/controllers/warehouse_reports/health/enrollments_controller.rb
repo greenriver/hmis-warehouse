@@ -73,34 +73,35 @@ module WarehouseReports::Health
     end
 
     def override
-      @file = Health::Enrollment.find(params[:id].to_i)
-      @transactions = Kaminari.paginate_array(@file.transactions).page(params[:page])
-      receiver_id = @file.receiver_id
-      @receiver = @receiver = Health::Cp.find_by(
-        pid: receiver_id[0...-1],
-        sl: receiver_id.last,
-      )
-      errors = @file.processing_errors
+      file = Health::Enrollment.find(params[:id].to_i)
+      self.receiver = Health::Cp.find_by_pidsl(file.receiver_id)
+      errors = file.processing_errors
 
-      overrides = override_params[:overrides].map { |p| p.match(/ID (\d*)/).try(:[], 1) }.compact
-      transactions = @file.transactions.select { |transaction| Health::Enrollment.subscriber_id(transaction).in?(overrides) }
+      patients_to_enroll = override_params[:overrides].map { |error| medicaid_id_from_error(error) }.compact
+      transactions = file.transactions.select { |transaction| Health::Enrollment.subscriber_id(transaction).in?(patients_to_enroll) }
       transactions.each do |transaction|
         re_enroll_patient(referral(transaction), transaction)
-        errors = errors.reject { |error| error.match(/ID (\d*)/).try(:[], 1) == Health::Enrollment.subscriber_id(transaction) }
+        # Remove the errors from the list that are for this patient
+        errors = errors.reject { |error| medicaid_id_from_error(error) == Health::Enrollment.subscriber_id(transaction) }
 
       rescue Health::MedicaidIdConflict
         # leave the error there
       end
-      @file.update(processing_errors: errors)
+      file.update(processing_errors: errors)
 
-      render :show
+      redirect_to action: :show
     end
 
-    def enrollment_params
+    private def medicaid_id_from_error(error)
+      # Errors begin with 'ID ' and then the ID is a string of digits
+      error.match(/ID (\d+)/).try(:[], 1)
+    end
+
+    private def enrollment_params
       params.require(:health_enrollment).permit(:content)
     end
 
-    def override_params
+    private def override_params
       params.require(:override).permit(overrides: [])
     end
   end
