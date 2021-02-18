@@ -6,6 +6,7 @@
 
 module WarehouseReports::Health
   class EnrollmentsController < ApplicationController
+    include HealthEnrollment
     before_action :require_can_administer_health!
 
     def index
@@ -71,8 +72,36 @@ module WarehouseReports::Health
       end
     end
 
+    def override
+      @file = Health::Enrollment.find(params[:id].to_i)
+      @transactions = Kaminari.paginate_array(@file.transactions).page(params[:page])
+      receiver_id = @file.receiver_id
+      @receiver = @receiver = Health::Cp.find_by(
+        pid: receiver_id[0...-1],
+        sl: receiver_id.last,
+      )
+      errors = @file.processing_errors
+
+      overrides = override_params[:overrides].map { |p| p.match(/ID (\d*)/).try(:[], 1) }.compact
+      transactions = @file.transactions.select { |transaction| Health::Enrollment.subscriber_id(transaction).in?(overrides) }
+      transactions.each do |transaction|
+        re_enroll_patient(referral(transaction), transaction)
+        errors = errors.reject { |error| error.match(/ID (\d*)/).try(:[], 1) == Health::Enrollment.subscriber_id(transaction) }
+
+      rescue Health::MedicaidIdConflict
+        # leave the error there
+      end
+      @file.update(processing_errors: errors)
+
+      render :show
+    end
+
     def enrollment_params
       params.require(:health_enrollment).permit(:content)
+    end
+
+    def override_params
+      params.require(:override).permit(overrides: [])
     end
   end
 end
