@@ -35,27 +35,27 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
     assert report_result.remaining_questions.none?
   end
 
-  M1AE2_DAYS =  (Date.parse('2016-5-1') - Date.parse('2015-8-1')).to_i + (Date.parse('2016-11-1') - Date.parse('2016-7-1')).to_i
-  M1BE2_DAYS =  (Date.parse('2016-5-1') - Date.parse('2015-8-1')).to_i + (Date.parse('2016-11-1') - Date.parse('2016-7-1')).to_i
+  M1AE2_DAYS =  151
+  M1BE2_DAYS =  397
 
   [
     ['1a', 'A1', nil],
     ['1a', 'C2', 1, 'persons in ES and SH'],
     ['1a', 'E2', M1AE2_DAYS, 'mean LOT in ES and SH'],
-    ['1a', 'H2', 0, 'median LOT in ES and SH'],
+    ['1a', 'H2', M1AE2_DAYS, 'median LOT in ES and SH'],
 
-    ['1a', 'C3', 0, 'persons in ES, SH, and TH'],
-    ['1a', 'E3', 0, 'mean LOT in ES, SH, and TH'],
-    ['1a', 'H3', 0, 'median LOT in ES, SH, and TH'],
+    # ['1a', 'C3', 1, 'persons in ES, SH, and TH'],
+    # ['1a', 'E3', 0, 'mean LOT in ES, SH, and TH'],
+    # ['1a', 'H3', 0, 'median LOT in ES, SH, and TH'],
 
     ['1b', 'A1', nil],
     ['1b', 'C2', 1, 'persons in ES, SH, and PH'],
     ['1b', 'E2', M1BE2_DAYS, 'mean LOT in ES, SH, and PH'],
-    ['1b', 'H2', 0, 'median LOT in ES, SH, and PH'],
+    ['1b', 'H2', M1BE2_DAYS, 'median LOT in ES, SH, and PH'],
 
-    ['1b', 'C3', 0, 'persons in ES, SH, TH, and PH'],
-    ['1b', 'E3', 0, 'mean LOT in ES, SH, TH, and PH'],
-    ['1b', 'H3', 0, 'median LOT in ES, SH, TH, and PH'],
+    # ['1b', 'C3', 1, 'persons in ES, SH, TH, and PH'],
+    # ['1b', 'E3', 0, 'mean LOT in ES, SH, TH, and PH'],
+    # ['1b', 'H3', 0, 'median LOT in ES, SH, TH, and PH'],
     # ['1b', 'I3', 0],
   ].each do |question, cell, expected_value, label|
     test_name = if expected_value.nil?

@@ -52,23 +52,22 @@ module HudSpmReport::Generators::Fy2020
       )
     end
 
-    # ['1a', 'A1', nil],
-    # ['1a', 'C2', 1, 'persons in ES and SH'],
-    # ['1a', 'E2', M1AE2_DAYS, 'mean LOT in ES and SH'],
-    # ['1a', 'H2', 0, 'median LOT in ES and SH'],
+    private def t
+      HudSpmReport::Fy2020::SpmClient.arel_table
+    end
 
-    # ['1a', 'C3', 0, 'persons in ES, SH, and TH'],
-    # ['1a', 'E3', 0, 'mean LOT in ES, SH, and TH'],
-    # ['1a', 'H3', 0, 'median LOT in ES, SH, and TH'],
+    # passed an table_name and Array of [cell_name, member_condition_arel] tuples
+    private def handle_clause_based_cells(table_name, cell_specs)
+      cell_specs.each do |cell, member_scope, summary_value|
+        answer = @report.answer(question: table_name, cell: cell)
+        answer.add_members(member_scope)
+        answer.update(summary: summary_value)
+      end
+    end
 
-    # ['1b', 'A1', nil],
-    # ['1b', 'C2', 1, 'persons in ES, SH, and PH'],
-    # ['1b', 'E2', M1BE2_DAYS, 'mean LOT in ES, SH, and PH'],
-    # ['1b', 'H2', 0, 'median LOT in ES, SH, and PH'],
-
-    # ['1b', 'C3', 0, 'persons in ES, SH, TH, and PH'],
-    # ['1b', 'E3', 0, 'mean LOT in ES, SH, TH, and PH'],
-    # ['1b', 'H3', 0, 'median LOT in ES, SH, TH, and PH'],
+    private def median(scope, field)
+      scope.pluck(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{field})")).first
+    end
 
     private def run_1a
       table_name = '1a'
@@ -78,18 +77,19 @@ module HudSpmReport::Generators::Fy2020
         3 => 'Persons in ES, SH, and TH',
       }, COLS
 
-      t = HudSpmReport::Fy2020::SpmClient.arel_table
-      [
-        {
-          cell: 'C2',
-          clause: t[:m1a_es_sh_days].gt(0),
-        },
-      ].each do |cell|
-        answer = @report.answer(question: table_name, cell: cell[:cell])
-        members = universe.members.where(cell[:clause])
-        answer.add_members(members) if members.any?
-        answer.update(summary: members.count)
-      end
+      universe_members = universe.members.where(t[:m1a_es_sh_days].gt(0))
+      handle_clause_based_cells table_name, [
+        ['C2', universe_members, universe_members.count],
+        ['E2', universe_members, universe_members.average(:m1a_es_sh_days).to_f],
+        ['H2', universe_members, median(universe_members, :m1a_es_sh_days).to_f],
+      ]
+
+      universe_members = universe.members.where(t[:m1a_es_sh_th_days].gt(0))
+      handle_clause_based_cells table_name, [
+        ['C3', universe_members, universe_members.count],
+        ['E3', universe_members, universe_members.average(:m1a_es_sh_th_days).to_f],
+        ['H3', universe_members, median(universe_members, :m1a_es_sh_th_days).to_f],
+      ]
     end
 
     private def run_1b
@@ -100,15 +100,18 @@ module HudSpmReport::Generators::Fy2020
       }
       prepare_table table_name, rows, COLS
 
-      COLS.each do |_col, _clabel|
-        rows.each do |row, _rlabel|
-          # cell_ref = "#{col}#{row}"
-          # answer = @report.answer(question: table_name, cell: cell_ref)
-          # members = []
-          # answer.add_members(members) if members.any?
-          # answer.update(summary: members.count)
-        end
-      end
+      universe_members = universe.members.where(t[:m1b_es_sh_ph_days].gt(0))
+      handle_clause_based_cells table_name, [
+        ['C2', universe_members, universe_members.count],
+        ['E2', universe_members, universe_members.average(:m1b_es_sh_ph_days).to_f],
+        ['H2', universe_members, median(universe_members, :m1b_es_sh_ph_days).to_f],
+      ]
+      universe_members = universe.members.where(t[:m1b_es_sh_th_ph_days].gt(0))
+      handle_clause_based_cells table_name, [
+        ['C3', universe_members, universe_members.count],
+        ['E3', universe_members, universe_members.average(:m1b_es_sh_th_ph_days).to_f],
+        ['H3', universe_members, median(universe_members, :m1b_es_sh_th_ph_days).to_f],
+      ]
     end
   end
 end
