@@ -5,7 +5,7 @@
 ###
 
 module PublicReports
-  class PointInTime < Report
+  class PointInTime < ::PublicReports::Report
     acts_as_paranoid
 
     def title
