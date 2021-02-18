@@ -6,6 +6,7 @@
 
 module WarehouseReports::Health
   class EnrollmentsController < ApplicationController
+    include HealthEnrollment
     before_action :require_can_administer_health!
 
     def index
@@ -71,8 +72,37 @@ module WarehouseReports::Health
       end
     end
 
-    def enrollment_params
+    def override
+      file = Health::Enrollment.find(params[:id].to_i)
+      self.receiver = Health::Cp.find_by_pidsl(file.receiver_id)
+      errors = file.processing_errors
+
+      patients_to_enroll = override_params[:overrides].map { |error| medicaid_id_from_error(error) }.compact
+      transactions = file.transactions.select { |transaction| Health::Enrollment.subscriber_id(transaction).in?(patients_to_enroll) }
+      transactions.each do |transaction|
+        re_enroll_patient(referral(transaction), transaction)
+        # Remove the errors from the list that are for this patient
+        errors = errors.reject { |error| medicaid_id_from_error(error) == Health::Enrollment.subscriber_id(transaction) }
+
+      rescue Health::MedicaidIdConflict
+        # leave the error there
+      end
+      file.update(processing_errors: errors)
+
+      redirect_to action: :show
+    end
+
+    private def medicaid_id_from_error(error)
+      # Errors begin with 'ID ' and then the ID is a string of digits
+      error.match(/ID (\d+)/).try(:[], 1)
+    end
+
+    private def enrollment_params
       params.require(:health_enrollment).permit(:content)
+    end
+
+    private def override_params
+      params.require(:override).permit(overrides: [])
     end
   end
 end
