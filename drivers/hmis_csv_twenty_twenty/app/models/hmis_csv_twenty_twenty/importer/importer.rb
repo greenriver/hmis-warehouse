@@ -521,6 +521,7 @@ module HmisCsvTwentyTwenty::Importer
       end
     end
 
+    # Compare source_hash new and old, if they are identical, we don't need to do anything
     private def mark_unchanged(klass, file_name)
       # We always bring over Exports
       return if klass.hud_key == :ExportID
@@ -545,9 +546,16 @@ module HmisCsvTwentyTwenty::Importer
       end
     end
 
+    # Having already excluded unchanged records, compare DateUpdated,
+    # if the incoming record is older than the existing record,
+    # don't update the warehouse.
+    # NOTE: there is one exception, if the import is the most recently
+    # exported for this data source, then we should assume the data is
+    # more correct than anything we have
     private def mark_incoming_older(klass, file_name)
       # Doesn't apply to Exports
       return if klass.hud_key == :ExportID
+      return if most_recent_export_for_ds?
 
       existing = klass.existing_destination_data(
         data_source_id: data_source.id,
@@ -625,6 +633,19 @@ module HmisCsvTwentyTwenty::Importer
 
     private def export_record
       @export_record ||= HmisCsvTwentyTwenty::Importer::Export.find_by(importer_log_id: importer_log.id)
+    end
+
+    # If we exported this from HMIS more recently than previous data (compared at day granularity)
+    # then we can assume this data is more-correct even if the HMIS bungled the DateUpdated columns
+    private def most_recent_export_for_ds?
+      return false if export_record.ExportDate.blank?
+      return true if export_record.class.where(data_source_id: export_record.data_source_id).count <= 1
+
+      previous_date = export_record.class.
+        where(data_source_id: export_record.data_source_id).
+        where.not(id: export_record.id).
+        maximum(:ExportDate).to_date
+      export_record.ExportDate.to_date >= previous_date
     end
 
     def already_running_for_data_source?
