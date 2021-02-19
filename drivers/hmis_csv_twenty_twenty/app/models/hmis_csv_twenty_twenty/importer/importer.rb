@@ -699,6 +699,13 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.save
       elapsed = Time.current - @started_at
       log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.\n#{summary_as_log_str importer_log.summary}\n Import Fully Complete.")
+      post_process
+    end
+
+    private def post_process
+      # Enrollment.processed_as is cleared if the enrollment changed
+      # queue up a rebuild to keep things as in sync as possible
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
     end
 
     private def db_transaction(&block)
