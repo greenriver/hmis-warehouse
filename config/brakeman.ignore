@@ -294,6 +294,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "3d82622799cff1c1bd95924a259f22509eaa2e1caf0634be9542d832017983e2",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/income_benefits_report/app/models/income_benefits_report/report.rb",
+      "line": 166,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"GREATEST('#{(@filter.start_date - 18.years).to_s(:db)}', #{she_t[:first_date_in_program].to_sql} - interval '18 years')\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "IncomeBenefitsReport::Report",
+        "method": "filter_for_children"
+      },
+      "user_input": "(@filter.start_date - 18.years)",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "3e94c32e2e326e0b24e275e1018e19c8d8e04b138e81da4366a9ab06617bdb85",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1398,6 +1418,26 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "e1164ff93dbb556c28c45e8621bd8bb1782ba1aab0f5d389a8a9e74a36590a29",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/income_benefits_report/app/models/income_benefits_report/report.rb",
+      "line": 162,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"GREATEST('#{(@filter.start_date - 18.years).to_s(:db)}', #{she_t[:first_date_in_program].to_sql} - interval '18 years')\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "IncomeBenefitsReport::Report",
+        "method": "filter_for_adults"
+      },
+      "user_input": "(@filter.start_date - 18.years)",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "e52db9a64ac0bf61e35334f89b7703a1a1df7c9fd84a506e575cbd79816712e4",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -1615,6 +1655,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-02-12 21:08:29 +0000",
+  "updated": "2021-02-19 23:57:04 +0000",
   "brakeman_version": "5.0.0"
 }
