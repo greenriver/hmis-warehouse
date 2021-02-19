@@ -140,7 +140,7 @@ gem 'combine_pdf'
 gem 'grover'
 
 gem 'whenever', require: false
-gem 'ruby-progressbar', require: false
+gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 gem 'exception_notification'
@@ -182,6 +182,9 @@ gem 'rack-attack'
 
 gem 'attr_encrypted', '~> 3.1.0'
 
+gem 'ajax_modal_rails', '~> 1.0'
+gem 'browser'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -212,10 +215,11 @@ group :development do
 
   gem 'ruby-prof', require: false
   gem 'memory_profiler', require: false
+  gem 'get_process_mem', require: false
   gem 'rack-mini-profiler', require: false
   gem 'flamegraph', require: false
   gem 'stackprof', require: false
-  gem 'active_record_query_trace'
+  gem 'active_record_query_trace', require: false
   gem 'overcommit', require: false
   gem 'rubocop', require: false
   gem 'rubocop-rspec', require: false
@@ -249,5 +253,3 @@ end
 group :production, :development, :staging do
   gem 'tiny_tds'
 end
-
-gem 'ajax_modal_rails', '~> 1.0'

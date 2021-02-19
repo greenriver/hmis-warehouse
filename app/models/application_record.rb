@@ -6,6 +6,7 @@
 
 class ApplicationRecord < ActiveRecord::Base
   include Efind
+  include ArelHelper
   self.abstract_class = true
 
   connects_to database: { writing: :primary, reading: :primary }

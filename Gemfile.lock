@@ -225,6 +225,7 @@ GEM
     bootstrap3-datetimepicker-rails (4.17.47)
       momentjs-rails (>= 2.8.1)
     brakeman (5.0.0)
+    browser (5.3.0)
     builder (3.2.4)
     bumbler (0.8.0)
     bundler-audit (0.7.0.1)
@@ -418,6 +419,7 @@ GEM
       faraday
       mime-types
       multi_json
+    highline (2.0.3)
     html2haml (2.2.0)
       erubis (~> 2.7.0)
       haml (>= 4.0, < 6)
@@ -518,6 +520,7 @@ GEM
       nenv (~> 0.1)
       shellany (~> 0.0)
     oauth (0.5.5)
+    options (2.3.2)
     orm_adapter (0.5.0)
     overcommit (0.57.0)
       childprocess (>= 0.6.3, < 5)
@@ -538,6 +541,9 @@ GEM
       htmlentities (>= 4.0.0)
     pretender (0.3.4)
       actionpack (>= 4.2)
+    progress_bar (1.3.3)
+      highline (>= 1.6, < 3)
+      options (~> 2.3.0)
     pry (0.13.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -849,6 +855,7 @@ DEPENDENCIES
   bootstrap (~> 4.3)
   bootstrap3-datetimepicker-rails (~> 4.17.42)
   brakeman
+  browser
   bumbler
   bundler-audit
   byebug
@@ -887,6 +894,7 @@ DEPENDENCIES
   ffi-geos
   fixpoints!
   flamegraph
+  get_process_mem
   gettext (>= 3.0.2)
   gettext_i18n_rails
   gmail
@@ -921,6 +929,7 @@ DEPENDENCIES
   pg
   premailer
   pretender
+  progress_bar
   pry-rails
   puma (~> 3.12.6)
   rack-attack
@@ -951,7 +960,6 @@ DEPENDENCIES
   ruby-filemagic
   ruby-mailchecker
   ruby-prof
-  ruby-progressbar
   rubyXL
   rubyzip (>= 1.2.1)
   sassc-rails
@@ -984,4 +992,4 @@ DEPENDENCIES
   with_advisory_lock
 
 BUNDLED WITH
-   2.2.6
+   2.2.11

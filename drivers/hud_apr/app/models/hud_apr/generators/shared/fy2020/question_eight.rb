@@ -191,13 +191,13 @@ module HudApr::Generators::Shared::Fy2020
         a_t[:first_date_in_program].lteq(pit_date).
           and(a_t[:last_date_in_program].gteq(pit_date).
             or(a_t[:last_date_in_program].eq(nil))).
-          and(a_t[:project_type].in([4, 6, 14])),
+          and(a_t[:project_type].in([4, 6])),
       )
       other_universe = heads_of_household.where(
         a_t[:first_date_in_program].lteq(pit_date).
           and(a_t[:last_date_in_program].gt(pit_date).
             or(a_t[:last_date_in_program].eq(nil))).
-          and(a_t[:project_type].in([1, 2, 3, 8, 9, 10, 13])),
+          and(a_t[:project_type].in([2, 8, 9, 10])),
       )
 
       psh_rrh_universe.or(so_serv_ce_universe).or(other_universe)

@@ -181,26 +181,6 @@
       "note": ""
     },
     {
-      "warning_type": "File Access",
-      "warning_code": 16,
-      "fingerprint": "28d61c41e880930af5395b8edac3a820273214c59ba57ac60780f97d10e364fb",
-      "check_name": "FileAccess",
-      "message": "Model attribute used in file name",
-      "file": "app/controllers/warehouse_reports/outcomes_controller.rb",
-      "line": 62,
-      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "File.read(\"app/views/warehouse_reports/outcomes/#{report_class.new(:data_source_ids => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).data_source_ids, :organization_ids => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).organization_ids, :project_ids => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).project_ids, :start_date => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).start, :end_date => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).end, :subpopulation => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).sub_population, :household_type => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).household_type, :race => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).races.first, :ethnicity => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).ethnicities.first, :gender => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).genders.first, :veteran_status => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).veteran_statuses.first).class.name.demodulize.underscore}/README.md\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "WarehouseReports::OutcomesController",
-        "method": "describe_computations"
-      },
-      "user_input": "WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).veteran_statuses",
-      "confidence": "Weak",
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "2d5a0735c8eef436174e943c26f2f3107fdbe465dd46e480ad60ed6b43b29b5b",
@@ -636,6 +616,26 @@
       "note": ""
     },
     {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "751b5caabc86846196598b0d8de83606bc32bed5c14041a9ea4563d55b6f3d86",
+      "check_name": "FileAccess",
+      "message": "Model attribute used in file name",
+      "file": "app/controllers/warehouse_reports/outcomes_controller.rb",
+      "line": 62,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "File.read(\"app/views/warehouse_reports/outcomes/#{report_class.new(:data_source_ids => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).data_source_ids, :organization_ids => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).organization_ids, :project_ids => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).project_ids, :coc_codes => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).coc_codes, :start_date => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).start, :end_date => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).end, :subpopulation => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).sub_population, :household_type => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).household_type, :race => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).races.first, :ethnicity => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).ethnicities.first, :gender => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).genders.first, :veteran_status => WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).veteran_statuses.first).class.name.demodulize.underscore}/README.md\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "WarehouseReports::OutcomesController",
+        "method": "describe_computations"
+      },
+      "user_input": "WarehouseReport::Outcomes::OutcomesFilter.new(:default_start => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.beginning_of_month]\n end.uniq.reverse.drop(1).to_h.values[5], :default_end => ((reporting_scope.minimum(:search_start).presence or (reporting_scope.minimum(:housed_date).presence or 1.years.ago.to_date)).to_date..(reporting_scope.maximum(:housing_exit).presence or Date.current).to_date).map do\n [m.strftime(\"%b %Y\"), m.end_of_month]\n end.uniq.reverse.to_h.values[0], :user_id => current_user.id).veteran_statuses",
+      "confidence": "Weak",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "781aac46e7b1378f886f2b9f429b4b36766b82a3ce2c8453f8be825781ea49b5",
@@ -734,6 +734,26 @@
       "user_input": "simplification_distance_in_degrees",
       "confidence": "Medium",
       "note": "injection is always a number and not from the database or user input"
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "82aadb4eb72cf1375fedd19ae96c5db6f000edd4c357495ea1c068ff3031103e",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/concerns/arel_helper.rb",
+      "line": 44,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"EXISTS (#{ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")} and #{quoted_table_name}.\\\"#{column_name}\\\" = \\\"#{alias_name}\\\".\\\"#{column_name}\\\") \")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ArelHelper",
+        "method": "ArelHelper.exists_sql"
+      },
+      "user_input": "ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")",
+      "confidence": "Medium",
+      "note": ""
     },
     {
       "warning_type": "Command Injection",
@@ -1302,7 +1322,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 58,
+      "line": 60,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -1372,26 +1392,6 @@
         "method": "create_database!"
       },
       "user_input": "database",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "da39fb8039f5b68140dfa336e0625a7716d2814dbf61573a9111aa9415a7a526",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/concerns/arel_helper.rb",
-      "line": 32,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"EXISTS (#{ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")} and #{quoted_table_name}.\\\"#{column_name}\\\" = \\\"#{alias_name}\\\".\\\"#{column_name}\\\") \")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ArelHelper",
-        "method": "exists_sql"
-      },
-      "user_input": "ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")",
       "confidence": "Medium",
       "note": ""
     },
@@ -1615,6 +1615,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-02-01 12:52:10 +0000",
+  "updated": "2021-02-12 21:08:29 +0000",
   "brakeman_version": "5.0.0"
 }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_01_195631) do
+ActiveRecord::Schema.define(version: 2021_02_09_182423) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -1690,6 +1690,7 @@ ActiveRecord::Schema.define(version: 2021_02_01_195631) do
     t.boolean "pf_show_additional_timeliness", default: false, null: false
     t.integer "cas_sync_months", default: 3
     t.boolean "send_sms_for_covid_reminders", default: false, null: false
+    t.integer "bypass_2fa_duration", default: 0, null: false
   end
 
   create_table "contacts", id: :serial, force: :cascade do |t|

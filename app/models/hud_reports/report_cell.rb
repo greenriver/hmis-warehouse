@@ -46,6 +46,7 @@ module HudReports
     def add_members(members)
       UniverseMember.import(
         members.map { |member| copy_member(member) },
+        validate: false,
       )
     end
 
@@ -55,6 +56,7 @@ module HudReports
     def add_universe_members(members)
       UniverseMember.import(
         members.map { |client, universe_client| new_member(warehouse_client: client, universe_client: universe_client) },
+        validate: false,
       )
     end
 

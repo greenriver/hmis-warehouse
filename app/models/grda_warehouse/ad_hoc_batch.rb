@@ -68,7 +68,7 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
   private def csv
     return nil unless content.length > 10
 
-    @csv ||= if content_type.in?(['text/plain', 'text/csv'])
+    @csv ||= if content_type.in?(['text/plain', 'text/csv', 'application/csv'])
       sheet = ::Roo::CSV.new(StringIO.new(content))
       @csv_headers = sheet.first
       sheet.parse(headers: true).drop(1)

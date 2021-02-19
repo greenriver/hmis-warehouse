@@ -1,6 +1,6 @@
 wb = xlsx_package.workbook
-wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@filter.sub_population]}"[0,30]) do |sheet|
-  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::Dashboard::Base.available_sub_populations.invert[@filter.sub_population]}"[0, 30]) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
       'Warehouse Client ID',
@@ -14,22 +14,24 @@ wb.add_worksheet(name: "First Time Homeless #{GrdaWarehouse::WarehouseReports::D
       'Project',
       'Organization',
       'Data Sources',
-    ],
-    :style => title
+      'Ethnicity',
+    ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HUD.race(m).gsub('None', 'Race None') },
+    style: title,
   )
   @clients.each do |client|
-    sheet.add_row [
+    sheet.add_row([
       client.id,
       client.FirstName,
       client.LastName,
       client.first_service_history.age,
-      client.age(),
-      HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),
+      client.age,
+      ::HUD.no_yes_reasons_for_missing_data(client.VeteranStatus),
       client.first_service_history.date,
       ::HUD.project_type(client.first_service_history.project_type),
       client.first_service_history.project_name,
       client.first_service_history.organization.try(:OrganizationName),
-      client.source_clients.map{|m| m.data_source.short_name}.uniq.join(', ')
-    ]
+      client.source_clients.map { |m| m.data_source&.short_name }.uniq.join(', '),
+      ::HUD.ethnicity(client.Ethnicity),
+    ] + client.attributes.slice(*GrdaWarehouse::Hud::Client.race_fields).values.map { |m| ::HUD.no_yes_reasons_for_missing_data(m&.to_i) })
   end
 end

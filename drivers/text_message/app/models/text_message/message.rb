@@ -26,7 +26,7 @@ module TextMessage
 
     def self.send_pending!
       unsent.pending.joins(topic_subscriber: :topic).
-        merge(TextMessage::TopicSubscriber.active).
+        merge(TextMessage::TopicSubscriber.active.valid_phone).
         merge(TextMessage::Topic.active.send_during(Time.current.hour)).
         find_each(&:send!)
     end
@@ -38,7 +38,7 @@ module TextMessage
       return if sent_at.present?
 
       if formatted_phone_number.length != 11
-        source&.mark_sent("Phone number undeliverable, no reminder sent #{Time.current}")
+        source&.mark_sent("Phone number undeliverable, no reminder sent #{Time.current}") if source.respond_to?(:mark_sent)
         return
       end
 
@@ -50,7 +50,7 @@ module TextMessage
         new_notification = "Client opted-out, no reminder sent #{Time.current}"
       end
       update(sent_at: Time.current, sent_to: formatted_phone_number, delivery_status: status)
-      source&.mark_sent(new_notification)
+      source&.mark_sent(new_notification) if source.respond_to?(:mark_sent)
       return if opted_out?
 
       # Add a delay for compliance with long-code send restrictions

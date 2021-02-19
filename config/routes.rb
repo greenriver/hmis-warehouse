@@ -398,6 +398,7 @@ Rails.application.routes.draw do
       resources :eligibility_results, only: [:show]
       resources :enrollments do
         get :download, on: :member
+        post :override, on: :member
       end
       resources :expiring_items, only: [:index]
       resources :ssm_exports, only: [:index, :show, :create, :destroy]
@@ -841,7 +842,9 @@ Rails.application.routes.draw do
   end
   resource :account_email, only: [:edit, :update]
   resource :account_password, only: [:edit, :update]
-  resource :account_two_factor, only: [:show, :edit, :update, :destroy]
+  resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
+    get :remove_device
+  end
   resources :account_downloads, only: [:index]
 
   resources :document_exports, only: [:show, :create] do

@@ -5,6 +5,9 @@
 ###
 
 class ReportingBase < ApplicationRecord
+  include ArelHelper
+  establish_connection DB_REPORTING
+
   self.abstract_class = true
 
   connects_to database: { writing: :reporting, reading: :reporting }

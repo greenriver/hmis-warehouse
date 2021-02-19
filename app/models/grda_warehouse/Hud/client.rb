@@ -533,6 +533,7 @@ module GrdaWarehouse::Hud
     end
 
     # Race & Ethnicity scopes
+    # Return destination client where any source clients meet the requirement
     scope :race_am_ind_ak_native, -> do
       where(
         id: GrdaWarehouse::WarehouseClient.joins(:source).
@@ -2165,11 +2166,11 @@ module GrdaWarehouse::Hud
 
     # those race fields which are marked as pertinent to the client
     def race_fields
-      self.class.race_fields.select{ |f| send(f).to_i == 1 }
+      self.class.race_fields.select { |f| send(f).to_i == 1 }
     end
 
     def race_description
-      race_fields.map{ |f| ::HUD::race f }.join ', '
+      race_fields.map { |f| ::HUD.race f }.join ', '
     end
 
     def ethnicity_description
@@ -2177,7 +2178,7 @@ module GrdaWarehouse::Hud
     end
 
     def cas_primary_race_code
-      race_text = ::HUD::race(race_fields.first)
+      race_text = ::HUD.race(race_fields.first)
       Cas::PrimaryRace.find_by_text(race_text).try(:numeric)
     end
 
@@ -2957,7 +2958,7 @@ module GrdaWarehouse::Hud
     def enrollments_for en_scope, include_confidential_names: false
       Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}", expires_in: CACHE_EXPIRY) do
 
-        enrollments = en_scope.joins(:project).
+        enrollments = en_scope.joins(:project, :source_client).
           includes(:service_history_services, :project, :organization, :source_client, enrollment: [:enrollment_cocs, :exit]).
           order(first_date_in_program: :desc)
         enrollments.

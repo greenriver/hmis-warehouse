@@ -25,7 +25,19 @@ module ArelHelper
     end
 
     # NOTE: quoted_table_name must be quoted, use something like User.quoted_table_name
-    def exists_sql(ar_query, quoted_table_name:, alias_name:, column_name:)
+    def exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id')
+      self.class.exists_sql(ar_query, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name)
+    end
+
+    # This will create a correlated exists clause and attach it to the relation it is called in
+    # it functions similar to a merge, but can be used when you need two merges with the same key
+    # Usage:
+    # User.joins(:role).correlated_exists(Role.health)
+    def self.correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id')
+      where(exists_sql(scope, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name))
+    end
+
+    def self.exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id')
       sql = ar_query.select(column_name).to_sql.
         gsub("#{quoted_table_name}.", "\"#{alias_name}\"."). # alias all columns
         gsub(quoted_table_name, "#{quoted_table_name} as \"#{alias_name}\"") # alias table

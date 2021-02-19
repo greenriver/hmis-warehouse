@@ -16,11 +16,11 @@
 
 - if @file.processing_errors.present?
   %h2 Processing Errors
-  %ol
-    - @file.processing_errors.each do |error|
-      %li= error
+  = simple_form_for :override, url: override_warehouse_reports_health_enrollment_path(@file) do |f|
+    = f.input :overrides, collection: @file.processing_errors, as: :check_boxes, label: false, required: false
+    = f.submit 'Override', class: 'btn-sm btn-secondary'
 
-  %h2 Transactions
+  %h2.mt-4 Transactions
 
 %p= paginate @transactions
 - @transactions.each do |transaction|

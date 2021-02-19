@@ -7,15 +7,16 @@
 class WarehouseReport::Outcomes::Base
   include ArelHelper
 
-  attr_accessor :organization_ids, :data_source_ids, :project_ids, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status
+  attr_accessor :organization_ids, :data_source_ids, :project_ids, :coc_codes, :start_date, :end_date, :subpopulation, :household_type, :race, :ethnicity, :gender, :veteran_status
 
-  def initialize(organization_ids:, data_source_ids:, project_ids:, start_date:, end_date:, subpopulation:, household_type:, race:, ethnicity:, gender:, veteran_status:) # rubocop:disable Metrics/ParameterLists
+  def initialize(organization_ids:, data_source_ids:, project_ids:, coc_codes:, start_date:, end_date:, subpopulation:, household_type:, race:, ethnicity:, gender:, veteran_status:) # rubocop:disable Metrics/ParameterLists
     @organization_ids = organization_ids
     @data_source_ids = data_source_ids
     @project_ids = project_ids
+    @coc_codes = coc_codes
     @start_date = start_date
     @end_date = end_date
-    @subpopulation = Reporting::Housed.subpopulation(subpopulation)
+    @subpopulation = self.class.subpopulation(subpopulation)
     @household_type = Reporting::Housed.household_type(household_type)
     @race = Reporting::Housed.race(race)
     @ethnicity = Reporting::Housed.ethnicity(ethnicity)
@@ -1048,6 +1049,7 @@ class WarehouseReport::Outcomes::Base
   def housed_scope
     scope = housed_source.all
     scope = scope.where(project_id: @project_ids) unless all_projects
+    scope = scope.where(project_id: GrdaWarehouse::Hud::Project.in_coc(coc_code: @coc_codes).pluck(:id)) if @coc_codes.present?
 
     scope = scope.
       where(client_id: service_history_enrollment_scope.distinct.pluck(:client_id)).
@@ -1100,6 +1102,23 @@ class WarehouseReport::Outcomes::Base
         last_name = client&.try(:[], 2)
         Hash[@headers.zip([client_id, first_name, last_name] + row.drop(1))]
       end
+    end
+  end
+
+  def self.available_subpopulations
+    {
+      youth: 'Youth (today)',
+      youth_at_search_start: 'Youth (at search start)',
+      youth_at_housed_date: 'Youth (at housed date)',
+      veteran: 'Veteran',
+    }.freeze
+  end
+
+  def self.subpopulation(key)
+    if available_subpopulations[key].present?
+      key
+    else
+      :current_scope
     end
   end
 end
