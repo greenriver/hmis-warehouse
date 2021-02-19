@@ -16,7 +16,7 @@ class WarehouseReport::Outcomes::Base
     @coc_codes = coc_codes
     @start_date = start_date
     @end_date = end_date
-    @subpopulation = Reporting::Housed.subpopulation(subpopulation)
+    @subpopulation = self.class.subpopulation(subpopulation)
     @household_type = Reporting::Housed.household_type(household_type)
     @race = Reporting::Housed.race(race)
     @ethnicity = Reporting::Housed.ethnicity(ethnicity)
@@ -1102,6 +1102,23 @@ class WarehouseReport::Outcomes::Base
         last_name = client&.try(:[], 2)
         Hash[@headers.zip([client_id, first_name, last_name] + row.drop(1))]
       end
+    end
+  end
+
+  def self.available_subpopulations
+    {
+      youth: 'Youth (today)',
+      youth_at_search_start: 'Youth (at search start)',
+      youth_at_housed_date: 'Youth (at housed date)',
+      veteran: 'Veteran',
+    }.freeze
+  end
+
+  def self.subpopulation(key)
+    if available_subpopulations[key].present?
+      key
+    else
+      :current_scope
     end
   end
 end
