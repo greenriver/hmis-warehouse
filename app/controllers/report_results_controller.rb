@@ -103,8 +103,14 @@ class ReportResultsController < ApplicationController
     if @report.has_pit_options?
       pit_date = @result.options['pit_date'].to_date
       chronic_date = @result.options['chronic_date'].to_date
+      project_ids = @result.options.try(:[], 'project_ids')&.reject(&:blank?)&.map(&:to_i) || []
+      project_group_ids = @result.options.try(:[], 'project_group_ids')&.reject(&:blank?)&.map(&:to_i) || []
+      project_ids += GrdaWarehouse::ProjectGroup.
+        joins(:projects).
+        where(id: project_group_ids).pluck(p_t[:id])
       options[:pit_date] = pit_date
       options[:chronic_date] = chronic_date
+      options[:project_ids] = project_ids
     end
     if @report.has_date_range_options?
       report_start = @result.options['report_start'].to_date
@@ -186,6 +192,7 @@ class ReportResultsController < ApplicationController
         data_source_ids: [],
         coc_codes: [],
         project_id: [],
+        project_ids: [],
         project_type: [],
         project_group_ids: [],
       ],
