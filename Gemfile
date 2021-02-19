@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~>6.1.1'
+gem 'rails', '~>6.1.3'
 gem 'rails_drivers'
 
 # bundle exec rake doc:rails generates the API under doc/api.
