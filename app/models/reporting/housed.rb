@@ -179,24 +179,6 @@ module Reporting
       where(head_of_household: true)
     end
 
-    def self.available_subpopulations(report_klass = nil)
-      case report_klass
-      when 'WarehouseReport::Outcomes::ThReport', 'WarehouseReport::Outcomes::EsReport'
-        {
-          youth: 'Youth (today)',
-          youth_at_search_start: 'Youth (at entry)',
-          veteran: 'Veteran',
-        }.freeze
-      else
-        {
-          youth: 'Youth (today)',
-          youth_at_search_start: 'Youth (at search start)',
-          youth_at_housed_date: 'Youth (at housed date)',
-          veteran: 'Veteran',
-        }.freeze
-      end
-    end
-
     def self.available_household_types
       {
         individual: 'Individuals',
@@ -219,14 +201,6 @@ module Reporting
 
     def self.available_veteran_stati
       ::HUD.no_yes_reasons_for_missing_data_options
-    end
-
-    def self.subpopulation(key)
-      if available_subpopulations[key].present?
-        key
-      else
-        :current_scope
-      end
     end
 
     def self.household_type(key)
