@@ -54,4 +54,12 @@ class WarehouseReport::Outcomes::ThReport < WarehouseReport::Outcomes::Base
   def project_types
     [2]
   end
+
+  def self.available_subpopulations
+    {
+      youth: 'Youth (today)',
+      youth_at_search_start: 'Youth (at entry)',
+      veteran: 'Veteran',
+    }.freeze
+  end
 end
