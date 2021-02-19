@@ -19,6 +19,7 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
     this._selector_unprocessed = this._selector_unprocessed.bind(this);
     this.chart_selector = chart_selector;
     window.Chart.defaults.global.defaultFontSize = 10;
+    this.truncate_labels = (options != null && options.truncate_labels != null) ? options.truncate_labels : 0;
     this.color_map = {};
     this.next_color = 0;
     if ((options != null ? options.remote : undefined) === true) {
@@ -33,6 +34,14 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
       const self = this
       this.options = $(this.chart_selector).data('chart').options;
       this.categories = $(this.chart_selector).data('chart').categories;
+      if (this.truncate_labels > 0) {
+        // this.categories = this.categories.map(c => c.substring(0, this.truncate_labels))
+        this.categories = this.categories.map(c => {
+          separator = ' '
+          if (c.length <= this.truncate_labels) return c;
+          return c.substr(0, c.lastIndexOf(' ', this.truncate_labels)) + '...';
+        })
+      }
       this.link_params = $(this.chart_selector).data('chart').params;
       const { legendBindTo } = $(this.chart_selector).data('chart');
 
