@@ -100,6 +100,7 @@ module HudSpmReport::Generators::Fy2020
             dob: client.DOB,
             first_name: client.first_name,
             last_name: client.last_name,
+            # TODO relevent_history: [{date_span: , project_type-ish, },...],
             m1a_es_sh_days: calculate_days_homeless(nights, ES_SH, PH_TH, false, true),
             m1a_es_sh_th_days: calculate_days_homeless(nights, ES_SH_TH, PH, false, true),
             m1b_es_sh_ph_days: calculate_days_homeless(nights, ES_SH_PH, PH_TH, true, true),
@@ -124,6 +125,8 @@ module HudSpmReport::Generators::Fy2020
           universe_cell = @report.universe(question_number)
           universe_cell.add_universe_members(pending_associations)
         end
+
+        # TODO
       end
     end
 
@@ -210,6 +213,13 @@ module HudSpmReport::Generators::Fy2020
         homeless_days.delete_if { |d| d.to_date < client_start_date.to_date || d.to_date > client_end_date.to_date }
         # Rails.logger.info "Days homeless after limits #{homeless_days.count}"
       end
+
+      # {
+      #   client_id,
+      #   enrollment_id
+      #   date
+      #   color
+      # }
 
       # if @debug
       #   info = {

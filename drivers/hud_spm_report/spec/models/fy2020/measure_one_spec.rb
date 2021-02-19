@@ -85,36 +85,57 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
       assert report_result.remaining_questions.none?
     end
 
+    def client_included(question, cell, personal_id)
+      c = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: personal_id)
+      report_result.answer(question: question, cell: cell).members.any? do |m|
+        yield m, c
+      end
+    end
+
+    def refute_client_included(question:, cell:, personal_id:, &condition)
+      refute client_included(question, cell, personal_id, &condition)
+    end
+
+    def assert_client_included(question:, cell:, personal_id:, &condition)
+      assert client_included(question, cell, personal_id, &condition)
+    end
+
     it 'excludes client 1 (1a)' do
-      client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '1')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }).to be_empty
+      refute_client_included(question: '1a', cell: 'C2', personal_id: '1') do |m, c|
+        m.client_id == c.id
+      end
     end
 
     it 'counts 27 days for client 2 (1b)' do
-      client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '2')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }.first[2]).to eq(27)
+      assert_client_included(question: '1a', cell: 'C2', personal_id: '2') do |m, c|
+        m.client_id == c.id && m.universe_membership.m1a_es_sh_days == 27
+      end
     end
 
     it 'counts 27 days for client 3 (1c)' do
-      client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '3')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }.first[2]).to eq(27)
+      assert_client_included(question: '1a', cell: 'C2', personal_id: '3') do |m, c|
+        m.client_id == c.id && m.universe_membership.m1a_es_sh_days == 27
+      end
     end
 
-    it 'counts 1 days for client 4 (1d)' do
-      client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '4')
-      # Note 2016 is a leap year, so the client receives 2/28 and 2/29
-      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }.first[2]).to eq(2)
+    it 'counts 2 days (in a leap year) for client 4 (1d)' do
+      assert_client_included(question: '1a', cell: 'C2', personal_id: '4') do |m, c|
+        # Note 2016 is a leap year, so the client receives 2/28 and 2/29
+        m.client_id == c.id && m.universe_membership.m1a_es_sh_days == 2
+      end
     end
 
-    it 'counts 28 days for client 5 (1e)' do
-      client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '5')
-      # Note 2016 is a leap year
-      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }.first[2]).to eq(29)
+    it 'counts 29 days (in a leap year) for client 5 (1e)' do
+      assert_client_included(question: '1a', cell: 'C2', personal_id: '5') do |m, c|
+        # Note 2016 is a leap year, so the client receives 2/28 and 2/29
+        m.client_id == c.id && m.universe_membership.m1a_es_sh_days == 29
+      end
     end
 
     it 'client 6 has no stays (1f)' do
-      client = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: '6')
-      expect(report_result.support['onea_c2']['support']['counts'].select { |id, _| id == client.id }).to be_empty
+      refute_client_included(question: '1a', cell: 'C2', personal_id: '6') do |m, c|
+        m.client_id == c.id
+      end
     end
 
     [
