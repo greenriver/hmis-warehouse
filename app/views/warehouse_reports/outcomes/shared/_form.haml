@@ -20,7 +20,7 @@
       .col-sm-3
         = f.input :end, collection: @end_months, label: 'End', as: :select_two
       .col-sm-3
-        = f.input :sub_population, collection: Reporting::Housed.available_subpopulations.invert, as: :select_two, include_blank: 'All'
+        = f.input :sub_population, collection: Reporting::Housed.available_subpopulations(@report.class.name).invert, as: :select_two, include_blank: 'All'
       .col-sm-3
         = f.input :household_type, collection: Reporting::Housed.available_household_types.invert, as: :select_two, include_blank: 'All'
     .row

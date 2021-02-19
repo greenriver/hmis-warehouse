@@ -133,7 +133,16 @@ module WarehouseReports
     end
 
     private def report_params
-      params.require(:filter).permit(
+      params.require(:filter).permit(shared_params)
+    end
+
+    private def passed_params
+      params.permit(filter: shared_params)
+    end
+    helper_method :passed_params
+
+    private def shared_params
+      [
         :start,
         :end,
         :sub_population,
@@ -146,26 +155,8 @@ module WarehouseReports
         organization_ids: [],
         project_ids: [],
         coc_codes: [],
-      )
+      ]
     end
-
-    private def passed_params
-      params.permit(filter:
-        [
-          :start,
-          :end,
-          :sub_population,
-          :household_type,
-          :race,
-          :ethnicity,
-          :gender,
-          :veteran_status,
-          data_source_ids: [],
-          organization_ids: [],
-          project_ids: [],
-        ])
-    end
-    helper_method :passed_params
 
     private def project_ids(project_ids)
       return :all unless project_ids.present?
