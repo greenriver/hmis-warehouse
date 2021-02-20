@@ -398,6 +398,7 @@ Rails.application.routes.draw do
       resources :eligibility_results, only: [:show]
       resources :enrollments do
         get :download, on: :member
+        post :override, on: :member
       end
       resources :expiring_items, only: [:index]
       resources :ssm_exports, only: [:index, :show, :create, :destroy]

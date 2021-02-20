@@ -695,13 +695,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: true,
             health: false,
           },
-          {
-            url: 'performance_dashboards/household',
-            name: 'Household Performance',
-            description: 'Overview of warehouse performance.',
-            limitable: true,
-            health: false,
-          },
+          # {
+          #   url: 'performance_dashboards/household',
+          #   name: 'Household Performance',
+          #   description: 'Overview of warehouse performance.',
+          #   limitable: true,
+          #   health: false,
+          # },
           {
             url: 'performance_dashboards/project_type',
             name: 'Project Type Performance',
@@ -960,6 +960,7 @@ module GrdaWarehouse::WarehouseReports
         'warehouse_reports/veteran_details/actives',
         'warehouse_reports/veteran_details/entries',
         'warehouse_reports/veteran_details/exits',
+        'performance_dashboards/household',
       ]
       cleanup << 'service_scanning/warehouse_reports/scanned_services' unless RailsDrivers.loaded.include?(:service_scanning)
       cleanup << 'core_demographics_report/warehouse_reports/core' unless RailsDrivers.loaded.include?(:core_demographics_report)
