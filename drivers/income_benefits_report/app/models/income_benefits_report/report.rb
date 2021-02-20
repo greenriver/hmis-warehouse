@@ -12,6 +12,7 @@ module IncomeBenefitsReport
     include ArelHelper
     include IncomeBenefitsReport::Details
     include IncomeBenefitsReport::Summary
+    include IncomeBenefitsReport::StayerHouseholds
 
     attr_reader :filter
     attr_accessor :comparison_pattern, :project_type_codes
