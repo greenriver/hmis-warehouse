@@ -1,7 +1,7 @@
 #= require ./namespace
 
 class App.WarehouseReports.Outflow.Housed
-  constructor: (@chart_selector, @data, @support_url) ->
+  constructor: (@chart_selector, @data) ->
     Chart.defaults.global.defaultFontSize = 10
     @color_map = {}
     @next_color = 0
@@ -13,7 +13,6 @@ class App.WarehouseReports.Outflow.Housed
         x: 'x'
         columns: @data.data
         color: @_colors
-        onclick: @_follow_link
       axis:
         x:
           type: 'category'
@@ -54,13 +53,3 @@ class App.WarehouseReports.Outflow.Housed
         @next_color = @next_color % colors.length
     return color
 
-
-  _follow_link: (d, e) =>
-    # if d.name != 'All'
-    month = @data.labels[d.index + 1]
-    url = @support_url + encodeURI("&selected_project=#{d.name}&month=#{month}")
-    # console.log(d, @data, url)
-
-    $('.modal .modal-content').html('Loading...')
-    $('.modal').modal('show')
-    $('.modal .modal-content').load(url)
