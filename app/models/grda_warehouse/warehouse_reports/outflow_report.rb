@@ -80,6 +80,32 @@ module GrdaWarehouse::WarehouseReports
       end
     end
 
+    def outflow_to_housing
+      chart_start_date = (@filter.end - 6.months).beginning_of_month
+      chart_end_date = @filter.end.end_of_month
+      months = (chart_start_date.to_date..chart_end_date.to_date).map { |m| m.strftime('%b %Y') }.uniq
+      clients = housed_source.
+        viewable_by(@user).
+        where(client_id: service_history_enrollment_scope(start_date: chart_start_date, end_date: chart_end_date).
+          open_between(start_date: chart_start_date, end_date: chart_end_date).pluck(:client_id)).
+        ph_destinations.
+        leavers(start_date: chart_start_date, end_date: chart_end_date).
+        order(:search_end).
+        select { |x| x.search_end.present? }.
+        group_by{ |x| x.search_end.end_of_month }
+      client_counts = {}
+      months.each { |month| client_counts[month] = 0 }
+      client_counts.merge!(clients.map { |k, v| [ k.strftime('%b %Y'), v.size] }.to_h)
+
+      {
+        labels: [:x] + months,
+        data: [
+          [:x] + months,
+          ['Clients'] + client_counts.values,
+        ],
+      }
+    end
+
     private def clients_without_recent_service_internal(scope)
       without_recent_service = scope.
         homeless.
@@ -150,7 +176,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def housed_scope
-      housed = Reporting::Housed.
+      housed = housed_source.
         where(client_id: entries_scope.residential.pluck(:client_id)).
         viewable_by(@user)
       housed = housed.send(@filter.sub_population) if @filter.sub_population.to_s.starts_with?('youth')
@@ -158,7 +184,12 @@ module GrdaWarehouse::WarehouseReports
       housed
     end
 
-    def service_history_enrollment_scope
+    def housed_source
+      Reporting::Housed
+    end
+
+
+    def service_history_enrollment_scope(start_date: @filter.start, end_date: @filter.end)
       sub_population = @filter.sub_population
       sub_population = :youth if sub_population.to_s.starts_with?('youth')
 
@@ -191,7 +222,7 @@ module GrdaWarehouse::WarehouseReports
       if @filter.require_homeless_enrollment
         homeless_clients = GrdaWarehouse::ServiceHistoryEnrollment.
           entry.
-          with_service_between(start_date: @filter.start, end_date: @filter.end).
+          with_service_between(start_date: start_date, end_date: end_date).
           homeless.
           select(:client_id)
         scope = scope.where(client_id: homeless_clients)
