@@ -46,7 +46,7 @@ module TextMessage
       new_notification = "Sent at #{Time.current}"
       if opted_out?
         status = :opted_out
-        topic.subscriber.mark_as_opted_out
+        topic_subscriber.mark_as_opted_out
         new_notification = "Client opted-out, no reminder sent #{Time.current}"
       end
       update(sent_at: Time.current, sent_to: formatted_phone_number, delivery_status: status)
