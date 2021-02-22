@@ -11,38 +11,38 @@ module
     def summary_data
       @summary_data ||= Rails.cache.fetch(cache_key_for_section('summary'), expires_in: expiration_length) do
         {
-          'Total Stayer Households' => stayers_hoh_count,
-          'Stayer Adults' => stayers_adult_count,
-          'Stayer Children' => stayers_child_count,
-          'Total Leaver Households' => leavers_hoh_count,
-          'Leaver Adults' => leavers_adult_count,
-          'Leaver Children' => leavers_child_count,
+          'Total Stayer Households' => stayers_hoh.select(:client_id).count,
+          'Stayer Adults' => stayers_adult.select(:client_id).count,
+          'Stayer Children' => stayers_child.select(:client_id).count,
+          'Total Leaver Households' => leavers_hoh.select(:client_id).count,
+          'Leaver Adults' => leavers_adult.select(:client_id).count,
+          'Leaver Children' => leavers_child.select(:client_id).count,
         }
       end
     end
 
-    private def stayers_hoh_count
-      filter_for_stayers(hoh_scope).select(:client_id).distinct.count
+    private def stayers_hoh
+      filter_for_stayers(hoh_scope).distinct
     end
 
-    private def stayers_adult_count
-      filter_for_stayers(filter_for_adults(hoh_scope)).select(:client_id).distinct.count
+    private def stayers_adult
+      filter_for_stayers(filter_for_adults(report_scope)).distinct
     end
 
-    private def stayers_child_count
-      filter_for_stayers(filter_for_children(hoh_scope)).select(:client_id).distinct.count
+    private def stayers_child
+      filter_for_stayers(filter_for_children(report_scope)).distinct
     end
 
-    private def leavers_hoh_count
-      filter_for_leavers(hoh_scope).select(:client_id).distinct.count
+    private def leavers_hoh
+      filter_for_leavers(hoh_scope).distinct
     end
 
-    private def leavers_adult_count
-      filter_for_leavers(filter_for_adults(hoh_scope)).select(:client_id).distinct.count
+    private def leavers_adult
+      filter_for_leavers(filter_for_adults(report_scope)).distinct
     end
 
-    private def leavers_child_count
-      filter_for_leavers(filter_for_children(hoh_scope)).select(:client_id).distinct.count
+    private def leavers_child
+      filter_for_leavers(filter_for_children(report_scope)).distinct
     end
   end
 end

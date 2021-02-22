@@ -60,6 +60,25 @@ module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
       where(IncomeFromAnySource: 9)
     end
 
+    scope :with_earned_income, -> do
+      where(Earned: 1)
+    end
+
+    scope :with_any_income, -> do
+      where(IncomeFromAnySource: 1)
+    end
+
+    scope :with_unearned_income, -> do
+      where(IncomeFromAnySource: 1).where.not(Earned: 1)
+    end
+
+    # NOTE: at the moment this is Postgres only
+    # Arguments:
+    #   an optional scope which is passed to the sub query that determines which record to return
+    scope :only_most_recent_by_enrollment, ->(scope: nil) do
+      one_for_column(:InformationDate, source_arel_table: arel_table, group_on: :EnrollmentID, direction: :desc, scope: scope)
+    end
+
     # produced by eliminating those columns matching /id|date|amount|reason|stage/i
     SOURCES = {
       Alimony: :AlimonyAmount,

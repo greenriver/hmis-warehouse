@@ -28,7 +28,9 @@ module IncomeBenefitsReport::WarehouseReports
 
       if @report.section_ready?(@section)
         @section = @report.section_subpath + @section
-        render partial: @section, layout: false if request.xhr?
+        layout = {}
+        layout = { layout: false } if request.xhr?
+        render({ partial: @section }.merge(layout))
       else
         render_to_string(partial: @section, layout: false)
         render status: :accepted, plain: 'Loading'

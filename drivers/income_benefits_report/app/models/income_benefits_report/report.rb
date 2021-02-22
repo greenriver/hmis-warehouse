@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# NOTE: This report runs all calculations against the most-recently started enrollment
+# that matches the filter scope for a given client
 module IncomeBenefitsReport
   class Report
     include Filter::ControlSections
@@ -97,7 +99,8 @@ module IncomeBenefitsReport
     # @return filtered scope
     def report_scope(all_project_types: false)
       # Report range
-      scope = filter_for_range(report_scope_source)
+      scope = report_scope_source
+      scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_sub_population(scope)
       scope = filter_for_household_type(scope)
@@ -116,7 +119,10 @@ module IncomeBenefitsReport
       scope = filter_for_indefinite_disabilities(scope)
       scope = filter_for_dv_status(scope)
       scope = filter_for_chronic_status(scope)
-      filter_for_ca_homeless(scope)
+      scope = filter_for_ca_homeless(scope)
+
+      # Limit to most recently started enrollment per client
+      scope.only_most_recent_by_client(scope: scope)
     end
 
     def report_scope_source
