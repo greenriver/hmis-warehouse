@@ -9,9 +9,9 @@ GIT
       pg (< 3.0)
 
 GIT
-  remote: https://github.com/codeodor/composite_primary_keys.git
-  revision: 3404e440d34d9aa06ac121721b72f2c6b4978285
-  branch: ar6.1
+  remote: https://github.com/greenriver/composite_primary_keys.git
+  revision: b1446b133c31794882a2ca28e50b373c1b1cf9ec
+  branch: openpath-6.1
   specs:
     composite_primary_keys (12.0.3)
       activerecord (~> 6.1.0)

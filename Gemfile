@@ -10,9 +10,9 @@ gem 'nokogiri', '>= 1.11.0.rc4' # >= 1.11.0.rc4 due to CVE-2020-26247
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', git: 'https://github.com/codeodor/composite_primary_keys.git', branch: 'ar6.1'
+#gem 'composite_primary_keys', git: 'https://github.com/codeodor/composite_primary_keys.git', branch: 'ar6.1'
 # gem 'composite_primary_keys', '~>12'
-# gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
+gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'openpath-6.1'
 gem 'pg'
 gem 'activerecord-sqlserver-adapter', git: 'https://github.com/lk0001/activerecord-sqlserver-adapter', branch: 'master', require: false
 gem 'activerecord-import'
