@@ -162,8 +162,42 @@ module HudSpmReport::Generators::Fy2020
       end.presence
     end
 
+    private def logger
+      @report.logger
+    end
+
+    private def prepare_table(table_name, rows, cols)
+      @report.answer(question: table_name).update(
+        metadata: {
+          header_row: [''] + cols.values,
+          row_labels: rows.values,
+          first_column: cols.keys.first,
+          last_column: cols.keys.last,
+          first_row: rows.keys.first,
+          last_row: rows.keys.last,
+        },
+      )
+    end
+
     private def report_client_universe
       HudSpmReport::Fy2020::SpmClient
+    end
+
+    private def t
+      report_client_universe.arel_table
+    end
+
+    # passed an table_name and Array of [cell_name, member_condition_arel] tuples
+    private def handle_clause_based_cells(table_name, cell_specs)
+      cell_specs.each do |cell, member_scope, summary_value|
+        answer = @report.answer(question: table_name, cell: cell)
+        answer.add_members(member_scope)
+        answer.update(summary: summary_value)
+      end
+    end
+
+    private def median(scope, field)
+      scope.pluck(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{field})")).first
     end
 
     private def sh_enrollment_scope

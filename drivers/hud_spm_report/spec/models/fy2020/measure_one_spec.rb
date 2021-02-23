@@ -85,6 +85,24 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
       assert report_result.remaining_questions.none?
     end
 
+    [
+      ['1a', 'C2', 4, 'persons in ES and SH'],
+      ['1a', 'E2', 21.25, 'mean LOT in ES and SH'],
+      ['1a', 'H2', 27.0, 'median LOT in ES and SH'],
+      ['1b', 'C2', 4, 'persons in ES, SH, and PH'],
+      ['1b', 'E2', 29.0, 'mean LOT in ES, SH, and PH'],
+      ['1b', 'H2', 27.0, 'median LOT in ES, SH, and PH'],
+    ].each do |question, cell, expected_value, label|
+      test_name = if expected_value.nil?
+        "does not fill #{question} #{cell}"
+      else
+        "fills #{question} #{cell} (#{label}) with #{expected_value}"
+      end
+      it test_name do
+        expect(report_result.answer(question: question, cell: cell).summary).to eq(expected_value)
+      end
+    end
+
     def client_included(question, cell, personal_id)
       c = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: personal_id)
       report_result.answer(question: question, cell: cell).members.any? do |m|
@@ -135,24 +153,6 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
     it 'client 6 has no stays (1f)' do
       refute_client_included(question: '1a', cell: 'C2', personal_id: '6') do |m, c|
         m.client_id == c.id
-      end
-    end
-
-    [
-      ['1a', 'C2', 4, 'persons in ES and SH'],
-      ['1a', 'E2', 21.25, 'mean LOT in ES and SH'],
-      ['1a', 'H2', 27.0, 'median LOT in ES and SH'],
-      ['1b', 'C2', 4, 'persons in ES, SH, and PH'],
-      ['1b', 'E2', 29.0, 'mean LOT in ES, SH, and PH'],
-      ['1b', 'H2', 27.0, 'median LOT in ES, SH, and PH'],
-    ].each do |question, cell, expected_value, label|
-      test_name = if expected_value.nil?
-        "does not fill #{question} #{cell}"
-      else
-        "fills #{question} #{cell} (#{label}) with #{expected_value}"
-      end
-      it test_name do
-        expect(report_result.answer(question: question, cell: cell).summary).to eq(expected_value)
       end
     end
   end
