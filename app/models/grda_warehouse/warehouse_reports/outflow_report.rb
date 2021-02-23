@@ -84,18 +84,16 @@ module GrdaWarehouse::WarehouseReports
       chart_start_date = (@filter.end - 6.months).beginning_of_month
       chart_end_date = @filter.end.end_of_month
       months = (chart_start_date.to_date..chart_end_date.to_date).map { |m| m.strftime('%b %Y') }.uniq
-      clients = housed_source.
-        viewable_by(@user).
-        where(client_id: service_history_enrollment_scope(start_date: chart_start_date, end_date: chart_end_date).
-          open_between(start_date: chart_start_date, end_date: chart_end_date).pluck(:client_id)).
-        ph_destinations.
-        leavers(start_date: chart_start_date, end_date: chart_end_date).
-        order(:search_end).
-        select { |x| x.search_end.present? }.
-        group_by{ |x| x.search_end.end_of_month }
+      clients = exits_scope(start_date: chart_start_date, end_date: chart_end_date).
+        where(destination: HUD.permanent_destinations).
+        distinct.
+        select(:client_id, :last_date_in_program).
+        index_by(&:client_id).values.
+        group_by{ |x| x.last_date_in_program.end_of_month }
+
       client_counts = {}
       months.each { |month| client_counts[month] = 0 }
-      client_counts.merge!(clients.map { |k, v| [ k.strftime('%b %Y'), v.size] }.to_h)
+      client_counts.merge!(clients.map { |k, v| [k.strftime('%b %Y'), v.size] }.to_h)
 
       {
         labels: [:x] + months,
@@ -169,10 +167,10 @@ module GrdaWarehouse::WarehouseReports
         open_between(start_date: @filter.start, end_date: @filter.end)
     end
 
-    def exits_scope
+    def exits_scope(start_date: @filter.start, end_date: @filter.end)
       service_history_enrollment_scope.
         homeless.
-        exit_within_date_range(start_date: @filter.start, end_date: @filter.end)
+        exit_within_date_range(start_date: start_date, end_date: end_date)
     end
 
     def housed_scope
