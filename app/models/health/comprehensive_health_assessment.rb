@@ -991,7 +991,7 @@ module Health
         hash[section_code][:answers][section_question][:sub_header] = question_sub_header
       end
       hash['A'][:answers][:a_q1][:answer] = patient.client&.name
-      hash['A'][:answers][:a_q3][:answer] = patient.client&.DOB
+      hash['A'][:answers][:a_q3][:answer] ||= patient.client&.DOB
       hash['A'][:answers][:a_q5c][:answer] = patient.medicaid_id
       self.answers = hash
     end
