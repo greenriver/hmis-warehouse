@@ -14,7 +14,7 @@
     .row
       .col-12
         The downloaded report will include the patients with services provided by the selected ACO within 3 months
-        of the specified date (e.g Nov. 13 to Feb. 13).
+        of the specified date (e.g., #{@end_date - 3.months} to #{@end_date}).
 
   - content_for :filter_actions do
     = f.submit 'Download File', data: {disable_with: false}
