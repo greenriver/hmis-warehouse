@@ -24,19 +24,26 @@ module HudSpmReport::Generators::Fy2020
     SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1)
     TH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:th).flatten(1)
     PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
+    SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
+
+    PERMANENT_DESTINATIONS = [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34].freeze
+    TEMPORARY_DESTINATIONS = [1, 15, 6, 14, 7, 27, 16, 4, 29, 18, 12, 13, 5, 2, 25, 32].freeze
 
     ES_SH = ES + SH
     ES_SH_TH = ES + SH + TH
     ES_SH_PH = ES + SH + PH
     ES_SH_TH_PH = ES + SH + TH + PH
+    ES_SH_TH_PH_SO = ES + SH + TH + PH + SO
     PH_TH =  PH + TH
 
-    SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
     RRH = [13].freeze
     PH_PSH = [3, 9, 10].freeze
 
     private def universe
-      add_clients unless clients_populated?
+      unless clients_populated?
+        add_m1_clients
+        add_m2_clients
+      end
       @universe ||= @report.universe(self.class.question_number)
     end
 
@@ -44,9 +51,7 @@ module HudSpmReport::Generators::Fy2020
       @report.report_cells.joins(universe_members: :spm_client).exists?
     end
 
-    private def add_clients
-      @debug = true
-
+    private def add_m1_clients
       shs_columns = {
         client_id: she_t[:client_id],
         enrollment_id: she_t[:id],
@@ -143,13 +148,14 @@ module HudSpmReport::Generators::Fy2020
         )
 
         # Attach clients to relevant questions
-        @report.build_for_questions.each do |question_number|
+        ['Measure 1'].each do |question_number|
           universe_cell = @report.universe(question_number)
           universe_cell.add_universe_members(pending_associations)
         end
-
-        # TODO
       end
+    end
+
+    private def add_m2_clients
     end
 
     # return an array of date ranges
@@ -218,6 +224,15 @@ module HudSpmReport::Generators::Fy2020
         :client,
         service_history_enrollment: :enrollment,
       ).merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH))
+    end
+
+    private def exits_scope
+      look_back_until = [LOOKBACK_STOP_DATE.to_date, @report.start_date - 730.days].max
+      look_forward_until = (@report.end_date - 730.days)
+
+      GrdaWarehouse::ServiceHistoryEnrollment.exit.
+        joins(:project).hud_project_type(SO + ES + TH + SH + PH).
+        where(last_date_in_program: look_back_until..look_forward_until)
     end
 
     # Calculate the number of unique days homeless given:
@@ -412,6 +427,10 @@ module HudSpmReport::Generators::Fy2020
 
     private def on_exit_night?(night, date)
       night[:last_date_in_program] == date
+    end
+
+    private def permanent_destination?(dest)
+      PERMANENT_DESTINATIONS.include?(dest)
     end
 
     private def literally_homeless?(_night)
