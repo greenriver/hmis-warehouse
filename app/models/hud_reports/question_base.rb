@@ -39,8 +39,8 @@ module HudReports
       remaining_questions = @report.remaining_questions - [self.class.question_number]
       @report.update(remaining_questions: remaining_questions)
     rescue StandardError => e
-      debugger if Rails.env.development?
-      @report.answer(question: self.class.question_number).update(error_messages: e.full_message, status: 'Failed')
+      sanitized_message = "#{e.message} at #{e.backtrace.first.gsub("#{Rails.root}/", '')}"
+      @report.answer(question: self.class.question_number).update(error_messages: sanitized_message, status: 'Failed')
       @report.update(state: 'Failed')
       raise e
     end

@@ -54,6 +54,10 @@ module HudReports
       end
     end
 
+    def failures
+      report_cells.where.not(error_messages: nil).pluck(:question, :cell_name, :status, :error_messages)
+    end
+
     # Mark a question as started
     #
     # @param question [String] the question name (e.g., 'Q1')
@@ -61,7 +65,7 @@ module HudReports
     # FIXME: maybe a single question column on report_instance to track if this is a single
     # question run or all questions.... Need bater start/complete logic
     def start(question, tables)
-      universe(question).update(status: 'Started', metadata: {tables: tables})
+      universe(question).update(status: 'Started', metadata: { tables: tables })
       start_report if build_for_questions.count == remaining_questions.count
     end
 
