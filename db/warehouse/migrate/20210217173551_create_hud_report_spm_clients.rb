@@ -18,6 +18,8 @@ class CreateHudReportSpmClients < ActiveRecord::Migration[5.2]
       t.integer :m1b_es_sh_ph_days
       t.integer :m1b_es_sh_th_ph_days
 
+      t.jsonb :relevant_history
+
       # TODO some audit record of bed_nights present at the time of the report
       # t.date :m1a_es_sh_dates, array: true
       # t.date :m1a_es_sh_th_dates, array: true
