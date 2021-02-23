@@ -79,6 +79,10 @@ module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
       one_for_column(:InformationDate, source_arel_table: arel_table, group_on: :EnrollmentID, direction: :desc, scope: scope)
     end
 
+    scope :only_earliest_by_enrollment, ->(scope: nil) do
+      one_for_column(:InformationDate, source_arel_table: arel_table, group_on: :EnrollmentID, direction: :asc, scope: scope)
+    end
+
     # produced by eliminating those columns matching /id|date|amount|reason|stage/i
     SOURCES = {
       Alimony: :AlimonyAmount,

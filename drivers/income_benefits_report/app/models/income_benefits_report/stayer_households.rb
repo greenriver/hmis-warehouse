@@ -42,19 +42,19 @@ module
             description: 'Sum of all TotalMonthlyIncome for adults at their most-recent income assessment regardless of DataCollectionStage over the number of adults with income from any source.',
           },
           'Total Adults that Increased Income' => {
-            count: 0,
-            percent: 0,
-            description: '',
+            count: count_adult_stayers_with_increased_income,
+            percent: percent_adult_stayers_with_increased_income,
+            description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients who\'s TotalMonthlyIncome has increased. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
           },
           'Total Adults that Maintained Income' => {
-            count: 0,
-            percent: 0,
-            description: '',
+            count: count_adult_stayers_with_maintained_income,
+            percent: percent_adult_stayers_with_maintained_income,
+            description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients who\'s TotalMonthlyIncome has not changed. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
           },
           'Total Adults that Lost Income' => {
-            count: 0,
-            percent: 0,
-            description: '',
+            count: count_adult_stayers_with_decreased_income,
+            percent: percent_adult_stayers_with_decreased_income,
+            description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients who\'s TotalMonthlyIncome has decreased. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
           },
         }
       end
@@ -180,6 +180,99 @@ module
       numerator / denominator
     end
 
+    private def adult_stayers_with_two_income_assessments
+      @adult_stayers_with_two_income_assessments ||= begin
+        most_recent = stayers_adults_with_any_income_at_last_update.distinct.pluck(:client_id, :TotalMonthlyIncome).to_h
+        earliest = stayers_adults_with_any_income_at_entry.distinct.pluck(:client_id, :TotalMonthlyIncome).to_h
+        incomes = {}
+        most_recent.each do |client_id, amount|
+          next unless amount.present?
+
+          previous_amount = earliest[client_id]
+          next unless previous_amount.present?
+
+          incomes[client_id] = { earliest: previous_amount, most_recent: amount }
+        end
+        incomes
+      end
+    end
+
+    private def count_adult_stayers_with_two_income_assessments
+      adult_stayers_with_two_income_assessments.count
+    end
+
+    private def adult_stayers_with_increased_income
+      @adult_stayers_with_increased_income ||= begin
+        Set.new.tap do |increased|
+          adult_stayers_with_two_income_assessments.each do |client_id, amounts|
+            increased << client_id if amounts[:most_recent] > amounts[:earliest]
+          end
+        end
+      end
+    end
+
+    private def count_adult_stayers_with_increased_income
+      adult_stayers_with_increased_income.count
+    end
+
+    private def percent_adult_stayers_with_increased_income
+      numerator = count_adult_stayers_with_increased_income
+      return 0 unless numerator.positive?
+
+      denominator = count_adult_stayers_with_two_income_assessments
+      return 0 unless denominator.positive?
+
+      numerator / denominator
+    end
+
+    private def adult_stayers_with_decreased_income
+      @adult_stayers_with_decreased_income ||= begin
+        Set.new.tap do |decreased|
+          adult_stayers_with_two_income_assessments.each do |client_id, amounts|
+            decreased << client_id if amounts[:most_recent] < amounts[:earliest]
+          end
+        end
+      end
+    end
+
+    private def count_adult_stayers_with_decreased_income
+      adult_stayers_with_decreased_income.count
+    end
+
+    private def percent_adult_stayers_with_decreased_income
+      numerator = count_adult_stayers_with_decreased_income
+      return 0 unless numerator.positive?
+
+      denominator = count_adult_stayers_with_two_income_assessments
+      return 0 unless denominator.positive?
+
+      numerator / denominator
+    end
+
+    private def adult_stayers_with_maintained_income
+      @adult_stayers_with_maintained_income ||= begin
+        Set.new.tap do |maintained|
+          adult_stayers_with_two_income_assessments.each do |client_id, amounts|
+            maintained << client_id if amounts[:most_recent] == amounts[:earliest]
+          end
+        end
+      end
+    end
+
+    private def count_adult_stayers_with_maintained_income
+      adult_stayers_with_maintained_income.count
+    end
+
+    private def percent_adult_stayers_with_maintained_income
+      numerator = count_adult_stayers_with_maintained_income
+      return 0 unless numerator.positive?
+
+      denominator = count_adult_stayers_with_two_income_assessments
+      return 0 unless denominator.positive?
+
+      numerator / denominator
+    end
+
     private def stayers_most_recent_income_assessment
       filter_for_stayers(report_scope).
         joins(enrollment: :income_benefits).
@@ -190,30 +283,14 @@ module
         )
     end
 
-    # stayers_hoh_count
-
-    # private def stayers_hoh_count
-    #   filter_for_stayers(hoh_scope).select(:client_id).distinct.count
-    # end
-
-    # private def stayers_adult_count
-    #   filter_for_stayers(filter_for_adults(hoh_scope)).select(:client_id).distinct.count
-    # end
-
-    # private def stayers_child_count
-    #   filter_for_stayers(filter_for_children(hoh_scope)).select(:client_id).distinct.count
-    # end
-
-    # private def leavers_hoh_count
-    #   filter_for_leavers(hoh_scope).select(:client_id).distinct.count
-    # end
-
-    # private def leavers_adult_count
-    #   filter_for_leavers(filter_for_adults(hoh_scope)).select(:client_id).distinct.count
-    # end
-
-    # private def leavers_child_count
-    #   filter_for_leavers(filter_for_children(hoh_scope)).select(:client_id).distinct.count
-    # end
+    private def stayers_earliest_income_assessment
+      filter_for_stayers(report_scope).
+        joins(enrollment: :income_benefits).
+        includes(enrollment: :income_benefits).
+        merge(
+          GrdaWarehouse::Hud::IncomeBenefit.only_earliest_by_enrollment.
+          where(EnrollmentID: filter_for_stayers(report_scope).select(:enrollment_group_id)),
+        )
+    end
   end
 end
