@@ -57,7 +57,7 @@ module IncomeBenefitsReport
     end
 
     def section_ready?(section)
-      return true unless section == 'summary'
+      return true unless section.in?(['summary', 'stayers_households'])
 
       Rails.cache.exist?(cache_key_for_section(section))
     end
@@ -182,7 +182,7 @@ module IncomeBenefitsReport
     end
 
     private def expiration_length
-      return 30.seconds if Rails.env.development?
+      return 300.seconds if Rails.env.development?
 
       30.minutes
     end

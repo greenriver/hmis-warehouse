@@ -14,43 +14,47 @@ module
           'Households with Earned Income at Last Update' => {
             count: count_stayers_hoh_with_earned_income_at_last_update,
             percent: percent_stayers_hoh_with_earned_income_at_last_update,
-            # description: 'Describe calculation here',
+            description: 'Counts heads-of-household stayers who\'s most recent income assessment, regardless of DataCollectionStage, included income in the Earned category.  Percentage is out of heads-of-household stayers.',
           },
           'Households with Non-Employment Income at Last Update' => {
             count: count_stayers_hoh_with_unearned_income_at_last_update,
             percent: percent_stayers_hoh_with_unearned_income_at_last_update,
+            description: 'Counts heads-of-household stayers who\'s most recent income assessment, regardless of DataCollectionStage, included IncomeFromAnySource but no income in the Earned category.  Percentage is out of heads-of-household stayers.',
           },
           'Households with Income from Any Source (Earned or Non-Employment) at Last Update' => {
             count: count_stayers_hoh_with_any_income_at_last_update,
             percent: percent_stayers_hoh_with_any_income_at_last_update,
+            description: 'Counts heads-of-household stayers who\'s most recent income assessment, regardless of DataCollectionStage, included IncomeFromAnySource.  Percentage is out of heads-of-household stayers.',
           },
-          'Total Adults with Entries' => {
-            count: 0,
-            percent: 0,
+          'Total Adults with any income at Entry' => {
+            count: count_stayers_adults_with_any_income_at_entry,
+            percent: percent_stayers_adults_with_any_income_at_entry,
+            description: 'Counts adult stayers who had income in the Earned category at DataCollectionStage 1 (Entry).  Percentage is out of adult stayers.',
           },
-          'Total Adults with Exits' => {
-            count: 0,
-            percent: 0,
+          'Average Adult Income at Entry' => {
+            count: average_adult_stayer_income_value_at_entry,
+            percent: nil,
+            description: 'Sum of all TotalMonthlyIncome for adults with income at entry over the number of adults with income from any source at Entry.',
           },
-          'Average Income at Entry' => {
-            count: 0,
-            percent: 0,
-          },
-          'Average Income at Last Update' => {
-            count: 0,
-            percent: 0,
+          'Average Adult Income at Last Update' => {
+            count: average_adult_stayer_income_value_at_last_update,
+            percent: nil,
+            description: 'Sum of all TotalMonthlyIncome for adults at their most-recent income assessment regardless of DataCollectionStage over the number of adults with income from any source.',
           },
           'Total Adults that Increased Income' => {
             count: 0,
             percent: 0,
+            description: '',
           },
           'Total Adults that Maintained Income' => {
             count: 0,
             percent: 0,
+            description: '',
           },
           'Total Adults that Lost Income' => {
             count: 0,
             percent: 0,
+            description: '',
           },
         }
       end
@@ -116,6 +120,65 @@ module
       stayers_most_recent_income_assessment.merge(hoh_scope).merge(GrdaWarehouse::Hud::IncomeBenefit.with_unearned_income)
     end
     # End Unearned
+
+    private def stayers_adults_with_any_income_at_entry
+      filter_for_stayers(filter_for_adults(report_scope)).
+        joins(enrollment: :income_benefits).
+        merge(GrdaWarehouse::Hud::IncomeBenefit.with_any_income.at_entry)
+    end
+
+    private def count_stayers_adults_with_any_income_at_entry
+      @count_stayers_adults_with_any_income_at_entry ||= stayers_adults_with_any_income_at_entry.select(:client_id).distinct.count
+    end
+
+    private def percent_stayers_adults_with_any_income_at_entry
+      denominator = filter_for_stayers(filter_for_adults(report_scope)).select(:client_id).distinct.count
+      return 0 unless denominator.positive?
+
+      numerator = count_stayers_adults_with_any_income_at_entry
+      return 0 unless numerator.positive?
+
+      (numerator / denominator.to_f).round(2) * 100
+    end
+
+    private def total_adult_stayer_income_value_at_entry
+      @total_adult_stayer_income_value_at_entry ||= stayers_adults_with_any_income_at_entry.sum(:TotalMonthlyIncome)
+    end
+
+    private def average_adult_stayer_income_value_at_entry
+      denominator = count_stayers_adults_with_any_income_at_entry
+      return 0 unless denominator.positive?
+
+      numerator = total_adult_stayer_income_value_at_entry
+      return 0 unless numerator.positive?
+
+      numerator / denominator
+    end
+
+    private def stayers_adults_with_any_income_at_last_update
+      stayers_most_recent_income_assessment.
+        joins(enrollment: :income_benefits).
+        merge(filter_for_stayers(filter_for_adults(report_scope))).
+        merge(GrdaWarehouse::Hud::IncomeBenefit.with_any_income.at_last_update)
+    end
+
+    private def count_stayers_adults_with_any_income_at_last_update
+      @count_stayers_adults_with_any_income_at_last_update ||= stayers_adults_with_any_income_at_last_update.select(:client_id).distinct.count
+    end
+
+    private def total_adult_stayer_income_value_at_last_update
+      @total_adult_stayer_income_value_at_last_update ||= stayers_adults_with_any_income_at_last_update.sum(:TotalMonthlyIncome)
+    end
+
+    private def average_adult_stayer_income_value_at_last_update
+      denominator = count_stayers_adults_with_any_income_at_last_update
+      return 0 unless denominator.positive?
+
+      numerator = total_adult_stayer_income_value_at_last_update
+      return 0 unless numerator.positive?
+
+      numerator / denominator
+    end
 
     private def stayers_most_recent_income_assessment
       filter_for_stayers(report_scope).
