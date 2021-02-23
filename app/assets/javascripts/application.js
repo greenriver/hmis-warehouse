@@ -74,6 +74,7 @@
 //= require_directory ./dashboards/clients
 //= require_directory ./warehouse_reports/cas
 //= require_directory ./warehouse_reports/rrh
+//= require_directory ./warehouse_reports/outflow
 //= require_directory ./warehouse_reports/performance_dashboards
 //= require_directory ./warehouse_reports
 //= require_directory ./d3_charts

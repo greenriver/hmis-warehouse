@@ -5,6 +5,13 @@
 
 = render 'filter'
 
+= render 'history_chart'
+
 = render 'table'
 
 = render 'computation_description'
+
+- content_for :page_js do
+  :javascript
+    var outflow_to_housing_data = #{@report.outflow_to_housing.to_json.html_safe}
+    var outflow_to_housing_chart = new App.WarehouseReports.Outflow.Housed('.outflowToHousingChart', outflow_to_housing_data)
