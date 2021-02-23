@@ -11,6 +11,10 @@
         = f.input :r_number, collection: r_numbers, selected: @r_number, as: :select_two
       .col-sm-3
         = f.input :date, as: :date_picker, input_html: {value: @end_date}, label: 'End of quarter'
+    .row
+      .col-12
+        The downloaded report will include the patients with services provided by the selected ACO within 3 months
+        of the specified date (e.g Nov. 13 to Feb. 13).
 
   - content_for :filter_actions do
     = f.submit 'Download File', data: {disable_with: false}
