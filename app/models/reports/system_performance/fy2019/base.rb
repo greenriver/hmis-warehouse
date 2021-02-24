@@ -75,6 +75,7 @@ module Reports::SystemPerformance::Fy2019
       display_string = "Report Start: #{options['report_start']}; Report End: #{options['report_end']}"
       display_string << "; CoC-Code: #{options['coc_code']}" if options['coc_code'].present?
       display_string << "; Data Source: #{GrdaWarehouse::DataSource.short_name(options['data_source_id'].to_i)}" if options['data_source_id'].present?
+      display_string << "; Data Source: #{options['data_source_ids'].map { |id| GrdaWarehouse::DataSource.short_name(id.to_i) }.join(', ')}" if options['data_source_ids'].present?
       display_string << project_id_string(options)
       display_string << project_group_string(options)
       display_string << sub_population_string(options)
@@ -90,7 +91,7 @@ module Reports::SystemPerformance::Fy2019
       if options['project_id'].present?
         if options['project_id'].is_a?(Array)
           if options['project_id'].delete_if(&:blank?).any?
-            str = "; Projects: #{options['project_id'].map{|m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present? rescue m}.compact.join(', ')}"
+            str = "; Projects: #{options['project_id'].map { |m| GrdaWarehouse::Hud::Project.find(m.to_i).name if m.present? rescue m }.compact.join(', ')}"
           end
         else
           str = "; Project: #{GrdaWarehouse::Hud::Project.find(options['project_id'].to_i).name}"
