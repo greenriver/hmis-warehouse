@@ -25,6 +25,7 @@ module Health
 
     def update
       success = true
+      # limited to only signatures 11/27 per request from BHCHP, only save QA for signatures
       should_really_create_qa = @careplan.just_signed? && @create_qa
       @careplan.compact_future_issues
       begin
@@ -36,8 +37,9 @@ module Health
             @qualifying_activity.mode_of_contact_other = 'On-line'
             @qualifying_activity.reached_client_collateral_contact = 'On-line Signature'
           end
+
           @careplan.save
-          # limited to only signatures 11/27 per request from BHCHP, only save QA for signatures
+
           if should_really_create_qa
             @qualifying_activity.source_id = @careplan.id
 
