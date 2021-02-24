@@ -144,9 +144,8 @@ class SecureFileUploader < CarrierWave::Uploader::Base
   # end
 
   # Provide a range of file sizes which are allowed to be uploaded
-  # NOT WORKING
   def size_range
-    0..100.megabytes # Up to two megabytes
+    0..250.megabytes # Up to two megabytes
   end
 
   # Override the filename of the uploaded files:
