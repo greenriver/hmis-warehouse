@@ -253,7 +253,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   def self.set_part_of_a_family
     family_source_client_ids = Set.new
     vispdats = {}
-    GrdaWarehouse::HmisForm.vispdat.order(collected_at: :desc).
+    GrdaWarehouse::HmisForm.vispdat.joins(:client).order(collected_at: :desc).
       pluck(:client_id, :vispdat_family_score, :collected_at).
       each do |client_id, vispdat_family_score, collected_at|
         vispdats[client_id] ||= {
