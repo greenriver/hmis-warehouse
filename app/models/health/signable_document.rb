@@ -163,7 +163,12 @@ module Health
         self.signature_request.update(completed_at: last_signature)
       end
 
+      user = User.setup_system_user
       Health::CareplanSaver.new(careplan: careplan, user: user, create_qa: true).update
+
+      UpdateHealthFileFromHelloSignJob.
+        set(wait: 30.seconds). # Wait for PDF to be ready
+        perform_later(self.id)
     end
 
     def signature_request_url(email)
