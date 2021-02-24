@@ -17,7 +17,7 @@
       .metric
         = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.enrolled_client_count), 'client'), warehouse_reports_enrolled_project_type_index_path(filter: support_filter), target: :_blank
         \/
-        = pluralize(@report.enrolled_household_count, 'households')
+        = pluralize(number_with_delimiter(@report.enrolled_household_count), 'households')
       .description
         had open enrollments during this time period
     .rrh__enrolled.chunk.l-page__w-50.pr-2
@@ -27,7 +27,7 @@
       .metric
         = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.active_client_count), 'client'), warehouse_reports_client_details_actives_path(filter: support_filter), target: :_blank
         \/
-        = pluralize(@report.active_household_count, 'households')
+        = pluralize(number_with_delimiter(@report.active_household_count), 'households')
       .description
         had a service during this time period
     .rrh__enrolled.chunk.l-page__w-50.pr-2
@@ -37,7 +37,7 @@
       .metric
         = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.entered_client_count), 'client'), warehouse_reports_client_details_entries_path(filter: support_filter), target: :_blank
         \/
-        = pluralize(@report.entered_household_count, 'households')
+        = pluralize(number_with_delimiter(@report.entered_household_count), 'households')
       .description
         started enrollments during the reporting period
     .rrh__enrolled.chunk.l-page__w-50.pr-2
@@ -47,6 +47,6 @@
       .metric
         = link_to_if can_see_client_details?, pluralize(number_with_delimiter(@report.exited_client_count), 'client'), warehouse_reports_client_details_exits_path(filter: support_filter), target: :_blank
         \/
-        = pluralize(@report.exited_household_count, 'households')
+        = pluralize(number_with_delimiter(@report.exited_household_count), 'households')
       .description
         exited enrollments during the reporting period
