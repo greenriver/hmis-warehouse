@@ -11,11 +11,14 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureTwo, type: :model do
   include_context 'HudSpmReport context'
 
   before(:all) do
-    GrdaWarehouse::Utility.clear!
     setup('fy2020/measure_two')
 
-    # puts described_class.question_number
-    run(default_filter, described_class.question_number)
+    run(HudSpmReport::Filters::SpmFilter.new(
+          shared_filter.merge(
+            start: Date.parse('2015-1-1'),
+            end: Date.parse('2015-12-31'),
+          ),
+        ), described_class.question_number)
   end
 
   it 'has been provided client data' do
@@ -23,9 +26,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureTwo, type: :model do
   end
 
   it 'completed successfully' do
-    assert_equal 'Completed', report_result.state
-    assert_equal [described_class.question_number], report_result.build_for_questions
-    assert report_result.remaining_questions.none?
+    assert_report_completed
   end
 
   [

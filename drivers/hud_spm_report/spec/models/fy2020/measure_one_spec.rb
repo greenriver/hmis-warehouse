@@ -12,18 +12,10 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
 
   describe 'measure one example' do
     before(:all) do
-      GrdaWarehouse::Utility.clear!
       setup('fy2020/measure_one')
 
       # puts described_class.question_number
       run(default_filter, described_class.question_number)
-    end
-
-    after(:all) do
-      # Because we are only running the import once, we have to do our own DB and file cleanup
-      GrdaWarehouse::Utility.clear!
-      cleanup_files
-      Delayed::Job.delete_all
     end
 
     it 'has been provided client data' do
@@ -31,9 +23,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
     end
 
     it 'completed successfully' do
-      assert_equal 'Completed', report_result.state
-      assert_equal [described_class.question_number], report_result.build_for_questions
-      assert report_result.remaining_questions.none?
+      assert_report_completed
     end
 
     m1a_days = (Date.parse('2016-5-1') - Date.parse('2016-2-1')).to_i + (Date.parse('2016-11-1') - Date.parse('2016-9-1')).to_i

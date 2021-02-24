@@ -17,7 +17,11 @@ module HudSpmReport::Generators::Fy2020
 
     def run_question!
       @report.start(self.class.question_number, TABLE_NUMBERS)
+
+      universe
+
       # TODO
+
       @report.complete(self.class.question_number)
     end
   end

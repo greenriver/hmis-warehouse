@@ -5,26 +5,25 @@ class CreateHudReportSpmClients < ActiveRecord::Migration[5.2]
       t.integer :data_source_id
       t.integer :report_instance_id
 
-      t.index [:client_id, :data_source_id, :report_instance_id], unique: true,  name: 'spm_client_conflict_columns'
+      t.index [:client_id, :data_source_id, :report_instance_id], unique: true, name: 'spm_client_conflict_columns'
       t.timestamps
       t.timestamp :deleted_at
 
+      # required for HudReports::ReportCell.new_member and  HudReports::ReportCell.copy_member
       t.date :dob
-      t.string :first_name #required for HudReports::ReportCell.new_member and  HudReports::ReportCell.copy_member
+      t.string :first_name
       t.string :last_name
 
       t.integer :m1a_es_sh_days
       t.integer :m1a_es_sh_th_days
       t.integer :m1b_es_sh_ph_days
       t.integer :m1b_es_sh_th_ph_days
+      t.jsonb :m1_history
 
-      t.jsonb :relevant_history
-
-      # TODO some audit record of bed_nights present at the time of the report
-      # t.date :m1a_es_sh_dates, array: true
-      # t.date :m1a_es_sh_th_dates, array: true
-      # t.date :m1b_es_sh_ph_dates, array: true
-      # t.date :m1b_es_sh_th_ph_dates, array: true
+      t.integer :m2_exit_from_project_type
+      t.integer :m2_exit_to_destination
+      t.integer :m2_exit_days
+      t.jsonb :m2_history
     end
   end
 end

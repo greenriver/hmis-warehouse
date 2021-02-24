@@ -39,7 +39,10 @@ module HudSpmReport::Generators::Fy2020
     RRH = [13].freeze
     PH_PSH = [3, 9, 10].freeze
 
+    UPSERT_KEY = [:report_instance_id, :client_id, :data_source_id].freeze
+
     private def universe
+      # lazy pre-calculation of per-client version of the metrics
       unless clients_populated?
         add_m1_clients
         add_m2_clients
@@ -51,7 +54,45 @@ module HudSpmReport::Generators::Fy2020
       @report.report_cells.joins(universe_members: :spm_client).exists?
     end
 
+    # yield batches of the client scope indexed by `#id`
+    # with only the necessary columns fetched/populated
+    private def each_client_batch(scope)
+      scope.select(
+        :id,
+        :PersonalID, # for debugging
+        :data_source_id, # for add_universe_members
+        :DOB, # for add_universe_members
+        :first_name, # for add_universe_members
+        :last_name, # for add_universe_members
+      ).find_in_batches do |batch|
+        clients_by_id = batch.index_by(&:id)
+        yield clients_by_id
+      end
+    end
+
+    # Attach `pending_associations` a Hash mapping Client =>  report_client_universe
+    # to the Array|String `question_numbers`,
+    # `updated_columns` are the columns to be upsert-ed into report_client_universe
+    private def append_report_clients(question_numbers, pending_associations, updated_columns)
+      report_client_universe.import(
+        pending_associations.values,
+        validate: false,
+        on_duplicate_key_update: {
+          conflict_target: UPSERT_KEY,
+          columns: updated_columns,
+        },
+      )
+
+      # Attach clients to relevant question(s)
+      Array(question_numbers).each do |question_number|
+        @report.universe(question_number).add_universe_members(pending_associations)
+      end
+    end
+
     private def add_m1_clients
+      measure_one = 'Measure 1'
+      return unless add_clients_for_question?(measure_one)
+
       shs_columns = {
         client_id: she_t[:client_id],
         enrollment_id: she_t[:id],
@@ -63,8 +104,7 @@ module HudSpmReport::Generators::Fy2020
         MoveInDate: e_t[:MoveInDate],
       }
 
-      upsert_key = [:report_instance_id, :client_id, :data_source_id]
-      upsert_cols = [
+      updated_columns = [
         :dob,
         :first_name,
         :last_name,
@@ -72,20 +112,12 @@ module HudSpmReport::Generators::Fy2020
         :m1a_es_sh_th_days,
         :m1b_es_sh_ph_days,
         :m1b_es_sh_th_ph_days,
+        :m1_history,
       ]
 
-      client_scope.where(
-        id: sh_enrollment_scope.select(:client_id),
-      ).select(
-        :id,
-        :PersonalID,
-        :data_source_id,
-        :DOB,
-        :first_name,
-        :last_name,
-      ).find_in_batches do |batch|
-        clients_by_id = batch.index_by(&:id)
-
+      each_client_batch client_scope.where(
+        id: entries_scope.select(:client_id),
+      ) do |clients_by_id|
         # select all the necessary service history
         # for this batch of clients
         nights_for_batch = services_scope.where(
@@ -94,11 +126,10 @@ module HudSpmReport::Generators::Fy2020
           shs_columns.keys.zip(row).to_h
         end
 
+        # transform them into per client metrics
         pending_associations = nights_for_batch.group_by do |r|
           r.fetch(:client_id)
         end.map do |client_id, nights|
-          client = clients_by_id.fetch(client_id)
-
           nights = generate_non_service_dates(nights)
 
           # after resolving the non_service dates
@@ -120,6 +151,8 @@ module HudSpmReport::Generators::Fy2020
             }
           end
 
+          client = clients_by_id.fetch(client_id)
+          # append_report_clients needs AR Instances
           report_client = report_client_universe.new(
             report_instance_id: @report.id,
             client_id: client.id,
@@ -127,35 +160,171 @@ module HudSpmReport::Generators::Fy2020
             dob: client.DOB,
             first_name: client.first_name,
             last_name: client.last_name,
-            relevant_history: relevant_history,
+            m1_history: relevant_history,
             m1a_es_sh_days: calculate_days_homeless(nights, ES_SH, PH_TH, false),
             m1a_es_sh_th_days: calculate_days_homeless(nights, ES_SH_TH, PH, false),
             m1b_es_sh_ph_days: calculate_days_homeless(nights, ES_SH_PH, PH_TH, true),
             m1b_es_sh_th_ph_days: calculate_days_homeless(nights, ES_SH_TH_PH, PH, true),
           )
-
           [client, report_client]
         end.to_h
 
         # Import clients
-        report_client_universe.import(
-          pending_associations.values,
-          validate: false,
-          on_duplicate_key_update: {
-            conflict_target: upsert_key,
-            columns: upsert_cols,
-          },
-        )
+        append_report_clients measure_one, pending_associations, updated_columns
+      end
+    end
 
-        # Attach clients to relevant questions
-        ['Measure 1'].each do |question_number|
-          universe_cell = @report.universe(question_number)
-          universe_cell.add_universe_members(pending_associations)
-        end
+    private def add_clients_for_question?(question_number)
+      if @report.build_for_questions.include?(question_number)
+        puts "Adding data on #{question_number} clients"
+        true
+      else
+        false
       end
     end
 
     private def add_m2_clients
+      measure_two = 'Measure 2'
+      return unless add_clients_for_question?(measure_two)
+
+      project_types = SO + ES + TH + SH + PH
+      exits_columns = {
+        client_id: :client_id,
+        destination: :destination,
+        date: :date,
+        first_date_in_program: :first_date_in_program,
+        last_date_in_program: :last_date_in_program,
+        project_type: :computed_project_type,
+        project_id: :project_id,
+        project_name: :project_name,
+        household_id: :household_id,
+      }.freeze
+
+      updated_columns = [
+        :dob,
+        :first_name,
+        :last_name,
+        :m2_exit_from_project_type,
+        :m2_exit_to_destination,
+        :m2_exit_days,
+        :m2_history,
+      ].freeze
+
+      each_client_batch client_scope.where(id: exits_scope.select(:client_id)) do |clients_by_id|
+        # count one exit per client
+        project_exits_to_ph = {}
+        exits_for_batch = exits_for_batch(clients_by_id.keys, exits_columns)
+        exits_for_batch.each do |p_exit|
+          next if project_exits_to_ph[p_exit[:client_id]].present?
+
+          # inherit destination from HoH if age <= 17 and destination not collected
+          destination = destination_for(project_types, p_exit[:client_id], p_exit[:household_id])
+          p_exit[:destination] = destination if destination.present?
+
+          project_exits_to_ph[p_exit[:client_id]] = p_exit if permanent_destination?(p_exit[:destination])
+        end
+
+        pending_associations = {}
+        project_exits_to_ph.each do |client_id, p_exit|
+          client = clients_by_id.fetch(client_id)
+          pending_associations[client] = report_client_universe.new(
+            report_instance_id: @report.id,
+            client_id: client.id,
+            data_source_id: client.data_source_id,
+            dob: client.DOB,
+            first_name: client.first_name,
+            last_name: client.last_name,
+            m2_exit_from_project_type: p_exit[:project_type],
+            m2_exit_to_destination: p_exit[:destination],
+            m2_exit_days: 0, # FIXME
+            m2_history: p_exit,
+          )
+        end
+
+        append_report_clients measure_two, pending_associations, updated_columns
+      end
+    end
+
+    private def exits_for_batch(client_ids, columns)
+      exits_scope.where(
+        client_id: client_ids,
+      ).order(client_id: :asc, last_date_in_program: :asc).
+        select(*columns.values).
+        pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end
+    end
+
+    private def add_filters(scope:)
+      scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
+
+      scope
+    end
+
+    private def destination_for(project_types, client_id, household_id)
+      children_without_destination(project_types)[[client_id, household_id]]
+    end
+
+    private def children_without_destination(project_types)
+      # TODO: batch this... right now it loads ALL enrollments with service during the report range
+      # 99 = Not collected
+      destination_not_collected = [99]
+
+      @child_ids ||= {}
+      @child_ids[project_types] ||= begin
+        child_candidates_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          hud_project_type(project_types).
+          open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
+          with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
+          joins(:enrollment, :client).
+          where(
+            she_t[:destination].in(destination_not_collected).or(she_t[:destination].eq(nil)),
+            c_t[:DOB].not_eq(nil).and(c_t[:DOB].lteq(@report.start_date - 17.years)),
+          ).
+          distinct.
+          select(:client_id)
+
+        scope = add_filters(scope: child_candidates_scope)
+
+        child_candidates = scope.
+          pluck(
+            :client_id,
+            c_t[:DOB],
+            e_t[:EntryDate],
+            :age,
+            :head_of_household_id,
+            :household_id,
+          )
+
+        child_id_to_destination = {}
+        child_candidates.each do |(client_id, dob, entry_date, age, hoh_id, household_id)|
+          age = age_for_report dob: dob, entry_date: entry_date, age: age
+          child_id_to_destination[[client_id, household_id]] = hoh_destination_for(project_types, hoh_id, household_id) if age.present? && age <= 17
+        end
+        child_id_to_destination
+      end
+    end
+
+    def hoh_destinations(project_types)
+      # TODO: batch this... right now it loads ALL enrollments with service during the report range
+      @hoh_destinations ||= {}
+      @hoh_destinations[project_types] ||= begin
+        GrdaWarehouse::ServiceHistoryEnrollment.exit.
+          hud_project_type(project_types).
+          open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
+          with_service_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
+          joins(:client).
+          where(she_t[:head_of_household].eq(true)).
+          distinct.
+          pluck(:head_of_household_id, :destination, :household_id).
+          map do |(hoh_id, destination, household_id)|
+            [[hoh_id, household_id], destination]
+          end.to_h
+      end
+    end
+
+    def hoh_destination_for(project_types, client_id, household_id)
+      hoh_destinations(project_types)[[client_id, household_id]]
     end
 
     # return an array of date ranges
@@ -206,19 +375,6 @@ module HudSpmReport::Generators::Fy2020
       scope.pluck(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{field})")).first
     end
 
-    private def sh_enrollment_scope
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH)
-      scope = scope.open_between(
-        start_date: @report.start_date,
-        end_date: @report.end_date,
-      ).with_service_between(
-        start_date: @report.start_date,
-        end_date: @report.end_date,
-      )
-      scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
-      scope
-    end
-
     private def services_scope
       GrdaWarehouse::ServiceHistoryService.joins(
         :client,
@@ -233,6 +389,18 @@ module HudSpmReport::Generators::Fy2020
       GrdaWarehouse::ServiceHistoryEnrollment.exit.
         joins(:project).hud_project_type(SO + ES + TH + SH + PH).
         where(last_date_in_program: look_back_until..look_forward_until)
+    end
+
+    private def entries_scope
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH)
+      scope = scope.open_between(
+        start_date: @report.start_date,
+        end_date: @report.end_date,
+      ).with_service_between(
+        start_date: @report.start_date,
+        end_date: @report.end_date,
+      )
+      add_filters(scope: scope)
     end
 
     # Calculate the number of unique days homeless given:
