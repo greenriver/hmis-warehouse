@@ -38,6 +38,11 @@ module IncomeBenefitsReport::WarehouseReports
       respond_with(@report, location: income_benefits_report_warehouse_reports_report_index_path)
     end
 
+    def destroy
+      @report.destroy
+      respond_with(@report, location: income_benefits_report_warehouse_reports_report_index_path)
+    end
+
     def section
       @section = @report.class.available_section_types.detect do |m|
         m == params.require(:partial).underscore

@@ -38,7 +38,7 @@ class CreateIncomeBenefitsReports < ActiveRecord::Migration[5.2]
 
     create_table :income_benefits_report_incomes do |t|
       t.references :report, null: false, index: true
-      t.references :report_client, null: false, index: true
+      t.references :client, null: false, index: true
       t.references :income_benefits, null: false
       t.string :stage
       t.date :InformationDate, null: false

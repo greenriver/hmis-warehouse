@@ -4817,7 +4817,7 @@ ActiveRecord::Schema.define(version: 2021_02_25_144651) do
 
   create_table "income_benefits_report_incomes", force: :cascade do |t|
     t.bigint "report_id", null: false
-    t.bigint "report_client_id", null: false
+    t.bigint "client_id", null: false
     t.bigint "income_benefits_id", null: false
     t.string "stage"
     t.date "InformationDate", null: false
@@ -4891,8 +4891,8 @@ ActiveRecord::Schema.define(version: 2021_02_25_144651) do
     t.integer "DataCollectionStage"
     t.index ["Earned"], name: "index_income_benefits_report_incomes_on_Earned"
     t.index ["IncomeFromAnySource"], name: "index_income_benefits_report_incomes_on_IncomeFromAnySource"
+    t.index ["client_id"], name: "index_income_benefits_report_incomes_on_client_id"
     t.index ["income_benefits_id"], name: "index_income_benefits_report_incomes_on_income_benefits_id"
-    t.index ["report_client_id"], name: "index_income_benefits_report_incomes_on_report_client_id"
     t.index ["report_id"], name: "index_income_benefits_report_incomes_on_report_id"
   end
 

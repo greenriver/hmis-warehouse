@@ -11,7 +11,9 @@ module IncomeBenefitsReport
     self.table_name = 'income_benefits_report_clients'
     belongs_to :report
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    has_one :earlier_income_record, class_name: 'IncomeBenefitsReport::Income'
-    has_one :later_income_record, class_name: 'IncomeBenefitsReport::Income'
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment'
+    belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
+    has_one :earlier_income_record, class_name: 'IncomeBenefitsReport::Income', inverse_of: :client
+    has_one :later_income_record, class_name: 'IncomeBenefitsReport::Income', inverse_of: :client
   end
 end
