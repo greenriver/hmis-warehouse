@@ -10,6 +10,7 @@ module Filters
     include AvailableSubPopulations
     include ArelHelper
 
+    attribute :on, Date, lazy: true, default: ->(r, _) { r.default_on }
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :sort
@@ -27,6 +28,7 @@ module Filters
     attribute :length_of_times, Array, default: []
     attribute :destination_ids, Array, default: []
     attribute :prior_living_situation_ids, Array, default: []
+    attribute :default_on, Date, default: Date.current
     attribute :default_start, Date, default: (Date.current - 1.year).beginning_of_year
     attribute :default_end, Date, default: (Date.current - 1.year).end_of_year
 
@@ -68,6 +70,7 @@ module Filters
     def set_from_params(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Naming/AccessorMethodName
       return self unless filters.present?
 
+      self.on = filters.dig(:on)&.to_date || default_on
       self.start = filters.dig(:start)&.to_date || default_start
       self.end = filters.dig(:end)&.to_date || default_end
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
@@ -105,6 +108,7 @@ module Filters
     def for_params
       {
         filters: {
+          on: on,
           start: start,
           end: self.end,
           comparison_pattern: comparison_pattern,

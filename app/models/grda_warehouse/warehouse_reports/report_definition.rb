@@ -897,6 +897,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:census_tracking)
+        r_list['Operational'] << {
+          url: 'census_tracking/warehouse_reports/census_trackers',
+          name: 'Census Tracking Worksheet',
+          description: 'Breakdown of PIT Census data',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
         r_list['Population Dashboards'] << {
           url: 'dashboards/adult_only_households',
