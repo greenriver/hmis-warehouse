@@ -142,7 +142,7 @@ module
     end
 
     private def total_adult_stayer_income_value_at_entry
-      @total_adult_stayer_income_value_at_entry ||= stayers_adults_with_any_income_at_entry.sum(:TotalMonthlyIncome)
+      @total_adult_stayer_income_value_at_entry ||= stayers_adults_with_any_income_at_entry.sum(ib_t[:TotalMonthlyIncome])
     end
 
     private def average_adult_stayer_income_value_at_entry
@@ -159,7 +159,7 @@ module
       stayers_most_recent_income_assessment.
         joins(enrollment: :income_benefits).
         merge(filter_for_stayers(filter_for_adults(report_scope))).
-        merge(GrdaWarehouse::Hud::IncomeBenefit.with_any_income.at_last_update)
+        merge(GrdaWarehouse::Hud::IncomeBenefit.with_any_income.only_most_recent_by_enrollment)
     end
 
     private def count_stayers_adults_with_any_income_at_last_update
@@ -167,7 +167,7 @@ module
     end
 
     private def total_adult_stayer_income_value_at_last_update
-      @total_adult_stayer_income_value_at_last_update ||= stayers_adults_with_any_income_at_last_update.sum(:TotalMonthlyIncome)
+      @total_adult_stayer_income_value_at_last_update ||= stayers_adults_with_any_income_at_last_update.sum(ib_t[:TotalMonthlyIncome])
     end
 
     private def average_adult_stayer_income_value_at_last_update
