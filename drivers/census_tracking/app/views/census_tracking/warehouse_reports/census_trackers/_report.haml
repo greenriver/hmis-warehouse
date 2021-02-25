@@ -1,0 +1,31 @@
+%table.table.table-responsive.table-sm.table-hover
+  %thead
+    - headers = [ 'Agency Name', 'Program Name' ] + @report.populations.keys
+    %tr
+      - headers.each do |header|
+        %th= header
+  %tbody
+    - last_project_type = ''
+    - @report.projects.each do |project_type, org_name, project_name, project_id|
+      - if project_type != last_project_type
+        - if ! last_project_type.blank?
+          %tr
+            %td.table-secondary{colspan: 2}
+            - @report.populations.values.each do |query|
+              %td.table-secondary= @report.clients_by_project_type(last_project_type, query).count
+        %tr
+          %td.table-dark{colspan: headers.size}= project_type
+          - last_project_type = project_type
+      %tr
+        %td.table-active= org_name
+        %td.table-active= project_name
+        - @report.populations.values.each do |query|
+          %td= @report.clients_by_project(project_id, query).count
+    %tr
+      %td.table-secondary{colspan: 2}
+      - @report.populations.values.each do |query|
+        %td.table-secondary= @report.clients_by_project_type(last_project_type, query).count
+    %tr
+      %td.table-primary{colspan: 2} Total
+      - @report.populations.values.each do |query|
+        %td.table-primary= @report.clients_by_population(query).count

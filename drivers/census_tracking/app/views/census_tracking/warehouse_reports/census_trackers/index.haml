@@ -6,4 +6,5 @@
 
 = render 'filter'
 
-= render 'report'
+- if @filter.project_ids.present? || @filter.project_group_ids.present? || @filter.organization_ids.present?
+  = render 'report'

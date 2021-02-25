@@ -1,0 +1,33 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: @filter.on.strftime('%m-%d-%Y')) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center, wrap_text: true})
+  sheet.add_row([ 'Agency Name', 'Program Name' ] + @report.populations.keys, style: title)
+
+  by_project_type = sheet.styles.add_style(bg_color: "D2C4B4")
+  type_header = sheet.styles.add_style(bg_color: "000000", fg_color: "FFFFFF")
+  totals = sheet.styles.add_style(bg_color: "BFD1D4")
+  name_style = sheet.styles.add_style(bg_color: 'E0E0E0')
+  last_project_type = ''
+  @report.projects.each do |project_type, org_name, project_name, project_id|
+    if project_type != last_project_type
+      if ! last_project_type.blank?
+        row = [ '', '']
+        row += @report.populations.values.map { |query| @report.clients_by_project_type(last_project_type, query).count }
+        sheet.add_row(row, style: by_project_type)
+      end
+      sheet.add_row([project_type, ''] + Array.new(@report.populations.keys.size), style: type_header)
+      last_project_type = project_type
+    end
+    row = [ org_name, project_name]
+    row += @report.populations.values.map { |query| @report.clients_by_project(project_id, query).count }
+    sheet.add_row(row, style: [ name_style, name_style ])
+  end
+  row = [ '', '']
+  row += @report.populations.values.map { |query| @report.clients_by_project_type(last_project_type, query).count }
+  sheet.add_row(row, style: by_project_type)
+  row = [ 'Total', '']
+  row += @report.populations.values.map { |query| @report.clients_by_population(query).count }
+  sheet.add_row(row, style: totals)
+
+  sheet.column_widths(*[ 32, 32 ] + Array.new(@report.populations.keys.size, 16))
+end
