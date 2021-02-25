@@ -21,17 +21,8 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     cleanup
   end
 
-  def assert_report_completed
-    assert_equal 'Completed', report_result.state, report_result.failures
-    assert_equal [described_class.question_number], report_result.build_for_questions
-    assert report_result.remaining_questions.none?
-  end
-
   def cleanup
     puts '  Cleaning up jobs, DB and temporary files'
-    Delayed::Job.delete_all
-    cleanup_files
-    GrdaWarehouse::Utility.clear!
     @user&.really_destroy!
     User.with_deleted.where(email: SPM_USER_EMAIL).delete_all
     HudSpmReport::Fy2020::SpmClient.delete_all
@@ -49,6 +40,12 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     HudSpmReport::Filters::SpmFilter.new(
       shared_filter.merge(project_ids: []), # FIXME
     )
+  end
+
+  def assert_report_completed
+    assert_equal 'Completed', report_result.state, report_result.failures
+    assert_equal [described_class.question_number], report_result.build_for_questions
+    assert report_result.remaining_questions.none?
   end
 
   def run(filter, question_number)
@@ -73,29 +70,30 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     @data_source = GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
     GrdaWarehouse::DataSource.create(name: 'Warehouse', short_name: 'W')
     import(file_path, @data_source)
+  end
+
+  def import(file_path, data_source)
+    @delete_later ||= []
+    # relative to our own spec fixture files
+    file_path = Rails.root.join('drivers/hud_spm_report/spec/fixtures/files', file_path)
+    source_file_path = File.join(file_path, 'source')
+    import_path = File.join(file_path, data_source.id.to_s)
+    # duplicate the fixture file as it gets manipulated
+    FileUtils.cp_r(source_file_path, import_path)
+    @delete_later << import_path unless import_path == source_file_path
+
+    importer = Importers::HmisTwentyTwenty::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
+
+    raise 'Somethings is not right' unless importer.import.import_errors.none?
+
+    importer.import!
+
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
     GrdaWarehouse::Tasks::ProjectCleanup.new.run!
     GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
     AccessGroup.maintain_system_groups
 
     Delayed::Worker.new.work_off(2)
-  end
-
-  def import(file_path, data_source)
-    @delete_later ||= []
-    # relative to our own spec fixture files
-    folder_path = Rails.root.join('drivers/hud_spm_report/spec/fixtures/files', file_path)
-    source_file_path = File.join(folder_path, 'source')
-    import_path = File.join(folder_path, data_source.id.to_s)
-    unless import_path == source_file_path
-      # duplicate the fixture file as it gets manipulated
-      puts "Copying #{source_file_path} => #{import_path} and remembering it needs to be cleaned up"
-      FileUtils.cp_r(source_file_path, import_path)
-      @delete_later << import_path
-    end
-
-    importer = Importers::HmisTwentyTwenty::Base.new(file_path: file_path, data_source_id: data_source.id, remove_files: false)
-    importer.import!
   end
 
   def cleanup_files

@@ -1,9 +1,9 @@
 class CreateHudReportSpmClients < ActiveRecord::Migration[5.2]
   def change
     create_table :hud_report_spm_clients do |t|
-      t.integer :client_id
-      t.integer :data_source_id
-      t.integer :report_instance_id
+      t.integer :client_id, null: false
+      t.integer :data_source_id, null: false
+      t.integer :report_instance_id, null: false
 
       t.index [:client_id, :data_source_id, :report_instance_id], unique: true, name: 'spm_client_conflict_columns'
       t.timestamps

@@ -135,7 +135,7 @@ module HudSpmReport::Generators::Fy2020
           # after resolving the non_service dates
           # roll this back up into something enrollment like
           # that shows how we classified each enrollment night
-          relevant_history = nights.group_by do |n|
+          m1_history = nights.group_by do |n|
             n[:enrollment_id]
           end.map do |enrollment_id, dates|
             {
@@ -152,6 +152,7 @@ module HudSpmReport::Generators::Fy2020
           end
 
           client = clients_by_id.fetch(client_id)
+
           # append_report_clients needs AR Instances
           report_client = report_client_universe.new(
             report_instance_id: @report.id,
@@ -160,7 +161,7 @@ module HudSpmReport::Generators::Fy2020
             dob: client.DOB,
             first_name: client.first_name,
             last_name: client.last_name,
-            m1_history: relevant_history,
+            m1_history: m1_history,
             m1a_es_sh_days: calculate_days_homeless(nights, ES_SH, PH_TH, false),
             m1a_es_sh_th_days: calculate_days_homeless(nights, ES_SH_TH, PH, false),
             m1b_es_sh_ph_days: calculate_days_homeless(nights, ES_SH_PH, PH_TH, true),
@@ -188,7 +189,7 @@ module HudSpmReport::Generators::Fy2020
       return unless add_clients_for_question?(measure_two)
 
       project_types = SO + ES + TH + SH + PH
-      exits_columns = {
+      enrollment_columns = {
         client_id: :client_id,
         destination: :destination,
         date: :date,
@@ -211,9 +212,13 @@ module HudSpmReport::Generators::Fy2020
       ].freeze
 
       each_client_batch client_scope.where(id: exits_scope.select(:client_id)) do |clients_by_id|
-        # count one exit per client
+        # 1. Select clients across all projects in the COC of the relevant type (SO, ES, TH, SH, PH) with
+        # a project exit date 2 years prior to the report date range, going back no further than the [Lookback Stop Date].
+        exits_for_batch = exits_for_batch(clients_by_id.keys, enrollment_columns)
+
+        # 2. Of the universe of project exits, determine each client’s
+        # earliest [project exit date] where the [destination] was permanent housing.
         project_exits_to_ph = {}
-        exits_for_batch = exits_for_batch(clients_by_id.keys, exits_columns)
         exits_for_batch.each do |p_exit|
           next if project_exits_to_ph[p_exit[:client_id]].present?
 
@@ -224,21 +229,31 @@ module HudSpmReport::Generators::Fy2020
           project_exits_to_ph[p_exit[:client_id]] = p_exit if permanent_destination?(p_exit[:destination])
         end
 
+        reentries_by_client_id = reentries_for_batch(clients_by_id.keys, enrollment_columns).group_by do |e|
+          e[:client_id]
+        end
+
+        # 3. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
+        # according to the project type associated with the
         pending_associations = {}
         project_exits_to_ph.each do |client_id, p_exit|
           client = clients_by_id.fetch(client_id)
-          pending_associations[client] = report_client_universe.new(
+          report_client = report_client_universe.new(
             report_instance_id: @report.id,
-            client_id: client.id,
+            client_id: client_id,
             data_source_id: client.data_source_id,
             dob: client.DOB,
             first_name: client.first_name,
             last_name: client.last_name,
             m2_exit_from_project_type: p_exit[:project_type],
             m2_exit_to_destination: p_exit[:destination],
-            m2_exit_days: 0, # FIXME
-            m2_history: p_exit,
           )
+
+          reentries = reentries_by_client_id[client_id]
+
+          report_client.m2_history = [p_exit, reentries]
+
+          pending_associations[client] = report_client
         end
 
         append_report_clients measure_two, pending_associations, updated_columns
@@ -256,7 +271,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def add_filters(scope:)
-      scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
+      # scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
 
       scope
     end
@@ -382,15 +397,6 @@ module HudSpmReport::Generators::Fy2020
       ).merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH))
     end
 
-    private def exits_scope
-      look_back_until = [LOOKBACK_STOP_DATE.to_date, @report.start_date - 730.days].max
-      look_forward_until = (@report.end_date - 730.days)
-
-      GrdaWarehouse::ServiceHistoryEnrollment.exit.
-        joins(:project).hud_project_type(SO + ES + TH + SH + PH).
-        where(last_date_in_program: look_back_until..look_forward_until)
-    end
-
     private def entries_scope
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH)
       scope = scope.open_between(
@@ -401,6 +407,27 @@ module HudSpmReport::Generators::Fy2020
         end_date: @report.end_date,
       )
       add_filters(scope: scope)
+    end
+
+    private def m2_enrollment_range
+      [LOOKBACK_STOP_DATE.to_date, @report.start_date - 730.days].max .. (@report.end_date - 730.days)
+    end
+
+    private def exits_scope
+      GrdaWarehouse::ServiceHistoryEnrollment.exit.
+        joins(:project).hud_project_type(SO + ES + TH + SH + PH).
+        where(last_date_in_program: m2_enrollment_range)
+    end
+
+    private def reentries_for_batch(client_ids, columns)
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:project).hud_project_type(SO + ES + TH + SH + PH).
+        where(client_id: client_ids).
+        where(first_date_in_program: m2_enrollment_range).
+        order(client_id: :asc, last_date_in_program: :asc).
+        pluck(*columns.values).map do |row|
+          Hash[columns.keys.zip(row)]
+        end
     end
 
     # Calculate the number of unique days homeless given:

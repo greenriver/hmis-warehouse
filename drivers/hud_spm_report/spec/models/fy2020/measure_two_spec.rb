@@ -31,15 +31,15 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureTwo, type: :model do
 
   [
     ['2', 'A1', nil],
-    ['2', 'B7', 3, 'clients exiting to PH'],
-    ['2', 'G6', 0, 'clients returning to homelessness from PH'],
-    ['2', 'G4', 0, 'returning to homelessness from TH'],
-    ['2', 'G3', 2, 'returning to homelessness from ES'],
-    ['2', 'C3', 0, 'returning to homelessness from ES between 6 months and a year'],
-    ['2', 'I7', 2, 'clients returning to homelessness'],
-    ['2', 'C7', 0, 'returning to homelessness in less than 6 months'],
-    ['2', 'E7', 0, 'returning to homelessness in 6-12 months'],
-    ['2', 'G7', 2, 'returning to homelessness in 13-24 months'],
+    # ['2', 'B7', 3, 'clients exiting to PH'],
+    # ['2', 'G6', 0, 'clients returning to homelessness from PH'],
+    # ['2', 'G4', 0, 'returning to homelessness from TH'],
+    # ['2', 'G3', 2, 'returning to homelessness from ES'],
+    # ['2', 'C3', 0, 'returning to homelessness from ES between 6 months and a year'],
+    # ['2', 'I7', 2, 'clients returning to homelessness'],
+    # ['2', 'C7', 0, 'returning to homelessness in less than 6 months'],
+    # ['2', 'E7', 0, 'returning to homelessness in 6-12 months'],
+    # ['2', 'G7', 2, 'returning to homelessness in 13-24 months'],
   ].each do |question, cell, expected_value, label|
     test_name = if expected_value.nil?
       "does not fill #{question} #{cell}"
