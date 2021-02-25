@@ -84,22 +84,36 @@ module GrdaWarehouse::WarehouseReports
       chart_start_date = (@filter.end - 6.months).beginning_of_month
       chart_end_date = @filter.end.end_of_month
       months = (chart_start_date.to_date..chart_end_date.to_date).map { |m| m.strftime('%b %Y') }.uniq
-      clients = exits_scope(start_date: chart_start_date, end_date: chart_end_date).
+
+      clients_to_ph = exits_scope(start_date: chart_start_date, end_date: chart_end_date).
         where(destination: HUD.permanent_destinations).
         distinct.
         select(:client_id, :last_date_in_program).
         index_by(&:client_id).values.
         group_by{ |x| x.last_date_in_program.end_of_month }
 
-      client_counts = {}
-      months.each { |month| client_counts[month] = 0 }
-      client_counts.merge!(clients.map { |k, v| [k.strftime('%b %Y'), v.size] }.to_h)
+      clients_to_ph_count = {}
+      months.each { |month| clients_to_ph_count[month] = 0 }
+      clients_to_ph_count.merge!(clients_to_ph.map { |k, v| [k.strftime('%b %Y'), v.size] }.to_h)
+
+      clients_to_stabilization = housed_scope.
+        where(project_type: [3, 9, 10, 13]). # PSH or RRH
+        entering_stabilization(start_date: chart_start_date, end_date: chart_end_date).
+        distinct.
+        select(:client_id, :housed_date).
+        index_by(&:client_id).values.
+        group_by{ |x| x.housed_date.end_of_month }
+
+      clients_to_stabilization_count = {}
+      months.each { |month| clients_to_stabilization_count[month] = 0 }
+      clients_to_stabilization_count.merge!(clients_to_stabilization.map { |k, v| [k.strftime('%b %Y'), v.size] }.to_h)
 
       {
         labels: [:x] + months,
         data: [
           [:x] + months,
-          ['Clients'] + client_counts.values,
+          [metrics[:clients_to_ph]] + clients_to_ph_count.values,
+          [metrics[:clients_to_stabilization]]  + clients_to_stabilization_count.values,
         ],
       }
     end

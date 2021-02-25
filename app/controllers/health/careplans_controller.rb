@@ -113,7 +113,7 @@ module Health
       @careplan.user = current_user
       @careplan.assign_attributes(careplan_params)
       @careplan.health_file.set_calculated!(current_user.id, @client.id) if @careplan.health_file&.new_record?
-      Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: false).update
+      Health::CareplanSaver.new(careplan: @careplan, user: current_user, create_qa: true).update
       @form_button = 'Save Care Plan'
       respond_with(@careplan, location: polymorphic_path(careplans_path_generator))
     end

@@ -58,6 +58,18 @@ module TextMessage
       sns_client.publish(phone_number: formatted_phone_number, message: content)
     end
 
+    # bundle exec rails runner 'TextMessage::Message.new.test!("1231231234")'
+    def test!(phone_number)
+      @formatted_phone_number = "1#{phone_number}"
+      if opted_out?
+        puts 'opted out!'
+      else
+        content = "Testing message #{SecureRandom.hex(8)}"
+        result = sns_client.publish(phone_number: formatted_phone_number, message: content)
+        puts "sent: #{result}"
+      end
+    end
+
     private def sns_client
       @sns_client ||= Aws::SNS::Client.new
     end

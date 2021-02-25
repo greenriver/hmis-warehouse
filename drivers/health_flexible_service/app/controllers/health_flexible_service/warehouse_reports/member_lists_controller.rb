@@ -37,7 +37,7 @@ module HealthFlexibleService::WarehouseReports
     end
 
     def available_acos
-      Health::AccountableCareOrganization.where.not(vpr_name: nil)
+      Health::AccountableCareOrganization.where.not(vpr_name: nil).order(:name)
     end
     helper_method :available_acos
 
