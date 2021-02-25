@@ -12,10 +12,25 @@ module IncomeBenefitsReport::WarehouseReports
     include BaseFilters
 
     before_action :require_can_view_clients, only: [:detail]
-    before_action :set_report
+    before_action :set_report, only: [:show, :destroy]
     before_action :set_pdf_export
 
     def index
+      @reports = report_scope.ordered.
+        page(params[:page]).per(25)
+      # @filter = filter_class.new(user_id: current_user.id)
+      # @filter.set_from_params(filter_params) if filter_params.present?
+      @report = report_class.new(user_id: current_user.id)
+      @report.filter = @filter
+      # Make sure the form will work
+      filters
+    end
+
+    def create
+      @report = report_class.new(user_id: current_user.id)
+      @report.filter = @filter
+      @report.save
+      respond_with(@report, location: income_benefits_report_warehouse_reports_report_index_path)
     end
 
     def section
@@ -49,6 +64,10 @@ module IncomeBenefitsReport::WarehouseReports
       else
         @comparison = @report
       end
+    end
+
+    private def report_scope
+      report_class.visible_to(current_user)
     end
 
     private def report_class
@@ -95,6 +114,10 @@ module IncomeBenefitsReport::WarehouseReports
 
     private def set_pdf_export
       @pdf_export = IncomeBenefitsReport::DocumentExports::IncomeBenefitsExport.new
+    end
+
+    private def flash_interpolation_options
+      { resource_name: @report.title }
     end
   end
 end

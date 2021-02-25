@@ -602,7 +602,7 @@ module Filters
     end
 
     def chosen_household_type
-      household_type_string(household_type.to_sym)
+      household_type_string(household_type&.to_sym)
     end
 
     def household_type_string(type)

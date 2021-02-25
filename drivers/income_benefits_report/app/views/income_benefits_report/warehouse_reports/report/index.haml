@@ -1,27 +1,7 @@
-- title = _('Income, Non-Cash Benefits, Health Insurance')
+- title = @report.title
 - content_for :title, title
 
-- @layout__plain_inner = true
-- @layout__width = 'lg'
-.content-outer-prs1
-  %nav.nav-drawer.prs1
-    = render 'filters/filter_controls/sidebar'
-  .main-outer-prs1
-    .utility-prs1
-      = render '/warehouse_reports/breadcrumbs', tab: 'operational'
-      = render "utility"
-    .top-nav-prs1
-      %h1.mb-5= title
-      .mb-4= render 'hero_counts'
-    .main-inner-prs1
-      .text-right.mb-4
-        = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: income_benefits_report_warehouse_reports_report_index_path({format: :xlsx}.merge(@filter.for_params))
-      - @report.class.available_section_types.each do |section|
-        .rollup{data: {partial: section}}
-
--# load in all the bits of aggregate statistics via ajax
-= content_for :page_js do
-  :javascript
-    'use strict';
-    var section_path = #{(url_for(action: 'index') + '/section/').to_json.html_safe};
-    var sections = new App.Sections.Loader($('.rollup'), section_path, #{params.to_json.html_safe});
+= render '/warehouse_reports/breadcrumbs', tab: 'operational'
+%h1= title
+= render 'form'
+= render 'history_table'

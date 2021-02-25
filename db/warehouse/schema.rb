@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_23_011452) do
+ActiveRecord::Schema.define(version: 2021_02_25_144651) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4780,6 +4780,134 @@ ActiveRecord::Schema.define(version: 2021_02_23_011452) do
     t.index ["importer_log_id"], name: "index_import_logs_on_importer_log_id"
     t.index ["loader_log_id"], name: "index_import_logs_on_loader_log_id"
     t.index ["updated_at"], name: "index_import_logs_on_updated_at"
+  end
+
+  create_table "income_benefits_report_clients", force: :cascade do |t|
+    t.bigint "report_id", null: false
+    t.bigint "client_id", null: false
+    t.string "first_name"
+    t.string "middle_name"
+    t.string "last_name"
+    t.integer "ethnicity"
+    t.string "race"
+    t.date "dob"
+    t.integer "age"
+    t.integer "gender"
+    t.bigint "enrollment_id"
+    t.date "entry_date"
+    t.date "exit_date"
+    t.date "move_in_date"
+    t.string "project_name"
+    t.bigint "project_id"
+    t.bigint "earlier_income_record_id"
+    t.bigint "later_income_record_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["client_id"], name: "index_income_benefits_report_clients_on_client_id"
+    t.index ["created_at"], name: "index_income_benefits_report_clients_on_created_at"
+    t.index ["earlier_income_record_id"], name: "index_income_benefits_report_clients_earlier"
+    t.index ["enrollment_id"], name: "index_income_benefits_report_clients_on_enrollment_id"
+    t.index ["later_income_record_id"], name: "index_income_benefits_report_clients_later"
+    t.index ["project_id"], name: "index_income_benefits_report_clients_on_project_id"
+    t.index ["report_id"], name: "index_income_benefits_report_clients_on_report_id"
+    t.index ["updated_at"], name: "index_income_benefits_report_clients_on_updated_at"
+  end
+
+  create_table "income_benefits_report_incomes", force: :cascade do |t|
+    t.bigint "report_id", null: false
+    t.bigint "report_client_id", null: false
+    t.bigint "income_benefits_id", null: false
+    t.string "stage"
+    t.date "InformationDate", null: false
+    t.integer "IncomeFromAnySource"
+    t.string "TotalMonthlyIncome"
+    t.integer "Earned"
+    t.string "EarnedAmount"
+    t.integer "Unemployment"
+    t.string "UnemploymentAmount"
+    t.integer "SSI"
+    t.string "SSIAmount"
+    t.integer "SSDI"
+    t.string "SSDIAmount"
+    t.integer "VADisabilityService"
+    t.string "VADisabilityServiceAmount"
+    t.integer "VADisabilityNonService"
+    t.string "VADisabilityNonServiceAmount"
+    t.integer "PrivateDisability"
+    t.string "PrivateDisabilityAmount"
+    t.integer "WorkersComp"
+    t.string "WorkersCompAmount"
+    t.integer "TANF"
+    t.string "TANFAmount"
+    t.integer "GA"
+    t.string "GAAmount"
+    t.integer "SocSecRetirement"
+    t.string "SocSecRetirementAmount"
+    t.integer "Pension"
+    t.string "PensionAmount"
+    t.integer "ChildSupport"
+    t.string "ChildSupportAmount"
+    t.integer "Alimony"
+    t.string "AlimonyAmount"
+    t.integer "OtherIncomeSource"
+    t.string "OtherIncomeAmount"
+    t.string "OtherIncomeSourceIdentify"
+    t.integer "BenefitsFromAnySource"
+    t.integer "SNAP"
+    t.integer "WIC"
+    t.integer "TANFChildCare"
+    t.integer "TANFTransportation"
+    t.integer "OtherTANF"
+    t.integer "OtherBenefitsSource"
+    t.string "OtherBenefitsSourceIdentify"
+    t.integer "InsuranceFromAnySource"
+    t.integer "Medicaid"
+    t.integer "NoMedicaidReason"
+    t.integer "Medicare"
+    t.integer "NoMedicareReason"
+    t.integer "SCHIP"
+    t.integer "NoSCHIPReason"
+    t.integer "VAMedicalServices"
+    t.integer "NoVAMedReason"
+    t.integer "EmployerProvided"
+    t.integer "NoEmployerProvidedReason"
+    t.integer "COBRA"
+    t.integer "NoCOBRAReason"
+    t.integer "PrivatePay"
+    t.integer "NoPrivatePayReason"
+    t.integer "StateHealthIns"
+    t.integer "NoStateHealthInsReason"
+    t.integer "IndianHealthServices"
+    t.integer "NoIndianHealthServicesReason"
+    t.integer "OtherInsurance"
+    t.string "OtherInsuranceIdentify"
+    t.integer "HIVAIDSAssistance"
+    t.integer "NoHIVAIDSAssistanceReason"
+    t.integer "ADAP"
+    t.integer "NoADAPReason"
+    t.integer "ConnectionWithSOAR"
+    t.integer "DataCollectionStage"
+    t.index ["Earned"], name: "index_income_benefits_report_incomes_on_Earned"
+    t.index ["IncomeFromAnySource"], name: "index_income_benefits_report_incomes_on_IncomeFromAnySource"
+    t.index ["income_benefits_id"], name: "index_income_benefits_report_incomes_on_income_benefits_id"
+    t.index ["report_client_id"], name: "index_income_benefits_report_incomes_on_report_client_id"
+    t.index ["report_id"], name: "index_income_benefits_report_incomes_on_report_id"
+  end
+
+  create_table "income_benefits_reports", force: :cascade do |t|
+    t.bigint "user_id"
+    t.jsonb "options"
+    t.string "processing_errors"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "failed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.index ["created_at"], name: "index_income_benefits_reports_on_created_at"
+    t.index ["deleted_at"], name: "index_income_benefits_reports_on_deleted_at"
+    t.index ["updated_at"], name: "index_income_benefits_reports_on_updated_at"
+    t.index ["user_id"], name: "index_income_benefits_reports_on_user_id"
   end
 
   create_table "lftp_s3_syncs", force: :cascade do |t|

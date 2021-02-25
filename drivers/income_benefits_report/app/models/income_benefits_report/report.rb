@@ -7,22 +7,59 @@
 # NOTE: This report runs all calculations against the most-recently started enrollment
 # that matches the filter scope for a given client
 module IncomeBenefitsReport
-  class Report
+  class Report < GrdaWarehouseBase
+    self.table_name = 'income_benefits_reports'
     include Filter::ControlSections
     include Filter::FilterScopes
+    include Reporting::Status
+    include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
     include IncomeBenefitsReport::Details
     include IncomeBenefitsReport::Summary
     include IncomeBenefitsReport::StayerHouseholds
 
-    attr_reader :filter
-    attr_accessor :comparison_pattern, :project_type_codes
+    attr_accessor :project_type_codes
 
-    def initialize(filter)
-      @filter = filter
-      @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-      @comparison_pattern = filter.comparison_pattern
+    acts_as_paranoid
+
+    belongs_to :user
+
+    # def initialize(filter)
+    #   super
+    #   @filter = filter
+    #   @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+    #   @comparison_pattern = filter.comparison_pattern
+    #   self.options = filter.for_params
+    # end
+
+    # NOTE: this differs from vierwable_by which looks at the report definitions
+    scope :visible_to, ->(user) do
+      return all if user.can_view_all_reports?
+      return where(user_id: user.id) if user.can_view_assigned_reports?
+
+      none
+    end
+
+    scope :ordered, -> do
+      order(updated_at: :desc)
+    end
+
+    def filter=(filter_object)
+      self.options = filter_object.for_params
+      filter
+    end
+
+    def filter
+      @filter ||= begin
+        f = ::Filters::FilterBase.new(user_id: user_id)
+        f.set_from_params(options['filters'].with_indifferent_access)
+        f
+      end
+    end
+
+    def comparison_pattern
+      @comparison_pattern ||= filter.comparison_pattern
     end
 
     def self.comparison_patterns
@@ -56,6 +93,10 @@ module IncomeBenefitsReport
       ]
     end
 
+    def title
+      _('Income, Non-Cash Benefits, Health Insurance Report')
+    end
+
     def section_ready?(section)
       return true unless section.in?(['summary', 'stayers_households'])
 
@@ -71,6 +112,8 @@ module IncomeBenefitsReport
     end
 
     protected def build_control_sections
+      # ensure filter has been set
+      filter
       [
         build_general_control_section,
         build_coc_control_section,
@@ -185,6 +228,36 @@ module IncomeBenefitsReport
       return 300.seconds if Rails.env.development?
 
       30.minutes
+    end
+
+    def key_for_display(key)
+      label = self.class.option_labels[key.to_sym]
+      return label if label
+
+      key.humanize
+    end
+
+    def value_for_display(key, value)
+      case key.to_sym
+      when :start, :end
+        Date.parse(value)
+      when :coc_codes
+        filter.chosen(key.to_sym)
+      when :project_type_numbers, :data_source_ids, :organization_ids, :project_ids, :project_group_ids
+        filter.chosen(key.to_sym).join(', ')
+      else
+        value
+      end
+    end
+
+    def self.option_labels
+      {
+        coc_code: 'CoCs',
+        organization_ids: 'Organizations',
+        project_ids: 'Projects',
+        data_source_ids: 'Data Sources',
+        project_type_numbers: 'Project Types',
+      }
     end
   end
 end
