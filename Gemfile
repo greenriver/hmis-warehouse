@@ -214,6 +214,7 @@ group :development do
   gem 'capistrano-rails', require: false
   gem 'rails-erd', require: false
   gem 'web-console'
+  gem 'aws-sdk-dynamodb', require: false
   # gem 'quiet_assets'
 
   gem 'list_matcher', require: false # for the forms:desmush rake task

@@ -3,9 +3,4 @@
 require_relative 'lib/ecs_tools'
 require_relative 'lib/command_args'
 
-if ENV['AWS_PROFILE'].nil?
-  puts 'Set your AWS_PROFILE variable first'
-  exit
-end
-
 EcsTools.new.poll_state_until_stable!(CommandArgs.cluster, failures: ARGV[0] == '--failures')
