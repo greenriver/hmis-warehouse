@@ -116,7 +116,7 @@ module HudSpmReport::Generators::Fy2020
       ]
 
       each_client_batch client_scope.where(
-        id: entries_scope.select(:client_id),
+        id: active_enrollments_scope.select(:client_id),
       ) do |clients_by_id|
         # select all the necessary service history
         # for this batch of clients
@@ -207,7 +207,7 @@ module HudSpmReport::Generators::Fy2020
         :last_name,
         :m2_exit_from_project_type,
         :m2_exit_to_destination,
-        :m2_exit_days,
+        :m2_reentry_days,
         :m2_history,
       ].freeze
 
@@ -229,12 +229,14 @@ module HudSpmReport::Generators::Fy2020
           project_exits_to_ph[p_exit[:client_id]] = p_exit if permanent_destination?(p_exit[:destination])
         end
 
-        reentries_by_client_id = reentries_for_batch(clients_by_id.keys, enrollment_columns).group_by do |e|
+        entries_by_client_id = entries_for_batch(clients_by_id.keys, enrollment_columns).group_by do |e|
           e[:client_id]
         end
 
         # 3. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
-        # according to the project type associated with the
+        # according to the project type associated with the client’s earliest applicable exit (cells B2-B6).
+        # 4. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
+        # without regard to the project type associated with the client’s earliest applicable exit (cell B7).
         pending_associations = {}
         project_exits_to_ph.each do |client_id, p_exit|
           client = clients_by_id.fetch(client_id)
@@ -249,12 +251,61 @@ module HudSpmReport::Generators::Fy2020
             m2_exit_to_destination: p_exit[:destination],
           )
 
-          reentries = reentries_by_client_id[client_id]
+          # 5. Using data from step 2, scan forward in time beginning from each client’s [project exit date]
+          # with a permanent housing destination to see if the client has a project start into a project
+          # indicating the client is now homeless again.
 
-          report_client.m2_history = [p_exit, reentries]
+          # 5.a && 5.d
+          reentries = entries_by_client_id[client_id].select do |r|
+            (r[:first_date_in_program] >= p_exit[:last_date_in_program]) && (r[:first_date_in_program] <= @report.end_date)
+          end
+
+          reentry = reentries.select do |r|
+            elapsed_days = r[:first_date_in_program] - p_exit[:last_date_in_program]
+            (
+              # 5.b When scanning for the client’s reappearance in a transitional housing project,
+              # the [project start date] must be more than 14 days after the client’s original
+              # [project exit date] from step 2 to be considered a return to homelessness.
+              r[:project_type].in?(TH) && elapsed_days > 14.days
+            ) || (
+              # 5.c When scanning for the client’s reappearance in a
+              # permanent housing project, the [project start date] must be more than
+              # 14 days after the client’s original [project exit date] from step 2 to
+              # be considered a return to homelessness
+              (
+                r[:project_type].in?(PH) && elapsed_days > 14.days
+              ) &&
+                true
+              # TODO: AND must also be more than 14
+              # days after any other permanent housing or transitional housing
+              # [project exit date] for the same client. This prevents accidentally
+              # counting clients who transition from transitional to permanent
+              # housing, or from one CoC permanent housing program to another PH
+              # project
+
+            )
+          end.first
+
+          # 6. Use the [project start date] found in step 5 to calculate the number of days between the
+          # client’s [project exit date] from step 2 until the client was identified
+          # as homeless again.
+
+          report_client.m2_reentry_days = if reentry
+            r[:first_date_in_program] - p_exit[:last_date_in_program]
+          else
+            0
+          end
+
+          # Audit of exit/entries we considered
+          report_client.m2_history = {
+            exit: p_exit,
+            reentries: reentry,
+          }
 
           pending_associations[client] = report_client
         end
+
+        # Steps 7 - 9 are handled in MeasureTwo
 
         append_report_clients measure_two, pending_associations, updated_columns
       end
@@ -397,7 +448,7 @@ module HudSpmReport::Generators::Fy2020
       ).merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH))
     end
 
-    private def entries_scope
+    private def active_enrollments_scope
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH)
       scope = scope.open_between(
         start_date: @report.start_date,
@@ -409,21 +460,25 @@ module HudSpmReport::Generators::Fy2020
       add_filters(scope: scope)
     end
 
-    private def m2_enrollment_range
-      [LOOKBACK_STOP_DATE.to_date, @report.start_date - 730.days].max .. (@report.end_date - 730.days)
+    private def m2_lookback
+      [LOOKBACK_STOP_DATE, @report.start_date - 730.days].max .. (@report.end_date - 730.days)
+    end
+
+    private def m2_lookforward
+      [LOOKBACK_STOP_DATE, @report.start_date - 730.days].max .. @report.end_date
     end
 
     private def exits_scope
       GrdaWarehouse::ServiceHistoryEnrollment.exit.
         joins(:project).hud_project_type(SO + ES + TH + SH + PH).
-        where(last_date_in_program: m2_enrollment_range)
+        where(last_date_in_program: m2_lookback)
     end
 
-    private def reentries_for_batch(client_ids, columns)
+    private def entries_for_batch(client_ids, columns)
       GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:project).hud_project_type(SO + ES + TH + SH + PH).
         where(client_id: client_ids).
-        where(first_date_in_program: m2_enrollment_range).
+        where(first_date_in_program: m2_lookforward).
         order(client_id: :asc, last_date_in_program: :asc).
         pluck(*columns.values).map do |row|
           Hash[columns.keys.zip(row)]

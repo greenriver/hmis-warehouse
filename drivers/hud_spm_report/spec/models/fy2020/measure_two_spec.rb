@@ -12,13 +12,13 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureTwo, type: :model do
 
   before(:all) do
     setup('fy2020/measure_two')
-
-    run(HudSpmReport::Filters::SpmFilter.new(
-          shared_filter.merge(
-            start: Date.parse('2015-1-1'),
-            end: Date.parse('2015-12-31'),
-          ),
-        ), described_class.question_number)
+    filter = HudSpmReport::Filters::SpmFilter.new(
+      shared_filter.merge(
+        start: Date.parse('2015-1-1'),
+        end: Date.parse('2015-12-31'),
+      ),
+    )
+    run(filter, described_class.question_number)
   end
 
   it 'has been provided client data' do
@@ -31,14 +31,14 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureTwo, type: :model do
 
   [
     ['2', 'A1', nil],
-    # ['2', 'B7', 3, 'clients exiting to PH'],
-    # ['2', 'G6', 0, 'clients returning to homelessness from PH'],
-    # ['2', 'G4', 0, 'returning to homelessness from TH'],
+    ['2', 'B7', 3, 'clients exiting to PH'],
+    ['2', 'G6', 0, 'clients returning to homelessness from PH'],
+    ['2', 'G4', 0, 'returning to homelessness from TH'],
     # ['2', 'G3', 2, 'returning to homelessness from ES'],
-    # ['2', 'C3', 0, 'returning to homelessness from ES between 6 months and a year'],
+    ['2', 'C3', 0, 'returning to homelessness from ES between 6 months and a year'],
     # ['2', 'I7', 2, 'clients returning to homelessness'],
-    # ['2', 'C7', 0, 'returning to homelessness in less than 6 months'],
-    # ['2', 'E7', 0, 'returning to homelessness in 6-12 months'],
+    ['2', 'C7', 0, 'returning to homelessness in less than 6 months'],
+    ['2', 'E7', 0, 'returning to homelessness in 6-12 months'],
     # ['2', 'G7', 2, 'returning to homelessness in 13-24 months'],
   ].each do |question, cell, expected_value, label|
     test_name = if expected_value.nil?

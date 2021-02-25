@@ -22,7 +22,7 @@ class CreateHudReportSpmClients < ActiveRecord::Migration[5.2]
 
       t.integer :m2_exit_from_project_type
       t.integer :m2_exit_to_destination
-      t.integer :m2_exit_days
+      t.integer :m2_reentry_days
       t.jsonb :m2_history
     end
   end

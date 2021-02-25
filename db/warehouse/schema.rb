@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_09_182423) do
+ActiveRecord::Schema.define(version: 2021_02_17_173551) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4731,6 +4731,28 @@ ActiveRecord::Schema.define(version: 2021_02_09_182423) do
     t.jsonb "remaining_questions"
     t.jsonb "coc_codes"
     t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
+  end
+
+  create_table "hud_report_spm_clients", force: :cascade do |t|
+    t.integer "client_id", null: false
+    t.integer "data_source_id", null: false
+    t.integer "report_instance_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.date "dob"
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "m1a_es_sh_days"
+    t.integer "m1a_es_sh_th_days"
+    t.integer "m1b_es_sh_ph_days"
+    t.integer "m1b_es_sh_th_ph_days"
+    t.jsonb "m1_history"
+    t.integer "m2_exit_from_project_type"
+    t.integer "m2_exit_to_destination"
+    t.integer "m2_reentry_days"
+    t.jsonb "m2_history"
+    t.index ["client_id", "data_source_id", "report_instance_id"], name: "spm_client_conflict_columns", unique: true
   end
 
   create_table "hud_report_universe_members", force: :cascade do |t|
