@@ -30,6 +30,11 @@ module IncomeBenefitsReport::WarehouseReports
       @report = report_class.new(user_id: current_user.id)
       @report.filter = @filter
       @report.save
+      ::WarehouseReports::GenericReportJob.perform_later(
+        user_id: current_user.id,
+        report_class: @report.class.name,
+        report_id: @report.id,
+      )
       respond_with(@report, location: income_benefits_report_warehouse_reports_report_index_path)
     end
 
@@ -58,12 +63,12 @@ module IncomeBenefitsReport::WarehouseReports
     helper_method :breakdown
 
     private def set_report
-      @report = report_class.new(@filter)
-      if @report.include_comparison?
-        @comparison = report_class.new(@comparison_filter)
-      else
-        @comparison = @report
-      end
+      @report = report_class.find(params[:id].to_i)
+      # if @report.include_comparison?
+      #   @comparison = report_class.new(@comparison_filter)
+      # else
+      @comparison = @report
+      # end
     end
 
     private def report_scope

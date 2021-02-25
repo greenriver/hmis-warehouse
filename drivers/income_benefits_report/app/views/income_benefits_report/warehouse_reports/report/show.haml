@@ -4,12 +4,23 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'operational'
 %h1= title
 
+.well.warehouse-reports__completed
+  .d-flex
+    .mr-2
+      %h3 Report Options
+      = @report.filter.describe_filter_as_html
+    .mt-4
+      %p
+        %strong Run on:
+        #{@report.completed_at.to_date} by #{@report.user&.name}
 .mb-4= render 'hero_counts'
-.main-inner-prs1
-  .text-right.mb-4
-    = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: income_benefits_report_warehouse_reports_report_index_path({format: :xlsx}.merge(@filter.for_params))
-  - @report.class.available_section_types.each do |section|
-    .rollup{data: {partial: section}}
+
+
+-# .main-inner-prs1
+-#   .text-right.mb-4
+-#     = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: income_benefits_report_warehouse_reports_report_index_path({format: :xlsx}.merge(@filter.for_params))
+-#   - @report.class.available_section_types.each do |section|
+-#     .rollup{data: {partial: section}}
 
 -# load in all the bits of aggregate statistics via ajax
 -# = content_for :page_js do

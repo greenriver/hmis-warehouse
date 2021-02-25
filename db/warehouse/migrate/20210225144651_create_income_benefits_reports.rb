@@ -22,6 +22,8 @@ class CreateIncomeBenefitsReports < ActiveRecord::Migration[5.2]
       t.date :dob
       t.integer :age
       t.integer :gender
+      t.string :household_id
+      t.boolean :head_of_household
       t.references :enrollment
       t.date :entry_date
       t.date :exit_date

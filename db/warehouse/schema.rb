@@ -4793,6 +4793,8 @@ ActiveRecord::Schema.define(version: 2021_02_25_144651) do
     t.date "dob"
     t.integer "age"
     t.integer "gender"
+    t.string "household_id"
+    t.boolean "head_of_household"
     t.bigint "enrollment_id"
     t.date "entry_date"
     t.date "exit_date"

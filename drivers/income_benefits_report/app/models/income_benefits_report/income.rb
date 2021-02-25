@@ -11,6 +11,7 @@ module IncomeBenefitsReport
     self.table_name = 'income_benefits_report_incomes'
     belongs_to :report, class_name: 'IncomeBenefitsReport::Report'
     belongs_to :client, class_name: 'IncomeBenefitsReport::Client'
+    belongs_to :income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit'
 
     scope :earlier, -> do
       where(stage: :earlier)

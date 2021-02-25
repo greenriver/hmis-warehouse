@@ -498,7 +498,7 @@ module Filters
     end
 
     def describe_filter_as_html
-      describe_filter.map do |(k, v)|
+      describe_filter.uniq.map do |(k, v)|
         content_tag(:div, class: 'report-parameters__parameter') do
           label = content_tag(:label, k, class: 'label label-default parameter-label')
           if v.is_a?(Array)
