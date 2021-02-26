@@ -58,12 +58,6 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
       run(default_filter, described_class.question_number)
     end
 
-    after(:all) do
-      # Because we are only running the import once, we have to do our own DB and file cleanup
-      GrdaWarehouse::Utility.clear!
-      cleanup_files
-    end
-
     it 'has been provided client data' do
       assert_equal 6, @data_source.clients.count
     end

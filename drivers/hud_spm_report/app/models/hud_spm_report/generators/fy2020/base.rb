@@ -176,12 +176,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def add_clients_for_question?(question_number)
-      if @report.build_for_questions.include?(question_number)
-        puts "Adding data on #{question_number} clients"
-        true
-      else
-        false
-      end
+      @report.build_for_questions.include?(question_number)
     end
 
     private def add_m2_clients

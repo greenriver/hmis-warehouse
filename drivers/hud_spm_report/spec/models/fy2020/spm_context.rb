@@ -15,6 +15,7 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     cleanup
     puts '  Setting up DB'
     @user = create(:user, email: SPM_USER_EMAIL)
+    @delete_later = []
   end
 
   after(:context) do
@@ -22,10 +23,18 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   end
 
   def cleanup
-    puts '  Cleaning up jobs, DB and temporary files'
+    puts '  Cleaning up DB and temporary files'
     @user&.really_destroy!
     User.with_deleted.where(email: SPM_USER_EMAIL).delete_all
     HudSpmReport::Fy2020::SpmClient.delete_all
+    GrdaWarehouse::Utility.clear!
+
+    return unless @delete_later
+
+    while (path = @delete_later.pop)
+      # puts "Removing #{path}"
+      FileUtils.rm_rf(path)
+    end
   end
 
   def shared_filter
@@ -73,12 +82,13 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   end
 
   def import(file_path, data_source)
-    @delete_later ||= []
     # relative to our own spec fixture files
     file_path = Rails.root.join('drivers/hud_spm_report/spec/fixtures/files', file_path)
     source_file_path = File.join(file_path, 'source')
     import_path = File.join(file_path, data_source.id.to_s)
+
     # duplicate the fixture file as it gets manipulated
+    # puts "Creating #{import_path}"
     FileUtils.cp_r(source_file_path, import_path)
     @delete_later << import_path unless import_path == source_file_path
 
@@ -93,15 +103,6 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
     GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
     AccessGroup.maintain_system_groups
 
-    Delayed::Worker.new.work_off(2)
-  end
-
-  def cleanup_files
-    return unless @delete_later
-
-    @delete_later.each do |path|
-      FileUtils.rm_rf(path)
-    end
-    @delete_later = nil
+    Delayed::Worker.new.work_off
   end
 end
