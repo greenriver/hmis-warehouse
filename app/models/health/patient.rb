@@ -917,7 +917,9 @@ module Health
 
     def build_team_member!(team_member_class, team_member_user_id, current_user)
       user = User.find(team_member_user_id)
-      team_member = team_member_class.where(patient_id: id, email: user.email).first_or_initialize
+      team_member = team_member_class.where(at[:email].lower.eq(user.email.downcase).to_sql).
+        where(patient_id: id).
+        first_or_initialize
       team_member.assign_attributes(
         patient_id: id,
         first_name: user.first_name,
