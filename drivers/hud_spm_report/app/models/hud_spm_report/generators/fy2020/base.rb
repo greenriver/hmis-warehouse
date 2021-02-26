@@ -41,13 +41,30 @@ module HudSpmReport::Generators::Fy2020
 
     UPSERT_KEY = [:report_instance_id, :client_id, :data_source_id].freeze
 
+    SHE_COLUMNS = {
+      client_id: :client_id,
+      destination: :destination,
+      date: :date,
+      first_date_in_program: :first_date_in_program,
+      last_date_in_program: :last_date_in_program,
+      project_type: :computed_project_type,
+      project_id: :project_id,
+      project_name: :project_name,
+      household_id: :household_id,
+    }.freeze
+
     private def universe
       # lazy pre-calculation of per-client version of the metrics
       unless clients_populated?
         add_m1_clients
         add_m2_clients
+        add_m3_clients
       end
       @universe ||= @report.universe(self.class.question_number)
+    end
+
+    private def add_clients_for_question?(question_number)
+      @report.build_for_questions.include?(question_number)
     end
 
     private def clients_populated?
@@ -120,11 +137,9 @@ module HudSpmReport::Generators::Fy2020
       ) do |clients_by_id|
         # select all the necessary service history
         # for this batch of clients
-        nights_for_batch = services_scope.where(
+        nights_for_batch = pluck_to_hash shs_columns, services_scope.where(
           client_id: clients_by_id.keys,
-        ).order(client_id: :asc, date: :asc).pluck(*shs_columns.values).map do |row|
-          shs_columns.keys.zip(row).to_h
-        end
+        ).order(client_id: :asc, date: :asc)
 
         # transform them into per client metrics
         pending_associations = nights_for_batch.group_by do |r|
@@ -175,27 +190,12 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
-    private def add_clients_for_question?(question_number)
-      @report.build_for_questions.include?(question_number)
-    end
-
     private def add_m2_clients
       measure_two = 'Measure 2'
       return unless add_clients_for_question?(measure_two)
 
       project_types = (SO + ES + TH + SH + PH).freeze
       homeless_project_types = (ES +  SO + SH).freeze
-      enrollment_columns = {
-        client_id: :client_id,
-        destination: :destination,
-        date: :date,
-        first_date_in_program: :first_date_in_program,
-        last_date_in_program: :last_date_in_program,
-        project_type: :computed_project_type,
-        project_id: :project_id,
-        project_name: :project_name,
-        household_id: :household_id,
-      }.freeze
 
       updated_columns = [
         :dob,
@@ -212,10 +212,10 @@ module HudSpmReport::Generators::Fy2020
       each_client_batch client_scope.where(id: exits_scope.select(:client_id)) do |clients_by_id|
         m2_clients = {}
 
-        exits_by_client_id = exits_for_batch(clients_by_id.keys, enrollment_columns).group_by do |e|
+        exits_by_client_id = exits_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
           e[:client_id]
         end.freeze
-        entries_by_client_id = entries_for_batch(clients_by_id.keys, enrollment_columns).group_by do |e|
+        entries_by_client_id = entries_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
           e[:client_id]
         end.freeze
 
@@ -314,14 +314,46 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
-    private def exits_for_batch(client_ids, columns)
-      exits_scope.where(
-        client_id: client_ids,
-      ).order(client_id: :asc, last_date_in_program: :asc).
-        select(*columns.values).
-        pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
+    private def add_m3_clients
+      measure_three = 'Measure 3'
+      return unless add_clients_for_question?(measure_three)
+
+      updated_columns = [
+        :dob,
+        :first_name,
+        :last_name,
+        :m3_active_project_type,
+      ]
+
+      each_client_batch client_scope.where(
+        id: active_enrollments_scope.select(:client_id),
+      ) do |clients_by_id|
+        m3_clients = {}
+
+        enrollments = pluck_to_hash SHE_COLUMNS, active_enrollments_scope.where(
+          client_id: clients_by_id.keys,
+        ).order(client_id: :asc, last_date_in_program: :asc)
+        # debugger
+        enrollments.group_by do |e|
+          e[:client_ids]
+        end.each do |client_id, client_enrollments|
+          # TODO
         end
+
+        append_report_clients measure_three, m3_clients, updated_columns
+      end
+    end
+
+    private def pluck_to_hash(columns, scope)
+      scope.pluck(*columns.values).map do |row|
+        Hash[columns.keys.zip(row)]
+      end
+    end
+
+    private def exits_for_batch(client_ids, columns)
+      pluck_to_hash columns, exits_scope.where(
+        client_id: client_ids,
+      )
     end
 
     private def add_filters(scope:)
@@ -456,7 +488,7 @@ module HudSpmReport::Generators::Fy2020
     private def active_enrollments_scope
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH)
       scope = scope.with_service_between(
-        start_date: @report.start_date,
+        start_date: @report.start_date - 1,
         end_date: @report.end_date,
       )
       add_filters(scope: scope)
@@ -477,14 +509,11 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def entries_for_batch(client_ids, columns)
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+      pluck_to_hash columns, GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:project).hud_project_type(SO + ES + TH + SH + PH).
         where(client_id: client_ids).
         where(first_date_in_program: m2_lookforward).
-        order(client_id: :asc, last_date_in_program: :asc).
-        pluck(*columns.values).map do |row|
-          Hash[columns.keys.zip(row)]
-        end
+        order(client_id: :asc, last_date_in_program: :asc)
     end
 
     # Calculate the number of unique days homeless given:

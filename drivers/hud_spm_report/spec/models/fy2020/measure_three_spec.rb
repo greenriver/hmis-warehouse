@@ -31,7 +31,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureThree, type: :model do
 
   [
     ['3.1', 'A1', nil],
-    ['3.1', 'C2', nil],
+    ['3.1', 'C2', nil], # instructions tell us to leave blank for a human to fill in
     ['3.1', 'C3', nil],
     ['3.1', 'C4', nil],
     ['3.1', 'C5', nil],
@@ -39,13 +39,13 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureThree, type: :model do
     ['3.1', 'C7', nil],
 
     ['3.2', 'A1', nil],
-    ['3.2', 'C2', 0],
-    ['3.2', 'C3', 0],
-    ['3.2', 'C4', 0],
-    ['3.2', 'C5', 0],
+    ['3.2', 'C2', 0, 'unduplicated total sheltered homeless persons'],
+    ['3.2', 'C3', 0, 'emergency shelter'],
+    ['3.2', 'C4', 0, 'safe haven'],
+    ['3.2', 'C5', 0, 'transitional housing'],
   ].each do |question, cell, expected_value, label|
     test_name = if expected_value.nil?
-      "does not fill #{question} #{cell}"
+      "does not fill #{question} #{cell} #{label}".strip
     else
       "fills #{question} #{cell} (#{label}) with #{expected_value}"
     end
