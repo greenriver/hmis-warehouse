@@ -13,13 +13,15 @@ class WarehouseReportsController < ApplicationController
     report_definitions = report_definitions.select { |r| r.health == false } unless GrdaWarehouse::Config.get(:healthcare_available)
     report_definitions = report_definitions.group_by(&:report_group)
     @report_definitions = report_definitions.to_a.sort_by { |group, _| group }
-    recent_reports_paths = current_user.activity_logs.
+    report_paths = report_definitions.values.flatten.map(&:url)
+    viewed = current_user.activity_logs.
       warehouse_reports.
       created_in_range(range: 1.weeks.ago..Time.current).
       order(created_at: :desc).
-      pluck(:path).map { |u| u.split('?').first }.uniq.first(10)
+      pluck(:path).map { |u| u.split('?').first.gsub(/^\//, '') }.uniq
+    recent_reports_paths = (viewed & report_paths).first(7)
     @recent_reports = report_definitions.values.flatten.select do |r|
-      "/#{r.url}".in?(recent_reports_paths)
+      r.url.in?(recent_reports_paths)
     end
   end
 end
