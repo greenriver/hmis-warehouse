@@ -26,7 +26,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         scope = scope.joins(:project).where(Project: { id: project_ids})
       end
       scope = scope.where(data_source_id: @report.options['data_source_id'].to_i) if @report.options['data_source_id'].present?
-      scope = scope.where(data_source_id: @report.options['data_source_ids'].map(&:to_i)) if @report.options['data_source_ids'].present?
+      scope = scope.where(data_source_id: @report.options['data_source_ids'].select(&:present?).map(&:to_i)) if @report.options['data_source_ids'].select(&:present?).present?
       scope = scope.coc_funded_in(coc_code: @report.options['coc_code']) if @report.options['coc_code'].present?
       scope = sub_population_scope(scope, @report.options['sub_population']) if @report.options['sub_population'].present?
       scope = race_scope(scope, @report.options['race_code']) if @report.options['race_code'].present?
