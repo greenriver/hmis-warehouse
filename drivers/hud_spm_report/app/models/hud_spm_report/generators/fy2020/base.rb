@@ -183,7 +183,8 @@ module HudSpmReport::Generators::Fy2020
       measure_two = 'Measure 2'
       return unless add_clients_for_question?(measure_two)
 
-      project_types = SO + ES + TH + SH + PH
+      project_types = (SO + ES + TH + SH + PH).freeze
+      homeless_project_types = (ES +  SO + SH).freeze
       enrollment_columns = {
         client_id: :client_id,
         destination: :destination,
@@ -206,103 +207,110 @@ module HudSpmReport::Generators::Fy2020
         :m2_history,
       ].freeze
 
+      # 1. Select clients across all projects in the COC of the relevant type (SO, ES, TH, SH, PH) with
+      # a project exit date 2 years prior to the report date range, going back no further than the [Lookback Stop Date].
       each_client_batch client_scope.where(id: exits_scope.select(:client_id)) do |clients_by_id|
-        # 1. Select clients across all projects in the COC of the relevant type (SO, ES, TH, SH, PH) with
-        # a project exit date 2 years prior to the report date range, going back no further than the [Lookback Stop Date].
-        exits_for_batch = exits_for_batch(clients_by_id.keys, enrollment_columns)
+        m2_clients = {}
 
-        # 2. Of the universe of project exits, determine each client’s
-        # earliest [project exit date] where the [destination] was permanent housing.
-        project_exits_to_ph = {}
-        exits_for_batch.each do |p_exit|
-          next if project_exits_to_ph[p_exit[:client_id]].present?
-
-          # inherit destination from HoH if age <= 17 and destination not collected
-          destination = destination_for(project_types, p_exit[:client_id], p_exit[:household_id])
-          p_exit[:destination] = destination if destination.present?
-
-          project_exits_to_ph[p_exit[:client_id]] = p_exit if permanent_destination?(p_exit[:destination])
-        end
-
+        exits_by_client_id = exits_for_batch(clients_by_id.keys, enrollment_columns).group_by do |e|
+          e[:client_id]
+        end.freeze
         entries_by_client_id = entries_for_batch(clients_by_id.keys, enrollment_columns).group_by do |e|
           e[:client_id]
-        end
+        end.freeze
 
-        # 3. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
-        # according to the project type associated with the client’s earliest applicable exit (cells B2-B6).
-        # 4. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
-        # without regard to the project type associated with the client’s earliest applicable exit (cell B7).
-        pending_associations = {}
-        project_exits_to_ph.each do |client_id, p_exit|
+        exits_by_client_id.each do |client_id, client_exits|
+          # 2. Of the universe of project exits, determine each client’s
+          # earliest [project exit date] where the [destination] was permanent housing.
+          p_exit = client_exits.detect do |client_exit|
+            # inherit destination from HoH if age <= 17 and destination not collected
+            destination = destination_for(project_types, client_exit[:client_id], client_exit[:household_id])
+            client_exit[:destination] = destination if destination.present?
+
+            permanent_destination?(client_exit[:destination])
+          end
+
+          next unless p_exit
+
+          # 3. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
+          # according to the project type associated with the client’s earliest applicable exit (cells B2-B6).
+
           client = clients_by_id.fetch(client_id)
-          report_client = report_client_universe.new(
+          m2_client = report_client_universe.new(
             report_instance_id: @report.id,
             client_id: client_id,
             data_source_id: client.data_source_id,
             dob: client.DOB,
             first_name: client.first_name,
             last_name: client.last_name,
-            m2_exit_from_project_type: p_exit[:project_type],
-            m2_exit_to_destination: p_exit[:destination],
           )
+
+          # 4. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
+          # without regard to the project type associated with the client’s earliest applicable exit (cell B7).
+          m2_client.m2_exit_from_project_type = p_exit[:project_type]
+          m2_client.m2_exit_to_destination = p_exit[:destination]
 
           # 5. Using data from step 2, scan forward in time beginning from each client’s [project exit date]
           # with a permanent housing destination to see if the client has a project start into a project
           # indicating the client is now homeless again.
 
           # 5.a && 5.d
-          reentries = entries_by_client_id[client_id].select do |r|
-            (r[:first_date_in_program] >= p_exit[:last_date_in_program]) && (r[:first_date_in_program] <= @report.end_date)
+          reentries = entries_by_client_id[client_id].select do |e|
+            (e[:first_date_in_program] >= p_exit[:last_date_in_program]) && (e[:first_date_in_program] <= @report.end_date)
           end
 
-          reentry = reentries.select do |r|
-            elapsed_days = r[:first_date_in_program] - p_exit[:last_date_in_program]
-            (
+          # this is our first exit from PR
+          previous_exit_from_ph = p_exit[:last_date_in_program]
+          reentry = reentries.detect do |entry|
+            entry_date = entry[:first_date_in_program]
+
+            found = if entry[:project_type].in?(homeless_project_types)
+              # homeless projects...
+              true
+            elsif entry[:project_type].in?(TH)
               # 5.b When scanning for the client’s reappearance in a transitional housing project,
               # the [project start date] must be more than 14 days after the client’s original
               # [project exit date] from step 2 to be considered a return to homelessness.
-              r[:project_type].in?(TH) && elapsed_days > 14.days
-            ) || (
+              (entry_date - p_exit[:last_date_in_program]).to_i > 14
+            elsif entry[:project_type].in?(PH)
               # 5.c When scanning for the client’s reappearance in a
               # permanent housing project, the [project start date] must be more than
               # 14 days after the client’s original [project exit date] from step 2 to
               # be considered a return to homelessness
-              (
-                r[:project_type].in?(PH) && elapsed_days > 14.days
-              ) &&
-                true
-              # TODO: AND must also be more than 14
+              # AND must also be more than 14
               # days after any other permanent housing or transitional housing
               # [project exit date] for the same client. This prevents accidentally
               # counting clients who transition from transitional to permanent
               # housing, or from one CoC permanent housing program to another PH
               # project
+              (entry_date - previous_exit_from_ph).to_i > 14
+            end
 
-            )
-          end.first
+            previous_exit_from_ph = entry[:last_date_in_program] if entry[:project_type].in?(PH + TH)
+
+            found
+          end
 
           # 6. Use the [project start date] found in step 5 to calculate the number of days between the
           # client’s [project exit date] from step 2 until the client was identified
           # as homeless again.
-
-          report_client.m2_reentry_days = if reentry
-            r[:first_date_in_program] - p_exit[:last_date_in_program]
+          m2_client.m2_reentry_days = if reentry
+            reentry[:first_date_in_program] - p_exit[:last_date_in_program]
           else
             0
           end
 
           # Audit of exit/entries we considered
-          report_client.m2_history = {
+          m2_client.m2_history = {
             exit: p_exit,
-            reentries: reentry,
+            reentries: reentries,
           }
 
-          pending_associations[client] = report_client
+          m2_clients[client] = m2_client
         end
 
-        # Steps 7 - 9 are handled in MeasureTwo
-
-        append_report_clients measure_two, pending_associations, updated_columns
+        # Steps 7 - 9 are handled in MeasureTwo#run_question!
+        append_report_clients measure_two, m2_clients, updated_columns
       end
     end
 

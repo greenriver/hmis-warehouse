@@ -30,17 +30,72 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureTwo, type: :model do
   end
 
   [
-    ['2', 'A1', nil],
-    ['2', 'B7', 3, 'clients exiting to PH'],
-    ['2', 'G6', 0, 'clients returning to homelessness from PH'],
-    ['2', 'G4', 0, 'returning to homelessness from TH'],
-    # ['2', 'G3', 2, 'returning to homelessness from ES'],
-    ['2', 'C3', 0, 'returning to homelessness from ES between 6 months and a year'],
-    # ['2', 'I7', 2, 'clients returning to homelessness'],
-    ['2', 'C7', 0, 'returning to homelessness in less than 6 months'],
-    ['2', 'E7', 0, 'returning to homelessness in 6-12 months'],
-    # ['2', 'G7', 2, 'returning to homelessness in 13-24 months'],
-  ].each do |question, cell, expected_value, label|
+    ['A1', nil],
+
+    ['B2', 0, 'exiting to PH from SO'],
+    ['B3', 3, 'exiting to PH from ES'],
+    ['B4', 0, 'exiting to PH from TH'],
+    ['B5', 0, 'exiting to PH from SH'],
+    ['B6', 0, 'exiting to PH from PH'],
+    ['B7', 3, 'exiting to PH'],
+
+    ['C2', 0, 'returning in <6mo from SO'],
+    ['C3', 0, 'returning in <6mo from ES'],
+    ['C4', 0, 'returning in <6mo from TH'],
+    ['C5', 0, 'returning in <6mo from SH'],
+    ['C6', 0, 'returning in <6mo from PH'],
+    ['C7', 0, 'returning in <6mo'],
+
+    ['D2', 0, '% returning in <6mo from SO'],
+    ['D3', 0, '% returning in <6mo from ES'],
+    ['D4', 0, '% returning in <6mo from TH'],
+    ['D5', 0, '% returning in <6mo from SH'],
+    ['D6', 0, '% returning in <6mo from PH'],
+    ['D7', 0, '% returning in <6mo'],
+
+    ['E2', 0, 'returning in 6-12mo from SO'],
+    ['E3', 0, 'returning in 6-12mo from ES'],
+    ['E4', 0, 'returning in 6-12mo from TH'],
+    ['E5', 0, 'returning in 6-12mo from SH'],
+    ['E6', 0, 'returning in 6-12mo from PH'],
+    ['E7', 0, 'returning in 6-12mo'],
+
+    ['F2', 0, '% returning in 6-12mo from SO'],
+    ['F3', 0, '% returning in 6-12mo from ES'],
+    ['F4', 0, '% returning in 6-12mo from TH'],
+    ['F5', 0, '% returning in 6-12mo from SH'],
+    ['F6', 0, '% returning in 6-12mo from PH'],
+    ['F7', 0, '% returning in 6-12mo'],
+
+    ['G2', 0, 'returning in 13-24mo from SO'],
+    ['G3', 2, 'returning in 13-24mo from ES'],
+    ['G4', 0, 'returning in 13-24mo from TH'],
+    ['G5', 0, 'returning in 13-24mo from SH'],
+    ['G6', 0, 'returning in 13-24mo from PH'],
+    ['G7', 2, 'returning in 13-24mo'],
+
+    ['H2', 0, '% returning in 13-24mo from SO'],
+    ['H3', 66.67, '% returning in 13-24mo from ES'],
+    ['H4', 0, '% returning in 13-24mo from TH'],
+    ['H5', 0, '% returning in 13-24mo from SH'],
+    ['H6', 0, '% returning in 13-24mo from PH'],
+    ['H7', 66.67, '% returning in 13-24mo'],
+
+    ['I2', 0, 'returning in <2yr from SO'],
+    ['I3', 2, 'returning in <2yr from ES'],
+    ['I4', 0, 'returning in <2yr from TH'],
+    ['I5', 0, 'returning in <2yr from SH'],
+    ['I6', 0, 'returning in <2yr from SO'],
+    ['I7', 2, 'returning in <2yr'],
+
+    ['J2', 0, '% returning in <2yr from SO'],
+    ['J3', 66.67, '% returning in <2yr from ES'],
+    ['J4', 0, '% returning in <2yr from TH'],
+    ['J5', 0, '% returning in <2yr from SH'],
+    ['J6', 0, '% returning in <2yr from SO'],
+    ['J7', 66.67, '% returning in <2yr'],
+  ].each do |cell, expected_value, label|
+    question = '2'
     test_name = if expected_value.nil?
       "does not fill #{question} #{cell}"
     else

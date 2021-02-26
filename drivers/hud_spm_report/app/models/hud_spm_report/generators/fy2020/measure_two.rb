@@ -47,10 +47,10 @@ module HudSpmReport::Generators::Fy2020
       }.each do |row, project_types|
         scope = universe_members.where(t[:m2_exit_from_project_type].in(project_types))
         n_exited = scope.count
-        n_reentered_0_6 = scope.where(t[:m2_reentry_days].between(1 .. 180)).count
+        n_reentered_0_5 = scope.where(t[:m2_reentry_days].between(1 .. 180)).count
         n_reentered_6_12 = scope.where(t[:m2_reentry_days].between(181 .. 365)).count
-        n_reentered_12_24 = scope.where(t[:m2_reentry_days].between(366 .. 730)).count
-        n_reentered = n_reentered_0_6 + n_reentered_6_12 + n_reentered_12_24
+        n_reentered_13_24 = scope.where(t[:m2_reentry_days].between(366 .. 730)).count
+        n_reentered = n_reentered_0_5 + n_reentered_6_12 + n_reentered_13_24
 
         # 7. Since each client may only be reported no more than once in columns
         # C, E, or G, each cell in column I is simply a sum of cells in the same
@@ -67,12 +67,12 @@ module HudSpmReport::Generators::Fy2020
 
         handle_clause_based_cells table_name, [
           ["B#{row}", universe_members, n_exited],
-          ["C#{row}", universe_members, n_reentered_0_6],
-          ["D#{row}", universe_members, m2_precentage(n_reentered_0_6, n_exited)],
+          ["C#{row}", universe_members, n_reentered_0_5],
+          ["D#{row}", universe_members, m2_precentage(n_reentered_0_5, n_exited)],
           ["E#{row}", universe_members, n_reentered_6_12],
           ["F#{row}", universe_members, m2_precentage(n_reentered_6_12, n_exited)],
-          ["G#{row}", universe_members, n_reentered_12_24],
-          ["F#{row}", universe_members, m2_precentage(n_reentered_12_24, n_exited)],
+          ["G#{row}", universe_members, n_reentered_13_24],
+          ["H#{row}", universe_members, m2_precentage(n_reentered_13_24, n_exited)],
           ["I#{row}", universe_members, n_reentered],
           ["J#{row}", universe_members, m2_precentage(n_reentered, n_exited)],
         ]

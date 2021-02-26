@@ -31,7 +31,7 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
 
     HudSpmReport::Fy2020::SpmClient.delete_all
     GrdaWarehouse::Utility.clear!
-    @user&.really_destroy!
+    User.with_deleted.where(email: SPM_USER_EMAIL).delete_all
   end
 
   def shared_filter
