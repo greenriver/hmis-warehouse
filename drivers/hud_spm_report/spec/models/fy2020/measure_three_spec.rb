@@ -39,10 +39,10 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureThree, type: :model do
     ['3.1', 'C7', nil],
 
     ['3.2', 'A1', nil],
-    ['3.2', 'C2', 0, 'unduplicated total sheltered homeless persons'],
-    ['3.2', 'C3', 0, 'emergency shelter'],
-    ['3.2', 'C4', 0, 'safe haven'],
-    ['3.2', 'C5', 0, 'transitional housing'],
+    ['3.2', 'C2', 3, 'unduplicated total sheltered homeless persons'],
+    ['3.2', 'C3', 1, 'emergency shelter'],
+    ['3.2', 'C4', 1, 'safe haven'],
+    ['3.2', 'C5', 1, 'transitional housing'],
   ].each do |question, cell, expected_value, label|
     test_name = if expected_value.nil?
       "does not fill #{question} #{cell} #{label}".strip

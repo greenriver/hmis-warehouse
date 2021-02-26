@@ -322,23 +322,33 @@ module HudSpmReport::Generators::Fy2020
         :dob,
         :first_name,
         :last_name,
-        :m3_active_project_type,
+        :m3_active_project_types,
       ]
 
-      each_client_batch client_scope.where(
-        id: active_enrollments_scope.select(:client_id),
-      ) do |clients_by_id|
-        m3_clients = {}
+      m3_enrollments = active_enrollments_scope.hud_project_type(ES_SH_TH)
 
-        enrollments = pluck_to_hash SHE_COLUMNS, active_enrollments_scope.where(
+      each_client_batch client_scope.where(
+        id: m3_enrollments.select(:client_id),
+      ) do |clients_by_id|
+        entries = pluck_to_hash SHE_COLUMNS, m3_enrollments.where(
           client_id: clients_by_id.keys,
-        ).order(client_id: :asc, last_date_in_program: :asc)
+        ).order(client_id: :asc)
         # debugger
-        enrollments.group_by do |e|
-          e[:client_ids]
-        end.each do |client_id, client_enrollments|
-          # TODO
-        end
+        m3_clients = entries.group_by do |e|
+          e[:client_id]
+        end.map do |client_id, client_enrollments|
+          client = clients_by_id.fetch(client_id)
+          m3_client = report_client_universe.new(
+            report_instance_id: @report.id,
+            client_id: client_id,
+            data_source_id: client.data_source_id,
+            dob: client.DOB,
+            first_name: client.first_name,
+            last_name: client.last_name,
+            m3_active_project_types: client_enrollments.map { |e| e[:project_type] }.uniq,
+          )
+          [client, m3_client]
+        end.to_h
 
         append_report_clients measure_three, m3_clients, updated_columns
       end

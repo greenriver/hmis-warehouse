@@ -58,7 +58,7 @@ module HudSpmReport::Generators::Fy2020
       # Metric 3.2 - Counts of clients using HMIS data. Using HMIS data, determine the unduplicated counts of active clients for each of the project types
       # throughout the reporting period:
 
-      universe_members = universe.members.none
+      universe_members = universe.members.where('array_length(m3_active_project_types, 1) > 0')
       prepare_table table_name, {
         2 => 'Universe: Unduplicated Total sheltered homeless persons',
         3 => 'Emergency Shelter Total',
@@ -72,9 +72,9 @@ module HudSpmReport::Generators::Fy2020
 
       {
         2 => universe_members,
-        3 => universe_members.where(t[:m3_active_project_type].eq(ES)),
-        4 => universe_members.where(t[:m3_active_project_type].eq(SH)),
-        5 => universe_members.where(t[:m3_active_project_type].eq(TH)),
+        3 => universe_members.where(['m3_active_project_types @> ARRAY[?]', ES]),
+        4 => universe_members.where(['m3_active_project_types @> ARRAY[?]', SH]),
+        5 => universe_members.where(['m3_active_project_types @> ARRAY[?]', TH]),
       }.each do |row, scope|
         handle_clause_based_cells table_name, [
           ["C#{row}", scope, scope.count],
