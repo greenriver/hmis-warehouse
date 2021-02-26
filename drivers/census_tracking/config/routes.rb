@@ -7,7 +7,11 @@
 Rails.application.routes.draw do
   namespace :census_tracking do
     namespace :warehouse_reports do
-      resources :census_trackers, only: [:index]
+      resources :census_trackers, only: [:index] do
+        collection do
+          get :details
+        end
+      end
     end
   end
 end
