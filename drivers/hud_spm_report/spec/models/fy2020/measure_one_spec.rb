@@ -126,7 +126,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureOne, type: :model do
       ['1a', 'E2', 21.25, 'mean LOT in ES and SH'],
       ['1a', 'H2', 27.0, 'median LOT in ES and SH'],
       ['1b', 'C2', 4, 'persons in ES, SH, and PH'],
-      ['1b', 'E2', 29.0, 'mean LOT in ES, SH, and PH'],
+      ['1b', 'E2', 21.25, 'mean LOT in ES, SH, and PH'],
       ['1b', 'H2', 27.0, 'median LOT in ES, SH, and PH'],
     ].each do |question, cell, expected_value, label|
       test_name = if expected_value.nil?
