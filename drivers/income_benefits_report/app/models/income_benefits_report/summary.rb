@@ -9,16 +9,16 @@ module
   extend ActiveSupport::Concern
   included do
     def summary_data
-      @summary_data ||= Rails.cache.fetch(cache_key_for_section('summary'), expires_in: expiration_length) do
-        {
-          'Total Stayer Households' => clients.stayers(filter.end_date).heads_of_household.count,
-          'Stayer Adults' => clients.stayers(filter.end_date).adults.count,
-          'Stayer Children' => clients.stayers(filter.end_date).children.count,
-          'Total Leaver Households' => clients.leavers(filter.end_date).heads_of_household.count,
-          'Leaver Adults' => clients.leavers(filter.end_date).adults.count,
-          'Leaver Children' => clients.leavers(filter.end_date).children.count,
-        }
-      end
+      stayer_scope = clients.date_range(report_date_range).stayers(filter.end_date)
+      leaver_scope = clients.date_range(report_date_range).leavers(filter.end_date)
+      {
+        'Total Stayer Households' => stayer_scope.heads_of_household.count,
+        'Stayer Adults' => stayer_scope.adults.count,
+        'Stayer Children' => stayer_scope.children.count,
+        'Total Leaver Households' => leaver_scope.heads_of_household.count,
+        'Leaver Adults' => leaver_scope.adults.count,
+        'Leaver Children' => leaver_scope.children.count,
+      }
     end
   end
 end

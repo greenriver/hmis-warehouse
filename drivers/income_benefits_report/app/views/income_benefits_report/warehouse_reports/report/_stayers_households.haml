@@ -23,4 +23,4 @@
                   %i.icon-info{data: {toggle: :tooltip, title: row[:description]}}
                   = title
                 %td= number_with_delimiter(row[:count])
-                %td= percentage(row[:percent]) unless row[:percent].nil?
+                %td= percentage(row[:percent], format: '%1.0f%%') unless row[:percent].nil?

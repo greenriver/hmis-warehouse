@@ -16,6 +16,10 @@ module IncomeBenefitsReport
     has_one :earlier_income_record, class_name: 'IncomeBenefitsReport::Income', inverse_of: :client
     has_one :later_income_record, class_name: 'IncomeBenefitsReport::Income', inverse_of: :client
 
+    scope :date_range, ->(range_string) do
+      where(date_range: range_string)
+    end
+
     scope :heads_of_household, -> do
       where(head_of_household: true)
     end

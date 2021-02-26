@@ -18,6 +18,9 @@ module IncomeBenefitsReport
     include IncomeBenefitsReport::Details
     include IncomeBenefitsReport::Summary
     include IncomeBenefitsReport::StayerHouseholds
+    include IncomeBenefitsReport::LeaverHouseholds
+    include IncomeBenefitsReport::StayerSources
+    include IncomeBenefitsReport::LeaverSources
 
     attr_accessor :project_type_codes
 
@@ -29,15 +32,6 @@ module IncomeBenefitsReport
     has_many :later_income_record, through: :clients
 
     after_initialize :filter, :set_project_types
-
-    # def initialize(args)
-    #   super(args)
-    #   # Force set the filter so it is available
-    #   filter
-    #   # @project_types = filter.project_type_ids || GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
-    #   # @comparison_pattern = filter.comparison_pattern
-    #   # self.options = filter.for_params
-    # end
 
     # NOTE: this differs from viewable_by which looks at the report definitions
     scope :visible_to, ->(user) do
@@ -52,11 +46,17 @@ module IncomeBenefitsReport
     end
 
     def run_and_save!
-      # FIXME: add begin/rescue and shove the errors into the model
       update(started_at: Time.current)
-      populate_clients!
-      assign_attributes(completed_at: Time.current)
-      save
+      begin
+        populate_report_clients!
+        populate_comparison_clients! if include_comparison?
+        assign_attributes(completed_at: Time.current)
+        save
+      rescue Exception => e
+        assign_attributes(failed_at: Time.current, processing_errors: [e.message, e.backtrace].to_json)
+        save
+        raise e
+      end
     end
 
     def filter=(filter_object)
@@ -72,6 +72,14 @@ module IncomeBenefitsReport
         f.set_from_params(options['filters'].with_indifferent_access) if options.try(:[], 'filters')
         f
       end
+    end
+
+    def to_comparison
+      comparison = dup
+      comparison.filter = filter.to_comparison
+      comparison.report_date_range = comparison_date_range
+      comparison.id = id
+      comparison
     end
 
     private def set_project_types
@@ -200,211 +208,218 @@ module IncomeBenefitsReport
       boolean ? 'Yes' : 'No'
     end
 
+    def calc_percent(numerator, denominator)
+      return 0 unless numerator.positive? && denominator.positive?
+
+      (numerator / denominator.to_f).round(2) * 100
+    end
+
     def total_client_count
-      @total_client_count ||= clients.count
+      clients.date_range(report_date_range).count
     end
 
     def hoh_count
-      @hoh_count ||= clients.heads_of_household.count
+      clients.date_range(report_date_range).heads_of_household.count
     end
 
     def household_count
-      @household_count ||= clients.select(:household_id).distinct.count
+      clients.date_range(report_date_range).select(:household_id).distinct.count
     end
 
-    private def populate_clients! # rubocop:disable Metrics/AbcSize
+    # Stayers
+    private def stayers_scope
+      clients.stayers(filter.end_date).date_range(report_date_range)
+    end
+
+    private def stayers_hoh
+      stayers_scope.heads_of_household
+    end
+
+    private def stayers_adults
+      stayers_scope.adults
+    end
+
+    private def stayers_hoh_count
+      @stayers_hoh_count ||= stayers_hoh.count
+    end
+
+    private def stayers_adults_count
+      @stayers_adults_count ||= stayers_adults.count
+    end
+    # End Stayers
+
+    # Leavers
+    private def leavers_scope
+      clients.leavers(filter.end_date).date_range(report_date_range)
+    end
+
+    private def leavers_hoh
+      leavers_scope.heads_of_household
+    end
+
+    private def leavers_adults
+      leavers_scope.adults
+    end
+
+    private def leavers_hoh_count
+      @leavers_hoh_count ||= leavers_hoh.count
+    end
+
+    private def leavers_adults_count
+      @leavers_adults_count ||= leavers_adults.count
+    end
+    # End Leavers
+
+    private def populate_report_clients!
+      populate_clients!(report_date_range)
+    end
+
+    # Swap out the filter temporarily for the comparison filter
+    private def populate_comparison_clients!
+      original_filter = filter
+      self.filter = original_filter.to_comparison
+      populate_clients!(comparison_date_range)
+      self.filter = original_filter
+    end
+
+    private def populate_clients!(range)
       report_scope.preload(:client, :project, enrollment: :income_benefits).find_in_batches do |batch|
         report_clients = []
         race_cache = GrdaWarehouse::Hud::Client.new
         client_ids = batch.map(&:client_id)
         batch.each do |enrollment|
-          client = enrollment.client
           race_string = race_cache.race_string(
             destination_id: enrollment.client_id,
             scope_limit: race_cache.class.where(id: client_ids),
           )
-          # Save age based on the start of the report or the start of the enrollment, whichever is later
-          age_date = [filter.start_date, enrollment.first_date_in_program].max
-          # Use EnrollmentID if there is no household, append data_source_id since HouseholdID is not unique across data sources
-          household_id = "#{enrollment.household_id.presence || enrollment.enrollment_group_id}_#{enrollment.data_source_id}"
-          report_client = IncomeBenefitsReport::Client.new(
-            report: self,
-            client: client,
-            first_name: client.FirstName,
-            middle_name: client.MiddleName,
-            last_name: client.LastName,
-            ethnicity: client.Ethnicity,
-            race: race_string,
-            dob: client.DOB,
-            age: client.age_on(age_date),
-            gender: client.Gender,
-            household_id: household_id,
-            head_of_household: enrollment[:head_of_household],
-            enrollment: enrollment.enrollment,
-            entry_date: enrollment.first_date_in_program,
-            exit_date: enrollment.last_date_in_program,
-            move_in_date: enrollment.move_in_date,
-            project_name: enrollment.project_name,
-            project: enrollment.project,
-          )
+          report_client = client_from(enrollment, race_string, range)
           earlier_income = enrollment.enrollment.income_benefits.min_by(&:InformationDate)
           later_income = enrollment.enrollment.income_benefits.select { |m| m.InformationDate < filter.end_date }.max_by(&:InformationDate)
           if earlier_income.present?
-            report_client.build_earlier_income_record(
-              report: self,
-              income_benefits_id: earlier_income.id,
-              stage: :earlier,
-              InformationDate: earlier_income.InformationDate,
-              IncomeFromAnySource: earlier_income.IncomeFromAnySource,
-              TotalMonthlyIncome: earlier_income.TotalMonthlyIncome,
-              Earned: earlier_income.Earned,
-              EarnedAmount: earlier_income.EarnedAmount,
-              Unemployment: earlier_income.Unemployment,
-              UnemploymentAmount: earlier_income.UnemploymentAmount,
-              SSI: earlier_income.SSI,
-              SSIAmount: earlier_income.SSIAmount,
-              SSDI: earlier_income.SSDI,
-              SSDIAmount: earlier_income.SSDIAmount,
-              VADisabilityService: earlier_income.VADisabilityService,
-              VADisabilityServiceAmount: earlier_income.VADisabilityServiceAmount,
-              VADisabilityNonService: earlier_income.VADisabilityNonService,
-              VADisabilityNonServiceAmount: earlier_income.VADisabilityNonServiceAmount,
-              PrivateDisability: earlier_income.PrivateDisability,
-              PrivateDisabilityAmount: earlier_income.PrivateDisabilityAmount,
-              WorkersComp: earlier_income.WorkersComp,
-              WorkersCompAmount: earlier_income.WorkersCompAmount,
-              TANF: earlier_income.TANF,
-              TANFAmount: earlier_income.TANFAmount,
-              GA: earlier_income.GA,
-              GAAmount: earlier_income.GAAmount,
-              SocSecRetirement: earlier_income.SocSecRetirement,
-              SocSecRetirementAmount: earlier_income.SocSecRetirementAmount,
-              Pension: earlier_income.Pension,
-              PensionAmount: earlier_income.PensionAmount,
-              ChildSupport: earlier_income.ChildSupport,
-              ChildSupportAmount: earlier_income.ChildSupportAmount,
-              Alimony: earlier_income.Alimony,
-              AlimonyAmount: earlier_income.AlimonyAmount,
-              OtherIncomeSource: earlier_income.OtherIncomeSource,
-              OtherIncomeAmount: earlier_income.OtherIncomeAmount,
-              OtherIncomeSourceIdentify: earlier_income.OtherIncomeSourceIdentify,
-              BenefitsFromAnySource: earlier_income.BenefitsFromAnySource,
-              SNAP: earlier_income.SNAP,
-              WIC: earlier_income.WIC,
-              TANFChildCare: earlier_income.TANFChildCare,
-              TANFTransportation: earlier_income.TANFTransportation,
-              OtherTANF: earlier_income.OtherTANF,
-              OtherBenefitsSource: earlier_income.OtherBenefitsSource,
-              OtherBenefitsSourceIdentify: earlier_income.OtherBenefitsSourceIdentify,
-              InsuranceFromAnySource: earlier_income.InsuranceFromAnySource,
-              Medicaid: earlier_income.Medicaid,
-              NoMedicaidReason: earlier_income.NoMedicaidReason,
-              Medicare: earlier_income.Medicare,
-              NoMedicareReason: earlier_income.NoMedicareReason,
-              SCHIP: earlier_income.SCHIP,
-              NoSCHIPReason: earlier_income.NoSCHIPReason,
-              VAMedicalServices: earlier_income.VAMedicalServices,
-              NoVAMedReason: earlier_income.NoVAMedReason,
-              EmployerProvided: earlier_income.EmployerProvided,
-              NoEmployerProvidedReason: earlier_income.NoEmployerProvidedReason,
-              COBRA: earlier_income.COBRA,
-              NoCOBRAReason: earlier_income.NoCOBRAReason,
-              PrivatePay: earlier_income.PrivatePay,
-              NoPrivatePayReason: earlier_income.NoPrivatePayReason,
-              StateHealthIns: earlier_income.StateHealthIns,
-              NoStateHealthInsReason: earlier_income.NoStateHealthInsReason,
-              IndianHealthServices: earlier_income.IndianHealthServices,
-              NoIndianHealthServicesReason: earlier_income.NoIndianHealthServicesReason,
-              OtherInsurance: earlier_income.OtherInsurance,
-              OtherInsuranceIdentify: earlier_income.OtherInsuranceIdentify,
-              HIVAIDSAssistance: earlier_income.HIVAIDSAssistance,
-              NoHIVAIDSAssistanceReason: earlier_income.NoHIVAIDSAssistanceReason,
-              ADAP: earlier_income.ADAP,
-              NoADAPReason: earlier_income.NoADAPReason,
-              ConnectionWithSOAR: earlier_income.ConnectionWithSOAR,
-              DataCollectionStage: earlier_income.DataCollectionStage,
-            )
-            if later_income.present?
-              report_client.build_later_income_record(
-                report: self,
-                income_benefits_id: later_income.id,
-                stage: :later,
-                InformationDate: later_income.InformationDate,
-                IncomeFromAnySource: later_income.IncomeFromAnySource,
-                TotalMonthlyIncome: later_income.TotalMonthlyIncome,
-                Earned: later_income.Earned,
-                EarnedAmount: later_income.EarnedAmount,
-                Unemployment: later_income.Unemployment,
-                UnemploymentAmount: later_income.UnemploymentAmount,
-                SSI: later_income.SSI,
-                SSIAmount: later_income.SSIAmount,
-                SSDI: later_income.SSDI,
-                SSDIAmount: later_income.SSDIAmount,
-                VADisabilityService: later_income.VADisabilityService,
-                VADisabilityServiceAmount: later_income.VADisabilityServiceAmount,
-                VADisabilityNonService: later_income.VADisabilityNonService,
-                VADisabilityNonServiceAmount: later_income.VADisabilityNonServiceAmount,
-                PrivateDisability: later_income.PrivateDisability,
-                PrivateDisabilityAmount: later_income.PrivateDisabilityAmount,
-                WorkersComp: later_income.WorkersComp,
-                WorkersCompAmount: later_income.WorkersCompAmount,
-                TANF: later_income.TANF,
-                TANFAmount: later_income.TANFAmount,
-                GA: later_income.GA,
-                GAAmount: later_income.GAAmount,
-                SocSecRetirement: later_income.SocSecRetirement,
-                SocSecRetirementAmount: later_income.SocSecRetirementAmount,
-                Pension: later_income.Pension,
-                PensionAmount: later_income.PensionAmount,
-                ChildSupport: later_income.ChildSupport,
-                ChildSupportAmount: later_income.ChildSupportAmount,
-                Alimony: later_income.Alimony,
-                AlimonyAmount: later_income.AlimonyAmount,
-                OtherIncomeSource: later_income.OtherIncomeSource,
-                OtherIncomeAmount: later_income.OtherIncomeAmount,
-                OtherIncomeSourceIdentify: later_income.OtherIncomeSourceIdentify,
-                BenefitsFromAnySource: later_income.BenefitsFromAnySource,
-                SNAP: later_income.SNAP,
-                WIC: later_income.WIC,
-                TANFChildCare: later_income.TANFChildCare,
-                TANFTransportation: later_income.TANFTransportation,
-                OtherTANF: later_income.OtherTANF,
-                OtherBenefitsSource: later_income.OtherBenefitsSource,
-                OtherBenefitsSourceIdentify: later_income.OtherBenefitsSourceIdentify,
-                InsuranceFromAnySource: later_income.InsuranceFromAnySource,
-                Medicaid: later_income.Medicaid,
-                NoMedicaidReason: later_income.NoMedicaidReason,
-                Medicare: later_income.Medicare,
-                NoMedicareReason: later_income.NoMedicareReason,
-                SCHIP: later_income.SCHIP,
-                NoSCHIPReason: later_income.NoSCHIPReason,
-                VAMedicalServices: later_income.VAMedicalServices,
-                NoVAMedReason: later_income.NoVAMedReason,
-                EmployerProvided: later_income.EmployerProvided,
-                NoEmployerProvidedReason: later_income.NoEmployerProvidedReason,
-                COBRA: later_income.COBRA,
-                NoCOBRAReason: later_income.NoCOBRAReason,
-                PrivatePay: later_income.PrivatePay,
-                NoPrivatePayReason: later_income.NoPrivatePayReason,
-                StateHealthIns: later_income.StateHealthIns,
-                NoStateHealthInsReason: later_income.NoStateHealthInsReason,
-                IndianHealthServices: later_income.IndianHealthServices,
-                NoIndianHealthServicesReason: later_income.NoIndianHealthServicesReason,
-                OtherInsurance: later_income.OtherInsurance,
-                OtherInsuranceIdentify: later_income.OtherInsuranceIdentify,
-                HIVAIDSAssistance: later_income.HIVAIDSAssistance,
-                NoHIVAIDSAssistanceReason: later_income.NoHIVAIDSAssistanceReason,
-                ADAP: later_income.ADAP,
-                NoADAPReason: later_income.NoADAPReason,
-                ConnectionWithSOAR: later_income.ConnectionWithSOAR,
-                DataCollectionStage: later_income.DataCollectionStage,
-              )
-            end
+            income_record_from(report_client, :earlier, earlier_income, range)
+            income_record_from(report_client, :later, later_income, range) if later_income.present?
           end
           report_clients << report_client
         end
         IncomeBenefitsReport::Client.import(report_clients, recursive: true)
       end
+    end
+
+    private def client_from(enrollment, race_string, range)
+      client = enrollment.client
+      # Save age based on the start of the report or the start of the enrollment, whichever is later
+      age_date = [filter.start_date, enrollment.first_date_in_program].max
+      # Use EnrollmentID if there is no household, append data_source_id since HouseholdID is not unique across data sources
+      household_id = "#{enrollment.household_id.presence || enrollment.enrollment_group_id}_#{enrollment.data_source_id}"
+
+      IncomeBenefitsReport::Client.new(
+        report: self,
+        client: client,
+        date_range: range,
+        first_name: client.FirstName,
+        middle_name: client.MiddleName,
+        last_name: client.LastName,
+        ethnicity: client.Ethnicity,
+        race: race_string,
+        dob: client.DOB,
+        age: client.age_on(age_date),
+        gender: client.Gender,
+        household_id: household_id,
+        head_of_household: enrollment[:head_of_household],
+        enrollment: enrollment.enrollment,
+        entry_date: enrollment.first_date_in_program,
+        exit_date: enrollment.last_date_in_program,
+        move_in_date: enrollment.move_in_date,
+        project_name: enrollment.project_name,
+        project: enrollment.project,
+      )
+    end
+
+    private def income_record_from(client, stage, income, range)
+      relation = case stage
+      when :later
+        :build_later_income_record
+      when :earlier
+        :build_earlier_income_record
+      end
+      client.send(
+        relation,
+        {
+          report: self,
+          income_benefits_id: income.id,
+          date_range: range,
+          stage: stage,
+          InformationDate: income.InformationDate,
+          IncomeFromAnySource: income.IncomeFromAnySource,
+          TotalMonthlyIncome: income.TotalMonthlyIncome,
+          Earned: income.Earned,
+          EarnedAmount: income.EarnedAmount,
+          Unemployment: income.Unemployment,
+          UnemploymentAmount: income.UnemploymentAmount,
+          SSI: income.SSI,
+          SSIAmount: income.SSIAmount,
+          SSDI: income.SSDI,
+          SSDIAmount: income.SSDIAmount,
+          VADisabilityService: income.VADisabilityService,
+          VADisabilityServiceAmount: income.VADisabilityServiceAmount,
+          VADisabilityNonService: income.VADisabilityNonService,
+          VADisabilityNonServiceAmount: income.VADisabilityNonServiceAmount,
+          PrivateDisability: income.PrivateDisability,
+          PrivateDisabilityAmount: income.PrivateDisabilityAmount,
+          WorkersComp: income.WorkersComp,
+          WorkersCompAmount: income.WorkersCompAmount,
+          TANF: income.TANF,
+          TANFAmount: income.TANFAmount,
+          GA: income.GA,
+          GAAmount: income.GAAmount,
+          SocSecRetirement: income.SocSecRetirement,
+          SocSecRetirementAmount: income.SocSecRetirementAmount,
+          Pension: income.Pension,
+          PensionAmount: income.PensionAmount,
+          ChildSupport: income.ChildSupport,
+          ChildSupportAmount: income.ChildSupportAmount,
+          Alimony: income.Alimony,
+          AlimonyAmount: income.AlimonyAmount,
+          OtherIncomeSource: income.OtherIncomeSource,
+          OtherIncomeAmount: income.OtherIncomeAmount,
+          OtherIncomeSourceIdentify: income.OtherIncomeSourceIdentify,
+          BenefitsFromAnySource: income.BenefitsFromAnySource,
+          SNAP: income.SNAP,
+          WIC: income.WIC,
+          TANFChildCare: income.TANFChildCare,
+          TANFTransportation: income.TANFTransportation,
+          OtherTANF: income.OtherTANF,
+          OtherBenefitsSource: income.OtherBenefitsSource,
+          OtherBenefitsSourceIdentify: income.OtherBenefitsSourceIdentify,
+          InsuranceFromAnySource: income.InsuranceFromAnySource,
+          Medicaid: income.Medicaid,
+          NoMedicaidReason: income.NoMedicaidReason,
+          Medicare: income.Medicare,
+          NoMedicareReason: income.NoMedicareReason,
+          SCHIP: income.SCHIP,
+          NoSCHIPReason: income.NoSCHIPReason,
+          VAMedicalServices: income.VAMedicalServices,
+          NoVAMedReason: income.NoVAMedReason,
+          EmployerProvided: income.EmployerProvided,
+          NoEmployerProvidedReason: income.NoEmployerProvidedReason,
+          COBRA: income.COBRA,
+          NoCOBRAReason: income.NoCOBRAReason,
+          PrivatePay: income.PrivatePay,
+          NoPrivatePayReason: income.NoPrivatePayReason,
+          StateHealthIns: income.StateHealthIns,
+          NoStateHealthInsReason: income.NoStateHealthInsReason,
+          IndianHealthServices: income.IndianHealthServices,
+          NoIndianHealthServicesReason: income.NoIndianHealthServicesReason,
+          OtherInsurance: income.OtherInsurance,
+          OtherInsuranceIdentify: income.OtherInsuranceIdentify,
+          HIVAIDSAssistance: income.HIVAIDSAssistance,
+          NoHIVAIDSAssistanceReason: income.NoHIVAIDSAssistanceReason,
+          ADAP: income.ADAP,
+          NoADAPReason: income.NoADAPReason,
+          ConnectionWithSOAR: income.ConnectionWithSOAR,
+          DataCollectionStage: income.DataCollectionStage,
+        },
+      )
     end
 
     private def cache_slug

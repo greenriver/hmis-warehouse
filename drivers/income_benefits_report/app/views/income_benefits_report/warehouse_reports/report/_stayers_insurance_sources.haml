@@ -11,3 +11,16 @@
       - comparison_class = "c-swatch__border-left--td-#{index}"
     %div{class: column_class}
       .card.mb-4{class: comparison_class}
+        %table.table.table-striped.mb-0
+          %thead
+            %th
+            %th Count
+            %th Percent
+          %tbody
+            - report.stayer_insurance_sources_data.each do |title, row|
+              %tr
+                %th
+                  %i.icon-info{data: {toggle: :tooltip, title: row[:description]}}
+                  = title
+                %td= number_with_delimiter(row[:count])
+                %td= percentage(row[:percent], format: '%1.0f%%') unless row[:percent].nil?

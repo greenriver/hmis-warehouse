@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
+module GrdaWarehouse::Hud
   class IncomeBenefit < Base
     include HudSharedScopes
     include ::HMIS::Structure::IncomeBenefit

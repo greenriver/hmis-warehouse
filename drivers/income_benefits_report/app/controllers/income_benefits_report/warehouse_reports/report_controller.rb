@@ -27,7 +27,11 @@ module IncomeBenefitsReport::WarehouseReports
     end
 
     def create
-      @report = report_class.new(user_id: current_user.id)
+      @report = report_class.new(
+        user_id: current_user.id,
+        report_date_range: @filter.date_range_words,
+        comparison_date_range: @filter.comparison_range_words,
+      )
       @report.filter = @filter
       @report.save
       ::WarehouseReports::GenericReportJob.perform_later(
@@ -69,11 +73,11 @@ module IncomeBenefitsReport::WarehouseReports
 
     private def set_report
       @report = report_class.find(params[:id].to_i)
-      # if @report.include_comparison?
-      #   @comparison = report_class.new(@comparison_filter)
-      # else
-      @comparison = @report
-      # end
+      if @report.include_comparison?
+        @comparison = @report.to_comparison
+      else
+        @comparison = @report
+      end
     end
 
     private def report_scope

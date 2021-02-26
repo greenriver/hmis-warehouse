@@ -13,6 +13,11 @@ module IncomeBenefitsReport
     belongs_to :client, class_name: 'IncomeBenefitsReport::Client'
     belongs_to :income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit'
 
+    # Provides a means of differentiating report from comparison period
+    scope :date_range, ->(range_string) do
+      where(date_range: range_string)
+    end
+
     scope :earlier, -> do
       where(stage: :earlier)
     end

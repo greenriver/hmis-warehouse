@@ -3,6 +3,8 @@ class CreateIncomeBenefitsReports < ActiveRecord::Migration[5.2]
     create_table :income_benefits_reports do |t|
       t.references :user, index: true
       t.jsonb :options
+      t.string :report_date_range, null: false
+      t.string :comparison_date_range, null: false
       t.string :processing_errors
       t.datetime :started_at
       t.datetime :completed_at
@@ -14,6 +16,7 @@ class CreateIncomeBenefitsReports < ActiveRecord::Migration[5.2]
     create_table :income_benefits_report_clients do |t|
       t.references :report, null: false, index: true
       t.references :client, null: false
+      t.string :date_range, null: false
       t.string :first_name
       t.string :middle_name
       t.string :last_name
@@ -24,7 +27,7 @@ class CreateIncomeBenefitsReports < ActiveRecord::Migration[5.2]
       t.integer :gender
       t.string :household_id
       t.boolean :head_of_household
-      t.references :enrollment
+      t.references :enrollment, null: false
       t.date :entry_date
       t.date :exit_date
       t.date :move_in_date
@@ -40,7 +43,8 @@ class CreateIncomeBenefitsReports < ActiveRecord::Migration[5.2]
       t.references :report, null: false, index: true
       t.references :client, null: false, index: true
       t.references :income_benefits, null: false
-      t.string :stage
+      t.string :stage, null: false
+      t.string :date_range, null: false
       t.date :InformationDate, null: false
       t.integer :IncomeFromAnySource, index: true
       t.decimal :TotalMonthlyIncome

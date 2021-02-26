@@ -58,35 +58,13 @@ module
       }
     end
 
-    private def stayers_hoh
-      clients.stayers(filter.end_date).heads_of_household
-    end
-
-    private def stayers_adults
-      clients.stayers(filter.end_date).adults
-    end
-
-    private def stayers_hoh_count
-      @stayers_hoh_count ||= stayers_hoh.count
-    end
-
-    private def stayers_adults_count
-      @stayers_adults_count ||= stayers_adults.count
-    end
-
     # Earned
     private def percent_stayers_hoh_with_earned_income_at_last_update
-      denominator = stayers_hoh_count
-      return 0 unless denominator.positive?
-
-      numerator = count_stayers_hoh_with_earned_income_at_last_update
-      return 0 unless numerator.positive?
-
-      (numerator / denominator.to_f).round(2) * 100
+      calc_percent(count_stayers_hoh_with_earned_income_at_last_update, stayers_hoh_count)
     end
 
     private def count_stayers_hoh_with_earned_income_at_last_update
-      @count_stayers_hoh_with_earned_income_at_last_update ||= clients.stayers(filter.end_date).heads_of_household.
+      @count_stayers_hoh_with_earned_income_at_last_update ||= stayers_scope.heads_of_household.
         joins(:later_income_record).
         merge(IncomeBenefitsReport::Income.with_earned_income).
         count
@@ -95,17 +73,11 @@ module
 
     # Any Income
     private def percent_stayers_hoh_with_any_income_at_last_update
-      denominator = stayers_hoh_count
-      return 0 unless denominator.positive?
-
-      numerator = count_stayers_hoh_with_any_income_at_last_update
-      return 0 unless numerator.positive?
-
-      (numerator / denominator.to_f).round(2) * 100
+      calc_percent(count_stayers_hoh_with_any_income_at_last_update, stayers_hoh_count)
     end
 
     private def count_stayers_hoh_with_any_income_at_last_update
-      @count_stayers_hoh_with_any_income_at_last_update ||= clients.stayers(filter.end_date).heads_of_household.
+      @count_stayers_hoh_with_any_income_at_last_update ||= stayers_scope.heads_of_household.
         joins(:later_income_record).
         merge(IncomeBenefitsReport::Income.with_any_income).
         count
@@ -114,17 +86,11 @@ module
 
     # Unearned
     private def percent_stayers_hoh_with_unearned_income_at_last_update
-      denominator = stayers_hoh_count
-      return 0 unless denominator.positive?
-
-      numerator = count_stayers_hoh_with_unearned_income_at_last_update
-      return 0 unless numerator.positive?
-
-      (numerator / denominator.to_f).round(2) * 100
+      calc_percent(count_stayers_hoh_with_unearned_income_at_last_update, stayers_hoh_count)
     end
 
     private def count_stayers_hoh_with_unearned_income_at_last_update
-      @count_stayers_hoh_with_unearned_income_at_last_update ||= clients.stayers(filter.end_date).heads_of_household.
+      @count_stayers_hoh_with_unearned_income_at_last_update ||= stayers_scope.heads_of_household.
         joins(:later_income_record).
         merge(IncomeBenefitsReport::Income.with_unearned_income).
         count
@@ -141,13 +107,7 @@ module
     end
 
     private def percent_stayers_adults_with_any_income_at_entry
-      denominator = stayers_adults_count
-      return 0 unless denominator.positive?
-
-      numerator = count_stayers_adults_with_any_income_at_entry
-      return 0 unless numerator.positive?
-
-      (numerator / denominator.to_f).round(2) * 100
+      calc_percent(count_stayers_adults_with_any_income_at_entry, stayers_adults_count)
     end
 
     private def total_adult_stayer_income_value_at_entry
@@ -156,13 +116,7 @@ module
     end
 
     private def average_adult_stayer_income_value_at_entry
-      denominator = count_stayers_adults_with_any_income_at_entry
-      return 0 unless denominator.positive?
-
-      numerator = total_adult_stayer_income_value_at_entry
-      return 0 unless numerator.positive?
-
-      (numerator / denominator).round
+      calc_percent(total_adult_stayer_income_value_at_entry, count_stayers_adults_with_any_income_at_entry)
     end
 
     private def stayers_adults_with_any_income_at_last_update
@@ -180,13 +134,7 @@ module
     end
 
     private def average_adult_stayer_income_value_at_last_update
-      denominator = count_stayers_adults_with_any_income_at_last_update
-      return 0 unless denominator.positive?
-
-      numerator = total_adult_stayer_income_value_at_last_update
-      return 0 unless numerator.positive?
-
-      (numerator / denominator).round
+      calc_percent(total_adult_stayer_income_value_at_last_update, count_stayers_adults_with_any_income_at_last_update)
     end
 
     private def adult_stayers_with_two_income_assessments
@@ -225,13 +173,7 @@ module
     end
 
     private def percent_adult_stayers_with_increased_income
-      numerator = count_adult_stayers_with_increased_income
-      return 0 unless numerator.positive?
-
-      denominator = count_adult_stayers_with_two_income_assessments
-      return 0 unless denominator.positive?
-
-      numerator / denominator
+      calc_percent(count_adult_stayers_with_increased_income, count_adult_stayers_with_two_income_assessments)
     end
 
     private def adult_stayers_with_decreased_income
@@ -249,13 +191,7 @@ module
     end
 
     private def percent_adult_stayers_with_decreased_income
-      numerator = count_adult_stayers_with_decreased_income
-      return 0 unless numerator.positive?
-
-      denominator = count_adult_stayers_with_two_income_assessments
-      return 0 unless denominator.positive?
-
-      numerator / denominator
+      calc_percent(count_adult_stayers_with_decreased_income, count_adult_stayers_with_two_income_assessments)
     end
 
     private def adult_stayers_with_maintained_income
@@ -273,13 +209,7 @@ module
     end
 
     private def percent_adult_stayers_with_maintained_income
-      numerator = count_adult_stayers_with_maintained_income
-      return 0 unless numerator.positive?
-
-      denominator = count_adult_stayers_with_two_income_assessments
-      return 0 unless denominator.positive?
-
-      numerator / denominator
+      calc_percent(count_adult_stayers_with_maintained_income, count_adult_stayers_with_two_income_assessments)
     end
   end
 end

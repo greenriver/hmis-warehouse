@@ -526,6 +526,8 @@ module Filters
         'Report Range'
       when :end
         nil
+      when :comparison_pattern
+        'Comparison Range' if includes_comparison?
       when :project_type_codes, :project_type_ids, :project_type_numbers
         'Project Type'
       when :sub_population
@@ -577,6 +579,8 @@ module Filters
         date_range_words
       when :end
         nil
+      when :comparison_pattern
+        comparison_range_words if includes_comparison?
       when :project_type_codes, :project_type_ids, :project_type_numbers
         chosen_project_types
       when :sub_population
