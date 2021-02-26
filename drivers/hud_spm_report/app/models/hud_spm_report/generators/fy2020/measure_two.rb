@@ -37,6 +37,18 @@ module HudSpmReport::Generators::Fy2020
         'J' => 'Percentage of Returns in 2 Years',
       }
 
+      # 7. Since each client may only be reported no more than once in columns
+      # C, E, or G, each cell in column I is simply a sum of cells in the same
+      # row. This is indicated in the above table shell with a simple formula.
+      #
+      # 8. Since each client may only be reported on one row (2, 3, 4, 5, or
+      # 6), cells B, C, E, and G in row 7 are simply a sum of the rows above.
+      # This is also indicated with a simple formula.
+      #
+      # 9. Columns D, F, H, andJ are the percentages of clients who exited to a
+      # permanent housing destination but later returned to homelessness. This
+      # is also indicated with a simple formula. HMIS systems should calculate
+      # these percentages to 2 decimal  places.
       {
         2 => SO,
         3 => ES,
@@ -46,35 +58,30 @@ module HudSpmReport::Generators::Fy2020
         7 => SO + ES + TH + SH + PH,
       }.each do |row, project_types|
         scope = universe_members.where(t[:m2_exit_from_project_type].in(project_types))
-        n_exited = scope.count
-        n_reentered_0_5 = scope.where(t[:m2_reentry_days].between(1 .. 180)).count
-        n_reentered_6_12 = scope.where(t[:m2_reentry_days].between(181 .. 365)).count
-        n_reentered_13_24 = scope.where(t[:m2_reentry_days].between(366 .. 730)).count
-        n_reentered = n_reentered_0_5 + n_reentered_6_12 + n_reentered_13_24
-
-        # 7. Since each client may only be reported no more than once in columns
-        # C, E, or G, each cell in column I is simply a sum of cells in the same
-        # row. This is indicated in the above table shell with a simple formula.
-        #
-        # 8. Since each client may only be reported on one row (2, 3, 4, 5, or
-        # 6), cells B, C, E, and G in row 7 are simply a sum of the rows above.
-        # This is also indicated with a simple formula.
-        #
-        # 9. Columns D, F, H, andJ are the percentages of clients who exited to a
-        # permanent housing destination but later returned to homelessness. This
-        # is also indicated with a simple formula. HMIS systems should calculate
-        # these percentages to 2 decimal  places.
+        exited = scope
+        n_exited = exited.count
+        if n_exited.positive?
+          reentered_0_5 = scope.where(t[:m2_reentry_days].between(1 .. 180))
+          reentered_6_12 = scope.where(t[:m2_reentry_days].between(181 .. 365))
+          reentered_13_24 = scope.where(t[:m2_reentry_days].between(366 .. 730))
+          reentered = scope.where(t[:m2_reentry_days].between(1 .. 730))
+        else
+          reentered_0_5 = scope.none
+          reentered_6_12 = scope.none
+          reentered_13_24 = scope.none
+          reentered = scope.none
+        end
 
         handle_clause_based_cells table_name, [
-          ["B#{row}", universe_members, n_exited],
-          ["C#{row}", universe_members, n_reentered_0_5],
-          ["D#{row}", universe_members, m2_precentage(n_reentered_0_5, n_exited)],
-          ["E#{row}", universe_members, n_reentered_6_12],
-          ["F#{row}", universe_members, m2_precentage(n_reentered_6_12, n_exited)],
-          ["G#{row}", universe_members, n_reentered_13_24],
-          ["H#{row}", universe_members, m2_precentage(n_reentered_13_24, n_exited)],
-          ["I#{row}", universe_members, n_reentered],
-          ["J#{row}", universe_members, m2_precentage(n_reentered, n_exited)],
+          ["B#{row}", exited, exited.count],
+          ["C#{row}", reentered_0_5, reentered_0_5.count],
+          ["D#{row}", [], m2_precentage(reentered_0_5.count, n_exited)],
+          ["E#{row}", reentered_6_12, reentered_6_12.count],
+          ["F#{row}", [], m2_precentage(reentered_6_12.count, n_exited)],
+          ["G#{row}", reentered_13_24, reentered_13_24.count],
+          ["H#{row}", [], m2_precentage(reentered_13_24.count, n_exited)],
+          ["I#{row}", reentered, reentered.count],
+          ["J#{row}", [], m2_precentage(reentered.count, n_exited)],
         ]
       end
 
