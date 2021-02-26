@@ -325,6 +325,8 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def add_filters(scope:)
+      # TODO apply report filters to the supplied GrdaWarehouse::ServiceHistoryEnrollment scope
+
       # scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
 
       scope
@@ -435,7 +437,7 @@ module HudSpmReport::Generators::Fy2020
     private def handle_clause_based_cells(table_name, cell_specs)
       cell_specs.each do |cell, member_scope, summary_value|
         answer = @report.answer(question: table_name, cell: cell)
-        answer.add_members(member_scope)
+        answer.add_members(member_scope) if member_scope
         answer.update(summary: summary_value)
       end
     end
@@ -453,10 +455,7 @@ module HudSpmReport::Generators::Fy2020
 
     private def active_enrollments_scope
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.hud_project_type(ES_SH_TH_PH)
-      scope = scope.open_between(
-        start_date: @report.start_date,
-        end_date: @report.end_date,
-      ).with_service_between(
+      scope = scope.with_service_between(
         start_date: @report.start_date,
         end_date: @report.end_date,
       )

@@ -31,7 +31,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureThree, type: :model do
 
   [
     ['3.1', 'A1', nil],
-    ['3.1', 'C2', 0],
+    ['3.1', 'C2', nil],
     ['3.1', 'C3', nil],
     ['3.1', 'C4', nil],
     ['3.1', 'C5', nil],
@@ -40,9 +40,9 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureThree, type: :model do
 
     ['3.2', 'A1', nil],
     ['3.2', 'C2', 0],
-    ['3.2', 'C3', nil],
-    ['3.2', 'C4', nil],
-    ['3.2', 'C5', nil],
+    ['3.2', 'C3', 0],
+    ['3.2', 'C4', 0],
+    ['3.2', 'C5', 0],
   ].each do |question, cell, expected_value, label|
     test_name = if expected_value.nil?
       "does not fill #{question} #{cell}"
