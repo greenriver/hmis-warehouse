@@ -53,4 +53,33 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureThree, type: :model do
       expect(report_result.answer(question: question, cell: cell).summary).to eq(expected_value)
     end
   end
+
+  def client_included(question, cell, personal_id)
+    c = GrdaWarehouse::Hud::Client.destination.find_by(PersonalID: personal_id)
+    report_result.answer(question: question, cell: cell).members.any? do |m|
+      yield m, c
+    end
+  end
+
+  def assert_client_included(question:, cell:, personal_id:, &condition)
+    assert client_included(question, cell, personal_id, &condition)
+  end
+
+  it 'counts client 4 in ES' do
+    assert_client_included(question: '3.2', cell: 'C3', personal_id: '4') do |m, c|
+      m.client_id == c.id && m.universe_membership.m3_active_project_types.include?(1)
+    end
+  end
+
+  it 'counts client 5 in SH' do
+    assert_client_included(question: '3.2', cell: 'C4', personal_id: '5') do |m, c|
+      m.client_id == c.id && m.universe_membership.m3_active_project_types.include?(8)
+    end
+  end
+
+  it 'counts client 6 in TH' do
+    assert_client_included(question: '3.2', cell: 'C5', personal_id: '6') do |m, c|
+      m.client_id == c.id && m.universe_membership.m3_active_project_types.include?(2)
+    end
+  end
 end
