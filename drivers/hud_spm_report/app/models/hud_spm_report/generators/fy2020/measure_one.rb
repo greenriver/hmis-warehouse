@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# HUD SPM Report Generator: Length of Time Persons Remain Homeless
 module HudSpmReport::Generators::Fy2020
   class MeasureOne < Base
     def self.question_number
       'Measure 1'.freeze
     end
 
-    TABLE_NUMBERS = ['1a', '1b'].freeze
     COLS = {
       'B' => 'Previous FY Universe (Persons)', # optional
       'C' => 'Current FY Universe (Persons)',
@@ -23,19 +23,21 @@ module HudSpmReport::Generators::Fy2020
     }.freeze
 
     def run_question!
-      @report.start(self.class.question_number, TABLE_NUMBERS)
+      tables = [
+        ['1a', :run_1a, nil],
+        ['1b', :run_1b, nil],
+      ]
 
-      TABLE_NUMBERS.each do |table|
-        msg = "run_#{table}"
-        logger.debug msg
-        send msg
+      @report.start(self.class.question_number, tables.map(&:first))
+
+      tables.each do |name, msg, _title|
+        send(msg, name)
       end
+
       @report.complete(self.class.question_number)
     end
 
-    private def run_1a
-      table_name = '1a'
-
+    private def run_1a(table_name)
       prepare_table table_name, {
         2 => 'Persons in ES and SH',
         3 => 'Persons in ES, SH, and TH',
@@ -56,13 +58,11 @@ module HudSpmReport::Generators::Fy2020
       ]
     end
 
-    private def run_1b
-      table_name = '1b'
-      rows = {
+    private def run_1b(table_name)
+      prepare_table table_name, {
         2 => 'Persons in ES, SH, and PH',
         3 => 'Persons in ES, SH, TH, and PH',
-      }
-      prepare_table table_name, rows, COLS
+      }, COLS
 
       universe_members = universe.members.where(t[:m1b_es_sh_ph_days].gt(0))
       handle_clause_based_cells table_name, [
