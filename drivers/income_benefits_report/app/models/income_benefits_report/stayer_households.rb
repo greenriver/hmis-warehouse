@@ -12,21 +12,25 @@ module
       {
         'Households with Earned Income at Last Update' => {
           count: count_stayers_hoh_with_earned_income_at_last_update,
+          denominator: stayers_hoh_count,
           percent: percent_stayers_hoh_with_earned_income_at_last_update,
           description: 'Counts heads-of-household stayers whose most recent income assessment, regardless of DataCollectionStage, included income in the Earned category.  Percentage is out of heads-of-household stayers.',
         },
         'Households with Non-Employment Income at Last Update' => {
           count: count_stayers_hoh_with_unearned_income_at_last_update,
+          denominator: stayers_hoh_count,
           percent: percent_stayers_hoh_with_unearned_income_at_last_update,
           description: 'Counts heads-of-household stayers whose most recent income assessment, regardless of DataCollectionStage, included IncomeFromAnySource but no income in the Earned category.  Percentage is out of heads-of-household stayers.',
         },
         'Households with Income from Any Source (Earned or Non-Employment) at Last Update' => {
           count: count_stayers_hoh_with_any_income_at_last_update,
+          denominator: stayers_hoh_count,
           percent: percent_stayers_hoh_with_any_income_at_last_update,
           description: 'Counts heads-of-household stayers whose most recent income assessment, regardless of DataCollectionStage, included IncomeFromAnySource.  Percentage is out of heads-of-household stayers.',
         },
         'Total Adults with any income at Entry' => {
           count: count_stayers_adults_with_any_income_at_entry,
+          denominator: stayers_adults_count,
           percent: percent_stayers_adults_with_any_income_at_entry,
           description: 'Counts adult stayers who had income in the Earned category at DataCollectionStage 1 (Entry).  Percentage is out of adult stayers.',
         },
@@ -42,16 +46,19 @@ module
         },
         'Total Adults that Increased Income' => {
           count: count_adult_stayers_with_increased_income,
+          denominator: count_adult_stayers_with_two_income_assessments,
           percent: percent_adult_stayers_with_increased_income,
           description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients whose TotalMonthlyIncome has increased. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
         },
         'Total Adults that Maintained Income' => {
           count: count_adult_stayers_with_maintained_income,
+          denominator: count_adult_stayers_with_two_income_assessments,
           percent: percent_adult_stayers_with_maintained_income,
           description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients whose TotalMonthlyIncome has not changed. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
         },
         'Total Adults that Lost Income' => {
           count: count_adult_stayers_with_decreased_income,
+          denominator: count_adult_stayers_with_two_income_assessments,
           percent: percent_adult_stayers_with_decreased_income,
           description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients whose TotalMonthlyIncome has decreased. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
         },
@@ -66,7 +73,7 @@ module
     private def count_stayers_hoh_with_earned_income_at_last_update
       @count_stayers_hoh_with_earned_income_at_last_update ||= stayers_scope.heads_of_household.
         joins(:later_income_record).
-        merge(IncomeBenefitsReport::Income.with_earned_income).
+        merge(IncomeBenefitsReport::Income.with_earned_income.later.date_range(report_date_range)).
         count
     end
     # End Earned
@@ -79,7 +86,7 @@ module
     private def count_stayers_hoh_with_any_income_at_last_update
       @count_stayers_hoh_with_any_income_at_last_update ||= stayers_scope.heads_of_household.
         joins(:later_income_record).
-        merge(IncomeBenefitsReport::Income.with_any_income).
+        merge(IncomeBenefitsReport::Income.with_any_income.later.date_range(report_date_range)).
         count
     end
     # End Any Income
@@ -92,14 +99,14 @@ module
     private def count_stayers_hoh_with_unearned_income_at_last_update
       @count_stayers_hoh_with_unearned_income_at_last_update ||= stayers_scope.heads_of_household.
         joins(:later_income_record).
-        merge(IncomeBenefitsReport::Income.with_unearned_income).
+        merge(IncomeBenefitsReport::Income.with_unearned_income.later.date_range(report_date_range)).
         count
     end
     # End Unearned
 
     private def stayers_adults_with_any_income_at_entry
       stayers_adults.joins(:earlier_income_record).
-        merge(IncomeBenefitsReport::Income.with_any_income)
+        merge(IncomeBenefitsReport::Income.with_any_income.earlier.date_range(report_date_range))
     end
 
     private def count_stayers_adults_with_any_income_at_entry
@@ -112,16 +119,24 @@ module
 
     private def total_adult_stayer_income_value_at_entry
       income_t = IncomeBenefitsReport::Income.arel_table
-      @total_adult_stayer_income_value_at_entry ||= stayers_adults.joins(:earlier_income_record).sum(income_t[:TotalMonthlyIncome])
+      @total_adult_stayer_income_value_at_entry ||= stayers_adults.joins(:earlier_income_record).
+        merge(IncomeBenefitsReport::Income.earlier.date_range(report_date_range)).
+        sum(income_t[:TotalMonthlyIncome])
     end
 
     private def average_adult_stayer_income_value_at_entry
-      calc_percent(total_adult_stayer_income_value_at_entry, count_stayers_adults_with_any_income_at_entry)
+      denominator = count_stayers_adults_with_any_income_at_entry
+      return 0 unless denominator.positive?
+
+      numerator = total_adult_stayer_income_value_at_entry
+      return 0 unless numerator.positive?
+
+      (numerator / denominator).round
     end
 
     private def stayers_adults_with_any_income_at_last_update
       stayers_adults.joins(:later_income_record).
-        merge(IncomeBenefitsReport::Income.with_any_income)
+        merge(IncomeBenefitsReport::Income.with_any_income.later.date_range(report_date_range))
     end
 
     private def count_stayers_adults_with_any_income_at_last_update
@@ -130,11 +145,19 @@ module
 
     private def total_adult_stayer_income_value_at_last_update
       income_t = IncomeBenefitsReport::Income.arel_table
-      @total_adult_stayer_income_value_at_last_update ||= stayers_adults_with_any_income_at_last_update.sum(income_t[:TotalMonthlyIncome])
+      @total_adult_stayer_income_value_at_last_update ||= stayers_adults_with_any_income_at_last_update.
+        merge(IncomeBenefitsReport::Income.later.date_range(report_date_range)).
+        sum(income_t[:TotalMonthlyIncome])
     end
 
     private def average_adult_stayer_income_value_at_last_update
-      calc_percent(total_adult_stayer_income_value_at_last_update, count_stayers_adults_with_any_income_at_last_update)
+      denominator = count_stayers_adults_with_any_income_at_last_update
+      return 0 unless denominator.positive?
+
+      numerator = total_adult_stayer_income_value_at_last_update
+      return 0 unless numerator.positive?
+
+      (numerator / denominator).round
     end
 
     private def adult_stayers_with_two_income_assessments

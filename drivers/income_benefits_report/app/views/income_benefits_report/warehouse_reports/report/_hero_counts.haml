@@ -5,9 +5,10 @@
   end
 - reports.each_with_index do |report, index|
   - if @report.include_comparison?
-    %h4.d-flex
-      .pb-4.mr-2.c-swatch__display{class: "c-swatch__display--chart-#{index}"}
-      .title= report.filter.date_range_words
+    .d-flex
+      %h4
+        .pb-4.mr-2.c-swatch__display{class: "c-swatch__display--chart-#{index}"}
+        .title= report.filter.date_range_words
   .d-flex.flex-wrap
     .hero-prs1
       .d-flex.align-items-center
