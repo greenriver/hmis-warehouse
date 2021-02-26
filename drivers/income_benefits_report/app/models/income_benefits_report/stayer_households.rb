@@ -13,17 +13,17 @@ module
         'Households with Earned Income at Last Update' => {
           count: count_stayers_hoh_with_earned_income_at_last_update,
           percent: percent_stayers_hoh_with_earned_income_at_last_update,
-          description: 'Counts heads-of-household stayers who\'s most recent income assessment, regardless of DataCollectionStage, included income in the Earned category.  Percentage is out of heads-of-household stayers.',
+          description: 'Counts heads-of-household stayers whose most recent income assessment, regardless of DataCollectionStage, included income in the Earned category.  Percentage is out of heads-of-household stayers.',
         },
         'Households with Non-Employment Income at Last Update' => {
           count: count_stayers_hoh_with_unearned_income_at_last_update,
           percent: percent_stayers_hoh_with_unearned_income_at_last_update,
-          description: 'Counts heads-of-household stayers who\'s most recent income assessment, regardless of DataCollectionStage, included IncomeFromAnySource but no income in the Earned category.  Percentage is out of heads-of-household stayers.',
+          description: 'Counts heads-of-household stayers whose most recent income assessment, regardless of DataCollectionStage, included IncomeFromAnySource but no income in the Earned category.  Percentage is out of heads-of-household stayers.',
         },
         'Households with Income from Any Source (Earned or Non-Employment) at Last Update' => {
           count: count_stayers_hoh_with_any_income_at_last_update,
           percent: percent_stayers_hoh_with_any_income_at_last_update,
-          description: 'Counts heads-of-household stayers who\'s most recent income assessment, regardless of DataCollectionStage, included IncomeFromAnySource.  Percentage is out of heads-of-household stayers.',
+          description: 'Counts heads-of-household stayers whose most recent income assessment, regardless of DataCollectionStage, included IncomeFromAnySource.  Percentage is out of heads-of-household stayers.',
         },
         'Total Adults with any income at Entry' => {
           count: count_stayers_adults_with_any_income_at_entry,
@@ -43,17 +43,17 @@ module
         'Total Adults that Increased Income' => {
           count: count_adult_stayers_with_increased_income,
           percent: percent_adult_stayers_with_increased_income,
-          description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients who\'s TotalMonthlyIncome has increased. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
+          description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients whose TotalMonthlyIncome has increased. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
         },
         'Total Adults that Maintained Income' => {
           count: count_adult_stayers_with_maintained_income,
           percent: percent_adult_stayers_with_maintained_income,
-          description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients who\'s TotalMonthlyIncome has not changed. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
+          description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients whose TotalMonthlyIncome has not changed. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
         },
         'Total Adults that Lost Income' => {
           count: count_adult_stayers_with_decreased_income,
           percent: percent_adult_stayers_with_decreased_income,
-          description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients who\'s TotalMonthlyIncome has decreased. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
+          description: 'Compares the TotalMonthlyIncome from the most-recent assessment with the earliest assessment taken within the enrollment in question.  Counts clients whose TotalMonthlyIncome has decreased. Only includes clients where both assessments have a non-blank TotalMonthlyIncome.',
         },
       }
     end
