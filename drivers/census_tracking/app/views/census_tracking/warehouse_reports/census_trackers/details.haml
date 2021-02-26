@@ -4,3 +4,18 @@
 - title = [@project_name, @type, @key].compact.join(' - ')
 - content_for :title, title
 = content_for :modal_title, title
+
+%table.table.table-sm
+  %thead
+    %tr
+      - detail_columns.keys.each do |name|
+        %th= name
+  %tbody
+    - @clients.each do |client|
+      %tr
+        - client.each_with_index do |value, index|
+          %td
+            - if index == 0
+              = link_to value, client_path(value)
+            - else
+              = value
