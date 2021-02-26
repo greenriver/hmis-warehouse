@@ -43,37 +43,37 @@ class CreateIncomeBenefitsReports < ActiveRecord::Migration[5.2]
       t.string :stage
       t.date :InformationDate, null: false
       t.integer :IncomeFromAnySource, index: true
-      t.string :TotalMonthlyIncome
+      t.decimal :TotalMonthlyIncome
       t.integer :Earned, index: true
-      t.string :EarnedAmount
+      t.decimal :EarnedAmount
       t.integer :Unemployment
-      t.string :UnemploymentAmount
+      t.decimal :UnemploymentAmount
       t.integer :SSI
-      t.string :SSIAmount
+      t.decimal :SSIAmount
       t.integer :SSDI
-      t.string :SSDIAmount
+      t.decimal :SSDIAmount
       t.integer :VADisabilityService
-      t.string :VADisabilityServiceAmount
+      t.decimal :VADisabilityServiceAmount
       t.integer :VADisabilityNonService
-      t.string :VADisabilityNonServiceAmount
+      t.decimal :VADisabilityNonServiceAmount
       t.integer :PrivateDisability
-      t.string :PrivateDisabilityAmount
+      t.decimal :PrivateDisabilityAmount
       t.integer :WorkersComp
-      t.string :WorkersCompAmount
+      t.decimal :WorkersCompAmount
       t.integer :TANF
-      t.string :TANFAmount
+      t.decimal :TANFAmount
       t.integer :GA
-      t.string :GAAmount
+      t.decimal :GAAmount
       t.integer :SocSecRetirement
-      t.string :SocSecRetirementAmount
+      t.decimal :SocSecRetirementAmount
       t.integer :Pension
-      t.string :PensionAmount
+      t.decimal :PensionAmount
       t.integer :ChildSupport
-      t.string :ChildSupportAmount
+      t.decimal :ChildSupportAmount
       t.integer :Alimony
-      t.string :AlimonyAmount
+      t.decimal :AlimonyAmount
       t.integer :OtherIncomeSource
-      t.string :OtherIncomeAmount
+      t.decimal :OtherIncomeAmount
       t.string :OtherIncomeSourceIdentify
       t.integer :BenefitsFromAnySource
       t.integer :SNAP

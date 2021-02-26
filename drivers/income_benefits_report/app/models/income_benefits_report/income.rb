@@ -20,5 +20,17 @@ module IncomeBenefitsReport
     scope :later, -> do
       where(stage: :later)
     end
+
+    scope :with_earned_income, -> do
+      where(Earned: 1)
+    end
+
+    scope :with_any_income, -> do
+      where(IncomeFromAnySource: 1)
+    end
+
+    scope :with_unearned_income, -> do
+      where(IncomeFromAnySource: 1).where.not(Earned: 1)
+    end
   end
 end

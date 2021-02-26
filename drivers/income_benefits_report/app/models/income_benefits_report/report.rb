@@ -24,6 +24,9 @@ module IncomeBenefitsReport
     acts_as_paranoid
 
     belongs_to :user
+    has_many :clients
+    has_many :earlier_income_record, through: :clients
+    has_many :later_income_record, through: :clients
 
     after_initialize :filter, :set_project_types
 
@@ -94,6 +97,10 @@ module IncomeBenefitsReport
 
     def self.url
       'income_benefits_report/warehouse_reports/report'
+    end
+
+    def url
+      income_benefits_report_warehouse_reports_report_path_url(host: ENV.fetch('FQDN'), id: id)
     end
 
     def self.available_section_types
@@ -194,47 +201,15 @@ module IncomeBenefitsReport
     end
 
     def total_client_count
-      @total_client_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        distinct_client_ids.count
-      end
+      @total_client_count ||= clients.count
     end
 
     def hoh_count
-      @hoh_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        hoh_scope.select(:client_id).distinct.count
-      end
+      @hoh_count ||= clients.heads_of_household.count
     end
 
     def household_count
-      @household_count ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
-        report_scope.select(:household_id).distinct.count
-      end
-    end
-
-    private def hoh_scope
-      report_scope.where(she_t[:head_of_household].eq(true))
-    end
-
-    # Anyone with at least one open enrollment on the last day of the report
-    private def filter_for_stayers(scope)
-      scope.where(client_id: report_scope.open_between(start_date: @filter.end_date, end_date: @filter.end_date).select(:client_id))
-    end
-
-    # Anyone who doesn't have at least one open enrollment on the last day of the report
-    private def filter_for_leavers(scope)
-      scope.where.not(client_id: report_scope.open_between(start_date: @filter.end_date, end_date: @filter.end_date).select(:client_id))
-    end
-
-    private def filter_for_adults(scope)
-      scope.joins(:client).where(c_t[:DOB].lt(Arel.sql("GREATEST('#{(@filter.start_date - 18.years).to_s(:db)}', #{she_t[:first_date_in_program].to_sql} - interval '18 years')")))
-    end
-
-    private def filter_for_children(scope)
-      scope.joins(:client).where(c_t[:DOB].gteq(Arel.sql("GREATEST('#{(@filter.start_date - 18.years).to_s(:db)}', #{she_t[:first_date_in_program].to_sql} - interval '18 years')")))
-    end
-
-    private def distinct_client_ids
-      report_scope.select(:client_id).distinct
+      @household_count ||= clients.select(:household_id).distinct.count
     end
 
     private def populate_clients! # rubocop:disable Metrics/AbcSize
@@ -250,6 +225,8 @@ module IncomeBenefitsReport
           )
           # Save age based on the start of the report or the start of the enrollment, whichever is later
           age_date = [filter.start_date, enrollment.first_date_in_program].max
+          # Use EnrollmentID if there is no household, append data_source_id since HouseholdID is not unique across data sources
+          household_id = "#{enrollment.household_id.presence || enrollment.enrollment_group_id}_#{enrollment.data_source_id}"
           report_client = IncomeBenefitsReport::Client.new(
             report: self,
             client: client,
@@ -261,7 +238,7 @@ module IncomeBenefitsReport
             dob: client.DOB,
             age: client.age_on(age_date),
             gender: client.Gender,
-            household_id: "#{enrollment.household_id}_#{enrollment.data_source_id}",
+            household_id: household_id,
             head_of_household: enrollment[:head_of_household],
             enrollment: enrollment.enrollment,
             entry_date: enrollment.first_date_in_program,
