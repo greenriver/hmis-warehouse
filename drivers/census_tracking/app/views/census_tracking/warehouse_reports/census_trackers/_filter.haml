@@ -23,7 +23,7 @@
       .col-3
         = f.input :genders, collection: HUD.genders.invert, placeholder: 'Any Gender', as: :select_two, input_html: {multiple: true}
       .col-3
-        = f.input :veteran_statuses, collection: HUD.no_yes_reasons_for_missing_data_options.invert,  placeholder: 'Any Status', as: :select_two, input_html: { multiple: true }, label: 'Veteran?'
+        = f.input :veteran_statuses, collection: HUD.no_yes_reasons_for_missing_data_options.invert,  placeholder: 'Any Status', as: :select_two, input_html: { multiple: true }, label: 'Veteran Statuses'
 
   - content_for :filter_actions do
     = f.submit 'Update Filter', class: 'btn btn-primary'
