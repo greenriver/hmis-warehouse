@@ -100,7 +100,7 @@ module IncomeBenefitsReport
     end
 
     def url
-      income_benefits_report_warehouse_reports_report_path_url(host: ENV.fetch('FQDN'), id: id)
+      income_benefits_report_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id)
     end
 
     def self.available_section_types
