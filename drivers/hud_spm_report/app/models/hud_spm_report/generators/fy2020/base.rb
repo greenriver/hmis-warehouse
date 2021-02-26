@@ -65,6 +65,7 @@ module HudSpmReport::Generators::Fy2020
         add_m1_clients
         add_m2_clients
         add_m3_clients
+        add_m4_clients
       end
       @universe ||= @report.universe(self.class.question_number)
     end
@@ -357,6 +358,44 @@ module HudSpmReport::Generators::Fy2020
         end.to_h
 
         append_report_clients measure_three, m3_clients, updated_columns
+      end
+    end
+
+    private def add_m4_clients
+      measure_four = 'Measure 4'
+      return unless add_clients_for_question?(measure_four)
+
+      updated_columns = [
+        :dob,
+        :first_name,
+        :last_name,
+      ]
+
+      m4_enrollments = active_enrollments_scope.hud_project_type(ES_SH_TH)
+
+      each_client_batch client_scope.where(
+        id: m4_enrollments.select(:client_id),
+      ) do |clients_by_id|
+        entries = pluck_to_hash SHE_COLUMNS, m4_enrollments.where(
+          client_id: clients_by_id.keys,
+        ).order(client_id: :asc)
+        # debugger
+        m4_clients = entries.group_by do |e|
+          e[:client_id]
+        end.map do |client_id, _client_enrollments|
+          client = clients_by_id.fetch(client_id)
+          m4_client = report_client_universe.new(
+            report_instance_id: @report.id,
+            client_id: client_id,
+            data_source_id: client.data_source_id,
+            dob: client.DOB,
+            first_name: client.first_name,
+            last_name: client.last_name,
+          )
+          [client, m4_client]
+        end.to_h
+
+        append_report_clients measure_four, m4_clients, updated_columns
       end
     end
 
