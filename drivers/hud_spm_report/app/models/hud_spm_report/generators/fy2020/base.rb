@@ -53,6 +53,12 @@ module HudSpmReport::Generators::Fy2020
       household_id: :household_id,
     }.freeze
 
+    private def report_precentage(numerator, denominator)
+      return 0 if denominator.zero?
+
+      (numerator * 100.0 / denominator).round(2)
+    end
+
     private def universe
       # lazy pre-calculation of per-client version of the metrics
       unless clients_populated?

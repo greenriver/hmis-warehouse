@@ -78,23 +78,17 @@ module HudSpmReport::Generators::Fy2020
         handle_clause_based_cells table_name, [
           ["B#{row}", exited, exited.count],
           ["C#{row}", reentered_0_5, reentered_0_5.count],
-          ["D#{row}", [], m2_precentage(reentered_0_5.count, n_exited)],
+          ["D#{row}", [], report_precentage(reentered_0_5.count, n_exited)],
           ["E#{row}", reentered_6_12, reentered_6_12.count],
-          ["F#{row}", [], m2_precentage(reentered_6_12.count, n_exited)],
+          ["F#{row}", [], report_precentage(reentered_6_12.count, n_exited)],
           ["G#{row}", reentered_13_24, reentered_13_24.count],
-          ["H#{row}", [], m2_precentage(reentered_13_24.count, n_exited)],
+          ["H#{row}", [], report_precentage(reentered_13_24.count, n_exited)],
           ["I#{row}", reentered, reentered.count],
-          ["J#{row}", [], m2_precentage(reentered.count, n_exited)],
+          ["J#{row}", [], report_precentage(reentered.count, n_exited)],
         ]
       end
 
       @report.complete(self.class.question_number)
-    end
-
-    private def m2_precentage(numerator, denominator)
-      return 0 if denominator.zero?
-
-      (numerator * 100.0 / denominator).round(2)
     end
   end
 end
