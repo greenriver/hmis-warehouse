@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_17_202610) do
+ActiveRecord::Schema.define(version: 2021_02_17_173551) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -4733,6 +4733,29 @@ ActiveRecord::Schema.define(version: 2021_02_17_202610) do
     t.index ["user_id"], name: "index_hud_report_instances_on_user_id"
   end
 
+  create_table "hud_report_spm_clients", force: :cascade do |t|
+    t.integer "client_id", null: false
+    t.integer "data_source_id", null: false
+    t.integer "report_instance_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "deleted_at"
+    t.date "dob"
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "m1a_es_sh_days"
+    t.integer "m1a_es_sh_th_days"
+    t.integer "m1b_es_sh_ph_days"
+    t.integer "m1b_es_sh_th_ph_days"
+    t.jsonb "m1_history"
+    t.integer "m2_exit_from_project_type"
+    t.integer "m2_exit_to_destination"
+    t.integer "m2_reentry_days"
+    t.jsonb "m2_history"
+    t.integer "m3_active_project_types", array: true
+    t.index ["client_id", "data_source_id", "report_instance_id"], name: "spm_client_conflict_columns", unique: true
+  end
+
   create_table "hud_report_universe_members", force: :cascade do |t|
     t.bigint "report_cell_id"
     t.string "universe_membership_type"
@@ -5387,69 +5410,6 @@ ActiveRecord::Schema.define(version: 2021_02_17_202610) do
     t.index ["project_group_id"], name: "index_project_scorecard_reports_on_project_group_id"
     t.index ["project_id"], name: "index_project_scorecard_reports_on_project_id"
     t.index ["user_id"], name: "index_project_scorecard_reports_on_user_id"
-  end
-
-  create_table "public_report_reports", force: :cascade do |t|
-    t.bigint "user_id"
-    t.string "type"
-    t.date "start_date"
-    t.date "end_date"
-    t.jsonb "filter"
-    t.string "state"
-    t.text "html"
-    t.string "published_url"
-    t.string "embed_code"
-    t.datetime "started_at"
-    t.datetime "completed_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "deleted_at"
-    t.text "precalculated_data"
-    t.index ["created_at"], name: "index_public_report_reports_on_created_at"
-    t.index ["updated_at"], name: "index_public_report_reports_on_updated_at"
-    t.index ["user_id"], name: "index_public_report_reports_on_user_id"
-  end
-
-  create_table "public_report_settings", force: :cascade do |t|
-    t.string "s3_region"
-    t.string "s3_bucket"
-    t.string "s3_prefix"
-    t.string "encrypted_s3_access_key_id"
-    t.string "encrypted_s3_access_key_id_iv"
-    t.string "encrypted_s3_secret"
-    t.string "encrypted_s3_secret_iv"
-    t.string "color_0"
-    t.string "color_1"
-    t.string "color_2"
-    t.string "color_3"
-    t.string "color_4"
-    t.string "color_5"
-    t.string "color_6"
-    t.string "color_7"
-    t.string "color_8"
-    t.string "color_9"
-    t.string "color_10"
-    t.string "color_11"
-    t.string "color_12"
-    t.string "color_13"
-    t.string "color_14"
-    t.string "color_15"
-    t.string "color_16"
-    t.string "font_url"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "font_family_0"
-    t.string "font_family_1"
-    t.string "font_family_2"
-    t.string "font_family_3"
-    t.string "font_size_0"
-    t.string "font_size_1"
-    t.string "font_size_2"
-    t.string "font_size_3"
-    t.string "font_weight_0"
-    t.string "font_weight_1"
-    t.string "font_weight_2"
-    t.string "font_weight_3"
   end
 
   create_table "recent_report_enrollments", id: false, force: :cascade do |t|
@@ -8949,4 +8909,11 @@ ActiveRecord::Schema.define(version: 2021_02_17_202610) do
       service_history_services.literally_homeless
      FROM service_history_services;
   SQL
+  add_index "service_history_services_materialized", ["client_id", "date"], name: "index_shsm_c_id_date"
+  add_index "service_history_services_materialized", ["client_id", "project_type", "record_type"], name: "index_shsm_c_id_p_type_r_type"
+  add_index "service_history_services_materialized", ["homeless", "project_type", "client_id"], name: "index_shsm_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["id"], name: "index_service_history_services_materialized_on_id", unique: true
+  add_index "service_history_services_materialized", ["literally_homeless", "project_type", "client_id"], name: "index_shsm_literally_homeless_p_type_c_id"
+  add_index "service_history_services_materialized", ["service_history_enrollment_id"], name: "index_shsm_shse_id"
+
 end
