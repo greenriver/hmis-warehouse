@@ -3,20 +3,21 @@
   if @report.include_comparison?
     reports << @comparison
   end
-- reports.each_with_index do |report, index|
-  - if @report.include_comparison?
-    .d-flex
-      %h4
-        .pb-4.mr-2.c-swatch__display{class: "c-swatch__display--chart-#{index}"}
+.ml-4.d-flex
+  - reports.each_with_index do |report, index|
+    .ml-4
+      %h4.d-flex
+        - if @report.include_comparison?
+          .pb-4.mr-2.c-swatch__display{class: "c-swatch__display--chart-#{index}"}
         .title= report.filter.date_range_words
-  .d-flex.flex-wrap
-    .hero-prs1
-      .d-flex.align-items-center
-        .h1.hero-value-prs1.mr-3= number_with_delimiter report.total_client_count
-        .hero-label-prs1.h5-prs1 Unique Clients
-    .hero-prs1
-      .d-flex.align-items-center
-        .h1.hero-value-prs1.mr-3= number_with_delimiter report.hoh_count
-        .hero-label-prs1.h5-prs1
-          %i.icon-info{data: { toggle: :tooltip, title: 'Households are counted as the number of unique clients marked as Heads of Households.  This differs from HUDs definition of a household, which is counted as each distinct group of people presenting together for an enrollment.'}}
-          Households
+      .d-flex.flex-wrap
+        .hero-prs1
+          .d-flex.align-items-center
+            .h1.hero-value-prs1.mr-3= number_with_delimiter report.total_client_count
+            .hero-label-prs1.h5-prs1 Unique Clients
+        .hero-prs1
+          .d-flex.align-items-center
+            .h1.hero-value-prs1.mr-3= number_with_delimiter report.hoh_count
+            .hero-label-prs1.h5-prs1
+              %i.icon-info{data: { toggle: :tooltip, title: 'Households are counted as the number of unique clients marked as Heads of Households.  This differs from HUDs definition of a household, which is counted as each distinct group of people presenting together for an enrollment.'}}
+              Households
