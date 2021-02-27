@@ -736,6 +736,26 @@
       "note": "injection is always a number and not from the database or user input"
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "82aadb4eb72cf1375fedd19ae96c5db6f000edd4c357495ea1c068ff3031103e",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/concerns/arel_helper.rb",
+      "line": 44,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"EXISTS (#{ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")} and #{quoted_table_name}.\\\"#{column_name}\\\" = \\\"#{alias_name}\\\".\\\"#{column_name}\\\") \")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "ArelHelper",
+        "method": "ArelHelper.exists_sql"
+      },
+      "user_input": "ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")",
+      "confidence": "Medium",
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "850068cbcbd30e554efc5cc597f03ad14dfbd68240142d37a64e9f7a6c53a1a7",
@@ -1302,7 +1322,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 58,
+      "line": 60,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -1372,26 +1392,6 @@
         "method": "create_database!"
       },
       "user_input": "database",
-      "confidence": "Medium",
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "da39fb8039f5b68140dfa336e0625a7716d2814dbf61573a9111aa9415a7a526",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "app/models/concerns/arel_helper.rb",
-      "line": 32,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"EXISTS (#{ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")} and #{quoted_table_name}.\\\"#{column_name}\\\" = \\\"#{alias_name}\\\".\\\"#{column_name}\\\") \")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "ArelHelper",
-        "method": "exists_sql"
-      },
-      "user_input": "ar_query.select(column_name).to_sql.gsub(\"#{quoted_table_name}.\", \"\\\"#{alias_name}\\\".\").gsub(quoted_table_name, \"#{quoted_table_name} as \\\"#{alias_name}\\\"\")",
       "confidence": "Medium",
       "note": ""
     },
@@ -1615,6 +1615,6 @@
       "note": ""
     }
   ],
-  "updated": "2021-02-08 21:52:08 +0000",
+  "updated": "2021-02-12 21:08:29 +0000",
   "brakeman_version": "5.0.0"
 }

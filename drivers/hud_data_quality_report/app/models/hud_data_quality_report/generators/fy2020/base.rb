@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# require 'get_process_mem'
 module HudDataQualityReport::Generators::Fy2020
   class Base < ::HudReports::QuestionBase
     include HudReports::Util
@@ -21,7 +22,9 @@ module HudDataQualityReport::Generators::Fy2020
     end
 
     private def add_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
-      client_scope.find_in_batches do |batch|
+      client_scope.find_in_batches(batch_size: 100) do |batch|
+        # puts 'Batch of clients: '
+        # puts GetProcessMem.new.inspect
         enrollments_by_client_id = clients_with_enrollments(batch)
 
         # Pre-calculate some values
@@ -197,6 +200,7 @@ module HudDataQualityReport::Generators::Fy2020
           on_duplicate_key_update: {
             conflict_target: [:client_id, :data_source_id, :report_instance_id],
             columns: pending_associations.values.first&.changes&.keys || [],
+            validate: false,
           },
         )
         clients = report_client_universe.where(id: result.ids)
@@ -218,8 +222,8 @@ module HudDataQualityReport::Generators::Fy2020
             )
           end
         end
-
-        report_living_situation_universe.import(client_living_situations)
+        GC.start
+        report_living_situation_universe.import(client_living_situations, validate: false)
       end
     end
 
@@ -248,11 +252,14 @@ module HudDataQualityReport::Generators::Fy2020
           :exit,
         ],
       }
+      enrollment_scope_without_preloads.preload(preloads)
+    end
+
+    private def enrollment_scope_without_preloads
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: report_end_date).
-        joins(:enrollment).
-        preload(preloads)
+        joins(:enrollment)
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
     end

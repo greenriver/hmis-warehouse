@@ -214,6 +214,7 @@ group :development do
 
   gem 'ruby-prof', require: false
   gem 'memory_profiler', require: false
+  gem 'get_process_mem', require: false
   gem 'rack-mini-profiler', require: false
   gem 'flamegraph', require: false
   gem 'stackprof', require: false

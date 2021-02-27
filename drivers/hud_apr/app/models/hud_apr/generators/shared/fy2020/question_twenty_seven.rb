@@ -78,7 +78,7 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
           # Scope initially to anyone in a family with a youth head of household of the appropriate age
           members = universe.members.where(
-            a_t[:household_id].in(universe.members.where(response_clause).select(a_t[:household_id])),
+            a_t[:household_id].in(Arel.sql(universe.members.where(response_clause).select(a_t[:household_id]).to_sql)),
           )
 
           source_client_ids = Set.new
@@ -111,7 +111,7 @@ module HudApr::Generators::Shared::Fy2020
             when :youth_households
               # Use the HoH as a proxy for household
               if ! households.include?(apr_client.household_id) && youth_parent?(apr_client)
-                source_client_ids += apr_client.client_id
+                source_client_ids << apr_client.client_id
                 households << apr_client.household_id
               end
             end
@@ -240,6 +240,9 @@ module HudApr::Generators::Shared::Fy2020
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
+
+      leavers = universe.members.where(leavers_clause)
+
       q27_populations.values.each_with_index do |population_clause, col_index|
         q27f_destinations.values.each_with_index do |destination_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
@@ -248,22 +251,23 @@ module HudApr::Generators::Shared::Fy2020
           answer = @report.answer(question: table_name, cell: cell)
           value = 0
 
+          members = leavers.
+            where(population_clause).
+            where(
+              a_t[:age].between(18..24).
+                and(a_t[:other_clients_over_25].eq(false)),
+            )
+
           if destination_clause.is_a?(Symbol)
             case destination_clause
             when :percentage
-              members = universe.members.
-                where(population_clause).
-                where(
-                  a_t[:age].between(18..24).
-                    and(a_t[:other_clients_over_25].eq(false)),
-                )
               positive = members.where(q27f_destinations['Total persons exiting to positive housing destinations']).count
               total = members.count
               excluded = members.where(q27f_destinations['Total persons whose destinations excluded them from the calculation']).count
               value = (positive.to_f / (total - excluded) * 100).round(4) if total.positive? && excluded != total
             end
           else
-            members = universe.members.where(population_clause).where(destination_clause)
+            members = members.where(destination_clause)
             value = members.count
           end
           answer.add_members(members)

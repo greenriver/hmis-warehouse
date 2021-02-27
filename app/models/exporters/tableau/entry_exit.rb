@@ -67,7 +67,8 @@ module Exporters::Tableau::EntryExit
       # less_than_7_nights:               nil,
       # less_than_90_days:                nil,
       movein_date: e_t[:MoveInDate], # in use
-      chronic: nil, # at enrollment start # in use
+      chronic: nil, # at date of enrollment start # in use
+      chronic_at_entry: nil, # chronic based on self-report # in use
       days_to_return: nil, # if exit destination is PH, count days until next ES, SH, SO, TH, PH as described in SPM Measure 2a # in use
       rrh_time_in_shelter: nil, # in use
       _date_to_street_es_sh: e_t[:DateToStreetESSH], # in use
@@ -148,6 +149,8 @@ module Exporters::Tableau::EntryExit
       data_by_client = data.group_by do |row|
         row['client_uid']
       end
+      batch_enrollment_ids = data.map { |row| row['entry_exit_uid'] }.uniq
+      enrollments = GrdaWarehouse::Hud::Enrollment.where(id: batch_enrollment_ids).index_by(&:id)
       ph_th = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
       data.group_by do |row|
         row['id']
@@ -265,6 +268,8 @@ module Exporters::Tableau::EntryExit
             else
               'f'
             end
+          when :chronic_at_entry
+            if enrollments[row['entry_exit_uid']].chronically_homeless_at_start? then 't' else 'f' end
           when :any_income_30days
             has_income = GrdaWarehouse::Hud::IncomeBenefit.
               where(

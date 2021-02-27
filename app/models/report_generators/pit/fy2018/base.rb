@@ -70,6 +70,7 @@ module ReportGenerators::Pit::Fy2018
         @coc_codes = GrdaWarehouse::Hud::ProjectCoc.viewable_by(@user).
           distinct.pluck(:CoCCode)
       end
+      @project_ids = options.try(:[], :project_ids) || []
     end
 
     def run!
@@ -819,14 +820,18 @@ module ReportGenerators::Pit::Fy2018
     end
 
     def service_history_scope
-      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:service_history_services).
         where(
           shs_t[:date].eq(@pit_date).
           and(shs_t[:record_type].eq('service'))
         ).
         joins(project: :project_cocs).
-        where(pc_t[:CoCCode].in(@coc_codes)).
+        where(pc_t[:CoCCode].in(@coc_codes))
+
+      scope = scope.where(p_t[:id].in(@project_ids)) if @project_ids.present?
+
+      scope.
         joins(:enrollment).
         distinct
     end

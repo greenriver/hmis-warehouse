@@ -46,7 +46,7 @@ module TextMessage
       new_notification = "Sent at #{Time.current}"
       if opted_out?
         status = :opted_out
-        topic.subscriber.mark_as_opted_out
+        topic_subscriber.mark_as_opted_out
         new_notification = "Client opted-out, no reminder sent #{Time.current}"
       end
       update(sent_at: Time.current, sent_to: formatted_phone_number, delivery_status: status)
@@ -56,6 +56,18 @@ module TextMessage
       # Add a delay for compliance with long-code send restrictions
       sleep(1.1)
       sns_client.publish(phone_number: formatted_phone_number, message: content)
+    end
+
+    # bundle exec rails runner 'TextMessage::Message.new.test!("1231231234")'
+    def test!(phone_number)
+      @formatted_phone_number = "1#{phone_number}"
+      if opted_out?
+        puts "opted out!"
+      else
+        content = "Testing message #{SecureRandom.hex(8)}"
+        result = sns_client.publish(phone_number: formatted_phone_number, message: content)
+        puts "sent: #{result}"
+      end
     end
 
     private def sns_client

@@ -25,12 +25,7 @@ module HudApr::Generators::Shared::Fy2020
           calculation = income_options[:calculation]
           answer = @report.answer(question: table_name, cell: cell)
           adults = universe.members.
-            where(inclusion_clause).
-            where( # with Income and Sources at start and at <suffix>
-              a_t[:income_from_any_source_at_start].eq(1).
-              and(a_t["income_from_any_source_at_#{suffix}".to_sym].eq(1)).
-              and(a_t["income_total_at_#{suffix}".to_sym].gt(0)),
-            )
+            where(inclusion_clause)
 
           case column[:amount_at_start]
           when :positive
@@ -38,8 +33,6 @@ module HudApr::Generators::Shared::Fy2020
           when :zero
             adults = adults.where(a_t[:income_total_at_start].eq(0))
           end
-
-          adults = adults.where(a_t["income_total_at_#{suffix}".to_sym].gt(0)) unless column[:column] == 'H'
 
           (ids, amounts) = ids_and_amounts(
             adults,

@@ -53,6 +53,28 @@ module ClientDetailReports
       scope.in_project_type(project_type_ids)
     end
 
+    private def filter_for_gender(scope)
+      return scope unless @filter.gender.present?
+
+      scope.joins(:client).
+        merge(GrdaWarehouse::Hud::Client.where(Gender: @filter.gender))
+    end
+
+    private def filter_for_race(scope)
+      race = @filter.race.present?
+      return scope unless race && HUD.races.keys.include?(race)
+
+      scope.joins(:client).
+        merge(GrdaWarehouse::Hud::Client.where(race => 1))
+    end
+
+    private def filter_for_ethnicity(scope)
+      return scope unless @filter.ethnicity.present?
+
+      scope.joins(:client).
+        merge(GrdaWarehouse::Hud::Client.where(Ethnicity: @filter.ethnicity))
+    end
+
     private def set_filter
       @filter = ::Filters::DateRangeAndSourcesResidentialOnly.new(filter_params.merge({ user_id: current_user.id }))
     end

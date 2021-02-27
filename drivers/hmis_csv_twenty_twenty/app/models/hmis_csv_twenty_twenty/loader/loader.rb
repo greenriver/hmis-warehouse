@@ -333,7 +333,7 @@ module HmisCsvTwentyTwenty::Loader
 
     def start_load
       @loaded_at = Time.current
-      log("Starting #{hash_as_log_str log_ids}.")
+      log("Starting load for #{hash_as_log_str log_ids}.")
     end
 
     def complete_load(status:, err: nil)

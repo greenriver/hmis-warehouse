@@ -12,11 +12,11 @@
     .row
       - if GrdaWarehouse::Config.get(:show_vispdats_on_dashboards)
         .col-4
-          = f.input :limit_to_vispdat, collection: vispdat_limits, selected: @limit_to_vispdat, label: 'Limit Clients',input_html: { class: :select2 }, required: false
+          = f.input :limit_to_vispdat, collection: vispdat_limits, selected: @limit_to_vispdat, label: 'Limit Clients', as: :select_two, required: false
       .col-4
-        = f.input :start_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @start_month, input_html: { class: :select2 }, required: false
+        = f.input :start_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @start_month, as: :select_two, required: false
       .col-4
-        = f.input :end_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @end_month, input_html: { class: :select2 }, required: false
+        = f.input :end_month, collection: @available_months.sort.reverse.map{ | k, v | [v, k]}, selected: @end_month, as: :select_two, required: false
     .row
       - if GrdaWarehouse::Config.get(:multi_coc_installation)
         .col-4
@@ -24,7 +24,14 @@
       .col-4
         = f.input :heads_of_household, as: :boolean, label: 'Limit to heads of household', input_html: { checked: @heads_of_household }
       .col-4
-        = f.input :age_ranges, collection: @report.class.available_age_ranges, selected: @age_ranges, input_html: { class: :select2, multiple: true }, required: false
+        = f.input :age_ranges, collection: @report.class.available_age_ranges, selected: @age_ranges, as: :select_two, input_html: { multiple: true }, required: false
+    .row
+      .col-4
+        = f.input :race, collection: HUD.races.invert, selected: @race, as: :select_two, required: false, include_blank: 'All Races'
+      .col-4
+        = f.input :ethnicity, collection: HUD.ethnicities.invert, selected: @ethnicity, as: :select_two, required: false, include_blank: 'All Ethnicities'
+      .col-4
+        = f.input :gender, collection: HUD.genders.invert, selected: @gender, as: :select_two, required: false, include_blank: 'All Genders'
     .w-20
       = f.button :submit, 'Update View'
 

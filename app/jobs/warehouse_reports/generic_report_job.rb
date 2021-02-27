@@ -41,6 +41,7 @@ module WarehouseReports
 
       reports['ProjectPassFail::ProjectPassFail'] = ProjectPassFail::ProjectPassFail if RailsDrivers.loaded.include?(:project_pass_fail)
       reports['ProjectScorecard::Report'] = ProjectScorecard::Report if RailsDrivers.loaded.include?(:project_scorecard)
+      reports['PublicReports::PointInTime'] = PublicReports::PointInTime if RailsDrivers.loaded.include?(:public_reports)
 
       reports
     end
