@@ -13,8 +13,8 @@ module IncomeBenefitsReport
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment'
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
-    has_one :earlier_income_record, class_name: 'IncomeBenefitsReport::Income'
-    has_one :later_income_record, class_name: 'IncomeBenefitsReport::Income'
+    has_one :earlier_income_record, -> { earlier }, class_name: 'IncomeBenefitsReport::Income'
+    has_one :later_income_record, -> { later }, class_name: 'IncomeBenefitsReport::Income'
 
     scope :date_range, ->(range_string) do
       where(date_range: range_string)

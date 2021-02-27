@@ -11,8 +11,8 @@ module IncomeBenefitsReport::WarehouseReports
     include ArelHelper
     include BaseFilters
 
-    before_action :require_can_view_clients, only: [:detail]
-    before_action :set_report, only: [:show, :destroy]
+    before_action :require_can_view_clients!, only: [:details]
+    before_action :set_report, only: [:show, :destroy, :details]
     before_action :set_pdf_export
 
     def index
@@ -47,22 +47,14 @@ module IncomeBenefitsReport::WarehouseReports
       respond_with(@report, location: income_benefits_report_warehouse_reports_report_index_path)
     end
 
-    def section
-      @section = @report.class.available_section_types.detect do |m|
-        m == params.require(:partial).underscore
-      end
-      @section = 'overall' if @section.blank? && params.require(:partial) == 'overall'
-
-      raise 'Unknown section' unless @section.present?
-
-      if @report.section_ready?(@section)
-        @section = @report.section_subpath + @section
-        layout = {}
-        layout = { layout: false } if request.xhr?
-        render({ partial: @section }.merge(layout))
-      else
-        render_to_string(partial: @section, layout: false)
-        render status: :accepted, plain: 'Loading'
+    def details
+      @key = params[:key].to_sym
+      @comparison = params[:comparison] == 'true'
+      @report = @report.to_comparison if @comparison
+      @filter = @filter.to_comparison if @comparison
+      respond_to do |format|
+        format.html {}
+        format.xlsx {}
       end
     end
 

@@ -15,12 +15,12 @@ module IncomeBenefitsReport
     include Rails.application.routes.url_helpers
     include ActionView::Helpers::NumberHelper
     include ArelHelper
-    include IncomeBenefitsReport::Details
     include IncomeBenefitsReport::Summary
     include IncomeBenefitsReport::StayerHouseholds
     include IncomeBenefitsReport::LeaverHouseholds
     include IncomeBenefitsReport::StayerSources
     include IncomeBenefitsReport::LeaverSources
+    include IncomeBenefitsReport::Details
 
     attr_accessor :project_type_codes
 
@@ -214,12 +214,38 @@ module IncomeBenefitsReport
       (numerator / denominator.to_f).round(2) * 100
     end
 
+    def hero_counts_data
+      {
+        total_clients: {
+          count: total_client_count,
+          scope: total_client_scope,
+          income_relation: :earlier_income_record,
+          title: 'Unique Clients',
+        },
+        total_hoh: {
+          count: hoh_count,
+          scope: total_hoh_scope,
+          income_relation: :earlier_income_record,
+          title: 'Households',
+          description: 'Households are counted as the number of unique clients marked as Heads of Households.  This differs from HUDs definition of a household, which is counted as each distinct group of people presenting together for an enrollment.',
+        },
+      }
+    end
+
     def total_client_count
-      clients.date_range(report_date_range).count
+      total_client_scope.count
+    end
+
+    private def total_client_scope
+      clients.date_range(report_date_range)
     end
 
     def hoh_count
-      clients.date_range(report_date_range).heads_of_household.count
+      total_hoh_scope.count
+    end
+
+    private def total_hoh_scope
+      clients.date_range(report_date_range).heads_of_household
     end
 
     def household_count
@@ -294,7 +320,10 @@ module IncomeBenefitsReport
           )
           report_client = client_from(enrollment, race_string, range)
           earlier_income = enrollment.enrollment.income_benefits.min_by(&:InformationDate)
-          later_income = enrollment.enrollment.income_benefits.select { |m| m.InformationDate < filter.end_date }.max_by(&:InformationDate)
+          later_income = enrollment.enrollment.income_benefits.select do |m|
+            m.InformationDate < filter.end_date &&
+            m.InformationDate > earlier_income.InformationDate
+          end.max_by(&:InformationDate)
           if earlier_income.present?
             income_record_from(report_client, :earlier, earlier_income, range)
             income_record_from(report_client, :later, later_income, range) if later_income.present?
@@ -420,6 +449,14 @@ module IncomeBenefitsReport
           DataCollectionStage: income.DataCollectionStage,
         },
       )
+    end
+
+    private def r_income_t
+      IncomeBenefitsReport::Income.arel_table
+    end
+
+    private def r_client_t
+      IncomeBenefitsReport::Client.arel_table
     end
 
     private def cache_slug

@@ -17,10 +17,10 @@
             %th Count
             %th Percent
           %tbody
-            - report.stayer_non_cash_sources_data.each do |title, row|
+            - report.stayer_non_cash_sources_data.each do |key, row|
               %tr
                 %th
                   %i.icon-info{data: {toggle: :tooltip, title: row[:description]}}
-                  = title
-                %td= number_with_delimiter(row[:count])
+                  = row[:title]
+                %td= link_to_if(row[:scope], number_with_delimiter(row[:count]), details_income_benefits_report_warehouse_reports_report_path(report, key: key, comparison: index.positive?))
                 %td= percentage(row[:percent], format: '%1.0f%%') unless row[:percent].nil?
