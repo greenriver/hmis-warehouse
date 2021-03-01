@@ -1,11 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
-  let!(:project_coc) { create :vt_project_coc }
-  let!(:visible_project) { create :vt_project, ProjectName: 'Visible Project' }
-  let!(:visible_enrollment) { create :vt_enrollment }
-  let!(:visible_client) { create :vt_source_client }
-  let!(:destination_client) { create :vt_destination_client }
+  let!(:source_data_source) { create :vt_source_data_source }
+  let!(:vt_destination_data_source) { create :vt_destination_data_source }
+  let!(:project_coc) { create :vt_project_coc, data_source: source_data_source }
+  let!(:visible_project) { create :vt_project, ProjectName: 'Visible Project', data_source: source_data_source }
+  let!(:visible_enrollment) { create :vt_enrollment, data_source: source_data_source }
+  let!(:visible_client) { create :vt_source_client, data_source: source_data_source }
+  let!(:destination_client) { create :vt_destination_client, data_source: vt_destination_data_source }
   let!(:warehouse_client) { create :vt_warehouse_client, source_id: visible_client.id, destination_id: destination_client.id }
   let!(:user) { create :vt_user }
   let!(:role) { create :vt_role }
