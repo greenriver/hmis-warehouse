@@ -67,7 +67,6 @@ class AccessGroup < ApplicationRecord
   end
 
   def self.maintain_system_groups(group: nil)
-    puts "inside maintain system groups"
     if group.blank? || group == :reports
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
@@ -127,7 +126,7 @@ class AccessGroup < ApplicationRecord
         )
         scope.where.not(entity_id: ids).destroy_all
         # Allow re-use of previous assignments
-        (ids - scope.pluck(:id)).each do |id|
+        (ids - scope.pluck(:entity_id)).each do |id|
           scope.with_deleted.
             where(entity_id: id).
             first_or_create.
