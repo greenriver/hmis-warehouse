@@ -5,7 +5,8 @@ class CreateHudReportSpmClients < ActiveRecord::Migration[5.2]
       t.integer :data_source_id, null: false
       t.integer :report_instance_id, null: false
 
-      t.index [:client_id, :data_source_id, :report_instance_id], unique: true, name: 'spm_client_conflict_columns'
+      t.index [:report_instance_id, :client_id, :data_source_id], unique: true, name: 'spm_client_conflict_columns'
+
       t.timestamps
       t.timestamp :deleted_at
 
@@ -26,6 +27,15 @@ class CreateHudReportSpmClients < ActiveRecord::Migration[5.2]
       t.jsonb :m2_history
 
       t.integer :m3_active_project_types, array: true
+
+      t.boolean :m4_stayer
+      t.decimal :m4_latest_income
+      t.decimal :m4_latest_earned_income
+      t.decimal :m4_latest_non_earned_income
+      t.decimal :m4_earliest_income
+      t.decimal :m4_earliest_earned_income
+      t.decimal :m4_earliest_non_earned_income
+      t.jsonb :m4_history
     end
   end
 end

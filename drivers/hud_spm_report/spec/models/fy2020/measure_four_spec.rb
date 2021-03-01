@@ -31,9 +31,9 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureFour, type: :model do
 
   [
     ['4.1', 'A1', nil],
-    ['4.1', 'C2', 0, 'system stayers'],
-    ['4.1', 'C3', 0, 'w/ increased earned income'],
-    ['4.1', 'C4', 0, '% w/ increased earned income'],
+    ['4.1', 'C2', 2, 'system stayers'],
+    ['4.1', 'C3', 1, 'w/ increased earned income'],
+    ['4.1', 'C4', 50.00, '% w/ increased earned income'],
 
     ['4.2', 'A1', nil],
     ['4.2', 'C2', 0, 'system stayers'],
@@ -41,14 +41,14 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureFour, type: :model do
     ['4.2', 'C4', 0, '% w/ increased income'],
 
     ['4.3', 'A1', nil],
-    ['4.3', 'C2', 0, 'system stayers'],
-    ['4.3', 'C3', 0, 'w/ increased total income'],
-    ['4.3', 'C4', 0, '% w/ increased income'],
+    ['4.3', 'C2', 2, 'system stayers'],
+    ['4.3', 'C3', 1, 'w/ increased total income'],
+    ['4.3', 'C4', 50.00, '% w/ increased income'],
 
     ['4.4', 'A1', nil],
-    ['4.4', 'C2', 0, 'system leavers'],
-    ['4.4', 'C3', 0, 'w/ increased earned income'],
-    ['4.4', 'C4', 0, '% w/ increased income'],
+    ['4.4', 'C2', 3, 'system leavers'],
+    ['4.4', 'C3', 1, 'w/ increased earned income'],
+    ['4.4', 'C4', 33.33, '% w/ increased income'],
 
     ['4.5', 'A1', nil],
     ['4.5', 'C2', 0, 'system leavers'],
@@ -56,9 +56,9 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureFour, type: :model do
     ['4.5', 'C4', 0, '% w/ increased income'],
 
     ['4.6', 'A1', nil],
-    ['4.6', 'C2', 0, 'system leavers'],
-    ['4.6', 'C3', 0, 'w/ increased total income'],
-    ['4.6', 'C4', 0, '% w/ increased income'],
+    ['4.6', 'C2', 3, 'system leavers'],
+    ['4.6', 'C3', 1, 'w/ increased total income'],
+    ['4.6', 'C4', 33.33, '% w/ increased income'],
   ].each do |question, cell, expected_value, label|
     test_name = if expected_value.nil?
       "does not fill #{question} #{cell} #{label}".strip

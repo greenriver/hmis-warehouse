@@ -22,6 +22,8 @@ module HudSpmReport::Generators::Fy2020
       ]
       @report.start(self.class.question_number, tables.map(&:first))
 
+      universe
+
       tables.each do |name, msg, _title|
         send(msg, name)
       end
@@ -44,35 +46,39 @@ module HudSpmReport::Generators::Fy2020
     }.freeze
 
     private def run_4_1(table_name)
-      run_4_x table_name, [], []
+      run_4_x table_name, true, 'm4_latest_earned_income > m4_earliest_earned_income'
     end
 
     private def run_4_2(table_name)
-      run_4_x table_name, [], []
+      run_4_x table_name, true, 'm4_latest_non_earned_income > m4_earliest_non_earned_income'
     end
 
     private def run_4_3(table_name)
-      run_4_x table_name, [], []
+      run_4_x table_name, true, 'm4_latest_income > m4_earliest_income'
     end
 
     private def run_4_4(table_name)
-      run_4_x table_name, [], []
+      run_4_x table_name, false, 'm4_latest_earned_income > m4_earliest_earned_income'
     end
 
     private def run_4_5(table_name)
-      run_4_x table_name, [], []
+      run_4_x table_name, false, 'm4_latest_non_earned_income > m4_earliest_non_earned_income'
     end
 
     private def run_4_6(table_name)
-      run_4_x table_name, [], []
+      run_4_x table_name, false, 'm4_latest_income > m4_earliest_income'
     end
 
-    private def run_4_x(table_name, adult_leavers, with_increased_income)
+    private def run_4_x(table_name, stayer, income_change_clause)
       prepare_table table_name, ROWS, COLS
+
+      universe_members = universe.members.where(t[:m4_stayer].eq(stayer))
+      with_increased_income = universe_members.where(income_change_clause)
+
       handle_clause_based_cells table_name, [
-        ['C2', adult_leavers, adult_leavers.count],
+        ['C2', universe_members, universe_members.count],
         ['C3', with_increased_income, with_increased_income.count],
-        ['C4', [], report_precentage(with_increased_income.count, adult_leavers.count)],
+        ['C4', [], report_precentage(with_increased_income.count, universe_members.count)],
       ]
     end
   end

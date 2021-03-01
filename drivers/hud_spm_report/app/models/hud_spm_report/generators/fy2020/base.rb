@@ -39,6 +39,8 @@ module HudSpmReport::Generators::Fy2020
     RRH = [13].freeze
     PH_PSH = [3, 9, 10].freeze
 
+    FUNDING_SOURCES = [2, 3, 4, 5, 43, 44].freeze # TODO? Adding 43 44 in FY2020
+
     UPSERT_KEY = [:report_instance_id, :client_id, :data_source_id].freeze
 
     SHE_COLUMNS = {
@@ -340,7 +342,7 @@ module HudSpmReport::Generators::Fy2020
         entries = pluck_to_hash SHE_COLUMNS, m3_enrollments.where(
           client_id: clients_by_id.keys,
         ).order(client_id: :asc)
-        # debugger
+
         m3_clients = entries.group_by do |e|
           e[:client_id]
         end.map do |client_id, client_enrollments|
@@ -365,24 +367,81 @@ module HudSpmReport::Generators::Fy2020
       measure_four = 'Measure 4'
       return unless add_clients_for_question?(measure_four)
 
+      stay_columns = {
+        enrollment_id: she_t[:id],
+        data_source_id: she_t[:data_source_id],
+        client_id: she_t[:client_id],
+        DOB: c_t[:DOB],
+        age: she_t[:age],
+        PersonalID: c_t[:PersonalID],
+        first_date_in_program: she_t[:first_date_in_program],
+        last_date_in_program: she_t[:last_date_in_program],
+        project_id: she_t[:project_id],
+        project_name: she_t[:project_name],
+        enrollment_group_id: she_t[:enrollment_group_id],
+        project_tracking_method: she_t[:project_tracking_method],
+        funder_id: f_t[:id],
+        funding_source: f_t[:Funder],
+        funder_start_date: f_t[:StartDate],
+        funder_end_date: f_t[:EndDate],
+        GrantID: f_t[:GrantID],
+      }.freeze
+
       updated_columns = [
         :dob,
         :first_name,
         :last_name,
-      ]
-
-      m4_enrollments = active_enrollments_scope.hud_project_type(ES_SH_TH)
+        :m4_stayer,
+        :m4_history,
+        :m4_latest_income,
+        :m4_latest_earned_income,
+        :m4_latest_non_earned_income,
+        :m4_earliest_income,
+        :m4_earliest_earned_income,
+        :m4_earliest_non_earned_income,
+      ].freeze
 
       each_client_batch client_scope.where(
-        id: m4_enrollments.select(:client_id),
+        id: m4_stayers_scope.select(:client_id),
       ) do |clients_by_id|
-        entries = pluck_to_hash SHE_COLUMNS, m4_enrollments.where(
-          client_id: clients_by_id.keys,
-        ).order(client_id: :asc)
-        # debugger
-        m4_clients = entries.group_by do |e|
+        m4_clients = {}
+
+        stays = pluck_to_hash stay_columns, m4_stayers_scope.
+          where(client_id: clients_by_id.keys).order(client_id: :asc, first_date_in_program: :asc)
+
+        stays.group_by do |e|
           e[:client_id]
-        end.map do |client_id, _client_enrollments|
+        end.map do |client_id, enrollments|
+          # 2. The client must have at least 365 days in latest stay to be included in this measure,
+          #    using either bed-night or entry exit (you have to count the days)
+          long_enrollments = enrollments.select do |e|
+            night_count = if e[:project_tracking_method] == 3
+              GrdaWarehouse::ServiceHistoryService.
+                service.
+                where(
+                  client_id: e[:client_id],
+                  service_history_enrollment_id: e[:enrollment_id],
+                ).select(:date).distinct.count
+            else
+              (e[:last_date_in_program] || @report.end_date) - e[:first_date_in_program]
+            end
+
+            night_count >= 365 # TODO: this was > 365 in FY2019 but the spec says "at least"
+          end
+
+          # Keep only the last enrollment for the client
+          final_stay = long_enrollments.max_by { |e| e[:first_date_in_program] }
+
+          next unless final_stay
+
+          # Use the client age at the report start or last enrollment, whichever date is later
+          final_stay[:age] = age_for_report(dob: final_stay[:DOB], entry_date: final_stay[:first_date_in_program], age: final_stay[:age])
+
+          # 3. The client must be an adult to be included in this measure.
+          next unless final_stay[:age].blank? || final_stay[:age] >= 18
+
+          final_stay = add_stayer_income(final_stay)
+
           client = clients_by_id.fetch(client_id)
           m4_client = report_client_universe.new(
             report_instance_id: @report.id,
@@ -391,12 +450,92 @@ module HudSpmReport::Generators::Fy2020
             dob: client.DOB,
             first_name: client.first_name,
             last_name: client.last_name,
+            m4_stayer: true,
+            m4_history: enrollments,
+            m4_latest_income: final_stay[:latest_income],
+            m4_latest_earned_income: final_stay[:latest_earned_income],
+            m4_latest_non_earned_income: final_stay[:latest_non_earned_income],
+            m4_earliest_income: final_stay[:earliest_income],
+            m4_earliest_earned_income: final_stay[:earliest_earned_income],
+            m4_earliest_non_earned_income: final_stay[:earliest_non_earned_income],
           )
-          [client, m4_client]
-        end.to_h
-
+          m4_clients[client] = m4_client
+        end
         append_report_clients measure_four, m4_clients, updated_columns
+        # debugger
       end
+    end
+
+    # 1. A “system stayer” is a client active in any one or more of the relevant projects as of the [report end date].
+    # CoC Performance Measures Programming Specifications Page 24 of 41
+    private def m4_stayers_scope
+      add_filters GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:client).
+        hud_project_type(PH + SH + TH).
+        ongoing(on_date: @report.start_date).ongoing(on_date: @report.end_date).
+        grant_funded_between(start_date: @report.start_date, end_date: @report.end_date + 1.day).
+        where(Funder: { Funder: FUNDING_SOURCES })
+    end
+
+    # add columns to the row for the following:
+    # latest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
+    # latest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
+    # earliest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
+    # earliest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
+    private def add_stayer_income(row)
+      columns = [
+        :IncomeFromAnySource,
+        :TotalMonthlyIncome,
+        :EarnedAmount,
+        :InformationDate,
+        :DataCollectionStage,
+      ]
+
+      assessments = GrdaWarehouse::Hud::IncomeBenefit.
+        joins(enrollment: :service_history_enrollment).
+        where(ib_t[:InformationDate].lteq(@report.end_date)).
+        where(she_t[:client_id].eq(row[:client_id])).
+        where(EnrollmentID: row[:enrollment_group_id], data_source_id: row[:data_source_id]).
+        where(DataCollectionStage: [5, 1]).
+        order(InformationDate: :asc).
+        pluck(*columns).map do |r|
+          Hash[columns.zip(r)]
+        end.group_by { |m| m[:DataCollectionStage] }
+
+      income_map = {} # make a useful group of income data {1 => date => [rows], 5 => date => [rows]}
+      assessments.each do |stage, stage_assessments|
+        income_map[stage] = stage_assessments.group_by { |m| m[:InformationDate] }
+      end
+      # Grab the last day from the 5 (annual assessment) group
+      latest_group = income_map[5].values.last.first if income_map[5].present?
+
+      # If we have more than one 5, use the first as the earliest,
+      # otherwise if we have a 1 group use that, if not, we won't calculate
+      if income_map[5].present? && income_map[5].size > 1
+        earliest_group = income_map[5].values.first.first
+      elsif income_map[1].present?
+        earliest_group = income_map[1].values.first.first
+      end
+      if latest_group.present?
+        if latest_group[:IncomeFromAnySource] == 1
+          row[:latest_income] = latest_group[:TotalMonthlyIncome] || 0
+          row[:latest_earned_income] = latest_group[:EarnedAmount] || 0
+          row[:latest_non_earned_income] = row[:latest_income] - row[:latest_earned_income]
+        end
+      end
+      if earliest_group.present?
+        if earliest_group[:IncomeFromAnySource] == 1
+          row[:earliest_income] = earliest_group[:TotalMonthlyIncome] || 0
+          row[:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
+          row[:earliest_non_earned_income] = row[:earliest_income] - row[:earliest_earned_income]
+        else
+          row[:earliest_income] = 0
+          row[:earliest_earned_income] = 0
+          row[:earliest_non_earned_income] = 0
+        end
+      end
+
+      row
     end
 
     private def pluck_to_hash(columns, scope)
@@ -411,10 +550,13 @@ module HudSpmReport::Generators::Fy2020
       )
     end
 
-    private def add_filters(scope:)
+    private def add_filters(scope)
       # TODO apply report filters to the supplied GrdaWarehouse::ServiceHistoryEnrollment scope
 
       # scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
+      # if @report.options['coc_code'].present?
+      #   stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+      # end
 
       scope
     end
@@ -442,7 +584,7 @@ module HudSpmReport::Generators::Fy2020
           distinct.
           select(:client_id)
 
-        scope = add_filters(scope: child_candidates_scope)
+        scope = add_filters(child_candidates_scope)
 
         child_candidates = scope.
           pluck(
@@ -546,7 +688,8 @@ module HudSpmReport::Generators::Fy2020
         start_date: @report.start_date - 1,
         end_date: @report.end_date,
       )
-      add_filters(scope: scope)
+
+      add_filters(scope)
     end
 
     private def m2_lookback
@@ -785,7 +928,7 @@ module HudSpmReport::Generators::Fy2020
         distinct.
         select(:client_id)
 
-      es_so_sh_client_ids = add_filters(scope: es_so_sh_scope).distinct.pluck(:client_id)
+      es_so_sh_client_ids = add_filters(es_so_sh_scope).distinct.pluck(:client_id)
 
       # Clients from PH & TH under certain conditions
       homeless_living_situations = [16, 1, 18]
@@ -814,7 +957,7 @@ module HudSpmReport::Generators::Fy2020
         distinct.
         select(:client_id)
 
-      ph_th_client_ids = add_filters(scope: ph_th_scope).distinct.pluck(:client_id)
+      ph_th_client_ids = add_filters(ph_th_scope).distinct.pluck(:client_id)
 
       literally_homeless = es_so_sh_client_ids + ph_th_client_ids
 
@@ -844,7 +987,7 @@ module HudSpmReport::Generators::Fy2020
           distinct.
           select(:client_id)
 
-        ph_th_hoh_client_ids = add_filters(scope: ph_th_hoh_scope).distinct.pluck(:client_id)
+        ph_th_hoh_client_ids = add_filters(ph_th_hoh_scope).distinct.pluck(:client_id)
 
         literally_homeless += client_id if ph_th_hoh_client_ids.present?
       end
@@ -877,7 +1020,7 @@ module HudSpmReport::Generators::Fy2020
           distinct.
           select(:client_id)
 
-        child_candidates = add_filters(scope: child_candidates_scope).
+        child_candidates = add_filters(child_candidates_scope).
           pluck(
             :client_id,
             c_t[:DOB],
