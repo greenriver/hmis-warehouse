@@ -45,6 +45,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def self.maintain_report_definitions
+      puts "maintain report definitions"
       cleanup_unused_reports()
       report_list.each do |category, reports|
         reports.each do |report|

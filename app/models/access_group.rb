@@ -67,6 +67,7 @@ class AccessGroup < ApplicationRecord
   end
 
   def self.maintain_system_groups(group: nil)
+    puts "inside maintain system groups"
     if group.blank? || group == :reports
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled

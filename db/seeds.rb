@@ -193,6 +193,7 @@ def health_disenrollment_reasons
 end
 
 def maintain_health_seeds
+  puts "maintain health seeds"
   Health::DataSource.where(name: 'BHCHP EPIC').first_or_create
   Health::DataSource.where(name: 'Patient Referral').first_or_create
   GrdaWarehouse::DataSource.where(short_name: 'Health').first_or_create do |ds|
@@ -216,6 +217,7 @@ def maintain_health_seeds
 end
 
 def maintain_data_sources
+  puts "maintain data sources"
   GrdaWarehouse::DataSource.where(short_name: 'Warehouse').first_or_create do |ds|
     ds.name = 'HMIS Warehouse'
     ds.save
@@ -223,6 +225,7 @@ def maintain_data_sources
 end
 
 def maintain_lookups
+  puts "maintain lookups"
   HUD.cocs.each do |code, name|
     coc = GrdaWarehouse::Lookups::CocCode.where(coc_code: code).first_or_initialize
     coc.update(official_name: name)
@@ -270,6 +273,7 @@ def maintain_lookups
 end
 
 def install_shapes
+  puts "install shapes"
   if GrdaWarehouse::Shape::ZipCode.none? || GrdaWarehouse::Shape::CoC.none?
     begin
       Rake::Task['grda_warehouse:get_shapes'].invoke
@@ -286,6 +290,7 @@ def ensure_db_triggers_and_functions
 end
 
 def maintain_system_groups
+  puts "maintain system groups!!!!!!!!!!!!!!!!!!!!!!!!!!!"
   AccessGroup.maintain_system_groups
 end
 
