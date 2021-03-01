@@ -309,15 +309,15 @@ module GrdaWarehouse::Hud
       where.not(hiv_positive: false)
     end
 
-    scope :visible_in_window_to, -> (user) do
+    scope :visible_in_window_to, ->(user) do
       joins(:data_source).merge(GrdaWarehouse::DataSource.visible_in_window_to(user))
     end
 
-    scope :visible_by_project_to, -> (user) do
+    scope :visible_by_project_to, ->(user) do
       joins(enrollments: :project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
     end
 
-    scope :has_homeless_service_after_date, -> (date: 31.days.ago) do
+    scope :has_homeless_service_after_date, ->(date: 31.days.ago) do
       where(id:
         GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(sh_t[:date].gt(date)).
@@ -325,7 +325,7 @@ module GrdaWarehouse::Hud
       )
     end
 
-    scope :has_homeless_service_between_dates, -> (start_date: 31.days.ago, end_date: Date.current) do
+    scope :has_homeless_service_between_dates, ->(start_date: 31.days.ago, end_date: Date.current) do
       where(id:
         GrdaWarehouse::ServiceHistoryService.homeless(chronic_types_only: true).
         where(date: (start_date..end_date)).
@@ -347,7 +347,7 @@ module GrdaWarehouse::Hud
       end
     end
 
-    scope :age_group_within_range, -> (start_age: 0, end_age: nil, start_date: Date.current, end_date: Date.current) do
+    scope :age_group_within_range, ->(start_age: 0, end_age: nil, start_date: Date.current, end_date: Date.current) do
       start_age = 0 unless start_age.is_a?(Integer)
       end_age   = nil unless end_age.is_a?(Integer)
       if end_age.present?

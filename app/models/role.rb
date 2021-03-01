@@ -101,6 +101,20 @@ class Role < ApplicationRecord
           'Client Access',
         ],
       },
+      can_view_full_client_dashboard: {
+        description: 'Given access to a client\'s enrollments, user is able to see all sections of a client dashboard',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
+      can_view_limited_client_dashboard: {
+        description: 'Given access to a client\'s enrollments, user is able to see some sections of a client dashboard',
+        administrative: false,
+        categories: [
+          'Client Access',
+        ],
+      },
       can_audit_clients: {
         description: 'Access to see who has looked at or changed a client record. This should only be given to administrator level users.',
         administrative: true,
