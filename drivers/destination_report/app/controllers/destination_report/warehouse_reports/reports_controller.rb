@@ -50,28 +50,6 @@ module DestinationReport::WarehouseReports
       DestinationReport::Report
     end
 
-    def section
-      @section = @report.class.available_section_types.detect do |m|
-        m == params.require(:partial).underscore
-      end
-      @section = 'overall' if @section.blank? && params.require(:partial) == 'overall'
-
-      raise 'Rollup not in allowlist' unless @section.present?
-
-      if @report.section_ready?(@section)
-        @section = @report.section_subpath + @section
-        render partial: @section, layout: false if request.xhr?
-      else
-        render_to_string(partial: @section, layout: false)
-        render status: :accepted, plain: 'Loading'
-      end
-    end
-
-    def breakdown
-      @breakdown ||= params[:breakdown]&.to_sym || :none
-    end
-    helper_method :breakdown
-
     def filter_params
       params.permit(
         filters: [

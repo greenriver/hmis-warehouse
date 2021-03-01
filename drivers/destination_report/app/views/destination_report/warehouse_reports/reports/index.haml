@@ -68,9 +68,7 @@
                           - d_data.each_with_index do |(detailed_destination, ids), index|
                             - next if ids.count.zero?
                             %tr
-                              %th
-                                - if index.zero?
-                                  = destination
+                              %th= destination
                               %td= detailed_destination.presence || 'unknown'
                               %td= number_with_delimiter(ids.count)
       = render 'computation_description'
