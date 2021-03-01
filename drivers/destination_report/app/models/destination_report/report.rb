@@ -124,6 +124,8 @@ module DestinationReport
     def data_for_destinations
       @data_for_destinations ||= begin
         data = {}
+        data[:all] ||= destination_buckets.map { |b| [b, Set.new] }.to_h
+        data[:by_coc] ||= {}
         report_scope.joins(project: :project_cocs).
           order(:CoCCode, :first_date_in_program).
           pluck(
@@ -134,10 +136,7 @@ module DestinationReport
             destination = HUD.destination_type(destination_id)
             detailed_destination = HUD.destination(destination_id)
 
-            data[:all] ||= destination_buckets.map { |b| [b, Set.new] }.to_h
             data[:all][destination] << client_id
-
-            data[:by_coc] ||= {}
             data[:by_coc][coc_code] ||= {}
             data[:by_coc][coc_code][:clients] ||= {}
             next if data[:by_coc][coc_code][:clients][client_id]
