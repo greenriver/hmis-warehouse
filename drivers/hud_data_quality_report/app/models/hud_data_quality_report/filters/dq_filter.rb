@@ -12,14 +12,15 @@ module HudDataQualityReport::Filters
 
     # NOTE: This differs from the base filter class because it includes all projects based on project type, and doesn't include any projects based on CoCCode
     def effective_project_ids
-      @effective_project_ids = effective_project_ids_from_projects
-      @effective_project_ids += effective_project_ids_from_project_groups
-      @effective_project_ids += effective_project_ids_from_organizations
-      @effective_project_ids += effective_project_ids_from_data_sources
-      @effective_project_ids += effective_project_ids_from_project_types
-      @effective_project_ids = all_project_ids if @effective_project_ids.empty?
+      ids = effective_project_ids_from_projects
+      ids += effective_project_ids_from_project_groups
+      ids += effective_project_ids_from_organizations
+      ids += effective_project_ids_from_data_sources
+      ids = all_project_ids if ids.empty?
 
-      @effective_project_ids.uniq.reject(&:blank?)
+      ids = ids.uniq.reject(&:blank?)
+      ids &= effective_project_ids_from_project_types if effective_project_ids_from_project_types.present?
+      ids
     end
   end
 end
