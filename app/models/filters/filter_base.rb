@@ -498,7 +498,7 @@ module Filters
     end
 
     def describe_filter_as_html
-      describe_filter.map do |(k, v)|
+      describe_filter.uniq.map do |(k, v)|
         content_tag(:div, class: 'report-parameters__parameter') do
           label = content_tag(:label, k, class: 'label label-default parameter-label')
           if v.is_a?(Array)
@@ -526,6 +526,8 @@ module Filters
         'Report Range'
       when :end
         nil
+      when :comparison_pattern
+        'Comparison Range' if includes_comparison?
       when :project_type_codes, :project_type_ids, :project_type_numbers
         'Project Type'
       when :sub_population
@@ -577,6 +579,8 @@ module Filters
         date_range_words
       when :end
         nil
+      when :comparison_pattern
+        comparison_range_words if includes_comparison?
       when :project_type_codes, :project_type_ids, :project_type_numbers
         chosen_project_types
       when :sub_population

@@ -45,6 +45,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def self.maintain_report_definitions
+      puts "maintain report definitions"
       cleanup_unused_reports()
       report_list.each do |category, reports|
         reports.each do |report|
@@ -971,6 +972,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:income_benefits_report)
+        r_list['Operational'] << {
+          url: 'income_benefits_report/warehouse_reports/report',
+          name: 'Income, Non-Cash Benefits, Health Insurance Report',
+          description: 'Performance indicators and aggregate statistics for income, benefits, and health insurance from HMIS data.',
+          limitable: true,
+          health: false,
+        }
+      end
 
       r_list
     end
@@ -1004,6 +1014,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'dashboards/clients' unless RailsDrivers.loaded.include?(:clients_sub_pop)
       cleanup << 'dashboards/non_veterans' unless RailsDrivers.loaded.include?(:non_veterans_sub_pop)
       cleanup << 'dashboards/veterans' unless RailsDrivers.loaded.include?(:veterans_sub_pop)
+      cleanup <<  'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
