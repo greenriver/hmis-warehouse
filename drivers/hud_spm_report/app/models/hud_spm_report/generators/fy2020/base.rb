@@ -23,14 +23,15 @@ module HudSpmReport::Generators::Fy2020
 
     LOOKBACK_STOP_DATE = Date.iso8601('2012-10-01').freeze
 
-    ES = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es).flatten(1)
-    SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1)
-    TH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:th).flatten(1)
-    PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1)
-    SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1)
+    ES = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:es).flatten(1).freeze
+    SH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:sh).flatten(1).freeze
+    TH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:th).flatten(1).freeze
+    PH = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten(1).freeze
+    SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:so).flatten(1).freeze
 
     PERMANENT_DESTINATIONS = [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34].freeze
-    TEMPORARY_DESTINATIONS = [1, 15, 6, 14, 7, 27, 16, 4, 29, 18, 12, 13, 5, 2, 25, 32].freeze
+
+    #    TEMPORARY_DESTINATIONS = [1, 15, 6, 14, 7, 27, 16, 4, 29, 18, 12, 13, 5, 2, 25, 32].freeze
 
     ES_SH = ES + SH
     ES_SH_TH = ES + SH + TH
@@ -39,10 +40,8 @@ module HudSpmReport::Generators::Fy2020
     ES_SH_TH_PH_SO = ES + SH + TH + PH + SO
     PH_TH =  PH + TH
 
-    RRH = [13].freeze
-    PH_PSH = [3, 9, 10].freeze
-
-    FUNDING_SOURCES = [2, 3, 4, 5, 43, 44].freeze # TODO? Adding 43 44 in FY2020
+    # RRH = [13].freeze
+    # PH_PSH = [3, 9, 10].freeze
 
     UPSERT_KEY = [:report_instance_id, :client_id, :data_source_id].freeze
 
@@ -477,20 +476,13 @@ module HudSpmReport::Generators::Fy2020
       ) do |clients_by_id|
         m4_clients = {}
 
-        # 1. The selection of relevant projects is critical to this measure.
-        # Build the universe of relevant projects for this measure as follows:
-        # Select projects where
-        #   [Federal Partner Programs and Components] is 2, 3, 4, 5, 43, 44
-        #   and
-        #   [grant start date] <= [report end date]
-        #   and
-        #   ( [grant end date] is null or [grant end date] >= [report start date] )
-        #   and
-        #   [project type] is 2, 3, 8, 9, 10, or 13
-        # 2. a. Select each client’s project stays in which the client was active on the [report end date]
-        # in any of the relevant projects as determined in step 1. Since the universe of relevant projects
-        # may be large, it is not unusual for a client to be active in more than one project simultaneously
+        # 2. For metrics 4.1, 4.2 and 4.3 (adult system stayers), determine the
+        # relevant project stay and Income and Sources records attached to that
+        # stay for each client.  # a. Select each client’s project stays in
+        # which the client was active on the [report end date]
 
+        # a. Select each client’s project stays in which the client was active on
+        # the [report end date] in any of the relevant projects as determined in step 1.
         stays = pluck_to_hash stay_columns, m4_stayers_scope.
           where(client_id: clients_by_id.keys).order(client_id: :asc, first_date_in_program: :asc)
 
@@ -510,7 +502,8 @@ module HudSpmReport::Generators::Fy2020
                   service_history_enrollment_id: e[:enrollment_id],
                 ).select(:date).distinct.count
             else
-              1 + ((e[:last_date_in_program] || @report.end_date) - e[:first_date_in_program])
+              # exiting on the same day is a stay of 0 days
+              ((e[:last_date_in_program] || @report.end_date) - e[:first_date_in_program])
             end
 
             # TODO? Note: this was > 365 in FY2019 but the spec says "at least"
@@ -526,34 +519,13 @@ module HudSpmReport::Generators::Fy2020
           final_stay[:age] = age_for_report(dob: final_stay[:DOB], entry_date: final_stay[:first_date_in_program], age: final_stay[:age])
           next unless final_stay[:age].blank? || final_stay[:age] >= 18
 
-          final_stay = add_stayer_income(final_stay)
-
           # We only consider clients who have an initial income report
           # e. The application of these filters will result in a dataset of
           # project stays with no more than one stay per client. It is expected
           # that some clients initially selected in step a. may have been removed
           # completely from the dataset and from the entire measure.
 
-          # f. For each client, determine the most recent Income and Sources
-          # record with a [data collection stage] of annual assessment (5)
-          # attached to the selected project stay where the [information date] of
-          # the record is no more than 30 days before or after the month and day
-          # of the associated [project start date]. This becomes the client’s
-          # later data point for comparing income. It is necessary to determine
-          # this data point before determining the earlier point of comparison.
-          # [information date] <= [report end date] and [data collection stage] =
-          # 5
-
-          # g. For each client, determine the most recent Income and Sources
-          # annual assessment attached to the selected project stay. If the client
-          # has no previous annual assessment records, use the client’s Income and
-          # Sources at project start. This becomes the client’s earlier data point
-          # for comparing income. Please note that for long-term permanent housing
-          # clients, the [project start date] may be before the [Lookback Stop
-          # Date]. This is the only exception when data collected before the
-          # [Lookback Stop Date] may be required. [information date] <
-          # [information date of annual assessment from step 2g.] and [data
-          # collection stage] = 5 or 1
+          final_stay = add_stayer_income(final_stay)
 
           # h. Clients who are completely missing their earlier data point, i.e.
           # clients missing Income and Sources at project start, are excluded
@@ -587,29 +559,114 @@ module HudSpmReport::Generators::Fy2020
         end
         append_report_clients measure_four, m4_clients, updated_columns
       end
+
+      each_client_batch client_scope.where(
+        id: m4_leavers_scope.select(:client_id),
+      ) do |clients_by_id|
+        m4_clients = {}
+        # 3. For metrics 4.4, 4.5 and 4.6 (adult system leavers), determine the
+        # relevant project stay and Income and Sources records attached to that
+        # stay for each client.
+
+        # a. Select each client’s project stays in which the client exited during
+        # the report date range in any of the relevant projects as determined in
+        # step 1.
+        leavings = pluck_to_hash stay_columns, m4_leavers_scope.
+          where(client_id: clients_by_id.keys).order(client_id: :asc, first_date_in_program: :asc)
+
+        leavings.group_by do |e|
+          e[:client_id]
+        end.map do |client_id, enrollments|
+          # c. For each client, remove all but the stay with the latest [project start date].
+          final_stay = enrollments.max_by { |e| e[:first_date_in_program] }
+          next unless final_stay
+
+          # d. For each client, remove the stay if the client’s age (as calculated according to
+          #    then HMIS Reporting Glossary) is less than 18.
+          final_stay[:age] = age_for_report(dob: final_stay[:DOB], entry_date: final_stay[:first_date_in_program], age: final_stay[:age])
+          next unless final_stay[:age].blank? || final_stay[:age] >= 18
+
+          # d. Similar to the filtering performed on system stayers, these filters
+          # will result in a dataset of project stays with no more than one stay
+          # per client.
+          #
+
+          final_stay = add_leaver_income(final_stay)
+          next unless final_stay
+
+          client = clients_by_id.fetch(client_id)
+          m4_client = report_client_universe.new(
+            report_instance_id: @report.id,
+            client_id: client_id,
+            data_source_id: client.data_source_id,
+            dob: client.DOB,
+            first_name: client.first_name,
+            last_name: client.last_name,
+            m4_stayer: false,
+            m4_history: enrollments,
+            m4_latest_income: final_stay[:latest_income],
+            m4_latest_earned_income: final_stay[:latest_earned_income],
+            m4_latest_non_earned_income: final_stay[:latest_non_earned_income],
+            m4_earliest_income: final_stay[:earliest_income],
+            m4_earliest_earned_income: final_stay[:earliest_earned_income],
+            m4_earliest_non_earned_income: final_stay[:earliest_non_earned_income],
+          )
+          m4_clients[client] = m4_client
+        end
+        append_report_clients measure_four, m4_clients, updated_columns
+      end
     end
 
-    # 1. A “system stayer” is a client active in any one or more of the relevant projects as of the [report end date].
-    # CoC Performance Measures Programming Specifications Page 24 of 41
-    private def m4_stayers_scope
-      add_filters GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        joins(:client).
-        hud_project_type(PH + SH + TH).
-        ongoing(on_date: @report.start_date).ongoing(on_date: @report.end_date).
+    # 1. The selection of relevant projects is critical to this measure.
+    # Build the universe of relevant projects for this measure as follows:
+    # Select projects where
+    #   [Federal Partner Programs and Components] is 2, 3, 4, 5, 43, 44
+    #   and
+    #   [grant start date] <= [report end date]
+    #   and
+    #   ( [grant end date] is null or [grant end date] >= [report start date] )
+    #   and
+    #   [project type] is 2, 3, 8, 9, 10, or 13
+    # Page 24 of 36
+    private def m4_coc_program_funded_enrollments
+      funding_sources = [2, 3, 4, 5, 43, 44] # TODO? 43 44 were not in FY2019 code
+
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client).
         grant_funded_between(start_date: @report.start_date, end_date: @report.end_date + 1.day).
-        where(Funder: { Funder: FUNDING_SOURCES })
+        where(Funder: { Funder: funding_sources }).
+        hud_project_type(PH + SH + TH)
     end
 
-    # Add income fields to the row and return it. Looks at
-    # GrdaWarehouse::Hud::IncomeBenefit with InformationDate <= @report.end_date
-    # And [earliest_...] - Earliest report with DataCollectionStage in earliest_stages. Prefers the first found stage
-    # Report [latest_...] - Latest report with DataCollectionStage in latest_stages
-    #  ..._income -- TotalMonthlyIncome
-    #  ..._earned_income -- EarnedAmount
-    #  ..._non_earned_income -- TotalMonthlyIncome - EarnedAmount
-    #
-    # Returns nil if no earlier income report could be found
-    private def add_stayer_income(row, earliest_stages: [5, 1], latest_stages: [5])
+    # A “system stayer” is a client active in any one or more of the relevant
+    # projects as of the [report end date].
+    private def m4_stayers_scope
+      add_filters m4_coc_program_funded_enrollments.ongoing(
+        on_date: @report.end_date,
+      )
+    end
+
+    # A “system leaver” is any client who has exited from one or more of the
+    # relevant projects between [report start date] and [report end date] and
+    # is not active in any of the relevant projects as of the [report end date]
+    private def m4_leavers_scope
+      add_filters m4_coc_program_funded_enrollments.ended_between(
+        start_date: @report.start_date,
+        end_date: @report.end_date + 1.days,
+      ).where.not(
+        client_id: m4_stayers_scope.select(:client_id),
+      )
+    end
+
+    # Make a useful Hash of income assessment data collected on or before
+    # @report.end_date
+    # {
+    #   DataCollectionStage => {
+    #     InformationDate => [
+    #       {IncomeFromAnySource:, :TotalMonthlyIncome, :EarnedAmount, ...}
+    #     ]
+    # }
+    private def income_and_benfits(client_id:, enrollment_group_id:, data_source_id:)
+      # FIXME? N+1
       columns = [
         :IncomeFromAnySource,
         :TotalMonthlyIncome,
@@ -618,36 +675,72 @@ module HudSpmReport::Generators::Fy2020
         :DataCollectionStage,
       ]
 
-      # FIXME? N+1
       assessments = GrdaWarehouse::Hud::IncomeBenefit.
         joins(enrollment: :service_history_enrollment).
         where(ib_t[:InformationDate].lteq(@report.end_date)).
-        where(she_t[:client_id].eq(row[:client_id])).
-        where(EnrollmentID: row[:enrollment_group_id], data_source_id: row[:data_source_id]).
-        where(DataCollectionStage: (earliest_stages + latest_stages).uniq).
+        where(she_t[:client_id].eq(client_id)).
+        where(EnrollmentID: enrollment_group_id, data_source_id: data_source_id).
         order(InformationDate: :asc).
         pluck(*columns).map do |r|
           Hash[columns.zip(r)]
         end.group_by { |m| m[:DataCollectionStage] }
 
-      income_map = {} # make a useful group of income data {1 => date => [rows], 5 => date => [rows]}
+      income_map = {}
       assessments.each do |stage, stage_assessments|
         income_map[stage] = stage_assessments.group_by { |m| m[:InformationDate] }
       end
+      income_map
+    end
+
+    # Add stayer related income fields to the row and return it.
+    #
+    # Returns nil if no earlier income report could be found
+    private def add_stayer_income(row)
+      income_map = income_and_benfits(
+        client_id: row[:client_id],
+        enrollment_group_id: row[:enrollment_group_id],
+        data_source_id: row[:data_source_id],
+      )
+
+      # This spec said:
+      # f. For each client, determine the most recent Income and Sources
+      # record with a [data collection stage] of annual assessment (5)
+      # attached to the selected project stay where the [information date] of
+      # the record is no more than 30 days before or after the month and day
+      # of the associated [project start date]. This becomes the client’s
+      # later data point for comparing income. It is necessary to determine
+      # this data point before determining the earlier point of comparison.
+      # [information date] <= [report end date] and [data collection stage] =
+      # 5
+
+      # g. For each client, determine the most recent Income and Sources
+      # annual assessment attached to the selected project stay. If the client
+      # has no previous annual assessment records, use the client’s Income and
+      # Sources at project start. This becomes the client’s earlier data point
+      # for comparing income. Please note that for long-term permanent housing
+      # clients, the [project start date] may be before the [Lookback Stop
+      # Date]. This is the only exception when data collected before the
+      # [Lookback Stop Date] may be required. [information date] <
+      # [information date of annual assessment from step 2g.] and [data
+      # collection stage] = 5 or 1
+
+      # TODO? We have done the below is FY2019
 
       # If we have more than one 5, use the first as the earliest,
       # otherwise if we have a 1 group use that, if not, we won't calculate
-      if income_map[5].present? && income_map[5].size > 1
-        earliest_group = income_map[5].values.first.first
+      earliest = if income_map[5].present? && income_map[5].size > 1
+        income_map[5].values.first.first
       elsif income_map[1].present?
-        earliest_group = income_map[1].values.first.first
+        income_map[1].values.first.first
       end
 
-      return unless earliest_group
+      # h. Clients who are completely missing their earlier data point, i.e. clients missing
+      # Income and Sources at project start, are excluded entirely from the universe of clients.
+      return nil unless earliest
 
-      if earliest_group[:IncomeFromAnySource] == 1
-        row[:earliest_income] = earliest_group[:TotalMonthlyIncome] || 0
-        row[:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
+      if earliest[:IncomeFromAnySource] == 1
+        row[:earliest_income] = earliest[:TotalMonthlyIncome] || 0
+        row[:earliest_earned_income] = earliest[:EarnedAmount] || 0
         row[:earliest_non_earned_income] = row[:earliest_income] - row[:earliest_earned_income]
       else
         row[:earliest_income] = 0
@@ -655,14 +748,79 @@ module HudSpmReport::Generators::Fy2020
         row[:earliest_non_earned_income] = 0
       end
 
+      # h. Clients who have been in the project 365 or more days but who are completely missing
+      # their later data point are included in the universe of clients (cell C2) but cannot be
+      # counted as having an increase in any type of income (cell C3).
+
       # Grab the last day from the 5 (annual assessment) group
-      latest_group = income_map[5].values.last.first if income_map[5].present?
-      if latest_group.present?
-        if latest_group[:IncomeFromAnySource] == 1
-          row[:latest_income] = latest_group[:TotalMonthlyIncome] || 0
-          row[:latest_earned_income] = latest_group[:EarnedAmount] || 0
-          row[:latest_non_earned_income] = row[:latest_income] - row[:latest_earned_income]
-        end
+      latest = income_map[5].values.last.first if income_map[5].present?
+
+      if latest.present? && latest[:IncomeFromAnySource] == 1
+        row[:latest_income] = latest[:TotalMonthlyIncome] || 0
+        row[:latest_earned_income] = latest[:EarnedAmount] || 0
+        row[:latest_non_earned_income] = row[:latest_income] - row[:latest_earned_income]
+      end
+
+      row
+    end
+
+    # Add stayer related income fields to the row and return it.
+    #
+    # Returns nil if no earlier income report could be found
+    private def add_leaver_income(row)
+      income_map = income_and_benfits(
+        client_id: row[:client_id],
+        enrollment_group_id: row[:enrollment_group_id],
+        data_source_id: row[:data_source_id],
+      )
+
+      # The spec says:
+      # e. For each client, determine the client’s income assessment record at
+      # project exit. This becomes the client’s later data point for comparing
+      # income. [information date] = [project exit date] and [data collection
+      # stage] = 3
+
+      # f. For each client, determine the client’s income assessment record at
+      # project start. This becomes the client’s earlier data point for
+      # comparing income. Please note that for long-term permanent housing
+      # clients, the [project start date] may be before the [Lookback Stop
+      # Date]. This is the only exception when data collected before the
+      # [Lookback Stop Date] may be required. [information date] = [project
+      # start date] and [data collection stage] = 1
+
+      # TODO? We have done the below is FY2019
+
+      # Latest entry interview (Stage=1) associated with this enrollment's entry.
+      # The spec compare InformationDate but we historically just found the best candidate
+      # linked to the enrollment
+      earliest = income_map[1].values.first.first if income_map[1]
+
+      # g. Clients who are completely missing their Income and Sources at project start
+      # are excluded entirely from the universe of clients.
+      return nil unless earliest
+
+      if earliest[:IncomeFromAnySource] == 1
+        row[:earliest_income] = earliest[:TotalMonthlyIncome] || 0
+        row[:earliest_earned_income] = earliest[:EarnedAmount] || 0
+        row[:earliest_non_earned_income] = row[:earliest_income] - row[:earliest_earned_income]
+      else
+        row[:earliest_income] = 0
+        row[:earliest_earned_income] = 0
+        row[:earliest_non_earned_income] = 0
+      end
+
+      # h. Clients missing their Income and Sources at exit are included in the universe of
+      # clients (cell C2) but cannot be counted as having an increase in any type of income (cells C3 and C4
+
+      # Latest exit interview (Stage=3) associated with this enrollment's exit.
+      # The spec compare InformationDate but we historically just found the best candidate
+      # linked to the enrollment
+      latest = income_map[3].values.last.first if income_map[3]
+
+      if latest.present? && latest[:IncomeFromAnySource] == 1
+        row[:latest_income] = latest[:TotalMonthlyIncome] || 0
+        row[:latest_earned_income] = latest[:EarnedAmount] || 0
+        row[:latest_non_earned_income] = row[:latest_income] - row[:latest_earned_income]
       end
 
       row
