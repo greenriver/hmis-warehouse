@@ -72,6 +72,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     # logger we can use here
+    # TODO?: move to :HudReports::QuestionBase
     private def logger
       @report.logger
     end
@@ -106,6 +107,7 @@ module HudSpmReport::Generators::Fy2020
 
     # yield batches of the client scope indexed by `#id`
     # with only the necessary columns fetched/populated
+    # TODO?: move to :HudReports::QuestionBase
     private def each_client_batch(scope)
       scope.select(
         :id,
@@ -123,6 +125,7 @@ module HudSpmReport::Generators::Fy2020
     # Attach `pending_associations` a Hash mapping Client =>  report_client_universe
     # to the Array|String `question_numbers`,
     # `updated_columns` are the columns to be upsert-ed into report_client_universe
+    # TODO?: move to :HudReports::QuestionBase
     private def append_report_clients(question_numbers, pending_associations, updated_columns)
       report_client_universe.import(
         pending_associations.values,
@@ -139,6 +142,7 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
+    # TODO?: move to :HudReports::QuestionBase
     private def prepare_table(table_name, rows, cols)
       @report.answer(question: table_name).update(
         metadata: {
@@ -152,15 +156,25 @@ module HudSpmReport::Generators::Fy2020
       )
     end
 
+    # TODO?: move to :HudReports::QuestionBase
+    private def age_for_report(dob:, entry_date:, age:)
+      # Age should be calculated at report start or enrollment start, whichever is greater
+      return age if dob.blank? || entry_date > @report.start_date
+
+      GrdaWarehouse::Hud::Client.age(dob: dob, date: @report.start_date)
+    end
+
     private def report_client_universe
       HudSpmReport::Fy2020::SpmClient
     end
 
+    # handy alias for the HudSpmReport::Fy2020::SpmClient
     private def t
       report_client_universe.arel_table
     end
 
-    # passed an table_name and Array of [cell_name, member_condition_arel] tuples
+    # passed an table_name and Array of [cell_name, member_scope, summary_value] tuples
+    # TODO?: move to :HudReports::QuestionBase?
     private def handle_clause_based_cells(table_name, cell_specs)
       cell_specs.each do |cell, member_scope, summary_value|
         answer = @report.answer(question: table_name, cell: cell)
@@ -586,16 +600,16 @@ module HudSpmReport::Generators::Fy2020
         where(Funder: { Funder: FUNDING_SOURCES })
     end
 
-    # Add fields to the row and return it for the following:
-    #  latest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
-    #  latest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
-    #  latest_income -- latest_earned_income  + latest_non_earned_income
-    #  earliest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
-    #  earliest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
-    #  earliest_income -- earliest_earned_income  + earliest_non_earned_income
+    # Add income fields to the row and return it. Looks at
+    # GrdaWarehouse::Hud::IncomeBenefit with InformationDate <= @report.end_date
+    # And [earliest_...] - Earliest report with DataCollectionStage in earliest_stages. Prefers the first found stage
+    # Report [latest_...] - Latest report with DataCollectionStage in latest_stages
+    #  ..._income -- TotalMonthlyIncome
+    #  ..._earned_income -- EarnedAmount
+    #  ..._non_earned_income -- TotalMonthlyIncome - EarnedAmount
     #
-    # returns nil if no earlier income report could be found
-    private def add_stayer_income(row)
+    # Returns nil if no earlier income report could be found
+    private def add_stayer_income(row, earliest_stages: [5, 1], latest_stages: [5])
       columns = [
         :IncomeFromAnySource,
         :TotalMonthlyIncome,
@@ -610,7 +624,7 @@ module HudSpmReport::Generators::Fy2020
         where(ib_t[:InformationDate].lteq(@report.end_date)).
         where(she_t[:client_id].eq(row[:client_id])).
         where(EnrollmentID: row[:enrollment_group_id], data_source_id: row[:data_source_id]).
-        where(DataCollectionStage: [5, 1]).
+        where(DataCollectionStage: (earliest_stages + latest_stages).uniq).
         order(InformationDate: :asc).
         pluck(*columns).map do |r|
           Hash[columns.zip(r)]
@@ -620,8 +634,6 @@ module HudSpmReport::Generators::Fy2020
       assessments.each do |stage, stage_assessments|
         income_map[stage] = stage_assessments.group_by { |m| m[:InformationDate] }
       end
-      # Grab the last day from the 5 (annual assessment) group
-      latest_group = income_map[5].values.last.first if income_map[5].present?
 
       # If we have more than one 5, use the first as the earliest,
       # otherwise if we have a 1 group use that, if not, we won't calculate
@@ -633,22 +645,23 @@ module HudSpmReport::Generators::Fy2020
 
       return unless earliest_group
 
+      if earliest_group[:IncomeFromAnySource] == 1
+        row[:earliest_income] = earliest_group[:TotalMonthlyIncome] || 0
+        row[:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
+        row[:earliest_non_earned_income] = row[:earliest_income] - row[:earliest_earned_income]
+      else
+        row[:earliest_income] = 0
+        row[:earliest_earned_income] = 0
+        row[:earliest_non_earned_income] = 0
+      end
+
+      # Grab the last day from the 5 (annual assessment) group
+      latest_group = income_map[5].values.last.first if income_map[5].present?
       if latest_group.present?
         if latest_group[:IncomeFromAnySource] == 1
           row[:latest_income] = latest_group[:TotalMonthlyIncome] || 0
           row[:latest_earned_income] = latest_group[:EarnedAmount] || 0
           row[:latest_non_earned_income] = row[:latest_income] - row[:latest_earned_income]
-        end
-      end
-      if earliest_group.present?
-        if earliest_group[:IncomeFromAnySource] == 1
-          row[:earliest_income] = earliest_group[:TotalMonthlyIncome] || 0
-          row[:earliest_earned_income] = earliest_group[:EarnedAmount] || 0
-          row[:earliest_non_earned_income] = row[:earliest_income] - row[:earliest_earned_income]
-        else
-          row[:earliest_income] = 0
-          row[:earliest_earned_income] = 0
-          row[:earliest_non_earned_income] = 0
         end
       end
 
@@ -672,7 +685,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def children_without_destination(project_types)
-      # TODO: batch this... right now it loads ALL enrollments with service during the report range
+      # FIXME?: batch this... right now it loads ALL enrollments with service during the report range
       # 99 = Not collected
       destination_not_collected = [99]
 
@@ -712,7 +725,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     def hoh_destinations(project_types)
-      # TODO: batch this... right now it loads ALL enrollments with service during the report range
+      # FIXME?: batch this... right now it loads ALL enrollments with service during the report range
       @hoh_destinations ||= {}
       @hoh_destinations[project_types] ||= begin
         GrdaWarehouse::ServiceHistoryEnrollment.exit.
@@ -981,8 +994,8 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def literally_homeless?(night)
-      # TODO? reduce SQL queries and consolidate the logic to find the HOH
-      # with measure tow
+      # FIXME?: reduce SQL queries and consolidate the logic to find the HOH
+
       client_id = night[:client_id]
       enrollment_id = night[:enrollment_id]
 
@@ -1063,19 +1076,14 @@ module HudSpmReport::Generators::Fy2020
       literally_homeless.include?(client_id)
     end
 
-    private def age_for_report(dob:, entry_date:, age:)
-      # Age should be calculated at report start or enrollment start, whichever is greater
-      return age if dob.blank? || entry_date > @report.start_date
-
-      GrdaWarehouse::Hud::Client.age(dob: dob, date: @report.start_date)
-    end
-
     private def children_without_living_situation(project_types)
-      # 99 = Not collected
-      living_situation_not_collected = [99]
+      # FIXME?: batch reduce SQL queries
 
       @child_ids ||= {}
       @child_ids[project_types] ||= begin
+        # 99 = Not collected
+        living_situation_not_collected = [99]
+
         child_candidates_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           hud_project_type(project_types).
           open_between(start_date: @report.start_date - 1.day, end_date: @report.end_date).
