@@ -4,9 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Generates the HUD SPM Report Data
-# See https://files.hudexchange.info/resources/documents/System-Performance-Measures-HMIS-Programming-Specifications.pdf
-# for specifications
+# Generates the HUD SPM Report Data according to:
+# System Performance Measures Programming Specifications Version 3.1
+# October 2019 Office of Community Planning and Development, HUD
+#
+# Downloaded Jan 2021 from
+# https://files.hudexchange.info/resources/documents/System-Performance-Measures-HMIS-Programming-Specifications.pdf
 
 module HudSpmReport::Generators::Fy2020
   class Base < ::HudReports::QuestionBase
@@ -55,14 +58,10 @@ module HudSpmReport::Generators::Fy2020
       household_id: :household_id,
     }.freeze
 
-    private def report_precentage(numerator, denominator)
-      return 0 if denominator.zero?
-
-      (numerator * 100.0 / denominator).round(2)
-    end
-
+    # HudReports::UniverseMember scope to use for this measure
+    # Will calculate all @report.build_for_questions universes
+    # if that has not already been done and then return a memoized query
     private def universe
-      # lazy pre-calculation of per-client version of the metrics
       unless clients_populated?
         add_m1_clients
         add_m2_clients
@@ -70,6 +69,31 @@ module HudSpmReport::Generators::Fy2020
         add_m4_clients
       end
       @universe ||= @report.universe(self.class.question_number)
+    end
+
+    # logger we can use here
+    private def logger
+      @report.logger
+    end
+
+    # Add report filters to the scope
+    private def add_filters(scope)
+      # TODO apply report filters to the supplied GrdaWarehouse::ServiceHistoryEnrollment scope
+
+      # scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
+      # if @report.options['coc_code'].present?
+      #   stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
+      # end
+
+      scope
+    end
+
+    # Report a percentage using the expected rounding
+    # and handling of zero denominator etc.
+    private def report_precentage(numerator, denominator)
+      return 0 if denominator.zero?
+
+      (numerator * 100.0 / denominator).round(2)
     end
 
     private def add_clients_for_question?(question_number)
@@ -113,6 +137,40 @@ module HudSpmReport::Generators::Fy2020
       Array(question_numbers).each do |question_number|
         @report.universe(question_number).add_universe_members(pending_associations)
       end
+    end
+
+    private def prepare_table(table_name, rows, cols)
+      @report.answer(question: table_name).update(
+        metadata: {
+          header_row: [''] + cols.values,
+          row_labels: rows.values,
+          first_column: cols.keys.first,
+          last_column: cols.keys.last,
+          first_row: rows.keys.first,
+          last_row: rows.keys.last,
+        },
+      )
+    end
+
+    private def report_client_universe
+      HudSpmReport::Fy2020::SpmClient
+    end
+
+    private def t
+      report_client_universe.arel_table
+    end
+
+    # passed an table_name and Array of [cell_name, member_condition_arel] tuples
+    private def handle_clause_based_cells(table_name, cell_specs)
+      cell_specs.each do |cell, member_scope, summary_value|
+        answer = @report.answer(question: table_name, cell: cell)
+        answer.add_members(member_scope) if member_scope
+        answer.update(summary: summary_value)
+      end
+    end
+
+    private def median(scope, field)
+      scope.pluck(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{field})")).first
     end
 
     private def add_m1_clients
@@ -372,7 +430,6 @@ module HudSpmReport::Generators::Fy2020
         data_source_id: she_t[:data_source_id],
         client_id: she_t[:client_id],
         DOB: c_t[:DOB],
-        age: she_t[:age],
         PersonalID: c_t[:PersonalID],
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
@@ -406,15 +463,31 @@ module HudSpmReport::Generators::Fy2020
       ) do |clients_by_id|
         m4_clients = {}
 
+        # 1. The selection of relevant projects is critical to this measure.
+        # Build the universe of relevant projects for this measure as follows:
+        # Select projects where
+        #   [Federal Partner Programs and Components] is 2, 3, 4, 5, 43, 44
+        #   and
+        #   [grant start date] <= [report end date]
+        #   and
+        #   ( [grant end date] is null or [grant end date] >= [report start date] )
+        #   and
+        #   [project type] is 2, 3, 8, 9, 10, or 13
+        # 2. a. Select each client’s project stays in which the client was active on the [report end date]
+        # in any of the relevant projects as determined in step 1. Since the universe of relevant projects
+        # may be large, it is not unusual for a client to be active in more than one project simultaneously
+
         stays = pluck_to_hash stay_columns, m4_stayers_scope.
           where(client_id: clients_by_id.keys).order(client_id: :asc, first_date_in_program: :asc)
 
         stays.group_by do |e|
           e[:client_id]
         end.map do |client_id, enrollments|
-          # 2. The client must have at least 365 days in latest stay to be included in this measure,
-          #    using either bed-night or entry exit (you have to count the days)
+          # b. For each client, remove any stays where the [length of stay] is < 365 days.
+          # Use the calculation of [length of stay] as described in the HMIS Reporting
+          # Glossary, including time in the project prior to the [report start date].
           long_enrollments = enrollments.select do |e|
+            # FIXME? N+1
             night_count = if e[:project_tracking_method] == 3
               GrdaWarehouse::ServiceHistoryService.
                 service.
@@ -423,24 +496,61 @@ module HudSpmReport::Generators::Fy2020
                   service_history_enrollment_id: e[:enrollment_id],
                 ).select(:date).distinct.count
             else
-              (e[:last_date_in_program] || @report.end_date) - e[:first_date_in_program]
+              1 + ((e[:last_date_in_program] || @report.end_date) - e[:first_date_in_program])
             end
 
-            night_count >= 365 # TODO: this was > 365 in FY2019 but the spec says "at least"
+            # TODO? Note: this was > 365 in FY2019 but the spec says "at least"
+            night_count >= 365
           end
 
-          # Keep only the last enrollment for the client
+          # c. For each client, remove all but the stay with the latest [project start date].
           final_stay = long_enrollments.max_by { |e| e[:first_date_in_program] }
-
           next unless final_stay
 
-          # Use the client age at the report start or last enrollment, whichever date is later
+          # d. For each client, remove the stay if the client’s age (as calculated according to
+          #    then HMIS Reporting Glossary) is less than 18.
           final_stay[:age] = age_for_report(dob: final_stay[:DOB], entry_date: final_stay[:first_date_in_program], age: final_stay[:age])
-
-          # 3. The client must be an adult to be included in this measure.
           next unless final_stay[:age].blank? || final_stay[:age] >= 18
 
           final_stay = add_stayer_income(final_stay)
+
+          # We only consider clients who have an initial income report
+          # e. The application of these filters will result in a dataset of
+          # project stays with no more than one stay per client. It is expected
+          # that some clients initially selected in step a. may have been removed
+          # completely from the dataset and from the entire measure.
+
+          # f. For each client, determine the most recent Income and Sources
+          # record with a [data collection stage] of annual assessment (5)
+          # attached to the selected project stay where the [information date] of
+          # the record is no more than 30 days before or after the month and day
+          # of the associated [project start date]. This becomes the client’s
+          # later data point for comparing income. It is necessary to determine
+          # this data point before determining the earlier point of comparison.
+          # [information date] <= [report end date] and [data collection stage] =
+          # 5
+
+          # g. For each client, determine the most recent Income and Sources
+          # annual assessment attached to the selected project stay. If the client
+          # has no previous annual assessment records, use the client’s Income and
+          # Sources at project start. This becomes the client’s earlier data point
+          # for comparing income. Please note that for long-term permanent housing
+          # clients, the [project start date] may be before the [Lookback Stop
+          # Date]. This is the only exception when data collected before the
+          # [Lookback Stop Date] may be required. [information date] <
+          # [information date of annual assessment from step 2g.] and [data
+          # collection stage] = 5 or 1
+
+          # h. Clients who are completely missing their earlier data point, i.e.
+          # clients missing Income and Sources at project start, are excluded
+          # entirely from the universe of clients. Report the total number of
+          # system stayers, excluding these clients, in cell C2.
+
+          # i. Clients who have been in the project 365 or more days but who are
+          # completely missing their later data point are included in the universe
+          # of clients (cell C2) but cannot be counted as having an increase in
+          # any type of income (cell C3). next unless final_stay
+          next unless final_stay
 
           client = clients_by_id.fetch(client_id)
           m4_client = report_client_universe.new(
@@ -462,7 +572,6 @@ module HudSpmReport::Generators::Fy2020
           m4_clients[client] = m4_client
         end
         append_report_clients measure_four, m4_clients, updated_columns
-        # debugger
       end
     end
 
@@ -477,11 +586,15 @@ module HudSpmReport::Generators::Fy2020
         where(Funder: { Funder: FUNDING_SOURCES })
     end
 
-    # add columns to the row for the following:
-    # latest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
-    # latest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
-    # earliest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
-    # earliest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
+    # Add fields to the row and return it for the following:
+    #  latest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
+    #  latest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
+    #  latest_income -- latest_earned_income  + latest_non_earned_income
+    #  earliest_earned_income -- SourceCode = 1 & IncomeBenefitType = 1
+    #  earliest_non_earned_income -- IncomeBenefitType = 2 || IncomeBenefitType = 1 && SourceCode <> 1
+    #  earliest_income -- earliest_earned_income  + earliest_non_earned_income
+    #
+    # returns nil if no earlier income report could be found
     private def add_stayer_income(row)
       columns = [
         :IncomeFromAnySource,
@@ -491,6 +604,7 @@ module HudSpmReport::Generators::Fy2020
         :DataCollectionStage,
       ]
 
+      # FIXME? N+1
       assessments = GrdaWarehouse::Hud::IncomeBenefit.
         joins(enrollment: :service_history_enrollment).
         where(ib_t[:InformationDate].lteq(@report.end_date)).
@@ -516,6 +630,9 @@ module HudSpmReport::Generators::Fy2020
       elsif income_map[1].present?
         earliest_group = income_map[1].values.first.first
       end
+
+      return unless earliest_group
+
       if latest_group.present?
         if latest_group[:IncomeFromAnySource] == 1
           row[:latest_income] = latest_group[:TotalMonthlyIncome] || 0
@@ -548,17 +665,6 @@ module HudSpmReport::Generators::Fy2020
       pluck_to_hash columns, exits_scope.where(
         client_id: client_ids,
       )
-    end
-
-    private def add_filters(scope)
-      # TODO apply report filters to the supplied GrdaWarehouse::ServiceHistoryEnrollment scope
-
-      # scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
-      # if @report.options['coc_code'].present?
-      #   stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
-      # end
-
-      scope
     end
 
     private def destination_for(project_types, client_id, household_id)
@@ -635,44 +741,6 @@ module HudSpmReport::Generators::Fy2020
         days = span.last - span.first + 1
         "#{span.first.iso8601}/P#{days.to_i}D"
       end.presence
-    end
-
-    private def logger
-      @report.logger
-    end
-
-    private def prepare_table(table_name, rows, cols)
-      @report.answer(question: table_name).update(
-        metadata: {
-          header_row: [''] + cols.values,
-          row_labels: rows.values,
-          first_column: cols.keys.first,
-          last_column: cols.keys.last,
-          first_row: rows.keys.first,
-          last_row: rows.keys.last,
-        },
-      )
-    end
-
-    private def report_client_universe
-      HudSpmReport::Fy2020::SpmClient
-    end
-
-    private def t
-      report_client_universe.arel_table
-    end
-
-    # passed an table_name and Array of [cell_name, member_condition_arel] tuples
-    private def handle_clause_based_cells(table_name, cell_specs)
-      cell_specs.each do |cell, member_scope, summary_value|
-        answer = @report.answer(question: table_name, cell: cell)
-        answer.add_members(member_scope) if member_scope
-        answer.update(summary: summary_value)
-      end
-    end
-
-    private def median(scope, field)
-      scope.pluck(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{field})")).first
     end
 
     private def services_scope
@@ -995,8 +1063,8 @@ module HudSpmReport::Generators::Fy2020
       literally_homeless.include?(client_id)
     end
 
-    # Age should be calculated at report start or enrollment start, whichever is greater
     private def age_for_report(dob:, entry_date:, age:)
+      # Age should be calculated at report start or enrollment start, whichever is greater
       return age if dob.blank? || entry_date > @report.start_date
 
       GrdaWarehouse::Hud::Client.age(dob: dob, date: @report.start_date)

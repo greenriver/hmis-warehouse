@@ -13,7 +13,7 @@ SPM_USER_EMAIL = 'spm_reporter@example.com'.freeze
 RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   before(:context) do
     cleanup
-    puts '  Setting up DB'
+    # puts "  Setting up DB for #{described_class.question_number}"
     @user = create(:user, email: SPM_USER_EMAIL)
     @delete_later = [] # We are going to create some temporary folders that need cleanup
   end
@@ -23,7 +23,7 @@ RSpec.shared_context 'HudSpmReport context', shared_context: :metadata do
   end
 
   def cleanup
-    puts '  Cleaning up DB and temporary files'
+    # puts '  Cleaning up DB and temporary files'
     while (path = @delete_later&.pop)
       # puts "Removing #{path}"
       FileUtils.rm_rf(path)
