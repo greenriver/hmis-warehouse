@@ -35,9 +35,6 @@ COPY locale ./locale
 
 COPY config/deploy/docker/assets/REVISION ./
 
-# allow tls connection to database with verification
-COPY config/deploy/docker/assets/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
-
 ##################
 ## Actual Build ##
 ##################
@@ -59,6 +56,10 @@ LABEL "ruby-version"=2.7.2
 
 COPY config/deploy/docker/assets/entrypoint.sh /usr/bin/
 COPY --from=code /app /app/
+
+RUN mkdir -p /etc/ssl/certs
+# allow tls connection to database with verification
+COPY config/deploy/docker/assets/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
 RUN chmod +x /usr/bin/entrypoint.sh \
   && bundle config without development test doc \
