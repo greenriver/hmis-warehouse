@@ -62,7 +62,7 @@ module TextMessage
     def test!(phone_number)
       @formatted_phone_number = "1#{phone_number}"
       if opted_out?
-        puts "opted out!"
+        puts 'opted out!'
       else
         content = "Testing message #{SecureRandom.hex(8)}"
         result = sns_client.publish(phone_number: formatted_phone_number, message: content)
