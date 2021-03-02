@@ -66,13 +66,13 @@ module DocumentExportBehavior
   def with_status_progression
     okay = false
     begin
-      update_attributes(status: PENDING_STATUS)
+      update(status: PENDING_STATUS)
       okay = yield
     ensure
       if okay
-        update_attributes(status: COMPLETED_STATUS)
+        update(status: COMPLETED_STATUS)
       else
-        update_attributes(status: ERROR_STATUS)
+        update(status: ERROR_STATUS)
       end
     end
     okay

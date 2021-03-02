@@ -24,7 +24,7 @@ RSpec.describe Message, type: :model do
       it 'enqueues a job' do
         expect do
           TestDatabaseMailer.ping(user.email).deliver_later
-        end.to have_enqueued_job.on_queue('mailers')
+        end.to have_enqueued_job.on_queue('default')
       end
 
       it 'creates a message' do
@@ -66,7 +66,7 @@ RSpec.describe Message, type: :model do
       it 'enqueues a job' do
         expect do
           TestDatabaseMailer.ping(user.email).deliver_later
-        end.to have_enqueued_job.on_queue('mailers')
+        end.to have_enqueued_job.on_queue('default')
       end
 
       it 'creates a message' do

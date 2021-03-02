@@ -17,6 +17,9 @@ echo Getting secrets for the environment
 echo Sourcing environment
 . .env
 
+echo Constructing an ERB-free database.yml file
+ruby ./bin/materialize.database.yaml.rb
+
 echo Setting Timezone
 cp /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 echo $TIMEZONE > /etc/timezone

@@ -103,6 +103,7 @@ module HUD
 
   # for translating straight from a controlled vocabulary list identifier and integer
   # to the corresponding phrase
+  # rubocop:disable Metrics/CyclomaticComplexity
   def list(number, id, reverse = false)
     method = case number.to_s
     when 'race' then :race
@@ -205,6 +206,7 @@ module HUD
     end
     send method, id, reverse
   end
+  # rubocop:enable Metrics/CyclomaticComplexity
 
   # 1.1
   def export_period_type(id, reverse = false)

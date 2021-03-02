@@ -878,8 +878,8 @@ module Health
     }
 
     belongs_to :patient
-    belongs_to :user
-    belongs_to :reviewed_by, class_name: 'User'
+    belongs_to :user, optional: true
+    belongs_to :reviewed_by, class_name: 'User', optional: true
 
     has_one :health_file, class_name: 'Health::ComprehensiveHealthAssessmentFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles

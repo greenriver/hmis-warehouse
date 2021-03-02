@@ -98,7 +98,7 @@ module Admin::Health
 
     def reject
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
-      if @patient_referral.update_attributes!(reject_params)
+      if @patient_referral.update!(reject_params)
         patient = Health::Patient.with_deleted.
           where(id: @patient_referral.patient_id).first
         if !@patient_referral.rejected_reason_none?
@@ -141,7 +141,7 @@ module Admin::Health
     # rubocop:disable Style/IfInsideElse
     def assign_agency
       @patient_referral = Health::PatientReferral.find(params[:patient_referral_id])
-      if @patient_referral.update_attributes(assign_agency_params)
+      if @patient_referral.update(assign_agency_params)
         @patient_referral.convert_to_patient
         if request.xhr?
           if @patient_referral.assigned_agency.present?

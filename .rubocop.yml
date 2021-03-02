@@ -129,6 +129,10 @@ Naming/MethodParameterName:
     - io
     - to
 
+# disable filename check to comply with zeitwerk autoloader in rails 6
+Naming/FileName:
+  Enabled: false
+
 Style/MixinUsage:
   Enabled: false
 

@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~>5.2.4'
+gem 'rails', '~>6.1.3'
 gem 'rails_drivers'
 
 # bundle exec rake doc:rails generates the API under doc/api.
@@ -10,17 +10,15 @@ gem 'nokogiri', '>= 1.11.0.rc4' # >= 1.11.0.rc4 due to CVE-2020-26247
 gem 'rubyzip',  '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-# gem 'composite_primary_keys', '~> 11'
-gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'active-record-5.2.4-compatability'
+#gem 'composite_primary_keys', git: 'https://github.com/codeodor/composite_primary_keys.git', branch: 'ar6.1'
+# gem 'composite_primary_keys', '~>12'
+gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys.git', branch: 'openpath-6.1'
 gem 'pg'
-# version 5.2.1 lacks a small fix we need that's currently at the head of the 5-2-stable branch.
-gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: '5-2-stable', require: false
+gem 'activerecord-sqlserver-adapter', git: 'https://github.com/lk0001/activerecord-sqlserver-adapter', branch: 'master', require: false
 gem 'activerecord-import'
 
-# locking active record extended here temporarily since upgrading it to 2.0.0 gives
-# NoMethodError: undefined method `relation' for "DATE_TRUNC('month', date_of_activity)":Arel::Nodes::SqlLiteral
-# on .count for active record queries of Arel
-gem 'active_record_extended', '~> 1.4.0'
+# a fix for a duplicated constant warning on 6.1 is on the master branch
+gem 'active_record_extended', git: 'https://github.com/GeorgeKaraszi/ActiveRecordExtended.git', branch: 'master'
 
 # style-inliner https://github.com/premailer/premailer
 gem 'premailer'
@@ -49,7 +47,7 @@ gem 'rserve-simpler', require: false
 gem 'encryptor'
 
 # File processing
-gem 'carrierwave', '~> 1'
+gem 'carrierwave'
 gem 'carrierwave-i18n'
 gem 'carrierwave-aws'
 gem 'ruby-filemagic'
@@ -67,10 +65,13 @@ gem 'devise', '~> 4'
 gem 'devise_invitable', '~> 2.0'
 gem 'devise-pwned_password'
 gem 'devise-security'
-gem 'devise-two-factor'
+# temporarily using this since it has yet have official support for rails 6.1
+# though this might just be a matter of time - it might already have 6.1 support now
+# gem 'devise-two-factor'
+gem 'devise-two-factor', git: 'https://github.com/jason-hobbs/devise-two-factor.git', branch: 'master'
 gem 'pretender'
 gem 'rqrcode-rails3'
-gem 'rqrcode', '~> 0.4' # pin to support current version of rqrcode-rails3
+gem 'rqrcode', '~> 0.4.2' # pin to support current version of rqrcode-rails3
 
 gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
@@ -101,7 +102,7 @@ gem 'jquery-rails'
 gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
-gem 'sprockets', '~> 3'
+gem 'sprockets', '~> 3.0'
 gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
@@ -236,7 +237,7 @@ group :test do
   gem 'rspec-mocks'
   gem 'shoulda'
   gem 'timecop'
-  gem 'after_commit_exception_notification'
+  # gem 'after_commit_exception_notification'
   gem 'rails-controller-testing'
   # gem 'simplecov'
   # gem 'simplecov-console'

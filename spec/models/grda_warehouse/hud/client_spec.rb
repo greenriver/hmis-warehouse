@@ -18,7 +18,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect do
           client.send_notifications = true
           client.save
-        end.to have_enqueued_job.on_queue('mailers')
+        end.to have_enqueued_job.on_queue('default')
       end
     end
     context 'and send_notifications false' do

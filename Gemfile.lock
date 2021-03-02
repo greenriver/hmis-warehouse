@@ -1,10 +1,20 @@
 GIT
-  remote: https://github.com/greenriver/composite_primary_keys.git
-  revision: e50b101268f903da35d808443cf16a474b878c49
-  branch: active-record-5.2.4-compatability
+  remote: https://github.com/GeorgeKaraszi/ActiveRecordExtended.git
+  revision: 0dc6201b0dca646f6b94726596c17c0ea3067811
+  branch: master
   specs:
-    composite_primary_keys (11.2.0)
-      activerecord (~> 5.2.4.2)
+    active_record_extended (2.0.0)
+      activerecord (>= 5.1, < 6.2)
+      ar_outer_joins (~> 0.2)
+      pg (< 3.0)
+
+GIT
+  remote: https://github.com/greenriver/composite_primary_keys.git
+  revision: b1446b133c31794882a2ca28e50b373c1b1cf9ec
+  branch: openpath-6.1
+  specs:
+    composite_primary_keys (12.0.3)
+      activerecord (~> 6.1.0)
 
 GIT
   remote: https://github.com/greenriver/fixpoints.git
@@ -16,80 +26,104 @@ GIT
       rspec
 
 GIT
-  remote: https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
-  revision: 777aa53445c34e78d7248d08ca119f00d841bc88
-  branch: 5-2-stable
+  remote: https://github.com/jason-hobbs/devise-two-factor.git
+  revision: e153f16ab86de01df034672dfffa321acd891c45
+  branch: master
   specs:
-    activerecord-sqlserver-adapter (5.2.1)
-      activerecord (~> 5.2.0)
+    devise-two-factor (3.1.0)
+      activesupport (< 7.0)
+      attr_encrypted (>= 1.3, < 4, != 2)
+      devise
+      railties (< 7.0)
+      rotp (~> 6)
+
+GIT
+  remote: https://github.com/lk0001/activerecord-sqlserver-adapter
+  revision: d88952e16c5001fae53581974a67b185d7266a8c
+  branch: master
+  specs:
+    activerecord-sqlserver-adapter (6.0.0)
+      activerecord (>= 6.0.0)
       tiny_tds
 
 GEM
   remote: https://rubygems.org/
   specs:
-    actioncable (5.2.4.5)
-      actionpack (= 5.2.4.5)
+    actioncable (6.1.3)
+      actionpack (= 6.1.3)
+      activesupport (= 6.1.3)
       nio4r (~> 2.0)
       websocket-driver (>= 0.6.1)
-    actionmailer (5.2.4.5)
-      actionpack (= 5.2.4.5)
-      actionview (= 5.2.4.5)
-      activejob (= 5.2.4.5)
+    actionmailbox (6.1.3)
+      actionpack (= 6.1.3)
+      activejob (= 6.1.3)
+      activerecord (= 6.1.3)
+      activestorage (= 6.1.3)
+      activesupport (= 6.1.3)
+      mail (>= 2.7.1)
+    actionmailer (6.1.3)
+      actionpack (= 6.1.3)
+      actionview (= 6.1.3)
+      activejob (= 6.1.3)
+      activesupport (= 6.1.3)
       mail (~> 2.5, >= 2.5.4)
       rails-dom-testing (~> 2.0)
-    actionpack (5.2.4.5)
-      actionview (= 5.2.4.5)
-      activesupport (= 5.2.4.5)
-      rack (~> 2.0, >= 2.0.8)
+    actionpack (6.1.3)
+      actionview (= 6.1.3)
+      activesupport (= 6.1.3)
+      rack (~> 2.0, >= 2.0.9)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
-      rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    actionview (5.2.4.5)
-      activesupport (= 5.2.4.5)
+      rails-html-sanitizer (~> 1.0, >= 1.2.0)
+    actiontext (6.1.3)
+      actionpack (= 6.1.3)
+      activerecord (= 6.1.3)
+      activestorage (= 6.1.3)
+      activesupport (= 6.1.3)
+      nokogiri (>= 1.8.5)
+    actionview (6.1.3)
+      activesupport (= 6.1.3)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
-      rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    active_record_extended (1.4.0)
-      activerecord (>= 5.0, < 6.1)
-      ar_outer_joins (~> 0.2)
-      pg (< 2.0)
-    active_record_query_trace (1.7)
-    activejob (5.2.4.5)
-      activesupport (= 5.2.4.5)
+      rails-html-sanitizer (~> 1.1, >= 1.2.0)
+    active_record_query_trace (1.8)
+    activejob (6.1.3)
+      activesupport (= 6.1.3)
       globalid (>= 0.3.6)
-    activemodel (5.2.4.5)
-      activesupport (= 5.2.4.5)
-    activerecord (5.2.4.5)
-      activemodel (= 5.2.4.5)
-      activesupport (= 5.2.4.5)
-      arel (>= 9.0)
+    activemodel (6.1.3)
+      activesupport (= 6.1.3)
+    activerecord (6.1.3)
+      activemodel (= 6.1.3)
+      activesupport (= 6.1.3)
     activerecord-import (1.0.7)
       activerecord (>= 3.2)
-    activerecord-postgis-adapter (5.2.2)
-      activerecord (~> 5.1)
-      rgeo-activerecord (~> 6.0)
+    activerecord-postgis-adapter (7.0.1)
+      activerecord (~> 6.1)
+      rgeo-activerecord (~> 7.0.0)
     activerecord-session_store (1.1.3)
       actionpack (>= 4.0)
       activerecord (>= 4.0)
       multi_json (~> 1.11, >= 1.11.2)
       rack (>= 1.5.2, < 3)
       railties (>= 4.0)
-    activestorage (5.2.4.5)
-      actionpack (= 5.2.4.5)
-      activerecord (= 5.2.4.5)
+    activestorage (6.1.3)
+      actionpack (= 6.1.3)
+      activejob (= 6.1.3)
+      activerecord (= 6.1.3)
+      activesupport (= 6.1.3)
       marcel (~> 0.3.1)
-    activesupport (5.2.4.5)
+      mimemagic (~> 0.3.2)
+    activesupport (6.1.3)
       concurrent-ruby (~> 1.0, >= 1.0.2)
-      i18n (>= 0.7, < 2)
-      minitest (~> 5.1)
-      tzinfo (~> 1.1)
+      i18n (>= 1.6, < 2)
+      minitest (>= 5.1)
+      tzinfo (~> 2.0)
+      zeitwerk (~> 2.3)
     acts-as-taggable-on (7.0.0)
       activerecord (>= 5.0, < 6.2)
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
-    after_commit_exception_notification (0.2.0)
-      activerecord
     airbrussh (1.4.0)
       sshkit (>= 1.6.1, != 1.7.0)
     ajax_modal_rails (1.0.12)
@@ -98,7 +132,6 @@ GEM
     ansi (1.5.0)
     ar_outer_joins (0.2.0)
       activerecord (>= 3.2)
-    arel (9.0.0)
     ast (2.4.1)
     attr_encrypted (3.1.0)
       encryptor (~> 3.0.0)
@@ -112,13 +145,13 @@ GEM
     autoprefixer-rails (10.2.0.0)
       execjs
     aws-eventstream (1.1.0)
-    aws-partitions (1.416.0)
+    aws-partitions (1.428.0)
     aws-record (2.5.0)
       aws-sdk-dynamodb (~> 1.18)
     aws-sdk-cloudwatchevents (1.40.0)
       aws-sdk-core (~> 3, >= 3.109.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-core (3.111.0)
+    aws-sdk-core (3.112.0)
       aws-eventstream (~> 1, >= 1.0.2)
       aws-partitions (~> 1, >= 1.239.0)
       aws-sigv4 (~> 1.1)
@@ -129,7 +162,7 @@ GEM
     aws-sdk-ec2 (1.221.0)
       aws-sdk-core (~> 3, >= 3.109.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-ecs (1.72.0)
+    aws-sdk-ecs (1.73.0)
       aws-sdk-core (~> 3, >= 3.109.0)
       aws-sigv4 (~> 1.1)
     aws-sdk-glacier (1.35.0)
@@ -138,10 +171,10 @@ GEM
     aws-sdk-iam (1.46.0)
       aws-sdk-core (~> 3, >= 3.109.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-kms (1.41.0)
-      aws-sdk-core (~> 3, >= 3.109.0)
+    aws-sdk-kms (1.42.0)
+      aws-sdk-core (~> 3, >= 3.112.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-rails (3.5.0)
+    aws-sdk-rails (3.6.0)
       aws-record (~> 2)
       aws-sdk-ses (~> 1)
       aws-sdk-sqs (~> 1)
@@ -151,8 +184,8 @@ GEM
     aws-sdk-rds (1.110.0)
       aws-sdk-core (~> 3, >= 3.109.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-s3 (1.87.0)
-      aws-sdk-core (~> 3, >= 3.109.0)
+    aws-sdk-s3 (1.88.1)
+      aws-sdk-core (~> 3, >= 3.112.0)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.1)
     aws-sdk-secretsmanager (1.43.0)
@@ -161,8 +194,8 @@ GEM
     aws-sdk-ses (1.36.0)
       aws-sdk-core (~> 3, >= 3.109.0)
       aws-sigv4 (~> 1.1)
-    aws-sdk-sns (1.21.0)
-      aws-sdk-core (~> 3, >= 3.71.0)
+    aws-sdk-sns (1.37.0)
+      aws-sdk-core (~> 3, >= 3.109.0)
       aws-sigv4 (~> 1.1)
     aws-sdk-sqs (1.35.0)
       aws-sdk-core (~> 3, >= 3.109.0)
@@ -185,7 +218,7 @@ GEM
     bindex (0.8.1)
     bootsnap (1.5.1)
       msgpack (~> 1.0)
-    bootstrap (4.3.1)
+    bootstrap (4.5.3)
       autoprefixer-rails (>= 9.1.0)
       popper_js (>= 1.14.3, < 2)
       sassc-rails (>= 2.0.0)
@@ -223,14 +256,17 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (~> 1.5)
       xpath (~> 3.2)
-    carrierwave (1.3.2)
-      activemodel (>= 4.0.0)
-      activesupport (>= 4.0.0)
-      mime-types (>= 1.16)
+    carrierwave (2.1.1)
+      activemodel (>= 5.0.0)
+      activesupport (>= 5.0.0)
+      addressable (~> 2.6)
+      image_processing (~> 1.1)
+      mimemagic (>= 0.3.0)
+      mini_mime (>= 0.1.3)
       ssrf_filter (~> 1.0)
-    carrierwave-aws (1.4.0)
+    carrierwave-aws (1.5.0)
       aws-sdk-s3 (~> 1.0)
-      carrierwave (>= 0.7, < 2.1)
+      carrierwave (~> 2.0)
     carrierwave-i18n (0.2.0)
     caxlsx (3.0.4)
       htmlentities (~> 4.3, >= 4.3.4)
@@ -244,7 +280,6 @@ GEM
     childprocess (4.0.0)
     choice (0.2.0)
     chronic (0.10.2)
-    chunky_png (1.4.0)
     coderay (1.1.3)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
@@ -265,17 +300,19 @@ GEM
       addressable
     curb (0.9.11)
     daemons (1.3.1)
+    dead_end (1.1.2)
     delayed_job (4.1.9)
       activesupport (>= 3.0, < 6.2)
     delayed_job_active_record (4.1.5)
       activerecord (>= 3.0, < 6.2)
       delayed_job (>= 3.0, < 5)
-    derailed_benchmarks (1.8.1)
+    derailed_benchmarks (2.0.0)
       benchmark-ips (~> 2)
+      dead_end
       get_process_mem (~> 0)
       heapy (~> 0)
-      memory_profiler (~> 0)
-      mini_histogram (>= 0.2.1)
+      memory_profiler (>= 0, < 2)
+      mini_histogram (>= 0.3.0)
       rack (>= 1)
       rake (> 10, < 14)
       ruby-statistics (>= 2.1)
@@ -291,15 +328,8 @@ GEM
     devise-pwned_password (0.1.9)
       devise (~> 4)
       pwned (~> 2.0.0)
-    devise-security (0.14.3)
+    devise-security (0.15.0)
       devise (>= 4.3.0, < 5.0)
-      rails (>= 4.2.0, < 7.0)
-    devise-two-factor (3.1.0)
-      activesupport (< 6.1)
-      attr_encrypted (>= 1.3, < 4, != 2)
-      devise (~> 4.0)
-      railties (< 6.1)
-      rotp (~> 2.0)
     devise_invitable (2.0.3)
       actionmailer (>= 5.0)
       devise (>= 4.6)
@@ -340,7 +370,7 @@ GEM
     geocoder (1.6.4)
     get_process_mem (0.2.7)
       ffi (~> 1.0)
-    gettext (3.3.6)
+    gettext (3.3.7)
       locale (>= 2.0.5)
       text (>= 1.3.0)
     gettext_i18n_rails (1.8.1)
@@ -353,7 +383,7 @@ GEM
     gmail_xoauth (0.4.2)
       oauth (>= 0.3.6)
     grosser-pomo (0.5.1)
-    grover (0.13.3)
+    grover (0.14.1)
       combine_pdf (~> 1.0)
       nokogiri (~> 1.0)
     guard (2.16.2)
@@ -400,9 +430,12 @@ GEM
     http-accept (1.7.0)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
-    i18n (1.8.8)
+    i18n (1.8.9)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
+    image_processing (1.12.1)
+      mini_magick (>= 4.9.5, < 5)
+      ruby-vips (>= 2.0.17, < 3)
     iniparse (1.5.0)
     jmespath (1.4.0)
     jquery-minicolors-rails (2.2.6.2)
@@ -429,7 +462,7 @@ GEM
     kaminari-core (1.2.1)
     linefit (0.3.4)
     list_matcher (1.1.8)
-    listen (3.4.0)
+    listen (3.4.1)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
     locale (2.1.3)
@@ -449,7 +482,7 @@ GEM
       mimemagic (~> 0.3.2)
     maxminddb (0.1.22)
     memoist (0.16.2)
-    memory_profiler (0.9.14)
+    memory_profiler (1.0.0)
     method_source (1.0.0)
     mime-types (3.3.1)
       mime-types-data (~> 3.2015)
@@ -458,7 +491,6 @@ GEM
     mini_histogram (0.3.1)
     mini_magick (4.11.0)
     mini_mime (1.0.2)
-    mini_portile2 (2.5.0)
     minitest (5.14.3)
     minitest-reporters (1.4.2)
       ansi
@@ -478,8 +510,9 @@ GEM
     net-ssh (6.1.0)
     netrc (0.11.0)
     nio4r (2.5.5)
-    nokogiri (1.11.1)
-      mini_portile2 (~> 2.5.0)
+    nokogiri (1.11.1-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.11.1-x86_64-linux)
       racc (~> 1.4)
     nominatim (0.0.6)
       faraday
@@ -487,7 +520,7 @@ GEM
     notiffany (0.1.3)
       nenv (~> 0.1)
       shellany (~> 0.0)
-    oauth (0.5.4)
+    oauth (0.5.5)
     options (2.3.2)
     orm_adapter (0.5.0)
     overcommit (0.57.0)
@@ -528,18 +561,20 @@ GEM
       rack (>= 1.2.0)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
-    rails (5.2.4.5)
-      actioncable (= 5.2.4.5)
-      actionmailer (= 5.2.4.5)
-      actionpack (= 5.2.4.5)
-      actionview (= 5.2.4.5)
-      activejob (= 5.2.4.5)
-      activemodel (= 5.2.4.5)
-      activerecord (= 5.2.4.5)
-      activestorage (= 5.2.4.5)
-      activesupport (= 5.2.4.5)
-      bundler (>= 1.3.0)
-      railties (= 5.2.4.5)
+    rails (6.1.3)
+      actioncable (= 6.1.3)
+      actionmailbox (= 6.1.3)
+      actionmailer (= 6.1.3)
+      actionpack (= 6.1.3)
+      actiontext (= 6.1.3)
+      actionview (= 6.1.3)
+      activejob (= 6.1.3)
+      activemodel (= 6.1.3)
+      activerecord (= 6.1.3)
+      activestorage (= 6.1.3)
+      activesupport (= 6.1.3)
+      bundler (>= 1.15.0)
+      railties (= 6.1.3)
       sprockets-rails (>= 2.0.0)
     rails-controller-testing (1.0.5)
       actionpack (>= 5.0.1.rc1)
@@ -557,12 +592,12 @@ GEM
       loofah (~> 2.3)
     rails_drivers (1.2.0)
       rails (>= 5.2)
-    railties (5.2.4.5)
-      actionpack (= 5.2.4.5)
-      activesupport (= 5.2.4.5)
+    railties (6.1.3)
+      actionpack (= 6.1.3)
+      activesupport (= 6.1.3)
       method_source
       rake (>= 0.8.7)
-      thor (>= 0.19.0, < 2.0)
+      thor (~> 1.0)
     rainbow (3.0.0)
     rake (13.0.3)
     ransack (2.4.1)
@@ -604,7 +639,7 @@ GEM
       netrc (~> 0.8)
     rexml (3.2.4)
     rgeo (2.2.0)
-    rgeo-activerecord (6.2.2)
+    rgeo-activerecord (7.0.0)
       activerecord (>= 5.0)
       rgeo (>= 1.0.0)
     rgeo-geojson (2.1.1)
@@ -618,9 +653,8 @@ GEM
       nokogiri
       roo (>= 2.0.0, < 3)
       spreadsheet (> 0.9.0)
-    rotp (2.1.2)
-    rqrcode (0.10.1)
-      chunky_png (~> 1.0)
+    rotp (6.2.0)
+    rqrcode (0.4.2)
     rqrcode-rails3 (0.1.7)
       rqrcode (>= 0.4.2)
     rserve-client (0.3.5)
@@ -674,7 +708,9 @@ GEM
     ruby-progressbar (1.11.0)
     ruby-rc4 (0.1.5)
     ruby-statistics (2.1.2)
-    ruby2_keywords (0.0.2)
+    ruby-vips (2.0.17)
+      ffi (~> 1.9)
+    ruby2_keywords (0.0.4)
     rubyXL (3.4.16)
       nokogiri (>= 1.10.8)
       rubyzip (>= 1.3.0)
@@ -708,8 +744,8 @@ GEM
       activemodel (>= 5.0)
     slack-notifier (2.3.2)
     soundex (0.1.2)
-    spreadsheet (1.2.6)
-      ruby-ole (>= 1.0)
+    spreadsheet (1.2.7)
+      ruby-ole
     spring (2.1.1)
     sprockets (3.7.2)
       concurrent-ruby (~> 1.0)
@@ -722,7 +758,7 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
-    sshkit (1.21.1)
+    sshkit (1.21.2)
       net-scp (>= 1.1.2)
       net-ssh (>= 2.8.0)
     ssrf_filter (1.0.7)
@@ -743,14 +779,14 @@ GEM
     tins (1.28.0)
       sync
     tiny_tds (2.1.3)
-    tzinfo (1.2.9)
-      thread_safe (~> 0.1)
+    tzinfo (2.0.4)
+      concurrent-ruby (~> 1.0)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.7)
-    unicode-display_width (1.7.0)
+    unicode-display_width (2.0.0)
     validate_url (1.0.13)
       activemodel (>= 3.0.0)
       public_suffix
@@ -764,12 +800,12 @@ GEM
       equalizer (~> 0.0, >= 0.0.9)
     warden (1.2.9)
       rack (>= 2.0.9)
-    web-console (3.7.0)
-      actionview (>= 5.0)
-      activemodel (>= 5.0)
+    web-console (4.1.0)
+      actionview (>= 6.0.0)
+      activemodel (>= 6.0.0)
       bindex (>= 0.4.0)
-      railties (>= 5.0)
-    webmock (3.11.1)
+      railties (>= 6.0.0)
+    webmock (3.11.2)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
@@ -784,19 +820,20 @@ GEM
       activerecord (>= 4.2)
     xpath (3.2.0)
       nokogiri (~> 1.8)
+    zeitwerk (2.4.2)
 
 PLATFORMS
-  ruby
+  x86_64-darwin-20
+  x86_64-linux
 
 DEPENDENCIES
-  active_record_extended (~> 1.4.0)
+  active_record_extended!
   active_record_query_trace
   activerecord-import
   activerecord-postgis-adapter
   activerecord-session_store
   activerecord-sqlserver-adapter!
   acts-as-taggable-on (~> 7.0)
-  after_commit_exception_notification
   ajax_modal_rails (~> 1.0)
   amazing_print
   attr_encrypted (~> 3.1.0)
@@ -829,7 +866,7 @@ DEPENDENCIES
   capistrano-rails
   capistrano-rvm
   capybara
-  carrierwave (~> 1)
+  carrierwave
   carrierwave-aws
   carrierwave-i18n
   caxlsx
@@ -846,7 +883,7 @@ DEPENDENCIES
   devise (~> 4)
   devise-pwned_password
   devise-security
-  devise-two-factor
+  devise-two-factor!
   devise_invitable (~> 2.0)
   dotenv-rails
   email_check
@@ -899,7 +936,7 @@ DEPENDENCIES
   puma (~> 3.12.6)
   rack-attack
   rack-mini-profiler
-  rails (~> 5.2.4)
+  rails (~> 6.1.3)
   rails-controller-testing
   rails-erd
   rails_drivers
@@ -913,7 +950,7 @@ DEPENDENCIES
   rgeo-proj4
   roo
   roo-xls
-  rqrcode (~> 0.4)
+  rqrcode (~> 0.4.2)
   rqrcode-rails3
   rserve-client
   rserve-simpler
@@ -936,7 +973,7 @@ DEPENDENCIES
   slack-notifier
   soundex
   spring
-  sprockets (~> 3)
+  sprockets (~> 3.0)
   sprockets-es6
   sshkit
   stackprof
@@ -957,4 +994,4 @@ DEPENDENCIES
   with_advisory_lock
 
 BUNDLED WITH
-   2.2.6
+   2.2.11

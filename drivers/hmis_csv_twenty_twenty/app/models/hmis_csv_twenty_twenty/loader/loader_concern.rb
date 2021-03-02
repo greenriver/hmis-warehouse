@@ -9,7 +9,7 @@ module HmisCsvTwentyTwenty::Loader
     extend ActiveSupport::Concern
 
     included do
-      belongs_to :loader_log
+      belongs_to :loader_log, optional: true
 
       def hmis_data
         @hmis_data ||= slice(*self.class.hmis_structure(version: '2020').keys)

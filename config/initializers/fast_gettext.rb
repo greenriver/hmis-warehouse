@@ -3,11 +3,12 @@ Rails.logger.debug "Running initializer in #{__FILE__}"
 # db access is cached <-> only first lookup hits the db
 def database_exists?
   ActiveRecord::Base.connection
-rescue ActiveRecord::NoDatabaseError, PG::ConnectionBad
+rescue ActiveRecord::NoDatabaseError, PG::ConnectionBad, ActiveRecord::ConnectionNotEstablished
   false
 else
   true
 end
+
 if database_exists? && ActiveRecord::Base.connection.table_exists?('translation_keys')
   require 'gettext_i18n_rails'
   require 'fast_gettext'

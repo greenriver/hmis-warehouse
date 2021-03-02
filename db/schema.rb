@@ -2,11 +2,11 @@
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
 #
-# Note that this schema.rb definition is the authoritative source for your
-# database schema. If you need to create the application database on another
-# system, you should be using db:schema:load, not running all the migrations
-# from scratch. The latter is a flawed and unsustainable approach (the more migrations
-# you'll amass, the slower it'll run and the greater likelihood for issues).
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
 #
 # It's strongly recommended that you check this file into your version control system.
 
@@ -340,7 +340,6 @@ ActiveRecord::Schema.define(version: 2021_02_06_022724) do
     t.boolean "can_edit_own_agency_youth_intake", default: false
     t.boolean "can_create_clients", default: false
     t.boolean "can_view_client_history_calendar", default: false
-    t.boolean "can_view_enrollment_details", default: false
     t.boolean "can_edit_client_notes", default: false
     t.boolean "can_edit_window_client_notes", default: false
     t.boolean "can_see_own_window_client_notes", default: false
@@ -417,6 +416,7 @@ ActiveRecord::Schema.define(version: 2021_02_06_022724) do
     t.boolean "can_unsubmit_submitted_claims", default: false
     t.boolean "can_edit_health_emergency_contact_tracing", default: false
     t.boolean "health_role", default: false, null: false
+    t.boolean "can_view_enrollment_details", default: false
     t.index ["name"], name: "index_roles_on_name"
   end
 

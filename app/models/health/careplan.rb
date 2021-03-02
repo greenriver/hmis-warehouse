@@ -46,7 +46,7 @@ module Health
     # PT story #158636393 taken off the of the careplan and added to the patient
     # has_many :team_members, through: :team, source: :members
     belongs_to :patient, class_name: 'Health::Patient'
-    belongs_to :user
+    belongs_to :user, optional: true
 
     has_one :health_file, class_name: 'Health::CareplanFile', foreign_key: :parent_id, dependent: :destroy
     include HealthFiles
@@ -81,9 +81,9 @@ module Health
     end, through: :patient_signed_signature_requests, source: :signable_document
     has_many :patient_signed_health_files, through: :patient_signed_documents, source: :health_files
 
-    belongs_to :responsible_team_member, class_name: 'Health::Team::Member'
-    belongs_to :provider, class_name: 'Health::Team::Member'
-    belongs_to :representative, class_name: 'Health::Team::Member'
+    belongs_to :responsible_team_member, class_name: 'Health::Team::Member', optional: true
+    belongs_to :provider, class_name: 'Health::Team::Member', optional: true
+    belongs_to :representative, class_name: 'Health::Team::Member', optional: true
 
     has_many :signable_documents, as: :signable
     has_one :primary_signable_document, -> do

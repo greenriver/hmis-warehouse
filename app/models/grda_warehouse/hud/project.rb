@@ -95,7 +95,7 @@ module GrdaWarehouse::Hud
     }
 
     attr_accessor :hud_coc_code, :geocode_override, :geography_type_override, :zip_override
-    belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects
+    belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects, optional: true
     belongs_to :data_source, inverse_of: :projects
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true
 
@@ -322,7 +322,7 @@ module GrdaWarehouse::Hud
       qc = -> (s) { connection.quote_column_name s }
       q  = -> (s) { connection.quote s }
 
-      where(
+      where sanitize_sql(
         [
           has_access_to_project_through_viewable_entities(user, q, qc),
           has_access_to_project_through_organization(user, q, qc),

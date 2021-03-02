@@ -7,6 +7,9 @@
 # ### HIPAA Risk Assessment
 # Risk: Indirectly relates to a patient. Binary data may contain PHI
 # Control: PHI attributes documented
+
+require 'csv'
+
 module Health::CpMembers
   class FileBase < ::HealthBase
     acts_as_paranoid

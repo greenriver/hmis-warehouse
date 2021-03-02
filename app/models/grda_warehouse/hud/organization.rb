@@ -40,7 +40,7 @@ module GrdaWarehouse::Hud
       qc = -> (s) { connection.quote_column_name s }
       q  = -> (s) { connection.quote s }
 
-      where(
+      where sanitize_sql(
         [
           has_access_to_organization_through_viewable_entities(user, q, qc),
           has_access_to_organization_through_data_source(user, q, qc),
@@ -53,10 +53,10 @@ module GrdaWarehouse::Hud
       qc = -> (s) { connection.quote_column_name s }
       q  = -> (s) { connection.quote s }
 
-      where [
+      where sanitize_sql([
         has_access_to_organization_through_viewable_entities(user, q, qc),
         has_access_to_organization_through_data_source(user, q, qc)
-      ].join ' OR '
+      ].join ' OR ')
     end
 
     # def self.bed_utilization_by_project filter:

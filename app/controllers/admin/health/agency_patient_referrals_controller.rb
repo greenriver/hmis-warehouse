@@ -104,7 +104,7 @@ module Admin::Health
       @patient_referral = patient_referral_source.find(relationship_params[:patient_referral_id].to_i) if request.xhr?
       # aka agency_patient_referral
       path = relationship.new_record? ? review_admin_health_agency_patient_referrals_path : reviewed_admin_health_agency_patient_referrals_path
-      success = relationship.new_record? ? relationship.save : relationship.update_attributes(relationship_params)
+      success = relationship.new_record? ? relationship.save : relationship.update(relationship_params)
       if success
         r = relationship.claimed? ? 'Our Patient' : 'Not Our Patient'
         @success = "Patient marked as '#{r}'"

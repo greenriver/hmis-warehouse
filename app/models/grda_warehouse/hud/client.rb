@@ -386,7 +386,7 @@ module GrdaWarehouse::Hud
 
     def self.exists_with_inner_clients(inner_scope)
       inner_scope = inner_scope.to_sql.gsub('"Client".', '"inner_clients".').gsub('"Client"', '"Client" as "inner_clients"')
-      Arel.sql("EXISTS (#{inner_scope} and \"Client\".\"id\" = \"inner_clients\".\"id\")")
+      Arel.sql("EXISTS (%s and \"Client\".\"id\" = \"inner_clients\".\"id\")" % [inner_scope])
     end
 
     scope :searchable_by, -> (user) do
@@ -2430,7 +2430,7 @@ module GrdaWarehouse::Hud
         # if it had sources then move those over to us
         # and say who made the decision and when
         other_client.source_clients.each do |m|
-          m.warehouse_client_source.update_attributes!(
+          m.warehouse_client_source.update!(
             destination_id: self.id,
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,
@@ -2440,7 +2440,7 @@ module GrdaWarehouse::Hud
         end
         # if we are a source, move us
         if other_client.warehouse_client_source
-          other_client.warehouse_client_source.update_attributes!(
+          other_client.warehouse_client_source.update!(
             destination_id: self.id,
             reviewed_at: reviewed_at,
             reviewd_by: reviewed_by.id,

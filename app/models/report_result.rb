@@ -9,8 +9,8 @@ class ReportResult < ApplicationRecord
   require 'csv'
   include ActionView::Helpers::DateHelper
   belongs_to :report
-  belongs_to :user
-  belongs_to :delayed_job, class_name: 'Delayed::Job'
+  belongs_to :user, optional: true
+  belongs_to :delayed_job, class_name: 'Delayed::Job', optional: true
 
   scope :most_recent, -> do
     where(percent_complete: 100).group(:type).maximum(:updated_at)

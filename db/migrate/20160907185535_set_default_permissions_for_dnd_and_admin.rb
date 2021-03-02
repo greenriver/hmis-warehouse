@@ -3,8 +3,8 @@ class SetDefaultPermissionsForDNDAndAdmin < ActiveRecord::Migration[4.2]
     Role.ensure_permissions_exist
     admin = Role.where(name: 'admin').first_or_create
     dnd = Role.where(name: 'dnd_staff').first_or_create
-    admin.update_attributes(Role.permissions.map{|m| [m, true]}.to_h)
-    dnd.update_attributes(Role.permissions.map{|m| [m, true]}.to_h)
+    admin.update(Role.permissions.map{|m| [m, true]}.to_h)
+    dnd.update(Role.permissions.map{|m| [m, true]}.to_h)
   end
   def down
     remove_column :roles, :can_view_census_details

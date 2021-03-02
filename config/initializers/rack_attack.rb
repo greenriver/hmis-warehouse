@@ -148,7 +148,7 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |name, start, finish, r
 
   # ... and now try to send ot somewhere useful
   if defined?(Slack::Notifier) && ENV['EXCEPTION_WEBHOOK_URL'].present?
-    notifier_config = Rails.application.config_for(:exception_notifier).fetch('slack', nil)
+    notifier_config = Rails.application.config_for(:exception_notifier).fetch(:slack, nil)
     notifier  = Slack::Notifier.new(
       notifier_config['webhook_url'],
       channel: notifier_config['channel'],

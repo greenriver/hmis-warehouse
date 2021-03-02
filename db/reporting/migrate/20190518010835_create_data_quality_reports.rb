@@ -135,13 +135,11 @@ class CreateDataQualityReports < ActiveRecord::Migration[4.2]
       t.string :first_name
       t.string :last_name
       t.string :ssn
-      t.date :dob
       t.integer :gender
       t.integer :name_data_quality
       t.integer :ssn_data_quality
       t.integer :dob_data_quality
       t.integer :veteran_status
-      t.string :household_id
       t.integer :disabling_condition
       t.integer :prior_living_situation
       t.integer :ethnicity

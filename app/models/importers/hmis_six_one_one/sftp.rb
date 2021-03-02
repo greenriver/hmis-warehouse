@@ -79,7 +79,7 @@ module Importers::HMISSixOneOne
         # Use atool convert the any 7zip files to zip for future processing
         system_call = "atool --repack -q #{file_path} #{dest_file}"
         Rails.logger.info "Asking the system to: #{system_call}"
-        success = system(system_call)
+        success = system("atool", "--repack", "-q", file_path, dest_file)
         return nil unless success
         FileUtils.rm(file_path)
         file_path = dest_file

@@ -8,16 +8,16 @@ bundle exec rake maintenance:create
 echo Migrating with individual rake tasks
 
 echo Migrating app database
-bundle exec rake db:migrate
+bundle exec rake db:migrate:primary
 
 echo Migrating warehouse database
-bundle exec rake warehouse:db:migrate
+bundle exec rake db:migrate:warehouse
 
 echo Migrating health database
-bundle exec rake health:db:migrate
+bundle exec rake db:migrate:health
 
 echo Migrating reporting database
-bundle exec rake reporting:db:migrate
+bundle exec rake db:migrate:reporting
 
 echo Report seeding
 bundle exec rake reports:seed

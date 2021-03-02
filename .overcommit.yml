@@ -27,6 +27,8 @@ PreCommit:
   RuboCop:
     enabled: true
     on_warn: fail # Treat all warnings as failures
+  CaseConflicts:
+    enabled: false
   # CoffeeLint:
   #   enabled: true
   #   required_executable: 'npm'

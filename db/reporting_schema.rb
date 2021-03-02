@@ -2,11 +2,11 @@
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
 #
-# Note that this schema.rb definition is the authoritative source for your
-# database schema. If you need to create the application database on another
-# system, you should be using db:schema:load, not running all the migrations
-# from scratch. The latter is a flawed and unsustainable approach (the more migrations
-# you'll amass, the slower it'll run and the greater likelihood for issues).
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
 #
 # It's strongly recommended that you check this file into your version control system.
 
@@ -290,6 +290,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.index ["mid_month", "active", "exited"], name: "index_month_adult_only_households_act_exit"
     t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_adult_only_households_dest_enr"
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_adult_only_households_p_type_hoh"
+    t.check_constraint "(type)::text = 'AdultOnlyHouseholdsSubPop::Reporting::MonthlyReports::AdultOnlyHouseholds'::text", name: "warehouse_partitioned_monthly_reports_adult_only_hou_type_check"
   end
 
   create_table "warehouse_partitioned_monthly_reports_adults_with_children", id: false, force: :cascade do |t|
@@ -325,6 +326,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.index ["mid_month", "active", "exited"], name: "index_month_adults_with_children_act_exit"
     t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_adults_with_children_dest_enr"
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_adults_with_children_p_type_hoh"
+    t.check_constraint "(type)::text = 'AdultsWithChildrenSubPop::Reporting::MonthlyReports::AdultsWithChildren'::text", name: "warehouse_partitioned_monthly_reports_adults_with_ch_type_check"
   end
 
   create_table "warehouse_partitioned_monthly_reports_child_only_households", id: false, force: :cascade do |t|
@@ -360,6 +362,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.index ["mid_month", "active", "exited"], name: "index_month_child_only_households_act_exit"
     t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_child_only_households_dest_enr"
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_child_only_households_p_type_hoh"
+    t.check_constraint "(type)::text = 'ChildOnlyHouseholdsSubPop::Reporting::MonthlyReports::ChildOnlyHouseholds'::text", name: "warehouse_partitioned_monthly_reports_child_only_hou_type_check"
   end
 
   create_table "warehouse_partitioned_monthly_reports_clients", id: false, force: :cascade do |t|
@@ -395,6 +398,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.index ["mid_month", "active", "exited"], name: "index_month_clients_act_exit"
     t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_clients_dest_enr"
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_clients_p_type_hoh"
+    t.check_constraint "(type)::text = 'ClientsSubPop::Reporting::MonthlyReports::Clients'::text", name: "warehouse_partitioned_monthly_reports_clients_type_check"
   end
 
   create_table "warehouse_partitioned_monthly_reports_non_veterans", id: false, force: :cascade do |t|
@@ -430,6 +434,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.index ["mid_month", "active", "exited"], name: "index_month_non_veterans_act_exit"
     t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_non_veterans_dest_enr"
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_non_veterans_p_type_hoh"
+    t.check_constraint "(type)::text = 'NonVeteransSubPop::Reporting::MonthlyReports::NonVeterans'::text", name: "warehouse_partitioned_monthly_reports_non_veterans_type_check"
   end
 
   create_table "warehouse_partitioned_monthly_reports_unknown", id: false, force: :cascade do |t|
@@ -465,6 +470,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.index ["mid_month", "active", "exited"], name: "index_month_remainder_act_exit"
     t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_remainder_dest_enr"
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_remainder_p_type_hoh"
+    t.check_constraint "(type)::text <> ALL (ARRAY[('adult_only_households'::character varying)::text, ('adults_with_children'::character varying)::text, ('child_only_households'::character varying)::text, ('clients'::character varying)::text, ('non_veterans'::character varying)::text, ('veterans'::character varying)::text])", name: "warehouse_partitioned_monthly_reports_unknown_type_check"
   end
 
   create_table "warehouse_partitioned_monthly_reports_veterans", id: false, force: :cascade do |t|
@@ -500,6 +506,7 @@ ActiveRecord::Schema.define(version: 2020_06_20_192228) do
     t.index ["mid_month", "active", "exited"], name: "index_month_veterans_act_exit"
     t.index ["mid_month", "destination_id", "enrolled"], name: "index_month_veterans_dest_enr"
     t.index ["mid_month", "project_type", "head_of_household"], name: "index_month_veterans_p_type_hoh"
+    t.check_constraint "(type)::text = 'VeteransSubPop::Reporting::MonthlyReports::Veterans'::text", name: "warehouse_partitioned_monthly_reports_veterans_type_check"
   end
 
   create_table "warehouse_returns", id: :serial, force: :cascade do |t|
