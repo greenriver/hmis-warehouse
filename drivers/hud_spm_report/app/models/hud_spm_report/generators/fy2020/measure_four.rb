@@ -31,8 +31,6 @@ module HudSpmReport::Generators::Fy2020
       @report.complete(self.class.question_number)
     end
 
-    FUNDING_SOURCES = [2, 3, 4, 5, 43, 44].freeze
-
     ROWS = {
       2 => 'Universe: Number of adults who exited (system leavers)',
       3 => 'Number of adults who exited with increased earned income',
