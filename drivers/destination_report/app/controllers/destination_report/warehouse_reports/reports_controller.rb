@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module DisabilitySummary::WarehouseReports
-  class DisabilitySummaryController < ApplicationController
+module DestinationReport::WarehouseReports
+  class ReportsController < ApplicationController
     include WarehouseReportAuthorization
     include AjaxModalRails::Controller
     include ArelHelper
@@ -19,7 +19,7 @@ module DisabilitySummary::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "Disability Summary - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Destination - #{Time.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -31,7 +31,7 @@ module DisabilitySummary::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "Disability Summary Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Destination Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -47,24 +47,7 @@ module DisabilitySummary::WarehouseReports
     end
 
     private def report_class
-      DisabilitySummary::DisabilitySummaryReport
-    end
-
-    def section
-      @section = @report.class.available_section_types.detect do |m|
-        m == params.require(:partial).underscore
-      end
-      @section = 'overall' if @section.blank? && params.require(:partial) == 'overall'
-
-      raise 'Rollup not in allowlist' unless @section.present?
-
-      if @report.section_ready?(@section)
-        @section = @report.section_subpath + @section
-        render partial: @section, layout: false if request.xhr?
-      else
-        render_to_string(partial: @section, layout: false)
-        render status: :accepted, plain: 'Loading'
-      end
+      DestinationReport::Report
     end
 
     def filter_params
@@ -91,7 +74,7 @@ module DisabilitySummary::WarehouseReports
           project_ids: [],
           funder_ids: [],
           project_group_ids: [],
-          disability_summary_ids: [],
+          destination_report_ids: [],
           destination_ids: [],
           disabilities: [],
           indefinite_disabilities: [],
@@ -110,7 +93,7 @@ module DisabilitySummary::WarehouseReports
     end
 
     private def pdf_export_source
-      DisabilitySummary::DocumentExports::DisabilitySummaryExport
+      DestinationReport::DocumentExports::DestinationReportExport
     end
   end
 end
