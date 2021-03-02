@@ -206,6 +206,8 @@ module HmisCsvTwentyTwenty::Loader
       # logger.debug { "   #{copy_sql}" }
 
       lines_loaded = nil
+      expect_col_count = copy_cols.size - meta_data.size
+      skipped_rows = []
       # SLOW_CHECK; klass.connection.transaction do
       bm = Benchmark.measure do
         pg_conn = klass.connection.raw_connection
@@ -216,8 +218,15 @@ module HmisCsvTwentyTwenty::Loader
             # we put the typed meta_data at the end
             # all loader tables should handle nil data for columns
             # with missing values
-            row << nil while row.size < copy_cols.size - meta_data.size
-            pg_conn.put_copy_data (row + meta_data).to_csv
+
+            row << nil while row.size < expect_col_count
+
+            # There were excess columns, probably due to an unquoted comma
+            if row.size > expect_col_count
+              skipped_rows << row
+            else
+              pg_conn.put_copy_data (row + meta_data).to_csv
+            end
 
             # SLOW_CHECK; data = copy_cols.zip(row + meta_data).to_h
             # SLOW_CHECK;  klass.create! data
