@@ -6,7 +6,7 @@
 
 FROM ruby:2.7.2-alpine AS code
 
-RUN mkdir -p /app /app/shape_files/CoC
+RUN mkdir -p /app /app/shape_files/CoC /etc/ssl/certs
 
 WORKDIR /app
 
@@ -34,6 +34,9 @@ COPY drivers ./drivers
 COPY locale ./locale
 
 COPY config/deploy/docker/assets/REVISION ./
+
+# allow tls connection to database with verification
+COPY config/deploy/docker/assets/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
 ##################
 ## Actual Build ##
