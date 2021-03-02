@@ -41,6 +41,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
       Health.models_by_health_filename.each do |file_name, klass|
         record_count = File.readlines(File.join(dest_path, file_name)).size - 1
+        record_count -= 1 if klass.name == 'Health::Vaccination' # Ignoring duplicate
         count = klass.count
         it "#{klass.name} contains #{record_count} records" do
           expect(count).to eq(record_count)
@@ -54,6 +55,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
       Health.models_by_health_filename.each do |file_name, klass|
         record_count = File.readlines(File.join(dest_path, file_name)).size - 1
+        record_count -= 1 if klass.name == 'Health::Vaccination' # Ignoring duplicate
         count = klass.count
         it "#{klass.name} contains #{record_count} records" do
           expect(count).to eq(record_count)
@@ -79,6 +81,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       Health.models_by_health_filename.each do |file_name, klass|
         file_path = File.join(dest_path, file_name)
         count = klass.count
+        counts[klass.name] -= 1 if klass.name == 'Health::Vaccination' # Ignoring duplicate
         it "#{klass.name} contains #{counts[klass.name]} records" do
           expect(count).to eq(counts[klass.name])
         end
@@ -104,6 +107,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       Health.models_by_health_filename.each do |file_name, klass|
         file_path = File.join(dest_path, file_name)
         count = klass.count
+        counts[klass.name] -= 1 if klass.name == 'Health::Vaccination' # Ignoring duplicate
         it "#{klass.name} contains #{counts[klass.name]} records" do
           expect(counts[klass.name]).to eq(count)
         end

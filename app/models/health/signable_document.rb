@@ -152,7 +152,7 @@ module Health
       if careplan.patient_signed_on.blank? && self.signed_by?(careplan.patient.current_email)
         careplan.patient_signed_on = self.signed_on(careplan.patient.current_email)
       end
-      if careplan.provider_signed_on.blank? && self.signed_by?(careplan.provider.email)
+      if careplan.provider_signed_on.blank? && self.signed_by?(careplan.provider&.email)
         careplan.provider_signed_on = self.signed_on(careplan.provider.email)
       end
 
