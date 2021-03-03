@@ -880,6 +880,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:destination_report)
+        r_list['Operational'] << {
+          url: 'destination_report/warehouse_reports/reports',
+          name: 'Destination Breakdowns',
+          description: 'Details of Destination at Exit (3.12.1)',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:disability_summary)
         r_list['Operational'] << {
           url: 'disability_summary/warehouse_reports/disability_summary',
@@ -1002,6 +1011,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'health_flexible_service/warehouse_reports/member_lists' unless RailsDrivers.loaded.include?(:health_flexible_service)
       cleanup << 'project_scorecard/warehouse_reports/scorecards' unless RailsDrivers.loaded.include?(:project_scorecard)
       cleanup << 'prior_living_situation/warehouse_reports/prior_living_situation' unless RailsDrivers.loaded.include?(:prior_living_situation)
+      cleanup << 'destination_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:destination_report)
       cleanup << 'disability_summary/warehouse_reports/disability_summary' unless RailsDrivers.loaded.include?(:disability_summary)
       cleanup << 'text_message/warehouse_reports/queue' unless RailsDrivers.loaded.include?(:text_message)
       unless RailsDrivers.loaded.include?(:public_reports)

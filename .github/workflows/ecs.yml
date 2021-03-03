@@ -35,7 +35,7 @@ name: Build and Upload Container Image to ECR
 jobs:
   deploy:
     name: Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - name: Checkout
@@ -68,7 +68,7 @@ jobs:
         export IMAGE_TAG="githash-${SHA::9}"
         export RUBY_VERSION=`cat .ruby-version`
 
-        echo $SHA > REVISION
+        echo $SHA > $DOCKER_ASSETS_PATH/REVISION
         echo 'no tag generated' > image-tag.txt
 
         if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.pre-cache ];
@@ -104,7 +104,7 @@ jobs:
           echo Not building dj
         fi
 
-        echo Pushing base and web images
+        echo Pushing base and web
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--base
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG--web
         if [ -f $DOCKER_ASSETS_PATH/Dockerfile.${ECR_REPOSITORY}.dj ];

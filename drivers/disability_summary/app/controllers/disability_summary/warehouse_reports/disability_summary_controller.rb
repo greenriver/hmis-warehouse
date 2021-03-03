@@ -67,11 +67,6 @@ module DisabilitySummary::WarehouseReports
       end
     end
 
-    def breakdown
-      @breakdown ||= params[:breakdown]&.to_sym || :none
-    end
-    helper_method :breakdown
-
     def filter_params
       params.permit(
         filters: [
