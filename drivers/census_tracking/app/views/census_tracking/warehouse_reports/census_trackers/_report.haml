@@ -1,6 +1,6 @@
 %table.table.table-responsive.table-sm.table-hover
   %thead
-    - headers = [ 'Agency Name', 'Program Name' ] + @report.populations.keys
+    - headers = @report.headers
     %tr
       - headers.each do |header|
         %th= header

@@ -1,7 +1,7 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: @filter.on.strftime('%m-%d-%Y')) do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center, wrap_text: true})
-  sheet.add_row([ 'Agency Name', 'Program Name' ] + @report.populations.keys, style: title)
+  sheet.add_row(@report.headers, style: title)
 
   by_project_type = sheet.styles.add_style(bg_color: "D2C4B4")
   type_header = sheet.styles.add_style(bg_color: "000000", fg_color: "FFFFFF")

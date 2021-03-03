@@ -16,6 +16,7 @@ module CensusTracking::WarehouseReports
     def index
       respond_to do |format|
         format.html do
+          flash[:error] = 'You must select one or more organizations, projects, or project groups' if params[:commit].present? && ! @show_report
         end
         format.xlsx do
           filename = "Census Tracking Worksheet - #{Time.current.to_s(:db)}.xlsx"
@@ -44,6 +45,7 @@ module CensusTracking::WarehouseReports
     private def filter
       @filter = ::Filters::FilterBase.new(user_id: current_user.id)
       @filter.set_from_params(report_params)
+      @show_report = @filter.project_ids.present? || @filter.project_group_ids.present? || @filter.organization_ids.present?
     end
 
     private def report

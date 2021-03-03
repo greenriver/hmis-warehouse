@@ -65,6 +65,10 @@ module CensusTracking
       }
     end
 
+    def headers
+      ['Organization', 'Project'] + populations.keys
+    end
+
     def footnote
       'Household counts are limited to households containing more than one client.'
     end
