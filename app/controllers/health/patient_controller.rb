@@ -22,8 +22,8 @@ module Health
 
     def update
       @patient.update(patient_params)
-      @patient.build_team_member!(Health::Team::CareCoordinator, patient_params[:care_coordinator_id], current_user) if patient_params[:care_coordinator_id].present?
-      @patient.build_team_member!(Health::Team::Nurse, patient_params[:nurse_care_manager_id], current_user) if patient_params[:nurse_care_manager_id].present?
+      @patient.build_team_member!(Health::Team::CareCoordinator, patient_params[:care_coordinator_id].to_i, current_user) if patient_params[:care_coordinator_id].present?
+      @patient.build_team_member!(Health::Team::Nurse, patient_params[:nurse_care_manager_id].to_i, current_user) if patient_params[:nurse_care_manager_id].present?
       if request.xhr?
         head(:ok)
         nil
