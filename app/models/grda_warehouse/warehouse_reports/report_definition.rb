@@ -6,7 +6,6 @@
 
 module GrdaWarehouse::WarehouseReports
   class ReportDefinition < GrdaWarehouseBase
-
     has_many :group_viewable_entities, as: :entity, class_name: 'GrdaWarehouse::GroupViewableEntity'
 
     scope :enabled, -> do
@@ -45,7 +44,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def self.maintain_report_definitions
-      puts "maintain report definitions"
+      puts 'maintain report definitions'
       cleanup_unused_reports()
       report_list.each do |category, reports|
         reports.each do |report|
@@ -58,6 +57,10 @@ module GrdaWarehouse::WarehouseReports
           r.save!
         end
       end
+    end
+
+    def new_report?
+      created_at > Date.current - 2.weeks
     end
 
     # Reports
