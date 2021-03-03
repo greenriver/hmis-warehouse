@@ -141,9 +141,13 @@ module Filters
       }
     end
 
-    def selected_params_for_display
+    def selected_params_for_display(single_date: false)
       {}.tap do |opts|
-        opts['Report Range'] = date_range_words
+        if single_date
+          opts['On Date'] = on
+        else
+          opts['Report Range'] = date_range_words
+        end
         opts['Comparison Range'] = comparison_range_words if includes_comparison?
         opts['CoC Codes'] = chosen_coc_codes if coc_codes.present?
         opts['Project Types'] = chosen_project_types
