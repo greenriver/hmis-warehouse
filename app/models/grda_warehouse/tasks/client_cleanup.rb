@@ -546,7 +546,6 @@ module GrdaWarehouse::Tasks
       }
       munge_clients = clients_to_munge
       client_source = GrdaWarehouse::Hud::Client
-      total_clients = munge_clients.size
       logger.info "Munging #{munge_clients.size} clients"
       batches = munge_clients.each_slice(batch_size)
       batches.each do |batch|
