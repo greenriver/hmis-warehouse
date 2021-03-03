@@ -171,6 +171,7 @@ Layout/ParameterAlignment:
 
 Style/RegexpLiteral:
   EnforcedStyle: slashes
+  AllowInnerSlashes: true
 
 Lint/UnusedMethodArgument:
   Exclude:
