@@ -246,7 +246,7 @@ module HmisCsvTwentyTwenty::Loader
         if row_errors.any?
           @loader_log.load_errors.import(row_errors)
           row_errors.group_by { |e| e[:message] }.each do |message, errors|
-            log("#{message} on #{errors.count} lines")
+            log("#{base_name}: #{message} on #{errors.count} lines")
           end
           @loader_log.summary[base_name]['total_errors'] += row_errors.size
         end
