@@ -206,38 +206,55 @@ module HmisCsvTwentyTwenty::Loader
       # logger.debug { "   #{copy_sql}" }
 
       lines_loaded = nil
+      total_lines = nil
       expect_col_count = copy_cols.size - meta_data.size
-      skipped_rows = []
+      row_errors = []
       # SLOW_CHECK; klass.connection.transaction do
       bm = Benchmark.measure do
         pg_conn = klass.connection.raw_connection
         pg_result = pg_conn.copy_data copy_sql do
           read_from.rewind
-          CSV.parse(read_from, headers: false, liberal_parsing: true) do |row|
-            # ensure the row is long enough before
-            # we put the typed meta_data at the end
-            # all loader tables should handle nil data for columns
-            # with missing values
+          begin
+            parser = CSV.new(read_from, headers: false, liberal_parsing: true)
+            parser.each do |row|
+              # There were excess columns, probably due to an unquoted comma
+              if row.size > expect_col_count
+                row_errors << {
+                  file_name: base_name,
+                  message: 'Extra columns found',
+                  details: "lineno: #{parser.lineno}",
+                  source: row.to_csv,
+                }
+              else
 
-            row << nil while row.size < expect_col_count
-
-            # There were excess columns, probably due to an unquoted comma
-            if row.size > expect_col_count
-              skipped_rows << row
-            else
-              pg_conn.put_copy_data (row + meta_data).to_csv
+                # ensure the row is long enough before
+                # we put the typed meta_data at the end
+                # all loader tables should handle nil data for columns
+                # with missing values
+                row << nil while row.size < expect_col_count
+                pg_conn.put_copy_data (row + meta_data).to_csv
+              end
             end
-
-            # SLOW_CHECK; data = copy_cols.zip(row + meta_data).to_h
-            # SLOW_CHECK;  klass.create! data
+          ensure
+            total_lines = parser.lineno
+            parser&.close
           end
+          # SLOW_CHECK; data = copy_cols.zip(row + meta_data).to_h
+          # SLOW_CHECK;  klass.create! data
+        end
+        if row_errors.any?
+          @loader_log.load_errors.import(row_errors)
+          row_errors.group_by { |e| e[:message] }.each do |message, errors|
+            log("#{message} on #{errors.count} lines")
+          end
+          @loader_log.summary[base_name]['total_errors'] += row_errors.size
         end
         lines_loaded = pg_result.cmd_tuples
       end
       # SLOW_CHECK; end
 
       @loader_log.summary[base_name].tap do |stat|
-        stat['total_lines'] = lines_loaded # the loader now loads all or none
+        stat['total_lines'] = total_lines
         stat['lines_loaded'] = lines_loaded
         stat['rps'] = (lines_loaded / bm.real).round(3)
         stat['cpu_secs'] = bm.total.round(3)
