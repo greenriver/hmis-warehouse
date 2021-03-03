@@ -41,11 +41,18 @@ RSpec.describe HmisCsvTwentyTwenty, type: :model do
     expect(GrdaWarehouse::Hud::Project.count).to eq(1)
   end
 
-  it 'load errors are generated for the invalid rows' do
+  it 'load errors are generated for the too many columns' do
     errors = @loader.loader_log.load_errors.select do |e|
-      e.file_name == 'Client.csv' && e.message =~ /extra columns/i
+      e.file_name == 'Client.csv' && e.message =~ /too many/i
     end.sort_by(&:id)
-    expect(errors.map(&:details)).to eq(['lineno: 7', 'lineno: 34', 'lineno: 61'])
+    expect(errors.map(&:details)).to eq(['Line number: 7', 'Line number: 34', 'Line number: 61'])
+  end
+
+  it 'load errors are generated for two few columns' do
+    errors = @loader.loader_log.load_errors.select do |e|
+      e.file_name == 'Event.csv' && e.message =~ /too few/i
+    end.sort_by(&:id)
+    expect(errors.map(&:details)).to eq(['Line number: 3'])
   end
 
   it 'counts lines/records correctly with skipped rows' do

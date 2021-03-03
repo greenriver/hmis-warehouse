@@ -221,17 +221,18 @@ module HmisCsvTwentyTwenty::Loader
               if row.size > expect_col_count
                 row_errors << {
                   file_name: base_name,
-                  message: 'Extra columns found',
-                  details: "lineno: #{parser.lineno}",
+                  message: 'Too many columns found',
+                  details: "Line number: #{parser.lineno}",
+                  source: row.to_csv,
+                }
+              elsif row.size < expect_col_count
+                row_errors << {
+                  file_name: base_name,
+                  message: 'Too few columns found',
+                  details: "Line number: #{parser.lineno}",
                   source: row.to_csv,
                 }
               else
-
-                # ensure the row is long enough before
-                # we put the typed meta_data at the end
-                # all loader tables should handle nil data for columns
-                # with missing values
-                row << nil while row.size < expect_col_count
                 pg_conn.put_copy_data (row + meta_data).to_csv
               end
             end
