@@ -21,13 +21,23 @@ module GrdaWarehouse::Tasks::ServiceHistory
         wait_for_processing(max_wait_seconds: max_wait_seconds)
     end
 
+    scope :unassigned, -> do
+      jobs = Delayed::Job.where(queue: :long_running, failed_at: nil).
+        jobs_for_class('ServiceHistory::RebuildEnrollments').
+        pluck(:id)
+      where(delayed_job_id: nil).or(where.not(delayed_job_id: jobs))
+    end
+
     def self.queue_batch_process_unprocessed!
-      unprocessed.joins(:project, :destination_client).
-        pluck_in_batches(:id, batch_size: 250) do |batch|
-        Delayed::Job.enqueue(
-          ::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch),
-          queue: :long_running,
-        )
+      GrdaWarehouse::Hud::Enrollment.with_advisory_lock('queue_batch_process_unprocessed') do
+        unprocessed.unassigned.joins(:project, :destination_client).
+          pluck_in_batches(:id, batch_size: 250) do |batch|
+          job = Delayed::Job.enqueue(
+            ::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch),
+            queue: :long_running,
+          )
+          where(id: batch).update_all(delayed_job_id: job.id)
+        end
       end
     end
 
