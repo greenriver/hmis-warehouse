@@ -30,4 +30,6 @@ wb.add_worksheet(name: @filter.on.strftime('%m-%d-%Y')) do |sheet|
   sheet.add_row(row, style: totals)
 
   sheet.column_widths(*[ 32, 32 ] + Array.new(@report.populations.keys.size, 16))
+
+  sheet.add_row([@report.footnote])
 end

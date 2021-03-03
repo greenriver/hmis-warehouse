@@ -33,3 +33,5 @@
       - @report.populations.each do |key, query|
         %td.table-primary
           = link_to @report.clients_by_population(query).count, details_census_tracking_warehouse_reports_census_trackers_path(params: @filter.for_params.merge!({row: :population, key: key})), data: {loads_in_pjax_modal: true}
+%p
+  = @report.footnote
