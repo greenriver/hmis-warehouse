@@ -6,6 +6,7 @@
 
 module CensusTracking
   class Worksheet
+    include ::Filter::FilterScopes
     include ArelHelper
 
     def initialize(filter)
@@ -74,21 +75,12 @@ module CensusTracking
         service_on_date(@filter.on).
         in_project(@filter.effective_project_ids)
 
-      scope = scope.in_coc(coc_code: @filter.coc_codes) if @filter.coc_codes.present?
-      scope = scope.in_data_source(@filter.data_source_ids) if @filter.data_source_ids.present?
-      scope = scope.in_organization(@filter.organization_ids) if @filter.organization_ids.present?
-      scope = scope.where(c_t[:Ethnicity].in(@filter.ethnicities)) if @filter.ethnicities.present?
-
-      race_filter = nil
-      @filter.races.each do |race|
-        if race_filter
-          race_filter = race_filter.or(c_t[race].eq(1))
-        else
-          race_filter = c_t[race].eq(1)
-        end
-      end
-      scope = scope.where(race_filter) if race_filter.present?
-      scope = scope.where(c_t[:Gender].in(@filter.genders)) if @filter.genders.present?
+      scope = filter_for_cocs(scope)
+      scope = filter_for_data_sources(scope)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_ethnicity(scope)
+      scope = filter_for_race(scope)
+      scope = filter_for_gender(scope)
 
       scope
     end
