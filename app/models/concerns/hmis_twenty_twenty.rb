@@ -45,9 +45,14 @@ module HmisTwentyTwenty
     end
 
     def summary_as_log_str(summary)
-      summary.map do |file, info|
-        "> *#{file}* \n> \t#{hash_as_log_str(info)}"
-      end.join("\n")
+      cols = summary.values.flat_map(&:keys).uniq
+      table = [
+        ['File'] + cols,
+      ]
+      summary.each do |file, info|
+        table << [file] + info.values_at(*cols)
+      end
+      "```\n#{ANSI::Table.new table}```"
     end
 
     def hash_as_log_str(hash, field_sep: ' ')
