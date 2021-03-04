@@ -166,15 +166,15 @@ module HmisCsvTwentyTwenty::Importer
         process_batch!(klass, batch, file_name, type: 'pre_processed', upsert: klass.upsert?) if batch.present? # ensure we get the last batch
         HmisCsvValidation::Base.import(failures, validate: use_ar_model_validations) if failures.present?
       end
-
-      detail_for(file_name, 'pre_process_times').tap do |stat|
-        records = scope.count
-        rps = (records / bm.real).round(3)
-        stat['rps'] = rps
-        stat['cpu_secs'] = bm.total.round(3)
-        logger.debug do
-          " Pre-processed #{klass.table_name} #{hash_as_log_str({ importer_log_id: importer_log_id, processed: records }.merge(stat))}"
-        end
+      records = scope.count
+      stats = {
+        pp_secs: bm.real.round(3),
+        pp_rps: ((records / bm.real).round(3) unless records.zero?),
+        pp_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+      }
+      importer_log.summary[file_name].merge!(stats)
+      logger.debug do
+        " Pre-processed #{klass.table_name} #{hash_as_log_str({ importer_log_id: importer_log_id, processed: records }.merge(stats))}"
       end
     end
 
@@ -189,8 +189,10 @@ module HmisCsvTwentyTwenty::Importer
         end
       end
       failures.compact!
-      importer_log.summary[filename]['total_flags'] ||= 0
-      importer_log.summary[filename]['total_flags'] += failures.count
+      if failures.count.positive?
+        importer_log.summary[filename]['total_flags'] ||= 0
+        importer_log.summary[filename]['total_flags'] += failures.count
+      end
       failures
     end
 
@@ -382,14 +384,15 @@ module HmisCsvTwentyTwenty::Importer
             process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
           end
         end
-        added = summary_for(file_name, 'added')
-        detail_for(file_name, 'add_times').tap do |stat|
-          rps = (added / bm.real).round(3)
-          stat['rps'] = rps
-          stat['cpu_secs'] = bm.total.round(3)
-          logger.info do
-            "  Added #{destination_class.table_name} #{hash_as_log_str({ added: added }.merge(stat).merge(log_ids))}"
-          end
+        records = summary_for(file_name, 'added') || 0
+        stats = {
+          add_secs: bm.real.round(3),
+          add_rps: ((records / bm.real).round(3) unless records.zero?),
+          add_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+        }
+        importer_log.summary[file_name].merge!(stats)
+        logger.info do
+          "  Added #{destination_class.table_name} #{hash_as_log_str({ added: records }.merge(stats).merge(log_ids))}"
         end
       end
     end
@@ -510,14 +513,15 @@ module HmisCsvTwentyTwenty::Importer
             update_all(processed_as: nil)
         end
       end
-      updated = summary_for(file_name, 'updated')
-      detail_for(file_name, 'update_times').tap do |stat|
-        rps = (updated / bm.real).round(3)
-        stat['rps'] = rps
-        stat['cpu_secs'] = bm.total.round(3)
-        logger.info do
-          "  Updated #{destination_class.table_name} #{hash_as_log_str({ updated: updated }.merge(stat).merge(log_ids))}"
-        end
+      records = summary_for(file_name, 'updated') || 0
+      stats = {
+        up_secs: bm.real.round(3),
+        up_rps: ((records / bm.real).round(3) unless records.zero?),
+        up_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+      }
+      importer_log.summary[file_name].merge!(stats)
+      logger.info do
+        "  Updated #{destination_class.table_name} #{hash_as_log_str({ updated: records }.merge(stats).merge(log_ids))}"
       end
     end
 
@@ -614,7 +618,7 @@ module HmisCsvTwentyTwenty::Importer
         row.save!(validate: use_ar_model_validations)
         note_processed(file_name, 1, type)
       rescue StandardError => e
-        errors << add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
+        errors << add_error(file: file_name, klass: klass, source_id: row[:source_id], message: e.message)
       end
       @importer_log.import_errors.import(errors)
     end
@@ -659,28 +663,20 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.update(status: :paused)
     end
 
-    def note_processed(file, line_count, type)
-      importer_log.summary[file][type] += line_count
-    end
-
     def summary_for(file, type)
       importer_log.summary[file][type]
     end
 
-    def detail_for(file, type)
-      importer_log.summary[file][type] ||= {}
+    def note_processed(file, increment_by, type)
+      return if increment_by.nil? || increment_by.zero?
+
+      importer_log.summary[file][type] ||= 0
+      importer_log.summary[file][type] += increment_by
     end
 
     def setup_summary(file)
       importer_log.summary ||= {}
-      importer_log.summary[file] ||= {
-        'pre_processed' => 0,
-        'added' => 0,
-        'updated' => 0,
-        'unchanged' => 0,
-        'removed' => 0,
-        'total_errors' => 0,
-      }
+      importer_log.summary[file] ||= Hash.new(0)
     end
 
     def importable_files
@@ -719,7 +715,7 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.upload_id = @upload.id if @upload.present?
       importer_log.save
       elapsed = Time.current - @started_at
-      log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.\n#{summary_as_log_str importer_log.summary}\n Import Fully Complete.")
+      log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.\n#{summary_as_log_str importer_log.summary}")
       post_process
     end
 
@@ -739,7 +735,7 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def add_error(file:, klass:, source_id:, message:)
-      importer_log.summary[file]['total_errors'] += 1
+      note_processed(file, 1, 'total_errors')
       log(message)
       importer_log.import_errors.build(
         source_type: klass,

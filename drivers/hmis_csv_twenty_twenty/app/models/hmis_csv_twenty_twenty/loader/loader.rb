@@ -256,9 +256,12 @@ module HmisCsvTwentyTwenty::Loader
 
       @loader_log.summary[base_name].tap do |stat|
         stat['total_lines'] = total_lines
-        stat['lines_loaded'] = lines_loaded
-        stat['rps'] = (lines_loaded / bm.real).round(3)
-        stat['cpu_secs'] = bm.total.round(3)
+        stat['secs'] = bm.real.round(3)
+        stat['cpu'] = "#{(bm.total * 100 / bm.real).round}%"
+        if lines_loaded.positive?
+          stat['lines_loaded'] = lines_loaded
+          stat['rps'] = (lines_loaded / bm.real).round
+        end
         logger.debug do
           # line_loaded comes from pg directly, if we dont trust it we can go back for a count
           # if lines_loaded > 1
@@ -370,16 +373,12 @@ module HmisCsvTwentyTwenty::Loader
         status: status,
       )
       status = "#{status} error:#{err}" if err
-      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}\n#{summary_as_log_str loader_log.summary}")
+      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status} #{summary_as_log_str loader_log.summary}")
     end
 
     def setup_summary(file)
       @loader_log.summary ||= {}
-      @loader_log.summary[file] ||= {
-        'total_lines' => -1,
-        'lines_loaded' => 0,
-        'total_errors' => 0,
-      }
+      @loader_log.summary[file] ||= Hash.new(0)
     end
 
     def log(message)
