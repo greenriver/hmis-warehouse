@@ -52,7 +52,7 @@ module HmisTwentyTwenty
       summary.each do |file, info|
         table << [file] + info.values_at(*cols)
       end
-      "```\n#{ANSI::Table.new table}```"
+      "\n```\n#{ANSI::Table.new table}\n```\n"
     end
 
     def hash_as_log_str(hash, field_sep: ' ')
