@@ -13,9 +13,10 @@
   %tbody
     - @clients.each do |client|
       %tr
-        - client.each_with_index do |value, index|
+        - detail_columns.each do |key, field|
+          - value = client.public_send(field)
           %td
-            - if index == 0
+            - if field == :client_id
               = link_to value, client_path(value)
             - else
               = value

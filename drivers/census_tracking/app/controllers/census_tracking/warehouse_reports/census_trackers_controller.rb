@@ -39,7 +39,7 @@ module CensusTracking::WarehouseReports
       else
         @clients = @report.clients_by_population(query)
       end
-      @clients = @clients.order(she_t[:project_name], c_t[:LastName], c_t[:FirstName]).pluck(detail_columns.values)
+      @clients = @clients.sort_by { |client| [client.project_name, client.last_name, client.first_name] }
     end
 
     private def filter
@@ -80,11 +80,11 @@ module CensusTracking::WarehouseReports
 
     private def detail_columns
       {
-        'Client ID' => she_t[:client_id],
-        'First Name' => c_t[:FirstName],
-        'Last Name' => c_t[:LastName],
-        'Age' => shs_t[:age],
-        'Project Name' => she_t[:project_name],
+        'Client ID' => :client_id,
+        'First Name' => :first_name,
+        'Last Name' => :last_name,
+        'Age' => :age,
+        'Project Name' => :project_name,
       }
     end
     helper_method :detail_columns
