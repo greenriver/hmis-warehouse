@@ -52,91 +52,91 @@ module CensusTracking
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
-            ->(client) { client.gender == 1 },
+            ->(client) { client.gender == HUD.gender('Male', true) },
           ],
         'Individual Trans Males Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
-            ->(client) { client.gender == 3 },
+            ->(client) { client.gender == HUD.gender('Trans Male (FTM or Female to Male)', true) },
           ],
         'Individual Females Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
-            ->(client) { client.gender == 0 }, # rubocop:disable Style/NumericPredicate
+            ->(client) { client.gender == HUD.gender('Female', true) },
           ],
         'Individual Trans Females Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
-            ->(client) { client.gender == 2 },
+            ->(client) { client.gender == HUD.gender('Trans Female (MTF or Male to Female)', true) },
           ],
         'Gender Non-conforming Individuals Under Age 18' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age < 18 },
-            ->(client) { client.gender == 4 },
+            ->(client) { client.gender == HUD.gender('Gender non-conforming (i.e. not exclusively male or female)', true) },
           ],
         'Individual Adult Males Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == 1 },
+            ->(client) { client.gender == HUD.gender('Male', true) },
           ],
         'Individual Adult Trans Males Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == 3 },
+            ->(client) { client.gender == HUD.gender('Trans Male (FTM or Female to Male)', true) },
           ],
         'Individual Adult Females Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == 0 }, # rubocop:disable Style/NumericPredicate
+            ->(client) { client.gender == HUD.gender('Female', true) },
           ],
         'Individual Adult Trans Females Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == 2 },
+            ->(client) { client.gender == HUD.gender('Trans Female (MTF or Male to Female)', true) },
           ],
         'Gender Non-conforming Individual Adults Age 18-24' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 18 && client.age <= 24 },
-            ->(client) { client.gender == 4 },
+            ->(client) { client.gender == HUD.gender('Gender non-conforming (i.e. not exclusively male or female)', true) },
           ],
         'Individual Adult Males Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
-            ->(client) { client.gender == 1 },
+            ->(client) { client.gender == HUD.gender('Male', true) },
           ],
         'Individual Adult Trans Males Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
-            ->(client) { client.gender == 3 },
+            ->(client) { client.gender == HUD.gender('Trans Male (FTM or Female to Male)', true) },
           ],
         'Individual Adult Females Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
-            ->(client) { client.gender == 0 }, # rubocop:disable Style/NumericPredicate
+            ->(client) { client.gender == HUD.gender('Female', true) },
           ],
         'Individual Adult Trans Females Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
-            ->(client) { client.gender == 2 },
+            ->(client) { client.gender == HUD.gender('Trans Female (MTF or Male to Female)', true) },
           ],
         'Gender Non-conforming Individual Adults Age 25+' =>
           [
             ->(client) { client.presented_as_individual == true },
             ->(client) { client.age.present? && client.age >= 25 },
-            ->(client) { client.gender == 4 },
+            ->(client) { client.gender == HUD.gender('Gender non-conforming (i.e. not exclusively male or female)', true) },
           ],
         'Number of households with at least one adult age 18+ and at least one child under age 18' =>
           [
