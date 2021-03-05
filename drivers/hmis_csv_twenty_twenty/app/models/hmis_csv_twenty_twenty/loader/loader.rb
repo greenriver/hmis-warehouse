@@ -378,7 +378,11 @@ module HmisCsvTwentyTwenty::Loader
 
     def setup_summary(file)
       @loader_log.summary ||= {}
-      @loader_log.summary[file] ||= Hash.new(0)
+      @loader_log.summary[file] ||= {
+        'total_lines' => -1,
+        'lines_loaded' => 0,
+        'total_errors' => 0,
+      }
     end
 
     def log(message)

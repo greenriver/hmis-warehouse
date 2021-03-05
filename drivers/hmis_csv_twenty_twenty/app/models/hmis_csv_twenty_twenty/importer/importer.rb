@@ -611,14 +611,14 @@ module HmisCsvTwentyTwenty::Importer
         note_processed(file_name, batch.count, type)
       end
       return nil
-    rescue StandardError => e
+    rescue ActiveRecord::ActiveRecordError, PG::Error => e
       log "batch failed: #{e.message}... processing records one at a time"
       errors = []
       batch.each do |row|
         row.save!(validate: use_ar_model_validations)
         note_processed(file_name, 1, type)
-      rescue StandardError => e
-        errors << add_error(file: file_name, klass: klass, source_id: row[:source_id], message: e.message)
+      rescue ActiveRecord::ActiveRecordError, PG::Error => e
+        errors << add_error(file: file_name, klass: klass, source_id: row[:source_id] || row[:source_hash], message: e.message)
       end
       @importer_log.import_errors.import(errors)
     end
@@ -676,7 +676,14 @@ module HmisCsvTwentyTwenty::Importer
 
     def setup_summary(file)
       importer_log.summary ||= {}
-      importer_log.summary[file] ||= Hash.new(0)
+      importer_log.summary[file] ||= {
+        'pre_processed' => 0,
+        'added' => 0,
+        'updated' => 0,
+        'unchanged' => 0,
+        'removed' => 0,
+        'total_errors' => 0,
+      }
     end
 
     def importable_files
