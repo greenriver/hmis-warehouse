@@ -218,11 +218,13 @@ module CensusTracking
 
       rows = rows.map do |row|
         row.other_clients_under_18 = rows.select do |candidate|
+          candidate.household_id.present? &&
           candidate.household_id == row.household_id &&
             candidate.client_id != row.client_id &&
             candidate.age.present? && candidate.age < 18
         end.count
         row.only_children = rows.select do |candidate|
+          candidate.household_id.present? &&
           candidate.household_id == row.household_id &&
             candidate.age.present? && candidate.age >= 18
         end.empty?
