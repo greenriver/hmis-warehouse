@@ -1,7 +1,7 @@
 class IndexImportTables < ActiveRecord::Migration[5.2]
   def change
+    add_index HmisCsvTwentyTwenty::Importer::Export.table_name, :importer_log_id
     [
-      HmisCsvTwentyTwenty::Importer::Export,
       HmisCsvTwentyTwenty::Importer::Organization,
       HmisCsvTwentyTwenty::Importer::Project,
       HmisCsvTwentyTwenty::Importer::Client,
@@ -24,7 +24,7 @@ class IndexImportTables < ActiveRecord::Migration[5.2]
       HmisCsvTwentyTwenty::Importer::Event,
       HmisCsvTwentyTwenty::Importer::User,
     ].each do |klass|
-      add_index klass.table_name, :importer_log_id
+      add_index klass.table_name, [:importer_log_id, :DateUpdated], name: "idx_#{klass.table_name}_imid_du"
     end
     [
       HmisCsvTwentyTwenty::Loader::Export,
