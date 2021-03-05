@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_25_144651) do
+ActiveRecord::Schema.define(version: 2021_03_03_181117) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "fuzzystrmatch"
@@ -5792,6 +5792,8 @@ ActiveRecord::Schema.define(version: 2021_02_25_144651) do
     t.boolean "enabled", default: true, null: false
     t.boolean "limitable", default: true, null: false
     t.boolean "health", default: false
+    t.datetime "created_at", default: -> { "now()" }, null: false
+    t.datetime "updated_at", default: -> { "now()" }, null: false
   end
 
   create_table "report_tokens", id: :serial, force: :cascade do |t|
