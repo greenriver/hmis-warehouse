@@ -189,6 +189,12 @@ module GrdaWarehouse::Hud
       where(processed_as: nil)
     end
 
+    scope :unassigned, -> do
+      jobs = Delayed::Job.where(queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name, failed_at: nil).
+        jobs_for_class('ServiceHistory::RebuildEnrollments').
+        pluck(:id)
+      where(service_history_processing_job_id: nil).or(where.not(service_history_processing_job_id: jobs))
+    end
 
     def self.related_item_keys
       [

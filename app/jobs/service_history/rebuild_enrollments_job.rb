@@ -33,14 +33,22 @@ module ServiceHistory
 
         # If this client has been invalidated, remove all service history and rebuild
         client.force_full_service_history_rebuild if client.service_history_invalidated?
-        # You must join in the project here or it will try to rebuild enrollments
-        # with no project
-        enrollments = GrdaWarehouse::Hud::Client.where(id: client_id).
-          joins(source_enrollments: :project).
-          pluck(Arel.sql(e_t[:id].as('enrollment_id').to_sql))
-        Rails.logger.info "===RebuildEnrollmentsJob=== Processing #{enrollments.size} enrollments for #{client_id}"
+
+        enrollment_ids = []
+        GrdaWarehouse::Hud::Enrollment.with_advisory_lock('rebuild_enrollments') do
+          # You must join in the project here or it will try to rebuild enrollments
+          # with no project
+          enrollment_ids = GrdaWarehouse::Hud::Client.where(id: client_id).
+            joins(source_enrollments: :project).
+            merge(GrdaWarehouse::Hud::Enrollment.unassigned).
+            pluck(Arel.sql(e_t[:id].as('enrollment_id').to_sql))
+
+          GrdaWarehouse::Hud::Enrollment.where(id: enrollment_ids).update_all(service_history_processing_job_id: job_id)
+        end
+
+        Rails.logger.info "===RebuildEnrollmentsJob=== Processing #{enrollment_ids.size} enrollments for #{client_id}"
         rebuild_types = []
-        enrollments.each do |enrollment_id|
+        enrollment_ids.each do |enrollment_id|
           # Rails.logger.debug "rebuilding enrollment #{enrollment_id}"
           enrollment = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(enrollment_id)
           rebuild_type = enrollment.rebuild_service_history!

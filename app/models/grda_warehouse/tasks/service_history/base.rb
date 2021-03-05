@@ -43,18 +43,9 @@ module GrdaWarehouse::Tasks::ServiceHistory
           if @force_sequential_processing
             ::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id).perform_now
           else
-            job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id), queue: :long_running)
+            job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsJob.new(client_ids: batch, log_id: log.id))
 
           end
-        end
-        unless @force_sequential_processing
-          # Check for completion using a reasonable interval
-          interval = if @client_ids.count < 25
-            5
-          else
-            30
-          end
-          # self.class.wait_for_processing(interval: interval)
         end
       ensure
         Rails.cache.delete('sanity_check_count')
