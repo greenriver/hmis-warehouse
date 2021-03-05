@@ -36,6 +36,10 @@ class CreateHudReportSpmClients < ActiveRecord::Migration[5.2]
       t.decimal :m4_earliest_earned_income
       t.decimal :m4_earliest_non_earned_income
       t.jsonb :m4_history
+
+      t.integer :m5_active_project_types, array: true
+      t.integer :m5_recent_project_types, array: true
+      t.jsonb :m5_history
     end
   end
 end

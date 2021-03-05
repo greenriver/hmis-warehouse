@@ -41,7 +41,7 @@ module HudSpmReport::Generators::Fy2020
       run_5_x(table_name, ES + SH + TH + PH, 'Person with entries into ES, SH, TH or PH during the reporting period.')
     end
 
-    private def run_5_x(table_name, _project_types, universe_desc)
+    private def run_5_x(table_name, project_types, universe_desc)
       first_timers = <<~TXT
         Of persons above, count those who did not have entries in ES, SH, TH or PH in the
         previous 24 months. (i.e. Number of persons experiencing homelessness for the first time)
@@ -57,13 +57,12 @@ module HudSpmReport::Generators::Fy2020
         4 => first_timers,
       }, COLS
 
-      # FIXME
-      c2 = []
-      c3 = []
+      c2 = universe.members.where(['m5_active_project_types && ARRAY[?]', project_types])
+      c3 = c2
 
       handle_clause_based_cells table_name, [
         ['C2', c2, c2.count],
-        ['C3', c3, c2.count],
+        ['C3', c3, c3.count],
         ['C4', c2 - c3, c2.count - c3.count],
       ]
     end

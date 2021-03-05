@@ -55,10 +55,14 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def run_3_2(table_name)
-      # Metric 3.2 - Counts of clients using HMIS data. Using HMIS data, determine the unduplicated counts of active clients for each of the project types
-      # throughout the reporting period:
+      # Metric 3.2 - Counts of clients using HMIS data. Using HMIS data, determine the
+      # unduplicated counts of active clients for each of the project types throughout
+      # the reporting period:
 
-      universe_members = universe.members.where('array_length(m3_active_project_types, 1) > 0')
+      # We don't need to check this since universe filters
+      # for us but an explicit check would be:
+      # `where(['m3_active_project_types && ARRAY[?]', ES+SH+TH])`
+      universe_members = universe.members
       prepare_table table_name, {
         2 => 'Universe: Unduplicated Total sheltered homeless persons',
         3 => 'Emergency Shelter Total',

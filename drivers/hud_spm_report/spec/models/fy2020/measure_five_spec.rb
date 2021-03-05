@@ -31,18 +31,16 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureFive, type: :model do
 
   [
     ['5.1', 'A1', nil],
-    ['5.1', 'C2', 0, 'person with entries into ES, SH, or TH'], # instructions tell us to leave blank for a human to fill in
+    ['5.1', 'C2', 6, 'person with entries into ES, SH, or TH'], # instructions tell us to leave blank for a human to fill in
     ['5.1', 'C3', 0, 'w/ prior enrollment in the last 24m'],
     ['5.1', 'C4', 0, 'w/o - aka first time homeless'],
-    # ['5.1', 'C2', 6, 'person with entries into ES, SH, or TH'], # instructions tell us to leave blank for a human to fill in
     # ['5.1', 'C3', 3, 'w/ prior enrollment in the last 24m'],
     # ['5.1', 'C4', 3, 'w/o - aka first time homeless'],
 
     ['5.2', 'A1', nil],
-    ['5.2', 'C2', 0, 'person with entries into ES, SH, or TH'], # instructions tell us to leave blank for a human to fill in
+    ['5.2', 'C2', 8, 'person with entries into ES, SH, or TH'], # instructions tell us to leave blank for a human to fill in
     ['5.2', 'C3', 0, 'w/ prior enrollment in the last 24m'],
     ['5.2', 'C4', 0, 'w/o - aka first time homeless'],
-    # ['5.2', 'C2', 8, 'person with entries into ES, SH, or TH'], # instructions tell us to leave blank for a human to fill in
     # ['5.2', 'C3', 4, 'w/ prior enrollment in the last 24m'],
     # ['5.2', 'C4', 4, 'w/o - aka first time homeless'],
   ].each do |question, cell, expected_value, label|

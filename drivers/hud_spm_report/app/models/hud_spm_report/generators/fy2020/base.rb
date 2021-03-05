@@ -58,14 +58,23 @@ module HudSpmReport::Generators::Fy2020
     }.freeze
 
     # HudReports::UniverseMember scope to use for this measure
-    # Will calculate all @report.build_for_questions universes
-    # if that has not already been done and then return a memoized query
+    # Will calculate all requested "build_for_questions" universes
+    # if that has not already been done and then return
+    # those need for the current question as a memoized query
     private def universe
       unless clients_populated?
+        # Since each question *might* involve different clients
+        # and can be run independently we have in the past had pipelines for each.
+        # There is a bunch of overlap however, many of the measures are interested
+        # in clients active in a similar subset of projects during or within the
+        # past few years.  A nice performance re-factor would be to pull all possible
+        # enrollments for all measures as one database scan and then link them to
+        # questions as needed.
         add_m1_clients
         add_m2_clients
         add_m3_clients
         add_m4_clients
+        add_m5_clients
       end
       @universe ||= @report.universe(self.class.question_number)
     end
@@ -295,7 +304,7 @@ module HudSpmReport::Generators::Fy2020
         exits_by_client_id = exits_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
           e[:client_id]
         end.freeze
-        entries_by_client_id = entries_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
+        entries_by_client_id = m2_entries_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
           e[:client_id]
         end.freeze
 
@@ -617,6 +626,94 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
+    private def add_m5_clients
+      measure_five = 'Measure 5'
+      # TODO?: merge with M3
+      return unless add_clients_for_question?(measure_five)
+
+      updated_columns = [
+        :dob,
+        :first_name,
+        :last_name,
+        :m5_active_project_types,
+      ]
+
+      m5_enrollments = recent_enrollments_scope
+
+      each_client_batch client_scope.where(
+        id: m5_enrollments.select(:client_id),
+      ) do |clients_by_id|
+        entries = pluck_to_hash SHE_COLUMNS, m5_enrollments.where(
+          client_id: clients_by_id.keys,
+        ).order(client_id: :asc)
+
+        m5_clients = {}
+
+        entries.group_by do |e|
+          e[:client_id]
+        end.map do |client_id, client_enrollments|
+          # 1. Select clients entering any of the applicable project types in the report date range
+          active_enrollments = client_enrollments.select do |e|
+            (
+              e[:project_type].in? ES_SH_TH_PH
+            ) && (
+              e[:first_date_in_program] >= @report.start_date && e[:first_date_in_program] <= @report.end_date
+            )
+          end
+          # We might not have any since we are fetching all clients with recent history
+          next if active_enrollments.none?
+
+          # 2. Report the total distinct number of clients in cell C2. (will happen later)
+
+          # 3. Of the project stay records selected in step 1, get the earliest [project start date]
+          # for each client. This becomes the [client start date].
+          client_start = active_enrollments.map { |e| e[:first_date_in_program] }.min
+
+          # 4. Working backwards in time using data from ES, SH, TH and PH projects, determine if the
+          # client was active in any project on or prior to the [client start date].
+          # Look backwards up to ( [project start date] - 730 days ) or the [Lookback Stop Date], whichever is later.
+          # a. In the case of metric 5.1, the projects scanned for client presence
+          # is different from the projects used in the initial selection of data
+          # in step 1. For metric 5.2, the projects scanned for client presence is
+          # the same.
+          # b. Search for project stays where [project start date] < [client start
+          # date] and [project exit date] is null or [project exit date] >=
+          # greater of ( [Lookback Stop Date] and ( [client start date] – 730 days
+          # ) )
+          # c. If a match is found, report the client in cell C3. Report the
+          # client no more than once regardless of how many prior project stays
+          # were found for the client.
+          last_date_cutoff = [client_start - 730.days, LOOKBACK_STOP_DATE].max
+          prior_enrollments = client_enrollments.select do |e|
+            (
+              e[:project_type].in? ES_SH_TH_PH
+            ) && (
+              e[:first_date_in_program] < lookback_start_date &&
+              (e[:last_date_in_program].nil? || e[:last_date_in_program] >= last_date_cutoff)
+            )
+          end
+
+          # 5. Because each client may be counted no more than once in cells
+          # C2 and C3, cell C4 is a simple formula indicated in the table shell above. (happens later)
+          client = clients_by_id.fetch(client_id)
+          m5_client = report_client_universe.new(
+            report_instance_id: @report.id,
+            client_id: client_id,
+            data_source_id: client.data_source_id,
+            dob: client.DOB,
+            first_name: client.first_name,
+            last_name: client.last_name,
+            m5_active_project_types: active_enrollments.map { |e| e[:project_type] }.uniq,
+            m5_recent_project_types: prior_enrollments.map { |e| e[:project_type] }.uniq,
+            m5_history: prior_enrollments + active_enrollments,
+          )
+          [client, m5_client]
+        end
+
+        append_report_clients measure_five, m5_clients, updated_columns
+      end
+    end
+
     # 1. The selection of relevant projects is critical to this measure.
     # Build the universe of relevant projects for this measure as follows:
     # Select projects where
@@ -931,12 +1028,20 @@ module HudSpmReport::Generators::Fy2020
       add_filters(scope)
     end
 
-    private def m2_lookback
-      [LOOKBACK_STOP_DATE, @report.start_date - 730.days].max .. (@report.end_date - 730.days)
+    # a few measures look at enrollments starting
+    # between 2 years prior to the report and the report end date
+    private def recent_enrollments_scope
+      add_filters GrdaWarehouse::ServiceHistoryEnrollment.entry.where(
+        first_date_in_program: lookback_start_date .. @report.end_date,
+      ).hud_project_type(ES_SH_TH_PH_SO)
     end
 
-    private def m2_lookforward
-      [LOOKBACK_STOP_DATE, @report.start_date - 730.days].max .. @report.end_date
+    private def lookback_start_date
+      [LOOKBACK_STOP_DATE, @report.start_date - 730.days].max
+    end
+
+    private def m2_lookback
+      lookback_start_date .. (@report.end_date - 730.days)
     end
 
     private def exits_scope
@@ -945,11 +1050,10 @@ module HudSpmReport::Generators::Fy2020
         where(last_date_in_program: m2_lookback)
     end
 
-    private def entries_for_batch(client_ids, columns)
-      pluck_to_hash columns, GrdaWarehouse::ServiceHistoryEnrollment.entry.
-        joins(:project).hud_project_type(SO + ES + TH + SH + PH).
+    private def m2_entries_for_batch(client_ids, columns)
+      # FIXME: combine with ost the same as m5_enrollments_scope
+      pluck_to_hash columns, recent_enrollments_scope.
         where(client_id: client_ids).
-        where(first_date_in_program: m2_lookforward).
         order(client_id: :asc, last_date_in_program: :asc)
     end
 
