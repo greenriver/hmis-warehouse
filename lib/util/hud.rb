@@ -677,7 +677,7 @@ module HUD
       8 => 'Client doesn\'t know',
       9 => 'Client refused',
       99 => 'Data not collected',
-    }
+    }.freeze
   end
 
   # 3.917.1

@@ -191,8 +191,9 @@ module GrdaWarehouse::Tasks
         where.not(destination_id: client_destinations.select(:id)).select(:destination_id)
       return unless deleted_destination_ids.present?
 
+      @notifier.ping("Restoring #{deleted_destination_ids.count} destination clients and invalidating their data")
+      client_destinations.only_deleted.where(id: deleted_destination_ids).find_each(&:force_full_service_history_rebuild)
       client_destinations.only_deleted.where(id: deleted_destination_ids).update_all(DateDeleted: nil)
-      client_destinations.find_each(&:force_full_service_history_rebuild)
     end
 
     # figure out who doesn't yet have an entry in warehouse clients
