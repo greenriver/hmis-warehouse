@@ -46,13 +46,12 @@ module GrdaWarehouse::Tasks
     def sanity_check
       messages = []
       @destinations.each do |id, counts|
-        if counts[:service_history].except(:service) != counts[:source].except(:service)
+        if counts[:service_history].except(:service) != counts[:source].except(:service) && ! client_still_processing?(id)
           msg = "```client: #{id} \n#{counts.except(:source_personal_ids).inspect}```\n"
           logger.warn msg
           messages << msg
           client_source.find(id).invalidate_service_history
           add_attempt(id)
-        else
         end
       end
       update_attempts()
@@ -68,6 +67,17 @@ module GrdaWarehouse::Tasks
         logger.info rebuilding_message
         GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
       end
+    end
+
+    def client_still_processing?(client_id)
+      job_ids = Delayed::Job.where(queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name, failed_at: nil).
+        jobs_for_class('ServiceHistory::RebuildEnrollments').
+        pluck(:id)
+      enrollment_ids = GrdaWarehouse::Hud::Client.where(id: client_id).
+        joins(source_enrollments: :project).
+        pluck(Arel.sql(e_t[:id].as('enrollment_id').to_sql))
+
+      GrdaWarehouse::Hud::Enrollment.where(id: enrollment_ids, service_history_processing_job_id: job_ids).exists?
     end
 
     def attempts
