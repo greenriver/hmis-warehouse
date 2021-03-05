@@ -11,27 +11,28 @@
         - if ! last_project_type.blank?
           %tr
             %td.table-secondary{colspan: 2}
-            - @report.populations.each do |key, query|
+            - @report.populations.keys.each do |population|
               %td.table-secondary
-                = link_to @report.clients_by_project_type(last_project_type, query).count, details_census_tracking_warehouse_reports_census_trackers_path(params: @filter.for_params.merge!({row: :type, type: last_project_type, key: key})), data: {loads_in_pjax_modal: true}
+                = @report.client_count_by_project_type(last_project_type, population)
         %tr
           %td.table-dark{colspan: headers.size}= project_type
           - last_project_type = project_type
       %tr
         %td.table-active= org_name
         %td.table-active= project_name
-        - @report.populations.each do |key, query|
+        - @report.populations.keys.each do |population|
           %td
-            = link_to @report.clients_by_project(project_id, query).count, details_census_tracking_warehouse_reports_census_trackers_path(params: @filter.for_params.merge!({row: :project, project: project_id, key: key})), data: {loads_in_pjax_modal: true}
+            - count = @report.clients_by_project(project_id, population).count
+            = link_to_if count.positive?, count, details_census_tracking_warehouse_reports_census_trackers_path(params: @filter.for_params.merge!({project: project_id, key: population})), data: {loads_in_pjax_modal: true}
     %tr
       %td.table-secondary{colspan: 2}
-      - @report.populations.each do |key, query|
+      - @report.populations.keys.each do |population|
         %td.table-secondary
-          = link_to @report.clients_by_project_type(last_project_type, query).count, details_census_tracking_warehouse_reports_census_trackers_path(params: @filter.for_params.merge!({row: :type, type: last_project_type, key: key})), data: {loads_in_pjax_modal: true}
+          = @report.client_count_by_project_type(last_project_type, population)
     %tr
       %td.table-primary{colspan: 2} Total
-      - @report.populations.each do |key, query|
+      - @report.populations.keys.each do |population|
         %td.table-primary
-          = link_to @report.clients_by_population(query).count, details_census_tracking_warehouse_reports_census_trackers_path(params: @filter.for_params.merge!({row: :population, key: key})), data: {loads_in_pjax_modal: true}
+          = @report.client_count_by_population(population)
 %p
   = @report.footnote

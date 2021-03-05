@@ -27,19 +27,10 @@ module CensusTracking::WarehouseReports
 
     def details
       @key = details_params[:key]
-      query = @report.populations[@key]
-      case details_params[:row]
-      when 'project'
-        project_id = details_params[:project].to_i
-        @project_name = GrdaWarehouse::Hud::Project.viewable_by(current_user).find(project_id)&.safe_project_name
-        @clients = @report.clients_by_project(project_id, query)
-      when 'type'
-        @type = details_params[:type]
-        @clients = @report.clients_by_project_type(@type, query)
-      else
-        @clients = @report.clients_by_population(query)
-      end
-      @clients = @clients.sort_by { |client| [client.project_name, client.last_name, client.first_name] }
+      project_id = details_params[:project].to_i
+      @project_name = GrdaWarehouse::Hud::Project.viewable_by(current_user).find(project_id)&.safe_project_name
+      @clients = @report.clients_by_project(project_id, @key).
+        sort_by { |client| [client.project_name, client.last_name, client.first_name] }
     end
 
     private def filter

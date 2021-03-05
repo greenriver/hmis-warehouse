@@ -11,6 +11,8 @@ module CensusTracking
 
     def initialize(filter)
       @filter = filter
+      @project_type_sum = populations.keys.zip(Array.new(populations.keys.size, 0)).to_h
+      @population_sum = populations.keys.zip(Array.new(populations.keys.size, 0)).to_h
     end
 
     def projects
@@ -24,17 +26,24 @@ module CensusTracking
         sort_by { |project| [project[0], project[1], project[2]] }
     end
 
-    def clients_by_project(project_id, population_query)
-      filter_by_population(service_data_by_project[project_id], population_query)
+    def clients_by_project(project_id, population)
+      population_query = populations[population]
+      clients = filter_by_population(service_data_by_project(project_id), population_query)
+      @project_type_sum[population] += clients.count
+      @population_sum[population] += clients.count
+
+      clients
     end
 
-    def clients_by_project_type(project_type_name, population_query)
-      project_type = HUD.project_type(project_type_name, true)
-      filter_by_population(service_data_by_project_type[project_type], population_query)
+    def client_count_by_project_type(_project_type_name, population, reset: true)
+      result = @project_type_sum[population]
+      @project_type_sum[population] = 0 if reset
+
+      result
     end
 
-    def clients_by_population(population_query)
-      filter_by_population(service_data, population_query)
+    def client_count_by_population(population)
+      return @population_sum[population]
     end
 
     def populations
@@ -160,19 +169,19 @@ module CensusTracking
       }
     end
 
-    private def filter_by_population(clients, population_queries)
-      population_queries.each do |query|
-        clients = clients.select { |client| query.call(client) }
-      end
-      clients
-    end
-
     def headers
       ['Organization', 'Project'] + populations.keys
     end
 
     def footnote
       'Household counts are limited to households containing more than one client.'
+    end
+
+    private def filter_by_population(clients, population_queries)
+      population_queries.each do |query|
+        clients = clients.select { |client| query.call(client) }
+      end
+      clients
     end
 
     private def service_columns
@@ -192,61 +201,41 @@ module CensusTracking
       }
     end
 
-    private def service_data
-      @service_data ||= begin
-        rows = service_scope.
-          pluck(*service_columns.values).
-          map do |row|
-            ::OpenStruct.new(service_columns.keys.zip(row).to_h)
-          end
+    private def service_data_by_project(project_id)
+      data = transform(service_scope(project_id))
 
-        rows = rows.map do |row|
-          row.other_clients_under_18 = rows.select do |candidate|
-            candidate.household_id == row.household_id &&
-              candidate.client_id != row.client_id &&
-              candidate.age < 18
-          end.count
-          row.only_children = rows.select do |candidate|
-            candidate.household_id == row.household_id &&
-              candidate.age >= 18
-          end.empty?
-
-          row
-        end
-
-        rows
-      end
+      data
     end
 
-    private def service_data_by_project_type
-      @service_data_by_project_type ||= begin
-        data = {}
-
-        projects.map { |project| HUD.project_type(project[0], true) }.each do |project_type|
-          data[project_type] = service_data.select { |row| row.project_type == project_type }
-        end
-
-        data
+    private def transform(scope)
+      rows = scope.
+        pluck(*service_columns.values).
+        map do |row|
+        ::OpenStruct.new(service_columns.keys.zip(row).to_h)
       end
+
+      rows = rows.map do |row|
+        row.other_clients_under_18 = rows.select do |candidate|
+          candidate.household_id == row.household_id &&
+            candidate.client_id != row.client_id &&
+            candidate.age < 18
+        end.count
+        row.only_children = rows.select do |candidate|
+          candidate.household_id == row.household_id &&
+            candidate.age >= 18
+        end.empty?
+
+        row
+      end
+
+      rows
     end
 
-    private def service_data_by_project
-      @service_data_by_project ||= begin
-        data = {}
-
-        projects.map { |project| project[3] }.each do |project_id|
-          data[project_id] = service_data.select { |row| row.project_id.to_i == project_id }
-        end
-
-        data
-      end
-    end
-
-    private def service_scope
+    private def service_scope(project_id)
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         joins(:service_history_services, :client).
         service_on_date(@filter.on).
-        in_project(@filter.effective_project_ids)
+        in_project(project_id)
 
       scope = filter_for_cocs(scope)
       scope = filter_for_data_sources(scope)

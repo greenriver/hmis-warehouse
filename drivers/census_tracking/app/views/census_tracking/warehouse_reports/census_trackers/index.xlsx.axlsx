@@ -12,21 +12,21 @@ wb.add_worksheet(name: @filter.on.strftime('%m-%d-%Y')) do |sheet|
     if project_type != last_project_type
       if ! last_project_type.blank?
         row = [ '', '']
-        row += @report.populations.values.map { |query| @report.clients_by_project_type(last_project_type, query).count }
+        row += @report.populations.keys.map { |population| @report.client_count_by_project_type(last_project_type, population) }
         sheet.add_row(row, style: by_project_type)
       end
       sheet.add_row([project_type, ''] + Array.new(@report.populations.keys.size), style: type_header)
       last_project_type = project_type
     end
     row = [ org_name, project_name]
-    row += @report.populations.values.map { |query| @report.clients_by_project(project_id, query).count }
+    row += @report.populations.keys.map { |population| @report.clients_by_project(project_id, population).count }
     sheet.add_row(row, style: [ name_style, name_style ])
   end
   row = [ '', '']
-  row += @report.populations.values.map { |query| @report.clients_by_project_type(last_project_type, query).count }
+  row += @report.populations.keys.map { |population| @report.client_count_by_project_type(last_project_type, population) }
   sheet.add_row(row, style: by_project_type)
   row = [ 'Total', '']
-  row += @report.populations.values.map { |query| @report.clients_by_population(query).count }
+  row += @report.populations.keys.map { |population| @report.client_count_by_population(population) }
   sheet.add_row(row, style: totals)
 
   sheet.column_widths(*[ 32, 32 ] + Array.new(@report.populations.keys.size, 16))
