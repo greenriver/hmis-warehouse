@@ -910,6 +910,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:census_tracking)
+        r_list['Operational'] << {
+          url: 'census_tracking/warehouse_reports/census_trackers',
+          name: 'Census Tracking Worksheet',
+          description: 'Breakdown of PIT Census data for chosen date',
+          limitable: true,
+          health: false,
+        }
+      end
       if RailsDrivers.loaded.include?(:public_reports)
         # Only attempt this if the driver is loaded, and only install the reports
         # if the bucket can be setup correctly
@@ -1027,7 +1036,8 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'dashboards/clients' unless RailsDrivers.loaded.include?(:clients_sub_pop)
       cleanup << 'dashboards/non_veterans' unless RailsDrivers.loaded.include?(:non_veterans_sub_pop)
       cleanup << 'dashboards/veterans' unless RailsDrivers.loaded.include?(:veterans_sub_pop)
-      cleanup <<  'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
+      cleanup << 'census_tracking/warehouse_reports/census_trackers' unless RailsDrivers.loaded.include?(:census_tracking)
+      cleanup << 'income_benefits_report/warehouse_reports/report' unless RailsDrivers.loaded.include?(:income_benefits_report)
 
       cleanup.each do |url|
         GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).delete_all
