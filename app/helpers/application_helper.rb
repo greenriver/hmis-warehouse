@@ -312,4 +312,10 @@ module ApplicationHelper
       end
     end
   end
+
+  def percentage(value, format: '%1.2f')
+    value = 0 if value.to_f&.nan?
+
+    format(format, value.round(2))
+  end
 end

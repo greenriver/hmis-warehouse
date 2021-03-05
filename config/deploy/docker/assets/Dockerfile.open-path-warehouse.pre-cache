@@ -1,13 +1,30 @@
-#####################################################
-## Multi-stage build to speed up subsequent builds ##
-#####################################################
+#########################################################
+## stage build for the self-signed certificate we need ##
+#########################################################
+
+FROM ruby:2.7.2-alpine AS cert
+
+RUN apk add --no-cache \
+  openssl
+
+WORKDIR /
+
+RUN openssl req -new -newkey rsa:4096 -days 3650 -nodes -x509 \
+    -subj "/C=US/ST=Vermont/L=Brattleboro/O=greenriver/CN=www.example.com" \
+    -keyout key.pem -out cert.pem
+
+########################
+## Stage for the code ##
+########################
 
 FROM ruby:2.7.2-alpine AS code
 
-WORKDIR /app
+RUN mkdir -p /app \
+    /app/app/assets /app/tmp/pids /app/lib/assets /app/vendor/assets \
+    /app/public /app/locale /app/var /app/shape_files/CoC \
+    /app/shape_files/zip_codes.census.2018
 
-RUN mkdir -p /app app/assets tmp/pids lib/assets vendor/assets \
-  public locale var locale shape_files/CoC shape_files/zip_codes.census.2018
+WORKDIR /app
 
 COPY Gemfile Gemfile.lock Rakefile config.ru package.json ./
 COPY bin ./bin
@@ -17,45 +34,21 @@ COPY config ./config
 COPY app ./app
 COPY vendor ./vendor
 COPY config/deploy/docker/assets/dotenv.temporary ./.env
+
 COPY shape_files/sync.from.s3 ./shape_files
 COPY shape_files/CoC/make.inserts ./shape_files/CoC
 COPY shape_files/zip_codes.census.2018/make.inserts ./shape_files/zip_codes.census.2018
 
-############################
-## Actual pre-cache build ##
-############################
+# Get self-signed cert
+COPY --from=cert /key.pem /cert.pem /app/config/
+
+##################
+## Actual Build ##
+##################
 
 FROM ruby:2.7.2-alpine
 
-# wkhtmltopdf line
-# https://beuke.org/docker-alpine-wkhtmltopdf/
-#
-# puppetteer line starts with chromium
-# Installs latest Chromium package.
-#
-# lftp for tarrant county only at the moment
-RUN apk add --no-cache --update \
-  nodejs yarn \
-  tzdata \
-  git \
-  bash \
-  freetds-dev \
-  icu icu-dev \
-  curl libcurl curl-dev \
-  imagemagick \
-  libmagic file-dev file \
-  build-base libxml2-dev libxslt-dev postgresql-dev \
-  wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
-  chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-  lftp postgresql tmux postgis geos geos-dev
-
-# Puppeteer v1.19.0 works with Chromium 77.
-# package.json in the app I think covers this:
-#RUN yarn add puppeteer@1.19.0
-
 WORKDIR /app
-
-COPY --from=code /app /app
 
 # https://github.com/sass/sassc-ruby/issues/146#issuecomment-542288556
 # core dumps during precompile on github when using the pre-cache image pulled
@@ -71,13 +64,39 @@ ENV BUNDLE_BUILD__SASSC=--disable-march-tune-native \
     GROVER_NO_SANDBOX=true \
     CHROMIUM_PATH=/usr/bin/chromium-browser
 
-# If assets or gems don't change, those steps in the final build should be fast
-RUN gem install bundler --version=2.2.4 && \
-    bundle config set --local without 'development' && \
-    bundle install --jobs `nproc` && \
-    find /usr/local/bundle -name "*.o" -exec rm {} \; && \
-    find /usr/local/bundle -name "*.c" -exec rm {} \; && \
-    RAILS_ENV=production bundle exec rake assets:precompile && \
-    cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml && \
-    rm -rf tmp/* && \
-    mkdir tmp/pids
+# allow tls connection to database with verification
+COPY config/deploy/docker/assets/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
+
+COPY --from=code /app /app/
+
+# wkhtmltopdf line
+# https://beuke.org/docker-alpine-wkhtmltopdf/
+#
+# puppetteer line starts with chromium
+# Installs latest Chromium package.
+#
+# lftp for tarrant county only at the moment
+RUN apk add --no-cache \
+    nodejs yarn \
+    tzdata \
+    git \
+    bash \
+    freetds-dev \
+    icu icu-dev \
+    curl libcurl curl-dev \
+    imagemagick \
+    libmagic file-dev file \
+    build-base libxml2-dev libxslt-dev postgresql-dev \
+    wkhtmltopdf libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+    chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+    lftp postgresql tmux postgis geos geos-dev \
+  && rm -rf /var/cache/apk/* \
+  && gem install bundler --version=2.2.6 \
+  && bundle config without development test doc \
+  && bundle install \
+  && find /usr/local/bundle -name "*.o" -exec rm {} \; \
+  && find /usr/local/bundle -name "*.c" -exec rm {} \; \
+  && RAILS_ENV=production bundle exec rake assets:precompile \
+  && cp config/deploy/docker/assets/database.open-path-warehouse.yml config/database.yml \
+  && rm -rf tmp/* \
+  && mkdir tmp/pids

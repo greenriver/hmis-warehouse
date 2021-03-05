@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
+module GrdaWarehouse::Hud
   class IncomeBenefit < Base
     include HudSharedScopes
     include ::HMIS::Structure::IncomeBenefit
@@ -58,6 +58,29 @@ module GrdaWarehouse::Hud # rubocop:disable Style/ClassAndModuleChildren
 
     scope :all_sources_refused, -> do
       where(IncomeFromAnySource: 9)
+    end
+
+    scope :with_earned_income, -> do
+      where(Earned: 1)
+    end
+
+    scope :with_any_income, -> do
+      where(IncomeFromAnySource: 1)
+    end
+
+    scope :with_unearned_income, -> do
+      where(IncomeFromAnySource: 1).where.not(Earned: 1)
+    end
+
+    # NOTE: at the moment this is Postgres only
+    # Arguments:
+    #   an optional scope which is passed to the sub query that determines which record to return
+    scope :only_most_recent_by_enrollment, ->(scope: nil) do
+      one_for_column(:InformationDate, source_arel_table: arel_table, group_on: :EnrollmentID, direction: :desc, scope: scope)
+    end
+
+    scope :only_earliest_by_enrollment, ->(scope: nil) do
+      one_for_column(:InformationDate, source_arel_table: arel_table, group_on: :EnrollmentID, direction: :asc, scope: scope)
     end
 
     # produced by eliminating those columns matching /id|date|amount|reason|stage/i

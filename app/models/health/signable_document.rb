@@ -149,25 +149,26 @@ module Health
     end
 
     def update_careplan_and_health_file!(careplan)
-      # Process patient signature
       if careplan.patient_signed_on.blank? && self.signed_by?(careplan.patient.current_email)
-        user = User.setup_system_user
         careplan.patient_signed_on = self.signed_on(careplan.patient.current_email)
-        Health::CareplanSaver.new(careplan: careplan, user: user, create_qa: true).update
-        self.signature_request.update(completed_at: careplan.patient_signed_on)
-
-        #update_health_file_from_hello_sign
-        # Need to wait for pdf to be ready
-        UpdateHealthFileFromHelloSignJob.
-          set(wait: 30.seconds).
-          perform_later(self.id)
-      elsif careplan.provider.present? && self.signed_by?(careplan.provider.email)
-        # process PCP signature, careplan has already been updated, we just need to fetch the file
-        UpdateHealthFileFromHelloSignJob.
-          set(wait: 30.seconds).
-          perform_later(self.id)
+      end
+      if careplan.provider_signed_on.blank? && self.signed_by?(careplan.provider&.email)
+        careplan.provider_signed_on = self.signed_on(careplan.provider.email)
       end
 
+      return unless careplan.changed?
+
+      if careplan.just_signed?
+        last_signature = [careplan.patient_signed_on, careplan.provider_signed_on].max
+        self.signature_request.update(completed_at: last_signature)
+      end
+
+      user = User.setup_system_user
+      Health::CareplanSaver.new(careplan: careplan, user: user, create_qa: true).update
+
+      UpdateHealthFileFromHelloSignJob.
+        set(wait: 30.seconds). # Wait for PDF to be ready
+        perform_later(self.id)
     end
 
     def signature_request_url(email)
