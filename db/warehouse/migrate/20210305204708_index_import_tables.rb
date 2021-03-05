@@ -24,8 +24,10 @@ class IndexImportTables < ActiveRecord::Migration[5.2]
       HmisCsvTwentyTwenty::Importer::Event,
       HmisCsvTwentyTwenty::Importer::User,
     ].each do |klass|
+      remove_index(klass.table_name, :DateUpdated) if index_exists?(klass.table_name, :DateUpdated)
       add_index klass.table_name, [:importer_log_id, :DateUpdated], name: "idx_#{klass.table_name}_imid_du"
     end
+
     [
       HmisCsvTwentyTwenty::Loader::Export,
       HmisCsvTwentyTwenty::Loader::Organization,
@@ -50,6 +52,7 @@ class IndexImportTables < ActiveRecord::Migration[5.2]
       HmisCsvTwentyTwenty::Loader::Event,
       HmisCsvTwentyTwenty::Loader::User,
     ].each do |klass|
+      remove_index(klass.table_name, :DateUpdated) if index_exists?(klass.table_name, :DateUpdated)
       add_index klass.table_name, :loader_id
     end
   end
