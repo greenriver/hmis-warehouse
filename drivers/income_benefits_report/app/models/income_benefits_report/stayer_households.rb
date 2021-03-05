@@ -38,7 +38,7 @@ module
           income_relation: :later_income_record,
         },
         stayers_adults_with_any_income_at_entry: {
-          title: 'Total Adults with any income at Entry',
+          title: 'Total Adults with any Income at Entry',
           count: count_stayers_adults_with_any_income_at_entry,
           denominator: stayers_adults_count,
           percent: percent_stayers_adults_with_any_income_at_entry,
