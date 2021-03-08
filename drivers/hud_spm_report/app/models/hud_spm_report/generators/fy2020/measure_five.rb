@@ -58,7 +58,7 @@ module HudSpmReport::Generators::Fy2020
       }, COLS
 
       c2 = universe.members.where(['m5_active_project_types && ARRAY[?]', project_types])
-      c3 = c2
+      c3 = c2.where(['m5_recent_project_types && ARRAY[?]', ES + SH + TH + PH])
 
       handle_clause_based_cells table_name, [
         ['C2', c2, c2.count],

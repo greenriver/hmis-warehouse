@@ -638,7 +638,7 @@ module HudSpmReport::Generators::Fy2020
         :m5_active_project_types,
       ]
 
-      m5_enrollments = recent_enrollments_scope
+      m5_enrollments = m5_enrollments_scope
 
       each_client_batch client_scope.where(
         id: m5_enrollments.select(:client_id),
@@ -688,7 +688,7 @@ module HudSpmReport::Generators::Fy2020
             (
               e[:project_type].in? ES_SH_TH_PH
             ) && (
-              e[:first_date_in_program] < lookback_start_date &&
+              e[:first_date_in_program] < client_start &&
               (e[:last_date_in_program].nil? || e[:last_date_in_program] >= last_date_cutoff)
             )
           end
@@ -707,7 +707,7 @@ module HudSpmReport::Generators::Fy2020
             m5_recent_project_types: prior_enrollments.map { |e| e[:project_type] }.uniq,
             m5_history: prior_enrollments + active_enrollments,
           )
-          [client, m5_client]
+          m5_clients[client] = m5_client
         end
 
         append_report_clients measure_five, m5_clients, updated_columns
@@ -1028,11 +1028,9 @@ module HudSpmReport::Generators::Fy2020
       add_filters(scope)
     end
 
-    # a few measures look at enrollments starting
-    # between 2 years prior to the report and the report end date
-    private def recent_enrollments_scope
-      add_filters GrdaWarehouse::ServiceHistoryEnrollment.entry.where(
-        first_date_in_program: lookback_start_date .. @report.end_date,
+    private def m5_enrollments_scope
+      add_filters GrdaWarehouse::ServiceHistoryEnrollment.open_between(
+        start_date: lookback_start_date, end_date: @report.end_date,
       ).hud_project_type(ES_SH_TH_PH_SO)
     end
 
@@ -1050,9 +1048,14 @@ module HudSpmReport::Generators::Fy2020
         where(last_date_in_program: m2_lookback)
     end
 
+    private def m2_enrollments_scope
+      add_filters GrdaWarehouse::ServiceHistoryEnrollment.entry.where(
+        first_date_in_program: lookback_start_date .. @report.end_date,
+      ).hud_project_type(ES_SH_TH_PH_SO)
+    end
+
     private def m2_entries_for_batch(client_ids, columns)
-      # FIXME: combine with ost the same as m5_enrollments_scope
-      pluck_to_hash columns, recent_enrollments_scope.
+      pluck_to_hash columns, m2_enrollments_scope.
         where(client_id: client_ids).
         order(client_id: :asc, last_date_in_program: :asc)
     end
