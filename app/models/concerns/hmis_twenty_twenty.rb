@@ -46,8 +46,16 @@ module HmisTwentyTwenty
 
     def summary_as_log_str(summary)
       cols = summary.values.flat_map(&:keys).uniq
+      cols -= ['pp_rps', 'add_rps', 'up_rps']
+      headers = cols.map do |col|
+        col.gsub('pre_processed', 'pre').
+          gsub('total_errors', 'errors').
+          gsub('total_flags', 'flags').
+          gsub('unchanged', 'un').
+          gsub('updated', 'up')
+      end
       table = [
-        ['File'] + cols,
+        ['File'] + headers,
       ]
       summary.each do |file, info|
         table << [file] + info.values_at(*cols)
