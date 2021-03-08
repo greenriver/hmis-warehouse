@@ -70,14 +70,11 @@ module GrdaWarehouse::Tasks
     end
 
     def client_still_processing?(client_id)
-      job_ids = Delayed::Job.where(queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name, failed_at: nil).
-        jobs_for_class('ServiceHistory::RebuildEnrollments').
-        pluck(:id)
-      enrollment_ids = GrdaWarehouse::Hud::Client.where(id: client_id).
+      job_ids = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_job_ids
+      GrdaWarehouse::Hud::Client.where(id: client_id).
         joins(source_enrollments: :project).
-        pluck(Arel.sql(e_t[:id].as('enrollment_id').to_sql))
-
-      GrdaWarehouse::Hud::Enrollment.where(id: enrollment_ids, service_history_processing_job_id: job_ids).exists?
+        where(e_t[:service_history_processing_job_id].in(job_ids)).
+        exists?
     end
 
     def attempts

@@ -190,9 +190,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :unassigned, -> do
-      jobs = Delayed::Job.where(queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name, failed_at: nil).
-        jobs_for_class('ServiceHistory::RebuildEnrollments').
-        pluck(:id)
+      jobs = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_job_ids
       where(service_history_processing_job_id: nil).or(where.not(service_history_processing_job_id: jobs))
     end
 

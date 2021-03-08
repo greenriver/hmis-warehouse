@@ -15,6 +15,12 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so]
 
+    def self.batch_job_ids
+      Delayed::Job.where(queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name, failed_at: nil).
+      jobs_for_class('ServiceHistory::RebuildEnrollments').
+      pluck(:id)
+    end
+
     def self.batch_process_unprocessed!(max_wait_seconds: 21_600)
       queue_batch_process_unprocessed!
       GrdaWarehouse::Tasks::ServiceHistory::Base.
