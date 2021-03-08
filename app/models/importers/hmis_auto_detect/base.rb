@@ -34,6 +34,8 @@ module Importers::HmisAutoDetect
       # pre_process should do any cleanup of the zip file contents
       # and present a clean zip file in the @upload variable
       pre_process
+      return if @stale
+
       expand_upload
       @upload.update(percent_complete: 1)
       import_log = importer.import!(
