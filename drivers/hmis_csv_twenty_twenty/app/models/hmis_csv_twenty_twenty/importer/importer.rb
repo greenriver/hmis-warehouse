@@ -722,7 +722,8 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.upload_id = @upload.id if @upload.present?
       importer_log.save
       elapsed = Time.current - @started_at
-      log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.\n#{summary_as_log_str importer_log.summary}")
+      log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.", summary_as_log_str(importer_log.summary))
+      # log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.  #{summary_as_log_str(importer_log.summary)}")
       post_process
     end
 
@@ -736,8 +737,12 @@ module HmisCsvTwentyTwenty::Importer
       GrdaWarehouse::Hud::Base.transaction(&block)
     end
 
-    def log(message)
-      @notifier&.ping message
+    def log(message, attachment = nil)
+      if attachment.present?
+        @notifier&.post(text: message, attachments: { text: attachment })
+      else
+        @notifier&.ping(message)
+      end
       logger.info "#{self.class} #{message}" if @debug
     end
 

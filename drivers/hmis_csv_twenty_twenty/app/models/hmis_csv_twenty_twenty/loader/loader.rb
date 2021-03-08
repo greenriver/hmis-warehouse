@@ -373,7 +373,8 @@ module HmisCsvTwentyTwenty::Loader
         status: status,
       )
       status = "#{status} error:#{err}" if err
-      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status} #{summary_as_log_str loader_log.summary}")
+      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}", summary_as_log_str(loader_log.summary))
+      # log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status} #{summary_as_log_str(loader_log.summary)}")
     end
 
     def setup_summary(file)
@@ -385,8 +386,12 @@ module HmisCsvTwentyTwenty::Loader
       }
     end
 
-    def log(message)
-      @notifier&.ping message
+    def log(message, attachment = nil)
+      if attachment.present?
+        @notifier&.post(text: message, attachments: { text: attachment })
+      else
+        @notifier&.ping(message)
+      end
       logger.info "#{self.class} #{message}" if @debug
     end
 
