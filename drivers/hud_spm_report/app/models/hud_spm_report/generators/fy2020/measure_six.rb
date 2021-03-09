@@ -47,6 +47,8 @@ module HudSpmReport::Generators::Fy2020
         'J' => 'Percentage of Returns in 2 Years',
       }.freeze
 
+      # basically HudSpmReport::Generators::Fy2020 with slightly differing scope
+
       {
         4 => TH,
         5 => SH,

@@ -55,6 +55,8 @@ module HudSpmReport::Generators::Fy2020
       project_id: :project_id,
       project_name: :project_name,
       household_id: :household_id,
+      housing_status_at_entry: :housing_status_at_entry,
+      housing_status_at_exit: :housing_status_at_exit,
     }.freeze
 
     # HudReports::UniverseMember scope to use for this measure
@@ -75,6 +77,7 @@ module HudSpmReport::Generators::Fy2020
         add_m3_clients
         add_m4_clients
         add_m5_clients
+        add_m6_clients
       end
       @universe ||= @report.universe(self.class.question_number)
     end
@@ -712,6 +715,13 @@ module HudSpmReport::Generators::Fy2020
 
         append_report_clients measure_five, m5_clients, updated_columns
       end
+    end
+
+    private def add_m6_clients
+      # Re-use the same programming instructions from Measures 2 and 7 as described above.
+      # The universe of relevant projects varies for this measure as this measure is
+      # required only for CoC-program-funded projects in communities approved by HUD
+      # to serve Category 3 persons.
     end
 
     # 1. The selection of relevant projects is critical to this measure.
