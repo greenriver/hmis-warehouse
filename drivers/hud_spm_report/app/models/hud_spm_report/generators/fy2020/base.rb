@@ -91,12 +91,7 @@ module HudSpmReport::Generators::Fy2020
     # Add report filters to the scope
     private def add_filters(scope)
       # TODO apply report filters to the supplied GrdaWarehouse::ServiceHistoryEnrollment scope
-
-      # scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
-      # if @report.options['coc_code'].present?
-      #   stayers_scope = stayers_scope.coc_funded_in(coc_code: @report.options['coc_code'])
-      # end
-
+      # like so? scope = scope.where(p_t[id]: filter.effective_project_ids) if @filter.effective_project_ids.any?
       scope
     end
 
