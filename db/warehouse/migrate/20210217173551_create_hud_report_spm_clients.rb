@@ -40,6 +40,11 @@ class CreateHudReportSpmClients < ActiveRecord::Migration[5.2]
       t.integer :m5_active_project_types, array: true
       t.integer :m5_recent_project_types, array: true
       t.jsonb :m5_history
+
+      t.integer :m6_exit_from_project_type
+      t.integer :m6_exit_to_destination
+      t.integer :m6_reentry_days
+      t.jsonb :m6_history
     end
   end
 end

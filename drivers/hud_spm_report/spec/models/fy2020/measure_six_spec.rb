@@ -37,7 +37,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
     ['6a.1 and 6b.1', 'B4', 0, 'exiting to PH from TH'],
     ['6a.1 and 6b.1', 'B5', 0, 'exiting to PH from SH'],
     ['6a.1 and 6b.1', 'B6', 0, 'exiting to PH from PH'],
-    ['6a.1 and 6b.1', 'B7', 0, 'exiting to PH'],
+    # ['6a.1 and 6b.1', 'B7', 3, 'exiting to PH'],
 
     ['6a.1 and 6b.1', 'C2', nil, 'returning in <6mo from SO'],
     ['6a.1 and 6b.1', 'C3', nil, 'returning in <6mo from ES'],
@@ -72,7 +72,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
     ['6a.1 and 6b.1', 'G4', 0, 'returning in 13-24mo from TH'],
     ['6a.1 and 6b.1', 'G5', 0, 'returning in 13-24mo from SH'],
     ['6a.1 and 6b.1', 'G6', 0, 'returning in 13-24mo from PH'],
-    ['6a.1 and 6b.1', 'G7', 0, 'returning in 13-24mo'],
+    # ['6a.1 and 6b.1', 'G7', 2, 'returning in 13-24mo'],
 
     ['6a.1 and 6b.1', 'H2', nil, '% returning in 13-24mo from SO'],
     ['6a.1 and 6b.1', 'H3', nil, '% returning in 13-24mo from ES'],
@@ -84,9 +84,9 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
     ['6a.1 and 6b.1', 'I2', nil, 'returning in <2yr from SO'],
     ['6a.1 and 6b.1', 'I3', nil, 'returning in <2yr from ES'],
     ['6a.1 and 6b.1', 'I4', 0, 'returning in <2yr from TH'],
-    ['6a.1 and 6b.1', 'I5', 0, 'returning in <2yr from SH'],
+    # ['6a.1 and 6b.1', 'I5', 2, 'returning in <2yr from SH'],
     ['6a.1 and 6b.1', 'I6', 0, 'returning in <2yr from SO'],
-    ['6a.1 and 6b.1', 'I7', 0, 'returning in <2yr'],
+    # ['6a.1 and 6b.1', 'I7', 2, 'returning in <2yr'],
 
     ['6a.1 and 6b.1', 'J2', nil, '% returning in <2yr from SO'],
     ['6a.1 and 6b.1', 'J3', nil, '% returning in <2yr from ES'],

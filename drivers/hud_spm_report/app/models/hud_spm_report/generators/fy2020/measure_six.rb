@@ -99,7 +99,7 @@ module HudSpmReport::Generators::Fy2020
     private def run_6c1(table_name)
       prepare_table table_name, DIFF_ROWS, DIFF_COLS
 
-      c2 = universe.members
+      c2 = universe.members.none
       c3 = c2.none
 
       handle_clause_based_cells table_name, [
@@ -112,7 +112,7 @@ module HudSpmReport::Generators::Fy2020
     private def run_6c2(table_name)
       prepare_table table_name, DIFF_ROWS, DIFF_COLS
 
-      c2 = universe.members
+      c2 = universe.members.none
       c3 = c2.none
 
       handle_clause_based_cells table_name, [

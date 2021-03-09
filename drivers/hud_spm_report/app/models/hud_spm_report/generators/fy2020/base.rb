@@ -283,31 +283,50 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def add_m2_clients
-      measure_two = 'Measure 2'
-      return unless add_clients_for_question?(measure_two)
+      # 1. Select clients across all projects in the COC of the relevant type (SO, ES, TH, SH, PH) with
+      # a project exit date 2 years prior to the report date range, going back no further than the [Lookback Stop Date].
+
+      add_exiting_clients('Measure 2', exits_scope, :m2)
+    end
+
+    private def add_m6_clients
+      # Re-use the same programming instructions from Measures 2 and 7 as described above.
+      # The universe of relevant projects varies for this measure as this measure is
+      # required only for CoC-program-funded projects in communities approved by HUD
+      # to serve Category 3 persons.
+
+      add_exiting_clients('Measure 6', exits_scope.category_3, :m6)
+    end
+
+    # m2 and m6 use almost the same logic
+    private def add_exiting_clients(question_name, exits_scope, m_code)
+      return unless add_clients_for_question?(question_name)
 
       project_types = (SO + ES + TH + SH + PH).freeze
       homeless_project_types = (ES +  SO + SH).freeze
+
+      exit_from_project_type_col = :"#{m_code}_exit_from_project_type"
+      exit_to_destination_col = :"#{m_code}_exit_to_destination"
+      reentry_days_col = :"#{m_code}_reentry_days"
+      history_col = :"#{m_code}_history"
 
       updated_columns = [
         :dob,
         :first_name,
         :last_name,
-        :m2_exit_from_project_type,
-        :m2_exit_to_destination,
-        :m2_reentry_days,
-        :m2_history,
+        exit_from_project_type_col,
+        exit_to_destination_col,
+        reentry_days_col,
+        history_col,
       ].freeze
 
-      # 1. Select clients across all projects in the COC of the relevant type (SO, ES, TH, SH, PH) with
-      # a project exit date 2 years prior to the report date range, going back no further than the [Lookback Stop Date].
       each_client_batch client_scope.where(id: exits_scope.select(:client_id)) do |clients_by_id|
-        m2_clients = {}
+        spm_clients = {}
 
         exits_by_client_id = exits_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
           e[:client_id]
         end.freeze
-        entries_by_client_id = m2_entries_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
+        entries_by_client_id = entries_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
           e[:client_id]
         end.freeze
 
@@ -328,7 +347,7 @@ module HudSpmReport::Generators::Fy2020
           # according to the project type associated with the client’s earliest applicable exit (cells B2-B6).
 
           client = clients_by_id.fetch(client_id)
-          m2_client = report_client_universe.new(
+          spm_client = report_client_universe.new(
             report_instance_id: @report.id,
             client_id: client_id,
             data_source_id: client.data_source_id,
@@ -339,8 +358,8 @@ module HudSpmReport::Generators::Fy2020
 
           # 4. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
           # without regard to the project type associated with the client’s earliest applicable exit (cell B7).
-          m2_client.m2_exit_from_project_type = p_exit[:project_type]
-          m2_client.m2_exit_to_destination = p_exit[:destination]
+          spm_client[exit_from_project_type_col] = p_exit[:project_type]
+          spm_client[exit_to_destination_col] = p_exit[:destination]
 
           # 5. Using data from step 2, scan forward in time beginning from each client’s [project exit date]
           # with a permanent housing destination to see if the client has a project start into a project
@@ -349,6 +368,8 @@ module HudSpmReport::Generators::Fy2020
           # 5.a && 5.d
           reentries = entries_by_client_id[client_id].select do |e|
             (e[:first_date_in_program] >= p_exit[:last_date_in_program]) && (e[:first_date_in_program] <= @report.end_date)
+          end.sort_by do |e|
+            e[:last_date_in_program] || @report.end_date
           end
 
           # this is our first exit from PR
@@ -386,23 +407,23 @@ module HudSpmReport::Generators::Fy2020
           # 6. Use the [project start date] found in step 5 to calculate the number of days between the
           # client’s [project exit date] from step 2 until the client was identified
           # as homeless again.
-          m2_client.m2_reentry_days = if reentry
+          spm_client[reentry_days_col] = if reentry
             reentry[:first_date_in_program] - p_exit[:last_date_in_program]
           else
             0
           end
 
           # Audit of exit/entries we considered
-          m2_client.m2_history = {
+          spm_client[history_col] = {
             exit: p_exit,
             reentries: reentries,
           }
 
-          m2_clients[client] = m2_client
+          spm_clients[client] = spm_client
         end
 
         # Steps 7 - 9 are handled in MeasureTwo#run_question!
-        append_report_clients measure_two, m2_clients, updated_columns
+        append_report_clients question_name, spm_clients, updated_columns
       end
     end
 
@@ -717,13 +738,6 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
-    private def add_m6_clients
-      # Re-use the same programming instructions from Measures 2 and 7 as described above.
-      # The universe of relevant projects varies for this measure as this measure is
-      # required only for CoC-program-funded projects in communities approved by HUD
-      # to serve Category 3 persons.
-    end
-
     # 1. The selection of relevant projects is critical to this measure.
     # Build the universe of relevant projects for this measure as follows:
     # Select projects where
@@ -945,6 +959,11 @@ module HudSpmReport::Generators::Fy2020
       )
     end
 
+    private def entries_for_batch(client_ids, columns)
+      pluck_to_hash columns, enrollments_scope.
+        where(client_id: client_ids)
+    end
+
     private def destination_for(project_types, client_id, household_id)
       children_without_destination(project_types)[[client_id, household_id]]
     end
@@ -1048,26 +1067,20 @@ module HudSpmReport::Generators::Fy2020
       [LOOKBACK_STOP_DATE, @report.start_date - 730.days].max
     end
 
-    private def m2_lookback
+    private def lookback_range
       lookback_start_date .. (@report.end_date - 730.days)
     end
 
     private def exits_scope
       GrdaWarehouse::ServiceHistoryEnrollment.exit.
         joins(:project).hud_project_type(SO + ES + TH + SH + PH).
-        where(last_date_in_program: m2_lookback)
+        where(last_date_in_program: lookback_range)
     end
 
-    private def m2_enrollments_scope
+    private def enrollments_scope
       add_filters GrdaWarehouse::ServiceHistoryEnrollment.entry.where(
         first_date_in_program: lookback_start_date .. @report.end_date,
       ).hud_project_type(ES_SH_TH_PH_SO)
-    end
-
-    private def m2_entries_for_batch(client_ids, columns)
-      pluck_to_hash columns, m2_enrollments_scope.
-        where(client_id: client_ids).
-        order(client_id: :asc, last_date_in_program: :asc)
     end
 
     # Calculate the number of unique days homeless given:
