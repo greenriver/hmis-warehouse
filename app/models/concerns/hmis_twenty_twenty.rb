@@ -44,6 +44,15 @@ module HmisTwentyTwenty
       "#{module_scope}::#{name}".constantize
     end
 
+    def log(message, attachment = nil)
+      logger.info message
+      if attachment.present?
+        @notifier&.post(text: message, attachments: { text: attachment })
+      else
+        @notifier&.ping(message)
+      end
+    end
+
     def summary_as_log_str(summary)
       cols = summary.values.flat_map(&:keys).uniq
       cols -= ['pp_rps', 'add_rps', 'up_rps']
@@ -83,6 +92,17 @@ module HmisTwentyTwenty
       else
         format('%.3fs', s)
       end
+    end
+
+    def log_timing(message)
+      logger.debug { "#{message} #{hash_as_log_str log_ids}" }
+      ret = nil
+      bm = Benchmark.measure do
+        ret = send(message)
+      end
+
+      log "#{message} completed in #{elapsed_time bm.real} (#{(bm.total * 100.0 / bm.real).round}% cpu) #{hash_as_log_str log_ids}"
+      ret
     end
   end
 end

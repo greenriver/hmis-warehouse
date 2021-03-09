@@ -386,15 +386,6 @@ module HmisCsvTwentyTwenty::Loader
       }
     end
 
-    def log(message, attachment = nil)
-      if attachment.present?
-        @notifier&.post(text: message, attachments: { text: attachment })
-      else
-        @notifier&.ping(message)
-      end
-      logger.info "#{self.class} #{message}" if @debug
-    end
-
     def add_error(file_path:, message:, line:)
       file = File.basename(file_path)
       @loader_log.load_errors.create(
