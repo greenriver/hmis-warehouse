@@ -50,6 +50,8 @@ class ContainerList
     environment = 'staging' if environment.start_with?('sta')
     environment = 'production' if environment.start_with?('pro')
     service_string = "#{client}-#{service}-#{environment}-ecs-#{service_type}"
+    alt_service_string = service_string
+    alt_service_string = "#{client}-hmis-#{environment}-ecs-#{service_type}" if service == 'warehouse'
 
     to_run = nil
     instances.each.with_index do |instance, _i|
@@ -69,7 +71,7 @@ class ContainerList
         # Skip the ECS agent
         next if task.match?(/ecs-agent/)
 
-        if task.include?(service_string)
+        if task.include?(service_string) || task.include?(alt_service_string)
           to_run = "ssh -t ec2-user@#{ip} 'docker exec --interactive --tty #{container_id} /bin/sh' # #{task}"
           break
         end

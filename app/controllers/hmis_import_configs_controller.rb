@@ -20,7 +20,7 @@ class HmisImportConfigsController < ApplicationController
     @error = false
     begin
       @bucket_objects_list = @config.s3.list_objects(25, prefix: @config.s3_path)
-    rescue Aws::S3::Errors::InvalidAccessKeyId
+    rescue Aws::S3::Errors::InvalidAccessKeyId, Aws::S3::Errors::AccessDenied
       @error = true
     end
   end

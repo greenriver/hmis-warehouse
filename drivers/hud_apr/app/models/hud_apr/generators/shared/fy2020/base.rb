@@ -302,32 +302,32 @@ module HudApr::Generators::Shared::Fy2020
     private def races
       {
         'AmIndAKNative' => {
-          order: 1,
+          order: 4,
           label: 'American Indian or Alaska Native',
           clause: a_t[:race].eq(race_number('AmIndAKNative')),
         },
         'Asian' => {
-          order: 2,
+          order: 3,
           label: 'Asian',
           clause: a_t[:race].eq(race_number('Asian')),
         },
         'BlackAfAmerican' => {
-          order: 3,
+          order: 2,
           label: 'Black or African American',
           clause: a_t[:race].eq(race_number('BlackAfAmerican')),
         },
         'NativeHIOtherPacific' => {
-          order: 4,
+          order: 5,
           label: 'Native Hawaiian or Other Pacific Islander',
           clause: a_t[:race].eq(race_number('NativeHIOtherPacific')),
         },
         'White' => {
-          order: 5,
+          order: 1,
           label: 'White',
           clause: a_t[:race].eq(race_number('White')),
         },
         'Multiple' => {
-          order: 7,
+          order: 6,
           label: 'Multiple Races',
           clause: a_t[:race].eq(6),
         },

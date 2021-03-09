@@ -117,7 +117,7 @@ module HudApr::Generators::Shared::Fy2020
             end
           end
 
-          members = members.where(client_id: source_client_ids) if source_client_ids.any?
+          members = members.where(a_t[:client_id].in(source_client_ids)) if source_client_ids.any?
 
           value = members.count
 
