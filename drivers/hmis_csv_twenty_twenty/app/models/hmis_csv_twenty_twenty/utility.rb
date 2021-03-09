@@ -25,5 +25,7 @@ class HmisCsvTwentyTwenty::Utility
     ].each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
     end
+
+    nil
   end
 end
