@@ -31,13 +31,25 @@ module Health
       begin
         @careplan.class.transaction do
           if should_really_create_qa
-            signature_date = [@careplan.patient_signed_on, @careplan.provider_signed_on].max
-            @qualifying_activity.activity = :pctp_signed
-            @qualifying_activity.mode_of_contact = :other
-            @qualifying_activity.reached_client = :collateral
+            signature_date = @careplan.provider_signed_on
             @qualifying_activity.date_of_activity = signature_date
-            @qualifying_activity.mode_of_contact_other = 'On-line'
-            @qualifying_activity.reached_client_collateral_contact = 'On-line Signature'
+
+            case @careplan.provider_signature_mode
+            when :email
+              @qualifying_activity.mode_of_contact = :other
+              @qualifying_activity.reached_client = :collateral
+              @qualifying_activity.mode_of_contact_other = 'On-line'
+              @qualifying_activity.reached_client_collateral_contact = 'On-line Signature'
+            when :in_person
+              @qualifying_activity.mode_of_contact = :in_person
+              @qualifying_activity.reached_client = :yes
+            else
+              # default to email signature
+              @qualifying_activity.mode_of_contact = :other
+              @qualifying_activity.reached_client = :collateral
+              @qualifying_activity.mode_of_contact_other = 'On-line'
+              @qualifying_activity.reached_client_collateral_contact = 'On-line Signature'
+            end
           end
 
           @careplan.save
@@ -60,13 +72,10 @@ module Health
         source_type: @careplan.class.name,
         user_id: @user.id,
         user_full_name: @user.name_with_email,
-        date_of_activity: Date.current,
-        activity: :care_planning,
+        activity: :pctp_signed,
         follow_up: 'Implement Person-Centered Treatment Planning',
-        reached_client: :in_person,
         patient_id: @careplan.patient_id,
       )
     end
-
   end
 end
