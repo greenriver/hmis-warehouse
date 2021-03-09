@@ -4,15 +4,16 @@
 
 %h1 Loader Errors
 %p= paginate @errors
-%table.table
-  %thead
-    %tr
-      %th Filename
-      %th Error
-      %th Line
-  %tbody
-    - @errors.each do |error|
+.card
+  %table.table.table-striped.mb-0
+    %thead
       %tr
-        %td= error.file_name
-        %td= error.details
-        %td= error.source
+        %th Filename
+        %th Error
+        %th Line
+    %tbody
+      - @errors.each do |error|
+        %tr
+          %td= error.file_name
+          %td= error.details
+          %td= error.source

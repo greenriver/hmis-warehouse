@@ -233,7 +233,7 @@ module
     end
 
     private def adult_leavers_with_increased_income_records
-      clients.where(client_id: adult_leavers_with_increased_income)
+      leavers_adults.where(client_id: adult_leavers_with_increased_income)
     end
 
     private def count_adult_leavers_with_increased_income
@@ -255,7 +255,7 @@ module
     end
 
     private def adult_leavers_with_decreased_income_records
-      clients.where(client_id: adult_leavers_with_decreased_income)
+      leavers_adults.where(client_id: adult_leavers_with_decreased_income)
     end
 
     private def count_adult_leavers_with_decreased_income
@@ -277,7 +277,7 @@ module
     end
 
     private def adult_leavers_with_maintained_income_records
-      clients.where(client_id: adult_leavers_with_maintained_income)
+      leavers_adults.where(client_id: adult_leavers_with_maintained_income)
     end
 
     private def count_adult_leavers_with_maintained_income

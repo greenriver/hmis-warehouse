@@ -13,6 +13,7 @@ module IncomeBenefitsReport
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment'
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project'
+    has_many :incomes
     has_one :earlier_income_record, -> { earlier }, class_name: 'IncomeBenefitsReport::Income'
     has_one :later_income_record, -> { later }, class_name: 'IncomeBenefitsReport::Income'
 
