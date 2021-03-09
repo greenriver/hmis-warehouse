@@ -28,8 +28,7 @@ module IncomeBenefitsReport
 
     belongs_to :user
     has_many :clients
-    has_many :earlier_income_record, through: :clients
-    has_many :later_income_record, through: :clients
+    has_many :incomes
 
     after_initialize :filter, :set_project_types
 
@@ -80,6 +79,18 @@ module IncomeBenefitsReport
       comparison.report_date_range = comparison_date_range
       comparison.id = id
       comparison
+    end
+
+    def earlier_income_records
+      incomes.earlier.
+        date_range(report_date_range).
+        where(client_id: clients.select(:id))
+    end
+
+    def later_income_records
+      incomes.later.
+        date_range(report_date_range).
+        where(client_id: clients.select(:id))
     end
 
     private def set_project_types
