@@ -8,9 +8,18 @@ module HudSpmReport::Filters
   class SpmFilter < ::Filters::FilterBase
     validates_presence_of :coc_codes
 
-    # FilterBase defines semantics for coc_codes vs coc_code which this disables
-    def effective_project_ids_from_coc_codes
-      []
+    # NOTE: This differs from the base filter class because it includes all projects based on project type, and doesn't include any projects based on CoCCode
+    def effective_project_ids
+      ids = effective_project_ids_from_projects
+      ids += effective_project_ids_from_project_groups
+      ids += effective_project_ids_from_organizations
+      ids += effective_project_ids_from_data_sources
+      ids += effective_project_ids_from_coc_codes
+      ids = all_project_ids if ids.empty?
+
+      ids = ids.uniq.reject(&:blank?)
+      ids &= effective_project_ids_from_project_types if effective_project_ids_from_project_types.present?
+      ids
     end
   end
 end
