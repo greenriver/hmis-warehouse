@@ -237,7 +237,8 @@ module HmisCsvTwentyTwenty::Loader
               end
             end
           ensure
-            total_lines = parser.lineno
+            # Remove header from count
+            total_lines = parser.lineno - 1
             parser&.close
           end
           # SLOW_CHECK; data = copy_cols.zip(row + meta_data).to_h
@@ -380,7 +381,7 @@ module HmisCsvTwentyTwenty::Loader
     def setup_summary(file)
       @loader_log.summary ||= {}
       @loader_log.summary[file] ||= {
-        'total_lines' => -1,
+        'total_lines' => 0,
         'lines_loaded' => 0,
         'total_errors' => 0,
       }
