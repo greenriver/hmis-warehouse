@@ -31,9 +31,11 @@ module Health
       begin
         @careplan.class.transaction do
           if should_really_create_qa
+            signature_date = [@careplan.patient_signed_on, @careplan.provider_signed_on].max
             @qualifying_activity.activity = :pctp_signed
             @qualifying_activity.mode_of_contact = :other
             @qualifying_activity.reached_client = :collateral
+            @qualifying_activity.date_of_activity = signature_date
             @qualifying_activity.mode_of_contact_other = 'On-line'
             @qualifying_activity.reached_client_collateral_contact = 'On-line Signature'
           end
