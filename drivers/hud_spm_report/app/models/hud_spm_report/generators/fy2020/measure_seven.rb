@@ -35,6 +35,17 @@ module HudSpmReport::Generators::Fy2020
         4 => 'Of the persons above, those who exited to permanent housing destinations',
         5 => '% Successful exits',
       }.freeze, CHANGE_TABLE_COLS
+
+      c2 = universe.members
+      c3 = c2.none
+      c4 = c2.none
+
+      handle_clause_based_cells table_name, [
+        ['C2', c2, c2.count],
+        ['C3', c3, c3.count],
+        ['C4', c4, c4.count],
+        ['C5', [], report_precentage(c3.count + c4.count, c2.count)],
+      ]
     end
 
     private def run_7b1(table_name)
@@ -43,6 +54,15 @@ module HudSpmReport::Generators::Fy2020
         3 => 'Of the persons above, those who exited to permanent housing destinations',
         4 => '% Successful exits',
       }.freeze, CHANGE_TABLE_COLS
+
+      c2 = universe.members
+      c3 = c2.none
+
+      handle_clause_based_cells table_name, [
+        ['C2', c2, c2.count],
+        ['C3', c3, c3.count],
+        ['C4', [], report_precentage(c3.count, c2.count)],
+      ]
     end
 
     private def run_7b2(table_name)
@@ -51,6 +71,15 @@ module HudSpmReport::Generators::Fy2020
         3 => 'Of persons above, those who remained in applicable PH projects and those who exited to permanent housing destinations',
         4 => '% Successful exits/retention',
       }.freeze, CHANGE_TABLE_COLS
+
+      c2 = universe.members
+      c3 = c2.none
+
+      handle_clause_based_cells table_name, [
+        ['C2', c2, c2.count],
+        ['C3', c3, c3.count],
+        ['C4', [], report_precentage(c3.count, c2.count)],
+      ]
     end
   end
 end
