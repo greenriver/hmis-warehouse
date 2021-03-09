@@ -42,16 +42,19 @@ module Importers::HmisAutoDetect
       @s3_path = path
       @file_path = file_path
       @local_path = File.join(file_path, @data_source_id.to_s, Time.current.to_i.to_s)
+      @stale = false
     end
 
     def self.available_connections
       GrdaWarehouse::HmisImportConfig.active.select do |conn|
-        conn.s3_access_key_id.present? && conn.data_source.import_paused == false
+        conn.s3_access_key_id.present? && conn.data_source&.import_paused == false
       end
     end
 
     def pre_process
       file_path = copy_from_s3()
+      return if @stale
+
       upload_id = upload(file_path: file_path) if file_path.present?
       Importers::HmisAutoDetect::UploadedZip.new(
         upload_id: upload_id,
@@ -69,7 +72,9 @@ module Importers::HmisAutoDetect
       file = fetch_most_recent()
       return unless file
 
-      warn_of_unchanged_file(file)
+      unchanged_file?(file)
+      return if @stale
+
       log("Found #{file}")
       # atool has trouble overwriting, so blow away whatever we had before
       FileUtils.rmtree(@local_path) if File.exist? @local_path
@@ -99,15 +104,18 @@ module Importers::HmisAutoDetect
     end
 
     private def previous_import
-      GrdaWarehouse::Upload.where(data_source_id: @data_source_id).select(:id, :file).order(id: :desc).first
+      GrdaWarehouse::Upload.where(data_source_id: @data_source_id, user_id: User.setup_system_user.id).select(:id, :file).order(id: :desc).first
     end
 
-    def warn_of_unchanged_file(file)
+    def unchanged_file?(file)
       incoming_filename = File.basename(file, File.extname(file))
       previous_import_filename = previous_import&.file&.file&.filename || 'none.zip'
       previous_import_filename = File.basename(previous_import_filename, File.extname(previous_import_filename))
-
-      log("WARNING, filename has not changed since last import: #{incoming_filename}") if incoming_filename == previous_import_filename
+      if incoming_filename == previous_import_filename
+        log("WARNING, filename has not changed since last import: #{incoming_filename}")
+        log('Refusing to import.')
+        @stale = true
+      end
     end
   end
 end

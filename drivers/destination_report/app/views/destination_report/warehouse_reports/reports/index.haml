@@ -1,0 +1,74 @@
+:ruby
+  reports = [@report]
+  column_class = 'col-sm-8'
+  if @report.include_comparison?
+    reports << @comparison
+    column_class = 'col-sm-6'
+  end
+  @layout__plain_inner = true
+  @layout__width = 'lg'
+
+- title = _('Destination Report')
+- content_for :title, title
+.content-outer-prs1
+  %nav.nav-drawer.prs1
+    = render 'filters/filter_controls/sidebar'
+  .main-outer-prs1
+    .utility-prs1
+      = render '/warehouse_reports/breadcrumbs', tab: 'operational'
+      = render 'utility'
+    .top-nav-prs1
+      %h1.mb-5= title
+      .mb-4= render 'hero_counts'
+      .main-inner-prs1
+        - if false
+          .text-right.mb-4
+            = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: destination_report_warehouse_reports_destination_reports_path({format: :xlsx}.merge(@filter.for_params))
+        .row
+          - reports.each_with_index do |report, index|
+            - comparison_class = ''
+            - if reports.count > 1
+              - comparison_class = "c-swatch__border-left--td-#{index}"
+            %div{class: column_class}
+              - data = report.data_for_destinations[:all]
+              .mb-4
+                %h3 Universe
+                .card.overflow-scroll.mb-4{class: comparison_class}
+                  %table.table.table-striped
+                    %thead
+                      %tr
+                        - data.each do |destination, _|
+                          %th.text-center= destination
+                    %tbody
+                      %tr
+                        - data.each do |_, ids|
+                          %th.text-center= number_with_delimiter(ids.count)
+              - report.data_for_destinations[:by_coc].each do |coc_code, data|
+                .mb-4
+                  %h3= coc_code
+                  .card.overflow-scroll.mb-4{class: comparison_class}
+                    %table.table.table-striped
+                      %thead
+                        %tr
+                          - data[:destinations].each do |destination, _|
+                            %th.text-center= destination
+                      %tbody
+                        %tr
+                          - data[:destinations].each do |_, ids|
+                            %th.text-center= number_with_delimiter(ids.count)
+                  .card{class: comparison_class}
+                    %table.table.table-striped
+                      %thead
+                        %tr
+                          %th Destination
+                          %th Destination Detail
+                          %th Client Count
+                      %tbody
+                        - data[:destination_details].each do |destination, d_data|
+                          - d_data.each_with_index do |(detailed_destination, ids), index|
+                            - next if ids.count.zero?
+                            %tr
+                              %th= destination
+                              %td= detailed_destination.presence || 'unknown'
+                              %td= number_with_delimiter(ids.count)
+      = render 'computation_description'

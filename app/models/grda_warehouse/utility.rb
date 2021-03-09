@@ -65,6 +65,8 @@ class GrdaWarehouse::Utility
     tables.each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} #{modifier(klass)}")
     end
+
+    nil
   end
   def self.modifier(model)
     return 'CASCADE' if [GrdaWarehouse::DataSource,GrdaWarehouse::Hud::Client,GrdaWarehouse::ServiceHistoryEnrollment].include?(model)

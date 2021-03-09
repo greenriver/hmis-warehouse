@@ -44,10 +44,32 @@ module HmisTwentyTwenty
       "#{module_scope}::#{name}".constantize
     end
 
+    def log(message, attachment = nil)
+      logger.info message
+      if attachment.present?
+        @notifier&.post(text: message, attachments: { text: attachment })
+      else
+        @notifier&.ping(message)
+      end
+    end
+
     def summary_as_log_str(summary)
-      summary.map do |file, info|
-        "> *#{file}* \n> \t#{hash_as_log_str(info)}"
-      end.join("\n")
+      cols = summary.values.flat_map(&:keys).uniq
+      cols -= ['pp_rps', 'add_rps', 'up_rps']
+      headers = cols.map do |col|
+        col.gsub('pre_processed', 'pre').
+          gsub('total_errors', 'errors').
+          gsub('total_flags', 'flags').
+          gsub('unchanged', 'un').
+          gsub('updated', 'up')
+      end
+      table = [
+        ['File'] + headers,
+      ]
+      summary.each do |file, info|
+        table << [file] + info.values_at(*cols)
+      end
+      "\n```\n#{ANSI::Table.new table}\n```\n"
     end
 
     def hash_as_log_str(hash, field_sep: ' ')
@@ -70,6 +92,17 @@ module HmisTwentyTwenty
       else
         format('%.3fs', s)
       end
+    end
+
+    def log_timing(message)
+      logger.debug { "#{message} #{hash_as_log_str log_ids}" }
+      ret = nil
+      bm = Benchmark.measure do
+        ret = send(message)
+      end
+
+      log "#{message} completed in #{elapsed_time bm.real} (#{(bm.total * 100.0 / bm.real).round}% cpu) #{hash_as_log_str log_ids}"
+      ret
     end
   end
 end

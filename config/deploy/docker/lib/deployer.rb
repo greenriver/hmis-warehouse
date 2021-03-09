@@ -226,7 +226,6 @@ class Deployer
 
   def _set_image_tag!
     if variant == 'pre-cache'
-      #self.image_tag = "latest--pre-cache"
       self.image_tag = "#{_ruby_version}--pre-cache"
     elsif ENV['IMAGE_TAG']
       self.image_tag = ENV['IMAGE_TAG'] + "--#{variant}"

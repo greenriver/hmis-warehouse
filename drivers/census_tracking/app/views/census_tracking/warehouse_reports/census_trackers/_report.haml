@@ -1,0 +1,38 @@
+%table.table.table-responsive.table-sm.table-hover
+  %thead
+    - headers = @report.headers
+    %tr
+      - headers.each do |header|
+        %th= header
+  %tbody
+    - last_project_type = ''
+    - @report.projects.each do |project_type, org_name, project_name, project_id|
+      - if project_type != last_project_type
+        - if ! last_project_type.blank?
+          %tr
+            %td.table-secondary{colspan: 2}
+            - @report.populations.keys.each do |population|
+              %td.table-secondary
+                = @report.client_count_by_project_type(last_project_type, population)
+        %tr
+          %td.table-dark{colspan: headers.size}= project_type
+          - last_project_type = project_type
+      %tr
+        %td.table-active= org_name
+        %td.table-active= project_name
+        - @report.populations.keys.each do |population|
+          %td
+            - count = @report.clients_by_project(project_id, population).count
+            = link_to_if count.positive?, count, details_census_tracking_warehouse_reports_census_trackers_path(params: @filter.for_params.merge!({project: project_id, key: population})), data: {loads_in_pjax_modal: true}
+    %tr
+      %td.table-secondary{colspan: 2}
+      - @report.populations.keys.each do |population|
+        %td.table-secondary
+          = @report.client_count_by_project_type(last_project_type, population)
+    %tr
+      %td.table-primary{colspan: 2} Total
+      - @report.populations.keys.each do |population|
+        %td.table-primary
+          = @report.client_count_by_population(population)
+%p
+  = @report.footnote
