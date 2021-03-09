@@ -55,14 +55,14 @@ module HudSpmReport::Generators::Fy2020
         6 => PH,
         7 => SO + ES + TH + SH + PH,
       }.each do |row, project_types|
-        scope = universe.members.where(t[:m2_exit_from_project_type].in(project_types))
+        scope = universe.members.where(t[:m6_exit_from_project_type].in(project_types))
         exited = scope
         n_exited = exited.count
         if n_exited.positive?
-          reentered_0_5 = scope.where(t[:m2_reentry_days].between(1 .. 180))
-          reentered_6_12 = scope.where(t[:m2_reentry_days].between(181 .. 365))
-          reentered_13_24 = scope.where(t[:m2_reentry_days].between(366 .. 730))
-          reentered = scope.where(t[:m2_reentry_days].between(1 .. 730))
+          reentered_0_5 = scope.where(t[:m6_reentry_days].between(1 .. 180))
+          reentered_6_12 = scope.where(t[:m6_reentry_days].between(181 .. 365))
+          reentered_13_24 = scope.where(t[:m6_reentry_days].between(366 .. 730))
+          reentered = scope.where(t[:m6_reentry_days].between(1 .. 730))
         else
           reentered_0_5 = scope.none
           reentered_6_12 = scope.none
