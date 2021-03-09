@@ -37,12 +37,6 @@ module HudSpmReport::Generators::Fy2020
       4 => 'Percentage of adults who increased earned income',
     }.freeze
 
-    COLS = {
-      'B' => 'Previous FY',
-      'C' => 'Current FY',
-      'D' => 'Difference',
-    }.freeze
-
     private def run_4_1(table_name)
       run_4_x table_name, true, 'm4_latest_earned_income > m4_earliest_earned_income'
     end
@@ -68,7 +62,7 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def run_4_x(table_name, stayer, income_change_clause)
-      prepare_table table_name, ROWS, COLS
+      prepare_table table_name, ROWS, CHANGE_TABLE_COLS
 
       universe_members = universe.members.where(t[:m4_stayer].eq(stayer))
       with_increased_income = universe_members.where(income_change_clause)

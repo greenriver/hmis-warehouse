@@ -27,12 +27,6 @@ module HudSpmReport::Generators::Fy2020
       @report.complete(self.class.question_number)
     end
 
-    COLS = {
-      'B' => 'Previous FY',
-      'C' => 'Current FY',
-      'D' => 'Difference',
-    }.freeze
-
     private def run_5_1(table_name)
       run_5_x(table_name, ES + SH + TH, 'Person with entries into ES, SH, or TH during the reporting period.')
     end
@@ -55,7 +49,7 @@ module HudSpmReport::Generators::Fy2020
         2 => "Universe: #{universe_desc}",
         3 => repeaters,
         4 => first_timers,
-      }, COLS
+      }, CHANGE_TABLE_COLS
 
       c2 = universe.members.where(['m5_active_project_types && ARRAY[?]', project_types])
       c3 = c2.where(['m5_recent_project_types && ARRAY[?]', ES + SH + TH + PH])

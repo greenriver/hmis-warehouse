@@ -45,6 +45,12 @@ module HudSpmReport::Generators::Fy2020
 
     UPSERT_KEY = [:report_instance_id, :client_id, :data_source_id].freeze
 
+    CHANGE_TABLE_COLS = {
+      'B' => 'Previous FY',
+      'C' => 'Current FY',
+      'D' => 'Difference',
+    }.freeze
+
     SHE_COLUMNS = {
       client_id: :client_id,
       destination: :destination,

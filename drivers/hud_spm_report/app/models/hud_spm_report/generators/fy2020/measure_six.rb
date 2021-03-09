@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Measure 6: Homeless Prevention and Housing Placement of Persons Defined by Category 3 of HUD’s Homeless Definition in CoC Program-funded Projects
 module HudSpmReport::Generators::Fy2020
   class MeasureSix < Base
     def self.question_number
@@ -84,20 +85,12 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
-    DIFF_COLS = {
-      'B' => 'Previous FY',
-      'C' => 'Current FY',
-      'D' => 'Difference',
-    }.freeze
-
-    DIFF_ROWS = {
-      2 => 'Universe: Cat. 3 Persons in SH, TH and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
-      3 => 'Of the persons above, those who exited to permanent destinations',
-      4 => '% Successful exits',
-    }.freeze
-
     private def run_6c1(table_name)
-      prepare_table table_name, DIFF_ROWS, DIFF_COLS
+      prepare_table table_name, {
+        2 => 'Universe: Cat. 3 Persons in SH, TH and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
+        3 => 'Of the persons above, those who exited to permanent destinations',
+        4 => '% Successful exits',
+      }.freeze, CHANGE_TABLE_COLS
 
       c2 = universe.members.none
       c3 = c2.none
@@ -110,7 +103,11 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def run_6c2(table_name)
-      prepare_table table_name, DIFF_ROWS, DIFF_COLS
+      prepare_table table_name, {
+        2 => 'Universe: Cat. 3 Persons in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
+        3 => 'Of persons above, count those who remained in PH-PSH projects and those who exited to permanent housing destinations',
+        4 => '% Successful exits/retention',
+      }.freeze, CHANGE_TABLE_COLS
 
       c2 = universe.members.none
       c3 = c2.none
