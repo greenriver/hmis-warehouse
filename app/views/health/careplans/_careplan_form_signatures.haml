@@ -6,12 +6,21 @@
     %label.control-label.optional Patient
     .controls.form-control.form-control-faux
       = @patient.name
-  = f.input :patient_signed_on, as: :date_picker, label: 'Date Signed'
+  .row
+    .col
+      = f.input :patient_signed_on, as: :date_picker, label: 'Date Signed'
+    .col
+      = f.input :patient_signature_mode, collection: @careplan.signature_modes, as: :select_two, label: 'Signed'
 
   = f.input :provider_id, label: 'Primary Care Provider or PCP Designee', collection: available_team_members, input_html: select2_input_html, wrapper_html: select2_wrapper_html, disabled: @careplan.locked? && f.object.provider_id.present?
 
   = f.input :provider_signature_requested_at, as: :date_picker, label: 'Date Requested'
-  = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
+
+  .row
+    .col
+      = f.input :provider_signed_on, as: :date_picker, label: 'Date Signed'
+    .col
+      = f.input :provider_signature_mode, collection: @careplan.signature_modes, as: :select_two, label: 'Signed'
 
 .col-md-6
 
