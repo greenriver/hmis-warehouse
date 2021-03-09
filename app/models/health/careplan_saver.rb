@@ -35,12 +35,12 @@ module Health
             @qualifying_activity.date_of_activity = signature_date
 
             case @careplan.provider_signature_mode
-            when :email
+            when 'email'
               @qualifying_activity.mode_of_contact = :other
               @qualifying_activity.reached_client = :collateral
               @qualifying_activity.mode_of_contact_other = 'On-line'
               @qualifying_activity.reached_client_collateral_contact = 'On-line Signature'
-            when :in_person
+            when 'in_person'
               @qualifying_activity.mode_of_contact = :in_person
               @qualifying_activity.reached_client = :yes
             else
