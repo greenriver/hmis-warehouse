@@ -84,7 +84,14 @@ RSpec.describe Health::Patient, type: :model do
 
     it 'does not adjust the engagement date after auto re-enrollment if there is a valid care plan' do
       enrollment_start_date = @referral.enrollment_start_date
-      create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      create(
+        :careplan,
+        patient: @patient,
+        provider_signed_on: enrollment_start_date + 30.days,
+        provider_signature_mode: :in_person,
+        patient_signed_on: enrollment_start_date + 30.days,
+        patient_signature_mode: :in_person,
+      )
       @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
       re_enrollment_date = enrollment_start_date + 90.days
       referral_args = {
@@ -108,7 +115,14 @@ RSpec.describe Health::Patient, type: :model do
 
     it 'resets the outreach and engagement dates for a re-enrollment after expiration' do
       enrollment_start_date = @referral.enrollment_start_date
-      careplan = create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      careplan = create(
+        :careplan,
+        patient: @patient,
+        provider_signed_on: enrollment_start_date + 30.days,
+        provider_signature_mode: :in_person,
+        patient_signed_on: enrollment_start_date + 30.days,
+        patient_signature_mode: :in_person,
+      )
       @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
       new_enrollment_date = careplan.expires_on + 1.day
       Timecop.travel(new_enrollment_date)
