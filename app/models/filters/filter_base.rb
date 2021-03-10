@@ -13,6 +13,7 @@ module Filters
     include ActionView::Helpers::TagHelper
     include ActionView::Context
 
+    attribute :on, Date, lazy: true, default: ->(r, _) { r.default_on }
     attribute :start, Date, lazy: true, default: ->(r, _) { r.default_start }
     attribute :end, Date, lazy: true, default: ->(r, _) { r.default_end }
     attribute :enforce_one_year_range, Boolean, default: true
@@ -31,6 +32,7 @@ module Filters
     attribute :length_of_times, Array, default: []
     attribute :destination_ids, Array, default: []
     attribute :prior_living_situation_ids, Array, default: []
+    attribute :default_on, Date, default: Date.current
     attribute :default_start, Date, default: (Date.current - 1.year).beginning_of_year
     attribute :default_end, Date, default: (Date.current - 1.year).end_of_year
 
@@ -72,6 +74,7 @@ module Filters
     def set_from_params(filters) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Naming/AccessorMethodName
       return self unless filters.present?
 
+      self.on = filters.dig(:on)&.to_date || default_on
       self.start = filters.dig(:start)&.to_date || default_start
       self.end = filters.dig(:end)&.to_date || default_end
       # Allow multi-year filters if we explicitly passed in something that isn't truthy
@@ -113,6 +116,7 @@ module Filters
       {
         filters: {
           # NOTE: order specified here is used to echo selections in describe_filter
+          on: on,
           start: start,
           end: self.end,
           comparison_pattern: comparison_pattern,
@@ -145,9 +149,13 @@ module Filters
       }
     end
 
-    def selected_params_for_display
+    def selected_params_for_display(single_date: false)
       {}.tap do |opts|
-        opts['Report Range'] = date_range_words
+        if single_date
+          opts['On Date'] = on
+        else
+          opts['Report Range'] = date_range_words
+        end
         opts['Comparison Range'] = comparison_range_words if includes_comparison?
         opts['CoC Codes'] = chosen_coc_codes if coc_codes.present?
         opts['Project Types'] = chosen_project_types

@@ -19,5 +19,8 @@
       %tbody.thead-dark
         - rows.each do |row|
           %tr
-            - row.each do |col|
-              %td= col
+            - row.each.with_index do |col, index|
+              - if index.zero?
+                %td= link_to col, appropriate_client_path(id: col)
+              - else
+                %td= col

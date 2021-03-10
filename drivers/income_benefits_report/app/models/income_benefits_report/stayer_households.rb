@@ -233,7 +233,7 @@ module
     end
 
     private def adult_stayers_with_increased_income_records
-      clients.where(client_id: adult_stayers_with_increased_income)
+      stayers_adults.where(client_id: adult_stayers_with_increased_income)
     end
 
     private def count_adult_stayers_with_increased_income
@@ -255,7 +255,7 @@ module
     end
 
     private def adult_stayers_with_decreased_income_records
-      clients.where(client_id: adult_stayers_with_decreased_income)
+      stayers_adults.where(client_id: adult_stayers_with_decreased_income)
     end
 
     private def count_adult_stayers_with_decreased_income
@@ -277,7 +277,7 @@ module
     end
 
     private def adult_stayers_with_maintained_income_records
-      clients.where(client_id: adult_stayers_with_maintained_income)
+      stayers_adults.where(client_id: adult_stayers_with_maintained_income)
     end
 
     private def count_adult_stayers_with_maintained_income

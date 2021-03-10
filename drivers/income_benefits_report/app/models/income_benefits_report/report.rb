@@ -28,8 +28,7 @@ module IncomeBenefitsReport
 
     belongs_to :user
     has_many :clients
-    has_many :earlier_income_record, through: :clients
-    has_many :later_income_record, through: :clients
+    has_many :incomes
 
     after_initialize :filter, :set_project_types
 
@@ -80,6 +79,18 @@ module IncomeBenefitsReport
       comparison.report_date_range = comparison_date_range
       comparison.id = id
       comparison
+    end
+
+    def earlier_income_records
+      incomes.earlier.
+        date_range(report_date_range).
+        where(client_id: clients.select(:id))
+    end
+
+    def later_income_records
+      incomes.later.
+        date_range(report_date_range).
+        where(client_id: clients.select(:id))
     end
 
     private def set_project_types
@@ -365,89 +376,80 @@ module IncomeBenefitsReport
     end
 
     private def income_record_from(client, stage, income, range)
-      relation = case stage
-      when :later
-        :build_later_income_record
-      when :earlier
-        :build_earlier_income_record
-      end
-      client.send(
-        relation,
-        {
-          report: self,
-          income_benefits_id: income.id,
-          date_range: range,
-          stage: stage,
-          InformationDate: income.InformationDate,
-          IncomeFromAnySource: income.IncomeFromAnySource,
-          TotalMonthlyIncome: income.TotalMonthlyIncome,
-          Earned: income.Earned,
-          EarnedAmount: income.EarnedAmount,
-          Unemployment: income.Unemployment,
-          UnemploymentAmount: income.UnemploymentAmount,
-          SSI: income.SSI,
-          SSIAmount: income.SSIAmount,
-          SSDI: income.SSDI,
-          SSDIAmount: income.SSDIAmount,
-          VADisabilityService: income.VADisabilityService,
-          VADisabilityServiceAmount: income.VADisabilityServiceAmount,
-          VADisabilityNonService: income.VADisabilityNonService,
-          VADisabilityNonServiceAmount: income.VADisabilityNonServiceAmount,
-          PrivateDisability: income.PrivateDisability,
-          PrivateDisabilityAmount: income.PrivateDisabilityAmount,
-          WorkersComp: income.WorkersComp,
-          WorkersCompAmount: income.WorkersCompAmount,
-          TANF: income.TANF,
-          TANFAmount: income.TANFAmount,
-          GA: income.GA,
-          GAAmount: income.GAAmount,
-          SocSecRetirement: income.SocSecRetirement,
-          SocSecRetirementAmount: income.SocSecRetirementAmount,
-          Pension: income.Pension,
-          PensionAmount: income.PensionAmount,
-          ChildSupport: income.ChildSupport,
-          ChildSupportAmount: income.ChildSupportAmount,
-          Alimony: income.Alimony,
-          AlimonyAmount: income.AlimonyAmount,
-          OtherIncomeSource: income.OtherIncomeSource,
-          OtherIncomeAmount: income.OtherIncomeAmount,
-          OtherIncomeSourceIdentify: income.OtherIncomeSourceIdentify,
-          BenefitsFromAnySource: income.BenefitsFromAnySource,
-          SNAP: income.SNAP,
-          WIC: income.WIC,
-          TANFChildCare: income.TANFChildCare,
-          TANFTransportation: income.TANFTransportation,
-          OtherTANF: income.OtherTANF,
-          OtherBenefitsSource: income.OtherBenefitsSource,
-          OtherBenefitsSourceIdentify: income.OtherBenefitsSourceIdentify,
-          InsuranceFromAnySource: income.InsuranceFromAnySource,
-          Medicaid: income.Medicaid,
-          NoMedicaidReason: income.NoMedicaidReason,
-          Medicare: income.Medicare,
-          NoMedicareReason: income.NoMedicareReason,
-          SCHIP: income.SCHIP,
-          NoSCHIPReason: income.NoSCHIPReason,
-          VAMedicalServices: income.VAMedicalServices,
-          NoVAMedReason: income.NoVAMedReason,
-          EmployerProvided: income.EmployerProvided,
-          NoEmployerProvidedReason: income.NoEmployerProvidedReason,
-          COBRA: income.COBRA,
-          NoCOBRAReason: income.NoCOBRAReason,
-          PrivatePay: income.PrivatePay,
-          NoPrivatePayReason: income.NoPrivatePayReason,
-          StateHealthIns: income.StateHealthIns,
-          NoStateHealthInsReason: income.NoStateHealthInsReason,
-          IndianHealthServices: income.IndianHealthServices,
-          NoIndianHealthServicesReason: income.NoIndianHealthServicesReason,
-          OtherInsurance: income.OtherInsurance,
-          OtherInsuranceIdentify: income.OtherInsuranceIdentify,
-          HIVAIDSAssistance: income.HIVAIDSAssistance,
-          NoHIVAIDSAssistanceReason: income.NoHIVAIDSAssistanceReason,
-          ADAP: income.ADAP,
-          NoADAPReason: income.NoADAPReason,
-          ConnectionWithSOAR: income.ConnectionWithSOAR,
-          DataCollectionStage: income.DataCollectionStage,
-        },
+      client.incomes.build(
+        report: self,
+        income_benefits_id: income.id,
+        date_range: range,
+        stage: stage,
+        InformationDate: income.InformationDate,
+        IncomeFromAnySource: income.IncomeFromAnySource,
+        TotalMonthlyIncome: income.TotalMonthlyIncome,
+        Earned: income.Earned,
+        EarnedAmount: income.EarnedAmount,
+        Unemployment: income.Unemployment,
+        UnemploymentAmount: income.UnemploymentAmount,
+        SSI: income.SSI,
+        SSIAmount: income.SSIAmount,
+        SSDI: income.SSDI,
+        SSDIAmount: income.SSDIAmount,
+        VADisabilityService: income.VADisabilityService,
+        VADisabilityServiceAmount: income.VADisabilityServiceAmount,
+        VADisabilityNonService: income.VADisabilityNonService,
+        VADisabilityNonServiceAmount: income.VADisabilityNonServiceAmount,
+        PrivateDisability: income.PrivateDisability,
+        PrivateDisabilityAmount: income.PrivateDisabilityAmount,
+        WorkersComp: income.WorkersComp,
+        WorkersCompAmount: income.WorkersCompAmount,
+        TANF: income.TANF,
+        TANFAmount: income.TANFAmount,
+        GA: income.GA,
+        GAAmount: income.GAAmount,
+        SocSecRetirement: income.SocSecRetirement,
+        SocSecRetirementAmount: income.SocSecRetirementAmount,
+        Pension: income.Pension,
+        PensionAmount: income.PensionAmount,
+        ChildSupport: income.ChildSupport,
+        ChildSupportAmount: income.ChildSupportAmount,
+        Alimony: income.Alimony,
+        AlimonyAmount: income.AlimonyAmount,
+        OtherIncomeSource: income.OtherIncomeSource,
+        OtherIncomeAmount: income.OtherIncomeAmount,
+        OtherIncomeSourceIdentify: income.OtherIncomeSourceIdentify,
+        BenefitsFromAnySource: income.BenefitsFromAnySource,
+        SNAP: income.SNAP,
+        WIC: income.WIC,
+        TANFChildCare: income.TANFChildCare,
+        TANFTransportation: income.TANFTransportation,
+        OtherTANF: income.OtherTANF,
+        OtherBenefitsSource: income.OtherBenefitsSource,
+        OtherBenefitsSourceIdentify: income.OtherBenefitsSourceIdentify,
+        InsuranceFromAnySource: income.InsuranceFromAnySource,
+        Medicaid: income.Medicaid,
+        NoMedicaidReason: income.NoMedicaidReason,
+        Medicare: income.Medicare,
+        NoMedicareReason: income.NoMedicareReason,
+        SCHIP: income.SCHIP,
+        NoSCHIPReason: income.NoSCHIPReason,
+        VAMedicalServices: income.VAMedicalServices,
+        NoVAMedReason: income.NoVAMedReason,
+        EmployerProvided: income.EmployerProvided,
+        NoEmployerProvidedReason: income.NoEmployerProvidedReason,
+        COBRA: income.COBRA,
+        NoCOBRAReason: income.NoCOBRAReason,
+        PrivatePay: income.PrivatePay,
+        NoPrivatePayReason: income.NoPrivatePayReason,
+        StateHealthIns: income.StateHealthIns,
+        NoStateHealthInsReason: income.NoStateHealthInsReason,
+        IndianHealthServices: income.IndianHealthServices,
+        NoIndianHealthServicesReason: income.NoIndianHealthServicesReason,
+        OtherInsurance: income.OtherInsurance,
+        OtherInsuranceIdentify: income.OtherInsuranceIdentify,
+        HIVAIDSAssistance: income.HIVAIDSAssistance,
+        NoHIVAIDSAssistanceReason: income.NoHIVAIDSAssistanceReason,
+        ADAP: income.ADAP,
+        NoADAPReason: income.NoADAPReason,
+        ConnectionWithSOAR: income.ConnectionWithSOAR,
+        DataCollectionStage: income.DataCollectionStage,
       )
     end
 

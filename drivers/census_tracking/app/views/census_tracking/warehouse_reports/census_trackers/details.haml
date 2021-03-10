@@ -1,0 +1,22 @@
+= content_for :crumbs do
+  = link_to census_tracking_warehouse_reports_census_trackers_path(params: @filter.for_params) do
+    = "« Census Tracker"
+- title = [@project_name, @type, @key].compact.join(' - ')
+- content_for :title, title
+= content_for :modal_title, title
+
+%table.table.table-sm
+  %thead
+    %tr
+      - detail_columns.keys.each do |name|
+        %th= name
+  %tbody
+    - @clients.each do |client|
+      %tr
+        - detail_columns.each do |key, field|
+          - value = client.public_send(field)
+          %td
+            - if field == :client_id
+              = link_to value, client_path(value)
+            - else
+              = value
