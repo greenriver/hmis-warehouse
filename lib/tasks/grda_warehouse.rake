@@ -341,9 +341,8 @@ namespace :grda_warehouse do
   task :force_rebuild_for_homeless_enrollments, [] => [:environment, 'log:info_to_stdout'] do |task, args|
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.where.not(MoveInDate: nil).invalidate_processing!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.homeless.invalidate_processing!
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.unprocessed.pluck(:id).each_slice(250) do |batch|
-      Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch), queue: :long_running)
-    end
+
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
     GrdaWarehouse::ServiceHistoryServiceMaterialized.delay(queue: :long_running).rebuild!
   end
 

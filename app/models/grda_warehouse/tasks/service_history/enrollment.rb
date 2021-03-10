@@ -10,42 +10,27 @@ module GrdaWarehouse::Tasks::ServiceHistory
     include TsqlImport
     include ArelHelper
     include ActiveSupport::Benchmarkable
+    include ::ServiceHistory::Builder
 
     after_commit :force_validity_calculation
 
     SO = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:so]
 
     def self.batch_job_ids
-      Delayed::Job.where(queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name, failed_at: nil).
-      jobs_for_class('ServiceHistory::RebuildEnrollments').
-      pluck(:id)
+      builder_batch_job_scope.pluck(:id)
     end
 
     def self.batch_process_unprocessed!(max_wait_seconds: 21_600)
       queue_batch_process_unprocessed!
-      GrdaWarehouse::Tasks::ServiceHistory::Base.
-        wait_for_processing(max_wait_seconds: max_wait_seconds, queue: ::ServiceHistory::RebuildEnrollmentsByBatchJob.queue_name)
+      wait_for_processing(max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
     end
 
     def self.queue_batch_process_unprocessed!
-      GrdaWarehouse::Hud::Enrollment.with_advisory_lock('rebuild_enrollments') do
-        unprocessed.unassigned.joins(:project, :destination_client).
-          pluck_in_batches(:id, batch_size: 250) do |batch|
-          job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch))
-          where(id: batch).update_all(service_history_processing_job_id: job.id)
-        end
-      end
+      queue_enrollments(unprocessed)
     end
 
     def self.batch_process_date_range!(date_range)
-      GrdaWarehouse::Hud::Enrollment.with_advisory_lock('rebuild_enrollments') do
-        open_during_range(date_range).
-          joins(:project, :destination_client).
-          pluck_in_batches(:id, batch_size: 250) do |batch|
-          job = Delayed::Job.enqueue(::ServiceHistory::RebuildEnrollmentsByBatchJob.new(enrollment_ids: batch))
-          where(id: batch).update_all(delayed_job_id: job.id)
-        end
-      end
+      queue_enrollments(open_during_range(date_range))
     end
 
     def invalidate_source_data!
