@@ -30,15 +30,15 @@ module GrdaWarehouse::Tasks
           unique_keys << row[klass.hud_key.to_s.downcase]
           export_ids << row['exportid']
           self.export_id ||= row['exportid'] if filename == 'Export.csv'
-          validate(klass, row)
+          validate(filename, klass, row)
         end
 
-        add_error(klass, klass.hud_key.to_s, 'Duplicate unique keys found') if duplicate_keys?(unique_keys)
-        add_error(klass, 'ExportID', 'Incorrect ExportIDs') if incorrect_export_ids?(export_ids)
+        add_error(filename, klass.hud_key.to_s, 'Duplicate unique keys found') if duplicate_keys?(unique_keys)
+        add_error(filename, 'ExportID', 'Incorrect ExportIDs', export_ids.uniq) if incorrect_export_ids?(export_ids)
       end
     end
 
-    private def validate(klass, row)
+    private def validate(filename, klass, row)
       validations(klass).each do |column, checks|
         next unless checks.any?
 
@@ -49,17 +49,18 @@ module GrdaWarehouse::Tasks
           else
             send(check[:check], v)
           end
-          add_error(klass, column, check[:error_message]) unless field_valid
+          add_error(filename, column, check[:error_message], row.to_h) unless field_valid
         end
       end
     end
 
-    private def add_error(klass, column, message)
+    private def add_error(filename, column, message, example = nil)
       self.errors ||= {}
-      self.errors[klass.name] ||= {}
-      self.errors[klass.name][column] ||= {}
-      self.errors[klass.name][column][message] ||= 0
-      self.errors[klass.name][column][message] += 1
+      self.errors[filename] ||= {}
+      self.errors[filename][column] ||= {}
+      self.errors[filename][column][message] ||= { count: 0, example: example}
+      self.errors[filename][column][message][:count] += 1
+      self.errors[filename][column][message][:example] ||= example
     end
 
     private def validations(klass)
