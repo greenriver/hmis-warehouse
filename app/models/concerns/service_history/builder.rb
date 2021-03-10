@@ -68,22 +68,30 @@ module ServiceHistory::Builder
     # @param interval [Integer] The number of seconds between queries
     # @param max_wait_seconds [Integer] The maximum number of seconds to wait
     def wait_for_clients(client_ids:, interval: 30, max_wait_seconds: DEFAULT_MAX_WAIT_SECONDS)
-      client_ids = [client_ids] if client_ids.is_a? Integer # Wrap single client_ids
-
       if Rails.env.test?
         # you must manually process these in the test environment since there are no workers
         Delayed::Worker.new.work_off(2)
       else
-        enrollments_scope = GrdaWarehouse::Hud::Enrollment.where(
-          id: enrollment_ids(client_ids),
-          service_history_processing_job_id: builder_batch_job_scope.select(:id),
-        )
-        while enrollments_scope.exists?
+        while clients_still_processing?(client_ids: client_ids)
           break if (Time.current - started) > max_wait_seconds
 
           sleep(interval)
         end
       end
+    end
+
+    # Test to see if there are queued enrollment processing jobs for the enrollments associated
+    # with destination client ids.
+    #
+    # @param client_ids A destination client id, or an array of destination client ids
+    # @return [Boolean] is any of the client's enrollment processing incomplete?
+    def clients_still_processing?(client_ids:)
+      client_ids = [client_ids] if client_ids.is_a? Integer # Wrap single client_ids
+
+      GrdaWarehouse::Hud::Enrollment.where(
+        id: enrollment_ids(client_ids),
+        service_history_processing_job_id: builder_batch_job_scope.select(:id),
+      ).exists?
     end
 
     private def builder_batch_job_scope

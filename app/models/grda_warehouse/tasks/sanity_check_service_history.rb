@@ -8,6 +8,8 @@ module GrdaWarehouse::Tasks
   class SanityCheckServiceHistory
     include ArelHelper
     include NotifierConfig
+    include ServiceHistory::Builder
+
     attr_accessor :logger, :send_notifications, :notifier_config
     MAX_ATTEMPTS = 3 # We'll check anything a few times, but don't run forever
     CACHE_KEY = 'sanity_check_service_history'
@@ -46,7 +48,7 @@ module GrdaWarehouse::Tasks
     def sanity_check
       messages = []
       @destinations.each do |id, counts|
-        if counts[:service_history].except(:service) != counts[:source].except(:service) && ! client_still_processing?(id)
+        if counts[:service_history].except(:service) != counts[:source].except(:service) && ! clients_still_processing?(id)
           msg = "```client: #{id} \n#{counts.except(:source_personal_ids).inspect}```\n"
           logger.warn msg
           messages << msg
@@ -67,14 +69,6 @@ module GrdaWarehouse::Tasks
         logger.info rebuilding_message
         GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run!
       end
-    end
-
-    def client_still_processing?(client_id)
-      job_ids = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_job_ids
-      GrdaWarehouse::Hud::Client.where(id: client_id).
-        joins(source_enrollments: :project).
-        where(e_t[:service_history_processing_job_id].in(job_ids)).
-        exists?
     end
 
     def attempts
