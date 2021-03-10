@@ -200,7 +200,6 @@ module GrdaWarehouse::WarehouseReports
       Reporting::Housed
     end
 
-
     def service_history_enrollment_scope(start_date: @filter.start, end_date: @filter.end)
       sub_population = @filter.sub_population
       sub_population = :youth if sub_population.to_s.starts_with?('youth')
@@ -211,6 +210,7 @@ module GrdaWarehouse::WarehouseReports
         joins(:organization).
         merge(GrdaWarehouse::Hud::Project.viewable_by(@user))
 
+      scope = scope.where(data_source_id: @filter.data_source_ids) unless @filter.data_source_ids.empty?
       scope = scope.where(p_t[:id].in(@filter.project_ids)) unless @filter.project_ids.empty?
       scope = scope.where(o_t[:id].in(@filter.organization_ids)) unless @filter.organization_ids.empty?
 

@@ -937,6 +937,13 @@ module GrdaWarehouse::WarehouseReports
             limitable: false,
             health: false,
           }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/number_housed',
+            name: 'Public Number Housed Report Generator',
+            description: 'Use this to review and publish the Number of clients housed for public consumption.',
+            limitable: false,
+            health: false,
+          }
         end
       end
       if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)

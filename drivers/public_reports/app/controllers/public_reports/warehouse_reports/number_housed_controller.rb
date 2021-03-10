@@ -5,25 +5,25 @@
 ###
 
 module PublicReports::WarehouseReports
-  class PointInTimeController < ApplicationController
+  class NumberHousedController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
     include PublicReports::WarehouseReports::PublicReportsControllerConcern
 
     private def path_to_report_index
-      public_reports_warehouse_reports_point_in_time_index_path
+      public_reports_warehouse_reports_number_housed_index_path
     end
 
     private def path_to_report
-      public_reports_warehouse_reports_point_in_time_path(@report)
+      public_reports_warehouse_reports_number_housed_path(@report)
     end
 
     private def report_source
-      PublicReports::PointInTime
+      PublicReports::NumberHoused
     end
 
     private def flash_interpolation_options
-      { resource_name: 'Point-in-Time Report' }
+      { resource_name: 'Number Housed Report' }
     end
   end
 end
