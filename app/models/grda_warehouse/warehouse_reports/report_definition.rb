@@ -940,7 +940,21 @@ module GrdaWarehouse::WarehouseReports
           r_list['Public'] << {
             url: 'public_reports/warehouse_reports/number_housed',
             name: 'Public Number Housed Report Generator',
-            description: 'Use this to review and publish the Number of clients housed for public consumption.',
+            description: 'Use this to review and publish the number of clients housed for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/homeless_count',
+            name: 'Public Number Homeless Report Generator',
+            description: 'Use this to review and publish the number of homeless clients for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/homeless_count_comparison',
+            name: 'Public Percent Homeless Comparison Report Generator',
+            description: 'Use this to review and publish the change of homeless clients for public consumption.',
             limitable: false,
             health: false,
           }

@@ -74,14 +74,7 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
           project_group_ids: [],
         ],
       )
-      if options.blank?
-        options = {
-          filters: {
-            start: 4.years.ago.beginning_of_year.to_date,
-            end: 1.years.ago.end_of_year.to_date,
-          },
-        }
-      end
+      options = default_filter_options if options.blank?
       options[:filters][:enforce_one_year_range] = false
       options
     end
@@ -89,6 +82,15 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
 
     private def filter_class
       ::Filters::FilterBase
+    end
+
+    private def default_filter_options
+      {
+        filters: {
+          start: 4.years.ago.beginning_of_year.to_date,
+          end: 1.years.ago.end_of_year.to_date,
+        },
+      }
     end
 
     private def set_report

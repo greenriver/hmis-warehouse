@@ -5,21 +5,21 @@
 ###
 
 module PublicReports::WarehouseReports
-  class NumberHousedController < ApplicationController
+  class HomelessCountController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
     include PublicReports::WarehouseReports::PublicReportsControllerConcern
 
     private def path_to_report_index
-      public_reports_warehouse_reports_number_housed_index_path
+      public_reports_warehouse_reports_homeless_count_index_path
     end
 
     private def path_to_report
-      public_reports_warehouse_reports_number_housed_path(@report)
+      public_reports_warehouse_reports_homeless_count_path(@report)
     end
 
     private def report_source
-      PublicReports::NumberHoused
+      PublicReports::HomelessCount
     end
 
     private def flash_interpolation_options
@@ -31,6 +31,7 @@ module PublicReports::WarehouseReports
         filters: {
           start: 1.years.ago.beginning_of_year.to_date,
           end: 1.years.ago.end_of_year.to_date,
+          project_type_numbers: [1, 2, 8, 4],
         },
       }
     end

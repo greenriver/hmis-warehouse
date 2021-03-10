@@ -75,13 +75,5 @@ module PublicReports
         ]
       end
     end
-
-    private def start_report
-      update(started_at: Time.current, state: :started)
-    end
-
-    private def complete_report
-      update(completed_at: Time.current, state: 'pre-computed')
-    end
   end
 end

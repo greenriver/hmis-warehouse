@@ -5,23 +5,23 @@
 ###
 
 module PublicReports
-  class NumberHoused < ::PublicReports::Report
+  class HomelessCount < ::PublicReports::Report
     acts_as_paranoid
 
     def title
-      _('Number Housed Generator')
+      _('Homeless Count Generator')
     end
 
     def instance_title
-      _('Number Housed Report')
+      _('Homeless Count Report')
     end
 
     private def public_s3_directory
-      'housed-total-count'
+      'homeless-total-count'
     end
 
     def url
-      public_reports_warehouse_reports_number_housed_index_url(host: ENV.fetch('FQDN'))
+      public_reports_warehouse_reports_homeless_count_index_url(host: ENV.fetch('FQDN'))
     end
 
     def generate_publish_url
@@ -43,7 +43,7 @@ module PublicReports
 
     private def chart_data
       {
-        count: housed_total_count,
+        count: total_homeless_count,
         date_range: filter_object.date_range_words,
       }.to_json
     end
@@ -52,14 +52,22 @@ module PublicReports
       update(precalculated_data: chart_data)
     end
 
-    # NOTE: this count is equivalent to OutflowReport.exits_to_ph
-    private def housed_total_count
-      outflow = GrdaWarehouse::WarehouseReports::OutflowReport.new(filter_object, user)
-      outflow.exits_to_ph.count
+    private def total_homeless_count
+      report_scope.distinct.select(:client_id).count
     end
 
-    def filter_object
-      @filter_object ||= ::Filters::OutflowReport.new.set_from_params(filter['filters'].merge(enforce_one_year_range: false, sub_population: :clients).with_indifferent_access)
+    private def report_scope
+      # for compatability with FilterScopes
+      @filter = filter_object
+      @project_types = @filter.project_type_numbers
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
+      scope = filter_for_range(scope)
+      scope = filter_for_cocs(scope)
+      scope = filter_for_project_type(scope)
+      scope = filter_for_data_sources(scope)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_projects(scope)
+      scope
     end
   end
 end

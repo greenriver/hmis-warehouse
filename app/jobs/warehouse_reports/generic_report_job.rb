@@ -43,6 +43,8 @@ module WarehouseReports
       reports['ProjectScorecard::Report'] = ProjectScorecard::Report if RailsDrivers.loaded.include?(:project_scorecard)
       reports['PublicReports::PointInTime'] = PublicReports::PointInTime if RailsDrivers.loaded.include?(:public_reports)
       reports['PublicReports::NumberHoused'] = PublicReports::NumberHoused if RailsDrivers.loaded.include?(:public_reports)
+      reports['PublicReports::HomelessCount'] = PublicReports::HomelessCount if RailsDrivers.loaded.include?(:public_reports)
+      reports['PublicReports::HomelessCountComparison'] = PublicReports::HomelessCountComparison if RailsDrivers.loaded.include?(:public_reports)
       reports['IncomeBenefitsReport::Report'] = IncomeBenefitsReport::Report if RailsDrivers.loaded.include?(:income_benefits_report)
 
       reports
