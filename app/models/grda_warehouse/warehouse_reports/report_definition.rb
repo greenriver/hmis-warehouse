@@ -1050,6 +1050,9 @@ module GrdaWarehouse::WarehouseReports
       unless RailsDrivers.loaded.include?(:public_reports)
         cleanup << 'public_reports/warehouse_reports/point_in_time'
         cleanup << 'public_reports/warehouse_reports/public_configs'
+        cleanup << 'public_reports/warehouse_reports/number_housed'
+        cleanup << 'public_reports/warehouse_reports/homeless_count'
+        cleanup << 'public_reports/warehouse_reports/homeless_count_comparison'
       end
       cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
       cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)
