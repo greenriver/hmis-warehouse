@@ -36,7 +36,7 @@ module HmisCsvTwentyTwenty::Importer
       @loader_log = HmisCsvTwentyTwenty::Loader::LoaderLog.find(loader_id.to_i)
       @data_source = GrdaWarehouse::DataSource.find(data_source_id.to_i)
       @logger = logger
-      @debug = debug
+      @debug = debug # no longer used for anything. instead we use logger.levels.
 
       @deidentified = deidentified
       self.importer_log = setup_import
@@ -65,16 +65,16 @@ module HmisCsvTwentyTwenty::Importer
 
       GrdaWarehouse::DataSource.with_advisory_lock("hud_import_#{data_source.id}") do
         start_import
-        pre_process!
-        validate_data_set!
-        aggregate!
-        cleanup_data_set!
+        log_timing :pre_process!
+        log_timing :validate_data_set!
+        log_timing :aggregate!
+        log_timing :cleanup_data_set!
         # refuse to proceed with the import if there are any errors and that setting is in effect
         if should_pause?
           pause_import
         else
           ingest!
-          invalidate_aggregated_enrollments!
+          log_timing :invalidate_aggregated_enrollments!
           complete_import
         end
       end
@@ -109,7 +109,6 @@ module HmisCsvTwentyTwenty::Importer
 
     # Move all data from the data lake to either the structured, or aggregated tables
     def pre_process!
-      logger.info "pre_process! #{hash_as_log_str log_ids}"
       importer_log.update(status: :pre_processing)
 
       importable_files.each do |file_name, klass|
@@ -127,8 +126,6 @@ module HmisCsvTwentyTwenty::Importer
 
     def pre_process_class!(file_name, klass)
       importer_log_id = importer_log.id
-      # logger.debug { "Pre-processing #{klass.table_name} #{hash_as_log_str(importer_log_id: importer_log_id)}" }
-
       scope = source_data_scope_for(file_name)
       # save some allocations be doing these only once
       pre_processed_at = Time.current
@@ -166,15 +163,15 @@ module HmisCsvTwentyTwenty::Importer
         process_batch!(klass, batch, file_name, type: 'pre_processed', upsert: klass.upsert?) if batch.present? # ensure we get the last batch
         HmisCsvValidation::Base.import(failures, validate: use_ar_model_validations) if failures.present?
       end
-
-      detail_for(file_name, 'pre_process_times').tap do |stat|
-        records = scope.count
-        rps = (records / bm.real).round(3)
-        stat['rps'] = rps
-        stat['cpu_secs'] = bm.total.round(3)
-        logger.debug do
-          " Pre-processed #{klass.table_name} #{hash_as_log_str({ importer_log_id: importer_log_id, processed: records }.merge(stat))}"
-        end
+      records = scope.count
+      stats = {
+        pp_secs: bm.real.round(3),
+        pp_rps: ((records / bm.real).round(3) unless records.zero?),
+        pp_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+      }
+      importer_log.summary[file_name].merge!(stats)
+      logger.debug do
+        " Pre-processed #{klass.table_name} #{hash_as_log_str({ importer_log_id: importer_log_id, processed: records }.merge(stats))}"
       end
     end
 
@@ -189,8 +186,10 @@ module HmisCsvTwentyTwenty::Importer
         end
       end
       failures.compact!
-      importer_log.summary[filename]['total_flags'] ||= 0
-      importer_log.summary[filename]['total_flags'] += failures.count
+      if failures.count.positive?
+        importer_log.summary[filename]['total_flags'] ||= 0
+        importer_log.summary[filename]['total_flags'] += failures.count
+      end
       failures
     end
 
@@ -199,7 +198,6 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def invalidate_aggregated_enrollments!
-      logger.info "invalidate_aggregated_enrollments! #{hash_as_log_str log_ids}"
       importable_files.each_value do |klass|
         aggregators = aggregators_from_class(klass, @data_source)
         next unless aggregators.present?
@@ -212,7 +210,6 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def aggregate!
-      logger.info "aggregate! #{hash_as_log_str log_ids}"
       importer_log.update(status: :aggregating)
       importable_files.each_value do |klass|
         aggregators = aggregators_from_class(klass, @data_source)
@@ -232,7 +229,6 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def validate_data_set!
-      logger.info "validate_data_set! #{hash_as_log_str log_ids}"
       importable_files.each do |filename, klass|
         failures = klass.run_complex_validations!(importer_log, filename)
         HmisCsvValidation::Base.import(failures) if failures.any?
@@ -240,7 +236,6 @@ module HmisCsvTwentyTwenty::Importer
     end
 
     def cleanup_data_set!
-      logger.info "cleanup_data_set! #{hash_as_log_str log_ids}"
       importer_log.update(status: :cleaning)
       importable_files.each_value do |klass|
         cleanups = cleanups_from_class(klass, @data_source)
@@ -273,29 +268,32 @@ module HmisCsvTwentyTwenty::Importer
     # GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_date_range!(range)
     # In here, add history_generated_on date to enrollment record
     def ingest!
-      logger.info "ingest! #{hash_as_log_str log_ids}"
       importer_log.update(status: :importing)
       # Mark everything that exists in the warehouse, that would be covered by this import
       # as pending deletion.  We'll remove the pending where appropriate
-      mark_tree_as_dead(Date.current)
+      log_timing :mark_tree_as_dead
 
       # Add Export row
-      add_export_row
+      log_timing :add_export_row
 
       # Add any records we don't have
-      add_new_data
+      log_timing :add_new_data
 
       # Process existing records,
       # determine which records have changed and are newer
-      process_existing
+      log_timing :process_existing
 
       # Update all ExportIDs for corresponding existing warehouse records
-      update_export_ids
+      log_timing :update_export_ids
 
       # Sweep all remaining items in a pending delete state
-      remove_pending_deletes
+      log_timing :remove_pending_deletes
 
       # Update the effective export end date of the export
+      log_timing :set_effective_export_end_date
+    end
+
+    def set_effective_export_end_date
       export_klass = importable_file_class('Export').reflect_on_association(:destination_record).klass
       export_klass.last.update(effective_export_end_date: (importable_files.except('Export.csv').map do |_, klass|
         klass.where(importer_log_id: @importer_log.id).maximum(:DateUpdated)
@@ -312,13 +310,13 @@ module HmisCsvTwentyTwenty::Importer
       data_source.import_cleanups[basename]&.map(&:constantize)
     end
 
-    def mark_tree_as_dead(pending_date_deleted)
+    def mark_tree_as_dead
       importable_files.each_value do |klass|
         klass.mark_tree_as_dead(
           data_source_id: data_source.id,
           project_ids: involved_project_ids,
           date_range: date_range,
-          pending_date_deleted: pending_date_deleted,
+          pending_date_deleted: Date.current,
         )
       end
     end
@@ -382,14 +380,15 @@ module HmisCsvTwentyTwenty::Importer
             process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
           end
         end
-        added = summary_for(file_name, 'added')
-        detail_for(file_name, 'add_times').tap do |stat|
-          rps = (added / bm.real).round(3)
-          stat['rps'] = rps
-          stat['cpu_secs'] = bm.total.round(3)
-          logger.info do
-            "  Added #{destination_class.table_name} #{hash_as_log_str({ added: added }.merge(stat).merge(log_ids))}"
-          end
+        records = summary_for(file_name, 'added') || 0
+        stats = {
+          add_secs: bm.real.round(3),
+          add_rps: ((records / bm.real).round(3) unless records.zero?),
+          add_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+        }
+        importer_log.summary[file_name].merge!(stats)
+        logger.debug do
+          "  Added #{destination_class.table_name} #{hash_as_log_str({ added: records }.merge(stats).merge(log_ids))}"
         end
       end
     end
@@ -510,14 +509,15 @@ module HmisCsvTwentyTwenty::Importer
             update_all(processed_as: nil)
         end
       end
-      updated = summary_for(file_name, 'updated')
-      detail_for(file_name, 'update_times').tap do |stat|
-        rps = (updated / bm.real).round(3)
-        stat['rps'] = rps
-        stat['cpu_secs'] = bm.total.round(3)
-        logger.info do
-          "  Updated #{destination_class.table_name} #{hash_as_log_str({ updated: updated }.merge(stat).merge(log_ids))}"
-        end
+      records = summary_for(file_name, 'updated') || 0
+      stats = {
+        up_secs: bm.real.round(3),
+        up_rps: ((records / bm.real).round(3) unless records.zero?),
+        up_cpu: "#{(bm.total * 100.0 / bm.real).round}%",
+      }
+      importer_log.summary[file_name].merge!(stats)
+      logger.debug do
+        "  Updated #{destination_class.table_name} #{hash_as_log_str({ updated: records }.merge(stats).merge(log_ids))}"
       end
     end
 
@@ -607,14 +607,14 @@ module HmisCsvTwentyTwenty::Importer
         note_processed(file_name, batch.count, type)
       end
       return nil
-    rescue StandardError => e
+    rescue ActiveRecord::ActiveRecordError, PG::Error => e
       log "batch failed: #{e.message}... processing records one at a time"
       errors = []
       batch.each do |row|
         row.save!(validate: use_ar_model_validations)
         note_processed(file_name, 1, type)
-      rescue StandardError => e
-        errors << add_error(file: file_name, klass: klass, source_id: row.source_id, message: e.message)
+      rescue ActiveRecord::ActiveRecordError, PG::Error => e
+        errors << add_error(file: file_name, klass: klass, source_id: row[:source_id] || row[:source_hash], message: e.message)
       end
       @importer_log.import_errors.import(errors)
     end
@@ -659,16 +659,15 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.update(status: :paused)
     end
 
-    def note_processed(file, line_count, type)
-      importer_log.summary[file][type] += line_count
-    end
-
     def summary_for(file, type)
       importer_log.summary[file][type]
     end
 
-    def detail_for(file, type)
-      importer_log.summary[file][type] ||= {}
+    def note_processed(file, increment_by, type)
+      return if increment_by.nil? || increment_by.zero?
+
+      importer_log.summary[file][type] ||= 0
+      importer_log.summary[file][type] += increment_by
     end
 
     def setup_summary(file)
@@ -719,7 +718,8 @@ module HmisCsvTwentyTwenty::Importer
       importer_log.upload_id = @upload.id if @upload.present?
       importer_log.save
       elapsed = Time.current - @started_at
-      log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.\n#{summary_as_log_str importer_log.summary}\n Import Fully Complete.")
+      # log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.", summary_as_log_str(importer_log.summary))
+      log("Completed importing in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}.  #{summary_as_log_str(importer_log.summary)}")
       post_process
     end
 
@@ -733,13 +733,8 @@ module HmisCsvTwentyTwenty::Importer
       GrdaWarehouse::Hud::Base.transaction(&block)
     end
 
-    def log(message)
-      @notifier&.ping message
-      logger.info "#{self.class} #{message}" if @debug
-    end
-
     def add_error(file:, klass:, source_id:, message:)
-      importer_log.summary[file]['total_errors'] += 1
+      note_processed(file, 1, 'total_errors')
       log(message)
       importer_log.import_errors.build(
         source_type: klass,
