@@ -27,4 +27,19 @@ class HmisCsvTwentyTwenty::ImporterValidationsController < ApplicationController
       page(params[:page]).
       per(200)
   end
+
+  def download
+    importer_log = HmisCsvTwentyTwenty::Importer::ImporterLog.find(params[:id].to_i)
+    @import = GrdaWarehouse::ImportLog.viewable_by(current_user).
+      find_by(importer_log_id: importer_log.id)
+
+    @filename = detect_filename
+
+    @validations = importer_log.import_validations.
+      where(HmisCsvValidation::Base.arel_table[:source_type].lower.matches(pattern)).
+      where(type: HmisCsvValidation::Base.validation_classes.map(&:name))
+
+    @validations.preload(:source)
+    render xlsx: 'download', filename: "#{@filename.gsub('.csv', '')}_errors.xlsx"
+  end
 end

@@ -63,7 +63,7 @@ module PublicReports::S3Toolset
   end
 
   private def s3_bucket
-    ENV.fetch('S3_PUBLIC_BUCKET', "#{ENV.fetch('CLIENT')}-#{Rails.env}-public")
+    ENV.fetch('S3_PUBLIC_BUCKET', "#{ENV.fetch('CLIENT').gsub('_', '-')}-#{Rails.env}-public")
   end
 
   private def s3_client

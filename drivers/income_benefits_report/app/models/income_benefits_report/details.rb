@@ -142,12 +142,28 @@ module
 
     def income_columns
       cols = []
-      cols << [
-        :InformationDate,
-        {
-          title: 'Information Date',
-          transformation: ->(v) { v },
-        },
+      cols += [
+        [
+          :stage,
+          {
+            title: 'Reporting Stage',
+            transformation: ->(v) { v&.titleize || 'No Income Record' },
+          },
+        ],
+        [
+          :InformationDate,
+          {
+            title: 'Information Date',
+            transformation: ->(v) { v },
+          },
+        ],
+        [
+          :DataCollectionStage,
+          {
+            title: 'Data Collection Stage',
+            transformation: ->(v) { ::HUD.data_collection_stage(v) },
+          },
+        ],
       ]
       (
         [:IncomeFromAnySource, :TotalMonthlyIncome] +
