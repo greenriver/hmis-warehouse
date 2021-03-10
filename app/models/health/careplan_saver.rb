@@ -34,7 +34,7 @@ module Health
             signature_date = @careplan.provider_signed_on
             @qualifying_activity.date_of_activity = signature_date
 
-            case @careplan.provider_signature_mode
+            case @careplan.provider_signature_mode.to_s
             when 'email'
               @qualifying_activity.mode_of_contact = :other
               @qualifying_activity.reached_client = :collateral
