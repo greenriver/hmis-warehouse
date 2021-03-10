@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_12_151557) do
+ActiveRecord::Schema.define(version: 2021_03_09_150436) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -135,6 +135,8 @@ ActiveRecord::Schema.define(version: 2021_02_12_151557) do
     t.string "future_issues_8"
     t.string "future_issues_9"
     t.string "future_issues_10"
+    t.string "patient_signature_mode"
+    t.string "provider_signature_mode"
     t.index ["patient_id"], name: "index_careplans_on_patient_id"
     t.index ["user_id"], name: "index_careplans_on_user_id"
   end
