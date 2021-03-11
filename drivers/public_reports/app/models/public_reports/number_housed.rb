@@ -5,23 +5,23 @@
 ###
 
 module PublicReports
-  class PointInTime < ::PublicReports::Report
+  class NumberHoused < ::PublicReports::Report
     acts_as_paranoid
 
     def title
-      _('Point-in-Time Report Generator')
+      _('Number Housed Generator')
     end
 
     def instance_title
-      _('Point-in-Time Report')
+      _('Number Housed Report')
     end
 
     private def public_s3_directory
-      'point-in-time'
+      'housed-total-count'
     end
 
     def url
-      public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'))
+      public_reports_warehouse_reports_number_housed_index_url(host: ENV.fetch('FQDN'))
     end
 
     def generate_publish_url
@@ -42,38 +42,24 @@ module PublicReports
     end
 
     private def chart_data
-      x = ['x']
-      y = ['Unique people experiencing homelessness']
-      pit_counts.each do |date, count|
-        x << date
-        y << count
-      end
-      [x, y].to_json
+      {
+        count: housed_total_count,
+        date_range: filter_object.date_range_words,
+      }.to_json
     end
 
     private def pre_calculate_data
       update(precalculated_data: chart_data)
     end
 
-    private def pit_count_dates
-      year = filter_object.start.year
-      dates = []
-      while year < filter_object.end.year + 1
-        d = Date.new(year, 1, -1)
-        d -= (d.wday - 3) % 7
-        dates << d
-        year += 1
-      end
-      dates.select { |date| date.between?(filter_object.start, filter_object.end) }
+    # NOTE: this count is equivalent to OutflowReport.exits_to_ph
+    private def housed_total_count
+      outflow = GrdaWarehouse::WarehouseReports::OutflowReport.new(filter_object, user)
+      outflow.exits_to_ph.count
     end
 
-    private def pit_counts
-      pit_count_dates.map do |date|
-        [
-          date,
-          GrdaWarehouse::ServiceHistoryService.where(homeless: true, date: date).count,
-        ]
-      end
+    def filter_object
+      @filter_object ||= ::Filters::OutflowReport.new.set_from_params(filter['filters'].merge(enforce_one_year_range: false, sub_population: :clients).with_indifferent_access)
     end
   end
 end
