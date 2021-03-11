@@ -44,7 +44,6 @@ module GrdaWarehouse::WarehouseReports
     end
 
     def self.maintain_report_definitions
-      puts 'maintain report definitions'
       cleanup_unused_reports()
       report_list.each do |category, reports|
         reports.each do |report|
@@ -937,6 +936,27 @@ module GrdaWarehouse::WarehouseReports
             limitable: false,
             health: false,
           }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/number_housed',
+            name: 'Public Number Housed Report Generator',
+            description: 'Use this to review and publish the number of clients housed for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/homeless_count',
+            name: 'Public Number Homeless Report Generator',
+            description: 'Use this to review and publish the number of homeless clients for public consumption.',
+            limitable: false,
+            health: false,
+          }
+          r_list['Public'] << {
+            url: 'public_reports/warehouse_reports/homeless_count_comparison',
+            name: 'Public Percent Homeless Comparison Report Generator',
+            description: 'Use this to review and publish the change of homeless clients for public consumption.',
+            limitable: false,
+            health: false,
+          }
         end
       end
       if RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
@@ -1029,6 +1049,9 @@ module GrdaWarehouse::WarehouseReports
       unless RailsDrivers.loaded.include?(:public_reports)
         cleanup << 'public_reports/warehouse_reports/point_in_time'
         cleanup << 'public_reports/warehouse_reports/public_configs'
+        cleanup << 'public_reports/warehouse_reports/number_housed'
+        cleanup << 'public_reports/warehouse_reports/homeless_count'
+        cleanup << 'public_reports/warehouse_reports/homeless_count_comparison'
       end
       cleanup << 'dashboards/adult_only_households' unless RailsDrivers.loaded.include?(:adult_only_households_sub_pop)
       cleanup << 'dashboards/adults_with_children' unless RailsDrivers.loaded.include?(:adults_with_children_sub_pop)

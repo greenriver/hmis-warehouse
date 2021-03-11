@@ -5,23 +5,23 @@
 ###
 
 module PublicReports
-  class PointInTime < ::PublicReports::Report
+  class HomelessCount < ::PublicReports::Report
     acts_as_paranoid
 
     def title
-      _('Point-in-Time Report Generator')
+      _('Homeless Count Generator')
     end
 
     def instance_title
-      _('Point-in-Time Report')
+      _('Homeless Count Report')
     end
 
     private def public_s3_directory
-      'point-in-time'
+      'homeless-total-count'
     end
 
     def url
-      public_reports_warehouse_reports_point_in_time_index_url(host: ENV.fetch('FQDN'))
+      public_reports_warehouse_reports_homeless_count_index_url(host: ENV.fetch('FQDN'))
     end
 
     def generate_publish_url
@@ -42,38 +42,32 @@ module PublicReports
     end
 
     private def chart_data
-      x = ['x']
-      y = ['Unique people experiencing homelessness']
-      pit_counts.each do |date, count|
-        x << date
-        y << count
-      end
-      [x, y].to_json
+      {
+        count: total_homeless_count,
+        date_range: filter_object.date_range_words,
+      }.to_json
     end
 
     private def pre_calculate_data
       update(precalculated_data: chart_data)
     end
 
-    private def pit_count_dates
-      year = filter_object.start.year
-      dates = []
-      while year < filter_object.end.year + 1
-        d = Date.new(year, 1, -1)
-        d -= (d.wday - 3) % 7
-        dates << d
-        year += 1
-      end
-      dates.select { |date| date.between?(filter_object.start, filter_object.end) }
+    private def total_homeless_count
+      report_scope.distinct.select(:client_id).count
     end
 
-    private def pit_counts
-      pit_count_dates.map do |date|
-        [
-          date,
-          GrdaWarehouse::ServiceHistoryService.where(homeless: true, date: date).count,
-        ]
-      end
+    private def report_scope
+      # for compatability with FilterScopes
+      @filter = filter_object
+      @project_types = @filter.project_type_numbers
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
+      scope = filter_for_range(scope)
+      scope = filter_for_cocs(scope)
+      scope = filter_for_project_type(scope)
+      scope = filter_for_data_sources(scope)
+      scope = filter_for_organizations(scope)
+      scope = filter_for_projects(scope)
+      scope
     end
   end
 end

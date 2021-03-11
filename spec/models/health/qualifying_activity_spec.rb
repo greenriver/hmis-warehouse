@@ -79,7 +79,14 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     it 'keeps non-outreach QAs payable after the engagement date with a pctp_signed QA' do
       enrollment_start_date = @referral.enrollment_start_date
       now_payable_qa = create :qualifying_activity, patient: @patient, activity: :community_connection, date_of_activity: enrollment_start_date + 180.days
-      create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      create(
+        :careplan,
+        patient: @patient,
+        provider_signed_on: enrollment_start_date + 30.days,
+        provider_signature_mode: :in_person,
+        patient_signed_on: enrollment_start_date + 30.days,
+        patient_signature_mode: :in_person,
+      )
       create :qualifying_activity, patient: @patient, activity: :pctp_signed, date_of_activity: enrollment_start_date + 30.days
 
       Timecop.travel(enrollment_start_date + 240.days)
@@ -112,7 +119,14 @@ RSpec.describe Health::QualifyingActivity, type: :model do
 
     it 'ignores non-contributing referrals' do
       enrollment_start_date = @referral.enrollment_start_date
-      careplan = create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      careplan = create(
+        :careplan,
+        patient: @patient,
+        provider_signed_on: enrollment_start_date + 30.days,
+        provider_signature_mode: :in_person,
+        patient_signed_on: enrollment_start_date + 30.days,
+        patient_signature_mode: :in_person,
+      )
       create :qualifying_activity, patient: @patient, activity: :pctp_signed, date_of_activity: enrollment_start_date + 30.days
       @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
       new_enrollment_date = careplan.expires_on + 1.day
@@ -139,7 +153,14 @@ RSpec.describe Health::QualifyingActivity, type: :model do
 
     it 'adds a PCTP-signed QA on a re-enrollment' do
       enrollment_start_date = @referral.enrollment_start_date
-      careplan = create :careplan, patient: @patient, provider_signed_on: enrollment_start_date + 30.days, patient_signed_on: enrollment_start_date + 30.days
+      careplan = create(
+        :careplan,
+        patient: @patient,
+        provider_signed_on: enrollment_start_date + 30.days,
+        provider_signature_mode: :in_person,
+        patient_signed_on: enrollment_start_date + 30.days,
+        patient_signature_mode: :in_person,
+      )
       create :qualifying_activity, patient: @patient, activity: :pctp_signed, date_of_activity: enrollment_start_date + 30.days
       @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
       new_enrollment_date = careplan.expires_on - 1.month
