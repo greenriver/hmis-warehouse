@@ -110,7 +110,9 @@ module CoreDemographicsReport
     # @return filtered scope
     def report_scope(all_project_types: false)
       # Report range
-      scope = filter_for_range(report_scope_source)
+      scope = report_scope_source
+      scope = filter_for_user_access(scope)
+      scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_sub_population(scope)
       scope = filter_for_household_type(scope)
