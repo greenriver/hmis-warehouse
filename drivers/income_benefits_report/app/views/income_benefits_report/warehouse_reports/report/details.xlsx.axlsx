@@ -1,0 +1,20 @@
+wb = xlsx_package.workbook
+headers = @report.header_for(@key)
+rows = @report.columns_for(@key)
+title = @report.support_title(@key).to_s.gsub(/[^-a-z0-9 ]/i, '')
+
+wb.add_worksheet name: title[0..30] do |sheet|
+  title_style = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  summary = [
+    'Report Start Date:',
+    @filter.start.to_s,
+    'Report End Date:',
+    @filter.end.to_s,
+    title,
+  ]
+  sheet.add_row(summary, style: title_style)
+  sheet.add_row(headers, style: title_style)
+  rows.each do |row|
+    sheet.add_row row
+  end
+end

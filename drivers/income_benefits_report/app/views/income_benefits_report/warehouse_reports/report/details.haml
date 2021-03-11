@@ -1,0 +1,26 @@
+- title = "Support for #{@report.support_title(@key)}"
+= content_for :modal_title, title
+.d-flex.mb-4
+  %p.mr-auto= @report.filter.date_range_words
+  %div
+    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+      %i.icon.icon-download2
+      Download Excel
+
+- rows = @report.columns_for(@key)
+%p Showing #{pluralize(rows.count, 'client')}.
+.card
+  .overflow-x-scroll{style: "height: 800px"}
+    %table.table.table-sm.table-bordered.table-fixed.mb-0
+      %thead.thead-dark
+        %tr
+          - @report.header_for(@key).each do |title|
+            %th= title
+      %tbody.thead-dark
+        - rows.each do |row|
+          %tr
+            - row.each.with_index do |col, index|
+              - if index.zero?
+                %td= link_to col, appropriate_client_path(id: col)
+              - else
+                %td= col

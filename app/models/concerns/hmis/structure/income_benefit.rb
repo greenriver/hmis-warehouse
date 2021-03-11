@@ -292,6 +292,9 @@ module HMIS::Structure::IncomeBenefit
         [:EnrollmentID] => nil,
         [:PersonalID] => nil,
         [:IncomeBenefitsID] => nil,
+        [:InformationDate] => nil,
+        [:Earned, :DataCollectionStage] => nil,
+        [:IncomeFromAnySource, :DataCollectionStage] => nil,
         [:ExportID] => nil,
       }
     end

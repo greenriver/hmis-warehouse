@@ -161,5 +161,10 @@ module GrdaWarehouse
         first_or_create.public_send(config)
       end
     end
+
+    def self.arbiter_class
+      # FIXME: for now, just return the one known one
+      AccessControl::EnrollmentArbiter if RailsDrivers.loaded.include?(:access_control)
+    end
   end
 end

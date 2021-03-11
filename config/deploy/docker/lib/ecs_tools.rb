@@ -131,7 +131,7 @@ class EcsTools
         #puts results.ai
         puts "Scheduled update for agent on #{ci}. Only doing this one so we don't restart all the agents at once."
         exit
-      rescue Aws::ECS::Errors::NoUpdateAvailableException
+      rescue Aws::ECS::Errors::NoUpdateAvailableException, Aws::ECS::Errors::UpdateInProgressException
         puts "No update needed for #{ci}."
       end
     end

@@ -30,6 +30,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :uploads
   has_many :non_hmis_uploads
 
+  has_one :hmis_import_config
+
   accepts_nested_attributes_for :organizations
   accepts_nested_attributes_for :projects
 
@@ -345,35 +347,23 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     @unprocessed_enrollment_count ||= enrollments.unprocessed.joins(:project, :destination_client).count
   end
 
-  # are there any uploads for this data_source
-  # with the same file name on previous days
-  # where the upload was uploaded by the system user?
-  # return the first date we saw this filename or nil
+  # Is the most-recent upload for this data source that was created by the system user
+  # more than 48 hours old and the data source setup to be auto imported?
+  # return the date of the most-recent import
   def stalled_since?(date)
     return nil unless date.present?
+    return nil if import_paused
+    return nil unless hmis_import_config&.active
 
-    day_before = date - 1.days
-    two_months_ago = date - 2.months
     user = User.setup_system_user
-    stalled = GrdaWarehouse::Upload.where(
-      data_source_id: id,
-      user_id: user.id,
-      file: GrdaWarehouse::Upload.where(data_source_id: id, user_id: user.id).
-        order(id: :desc).
-        select(:file).
-        limit(1),
-      completed_at: [two_months_ago .. day_before],
-    ).exists?
-    return unless stalled
+    most_recent_upload = uploads.completed.
+      where(user_id: user.id).
+      order(created_at: :desc).
+      select(:id, :data_source_id, :user_id, :completed_at).
+      first
+    return nil if most_recent_upload.completed_at > 48.hours.ago
 
-    GrdaWarehouse::Upload.where(
-      data_source_id: id,
-      user_id: user.id,
-      file: GrdaWarehouse::Upload.where(data_source_id: id, user_id: user.id).
-        order(id: :desc).
-        select(:file).
-        limit(1),
-    ).minimum(:completed_at).to_date
+    most_recent_upload.completed_at.to_date
   end
 
   def self.stalled_imports?(user)

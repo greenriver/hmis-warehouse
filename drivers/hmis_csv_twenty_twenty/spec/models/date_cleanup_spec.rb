@@ -78,7 +78,7 @@ RSpec.describe 'Date and Time Cleanup', type: :model do
       month, day, year = string.split('-')
       return "#{year}-#{month}-#{day}"
     # Sometimes times come in mm/dd/yyyy hh:mm
-    elsif %r{\d{1,2}/\d{1,2}/\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?}.match?(string)
+    elsif /\d{1,2}\/\d{1,2}\/\d{4} \d{1,2}:\d{1,2}:?\d{0,2}?/.match?(string)
       date, time = string.split(' ')
       month, day, year = date.split('/')
       return "#{year}-#{month}-#{day} #{time}"

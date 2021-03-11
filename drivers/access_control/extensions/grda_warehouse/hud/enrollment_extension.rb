@@ -10,7 +10,7 @@ module AccessControl::GrdaWarehouse::Hud
 
     included do
       scope :visible_to, ->(user) do
-        joins(:project).merge(GrdaWarehouse::Hud::Project.visible_to(user))
+        GrdaWarehouse::Config.arbiter_class.enrollments_visible_to(scope, user)
       end
     end
   end

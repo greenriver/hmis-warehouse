@@ -97,6 +97,8 @@ module Health
 
     # Called from ImportEpic
     def self.process_new_data(values)
+      # Ensure we only have one per conflict key or SQL will be very unhappy
+      values = values.index_by{|m| m.slice(*conflict_key)}.values
       # Remove any that were removed from the source
       remove_missing!(values)
 

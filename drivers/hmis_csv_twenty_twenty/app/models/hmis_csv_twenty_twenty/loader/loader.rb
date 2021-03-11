@@ -206,32 +206,63 @@ module HmisCsvTwentyTwenty::Loader
       # logger.debug { "   #{copy_sql}" }
 
       lines_loaded = nil
+      total_lines = nil
+      expect_col_count = copy_cols.size - meta_data.size
+      row_errors = []
       # SLOW_CHECK; klass.connection.transaction do
       bm = Benchmark.measure do
         pg_conn = klass.connection.raw_connection
         pg_result = pg_conn.copy_data copy_sql do
           read_from.rewind
-          CSV.parse(read_from, headers: false, liberal_parsing: true) do |row|
-            # ensure the row is long enough before
-            # we put the typed meta_data at the end
-            # all loader tables should handle nil data for columns
-            # with missing values
-            row << nil while row.size < copy_cols.size - meta_data.size
-            pg_conn.put_copy_data (row + meta_data).to_csv
-
-            # SLOW_CHECK; data = copy_cols.zip(row + meta_data).to_h
-            # SLOW_CHECK;  klass.create! data
+          begin
+            parser = CSV.new(read_from, headers: false, liberal_parsing: true)
+            parser.each do |row|
+              # There were excess columns, probably due to an unquoted comma
+              if row.size > expect_col_count
+                row_errors << {
+                  file_name: base_name,
+                  message: 'Too many columns found',
+                  details: "Line number: #{parser.lineno}",
+                  source: row.to_csv,
+                }
+              elsif row.size < expect_col_count
+                row_errors << {
+                  file_name: base_name,
+                  message: 'Too few columns found',
+                  details: "Line number: #{parser.lineno}",
+                  source: row.to_csv,
+                }
+              else
+                pg_conn.put_copy_data (row + meta_data).to_csv
+              end
+            end
+          ensure
+            # Remove header from count
+            total_lines = parser.lineno - 1
+            parser&.close
           end
+          # SLOW_CHECK; data = copy_cols.zip(row + meta_data).to_h
+          # SLOW_CHECK;  klass.create! data
+        end
+        if row_errors.any?
+          @loader_log.load_errors.import(row_errors)
+          row_errors.group_by { |e| e[:message] }.each do |message, errors|
+            log("#{base_name}: #{message} on #{errors.count} lines")
+          end
+          @loader_log.summary[base_name]['total_errors'] += row_errors.size
         end
         lines_loaded = pg_result.cmd_tuples
       end
       # SLOW_CHECK; end
 
       @loader_log.summary[base_name].tap do |stat|
-        stat['total_lines'] = lines_loaded # the loader now loads all or none
-        stat['lines_loaded'] = lines_loaded
-        stat['rps'] = (lines_loaded / bm.real).round(3)
-        stat['cpu_secs'] = bm.total.round(3)
+        stat['total_lines'] = total_lines
+        stat['secs'] = bm.real.round(3)
+        stat['cpu'] = "#{(bm.total * 100 / bm.real).round}%"
+        if lines_loaded.positive?
+          stat['lines_loaded'] = lines_loaded
+          stat['rps'] = (lines_loaded / bm.real).round
+        end
         logger.debug do
           # line_loaded comes from pg directly, if we dont trust it we can go back for a count
           # if lines_loaded > 1
@@ -343,21 +374,17 @@ module HmisCsvTwentyTwenty::Loader
         status: status,
       )
       status = "#{status} error:#{err}" if err
-      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}\n#{summary_as_log_str loader_log.summary}")
+      # log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status}", summary_as_log_str(loader_log.summary))
+      log("Completed loading in #{elapsed_time(elapsed)} #{hash_as_log_str log_ids}. status:#{status} #{summary_as_log_str(loader_log.summary)}")
     end
 
     def setup_summary(file)
       @loader_log.summary ||= {}
       @loader_log.summary[file] ||= {
-        'total_lines' => -1,
+        'total_lines' => 0,
         'lines_loaded' => 0,
         'total_errors' => 0,
       }
-    end
-
-    def log(message)
-      @notifier&.ping message
-      logger.info "#{self.class} #{message}" if @debug
     end
 
     def add_error(file_path:, message:, line:)
