@@ -4,13 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module AccessControl::GrdaWarehouse::Hud
-  module ProjectExtension
+module ClientAccessControl::GrdaWarehouse
+  module ServiceHistoryEnrollmentExtension
     extend ActiveSupport::Concern
 
     included do
       scope :visible_to, ->(user) do
-        viewable_by(user)
       end
     end
   end

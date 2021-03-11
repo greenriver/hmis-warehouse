@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module AccessControl::GrdaWarehouse::Hud
+module ClientAccessControl::GrdaWarehouse::Hud
   module EnrollmentExtension
     extend ActiveSupport::Concern
 

@@ -441,7 +441,7 @@ Rails.application.routes.draw do
       get :destination
     end
   end
-  resources :clients, except: [:update, :destroy] do
+  resources :clients, except: [:update, :destroy, :index] do
     member do
       get :appropriate
       get :simple

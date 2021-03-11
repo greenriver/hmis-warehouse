@@ -2,7 +2,7 @@
   :ruby
     show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
     show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
-    show_demographic = @client.show_window_demographic_to?(current_user) rescue false
+    show_demographic = @client.show_demographics_to?(current_user) rescue false
     @note_count = 0
     show_notes = can_edit_window_client_notes_or_own_window_client_notes?
     if show_notes

@@ -6,9 +6,9 @@
 - if client.non_confidential_user_clients.any?
   - if showing_in_card
     - content_for "client_card_relationships__#{client.id}" do
-      = render 'relationship_table', client: client, show_relationship_link: show_relationship_link
+      = render 'clients/relationship_table', client: client, show_relationship_link: show_relationship_link
   - else
-    = render 'relationship_table', client: client, show_relationship_link: show_relationship_link
+    = render 'clients/relationship_table', client: client, show_relationship_link: show_relationship_link
 - else
   - if show_relationship_link
     - if showing_in_card

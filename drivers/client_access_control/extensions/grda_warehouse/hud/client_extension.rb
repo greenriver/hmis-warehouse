@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module AccessControl::GrdaWarehouse::Hud
+module ClientAccessControl::GrdaWarehouse::Hud
   module ClientExtension
     extend ActiveSupport::Concern
     include ArelHelper
@@ -130,6 +130,68 @@ module AccessControl::GrdaWarehouse::Hud
 
       scope :visible_by_project_to, ->(user) do
         joins(enrollments: :project).merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+      end
+
+      # Instance Methods
+      def show_demographics_to?(user)
+        visible_because_of_permission?(user) || visible_because_of_relationship?(user)
+      end
+
+      def visible_because_of_permission?(user)
+        user.can_view_clients? ||
+        visible_because_of_release?(user) ||
+        visible_because_of_assigned_data_source?(user) ||
+        visible_because_of_coc_association?(user)
+      end
+
+      def visible_because_of_release?(user)
+        any_window_clients = source_clients.map { |sc| sc.data_source&.visible_in_window? }.any?
+        # user can see the window, and client has a valid release, or none is required (by the site config)
+        user.can_view_client_window? &&
+        (
+          release_valid? ||
+          ! GrdaWarehouse::Config.get(:window_access_requires_release) && any_window_clients
+        )
+      end
+
+      # This permission is mis-named a bit, it should check all project ids visible to the user
+      def visible_because_of_assigned_data_source?(user)
+        return false unless user.can_see_clients_in_window_for_assigned_data_sources?
+
+        visible_because_of_enrollments = (source_enrollments.joins(:project).pluck(p_t[:id]) & GrdaWarehouse::Hud::Project.viewable_by(user).pluck(:id)).present?
+        visible_because_of_data_sources = (source_clients.pluck(:data_source_id) & user.data_sources.pluck(:id)).present?
+
+        visible_because_of_enrollments || visible_because_of_data_sources
+      end
+
+      def visible_because_of_coc_association?(user)
+        user.can_view_clients_with_roi_in_own_coc? &&
+        release_valid? &&
+        (
+          consented_coc_codes == [] ||
+          (consented_coc_codes & user.coc_codes).present?
+        )
+      end
+
+      def visible_because_of_relationship?(user)
+        user_clients.pluck(:user_id).include?(user.id) && release_valid? && user.can_search_window?
+      end
+      # Define a bunch of disability methods we can use to get the response needed
+      # for CAS integration
+      # This generates methods like: substance_response()
+      GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
+        define_method "#{disability_type}_response".to_sym do
+          disability_check = "#{disability_type}?".to_sym
+          source_disabilities.response_present.
+            newest_first.
+            detect(&disability_check).try(:response)
+        end
+      end
+
+      GrdaWarehouse::Hud::Disability.disability_types.each_value do |disability_type|
+        define_method "#{disability_type}_response?".to_sym do
+          send("#{disability_type}_response".to_sym) == 'Yes'
+        end
       end
     end
   end

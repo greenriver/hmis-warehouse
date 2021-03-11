@@ -187,7 +187,7 @@ class ClientsController < ApplicationController
   # It can be expensive to calculate the appropriate link to show a user for a batch of clients
   # instead, just provide one where we can make that determination on a per-client basis
   def appropriate
-    redirect_to @client.window_link_for?(current_user)
+    redirect_to @client.appropriate_path_for?(current_user)
   end
 
   # This is only valid for Potentially chronic (not HUD Chronic)

@@ -34,7 +34,7 @@ module ControllerAuthorization
         return false
       end
     end
-    return true if @client&.show_window_demographic_to?(current_user)
+    return true if @client&.show_demographics_to?(current_user)
 
     not_authorized!
   end

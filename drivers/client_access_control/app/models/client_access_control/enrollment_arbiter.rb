@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module AccessControl
+module ClientAccessControl
   class EnrollmentArbiter
     def clients_destination_visible_to(scope, user)
       return none unless user

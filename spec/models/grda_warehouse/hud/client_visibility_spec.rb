@@ -50,7 +50,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(1)
         client = GrdaWarehouse::Hud::Client.viewable_by(user).first
-        expect(client.show_window_demographic_to?(user)).to eq false
+        expect(client.show_demographics_to?(user)).to eq false
       end
       describe 'and the user is assigned a data source' do
         before do
@@ -102,7 +102,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).pluck(:id)).to include(window_source_client.id)
         expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(0)
-        expect(window_destination_client.show_window_demographic_to?(user)).to eq false
+        expect(window_destination_client.show_demographics_to?(user)).to eq false
       end
       it 'user can see client dashboard for window client with release' do
         past_date = 5.days.ago
@@ -112,10 +112,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
-        expect(window_destination_client.show_window_demographic_to?(user)).to eq true
+        expect(window_destination_client.show_demographics_to?(user)).to eq true
       end
       it 'user cannot see client dashboard for non-window client' do
-        expect(non_window_destination_client.show_window_demographic_to?(user)).to eq false
+        expect(non_window_destination_client.show_demographics_to?(user)).to eq false
       end
     end
     describe 'and the user has a role granting can search window' do
@@ -126,7 +126,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).pluck(:id)).to include(window_source_client.id)
         expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(0)
-        expect(window_destination_client.show_window_demographic_to?(user)).to eq false
+        expect(window_destination_client.show_demographics_to?(user)).to eq false
       end
     end
     describe 'and the user has a role granting visibility by data source' do
@@ -136,7 +136,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(1)
         client = GrdaWarehouse::Hud::Client.searchable_by(user).first
-        expect(client.show_window_demographic_to?(user)).to eq false
+        expect(client.show_demographics_to?(user)).to eq false
         expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(0)
       end
       describe 'and the user is assigned a data source' do
@@ -146,8 +146,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         it 'user can see one client in expected data source but not details of window clients' do
           expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(2)
           expect(GrdaWarehouse::Hud::Client.searchable_by(user).pluck(:id)).to include(non_window_source_client.id)
-          expect(window_destination_client.show_window_demographic_to?(user)).to eq false
-          expect(non_window_destination_client.show_window_demographic_to?(user)).to eq true
+          expect(window_destination_client.show_demographics_to?(user)).to eq false
+          expect(non_window_destination_client.show_demographics_to?(user)).to eq true
           expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(1)
         end
         describe 'and the user can search the window' do
@@ -209,7 +209,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(1)
         client = GrdaWarehouse::Hud::Client.viewable_by(user).first
-        expect(client.show_window_demographic_to?(user)).to eq false
+        expect(client.show_demographics_to?(user)).to eq false
       end
       describe 'and the user is assigned a data source' do
         before do
@@ -277,7 +277,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(1)
         client = GrdaWarehouse::Hud::Client.viewable_by(user).first
-        expect(client.show_window_demographic_to?(user)).to eq false
+        expect(client.show_demographics_to?(user)).to eq false
       end
       describe 'and the user is assigned a data source' do
         before do
@@ -327,7 +327,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can only search, not see, window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).pluck(:id)).to include(window_source_client.id)
-        expect(window_destination_client.show_window_demographic_to?(user)).to eq false
+        expect(window_destination_client.show_demographics_to?(user)).to eq false
         expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(0)
       end
       it 'user can see client dashboard for window client with release' do
@@ -338,10 +338,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
-        expect(window_destination_client.show_window_demographic_to?(user)).to eq true
+        expect(window_destination_client.show_demographics_to?(user)).to eq true
       end
       it 'user cannot see client dashboard for non-window client' do
-        expect(non_window_destination_client.show_window_demographic_to?(user)).to eq false
+        expect(non_window_destination_client.show_demographics_to?(user)).to eq false
       end
     end
     describe 'and the user has a role granting can search window' do
@@ -351,7 +351,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can only search, not see, window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(1)
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).pluck(:id)).to include(window_source_client.id)
-        expect(window_destination_client.show_window_demographic_to?(user)).to eq false
+        expect(window_destination_client.show_demographics_to?(user)).to eq false
         expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(0)
       end
     end
@@ -362,7 +362,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'can search for but not see window clients' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(1)
         client = GrdaWarehouse::Hud::Client.searchable_by(user).first
-        expect(client.show_window_demographic_to?(user)).to eq false
+        expect(client.show_demographics_to?(user)).to eq false
         expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(0)
       end
       describe 'and the user is assigned a data source' do
@@ -372,8 +372,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         it 'user can see one client in expected data source but not details of window clients' do
           expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(2)
           expect(GrdaWarehouse::Hud::Client.searchable_by(user).pluck(:id)).to include(non_window_source_client.id)
-          expect(window_destination_client.show_window_demographic_to?(user)).to eq false
-          expect(non_window_destination_client.show_window_demographic_to?(user)).to eq true
+          expect(window_destination_client.show_demographics_to?(user)).to eq false
+          expect(non_window_destination_client.show_demographics_to?(user)).to eq true
           expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(1)
         end
       end
@@ -385,8 +385,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       it 'user can search for all clients, but not see details' do
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).count).to eq(4)
         expect(GrdaWarehouse::Hud::Client.searchable_by(user).pluck(:id)).to include(non_window_source_client.id)
-        expect(window_destination_client.show_window_demographic_to?(user)).to eq false
-        expect(non_window_destination_client.show_window_demographic_to?(user)).to eq false
+        expect(window_destination_client.show_demographics_to?(user)).to eq false
+        expect(non_window_destination_client.show_demographics_to?(user)).to eq false
         expect(GrdaWarehouse::Hud::Client.viewable_by(user).count).to eq(0)
       end
       describe 'and the user is assigned a CoC' do
@@ -394,8 +394,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           user.coc_codes = ['ZZ-000']
         end
         it 'user cannot see client details' do
-          expect(window_destination_client.show_window_demographic_to?(user)).to eq false
-          expect(non_window_destination_client.show_window_demographic_to?(user)).to eq false
+          expect(window_destination_client.show_demographics_to?(user)).to eq false
+          expect(non_window_destination_client.show_demographics_to?(user)).to eq false
         end
         describe 'when the client has a valid consent in any coc' do
           before do
@@ -409,10 +409,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             )
           end
           it 'user can see client dashboard for assigned client' do
-            expect(non_window_destination_client.show_window_demographic_to?(user)).to eq true
+            expect(non_window_destination_client.show_demographics_to?(user)).to eq true
           end
           it 'user cannot see client dashboard for window client' do
-            expect(window_destination_client.show_window_demographic_to?(user)).to eq false
+            expect(window_destination_client.show_demographics_to?(user)).to eq false
           end
         end
         describe 'when the client has a valid consent in the user\'s coc' do
@@ -427,10 +427,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             )
           end
           it 'user can see client dashboard for assigned client' do
-            expect(non_window_destination_client.show_window_demographic_to?(user)).to eq true
+            expect(non_window_destination_client.show_demographics_to?(user)).to eq true
           end
           it 'user cannot see client dashboard for window client' do
-            expect(window_destination_client.show_window_demographic_to?(user)).to eq false
+            expect(window_destination_client.show_demographics_to?(user)).to eq false
           end
         end
         describe 'when the client has a valid consent in the user\'s coc and another coc' do
@@ -445,10 +445,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             )
           end
           it 'user can see client dashboard for assigned client' do
-            expect(non_window_destination_client.show_window_demographic_to?(user)).to eq true
+            expect(non_window_destination_client.show_demographics_to?(user)).to eq true
           end
           it 'user cannot see client dashboard for window client' do
-            expect(window_destination_client.show_window_demographic_to?(user)).to eq false
+            expect(window_destination_client.show_demographics_to?(user)).to eq false
           end
         end
         describe 'when the client has a valid consent in another coc' do
@@ -463,10 +463,10 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             )
           end
           it 'user cannot see client dashboard for assigned client' do
-            expect(non_window_destination_client.show_window_demographic_to?(user)).to eq false
+            expect(non_window_destination_client.show_demographics_to?(user)).to eq false
           end
           it 'user cannot see client dashboard for window client' do
-            expect(window_destination_client.show_window_demographic_to?(user)).to eq false
+            expect(window_destination_client.show_demographics_to?(user)).to eq false
           end
         end
       end

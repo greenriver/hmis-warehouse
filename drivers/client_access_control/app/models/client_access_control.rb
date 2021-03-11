@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module AccessControl
+module ClientAccessControl
   def self.table_name_prefix
-    'access_control_'
+    'client_access_control_'
   end
 end
