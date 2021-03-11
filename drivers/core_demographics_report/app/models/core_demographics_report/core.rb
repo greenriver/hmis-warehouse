@@ -160,6 +160,10 @@ module CoreDemographicsReport
       end
     end
 
+    def can_see_client_details?(user)
+      user.can_access_some_version_of_clients?
+    end
+
     def self.data_for_export(reports)
       {}.tap do |rows|
         reports.each do |report|
