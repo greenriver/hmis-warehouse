@@ -161,7 +161,7 @@ module WarehouseReports
 
     private def can_see_client_details?
       @can_see_client_details ||= if @filter.project_ids == :all
-        current_user.can_view_clients?
+        current_user.can_access_some_version_of_clients?
       else
         true
       end
