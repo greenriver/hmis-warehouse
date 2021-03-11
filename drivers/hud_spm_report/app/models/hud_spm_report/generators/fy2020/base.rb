@@ -84,6 +84,7 @@ module HudSpmReport::Generators::Fy2020
         add_m4_clients
         add_m5_clients
         add_m6_clients
+        add_m7_clients
       end
       @universe ||= @report.universe(self.class.question_number)
     end
@@ -92,6 +93,75 @@ module HudSpmReport::Generators::Fy2020
     # TODO?: move to :HudReports::QuestionBase
     private def logger
       @report.logger
+    end
+
+    # TODO?: move to :HudReports::QuestionBase
+    private def prepare_table(table_name, rows, cols)
+      @report.answer(question: table_name).update(
+        metadata: {
+          header_row: [''] + cols.values,
+          row_labels: rows.values,
+          first_column: cols.keys.first,
+          last_column: cols.keys.last,
+          first_row: rows.keys.first,
+          last_row: rows.keys.last,
+        },
+      )
+    end
+
+    # passed an table_name and Array of [cell_name, member_scope, summary_value] tuples
+    # TODO?: move to :HudReports::QuestionBase?
+    private def handle_clause_based_cells(table_name, cell_specs)
+      cell_specs.each do |cell, member_scope, summary_value|
+        answer = @report.answer(question: table_name, cell: cell)
+        answer.add_members(member_scope) if member_scope
+        answer.update(summary: summary_value)
+      end
+    end
+
+    # yield batches of the client scope indexed by `#id`
+    # with only the necessary columns fetched/populated
+    # TODO?: move to :HudReports::QuestionBase
+    private def each_client_batch(scope)
+      scope.select(
+        :id,
+        :PersonalID, # for debugging
+        :data_source_id, # for add_universe_members
+        :DOB, # for add_universe_members
+        :first_name, # for add_universe_members
+        :last_name, # for add_universe_members
+      ).find_in_batches do |batch|
+        clients_by_id = batch.index_by(&:id)
+        yield clients_by_id
+      end
+    end
+
+    # TODO?: move to :HudReports::QuestionBase
+    private def age_for_report(dob:, entry_date:, age:)
+      # Age should be calculated at report start or enrollment start, whichever is greater
+      return age if dob.blank? || entry_date > @report.start_date
+
+      GrdaWarehouse::Hud::Client.age(dob: dob, date: @report.start_date)
+    end
+
+    # Attach `pending_associations` a Hash mapping Client =>  report_client_universe
+    # to the Array|String `question_numbers`,
+    # `updated_columns` are the columns to be upsert-ed into report_client_universe
+    # TODO?: move to :HudReports::QuestionBase
+    private def append_report_clients(question_numbers, pending_associations, updated_columns)
+      report_client_universe.import(
+        pending_associations.values,
+        validate: false,
+        on_duplicate_key_update: {
+          conflict_target: UPSERT_KEY,
+          columns: updated_columns,
+        },
+      )
+
+      # Attach clients to relevant question(s)
+      Array(question_numbers).each do |question_number|
+        @report.universe(question_number).add_universe_members(pending_associations)
+      end
     end
 
     # Add report filters to the scope
@@ -117,65 +187,6 @@ module HudSpmReport::Generators::Fy2020
       @report.report_cells.joins(universe_members: :spm_client).exists?
     end
 
-    # yield batches of the client scope indexed by `#id`
-    # with only the necessary columns fetched/populated
-    # TODO?: move to :HudReports::QuestionBase
-    private def each_client_batch(scope)
-      scope.select(
-        :id,
-        :PersonalID, # for debugging
-        :data_source_id, # for add_universe_members
-        :DOB, # for add_universe_members
-        :first_name, # for add_universe_members
-        :last_name, # for add_universe_members
-      ).find_in_batches do |batch|
-        clients_by_id = batch.index_by(&:id)
-        yield clients_by_id
-      end
-    end
-
-    # Attach `pending_associations` a Hash mapping Client =>  report_client_universe
-    # to the Array|String `question_numbers`,
-    # `updated_columns` are the columns to be upsert-ed into report_client_universe
-    # TODO?: move to :HudReports::QuestionBase
-    private def append_report_clients(question_numbers, pending_associations, updated_columns)
-      report_client_universe.import(
-        pending_associations.values,
-        validate: false,
-        on_duplicate_key_update: {
-          conflict_target: UPSERT_KEY,
-          columns: updated_columns,
-        },
-      )
-
-      # Attach clients to relevant question(s)
-      Array(question_numbers).each do |question_number|
-        @report.universe(question_number).add_universe_members(pending_associations)
-      end
-    end
-
-    # TODO?: move to :HudReports::QuestionBase
-    private def prepare_table(table_name, rows, cols)
-      @report.answer(question: table_name).update(
-        metadata: {
-          header_row: [''] + cols.values,
-          row_labels: rows.values,
-          first_column: cols.keys.first,
-          last_column: cols.keys.last,
-          first_row: rows.keys.first,
-          last_row: rows.keys.last,
-        },
-      )
-    end
-
-    # TODO?: move to :HudReports::QuestionBase
-    private def age_for_report(dob:, entry_date:, age:)
-      # Age should be calculated at report start or enrollment start, whichever is greater
-      return age if dob.blank? || entry_date > @report.start_date
-
-      GrdaWarehouse::Hud::Client.age(dob: dob, date: @report.start_date)
-    end
-
     private def report_client_universe
       HudSpmReport::Fy2020::SpmClient
     end
@@ -183,16 +194,6 @@ module HudSpmReport::Generators::Fy2020
     # handy alias for the HudSpmReport::Fy2020::SpmClient
     private def t
       report_client_universe.arel_table
-    end
-
-    # passed an table_name and Array of [cell_name, member_scope, summary_value] tuples
-    # TODO?: move to :HudReports::QuestionBase?
-    private def handle_clause_based_cells(table_name, cell_specs)
-      cell_specs.each do |cell, member_scope, summary_value|
-        answer = @report.answer(question: table_name, cell: cell)
-        answer.add_members(member_scope) if member_scope
-        answer.update(summary: summary_value)
-      end
     end
 
     private def median(scope, field)
@@ -286,146 +287,7 @@ module HudSpmReport::Generators::Fy2020
     private def add_m2_clients
       # 1. Select clients across all projects in the COC of the relevant type (SO, ES, TH, SH, PH) with
       # a project exit date 2 years prior to the report date range, going back no further than the [Lookback Stop Date].
-
       add_exiting_clients('Measure 2', exits_scope, :m2)
-    end
-
-    private def add_m6_clients
-      # Re-use the same programming instructions from Measures 2 and 7 as described above.
-      # The universe of relevant projects varies for this measure as this measure is
-      # required only for CoC-program-funded projects in communities approved by HUD
-      # to serve Category 3 persons.
-
-      add_exiting_clients('Measure 6', exits_scope.category_3, :m6)
-    end
-
-    # m2 and m6 use almost the same logic
-    private def add_exiting_clients(question_name, exits_scope, m_code)
-      return unless add_clients_for_question?(question_name)
-
-      project_types = (SO + ES + TH + SH + PH).freeze
-      homeless_project_types = (ES +  SO + SH).freeze
-
-      exit_from_project_type_col = :"#{m_code}_exit_from_project_type"
-      exit_to_destination_col = :"#{m_code}_exit_to_destination"
-      reentry_days_col = :"#{m_code}_reentry_days"
-      history_col = :"#{m_code}_history"
-
-      updated_columns = [
-        :dob,
-        :first_name,
-        :last_name,
-        exit_from_project_type_col,
-        exit_to_destination_col,
-        reentry_days_col,
-        history_col,
-      ].freeze
-
-      each_client_batch client_scope.where(id: exits_scope.select(:client_id)) do |clients_by_id|
-        spm_clients = {}
-
-        exits_by_client_id = exits_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
-          e[:client_id]
-        end.freeze
-        entries_by_client_id = entries_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
-          e[:client_id]
-        end.freeze
-
-        exits_by_client_id.each do |client_id, client_exits|
-          # 2. Of the universe of project exits, determine each client’s
-          # earliest [project exit date] where the [destination] was permanent housing.
-          p_exit = client_exits.detect do |client_exit|
-            # inherit destination from HoH if age <= 17 and destination not collected
-            destination = destination_for(project_types, client_exit[:client_id], client_exit[:household_id])
-            client_exit[:destination] = destination if destination.present?
-
-            permanent_destination?(client_exit[:destination])
-          end
-
-          next unless p_exit
-
-          # 3. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
-          # according to the project type associated with the client’s earliest applicable exit (cells B2-B6).
-
-          client = clients_by_id.fetch(client_id)
-          spm_client = report_client_universe.new(
-            report_instance_id: @report.id,
-            client_id: client_id,
-            data_source_id: client.data_source_id,
-            dob: client.DOB,
-            first_name: client.first_name,
-            last_name: client.last_name,
-          )
-
-          # 4. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
-          # without regard to the project type associated with the client’s earliest applicable exit (cell B7).
-          spm_client[exit_from_project_type_col] = p_exit[:project_type]
-          spm_client[exit_to_destination_col] = p_exit[:destination]
-
-          # 5. Using data from step 2, scan forward in time beginning from each client’s [project exit date]
-          # with a permanent housing destination to see if the client has a project start into a project
-          # indicating the client is now homeless again.
-
-          # 5.a && 5.d
-          reentries = entries_by_client_id[client_id].select do |e|
-            (e[:first_date_in_program] >= p_exit[:last_date_in_program]) && (e[:first_date_in_program] <= @report.end_date)
-          end.sort_by do |e|
-            e[:last_date_in_program] || @report.end_date
-          end
-
-          # this is our first exit from PR
-          previous_exit_from_ph = p_exit[:last_date_in_program]
-          reentry = reentries.detect do |entry|
-            entry_date = entry[:first_date_in_program]
-
-            found = if entry[:project_type].in?(homeless_project_types)
-              # homeless projects...
-              true
-            elsif entry[:project_type].in?(TH)
-              # 5.b When scanning for the client’s reappearance in a transitional housing project,
-              # the [project start date] must be more than 14 days after the client’s original
-              # [project exit date] from step 2 to be considered a return to homelessness.
-              (entry_date - p_exit[:last_date_in_program]).to_i > 14
-            elsif entry[:project_type].in?(PH)
-              # 5.c When scanning for the client’s reappearance in a
-              # permanent housing project, the [project start date] must be more than
-              # 14 days after the client’s original [project exit date] from step 2 to
-              # be considered a return to homelessness
-              # AND must also be more than 14
-              # days after any other permanent housing or transitional housing
-              # [project exit date] for the same client. This prevents accidentally
-              # counting clients who transition from transitional to permanent
-              # housing, or from one CoC permanent housing program to another PH
-              # project
-              (entry_date - previous_exit_from_ph).to_i > 14
-            end
-
-            previous_exit_from_ph = entry[:last_date_in_program] if entry[:project_type].in?(PH + TH)
-
-            found
-          end
-
-          # 6. Use the [project start date] found in step 5 to calculate the number of days between the
-          # client’s [project exit date] from step 2 until the client was identified
-          # as homeless again.
-          spm_client[reentry_days_col] = if reentry
-            reentry[:first_date_in_program] - p_exit[:last_date_in_program]
-          else
-            0
-          end
-
-          # Audit of exit/entries we considered
-          spm_client[history_col] = {
-            exit: p_exit,
-            reentries: reentries,
-          }
-
-          spm_clients[client] = spm_client
-        end
-
-        # Steps 7 - 9 are handled in MeasureTwo#run_question!
-        append_report_clients question_name, spm_clients, updated_columns
-      end
     end
 
     private def add_m3_clients
@@ -736,6 +598,147 @@ module HudSpmReport::Generators::Fy2020
         end
 
         append_report_clients measure_five, m5_clients, updated_columns
+      end
+    end
+
+    private def add_m6_clients
+      # Re-use the same programming instructions from Measures 2 and 7 as described above.
+      # The universe of relevant projects varies for this measure as this measure is
+      # required only for CoC-program-funded projects in communities approved by HUD
+      # to serve Category 3 persons.
+
+      add_exiting_clients('Measure 6', exits_scope.category_3, :m6)
+    end
+
+    private def add_m7_clients
+    end
+
+    # m2 and m6 use almost the same logic
+    private def add_exiting_clients(question_name, exits_scope, m_code)
+      return unless add_clients_for_question?(question_name)
+
+      project_types = (SO + ES + TH + SH + PH).freeze
+      homeless_project_types = (ES +  SO + SH).freeze
+
+      exit_from_project_type_col = :"#{m_code}_exit_from_project_type"
+      exit_to_destination_col = :"#{m_code}_exit_to_destination"
+      reentry_days_col = :"#{m_code}_reentry_days"
+      history_col = :"#{m_code}_history"
+
+      updated_columns = [
+        :dob,
+        :first_name,
+        :last_name,
+        exit_from_project_type_col,
+        exit_to_destination_col,
+        reentry_days_col,
+        history_col,
+      ].freeze
+
+      each_client_batch client_scope.where(id: exits_scope.select(:client_id)) do |clients_by_id|
+        spm_clients = {}
+
+        exits_by_client_id = exits_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
+          e[:client_id]
+        end.freeze
+        entries_by_client_id = entries_for_batch(clients_by_id.keys, SHE_COLUMNS).group_by do |e|
+          e[:client_id]
+        end.freeze
+
+        exits_by_client_id.each do |client_id, client_exits|
+          # 2. Of the universe of project exits, determine each client’s
+          # earliest [project exit date] where the [destination] was permanent housing.
+          p_exit = client_exits.detect do |client_exit|
+            # inherit destination from HoH if age <= 17 and destination not collected
+            destination = destination_for(project_types, client_exit[:client_id], client_exit[:household_id])
+            client_exit[:destination] = destination if destination.present?
+
+            permanent_destination?(client_exit[:destination])
+          end
+
+          next unless p_exit
+
+          # 3. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
+          # according to the project type associated with the client’s earliest applicable exit (cells B2-B6).
+
+          client = clients_by_id.fetch(client_id)
+          spm_client = report_client_universe.new(
+            report_instance_id: @report.id,
+            client_id: client_id,
+            data_source_id: client.data_source_id,
+            dob: client.DOB,
+            first_name: client.first_name,
+            last_name: client.last_name,
+          )
+
+          # 4. Using data from step 2, report the distinct number of clients who exited to permanent housing destinations
+          # without regard to the project type associated with the client’s earliest applicable exit (cell B7).
+          spm_client[exit_from_project_type_col] = p_exit[:project_type]
+          spm_client[exit_to_destination_col] = p_exit[:destination]
+
+          # 5. Using data from step 2, scan forward in time beginning from each client’s [project exit date]
+          # with a permanent housing destination to see if the client has a project start into a project
+          # indicating the client is now homeless again.
+
+          # 5.a && 5.d
+          reentries = entries_by_client_id[client_id].select do |e|
+            (e[:first_date_in_program] >= p_exit[:last_date_in_program]) && (e[:first_date_in_program] <= @report.end_date)
+          end.sort_by do |e|
+            e[:last_date_in_program] || @report.end_date
+          end
+
+          # this is our first exit from PR
+          previous_exit_from_ph = p_exit[:last_date_in_program]
+          reentry = reentries.detect do |entry|
+            entry_date = entry[:first_date_in_program]
+
+            found = if entry[:project_type].in?(homeless_project_types)
+              # homeless projects...
+              true
+            elsif entry[:project_type].in?(TH)
+              # 5.b When scanning for the client’s reappearance in a transitional housing project,
+              # the [project start date] must be more than 14 days after the client’s original
+              # [project exit date] from step 2 to be considered a return to homelessness.
+              (entry_date - p_exit[:last_date_in_program]).to_i > 14
+            elsif entry[:project_type].in?(PH)
+              # 5.c When scanning for the client’s reappearance in a
+              # permanent housing project, the [project start date] must be more than
+              # 14 days after the client’s original [project exit date] from step 2 to
+              # be considered a return to homelessness
+              # AND must also be more than 14
+              # days after any other permanent housing or transitional housing
+              # [project exit date] for the same client. This prevents accidentally
+              # counting clients who transition from transitional to permanent
+              # housing, or from one CoC permanent housing program to another PH
+              # project
+              (entry_date - previous_exit_from_ph).to_i > 14
+            end
+
+            previous_exit_from_ph = entry[:last_date_in_program] if entry[:project_type].in?(PH + TH)
+
+            found
+          end
+
+          # 6. Use the [project start date] found in step 5 to calculate the number of days between the
+          # client’s [project exit date] from step 2 until the client was identified
+          # as homeless again.
+          spm_client[reentry_days_col] = if reentry
+            reentry[:first_date_in_program] - p_exit[:last_date_in_program]
+          else
+            0
+          end
+
+          # Audit of exit/entries we considered
+          spm_client[history_col] = {
+            exit: p_exit,
+            reentries: reentries,
+          }
+
+          spm_clients[client] = spm_client
+        end
+
+        # Steps 7 - 9 are handled in MeasureTwo#run_question!
+        append_report_clients question_name, spm_clients, updated_columns
       end
     end
 
