@@ -186,6 +186,7 @@ module IncomeBenefitsReport
     def report_scope(all_project_types: false)
       # Report range
       scope = report_scope_source
+      scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_sub_population(scope)
@@ -213,6 +214,10 @@ module IncomeBenefitsReport
 
     def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry
+    end
+
+    def can_see_client_details?(user)
+      user.can_access_some_version_of_clients?
     end
 
     def yn(boolean)

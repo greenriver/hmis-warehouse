@@ -11,7 +11,7 @@ module IncomeBenefitsReport::WarehouseReports
     include ArelHelper
     include BaseFilters
 
-    before_action :require_can_view_clients!, only: [:details]
+    before_action :require_can_access_some_version_of_clients!, only: [:details]
     before_action :set_report, only: [:show, :destroy, :details]
     before_action :set_pdf_export
 
