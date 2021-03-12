@@ -31,13 +31,16 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSeven, type: :model do
 
   [
     ['7a.1', 'A1', nil],
+
     ['7a.1', 'C2', 0],
     ['7a.1', 'C3', 0],
     ['7a.1', 'C4', 0],
     ['7a.1', 'C5', 0],
+
     ['7b.1', 'C2', 0],
     ['7b.1', 'C3', 0],
     ['7b.1', 'C4', 0],
+
     ['7b.2', 'C2', 0],
     ['7b.2', 'C3', 0],
     ['7b.2', 'C4', 0],

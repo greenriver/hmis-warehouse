@@ -31,8 +31,6 @@ module HudSpmReport::Generators::Fy2020
 
     PERMANENT_DESTINATIONS = [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34].freeze
 
-    #    TEMPORARY_DESTINATIONS = [1, 15, 6, 14, 7, 27, 16, 4, 29, 18, 12, 13, 5, 2, 25, 32].freeze
-
     ES_SH = ES + SH
     ES_SH_TH = ES + SH + TH
     ES_SH_PH = ES + SH + PH
@@ -40,8 +38,8 @@ module HudSpmReport::Generators::Fy2020
     ES_SH_TH_PH_SO = ES + SH + TH + PH + SO
     PH_TH =  PH + TH
 
-    # RRH = [13].freeze
-    # PH_PSH = [3, 9, 10].freeze
+    RRH = [13].freeze
+    PH_PSH = [3, 9, 10].freeze
 
     UPSERT_KEY = [:report_instance_id, :client_id, :data_source_id].freeze
 
@@ -136,12 +134,47 @@ module HudSpmReport::Generators::Fy2020
       end
     end
 
+    private def process_scope_by_client(measure_name, scope, columns)
+      each_client_batch client_scope.where(id: scope.select(:client_id)) do |clients_by_id|
+        hashes = pluck_to_hash columns, scope.where(
+          client_id: clients_by_id.keys,
+        ).order(client_id: :asc)
+
+        hashes.group_by do |r|
+          r.fetch(:client_id)
+        end.each do |client_id, rows|
+          client = clients_by_id.fetch(client_id)
+          updated_columns = Set.new
+          pending_associations = {}
+          if (data = yield(client, rows))
+            updated_columns += data.keys
+            pending_associations[client] = build_report_client(client, data)
+          end
+          append_report_clients measure_name, pending_associations, updated_columns.to_a
+        end
+      end
+    end
+
     # TODO?: move to :HudReports::QuestionBase
     private def age_for_report(dob:, entry_date:, age:)
       # Age should be calculated at report start or enrollment start, whichever is greater
       return age if dob.blank? || entry_date > @report.start_date
 
       GrdaWarehouse::Hud::Client.age(dob: dob, date: @report.start_date)
+    end
+
+    private def build_report_client(client, data = {})
+      raise ArgmentError, 'wrong client type' unless client.is_a? ::GrdaWarehouse::Hud::Client
+      raise ArgmentError, 'data needs to be Hash-like' unless data.respond_to?(:merge)
+
+      report_client_universe.new data.merge(
+        report_instance_id: @report.id,
+        client_id: client.id,
+        data_source_id: client.data_source_id,
+        dob: client.DOB,
+        first_name: client.first_name,
+        last_name: client.last_name,
+      )
     end
 
     # Attach `pending_associations` a Hash mapping Client =>  report_client_universe
@@ -191,7 +224,7 @@ module HudSpmReport::Generators::Fy2020
       HudSpmReport::Fy2020::SpmClient
     end
 
-    # handy alias for the HudSpmReport::Fy2020::SpmClient
+    # handy alias for the report_client_universe table
     private def t
       report_client_universe.arel_table
     end
@@ -216,9 +249,6 @@ module HudSpmReport::Generators::Fy2020
       }
 
       updated_columns = [
-        :dob,
-        :first_name,
-        :last_name,
         :m1a_es_sh_days,
         :m1a_es_sh_th_days,
         :m1b_es_sh_ph_days,
@@ -226,9 +256,7 @@ module HudSpmReport::Generators::Fy2020
         :m1_history,
       ]
 
-      each_client_batch client_scope.where(
-        id: active_enrollments_scope.select(:client_id),
-      ) do |clients_by_id|
+      each_client_batch client_scope.where(id: active_enrollments_scope.select(:client_id)) do |clients_by_id|
         # select all the necessary service history
         # for this batch of clients
         nights_for_batch = pluck_to_hash shs_columns, services_scope.where(
@@ -261,15 +289,8 @@ module HudSpmReport::Generators::Fy2020
           end
 
           client = clients_by_id.fetch(client_id)
-
-          # append_report_clients needs AR Instances
-          report_client = report_client_universe.new(
-            report_instance_id: @report.id,
-            client_id: client.id,
-            data_source_id: client.data_source_id,
-            dob: client.DOB,
-            first_name: client.first_name,
-            last_name: client.last_name,
+          report_client = build_report_client(
+            client,
             m1_history: m1_history,
             m1a_es_sh_days: calculate_days_homeless(nights, ES_SH, PH_TH, false),
             m1a_es_sh_th_days: calculate_days_homeless(nights, ES_SH_TH, PH, false),
@@ -294,39 +315,10 @@ module HudSpmReport::Generators::Fy2020
       measure_three = 'Measure 3'
       return unless add_clients_for_question?(measure_three)
 
-      updated_columns = [
-        :dob,
-        :first_name,
-        :last_name,
-        :m3_active_project_types,
-      ]
-
-      m3_enrollments = active_enrollments_scope.hud_project_type(ES_SH_TH)
-
-      each_client_batch client_scope.where(
-        id: m3_enrollments.select(:client_id),
-      ) do |clients_by_id|
-        entries = pluck_to_hash SHE_COLUMNS, m3_enrollments.where(
-          client_id: clients_by_id.keys,
-        ).order(client_id: :asc)
-
-        m3_clients = entries.group_by do |e|
-          e[:client_id]
-        end.map do |client_id, client_enrollments|
-          client = clients_by_id.fetch(client_id)
-          m3_client = report_client_universe.new(
-            report_instance_id: @report.id,
-            client_id: client_id,
-            data_source_id: client.data_source_id,
-            dob: client.DOB,
-            first_name: client.first_name,
-            last_name: client.last_name,
-            m3_active_project_types: client_enrollments.map { |e| e[:project_type] }.uniq,
-          )
-          [client, m3_client]
-        end.to_h
-
-        append_report_clients measure_three, m3_clients, updated_columns
+      process_scope_by_client(measure_three, active_enrollments_scope.hud_project_type(ES_SH_TH), SHE_COLUMNS) do |_client, enrollments|
+        {
+          m3_active_project_types: enrollments.map { |e| e[:project_type] }.uniq,
+        }
       end
     end
 
@@ -353,163 +345,101 @@ module HudSpmReport::Generators::Fy2020
         GrantID: f_t[:GrantID],
       }.freeze
 
-      updated_columns = [
-        :dob,
-        :first_name,
-        :last_name,
-        :m4_stayer,
-        :m4_history,
-        :m4_latest_income,
-        :m4_latest_earned_income,
-        :m4_latest_non_earned_income,
-        :m4_earliest_income,
-        :m4_earliest_earned_income,
-        :m4_earliest_non_earned_income,
-      ].freeze
+      # 2. For metrics 4.1, 4.2 and 4.3 (adult system stayers), determine the
+      # relevant project stay and Income and Sources records attached to that
+      # stay for each client.  # a. Select each client’s project stays in
+      # which the client was active on the [report end date]
 
-      each_client_batch client_scope.where(
-        id: m4_stayers_scope.select(:client_id),
-      ) do |clients_by_id|
-        m4_clients = {}
-
-        # 2. For metrics 4.1, 4.2 and 4.3 (adult system stayers), determine the
-        # relevant project stay and Income and Sources records attached to that
-        # stay for each client.  # a. Select each client’s project stays in
-        # which the client was active on the [report end date]
-
-        # a. Select each client’s project stays in which the client was active on
-        # the [report end date] in any of the relevant projects as determined in step 1.
-        stays = pluck_to_hash stay_columns, m4_stayers_scope.
-          where(client_id: clients_by_id.keys).order(client_id: :asc, first_date_in_program: :asc)
-
-        stays.group_by do |e|
-          e[:client_id]
-        end.map do |client_id, enrollments|
-          # b. For each client, remove any stays where the [length of stay] is < 365 days.
-          # Use the calculation of [length of stay] as described in the HMIS Reporting
-          # Glossary, including time in the project prior to the [report start date].
-          long_enrollments = enrollments.select do |e|
-            # FIXME? N+1
-            night_count = if e[:project_tracking_method] == 3
-              GrdaWarehouse::ServiceHistoryService.
-                service.
-                where(
-                  client_id: e[:client_id],
-                  service_history_enrollment_id: e[:enrollment_id],
-                ).select(:date).distinct.count
-            else
-              # exiting on the same day is a stay of 0 days
-              ((e[:last_date_in_program] || @report.end_date) - e[:first_date_in_program])
-            end
-
-            # TODO? Note: this was > 365 in FY2019 but the spec says "at least"
-            night_count >= 365
+      # a. Select each client’s project stays in which the client was active on
+      # the [report end date] in any of the relevant projects as determined in step 1.
+      process_scope_by_client measure_four, m4_stayers_scope, stay_columns do |_client_id, enrollments|
+        # b. For each client, remove any stays where the [length of stay] is < 365 days.
+        # Use the calculation of [length of stay] as described in the HMIS Reporting
+        # Glossary, including time in the project prior to the [report start date].
+        long_enrollments = enrollments.select do |e|
+          # FIXME? N+1
+          night_count = if e[:project_tracking_method] == 3
+            GrdaWarehouse::ServiceHistoryService.
+              service.
+              where(
+                client_id: e[:client_id],
+                service_history_enrollment_id: e[:enrollment_id],
+              ).select(:date).distinct.count
+          else
+            # exiting on the same day is a stay of 0 days
+            ((e[:last_date_in_program] || @report.end_date) - e[:first_date_in_program])
           end
 
-          # c. For each client, remove all but the stay with the latest [project start date].
-          final_stay = long_enrollments.max_by { |e| e[:first_date_in_program] }
-          next unless final_stay
-
-          # d. For each client, remove the stay if the client’s age (as calculated according to
-          #    then HMIS Reporting Glossary) is less than 18.
-          final_stay[:age] = age_for_report(dob: final_stay[:DOB], entry_date: final_stay[:first_date_in_program], age: final_stay[:age])
-          next unless final_stay[:age].blank? || final_stay[:age] >= 18
-
-          # We only consider clients who have an initial income report
-          # e. The application of these filters will result in a dataset of
-          # project stays with no more than one stay per client. It is expected
-          # that some clients initially selected in step a. may have been removed
-          # completely from the dataset and from the entire measure.
-
-          final_stay = add_stayer_income(final_stay)
-
-          # h. Clients who are completely missing their earlier data point, i.e.
-          # clients missing Income and Sources at project start, are excluded
-          # entirely from the universe of clients. Report the total number of
-          # system stayers, excluding these clients, in cell C2.
-
-          # i. Clients who have been in the project 365 or more days but who are
-          # completely missing their later data point are included in the universe
-          # of clients (cell C2) but cannot be counted as having an increase in
-          # any type of income (cell C3). next unless final_stay
-          next unless final_stay
-
-          client = clients_by_id.fetch(client_id)
-          m4_client = report_client_universe.new(
-            report_instance_id: @report.id,
-            client_id: client_id,
-            data_source_id: client.data_source_id,
-            dob: client.DOB,
-            first_name: client.first_name,
-            last_name: client.last_name,
-            m4_stayer: true,
-            m4_history: enrollments,
-            m4_latest_income: final_stay[:latest_income],
-            m4_latest_earned_income: final_stay[:latest_earned_income],
-            m4_latest_non_earned_income: final_stay[:latest_non_earned_income],
-            m4_earliest_income: final_stay[:earliest_income],
-            m4_earliest_earned_income: final_stay[:earliest_earned_income],
-            m4_earliest_non_earned_income: final_stay[:earliest_non_earned_income],
-          )
-          m4_clients[client] = m4_client
+          # TODO? Note: this was > 365 in FY2019 but the spec says "at least"
+          night_count >= 365
         end
-        append_report_clients measure_four, m4_clients, updated_columns
+
+        # c. For each client, remove all but the stay with the latest [project start date].
+        final_stay = long_enrollments.max_by { |e| e[:first_date_in_program] }
+        next unless final_stay
+
+        # d. For each client, remove the stay if the client’s age (as calculated according to
+        #    then HMIS Reporting Glossary) is less than 18.
+        final_stay[:age] = age_for_report(dob: final_stay[:DOB], entry_date: final_stay[:first_date_in_program], age: final_stay[:age])
+        next unless final_stay[:age].blank? || final_stay[:age] >= 18
+
+        # We only consider clients who have an initial income report
+        # e. The application of these filters will result in a dataset of
+        # project stays with no more than one stay per client. It is expected
+        # that some clients initially selected in step a. may have been removed
+        # completely from the dataset and from the entire measure.
+
+        final_stay = add_stayer_income(final_stay)
+
+        # h. Clients who are completely missing their earlier data point, i.e.
+        # clients missing Income and Sources at project start, are excluded
+        # entirely from the universe of clients. Report the total number of
+        # system stayers, excluding these clients, in cell C2.
+
+        # i. Clients who have been in the project 365 or more days but who are
+        # completely missing their later data point are included in the universe
+        # of clients (cell C2) but cannot be counted as having an increase in
+        # any type of income (cell C3). next unless final_stay
+        next unless final_stay
+
+        {
+          m4_stayer: true,
+          m4_history: enrollments,
+          m4_latest_income: final_stay[:latest_income],
+          m4_latest_earned_income: final_stay[:latest_earned_income],
+          m4_latest_non_earned_income: final_stay[:latest_non_earned_income],
+          m4_earliest_income: final_stay[:earliest_income],
+          m4_earliest_earned_income: final_stay[:earliest_earned_income],
+          m4_earliest_non_earned_income: final_stay[:earliest_non_earned_income],
+        }
       end
 
-      each_client_batch client_scope.where(
-        id: m4_leavers_scope.select(:client_id),
-      ) do |clients_by_id|
-        m4_clients = {}
-        # 3. For metrics 4.4, 4.5 and 4.6 (adult system leavers), determine the
-        # relevant project stay and Income and Sources records attached to that
-        # stay for each client.
+      process_scope_by_client measure_four, m4_leavers_scope, stay_columns do |_client_id, enrollments|
+        # c. For each client, remove all but the stay with the latest [project start date].
+        final_stay = enrollments.max_by { |e| e[:first_date_in_program] }
+        next unless final_stay
 
-        # a. Select each client’s project stays in which the client exited during
-        # the report date range in any of the relevant projects as determined in
-        # step 1.
-        leavings = pluck_to_hash stay_columns, m4_leavers_scope.
-          where(client_id: clients_by_id.keys).order(client_id: :asc, first_date_in_program: :asc)
+        # d. For each client, remove the stay if the client’s age (as calculated according to
+        #    then HMIS Reporting Glossary) is less than 18.
+        final_stay[:age] = age_for_report(dob: final_stay[:DOB], entry_date: final_stay[:first_date_in_program], age: final_stay[:age])
+        next unless final_stay[:age].blank? || final_stay[:age] >= 18
 
-        leavings.group_by do |e|
-          e[:client_id]
-        end.map do |client_id, enrollments|
-          # c. For each client, remove all but the stay with the latest [project start date].
-          final_stay = enrollments.max_by { |e| e[:first_date_in_program] }
-          next unless final_stay
+        # d. Similar to the filtering performed on system stayers, these filters
+        # will result in a dataset of project stays with no more than one stay
+        # per client.
+        final_stay = add_leaver_income(final_stay)
+        next unless final_stay
 
-          # d. For each client, remove the stay if the client’s age (as calculated according to
-          #    then HMIS Reporting Glossary) is less than 18.
-          final_stay[:age] = age_for_report(dob: final_stay[:DOB], entry_date: final_stay[:first_date_in_program], age: final_stay[:age])
-          next unless final_stay[:age].blank? || final_stay[:age] >= 18
-
-          # d. Similar to the filtering performed on system stayers, these filters
-          # will result in a dataset of project stays with no more than one stay
-          # per client.
-          #
-
-          final_stay = add_leaver_income(final_stay)
-          next unless final_stay
-
-          client = clients_by_id.fetch(client_id)
-          m4_client = report_client_universe.new(
-            report_instance_id: @report.id,
-            client_id: client_id,
-            data_source_id: client.data_source_id,
-            dob: client.DOB,
-            first_name: client.first_name,
-            last_name: client.last_name,
-            m4_stayer: false,
-            m4_history: enrollments,
-            m4_latest_income: final_stay[:latest_income],
-            m4_latest_earned_income: final_stay[:latest_earned_income],
-            m4_latest_non_earned_income: final_stay[:latest_non_earned_income],
-            m4_earliest_income: final_stay[:earliest_income],
-            m4_earliest_earned_income: final_stay[:earliest_earned_income],
-            m4_earliest_non_earned_income: final_stay[:earliest_non_earned_income],
-          )
-          m4_clients[client] = m4_client
-        end
-        append_report_clients measure_four, m4_clients, updated_columns
+        {
+          m4_stayer: false,
+          m4_history: enrollments,
+          m4_latest_income: final_stay[:latest_income],
+          m4_latest_earned_income: final_stay[:latest_earned_income],
+          m4_latest_non_earned_income: final_stay[:latest_non_earned_income],
+          m4_earliest_income: final_stay[:earliest_income],
+          m4_earliest_earned_income: final_stay[:earliest_earned_income],
+          m4_earliest_non_earned_income: final_stay[:earliest_non_earned_income],
+        }
       end
     end
 
@@ -518,86 +448,55 @@ module HudSpmReport::Generators::Fy2020
       # TODO?: merge with M3
       return unless add_clients_for_question?(measure_five)
 
-      updated_columns = [
-        :dob,
-        :first_name,
-        :last_name,
-        :m5_active_project_types,
-      ]
-
-      m5_enrollments = m5_enrollments_scope
-
-      each_client_batch client_scope.where(
-        id: m5_enrollments.select(:client_id),
-      ) do |clients_by_id|
-        entries = pluck_to_hash SHE_COLUMNS, m5_enrollments.where(
-          client_id: clients_by_id.keys,
-        ).order(client_id: :asc)
-
-        m5_clients = {}
-
-        entries.group_by do |e|
-          e[:client_id]
-        end.map do |client_id, client_enrollments|
-          # 1. Select clients entering any of the applicable project types in the report date range
-          active_enrollments = client_enrollments.select do |e|
-            (
-              e[:project_type].in? ES_SH_TH_PH
-            ) && (
-              e[:first_date_in_program] >= @report.start_date && e[:first_date_in_program] <= @report.end_date
-            )
-          end
-          # We might not have any since we are fetching all clients with recent history
-          next if active_enrollments.none?
-
-          # 2. Report the total distinct number of clients in cell C2. (will happen later)
-
-          # 3. Of the project stay records selected in step 1, get the earliest [project start date]
-          # for each client. This becomes the [client start date].
-          client_start = active_enrollments.map { |e| e[:first_date_in_program] }.min
-
-          # 4. Working backwards in time using data from ES, SH, TH and PH projects, determine if the
-          # client was active in any project on or prior to the [client start date].
-          # Look backwards up to ( [project start date] - 730 days ) or the [Lookback Stop Date], whichever is later.
-          # a. In the case of metric 5.1, the projects scanned for client presence
-          # is different from the projects used in the initial selection of data
-          # in step 1. For metric 5.2, the projects scanned for client presence is
-          # the same.
-          # b. Search for project stays where [project start date] < [client start
-          # date] and [project exit date] is null or [project exit date] >=
-          # greater of ( [Lookback Stop Date] and ( [client start date] – 730 days
-          # ) )
-          # c. If a match is found, report the client in cell C3. Report the
-          # client no more than once regardless of how many prior project stays
-          # were found for the client.
-          last_date_cutoff = [client_start - 730.days, LOOKBACK_STOP_DATE].max
-          prior_enrollments = client_enrollments.select do |e|
-            (
-              e[:project_type].in? ES_SH_TH_PH
-            ) && (
-              e[:first_date_in_program] < client_start &&
-              (e[:last_date_in_program].nil? || e[:last_date_in_program] >= last_date_cutoff)
-            )
-          end
-
-          # 5. Because each client may be counted no more than once in cells
-          # C2 and C3, cell C4 is a simple formula indicated in the table shell above. (happens later)
-          client = clients_by_id.fetch(client_id)
-          m5_client = report_client_universe.new(
-            report_instance_id: @report.id,
-            client_id: client_id,
-            data_source_id: client.data_source_id,
-            dob: client.DOB,
-            first_name: client.first_name,
-            last_name: client.last_name,
-            m5_active_project_types: active_enrollments.map { |e| e[:project_type] }.uniq,
-            m5_recent_project_types: prior_enrollments.map { |e| e[:project_type] }.uniq,
-            m5_history: prior_enrollments + active_enrollments,
+      process_scope_by_client measure_five, m5_enrollments_scope, SHE_COLUMNS do |_client_id, client_enrollments|
+        # 1. Select clients entering any of the applicable project types in the report date range
+        active_enrollments = client_enrollments.select do |e|
+          (
+            e[:project_type].in? ES_SH_TH_PH
+          ) && (
+            e[:first_date_in_program] >= @report.start_date && e[:first_date_in_program] <= @report.end_date
           )
-          m5_clients[client] = m5_client
+        end
+        # We might not have any since we are fetching all clients with recent history
+        next if active_enrollments.none?
+
+        # 2. Report the total distinct number of clients in cell C2.
+        # (will happen later)
+
+        # 3. Of the project stay records selected in step 1, get the earliest [project start date]
+        # for each client. This becomes the [client start date].
+        client_start = active_enrollments.map { |e| e[:first_date_in_program] }.min
+
+        # 4. Working backwards in time using data from ES, SH, TH and PH projects, determine if the
+        # client was active in any project on or prior to the [client start date].
+        # Look backwards up to ( [project start date] - 730 days ) or the [Lookback Stop Date], whichever is later.
+        # a. In the case of metric 5.1, the projects scanned for client presence
+        # is different from the projects used in the initial selection of data
+        # in step 1. For metric 5.2, the projects scanned for client presence is
+        # the same.
+        # b. Search for project stays where [project start date] < [client start
+        # date] and [project exit date] is null or [project exit date] >=
+        # greater of ( [Lookback Stop Date] and ( [client start date] – 730 days ) )
+        # c. If a match is found, report the client in cell C3. Report the
+        # client no more than once regardless of how many prior project stays
+        # were found for the client.
+        last_date_cutoff = [client_start - 730.days, LOOKBACK_STOP_DATE].max
+        prior_enrollments = client_enrollments.select do |e|
+          (
+            e[:project_type].in? ES_SH_TH_PH
+          ) && (
+            e[:first_date_in_program] < client_start &&
+            (e[:last_date_in_program].nil? || e[:last_date_in_program] >= last_date_cutoff)
+          )
         end
 
-        append_report_clients measure_five, m5_clients, updated_columns
+        # 5. Because each client may be counted no more than once in cells
+        # C2 and C3, cell C4 is a simple formula indicated in the table shell above. (happens later)
+        {
+          m5_active_project_types: active_enrollments.map { |e| e[:project_type] }.uniq,
+          m5_recent_project_types: prior_enrollments.map { |e| e[:project_type] }.uniq,
+          m5_history: prior_enrollments + active_enrollments,
+        }
       end
     end
 
@@ -611,6 +510,90 @@ module HudSpmReport::Generators::Fy2020
     end
 
     private def add_m7_clients
+      measure_seven = 'Measure 7'
+      return unless add_clients_for_question?(measure_seven)
+
+      m7_enrollments = add_filters GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
+        start_date: @report.start_date,
+        end_date: @report.end_date + 1.day,
+      )
+      process_scope_by_client measure_seven, m7_enrollments, SHE_COLUMNS do |_client_id, client_enrollments|
+        # Table 7a.1
+
+        # 1. Select leavers across all SO projects in the in the report date
+        # range. A “leaver” in this metric means the client must have exited an
+        # SO project in the report date range and was not active in that or any
+        # other SO project as of the [report end date].
+
+        # 2. Of the project exits selected in step 1, determine the latest
+        # project exit for each client.
+
+        # 3. Reference the destinations of the project exits against Appendix A
+        # (row headers) and the “SO” column. Destinations indicated with an X
+        # (values 6, 29, and 24) cause leavers with those destinations to be
+        # completely excluded from the entire measure (all of column C).
+
+        # TODO
+
+        # Table 7b.1
+
+        # 1. Select leavers across all ES, SH, TH, PH-RRH, and PH projects in
+        # the in the report date range. A “leaver” in this metric means the
+        # client must have exited from a project of one of the given types in
+        # the report date range and was not active in that or any other project
+        # among the given types as of the [report end date].
+
+        # 2. Of the project exits selected in step 1, determine the latest
+        # project exit for each client.
+
+        # 3. If the latest exit was from a PH project (types 3, 9 and 10) where
+        # the [housing move-in date] is <= [report end date], exclude the client
+        # completely from this measure (the client will be reported in measure
+        # 7b.2). If the latest exit was from project types 3, 9 and 10 and there
+        # is no [housing move-in date] for that stay, the client is included in
+        # this measure.
+
+        # 4. Reference the destinations of the project exits against Appendix A
+        # (row headers) using the project type from which the exit occurred
+        # (column headers). Destinations indicated with an X (values 15, 6, 25,
+        # 24) cause leavers with those destinations to be completely excluded
+        # from the entire measure (all of column C).
+
+        # TODO
+
+        # Table 7b.2
+
+        # 1. Select stayers and leavers across selected PH projects (types 3, 9
+        # and 10). A “leaver” in this metric means the client must have exited
+        # from a project of one of the given types in the report date range and
+        # was not active in that or any other project among the given types as
+        # of the [report end date].
+
+        # 2. Data from PH-RRH projects is completely excluded from this metric.
+
+        # 3. Of the stayers selected in step 1, if the latest stay has no
+        # [housing move in date], or the [housing move-in date] is > [report end
+        # date], exclude the client completely from this measure.
+
+        # 4. Of the leavers selected in step 1, determine the latest project
+        # exit for each client. If there is no [housing move-in date] for that
+        # stay, the client is completely excluded from this measure (the client
+        # will be reported in 7b.1).
+
+        # 5. Reference the destinations of the project exits against Appendix A
+        # (row headers) and the “PH (all)” column. Destinations indicated with
+        # an X (values 15, 6, 25, 24) cause leavers with those destinations to
+        # be completely excluded from the entire measure (all of column C).
+
+        # TODO
+
+        {
+          m7a1_destination: nil,
+          m7b1_destination: nil,
+          m7b2_destination: nil,
+          m7_history: client_enrollments,
+        }
+      end
     end
 
     # m2 and m6 use almost the same logic
@@ -664,7 +647,7 @@ module HudSpmReport::Generators::Fy2020
           client = clients_by_id.fetch(client_id)
           spm_client = report_client_universe.new(
             report_instance_id: @report.id,
-            client_id: client_id,
+            client_id: client.id,
             data_source_id: client.data_source_id,
             dob: client.DOB,
             first_name: client.first_name,

@@ -36,10 +36,25 @@ module HudSpmReport::Generators::Fy2020
         5 => '% Successful exits',
       }.freeze, CHANGE_TABLE_COLS
 
-      c2 = universe.members
-      c3 = c2.none
-      c4 = c2.none
+      # 4. Of the remaining leavers, report the distinct number of clients in
+      # cell C2.
+      c2 = universe.members.where(t[:m7a1_destination].not_eq(0))
 
+      # 5. Of the remaining leavers, report the distinct number of clients
+      # whose destination is “temporary or institutional” as indicated with a
+      #  (values 1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32) in Appendix A in
+      # cell C3.
+      c3 = c2.where(t[:m7a1_destination].in?([1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32])) # FIXME: was [1, 15, 14, 18, 27, 4, 12, 13, 5, 2, 25] in FY2019 impl
+
+      # 6. Of the remaining leavers, report the distinct number of clients
+      # whose destination is “permanent” as indicated with a X (values 26, 11,
+      # 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34) in Appendix A in cell C4.
+      c4 = c2.where(t[:m7a1_destination].in?(PERMANENT_DESTINATIONS))
+
+      # 7. Because each client is reported only once in cell C2 and no more
+      # than once in cells C3 and C4, cell C5 is a simple formula indicated in
+      # the table shell. The HMIS system should still generate this number to
+      # 2 decimals places.
       handle_clause_based_cells table_name, [
         ['C2', c2, c2.count],
         ['C3', c3, c3.count],
@@ -55,9 +70,19 @@ module HudSpmReport::Generators::Fy2020
         4 => '% Successful exits',
       }.freeze, CHANGE_TABLE_COLS
 
-      c2 = universe.members
-      c3 = c2.none
+      # 5. Of the remaining leavers, report the distinct number of clients in
+      # cell C2.
+      c2 = universe.members.where(t[:m7b1_destination].not_eq(0))
 
+      # 6. Of the remaining leavers, report the distinct number of clients
+      # whose destination is “permanent” as indicated with a  (values 26, 11,
+      # 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34) in Appendix A in cell C3.
+      c3 = c2.where(t[:m7b1_destination].in?(PERMANENT_DESTINATIONS))
+
+      # 7. Because each client is reported only once in cell C2 and no more
+      # than once in cell C3, cell C4 is a simple formula indicated in the
+      # table shell. The HMIS system should still generate these numbers to 2
+      # decimals places.
       handle_clause_based_cells table_name, [
         ['C2', c2, c2.count],
         ['C3', c3, c3.count],
@@ -72,8 +97,20 @@ module HudSpmReport::Generators::Fy2020
         4 => '% Successful exits/retention',
       }.freeze, CHANGE_TABLE_COLS
 
-      c2 = universe.members
-      c3 = c2.none
+      # 6. Of the selected clients, report the distinct number of stayers and
+      # leavers in cell C2.
+      c2 = universe.members.where(t[:m7b2_destination].not_eq(0))
+
+      # 7. Of the selected clients, report the distinct number of leavers
+      # whose destination is “permanent” as indicated with a  (values 26, 11,
+      # 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34) in Appendix A + the
+      # distinct number of stayers in cell C3.
+      c3 = c2.where(t[:m7b2_destination].in?(PERMANENT_DESTINATIONS))
+
+      # 8. Because each client is reported only once in cell C2 and no more
+      # than once in cell C3, cell C4 is a simple formula indicated in the
+      # table shell. The HMIS system should still generate these numbers to 2
+      # decimals places.
 
       handle_clause_based_cells table_name, [
         ['C2', c2, c2.count],
