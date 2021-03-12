@@ -7,6 +7,7 @@
 class ClientsController < ApplicationController
   include AjaxModalRails::Controller
   include ClientController
+  include ClientShowPages
   include ArelHelper
   include ClientPathGenerator
 

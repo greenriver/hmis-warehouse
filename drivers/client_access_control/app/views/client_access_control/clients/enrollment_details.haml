@@ -1,0 +1,13 @@
+- title = @client.full_name
+- content_for :title, title
+= render 'clients/breadcrumbs'
+
+.o-page
+  .o-page__header.d-block
+    = render 'clients/aliases'
+  = render 'clients/tab_navigation', current: enrollment_details_client_path(@client)
+
+  - if can_view_clients_or_window?
+    = render 'client_access_control/clients/enrollment_details/enrollment_rollups'
+
+= render 'client_access_control/clients/client_rollup_js'

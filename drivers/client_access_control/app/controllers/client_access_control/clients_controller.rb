@@ -9,6 +9,7 @@ class ClientAccessControl::ClientsController < ApplicationController
   # include ClientController
   include ClientAccessControl::SearchConcern
   include ClientAccessControl::ClientConcern
+  include ClientShowPages
   include ArelHelper
   include ClientPathGenerator
 

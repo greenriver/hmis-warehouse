@@ -5,10 +5,10 @@ BostonHmis::Application.routes.draw do
       get :simple
       get :image
       get :enrollment_details
-      resource :history, only: [:show], controller: 'client_access_control/history' do
-        get :pdf, on: :collection
-        post :queue, on: :collection
-      end
+    end
+    resource :history, only: [:show], controller: 'client_access_control/history' do
+      get :pdf, on: :collection
+      post :queue, on: :collection
     end
   end
 end
